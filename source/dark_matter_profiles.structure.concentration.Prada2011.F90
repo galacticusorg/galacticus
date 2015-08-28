@@ -44,7 +44,7 @@ contains
     use Input_Parameters
     implicit none
     type(darkMatterProfileConcentrationPrada2011)                :: prada2011ConstructorParameters
-    type(inputParameters                        ), intent(in   ) :: parameters
+    type(inputParameters                        ), intent(inout) :: parameters
     !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.

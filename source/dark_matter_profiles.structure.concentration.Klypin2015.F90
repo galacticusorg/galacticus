@@ -91,7 +91,7 @@ contains
     use Galacticus_Error
     implicit none
     type(darkMatterProfileConcentrationKlypin2015)                :: klypin2015ConstructorParameters
-    type(inputParameters                         ), intent(in   ) :: parameters
+    type(inputParameters                         ), intent(inout) :: parameters
     type(varying_string                          )                :: sample
     !# <inputParameterList label="allowedParameterNames" />
 

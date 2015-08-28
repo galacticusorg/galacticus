@@ -122,7 +122,7 @@ contains
     use Input_Parameters2
     implicit none
     type (cosmologyFunctionsMatterLambda)                :: matterLambdaConstructorParameters
-    type (inputParameters               ), intent(in   ) :: parameters
+    type (inputParameters               ), intent(inout) :: parameters
     class(cosmologyParametersClass      ), pointer       :: cosmologyParameters_
 
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>

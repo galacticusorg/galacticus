@@ -42,7 +42,7 @@ contains
     use Cosmology_Functions
     implicit none
     type (mergerTreeOperatorPruneByTime)                :: pruneByTimeConstructorParameters
-    type (inputParameters              ), intent(in   ) :: parameters
+    type (inputParameters              ), intent(inout) :: parameters
     class(cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
     !# <inputParameterList label="allowedParameterNames" />
         

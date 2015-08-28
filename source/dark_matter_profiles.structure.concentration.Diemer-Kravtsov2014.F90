@@ -51,7 +51,7 @@ contains
     !% profile concentration class.
     implicit none
     type(darkMatterProfileConcentrationDiemerKravtsov2014)                :: diemerKravtsov2014ConstructorParameters
-    type(inputParameters                                 ), intent(in   ) :: parameters
+    type(inputParameters                                 ), intent(inout) :: parameters
     !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.

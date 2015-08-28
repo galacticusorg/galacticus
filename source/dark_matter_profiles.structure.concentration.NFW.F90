@@ -45,7 +45,7 @@ contains
     use Input_Parameters
     implicit none
     type(darkMatterProfileConcentrationNFW1996)                :: nfw1996ConstructorParameters
-    type(inputParameters                      ), intent(in   ) :: parameters
+    type(inputParameters                      ), intent(inout) :: parameters
     !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.

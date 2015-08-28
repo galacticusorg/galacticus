@@ -172,7 +172,7 @@ contains
     use Memory_Management
     implicit none
     type            (mergerTreeOperatorConditionalMF)                            :: conditionalMFConstructorParameters
-    type            (inputParameters                ), intent(in   )             :: parameters
+    type            (inputParameters                ), intent(inout)             :: parameters
     double precision                                 , allocatable, dimension(:) :: progenitorRedshifts               , parentRedshifts
     integer                                                                      :: parentMassCount                   , massRatioCount       , &
          &                                                                          primaryProgenitorDepth            , subhaloHierarchyDepth

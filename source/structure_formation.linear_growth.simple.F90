@@ -65,7 +65,7 @@ contains
     use Input_Parameters2
     implicit none
     type (linearGrowthSimple      )                :: simpleConstructorParameters
-    type (inputParameters         ), intent(in   ) :: parameters
+    type (inputParameters         ), intent(inout) :: parameters
     class(cosmologyParametersClass), pointer       :: cosmologyParameters_    
     class(cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_    
 

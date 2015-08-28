@@ -49,7 +49,7 @@ contains
     use Input_Parameters2
     implicit none
     type   (mergerTreeOperatorExport)                :: exportConstructorParameters
-    type   (inputParameters         ), intent(in   ) :: parameters
+    type   (inputParameters         ), intent(inout) :: parameters
     type   (varying_string          )                   outputFileName             , exportFormatText
     integer                                          :: exportFormat
     !# <inputParameterList label="allowedParameterNames" />

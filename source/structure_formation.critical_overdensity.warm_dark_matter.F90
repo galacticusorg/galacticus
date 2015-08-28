@@ -62,7 +62,7 @@ contains
     use Input_Parameters2
     implicit none
     type            (criticalOverdensityBarkana2001WDM)                :: barkana2001WDMConstructorParameters
-    type            (inputParameters                  ), intent(in   ) :: parameters
+    type            (inputParameters                  ), intent(inout) :: parameters
     class           (criticalOverdensityClass         ), pointer       :: criticalOverdensityCDM
     class           (cosmologyParametersClass         ), pointer       :: cosmologyParameters_
     double precision                                                   :: gX                                 , mX
@@ -382,13 +382,11 @@ contains
     implicit none
     class    (criticalOverdensityBarkana2001WDM), intent(inout) :: self
     type     (inputParameters                  ), intent(inout) :: descriptor
-    type     (node                             ), pointer       :: parameterNode
     type     (inputParameters                  )                :: subParameters
     character(len=10                           )                :: parameterLabel
 
     call descriptor%addParameter("criticalOverdensityMethod","barkana2001WDM")
-    parameterNode => descriptor%node("criticalOverdensityMethod")
-    subParameters=inputParameters(parameterNode)
+    subParameters=descriptor%subparameters("criticalOverdensityMethod")
     write (parameterLabel,'(f10.6)') self%gX
     call subParameters%addParameter("gX"                ,trim(adjustl(parameterLabel)))
     write (parameterLabel,'(f10.6)') self%mX

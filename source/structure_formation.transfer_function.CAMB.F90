@@ -70,7 +70,7 @@ contains
     use Input_Parameters2
     implicit none
     type(transferFunctionCAMB     )                :: cambConstructorParameters
-    type(inputParameters          ), intent(in   ) :: parameters
+    type(inputParameters          ), intent(inout) :: parameters
     class(cosmologyParametersClass), pointer       :: cosmologyParameters_    
 
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
@@ -235,14 +235,12 @@ contains
     use Input_Parameters2
     use FoX_DOM
     implicit none
-    class    (transferFunctionCAMB), intent(inout) :: self
-    type     (inputParameters     ), intent(inout) :: descriptor
-    type     (node                ), pointer       :: parameterNode
-    type     (inputParameters     )                :: subParameters
+    class(transferFunctionCAMB), intent(inout) :: self
+    type (inputParameters     ), intent(inout) :: descriptor
+    type (inputParameters     )                :: subParameters
 
     call descriptor%addParameter("transferFunctionMethod","CAMB")
-    parameterNode => descriptor%node("transferFunctionMethod")
-    subParameters=inputParameters(parameterNode)
+    subParameters=descriptor%subparameters("transferFunctionMethod")
     call self%cosmologyParameters_%descriptor(subParameters)
     return
   end subroutine cambDescriptor

@@ -56,7 +56,7 @@ contains
     use Cosmology_Functions
     implicit none
     type            (mergerTreeOperatorRegridTimes)                              :: regridTimesConstructorParameters
-    type            (inputParameters              ), intent(in   )               :: parameters
+    type            (inputParameters              ), intent(inout)               :: parameters
     class           (cosmologyFunctionsClass      ), pointer                     :: cosmologyFunctions_
     double precision                               , allocatable  , dimension(:) :: snapshotTimes
     logical                                                                      :: dumpTrees

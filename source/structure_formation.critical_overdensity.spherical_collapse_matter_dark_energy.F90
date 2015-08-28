@@ -43,7 +43,7 @@ contains
     use Input_Parameters2
     implicit none
     type(criticalOverdensitySphericalCollapseMatterDE)                :: sphericalCollapseMatterDEConstructorParameters
-    type(inputParameters                             ), intent(in   ) :: parameters
+    type(inputParameters                             ), intent(inout) :: parameters
 
     !# <objectBuilder class="linearGrowth"       name="sphericalCollapseMatterDEConstructorParameters%linearGrowth_"       source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions" name="sphericalCollapseMatterDEConstructorParameters%cosmologyFunctions_" source="parameters"/>

@@ -51,7 +51,7 @@ contains
     !% Constructor for the prune-hierarchy merger tree operator class which takes a parameter set as input.
     implicit none
     type   (mergerTreeOperatorPruneHierarchy)                :: pruneHierarchyConstructorParameters
-    type   (inputParameters                 ), intent(in   ) :: parameters
+    type   (inputParameters                 ), intent(inout) :: parameters
     integer                                                  :: hierarchyDepth
     !# <inputParameterList label="allowedParameterNames" />
         

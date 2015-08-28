@@ -595,8 +595,8 @@ contains
     integer  (kind=hid_t               ), allocatable  , dimension(:) :: openObjectIDs
     integer  (kind=size_t              ), parameter                   :: objectNameSizeMaximum=1024
     integer                                                           :: errorCode
-    integer  (kind=size_t              )                              :: i                         , objectNameSize, &
-         &                                                               openObjectCount
+    integer  (kind=size_t              )                              :: i                         , objectNameSize        , &
+         &                                                               openObjectCount           , nonRootOpenObjectCount
     type     (varying_string           )                              :: message
     character(len=objectNameSizeMaximum)                              :: objectName
 
@@ -619,18 +619,35 @@ contains
           message="unable to count open objects in file object '"//thisObject%objectName//"'"
           call Galacticus_Error_Report('IO_HDF5_Close',message)
        end if
-       if (openObjectCount > 2) then
+       allocate(openObjectIDs(openObjectCount))
+       call h5fget_obj_ids_f(thisObject%objectID,H5F_OBJ_ALL_F,openObjectCount,openObjectIDs,errorCode)
+       if (errorCode /= 0) then
+          message="unable to get IDs of open objects in file object '"//thisObject%objectName//"'"
+          call Galacticus_Error_Report('IO_HDF5_Close',message)
+       end if
+       nonRootOpenObjectCount=0
+       if (openObjectCount > 1) then
+          do i=1,openObjectCount
+             call h5iget_name_f(openObjectIDs(i),objectName,objectNameSizeMaximum,objectNameSize,errorCode)
+             if (errorCode /= 0) then
+                message="unable to get name of open object in file object '"//thisObject%objectName//"'"
+                call Galacticus_Error_Report('IO_HDF5_Close',message)
+             end if
+             if (trim(objectName) /= "/") nonRootOpenObjectCount=nonRootOpenObjectCount+1
+          end do
+       end if
+       if (nonRootOpenObjectCount > 0) then          
           message=""
-          message=message//openObjectCount//" open object(s) remain in file object '"//thisObject%objectName//"'"
+          message=message//nonRootOpenObjectCount//" open object(s) remain in file object '"//thisObject%objectName//"'"
           call Galacticus_Display_Indent('Problem closing HDF5 file')
           call Galacticus_Display_Message(message)
-          allocate(openObjectIDs(openObjectCount))
-          call h5fget_obj_ids_f(thisObject%objectID,H5F_OBJ_ALL_F,openObjectCount,openObjectIDs,errorCode)
+          allocate(openObjectIDs(nonRootOpenObjectCount))
+          call h5fget_obj_ids_f(thisObject%objectID,H5F_OBJ_ALL_F,nonRootOpenObjectCount,openObjectIDs,errorCode)
           if (errorCode /= 0) then
              message="unable to get IDs of open objects in file object '"//thisObject%objectName//"'"
              call Galacticus_Error_Report('IO_HDF5_Close',message)
           end if
-          do i=1,openObjectCount
+          do i=1,nonRootOpenObjectCount
              call h5iget_name_f(openObjectIDs(i),objectName,objectNameSizeMaximum,objectNameSize,errorCode)
              if (errorCode /= 0) then
                 message="unable to get name of open object in file object '"//thisObject%objectName//"'"
@@ -1146,7 +1163,7 @@ contains
     !% Open and write an integer scalar attribute in {\normalfont \ttfamily thisObject}.
     use Galacticus_Error
     implicit none
-    class    (hdf5Object    ), intent(inout), target   :: thisObject
+    class    (hdf5Object    ), intent(inout)           :: thisObject
     character(len=*         ), intent(in   ), optional :: attributeName
     integer                  , intent(in   )           :: attributeValue
     integer  (kind=HSIZE_T  ), dimension(1)            :: attributeDimensions
@@ -1222,7 +1239,7 @@ contains
     !% Open and write an integer 1-D array attribute in {\normalfont \ttfamily thisObject}.
     use Galacticus_Error
     implicit none
-    class    (hdf5Object    )              , intent(inout), target   :: thisObject
+    class    (hdf5Object    )              , intent(inout)           :: thisObject
     character(len=*         )              , intent(in   ), optional :: attributeName
     integer                  , dimension(:), intent(in   )           :: attributeValue
     integer  (kind=HSIZE_T  ), dimension(1)                          :: attributeDimensions
@@ -1302,7 +1319,7 @@ contains
     use Galacticus_Error
     use Kind_Numbers
     implicit none
-    class    (hdf5Object    ), intent(inout), target   :: thisObject
+    class    (hdf5Object    ), intent(inout)           :: thisObject
     character(len=*         ), intent(in   ), optional :: attributeName
     integer  (kind=kind_int8), intent(in   ), target   :: attributeValue
     integer                                            :: errorCode
@@ -1383,7 +1400,7 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    class    (hdf5Object    )                           , intent(inout), target   :: thisObject
+    class    (hdf5Object    )                           , intent(inout)           :: thisObject
     character(len=*         )                           , intent(in   ), optional :: attributeName
     integer  (kind=kind_int8)             , dimension(:), intent(in   )           :: attributeValue
     integer  (kind=HSIZE_T  )             , dimension(1)                          :: attributeDimensions
@@ -1470,7 +1487,7 @@ contains
     !% Open and write an double scalar attribute in {\normalfont \ttfamily thisObject}.
     use Galacticus_Error
     implicit none
-    class           (hdf5Object    ), intent(inout), target   :: thisObject
+    class           (hdf5Object    ), intent(inout)           :: thisObject
     character       (len=*         ), intent(in   ), optional :: attributeName
     double precision                , intent(in   )           :: attributeValue
     integer         (kind=HSIZE_T  ), dimension(1)            :: attributeDimensions
@@ -1548,7 +1565,7 @@ contains
     !% Open and write an double 1-D array attribute in {\normalfont \ttfamily thisObject}.
     use Galacticus_Error
     implicit none
-    class           (hdf5Object    )              , intent(inout), target   :: thisObject
+    class           (hdf5Object    )              , intent(inout)           :: thisObject
     character       (len=*         )              , intent(in   ), optional :: attributeName
     double precision                , dimension(:), intent(in   )           :: attributeValue
     integer         (kind=HSIZE_T  ), dimension(1)                          :: attributeDimensions
@@ -1627,7 +1644,7 @@ contains
     !% Open and write an character scalar attribute in {\normalfont \ttfamily thisObject}.
     use Galacticus_Error
     implicit none
-    class    (hdf5Object    ), intent(inout), target   :: thisObject
+    class    (hdf5Object    ), intent(inout)           :: thisObject
     character(len=*         ), intent(in   ), optional :: attributeName
     character(len=*         ), intent(in   )           :: attributeValue
     integer  (kind=HSIZE_T  ), dimension(1)            :: attributeDimensions
@@ -1725,7 +1742,7 @@ contains
     !% Open and write an character 1-D array attribute in {\normalfont \ttfamily thisObject}.
     use Galacticus_Error
     implicit none
-    class    (hdf5Object    )              , intent(inout), target   :: thisObject
+    class    (hdf5Object    )              , intent(inout)           :: thisObject
     character(len=*         )              , intent(in   ), optional :: attributeName
     character(len=*         ), dimension(:), intent(in   )           :: attributeValue
     integer  (kind=HSIZE_T  ), dimension(1)                          :: attributeDimensions
@@ -1816,7 +1833,7 @@ contains
   subroutine IO_HDF5_Write_Attribute_VarString_Scalar(thisObject,attributeValue,attributeName)
     !% Open and write a varying string scalar attribute in {\normalfont \ttfamily thisObject}.
     implicit none
-    class    (hdf5Object    ), intent(inout), target   :: thisObject
+    class    (hdf5Object    ), intent(inout)           :: thisObject
     character(len=*         ), intent(in   ), optional :: attributeName
     type     (varying_string), intent(in   )           :: attributeValue
 
@@ -1830,7 +1847,7 @@ contains
     !% Open and write a varying string 1-D array attribute in {\normalfont \ttfamily thisObject}.
     use String_Handling
     implicit none
-    class    (hdf5Object    )              , intent(inout), target   :: thisObject
+    class    (hdf5Object    )              , intent(inout)           :: thisObject
     character(len=*         )              , intent(in   ), optional :: attributeName
     type     (varying_string), dimension(:), intent(in   )           :: attributeValue
 
@@ -1845,7 +1862,7 @@ contains
     use Galacticus_Error
     implicit none
     integer                                , intent(  out)           :: attributeValue
-    class    (hdf5Object    )              , intent(inout), target   :: thisObject
+    class    (hdf5Object    )              , intent(inout)           :: thisObject
     character(len=*         )              , intent(in   ), optional :: attributeName
     logical                                , intent(in   ), optional :: allowPseudoScalar
     integer                  , dimension(1)                          :: pseudoScalarValue
@@ -1959,7 +1976,7 @@ contains
     use Memory_Management
     implicit none
     integer                  , allocatable, dimension(:), intent(  out)           :: attributeValue
-    class    (hdf5Object    )                           , intent(inout), target   :: thisObject
+    class    (hdf5Object    )                           , intent(inout)           :: thisObject
     character(len=*         )                           , intent(in   ), optional :: attributeName
     integer  (kind=HSIZE_T  )             , dimension(1)                          :: attributeDimensions , attributeMaximumDimensions
     integer                                                                       :: errorCode
@@ -2053,7 +2070,7 @@ contains
     use Galacticus_Error
     implicit none
     integer                  , dimension(:), intent(  out)           :: attributeValue
-    class    (hdf5Object    )              , intent(inout), target   :: thisObject
+    class    (hdf5Object    )              , intent(inout)           :: thisObject
     character(len=*         )              , intent(in   ), optional :: attributeName
     integer  (kind=HSIZE_T  ), dimension(1)                          :: attributeDimensions , attributeMaximumDimensions
     integer                                                          :: errorCode
@@ -2150,7 +2167,7 @@ contains
     use Galacticus_Error
     implicit none
     integer  (kind=kind_int8)              , intent(  out)          , target :: attributeValue
-    class    (hdf5Object    )              , intent(inout)          , target :: thisObject
+    class    (hdf5Object    )              , intent(inout)                   :: thisObject
     character(len=*         )              , intent(in   ), optional         :: attributeName
     logical                                , intent(in   ), optional         :: allowPseudoScalar
     integer  (kind=kind_int8), dimension(1)                                  :: pseudoScalarValue
@@ -2266,7 +2283,7 @@ contains
     use Kind_Numbers
     implicit none
     integer  (kind=kind_int8), allocatable, dimension(:), intent(  out), target   :: attributeValue
-    class    (hdf5Object    )                           , intent(inout), target   :: thisObject
+    class    (hdf5Object    )                           , intent(inout)           :: thisObject
     character(len=*         )                           , intent(in   ), optional :: attributeName
     integer  (kind=HSIZE_T  )             , dimension(1)                          :: attributeDimensions , attributeMaximumDimensions
     integer                                                                       :: errorCode
@@ -2363,7 +2380,7 @@ contains
     use Kind_Numbers
     implicit none
     integer  (kind=kind_int8)             , dimension(:), intent(  out)           :: attributeValue
-    class    (hdf5Object    )                           , intent(inout), target   :: thisObject
+    class    (hdf5Object    )                           , intent(inout)           :: thisObject
     character(len=*         )                           , intent(in   ), optional :: attributeName
     integer  (kind=HSIZE_T  )             , dimension(1)                          :: attributeDimensions     , attributeMaximumDimensions
     integer  (kind=kind_int8), allocatable, dimension(:)               , target   :: attributeValueContiguous
@@ -2465,7 +2482,7 @@ contains
     use Galacticus_Error
     implicit none
     double precision                              , intent(  out)           :: attributeValue
-    class           (hdf5Object    )              , intent(inout), target   :: thisObject
+    class           (hdf5Object    )              , intent(inout)           :: thisObject
     character       (len=*         )              , intent(in   ), optional :: attributeName
     logical                                       , intent(in   ), optional :: allowPseudoScalar
     integer         (kind=HSIZE_T  ), dimension(1)                          :: attributeDimensions    , attributeMaximumDimensions
@@ -2581,7 +2598,7 @@ contains
     use Memory_Management
     implicit none
     double precision                , allocatable, dimension(:), intent(  out)           :: attributeValue
-    class           (hdf5Object    )                           , intent(inout), target   :: thisObject
+    class           (hdf5Object    )                           , intent(inout)           :: thisObject
     character       (len=*         )                           , intent(in   ), optional :: attributeName
     integer         (kind=HSIZE_T  )             , dimension(1)                          :: attributeDimensions , attributeMaximumDimensions
     integer                                                                              :: errorCode
@@ -2675,7 +2692,7 @@ contains
     use Galacticus_Error
     implicit none
     double precision                , dimension(:), intent(  out)           :: attributeValue
-    class           (hdf5Object    )              , intent(inout), target   :: thisObject
+    class           (hdf5Object    )              , intent(inout)           :: thisObject
     character       (len=*         )              , intent(in   ), optional :: attributeName
     integer         (kind=HSIZE_T  ), dimension(1)                          :: attributeDimensions , attributeMaximumDimensions
     integer                                                                 :: errorCode
@@ -2771,7 +2788,7 @@ contains
     use Galacticus_Error
     implicit none
     character(len=*                  )              , intent(  out)           :: attributeValue
-    class    (hdf5Object             )              , intent(inout), target   :: thisObject
+    class    (hdf5Object             )              , intent(inout)           :: thisObject
     character(len=*                  )              , intent(in   ), optional :: attributeName
     logical                                         , intent(in   ), optional :: allowPseudoScalar
     integer  (kind=HSIZE_T           ), dimension(1)                          :: attributeDimensions       , attributeMaximumDimensions
@@ -2902,7 +2919,7 @@ contains
     use Memory_Management
     implicit none
     character(len=*         ), allocatable, dimension(:), intent(  out)           :: attributeValue
-    class    (hdf5Object    )                           , intent(inout), target   :: thisObject
+    class    (hdf5Object    )                           , intent(inout)           :: thisObject
     character(len=*         )                           , intent(in   ), optional :: attributeName
     integer  (kind=HSIZE_T  )             , dimension(1)                          :: attributeDimensions , attributeMaximumDimensions
     integer                                                                       :: errorCode
@@ -3011,7 +3028,7 @@ contains
     use Galacticus_Error
     implicit none
     character(len=*         ), dimension(:), intent(  out)           :: attributeValue
-    class    (hdf5Object    )              , intent(inout), target   :: thisObject
+    class    (hdf5Object    )              , intent(inout)           :: thisObject
     character(len=*         )              , intent(in   ), optional :: attributeName
     integer  (kind=HSIZE_T  ), dimension(1)                          :: attributeDimensions , attributeMaximumDimensions
     integer                                                          :: errorCode
@@ -3122,7 +3139,7 @@ contains
     use Galacticus_Error
     implicit none
     type     (varying_string), intent(  out)           :: attributeValue
-    class    (hdf5Object    ), intent(inout), target   :: thisObject
+    class    (hdf5Object    ), intent(inout)           :: thisObject
     character(len=*         ), intent(in   ), optional :: attributeName
     logical                  , intent(in   ), optional :: allowPseudoScalar
     integer  (kind=HID_T    )                          :: dataTypeID
@@ -3209,7 +3226,7 @@ contains
     !% which it can be read.
     implicit none
     type     (varying_string  ), intent(  out)           :: attributeValue
-    class    (hdf5Object      ), intent(inout), target   :: thisObject
+    class    (hdf5Object      ), intent(inout)           :: thisObject
     character(len=*           ), intent(in   ), optional :: attributeName
     logical                    , intent(in   ), optional :: allowPseudoScalar
     integer  (kind=SIZE_T     ), intent(in   )           :: dataTypeSize
@@ -3229,7 +3246,7 @@ contains
     use Galacticus_Error
     implicit none
     type     (varying_string), allocatable, dimension(:), intent(  out)           :: attributeValue
-    class    (hdf5Object    )                           , intent(inout), target   :: thisObject
+    class    (hdf5Object    )                           , intent(inout)           :: thisObject
     character(len=*         )                           , intent(in   ), optional :: attributeName
     integer  (kind=HID_T    )                                                     :: dataTypeID
     integer  (kind=SIZE_T   )                                                     :: dataTypeSize
@@ -3316,7 +3333,7 @@ contains
     use Memory_Management
     implicit none
     type     (varying_string  ), allocatable, dimension(:), intent(  out)           :: attributeValue
-    class    (hdf5Object      )                           , intent(inout), target   :: thisObject
+    class    (hdf5Object      )                           , intent(inout)           :: thisObject
     character(len=*           )                           , intent(in   ), optional :: attributeName
     integer  (kind=SIZE_T     )                           , intent(in   )           :: dataTypeSize
     character(len=dataTypeSize), allocatable, dimension(:)                          :: temporaryBuffer
@@ -3338,7 +3355,7 @@ contains
     use Galacticus_Error
     implicit none
     type     (varying_string), dimension(:), intent(  out)           :: attributeValue
-    class    (hdf5Object    )              , intent(inout), target   :: thisObject
+    class    (hdf5Object    )              , intent(inout)           :: thisObject
     character(len=*         )              , intent(in   ), optional :: attributeName
     integer  (kind=HID_T    )                                        :: dataTypeID
     integer  (kind=SIZE_T   )                                        :: dataTypeSize
@@ -3424,7 +3441,7 @@ contains
     !% which it can be read.
     implicit none
     type     (varying_string  ), dimension(:)                   , intent(  out)           :: attributeValue
-    class    (hdf5Object      )                                 , intent(inout), target   :: thisObject
+    class    (hdf5Object      )                                 , intent(inout)           :: thisObject
     character(len=*           )                                 , intent(in   ), optional :: attributeName
     integer  (kind=SIZE_T     )                                 , intent(in   )           :: dataTypeSize
     character(len=dataTypeSize), dimension(size(attributeValue))                          :: temporaryBuffer
@@ -4015,7 +4032,7 @@ contains
     !% Open and write an integer 1-D array dataset in {\normalfont \ttfamily thisObject}.
     use Galacticus_Error
     implicit none
-    class    (hdf5Object    )              , intent(inout), target   :: thisObject
+    class    (hdf5Object    )              , intent(inout)           :: thisObject
     character(len=*         )              , intent(in   ), optional :: commentText                , datasetName
     integer                  , dimension(:), intent(in   )           :: datasetValue
     logical                                , intent(in   ), optional :: appendTo
@@ -4752,7 +4769,7 @@ contains
     use Kind_Numbers
     use Memory_Management
     implicit none
-    class    (hdf5Object    )                           , intent(inout)          , target :: thisObject
+    class    (hdf5Object    )                           , intent(inout)                   :: thisObject
     character(len=*         )                           , intent(in   ), optional         :: commentText                , datasetName
     integer  (kind=kind_int8)             , dimension(:), intent(in   )                   :: datasetValue
     logical                                             , intent(in   ), optional         :: appendTo
@@ -5500,7 +5517,7 @@ contains
     !% Open and write a double 1-D array dataset in {\normalfont \ttfamily thisObject}.
     use Galacticus_Error
     implicit none
-    class           (hdf5Object    )              , intent(inout), target   :: thisObject
+    class           (hdf5Object    )              , intent(inout)           :: thisObject
     character       (len=*         )              , intent(in   ), optional :: commentText                , datasetName
     double precision                , dimension(:), intent(in   )           :: datasetValue
     logical                                       , intent(in   ), optional :: appendTo
@@ -6240,7 +6257,7 @@ contains
     !% Open and write a double 2-D array dataset in {\normalfont \ttfamily thisObject}.
     use Galacticus_Error
     implicit none
-    class           (hdf5Object    )                , intent(inout), target   :: thisObject
+    class           (hdf5Object    )                , intent(inout)           :: thisObject
     character       (len=*         )                , intent(in   ), optional :: commentText                 , datasetName
     double precision                , dimension(:,:), intent(in   )           :: datasetValue
     logical                                         , intent(in   ), optional :: appendTo
@@ -6989,7 +7006,7 @@ contains
     !% Open and write a double 3-D array dataset in {\normalfont \ttfamily thisObject}.
     use Galacticus_Error
     implicit none
-    class           (hdf5Object    )                  , intent(inout), target   :: thisObject
+    class           (hdf5Object    )                  , intent(inout)           :: thisObject
     character       (len=*         )                  , intent(in   ), optional :: commentText                 , datasetName
     double precision                , dimension(:,:,:), intent(in   )           :: datasetValue
     logical                                           , intent(in   ), optional :: appendTo
@@ -7738,7 +7755,7 @@ contains
     !% Open and write a double 4-D array dataset in {\normalfont \ttfamily thisObject}.
     use Galacticus_Error
     implicit none
-    class           (hdf5Object    )                    , intent(inout), target   :: thisObject
+    class           (hdf5Object    )                    , intent(inout)           :: thisObject
     character       (len=*         )                    , intent(in   ), optional :: commentText                 , datasetName
     double precision                , dimension(:,:,:,:), intent(in   )           :: datasetValue
     logical                                             , intent(in   ), optional :: appendTo
@@ -8487,7 +8504,7 @@ contains
     !% Open and write a double 5-D array dataset in {\normalfont \ttfamily thisObject}.
     use Galacticus_Error
     implicit none
-    class           (hdf5Object    )                      , intent(inout), target   :: thisObject
+    class           (hdf5Object    )                      , intent(inout)           :: thisObject
     character       (len=*         )                      , intent(in   ), optional :: commentText                 , datasetName
     double precision                , dimension(:,:,:,:,:), intent(in   )           :: datasetValue
     logical                                               , intent(in   ), optional :: appendTo
@@ -9235,7 +9252,7 @@ contains
     !% Open and write a character 1-D array dataset in {\normalfont \ttfamily thisObject}.
     use Galacticus_Error
     implicit none
-    class    (hdf5Object    )              , intent(inout), target   :: thisObject
+    class    (hdf5Object    )              , intent(inout)           :: thisObject
     character(len=*         )              , intent(in   ), optional :: commentText                , datasetName
     character(len=*         ), dimension(:), intent(in   )           :: datasetValue
     logical                                , intent(in   ), optional :: appendTo
@@ -9419,7 +9436,7 @@ contains
     !% Open and write a varying string 1-D array dataset in {\normalfont \ttfamily thisObject}.
     use String_Handling
     implicit none
-    class    (hdf5Object    )              , intent(inout), target   :: thisObject
+    class    (hdf5Object    )              , intent(inout)           :: thisObject
     character(len=*         )              , intent(in   ), optional :: commentText    , datasetName
     type     (varying_string), dimension(:), intent(in   )           :: datasetValue
     logical                                , intent(in   ), optional :: appendTo
@@ -10039,7 +10056,7 @@ contains
     use Galacticus_Error
     implicit none
     type     (varying_string), allocatable, dimension(:), intent(  out)           :: datasetValue
-    class    (hdf5Object    )                           , intent(inout), target   :: thisObject
+    class    (hdf5Object    )                           , intent(inout)           :: thisObject
     character(len=*         )                           , intent(in   ), optional :: datasetName
     integer  (kind=HID_T    )                                                     :: dataTypeID
     integer  (kind=SIZE_T   )                                                     :: dataTypeSize
@@ -10126,7 +10143,7 @@ contains
     use Memory_Management
     implicit none
     type     (varying_string  ), allocatable, dimension(:), intent(  out)           :: datasetValue
-    class    (hdf5Object      )                           , intent(inout), target   :: thisObject
+    class    (hdf5Object      )                           , intent(inout)           :: thisObject
     character(len=*           )                           , intent(in   ), optional :: datasetName
     integer  (kind=SIZE_T     )                           , intent(in   )           :: dataTypeSize
     character(len=dataTypeSize), allocatable, dimension(:)                          :: temporaryBuffer
@@ -10148,7 +10165,7 @@ contains
     use Galacticus_Error
     implicit none
     type     (varying_string), dimension(:), intent(  out)           :: datasetValue
-    class    (hdf5Object    )              , intent(inout), target   :: thisObject
+    class    (hdf5Object    )              , intent(inout)           :: thisObject
     character(len=*         )              , intent(in   ), optional :: datasetName
     integer  (kind=HID_T    )                                        :: dataTypeID
     integer  (kind=SIZE_T   )                                        :: dataTypeSize
@@ -10234,7 +10251,7 @@ contains
     !% which it can be read.
     implicit none
     type     (varying_string  ), dimension(:)                 , intent(  out)           :: datasetValue
-    class    (hdf5Object      )                               , intent(inout), target   :: thisObject
+    class    (hdf5Object      )                               , intent(inout)           :: thisObject
     character(len=*           )                               , intent(in   ), optional :: datasetName
     integer  (kind=SIZE_T     )                               , intent(in   )           :: dataTypeSize
     character(len=dataTypeSize), dimension(size(datasetValue))                          :: temporaryBuffer
@@ -10588,8 +10605,8 @@ contains
     !% Create a scalar reference to the 1-D {\normalfont \ttfamily toDataset} in the HDF5 group {\normalfont \ttfamily fromGroup}.
     use Galacticus_Error
     implicit none
-    class    (hdf5Object       )              , intent(inout), target :: fromGroup
-    type     (hdf5Object       )              , intent(inout), target :: toDataset
+    class    (hdf5Object       )              , intent(inout)         :: fromGroup
+    type     (hdf5Object       )              , intent(inout)         :: toDataset
     character(len=*            )              , intent(in   )         :: referenceName
     integer  (kind=HSIZE_T     ), dimension(1), intent(in   )         :: referenceCount   , referenceStart
     integer  (kind=HSIZE_T     ), dimension(1)                        :: datasetDimensions, hyperslabCount, hyperslabStart
@@ -10702,8 +10719,8 @@ contains
     !% Create a scalar reference to the 2-D {\normalfont \ttfamily toDataset} in the HDF5 group {\normalfont \ttfamily fromGroup}.
     use Galacticus_Error
     implicit none
-    class    (hdf5Object       )              , intent(inout), target :: fromGroup
-    type     (hdf5Object       )              , intent(inout), target :: toDataset
+    class    (hdf5Object       )              , intent(inout)         :: fromGroup
+    type     (hdf5Object       )              , intent(inout)         :: toDataset
     character(len=*            )              , intent(in   )         :: referenceName
     integer  (kind=HSIZE_T     ), dimension(2), intent(in   )         :: referenceCount   , referenceStart
     integer  (kind=HSIZE_T     ), dimension(2)                        :: datasetDimensions, hyperslabCount, hyperslabStart
@@ -10816,8 +10833,8 @@ contains
     !% Create a scalar reference to the 3-D {\normalfont \ttfamily toDataset} in the HDF5 group {\normalfont \ttfamily fromGroup}.
     use Galacticus_Error
     implicit none
-    class    (hdf5Object       )              , intent(inout), target :: fromGroup
-    type     (hdf5Object       )              , intent(inout), target :: toDataset
+    class    (hdf5Object       )              , intent(inout)         :: fromGroup
+    type     (hdf5Object       )              , intent(inout)         :: toDataset
     character(len=*            )              , intent(in   )         :: referenceName
     integer  (kind=HSIZE_T     ), dimension(3), intent(in   )         :: referenceCount   , referenceStart
     integer  (kind=HSIZE_T     ), dimension(3)                        :: datasetDimensions, hyperslabCount, hyperslabStart
@@ -10930,8 +10947,8 @@ contains
     !% Create a scalar reference to the 4-D {\normalfont \ttfamily toDataset} in the HDF5 group {\normalfont \ttfamily fromGroup}.
     use Galacticus_Error
     implicit none
-    class    (hdf5Object       )              , intent(inout), target :: fromGroup
-    type     (hdf5Object       )              , intent(inout), target :: toDataset
+    class    (hdf5Object       )              , intent(inout)         :: fromGroup
+    type     (hdf5Object       )              , intent(inout)         :: toDataset
     character(len=*            )              , intent(in   )         :: referenceName
     integer  (kind=HSIZE_T     ), dimension(4), intent(in   )         :: referenceCount   , referenceStart
     integer  (kind=HSIZE_T     ), dimension(4)                        :: datasetDimensions, hyperslabCount, hyperslabStart
@@ -11044,8 +11061,8 @@ contains
     !% Create a scalar reference to the 5-D {\normalfont \ttfamily toDataset} in the HDF5 group {\normalfont \ttfamily fromGroup}.
     use Galacticus_Error
     implicit none
-    class    (hdf5Object       )              , intent(inout), target :: fromGroup
-    type     (hdf5Object       )              , intent(inout), target :: toDataset
+    class    (hdf5Object       )              , intent(inout)         :: fromGroup
+    type     (hdf5Object       )              , intent(inout)         :: toDataset
     character(len=*            )              , intent(in   )         :: referenceName
     integer  (kind=HSIZE_T     ), dimension(5), intent(in   )         :: referenceCount   , referenceStart
     integer  (kind=HSIZE_T     ), dimension(5)                        :: datasetDimensions, hyperslabCount, hyperslabStart

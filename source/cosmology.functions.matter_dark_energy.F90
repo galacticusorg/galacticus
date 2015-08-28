@@ -89,7 +89,7 @@ contains
     use Input_Parameters2
     implicit none
     type            (cosmologyFunctionsMatterDarkEnergy)                :: matterDarkEnergyConstructorParameters
-    type            (inputParameters                   ), intent(in   ) :: parameters
+    type            (inputParameters                   ), intent(inout) :: parameters
     class           (cosmologyParametersClass          ), pointer       :: cosmologyParameters_
     double precision                                                    :: darkEnergyEquationOfStateW0          , darkEnergyEquationOfStateW1
     !# <inputParameterList label="allowedParameterNames" />

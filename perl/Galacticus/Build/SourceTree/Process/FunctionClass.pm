@@ -374,17 +374,18 @@ sub Process_FunctionClass {
 	    $postContains->[0]->{'content'} .= "      return\n";
 	    $postContains->[0]->{'content'} .= "   end function ".$directive->{'name'}."ConstructorDefault\n\n";
 	    # Create XML constructor.
-	    $postContains->[0]->{'content'} .= "   function ".$directive->{'name'}."ConstructorParameters(parameters)\n";
+	    $postContains->[0]->{'content'} .= "   function ".$directive->{'name'}."ConstructorParameters(parameters,copyInstance)\n";
 	    $postContains->[0]->{'content'} .= "      !% Return a pointer to a newly created {\\normalfont \\ttfamily ".$directive->{'name'}."} object as specified by the provided parameters.\n";
 	    $postContains->[0]->{'content'} .= "      use Input_Parameters2\n";
 	    $postContains->[0]->{'content'} .= "      use Galacticus_Error\n";
 	    $postContains->[0]->{'content'} .= "      implicit none\n";
-	    $postContains->[0]->{'content'} .= "      class(".$directive->{'name'}."Class), pointer :: ".$directive->{'name'}."ConstructorParameters\n";
-	    $postContains->[0]->{'content'} .= "      type(inputParameters), intent(in   ) :: parameters\n";
-	    $postContains->[0]->{'content'} .= "      type(inputParameters)                :: subParameters\n";
-	    $postContains->[0]->{'content'} .= "      type(varying_string )                :: message   , instanceName\n\n";
-	    $postContains->[0]->{'content'} .= "      call parameters%value('".$directive->{'name'}."Method',instanceName)\n";
-	    $postContains->[0]->{'content'} .= "      subParameters=parameters%subParameters('".$directive->{'name'}."Method')\n";
+	    $postContains->[0]->{'content'} .= "      class  (".$directive->{'name'}."Class), pointer :: ".$directive->{'name'}."ConstructorParameters\n";
+	    $postContains->[0]->{'content'} .= "      type   (inputParameters), intent(inout)           :: parameters\n";
+	    $postContains->[0]->{'content'} .= "      integer                 , intent(in   ), optional :: copyInstance\n";
+	    $postContains->[0]->{'content'} .= "      type   (inputParameters)                          :: subParameters\n";
+	    $postContains->[0]->{'content'} .= "      type   (varying_string )                          :: message      , instanceName\n\n";
+	    $postContains->[0]->{'content'} .= "      call parameters%value('".$directive->{'name'}."Method',instanceName,copyInstance=copyInstance)\n";
+	    $postContains->[0]->{'content'} .= "      subParameters=parameters%subParameters('".$directive->{'name'}."Method',copyInstance=copyInstance)\n";
 	    $postContains->[0]->{'content'} .= "      select case (char(instanceName))\n";
 	    foreach my $class ( @nonAbstractClasses ) {
 		(my $name = $class->{'name'}) =~ s/^$directive->{'name'}//;
@@ -464,22 +465,7 @@ sub Process_FunctionClass {
 	    $postContains->[0]->{'content'} .= "         call globalParameters%value('".$directive->{'name'}."Method',".$directive->{'name'}."Method,defaultValue=var_str('".$directive->{'default'}."'))\n";
 	    $postContains->[0]->{'content'} .= "         moduleInitialized=.true.\n";
 	    $postContains->[0]->{'content'} .= "      end if\n";
-	    $postContains->[0]->{'content'} .= "      if (globalParameters%isPresent('".$directive->{'name'}."Method')) then\n";
-	    $postContains->[0]->{'content'} .= "         subParameters=globalParameters%subParameters('".$directive->{'name'}."Method')\n";
-	    $postContains->[0]->{'content'} .= "      else\n";
-	    $postContains->[0]->{'content'} .= "         subParameters=inputParameters()\n";
-	    $postContains->[0]->{'content'} .= "      end if\n";
-	    $postContains->[0]->{'content'} .= "      !\$omp critical (HDF5_Access)\n";
-	    $postContains->[0]->{'content'} .= "#ifdef DEBUGHDF5\n";
-	    $postContains->[0]->{'content'} .= "      call IO_HDF5_Start_Critical()\n";
-	    $postContains->[0]->{'content'} .= "#endif\n";
-	    $postContains->[0]->{'content'} .= "      parentOutputParameters=globalParameters%getOutputParameters()\n";
-	    $postContains->[0]->{'content'} .= "      if (parentOutputParameters%isOpen()) subParametersOutputGroup=parentOutputParameters%openGroup('".$directive->{'name'}."Method')\n";
-	    $postContains->[0]->{'content'} .= "      if (subParametersOutputGroup%isOpen()) call subParameters%setOutputParameters(subParametersOutputGroup)\n";
-	    $postContains->[0]->{'content'} .= "#ifdef DEBUGHDF5\n";
-	    $postContains->[0]->{'content'} .= "      call IO_HDF5_End_Critical()\n";
-	    $postContains->[0]->{'content'} .= "#endif\n";
-	    $postContains->[0]->{'content'} .= "      !\$omp end critical (HDF5_Access)\n";
+	    $postContains->[0]->{'content'} .= "      subParameters=globalParameters%subParameters('".$directive->{'name'}."Method',requirePresent=.false.)\n";
 	    $postContains->[0]->{'content'} .= "      select case (char(".$directive->{'name'}."Method))\n";
 	    foreach my $class ( @nonAbstractClasses ) {
 		(my $name = $class->{'name'}) =~ s/^$directive->{'name'}//;
@@ -487,12 +473,14 @@ sub Process_FunctionClass {
 		    unless ( $name =~ m/^[A-Z]{2,}/ );
 		$postContains->[0]->{'content'} .= "     case ('".$name."')\n";
 		if ( $class->{'defaultThreadPrivate'} eq "yes" ) {
+		    $postContains->[0]->{'content'} .= "        parametersObjectBuildIsPrivate=.true.\n";
 		    $postContains->[0]->{'content'} .= "        allocate(".$class->{'name'}." :: ".$directive->{'name'}."Default)\n";
 		    $postContains->[0]->{'content'} .= "        select type (".$directive->{'name'}."Default)\n";
 		    $postContains->[0]->{'content'} .= "          type is (".$class->{'name'}.")\n";
 		    $postContains->[0]->{'content'} .= "            ".$directive->{'name'}."Default=".$class->{'name'}."(subParameters)\n";
 		    $postContains->[0]->{'content'} .= "         end select\n";
 		} else {
+		    $postContains->[0]->{'content'} .= "        parametersObjectBuildIsPrivate=.false.\n";
 		    $postContains->[0]->{'content'} .= "        if (.not.associated(".$directive->{'name'}."PublicDefault)) then\n";
 		    $postContains->[0]->{'content'} .= "           allocate(".$class->{'name'}." :: ".$directive->{'name'}."PublicDefault)\n";
 		    $postContains->[0]->{'content'} .= "           select type (".$directive->{'name'}."PublicDefault)\n";
@@ -513,15 +501,6 @@ sub Process_FunctionClass {
 	    }
 	    $postContains->[0]->{'content'} .= "         call Galacticus_Error_Report('".$directive->{'name'}."Initialize',message)\n";
 	    $postContains->[0]->{'content'} .= "      end select\n";
-	    $postContains->[0]->{'content'} .= "      !\$omp critical (HDF5_Access)\n";
-	    $postContains->[0]->{'content'} .= "#ifdef DEBUGHDF5\n";
-	    $postContains->[0]->{'content'} .= "      call IO_HDF5_Start_Critical()\n";
-	    $postContains->[0]->{'content'} .= "#endif\n";
-	    $postContains->[0]->{'content'} .= "      if (subParametersOutputGroup%isOpen()) call subParametersOutputGroup%close()\n";
-	    $postContains->[0]->{'content'} .= "#ifdef DEBUGHDF5\n";
-	    $postContains->[0]->{'content'} .= "      call IO_HDF5_End_Critical()\n";
-	    $postContains->[0]->{'content'} .= "#endif\n";
-	    $postContains->[0]->{'content'} .= "      !\$omp end critical (HDF5_Access)\n";
 	    $postContains->[0]->{'content'} .= "      ".$directive->{'name'}."Default%isDefault=.true.\n";
 	    $postContains->[0]->{'content'} .= "      !\$omp end critical (".$directive->{'name'}."Initialization)\n";
 	    $postContains->[0]->{'content'} .= "      return\n";
