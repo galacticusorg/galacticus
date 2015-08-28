@@ -299,6 +299,48 @@
     </darkMatterProfileConcentrationMethod>
   </parameters>
 
+  <!-- Schneider 2015 concentration method -->
+  <parameters>
+    <darkMatterProfileConcentrationMethod value="schneider2015">
+      <reference>
+	<criticalOverdensityMethod                value="fixed"            >
+	  <criticalOverdensity value="1.686"/>
+	</criticalOverdensityMethod>
+	<cosmologicalMassVarianceMethod           value="filteredPower"    >
+	  <sigma_8 value="0.9"/>
+	</cosmologicalMassVarianceMethod  >
+	<cosmologyParametersMethod                value="simple"           >
+	  <HubbleConstant   value="70.0" />
+	  <OmegaMatter      value="0.32" />
+	  <OmegaDarkEnergy  value="0.68" />
+	  <OmegaBaryon      value="0.045"/>
+	  <temperatureCMB   value="2.725"/>
+	</cosmologyParametersMethod>
+	<darkMatterProfileConcentrationMethod     value="gao2008"         />
+	<linearGrowthMethod                       value="simple"          />
+	<cosmologyFunctionsMethod                 value="matterLambda"    />
+	<cosmologyParametersMethod                value="simple"           >
+	  <HubbleConstant   value="70.0" />
+	  <OmegaMatter      value="0.31"  />
+	  <OmegaDarkEnergy  value="0.69"  />
+	  <OmegaBaryon      value="0.045"/>
+	  <temperatureCMB   value="2.725"/>
+	</cosmologyParametersMethod>
+	<powerSpectrumPrimordialMethod value="powerLaw">
+	  <index               value="1.0"/>
+	  <wavenumberReference value="1.0"/>
+	  <running             value="0.0"/>
+	</powerSpectrumPrimordialMethod>
+	<powerSpectrumPrimordialTransferredMethod value="simple"          />
+	<powerSpectrumWindowFunctionClass         value="topHat"          />
+	<transferFunctionMethod                   value="eisensteinHu1999" >
+	  <neutrinoNumberEffective value="3.046"/>
+	  <neutrinoMassSummed      value="0.000"/>
+	</transferFunctionMethod>
+      </reference>
+    </darkMatterProfileConcentrationMethod>
+  </parameters>
+  
   <!-- Molecular hydrogen network and cooling. -->
   <parameters>
     <formatVersion>2</formatVersion>
