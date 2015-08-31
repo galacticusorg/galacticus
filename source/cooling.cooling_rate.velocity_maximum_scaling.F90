@@ -167,9 +167,9 @@ contains
             &           )                                                  &
             &      /coolingRateVelocityMaximumScalingCutOffWidth
        if (expArgument < expArgumentMaximum) then
-          expFactor=1.0d0/(1.0d0+exp(+expArgument))**coolingRateVelocityMaximumScalingCutOffExponent
+          expFactor=(1.0d0+exp(+expArgument))**(-coolingRateVelocityMaximumScalingCutOffExponent)
        else
-          expFactor=             exp(-expArgument   *coolingRateVelocityMaximumScalingCutOffExponent)
+          expFactor=       exp(+expArgument   *(-coolingRateVelocityMaximumScalingCutOffExponent))
        end if
        coolingRate= expansionFactor**coolingRateVelocityMaximumScalingTimescaleExponent &
             &      /coolingRateVelocityMaximumScalingTimescale                          &
