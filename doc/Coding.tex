@@ -160,7 +160,7 @@ It is also possible to specify a set of parameter which iterate over names defin
 
 \subsection{Input Parameter Lists}
 
-The {\normalfont \ttfamily inputParameterList} directive will construct a {\normalfont \ttfamily varying\_string} array containing the names of all input parameters which are defined in the unit in which the directive appears. The name of the array is specified by the {\normalfont \ttfamily label} attribute of the {\normalfont \ttfamily inputParameterList} directive. Such a list can be used to validate the names of parameters passed to a function for example.
+The {\normalfont \ttfamily inputParameterList} directive will construct a {\normalfont \ttfamily varying\_string} array containing the names of all input parameters which are defined in the unit in which the directive appears. The name of the array is specified by the {\normalfont \ttfamily label} attribute of the {\normalfont \ttfamily inputParameterList} directive. If a {\normalfont \ttfamily source} attribute is specified in the directive then only parameters being read from the named variable will be included in the list, otherwise any parameters read will be included. Such a list can be used to validate the names of parameters passed to a function for example.
 
 \subsection{Function Classes}
 
