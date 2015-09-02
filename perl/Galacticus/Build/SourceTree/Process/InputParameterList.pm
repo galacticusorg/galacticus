@@ -72,6 +72,9 @@ sub Process_InputParameterList {
 			    die('Process_InputParameterList(): nothing to iterate over');
 			}
 		    }
+		} elsif ( $sibling->{'type'} eq "objectBuilder" ) {
+		    # Add methods read by objectBuilder directives.
+		    push(@inputParameterNames,$sibling->{'directive'}->{'class'}."Method");
 		}
 		$sibling = $sibling->{'sibling'};
 	    }
