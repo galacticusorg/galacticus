@@ -22,9 +22,7 @@
      double precision, allocatable, dimension(:) :: current
      integer         , allocatable, dimension(:) :: accepted
    contains
-     !# <workaround type="gfortran" PR="58471 58470" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58471 http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58470">
-     !# final     ::             stateSimpleDestroy
-     !# </workaround>      
+     final     ::                   stateSimpleDestroy
      procedure :: get            => stateSimpleGet
      procedure :: update         => stateSimpleUpdate
      procedure :: mean           => stateSimpleMean
