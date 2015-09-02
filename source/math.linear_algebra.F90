@@ -29,9 +29,6 @@ module Linear_Algebra
      private
      double precision, dimension(:), allocatable :: elements
    contains
-     !# <workaround type="gfortran" PR="58471 58470" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58471 http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58470">
-     !# final     :: vectorDestroy
-     !# </workaround>
      !@ <objectMethods>
      !@   <object>vector</object>
      !@   <objectMethod>
@@ -47,6 +44,7 @@ module Linear_Algebra
      !@     <description>Compute {\normalfont \ttfamily vector1}+{\normalfont \ttfamily vector2}.</description>
      !@   </objectMethod>
      !@ </objectMethods>
+     final     ::                vectorDestroy
      procedure :: subtract    => vectorSubtract
      procedure :: add         => vectorAdd
      generic   :: operator(-) => subtract
@@ -58,9 +56,6 @@ module Linear_Algebra
      private
      double precision, dimension(:,:), allocatable :: elements
    contains
-     !# <workaround type="gfortran" PR="58471 58470" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58471 http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58470">
-     !# final     :: matrixDestroy
-     !# </workaround>
      !@ <objectMethods>
      !@   <object>matrix</object>
      !@   <objectMethod>
@@ -112,6 +107,7 @@ module Linear_Algebra
      !@     <description>Make the matrix symmetric using $A_{ij} \rightarrow (A_{ij}+A_{ji})/2$.</description>
      !@   </objectMethod>
      !@ </objectMethods>
+     final     ::                             matrixDestroy
      procedure :: invert                   => matrixInvert
      procedure :: logarithmicDeterminant   => matrixLogarithmicDeterminant
      procedure :: determinant              => matrixDeterminant
