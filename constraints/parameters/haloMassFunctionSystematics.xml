@@ -50,11 +50,11 @@
     </random>
   </parameter>
   <parameter>
-    <name>haloMassFunctionSimpleSystematicAlpha</name>
+    <name>haloMassFunctionMethod-&gt;alpha</name>
     <define>-0.0197873321812387+0.0955749996544321*%[haloMassFunctionSystematic1]</define>
   </parameter>
   <parameter>
-    <name>haloMassFunctionSimpleSystematicBeta</name>
+    <name>haloMassFunctionMethod-&gt;beta</name>
     <define>0.00986021548527724-0.0496307985720269*%[haloMassFunctionSystematic1]+0.0272354978362647*%[haloMassFunctionSystematic2]</define>
   </parameter>
 </parameters>

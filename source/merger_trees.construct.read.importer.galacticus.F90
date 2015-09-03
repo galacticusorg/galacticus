@@ -590,7 +590,7 @@ contains
     use Sort
     use Cosmology_Functions
     use Numerical_Constants_Astronomical
-    use Halo_Mass_Function
+    use Halo_Mass_Functions
     implicit none
     class           (mergerTreeImporterGalacticus), intent(inout)             :: self
     type            (hdf5Object                  )                            :: treeIndexGroup
@@ -599,6 +599,7 @@ contains
     integer         (kind=HSIZE_T                )             , dimension(1) :: firstNodeIndex , nodeCount
     integer         (kind=c_size_t               ), allocatable, dimension(:) :: sortOrder
     class           (cosmologyFunctionsClass     ), pointer                   :: cosmologyFunctionsDefault
+    class           (haloMassFunctionClass       ), pointer                   :: haloMassFunction_
     integer                                                                   :: i
     integer         (c_size_t                    )                            :: iNode
     double precision                                                          :: massMinimum    , massMaximum
@@ -614,6 +615,7 @@ contains
     !$omp end critical(HDF5_Access)
     if (self%reweightTrees) then
        cosmologyFunctionsDefault => cosmologyFunctions()
+       haloMassFunction_         => haloMassFunction  ()
        allocate(self%weights(size(self%firstNodes)))
        allocate(treeMass    (size(self%firstNodes)))
        allocate(treeTime    (size(self%firstNodes)))
@@ -673,7 +675,7 @@ contains
              massMaximum=sqrt(treeMass(sortOrder(i))*treeMass(sortOrder(i+1)))
           end if
           ! Get the integral of the halo mass function over this range.
-          self%weights(sortOrder(i))=Halo_Mass_Function_Integrated(treeTime(sortOrder(i)),massMinimum,massMaximum)
+          self%weights(sortOrder(i))=haloMassFunction_%integrated(treeTime(sortOrder(i)),massMinimum,massMaximum)
        end do
        !$omp critical(HDF5_Access)
        call treeIndexGroup%readDatasetStatic(trim(self%forestWeightDatasetName),self%weights)

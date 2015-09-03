@@ -336,7 +336,9 @@ my @translations =
 	     "prada2011ConcentrationBeta"                                     => "darkMatterProfileConcentrationMethod.prada2011.--beta"                          ,
 	     "darkMatterProfileConcentrationCDMMethod"                        => "darkMatterProfileConcentrationMethod.wdm.--darkMatterProfileConcentrationMethod",
 	     "powerSpectrumWindowFunctionSharpKSpaceNormalization"            => "powerSpectrumWindowFunctionMethod.sharpKSpace.--normalization"                  ,
-	     "powerSpectrumWindowFunctionSharpKSpaceTopHatRadiiRatio"         => "powerSpectrumWindowFunctionMethod.topHatSharpKHybrid.--radiiRatio"
+	     "powerSpectrumWindowFunctionSharpKSpaceTopHatRadiiRatio"         => "powerSpectrumWindowFunctionMethod.topHatSharpKHybrid.--radiiRatio"              ,
+	     "haloMassFunctionSimpleSystematicAlpha"                          => "haloMassFunctionMethod.simpleSystematic.--alpha"                                ,
+	     "haloMassFunctionSimpleSystematicBeta"                           => "haloMassFunctionMethod.simpleSystematic.--beta"
 	 },
  	 values        =>
          {
@@ -387,7 +389,8 @@ my %knownDefaults =
      "cosmologicalMassVarianceMethod"       => "filteredPower",
      "cosmologyParametersMethod"            => "simple"       ,
      "darkMatterProfileConcentrationMethod" => "gao2008"      ,
-     "powerSpectrumPrimordialMethod"        => "powerLaw"
+     "powerSpectrumPrimordialMethod"        => "powerLaw"     ,
+     "haloMassFunctionMethod"               => "tinker2008"
   );
 
 # Parse the input file.

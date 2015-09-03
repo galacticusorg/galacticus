@@ -58,7 +58,7 @@ contains
     use FGSL
     use Quasi_Random
     use Pseudo_Random
-    use Halo_Mass_Function
+    use Halo_Mass_Functions
     use Merger_Trees_Mass_Function_Sampling_Modifiers
     use Sort
     use Galacticus_Error
@@ -78,6 +78,7 @@ contains
     procedure       (Merger_Tree_Build_Do             )             , intent(inout), pointer :: Merger_Tree_Construct
     type            (Node                             )                            , pointer :: doc
     class           (cosmologyFunctionsClass          )                            , pointer :: cosmologyFunctionsDefault
+    class           (haloMassFunctionClass            )                            , pointer :: haloMassFunction_
     class           (massFunctionSamplingModifierClass)                            , pointer :: massFunctionSamplingModifier_
     integer                                            , parameter                           :: massFunctionSamplePerDecade  =100
     double precision                                   , parameter                           :: toleranceAbsolute            =1.0d-12, toleranceRelative                 =1.0d-3
@@ -356,6 +357,7 @@ contains
        end select
        ! Compute the weight (number of trees per unit volume) for each tree.
        if (computeTreeWeights) then
+          haloMassFunction_ => haloMassFunction()
           iTreeFirst=0
           do while (iTreeFirst < treeCount)
              iTreeFirst=iTreeFirst+1
@@ -397,7 +399,7 @@ contains
                   &   char(mergerTreeBuildTreesHaloMassDistribution) /= "read" &
                   & ) treeHaloMass(iTreeFirst:iTreeLast)=sqrt(massMinimum*massMaximum)
              ! Get the integral of the halo mass function over this range.
-             treeWeight(iTreeFirst:iTreeLast)=Halo_Mass_Function_Integrated(mergerTreeBuildTreesBaseTime,MassMinimum,MassMaximum)/dble(iTreeLast-iTreeFirst+1)
+             treeWeight(iTreeFirst:iTreeLast)=haloMassFunction_%integrated(mergerTreeBuildTreesBaseTime,MassMinimum,MassMaximum)/dble(iTreeLast-iTreeFirst+1)
              ! Update to the last tree processed.
              iTreeFirst=iTreeLast
           end do

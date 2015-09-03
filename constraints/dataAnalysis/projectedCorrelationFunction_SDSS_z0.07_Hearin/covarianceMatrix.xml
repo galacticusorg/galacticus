@@ -140,7 +140,7 @@
   <!-- Structure formation options -->
   <parameter>
     <name>haloMassFunctionMethod</name>
-    <value>Tinker2008</value>
+    <value>tinker2008</value>
   </parameter>
   <parameter>
     <name>darkMatterHaloBiasMethod</name>

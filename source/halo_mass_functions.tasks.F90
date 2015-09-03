@@ -17,7 +17,7 @@
 
 !% Contains a module which implements calculations of halo mass functions and related properties for output.
 
-module Halo_Mass_Function_Tasks
+module Halo_Mass_Functions_Tasks
   !% Implements calculations of halo mass functions and related properties for output.
   use IO_HDF5
   implicit none
@@ -75,7 +75,7 @@ contains
     !% Computes mass functions and related properties for output.
     use Galacticus_Nodes
     use Node_Components
-    use Halo_Mass_Function
+    use Halo_Mass_Functions
     use Dark_Matter_Halo_Biases
     use Dark_Matter_Profiles
     use Dark_Matter_Profile_Scales
@@ -102,6 +102,7 @@ contains
     class           (criticalOverdensityClass      ), pointer :: criticalOverdensity_
     class           (linearGrowthClass             ), pointer :: linearGrowth_
     class           (cosmologicalMassVarianceClass ), pointer :: cosmologicalMassVariance_
+    class           (haloMassFunctionClass         ), pointer :: haloMassFunction_
     integer                                                   :: haloMassFunctionsCount      , haloMassFunctionsPointsPerDecade, &
          &                                                       iMass                       , iOutput                         , &
          &                                                       outputCount                 , verbosityLevel
@@ -156,7 +157,8 @@ contains
     darkMatterProfile_     => darkMatterProfile    ()
     criticalOverdensity_   => criticalOverdensity  ()
     linearGrowth_          => linearGrowth         ()
-
+    haloMassFunction_      => haloMassFunction     ()
+    
     ! Find the mass range and increment size.
     !@ <inputParameter>
     !@   <name>haloMassFunctionsMassMinimum</name>
@@ -249,10 +251,10 @@ contains
           ! Set the node scale radius.
           call thisDarkMatterProfile%scaleSet(Dark_Matter_Profile_Scale(thisNode))
           ! Compute halo properties.
-          haloMassFunction_dndM             (iMass,iOutput)=Halo_Mass_Function_Differential(outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput))
+          haloMassFunction_dndM             (iMass,iOutput)=haloMassFunction_%differential(outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput))
           haloMassFunction_dndlnM           (iMass,iOutput)=haloMassFunction_dndM(iMass,iOutput)*haloMassFunction_Mass(iMass,iOutput)
-          haloMassFunction_cumulative       (iMass,iOutput)=Halo_Mass_Function_Integrated(outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity)
-          haloMassFunction_massFraction     (iMass,iOutput)=Halo_Mass_Fraction_Integrated(outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity)
+          haloMassFunction_cumulative       (iMass,iOutput)=haloMassFunction_%integrated  (outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity)
+          haloMassFunction_massFraction     (iMass,iOutput)=haloMassFunction_%massFraction(outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity)
           haloMassFunction_sigma            (iMass,iOutput)=cosmologicalMassVariance_%rootVariance(haloMassFunction_Mass(iMass,iOutput))
           haloMassFunction_nu               (iMass,iOutput)=outputCriticalOverdensities(iOutput)/haloMassFunction_sigma(iMass,iOutput)
           haloMassFunction_bias             (iMass,iOutput)=Dark_Matter_Halo_Bias                        (thisNode)
@@ -346,4 +348,4 @@ contains
     return
   end subroutine Halo_Mass_Function_Output
 
-end module Halo_Mass_Function_Tasks
+end module Halo_Mass_Functions_Tasks

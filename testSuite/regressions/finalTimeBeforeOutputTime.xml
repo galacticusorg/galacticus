@@ -7,7 +7,7 @@
   <haloMassFunctionSamplingStellarMassFunctionErrorMassMinimum value="1.2589254e8"/>
   <treeNodeMethodDarkMatterProfile value="null"/>
   <mergingTimescaleMultiplier value="1.0"/>
-  <haloMassFunctionMethod value="Tinker2008"/>
+  <haloMassFunctionMethod value="tinker2008"/>
   <starFormationTimescaleDisksHaloScalingRedshiftExponent value="0.0"/>
   <diskOutflowFraction value="1.0"/>
   <coolingTimeMethod value="simple"/>

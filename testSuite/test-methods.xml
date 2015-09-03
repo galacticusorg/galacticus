@@ -68,9 +68,9 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <haloMassFunctionMethod>
-      <value>Sheth-Tormen</value>
-      <value>Tinker2008</value>
-      <value>Press-Schechter</value>
+      <value>shethTormen</value>
+      <value>tinker2008</value>
+      <value>pressSchechter</value>
     </haloMassFunctionMethod>
   </parameters>
   <parameters>
@@ -856,7 +856,7 @@
       <running value="0.000"/>
     </powerSpectrumPrimordialMethod>
     <linearGrowthMethod value="simple"/>
-    <haloMassFunctionMethod value="Tinker2008"/>
+    <haloMassFunctionMethod value="tinker2008"/>
     <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
     <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
     <mergerTreeConstructMethod value="build"/>

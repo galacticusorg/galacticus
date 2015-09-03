@@ -89,7 +89,7 @@
   <accretionRateThinDiskMinimum value="0.01d0"/>
   <satelliteMergingMassMovementsMethod value="simple"/>
   <adafViscosityOption value="fit"/>
-  <haloMassFunctionMethod value="Tinker2008"/>
+  <haloMassFunctionMethod value="tinker2008"/>
   <adafAdiabaticIndex value="1.444"/>
   <accretionDisksMethod value="ADAF"/>
   <mergerTreeBuildTreesHaloMassDistribution value="uniform"/>

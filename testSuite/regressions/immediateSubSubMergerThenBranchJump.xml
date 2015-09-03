@@ -90,7 +90,7 @@
   <satelliteMergingMassMovementsMethod value="verySimple"/>
   <haloMassFunctionSamplingStellarMassFunctionErrorMassMinimum value="1.2589254e8"/>
   <mergingTimescaleMultiplier value="1.0"/>
-  <haloMassFunctionMethod value="Tinker2008"/>
+  <haloMassFunctionMethod value="tinker2008"/>
   <diskOutflowFraction value="1.0"/>
   <treeNodeMethodSatellite value="preset"/>
   <mergerTreeBuildTreesHaloMassDistribution value="uniform"/>
