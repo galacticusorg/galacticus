@@ -20,6 +20,7 @@
 module Critical_Overdensities
   !% Provides an object that implements critical overdensities.
   use FGSL
+  use Cosmology_Functions
   use Cosmological_Mass_Variance
   private
   
@@ -29,25 +30,22 @@ module Critical_Overdensities
   !#  <description>Object providing critical overdensities.</description>
   !#  <default>sphericalCollapseMatterLambda</default>
   !#  <stateful>yes</stateful>
-  !#  <data>double precision :: criticalOverdensityTarget, mass, time</data>
-  !#  <data>logical          :: massPresent</data>
+  !#  <data>double precision                                         :: criticalOverdensityTarget, mass, time</data>
+  !#  <data>logical                                                  :: massPresent                          </data>
+  !#  <data>class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_                  </data>
+  !#  <data>class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_            </data>
   !#  <data>
   !#   <scope>module</scope>
   !#   <threadprivate>yes</threadprivate>
   !#   <content>class(criticalOverdensityClass), pointer :: globalSelf</content>
-  !#  </data>
-  !#  <data>
-  !#   <scope>module</scope>
-  !#   <threadprivate>yes</threadprivate>
-  !#   <content>class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_</content>
   !#  </data>
   !#  <method name="value" >
   !#   <description>Return the critical overdensity at the given time and mass.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ), optional :: time      , expansionFactor</argument>
-  !#   <argument>logical         , intent(in   ), optional :: collapsing</argument>
-  !#   <argument>double precision, intent(in   ), optional :: mass</argument>
+  !#   <argument>logical         , intent(in   ), optional :: collapsing                 </argument>
+  !#   <argument>double precision, intent(in   ), optional :: mass                       </argument>
   !#  </method>
   !#  <method name="timeOfCollapse" >
   !#   <description>Returns the time of collapse for a perturbation of linear theory overdensity {\normalfont \ttfamily criticalOverdensity}.</description>
@@ -55,13 +53,12 @@ module Critical_Overdensities
   !#   <pass>yes</pass>
   !#   <selfTarget>yes</selfTarget>
   !#   <argument>double precision, intent(in   )           :: criticalOverdensity</argument>
-  !#   <argument>double precision, intent(in   ), optional :: mass</argument>
-  !#   <modules>Cosmology_Functions Root_Finder</modules>
+  !#   <argument>double precision, intent(in   ), optional :: mass               </argument>
+  !#   <modules>Root_Finder</modules>
   !#   <code>
-  !#    double precision                         , parameter :: toleranceRelative   =1.0d-12, toleranceAbsolute=0.0d0
-  !#    type            (rootFinder             ), save      :: finder
+  !#    double precision            , parameter :: toleranceRelative   =1.0d-12, toleranceAbsolute=0.0d0
+  !#    type            (rootFinder), save      :: finder
   !#    !$omp threadprivate(finder)
-  !#    class           (cosmologyFunctionsClass), pointer   :: cosmologyFunctions_
   !#    if (.not.finder%isInitialized()) then
   !#       call finder%rootFunction(collapseTimeRoot                   )
   !#       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
@@ -73,12 +70,11 @@ module Critical_Overdensities
   !#            &amp;                   rangeExpandType              =rangeExpandMultiplicative      &amp;
   !#            &amp;                  )
   !#    end if
-  !#    cosmologyFunctions_ => cosmologyFunctions()
-  !#    globalSelf          => self
+  !#    globalSelf => self
   !#    self                      %criticalOverdensityTarget=criticalOverdensity
   !#    self                      %massPresent              =present(mass)
   !#    if (self%massPresent) self%mass                     =        mass
-  !#    criticalOverdensityTimeOfCollapse=finder%find(rootGuess=cosmologyFunctions_%cosmicTime(1.0d0))
+  !#    criticalOverdensityTimeOfCollapse=finder%find(rootGuess=self%cosmologyFunctions_%cosmicTime(1.0d0))
   !#    return
   !#   </code>
   !#  </method>
@@ -88,18 +84,15 @@ module Critical_Overdensities
   !#   <pass>yes</pass>
   !#   <selfTarget>yes</selfTarget>
   !#   <argument>double precision, intent(in   ), optional :: time      , expansionFactor</argument>
-  !#   <argument>logical         , intent(in   ), optional :: collapsing</argument>
-  !#   <modules>Cosmology_Functions Root_Finder</modules>
+  !#   <argument>logical         , intent(in   ), optional :: collapsing                 </argument>
+  !#   <modules>Root_Finder</modules>
   !#   <code>
   !#    double precision                               , parameter :: massGuess           =1.0d+13, toleranceAbsolute=0.0d0, &amp;
   !#         &amp;                                                    toleranceRelative   =1.0d-06
   !#    type            (rootFinder                   ), save      :: finder
   !#    !$omp threadprivate(finder)
-  !#    class           (cosmologyFunctionsClass      ), pointer   :: cosmologyFunctions_
   !#    double precision                                           :: collapseTime
-  !#    cosmologyFunctions_       => cosmologyFunctions      ()
-  !#    cosmologicalMassVariance_ => cosmologicalMassVariance()
-  !#    call cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=collapseTime)
+  !#    call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=collapseTime)
   !#    if (.not.finder%isInitialized()) then
   !#       call finder%rootFunction(collapsingMassRoot                 )
   !#       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
@@ -122,16 +115,16 @@ module Critical_Overdensities
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ), optional :: time      , expansionFactor</argument>
-  !#   <argument>logical         , intent(in   ), optional :: collapsing</argument>
-  !#   <argument>double precision, intent(in   ), optional :: mass</argument>
+  !#   <argument>logical         , intent(in   ), optional :: collapsing                 </argument>
+  !#   <argument>double precision, intent(in   ), optional :: mass                       </argument>
   !#  </method>
   !#  <method name="gradientMass" >
   !#   <description>Return the derivative with respect to mass of the linear theory critical overdensity for collapse at the given cosmic time.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ), optional :: time      , expansionFactor</argument>
-  !#   <argument>logical         , intent(in   ), optional :: collapsing</argument>
-  !#   <argument>double precision, intent(in   ), optional :: mass</argument>
+  !#   <argument>logical         , intent(in   ), optional :: collapsing                 </argument>
+  !#   <argument>double precision, intent(in   ), optional :: mass                       </argument>
   !#  </method>
   !# </functionClass>
 
@@ -155,7 +148,7 @@ contains
     implicit none
     double precision, intent(in   ) :: mass        
 
-    collapsingMassRoot=cosmologicalMassVariance_%rootVariance(mass)-globalSelf%value(time=globalSelf%time,mass=mass)
+    collapsingMassRoot=globalSelf%cosmologicalMassVariance_%rootVariance(mass)-globalSelf%value(time=globalSelf%time,mass=mass)
     return
   end function collapsingMassRoot
   

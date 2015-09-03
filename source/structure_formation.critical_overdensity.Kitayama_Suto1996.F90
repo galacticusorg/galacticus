@@ -26,8 +26,7 @@
   type, extends(criticalOverdensityClass) :: criticalOverdensityKitayamaSuto1996
      !% A critical overdensity class based on the fitting functions of \cite{kitayama_semianalytic_1996}.
      private
-     class(linearGrowthClass       ), pointer :: linearGrowth_
-     class(cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
+     class(linearGrowthClass), pointer :: linearGrowth_
     contains
      final     ::                   kitayamaSuto1996Destructor
      procedure :: value          => kitayamaSuto1996Value
@@ -52,20 +51,23 @@ contains
     type(inputParameters                    ), intent(inout) :: parameters
     !# <inputParameterList label="allowedParameterNames" />
     
-    !# <objectBuilder class="linearGrowth"       name="kitayamaSuto1996ConstructorParameters%linearGrowth_"       source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions" name="kitayamaSuto1996ConstructorParameters%cosmologyFunctions_" source="parameters"/>
-    return
+    !# <objectBuilder class="linearGrowth"             name="kitayamaSuto1996ConstructorParameters%linearGrowth_"             source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"       name="kitayamaSuto1996ConstructorParameters%cosmologyFunctions_"       source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="kitayamaSuto1996ConstructorParameters%cosmologicalMassVariance_" source="parameters"/>
+   return
   end function kitayamaSuto1996ConstructorParameters
 
-  function kitayamaSuto1996ConstructorInternal(linearGrowth_,cosmologyFunctions_)
+  function kitayamaSuto1996ConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_)
     !% Internal constructor for the {\normalfont \ttfamily kitayamaSuto1996} critical overdensity class.
     implicit none
     type (criticalOverdensityKitayamaSuto1996)                        :: kitayamaSuto1996ConstructorInternal
-    class(cosmologyFunctionsClass            ), target, intent(in   ) :: cosmologyFunctions_    
-    class(linearGrowthClass                  ), target, intent(in   ) :: linearGrowth_    
+    class(cosmologyFunctionsClass            ), target, intent(in   ) :: cosmologyFunctions_
+    class(linearGrowthClass                  ), target, intent(in   ) :: linearGrowth_
+    class(cosmologicalMassVarianceClass      ), target, intent(in   ) :: cosmologicalMassVariance_
 
-    kitayamaSuto1996ConstructorInternal%cosmologyFunctions_ => cosmologyFunctions_
-    kitayamaSuto1996ConstructorInternal%linearGrowth_       => linearGrowth_
+    kitayamaSuto1996ConstructorInternal%cosmologyFunctions_       => cosmologyFunctions_
+    kitayamaSuto1996ConstructorInternal%linearGrowth_             => linearGrowth_
+    kitayamaSuto1996ConstructorInternal%cosmologicalMassVariance_ => cosmologicalMassVariance_
     return
   end function kitayamaSuto1996ConstructorInternal
 
