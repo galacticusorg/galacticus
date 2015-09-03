@@ -29,9 +29,6 @@ module Constraints_Priors
      logical                        :: autoDistribution
      class  (distribution), pointer :: priorDistribution     
    contains
-     !# <workaround type="gfortran" PR="58471 58470" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58471 http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58470">
-     !# final     ::               priorDestructor
-     !# </workaround>
      !@ <objectMethods>
      !@   <object>prior</object>
      !@   <objectMethod>
@@ -65,11 +62,12 @@ module Constraints_Priors
      !@     <description>Returns the maximum possible value of the parameter.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-    procedure :: sample     => priorSample
-    procedure :: logDensity => priorLogDensity
-    procedure :: invert     => priorInvert
-    procedure :: minimum    => priorMinimum
-    procedure :: maximum    => priorMaximum
+     final     ::               priorDestructor
+     procedure :: sample     => priorSample
+     procedure :: logDensity => priorLogDensity
+     procedure :: invert     => priorInvert
+     procedure :: minimum    => priorMinimum
+     procedure :: maximum    => priorMaximum
   end type prior
   
   interface prior

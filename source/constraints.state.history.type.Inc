@@ -21,9 +21,7 @@
      private
      double precision, allocatable, dimension(:) :: stateSum, stateSquaredSum
    contains
-     !# <workaround type="gfortran" PR="58471 58470" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58471 http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58470">
-     !# final     ::             stateHistoryDestroy
-     !# </workaround>
+     final     ::             stateHistoryDestroy
      procedure :: update   => stateHistoryUpdate
      procedure :: mean     => stateHistoryMean
      procedure :: variance => stateHistoryVariance
