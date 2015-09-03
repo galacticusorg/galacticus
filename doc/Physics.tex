@@ -342,21 +342,33 @@ Selected with {\normalfont \ttfamily darkMatterHaloBiasMethod}$=${\normalfont \t
 
 The dark matter halo mass function (i.e. the number of halos per unit volume per unit mass interval) is selected via the {\normalfont \ttfamily haloMassFunctionMethod} parameter.
 
-\subsubsection{Press-Schechter}
+\subsubsection{Press-Schechter}\label{phys:haloMassFunction:haloMassFunctionPressSchechter}
 
-Selected with {\normalfont \ttfamily haloMassFunctionMethod}$=${\normalfont \ttfamily Press-Schechter} this method uses the functional form proposed by \cite{press_formation_1974} to compute the halo mass function.
-
-\subsubsection{Sheth-Tormen}
-
-Selected with {\normalfont \ttfamily haloMassFunctionMethod}$=${\normalfont \ttfamily Sheth-Tormen} this method uses the functional form proposed by \cite{sheth_ellipsoidal_2001} to compute the halo mass function. Specifically,
+Selected with {\normalfont \ttfamily haloMassFunctionMethod}$=${\normalfont \ttfamily pressSchechter} this method uses the functional form proposed by \cite{press_formation_1974} to compute the halo mass function. Specifically,
 \begin{equation}
 n(M,t) = 2 {\Omega_{\mathrm M} \rho_{\mathrm crit} \over M^2} \alpha \sigma^2(M) f[S(M,t)],
 \end{equation}
 where $\alpha = {\mathrm d}\ln\sigma/{\mathrm d}\ln M$ and $f[S]$ is the excursion set barrier first crossing distribution for variance $S(M)=\sigma^2(M)$, computed using the selected {\normalfont \ttfamily excursionSetFirstCrossingMethod} (see \S\ref{sec:excursionSetFirstCrossingMethod}).
 
-\subsubsection{Tinker}
+\subsubsection{Sheth-Tormen}\label{phys:haloMassFunction:haloMassFunctionShethTormen}
 
-Selected with {\normalfont \ttfamily haloMassFunctionMethod}$=${\normalfont \ttfamily Tinker2008} this method uses the functional form proposed by \cite{tinker_towardhalo_2008} to compute the halo mass function. The mass function is computed at the appropriate virial overdensity (see \S\ref{sec:VirialDensityConstrast}).
+Selected with {\normalfont \ttfamily haloMassFunctionMethod}$=${\normalfont \ttfamily shethTormen} this method uses the functional form proposed by \cite{sheth_ellipsoidal_2001} to compute the halo mass function.
+
+\subsubsection{Despali et al. (2015)}\label{phys:haloMassFunction:haloMassFunctionDespali2015}
+
+Selected with {\normalfont \ttfamily haloMassFunctionMethod}$=${\normalfont \ttfamily despali2015} this method uses the functional form proposed by \cite[][see \protect\S\ref{phys:haloMassFunction:haloMassFunctionShethTormen}]{sheth_ellipsoidal_2001} but with parameters $a$, $p$, and $A$ set using eqn.~(12) of \cite{despali_universality_2015}.
+
+\subsubsection{Tinker et al. (2008)}\label{phys:haloMassFunction:haloMassFunctionTinker2008}
+
+Selected with {\normalfont \ttfamily haloMassFunctionMethod}$=${\normalfont \ttfamily tinker2008} this method uses the functional form proposed by \cite{tinker_towardhalo_2008} to compute the halo mass function. The mass function is computed at the appropriate virial overdensity (see \S\ref{sec:VirialDensityConstrast}).
+
+\subsubsection{Simple Systematic}\label{phys:haloMassFunction:haloMassFunctionSimpleSystematic}                                               
+                                                                                                                                              
+Selected with {\normalfont \ttfamily haloMassFunctionMethod}$=${\normalfont \ttfamily simpleSystematic} this method modifies another mass function (specified as a subparameter) as follows:
+\begin{equation}
+  {{\rm d} n\over {\rm d}M}(M) \rightarrow {{\rm d} n\over {\rm d}M}(M) \left( 1 + \alpha + \beta \log_{10}\left[ {M \over 10^{12}M_\odot} \right] \right)
+\end{equation}
+where $\alpha=${\normalfont \ttfamily [alpha]}, and $\beta=${\normalfont \ttfamily [beta]}.
 
 \section{Conditional Mass Functions}\index{conditional mass function}
 
