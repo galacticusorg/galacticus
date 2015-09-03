@@ -541,7 +541,7 @@ contains
           doc => parseFile(char(fileName),iostat=ioErr)
           if (ioErr /= 0) call Galacticus_Error_Report('IMF_Recycling_Rate_NonInstantaneous','Unable to parse recycled fractions file "'//fileName//'"'//char(10)//'HELP: file may be corrupted - try deleting this file and rerunning Galacticus')
           ! Check the version number.
-          if (XML_Path_Exists(doc,"fileFormat")) then
+          if (XML_Path_Exists(doc,"stellarPopulation/fileFormat")) then
              thisItem => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
              call extractDataContent(thisItem,fileFormat)
              if (fileFormat /= fileFormatCurrent) makeFile=.true.
@@ -946,7 +946,7 @@ contains
              doc => parseFile(char(fileName),iostat=ioErr)
              if (ioErr /= 0) call Galacticus_Error_Report('IMF_Metal_Yield_Rate_NonInstantaneous','Unable to parse metal yields file "'//fileName//'"'//char(10)//'HELP: file may be corrupted - try deleting this file and rerunning Galacticus')
              ! Check the version number.
-             if (XML_Path_Exists(doc,"fileFormat")) then
+             if (XML_Path_Exists(doc,"stellarPopulation/fileFormat")) then
                 thisItem => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
                 call extractDataContent(thisItem,fileFormat)
                 if (fileFormat /= fileFormatCurrent) makeFile=.true.
@@ -1392,7 +1392,7 @@ contains
           doc => parseFile(char(fileName),iostat=ioErr)
           if (ioErr /= 0) call Galacticus_Error_Report('IMF_Energy_Input_Rate_NonInstantaneous','Unable to parse energy input file "'//fileName//'"'//char(10)//'HELP: file may be corrupted - try deleting this file and rerunning Galacticus')
           ! Check the version number.
-          if (XML_Path_Exists(doc,"fileFormat")) then
+          if (XML_Path_Exists(doc,"stellarPopulation/fileFormat")) then
              thisItem => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
              call extractDataContent(thisItem,fileFormat)
              if (fileFormat /= fileFormatCurrent) makeFile=.true.
