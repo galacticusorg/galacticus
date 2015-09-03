@@ -54,8 +54,14 @@ contains
     type (darkMatterProfileConcentrationSchneider2015)                :: schneider2015ConstructorParameters
     type(inputParameters                             ), intent(inout) :: parameters
     type(inputParameters                             )                :: referenceParameters
+    !# <inputParameterList label="allowedParameterNames"          source="parameters"          />
+    !# <inputParameterList label="allowedReferenceParameterNames" source="referenceParameters" />
 
     if (.not.parameters%isPresent('reference',requireValue=.false.)) call Galacticus_Error_Report('schneider2015ConstructorParameters','parameters must contain a "reference" section')
+    referenceParameters=parameters%subParameters('reference',requireValue=.false.)
+    ! Check and read parameters.
+    call          parameters%checkParameters(allowedParameterNames         )    
+    call referenceParameters%checkParameters(allowedReferenceParameterNames)    
     !# <inputParameter>
     !#   <name>massFractionFormation</name>
     !#   <source>parameters</source>
@@ -65,7 +71,6 @@ contains
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>    
-    referenceParameters=parameters%subParameters('reference',requireValue=.false.)
     !# <objectBuilder class="darkMatterProfileConcentration" name="schneider2015ConstructorParameters%referenceConcentration"             source="referenceParameters"/>
     !# <objectBuilder class="criticalOverdensity"            name="schneider2015ConstructorParameters%referenceCriticalOverdensity"       source="referenceParameters"/>
     !# <objectBuilder class="criticalOverdensity"            name="schneider2015ConstructorParameters%         criticalOverdensity_"      source=         "parameters"/>

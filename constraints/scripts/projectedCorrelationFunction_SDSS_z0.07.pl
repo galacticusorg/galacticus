@@ -177,6 +177,7 @@ if ( exists($arguments{'outputFile'}) ) {
 	offsets           => \$offsets          ,
 	quiet             => 0
 	);
+    $constraint->{'label'        } = "sdssClusteringZ0.07";
     $constraint->{'logLikelihood'} = $logLikelihood;
     # Find the Jacobian of the log-likelihood with respect to the model mass function.
     my $jacobian = pdl zeroes(nelem($data->{'model'}->{'combined'}->{'correlationFunction'}),1);

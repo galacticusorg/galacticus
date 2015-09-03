@@ -45,6 +45,7 @@ if ( exists($arguments{'outputFile'}) ) {
     &HDF5::Get_Parameters($galacticus);
     # Compute the likelihood.
     my $constraint;
+    $constraint->{'label'                } = "carnegieHubbleProgram";
     $constraint->{'logLikelihood'        } = sclr(-0.5*($galacticus->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'}-$constraintValue)**2/($constraintSystematicError**2+$constraintStatisticalError**2));
     $constraint->{'logLikelihoodVariance'} = 0.0;
     # Output the constraint.

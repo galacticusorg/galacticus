@@ -47,31 +47,44 @@ sub Process_InputParameterList {
 	if ( $node->{'type'} eq "inputParameterList" && ! $node->{'directive'}->{'processed'} ) {	    
 	    # Record that this directive has been processed.
 	    $node->{'directive'}->{'processed'} =  1;
+	    # Determine the source name.
+	    my $sourceMatch;
+	    $sourceMatch = $node->{'directive'}->{'source'}
+	        if ( exists($node->{'directive'}->{'source'}) );
 	    # Step through sibling nodes looking for input parameter directives.
 	    my @inputParameterNames;
 	    my $sibling = $node->{'parent'}->{'firstChild'};
 	    while ( $sibling ) {
 		if ( $sibling->{'type'} eq "inputParameter" ) {
-		    if      ( exists($sibling->{'directive'}->{'name'}) ) {
-			# Single parameter defined by its name - simply push onto the list.
-			push(@inputParameterNames,$sibling->{'directive'}->{'name'});
-		    } elsif ( exists($sibling->{'directive'}->{'iterator'}) ) {
-			# A parameter whose name iterates over a set of possible names.
-			if ( $sibling->{'directive'}->{'iterator'} =~ m/\(\#([a-zA-Z0-9]+)\-\>([a-zA-Z0-9]+)\)/ ) {
-			    my $directiveName = $1;
-			    my $attributeName = $2;
-			    die('Process_InputParameterList(): locations not found for directives')
-				unless ( exists($directiveLocations->{$directiveName}) );
-			    foreach my $fileName ( &ExtraUtils::as_array($directiveLocations->{$directiveName}->{'file'}) ) {
-				foreach ( &Directives::Extract_Directives($fileName,$directiveName) ) {
-				    (my $parameterName = $sibling->{'directive'}->{'iterator'}) =~ s/\(\#$directiveName\-\>$attributeName\)/$_->{$attributeName}/;
-				    push(@inputParameterNames,$parameterName);
+		    my $source = "globalParameters";
+		    $source = $sibling->{'directive'}->{'source'}
+		        if ( exists($sibling->{'directive'}->{'source'}) );
+		    if ( ! $sourceMatch || $sourceMatch eq $source ) {
+			if      ( exists($sibling->{'directive'}->{'name'}) ) {
+			    # Single parameter defined by its name - simply push onto the list.
+			    push(@inputParameterNames,$sibling->{'directive'}->{'name'});
+			} elsif ( exists($sibling->{'directive'}->{'iterator'}) ) {
+			    # A parameter whose name iterates over a set of possible names.
+			    if ( $sibling->{'directive'}->{'iterator'} =~ m/\(\#([a-zA-Z0-9]+)\-\>([a-zA-Z0-9]+)\)/ ) {
+				my $directiveName = $1;
+				my $attributeName = $2;
+				die('Process_InputParameterList(): locations not found for directives')
+				    unless ( exists($directiveLocations->{$directiveName}) );
+				foreach my $fileName ( &ExtraUtils::as_array($directiveLocations->{$directiveName}->{'file'}) ) {
+				    foreach ( &Directives::Extract_Directives($fileName,$directiveName) ) {
+					(my $parameterName = $sibling->{'directive'}->{'iterator'}) =~ s/\(\#$directiveName\-\>$attributeName\)/$_->{$attributeName}/;
+					push(@inputParameterNames,$parameterName);
+				    }
 				}
+			    } else {
+				die('Process_InputParameterList(): nothing to iterate over');
 			    }
-			} else {
-			    die('Process_InputParameterList(): nothing to iterate over');
 			}
 		    }
+		} elsif ( $sibling->{'type'} eq "objectBuilder" ) {
+		    # Add methods read by objectBuilder directives.
+		    push(@inputParameterNames,$sibling->{'directive'}->{'class'}."Method")
+			if ( ! $sourceMatch || $sourceMatch eq $sibling->{'directive'}->{'source'} );
 		}
 		$sibling = $sibling->{'sibling'};
 	    }

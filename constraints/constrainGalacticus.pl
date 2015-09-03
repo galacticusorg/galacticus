@@ -20,6 +20,7 @@ use Storable;
 use Fcntl;
 use POSIX::RT::Semaphore;
 use PDL;
+use Storable qw(dclone);require Fortran::Utils;
 require File::Which;
 require File::NFSLock;
 require System::Redirect;
@@ -188,6 +189,10 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
     # Record and remove any analyses.
     my $savedAnalyses   = $parameters->{'mergerTreeAnalyses'}->{'value'};
     delete($parameters->{'mergerTreeAnalyses'});
+    # Record merger tree operators.
+    my $savedMergerTreeOperator;
+    $savedMergerTreeOperator = dclone($parameters->{'mergerTreeOperatorMethod'})
+	if ( exists($parameters->{'mergerTreeOperatorMethod'}) );
     # Reset parameters.
     my %parametersToSave =
 	(
@@ -235,10 +240,24 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
 		    # Create the tree file if necessary. (Set output redshift to a very large value to avoid any galaxy formation
 		    # calculation being carried out - we only want to build the trees.)
 		    $parameters->{'outputRedshifts'             }                                  ->{'value'} = "10000.0";
-		    $parameters->{'mergerTreeOperatorMethod'    }                                  ->{'value'} = "export";
-		    $parameters->{'mergerTreeOperatorMethod'    }->{'outputFileName'              }->{'value'} = $buildFixedTreeFile;
 		    $parameters->{'mergerTreePruneBaryons'      }                                  ->{'value'} = "false";
-		    $parameters->{'mergerTreeOperatorMethod'    }->{'mergerTreeExportOutputFormat'}->{'value'} = "galacticus";
+		    my $newOperator;
+		    $newOperator                                  ->{'value'} = "export";
+		    $newOperator->{'outputFileName'              }->{'value'} = $buildFixedTreeFile;
+		    $newOperator->{'mergerTreeExportOutputFormat'}->{'value'} = "galacticus";
+		    if ( exists($parameters->{'mergerTreeOperatorMethod'}) ) {
+			my @operators;
+			if ( $parameters->{'mergerTreeOperatorMethod'}->{'value'} eq "sequence" ) {
+			    @operators = &ExtraUtils::as_array($parameters->{'mergerTreeOperatorMethod'}->{'mergerTreeOperatorMethod'});
+			    push(@operators,$newOperator);
+			} else {
+			    @operators = ( dclone($parameters->{'mergerTreeOperatorMethod'}), $newOperator );
+			    $parameters->{'mergerTreeOperatorMethod'}->{'value'} = "sequence";
+			}
+			@{$parameters->{'mergerTreeOperatorMethod'}->{'mergerTreeOperatorMethod'}} = @operators;
+		    } else {
+			$parameters->{'mergerTreeOperatorMethod'} = $newOperator;
+		    }
 		    my $treeXML = new XML::Simple (RootName=>"parameters", NoAttr => 1);
 		    open(pHndl,">".$config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml");
 		    print pHndl $treeXML->XMLout($parameters);
@@ -277,7 +296,8 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
     $parameters->{'mergerTreeReadFileName'   }->{'value'} = $fixedTreeFile;
     $parameters->{'outputRedshifts'          }->{'value'} = $outputRedshifts;
     $parameters->{'mergerTreeAnalyses'       }->{'value'} = $savedAnalyses;
-    $parameters->{'mergerTreesWrite'         }->{'value'} = "false";
+    $parameters->{'mergerTreeOperatorMethd'  }            = $savedMergerTreeOperator
+	if ( $savedMergerTreeOperator );
     # Restore parameters.
     foreach my $parameter ( @savedParameters ) {
 	$parameters->{$parameter->{'name'}}->{'value'} = $parameter->{'value'};
@@ -360,12 +380,11 @@ unless ( $? == 0 ) {
 	    if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} eq "yes" && scalar(@temporaryFiles) > 0 );
 	exit;
     } else {
-	# Job died for some other reason, try it again.
-	# Issue a failure.
-	print "ERROR: Galacticus model failed to complete - retrying\n";
+	# Job died for some other reason, try it again. Issue a failure.
 	&reportFailure($config,$scratchDirectory,$logFile,$stateFileRoot,$cpuTimeExceeded);
 	# Try running the model again - in case this was a random error.
 	if ( exists($config->{'likelihood'}->{'rerunOnError'}) && $config->{'likelihood'}->{'rerunOnError'} eq "yes" ) {
+	    print "ERROR: Galacticus model failed to complete - retrying\n";
 	    SystemRedirect::tofile($glcCommand,$logFile);
 	    unless ( $? == 0 ) {
 		# Since a failure occurred, post to the semaphore to avoid blocking other jobs.
@@ -382,7 +401,7 @@ unless ( $? == 0 ) {
 		&semaphorePost($config->{'likelihood'}->{'threads'},$semaphoreName);
 		# Display the final likelihood.
 		&outputLikelihood($config,$badLogLikelihood,$badLogLikelihoodVariance);
-		print "constrainGalacticus.pl: Galacticus model failed to complete - second attempt";
+		print "constrainGalacticus.pl: Galacticus model failed to complete";
 		unlink(@temporaryFiles)
 		    if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} eq "yes" && scalar(@temporaryFiles) > 0 );
 		exit;
