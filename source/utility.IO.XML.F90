@@ -261,8 +261,7 @@ contains
     character(len=*        ), intent(in   )          :: path
     type     (nodeList     )               , pointer :: elementList
     type     (node         )               , pointer :: element       , child         , &
-         &                                              parent        , document      , &
-         &                                              expectedParent
+         &                                              parent
     character(len=len(path))                         :: currentPath   , currentTagName
     integer                                          :: pathPosition  , i
 
@@ -285,15 +284,9 @@ contains
        else
           XML_Path_Exists=.false.
           do i=0,getLength(elementList)-1
-             child    => item            (elementList,i)
-             parent   => getParentNode   (child        )
-             document => getOwnerDocument(child        )
-             if (associated(document,element)) then
-                expectedParent => getFirstChild(element)
-             else
-                expectedParent =>               element
-             end if
-             if (getNodeType(child) == ELEMENT_NODE .and. associated(parent,expectedParent)) then
+             child  => item         (elementList,i)
+             parent => getParentNode(child        )
+             if (getNodeType(child) == ELEMENT_NODE .and. associated(parent,element)) then
                 element => child
                 XML_Path_Exists=.true.
                 exit
