@@ -45,22 +45,25 @@ contains
     type(criticalOverdensitySphericalCollapseMatterDE)                :: sphericalCollapseMatterDEConstructorParameters
     type(inputParameters                             ), intent(inout) :: parameters
 
-    !# <objectBuilder class="linearGrowth"       name="sphericalCollapseMatterDEConstructorParameters%linearGrowth_"       source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions" name="sphericalCollapseMatterDEConstructorParameters%cosmologyFunctions_" source="parameters"/>
+    !# <objectBuilder class="linearGrowth"             name="sphericalCollapseMatterDEConstructorParameters%linearGrowth_"             source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"       name="sphericalCollapseMatterDEConstructorParameters%cosmologyFunctions_"       source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="sphericalCollapseMatterDEConstructorParameters%cosmologicalMassVariance_" source="parameters"/>
     sphericalCollapseMatterDEConstructorParameters%tableInitialized=.false.
     return
   end function sphericalCollapseMatterDEConstructorParameters
 
-  function sphericalCollapseMatterDEConstructorInternal(linearGrowth_,cosmologyFunctions_)
+  function sphericalCollapseMatterDEConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_)
     !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseMatterDE} critical overdensity class.
     implicit none
     type (criticalOverdensitySphericalCollapseMatterDE)                        :: sphericalCollapseMatterDEConstructorInternal
     class(cosmologyFunctionsClass                     ), target, intent(in   ) :: cosmologyFunctions_    
     class(linearGrowthClass                           ), target, intent(in   ) :: linearGrowth_    
+    class(cosmologicalMassVarianceClass               ), target, intent(in   ) :: cosmologicalMassVariance_
 
-    sphericalCollapseMatterDEConstructorInternal%tableInitialized    =  .false.
-    sphericalCollapseMatterDEConstructorInternal%cosmologyFunctions_ => cosmologyFunctions_
-    sphericalCollapseMatterDEConstructorInternal%linearGrowth_       => linearGrowth_
+    sphericalCollapseMatterDEConstructorInternal%tableInitialized          =  .false.
+    sphericalCollapseMatterDEConstructorInternal%cosmologyFunctions_       => cosmologyFunctions_
+    sphericalCollapseMatterDEConstructorInternal%linearGrowth_             => linearGrowth_
+    sphericalCollapseMatterDEConstructorInternal%cosmologicalMassVariance_ => cosmologicalMassVariance_
     return
   end function sphericalCollapseMatterDEConstructorInternal
 

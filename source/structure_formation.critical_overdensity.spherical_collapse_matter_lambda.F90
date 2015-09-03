@@ -28,11 +28,10 @@
   type, extends(criticalOverdensityClass) :: criticalOverdensitySphericalCollapseMatterLambda
      !% A critical overdensity class based on spherical collapse in a matter plus cosmological constant universe.
      private
-     logical                                                :: tableInitialized
-     double precision                                       :: tableTimeMinimum   , tableTimeMaximum
-     class           (table1D                ), allocatable :: overdensityCritical
-     class           (linearGrowthClass      ), pointer     :: linearGrowth_
-     class           (cosmologyFunctionsClass), pointer     :: cosmologyFunctions_
+     logical                                          :: tableInitialized
+     double precision                                 :: tableTimeMinimum   , tableTimeMaximum
+     class           (table1D          ), allocatable :: overdensityCritical
+     class           (linearGrowthClass), pointer     :: linearGrowth_
    contains
      !@ <objectMethods>
      !@   <object>criticalOverdensitySphericalCollapseMatterLambda</object>
@@ -68,25 +67,28 @@ contains
     type(criticalOverdensitySphericalCollapseMatterLambda)                :: sphericalCollapseMatterLambdaConstructorParameters
     type(inputParameters                                 ), intent(inout) :: parameters
 
-    !# <objectBuilder class="linearGrowth"       name="sphericalCollapseMatterLambdaConstructorParameters%linearGrowth_"       source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions" name="sphericalCollapseMatterLambdaConstructorParameters%cosmologyFunctions_" source="parameters"/>
-    sphericalCollapseMatterLambdaConstructorParameters%tableInitialized=.false.
+    !# <objectBuilder class="linearGrowth"             name="sphericalCollapseMatterLambdaConstructorParameters%linearGrowth_"             source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"       name="sphericalCollapseMatterLambdaConstructorParameters%cosmologyFunctions_"       source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="sphericalCollapseMatterLambdaConstructorParameters%cosmologicalMassVariance_" source="parameters"/>
+   sphericalCollapseMatterLambdaConstructorParameters%tableInitialized=.false.
     return
   end function sphericalCollapseMatterLambdaConstructorParameters
 
-  function sphericalCollapseMatterLambdaConstructorInternal(linearGrowth_,cosmologyFunctions_)
+  function sphericalCollapseMatterLambdaConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_)
     !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseMatterLambda} critical overdensity class.
     implicit none
     type (criticalOverdensitySphericalCollapseMatterLambda)                        :: sphericalCollapseMatterLambdaConstructorInternal
     class(cosmologyFunctionsClass                         ), target, intent(in   ) :: cosmologyFunctions_    
     class(linearGrowthClass                               ), target, intent(in   ) :: linearGrowth_    
+    class(cosmologicalMassVarianceClass                   ), target, intent(in   ) :: cosmologicalMassVariance_
 
-    sphericalCollapseMatterLambdaConstructorInternal%tableInitialized    =  .false.
-    sphericalCollapseMatterLambdaConstructorInternal%cosmologyFunctions_ => cosmologyFunctions_
-    sphericalCollapseMatterLambdaConstructorInternal%linearGrowth_       => linearGrowth_
+    sphericalCollapseMatterLambdaConstructorInternal%tableInitialized          =  .false.
+    sphericalCollapseMatterLambdaConstructorInternal%cosmologyFunctions_       => cosmologyFunctions_
+    sphericalCollapseMatterLambdaConstructorInternal%linearGrowth_             => linearGrowth_
+    sphericalCollapseMatterLambdaConstructorInternal%cosmologicalMassVariance_ => cosmologicalMassVariance_
     return
   end function sphericalCollapseMatterLambdaConstructorInternal
-
+  
   subroutine sphericalCollapseMatterLambdaDestructor(self)
     !% Destructor for the {\normalfont \ttfamily sphericalCollapseMatterLambda} critical overdensity for collapse class.
     implicit none

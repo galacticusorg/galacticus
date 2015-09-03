@@ -65,6 +65,8 @@ contains
     type            (inputParameters                  ), intent(inout) :: parameters
     class           (criticalOverdensityClass         ), pointer       :: criticalOverdensityCDM
     class           (cosmologyParametersClass         ), pointer       :: cosmologyParameters_
+    class           (cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
+    class           (cosmologicalMassVarianceClass    ), pointer       :: cosmologicalMassVariance_
     double precision                                                   :: gX                                 , mX
     logical                                                            :: useFittingFunction
     !# <inputParameterList label="allowedParameterNames" />
@@ -93,14 +95,16 @@ contains
     !#   <type>boolean</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="criticalOverdensity" name="criticalOverdensityCDM" source="parameters"/>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_"   source="parameters"/>
+    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensityCDM"    source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     ! Call the internal constructor
-    barkana2001WDMConstructorParameters=barkana2001WDMConstructorInternal(criticalOverdensityCDM,cosmologyParameters_,gX,mX,useFittingFunction)
+    barkana2001WDMConstructorParameters=barkana2001WDMConstructorInternal(criticalOverdensityCDM,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,gX,mX,useFittingFunction)
     return
   end function barkana2001WDMConstructorParameters
 
-  function barkana2001WDMConstructorInternal(criticalOverdensityCDM,cosmologyParameters_,gX,mX,useFittingFunction)
+  function barkana2001WDMConstructorInternal(criticalOverdensityCDM,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,gX,mX,useFittingFunction)
     !% Internal constructor for the ``{\normalfont \ttfamily barkana2001WDM}'' critical overdensity for collapse class.
     use FoX_DOM
     use IO_XML
@@ -111,17 +115,21 @@ contains
     type            (criticalOverdensityBarkana2001WDM)                        :: barkana2001WDMConstructorInternal
     class           (criticalOverdensityClass         ), target, intent(in   ) :: criticalOverdensityCDM
     class           (cosmologyParametersClass         ), target, intent(in   ) :: cosmologyParameters_
+    class           (cosmologyFunctionsClass          ), target, intent(in   ) :: cosmologyFunctions_
+    class           (cosmologicalMassVarianceClass    ), target, intent(in   ) :: cosmologicalMassVariance_
     double precision                                           , intent(in   ) :: gX                               , mX
     logical                                                    , intent(in   ) :: useFittingFunction
     type            (node                             ), pointer               :: doc                              , element
     double precision                                                           :: matterRadiationEqualityRedshift
     integer                                                                    :: ioStatus
 
-    barkana2001WDMConstructorInternal%criticalOverdensityCDM => criticalOverdensityCDM
-    barkana2001WDMConstructorInternal%cosmologyParameters_   => cosmologyParameters_
-    barkana2001WDMConstructorInternal%useFittingFunction     =  useFittingFunction
-    barkana2001WDMConstructorInternal%gX                     =  mX
-    barkana2001WDMConstructorInternal%mX                     =  gX
+    barkana2001WDMConstructorInternal%criticalOverdensityCDM    => criticalOverdensityCDM
+    barkana2001WDMConstructorInternal%cosmologyParameters_      => cosmologyParameters_
+    barkana2001WDMConstructorInternal%cosmologyFunctions_       => cosmologyFunctions_
+    barkana2001WDMConstructorInternal%cosmologicalMassVariance_ => cosmologicalMassVariance_
+    barkana2001WDMConstructorInternal%useFittingFunction        =  useFittingFunction
+    barkana2001WDMConstructorInternal%gX                        =  mX
+    barkana2001WDMConstructorInternal%mX                        =  gX
     ! Compute corresponding Jeans mass.
     matterRadiationEqualityRedshift            =+3600.0d0                                                                                       &
          &                                      *(                                                                                              &

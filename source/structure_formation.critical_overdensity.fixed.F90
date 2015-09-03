@@ -25,9 +25,8 @@
   type, extends(criticalOverdensityClass) :: criticalOverdensityFixed
      !% A fixed critical overdensity class.
      private
-     double precision                                    :: criticalOverdensity
-     class           (linearGrowthClass       ), pointer :: linearGrowth_
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
+     double precision                             :: criticalOverdensity
+     class           (linearGrowthClass), pointer :: linearGrowth_
     contains
      final     ::                   fixedDestructor
      procedure :: value          => fixedValue
@@ -63,23 +62,26 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="linearGrowth"       name="fixedConstructorParameters%linearGrowth_"       source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions" name="fixedConstructorParameters%cosmologyFunctions_" source="parameters"/>
-    return
+    !# <objectBuilder class="linearGrowth"             name="fixedConstructorParameters%linearGrowth_"             source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"       name="fixedConstructorParameters%cosmologyFunctions_"       source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="fixedConstructorParameters%cosmologicalMassVariance_" source="parameters"/>
+   return
   end function fixedConstructorParameters
 
-  function fixedConstructorInternal(criticalOverdensity,linearGrowth_,cosmologyFunctions_)
+  function fixedConstructorInternal(criticalOverdensity,linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_)
     !% Internal constructor for the fixed critical overdensity class.
     implicit none
     type            (criticalOverdensityFixed)                        :: fixedConstructorInternal
     double precision                                  , intent(in   ) :: criticalOverdensity
     class           (cosmologyFunctionsClass ), target, intent(in   ) :: cosmologyFunctions_    
     class           (linearGrowthClass       ), target, intent(in   ) :: linearGrowth_    
+    class(cosmologicalMassVarianceClass      ), target, intent(in   ) :: cosmologicalMassVariance_
 
-    fixedConstructorInternal%criticalOverdensity =  criticalOverdensity
-    fixedConstructorInternal%cosmologyFunctions_ => cosmologyFunctions_
-    fixedConstructorInternal%linearGrowth_       => linearGrowth_
-  return
+    fixedConstructorInternal%criticalOverdensity       =  criticalOverdensity
+    fixedConstructorInternal%cosmologyFunctions_       => cosmologyFunctions_
+    fixedConstructorInternal%linearGrowth_             => linearGrowth_
+    fixedConstructorInternal%cosmologicalMassVariance_ => cosmologicalMassVariance_
+    return
   end function fixedConstructorInternal
 
   subroutine fixedDestructor(self)
