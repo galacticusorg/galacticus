@@ -122,6 +122,7 @@ double precision function likelihoodMassFunctionEvaluate(self,simulationState,pa
   use Numerical_Integration
   use Galacticus_Error
   use Mass_Function_Incompletenesses
+  use Halo_Mass_Functions
   implicit none
   class           (likelihoodMassFunction                     ), intent(inout)               :: self
   class           (state                                      ), intent(in   )               :: simulationState
@@ -134,6 +135,7 @@ double precision function likelihoodMassFunctionEvaluate(self,simulationState,pa
   double precision                                             , allocatable  , dimension(:) :: stateVector
   class           (cosmologyFunctionsClass                    ), pointer                     :: cosmologyFunctions_
   class           (surveyGeometryClass                        ), pointer                     :: surveyGeometry_
+  class           (haloMassFunctionClass                      ), pointer                     :: haloMassFunction_
   type            (conditionalMassFunctionBehroozi2010        )                              :: thisConditionalMassFunction
   type            (massFunctionIncompletenessSurfaceBrightness)                              :: massFunctionIncompletenessModel
   type            (fgsl_function                              )                              :: integrandFunction               , integrandFunctionNormalization
@@ -154,8 +156,9 @@ double precision function likelihoodMassFunctionEvaluate(self,simulationState,pa
      likelihoodMassFunctionEvaluate=0.0d0
      return
   end if
-  ! Get the default cosmology functions object.
+  ! Get required objects.
   cosmologyFunctions_ => cosmologyFunctions()     
+  haloMassFunction_   => haloMassFunction  ()
   ! Get the default survey geometry object.
   surveyGeometry_     => surveyGeometry    ()     
   ! Construct the conditional mass function object.
@@ -366,7 +369,6 @@ contains
   function likelihoodMassFunctionHaloMassIntegrand(logMass,parameterPointer) bind(c)
     !% Integral over halo mass function.
     use, intrinsic :: ISO_C_Binding
-    use Halo_Mass_Function
     implicit none
     real(c_double)          :: likelihoodMassFunctionHaloMassIntegrand
     real(c_double)  , value :: logMass
@@ -374,14 +376,14 @@ contains
     double precision        :: mass
 
     mass=10.0d0**logMass
-    likelihoodMassFunctionHaloMassIntegrand= Halo_Mass_Function_Differential(time,mass)                                 &
-         &                                    *                                   mass                                  &
-         &                                    *log(10.0d0)                                                              &
-         &                                    *max(                                                                     &
-         &                                         +0.0d0                                                             , &
-         &                                         +thisConditionalMassFunction%massFunction(mass,self%massMinimum(i))  &
-         &                                         -thisConditionalMassFunction%massFunction(mass,self%massMaximum(i))  &
-         &                                        )
+    likelihoodMassFunctionHaloMassIntegrand=+haloMassFunction_%differential(time,mass)                                &
+         &                                  *                                    mass                                 &
+         &                                  *log(10.0d0)                                                              &
+         &                                  *max(                                                                     &
+         &                                       +0.0d0                                                             , &
+         &                                       +thisConditionalMassFunction%massFunction(mass,self%massMinimum(i))  &
+         &                                       -thisConditionalMassFunction%massFunction(mass,self%massMaximum(i))  &
+         &                                      )
     return
   end function likelihoodMassFunctionHaloMassIntegrand
     

@@ -395,25 +395,27 @@ contains
   function Mass_Function_Halo_Mass_Integrand(logMass,parameterPointer) bind(c)
     !% Integral over halo mass function.
     use, intrinsic :: ISO_C_Binding
-    use Halo_Mass_Function
+    use Halo_Mass_Functions
     use Conditional_Mass_Functions
     implicit none
-    real(c_double)          :: Mass_Function_Halo_Mass_Integrand
-    real(c_double)  , value :: logMass
-    type(c_ptr   )  , value :: parameterPointer
-    class            (conditionalMassFunctionClass), pointer :: conditionalMassFunction_
-    double precision        :: mass
+    real            (c_double                    )          :: Mass_Function_Halo_Mass_Integrand
+    real            (c_double                    ), value   :: logMass
+    type            (c_ptr                       ), value   :: parameterPointer
+    class           (conditionalMassFunctionClass), pointer :: conditionalMassFunction_
+    class           (haloMassFunctionClass       ), pointer :: haloMassFunction_
+    double precision                                        :: mass
 
     conditionalMassFunction_ => conditionalMassFunction()
+    haloMassFunction_        => haloMassFunction       ()
     mass=10.0d0**logMass
-    Mass_Function_Halo_Mass_Integrand= Halo_Mass_Function_Differential(time,mass)                               &
-         &                                    *                             mass                                &
-         &                                    *log(10.0d0)                                                      &
-         &                                    *max(                                                             &
-         &                                         +0.0d0                                                     , &
-         &                                         +conditionalMassFunction_%massFunction(mass,massBinMinimum)  &
-         &                                         -conditionalMassFunction_%massFunction(mass,massBinMaximum)  &
-         &                                        )
+    Mass_Function_Halo_Mass_Integrand=+haloMassFunction_%differential(time,mass)                        &
+         &                            *                                    mass                         &
+         &                            *log(10.0d0)                                                      &
+         &                            *max(                                                             &
+         &                                 +0.0d0                                                     , &
+         &                                 +conditionalMassFunction_%massFunction(mass,massBinMinimum)  &
+         &                                 -conditionalMassFunction_%massFunction(mass,massBinMaximum)  &
+         &                                )
     return
   end function Mass_Function_Halo_Mass_Integrand
 

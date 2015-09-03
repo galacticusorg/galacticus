@@ -26,7 +26,7 @@ program Tests_Excursion_Sets
   use Cosmology_Parameters
   use Excursion_Sets_Barriers
   use Excursion_Sets_First_Crossings
-  use Halo_Mass_Function
+  use Halo_Mass_Functions
   use Galacticus_Display
   use Galacticus_Error
   use Numerical_Ranges
@@ -39,7 +39,7 @@ program Tests_Excursion_Sets
   double precision                                                                     , parameter :: massMaximum              =1.0d16, massMinimum             =1.0d6
   integer                                                                              , parameter :: fileNameLengthMaximum    =1024
   double precision                                        , allocatable, dimension(:  )            :: barrier                         , firstCrossingProbability      , &
-       &                                                                                              haloMass                        , haloMassFunction              , &
+       &                                                                                              haloMass                        , haloMassFunctionDifferential  , &
        &                                                                                              powerSpectrum                   , variance                      , &
        &                                                                                              wavenumber
   double precision                                        , allocatable, dimension(:,:)            :: firstCrossingRate
@@ -48,6 +48,7 @@ program Tests_Excursion_Sets
   class           (cosmologyParametersClass     ), pointer                                         :: cosmologyParameters_
   class           (cosmologyFunctionsClass      ), pointer                                         :: cosmologyFunctions_
   class           (cosmologicalMassVarianceClass), pointer                                         :: cosmologicalMassVariance_
+  class           (haloMassFunctionClass        ), pointer                                         :: haloMassFunction_
   double precision                                                                                 :: time                            , varianceProgenitor
   character       (len=fileNameLengthMaximum    )                                                  :: fileCharacter
   type            (varying_string               )                                                  :: outputFileName                  , parameterFile
@@ -77,19 +78,20 @@ program Tests_Excursion_Sets
   ! Get required objects.
   cosmologyFunctions_       => cosmologyFunctions      ()
   cosmologicalMassVariance_ => cosmologicalMassVariance()
-
+  haloMassFunction_         => haloMassFunction        ()
+  
   ! Get the current time.
   time=cosmologyFunctions_%cosmicTime(1.0d0)
 
   ! Allocate arrays.
-  call Alloc_Array(haloMass                ,[massCount          ])
-  call Alloc_Array(variance                ,[massCount          ])
-  call Alloc_Array(barrier                 ,[massCount          ])
-  call Alloc_Array(firstCrossingProbability,[massCount          ])
-  call Alloc_Array(haloMassFunction        ,[massCount          ])
-  call Alloc_Array(wavenumber              ,[massCount          ])
-  call Alloc_Array(powerSpectrum           ,[massCount          ])
-  call Alloc_Array(firstCrossingRate       ,[massCount,massCount])
+  call Alloc_Array(haloMass                    ,[massCount          ])
+  call Alloc_Array(variance                    ,[massCount          ])
+  call Alloc_Array(barrier                     ,[massCount          ])
+  call Alloc_Array(firstCrossingProbability    ,[massCount          ])
+  call Alloc_Array(haloMassFunctionDifferential,[massCount          ])
+  call Alloc_Array(wavenumber                  ,[massCount          ])
+  call Alloc_Array(powerSpectrum               ,[massCount          ])
+  call Alloc_Array(firstCrossingRate           ,[massCount,massCount])
 
   ! Create a grid of masses.
   haloMass=Make_Range(massMinimum,massMaximum,massCount,rangeType=rangeTypeLogarithmic)
@@ -102,12 +104,12 @@ program Tests_Excursion_Sets
 
   ! Loop over masses.
   do iMass=1,massCount
-     wavenumber              (iMass)=(3.0d0*haloMass(iMass)/4.0d0/Pi/cosmologyParameters_%densityCritical()/cosmologyParameters_%OmegaMatter())**(-1.0d0/3.0d0)
-     powerSpectrum           (iMass)=Power_Spectrum                           (wavenumber(iMass)                     )
-     variance                (iMass)=cosmologicalMassVariance_%rootVariance   (                       haloMass(iMass))**2
-     barrier                 (iMass)=Excursion_Sets_Barrier                   (variance  (iMass),time                )
-     firstCrossingProbability(iMass)=Excursion_Sets_First_Crossing_Probability(variance  (iMass),time                )
-     haloMassFunction        (iMass)=Halo_Mass_Function_Differential          (                  time,haloMass(iMass))
+     wavenumber                  (iMass)=(3.0d0*haloMass(iMass)/4.0d0/Pi/cosmologyParameters_%densityCritical()/cosmologyParameters_%OmegaMatter())**(-1.0d0/3.0d0)
+     powerSpectrum               (iMass)=Power_Spectrum                           (wavenumber(iMass)                     )
+     variance                    (iMass)=cosmologicalMassVariance_%rootVariance   (                       haloMass(iMass))**2
+     barrier                     (iMass)=Excursion_Sets_Barrier                   (variance  (iMass),time                )
+     firstCrossingProbability    (iMass)=Excursion_Sets_First_Crossing_Probability(variance  (iMass),time                )
+     haloMassFunctionDifferential(iMass)=haloMassFunction_%differential           (                  time,haloMass(iMass))
 
      ! Compute halo branching rates.
      do jMass=1,iMass-1
@@ -118,14 +120,14 @@ program Tests_Excursion_Sets
   end do
 
   ! Write results to the output file.
-  call outputFile%writeDataset(haloMass                ,'haloMass'                ,'The mass of the halo [M☉]'                       )
-  call outputFile%writeDataset(wavenumber              ,'wavenumber'              ,'The wavenumber associated with this mass [Mpc⁻¹]')
-  call outputFile%writeDataset(powerSpectrum           ,'powerSpectrum'           ,'The power spectrum at this wavenumber [Mpc³]'    )
-  call outputFile%writeDataset(variance                ,'variance'                ,'The variance on this mass scale'                 )
-  call outputFile%writeDataset(barrier                 ,'barrier'                 ,'The excursion set barrier for this variance'     )
-  call outputFile%writeDataset(firstCrossingProbability,'firstCrossingProbability','The first crossing probability'                  )
-  call outputFile%writeDataset(haloMassFunction        ,'haloMassFunction'        ,'The halo mass function [Mpc⁻³ M☉⁻¹]'             )
-  call outputFile%writeDataset(firstCrossingRate       ,'firstCrossingRate'       ,'The first crossing rate [Gyr⁻¹]'                 )
+  call outputFile%writeDataset(haloMass                    ,'haloMass'                ,'The mass of the halo [M☉]'                       )
+  call outputFile%writeDataset(wavenumber                  ,'wavenumber'              ,'The wavenumber associated with this mass [Mpc⁻¹]')
+  call outputFile%writeDataset(powerSpectrum               ,'powerSpectrum'           ,'The power spectrum at this wavenumber [Mpc³]'    )
+  call outputFile%writeDataset(variance                    ,'variance'                ,'The variance on this mass scale'                 )
+  call outputFile%writeDataset(barrier                     ,'barrier'                 ,'The excursion set barrier for this variance'     )
+  call outputFile%writeDataset(firstCrossingProbability    ,'firstCrossingProbability','The first crossing probability'                  )
+  call outputFile%writeDataset(haloMassFunctionDifferential,'haloMassFunction'        ,'The halo mass function [Mpc⁻³ M☉⁻¹]'             )
+  call outputFile%writeDataset(firstCrossingRate           ,'firstCrossingRate'       ,'The first crossing rate [Gyr⁻¹]'                 )
 
   ! Close the parameters file.
   call Input_Parameters_File_Close()

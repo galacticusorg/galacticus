@@ -61,6 +61,7 @@ contains
     use               Tables
     use               Table_Labels
     use               Linear_Growth
+    use               Halo_Mass_Functions
     implicit none
     class           (conditionalMassFunctionClass       ), intent(inout)                                             :: conditionalMassFunction_
     double precision                                     , intent(in   ), dimension(                             : ) :: projectedSeparationBinned
@@ -77,6 +78,7 @@ contains
     class           (nodeComponentDarkMatterProfile     ), pointer                                                   :: thisDarkMatterProfile
     class           (darkMatterHaloScaleClass           ), pointer                                                   :: darkMatterHaloScale_
     class           (linearGrowthClass                  ), pointer                                                   :: linearGrowth_
+    class           (haloMassFunctionClass              ), pointer                                                   :: haloMassFunction_
     procedure       (integrandWeight                    ), pointer                                                   :: integrandWeightFunction
     double precision                                     , allocatable  , dimension(                             : ) :: powerSpectrumOneHalo                              , powerSpectrumTwoHalo                              , &
          &                                                                                                              wavenumber                                        , powerSpectrum                                     , &
@@ -106,6 +108,7 @@ contains
     darkMatterProfileConcentration_ => darkMatterProfileConcentration()
     darkMatterHaloScale_            => darkMatterHaloScale           ()
     linearGrowth_                   => linearGrowth                  ()
+    haloMassFunction_               => haloMassFunction              ()
     ! Create worker node.
     thisNode              => treeNode                  (                 )
     thisBasic             => thisNode%basic            (autoCreate=.true.)
@@ -346,7 +349,6 @@ contains
       !% Integrand for the one-halo term in the power spectrum.
       use Dark_Matter_Halo_Biases
       use Dark_Matter_Profiles
-      use Halo_Mass_Function
       use Dark_Matter_Profile_Scales
       use Galacticus_Calculations_Resets
       implicit none
@@ -354,9 +356,10 @@ contains
       real            (c_double              ), value   :: massHalo
       type            (c_ptr                 ), value   :: parameterPointer
       class           (darkMatterProfileClass), pointer :: darkMatterProfile_
+      class           (haloMassFunctionClass ), pointer :: haloMassFunction_
       double precision                                  :: darkMatterProfileKSpace      , numberCentrals, numberSatellites, wavenumberMaximum
 
-      darkMatterProfile_   => darkMatterProfile  ()
+      darkMatterProfile_ => darkMatterProfile()
       call Galacticus_Calculations_Reset(thisNode)
       call thisBasic            % massSet(massHalo                           )
       call Galacticus_Calculations_Reset(thisNode)
@@ -381,15 +384,15 @@ contains
          ! Note that we include 2 times the central-satellite term since we want to count each pair twice (i.e. central-satellite and
          ! then satellite-central). This is consistent with the N(N-1) counting for the satellite-satellite term, and with the
          ! counting in the two-halo term.
-         powerSpectrumOneHaloIntegrand=                         &
-              & +Halo_Mass_Function_Differential(time,massHalo) &
-              & *(                                              &
-              &   +darkMatterProfileKSpace                      &
-              &   *2.0d0                                        & 
-              &   *numberCentrals                               &
-              &   *numberSatellites                             &
-              &   +darkMatterProfileKSpace**2                   &
-              &   *numberSatellites       **2                   &
+         powerSpectrumOneHaloIntegrand=                        &
+              & +haloMassFunction_%differential(time,massHalo) &
+              & *(                                             &
+              &   +darkMatterProfileKSpace                     &
+              &   *2.0d0                                       & 
+              &   *numberCentrals                              &
+              &   *numberSatellites                            &
+              &   +darkMatterProfileKSpace**2                  &
+              &   *numberSatellites       **2                  &
               &  )
       end if
       return
@@ -439,7 +442,6 @@ contains
       !% Integrand for the two-halo term in the power spectrum.
       use Dark_Matter_Halo_Biases
       use Dark_Matter_Profiles
-      use Halo_Mass_Function
       use Galacticus_Calculations_Resets
       use Dark_Matter_Profile_Scales
       implicit none
@@ -447,9 +449,11 @@ contains
       real            (c_double              ), value   :: massHalo
       type            (c_ptr                 ), value   :: parameterPointer
       class           (darkMatterProfileClass), pointer :: darkMatterProfile_
+      class           (haloMassFunctionClass ), pointer :: haloMassFunction_
       double precision                                  :: wavenumberMaximum
 
-      darkMatterProfile_   => darkMatterProfile  ()
+      darkMatterProfile_ => darkMatterProfile()
+      haloMassFunction_  => haloMassFunction ()
       call Galacticus_Calculations_Reset(thisNode)
       call thisBasic            % massSet(massHalo                           )
       call Galacticus_Calculations_Reset(thisNode)
@@ -461,9 +465,9 @@ contains
          powerSpectrumTwoHaloIntegrand=0.0d0
       else
          powerSpectrumTwoHaloIntegrand=                                                                        &
-              & +Halo_Mass_Function_Differential(time    ,massHalo                               )             &
-              & *Dark_Matter_Halo_Bias          (thisNode                                        )             &
-              & *darkMatterProfile_%kSpace      (thisNode,waveNumber(iWavenumber)/expansionFactor)             &
+              & +haloMassFunction_%differential(time    ,massHalo                               )              &
+              & *Dark_Matter_Halo_Bias         (thisNode                                        )              &
+              & *darkMatterProfile_%kSpace     (thisNode,waveNumber(iWavenumber)/expansionFactor)              &
               & *max(                                                                                          &
               &      +0.0d0                                                                                  , &
               &      +conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMinimum)  &
@@ -503,14 +507,13 @@ contains
 
     function normalizationIntegrand(massHalo,parameterPointer) bind(c)
       !% Integrand for the normalization term in the power spectrum.
-      use Halo_Mass_Function
       implicit none
       real(c_double)        :: normalizationIntegrand
       real(c_double), value :: massHalo
       type(c_ptr   ), value :: parameterPointer
 
       normalizationIntegrand =                                                                              &
-           & +Halo_Mass_Function_Differential(time,massHalo)                                                &
+           & +haloMassFunction_%differential(time,massHalo)                                                 &
            & *max(                                                                                          &
            &      +0.0d0                                                                                  , &
            &      +conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMinimum)  &

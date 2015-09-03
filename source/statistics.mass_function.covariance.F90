@@ -696,25 +696,27 @@ contains
   function Mass_Function_Integrand_I(logMass,parameterPointer) bind(c)
     !% Integral for mass function.
     use, intrinsic :: ISO_C_Binding
-    use Halo_Mass_Function
+    use Halo_Mass_Functions
     use Conditional_Mass_Functions
     implicit none
     real             (c_double                    )          :: Mass_Function_Integrand_I
     real             (c_double                    ), value   :: logMass
     type             (c_ptr                       ), value   :: parameterPointer
     class            (conditionalMassFunctionClass), pointer :: conditionalMassFunction_
+    class            (haloMassFunctionClass       ), pointer :: haloMassFunction_
     double precision                                         :: mass
 
     conditionalMassFunction_ => conditionalMassFunction()
+    haloMassFunction_        => haloMassFunction       ()
     mass=10.0d0**logMass
-    Mass_Function_Integrand_I= Halo_Mass_Function_Differential(time,mass)                    &
-         &                *                                         mass                     &
-         &                *log(10.0d0)                                                       &
-         &                *max(                                                              &
-         &                     +conditionalMassFunction_%massFunction(mass,massBinMinimumI)  &
-         &                     -conditionalMassFunction_%massFunction(mass,massBinMaximumI), &
-         &                      0.0d0                                                        &
-         &                    )
+    Mass_Function_Integrand_I=+haloMassFunction_%differential(time,mass)                         &
+         &                    *                                    mass                          &
+         &                    *log(10.0d0)                                                       &
+         &                    *max(                                                              &
+         &                         +conditionalMassFunction_%massFunction(mass,massBinMinimumI)  &
+         &                         -conditionalMassFunction_%massFunction(mass,massBinMaximumI), &
+         &                          0.0d0                                                        &
+         &                        )
     return
   end function Mass_Function_Integrand_I
 
@@ -797,19 +799,21 @@ contains
   function Halo_Occupancy_Integrand(logMass,parameterPointer) bind(c)
     !% Integral for mass function.
     use, intrinsic :: ISO_C_Binding
-    use Halo_Mass_Function
+    use Halo_Mass_Functions
     use Conditional_Mass_Functions
     implicit none
     real             (c_double                    )          :: Halo_Occupancy_Integrand
     real             (c_double                    ), value   :: logMass
     type             (c_ptr                       ), value   :: parameterPointer
     class            (conditionalMassFunctionClass), pointer :: conditionalMassFunction_
+    class            (haloMassFunctionClass       ), pointer :: haloMassFunction_
     double precision                                         :: mass
     
     conditionalMassFunction_ => conditionalMassFunction()
+    haloMassFunction_        => haloMassFunction       ()
     mass=10.0d0**logMass
-    Halo_Occupancy_Integrand= Halo_Mass_Function_Differential(time,mass)                        &
-         &                   *                                     mass                         &
+    Halo_Occupancy_Integrand=+haloMassFunction_%differential(time,mass)                         &
+         &                   *                                    mass                          &
          &                   *log(10.0d0)                                                       &
          &                   *max(                                                              &
          &                        +conditionalMassFunction_%massFunction(mass,massBinMinimumI)  &

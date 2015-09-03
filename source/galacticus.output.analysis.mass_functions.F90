@@ -1659,12 +1659,14 @@ contains
     implicit none                                                                                 
     double precision          , intent(in   )          :: mass
     type            (treeNode), intent(inout), pointer :: thisNode
-    double precision                                   :: massLogarithmic
     logical                   , save                   :: sdssStellarMassFunctionHighMassInitialized      =.false.
     double precision          , save                   :: sdssStellarMassFunctionHighMassTransitionLogMass        , &
          &                                                sdssStellarMassFunctionHighMassTransitionWidth          , &
          &                                                sdssStellarMassFunctionHighMassSystematic0              , &
          &                                                sdssStellarMassFunctionHighMassSystematic1
+    double precision          , parameter              :: exponentialArgumentMaximum                      =100.0d0
+    double precision                                   :: massLogarithmic                                         , &
+         &                                                exponentialArgument
     
     if (.not.sdssStellarMassFunctionHighMassInitialized) then
        !$omp critical(Map_Mass_SDSS_Stellar_Mass_Function_Z0_07_Initialize)
@@ -1722,20 +1724,24 @@ contains
        end if
        !$omp end critical(Map_Mass_SDSS_Stellar_Mass_Function_Z0_07_Initialize)
     end if
-    massLogarithmic=log10(mass)-sdssStellarMassFunctionHighMassTransitionLogMass
-    massLogarithmic=+massLogarithmic                                       &
-         &          +(                                                     &
-         &            +sdssStellarMassFunctionHighMassSystematic0          &
-         &            +sdssStellarMassFunctionHighMassSystematic1          &
-         &            *massLogarithmic                                     &
-         &           )                                                     &
-         &          /(                                                     &
-         &            1.0d0                                                &
-         &            +exp(                                                &
-         &                 -massLogarithmic                                &
-         &                 /sdssStellarMassFunctionHighMassTransitionWidth &
-         &                )                                                &
-         &           )
+    massLogarithmic    =+log10(mass)&
+         &              -sdssStellarMassFunctionHighMassTransitionLogMass
+    exponentialArgument=-massLogarithmic                                   &
+         &              /sdssStellarMassFunctionHighMassTransitionWidth
+    if (exponentialArgument < exponentialArgumentMaximum)                         &
+         & massLogarithmic=+massLogarithmic                                       &
+         &                 +(                                                     &
+         &                   +sdssStellarMassFunctionHighMassSystematic0          &
+         &                   +sdssStellarMassFunctionHighMassSystematic1          &
+         &                   *massLogarithmic                                     &
+         &                  )                                                     &
+         &                 /(                                                     &
+         &                   +1.0d0                                               &
+         &                   +exp(                                                &
+         &                        -massLogarithmic                                &
+         &                        /sdssStellarMassFunctionHighMassTransitionWidth &
+         &                       )                                                &
+         &                  )
     Map_Mass_SDSS_Stellar_Mass_Function_Z0_07=10.0d0**(massLogarithmic+sdssStellarMassFunctionHighMassTransitionLogMass)
     return
   end function Map_Mass_SDSS_Stellar_Mass_Function_Z0_07

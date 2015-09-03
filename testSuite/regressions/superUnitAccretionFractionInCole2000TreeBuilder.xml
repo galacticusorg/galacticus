@@ -103,7 +103,7 @@
   <satelliteMergingMassMovementsMethod value="simple"/>
   <haloMassFunctionSamplingStellarMassFunctionErrorMassMinimum value="1.2589254e8"/>
   <mergingTimescaleMultiplier value="1.0"/>
-  <haloMassFunctionMethod value="Tinker2008"/>
+  <haloMassFunctionMethod value="tinker2008"/>
   <adafViscosityOption value="fit"/>
   <blackHoleWindEfficiencyScalesWithRadiativeEfficiency value="true"/>
   <adafAdiabaticIndex value="1.444"/>

@@ -26,6 +26,6 @@
     <running value="0.0"/>
   </powerSpectrumPrimordialMethod>
   <galacticusOutputFileName value="tests/progenitorMassFunction/progenitorMassFunctionTest.hdf5"/>
-  <haloMassFunctionMethod value="Tinker2008"/>
+  <haloMassFunctionMethod value="tinker2008"/>
   <transferFunctionMethod value="eisensteinHu1999"/>
 </parameters>

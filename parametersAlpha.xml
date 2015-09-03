@@ -39,7 +39,7 @@
   </powerSpectrumPrimordialMethod>
   <!-- Structure formation options -->
   <linearGrowthMethod value="simple"/>
-  <haloMassFunctionMethod value="Tinker2008"/>
+  <haloMassFunctionMethod value="tinker2008"/>
   <criticalOverdensityMethod value="kitayamaSuto1996"/>
   <virialDensityContrastMethod value="kitayamaSuto1996"/>
 

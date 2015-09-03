@@ -41,7 +41,7 @@
   <diskOutflowExponent value="2"/>
   <diskOutflowVelocity value="200"/>
   <galacticStructureRadiusSolverMethod value="adiabatic"/>
-  <haloMassFunctionMethod value="Tinker2008"/>
+  <haloMassFunctionMethod value="tinker2008"/>
   <haloSpinDistributionMethod value="Bett2007"/>
   <hotHaloMassDistributionMethod value="cored isothermal"/>
   <hotHaloOutflowReturnRate value="1.26027"/>
