@@ -194,7 +194,7 @@ contains
     thisBasic => thisNode%basic()
     darkMatterFraction =min((thisCosmologyParameters%OmegaMatter()-thisCosmologyParameters%OmegaBaryon())/thisCosmologyParameters%OmegaMatter()+(baryonicMassTotal-baryonicMassSelfTotal)/thisBasic%mass(),1.0d0)
     ! Compute the initial mass fraction.
-    initialMassFraction=min((thisCosmologyParameters%OmegaMatter()-thisCosmologyParameters%OmegaBaryon())/thisCosmologyParameters%OmegaMatter()+                   baryonicMassSelfTotal /thisBasic%mass(),1.0d0)
+    initialMassFraction=min((thisCosmologyParameters%OmegaMatter()-thisCosmologyParameters%OmegaBaryon())/thisCosmologyParameters%OmegaMatter()+ baryonicMassTotal                       /thisBasic%mass(),1.0d0)
     ! Store the current node.
     activeNode => thisNode
     return
@@ -350,7 +350,7 @@ contains
          &    initialMassFraction*radiusInitial         &
          &   -darkMatterFraction *radiusFinal           &
          &  )                                           &
-         & -baryonicFinalTerm
+         & -baryonicFinalTerm    
     return
   end function Galactic_Structure_Radius_Initial_Adiabatic_Solver
 
