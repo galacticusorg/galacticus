@@ -90,7 +90,8 @@ contains
                 thisNode => thisNode%firstChild
                 do while (associated(thisNode))
                    nextNode => thisNode%sibling
-                   call currentTree%destroyBranch(thisNode)
+                   call thisNode%destroyBranch()
+                   deallocate(thisNode)
                    thisNode => nextNode
                 end do
              else
@@ -106,7 +107,8 @@ contains
                       ! Clean the branch.
                       call Merger_Tree_Prune_Clean_Branch(thisNode)
                       ! Destroy the branch.
-                      call currentTree%destroyBranch(thisNode)
+                      call thisNode%destroyBranch()
+                      deallocate(thisNode)
                       ! Return to parent node.
                       thisNode => previousNode
                    end if
