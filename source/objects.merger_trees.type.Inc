@@ -37,14 +37,6 @@
      !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
-     !@     <method>destroyBranch</method>
-     !@     <description>
-     !@       Destroys a branch of a merger tree starting from the supplied node. All nodes and their components are destroyed.
-     !@     </description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless *type(treeNode)\textgreater} thisNode\arginout</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
      !@     <method>getNode</method>
      !@     <description>Returns a pointer to the node with given index in the merger tree, or a null pointer if no such node exists.</description>
      !@     <type>\textcolor{red}{\textless *type(treeNode)\textgreater}</type>
@@ -82,7 +74,6 @@
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: destroy              => Merger_Tree_Destroy
-     procedure :: destroyBranch        => Merger_Tree_Destroy_Branch
      procedure :: getNode              => Merger_Tree_Node_Get
      procedure :: createEvent          => Merger_Tree_Create_Event                      
      procedure :: removeEvent          => Merger_Tree_Remove_Event               
@@ -110,7 +101,4 @@
       integer            , intent(inout) :: deadlockStatus 
     end function treeEventTask
  end interface
- 
- ! Flag to indicate if the tree node create routines have been initialized.
- logical :: treeNodeCreateInitialized=.false.
  

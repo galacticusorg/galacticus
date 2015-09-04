@@ -34,9 +34,6 @@ module Galacticus_Nodes
   use Pseudo_Random
   private
   public :: Galacticus_Nodes_Initialize, Galacticus_Nodes_Finalize, Galacticus_Nodes_Unique_ID_Set, Interrupt_Procedure_Template
-  !# <workaround type="gfortran">
-  public :: assignment(=)
-  !# </workaround>
 
   type, public :: treeNodeList
      !% Type to give a list of treeNodes.
@@ -95,7 +92,7 @@ module Galacticus_Nodes
     integer                                                  :: allocErr
 
     ! Initialize tree node methods if necessary.
-    call Tree_Node_Create_Initialize
+    call Galacticus_Nodes_Initialize()
 
     ! Allocate the object.
     allocate(Tree_Node_Constructor,stat=allocErr)
@@ -777,6 +774,37 @@ module Galacticus_Nodes
   end do
     return
   end function Merger_Tree_Walk_Descend_to_Progenitors
+
+  subroutine treeNodeDestroyBranch(self)
+    !% Destroy the tree branch rooted at this given node.
+    implicit none
+    class(treeNode), intent(inout), target  :: self
+    type (treeNode)               , pointer :: nodeDestroy, nodeNext, &
+         &                                     branchTip
+    
+    ! Descend to the tip of the branch.
+    branchTip => self
+    nodeNext  => branchTip%walkBranchWithSatellites(branchTip)
+    ! Loop over all tree nodes.
+    do while (associated(nodeNext))
+       ! Keep of a record of the current node, so that we can destroy it.
+       nodeDestroy => nodeNext
+       ! Walk to the next node in the tree.
+       nodeNext => nodeDestroy%walkBranchWithSatellites(branchTip)
+       ! If the node about to be destroyed is the primary progenitor of its parent we must move the child pointer of the parent to
+       ! point to the node's sibling. This is necessary as parent-child pointers are used to establish satellite status and so
+       ! will be utilized when walking the tree. Failure to do this can result in attempts to use dangling pointers.
+       if (associated(nodeDestroy%parent).and.associated(nodeDestroy%parent%firstChild,nodeDestroy)) &
+            & nodeDestroy%parent%firstChild => nodeDestroy%sibling
+       ! Destroy the current node.
+       call nodeDestroy%destroy()
+       deallocate(nodeDestroy)
+    end do
+    ! Destroy the base node of the branch.
+    if (associated(self%parent).and.associated(self%parent%firstChild,self)) self%parent%firstChild => self%sibling
+    call self%destroy()
+    return
+  end subroutine treeNodeDestroyBranch
 
   !
   ! Functions for nodeComponent class.
