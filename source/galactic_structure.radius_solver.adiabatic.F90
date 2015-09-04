@@ -222,7 +222,7 @@ contains
 
        ! Compute mass within that radius.
        haloMassInitial=darkMatterProfile_%enclosedMass(haloNode,radiusInitial)
-
+       
        ! Compute dark matter mass within final radius.
        darkMatterMassFinal=haloMassInitial*haloFraction
 
@@ -243,7 +243,7 @@ contains
        if (radius > 0.0d0) then
           radiusNew=sqrt(specificAngularMomentum/velocity*radius)
        else
-          radiusNew=specificAngularMomentum/velocity
+          radiusNew=     specificAngularMomentum/velocity
        endif
        ! Ensure that the radius history array is sufficiently sized.
        if (.not.allocated(radiusHistory)) then
