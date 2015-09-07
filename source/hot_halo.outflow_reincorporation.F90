@@ -21,6 +21,7 @@ module Hot_Halo_Outflows_Reincorporations
   !% Provides a class that implements reincorportation of outflowed mass into the hot halo.
   use ISO_Varying_String
   use Galacticus_Nodes
+  use Kind_Numbers
   !# <include directive="hotHaloOutflowReincorporation" type="functionModules" >
   include 'hotHaloOutflowReincorporation.functionModules.inc'
   !# </include>
@@ -29,8 +30,9 @@ module Hot_Halo_Outflows_Reincorporations
   !# <include directive="hotHaloOutflowReincorporation" type="function" >
   !#  <descriptiveName>Hot Halo Outflow Reincorporation</descriptiveName>
   !#  <description>Class implementing reincorportation of outflowed mass into the hot halo.</description>
-  !#  <default>velocityMaximumScaling</default>
+  !#  <default>zero</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <calculationReset>yes</calculationReset>
   !#  <method name="rate" >
   !#   <description>Return the rate at which outflowed mass is being reincorporated into the hot halo.</description>
   !#   <type>double precision</type>

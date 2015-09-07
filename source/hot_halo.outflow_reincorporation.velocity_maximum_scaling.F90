@@ -17,17 +17,22 @@
 
 !% An implementation of the hot halo outflow reincorporation class which uses simple scalings based on the halo maximum circular
 !% velocity.
-
+  
   !# <hotHaloOutflowReincorporation name="hotHaloOutflowReincorporationVelocityMaximumScaling">
   !#  <description>An implementation of the hot halo outflow reincorporation class which uses simple scalings based on the halo maximum circular velocity.</description>
   !# </hotHaloOutflowReincorporation>
   type, extends(hotHaloOutflowReincorporationClass) :: hotHaloOutflowReincorporationVelocityMaximumScaling
      !% An implementation of the hot halo outflow reincorporation class which uses simple scalings based on the halo maximum circular velocity.
      private
-     double precision :: timeScaleNormalization, velocityExponent, &
-          &              redshiftExponent
+     double precision                 :: timeScaleNormalization , velocityExponent       , &
+          &                              redshiftExponent       , velocityMaximumFactor  , &
+          &                              expansionFactorFactor  , rateStored
+     logical                          :: velocityMaximumComputed, expansionFactorComputed, &
+          &                              rateComputed
+     integer         (kind=kind_int8) :: lastUniqueID
    contains
-     procedure :: rate => velocityMaximumScalingRate
+     procedure :: calculationReset => velocityMaximumScalingCalculationReset
+     procedure :: rate             => velocityMaximumScalingRate
   end type hotHaloOutflowReincorporationVelocityMaximumScaling
 
   interface hotHaloOutflowReincorporationVelocityMaximumScaling
@@ -114,10 +119,17 @@ contains
     ! Initialize.
     call velocityMaximumScalingInitalize()
     ! Construct the object.
-    velocityMaximumScalingConstructor%timeScaleNormalization=timeScale/velocityMaximumScalingVelocityNormalization**velocityExponent
-    velocityMaximumScalingConstructor%velocityExponent      =velocityExponent
-    velocityMaximumScalingConstructor%redshiftExponent      =redshiftExponent
-    return
+    velocityMaximumScalingConstructor%timeScaleNormalization =timeScale/velocityMaximumScalingVelocityNormalization**velocityExponent
+    velocityMaximumScalingConstructor%velocityExponent       =velocityExponent
+    velocityMaximumScalingConstructor%redshiftExponent       =redshiftExponent
+    velocityMaximumScalingConstructor%lastUniqueID           =-1_kind_int8
+    velocityMaximumScalingConstructor%velocityMaximumFactor  =-1.0d0
+    velocityMaximumScalingConstructor%expansionFactorFactor  =-1.0d0
+    velocityMaximumScalingConstructor%rateStored             =-1.0d0
+    velocityMaximumScalingConstructor%velocityMaximumComputed=.false.
+    velocityMaximumScalingConstructor%expansionFactorComputed=.false.
+    velocityMaximumScalingConstructor%rateComputed           =.false.
+   return
   end function velocityMaximumScalingConstructor
 
   subroutine velocityMaximumScalingInitalize()
@@ -128,15 +140,15 @@ contains
     if (.not.velocityMaximumScalingInitialized) then
        !$omp critical(hotHaloOutflowReincorporationVelocityMaximumScalingInitialize)
        if (.not.velocityMaximumScalingInitialized) then
-          if (.not.defaultHotHaloComponent%outflowedMassIsGettable())                                                         &
-               & call Galacticus_Error_Report                                                                                 &
-               &   (                                                                                                          &
-               &    'velocityMaximumScalingInitalize'                                                                       , &
-               &    'the "outflowedMass" properties of the hotHalo component must be gettable.'                            // &
-               &    Galacticus_Component_List(                                                                                &
-               &                              'hotHalo'                                                                     , &
-               &                                defaultHotHaloComponent%outflowedMassAttributeMatch(requireGettable=.true.)   &
-               &                             )                                                                                &
+          if (.not.defaultHotHaloComponent%outflowedMassIsGettable())                                                       &
+               & call Galacticus_Error_Report                                                                               &
+               &   (                                                                                                        &
+               &    'velocityMaximumScalingInitalize'                                                                     , &
+               &    'the "outflowedMass" properties of the hotHalo component must be gettable.'                          // &
+               &    Galacticus_Component_List(                                                                              &
+               &                              'hotHalo'                                                                   , &
+               &                              defaultHotHaloComponent%outflowedMassAttributeMatch(requireGettable=.true.)   &
+               &                             )                                                                              &
                &   )
           ! Record that class is initialized.
           velocityMaximumScalingInitialized=.true.
@@ -146,6 +158,19 @@ contains
     return
   end subroutine velocityMaximumScalingInitalize
   
+  subroutine velocityMaximumScalingCalculationReset(self,thisNode)
+    !% Reset the halo scales calculation.
+    implicit none
+    class(hotHaloOutflowReincorporationVelocityMaximumScaling), intent(inout)          :: self
+    type (treeNode                                           ), intent(inout), pointer :: thisNode
+
+    self%velocityMaximumComputed=.false.
+    self%expansionFactorComputed=.false.
+    self%rateComputed           =.false.
+    self%lastUniqueID           =thisNode%uniqueID()
+    return
+  end subroutine velocityMaximumScalingCalculationReset
+
   double precision function velocityMaximumScalingRate(self,node)
     !% Return the rate of mass reincorporation for outflowed gas in the hot halo.
     use Cosmology_Functions
@@ -157,23 +182,35 @@ contains
     class           (darkMatterProfileClass                             )               , pointer :: darkMatterProfile_
     class           (nodeComponentBasic                                 )               , pointer :: basic
     class           (nodeComponentHotHalo                               )               , pointer :: hotHalo
-    double precision                                                                              :: timeScale          , velocityMaximum, &
-         &                                                                                           expansionFactor
+    double precision                                                                              :: timeScale
 
+    ! Check if node differs from previous one for which we performed calculations.
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
     ! Get required components.
-    basic               => node%basic        ()
-    hotHalo             => node%hotHalo      ()
-    ! Get required objects.
-    cosmologyFunctions_ => cosmologyFunctions()
-    darkMatterProfile_  => darkMatterProfile ()
-    ! Get maximum velocity and expansion factor.
-    velocityMaximum=darkMatterProfile_ %circularVelocityMaximum(node        )
-    expansionFactor=cosmologyFunctions_%expansionFactor        (basic%time())
-    ! Compute the timescale.
-    timeScale      =+                 self%timeScaleNormalization &
-         &          *velocityMaximum**self%velocityExponent       &
-         &          /expansionFactor**self%redshiftExponent
-    ! Compute the mass return rate.
-    velocityMaximumScalingRate=hotHalo%outflowedMass()/timeScale
+    ! Compute velocity maximum factor.
+    if (.not.self%velocityMaximumComputed) then
+       darkMatterProfile_           => darkMatterProfile                          (    )
+       self%velocityMaximumFactor   =  darkMatterProfile_ %circularVelocityMaximum(node)**self%velocityExponent
+       self%velocityMaximumComputed = .true.
+    end if
+    ! Compute expansion factor factor.
+    if (.not.self%expansionFactorComputed) then
+       basic                        =>       node               %basic          (            )
+       cosmologyFunctions_          =>       cosmologyFunctions                 (            )
+       self%expansionFactorFactor   =  1.0d0/cosmologyFunctions_%expansionFactor(basic%time())**self%redshiftExponent
+       self%expansionFactorComputed = .true.
+    end if
+    ! Compute the rate.
+    if (.not.self%rateComputed) then
+       hotHalo          =>  node   %hotHalo               ()
+       timeScale        =  +self   %timeScaleNormalization   &
+            &              *self   %velocityMaximumFactor    &
+            &              *self   %expansionFactorFactor
+       self%rateStored  =  +hotHalo%outflowedMass         () &
+            &              /timeScale
+       self%rateComputed=  .true.
+    end if
+    ! Return the rate.
+    velocityMaximumScalingRate=self%rateStored
     return
   end function velocityMaximumScalingRate
