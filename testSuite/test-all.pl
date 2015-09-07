@@ -20,6 +20,7 @@ use File::Slurp qw( slurp );
 use File::Find;
 use Term::ReadKey;
 require System::Redirect;
+require Galacticus::Launch::PBS;
 
 # Run a suite of tests on the Galacticus code.
 # Andrew Benson (19-Aug-2010).
@@ -80,6 +81,17 @@ system("mkdir -p testSuite/outputs");
 print lHndl ":-> Running test suite:\n";
 print lHndl "    -> Host:\t".$ENV{'HOST'}."\n";
 print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
+
+# Stack to be used for PBS jobs.
+my @jobStack;
+
+# Set options for PBS launch.
+my %pbsOptions =
+    (
+     pbsJobMaximum       => 100,
+     submitSleepDuration =>   1,
+     waitSleepDuration   =>  10
+    );
 
 # Define a list of executables to run. Each hash must give the name of the executable and should specify whether or not the
 # executable should be run inside of Valgrind (this is useful for detecting errors which lead to misuse of memory but which don't
@@ -200,7 +212,6 @@ my @executablesToRun = (
     {
 	name     => "tests.tensors.exe",                                                  # Tests of tensor functions.
 	valgrind => 0
-
     },
     {	name     => "tests.cosmic_age.exe",                                               # Tests of cosmic age calculations.
 	valgrind => 0
@@ -332,45 +343,91 @@ my @executablesToRun = (
     }
     );
 
-# Run all executables.
+# Build all executables.
+my %testBuildJob =
+    (
+     launchFile   => "testSuite/compileTests.pbs",
+     label        => "testSuite-compileTests"    ,
+     logFile      => "testSuite/compileTests.log",
+     command      => "rm -rf ./work/build; make -j12 ".join(" ",map {$_->{'name'}} @executablesToRun),
+     ppn          => 12,
+     onCompletion => 
+     {
+	 function  => \&testFailure,
+	 arguments => [ "testSuite/compileTests.log", "Test code compilation" ]
+     }
+    );
+push(@jobStack,\%testBuildJob);
+&PBS::SubmitJobs(\%pbsOptions,@jobStack);
+unlink("testSuite/compileTests.pbs");
+
+# Launch all executables.
+my @launchFiles;
+@jobStack = ();
 foreach my $executable ( @executablesToRun ) {
-    print lHndl "\n\n";
-    print lHndl ":-> Running test: ".$executable->{'name'}."\n";
-    &SystemRedirect::tofile("make ".$executable->{'name'},"allTestsBuild.tmp");
-    my $buildSuccess = $?;
-    print lHndl slurp("allTestsBuild.tmp");
-    unlink("allTestsBuild.tmp");
-    if ( $buildSuccess == 0 ) {
-	# Run the test and copy any output to our log file.
+    # Generate the job.
+    if ( -e $executable->{'name'} ) {
+	(my $label = $executable->{'name'}) =~ s/\./_/;
+	my $ppn = exists($executable->{'ppn'}) ? $executable->{'ppn'} : 1;
+	my $launchFile = "testSuite/".$label.".pbs";
+	push(@launchFiles,$launchFile);
+	my %job =
+	    (
+	     launchFile   => $launchFile               ,
+	     label        => "testSuite-".$label       ,
+	     logFile      => "testSuite/".$label.".log",
+	     ppn          => $ppn                      ,
+	     onCompletion => 
+	     {
+		 function  => \&testFailure,
+		 arguments => [ "testSuite/".$label.".log", "Test code: ".$executable->{'name'} ]
+	     }
+	    );
 	if ( $executable->{'valgrind'} == 1 ) {	    
-	    &SystemRedirect::tofile("valgrind --error-exitcode=1 ".$executable->{'valgrindOptions'}." ".$executable->{'name'},"allTests.tmp");
+	    $job{'command'} = "valgrind --error-exitcode=1 ".$executable->{'valgrindOptions'}." ".$executable->{'name'};
 	} else {
-	    &SystemRedirect::tofile($executable->{'name'},"allTests.tmp");
+	    $job{'command'} = $executable->{'name'};
 	}
-	my $runSuccess = $?;
-	print lHndl "FAILED: running ".$executable->{'name'}." failed\n" if ( $runSuccess != 0 );
-	print lHndl slurp("allTests.tmp");
-	unlink("allTests.tmp",$executable->{'name'});
-    } else {
-	# Build failed, report an error in the log file.
-	print lHndl "FAILED: building ".$executable->{'name'}." failed\n";
+	push(@jobStack,\%job);
     }
 }
+&PBS::SubmitJobs(\%pbsOptions,@jobStack);
+unlink(@launchFiles);
 
 # Build Galacticus itself.
-print lHndl "\n\n";
-print lHndl ":-> Building Galacticus...\n";
-&SystemRedirect::tofile("make Galacticus.exe","allTestsBuild.tmp");
-my $buildSuccess = $?;
-print lHndl slurp("allTestsBuild.tmp");
-unlink("allTestsBuild.tmp");
-if ( $buildSuccess == 0 ) {
-    # Run all tests.
+@jobStack = ();
+my %galacticusBuildJob =
+    (
+     launchFile   => "testSuite/compileGalacticus.pbs",
+     label        => "testSuite-compileGalacticus"    ,
+     logFile      => "testSuite/compileGalacticus.log",
+     command      => "make -j12 all"                  ,
+     ppn          => 12,
+     onCompletion => 
+     {
+	 function  => \&testFailure,
+	 arguments => [ "testSuite/compileGalacticus.log", "Galacticus compilation" ]
+     }
+    );
+push(@jobStack,\%galacticusBuildJob);
+&PBS::SubmitJobs(\%pbsOptions,@jobStack);
+unlink("testSuite/compileGalacticus.pbs");
+my @launchPBS;
+my @launchLocal;
+if ( -e "./Galacticus.exe" ) {
+    # Find all test scripts to run.
     my @testDirs = ( "testSuite" );
     find(\&runTestScript,@testDirs);
-} else {
-    # Build failed, report an error in the log file.
-    print lHndl "FAILED: building Galacticus.exe failed\n";
+    # Run scripts that require us to launch them under PBS.
+    &PBS::SubmitJobs(\%pbsOptions,@launchPBS);
+    # Run scripts that can launch themselves using PBS.
+    foreach ( @launchLocal ) {
+	print           ":-> Running test script: ".$_."\n";
+	print lHndl "\n\n:-> Running test script: ".$_."\n";
+	&SystemRedirect::tofile("cd testSuite; ".$_,"testSuite/allTests.tmp");
+	print lHndl slurp("testSuite/allTests.tmp");
+	unlink("testSuite/allTests.tmp");
+    }
 }
 
 # Close the log file.
@@ -449,10 +506,32 @@ sub runTestScript {
 
     # Test if this is a script to run.
     if ( $fileName =~ m/^test\-.*\.pl$/ && $fileName ne "test-all.pl" ) {
-	print lHndl "\n\n:-> Running test script: ".$fileName."\n";
-	&SystemRedirect::tofile($fileName,"allTests.tmp");
-	print lHndl slurp("allTests.tmp");
-	unlink("allTests.tmp");
+	system("grep -q launch.pl ".$fileName);
+	if ( $? == 0 ) {
+	    # This script will launch its own models.
+	    push(
+		@launchLocal,
+		$fileName
+		);
+	} else {
+	    # We need to launch this script.
+	    (my $label = $fileName) =~ s/\.pl$//;
+	    push(
+		@launchPBS,
+		{
+		    launchFile   => "testSuite/".$label.".pbs",
+		    label        => "testSuite-".$label       ,
+		    logFile      => "testSuite/".$label.".log",
+		    command      => "cd testSuite; ".$fileName,
+		    ppn          => 12,
+		    onCompletion => 
+		    {
+			function  => \&testFailure,
+			arguments => [ "testSuite/".$label.".log", "Test script '".$label."'" ]
+		    }
+		}
+		);
+	}
     }
 }
 
@@ -473,3 +552,27 @@ sub getPassword {
     return $password;
 }
 
+sub testFailure {
+    # Callback function which checks for failure of jobs run in PBS.
+    my $logFile     = shift();
+    my $jobMessage  = shift();
+    my $jobID       = shift();
+    my $errorStatus = shift();
+    # Check for failure message in log file.
+    if ( $errorStatus == 0 ) {
+	system("grep -q FAIL ".$logFile);
+	$errorStatus = 1
+	    if ( $? == 0 );
+    }
+    # Report success or failure.
+    if ( $errorStatus == 0 ) {
+	# Job succeeded.
+	print lHndl "SUCCESS: ".$jobMessage."\n";
+	unlink($logFile);
+    } else {
+	# Job failed.
+	print lHndl "FAILED: ".$jobMessage."\n";
+	print lHndl "Job output follows:\n";
+	print lHndl slurp($logFile);
+    }
+}
