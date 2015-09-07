@@ -7,6 +7,13 @@
   <doAnalysis>no</doAnalysis>
   <modelRootDirectory>testSuite/outputs/test-merger-tree-write</modelRootDirectory>
   <baseParameters>testSuite/parameters/test-merger-tree-write-base.xml</baseParameters>
+  <launchMethod>pbs</launchMethod>
+  <pbs>
+    <ompThreads>12</ompThreads>
+    <maxJobsInQueue>1</maxJobsInQueue>
+    <postSubmitSleepDuration>1</postSubmitSleepDuration>
+    <jobWaitSleepDuration>10</jobWaitSleepDuration>
+  </pbs>
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>

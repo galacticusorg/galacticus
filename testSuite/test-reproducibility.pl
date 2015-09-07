@@ -9,9 +9,6 @@ use Data::Dumper;
 # Run models that test reproducibility.
 # Andrew Benson (27-June-2015)
 
-# Build Galacticus.
-system("cd ..; make Galacticus.exe");
-
 # Make output directory.
 system("mkdir -p outputs/reproducibility");
 
