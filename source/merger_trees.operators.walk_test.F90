@@ -168,7 +168,7 @@ contains
     double precision :: tolerance, bestTreeWorstFit, multiplier, constant, scalingFactor
     double precision :: massCutoffScale
     integer :: massCutoffRescale, massCutoffRetry
-    logical :: bestTreeOverride, newNodeAboveCutoff
+    logical :: bestTreeOverride, newNodeAboveCutoff, bestTreeNodeAboveCutoff
     currentTree => tree
     do while (associated(currentTree))
 
@@ -209,10 +209,11 @@ contains
           massCutoffRescale = 50
           massCutoffRetry = massCutoffRescale
           bestTreeOverride = .false.
+          bestTreeNodeAboveCutoff = .false.
           write (*,*) 'Building Tree from Node --', i
           do while (.not.(treeBuilt == 1).and.(rescaleCount <= rescaleMax).and.(attemptMax > 0))
             newNodeAboveCutoff = .false.
-            treeBuilt = walkTestBuildTreeFrom(self, thisNode, .false., tolerance, self%walkTestTimeEarliest, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff)
+            treeBuilt = walkTestBuildTreeFrom(self, thisNode, .false., tolerance, self%walkTestTimeEarliest, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff, bestTreeNodeAboveCutoff)
             if (retryCount == iterationMax) then
               !Rescale
               retryCount = 0
@@ -379,7 +380,7 @@ contains
   end subroutine walkTestResetUniqueIDs
 
 
-  integer function walkTestBuildTreeFrom(self, thisNode, extendingEndNode, tolerance, timeEarliest, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff)
+  integer function walkTestBuildTreeFrom(self, thisNode, extendingEndNode, tolerance, timeEarliest, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff, bestTreeNodeAboveCutoff)
 
     use Galacticus_Nodes
     use Merger_Trees_Builders
@@ -402,6 +403,7 @@ contains
     double precision, parameter :: expansionFactorDefault = 0.01d0
     double precision, intent (inout) :: massCutoffScale
     logical, intent (inout) :: newNodeAboveCutoff
+    logical, intent (inout) :: bestTreeNodeAboveCutoff
     logical :: bestTreeOverride
 
     cosmologyFunctions_ => cosmologyFunctions()
@@ -459,16 +461,16 @@ contains
       call walkTestSortChildren(thisNodePointer)
       nodeChildCount = walkTestChildCount(thisNodePointer)
       !check whether the newly built tree is accepted.
-      treeAccepted = walkTestAcceptTree(self, thisNodePointer, newTree, nodeChildCount, extendingEndNode, tolerance, timeEarliest, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff)
+      treeAccepted = walkTestAcceptTree(self, thisNodePointer, newTree, nodeChildCount, extendingEndNode, tolerance, timeEarliest, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff, bestTreeNodeAboveCutoff)
       !check whether currently saved best tree can be accepted now.
-      if (((bestTreeWorstFit <= tolerance) .or. bestTreeOverride ).and.(associated(bestTree%baseNode)).and. (.not.(treeAccepted == 1)) ) then
+      if (((bestTreeWorstFit <= tolerance .and. .not. bestTreeNodeAboveCutoff) .or. bestTreeOverride ).and.(associated(bestTree%baseNode)).and. (.not.(treeAccepted == 1)) ) then
         bestTreeWorstFit = 3.0
         if(associated(newTree%baseNode)) then
           call newTree%destroyBranch(newTree%baseNode)
         end if
         newTree%baseNode => bestTree%baseNode
         bestTree%baseNode => null()
-        if ( walkTestAcceptTree(self, thisNodePointer, newTree, nodeChildCount, extendingEndnode, tolerance, timeEarliest, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff) == 1) then
+        if ( walkTestAcceptTree(self, thisNodePointer, newTree, nodeChildCount, extendingEndnode, tolerance, timeEarliest, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff, bestTreeNodeAboveCutoff) == 1) then
           walkTestBuildTreeFrom = 1
         else 
           walkTestBuildTreeFrom = 0
@@ -594,7 +596,7 @@ contains
 
   end subroutine walkTestUnscaleChildren
 
-  integer function walkTestAcceptTree(self, thisNode, tree, nodeChildCount, extendingEndNode, tolerance, timeEarliest, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff)
+  integer function walkTestAcceptTree(self, thisNode, tree, nodeChildCount, extendingEndNode, tolerance, timeEarliest, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff, bestTreeNodeAboveCutoff)
     use Galacticus_Nodes
     use Merger_Trees_Builders
     implicit none
@@ -609,7 +611,7 @@ contains
     logical :: treeAccepted, extendingEndNode, endNodeBuildAccept, nodeMassesAgree, currentNodeBelowAll, treeScalable
     double precision :: resolutionLimit, tolerance, massCutoff, timeEarliest, currentTreeWorstFit, falseWorstFit, unresolvedMass, treeMass, endNodeMass
     double precision, intent(inout) :: bestTreeWorstFit, multiplier, constant, scalingFactor, massCutoffScale
-    logical, intent (inout) :: newNodeAboveCutoff
+    logical, intent (inout) :: newNodeAboveCutoff, bestTreeNodeAboveCutoff
     logical :: bestTreeOverride
     falseWorstFit = 3.0
     newNodeAboveCutoff = .false.
@@ -755,6 +757,7 @@ contains
           currentNode => currentNode%walkTree()
         end do
         bestTreeWorstFit = currentTreeWorstFit
+        bestTreeNodeAboveCutoff = newNodeAboveCutoff
         !write (*,*) 'This Tree is Best Fit With Worst-- ', currentTreeWorstFit
       end if
     else 
@@ -962,7 +965,7 @@ contains
 
   end subroutine walkTestNonOverlapReinsert
 
-  subroutine walkTestExtendNonOverlapNodes(self, tree, firstNonOverlap,massCutoff, tolerance, timeEarliest, bestTree, bestTreeWorstFit, massCutoffScale )
+  subroutine walkTestExtendNonOverlapNodes(self, tree, firstNonOverlap,massCutoff, tolerance, timeEarliest, bestTree, bestTreeWorstFit, massCutoffScale)
     use Merger_Trees_Builders
     use Galacticus_Nodes
     implicit none
@@ -974,7 +977,8 @@ contains
     integer :: retryCount
     double precision, intent(inout) :: bestTreeWorstFit, tolerance, timeEarliest, massCutoff, massCutoffScale 
     double precision ::falseWorstFit, falseMultiplier, falseConstant, falseScalingFactor
-    logical :: falseNewNodeAboveCutoff
+    logical :: falseNewNodeAboveCutoff, falseBestTreeNodeAboveCutoff
+    falseBestTreeNodeAboveCutoff = .false.
     falseNewNodeAboveCutoff = .false.
     falseMultiplier = 0.0
     falseConstant = 0.0
@@ -987,7 +991,7 @@ contains
       currentNode => currentNode%sibling
       if(nonOverlapComponentBasic%mass() > massCutoff) then
         retryCount = 100
-        do while ((.not.(walkTestBuildTreeFrom(self, nonOverlapNode, .true., tolerance, timeEarliest, bestTree, falseWorstFit, .false., falseMultiplier, falseConstant, falseScalingFactor, massCutoffScale, falseNewNodeAboveCutoff)==1)).and.(retryCount >0))
+        do while ((.not.(walkTestBuildTreeFrom(self, nonOverlapNode, .true., tolerance, timeEarliest, bestTree, falseWorstFit, .false., falseMultiplier, falseConstant, falseScalingFactor, massCutoffScale, falseNewNodeAboveCutoff, falseBestTreeNodeAboveCutoff)==1)).and.(retryCount >0))
           retryCount = retryCount - 1
         end do
       end if
