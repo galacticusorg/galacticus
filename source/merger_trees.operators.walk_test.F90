@@ -230,7 +230,7 @@ contains
           bestTreeWorstFit = 3.0
           bestTree%baseNode => null()
           treeBuilt = 0
-          attemptMax = 1
+          attemptMax = 10000
           bestTreeOverride = .false.
           write (*,*) 'Building Tree from Node --', i
           do while (.not.(treeBuilt == 1).and.(rescaleCount <= rescaleMax).and.(attemptMax > 0))
@@ -663,7 +663,7 @@ contains
                    sortNodeComponentBasic => endNodes(j)%node%basic()
                    if (sortNodeComponentBasic%mass() > resolutionLimit) then 
                      write (*, *) 'NonOverlap Failure at mass --', sortNodeComponentBasic%mass()
-                     newNodeAboveCutoff = .false. !.true.
+                     newNodeAboveCutoff = .true.
                    end if
 
                    do while (j > i)
@@ -685,7 +685,7 @@ contains
                nonOverlapNode => currentNode
                if (currentBasicComponent%mass() > resolutionLimit) then
                  write (*,*) 'NonOverlap Failure at mass ==', currentBasicComponent%mass()
-                 newNodeAboveCutoff = .false. !.true.
+                 newNodeAboveCutoff = .true.
                end if
              end if
 
@@ -739,13 +739,13 @@ contains
       treeAccepted = nodeMassesAgree.and.(nodeChildCount<= endNodesSorted)
     end if
 
-
+    !call walkTestResetUniqueIDs(tree)
+    !call walkTestUnscaleChildren(self, thisNode, nodeChildCount, endNodes, multiplier, constant, scalingFactor)
     if(treeAccepted) then
       currentBasicComponent => tree%baseNode%basic()
       !write (*,*) 'Building Node ', thisNode%uniqueID(),' at time ', currentBasicComponent%time(), 'to time ', timeEarliest
-      
       call walkTestResetUniqueIDs(tree)
-      !call walkTestUnscaleChildren(self, thisNode, nodeChildCount, endNodes, multiplier, constant, scalingFactor)
+      call walkTestUnscaleChildren(self, thisNode, nodeChildCount, endNodes, multiplier, constant, scalingFactor)  
       call walkTestSimpleInsert(self, thisNode, tree, endNodes, nodeChildCount, firstNonOverlap)
       !call walkTestSimpleScale(self, thisNode, tree, endNodes, nodeChildCount, firstNonOverlap)
 
