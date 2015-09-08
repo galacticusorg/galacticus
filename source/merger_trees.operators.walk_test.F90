@@ -26,9 +26,8 @@
      private
      integer :: walkTestTimeCount
      double precision, allocatable, dimension (:) :: walkTestTimeSnapshots
-     double precision :: walkTestResolutionLimit, walkTestMergeProbability, walkTestAccretionLimit, walkTestTimeEarliest
-     logical :: walkTestRandomSeedsFixed
-     type (mergerTreeBuilderCole2000) :: mergerTreeBuilder_
+     double precision :: walkTestResolutionLimit, walkTestTimeEarliest
+     class(mergerTreeBuilderClass), pointer :: mergerTreeBuilder_
    contains
      final     ::            walkTestDestructor
      procedure :: operate => walkTestOperate
@@ -54,14 +53,15 @@ contains
     type(mergerTreeOperatorWalkTest)                :: walkTestConstructorParameters
     type(inputParameters              ), intent(in   ) :: parameters
     double precision, allocatable, dimension(:) :: walkTestTimeSnapshots
-    double precision :: walkTestResolutionLimit, walkTestMergeProbability, walkTestAccretionLimit, walkTestTimeEarliest
+    double precision :: walkTestResolutionLimit, walkTestTimeEarliest
     integer :: walkTestTimeCount
-    logical :: walkTestRandomSeedsFixed
     class (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+    class (mergerTreeBuilderClass), pointer :: mergerTreeBuilder_
     integer :: i
      double precision, parameter :: expansionFactorDefault=0.01d0
    !# <inputParameterList label="allowedParameterNames" />
 
+    !# <objectBuilder class="mergerTreeBuilder" name="mergerTreeBuilder_" source="parameters"/>
     !# <inputParameter>
     !#   <name>walkTestResolutionLimit</name>
     !#   <source>parameters</source>
@@ -69,31 +69,6 @@ contains
     !#   <description>For the walk-test operator a description of resolution limit for new trees.</description>
     !#   <type>double precision</type>
     !#   <cardinality>0..</cardinality>
-    !# </inputParameter>
-
-    !# <inputParameter>
-    !#   <name>walkTestMergeProbability</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.1d0</defaultValue>
-    !#   <description>For the walk-test operator a description of merge probability.</description>
-    !#   <type>double precision</type>
-    !#   <cardinality>0..</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>walkTestAccretionLimit</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.1d0</defaultValue>
-    !#   <description>For the walk-test a description of accretion limit.</description>
-    !#   <type>double precision</type>
-    !#   <cardinality>0..</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>walkTestRandomSeedsFixed</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>For walk-test description of random seeds fixed.</description>
-    !#   <type>logical</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>walkTestTimeCount</name>
@@ -126,15 +101,14 @@ contains
     end do
 
         walkTestConstructorParameters%walkTestTimeEarliest=min(cosmologyFunctions_%cosmicTime(expansionFactorDefault),walkTestTimeSnapshots(1))
-    walkTestConstructorParameters%mergerTreeBuilder_ = mergerTreeBuilderCole2000(walkTestMergeProbability,walkTestAccretionLimit,walkTestTimeEarliest,walkTestRandomSeedsFixed)
     
-    walkTestConstructorParameters = walkTestConstructorInternal(walkTestTimeCount, walkTestTimeSnapshots, walkTestResolutionLimit, walkTestMergeProbability, walkTestAccretionLimit, walkTestRandomSeedsFixed, walkTestTimeEarliest)
+    walkTestConstructorParameters = walkTestConstructorInternal(walkTestTimeCount, walkTestTimeSnapshots, walkTestResolutionLimit, walkTestTimeEarliest,mergerTreeBuilder_)
 
     return
   end function walkTestConstructorParameters
 
 
-  function walkTestConstructorInternal(walkTestTimeCount, walkTestTimeSnapshots,walkTestResolutionLimit, walkTestMergeProbability, walkTestAccretionLimit, walkTestRandomSeedsFixed, walkTestTimeEarliest)
+  function walkTestConstructorInternal(walkTestTimeCount, walkTestTimeSnapshots,walkTestResolutionLimit, walkTestTimeEarliest,mergerTreeBuilder_)
     !% Internal constructor for the walk-test merger tree operator class.
     use Memory_Management
     use Cosmology_Functions
@@ -142,9 +116,9 @@ contains
     implicit none
     type            (mergerTreeOperatorWalkTest)                :: walkTestConstructorInternal
     integer, intent (in) :: walkTestTimeCount
-    double precision                               , intent(in   ) :: walkTestResolutionLimit, walkTestMergeProbability, walkTestAccretionLimit, walkTestTimeEarliest
+    double precision                               , intent(in   ) :: walkTestResolutionLimit, walkTestTimeEarliest
     double precision, intent (in), dimension(:) :: walkTestTimeSnapshots
-    logical, intent(in) :: walkTestRandomSeedsFixed
+    class(mergerTreeBuilderClass), pointer, intent(in   ) :: mergerTreeBuilder_
     class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_
     double precision, parameter :: expansionFactorDefault=0.01d0
 
@@ -152,23 +126,21 @@ contains
     walkTestConstructorInternal%walkTestTimeSnapshots = walkTestTimeSnapshots
     call Sort_Do(walkTestConstructorInternal%walkTestTimeSnapshots)
     walkTestConstructorInternal%walkTestResolutionLimit = walkTestResolutionLimit
-    walkTestConstructorInternal%walkTestMergeProbability = walkTestMergeProbability
-    walkTestConstructorInternal%walkTestAccretionLimit = walkTestAccretionLimit
-    walkTestConstructorInternal%walkTestRandomSeedsFixed = walkTestRandomSeedsFixed
 
     cosmologyFunctions_ => cosmologyFunctions()
     walkTestConstructorInternal%walkTestTimeEarliest=min(cosmologyFunctions_%cosmicTime(expansionFactorDefault),walkTestConstructorInternal%walkTestTimeSnapshots(1))
-    walkTestConstructorInternal%mergerTreeBuilder_ = mergerTreeBuilderCole2000(walkTestMergeProbability,walkTestAccretionLimit,walkTestTimeEarliest,walkTestRandomSeedsFixed)
+    walkTestConstructorInternal%mergerTreeBuilder_ => mergerTreeBuilder_
+    call walkTestConstructorInternal%mergerTreeBuilder_%timeEarliestSet(walkTestConstructorInternal%walkTestTimeEarliest)
     
     return
   end function walkTestConstructorInternal
 
-  elemental subroutine walkTestDestructor(self)
-    !% Destructor for the merger tree operator function class.
+  subroutine walkTestDestructor(self)
+    !% Destructor for the augment merger tree operator function class.
     implicit none
     type(mergerTreeOperatorWalkTest), intent(inout) :: self
 
-    ! Nothing to do.
+    !# <objectDestructor name="self%mergerTreeBuilder_" />
     return
   end subroutine walkTestDestructor
 
@@ -194,7 +166,9 @@ contains
     type (treeNodeList), allocatable, dimension (:) :: anchorNodes
     integer :: nodeCount, noisyCount, i, currentNodeCount, retryCount, iterationMax,attemptMax,  rescaleCount, rescaleMax, childCount, treeBuilt
     double precision :: tolerance, bestTreeWorstFit, multiplier, constant, scalingFactor
-    logical :: bestTreeOverride
+    double precision :: massCutoffScale
+    integer :: massCutoffRescale, massCutoffRetry
+    logical :: bestTreeOverride, newNodeAboveCutoff
     currentTree => tree
     do while (associated(currentTree))
 
@@ -231,10 +205,14 @@ contains
           bestTree%baseNode => null()
           treeBuilt = 0
           attemptMax = 10000
+          massCutoffScale = 1.0
+          massCutoffRescale = 50
+          massCutoffRetry = massCutoffRescale
           bestTreeOverride = .false.
           write (*,*) 'Building Tree from Node --', i
           do while (.not.(treeBuilt == 1).and.(rescaleCount <= rescaleMax).and.(attemptMax > 0))
-            treeBuilt = walkTestBuildTreeFrom(self, thisNode, .false., tolerance, self%walkTestTimeEarliest, self%mergerTreeBuilder_, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor)
+            newNodeAboveCutoff = .false.
+            treeBuilt = walkTestBuildTreeFrom(self, thisNode, .false., tolerance, self%walkTestTimeEarliest, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff)
             if (retryCount == iterationMax) then
               !Rescale
               retryCount = 0
@@ -242,7 +220,7 @@ contains
               rescaleCount = rescaleCount + 1
               if (rescaleCount > rescaleMax) then
                 write (*,*) 'Node Build Attempts Exhausted'
-              end if
+              end if              
             end if
             retryCount = retryCount - treeBuilt
             !retryCount only decreased by tolerance failures.  Structural failures do not affect tolerance scaling.
@@ -255,6 +233,14 @@ contains
               bestTreeOverride = .false. !.true.
               !If out of attempts and no match within tolerance has been found, insert the best tree on next pass through loop.
             end if
+
+            if (newNodeAboveCutoff) then
+              massCutoffRetry = massCutoffRetry - 1
+              if (massCutoffRetry == 0) then
+                massCutoffRetry = massCutoffRescale
+                massCutoffScale = massCutoffScale + 0.05 
+              end if 
+            end if 
           end do
           i = i + 1
           if (associated(bestTree%baseNode)) then
@@ -393,7 +379,7 @@ contains
   end subroutine walkTestResetUniqueIDs
 
 
-  integer function walkTestBuildTreeFrom(self, thisNode, extendingEndNode, tolerance, timeEarliest, mergerTreeBuilder_, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor)
+  integer function walkTestBuildTreeFrom(self, thisNode, extendingEndNode, tolerance, timeEarliest, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff)
 
     use Galacticus_Nodes
     use Merger_Trees_Builders
@@ -406,7 +392,6 @@ contains
     class (nodeComponentBasic), pointer :: thisBasicComponent
     type (mergerTree) :: newTree
     type (mergerTree), intent (inout) :: bestTree
-    type (mergerTreeBuilderCole2000), intent(inout) :: mergerTreeBuilder_
     class (nodeComponentBasic), pointer :: baseBasic, childBasic
     double precision ::  massCutoff, tolerance, timeEarliest 
     double precision, intent (inout) :: bestTreeWorstFit, multiplier, constant, scalingFactor
@@ -415,6 +400,8 @@ contains
     type(mergerTreeOperatorPruneByTime) :: pruneByTime
     class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_
     double precision, parameter :: expansionFactorDefault = 0.01d0
+    double precision, intent (inout) :: massCutoffScale
+    logical, intent (inout) :: newNodeAboveCutoff
     logical :: bestTreeOverride
 
     cosmologyFunctions_ => cosmologyFunctions()
@@ -463,8 +450,8 @@ contains
       baseBasic => baseNode%basic(autoCreate=.true.)
       call baseBasic%timeSet(thisBasicComponent%time())
       call baseBasic%massSet(thisBasicComponent%mass())
-      call mergerTreeBuilder_%timeEarliestSet(timeEarliest) 
-      call mergerTreeBuilder_%build(newTree)
+      call self%mergerTreeBuilder_%timeEarliestSet(timeEarliest) 
+      call self%mergerTreeBuilder_%build(newTree)
       call pruneByTime%operate(newTree)
       !Set and build tree from the base node of the new tree.
       thisNodePointer =>thisNode
@@ -472,7 +459,7 @@ contains
       call walkTestSortChildren(thisNodePointer)
       nodeChildCount = walkTestChildCount(thisNodePointer)
       !check whether the newly built tree is accepted.
-      treeAccepted = walkTestAcceptTree(self, thisNodePointer, newTree, nodeChildCount, extendingEndNode, tolerance, timeEarliest, mergerTreeBuilder_, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor)
+      treeAccepted = walkTestAcceptTree(self, thisNodePointer, newTree, nodeChildCount, extendingEndNode, tolerance, timeEarliest, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff)
       !check whether currently saved best tree can be accepted now.
       if (((bestTreeWorstFit <= tolerance) .or. bestTreeOverride ).and.(associated(bestTree%baseNode)).and. (.not.(treeAccepted == 1)) ) then
         bestTreeWorstFit = 3.0
@@ -481,7 +468,7 @@ contains
         end if
         newTree%baseNode => bestTree%baseNode
         bestTree%baseNode => null()
-        if ( walkTestAcceptTree(self, thisNodePointer, newTree, nodeChildCount, extendingEndnode, tolerance, timeEarliest, mergerTreeBuilder_, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor) == 1) then
+        if ( walkTestAcceptTree(self, thisNodePointer, newTree, nodeChildCount, extendingEndnode, tolerance, timeEarliest, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff) == 1) then
           walkTestBuildTreeFrom = 1
         else 
           walkTestBuildTreeFrom = 0
@@ -607,22 +594,22 @@ contains
 
   end subroutine walkTestUnscaleChildren
 
-  integer function walkTestAcceptTree(self, thisNode, tree, nodeChildCount, extendingEndNode, tolerance, timeEarliest, mergerTreeBuilder_, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor)
+  integer function walkTestAcceptTree(self, thisNode, tree, nodeChildCount, extendingEndNode, tolerance, timeEarliest, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff)
     use Galacticus_Nodes
     use Merger_Trees_Builders
     implicit none
     class  (mergerTreeOperatorWalkTest), intent(inout)         :: self
 
     type (treeNode), pointer :: thisNode, currentNode, previousNode, currentNodeSibling, nonOverlapNode, firstNonOverlap
-    type (mergerTreeBuilderCole2000), intent(inout) :: mergerTreeBuilder_
     class (nodeComponentBasic), pointer :: currentBasicComponent, sortNodeComponentBasic, nonOverlapComponentBasic
     type (mergerTree), target :: tree
     type (mergerTree), intent (inout), target :: bestTree
     integer :: nodeChildCount, i, j, endNodesSorted, nonChildNodes, retryCount
     type (treeNodeList), dimension(nodeChildCount) :: endNodes
-    logical :: treeAccepted, extendingEndNode, endNodeBuildAccept, newNodeAboveCutoff, nodeMassesAgree, currentNodeBelowAll, treeScalable
+    logical :: treeAccepted, extendingEndNode, endNodeBuildAccept, nodeMassesAgree, currentNodeBelowAll, treeScalable
     double precision :: resolutionLimit, tolerance, massCutoff, timeEarliest, currentTreeWorstFit, falseWorstFit, unresolvedMass, treeMass, endNodeMass
-    double precision, intent(inout) :: bestTreeWorstFit, multiplier, constant, scalingFactor
+    double precision, intent(inout) :: bestTreeWorstFit, multiplier, constant, scalingFactor, massCutoffScale
+    logical, intent (inout) :: newNodeAboveCutoff
     logical :: bestTreeOverride
     falseWorstFit = 3.0
     newNodeAboveCutoff = .false.
@@ -661,7 +648,7 @@ contains
                    j = nodeChildCount
                    nonOverlapNode => endNodes(j)%node
                    sortNodeComponentBasic => endNodes(j)%node%basic()
-                   if (sortNodeComponentBasic%mass() > resolutionLimit) then 
+                   if (sortNodeComponentBasic%mass() > resolutionLimit*massCutoffScale) then 
                      write (*, *) 'NonOverlap Failure at mass --', sortNodeComponentBasic%mass()
                      newNodeAboveCutoff = .true.
                    end if
@@ -683,7 +670,7 @@ contains
              end do
              if (currentNodeBelowAll) then
                nonOverlapNode => currentNode
-               if (currentBasicComponent%mass() > resolutionLimit) then
+               if (currentBasicComponent%mass() > resolutionLimit*massCutoffScale) then
                  write (*,*) 'NonOverlap Failure at mass ==', currentBasicComponent%mass()
                  newNodeAboveCutoff = .true.
                end if
@@ -722,7 +709,7 @@ contains
     !end if 
 
     if ((nodeChildCount <= endNodesSorted).and.(newNodeAboveCutoff .eqv. .false. .or. bestTreeOverride).and.nodeMassesAgree) then
-      call walkTestExtendNonOverlapNodes(self, tree, firstNonOverlap,massCutoff, tolerance, timeEarliest, mergerTreeBuilder_, bestTree, bestTreeWorstFit)
+      call walkTestExtendNonOverlapNodes(self, tree, firstNonOverlap,massCutoff, tolerance, timeEarliest, bestTree, bestTreeWorstFit, massCutoffScale)
       endNodeMass = 0
       i = 1
       do while (i <= nodeChildCount)
@@ -730,7 +717,7 @@ contains
         endNodeMass = endNodeMass + currentBasicComponent%mass()
         i = i + 1
       end do
-      treeScalable = walkTestMultiScale(self, thisNode, tree, endNodes, nodeChildCount, firstNonOverlap, tolerance, timeEarliest, mergerTreeBuilder_, bestTree, bestTreeWorstFit, unresolvedMass, treeMass)
+      treeScalable = walkTestMultiScale(self, thisNode, tree, endNodes, nodeChildCount, firstNonOverlap, tolerance, timeEarliest, bestTree, bestTreeWorstFit, unresolvedMass, treeMass, massCutoffScale)
     else 
       treeScalable = .false.
     end if
@@ -975,19 +962,20 @@ contains
 
   end subroutine walkTestNonOverlapReinsert
 
-  subroutine walkTestExtendNonOverlapNodes(self, tree, firstNonOverlap,massCutoff, tolerance, timeEarliest, mergerTreeBuilder_, bestTree, bestTreeWorstFit)
+  subroutine walkTestExtendNonOverlapNodes(self, tree, firstNonOverlap,massCutoff, tolerance, timeEarliest, bestTree, bestTreeWorstFit, massCutoffScale )
     use Merger_Trees_Builders
     use Galacticus_Nodes
     implicit none
     class  (mergerTreeOperatorWalkTest), intent(inout)         :: self
     type (treeNode), pointer :: currentNode, nonOverlapNode, firstNonOverlap
-    type (mergerTreeBuilderCole2000), intent(inout) :: mergerTreeBuilder_
     class (nodeComponentBasic), pointer :: nonOverlapComponentBasic
     type (mergerTree), target :: tree
     type (mergerTree), intent (inout), target :: bestTree
     integer :: retryCount
-    double precision, intent(inout) :: bestTreeWorstFit, tolerance, timeEarliest, massCutoff 
+    double precision, intent(inout) :: bestTreeWorstFit, tolerance, timeEarliest, massCutoff, massCutoffScale 
     double precision ::falseWorstFit, falseMultiplier, falseConstant, falseScalingFactor
+    logical :: falseNewNodeAboveCutoff
+    falseNewNodeAboveCutoff = .false.
     falseMultiplier = 0.0
     falseConstant = 0.0
     falseScalingFactor = 1.0
@@ -999,7 +987,7 @@ contains
       currentNode => currentNode%sibling
       if(nonOverlapComponentBasic%mass() > massCutoff) then
         retryCount = 100
-        do while ((.not.(walkTestBuildTreeFrom(self, nonOverlapNode, .true., tolerance, timeEarliest, mergerTreeBuilder_, bestTree, falseWorstFit, .false., falseMultiplier, falseConstant, falseScalingFactor)==1)).and.(retryCount >0))
+        do while ((.not.(walkTestBuildTreeFrom(self, nonOverlapNode, .true., tolerance, timeEarliest, bestTree, falseWorstFit, .false., falseMultiplier, falseConstant, falseScalingFactor, massCutoffScale, falseNewNodeAboveCutoff)==1)).and.(retryCount >0))
           retryCount = retryCount - 1
         end do
       end if
@@ -1337,12 +1325,11 @@ contains
   end function walkTestScaleNodesAboveCutoff
 
 
-  logical function walkTestMultiScale(self, thisNode, tree, endNodes, nodeChildCount, firstNonOverlap, tolerance, timeEarliest, mergerTreeBuilder_, bestTree, bestTreeWorstFit, unresolvedMass,  treeMass)
+  logical function walkTestMultiScale(self, thisNode, tree, endNodes, nodeChildCount, firstNonOverlap, tolerance, timeEarliest, bestTree, bestTreeWorstFit, unresolvedMass,  treeMass, massCutoffScale)
 
     use Galacticus_Nodes
     use Merger_Trees_Builders
     implicit none
-    type (mergerTreeBuilderCole2000), intent(inout) :: mergerTreeBuilder_
     class  (mergerTreeOperatorWalkTest), intent(inout)         :: self
     type (treeNode), pointer :: thisNode, currentNode, previousNode, firstNonOverlap, currentNodeSibling, currentChildNode,sortNode, currentGrandchild, scaleNode
     type (mergerTree), target :: tree
@@ -1352,7 +1339,7 @@ contains
     integer :: i, retryCount
     type (treeNodeList), dimension(nodeChildCount), intent(inout) :: endNodes
     logical :: treeScaled, lastNodeFound
-    double precision, intent (inout) :: tolerance, timeEarliest, bestTreeWorstFit, unresolvedMass, treeMass
+    double precision, intent (inout) :: tolerance, timeEarliest, bestTreeWorstFit, unresolvedMass, treeMass, massCutoffScale
     double precision :: massExcess, childNodeMass, currentMass, endNodeMass, falseWorstFit, massDifferenceScaleFactor
   
     falseWorstFit = 3.0
@@ -1397,4 +1384,3 @@ contains
     walkTestMultiScale = treeScaled
     call walkTestResetUniqueIDs(tree)
   end function walkTestMultiScale
-
