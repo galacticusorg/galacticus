@@ -65,7 +65,7 @@ contains
     use Input_Parameters2
     implicit none
     type            (transferFunctionEisensteinHu1999)                :: eisensteinHu1999ConstructorParameters
-    type            (inputParameters                 ), intent(in   ) :: parameters
+    type            (inputParameters                 ), intent(inout) :: parameters
     class           (cosmologyParametersClass        ), pointer       :: cosmologyParameters_
     double precision                                                  :: neutrinoNumberEffective             , neutrinoMassSummed
     !# <inputParameterList label="allowedParameterNames" />
@@ -271,11 +271,7 @@ contains
     implicit none
     type(transferFunctionEisensteinHu1999), intent(inout) :: self
 
-    if     (                                                       &
-         &   associated(self%cosmologyParameters_                ) &
-         &  .and.                                                  &
-         &              self%cosmologyParameters_%isFinalizable()  &
-         & ) deallocate(self%cosmologyParameters_                )
+    !# <objectDestructor name="self%cosmologyParameters_"/>
     return
   end subroutine eisensteinHu1999Destructor
 
@@ -450,13 +446,11 @@ contains
     implicit none
     class    (transferFunctionEisensteinHu1999), intent(inout) :: self
     type     (inputParameters                 ), intent(inout) :: descriptor
-    type     (node                            ), pointer       :: parameterNode
     type     (inputParameters                 )                :: subParameters
     character(len=10                          )                :: parameterLabel
 
     call descriptor%addParameter("transferFunctionMethod","eisensteinHu1999")
-    parameterNode => descriptor%node("transferFunctionMethod")
-    subParameters=inputParameters(parameterNode)
+    subParameters=descriptor%subparameters("transferFunctionMethod")
     write (parameterLabel,'(f10.6)') self%neutrinoMassSummed
     call subParameters%addParameter("neutrinoMassSummed"     ,trim(adjustl(parameterLabel)))
     write (parameterLabel,'(f10.6)') self%neutrinoNumberEffective

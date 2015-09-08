@@ -32,7 +32,7 @@ my $start       = $firstNode->index($selected)->sclr();
 my $count       = $nodeCount->index($selected)->sclr();
 my $end         = $start+$count-1;
 
-# Read all haloTrees datasets.
+# Read all forestHalos datasets.
 foreach my $datasetName ( $inFile->group("forestHalos")->datasets() ) {
     my $dataset    = $inFile->group("forestHalos")->dataset($datasetName)->get();
     my $dimensions = $dataset->ndims();
