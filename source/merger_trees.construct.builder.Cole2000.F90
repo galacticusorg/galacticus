@@ -49,12 +49,6 @@
      !@     <arguments>\textless type(mergerTree)\textgreater\ tree\argin, \textless type(treeNode)\textgreater\ node\argin</arguments>
      !@     <description>Return true if the branch should be followed.</description>
      !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>timeEarliestSet</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ timeEarliest\argin</arguments>
-     !@     <description>Set the earliest time for the builder to the given value.</description>
-     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: build              => cole2000Build
      procedure :: shouldAbort        => cole2000ShouldAbort
@@ -138,7 +132,6 @@ contains
   function cole2000ConstructorInternal(mergeProbability,accretionLimit,timeEarliest,randomSeedsFixed)
     !% Internal constructor for the \cite{cole_hierarchical_2000} merger tree building class.
     use, intrinsic :: ISO_C_Binding
-    use Cosmology_Functions
     implicit none
     type            (mergerTreeBuilderCole2000)                :: cole2000ConstructorInternal
     double precision                           , intent(in   ) :: mergeProbability           , accretionLimit, &
