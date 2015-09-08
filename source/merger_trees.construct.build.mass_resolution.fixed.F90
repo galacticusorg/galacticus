@@ -15,55 +15,65 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a fixed mass resolution for building merger trees.
+  !% An implementation of a merger tree builder mass resolution which assumes a fixed resolution.
 
-module Merger_Trees_Build_Mass_Resolution_Fixed
-  !% Implements a fixed mass resolution for building merger trees.
-  implicit none
-  private
-  public :: Merger_Trees_Build_Mass_Resolution_Fixed_Initialize
+  !# <mergerTreeMassResolution name="mergerTreeMassResolutionFixed">
+  !#  <description>Provides a fixed mass resolution for merger tree building.</description>
+  !# </mergerTreeMassResolution>
+  type, extends(mergerTreeMassResolutionClass) :: mergerTreeMassResolutionFixed
+     !% A merger tree mass resolution class which assumes a fixed mass resolution.
+     private
+     double precision :: massResolution
+   contains
+     procedure :: resolution => fixedResolution
+  end type mergerTreeMassResolutionFixed
 
-  ! The fixed mass resolution.
-  double precision :: mergerTreeBuildMassResolutionFixed
-
+  interface mergerTreeMassResolutionFixed
+     !% Constructors for the {\normalfont \ttfamily fixed} merger tree resolution class.
+     module procedure fixedConstructorParameters
+     module procedure fixedConstructorInternal
+  end interface mergerTreeMassResolutionFixed
+  
 contains
-  
-  !# <mergerTreesBuildMassResolution>
-  !#  <unitName>Merger_Trees_Build_Mass_Resolution_Fixed_Initialize</unitName>
-  !# </mergerTreesBuildMassResolution>
-  subroutine Merger_Trees_Build_Mass_Resolution_Fixed_Initialize(mergerTreesBuildMassResolutionMethod,Merger_Tree_Build_Mass_Resolution_Get)
-    !% Initialize the modified Press-Schechter branching routines.
-    use Input_Parameters
-    use ISO_Varying_String
-    implicit none
-    type     (varying_string                         ),          intent(in   ) :: mergerTreesBuildMassResolutionMethod
-    procedure(Merger_Tree_Build_Mass_Resolution_Fixed), pointer, intent(inout) :: Merger_Tree_Build_Mass_Resolution_Get
-    
-    if (mergerTreesBuildMassResolutionMethod == 'fixed') then
-       Merger_Tree_Build_Mass_Resolution_Get => Merger_Tree_Build_Mass_Resolution_Fixed
-       !@ <inputParameter>
-       !@   <name>mergerTreeBuildMassResolutionFixed</name>
-       !@   <defaultValue>$5\times 10^9$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The minimum mass (in units of $M_\odot$) of halos to be resolved in merger trees that are built.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeBuildMassResolutionFixed',mergerTreeBuildMassResolutionFixed,defaultValue=5.0d9)
-    end if
-    return
-  end subroutine Merger_Trees_Build_Mass_Resolution_Fixed_Initialize
 
-  double precision function Merger_Tree_Build_Mass_Resolution_Fixed(thisTree)
+  function fixedConstructorParameters(parameters)
+    !% Constructor for the {\normalfont \ttfamily fixed} merger tree building mass resolution class which reads parameters from a
+    !% provided parameter list.
+    implicit none
+    type(mergerTreeMassResolutionFixed)                :: fixedConstructorParameters    
+    type(inputParameters              ), intent(in   ) :: parameters
+    !# <inputParameterList label="allowedParameterNames" />
+
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>massResolution</name>
+    !#   <source>parameters</source>
+    !#   <variable>fixedConstructorParameters%massResolution</variable>
+    !#   <defaultValue>5.0d9</defaultValue>
+    !#   <description>The mass resolution to use when building merger trees.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    return
+  end function fixedConstructorParameters
+
+  function fixedConstructorInternal(massResolution)
+    !% Internal constructor for the {\normalfont \ttfamily fixed} merger tree building mass resolution class.
+    implicit none
+    type            (mergerTreeMassResolutionFixed)                :: fixedConstructorInternal
+    double precision                               , intent(in   ) :: massResolution
+
+    fixedConstructorInternal%massResolution=massResolution
+    return
+  end function fixedConstructorInternal
+
+  double precision function fixedResolution(self,tree)
     !% Returns a fixed mass resolution to use when building merger trees.
-    use Galacticus_Nodes
     implicit none
-    type(mergerTree), intent(in   ) :: thisTree
+    class(mergerTreeMassResolutionFixed), intent(inout) :: self
+    type (mergerTree                   ), intent(in   ) :: tree
 
-    Merger_Tree_Build_Mass_Resolution_Fixed=mergerTreeBuildMassResolutionFixed
+    fixedResolution=self%massResolution
     return
-  end function Merger_Tree_Build_Mass_Resolution_Fixed
-  
-end module Merger_Trees_Build_Mass_Resolution_Fixed
+  end function fixedResolution
