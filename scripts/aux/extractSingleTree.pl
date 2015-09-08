@@ -10,7 +10,7 @@ use Data::Dumper;
 # Andrew Benson (19-September-2012)
 
 # Get arguments.
-die("Usage: extractSingleTree.pl <fromFile> <toFile> <treeIndex>")
+die("Usage: extractSingleTree.pl <fromFile> <toFile> <forestIndex>")
     unless ( scalar(@ARGV) == 3 );
 my $inFileName  = $ARGV[0];
 my $outFileName = $ARGV[1];
@@ -41,7 +41,7 @@ foreach my $datasetName ( $inFile->group("forestHalos")->datasets() ) {
      } elsif ( $dimensions == 2 ) {
      	$outFile->group("forestHalos")->dataset($datasetName)->set($dataset->(:,$start:$end));
      } else {
-     	die("??");
+     	die("extractSingleTree.pl: unable to handle rank > 2 datasets");
      }
 }
 
@@ -49,6 +49,16 @@ foreach my $datasetName ( $inFile->group("forestHalos")->datasets() ) {
 $outFile->group("forestIndex")->dataset("forestIndex"  )->set(pdl longlong([$tree ]));
 $outFile->group("forestIndex")->dataset("firstNode"    )->set(pdl longlong([     0]));
 $outFile->group("forestIndex")->dataset("numberOfNodes")->set(pdl longlong([$count]));
+
+# Set format version.
+my $formatVersion;
+if ( grep {$_ eq "formatVersion"} $outFile->attrs() ) {
+    $formatVersion = $inFile->attrGet("formatVersion");
+    
+} else {
+    $formatVersion = 2;
+}
+$outFile->attrSet("formatVersion" => 2);
 
 # Copy all attributes.
 foreach my $groupName ( $inFile->groups() ) {
