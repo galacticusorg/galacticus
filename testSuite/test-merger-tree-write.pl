@@ -6,9 +6,6 @@ use File::Which;
 # Export trees from Galacticus and check that they are written correctly.
 # Andrew Benson (12-October-2012)
 
-# Build Galacticus.
-system("cd ..; make Galacticus.exe");
-
 # Run models.
 system("cd ..; mkdir -p testSuite/outputs/test-merger-tree-write; scripts/aux/launch.pl testSuite/parameters/test-merger-tree-write.xml");
 
