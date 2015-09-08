@@ -10,7 +10,7 @@ use Data::Dumper;
 # Andrew Benson (19-September-2012)
 
 # Get arguments.
-die("Usage: extractSingleTree.pl <fromFile> <toFile> <treeIndex>")
+die("Usage: extractSingleTree.pl <fromFile> <toFile> <forestIndex>")
     unless ( scalar(@ARGV) == 3 );
 my $inFileName  = $ARGV[0];
 my $outFileName = $ARGV[1];
@@ -24,31 +24,41 @@ my $inFile  = new PDL::IO::HDF5(     $inFileName);
 my $outFile = new PDL::IO::HDF5(">".$outFileName);
 
 # Find the tree to extract.
-my $treeIndex = $inFile->group("treeIndex")->dataset("treeIndex"    )->get();
-my $firstNode = $inFile->group("treeIndex")->dataset("firstNode"    )->get();
-my $nodeCount = $inFile->group("treeIndex")->dataset("numberOfNodes")->get();
-my $selected  = which($treeIndex == $tree);
-my $start     = $firstNode->index($selected)->sclr();
-my $count     = $nodeCount->index($selected)->sclr();
-my $end       = $start+$count-1;
+my $forestIndex = $inFile->group("forestIndex")->dataset("forestIndex"  )->get();
+my $firstNode   = $inFile->group("forestIndex")->dataset("firstNode"    )->get();
+my $nodeCount   = $inFile->group("forestIndex")->dataset("numberOfNodes")->get();
+my $selected    = which($forestIndex == $tree);
+my $start       = $firstNode->index($selected)->sclr();
+my $count       = $nodeCount->index($selected)->sclr();
+my $end         = $start+$count-1;
 
 # Read all haloTrees datasets.
-foreach my $datasetName ( $inFile->group("haloTrees")->datasets() ) {
-    my $dataset    = $inFile->group("haloTrees")->dataset($datasetName)->get();
+foreach my $datasetName ( $inFile->group("forestHalos")->datasets() ) {
+    my $dataset    = $inFile->group("forestHalos")->dataset($datasetName)->get();
     my $dimensions = $dataset->ndims();
      if      ( $dimensions == 1 ) {
-     	$outFile->group("haloTrees")->dataset($datasetName)->set($dataset->(  $start:$end));
+     	$outFile->group("forestHalos")->dataset($datasetName)->set($dataset->(  $start:$end));
      } elsif ( $dimensions == 2 ) {
-     	$outFile->group("haloTrees")->dataset($datasetName)->set($dataset->(:,$start:$end));
+     	$outFile->group("forestHalos")->dataset($datasetName)->set($dataset->(:,$start:$end));
      } else {
-     	die("??");
+     	die("extractSingleTree.pl: unable to handle rank > 2 datasets");
      }
 }
 
-# Create the treeIndex group.
-$outFile->group("treeIndex")->dataset("treeIndex"    )->set(pdl longlong([$tree ]));
-$outFile->group("treeIndex")->dataset("firstNode"    )->set(pdl longlong([     0]));
-$outFile->group("treeIndex")->dataset("numberOfNodes")->set(pdl longlong([$count]));
+# Create the forestIndex group.
+$outFile->group("forestIndex")->dataset("forestIndex"  )->set(pdl longlong([$tree ]));
+$outFile->group("forestIndex")->dataset("firstNode"    )->set(pdl longlong([     0]));
+$outFile->group("forestIndex")->dataset("numberOfNodes")->set(pdl longlong([$count]));
+
+# Set format version.
+my $formatVersion;
+if ( grep {$_ eq "formatVersion"} $outFile->attrs() ) {
+    $formatVersion = $inFile->attrGet("formatVersion");
+    
+} else {
+    $formatVersion = 2;
+}
+$outFile->attrSet("formatVersion" => 2);
 
 # Copy all attributes.
 foreach my $groupName ( $inFile->groups() ) {
