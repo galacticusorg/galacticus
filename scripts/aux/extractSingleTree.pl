@@ -56,9 +56,9 @@ if ( grep {$_ eq "formatVersion"} $outFile->attrs() ) {
     $formatVersion = $inFile->attrGet("formatVersion");
     
 } else {
-    $formatVersion = 2;
+    $formatVersion = pdl long 2;
 }
-$outFile->attrSet("formatVersion" => 2);
+$outFile->attrSet("formatVersion" => $formatVersion);
 
 # Copy all attributes.
 foreach my $groupName ( $inFile->groups() ) {
