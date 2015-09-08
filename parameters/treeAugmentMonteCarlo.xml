@@ -60,9 +60,10 @@
   <modifiedPressSchechterFirstOrderAccuracy value="0.1"/>
   <mergerTreeBuildHaloMassMinimum value="1.0e12"/>
   <mergerTreeBuildHaloMassMaximum value="1.1e12"/>
-  <mergerTreeBuildTreesPerDecade value="8000"/>
-  <mergerTreesBuildMassResolutionMethod value="fixed"/>
-  <mergerTreeBuildMassResolutionFixed value="1.0e10"/>
+  <mergerTreeBuildTreesPerDecade value="80000"/>
+  <mergerTreeMassResolutionMethod value="fixed">
+    <massResolution value="1.0e10"/>
+  </mergerTreeMassResolutionMethod>
   
   <!-- Substructure hierarchy options -->
   <nodeMergersMethod value="singleLevelHierarchy"/>
@@ -168,6 +169,9 @@
 	  <accretionLimit   value="0.1"  />
 	  <mergeProbability value="0.1"  />
 	  <randomSeedsFixed value="false"/>
+	  <mergerTreeMassResolutionMethod value="fixed">
+	    <massResolution value="1.0e10"/>
+	  </mergerTreeMassResolutionMethod>
 	</mergerTreeBuilderMethod>
     </mergerTreeOperatorMethod>
     <mergerTreeOperatorMethod value="conditionalMF">

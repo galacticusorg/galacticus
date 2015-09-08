@@ -16,6 +16,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% An implementation of a merger tree builder using the algorithm of \cite{cole_hierarchical_2000}.
+  use Merger_Trees_Build_Mass_Resolution
 
   !# <mergerTreeBuilder name="mergerTreeBuilderCole2000">
   !#  <description>Merger trees are built using the algorithm of \cite{cole_hierarchical_2000}.</description>
@@ -23,17 +24,18 @@
   type, extends(mergerTreeBuilderClass) :: mergerTreeBuilderCole2000
      !% A merger tree builder class using the algorithm of \cite{cole_hierarchical_2000}.
      private
+     class           (mergerTreeMassResolutionClass), pointer :: mergerTreeMassResolution_
      ! Variables controlling merger tree accuracy.
-     double precision           :: accretionLimit      , timeEarliest    , &
-          &                        mergeProbability
+     double precision                                         :: accretionLimit      , timeEarliest    , &
+          &                                                      mergeProbability
      ! Option controlling random number sequences.
-     logical                    :: randomSeedsFixed
+     logical                                                  :: randomSeedsFixed
      
      ! Random number sequence variables
-     type            (fgsl_rng) :: clonedPseudoSequence, pseudoSequence
-     logical                    :: reset               , ompThreadOffset , &
-          &                        resetSnapshot
-     integer                    :: incrementSeed    
+     type            (fgsl_rng                              ) :: clonedPseudoSequence, pseudoSequence
+     logical                                                  :: reset               , ompThreadOffset , &
+          &                                                      resetSnapshot
+     integer                                                  :: incrementSeed    
    contains
      !@ <objectMethods>
      !@   <object>mergerTreeBuilderCole2000</object>
@@ -115,6 +117,7 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    !# <objectBuilder class="mergerTreeMassResolution" name="cole2000ConstructorParameters%mergerTreeMassResolution_" source="parameters"/>
     ! Convert maximum redshift to earliest time.
     cosmologyFunctions_ => cosmologyFunctions()
     cole2000ConstructorParameters%timeEarliest=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum))
@@ -129,20 +132,23 @@ contains
     return
   end function cole2000ConstructorParameters
 
-  function cole2000ConstructorInternal(mergeProbability,accretionLimit,timeEarliest,randomSeedsFixed)
+  function cole2000ConstructorInternal(mergeProbability,accretionLimit,timeEarliest,randomSeedsFixed,mergerTreeMassResolution_)
     !% Internal constructor for the \cite{cole_hierarchical_2000} merger tree building class.
     use, intrinsic :: ISO_C_Binding
+    use Cosmology_Functions
     implicit none
-    type            (mergerTreeBuilderCole2000)                :: cole2000ConstructorInternal
-    double precision                           , intent(in   ) :: mergeProbability           , accretionLimit, &
-         &                                                        timeEarliest
-    logical                                    , intent(in   ) :: randomSeedsFixed
-
+    type            (mergerTreeBuilderCole2000    )                        :: cole2000ConstructorInternal
+    double precision                               , intent(in   )         :: mergeProbability           , accretionLimit, &
+         &                                                                    timeEarliest
+    logical                                        , intent(in   )         :: randomSeedsFixed
+    class           (mergerTreeMassResolutionClass), intent(in   ), target :: mergerTreeMassResolution_
+    
     ! Store options.
-    cole2000ConstructorInternal%mergeProbability=mergeProbability
-    cole2000ConstructorInternal%accretionLimit  =accretionLimit
-    cole2000ConstructorInternal%timeEarliest    =timeEarliest
-    cole2000ConstructorInternal%randomSeedsFixed=randomSeedsFixed
+    cole2000ConstructorInternal%mergeProbability          =  mergeProbability
+    cole2000ConstructorInternal%accretionLimit            =  accretionLimit
+    cole2000ConstructorInternal%timeEarliest              =  timeEarliest
+    cole2000ConstructorInternal%randomSeedsFixed          =  randomSeedsFixed
+    cole2000ConstructorInternal%mergerTreeMassResolution_ => mergerTreeMassResolution_
     ! Initialize state.
     cole2000ConstructorInternal%reset           =.true.
     cole2000ConstructorInternal%ompThreadOffset =.true.
@@ -162,7 +168,6 @@ contains
     use Merger_Tree_Branching
     use Pseudo_Random
     use Kind_Numbers
-    use Merger_Trees_Build_Mass_Resolution
     implicit none
     class           (mergerTreeBuilderCole2000), intent(inout)         :: self
     type            (mergerTree               ), intent(inout), target :: tree
@@ -188,7 +193,7 @@ contains
        self%ompThreadOffset=.false.
     end if
     ! Get the mass resolution for this tree.
-    massResolution=Merger_Tree_Build_Mass_Resolution(tree)
+    massResolution=self%mergerTreeMassResolution_%resolution(tree)
     ! Convert time for base node to critical overdensity (which we use as a time coordinate in this module).
     baseNodeTime =thisBasic%time()
     deltaCritical=Critical_Overdensity_for_Collapse(time=thisBasic%time(),mass=thisBasic%mass())

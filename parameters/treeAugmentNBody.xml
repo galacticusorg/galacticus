@@ -62,7 +62,6 @@
   <mergerTreeReadAllowSubhaloPromotions value="true" />
   <mergerTreeReadOutputTimeSnapTolerance value="1.0e-3" />
   <allTreesExistAtFinalTime value="false" />
-  <mergerTreeBuildMassResolutionFixed value="2.36e9" />
   
   <!-- Substructure hierarchy options -->
   <nodeMergersMethod value="singleLevelHierarchy"/>
@@ -121,6 +120,9 @@
 	<accretionLimit   value="0.1"  />
 	<mergeProbability value="0.1"  />
 	<randomSeedsFixed value="false"/>
+	<mergerTreeMassResolutionMethod value="fixed">
+	  <massResolution value="2.36e9" />
+	</mergerTreeMassResolutionMethod>
       </mergerTreeBuilderMethod>
     </mergerTreeOperatorMethod>    
     
