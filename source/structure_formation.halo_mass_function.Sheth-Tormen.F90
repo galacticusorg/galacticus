@@ -15,56 +15,165 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which generates a tabulated Sheth-Tormen halo mass function.
+!% Contains a module which implements a \cite{sheth_ellipsoidal_2001} dark matter halo mass function class.
+  use Cosmological_Mass_Variance
+  use Critical_Overdensities
 
-module Halo_Mass_Function_Sheth_Tormen
-  !% Implements generation of a tabulated power-law primordial power spectrum.
-  implicit none
-  private
-  public :: Halo_Mass_Function_Sheth_Tormen_Initialize
+  !# <haloMassFunction name="haloMassFunctionShethTormen">
+  !#  <description>The halo mass function is computed from the function given by \cite{sheth_ellipsoidal_2001}.</description>
+  !# </haloMassFunction>
+  type, extends(haloMassFunctionClass) :: haloMassFunctionShethTormen
+     !% A halo mass function class using the fitting function of \cite{sheth_ellipsoidal_2001}.
+     private
+     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+     class(criticalOverdensityClass     ), pointer :: criticalOverdensity_
+   contains
+     !@ <objectMethods>
+     !@   <object>haloMassFunctionShethTormen</object>
+     !@   <objectMethod>
+     !@     <method>a</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
+     !@     <description>Return the parameter $a$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>p</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
+     !@     <description>Return the parameter $p$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>normalization</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
+     !@     <description>Return the parameter $A$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     final     ::                  shethTormenDestructor
+     procedure :: differential  => shethTormenDifferential
+     procedure :: a             => shethTormenA
+     procedure :: p             => shethTormenP
+     procedure :: normalization => shethTormenNormalization
+  end type haloMassFunctionShethTormen
 
-  ! Parameters controlling the gridding of the power spectrum and default wavenumber range.
-  integer, parameter :: nPointsPerDecade=1000
+  interface haloMassFunctionShethTormen
+     !% Constructors for the {\normalfont \ttfamily shethTormen} halo mass function class.
+     module procedure shethTormenConstructorParameters
+     module procedure shethTormenConstructorInternal
+  end interface haloMassFunctionShethTormen
 
 contains
 
-  !# <haloMassFunctionMethod>
-  !#  <unitName>Halo_Mass_Function_Sheth_Tormen_Initialize</unitName>
-  !# </haloMassFunctionMethod>
-  subroutine Halo_Mass_Function_Sheth_Tormen_Initialize(haloMassFunctionMethod,Halo_Mass_Function_Differential_Get)
-    !% Initializes the ``Sheth-Tormen mass function'' module.
-    use ISO_Varying_String
+  function shethTormenConstructorParameters(parameters)
+    !% Constructor for the {\normalfont \ttfamily shethTormen} halo mass function class which takes a parameter set as input.
+    use Input_Parameters2
     implicit none
-    type     (varying_string  ), intent(in   )          :: haloMassFunctionMethod
-    procedure(Halo_Mass_Function_Sheth_Tormen_Differential), intent(inout), pointer :: Halo_Mass_Function_Differential_Get
+    type(haloMassFunctionShethTormen)                :: shethTormenConstructorParameters
+    type(inputParameters            ), intent(inout) :: parameters
+    !# <inputParameterList label="allowedParameterNames" />
+    
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <objectBuilder class="cosmologyParameters"      name="shethTormenConstructorParameters%cosmologyParameters_"      source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="shethTormenConstructorParameters%cosmologicalMassVariance_" source="parameters"/>
+    !# <objectBuilder class="criticalOverdensity"      name="shethTormenConstructorParameters%criticalOverdensity_"      source="parameters"/>
+   return
+  end function shethTormenConstructorParameters
 
-    if (haloMassFunctionMethod == 'Sheth-Tormen') Halo_Mass_Function_Differential_Get => Halo_Mass_Function_Sheth_Tormen_Differential
+  function shethTormenConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_)
+    !% Internal constructor for the {\normalfont \ttfamily shethTormen} halo mass function class.
+    implicit none
+    type (haloMassFunctionShethTormen  )                        :: shethTormenConstructorInternal
+    class(cosmologyParametersClass     ), target, intent(in   ) :: cosmologyParameters_    
+    class(cosmologicalMassVarianceClass), target, intent(in   ) :: cosmologicalMassVariance_
+    class(criticalOverdensityClass     ), target, intent(in   ) :: criticalOverdensity_
+
+    shethTormenConstructorInternal%cosmologyParameters_      => cosmologyParameters_
+    shethTormenConstructorInternal%cosmologicalMassVariance_ => cosmologicalMassVariance_
+    shethTormenConstructorInternal%criticalOverdensity_      => criticalOverdensity_
     return
-  end subroutine Halo_Mass_Function_Sheth_Tormen_Initialize
+  end function shethTormenConstructorInternal
 
-  double precision function Halo_Mass_Function_Sheth_Tormen_Differential(time,mass)
-    !% Compute the Sheth-Tormen halo mass function.
+  subroutine shethTormenDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily shethTormen} halo mass function class.
+    implicit none
+    type(haloMassFunctionShethTormen), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyParameters_"      />
+    !# <objectDestructor name="self%cosmologicalMassVariance_" />
+    !# <objectDestructor name="self%criticalOverdensity_"      />
+    return
+  end subroutine shethTormenDestructor
+
+  double precision function shethTormenDifferential(self,time,mass)
+    !% Return the differential halo mass function at the given time and mass.
     use Numerical_Constants_Math
-    use Power_Spectra
-    use Critical_Overdensity
-    use Cosmology_Parameters
     implicit none
-    double precision                          , intent(in   ) :: mass                           , time
-    double precision                          , parameter     :: a                      =0.707d0, normalization=0.3221836349d0, &
-         &                                                       p                      =0.3d0
-    class           (cosmologyParametersClass), pointer       :: thisCosmologyParameters
-    double precision                                          :: alpha                          , nu                          , &
-         &                                                       nuPrime
+    class           (haloMassFunctionShethTormen), intent(inout) :: self
+    double precision                             , intent(in   ) :: time   , mass    
+    double precision                                             :: alpha  , nu  , &
+         &                                                          nuPrime
 
-    ! Get the default cosmology.
-    thisCosmologyParameters => cosmologyParameters()
     ! Compute the mass function.
-    nu=(Critical_Overdensity_for_Collapse(time=time,mass=mass)/Cosmological_Mass_Root_Variance(mass))**2
-    nuPrime=a*nu
-    alpha=abs(Cosmological_Mass_Root_Variance_Logarithmic_Derivative(mass))
-    Halo_Mass_Function_Sheth_Tormen_Differential=(thisCosmologyParameters%OmegaMatter()*thisCosmologyParameters%densityCritical()/mass**2)*alpha*sqrt(2.0d0*nuPrime/Pi)*normalization&
-         &*(1.0d0+1.0d0/nuPrime**p) *exp(-0.5d0*nuPrime)
+    nu                     =+(                                                                  &
+         &                    +self%criticalOverdensity_     %value       (time=time,mass=mass) &
+         &                    /self%cosmologicalMassVariance_%rootVariance(               mass) &
+         &                   )**2
+    nuPrime                =+self%a(time,mass)                                                  &
+         &                  *nu
+    alpha                  =+abs(self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass))
+    shethTormenDifferential=+self%cosmologyParameters_%OmegaMatter    () &
+         &                  *self%cosmologyParameters_%densityCritical() &
+         &                  /mass**2                                     &
+         &                  *alpha                                       &
+         &                  *sqrt(                                       &
+         &                        +2.0d0                                 &
+         &                        *nuPrime                               &
+         &                        /Pi                                    &
+         &                       )                                       &
+         &                  *self%normalization(time,mass)               &
+         &                  *(                                           &
+         &                    +1.0d0                                     &
+         &                    +1.0d0                                     &
+         &                    /nuPrime**self%p(time,mass)                &
+         &                  )                                            &
+         &                  *exp(                                        &
+         &                       -0.5d0                                  &
+         &                       *nuPrime                                &
+         &                  )
     return
-  end function Halo_Mass_Function_Sheth_Tormen_Differential
+  end function shethTormenDifferential
 
-end module Halo_Mass_Function_Sheth_Tormen
+  double precision function shethTormenA(self,time,mass)
+    !% Return the parameter $a$ in the {\normalfont \ttfamily shethTormen} halo mass function at the given time and mass.
+    use Numerical_Constants_Math
+    implicit none
+    class           (haloMassFunctionShethTormen), intent(inout) :: self
+    double precision                             , intent(in   ) :: time , mass    
+
+    shethTormenA=0.707d0
+    return
+  end function shethTormenA
+ 
+  double precision function shethTormenP(self,time,mass)
+    !% Return the parameter $p$ in the {\normalfont \ttfamily shethTormen} halo mass function at the given time and mass.
+    use Numerical_Constants_Math
+    implicit none
+    class           (haloMassFunctionShethTormen), intent(inout) :: self
+    double precision                             , intent(in   ) :: time , mass    
+
+    shethTormenP=0.3d0
+    return
+  end function shethTormenP
+  
+  double precision function shethTormenNormalization(self,time,mass)
+    !% Return the normalization, $A$, in the {\normalfont \ttfamily shethTormen} halo mass function at the given time and mass.
+    use Numerical_Constants_Math
+    implicit none
+    class           (haloMassFunctionShethTormen), intent(inout) :: self
+    double precision                             , intent(in   ) :: time , mass    
+
+    shethTormenNormalization=0.3221836349d0
+    return
+  end function shethTormenNormalization
+ 
