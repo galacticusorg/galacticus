@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<parameters>
+  <!-- This model uses a tree which has a merge target which becomes a satellite in a descendent of its mergee. If such satellites
+       are not allowed to evolve until their host no longer has a child node this can result in a deadlock. This version has the
+       deadlock occur in a non-primary progenitor. -->
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+  <cosmologyParametersMethod value="simple">
+    <HubbleConstant value="67.77"/>
+    <OmegaDarkEnergy value="0.692885"/>
+    <OmegaMatter value="0.307115"/>
+    <OmegaBaryon value="0.048206"/>
+    <temperatureCMB value="2.72548"/>
+  </cosmologyParametersMethod>
+  <sigma_8 value="0.8228"/>
+  <accretionHaloMethod value="null"/>
+  <mergerTreeOutputReferences value="false"/>
+  <mergerTreeConstructMethod value="read"/>
+  <mergerTreeReadPresetMergerNodes value="true"/>
+  <mergerTreeReadPresetMergerTimes value="true"/>
+  <mergerTreeReadPresetOrbits value="true"/>
+  <mergerTreeReadPresetOrbitsAssertAllSet value="true"/>
+  <mergerTreeReadPresetOrbitsBoundOnly value="true"/>
+  <mergerTreeReadPresetOrbitsSetAll value="true"/>
+  <mergerTreeReadPresetPositions value="true"/>
+  <mergerTreeReadPresetScaleRadii value="true"/>
+  <mergerTreeReadPresetSpins value="true"/>
+  <mergerTreeReadPresetSpins3D value="true"/>
+  <mergerTreeReadPresetSubhaloIndices value="true"/>
+  <mergerTreeReadPresetSubhaloMasses value="true"/>
+  <mergerTreeReadPresetUnphysicalSpins value="true"/>
+  <nodeMergersMethod value="singleLevelHierarchy"/>
+  <odeToleranceAbsolute value="0.01"/>
+  <odeToleranceRelative value="0.01"/>
+  <outputRedshifts value="0.0"/>
+  <powerSpectrumPrimordialMethod value="powerLaw">
+  <index value="0.96"/>
+    <wavenumberReference value="1.0"/>
+    <running value="0.0"/>
+  </powerSpectrumPrimordialMethod>
+  <satelliteOrbitStoreOrbitalParameters value="true"/>
+  <treeNodeMethodBasic value="standard"/>
+  <treeNodeMethodBlackHole value="standard"/>
+  <treeNodeMethodDarkMatterProfile value="scale"/>
+  <treeNodeMethodDisk value="exponential"/>
+  <treeNodeMethodHotHalo value="standard"/>
+  <treeNodeMethodPosition value="preset"/>
+  <treeNodeMethodSatellite value="preset"/>
+  <treeNodeMethodSpheroid value="standard"/>
+  <treeNodeMethodSpin value="preset3D"/>
+  <verbosityLevel value="1"/>
+  <mergerTreeReadSubresolutionMergingMethod value="boylanKolchin2008"/>
+  <mergerTreeReadFileName value="testSuite/data/mergerTrees/deadlockMergeTargetInDescendentOfMergee2.hdf5"/>
+  <galacticusOutputFileName value="testSuite/outputs/deadlockMergeTargetInDescendentOfMergee2.hdf5"/>
+</parameters>
