@@ -15,46 +15,44 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a walk-test operator on merger trees.
+  !% Contains a module which implements an augmenting operator on merger trees.
   use Merger_Trees_Builders
 
-  !# <mergerTreeOperator name="mergerTreeOperatorWalkTest">
-  !#  <description>Provides a walk-test operator on merger trees.</description>
+  !# <mergerTreeOperator name="mergerTreeOperatorAugment">
+  !#  <description>Provides a merger tree operator which augments tree resolution by inserting high-resolution branches.</description>
   !# </mergerTreeOperator>
-  type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorWalkTest
-     !% A walk-test merger tree operator class.
+  type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorAugment
+     !% An augmenting merger tree operator class.
      private
-     integer :: walkTestTimeCount
-     double precision, allocatable, dimension (:) :: walkTestTimeSnapshots
-     double precision :: walkTestResolutionLimit, walkTestTimeEarliest
+     integer :: augmentTimeCount
+     double precision, allocatable, dimension (:) :: augmentTimeSnapshots
+     double precision :: augmentResolutionLimit, augmentTimeEarliest
      class(mergerTreeBuilderClass), pointer :: mergerTreeBuilder_
    contains
-     final     ::            walkTestDestructor
-     procedure :: operate => walkTestOperate
-  end type mergerTreeOperatorWalkTest
+     final     ::            augmentDestructor
+     procedure :: operate => augmentOperate
+  end type mergerTreeOperatorAugment
 
-  interface mergerTreeOperatorWalkTest
-     !% Constructors for the walk-test merger tree operator class.
-     module procedure walkTestConstructorParameters
-     module procedure walkTestConstructorInternal
-  end interface mergerTreeOperatorWalkTest
-
-
+  interface mergerTreeOperatorAugment
+     !% Constructors for the {\normalfont \ttfamily augment} merger tree operator class.
+     module procedure augmentConstructorParameters
+     module procedure augmentConstructorInternal
+  end interface mergerTreeOperatorAugment
 
 contains
 
-  function walkTestConstructorParameters(parameters)
-    !% Constructor for the walk-test merger tree operator class which takes a parameter set as input.
+  function augmentConstructorParameters(parameters)
+    !% Constructor for the {\normalfont \ttfamily augment} merger tree operator class which takes a parameter set as input.
     use Input_Parameters2
     use Cosmology_Functions
     use Memory_Management
     use Galacticus_Error
     implicit none
-    type(mergerTreeOperatorWalkTest)                :: walkTestConstructorParameters
+    type(mergerTreeOperatorAugment)                :: augmentConstructorParameters
     type(inputParameters              ), intent(in   ) :: parameters
-    double precision, allocatable, dimension(:) :: walkTestTimeSnapshots
-    double precision :: walkTestResolutionLimit, walkTestTimeEarliest
-    integer :: walkTestTimeCount
+    double precision, allocatable, dimension(:) :: augmentTimeSnapshots
+    double precision :: augmentResolutionLimit, augmentTimeEarliest
+    integer :: augmentTimeCount
     class (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
     class (mergerTreeBuilderClass), pointer :: mergerTreeBuilder_
     integer :: i
@@ -63,15 +61,15 @@ contains
 
     !# <objectBuilder class="mergerTreeBuilder" name="mergerTreeBuilder_" source="parameters"/>
     !# <inputParameter>
-    !#   <name>walkTestResolutionLimit</name>
+    !#   <name>augmentResolutionLimit</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d10</defaultValue>
-    !#   <description>For the walk-test operator a description of resolution limit for new trees.</description>
+    !#   <description>For the {\normalfont \ttfamily augment} operator a description of resolution limit for new trees.</description>
     !#   <type>double precision</type>
     !#   <cardinality>0..</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>walkTestTimeCount</name>
+    !#   <name>augmentTimeCount</name>
     !#   <source>parameters</source>
     !#   <defaultValue>100</defaultValue>
     !#   <description>Number of points in time to use for building merger trees.</description>
@@ -79,74 +77,74 @@ contains
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
 
-    if (parameters%isPresent('walkTestSnapshotRedshifts')) then
-      allocate(walkTestTimeSnapshots(parameters%count('walkTestSnapshotRedshifts')))
-      if (walkTestTimeCount > 1) then
-        if(size(walkTestTimeSnapshots)/= walkTestTimeCount) call Galacticus_Error_Report('walkTestConstructorParameters', 'mismatch between [walkTestTimeCount] and size of [walkTestSnapshotRedshifts]')
+    if (parameters%isPresent('augmentSnapshotRedshifts')) then
+      allocate(augmentTimeSnapshots(parameters%count('augmentSnapshotRedshifts')))
+      if (augmentTimeCount > 1) then
+        if(size(augmentTimeSnapshots)/= augmentTimeCount) call Galacticus_Error_Report('augmentConstructorParameters', 'mismatch between [augmentTimeCount] and size of [augmentSnapshotRedshifts]')
       end if
     else
-       call Galacticus_Error_Report('walkTestConstructorParameters','parameter [walkTestTimeSnapshots] is required')
+       call Galacticus_Error_Report('augmentConstructorParameters','parameter [augmentTimeSnapshots] is required')
     end if
     !# <inputParameter>
-    !#   <name>walkTestSnapshotRedshifts</name>
-    !#   <variable>walkTestTimeSnapshots</variable>
+    !#   <name>augmentSnapshotRedshifts</name>
+    !#   <variable>augmentTimeSnapshots</variable>
     !#   <source>parameters</source>
-    !#   <description>For walk-test description of redshift snapshots.</description>
+    !#   <description>For {\normalfont \ttfamily augment} description of redshift snapshots.</description>
     !#   <type>double precision</type>
     !#   <cardinality> 0..</cardinality>
     !# </inputParameter>
     cosmologyFunctions_ => cosmologyFunctions()
-    do i =1,size(walkTestTimeSnapshots)
-      walkTestTimeSnapshots(i) = cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(walkTestTimeSnapshots(i)))
+    do i =1,size(augmentTimeSnapshots)
+      augmentTimeSnapshots(i) = cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(augmentTimeSnapshots(i)))
     end do
 
-        walkTestConstructorParameters%walkTestTimeEarliest=min(cosmologyFunctions_%cosmicTime(expansionFactorDefault),walkTestTimeSnapshots(1))
+        augmentConstructorParameters%augmentTimeEarliest=min(cosmologyFunctions_%cosmicTime(expansionFactorDefault),augmentTimeSnapshots(1))
     
-    walkTestConstructorParameters = walkTestConstructorInternal(walkTestTimeCount, walkTestTimeSnapshots, walkTestResolutionLimit, walkTestTimeEarliest,mergerTreeBuilder_)
+    augmentConstructorParameters = augmentConstructorInternal(augmentTimeCount, augmentTimeSnapshots, augmentResolutionLimit, augmentTimeEarliest,mergerTreeBuilder_)
 
     return
-  end function walkTestConstructorParameters
+  end function augmentConstructorParameters
 
 
-  function walkTestConstructorInternal(walkTestTimeCount, walkTestTimeSnapshots,walkTestResolutionLimit, walkTestTimeEarliest,mergerTreeBuilder_)
-    !% Internal constructor for the walk-test merger tree operator class.
+  function augmentConstructorInternal(augmentTimeCount, augmentTimeSnapshots,augmentResolutionLimit, augmentTimeEarliest,mergerTreeBuilder_)
+    !% Internal constructor for the {\normalfont \ttfamily augment} merger tree operator class.
     use Memory_Management
     use Cosmology_Functions
     use Sort
     implicit none
-    type            (mergerTreeOperatorWalkTest)                :: walkTestConstructorInternal
-    integer, intent (in) :: walkTestTimeCount
-    double precision                               , intent(in   ) :: walkTestResolutionLimit, walkTestTimeEarliest
-    double precision, intent (in), dimension(:) :: walkTestTimeSnapshots
+    type            (mergerTreeOperatorAugment)                :: augmentConstructorInternal
+    integer, intent (in) :: augmentTimeCount
+    double precision                               , intent(in   ) :: augmentResolutionLimit, augmentTimeEarliest
+    double precision, intent (in), dimension(:) :: augmentTimeSnapshots
     class(mergerTreeBuilderClass), pointer, intent(in   ) :: mergerTreeBuilder_
     class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_
     double precision, parameter :: expansionFactorDefault=0.01d0
 
-    call Alloc_Array(walkTestConstructorInternal%walkTestTimeSnapshots, [walkTestTimeCount])
-    walkTestConstructorInternal%walkTestTimeSnapshots = walkTestTimeSnapshots
-    call Sort_Do(walkTestConstructorInternal%walkTestTimeSnapshots)
-    walkTestConstructorInternal%walkTestResolutionLimit = walkTestResolutionLimit
+    call Alloc_Array(augmentConstructorInternal%augmentTimeSnapshots, [augmentTimeCount])
+    augmentConstructorInternal%augmentTimeSnapshots = augmentTimeSnapshots
+    call Sort_Do(augmentConstructorInternal%augmentTimeSnapshots)
+    augmentConstructorInternal%augmentResolutionLimit = augmentResolutionLimit
 
     cosmologyFunctions_ => cosmologyFunctions()
-    walkTestConstructorInternal%walkTestTimeEarliest=min(cosmologyFunctions_%cosmicTime(expansionFactorDefault),walkTestConstructorInternal%walkTestTimeSnapshots(1))
-    walkTestConstructorInternal%mergerTreeBuilder_ => mergerTreeBuilder_
-    call walkTestConstructorInternal%mergerTreeBuilder_%timeEarliestSet(walkTestConstructorInternal%walkTestTimeEarliest)
+    augmentConstructorInternal%augmentTimeEarliest=min(cosmologyFunctions_%cosmicTime(expansionFactorDefault),augmentConstructorInternal%augmentTimeSnapshots(1))
+    augmentConstructorInternal%mergerTreeBuilder_ => mergerTreeBuilder_
+    call augmentConstructorInternal%mergerTreeBuilder_%timeEarliestSet(augmentConstructorInternal%augmentTimeEarliest)
     
     return
-  end function walkTestConstructorInternal
+  end function augmentConstructorInternal
 
-  subroutine walkTestDestructor(self)
+  subroutine augmentDestructor(self)
     !% Destructor for the augment merger tree operator function class.
     implicit none
-    type(mergerTreeOperatorWalkTest), intent(inout) :: self
+    type(mergerTreeOperatorAugment), intent(inout) :: self
 
     !# <objectDestructor name="self%mergerTreeBuilder_" />
     return
-  end subroutine walkTestDestructor
+  end subroutine augmentDestructor
 
 
 
-  subroutine walkTestOperate(self, tree)
+  subroutine augmentOperate(self, tree)
     !% Walk through nodes of {\normalfont \ttfamily thisTree}.
     use Galacticus_Nodes
     use Merger_Trees_Pruning_Utilities
@@ -154,7 +152,7 @@ contains
     use Memory_Management
 
     implicit none
-    class  (mergerTreeOperatorWalkTest), intent(inout)         :: self
+    class  (mergerTreeOperatorAugment), intent(inout)         :: self
     type   (mergerTree        ), intent(inout ), target :: tree
     type (mergerTree) :: bestTree
     type   (treeNode          ), pointer               :: nextNode              , previousNode     , &
@@ -173,7 +171,7 @@ contains
     do while (associated(currentTree))
 
       !Allocate array of original anchor nodes.
-      nodeCount = walkTestSilentWalk(currentTree, 'nodeCount')
+      nodeCount = augmentSilentWalk(currentTree, 'nodeCount')
       write (*,*) "Number of Nodes in Tree --", nodeCount
       ALLOCATE (anchorNodes(nodeCount))
       thisNode => currentTree%baseNode
@@ -195,7 +193,7 @@ contains
           multiplier = 0.0
           constant = 0.0
           scalingFactor = 1.0
-          !call walkTestScaleChildren(self, thisNode, multiplier, constant, scalingFactor)
+          !call augmentScaleChildren(self, thisNode, multiplier, constant, scalingFactor)
           tolerance = 0.925d0
           iterationMax = 50
           rescaleMax =  20
@@ -213,7 +211,7 @@ contains
           write (*,*) 'Building Tree from Node --', i
           do while (.not.(treeBuilt == 1).and.(rescaleCount <= rescaleMax).and.(attemptMax > 0))
             newNodeAboveCutoff = .false.
-            treeBuilt = walkTestBuildTreeFrom(self, thisNode, .false., tolerance, self%walkTestTimeEarliest, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff, bestTreeNodeAboveCutoff)
+            treeBuilt = augmentBuildTreeFrom(self, thisNode, .false., tolerance, self%augmentTimeEarliest, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff, bestTreeNodeAboveCutoff)
             if (retryCount == iterationMax) then
               !Rescale
               retryCount = 0
@@ -255,9 +253,9 @@ contains
       DEALLOCATE (anchorNodes)
     end do
     return
-  end subroutine walkTestOperate
+  end subroutine augmentOperate
 
-  integer function walkTestNoisyWalk(tree,desiredOutput)
+  integer function augmentNoisyWalk(tree,desiredOutput)
     !Walks through tree and prints various types of output.  Will return information about tree based on desiredOutput input string.
     use Galacticus_Nodes
     use Merger_Trees_Pruning_Utilities
@@ -304,15 +302,15 @@ contains
       !write (*,*) 'End Mass -- ', endMass, ' OriginalMass -- ',thisBasicComponent%mass() 
     end if
     if(desiredOutput == 'nodeCount') then
-      walkTestNoisyWalk = nodeCount
+      augmentNoisyWalk = nodeCount
     else if(desiredOutput =='endNodeCount') then
-      walkTestNoisyWalk = endNodeCount
+      augmentNoisyWalk = endNodeCount
     else
-      walkTestNoisyWalk = 0
+      augmentNoisyWalk = 0
     end if
-  end function walkTestNoisyWalk
+  end function augmentNoisyWalk
 
-  integer function walkTestSilentWalk(tree,desiredOutput)
+  integer function augmentSilentWalk(tree,desiredOutput)
     !Walks through tree and quietly collects information specified by desiredOutput input string and returns that information.
     use Galacticus_Nodes
     use Merger_Trees_Pruning_Utilities
@@ -346,15 +344,15 @@ contains
     end do
 
     if(desiredOutput == 'nodeCount') then
-      walkTestSilentWalk = nodeCount
+      augmentSilentWalk = nodeCount
     else if(desiredOutput =='endNodeCount') then
-      walkTestSilentWalk = endNodeCount
+      augmentSilentWalk = endNodeCount
     else
-      walkTestSilentWalk = 0
+      augmentSilentWalk = 0
     end if
-  end function walkTestSilentWalk
+  end function augmentSilentWalk
 
-  subroutine walkTestResetUniqueIDs(tree)
+  subroutine augmentResetUniqueIDs(tree)
     !Walks through tree and returns all negative IDs back to being positive.
     use Galacticus_Nodes
     use Merger_Trees_Pruning_Utilities
@@ -377,17 +375,17 @@ contains
       thisNode => thisNode%walkTree()
     end do
 
-  end subroutine walkTestResetUniqueIDs
+  end subroutine augmentResetUniqueIDs
 
 
-  integer function walkTestBuildTreeFrom(self, thisNode, extendingEndNode, tolerance, timeEarliest, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff, bestTreeNodeAboveCutoff)
+  integer function augmentBuildTreeFrom(self, thisNode, extendingEndNode, tolerance, timeEarliest, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff, bestTreeNodeAboveCutoff)
 
     use Galacticus_Nodes
     use Merger_Trees_Builders
     use Cosmology_Functions
 
     implicit none
-    class  (mergerTreeOperatorWalkTest), intent(inout)         :: self
+    class  (mergerTreeOperatorAugment), intent(inout)         :: self
     type (treeNode), target:: thisNode
     type (treeNode), pointer :: baseNode, thisNodePointer
     class (nodeComponentBasic), pointer :: thisBasicComponent
@@ -418,12 +416,12 @@ contains
         timeEarliest = childBasic%time()
         !If there are children, the next time is set to the time of the children.
       else
-        if (self%walkTestTimeCount>1) then
+        if (self%augmentTimeCount>1) then
           i = 1
           timeIndex = -1
           !find the next smallest time in the time snapshots and use that as the timeEarliest.
-          do while (i <= size(self%walkTestTimeSnapshots))
-            if((thisBasicComponent%time() <= self%walkTestTimeSnapshots(i)).or.(thisBasicComponent%time() <= self%walkTestTimeSnapshots(i)*(1.0 + 1.0d-5)).or.(thisBasicComponent%time() <= self%walkTestTimeSnapshots(i)*(1.0-1.0d-5 ))) then
+          do while (i <= size(self%augmentTimeSnapshots))
+            if((thisBasicComponent%time() <= self%augmentTimeSnapshots(i)).or.(thisBasicComponent%time() <= self%augmentTimeSnapshots(i)*(1.0 + 1.0d-5)).or.(thisBasicComponent%time() <= self%augmentTimeSnapshots(i)*(1.0-1.0d-5 ))) then
               timeIndex = i - 1
               exit
             else 
@@ -431,12 +429,12 @@ contains
             end if
           end do
           if (timeIndex == -1) then 
-            timeIndex = size(self%walkTestTimeSnapshots)
+            timeIndex = size(self%augmentTimeSnapshots)
           end if
           if (timeIndex == 0) then
             timeEarliest = cosmologyFunctions_%cosmicTime(expansionFactorDefault)
           else 
-            timeEarliest = self%walkTestTimeSnapshots(timeIndex)
+            timeEarliest = self%augmentTimeSnapshots(timeIndex)
           end if
         else 
           !If the size of the snapshot list is reported to be one, revert to child time / default min time determination of earliest time.
@@ -444,7 +442,7 @@ contains
         end if
       end if
     endif
-    massCutoff = self%walkTestResolutionLimit
+    massCutoff = self%augmentResolutionLimit
     !Build trees from the nodes above the cutoff. 
     if(thisBasicComponent%mass() > massCutoff) then
       baseNode => treeNode(thisNode%index(), newTree)
@@ -457,11 +455,11 @@ contains
       call pruneByTime%operate(newTree)
       !Set and build tree from the base node of the new tree.
       thisNodePointer =>thisNode
-      endNodeCount = walkTestSilentWalk(newTree, 'endNodeCount')
-      call walkTestSortChildren(thisNodePointer)
-      nodeChildCount = walkTestChildCount(thisNodePointer)
+      endNodeCount = augmentSilentWalk(newTree, 'endNodeCount')
+      call augmentSortChildren(thisNodePointer)
+      nodeChildCount = augmentChildCount(thisNodePointer)
       !check whether the newly built tree is accepted.
-      treeAccepted = walkTestAcceptTree(self, thisNodePointer, newTree, nodeChildCount, extendingEndNode, tolerance, timeEarliest, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff, bestTreeNodeAboveCutoff)
+      treeAccepted = augmentAcceptTree(self, thisNodePointer, newTree, nodeChildCount, extendingEndNode, tolerance, timeEarliest, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff, bestTreeNodeAboveCutoff)
       !check whether currently saved best tree can be accepted now.
       if (((bestTreeWorstFit <= tolerance .and. .not. bestTreeNodeAboveCutoff) .or. bestTreeOverride ).and.(associated(bestTree%baseNode)).and. (.not.(treeAccepted == 1)) ) then
         bestTreeWorstFit = 3.0
@@ -470,15 +468,15 @@ contains
         end if
         newTree%baseNode => bestTree%baseNode
         bestTree%baseNode => null()
-        if ( walkTestAcceptTree(self, thisNodePointer, newTree, nodeChildCount, extendingEndnode, tolerance, timeEarliest, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff, bestTreeNodeAboveCutoff) == 1) then
-          walkTestBuildTreeFrom = 1
+        if ( augmentAcceptTree(self, thisNodePointer, newTree, nodeChildCount, extendingEndnode, tolerance, timeEarliest, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff, bestTreeNodeAboveCutoff) == 1) then
+          augmentBuildTreeFrom = 1
         else 
-          walkTestBuildTreeFrom = 0
+          augmentBuildTreeFrom = 0
         end if
 
 
       else if (treeAccepted  == 1 ) then
-        walkTestBuildTreeFrom = 1
+        augmentBuildTreeFrom = 1
         if (associated(bestTree%baseNode)) then
           call bestTree%destroyBranch(bestTree%baseNode)
         end if
@@ -487,19 +485,19 @@ contains
         if (associated(newTree%baseNode)) then
          call newTree%destroyBranch(newTree%baseNode)
         end if
-        walkTestBuildTreeFrom = treeAccepted
+        augmentBuildTreeFrom = treeAccepted
       end if
     else
-      walkTestBuildTreeFrom = 1
+      augmentBuildTreeFrom = 1
 
     end if
     !return 1 on successful tree building attempt. 0 on unsuccessful attempt.
-  end function walkTestBuildTreeFrom
+  end function augmentBuildTreeFrom
 
-  subroutine walkTestScaleChildren(self, thisNode, multiplier, constant, scalingFactor)
+  subroutine augmentScaleChildren(self, thisNode, multiplier, constant, scalingFactor)
     use Galacticus_Nodes
     implicit none
-    class (mergerTreeOperatorWalkTest), intent(inout) :: self
+    class (mergerTreeOperatorAugment), intent(inout) :: self
     type (treeNode), pointer :: thisNode, currentChild
     class (nodeComponentBasic), pointer :: currentComponentBasic, childComponentBasic
     double precision, intent(inout) :: multiplier, constant, scalingFactor
@@ -551,12 +549,12 @@ contains
       multiplier = 0.0
     end if 
 
-  end subroutine walkTestScaleChildren
+  end subroutine augmentScaleChildren
 
-  subroutine walkTestUnscaleChildren (self, thisNode, nodeChildCount, endNodes, multiplier, constant, scalingFactor)
+  subroutine augmentUnscaleChildren (self, thisNode, nodeChildCount, endNodes, multiplier, constant, scalingFactor)
     use Galacticus_Nodes
     implicit none
-    class (mergerTreeOperatorWalkTest), intent(inout) :: self
+    class (mergerTreeOperatorAugment), intent(inout) :: self
     type (treeNode), pointer :: thisNode, currentChild, currentNode
     integer, intent (inout) :: nodeChildCount
     class (nodeComponentBasic), pointer :: currentComponentBasic, childComponentBasic
@@ -564,7 +562,7 @@ contains
     double precision, intent(inout) :: multiplier, constant, scalingFactor
     double precision :: parentMass, childMass, parentTime, childTime
     integer :: i
-    !Unscales children using parameters saved from walkTestScaleChildren function
+    !Unscales children using parameters saved from augmentScaleChildren function
     if (scalingFactor /= 1.0 .and. multiplier /= 0.0) then
       currentChild => thisNode%firstChild
       childComponentBasic => currentChild%basic()
@@ -594,13 +592,13 @@ contains
       end do
     end if  
 
-  end subroutine walkTestUnscaleChildren
+  end subroutine augmentUnscaleChildren
 
-  integer function walkTestAcceptTree(self, thisNode, tree, nodeChildCount, extendingEndNode, tolerance, timeEarliest, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff, bestTreeNodeAboveCutoff)
+  integer function augmentAcceptTree(self, thisNode, tree, nodeChildCount, extendingEndNode, tolerance, timeEarliest, bestTree, bestTreeWorstFit, bestTreeOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff, bestTreeNodeAboveCutoff)
     use Galacticus_Nodes
     use Merger_Trees_Builders
     implicit none
-    class  (mergerTreeOperatorWalkTest), intent(inout)         :: self
+    class  (mergerTreeOperatorAugment), intent(inout)         :: self
 
     type (treeNode), pointer :: thisNode, currentNode, previousNode, currentNodeSibling, nonOverlapNode, firstNonOverlap
     class (nodeComponentBasic), pointer :: currentBasicComponent, sortNodeComponentBasic, nonOverlapComponentBasic
@@ -615,7 +613,7 @@ contains
     logical :: bestTreeOverride
     falseWorstFit = 3.0
     newNodeAboveCutoff = .false.
-    massCutoff = self%walkTestResolutionLimit
+    massCutoff = self%augmentResolutionLimit
     resolutionLimit = 2.3589041e10
     firstNonOverlap => null()
     nonOverlapNode => null()
@@ -687,7 +685,7 @@ contains
          previousNode => currentNode%parent
          currentNode => currentNode%walkTree()
          if (.not.extendingEndNode) then
-           call walkTestNonOverlapListAdd(nonOverlapNode, firstNonOverlap)
+           call augmentNonOverlapListAdd(nonOverlapNode, firstNonOverlap)
          end if
          nonOverlapNode => null()
     end do
@@ -698,7 +696,7 @@ contains
       i = 1
       currentNode => thisNode%firstChild
       do while(associated(currentNode))
-        if(.not.walkTestNodeComparison(currentNode, endNodes(i)%node, 2.0d0 - 2.0 * tolerance, currentTreeWorstFit)) then
+        if(.not.augmentNodeComparison(currentNode, endNodes(i)%node, 2.0d0 - 2.0 * tolerance, currentTreeWorstFit)) then
           nodeMassesAgree = .false.
         end if
         i = i + 1
@@ -707,11 +705,11 @@ contains
     end if
 
     !if (newNodeAboveCutoff) then
-    !  newNodeAboveCutoff = walkTestScaleNodesAboveCutoff(self, thisNode, tree, endNodes, nodeChildCount, firstNonOverlap, resolutionLimit)
+    !  newNodeAboveCutoff = augmentScaleNodesAboveCutoff(self, thisNode, tree, endNodes, nodeChildCount, firstNonOverlap, resolutionLimit)
     !end if 
 
     if ((nodeChildCount <= endNodesSorted).and.(newNodeAboveCutoff .eqv. .false. .or. bestTreeOverride).and.nodeMassesAgree) then
-      call walkTestExtendNonOverlapNodes(self, tree, firstNonOverlap,massCutoff, tolerance, timeEarliest, bestTree, bestTreeWorstFit, massCutoffScale)
+      call augmentExtendNonOverlapNodes(self, tree, firstNonOverlap,massCutoff, tolerance, timeEarliest, bestTree, bestTreeWorstFit, massCutoffScale)
       endNodeMass = 0
       i = 1
       do while (i <= nodeChildCount)
@@ -719,7 +717,7 @@ contains
         endNodeMass = endNodeMass + currentBasicComponent%mass()
         i = i + 1
       end do
-      treeScalable = walkTestMultiScale(self, thisNode, tree, endNodes, nodeChildCount, firstNonOverlap, tolerance, timeEarliest, bestTree, bestTreeWorstFit, unresolvedMass, treeMass, massCutoffScale)
+      treeScalable = augmentMultiScale(self, thisNode, tree, endNodes, nodeChildCount, firstNonOverlap, tolerance, timeEarliest, bestTree, bestTreeWorstFit, unresolvedMass, treeMass, massCutoffScale)
     else 
       treeScalable = .false.
     end if
@@ -728,20 +726,20 @@ contains
       treeAccepted = nodeMassesAgree.and.(nodeChildCount<= endNodesSorted)
     end if
 
-    !call walkTestResetUniqueIDs(tree)
-    !call walkTestUnscaleChildren(self, thisNode, nodeChildCount, endNodes, multiplier, constant, scalingFactor)
+    !call augmentResetUniqueIDs(tree)
+    !call augmentUnscaleChildren(self, thisNode, nodeChildCount, endNodes, multiplier, constant, scalingFactor)
     if(treeAccepted) then
       currentBasicComponent => tree%baseNode%basic()
       !write (*,*) 'Building Node ', thisNode%uniqueID(),' at time ', currentBasicComponent%time(), 'to time ', timeEarliest
-      call walkTestResetUniqueIDs(tree)
-      call walkTestUnscaleChildren(self, thisNode, nodeChildCount, endNodes, multiplier, constant, scalingFactor)  
-      call walkTestSimpleInsert(self, thisNode, tree, endNodes, nodeChildCount, firstNonOverlap)
-      !call walkTestSimpleScale(self, thisNode, tree, endNodes, nodeChildCount, firstNonOverlap)
+      call augmentResetUniqueIDs(tree)
+      call augmentUnscaleChildren(self, thisNode, nodeChildCount, endNodes, multiplier, constant, scalingFactor)  
+      call augmentSimpleInsert(self, thisNode, tree, endNodes, nodeChildCount, firstNonOverlap)
+      !call augmentSimpleScale(self, thisNode, tree, endNodes, nodeChildCount, firstNonOverlap)
 
 
     else if ((nodeChildCount <= endNodesSorted) .and. .not.bestTreeOverride) then
       !write (*,*) 'Updating Best Tree'
-      call walkTestNonOverlapReinsert(firstNonOverlap)
+      call augmentNonOverlapReinsert(firstNonOverlap)
       if (currentTreeWorstFit < bestTreeWorstFit) then
         if(associated(bestTree%baseNode)) then
           call bestTree%destroyBranch(bestTree%baseNode)
@@ -761,27 +759,27 @@ contains
         !write (*,*) 'This Tree is Best Fit With Worst-- ', currentTreeWorstFit
       end if
     else 
-      call walkTestNonOverlapReinsert(firstNonOverlap)
+      call augmentNonOverlapReinsert(firstNonOverlap)
       if(associated(tree%baseNode)) then
         call tree%destroyBranch(tree%baseNode)
       end if
     end if
     if (treeAccepted) then    
-      walkTestAcceptTree = 1
+      augmentAcceptTree = 1
       if (currentTreeWorstFit > 0.0 .and. nodeChildCount > 1) then
         open (unit = 55, file = 'toleranceHistogram.py', position = 'append', action = 'write')
         write (55,*) currentTreeWorstFit, ','
         close (55)
       end if
     else if (.not.nodeMassesAgree) then
-      walkTestAcceptTree = -1
+      augmentAcceptTree = -1
     else
-      walkTestAcceptTree = 0
+      augmentAcceptTree = 0
     end if 
 
-  end function walkTestAcceptTree
+  end function augmentAcceptTree
 
-  subroutine walkTestExtendByOverlap(bottomNode, topNode, keepTop, exchangeProperties)
+  subroutine augmentExtendByOverlap(bottomNode, topNode, keepTop, exchangeProperties)
     !This will conjoin two trees by overlapping the topNode of one tree with
     !a chosen bottom node of the other.  If keepTop is true, topNode replaces
     !bottomNode, otherwise, bottomNode replaces topNode.  If exchangeProperties
@@ -843,10 +841,10 @@ contains
     endif
 
     return
-  end subroutine walkTestExtendByOverlap
+  end subroutine augmentExtendByOverlap
 
 
- integer function walkTestChildCount(thisNode)
+ integer function augmentChildCount(thisNode)
     type (treeNode), pointer :: thisNode, currentChild
     integer childCount
 
@@ -859,11 +857,11 @@ contains
       end if
       currentChild => currentChild%sibling
     end do
-    walkTestChildCount = childCount
+    augmentChildCount = childCount
 
-  end function walkTestChildCount
+  end function augmentChildCount
 
- subroutine walkTestSortChildren(thisNode)
+ subroutine augmentSortChildren(thisNode)
     type (treeNode), pointer :: thisNode, currentNode, sortNode, nextNode
     class (nodeComponentBasic), pointer :: currentComponentBasic, sortComponentBasic
     double precision :: largestMass
@@ -897,9 +895,9 @@ contains
          end if
       end do
     end if
-  end subroutine walkTestSortChildren
+  end subroutine augmentSortChildren
 
-  subroutine walkTestNonOverlapListAdd(node, listFirstElement)
+  subroutine augmentNonOverlapListAdd(node, listFirstElement)
 
     implicit none
     type (treeNode), pointer :: node, listFirstElement, currentSibling
@@ -944,9 +942,9 @@ contains
       end if
     end if
     
-  end subroutine walkTestNonOverlapListAdd
+  end subroutine augmentNonOverlapListAdd
 
-  subroutine walkTestNonOverlapReinsert(listFirstElement)
+  subroutine augmentNonOverlapReinsert(listFirstElement)
     implicit none 
     type (treeNode), pointer :: currentNode, listFirstElement
     do while (associated(listFirstElement))
@@ -959,17 +957,17 @@ contains
           currentNode%sibling => null()
         end if
         currentNode%parent%firstChild => currentNode
-        call walkTestSortChildren(currentNode%parent)
+        call augmentSortChildren(currentNode%parent)
       end if
     end do 
 
-  end subroutine walkTestNonOverlapReinsert
+  end subroutine augmentNonOverlapReinsert
 
-  subroutine walkTestExtendNonOverlapNodes(self, tree, firstNonOverlap,massCutoff, tolerance, timeEarliest, bestTree, bestTreeWorstFit, massCutoffScale)
+  subroutine augmentExtendNonOverlapNodes(self, tree, firstNonOverlap,massCutoff, tolerance, timeEarliest, bestTree, bestTreeWorstFit, massCutoffScale)
     use Merger_Trees_Builders
     use Galacticus_Nodes
     implicit none
-    class  (mergerTreeOperatorWalkTest), intent(inout)         :: self
+    class  (mergerTreeOperatorAugment), intent(inout)         :: self
     type (treeNode), pointer :: currentNode, nonOverlapNode, firstNonOverlap
     class (nodeComponentBasic), pointer :: nonOverlapComponentBasic
     type (mergerTree), target :: tree
@@ -991,14 +989,14 @@ contains
       currentNode => currentNode%sibling
       if(nonOverlapComponentBasic%mass() > massCutoff) then
         retryCount = 100
-        do while ((.not.(walkTestBuildTreeFrom(self, nonOverlapNode, .true., tolerance, timeEarliest, bestTree, falseWorstFit, .false., falseMultiplier, falseConstant, falseScalingFactor, massCutoffScale, falseNewNodeAboveCutoff, falseBestTreeNodeAboveCutoff)==1)).and.(retryCount >0))
+        do while ((.not.(augmentBuildTreeFrom(self, nonOverlapNode, .true., tolerance, timeEarliest, bestTree, falseWorstFit, .false., falseMultiplier, falseConstant, falseScalingFactor, massCutoffScale, falseNewNodeAboveCutoff, falseBestTreeNodeAboveCutoff)==1)).and.(retryCount >0))
           retryCount = retryCount - 1
         end do
       end if
     end do
-  end subroutine walkTestExtendNonOverlapNodes
+  end subroutine augmentExtendNonOverlapNodes
 
-  logical function walkTestNodeComparison(newNode, oldNode, tolerance, currentTreeWorstFit)
+  logical function augmentNodeComparison(newNode, oldNode, tolerance, currentTreeWorstFit)
 
     use Numerical_Comparison
 
@@ -1011,17 +1009,17 @@ contains
 
     newComponentBasic => newNode%basic()
     oldComponentBasic => oldNode%basic()
-    walkTestNodeComparison = Values_Agree(newComponentBasic%mass(), oldComponentBasic%mass(), relTol =tolerance)
+    augmentNodeComparison = Values_Agree(newComponentBasic%mass(), oldComponentBasic%mass(), relTol =tolerance)
 
     thisFit = 2.0*ABS(newComponentBasic%mass() - oldComponentBasic%mass())/ABS(newComponentBasic%mass() + oldComponentBasic%mass())
     if ( thisFit > currentTreeWorstFit) then
       currentTreeWorstFit = thisFit
     end if
-  end function walkTestNodeComparison
+  end function augmentNodeComparison
 
-  subroutine walkTestSimpleInsert(self, thisNode, tree, endNodes, nodeChildCount, firstNonOverlap)
+  subroutine augmentSimpleInsert(self, thisNode, tree, endNodes, nodeChildCount, firstNonOverlap)
     implicit none
-    class  (mergerTreeOperatorWalkTest), intent(inout)         :: self
+    class  (mergerTreeOperatorAugment), intent(inout)         :: self
     type (treeNode), pointer :: thisNode, currentNode, previousNode, firstNonOverlap, currentNodeSibling
     type (mergerTree), target :: tree
     integer, intent(inout) :: nodeChildCount
@@ -1030,7 +1028,7 @@ contains
     logical :: scalableTest
 
     i = 0
-    call walkTestNonOverlapReinsert(firstNonOverlap)
+    call augmentNonOverlapReinsert(firstNonOverlap)
 
     if (nodeChildCount > 0) then
       i =1
@@ -1039,7 +1037,7 @@ contains
       do while (associated(currentNode))
         currentNodeSibling => currentNode%sibling
         thisNode%firstChild => currentNode%sibling
-        call walkTestExtendByOverLap(endNodes(i)%node, currentNode,.true., .false.)
+        call augmentExtendByOverLap(endNodes(i)%node, currentNode,.true., .false.)
         currentNode => currentNodeSibling
         i = i + 1
       end do
@@ -1054,11 +1052,11 @@ contains
 
     end if
    
-    call walkTestExtendByOverLap(thisNode, tree%baseNode, .false., .false.)
+    call augmentExtendByOverLap(thisNode, tree%baseNode, .false., .false.)
 
-  end subroutine walkTestSimpleInsert
+  end subroutine augmentSimpleInsert
 
-  integer function walkTestNegativeChildCount(node)
+  integer function augmentNegativeChildCount(node)
     use Galacticus_Nodes
     implicit none
     type (treeNode), pointer :: node, currentChild
@@ -1072,13 +1070,13 @@ contains
       end if
       currentChild => currentChild%sibling
     end do
-    walkTestNegativeChildCount = negativeCount 
+    augmentNegativeChildCount = negativeCount 
 
-   end function walkTestNegativeChildCount
+   end function augmentNegativeChildCount
 
-  subroutine walkTestSimpleScale(self, thisNode, tree, endNodes, nodeChildCount, firstNonOverlap)
+  subroutine augmentSimpleScale(self, thisNode, tree, endNodes, nodeChildCount, firstNonOverlap)
     implicit none
-    class  (mergerTreeOperatorWalkTest), intent(inout)         :: self
+    class  (mergerTreeOperatorAugment), intent(inout)         :: self
     type (treeNode), pointer :: thisNode, currentNode, previousNode, firstNonOverlap, currentNodeSibling, sortNode
     type (mergerTree), target :: tree
     integer, intent(inout) :: nodeChildCount
@@ -1129,7 +1127,7 @@ contains
         currentNode => currentNode%sibling
       end do
     end if
-    call walkTestNonOverlapReinsert(firstNonOverlap)
+    call augmentNonOverlapReinsert(firstNonOverlap)
 
     if (nodeChildCount > 0) then
       i =1
@@ -1138,7 +1136,7 @@ contains
       do while (associated(currentNode))
         currentNodeSibling => currentNode%sibling
         thisNode%firstChild => currentNode%sibling
-        call walkTestExtendByOverLap(endNodes(i)%node, currentNode,.true., .false.)
+        call augmentExtendByOverLap(endNodes(i)%node, currentNode,.true., .false.)
         currentNode => currentNodeSibling
         i = i + 1
       end do
@@ -1153,15 +1151,15 @@ contains
 
     end if
 
-    call walkTestExtendByOverLap(thisNode, tree%baseNode, .false., .false.)
+    call augmentExtendByOverLap(thisNode, tree%baseNode, .false., .false.)
 
-  end subroutine walkTestSimpleScale
+  end subroutine augmentSimpleScale
 
-  subroutine walkTestScaleBranch (self, thisNode, scalingFactor)
+  subroutine augmentScaleBranch (self, thisNode, scalingFactor)
 
     use Galacticus_Nodes
     implicit none
-    class (mergerTreeOperatorWalkTest), intent (inout) :: self
+    class (mergerTreeOperatorAugment), intent (inout) :: self
     type (treeNode), pointer :: thisNode, currentChild
     class (nodeComponentBasic), pointer :: thisComponentBasic
     double precision :: scalingFactor
@@ -1169,14 +1167,14 @@ contains
     call thisComponentBasic%massSet(thisComponentBasic%mass() * scalingFactor)
     currentChild => thisNode%firstChild
     do while (associated(currentChild)) 
-      call walkTestScaleBranch (self, currentChild, scalingFactor)
+      call augmentScaleBranch (self, currentChild, scalingFactor)
       currentChild => currentChild%sibling
     end do
 
-  end subroutine walkTestScaleBranch
+  end subroutine augmentScaleBranch
 
 
-  subroutine walkTestRemoveUnresolvedMass (tree)
+  subroutine augmentRemoveUnresolvedMass (tree)
     use Galacticus_Nodes
     implicit none 
     type (mergerTree), target :: tree
@@ -1204,12 +1202,12 @@ contains
       currentNode => currentNode%walkTree()
     end do
 
-  end subroutine walkTestRemoveUnresolvedMass
+  end subroutine augmentRemoveUnresolvedMass
 
-  subroutine walkTestInsertChildMass(self, thisNode, originalChildNode, newChildNode)
+  subroutine augmentInsertChildMass(self, thisNode, originalChildNode, newChildNode)
     use Galacticus_Nodes
     implicit none
-    class (mergerTreeOperatorWalkTest), intent(inout) :: self
+    class (mergerTreeOperatorAugment), intent(inout) :: self
     type (treeNode), pointer :: thisNode, originalChildNode, newChildNode, scaleNode
     class (nodeComponentBasic), pointer :: currentComponentBasic, childComponentBasic
     double precision :: multiplier, constant, scalingFactor
@@ -1232,12 +1230,12 @@ contains
         scaleNode => scaleNode%parent
     end do
 
-  end subroutine walkTestInsertChildMass
+  end subroutine augmentInsertChildMass
 
-  logical function walkTestScaleNodesAboveCutoff(self, thisNode, tree, endNodes, nodeChildCount, firstNonOverlap, resolutionLimit)
+  logical function augmentScaleNodesAboveCutoff(self, thisNode, tree, endNodes, nodeChildCount, firstNonOverlap, resolutionLimit)
     use Galacticus_Nodes
     implicit none
-    class (mergerTreeOperatorWalkTest), intent (inout) :: self
+    class (mergerTreeOperatorAugment), intent (inout) :: self
     type (treeNode), pointer :: thisNode, firstNonOverlap, currentNonOverlap, currentChild, currentEndNode, scaleNode
     type (mergerTree), target :: tree
     integer, intent(inout) :: nodeChildCount
@@ -1324,17 +1322,17 @@ contains
       nodesScalable = .false.
     end if
      
-    !call walkTestResetUniqueIDs(tree)
-    walkTestScaleNodesAboveCutoff = nodesScalable
-  end function walkTestScaleNodesAboveCutoff
+    !call augmentResetUniqueIDs(tree)
+    augmentScaleNodesAboveCutoff = nodesScalable
+  end function augmentScaleNodesAboveCutoff
 
 
-  logical function walkTestMultiScale(self, thisNode, tree, endNodes, nodeChildCount, firstNonOverlap, tolerance, timeEarliest, bestTree, bestTreeWorstFit, unresolvedMass,  treeMass, massCutoffScale)
+  logical function augmentMultiScale(self, thisNode, tree, endNodes, nodeChildCount, firstNonOverlap, tolerance, timeEarliest, bestTree, bestTreeWorstFit, unresolvedMass,  treeMass, massCutoffScale)
 
     use Galacticus_Nodes
     use Merger_Trees_Builders
     implicit none
-    class  (mergerTreeOperatorWalkTest), intent(inout)         :: self
+    class  (mergerTreeOperatorAugment), intent(inout)         :: self
     type (treeNode), pointer :: thisNode, currentNode, previousNode, firstNonOverlap, currentNodeSibling, currentChildNode,sortNode, currentGrandchild, scaleNode
     type (mergerTree), target :: tree
     type (mergerTree), intent (inout), target :: bestTree
@@ -1347,7 +1345,7 @@ contains
     double precision :: massExcess, childNodeMass, currentMass, endNodeMass, falseWorstFit, massDifferenceScaleFactor
   
     falseWorstFit = 3.0
-    call walkTestNonOverlapReinsert(firstNonOverlap)
+    call augmentNonOverlapReinsert(firstNonOverlap)
     if (nodeChildCount > 0) then
       currentNode => tree%baseNode
       currentComponentBasic => currentNode%basic()
@@ -1375,7 +1373,7 @@ contains
         do while (associated(currentChildNode))
           currentNode => endNodes(i)%node
           currentComponentBasic => currentNode%basic()
-          call walkTestInsertChildMass(self, tree%baseNode, currentChildNode, currentNode)
+          call augmentInsertChildMass(self, tree%baseNode, currentChildNode, currentNode)
           currentChildNode => currentChildNode%sibling
         end do
         if (tree%baseNode%uniqueID() > 0) then
@@ -1385,6 +1383,6 @@ contains
       end if
     end if
     treescaled = .true.
-    walkTestMultiScale = treeScaled
-    call walkTestResetUniqueIDs(tree)
-  end function walkTestMultiScale
+    augmentMultiScale = treeScaled
+    call augmentResetUniqueIDs(tree)
+  end function augmentMultiScale
