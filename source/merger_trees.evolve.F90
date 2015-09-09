@@ -498,7 +498,7 @@ contains
              timeEarliest=huge(1.0d0)
              do while (associated(satelliteNode))
                 satelliteSatelliteComponent => satelliteNode%satellite()
-                if (satelliteNode%isSatellite().and.satelliteNode%parent%isPrimaryProgenitorOf(thisNode%parent)) &
+                if (satelliteNode%isSatellite().and.satelliteNode%parent%isProgenitorOf(thisNode%parent)) &
                      & timeEarliest=min(timeEarliest,satelliteSatelliteComponent%timeOfMerging())
                 satelliteNode => satelliteNode%siblingMergee
              end do
