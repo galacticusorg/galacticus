@@ -49,7 +49,7 @@
   end interface mergerTreeOperatorAugment
 
   !# <enumeration>
-  !#  <name>walkTask</name>
+  !#  <name>treeStatistic</name>
   !#  <description>Enumeration of tasks to be performed during a tree walk.</description>
   !#  <entry label="nodeCount"   />
   !#  <entry label="endNodeCount"/>
@@ -182,7 +182,7 @@ contains
     treeCurrent => tree
     do while (associated(treeCurrent))
        ! Allocate array of original anchor nodes from which new high-resolution branches will be built.
-       nodeCount=augmentSilentWalk(treeCurrent,walkTaskNodeCount)
+       nodeCount=augmentTreeStatistics(treeCurrent,treeStatisticNodeCount)
        if (Galacticus_Verbosity_Level() >= verbosityWorking) then
           message="Number of nodes in tree: "
           message=message//nodeCount
@@ -371,7 +371,7 @@ contains
       call pruneByTime%operate(newTree)
       !Set and build tree from the base node of the new tree.
       nodePointer =>node
-      endNodeCount = augmentSilentWalk(newTree,walkTaskEndNodeCount)
+      endNodeCount = augmentTreeStatistics(newTree,treeStatisticEndNodeCount)
       call augmentSortChildren(nodePointer)
       nodeChildCount = augmentChildCount(nodePointer)
       !check whether the newly built tree is accepted.
@@ -1303,7 +1303,7 @@ contains
     call augmentResetUniqueIDs(tree)
   end function augmentMultiScale
 
-  integer function augmentSilentWalk(tree,desiredOutput)
+  integer function augmentTreeStatistics(tree,desiredOutput)
     !% Walks through tree and quietly collects information specified by {\normalfont \ttfamily desiredOutput} input enumeration and
     !% returns that information.
     use Galacticus_Nodes
@@ -1324,15 +1324,15 @@ contains
     end do
     ! Return the requested quantity.
     select case (desiredOutput)
-    case (walkTaskNodeCount)
-       augmentSilentWalk=nodeCount
-    case (walkTaskEndNodeCount)
-       augmentSilentWalk=endNodeCount
+    case (treeStatisticNodeCount   )
+       augmentTreeStatistics=nodeCount
+    case (treeStatisticEndNodeCount)
+       augmentTreeStatistics=endNodeCount
     case default
-       call Galacticus_Error_Report('augmentSilentWalk','unknown task requested')
+       call Galacticus_Error_Report('augmentTreeStatistics','unknown task requested')
     end select
     return
-  end function augmentSilentWalk
+  end function augmentTreeStatistics
 
   subroutine augmentResetUniqueIDs(tree)
     !% Walk through a given {\normalfont \ttfamily tree} and reset all negative unique IDs back to positive.
