@@ -249,7 +249,7 @@ contains
                   &                                    massCutoffScale        , &
                   &                                    newNodeAboveCutoff     , &
                   &                                    treeBestNodeAboveCutoff  &
-                  &                                   )
+                  &                                   )             
              ! Check for exhaustion of retry attempts.
              if (retryCount == retryMaximum) then
                 ! Rescale the tolerance to allow less accurate tree matches to be accepted in future.
@@ -298,134 +298,7 @@ contains
     return
   end subroutine augmentOperate
   
-  integer function augmentNoisyWalk(tree,desiredOutput)
-    !Walks through tree and prints various types of output.  Will return information about tree based on desiredOutput input string.
-    use Galacticus_Nodes
-    use Merger_Trees_Pruning_Utilities
-    use Input_Parameters
-    implicit none
-    type   (mergerTree        ), intent(in   ), target :: tree
-    type   (treeNode          ), pointer               :: nextNode              , nodePrevious     , &
-         &                                                node              , mergeeNode       , &
-         &                                                newNode
-    class  (nodeComponentBasic), pointer               :: basic    , newBasicComponent, &
-         &                                                previousBasicComponent, childBasic, siblingBasic, parentBasic, currentBasic
-    type   (mergerTree        ), pointer               :: treeCurrent
-    integer :: nodeCount, endNodeCount
-    character (len =*) :: desiredOutput
-    double precision :: endMass
-    nodeCount = 0
-    endNodeCount = 0
-    endMass = 0
-    treeCurrent => tree
-    node           => treeCurrent%baseNode
-    basic => node%basic()
-    do while (associated(node))
-      basic => node%basic()
-      nodeCount = nodeCount + 1
-      if(.not.associated(node%firstChild))  then
-        endNodeCount = endNodeCount + 1
-        endMass = endMass + basic%mass()
-      end if
-      write (*,*) 'Node ID --', node%uniqueID()
-      !write (*,*) 'Visiting Node with Mass =', basic%mass(), 'At time =', basic%time()
-      if(associated(node%firstChild)) then
-        childBasic => node%firstChild%basic()
-        !write (*,*) 'First Child of Mass = ', childBasic%mass(), ' At time = ', childBasic%time()
-      end if
-      !if(associated(node%sibling)) then
-      !siblingBasic => node%sibling%basic()
-      !write (*,*) 'Sibling of Mass = ', siblingBasic%mass(), ' At time = ', siblingBasic%mass()
-      !endif
-      node => node%walkTree()
-    end do
-    basic => tree%baseNode%basic()
-    if(endMass > basic%mass()) then
-      write(*,*) 'End Mass larger than parent mass'
-      !write (*,*) 'End Mass -- ', endMass, ' OriginalMass -- ',basic%mass() 
-    end if
-    if(desiredOutput == 'nodeCount') then
-      augmentNoisyWalk = nodeCount
-    else if(desiredOutput =='endNodeCount') then
-      augmentNoisyWalk = endNodeCount
-    else
-      augmentNoisyWalk = 0
-    end if
-  end function augmentNoisyWalk
-
-  integer function augmentSilentWalk(tree,desiredOutput)
-    !% Walks through tree and quietly collects information specified by {\normalfont \ttfamily desiredOutput} input enumeration and
-    !% returns that information.
-    use Galacticus_Nodes
-    use Galacticus_Error
-    use Merger_Trees_Pruning_Utilities
-    implicit none
-    type   (mergerTree        ), intent(in   ), target :: tree
-    integer                    , intent(in   )         :: desiredOutput
-    type   (treeNode          ), pointer               :: nextNode              , nodePrevious     , &
-         &                                                node              , mergeeNode       , &
-         &                                                newNode
-    class  (nodeComponentBasic), pointer               :: basic    , newBasicComponent, &
-         &                                                previousBasicComponent
-    type   (mergerTree        ), pointer               :: treeCurrent
-    integer :: nodeCount, endNodeCount
-    double precision :: endNodeMass
-
-    nodeCount = 0
-    endNodeCount = 0
-    endNodeMass = 0
-    treeCurrent => tree
-    node           => treeCurrent%baseNode
-    basic => node%basic()
-    do while (associated(node))
-      basic => node%basic()
-      nodeCount = nodeCount + 1
-      if(.not.associated(node%firstChild))  then
-        endNodeCount = endNodeCount + 1
-        endNodeMass = endNodeMass + basic%mass()
-      end if
-      nodePrevious => node%parent
-      node => node%walkTree()
-    end do
-    ! Return the requested quantity.
-    select case (desiredOutput)
-    case (walkTaskNodeCount)
-       augmentSilentWalk=nodeCount
-    case (walkTaskEndNodeCount)
-       augmentSilentWalk=endNodeCount
-    case default
-       call Galacticus_Error_Report('augmentSilentWalk','unknown task requested')
-    end select
-    return
-  end function augmentSilentWalk
-
-  subroutine augmentResetUniqueIDs(tree)
-    !Walks through tree and returns all negative IDs back to being positive.
-    use Galacticus_Nodes
-    use Merger_Trees_Pruning_Utilities
-    use Input_Parameters
-    implicit none
-    type   (mergerTree        ), intent(in   ), target :: tree
-    type   (treeNode          ), pointer               :: nextNode              , nodePrevious     , &
-         &                                                node              , mergeeNode       , &
-         &                                                newNode
-    class  (nodeComponentBasic), pointer               :: basic    , newBasicComponent, &
-         &                                                previousBasicComponent, childBasic, siblingBasic, parentBasic, currentBasic
-    type   (mergerTree        ), pointer               :: treeCurrent
-    treeCurrent => tree
-    node           => treeCurrent%baseNode
-    basic => node%basic()
-    do while (associated(node)) 
-      if (node%uniqueID() < 0) then
-        call node%uniqueIDSet(-node%uniqueID())
-      end if
-      node => node%walkTree()
-    end do
-
-  end subroutine augmentResetUniqueIDs
-
-
-  integer function augmentBuildTreeFromNode(self, node, extendingEndNode, tolerance,timeEarliestIn, treeBest, treeBestWorstFit, treeBestOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff, treeBestNodeAboveCutoff)
+  recursive integer function augmentBuildTreeFromNode(self, node, extendingEndNode, tolerance,timeEarliestIn, treeBest, treeBestWorstFit, treeBestOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff, treeBestNodeAboveCutoff)
 
     use Galacticus_Nodes
     use Merger_Trees_Builders
@@ -451,42 +324,39 @@ contains
     logical, intent (inout) :: treeBestNodeAboveCutoff
     logical :: treeBestOverride
 
-    basic =>node%basic()
-    !Find the next time for timeEarliest.
-    if(extendingEndNode) then
-      timeEarliest=timeEarliestIn
-      !end nodes will be extended to the default min time.
-    else 
-      if(associated(node%firstChild)) then
-        childBasic => node%firstChild%basic()
-        timeEarliest = childBasic%time()
-        !If there are children, the next time is set to the time of the children.
-      else
-        if (size(self%timeSnapshots) > 1) then
-          i = 1
-          timeIndex = -1
-          !find the next smallest time in the time snapshots and use that as the timeEarliest.
-          do while (i <= size(self%timeSnapshots))
-            if((basic%time() <= self%timeSnapshots(i)).or.(basic%time() <= self%timeSnapshots(i)*(1.0 + 1.0d-5)).or.(basic%time() <= self%timeSnapshots(i)*(1.0-1.0d-5 ))) then
-              timeIndex = i - 1
-              exit
-            else 
-              i = i + 1
-            end if
-          end do
-          if (timeIndex == -1) then 
-            timeIndex = size(self%timeSnapshots)
-          end if
-          if (timeIndex == 0) then
-            timeEarliest = timeEarliestIn
+    ! Find the earliest time to which the tree should be built.
+    basic => node%basic()
+    if (extendingEndNode) then
+       ! An end-node is being extended - we can build the tree all the way back to the earliest time.
+       timeEarliest =  timeEarliestIn
+    else if (associated(node%firstChild)) then
+       ! The node has children - set the limit time to the time at which the children exist.
+       childBasic   => node      %firstChild%basic()
+       timeEarliest =  childBasic%           time ()
+    else if (size(self%timeSnapshots) == 1) then
+       ! Only one snapshot time is given, use the earliest time.
+       timeEarliest =  timeEarliestIn
+    else
+       ! Find the next earliest snapshot time.
+       i = 1
+       timeIndex = -1
+       !find the next smallest time in the time snapshots and use that as the timeEarliest.
+       do while (i <= size(self%timeSnapshots))
+          if((basic%time() <= self%timeSnapshots(i)).or.(basic%time() <= self%timeSnapshots(i)*(1.0 + 1.0d-5)).or.(basic%time() <= self%timeSnapshots(i)*(1.0-1.0d-5 ))) then
+             timeIndex = i - 1
+             exit
           else 
-            timeEarliest = self%timeSnapshots(timeIndex)
+             i = i + 1
           end if
-        else 
-          !If the size of the snapshot list is reported to be one, revert to child time / default min time determination of earliest time.
+       end do
+       if (timeIndex == -1) then 
+          timeIndex = size(self%timeSnapshots)
+       end if
+       if (timeIndex == 0) then
           timeEarliest = timeEarliestIn
-        end if
-      end if
+       else 
+          timeEarliest = self%timeSnapshots(timeIndex)
+       end if
     endif
     massCutoff = self%massResolution
     !Build trees from the nodes above the cutoff. 
@@ -507,7 +377,7 @@ contains
       !check whether the newly built tree is accepted.
       treeAccepted = augmentAcceptTree(self, nodePointer, newTree, nodeChildCount, extendingEndNode, tolerance, timeEarliest, treeBest, treeBestWorstFit, treeBestOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff, treeBestNodeAboveCutoff)
       !check whether currently saved best tree can be accepted now.
-      if (((treeBestWorstFit <= tolerance .and. .not. treeBestNodeAboveCutoff) .or. treeBestOverride ).and.(associated(treeBest%baseNode)).and. (.not.(treeAccepted == 1)) ) then
+      if (((treeBestWorstFit <= tolerance .and. .not. treeBestNodeAboveCutoff) .or. treeBestOverride ).and.(associated(treeBest%baseNode)).and. (.not.(treeAccepted == treeBuildSuccess)) ) then
         treeBestWorstFit = 3.0
         if(associated(newTree%baseNode)) then
           call newTree%destroyBranch(newTree%baseNode)
@@ -521,16 +391,16 @@ contains
         end if
 
 
-      else if (treeAccepted  == 1 ) then
+      else if (treeAccepted  == treeBuildSuccess ) then
         augmentBuildTreeFromNode = treeBuildSuccess
         if (associated(treeBest%baseNode)) then
           call treeBest%destroyBranch(treeBest%baseNode)
         end if
         treeBestWorstFit = 3.0
       else
-        if (associated(newTree%baseNode)) then
-         call newTree%destroyBranch(newTree%baseNode)
-        end if
+         if (associated(newTree%baseNode)) then
+            call newTree%destroyBranch(newTree%baseNode)
+         end if
         augmentBuildTreeFromNode = treeAccepted
       end if
     else
@@ -640,7 +510,7 @@ contains
 
   end subroutine augmentUnscaleChildren
 
-  integer function augmentAcceptTree(self, node, tree, nodeChildCount, extendingEndNode, tolerance, timeEarliest, treeBest, treeBestWorstFit, treeBestOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff, treeBestNodeAboveCutoff)
+  recursive integer function augmentAcceptTree(self, node, tree, nodeChildCount, extendingEndNode, tolerance, timeEarliest, treeBest, treeBestWorstFit, treeBestOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff, treeBestNodeAboveCutoff)
     use Galacticus_Nodes
     use Merger_Trees_Builders
     implicit none
@@ -1432,3 +1302,50 @@ contains
     augmentMultiScale = treeScaled
     call augmentResetUniqueIDs(tree)
   end function augmentMultiScale
+
+  integer function augmentSilentWalk(tree,desiredOutput)
+    !% Walks through tree and quietly collects information specified by {\normalfont \ttfamily desiredOutput} input enumeration and
+    !% returns that information.
+    use Galacticus_Nodes
+    use Galacticus_Error
+    implicit none
+    type   (mergerTree), intent(in   ), target  :: tree
+    integer            , intent(in   )          :: desiredOutput
+    type   (treeNode  )               , pointer :: node
+    integer                                     :: nodeCount    , endNodeCount
+    
+    nodeCount    =  0
+    endNodeCount =  0
+    node         => tree%baseNode
+    do while (associated(node))
+       nodeCount                                         =   nodeCount+1
+       if (.not.associated(node%firstChild)) endNodeCount=endNodeCount+1
+       node => node%walkTree()
+    end do
+    ! Return the requested quantity.
+    select case (desiredOutput)
+    case (walkTaskNodeCount)
+       augmentSilentWalk=nodeCount
+    case (walkTaskEndNodeCount)
+       augmentSilentWalk=endNodeCount
+    case default
+       call Galacticus_Error_Report('augmentSilentWalk','unknown task requested')
+    end select
+    return
+  end function augmentSilentWalk
+
+  subroutine augmentResetUniqueIDs(tree)
+    !% Walk through a given {\normalfont \ttfamily tree} and reset all negative unique IDs back to positive.
+    use Galacticus_Nodes
+    implicit none
+    type(mergerTree), intent(in   ), target  :: tree
+    type(treeNode  )               , pointer :: node
+ 
+    node => tree%baseNode
+    do while (associated(node)) 
+       if (node%uniqueID() < 0) call node%uniqueIDSet(-node%uniqueID())
+       node => node%walkTree()
+    end do
+    return
+  end subroutine augmentResetUniqueIDs
+  
