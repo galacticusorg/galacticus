@@ -81,18 +81,15 @@ contains
     !$omp threadprivate(finder)
     double precision                                     :: virialRadius
 
-    ! Get the virial radius of the satellite.
-    darkMatterHaloScale_ => darkMatterHaloScale()
-    virialRadius=darkMatterHaloScale_%virialRadius(thisNode)
     ! Test whether thisNode is a satellite.
     if (thisNode%isSatellite()) then
-
+       ! Get the virial radius of the satellite.
+       darkMatterHaloScale_ => darkMatterHaloScale              (        )
+       virialRadius         =  darkMatterHaloScale_%virialRadius(thisNode)
        ! Set a pointer to the satellite node.
        satelliteNode => thisNode
-
        ! Get the ram pressure force due to the hot halo.
        ramPressureForce=Hot_Halo_Ram_Pressure_Force(thisNode)
-
        ! Find the radial range within which the pericenter must lie. The pericenter must be smaller than (or equal to) the
        ! current radius of the orbit.
        if      (Hot_Halo_Ram_Pressure_Stripping_Radius_Solver(                               virialRadius) >= 0.0d0) then

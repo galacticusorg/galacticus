@@ -9,6 +9,7 @@ use File::Which;
 require Galacticus::Options;
 require Galacticus::Launch::Hooks;
 require Galacticus::Launch::PostProcess;
+require Galacticus::Options;
 require System::Redirect;
 require List::ExtraUtils;
 
@@ -69,6 +70,8 @@ sub Launch {
     # Launch models on local machine.
     my @jobs         = @{shift()};
     my $launchScript =   shift() ;
+    # Find localized configuration.
+    my $pbsConfig = &Options::Config("pbs");
     # Iterate over jobs.
     my @modelQueue;
     foreach my $job ( @jobs ) {
@@ -104,6 +107,8 @@ sub Launch {
 	    if ( exists($launchScript->{'pbs'}->{'queue'}) );
 	print $pbsFile "#PBS -V\n";
 	print $pbsFile "cd \$PBS_O_WORKDIR\n";
+	print $pbsFile "export ".$_."\n"
+	    foreach ( &ExtraUtils::as_array($pbsConfig->{'environment'}) );
 	if ( exists($launchScript->{'pbs'}->{'environment'}) ) {
 	    foreach my $environment ( @{$launchScript->{'pbs'}->{'environment'}} ) {
 		print $pbsFile "export ".$environment."\n";
@@ -223,6 +228,9 @@ sub SubmitJobs {
     my %pbsJobs;
     # Find the appropriate PBS section.
     my $pbsConfig = &Options::Config("pbs");
+    # Determine sleep times between jobs.
+    my $submitSleepDuration = exists($arguments{'submitSleepDuration'}) ? $arguments{'submitSleepDuration'} :  5;
+    my $waitSleepDuration   = exists($arguments{'waitSleepDuration'  }) ? $arguments{'waitSleepDuration'  } : 60;
     # Determine maximum number allowed in queue at once.
     my $jobMaximum = 10;
     $jobMaximum = $pbsConfig->{'jobMaximum'}
@@ -245,7 +253,15 @@ sub SubmitJobs {
 		print "PBS job ".$jobID." has finished.\n";
 		# Call any "on completion" function.
 		if ( exists($pbsJobs{$jobID}->{'onCompletion'}) ) {
-		    &{$pbsJobs{$jobID}->{'onCompletion'}->{'function'}}(@{$pbsJobs{$jobID}->{'onCompletion'}->{'arguments'}});
+		    my $exitStatus;
+		    open(my $trace,"tracejob -q -n 100 ".$jobID." |");
+		    while ( my $line = <$trace> ) {
+			if ( $line =~ m/Exit_status=(\d+)/ ) {
+			    $exitStatus = $1;
+			}
+		    }
+		    close($trace);
+		    &{$pbsJobs{$jobID}->{'onCompletion'}->{'function'}}(@{$pbsJobs{$jobID}->{'onCompletion'}->{'arguments'}},$jobID,$exitStatus);
 		}
 		# Remove the job ID from the list of active PBS jobs.
 		delete($pbsJobs{$jobID});		
@@ -278,7 +294,6 @@ sub SubmitJobs {
 		print $scriptFile "#PBS -o ".$newJob->{'logFile'}."\n";
 		print $scriptFile "#PBS -V\n";
 		print $scriptFile "cd \$PBS_O_WORKDIR\n";
-		print $scriptFile "export LD_LIBRARY_PATH=/home/abenson/Galacticus/Tools/lib:/home/abenson/Galacticus/Tools/lib64:\$LD_LIBRARY_PATH\n";
 		print $scriptFile "export ".$_."\n"
 		    foreach ( &ExtraUtils::as_array($pbsConfig->{'environment'}) );
 		print $scriptFile "ulimit -t unlimited\n";
@@ -303,10 +318,10 @@ sub SubmitJobs {
 	    # Add the job number to the active job hash.
 	    $pbsJobs{$jobID} = $newJob
 		unless ( $jobID eq "" );
-	    sleep 5;
+	    sleep $submitSleepDuration;
 	} else {
 	    # Wait.
-	    sleep 60;
+	    sleep $waitSleepDuration;
 	}
     }
 }

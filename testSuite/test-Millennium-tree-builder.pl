@@ -6,9 +6,6 @@ use File::Which;
 # Take trees from the Millennium Database and process into both Galacticus and IRATE formats.
 # Andrew Benson (12-October-2012)
 
-# Build the file maker code.
-system("cd ..; make Millennium_Merger_Tree_File_Maker.exe");
-
 # Create a file in Galacticus format.
 system("cd ..; Millennium_Merger_Tree_File_Maker.exe testSuite/data/mergerTrees/millenniumTestTrees.csv testSuite/data/mergerTrees/millenniumTestTreesParticles.csv testSuite/outputs/millenniumTestTreesGLC.hdf5 galacticus 1");
 die("FAILED: failed to make Galacticus-format merger tree file from Millennium database output")
