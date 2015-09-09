@@ -24,7 +24,6 @@
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorAugment
      !% An augmenting merger tree operator class.
      private
-     integer :: augmentTimeCount
      double precision, allocatable, dimension (:) :: augmentTimeSnapshots
      double precision :: augmentResolutionLimit, augmentTimeEarliest
      class(mergerTreeBuilderClass), pointer :: mergerTreeBuilder_
@@ -52,12 +51,11 @@ contains
     type(inputParameters              ), intent(in   ) :: parameters
     double precision, allocatable, dimension(:) :: augmentTimeSnapshots
     double precision :: augmentResolutionLimit, augmentTimeEarliest
-    integer :: augmentTimeCount
     class (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
     class (mergerTreeBuilderClass), pointer :: mergerTreeBuilder_
     integer :: i
-     double precision, parameter :: expansionFactorDefault=0.01d0
-   !# <inputParameterList label="allowedParameterNames" />
+    double precision, parameter :: expansionFactorDefault=0.01d0
+    !# <inputParameterList label="allowedParameterNames" />
 
     !# <objectBuilder class="mergerTreeBuilder" name="mergerTreeBuilder_" source="parameters"/>
     !# <inputParameter>
@@ -68,20 +66,8 @@ contains
     !#   <type>double precision</type>
     !#   <cardinality>0..</cardinality>
     !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>augmentTimeCount</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>100</defaultValue>
-    !#   <description>Number of points in time to use for building merger trees.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
-
     if (parameters%isPresent('augmentSnapshotRedshifts')) then
       allocate(augmentTimeSnapshots(parameters%count('augmentSnapshotRedshifts')))
-      if (augmentTimeCount > 1) then
-        if(size(augmentTimeSnapshots)/= augmentTimeCount) call Galacticus_Error_Report('augmentConstructorParameters', 'mismatch between [augmentTimeCount] and size of [augmentSnapshotRedshifts]')
-      end if
     else
        call Galacticus_Error_Report('augmentConstructorParameters','parameter [augmentTimeSnapshots] is required')
     end if
@@ -97,30 +83,27 @@ contains
     do i =1,size(augmentTimeSnapshots)
       augmentTimeSnapshots(i) = cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(augmentTimeSnapshots(i)))
     end do
-
-        augmentConstructorParameters%augmentTimeEarliest=min(cosmologyFunctions_%cosmicTime(expansionFactorDefault),augmentTimeSnapshots(1))
-    
-    augmentConstructorParameters = augmentConstructorInternal(augmentTimeCount, augmentTimeSnapshots, augmentResolutionLimit, augmentTimeEarliest,mergerTreeBuilder_)
-
+    call Sort_Do(augmentTimeSnapshots)
+    augmentTimeEarliest=min(cosmologyFunctions_%cosmicTime(expansionFactorDefault),augmentTimeSnapshots(1))
+    augmentConstructorParameters=augmentConstructorInternal(augmentTimeSnapshots,augmentResolutionLimit,augmentTimeEarliest,mergerTreeBuilder_)
     return
   end function augmentConstructorParameters
 
 
-  function augmentConstructorInternal(augmentTimeCount, augmentTimeSnapshots,augmentResolutionLimit, augmentTimeEarliest,mergerTreeBuilder_)
+  function augmentConstructorInternal(augmentTimeSnapshots,augmentResolutionLimit, augmentTimeEarliest,mergerTreeBuilder_)
     !% Internal constructor for the {\normalfont \ttfamily augment} merger tree operator class.
     use Memory_Management
     use Cosmology_Functions
     use Sort
     implicit none
     type            (mergerTreeOperatorAugment)                :: augmentConstructorInternal
-    integer, intent (in) :: augmentTimeCount
     double precision                               , intent(in   ) :: augmentResolutionLimit, augmentTimeEarliest
     double precision, intent (in), dimension(:) :: augmentTimeSnapshots
     class(mergerTreeBuilderClass), pointer, intent(in   ) :: mergerTreeBuilder_
     class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_
     double precision, parameter :: expansionFactorDefault=0.01d0
 
-    call Alloc_Array(augmentConstructorInternal%augmentTimeSnapshots, [augmentTimeCount])
+    call Alloc_Array(augmentConstructorInternal%augmentTimeSnapshots, shape(augmentTimeSnapshots))
     augmentConstructorInternal%augmentTimeSnapshots = augmentTimeSnapshots
     call Sort_Do(augmentConstructorInternal%augmentTimeSnapshots)
     augmentConstructorInternal%augmentResolutionLimit = augmentResolutionLimit
@@ -416,7 +399,7 @@ contains
         timeEarliest = childBasic%time()
         !If there are children, the next time is set to the time of the children.
       else
-        if (self%augmentTimeCount>1) then
+        if (size(self%augmentTimeSnapshots) > 1) then
           i = 1
           timeIndex = -1
           !find the next smallest time in the time snapshots and use that as the timeEarliest.
