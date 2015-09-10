@@ -351,7 +351,7 @@ contains
        end if
     endif
     ! Build trees from the nodes above the mass resolution. 
-    if (basic%mass() > self%massResolution .or. extendingEndNode) then
+    if (basic%mass() > self%massResolution) then
        ! Create a new base node, matched to the current node, build a tree from it, and truncate that tree to the desired earliest time.
        pruneByTime      =  mergerTreeOperatorPruneByTime(             timeEarliest       )
        baseNode         => treeNode                     (node%index(),newTree            )
@@ -601,19 +601,19 @@ contains
       treeAccepted = nodeMassesAgree.and.(nodeChildCount<= endNodesSorted)
     end if
 
+    !call augmentResetUniqueIDs(tree)
+    !call augmentUnscaleChildren(self, node, nodeChildCount, endNodes, multiplier, constant, scalingFactor)
     if(treeAccepted) then
       currentBasicComponent => tree%baseNode%basic()
       !write (*,*) 'Building Node ', node%uniqueID(),' at time ', currentBasicComponent%time(), 'to time ', timeEarliest
       call augmentResetUniqueIDs(tree)
-      call augmentUnscaleChildren(self, node, nodeChildCount, endNodes, multiplier, constant, scalingFactor)
-      call augmentResetUniqueIDs(tree)  
+      call augmentUnscaleChildren(self, node, nodeChildCount, endNodes, multiplier, constant, scalingFactor)  
       call augmentSimpleInsert(self, node, tree, endNodes, nodeChildCount, firstNonOverlap)
       !call augmentSimpleScale(self, node, tree, endNodes, nodeChildCount, firstNonOverlap)
 
 
     else if ((nodeChildCount <= endNodesSorted) .and. .not.treeBestOverride) then
       !write (*,*) 'Updating Best Tree'
-      call augmentResetUniqueIDs(tree)
       call augmentNonOverlapReinsert(firstNonOverlap)
       if (treeCurrentWorstFit < treeBestWorstFit) then
         if(associated(treeBest%baseNode)) then
@@ -1416,3 +1416,4 @@ contains
     end if  
 
   end subroutine augmentUnscaleChildren
+
