@@ -186,7 +186,7 @@ contains
           bestTreeWorstFit = 3.0
           bestTree%baseNode => null()
           treeBuilt = 0
-          attemptMax = 10000
+          attemptMax = 1
           massCutoffScale = 1.0
           massCutoffRescale = 50
           massCutoffRetry = massCutoffRescale
@@ -213,7 +213,7 @@ contains
             end if
 
             if (attemptMax == 1 .and. associated(bestTree%baseNode)) then
-              bestTreeOverride = .false. !.true.
+              bestTreeOverride = .true.
               !If out of attempts and no match within tolerance has been found, insert the best tree on next pass through loop.
             end if
 
@@ -716,7 +716,8 @@ contains
       currentBasicComponent => tree%baseNode%basic()
       !write (*,*) 'Building Node ', thisNode%uniqueID(),' at time ', currentBasicComponent%time(), 'to time ', timeEarliest
       call augmentResetUniqueIDs(tree)
-      call augmentUnscaleChildren(self, thisNode, nodeChildCount, endNodes, multiplier, constant, scalingFactor)  
+      !call augmentUnscaleChildren(self, thisNode, nodeChildCount, endNodes, multiplier, constant, scalingFactor)  
+      !call augmentResetUniqueIDs(tree)
       call augmentSimpleInsert(self, thisNode, tree, endNodes, nodeChildCount, firstNonOverlap)
       !call augmentSimpleScale(self, thisNode, tree, endNodes, nodeChildCount, firstNonOverlap)
 
@@ -724,6 +725,9 @@ contains
     else if ((nodeChildCount <= endNodesSorted) .and. .not.bestTreeOverride) then
       !write (*,*) 'Updating Best Tree'
       call augmentNonOverlapReinsert(firstNonOverlap)
+      call augmentResetUniqueIDs(tree)
+      !call augmentUnscaleChildren(self, thisNode, nodeChildCount, endNodes, multiplier, constant, scalingFactor)
+      !call augmentResetUniqueIDs(tree)
       if (currentTreeWorstFit < bestTreeWorstFit) then
         if(associated(bestTree%baseNode)) then
           call bestTree%destroyBranch(bestTree%baseNode)
@@ -742,8 +746,6 @@ contains
         bestTreeNodeAboveCutoff = newNodeAboveCutoff
         !write (*,*) 'This Tree is Best Fit With Worst-- ', currentTreeWorstFit
       end if
-    else 
-      call augmentNonOverlapReinsert(firstNonOverlap)
       if(associated(tree%baseNode)) then
         call tree%destroyBranch(tree%baseNode)
       end if
