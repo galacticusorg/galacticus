@@ -31,7 +31,7 @@ Alternatively, GNU Make can be downloaded and installed from source as described
 \begin{verbatim}
 yum install gcc-gfortran
 \end{verbatim}
-Alternatively, GNU Fortran can be downloaded and installed from source as described online. Note that \glc\ requires v4.9.0 or later of {\normalfont \ttfamily gcc-gfortran}---earlier versions \emph{will not work}\footnote{We cannot predict if significantly later versions of GNU Fortran will successfully compile \protect\glc.}.
+Alternatively, GNU Fortran can be downloaded and installed from source as described online. Note that \glc\ requires v6.0.0 or later of {\normalfont \ttfamily gcc-gfortran}---earlier versions \emph{will not work}\footnote{We cannot predict if significantly later versions of GNU Fortran will successfully compile \protect\glc.}.
 
 \item [g++] \glc\ contains some C++ components. We use \href{http://gcc.gnu.org/projects/cxx0x.html}{GNU C++} to compile \glc. You can use other C++ compilers, but we make no claims as to whether they will produce correctly working code. On Fedora the following (as root) will install GNU C++:
 \begin{verbatim}
@@ -327,7 +327,7 @@ This will create the {\normalfont \ttfamily Galacticus.exe} executable. The buil
 
 The {\normalfont \ttfamily Makefile} contains a few options that you may want to adjust:
 \begin{description}
- \item[{\normalfont \ttfamily FCCOMPILER}] The command to invoke a Fortran 2003 compliant compiler. \glc\ should compile with any such compiler. In practice, we have only tried it using {\normalfont \scshape GFortran} v4.9.0+\footnote{We cannot predict if significantly later versions of GNU Fortran will successfully compile \protect\glc.}. In particular, \glc\ makes use of certain Fortran 2003 features (notably procedure pointers, type-bound procedures and class variables) which older compilers might not handle (and some newer compilers might still have difficulty with);
+ \item[{\normalfont \ttfamily FCCOMPILER}] The command to invoke a Fortran 2003 compliant compiler. \glc\ should compile with any such compiler. In practice, we have only tried it using {\normalfont \scshape GFortran} v6.0.0+\footnote{We cannot predict if significantly later versions of GNU Fortran will successfully compile \protect\glc.}. In particular, \glc\ makes use of certain Fortran 2003 features (notably procedure pointers, type-bound procedures and class variables) which older compilers might not handle (and some newer compilers might still have difficulty with);
  \item[{\normalfont \ttfamily CCOMPILER}] The command to invoke a C compiler.
  \item[{\normalfont \ttfamily CPPCOMPILER}] The command to invoke a C++ compiler.
  \item[{\normalfont \ttfamily PREPROCESSOR}] The command to invoke a preprocessor to handle {\normalfont \ttfamily \#IFDEF} etc. statements. We normally use {\normalfont \ttfamily cpp};
@@ -535,7 +535,7 @@ The following guidelines have been tested on a MacBook Pro, running Mac OS X V10
 
 \subsection{Update GNU compilers}
 
-It is likely that the default compiler is older than GCC v4.9 that is required to properly compile the code without any errors. Use a package manager to download as recent a version as possible of {\normalfont \ttfamily gcc}. For the case of MacPorts, this requires,
+It is likely that the default compiler is older than GCC v6.0.0 that is required to properly compile the code without any errors. Use a package manager to download as recent a version as possible of {\normalfont \ttfamily gcc}. For the case of MacPorts, this requires,
 
 \begin{verbatim}
 $ sudo port -v install gcc48 +gfortran
