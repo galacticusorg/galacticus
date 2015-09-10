@@ -418,7 +418,8 @@ contains
     type            (treeEvent                    )                         , pointer :: thisTreeEvent
     class           (cosmologyFunctionsClass      )                         , pointer :: cosmologyFunctionsDefault
     double precision                                                                  :: expansionFactor              , expansionTimescale     , &
-         &                                                                               hostTimeLimit                , time
+         &                                                                               hostTimeLimit                , time                   , &
+         &                                                                               timeEarliest
     character       (len=9                        )                                   :: timeFormatted
     type            (varying_string               )                                   :: message
 
@@ -491,6 +492,18 @@ contains
        case (.true. )
           ! Host still has a child - do not let the satellite evolve beyond the host.
           hostTimeLimit=max(time,thisBasicComponent%time())
+          ! Check for any merge targets directed at this node.
+          if (thisNode%isSatellite()) then
+             satelliteNode => thisNode%firstMergee
+             timeEarliest=huge(1.0d0)
+             do while (associated(satelliteNode))
+                satelliteSatelliteComponent => satelliteNode%satellite()
+                if (satelliteNode%isSatellite().and.satelliteNode%parent%isProgenitorOf(thisNode%parent)) &
+                     & timeEarliest=min(timeEarliest,satelliteSatelliteComponent%timeOfMerging())
+                satelliteNode => satelliteNode%siblingMergee
+             end do
+             if (timeEarliest < huge(1.0d0)) hostTimeLimit=max(hostTimeLimit,timeEarliest)
+          end if
        case (.false.)
           ! Find current expansion timescale.
           cosmologyFunctionsDefault => cosmologyFunctions()
