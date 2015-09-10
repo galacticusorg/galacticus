@@ -4,6 +4,7 @@ package GasMass;
 use strict;
 use warnings;
 use PDL;
+use PDL::NiceSlice;
 use Data::Dumper;
 require Galacticus::HDF5;
 
@@ -19,7 +20,7 @@ sub Get_Cold_Gas_Mass {
     &HDF5::Get_Datasets_Available($model);
 
     # Decide which datasets to get.
-    my @dataSetsRequired = ( "nodeIndex" );
+    my @dataSetsRequired = ( "mergerTreeWeight" );
     my @gasMassComponents;
     push(@gasMassComponents,"diskMassGas"    )
 	if ( exists($model->{'dataSetsAvailable'}->{'diskMassGas'    }) );
@@ -31,7 +32,7 @@ sub Get_Cold_Gas_Mass {
     &HDF5::Get_Dataset($model,\@dataSetsRequired);
 
     # Sum the gas masses.
-    $model->{'dataSets'}->{$dataSetName} = pdl zeroes(nelem($model->{'dataSets'}->{'nodeIndex'}));
+    $model->{'dataSets'}->{$dataSetName} = pdl zeroes(nelem($model->{'dataSets'}->{'mergerTreeWeight'}));
     foreach my $component ( @gasMassComponents ) {
 	$model->{'dataSets'}->{$dataSetName} += $model->{'dataSets'}->{$component};
     }
