@@ -305,33 +305,30 @@ contains
     return
   end subroutine augmentOperate
   
-  recursive integer function augmentBuildTreeFromNode(self, node, extendingEndNode, tolerance,timeEarliestIn, treeBest, treeBestWorstFit, treeBestOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff, treeBestNodeAboveCutoff)
+  recursive integer function augmentBuildTreeFromNode(self,node,extendingEndNode,tolerance,timeEarliestIn,treeBest,treeBestWorstFit,treeBestOverride,multiplier,constant,scalingFactor,massCutoffScale,newNodeAboveCutoff,treeBestNodeAboveCutoff)
     use, intrinsic :: ISO_C_Binding
-    use Arrays_Search
-    use Galacticus_Nodes
-    use Merger_Trees_Builders
-    use Cosmology_Functions
-
+    use               Arrays_Search
+    use               Galacticus_Nodes
     implicit none
-    class  (mergerTreeOperatorAugment), intent(inout)         :: self
-    type (treeNode), target:: node
-    type (treeNode), pointer :: baseNode
-    class (nodeComponentBasic), pointer :: basic
-    type (mergerTree) :: newTree
-    double precision, intent(in   ) :: timeEarliestIn
-    type (mergerTree), intent (inout) :: treeBest
-    class (nodeComponentBasic), pointer :: baseBasic, childBasic
-    double precision ::  massCutoff, tolerance , timeEarliest
-    double precision, intent (inout) :: treeBestWorstFit, multiplier, constant, scalingFactor
-    logical :: extendingEndNode
-    integer(c_size_t) :: timeIndex
-    integer :: noisyCount, endNodeCount, nodeChildCount, i, treeAccepted
-    type(mergerTreeOperatorPruneByTime) :: pruneByTime
-    class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_
-    double precision, intent (inout) :: massCutoffScale
-    logical, intent (inout) :: newNodeAboveCutoff
-    logical, intent (inout) :: treeBestNodeAboveCutoff
-    logical :: treeBestOverride
+    class           (mergerTreeOperatorAugment    ), intent(inout)         :: self
+    type            (treeNode                     ), intent(inout), target :: node
+    double precision                               , intent(in   )         :: timeEarliestIn    , tolerance
+    double precision                               , intent(inout)         :: treeBestWorstFit  , multiplier             , &
+         &                                                                    constant          , scalingFactor          , &
+         &                                                                    massCutoffScale
+    logical                                        , intent(in   )         :: extendingEndNode
+    logical                                        , intent(inout)         :: newNodeAboveCutoff, treeBestNodeAboveCutoff
+    type            (mergerTree                   ), intent(inout)         :: treeBest
+    type            (treeNode                     ), pointer               :: baseNode
+    class           (nodeComponentBasic           ), pointer               :: basic             , baseBasic              , &
+         &                                                                    childBasic
+    type            (mergerTree                   )                        :: newTree
+    double precision                                                       :: timeEarliest
+    integer         (c_size_t                     )                        :: timeIndex
+    integer                                                                :: endNodeCount      , nodeChildCount         , &
+         &                                                                    i                 , treeAccepted
+    type            (mergerTreeOperatorPruneByTime)                        :: pruneByTime
+    logical                                                                :: treeBestOverride
 
     ! Find the earliest time to which the tree should be built.
     basic => node%basic()
@@ -459,108 +456,6 @@ contains
     end if
     return
   end function augmentBuildTreeFromNode
-
-  subroutine augmentScaleChildren(self, node, multiplier, constant, scalingFactor)
-    use Galacticus_Nodes
-    implicit none
-    class (mergerTreeOperatorAugment), intent(inout) :: self
-    type (treeNode), pointer :: node, currentChild
-    class (nodeComponentBasic), pointer :: currentComponentBasic, childComponentBasic
-    double precision, intent(inout) :: multiplier, constant, scalingFactor
-    double precision :: parentMass, childMass, parentTime, childTime
-
-    !If the sum of the child masses of node are above the mass of node
-    !ScaleChildren will scale down their masses to equal the mass of node
-    !keeping the scaling factor in scalingFactor.
-    !The additional mass will be added in logaritmically, so that the total mass
-    !of the descendants of each node will follow the relation:
-    !Mass = multiplier * log(time) + constant 
-    !At time = time_node, Mass = node's mass.
-    !At time = time_node%firstChild, Mass = sum of node's childrens' mass.
-    currentComponentBasic => node%basic()
-    parentMass = currentComponentBasic%mass()
-    parentTime = currentComponentBasic%time()
-    childMass = 0
-    currentChild => node%firstChild
-    if (associated(currentChild)) then
-      do while (associated(currentChild))
-        childComponentBasic => currentChild%basic()
-        childMass = childMass + childComponentBasic%mass()
-        currentChild => currentChild%sibling
-      end do 
-      currentChild => node%firstChild
-      childComponentBasic => currentChild%basic()
-      childTime = childComponentBasic%time()
-      if (childMass > parentMass) then
-        scalingFactor = parentMass/childMass
-      else
-        scalingFactor = 1.0
-      end if
-      constant = parentMass
-      multiplier = 0.0
-      if (scalingFactor /= 1.0) then
-        currentChild => node%firstChild 
-        childComponentBasic => currentChild%basic()
-        do while (associated(currentChild)) 
-          currentComponentBasic => currentChild%basic()
-          call currentComponentBasic%massSet(scalingFactor*currentComponentBasic%mass())
-          currentChild => currentChild%sibling
-        end do
-        multiplier = (childMass - parentMass)/ (LOG10(childTime) - LOG10(parentTime))
-        constant = parentMass - multiplier* LOG10(parentTime)
-      end if
-    else
-      scalingFactor = 1.0
-      constant = parentMass
-      multiplier = 0.0
-    end if 
-
-  end subroutine augmentScaleChildren
-
-  subroutine augmentUnscaleChildren (self, node, nodeChildCount, endNodes, multiplier, constant, scalingFactor)
-    use Galacticus_Nodes
-    implicit none
-    class (mergerTreeOperatorAugment), intent(inout) :: self
-    type(treeNode), intent(inout) :: node
-    type (treeNode), pointer :: currentChild, currentNode
-    integer, intent (inout) :: nodeChildCount
-    class (nodeComponentBasic), pointer :: currentComponentBasic, childComponentBasic
-    type (treeNodeList), dimension(nodeChildCount), intent(inout) :: endNodes
-    double precision, intent(inout) :: multiplier, constant, scalingFactor
-    double precision :: parentMass, childMass, parentTime, childTime
-    integer :: i
-    
-    !Unscales children using parameters saved from augmentScaleChildren function
-    if (scalingFactor /= 1.0 .and. multiplier /= 0.0) then
-      currentChild => node%firstChild
-      childComponentBasic => currentChild%basic()
-      childMass = 0
-      do while(associated(currentChild)) 
-        childComponentBasic => currentChild%basic()
-        childMass = childMass + childComponentBasic%mass()
-        call childComponentBasic%massSet(childComponentBasic%mass()/scalingFactor)
-        currentChild => currentChild%sibling
-      end do
-      i = 1
-      currentComponentBasic => node%basic()
-      parentMass = currentComponentBasic%mass()
-      currentChild => node%firstChild
-      do while (associated(currentChild))
-        currentNode => endNodes(i)%node
-        do while (associated(currentNode))
-          currentComponentBasic = currentNode%basic()
-          if (currentNode%uniqueID() > 0) then
-            call currentComponentBasic%massSet((currentComponentBasic%mass() / parentMass)*(multiplier*LOG10(currentComponentBasic%time()) + constant))
-            call currentNode%uniqueIDSet(-currentNode%uniqueID())
-          end if 
-          currentNode => currentNode%parent
-        end do
-        i = i + 1
-        currentChild => currentChild%sibling
-      end do
-    end if  
-
-  end subroutine augmentUnscaleChildren
 
   recursive integer function augmentAcceptTree(self, node, tree, nodeChildCount, extendingEndNode, tolerance, timeEarliest, treeBest, treeBestWorstFit, treeBestOverride, multiplier, constant, scalingFactor, massCutoffScale, newNodeAboveCutoff, treeBestNodeAboveCutoff)
     use Galacticus_Nodes
@@ -1419,3 +1314,105 @@ contains
     return
   end subroutine augmentResetUniqueIDs
   
+
+  subroutine augmentScaleChildren(self, node, multiplier, constant, scalingFactor)
+    use Galacticus_Nodes
+    implicit none
+    class (mergerTreeOperatorAugment), intent(inout) :: self
+    type (treeNode), pointer :: node, currentChild
+    class (nodeComponentBasic), pointer :: currentComponentBasic, childComponentBasic
+    double precision, intent(inout) :: multiplier, constant, scalingFactor
+    double precision :: parentMass, childMass, parentTime, childTime
+
+    !If the sum of the child masses of node are above the mass of node
+    !ScaleChildren will scale down their masses to equal the mass of node
+    !keeping the scaling factor in scalingFactor.
+    !The additional mass will be added in logaritmically, so that the total mass
+    !of the descendants of each node will follow the relation:
+    !Mass = multiplier * log(time) + constant 
+    !At time = time_node, Mass = node's mass.
+    !At time = time_node%firstChild, Mass = sum of node's childrens' mass.
+    currentComponentBasic => node%basic()
+    parentMass = currentComponentBasic%mass()
+    parentTime = currentComponentBasic%time()
+    childMass = 0
+    currentChild => node%firstChild
+    if (associated(currentChild)) then
+      do while (associated(currentChild))
+        childComponentBasic => currentChild%basic()
+        childMass = childMass + childComponentBasic%mass()
+        currentChild => currentChild%sibling
+      end do 
+      currentChild => node%firstChild
+      childComponentBasic => currentChild%basic()
+      childTime = childComponentBasic%time()
+      if (childMass > parentMass) then
+        scalingFactor = parentMass/childMass
+      else
+        scalingFactor = 1.0
+      end if
+      constant = parentMass
+      multiplier = 0.0
+      if (scalingFactor /= 1.0) then
+        currentChild => node%firstChild 
+        childComponentBasic => currentChild%basic()
+        do while (associated(currentChild)) 
+          currentComponentBasic => currentChild%basic()
+          call currentComponentBasic%massSet(scalingFactor*currentComponentBasic%mass())
+          currentChild => currentChild%sibling
+        end do
+        multiplier = (childMass - parentMass)/ (LOG10(childTime) - LOG10(parentTime))
+        constant = parentMass - multiplier* LOG10(parentTime)
+      end if
+    else
+      scalingFactor = 1.0
+      constant = parentMass
+      multiplier = 0.0
+    end if 
+
+  end subroutine augmentScaleChildren
+
+  subroutine augmentUnscaleChildren (self, node, nodeChildCount, endNodes, multiplier, constant, scalingFactor)
+    use Galacticus_Nodes
+    implicit none
+    class (mergerTreeOperatorAugment), intent(inout) :: self
+    type(treeNode), intent(inout) :: node
+    type (treeNode), pointer :: currentChild, currentNode
+    integer, intent (inout) :: nodeChildCount
+    class (nodeComponentBasic), pointer :: currentComponentBasic, childComponentBasic
+    type (treeNodeList), dimension(nodeChildCount), intent(inout) :: endNodes
+    double precision, intent(inout) :: multiplier, constant, scalingFactor
+    double precision :: parentMass, childMass, parentTime, childTime
+    integer :: i
+    
+    !Unscales children using parameters saved from augmentScaleChildren function
+    if (scalingFactor /= 1.0 .and. multiplier /= 0.0) then
+      currentChild => node%firstChild
+      childComponentBasic => currentChild%basic()
+      childMass = 0
+      do while(associated(currentChild)) 
+        childComponentBasic => currentChild%basic()
+        childMass = childMass + childComponentBasic%mass()
+        call childComponentBasic%massSet(childComponentBasic%mass()/scalingFactor)
+        currentChild => currentChild%sibling
+      end do
+      i = 1
+      currentComponentBasic => node%basic()
+      parentMass = currentComponentBasic%mass()
+      currentChild => node%firstChild
+      do while (associated(currentChild))
+        currentNode => endNodes(i)%node
+        do while (associated(currentNode))
+          currentComponentBasic = currentNode%basic()
+          if (currentNode%uniqueID() > 0) then
+            call currentComponentBasic%massSet((currentComponentBasic%mass() / parentMass)*(multiplier*LOG10(currentComponentBasic%time()) + constant))
+            call currentNode%uniqueIDSet(-currentNode%uniqueID())
+          end if 
+          currentNode => currentNode%parent
+        end do
+        i = i + 1
+        currentChild => currentChild%sibling
+      end do
+    end if  
+
+  end subroutine augmentUnscaleChildren
