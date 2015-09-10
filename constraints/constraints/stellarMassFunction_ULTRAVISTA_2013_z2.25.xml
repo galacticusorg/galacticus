@@ -1,0 +1,12 @@
+<!-- Defines a constraint to match to the ULTRAVISTA z~2.25 stellar mass functions. -->
+<constraint>
+  <name>ULTRAVISTA z~2.25 stellar mass functions</name>
+  <label>ultravistaStellarMassFunctionZ2.25</label>
+  <outputRedshift>2.00</outputRedshift>
+  <outputRedshift>2.25</outputRedshift>
+  <outputRedshift>2.50</outputRedshift>
+  <haloMassResolution>5.0e9</haloMassResolution>
+  <haloMassMinimum>2.0e10</haloMassMinimum>
+  <haloMassMaximum>2.0e14</haloMassMaximum>
+  <analysis>constraints/scripts/stellarMassFunction_ULTRAVISTA_z2.25.pl</analysis>
+</constraint>

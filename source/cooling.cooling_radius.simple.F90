@@ -27,6 +27,7 @@ module Cooling_Radii_Simple
   use Abundances_Structure
   use Chemical_Abundances_Structure
   use Hot_Halo_Mass_Distributions
+  use Hot_Halo_Temperature_Profiles
   implicit none
   private
   public :: Cooling_Radius_Simple_Initialize, Cooling_Radius_Simple_Reset
@@ -44,21 +45,24 @@ module Cooling_Radii_Simple
   integer         (kind=kind_int8              )          :: lastUniqueID                 =-1
   !$omp threadprivate(lastUniqueID)
   ! Record of whether or not cooling radius has already been computed for this node.
-  logical                                                 :: coolingRadiusComputed        =.false., coolingRadiusGrowthRateComputed=.false.
+  logical                                                   :: coolingRadiusComputed        =.false., coolingRadiusGrowthRateComputed=.false.
   !$omp threadprivate(coolingRadiusComputed,coolingRadiusGrowthRateComputed)
   ! Stored values of cooling radius.
-  double precision                                        :: coolingRadiusGrowthRateStored        , coolingRadiusStored
+  double precision                                          :: coolingRadiusGrowthRateStored        , coolingRadiusStored
   !$omp threadprivate(coolingRadiusStored,coolingRadiusGrowthRateStored)
   ! Abundances and chemical objects used in cooling calculations.
-  type            (abundances                  )          :: gasAbundances
+  type            (abundances                    )          :: gasAbundances
   !$omp threadprivate(gasAbundances)
-  type            (chemicalAbundances          )          :: chemicalDensities                    , chemicalMasses
+  type            (chemicalAbundances            )          :: chemicalDensities                    , chemicalMasses
   !$omp threadprivate(chemicalMasses,chemicalDensities)
   ! Radiation structure used in cooling calculations.
-  type            (radiationStructure          )          :: radiation
+  type            (radiationStructure            )          :: radiation
   !$omp threadprivate(radiation)
-  class           (hotHaloMassDistributionClass), pointer :: defaultHotHaloMassDistribution
+  class           (hotHaloMassDistributionClass  ), pointer :: defaultHotHaloMassDistribution
   !$omp threadprivate(defaultHotHaloMassDistribution)
+  class           (hotHaloTemperatureProfileClass), pointer :: hotHaloTemperatureProfile_
+  !$omp threadprivate(hotHaloTemperatureProfile_)
+
 contains
 
   !# <coolingRadiusMethod>
@@ -128,17 +132,17 @@ contains
 
   double precision function Cooling_Radius_Growth_Rate_Simple(thisNode)
     !% Return the growth rate of the cooling radius in the ``simple'' model in Mpc/Gyr.
-    use Hot_Halo_Temperature_Profile
+    use Hot_Halo_Temperature_Profiles
     use Cooling_Times
     use Cooling_Times_Available
     implicit none
-    type            (treeNode                    ), intent(inout), pointer :: thisNode
-    class           (nodeComponentHotHalo        )               , pointer :: thisHotHaloComponent
-    double precision                                                       :: coolingRadius                   , coolingTimeAvailable      , &
-         &                                                                    coolingTimeAvailableIncreaseRate, coolingTimeDensityLogSlope, &
-         &                                                                    coolingTimeTemperatureLogSlope  , density                   , &
-         &                                                                    densityLogSlope                 , outerRadius               , &
-         &                                                                    temperature                     , temperatureLogSlope
+    type            (treeNode            ), intent(inout), pointer :: thisNode
+    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
+    double precision                                               :: coolingRadius                   , coolingTimeAvailable      , &
+         &                                                            coolingTimeAvailableIncreaseRate, coolingTimeDensityLogSlope, &
+         &                                                            coolingTimeTemperatureLogSlope  , density                   , &
+         &                                                            densityLogSlope                 , outerRadius               , &
+         &                                                            temperature                     , temperatureLogSlope
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Cooling_Radius_Simple_Reset(thisNode)
@@ -161,6 +165,8 @@ contains
        if (coolingRadius >= outerRadius) then
           coolingRadiusGrowthRateStored=0.0d0
        else
+          ! Get the hot halo temperature profile.
+          hotHaloTemperatureProfile_ => hotHaloTemperatureProfile()
           ! Get the hot halo mass distribution.
           defaultHotHaloMassDistribution => hotHaloMassDistribution()
           ! Get the time available for cooling in thisNode.
@@ -168,14 +174,12 @@ contains
           ! Get the rate of increase of the time available for cooling.
           coolingTimeAvailableIncreaseRate=Cooling_Time_Available_Increase_Rate(thisNode)
           ! Logarithmic slope of density profile.
-          densityLogSlope=defaultHotHaloMassDistribution%densityLogSlope(thisNode,coolingRadius)
-
+          densityLogSlope=defaultHotHaloMassDistribution%densityLogSlope    (thisNode,coolingRadius)
           ! Logarithmic slope of density profile.
-          temperatureLogSlope=Hot_Halo_Temperature_Logarithmic_Slope(thisNode,coolingRadius)
-
+          temperatureLogSlope=hotHaloTemperatureProfile_%temperatureLogSlope(thisNode,coolingRadius)
           ! Get cooling density, temperature and metallicity.
-          density    =defaultHotHaloMassDistribution%density(activeNode,coolingRadius)
-          temperature=Hot_Halo_Temperature                  (activeNode,coolingRadius)
+          density    =defaultHotHaloMassDistribution%density    (activeNode,coolingRadius)
+          temperature=hotHaloTemperatureProfile_    %temperature(activeNode,coolingRadius)
 
           ! Logarithmic slope of the cooling time-density relation.
           coolingTimeDensityLogSlope=Cooling_Time_Density_Log_Slope(temperature,density,gasAbundances,chemicalDensities,radiation)
@@ -272,7 +276,9 @@ contains
     ! Get node components.
     thisHotHaloComponent => thisNode%hotHalo()
     ! Get the hot halo mass distribution.
-    defaultHotHaloMassDistribution => hotHaloMassDistribution()
+    defaultHotHaloMassDistribution => hotHaloMassDistribution  ()
+    ! Get the hot halo temperature profile.
+    hotHaloTemperatureProfile_     => hotHaloTemperatureProfile()
 
     ! Get the abundances for this node.
     gasAbundances=thisHotHaloComponent%abundances()
@@ -301,14 +307,13 @@ contains
   double precision function Cooling_Radius_Root(radius)
     !% Root function which evaluates the difference between the cooling time at {\normalfont \ttfamily radius} and the time available for cooling.
     use Cooling_Times
-    use Hot_Halo_Temperature_Profile
     implicit none
     double precision, intent(in   ) :: radius
     double precision                :: coolingTime, density, temperature
 
     ! Compute density, temperature and abundances.
-    density    =defaultHotHaloMassDistribution%density(activeNode,radius)
-    temperature=Hot_Halo_Temperature                  (activeNode,radius)
+    density    =defaultHotHaloMassDistribution%density    (activeNode,radius)
+    temperature=hotHaloTemperatureProfile_    %temperature(activeNode,radius)
     ! Compute the cooling time at the specified radius.
     coolingTime=Cooling_Time(temperature,density,gasAbundances,chemicalDensities,radiation)
     ! Return the difference between cooling time and time available.

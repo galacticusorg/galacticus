@@ -120,7 +120,7 @@ contains
     !% Constructor for the file transfer function class which takes a parameter set as input.
     implicit none
     type(transferFunctionFile)                :: fileConstructorParameters
-    type(inputParameters     ), intent(in   ) :: parameters
+    type(inputParameters     ), intent(inout) :: parameters
     type(varying_string      )                :: fileName
     !# <inputParameterList label="allowedParameterNames" />
 
