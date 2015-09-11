@@ -5,6 +5,7 @@ use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
 use Data::Dumper;
+$PDL::BIGPDL = 1;
 
 # Extract a single merger tree from a merger tree file. Useful for creation of test cases.
 # Andrew Benson (19-September-2012)
