@@ -275,7 +275,7 @@ contains
              end select
              ! Decrement the number of attempts remaining and, if the best tree is to be forcibly used, set no attempts remaining.
              attemptsRemaining                      =attemptsRemaining-1
-             if (treeBestOverride) attemptsRemaining=                 -1
+             if (treeBestOverride .and. .not. (treeBuilt == 1)) attemptsRemaining=                 attemptsRemaining + 1
              ! If all attempts have been used but no match has been foound, insert the best tree on next pass through loop.
              if (attemptsRemaining == 1 .and. associated(treeBest%baseNode))  treeBestOverride=.false. !.true.
              ! If the new tree contains nodes above the mass cut-off, decrement the number of remaining retries.
@@ -339,7 +339,7 @@ contains
        ! The node has children - set the limit time to the time at which the children exist.
        childBasic   => node      %firstChild%basic()
        timeEarliest =  childBasic%           time ()
-    else if (size(self%timeSnapshots) == 1) then
+    else if (size(self%timeSnapshots) == 1 ) then
        ! Only one snapshot time is given, use the earliest time.
        timeEarliest =  timeEarliestIn
     else
@@ -361,6 +361,7 @@ contains
        call baseBasic  %                   massSet        (basic       %mass())
        call self       %mergerTreeBuilder_%timeEarliestSet(timeEarliest       ) 
        call self       %mergerTreeBuilder_%build          (newTree            )
+       pruneByTime = mergerTreeOperatorPruneByTime(timeEarliest)
        call pruneByTime%operate                           (newTree            )
        ! Sort children of our node by mass, and gather statistics on number of children and number of end-nodes in the new tree.
        call augmentSortChildren(node)
@@ -615,7 +616,6 @@ contains
       !write (*,*) 'Updating Best Tree'
       call augmentNonOverlapReinsert(firstNonOverlap)
       call augmentResetUniqueIDs(tree)
-      call augmentUnscaleChildren(self, node, nodeChildCount, endNodes, multiplier, constant, scalingFactor)
       if (treeCurrentWorstFit < treeBestWorstFit) then
         if(associated(treeBest%baseNode)) then
           call treeBest%destroyBranch(treeBest%baseNode)
