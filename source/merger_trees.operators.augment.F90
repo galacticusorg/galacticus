@@ -534,7 +534,7 @@ contains
                    if (basicSort%mass() < basicCurrent%mass()) then
                       ! Current node exceeds the mass of one or more nodes in the current list.
                       nodeCurrentBelowAll=.false.
-                      ! Check for a node being pushde off the end of the list.
+                      ! Check for a node being pushed off the end of the list.
                       if (endNodesSorted > nodeChildCount) then 
                          nodeNonOverlap => endNodes(nodeChildCount)%node
                          ! Test if the node being lost from the end of the list is above the mass resolution.
@@ -551,7 +551,7 @@ contains
                          end if
                       end if
                       ! Shift nodes down in the sorted array to make space for the insertion.
-                      j=endNodesSorted
+                      j=min(endNodesSorted,nodeChildCount)
                       do while (j > i)
                          endNodes(j)%node => endNodes(j-1)%node
                          j                =           j-1
