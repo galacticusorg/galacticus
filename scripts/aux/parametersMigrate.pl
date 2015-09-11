@@ -328,7 +328,11 @@ my @translations =
 	     "prada2011ConcentrationInverseSigma1"                            => "darkMatterProfileConcentrationMethod.prada2011.--inverseSigma1"                 ,
 	     "prada2011ConcentrationAlpha"                                    => "darkMatterProfileConcentrationMethod.prada2011.--alpha"                         ,
 	     "prada2011ConcentrationBeta"                                     => "darkMatterProfileConcentrationMethod.prada2011.--beta"                          ,
-	     "darkMatterProfileConcentrationCDMMethod"                        => "darkMatterProfileConcentrationMethod.wdm.--darkMatterProfileConcentrationMethod"
+	     "darkMatterProfileConcentrationCDMMethod"                        => "darkMatterProfileConcentrationMethod.wdm.--darkMatterProfileConcentrationMethod",
+	     "mergerTreeBuildMassResolutionFixed"                             => "mergerTreeMassResolutionMethod.fixed.--massResolution"                          ,
+	     "mergerTreeBuildMassResolutionScaledMinimum"                     => "mergerTreeMassResolutionMethod.scaled.--massResolutionMinimum"                  ,
+	     "mergerTreeBuildMassResolutionScaledFraction"                    => "mergerTreeMassResolutionMethod.scaled.--massResolutionFractional"
+		 
 	 },
  	 values        =>
          {
