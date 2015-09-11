@@ -613,8 +613,9 @@ contains
 
     else if ((nodeChildCount <= endNodesSorted) .and. .not.treeBestOverride) then
       !write (*,*) 'Updating Best Tree'
-      call augmentResetUniqueIDs(tree)
       call augmentNonOverlapReinsert(firstNonOverlap)
+      call augmentResetUniqueIDs(tree)
+      call augmentUnscaleChildren(self, node, nodeChildCount, endNodes, multiplier, constant, scalingFactor)
       if (treeCurrentWorstFit < treeBestWorstFit) then
         if(associated(treeBest%baseNode)) then
           call treeBest%destroyBranch(treeBest%baseNode)
