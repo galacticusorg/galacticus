@@ -63,7 +63,9 @@
   <treeNodeMethodDisk value="exponential"/>
   <linearGrowthMethod value="simple"/>
   <starFormationDiskVelocityExponent value="-1.5"/>
-  <mergerTreeBuildMassResolutionFixed value="5.0e10"/>
+  <mergerTreeMassResolutionMethod value="fixed">
+    <massResolution value="5.0e10"/>
+  </mergerTreeMassResolutionMethod>
   <mergerTreeBuilderMethod value="cole2000"/>
   <mergerTreeBuildTreesBeginAtTree value="1"/>
   <mergerTreeBuildHaloMassMinimum value="1.0e12"/>
