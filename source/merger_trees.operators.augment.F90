@@ -714,7 +714,52 @@ contains
     return
   end function augmentAcceptTree
 
-  subroutine augmentExtendByOverlap(bottomNode, topNode, keepTop, exchangeProperties)
+  subroutine augmentSimpleInsert(self,node,tree,endNodes,nodeChildCount,nodeNonOverlapFirst)
+    !% Insert a newly constructed tree into the original tree.
+    implicit none
+    class  (mergerTreeOperatorAugment), intent(inout)                            :: self
+    type   (treeNode                 ), intent(inout)                            :: node
+    type   (mergerTree               ), intent(in   ), target                    :: tree
+    integer                           , intent(in   )                            :: nodeChildCount
+    type   (treeNode                 ), intent(inout), pointer                   :: nodeNonOverlapFirst
+    type   (treeNodeList             ), intent(inout), dimension(nodeChildCount) :: endNodes
+    type   (treeNode                 ), pointer                                  :: nodeCurrent        , nodeCurrentSibling
+    integer                                                                      :: i
+
+    ! Reinsert the non-overlap nodes which have been removed from the tree during acceptance testing.
+    call augmentNonOverlapReinsert(nodeNonOverlapFirst)
+    ! Test if we have overlap nodes.
+    if (nodeChildCount > 0) then
+       ! Overlap nodes exist - connect them in to the original tree.
+       i           =  1
+       nodeCurrent => node%firstChild
+       do while (associated(nodeCurrent))
+          ! For each child of the original node, we first shift the firstChild pointer of the parent to the sibling, then overlap
+          ! the corresponding node from the new tree with the child. After the last such overlap, the firstChild pointer of the
+          ! parent is null - ready for overlap with the base node of the new tree (see below).
+          nodeCurrentSibling            => nodeCurrent%sibling
+          node              %firstChild => nodeCurrent%sibling
+          call augmentExtendByOverLap(                            &
+               &                      endNodes(i)%node          , &
+               &                      nodeCurrent               , &
+               &                      keepTop           =.true. , &
+               &                      exchangeProperties=.false.  &
+               &                     )
+          nodeCurrent => nodeCurrentSibling
+          i           =  i                 +1
+       end do
+    end if
+    ! Overlap the base node of the tree with the node in the original tree.
+    call augmentExtendByOverLap(                            &
+         &                      node                      , &
+         &                      tree%baseNode             , &
+         &                      keepTop           =.false., &
+         &                      exchangeProperties=.false.  &
+         &                     )
+    return
+  end subroutine augmentSimpleInsert
+  
+  subroutine augmentExtendByOverlap(bottomNode,topNode,keepTop,exchangeProperties)
     !This will conjoin two trees by overlapping the topNode of one tree with
     !a chosen bottom node of the other.  If keepTop is true, topNode replaces
     !bottomNode, otherwise, bottomNode replaces topNode.  If exchangeProperties
@@ -942,46 +987,6 @@ contains
       treeCurrentWorstFit = thisFit
     end if
   end function augmentNodeComparison
-
-  subroutine augmentSimpleInsert(self, node, tree, endNodes, nodeChildCount, nodeNonOverlapFirst)
-    implicit none
-    class  (mergerTreeOperatorAugment), intent(inout)         :: self
-    type(treeNode), intent(inout) :: node
-    type (treeNode), pointer :: nodeCurrent, nodePrevious, nodeNonOverlapFirst, nodeCurrentSibling
-    type (mergerTree), target :: tree
-    integer, intent(in   ) :: nodeChildCount
-    integer :: i
-    type (treeNodeList), dimension(nodeChildCount), intent(inout) :: endNodes
-    logical :: scalableTest
-
-    i = 0
-    call augmentNonOverlapReinsert(nodeNonOverlapFirst)
-
-    if (nodeChildCount > 0) then
-      i =1
-      nodeCurrent => node%firstChild
-
-      do while (associated(nodeCurrent))
-        nodeCurrentSibling => nodeCurrent%sibling
-        node%firstChild => nodeCurrent%sibling
-        call augmentExtendByOverLap(endNodes(i)%node, nodeCurrent,.true., .false.)
-        nodeCurrent => nodeCurrentSibling
-        i = i + 1
-      end do
-    else
-      nodeCurrent => tree%baseNode
-      do while (associated(nodeCurrent))
-           nodeCurrent%event => null()
-           nodeCurrent%hosttree => node%hostTree
-           nodePrevious => nodeCurrent%parent
-           nodeCurrent => nodeCurrent%walkTree()
-      end do
-
-    end if
-   
-    call augmentExtendByOverLap(node, tree%baseNode, .false., .false.)
-
-  end subroutine augmentSimpleInsert
 
   integer function augmentNegativeChildCount(node)
     use Galacticus_Nodes
