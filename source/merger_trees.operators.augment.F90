@@ -26,6 +26,7 @@
      private
      double precision                        , allocatable, dimension (:) :: timeSnapshots
      double precision                                                     :: massResolution    , timeEarliest
+     logical                                                              :: performChecks
      class           (mergerTreeBuilderClass), pointer                    :: mergerTreeBuilder_
    contains
      ! AJB : need argument data adding here
@@ -55,6 +56,18 @@
      !@     <arguments></arguments>
      !@     <description>Do some scaling.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>sortChildren</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Sort child nodes into descending mass order.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>nonOverlapReinsert</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Reinsert a linked list of non-overlap nodes into their parent tree.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      final     ::                          augmentDestructor
      procedure :: operate               => augmentOperate
@@ -62,6 +75,8 @@
      procedure :: acceptTree            => augmentAcceptTree
      procedure :: extendNonOverlapNodes => augmentExtendNonOverlapNodes
      procedure :: multiScale            => augmentMultiScale
+     procedure :: sortChildren          => augmentSortChildren
+     procedure :: nonOverlapReinsert    => augmentNonOverlapReinsert
   end type mergerTreeOperatorAugment
 
   interface mergerTreeOperatorAugment
@@ -101,6 +116,7 @@ contains
     class           (mergerTreeBuilderClass   ), pointer                     :: mergerTreeBuilder_ 
     integer                                                                  :: i
     double precision                                                         :: massResolution
+    logical                                                                  :: performChecks
     !# <inputParameterList label="allowedParameterNames" />
 
     !# <objectBuilder class="mergerTreeBuilder" name="mergerTreeBuilder_" source="parameters"/>
@@ -110,6 +126,14 @@ contains
     !#   <defaultValue>1.0d10</defaultValue>
     !#   <description>For the {\normalfont \ttfamily augment} operator a description of resolution limit for new trees.</description>
     !#   <type>double precision</type>
+    !#   <cardinality>0..</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>performChecks</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>If true, perform checks of the augmentation process.</description>
+    !#   <type>logical</type>
     !#   <cardinality>0..</cardinality>
     !# </inputParameter>
     if (parameters%isPresent('snapshotRedshifts')) then
@@ -133,11 +157,11 @@ contains
             &                                                            )                 &
             &                                                           )
     end do
-    augmentConstructorParameters=augmentConstructorInternal(timeSnapshots,massResolution,mergerTreeBuilder_)
+    augmentConstructorParameters=augmentConstructorInternal(timeSnapshots,massResolution,performChecks,mergerTreeBuilder_)
     return
   end function augmentConstructorParameters
 
-  function augmentConstructorInternal(timeSnapshots,massResolution,mergerTreeBuilder_)
+  function augmentConstructorInternal(timeSnapshots,massResolution,performChecks,mergerTreeBuilder_)
     !% Internal constructor for the {\normalfont \ttfamily augment} merger tree operator class.
     use Memory_Management
     use Cosmology_Functions
@@ -147,12 +171,14 @@ contains
     double precision                           , intent(in   )               :: massResolution
     double precision                           , intent(in   ), dimension(:) :: timeSnapshots
     class           (mergerTreeBuilderClass   ), intent(in   ), pointer      :: mergerTreeBuilder_
+    logical                                    , intent(in   )               :: performChecks
     class           (cosmologyFunctionsClass  )               , pointer      :: cosmologyFunctions_
     double precision                           , parameter                   :: expansionFactorDefault    =0.01d0
 
     call Alloc_Array(augmentConstructorInternal%timeSnapshots,shape(timeSnapshots))
     augmentConstructorInternal%timeSnapshots      =  timeSnapshots
     augmentConstructorInternal%massResolution     =  massResolution
+    augmentConstructorInternal%performChecks      =  performChecks
     augmentConstructorInternal%mergerTreeBuilder_ => mergerTreeBuilder_
     cosmologyFunctions_                           => cosmologyFunctions()
     call Sort_Do(augmentConstructorInternal%timeSnapshots)
@@ -378,7 +404,7 @@ contains
        call self       %mergerTreeBuilder_%build          (newTree            )
        call pruneByTime%operate                           (newTree            )
        ! Sort children of our node by mass, and gather statistics on number of children and number of end-nodes in the new tree.
-       call augmentSortChildren(node)
+       call self%sortChildren(node)
        nodeChildCount=augmentChildCount    (node                             )
        endNodeCount  =augmentTreeStatistics(newTree,treeStatisticEndNodeCount)
        ! Determine if the newly built tree is an acceptable match.
@@ -479,19 +505,26 @@ contains
     implicit none
     class           (mergerTreeOperatorAugment), intent(inout)                      :: self
     type            (treeNode                 ), intent(inout)            , target  :: node
-    type            (treeNode                 )                           , pointer :: nodeCurrent, nodePrevious, nodeNonOverlap, nodeNonOverlapFirst
-    class           (nodeComponentBasic       )                           , pointer :: basicCurrent, basicSort, basicNonOverlap
+    type            (treeNode                 )                           , pointer :: nodeCurrent                  , nodePrevious                  , &
+         &                                                                             nodeNonOverlap               , nodeNonOverlapFirst
+    class           (nodeComponentBasic       )                           , pointer :: basicCurrent                 , basicSort                     , &
+         &                                                                             basicNonOverlap
     type            (mergerTree               ), intent(inout)            , target  :: tree
     type            (mergerTree               ), intent(inout)            , target  :: treeBest
     logical                                    , intent(inout)                      :: treeNewHasNodeAboveResolution, treeBestHasNodeAboveResolution
-    logical                                    , intent(in   )                      :: treeBestOverride, extendingEndNode
-    double precision                           , intent(inout)                      :: treeBestWorstFit, multiplier, constant, scalingFactor, massCutoffScale
-    double precision                           , intent(in   )                      :: tolerance, timeEarliest
+    logical                                    , intent(in   )                      :: treeBestOverride             , extendingEndNode
+    double precision                           , intent(inout)                      :: treeBestWorstFit             , multiplier                    , &
+         &                                                                             constant                     , scalingFactor                 , &
+         &                                                                             massCutoffScale
+    double precision                           , intent(in   )                      :: tolerance                    , timeEarliest
     integer                                    , intent(inout)                      :: nodeChildCount
     type            (treeNodeList             ), dimension(nodeChildCount)          :: endNodes
-    integer                                                                         :: i, j, endNodesSorted
-    logical                                                                         :: treeAccepted, nodeMassesAgree, nodeCurrentBelowAll, treeScalable
-    double precision                                                                :: unresolvedMass, treeMass, endNodeMass, treeCurrentWorstFit
+    integer                                                                         :: i                            , j                             , &
+         &                                                                             endNodesSorted
+    logical                                                                         :: treeAccepted                 , nodeMassesAgree               , &
+         &                                                                             nodeCurrentBelowAll          , treeScalable
+    double precision                                                                :: unresolvedMass               , treeMass                      , &
+         &                                                                             endNodeMass                  , treeCurrentWorstFit
     type            (varying_string           )                                     :: message
     character       (len=12                   )                                     :: label
 
@@ -530,7 +563,6 @@ contains
                 do while (i < min(endNodesSorted,nodeChildCount))
                    ! Test mass of current node in sorted list.
                    basicSort => endNodes(i)%node%basic()
-                 !  write (0,*) "TEST ",i,endNodesSorted,nodeChildCount,basicSort%mass() < basicCurrent%mass()
                    if (basicSort%mass() < basicCurrent%mass()) then
                       ! Current node exceeds the mass of one or more nodes in the current list.
                       nodeCurrentBelowAll=.false.
@@ -681,7 +713,7 @@ contains
        !call augmentSimpleScale(self, node, tree, endNodes, nodeChildCount, nodeNonOverlapFirst)
     else if (nodeChildCount <= endNodesSorted .and. .not.treeBestOverride) then
        ! Tree is structurally acceptable - decide if we want to keep it as the current best tree.
-       call augmentNonOverlapReinsert(nodeNonOverlapFirst)
+       call self%nonOverlapReinsert(nodeNonOverlapFirst)
        call augmentResetUniqueIDs(tree)
        if (treeCurrentWorstFit < treeBestWorstFit) then
           ! Current tree is better than the current best tree. Replace the best tree with the current tree.
@@ -700,8 +732,8 @@ contains
        end if
     else
        ! Tree is not acceptable or better than the current best tree - destroy it.
-       call augmentNonOverlapReinsert(nodeNonOverlapFirst)
-       if(associated(tree%baseNode)) call tree%destroyBranch(tree%baseNode)
+       call self%nonOverlapReinsert(nodeNonOverlapFirst)
+       if (associated(tree%baseNode)) call tree%destroyBranch(tree%baseNode)
     end if
     ! Return a suitable status code based on tree acceptance criteria.
     if (treeAccepted) then    
@@ -727,7 +759,7 @@ contains
     integer                                                                      :: i
 
     ! Reinsert the non-overlap nodes which have been removed from the tree during acceptance testing.
-    call augmentNonOverlapReinsert(nodeNonOverlapFirst)
+    call self%nonOverlapReinsert(nodeNonOverlapFirst)
     ! Test if we have overlap nodes.
     if (nodeChildCount > 0) then
        ! Overlap nodes exist - connect them in to the original tree.
@@ -759,126 +791,121 @@ contains
     return
   end subroutine augmentSimpleInsert
   
-  subroutine augmentExtendByOverlap(bottomNode,topNode,keepTop,exchangeProperties)
-    !This will conjoin two trees by overlapping the topNode of one tree with
-    !a chosen bottom node of the other.  If keepTop is true, topNode replaces
-    !bottomNode, otherwise, bottomNode replaces topNode.  If exchangeProperties
-    !is true, the mass and time information of the deleted node overwrites the 
-    !mass and time of the retained node.
-
+  subroutine augmentExtendByOverlap(nodeBottom,nodeTop,keepTop,exchangeProperties)
+    !% Conjoin two trees by overlapping the {\normalfont \ttfamily nodeTop} of one tree with the chosen {\normalfont \ttfamily
+    !% nodeBottom} of the other. If {\normalfont \ttfamily keepTop} is {\normalfont \ttfamily true}, {\normalfont \ttfamily
+    !% nodeTop} replaces {\normalfont \ttfamily nodeBottom}, otherwise, {\normalfont \ttfamily nodeBottom} replaces {\normalfont
+    !% \ttfamily nodeTop}. If {\normalfont \ttfamily exchangeProperties} is {\normalfont \ttfamily true}, the mass and time
+    !% information of the deleted node overwrites the mass and time of the retained node.
     use Galacticus_Nodes
-
     implicit none
-    type(treeNode), intent(inout), target :: bottomNode, topNode 
-    type (treeNode), pointer :: currentChild, currentSibling
-    logical ::keepTop, exchangeProperties
-    class (nodeComponentBasic), pointer :: bottomComponentBasic, topComponentBasic
-
-    bottomComponentBasic => bottomNode%basic()
-    topComponentBasic => topNode%basic()
-
+    type   (treeNode          ), intent(inout), target  :: nodeBottom  , nodeTop 
+    logical                    , intent(in   )          :: keepTop     , exchangeProperties
+    type   (treeNode          )               , pointer :: currentChild, currentSibling
+    class  (nodeComponentBasic)               , pointer :: basicBottom , basicTop
+    
+    basicBottom => nodeBottom%basic()
+    basicTop    => nodeTop   %basic()
     if (keepTop) then 
-
-      topNode%parent => bottomNode%parent
-      topNode%sibling => bottomNode%sibling
-      if(associated(bottomNode%parent)) then
-        currentSibling => bottomNode%parent%firstChild
-      else 
-        currentSibling => null()
-      end if
-      do while(associated(currentSibling))
-        if(associated(currentSibling%sibling, bottomNode)) then
-          currentSibling%sibling => topNode
-        end if 
-        currentSibling => currentSibling%sibling
-      end do
-      if(associated(bottomNode%parent)) then
-        if(associated(bottomNode%parent%firstChild, bottomNode)) then
-          bottomNode%parent%firstChild => topNode
-        end if 
-      end if
-
-      if(exchangeProperties) then
-        call topComponentBasic%timeSet(bottomComponentBasic%time())
-        call topComponentBasic%massSet(bottomComponentBasic%mass())
-      end if 
-
-      call bottomNode%destroy()
-
+       nodeTop%parent  => nodeBottom%parent
+       nodeTop%sibling => nodeBottom%sibling
+       if (associated(nodeBottom%parent)) then
+          currentSibling => nodeBottom%parent%firstChild
+       else 
+          currentSibling => null()
+       end if
+       do while (associated(currentSibling))
+          if (associated(currentSibling%sibling,nodeBottom)) currentSibling%sibling => nodeTop
+          currentSibling => currentSibling%sibling
+       end do
+       if (associated(nodeBottom%parent)) then
+          if (associated(nodeBottom%parent%firstChild, nodeBottom)) nodeBottom%parent%firstChild => nodeTop
+       end if
+       if (exchangeProperties) then
+          call basicTop%timeSet(basicBottom%time())
+          call basicTop%massSet(basicBottom%mass())
+       end if
+       call nodeBottom%destroy()
     else 
-      currentChild => topNode%firstChild
-      bottomNode%firstChild => topNode%firstChild
-      do while(associated(currentChild))
-        currentChild%parent => bottomNode
-        currentChild => currentChild%sibling
-      end do
-
-      if(exchangeProperties) then
-        call bottomComponentBasic%timeSet(topComponentBasic%time())
-        call bottomComponentBasic%massSet(topComponentBasic%mass())
-      end if
-      
-      call topNode%destroy()
-    endif
-
+       currentChild          => nodeTop%firstChild
+       nodeBottom%firstChild => nodeTop%firstChild
+       do while (associated(currentChild))
+          currentChild%parent => nodeBottom
+          currentChild        => currentChild%sibling
+       end do
+       if (exchangeProperties) then
+          call basicBottom%timeSet(basicTop%time())
+          call basicBottom%massSet(basicTop%mass())
+       end if
+       call nodeTop%destroy()
+    end if
     return
   end subroutine augmentExtendByOverlap
 
-
   integer function augmentChildCount(node)
+    !% Return a count of the number of child nodes.
     type(treeNode), intent(in   ) :: node
-    type (treeNode), pointer :: currentChild
-    integer childCount
-
-    currentChild => node%firstChild
-    childCount = 0
-
-    do while (associated(currentChild))
-      if(associated(currentChild)) then
-        childCount = childCount + 1
-      end if
-      currentChild => currentChild%sibling
+    type(treeNode), pointer       :: childNode
+    
+    childNode         => node%firstChild
+    augmentChildCount =  0
+    do while (associated(childNode))
+       if (associated(childNode)) augmentChildCount=augmentChildCount+1
+       childNode => childNode%sibling
     end do
-    augmentChildCount = childCount
-
+    return
   end function augmentChildCount
 
- subroutine augmentSortChildren(node)
-   implicit none
-   type (treeNode), intent(inout), target :: node
-   type (treeNode), pointer :: nodeCurrent, sortNode, nextNode
-   class (nodeComponentBasic), pointer :: currentComponentBasic, sortComponentBasic
-   double precision :: largestMass
+  subroutine augmentSortChildren(self,node)
+    !% Sort the children of the given {\normalfont \ttfamily node} such that they are in descending mass order.
+    use Galacticus_Error
+    implicit none
+    class           (mergerTreeOperatorAugment), intent(in   )          :: self
+    type            (treeNode                 ), intent(inout), target  :: node
+    type            (treeNode                 )               , pointer :: nodeCurrent , nodeSort , &
+         &                                                                 nodeNext
+    class           (nodeComponentBasic       )               , pointer :: basicCurrent, basicSort
+    double precision                                                    :: massLargest
 
-    if(associated(node%firstChild)) then    
-      nodeCurrent => node%firstChild
-      currentComponentBasic => nodeCurrent%basic()
-      largestMass = currentComponentBasic%mass()
-      nextNode => nodeCurrent%sibling
-      nodeCurrent%sibling => null()
-      do while (associated(nextNode))
-        sortNode => node%firstChild
-        nodeCurrent => nextNode
-        nextNode => nextNode%sibling
-        currentComponentBasic => nodeCurrent%basic()
-        if (currentComponentBasic%mass() > largestmass) then
-          node%firstChild => nodeCurrent
-          largestmass = currentComponentBasic%mass()
-          nodeCurrent%sibling => sortNode
-        else 
-          do while (associated(sortNode%sibling))
-            sortComponentBasic => sortNode%sibling%basic()
-            if (currentComponentBasic%mass() > sortComponentBasic%mass()) then
-              exit
-            end if
-            sortNode => sortNode%sibling
-          end do
-  
-          nodeCurrent%sibling => sortNode%sibling
-          sortNode%sibling => nodeCurrent
-         end if
-      end do
+    if (.not.associated(node%firstChild)) return
+    nodeCurrent          => node%firstChild
+    basicCurrent         => nodeCurrent%basic  ()
+    nodeNext             => nodeCurrent%sibling
+    nodeCurrent %sibling => null()
+    massLargest          =  basicCurrent%mass  ()
+    do while (associated(nodeNext))
+       nodeSort     => node       %firstChild
+       nodeCurrent  => nodeNext
+       nodeNext     => nodeNext   %sibling
+       basicCurrent => nodeCurrent%basic     ()
+       if (basicCurrent%mass() > massLargest) then
+          node       %firstChild => nodeCurrent
+          nodeCurrent%sibling    => nodeSort
+          massLargest            =  basicCurrent%mass()
+       else 
+          do while (associated(nodeSort%sibling))
+             basicSort => nodeSort%sibling%basic()
+             if (basicCurrent%mass() > basicSort%mass()) exit
+             nodeSort  => nodeSort%sibling
+          end do          
+          nodeCurrent%sibling => nodeSort   %sibling
+          nodeSort   %sibling => nodeCurrent
+       end if
+    end do
+    ! Check results.
+    if (self%performChecks) then
+       nodeCurrent  => node        %firstChild
+       basicCurrent => nodeCurrent %basic     ()
+       massLargest  =  basicCurrent%mass      ()
+       nodeCurrent  => nodeCurrent %sibling
+       do while (associated(nodeCurrent))
+          basicCurrent => nodeCurrent%basic()
+          if (basicCurrent%mass() > massLargest) call Galacticus_Error_Report('augmentSortChildren','failed to sort child nodes')
+          massLargest =  basicCurrent%mass   ()
+          nodeCurrent => nodeCurrent %sibling
+       end do
     end if
+    return
   end subroutine augmentSortChildren
 
   subroutine augmentNonOverlapListAdd(node, listFirstElement)
@@ -914,8 +941,9 @@ contains
     return
   end subroutine augmentNonOverlapListAdd
 
-  subroutine augmentNonOverlapReinsert(listFirstElement)
-    implicit none 
+  subroutine augmentNonOverlapReinsert(self,listFirstElement)
+    implicit none
+    class(mergerTreeOperatorAugment), intent(in   )         :: self
     type (treeNode), pointer :: nodeCurrent, listFirstElement
     do while (associated(listFirstElement))
       nodeCurrent => listFirstElement
@@ -927,7 +955,7 @@ contains
           nodeCurrent%sibling => null()
         end if
         nodeCurrent%parent%firstChild => nodeCurrent
-        call augmentSortChildren(nodeCurrent%parent)
+        call self%sortChildren(nodeCurrent%parent)
       end if
     end do 
 
@@ -1009,14 +1037,14 @@ contains
   subroutine augmentSimpleScale(self, node, tree, endNodes, nodeChildCount, nodeNonOverlapFirst)
     implicit none
     class  (mergerTreeOperatorAugment), intent(inout)         :: self
-    type (treeNode), pointer :: node, nodeCurrent, nodePrevious, nodeNonOverlapFirst, nodeCurrentSibling, sortNode
+    type (treeNode), pointer :: node, nodeCurrent, nodePrevious, nodeNonOverlapFirst, nodeCurrentSibling, nodeSort
     type (mergerTree), target :: tree
     integer, intent(inout) :: nodeChildCount
     integer :: i
     type (treeNodeList), dimension(nodeChildCount), intent(inout) :: endNodes
     logical :: scalableTest
     double precision :: massDifference, nonOverlapMass, scaleFactor
-    class (nodeComponentBasic), pointer :: currentComponentBasic, childComponentBasic
+    class (nodeComponentBasic), pointer :: basicCurrent, childComponentBasic
 
     write (*,*) "Starting Simple Scale"
     massDifference = 0
@@ -1024,21 +1052,21 @@ contains
     if (nodeChildCount > 0) then
       nodeCurrent => node%firstChild
       do while (associated(nodeCurrent))
-        currentComponentBasic => nodeCurrent%basic()
+        basicCurrent => nodeCurrent%basic()
         childComponentBasic => endNodes(i)%node%basic()
-        massDifference = massDifference + currentComponentBasic%mass() - childComponentBasic%mass()
-        sortNode => endNodes(i)%node
-        do while (associated(sortNode))
-          call sortNode%uniqueIDSet(-sortNode%uniqueID())
-          sortNode => sortNode%parent
+        massDifference = massDifference + basicCurrent%mass() - childComponentBasic%mass()
+        nodeSort => endNodes(i)%node
+        do while (associated(nodeSort))
+          call nodeSort%uniqueIDSet(-nodeSort%uniqueID())
+          nodeSort => nodeSort%parent
         end do 
         i = i + 1
         nodeCurrent => nodeCurrent%sibling
       end do
       nodeCurrent => nodeNonOverlapFirst
       do while(associated(nodeCurrent))
-        currentComponentBasic => nodeCurrent%basic()
-        nonOverlapMass = nonOverlapMass + currentComponentBasic%mass()
+        basicCurrent => nodeCurrent%basic()
+        nonOverlapMass = nonOverlapMass + basicCurrent%mass()
         nodeCurrent => nodeCurrent%sibling
       end do
       if (.not. (nonOverlapMass ==0)) then
@@ -1048,18 +1076,18 @@ contains
       end if
       nodeCurrent => nodeNonOverlapFirst
       do while(associated(nodeCurrent))
-        sortNode => nodeCurrent
-        do while(associated(sortNode))
-          currentComponentBasic => sortNode%basic()
-          if(sortNode%uniqueID() > 0) then
-            call currentComponentBasic%massSet(scaleFactor * currentComponentBasic%mass())
+        nodeSort => nodeCurrent
+        do while(associated(nodeSort))
+          basicCurrent => nodeSort%basic()
+          if(nodeSort%uniqueID() > 0) then
+            call basicCurrent%massSet(scaleFactor * basicCurrent%mass())
           end if
-          sortNode => sortNode%parent
+          nodeSort => nodeSort%parent
         end do
         nodeCurrent => nodeCurrent%sibling
       end do
     end if
-    call augmentNonOverlapReinsert(nodeNonOverlapFirst)
+    call self%nonOverlapReinsert(nodeNonOverlapFirst)
 
     if (nodeChildCount > 0) then
       i =1
@@ -1110,14 +1138,14 @@ contains
     use Galacticus_Nodes
     implicit none 
     type (mergerTree), target :: tree
-    class (nodeComponentBasic), pointer :: currentComponentBasic, childComponentBasic
+    class (nodeComponentBasic), pointer :: basicCurrent, childComponentBasic
     type (treeNode), pointer :: nodeCurrent, currentChild, nodePrevious
     double precision :: childMass, unresolvedMass
 
     nodeCurrent => tree%baseNode
-    currentComponentBasic => nodeCurrent%basic()
+    basicCurrent => nodeCurrent%basic()
     do while (associated (nodeCurrent))
-      currentComponentBasic => nodeCurrent%basic()
+      basicCurrent => nodeCurrent%basic()
       childMass = 0
       unresolvedMass = 0
       currentChild => nodeCurrent%firstChild
@@ -1127,8 +1155,8 @@ contains
         currentChild => currentChild%sibling
       end do
       if (childMass > 0) then
-        unresolvedMass = currentComponentBasic%mass() - childMass
-        call currentComponentBasic%massSet(currentComponentBasic%mass() - unresolvedMass)
+        unresolvedMass = basicCurrent%mass() - childMass
+        call basicCurrent%massSet(basicCurrent%mass() - unresolvedMass)
       end if 
       nodePrevious => nodeCurrent%parent
       nodeCurrent => nodeCurrent%walkTree()
@@ -1141,13 +1169,13 @@ contains
     implicit none
     class (mergerTreeOperatorAugment), intent(inout) :: self
     type (treeNode), pointer :: node, originalChildNode, newChildNode, scaleNode
-    class (nodeComponentBasic), pointer :: currentComponentBasic, childComponentBasic
+    class (nodeComponentBasic), pointer :: basicCurrent, childComponentBasic
     double precision :: multiplier, constant, scalingFactor
     double precision :: parentMass, childMass, parentTime, childTime, massDifference
 
-    currentComponentBasic => node%basic()
-    parentMass = currentComponentBasic%mass()
-    parentTime = currentComponentBasic%time()
+    basicCurrent => node%basic()
+    parentMass = basicCurrent%mass()
+    parentTime = basicCurrent%time()
     childComponentBasic => originalChildNode%basic()
     childTime = childComponentBasic%time()
     massDifference = childComponentBasic%mass()
@@ -1157,8 +1185,8 @@ contains
     constant = -multiplier *LOG10(parentTime)
     scaleNode => newChildNode
     do while (associated(scaleNode))
-        currentComponentBasic => scaleNode%basic()
-        call currentComponentBasic%massSet(currentComponentBasic%mass() + multiplier*LOG10(currentComponentBasic%time()) + constant)
+        basicCurrent => scaleNode%basic()
+        call basicCurrent%massSet(basicCurrent%mass() + multiplier*LOG10(basicCurrent%time()) + constant)
         scaleNode => scaleNode%parent
     end do
 
@@ -1172,8 +1200,8 @@ contains
     type (mergerTree), target :: tree
     integer, intent(inout) :: nodeChildCount
     type (treeNodeList), dimension(nodeChildCount), intent(inout) :: endNodes
-    class (nodeComponentBasic), pointer :: currentComponentBasic, childComponentBasic
-    double precision :: massAboveCutoff, overlapMassDifference, largestMassAboveCutoff, scalingFactor, totalEndNodeMass, scalingMass
+    class (nodeComponentBasic), pointer :: basicCurrent, childComponentBasic
+    double precision :: massAboveCutoff, overlapMassDifference, massLargestAboveCutoff, scalingFactor, totalEndNodeMass, scalingMass
     logical :: nodesScalable
     integer :: i
 
@@ -1184,10 +1212,10 @@ contains
     currentChild => node%firstChild
     do while (associated(currentChild))
       currentEndNode => endNodes(i)%node
-      currentComponentBasic => currentEndNode%basic()
+      basicCurrent => currentEndNode%basic()
       childComponentBasic => currentChild%basic()
-      overlapMassDifference = overlapMassDifference + currentComponentBasic%mass() - childComponentBasic%mass()
-      totalEndNodeMass = totalEndNodeMass + currentComponentBasic%mass()
+      overlapMassDifference = overlapMassDifference + basicCurrent%mass() - childComponentBasic%mass()
+      totalEndNodeMass = totalEndNodeMass + basicCurrent%mass()
       !do while (associated(currentEndNode))
       !  call currentEndNode%uniqueIDSet(-currentEndNode%uniqueID())
       !  currentEndNode => currentEndNode%parent
@@ -1197,15 +1225,15 @@ contains
     end do
 
     massAboveCutoff = 0.0
-    largestMassAboveCutoff = 0.0
+    massLargestAboveCutoff = 0.0
     currentNonOverlap => nodeNonOverlapFirst
     do while (associated(currentNonOverlap))
-      currentComponentBasic => currentNonOverlap%basic()
-      if (currentComponentBasic%mass() > self%massResolution) then
-        massAboveCutoff = massAboveCutoff + currentComponentBasic%mass()
+      basicCurrent => currentNonOverlap%basic()
+      if (basicCurrent%mass() > self%massResolution) then
+        massAboveCutoff = massAboveCutoff + basicCurrent%mass()
       end if 
-      if (currentComponentBasic%mass() > largestMassAboveCutoff) then
-        largestMassAboveCutoff = currentComponentBasic%mass()
+      if (basicCurrent%mass() > massLargestAboveCutoff) then
+        massLargestAboveCutoff = basicCurrent%mass()
       end if
       currentNonOverlap => currentNonOverlap%sibling
     end do
@@ -1213,18 +1241,18 @@ contains
     if (overlapMassDifference < 0) then
       nodesScalable = .false.
     else if (overlapMassDifference < massAboveCutoff) then
-      if ( largestMassAboveCutoff * (( massAboveCutoff - overlapMassDifference) /  massAboveCutoff) > self%massResolution) then 
+      if ( massLargestAboveCutoff * (( massAboveCutoff - overlapMassDifference) /  massAboveCutoff) > self%massResolution) then 
         nodesScalable = .false.
       else 
         currentNonOverlap => nodeNonOverlapFirst
         do while (associated(currentNonOverlap))
-        currentComponentBasic => currentNonOverlap%basic()
-        if ( currentComponentBasic%mass() > self%massResolution) then
-          scalingMass = currentComponentBasic%mass() * ( 1 - (massAboveCutoff - overlapMassDifference) / massAboveCutoff)
+        basicCurrent => currentNonOverlap%basic()
+        if ( basicCurrent%mass() > self%massResolution) then
+          scalingMass = basicCurrent%mass() * ( 1 - (massAboveCutoff - overlapMassDifference) / massAboveCutoff)
           scaleNode => currentNonOverlap
           do while (associated(scaleNode))
-            currentComponentBasic => scaleNode%basic()
-            call currentComponentBasic%massSet(currentComponentBasic%mass() - scalingMass)
+            basicCurrent => scaleNode%basic()
+            call basicCurrent%massSet(basicCurrent%mass() - scalingMass)
             scaleNode => scaleNode%parent
           end do
         end if
@@ -1235,13 +1263,13 @@ contains
         currentChild => node%firstChild
         do while (associated(currentChild))
           currentEndNode => endNodes(i)%node
-          currentComponentBasic => currentEndNode%basic()
+          basicCurrent => currentEndNode%basic()
           childComponentBasic => currentChild%basic()
-          scalingMass = childComponentBasic%mass() - currentComponentBasic%mass()
+          scalingMass = childComponentBasic%mass() - basicCurrent%mass()
           scaleNode => currentEndNode
           do while (associated(scaleNode))
-            currentComponentBasic => scaleNode%basic()
-            call currentComponentBasic%massSet(currentComponentBasic%mass() + scalingMass)
+            basicCurrent => scaleNode%basic()
+            call basicCurrent%massSet(basicCurrent%mass() + scalingMass)
             scaleNode => scaleNode%parent
           end do
           currentChild => currentChild%sibling
@@ -1265,10 +1293,10 @@ contains
     implicit none
     class  (mergerTreeOperatorAugment), intent(inout)         :: self
     type(treeNode), intent(in   ) :: node
-    type (treeNode), pointer :: nodeCurrent, nodePrevious, nodeNonOverlapFirst, nodeCurrentSibling, currentChildNode,sortNode, currentGrandchild, scaleNode
+    type (treeNode), pointer :: nodeCurrent, nodePrevious, nodeNonOverlapFirst, nodeCurrentSibling, currentChildNode, currentGrandchild, scaleNode
     type (mergerTree), target :: tree
     type (mergerTree), intent (inout), target :: treeBest
-    class (nodeComponentBasic), pointer :: childComponentBasic, currentComponentBasic, sortComponentBasic
+    class (nodeComponentBasic), pointer :: childComponentBasic, basicCurrent, basicSort
     integer, intent(inout) :: nodeChildCount
     integer :: i, retryCount
     type (treeNodeList), dimension(nodeChildCount), intent(inout) :: endNodes
@@ -1278,22 +1306,22 @@ contains
     double precision :: massExcess, childNodeMass, currentMass, endNodeMass, falseWorstFit, massDifferenceScaleFactor
   
     falseWorstFit = 3.0
-    call augmentNonOverlapReinsert(nodeNonOverlapFirst)
+    call self%nonOverlapReinsert(nodeNonOverlapFirst)
     if (nodeChildCount > 0) then
       nodeCurrent => tree%baseNode
-      currentComponentBasic => nodeCurrent%basic()
+      basicCurrent => nodeCurrent%basic()
       i = 1
       currentChildNode => node%firstChild
       massExcess = 0
       endNodeMass = 0
       childNodeMass = 0
-      treeMass = currentComponentBasic%mass()
+      treeMass = basicCurrent%mass()
       do while (associated(currentChildNode))
         nodeCurrent => endNodes(i)%node
-        currentComponentBasic => nodeCurrent%basic()
+        basicCurrent => nodeCurrent%basic()
         childComponentBasic => currentChildNode%basic()
-        massExcess = massExcess + currentComponentBasic%mass() - childComponentBasic%mass()
-        endNodeMass = endNodeMass + currentComponentBasic%mass()
+        massExcess = massExcess + basicCurrent%mass() - childComponentBasic%mass()
+        endNodeMass = endNodeMass + basicCurrent%mass()
         childNodeMass = childNodeMass + childComponentBasic%mass()
         call nodeCurrent%uniqueIDSet(-nodeCurrent%uniqueID())
         i = i + 1
@@ -1305,7 +1333,7 @@ contains
         currentChildNode => node%firstChild
         do while (associated(currentChildNode))
           nodeCurrent => endNodes(i)%node
-          currentComponentBasic => nodeCurrent%basic()
+          basicCurrent => nodeCurrent%basic()
           call augmentInsertChildMass(self, tree%baseNode, currentChildNode, nodeCurrent)
           currentChildNode => currentChildNode%sibling
         end do
@@ -1372,7 +1400,7 @@ contains
     implicit none
     class (mergerTreeOperatorAugment), intent(inout) :: self
     type (treeNode), pointer :: node, currentChild
-    class (nodeComponentBasic), pointer :: currentComponentBasic, childComponentBasic
+    class (nodeComponentBasic), pointer :: basicCurrent, childComponentBasic
     double precision, intent(inout) :: multiplier, constant, scalingFactor
     double precision :: parentMass, childMass, parentTime, childTime
 
@@ -1384,9 +1412,9 @@ contains
     !Mass = multiplier * log(time) + constant 
     !At time = time_node, Mass = node's mass.
     !At time = time_node%firstChild, Mass = sum of node's childrens' mass.
-    currentComponentBasic => node%basic()
-    parentMass = currentComponentBasic%mass()
-    parentTime = currentComponentBasic%time()
+    basicCurrent => node%basic()
+    parentMass = basicCurrent%mass()
+    parentTime = basicCurrent%time()
     childMass = 0
     currentChild => node%firstChild
     if (associated(currentChild)) then
@@ -1409,8 +1437,8 @@ contains
         currentChild => node%firstChild 
         childComponentBasic => currentChild%basic()
         do while (associated(currentChild)) 
-          currentComponentBasic => currentChild%basic()
-          call currentComponentBasic%massSet(scalingFactor*currentComponentBasic%mass())
+          basicCurrent => currentChild%basic()
+          call basicCurrent%massSet(scalingFactor*basicCurrent%mass())
           currentChild => currentChild%sibling
         end do
         multiplier = (childMass - parentMass)/ (LOG10(childTime) - LOG10(parentTime))
@@ -1431,7 +1459,7 @@ contains
     type(treeNode), intent(inout) :: node
     type (treeNode), pointer :: currentChild, nodeCurrent
     integer, intent (in   ) :: nodeChildCount
-    class (nodeComponentBasic), pointer :: currentComponentBasic, childComponentBasic
+    class (nodeComponentBasic), pointer :: basicCurrent, childComponentBasic
     type (treeNodeList), dimension(nodeChildCount), intent(inout) :: endNodes
     double precision, intent(inout) :: multiplier, constant, scalingFactor
     double precision :: parentMass, childMass, parentTime, childTime
@@ -1449,15 +1477,15 @@ contains
         currentChild => currentChild%sibling
       end do
       i = 1
-      currentComponentBasic => node%basic()
-      parentMass = currentComponentBasic%mass()
+      basicCurrent => node%basic()
+      parentMass = basicCurrent%mass()
       currentChild => node%firstChild
       do while (associated(currentChild))
         nodeCurrent => endNodes(i)%node
         do while (associated(nodeCurrent))
-          currentComponentBasic = nodeCurrent%basic()
+          basicCurrent = nodeCurrent%basic()
           if (nodeCurrent%uniqueID() > 0) then
-            call currentComponentBasic%massSet((currentComponentBasic%mass() / parentMass)*(multiplier*LOG10(currentComponentBasic%time()) + constant))
+            call basicCurrent%massSet((basicCurrent%mass() / parentMass)*(multiplier*LOG10(basicCurrent%time()) + constant))
             call nodeCurrent%uniqueIDSet(-nodeCurrent%uniqueID())
           end if 
           nodeCurrent => nodeCurrent%parent
