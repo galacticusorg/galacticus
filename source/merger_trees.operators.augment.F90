@@ -98,6 +98,7 @@
   !#  <entry label="success"         />
   !#  <entry label="failureTolerance"/>
   !#  <entry label="failureStructure"/>
+  !#  <entry label="failureGeneric"  />
   !# </enumeration>
 
 contains
@@ -264,8 +265,8 @@ contains
           rescaleMaximum                 =     20
           rescaleCount                   =      0
           retryCount                     =      1
-          treeBuilt                      =      0
-          attemptsRemaining              =  10000       ! Set remaining number of attempts to maximum allowed.
+          treeBuilt                      =  treeBuildFailureGeneric
+          attemptsRemaining              =  10000                   ! Set remaining number of attempts to maximum allowed.
           massCutoffScale                =      1.0d0
           massCutoffAttemptsMaximum      =     50
           massCutoffAttemptsRemaining    =  massCutoffAttemptsMaximum
@@ -275,12 +276,12 @@ contains
              message=message//node%index()
              call Galacticus_Display_Indent(message)
           end if
-          do while (                                     &
-               &     treeBuilt         /= 1              & ! Exit if tree successfully built.
-               &    .and.                                &
-               &     rescaleCount      <= rescaleMaximum & ! Exit once number of rescalings exceeds maximum allowed.
-               &    .and.                                &
-               &     attemptsRemaining >  0              & ! Exit if no more attempts remain.
+          do while (                                       &
+               &     treeBuilt         /= treeBuildSuccess & ! Exit if tree successfully built.
+               &    .and.                                  &
+               &     rescaleCount      <= rescaleMaximum   & ! Exit once number of rescalings exceeds maximum allowed.
+               &    .and.                                  &
+               &     attemptsRemaining >  0                & ! Exit if no more attempts remain.
                &   )
              treeNewHasNodeAboveResolution=.false.
              treeBuilt                    =self%buildTreeFromNode(                                &
@@ -297,7 +298,7 @@ contains
                   &                                               massCutoffScale               , &
                   &                                               treeNewHasNodeAboveResolution , &
                   &                                               treeBestHasNodeAboveResolution  &
-                  &                                              )             
+                  &                                              )
              ! Check for exhaustion of retry attempts.
              if (retryCount == retryMaximum) then
                 ! Rescale the tolerance to allow less accurate tree matches to be accepted in future.
@@ -336,7 +337,7 @@ contains
           end if
           ! Move on to the nest node.
           i=i+1
-          call Galacticus_Display_Unindent('Finished building tree',verbosityWorking)
+          call Galacticus_Display_Unindent('Finished building tree',verbosityWorking)    
        end do
        ! Move to the next tree.
        treeCurrent => treeCurrent%nextTree
@@ -660,7 +661,6 @@ contains
             &                          tolerance          , &
             &                          timeEarliest       , &
             &                          treeBest           , &
-            &                          treeBestWorstFit   , &
             &                          massCutoffScale      &
             &                         )
        endNodeMass=0
@@ -942,59 +942,73 @@ contains
   end subroutine augmentNonOverlapListAdd
 
   subroutine augmentNonOverlapReinsert(self,listFirstElement)
+    !% Reinsert non-overlap nodes into their tree.
     implicit none
-    class(mergerTreeOperatorAugment), intent(in   )         :: self
-    type (treeNode), pointer :: nodeCurrent, listFirstElement
-    do while (associated(listFirstElement))
-      nodeCurrent => listFirstElement
-      listFirstElement => listFirstElement%sibling
-      if (associated(nodeCurrent%parent)) then
-        if(.not.associated(nodeCurrent, nodeCurrent%parent%firstChild)) then
-          nodeCurrent%sibling => nodeCurrent%parent%firstChild
-        else
-          nodeCurrent%sibling => null()
-        end if
-        nodeCurrent%parent%firstChild => nodeCurrent
-        call self%sortChildren(nodeCurrent%parent)
-      end if
-    end do 
+    class(mergerTreeOperatorAugment), intent(in   )          :: self
+    type (treeNode                 ), intent(inout), pointer :: listFirstElement
+    type (treeNode                 )               , pointer :: nodeCurrent
 
+    do while (associated(listFirstElement))
+       nodeCurrent      => listFirstElement
+       listFirstElement => listFirstElement%sibling
+       if (associated(nodeCurrent%parent)) then
+          if (associated(nodeCurrent,nodeCurrent%parent%firstChild)) then
+             nodeCurrent%sibling => null()
+          else
+             nodeCurrent%sibling => nodeCurrent%parent%firstChild
+          end if
+          nodeCurrent%parent%firstChild => nodeCurrent
+          call self%sortChildren(nodeCurrent%parent)
+       end if
+    end do
+    return
   end subroutine augmentNonOverlapReinsert
 
-  subroutine augmentExtendNonOverlapNodes(self, tree, nodeNonOverlapFirst, tolerance, timeEarliest, treeBest, treeBestWorstFit, massCutoffScale)
-    use Merger_Trees_Builders
+  subroutine augmentExtendNonOverlapNodes(self,tree,nodeNonOverlapFirst,tolerance,timeEarliest,treeBest,massCutoffScale)
+    !% Extend any non-overlap nodes in an accepted tree by growing a new tree from each such node.
+    use Galacticus_Error
     use Galacticus_Nodes
     implicit none
-    class  (mergerTreeOperatorAugment), intent(inout)         :: self
-    type (treeNode), pointer :: nodeCurrent, nodeNonOverlap, nodeNonOverlapFirst
-    class (nodeComponentBasic), pointer :: basicNonOverlap
-    type (mergerTree), target :: tree
-    type (mergerTree), intent (inout), target :: treeBest
-    integer :: retryCount
-    double precision, intent(in   ) :: tolerance, timeEarliest
-    double precision, intent(inout) :: treeBestWorstFit, massCutoffScale 
-    double precision ::falseWorstFit, falseMultiplier, falseConstant, falseScalingFactor
-    logical :: falseNewNodeAboveCutoff, falseBestTreeNodeAboveCutoff
-    falseBestTreeNodeAboveCutoff = .false.
-    falseNewNodeAboveCutoff = .false.
-    falseMultiplier = 0.0
-    falseConstant = 0.0
-    falseScalingFactor = 1.0
-    falseWorstFit = 3.0
-    nodeCurrent => nodeNonOverlapFirst
+    class           (mergerTreeOperatorAugment), intent(inout)          :: self
+    type            (mergerTree               ), intent(inout), target  :: tree                   , treeBest
+    type            (treeNode                 )               , pointer :: nodeNonOverlapFirst
+    double precision                           , intent(in   )          :: tolerance              , timeEarliest
+    double precision                           , intent(inout)          :: massCutoffScale 
+    type            (treeNode                 )               , pointer :: nodeCurrent            , nodeNonOverlap
+    double precision                                                    :: falseWorstFit          , falseMultiplier             , &
+         &                                                                 falseConstant          , falseScalingFactor
+    logical                                                             :: falseNewNodeAboveCutoff, falseBestTreeNodeAboveCutoff
+    integer                                                             :: treeStatus
+    
+    falseBestTreeNodeAboveCutoff =  .false.
+    falseNewNodeAboveCutoff      =  .false.
+    falseMultiplier              =  0.0d0
+    falseConstant                =  0.0d0
+    falseScalingFactor           =  1.0d0
+    falseWorstFit                =  3.0d0
+    nodeCurrent                  => nodeNonOverlapFirst
     do while (associated(nodeCurrent))
-      nodeNonOverlap => nodeCurrent
-      basicNonOverlap => nodeNonOverlap%basic()
-      nodeCurrent => nodeCurrent%sibling
-      if(basicNonOverlap%mass() > self%massResolution) then
-        retryCount = 100
-        do while ((.not.(self%buildTreeFromNode(nodeNonOverlap, .true., tolerance, timeEarliest, treeBest, falseWorstFit, .false., falseMultiplier, falseConstant, falseScalingFactor, massCutoffScale, falseNewNodeAboveCutoff, falseBestTreeNodeAboveCutoff)==1)).and.(retryCount >0))
-          retryCount = retryCount - 1
-        end do
-      end if
+       treeStatus=self%buildTreeFromNode(                              &
+            &                            nodeCurrent                 , &
+            &                            .true.                      , &
+            &                            tolerance                   , &
+            &                            timeEarliest                , &
+            &                            treeBest                    , &
+            &                            falseWorstFit               , &
+            &                            .false.                     , &
+            &                            falseMultiplier             , &
+            &                            falseConstant               , &
+            &                            falseScalingFactor          , &
+            &                            massCutoffScale             , &
+            &                            falseNewNodeAboveCutoff     , &
+            &                            falseBestTreeNodeAboveCutoff  &
+            &                           )
+       if (treeStatus /= treeBuildSuccess) call Galacticus_Error_Report('augmentExtendNonOverlapNodes','extension of non-overlap node failed')
+       nodeCurrent => nodeCurrent%sibling
     end do
+    return
   end subroutine augmentExtendNonOverlapNodes
-
+  
   logical function augmentNodeComparison(newNode, oldNode, tolerance, treeCurrentWorstFit)
 
     use Numerical_Comparison
