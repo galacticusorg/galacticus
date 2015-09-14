@@ -337,7 +337,7 @@ contains
           end if
           ! Move on to the nest node.
           i=i+1
-          call Galacticus_Display_Unindent('Finished building tree',verbosityWorking)    
+          call Galacticus_Display_Unindent('Finished building tree',verbosityWorking)
        end do
        ! Move to the next tree.
        treeCurrent => treeCurrent%nextTree
@@ -992,7 +992,7 @@ contains
             &                            nodeCurrent                 , &
             &                            .true.                      , &
             &                            tolerance                   , &
-            &                            timeEarliest                , &
+            &                            self%timeEarliest           , &
             &                            treeBest                    , &
             &                            falseWorstFit               , &
             &                            .false.                     , &
