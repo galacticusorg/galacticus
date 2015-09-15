@@ -452,109 +452,104 @@ contains
        end if
     endif
     ! Build trees from the nodes above the mass resolution. 
-    if (basic%mass() > self%massResolution .or. extendingEndNode) then
-       ! Create a new base node, matched to the current node, build a tree from it, and truncate that tree to the desired earliest time.
-       pruneByTime      =  mergerTreeOperatorPruneByTime(             timeEarliest       )
-       baseNode         => treeNode                     (node%index(),newTree            )
-       baseBasic        => baseNode%basic               (             autoCreate  =.true.)
-       newTree%baseNode => baseNode
-       call baseBasic  %                   timeSet        (basic       %time())
-       call baseBasic  %                   massSet        (basic       %mass())
-       call self       %mergerTreeBuilder_%timeEarliestSet(timeEarliest       ) 
-       call self       %mergerTreeBuilder_%build          (newTree            )
-       call pruneByTime%operate                           (newTree            )
-       ! Sort children of our node by mass, and gather statistics on number of children and number of end-nodes in the new tree.
-       call self%sortChildren(node)
-       nodeChildCount=augmentChildCount    (node                             )
-       endNodeCount  =augmentTreeStatistics(newTree,treeStatisticEndNodeCount)
-       ! Determine if the newly built tree is an acceptable match.
-       treeAccepted  =self%acceptTree(                                &
-            &                         node                          , &
-            &                         newTree                       , &
-            &                         nodeChildCount                , &
-            &                         extendingEndNode              , &
-            &                         tolerance                     , &
-            &                         timeEarliest                  , &
-            &                         treeBest                      , &
-            &                         treeBestWorstFit              , &
-            &                         treeBestOverride              , &
-            &                         multiplier                    , &
-            &                         constant                      , &
-            &                         scalingFactor                 , &
-            &                         massCutoffScale               , &
-            &                         treeNewHasNodeAboveResolution , &
-            &                         treeBestHasNodeAboveResolution  &
-            &                        )
-       ! Determine whether to use stored best tree, newly created tree, or reject the tree.
-       if     (                                          &
-            &   associated(treeBest%baseNode)            &
-            &  .and.                                     &
-            &   treeAccepted /= treeBuildSuccess         &
-            &  .and.                                     &
-            &   (                                        &
-            &     (                                      &
-            &       treeBestWorstFit <= tolerance        &
-            &      .and.                                 &
-            &       .not.treeBestHasNodeAboveResolution  &
-            &     )                                      &
-            &    .or.                                    &
-            &     treeBestOverride                       &
-            &   )                                        &
-            & ) then
-          ! The previously stored best matching tree can be used iff:
-          !  1) A previously stored best matching tree exists;
-          !  2) The newly built tree was not accepted;       
-          !  3) The previously stored best tree is now within tolerance and has no nodes above the cut-off, or its use is being
-          !     forced.
-          !
-          ! Clean up the newly created tree, and replace it with the best tree.
-          if (associated(newTree%baseNode)) call newTree%destroyBranch(newTree%baseNode)
-          newTree%baseNode => treeBest%baseNode
-          ! Reset the best tree.
-          treeBestWorstFit  =  3.0d0
-          treeBest%baseNode => null()
-          ! Test for acceptance of the best tree.
-          if     (                                                 &
-               &   self%acceptTree(                                &
-               &                   node                          , &
-               &                   newTree                       , &
-               &                   nodeChildCount                , &
-               &                   extendingEndnode              , &
-               &                   tolerance                     , &
-               &                   timeEarliest                  , &
-               &                   treeBest                      , &
-               &                   treeBestWorstFit              , &
-               &                   treeBestOverride              , &
-               &                   multiplier                    , &
-               &                   constant                      , &
-               &                   scalingFactor                 , &
-               &                   massCutoffScale               , &
-               &                   treeNewHasNodeAboveResolution , &
-               &                   treeBestHasNodeAboveResolution  &
-               &                  )                                &
-               &  ==                                               &
-               &   treeBuildSuccess                                &
-               & ) then
-             augmentBuildTreeFromNode=treeBuildSuccess
-          else 
-             augmentBuildTreeFromNode=treeBuildFailureStructure
-          end if
-       else if (treeAccepted == treeBuildSuccess) then
-          ! If the newly created tree was acceptable, use it.
-          augmentBuildTreeFromNode=treeBuildSuccess
-          ! Clean up any previously stored best tree.
-          if (associated(treeBest%baseNode)) call treeBest%destroyBranch(treeBest%baseNode)
-          treeBestWorstFit  =  3.0d0
-          treeBest%baseNode => null()
-       else
-          ! The newly created tree was unacceptable, clean it up and return the failure code.
-          if (associated(newTree%baseNode)) call newTree%destroyBranch(newTree%baseNode)
-          augmentBuildTreeFromNode=treeAccepted
-       end if
-    else
-       ! Node mass was below the mass resolution - no tree to build - return success.
-       augmentBuildTreeFromNode=treeBuildSuccess
-    end if
+     ! Create a new base node, matched to the current node, build a tree from it, and truncate that tree to the desired earliest time.
+     pruneByTime      =  mergerTreeOperatorPruneByTime(             timeEarliest       )
+     baseNode         => treeNode                     (node%index(),newTree            )
+     baseBasic        => baseNode%basic               (             autoCreate  =.true.)
+     newTree%baseNode => baseNode
+     call baseBasic  %                   timeSet        (basic       %time())
+     call baseBasic  %                   massSet        (basic       %mass())
+     call self       %mergerTreeBuilder_%timeEarliestSet(timeEarliest       ) 
+     call self       %mergerTreeBuilder_%build          (newTree            )
+     call pruneByTime%operate                           (newTree            )
+     ! Sort children of our node by mass, and gather statistics on number of children and number of end-nodes in the new tree.
+     call self%sortChildren(node)
+     nodeChildCount=augmentChildCount    (node                             )
+     endNodeCount  =augmentTreeStatistics(newTree,treeStatisticEndNodeCount)
+     ! Determine if the newly built tree is an acceptable match.
+     treeAccepted  =self%acceptTree(                                &
+          &                         node                          , &
+          &                         newTree                       , &
+          &                         nodeChildCount                , &
+          &                         extendingEndNode              , &
+          &                         tolerance                     , &
+          &                         timeEarliest                  , &
+          &                         treeBest                      , &
+          &                         treeBestWorstFit              , &
+          &                         treeBestOverride              , &
+          &                         multiplier                    , &
+          &                         constant                      , &
+          &                         scalingFactor                 , &
+          &                         massCutoffScale               , &
+          &                         treeNewHasNodeAboveResolution , &
+          &                         treeBestHasNodeAboveResolution  &
+          &                        )
+     ! Determine whether to use stored best tree, newly created tree, or reject the tree.
+     if     (                                          &
+          &   associated(treeBest%baseNode)            &
+          &  .and.                                     &
+          &   treeAccepted /= treeBuildSuccess         &
+          &  .and.                                     &
+          &   (                                        &
+          &     (                                      &
+          &       treeBestWorstFit <= tolerance        &
+          &      .and.                                 &
+          &       .not.treeBestHasNodeAboveResolution  &
+          &     )                                      &
+          &    .or.                                    &
+          &     treeBestOverride                       &
+          &   )                                        &
+          & ) then
+        ! The previously stored best matching tree can be used iff:
+        !  1) A previously stored best matching tree exists;
+        !  2) The newly built tree was not accepted;       
+        !  3) The previously stored best tree is now within tolerance and has no nodes above the cut-off, or its use is being
+        !     forced.
+        !
+        ! Clean up the newly created tree, and replace it with the best tree.
+        if (associated(newTree%baseNode)) call newTree%destroyBranch(newTree%baseNode)
+        newTree%baseNode => treeBest%baseNode
+        ! Reset the best tree.
+        treeBestWorstFit  =  3.0d0
+        treeBest%baseNode => null()
+        ! Test for acceptance of the best tree.
+        if     (                                                 &
+             &   self%acceptTree(                                &
+             &                   node                          , &
+             &                   newTree                       , &
+             &                   nodeChildCount                , &
+             &                   extendingEndnode              , &
+             &                   tolerance                     , &
+             &                   timeEarliest                  , &
+             &                   treeBest                      , &
+             &                   treeBestWorstFit              , &
+             &                   treeBestOverride              , &
+             &                   multiplier                    , &
+             &                   constant                      , &
+             &                   scalingFactor                 , &
+             &                   massCutoffScale               , &
+             &                   treeNewHasNodeAboveResolution , &
+             &                   treeBestHasNodeAboveResolution  &
+             &                  )                                &
+             &  ==                                               &
+             &   treeBuildSuccess                                &
+             & ) then
+           augmentBuildTreeFromNode=treeBuildSuccess
+        else 
+           augmentBuildTreeFromNode=treeBuildFailureStructure
+        end if
+     else if (treeAccepted == treeBuildSuccess) then
+        ! If the newly created tree was acceptable, use it.
+        augmentBuildTreeFromNode=treeBuildSuccess
+        ! Clean up any previously stored best tree.
+        if (associated(treeBest%baseNode)) call treeBest%destroyBranch(treeBest%baseNode)
+        treeBestWorstFit  =  3.0d0
+        treeBest%baseNode => null()
+     else
+        ! The newly created tree was unacceptable, clean it up and return the failure code.
+        if (associated(newTree%baseNode)) call newTree%destroyBranch(newTree%baseNode)
+        augmentBuildTreeFromNode=treeAccepted
+     end if
     return
   end function augmentBuildTreeFromNode
 
@@ -1553,3 +1548,4 @@ contains
     end if 
 
   end subroutine augmentScaleChildren
+
