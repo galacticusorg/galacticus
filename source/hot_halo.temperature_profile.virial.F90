@@ -15,58 +15,58 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an isothermal (virial temperature) profile for hot gas halos.
+!% An implementation of the hot halo temperature class which uses an isothermal virial temperature.
+  
+  !# <hotHaloTemperatureProfile name="hotHaloTemperatureProfileVirial">
+  !#  <description>Provides an implementation of the hot halo temperature profile class which uses an isothermal virial temperature.</description>
+  !# </hotHaloTemperatureProfile>
+  type, extends(hotHaloTemperatureProfileClass) :: hotHaloTemperatureProfileVirial
+     !% An implementation of the hot halo temperature profile class which uses an isothermal virial temperature.
+     private
+   contains
+     procedure :: temperature         => virialTemperature
+     procedure :: temperatureLogSlope => virialTemperatureLogSlope
+  end type hotHaloTemperatureProfileVirial
 
-module Hot_Halo_Temperature_Profile_Virial
-  !% Implements an isothermal (virial temperature) profile for hot gas halos.
-  implicit none
-  private
-  public :: Hot_Halo_Temperature_Virial
-
+  interface hotHaloTemperatureProfileVirial
+     !% Constructors for the {\normalfont \ttfamily virial} hot halo temperature profile class.
+     module procedure virialDefaultConstructor
+  end interface hotHaloTemperatureProfileVirial
+  
 contains
 
-  !# <hotHaloTemperatureMethod>
-  !#  <unitName>Hot_Halo_Temperature_Virial</unitName>
-  !# </hotHaloTemperatureMethod>
-  subroutine Hot_Halo_Temperature_Virial(hotHaloTemperatureMethod,Hot_Halo_Temperature_Get,Hot_Halo_Temperature_Logarithmic_Slope_Get)
-    !% Initialize the cored isothermal hot halo temperature profile module.
-    use ISO_Varying_String
+  function virialDefaultConstructor()
+    !% Default constructor for the {\normalfont \ttfamily virial} hot halo temperature profile class.
     implicit none
-    type     (varying_string                                   ), intent(in   )          :: hotHaloTemperatureMethod
-    procedure(Hot_Halo_Temperature_Virial_Get                  ), intent(inout), pointer :: Hot_Halo_Temperature_Get
-    procedure(Hot_Halo_Temperature_Logarithmic_Slope_Virial_Get), intent(inout), pointer :: Hot_Halo_Temperature_Logarithmic_Slope_Get
+    type(hotHaloTemperatureProfileVirial) :: virialDefaultConstructor
 
-    if (hotHaloTemperatureMethod == 'virial') then
-       Hot_Halo_Temperature_Get                   => Hot_Halo_Temperature_Virial_Get
-       Hot_Halo_Temperature_Logarithmic_Slope_Get => Hot_Halo_Temperature_Logarithmic_Slope_Virial_Get
-    end if
     return
-  end subroutine Hot_Halo_Temperature_Virial
-
-  double precision function Hot_Halo_Temperature_Virial_Get(thisNode,radius)
-    !% Compute the temperature at radius {\normalfont \ttfamily radius} in an isothermal (virial) temperature profile for {\normalfont \ttfamily thisNode}.
-    use Galacticus_Nodes
+  end function virialDefaultConstructor
+  
+  double precision function virialTemperature(self,node,radius)
+    !% Return the density in a {\normalfont \ttfamily virial} hot halo mass distribution.
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: radius
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-
-    darkMatterHaloScale_ => darkMatterHaloScale()
-    Hot_Halo_Temperature_Virial_Get=darkMatterHaloScale_%virialTemperature(thisNode)
+    class           (hotHaloTemperatureProfileVirial), intent(inout)          :: self
+    type            (treeNode                       ), intent(inout), pointer :: node
+    double precision                                 , intent(in   )          :: radius
+    class           (darkMatterHaloScaleClass       )               , pointer :: darkMatterHaloScale_ 
+    double precision                                                          :: temperature
+    
+    darkMatterHaloScale_ => darkMatterHaloScale                   (    )
+    virialTemperature    =  darkMatterHaloScale_%virialTemperature(node)
     return
-  end function Hot_Halo_Temperature_Virial_Get
-
-  double precision function Hot_Halo_Temperature_Logarithmic_Slope_Virial_Get(thisNode,radius)
-    !% Compute the logarithmic slope of the temperature at radius {\normalfont \ttfamily radius} in an isothermal temperature profile
-    !% for {\normalfont \ttfamily thisNode}.
-    use Galacticus_Nodes
+  end function virialTemperature
+  
+  double precision function virialTemperatureLogSlope(self,node,radius)
+    !% Return the logarithmic slope of the density profile in a {\normalfont \ttfamily virial} hot halo mass
+    !% distribution.
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: radius
-
-    Hot_Halo_Temperature_Logarithmic_Slope_Virial_Get=0.0d0
+    class           (hotHaloTemperatureProfileVirial), intent(inout)          :: self
+    type            (treeNode                       ), intent(inout), pointer :: node
+    double precision                                 , intent(in   )          :: radius
+    
+    virialTemperatureLogSlope=0.0d0
     return
-  end function Hot_Halo_Temperature_Logarithmic_Slope_Virial_Get
-
-end module Hot_Halo_Temperature_Profile_Virial
+  end function virialTemperatureLogSlope
+  

@@ -49,7 +49,7 @@ contains
     use Input_Parameters2
     implicit none
     type(darkMatterProfileConcentrationWDM)                :: wdmConstructorParameters
-    type(inputParameters                  ), intent(in   ) :: parameters
+    type(inputParameters                  ), intent(inout) :: parameters
 
     !# <objectBuilder class="darkMatterProfileConcentration" name="wdmConstructorParameters%cdmConcentration" source="parameters"/>
     return

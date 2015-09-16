@@ -918,14 +918,11 @@ contains
      use Numerical_Interpolation
      use Galacticus_Error
      implicit none
-     class           (history          ), intent(inout) :: thisHistory
-     type            (history          ), intent(in   ) :: addHistory
-     integer                                            :: iPoint                     , iHistory
-          &                                                
-     integer         (c_size_t         )                :: interpolationPoint         , addHistoryPointCount
-     double precision                                   :: interpolationFactors    (2)
-     type            (fgsl_interp_accel)                :: interpolationAccelerator
-     logical                                            :: interpolationReset
+     class           (history ), intent(inout) :: thisHistory
+     type            (history ), intent(in   ) :: addHistory
+     integer                                   :: iPoint                     , iHistory
+     integer         (c_size_t)                :: interpolationPoint         , addHistoryPointCount
+     double precision                          :: interpolationFactors    (2)
 
      select type (thisHistory)
      type is (history)
@@ -952,18 +949,15 @@ contains
         ! The two objects must contain the same number of histories.
         if (size(thisHistory%data,dim=2) /= size(addHistory%data,dim=2)) call Galacticus_Error_Report('History_Add','two objects contain differing numbers of histories')
         ! Loop over each entry in thisHistory.
-        interpolationReset=.true.
+        interpolationPoint=1
         do iPoint=1,size(thisHistory%time)
            ! If within range of history spanned by addHistory then....
            if (thisHistory%time(iPoint) >= addHistory%time(1) .and. thisHistory%time(iPoint) <= addHistory%time(addHistoryPointCount)) then
-
-             ! Interpolate addHistory to point in thisHistory.
-              interpolationReset=.true.
-              interpolationPoint  =Interpolate_Locate(addHistory%time,interpolationAccelerator&
-                   &,thisHistory%time(iPoint),interpolationReset)
-              interpolationFactors=Interpolate_Linear_Generate_Factors(addHistory%time,interpolationPoint&
-                   &,thisHistory%time(iPoint))
-              call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)
+              ! Interpolate addHistory to point in thisHistory.
+              do while (thisHistory%time(iPoint) > addHistory%time(interpolationPoint) .and. interpolationPoint < addHistoryPointCount-1)
+                 interpolationPoint=interpolationPoint+1
+              end do
+              interpolationFactors=Interpolate_Linear_Generate_Factors(addHistory%time,interpolationPoint,thisHistory%time(iPoint))
               ! Add them.
               forall(iHistory=1:size(thisHistory%data,dim=2))
                  thisHistory%data (iPoint,iHistory)=thisHistory%data (iPoint,iHistory)+addHistory%data(interpolationPoint,iHistory)&
