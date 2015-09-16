@@ -146,9 +146,10 @@ contains
     return
   end function Search_Array_VarString
 
-   function Search_Array_For_Closest(arrayToSearch,valueToFind,tolerance)
-    !% Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for the entry closest to value, $v(=${\normalfont \ttfamily valueToFind}$)$ and returns the
-    !% index of that element in the array. Optionally, a tolerance may be specified within which the two values must match.
+   function Search_Array_For_Closest(arrayToSearch,valueToFind,tolerance,status)
+    !% Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for the entry closest to value, $v(=${\normalfont
+    !% \ttfamily valueToFind}$)$ and returns the index of that element in the array. Optionally, a tolerance may be specified
+    !% within which the two values must match.
     use FGSL
     use Galacticus_Error
     use Numerical_Comparison
@@ -157,7 +158,10 @@ contains
     double precision          , dimension(:), intent(in   )           :: arrayToSearch
     double precision                        , intent(in   )           :: valueToFind
     double precision                        , intent(in   ), optional :: tolerance
+    integer                                 , intent(  out), optional :: status
 
+    if (present(status)) status=errorStatusSuccess
+    
     ! For a single element array, just return the only option.
     if (size(arrayToSearch,dim=1,kind=c_size_t) <= 1) then
        Search_Array_For_Closest=lbound(arrayToSearch,dim=1)
@@ -176,8 +180,13 @@ contains
             &+1))) Search_Array_For_Closest=Search_Array_For_Closest+1
     end if
     if (present(tolerance)) then
-       if (.not.Values_Agree(valueToFind,arrayToSearch(Search_Array_For_Closest),absTol=tolerance)) &
-            & call Galacticus_Error_Report('Search_Array_For_Closest','no match found within specified tolerance')
+       if (.not.Values_Agree(valueToFind,arrayToSearch(Search_Array_For_Closest),absTol=tolerance)) then
+          if (present(status)) then
+             status=errorStatusFail
+          else
+             call Galacticus_Error_Report('Search_Array_For_Closest','no match found within specified tolerance')
+          end if
+       end if
     end if
     return
   end function Search_Array_For_Closest
