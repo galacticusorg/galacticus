@@ -193,48 +193,58 @@ contains
     !# </inputParameter>
     if (parameters%isPresent('snapshotRedshifts')) then
        allocate(timeSnapshots(parameters%count('snapshotRedshifts')))
+       !# <inputParameter>
+       !#   <name>snapshotRedshifts</name>
+       !#   <variable>timeSnapshots</variable>
+       !#   <source>parameters</source>
+       !#   <description>For {\normalfont \ttfamily augment} description of redshift snapshots.</description>
+       !#   <type>double precision</type>
+       !#   <cardinality> 0..</cardinality>
+       !# </inputParameter>
+       cosmologyFunctions_ => cosmologyFunctions()
+       do i=1,size(timeSnapshots)
+          timeSnapshots(i)=cosmologyFunctions_ %cosmicTime                 (                  &
+               &            cosmologyFunctions_%expansionFactorFromRedshift (                 &
+               &                                                             timeSnapshots(i) &
+               &                                                            )                 &
+               &                                                           )
+       end do
+       augmentConstructorParameters=augmentConstructorInternal(massResolution,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,mergerTreeBuilder_,timeSnapshots)
     else
-       call Galacticus_Error_Report('augmentConstructorParameters','parameter [snapshotRedshifts] is required')
+       augmentConstructorParameters=augmentConstructorInternal(massResolution,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,mergerTreeBuilder_              )
     end if
-    !# <inputParameter>
-    !#   <name>snapshotRedshifts</name>
-    !#   <variable>timeSnapshots</variable>
-    !#   <source>parameters</source>
-    !#   <description>For {\normalfont \ttfamily augment} description of redshift snapshots.</description>
-    !#   <type>double precision</type>
-    !#   <cardinality> 0..</cardinality>
-    !# </inputParameter>
-    cosmologyFunctions_ => cosmologyFunctions()
-    do i=1,size(timeSnapshots)
-       timeSnapshots(i)=cosmologyFunctions_ %cosmicTime                 (                  &
-            &            cosmologyFunctions_%expansionFactorFromRedshift (                 &
-            &                                                             timeSnapshots(i) &
-            &                                                            )                 &
-            &                                                           )
-    end do
-    augmentConstructorParameters=augmentConstructorInternal(timeSnapshots,massResolution,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,mergerTreeBuilder_)
     return
   end function augmentConstructorParameters
 
-  function augmentConstructorInternal(timeSnapshots,massResolution,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,mergerTreeBuilder_)
+  function augmentConstructorInternal(massResolution,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,mergerTreeBuilder_,timeSnapshots)
     !% Internal constructor for the {\normalfont \ttfamily augment} merger tree operator class.
     use Memory_Management
     use Cosmology_Functions
     use Sort
     implicit none
-    type            (mergerTreeOperatorAugment)                              :: augmentConstructorInternal
-    double precision                           , intent(in   )               :: massResolution                   , toleranceScale           , &
-         &                                                                      massCutOffScaleFactor
-    integer                                    , intent(in   )               :: retryMaximum                     , rescaleMaximum           , &
-         &                                                                      attemptsMaximum                  , massCutOffAttemptsMaximum
-    double precision                           , intent(in   ), dimension(:) :: timeSnapshots
-    class           (mergerTreeBuilderClass   ), intent(in   ), pointer      :: mergerTreeBuilder_
-    logical                                    , intent(in   )               :: performChecks
-    class           (cosmologyFunctionsClass  )               , pointer      :: cosmologyFunctions_
-    double precision                           , parameter                   :: expansionFactorDefault    =0.01d0
+    type            (mergerTreeOperatorAugment)                                        :: augmentConstructorInternal
+    double precision                           , intent(in   )                         :: massResolution                   , toleranceScale           , &
+         &                                                                                massCutOffScaleFactor
+    integer                                    , intent(in   )                         :: retryMaximum                     , rescaleMaximum           , &
+         &                                                                                attemptsMaximum                  , massCutOffAttemptsMaximum
+    double precision                           , intent(in   ), dimension(:), optional :: timeSnapshots
+    class           (mergerTreeBuilderClass   ), intent(in   ), pointer                :: mergerTreeBuilder_
+    logical                                    , intent(in   )                         :: performChecks
+    class           (cosmologyFunctionsClass  )               , pointer                :: cosmologyFunctions_
+    double precision                           , parameter                             :: expansionFactorDefault    =0.01d0
 
-    call Alloc_Array(augmentConstructorInternal%timeSnapshots,shape(timeSnapshots))
-    augmentConstructorInternal%timeSnapshots             =  timeSnapshots
+    cosmologyFunctions_ => cosmologyFunctions()
+    if (present(timeSnapshots)) then
+       call Alloc_Array(augmentConstructorInternal%timeSnapshots,shape(timeSnapshots))
+       augmentConstructorInternal%timeSnapshots=timeSnapshots
+       call Sort_Do(augmentConstructorInternal%timeSnapshots)
+       augmentConstructorInternal%timeEarliest=min(                                                                  &
+            &                                      cosmologyFunctions_       %cosmicTime   (expansionFactorDefault), &
+            &                                      augmentConstructorInternal%timeSnapshots(                     1)  &
+            &                                     )
+    else
+       augmentConstructorInternal%timeEarliest=    cosmologyFunctions_       %cosmicTime   (expansionFactorDefault)
+    end if
     augmentConstructorInternal%massResolution            =  massResolution
     augmentConstructorInternal%performChecks             =  performChecks
     augmentConstructorInternal%toleranceScale            =  toleranceScale
@@ -244,14 +254,8 @@ contains
     augmentConstructorInternal%massCutOffAttemptsMaximum =  massCutOffAttemptsMaximum
     augmentConstructorInternal%massCutOffScaleFactor     =  massCutOffScaleFactor
     augmentConstructorInternal%mergerTreeBuilder_        => mergerTreeBuilder_
-    cosmologyFunctions_                                  => cosmologyFunctions()
-    call Sort_Do(augmentConstructorInternal%timeSnapshots)
-    augmentConstructorInternal%timeEarliest=min(                                                                  &
-         &                                      cosmologyFunctions_       %cosmicTime   (expansionFactorDefault), &
-         &                                      augmentConstructorInternal%timeSnapshots(                     1)  &
-         &                                     )
-    call augmentConstructorInternal%mergerTreeBuilder_%timeEarliestSet(augmentConstructorInternal%timeEarliest)    
-    return
+     call augmentConstructorInternal%mergerTreeBuilder_%timeEarliestSet(augmentConstructorInternal%timeEarliest)    
+   return
   end function augmentConstructorInternal
 
   subroutine augmentDestructor(self)
@@ -440,17 +444,21 @@ contains
        ! The node has children - set the limit time to the time at which the children exist.
        childBasic   => node      %firstChild%basic()
        timeEarliest =  childBasic%           time ()
-    else if (size(self%timeSnapshots) == 1) then
-       ! Only one snapshot time is given, use the earliest time.
-       timeEarliest =  timeEarliestIn
-    else
-       timeIndex=Search_Array_For_Closest(self%timeSnapshots,basic%time(),tolerance=1.0d-5)
-       if (timeIndex == 1) then
-          timeEarliest=timeEarliestIn
+    else if (allocated(self%timeSnapshots)) then
+       if (size(self%timeSnapshots) == 1) then
+          ! Only one snapshot time is given, use the earliest time.
+          timeEarliest =  timeEarliestIn
        else
-          timeEarliest=self%timeSnapshots(timeIndex-1)
+          timeIndex=Search_Array_For_Closest(self%timeSnapshots,basic%time(),tolerance=1.0d-5)
+          if (timeIndex == 1) then
+             timeEarliest=timeEarliestIn
+          else
+             timeEarliest=self%timeSnapshots(timeIndex-1)
+          end if
        end if
-    endif
+    else
+       timeEarliest=timeEarliestIn
+    end if
     ! Build trees from the nodes above the mass resolution. 
      ! Create a new base node, matched to the current node, build a tree from it, and truncate that tree to the desired earliest time.
      pruneByTime      =  mergerTreeOperatorPruneByTime(             timeEarliest       )

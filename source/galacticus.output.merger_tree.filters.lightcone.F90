@@ -311,11 +311,14 @@ contains
   !# </mergerTreeOutputFilter>
   subroutine Galacticus_Merger_Tree_Output_Filter_Lightcone(thisNode,doOutput)
     !% Determines whether {\normalfont \ttfamily thisNode} lies within a lightcone and, therefore, should be output.
+    use, intrinsic :: ISO_C_Binding
+    use ISO_Varying_String
     use Galacticus_Nodes
     use Arrays_Search
     use Cosmology_Functions
     use Vectors
-    use, intrinsic :: ISO_C_Binding
+    use Galacticus_Error
+    use String_Handling
     implicit none
     type            (treeNode               )                , intent(inout), pointer :: thisNode
     logical                                                  , intent(inout)          :: doOutput
@@ -327,10 +330,13 @@ contains
     double precision                         , dimension(3  )                         :: galaxyPosition                  , galaxyVelocity
     logical                                                                           :: galaxyIsInFieldOfView           , galaxyIsInLightcone
     integer                                                                           :: i                               , iAxis              , &
-         &                                                                               j                               , k
+         &                                                                               j                               , k                  , &
+         &                                                                               status
     double precision                                                                  :: lightconeRadialDistance
     integer         (c_size_t              )                                          :: iOutput
-
+    character       (len=6                 )                                          :: label
+    type            (varying_string        )                                          :: message
+    
     ! Return immediately if this filter is not active.
     if (.not.lightconeFilterActive) return
 
@@ -340,8 +346,23 @@ contains
     ! Get components.
     thisBasicComponent => thisNode%basic()
 
+    ! Check if this node exists prior to any lightcone time.
+    if (thisBasicComponent%time() < lightconeTime(1)*(1.0d0-timeTolerance)) then
+       ! It does, so it will not be output.
+       doOutput=.false.
+       return
+    end if
+    
     ! Determine to which output this galaxy corresponds.
-    iOutput=Search_Array_For_Closest(lightconeTime,thisBasicCOmponent%time(),timeTolerance)
+    iOutput=Search_Array_For_Closest(lightconeTime,thisBasicComponent%time(),timeTolerance,status)
+    if (status /= errorStatusSuccess) then
+       message=         'failed to find matching time in lightcone'                       //char(10)
+       write (label,'(f6.3)') thisBasicComponent%time()
+       message=message//'                node time = '//trim(label)//' Gyr'               //char(10)
+       write (label,'(f6.3)') lightconeTime(iOutput)
+       message=message//'  closest lightcone time = '//trim(label)//' Gyr ['//iOutput//']'
+       call Galacticus_Error_Report('Galacticus_Merger_Tree_Output_Filter_Lightcone',message)
+    end if
 
     ! Determine range of possible replicants of this galaxy which could be in the lightcone.
     periodicRange(:,1)=floor  ((lightconeOrigin+lightconeMinimumDistance(iOutput)*lightconeUnitVector(:,1))/lightconeReplicationPeriod)-1
