@@ -290,7 +290,7 @@ contains
          &                                                                        multiplier                    , constant                     , &
          &                                                                        scalingFactor                 , massCutoffScale
     logical                                                                    :: treeBestOverride              , treeNewHasNodeAboveResolution, &
-         &                                                                        treeBestHasNodeAboveResolution
+         &                                                                        treeBestHasNodeAboveResolution, newRescale
     
     ! Iterate over all linked trees in this forest.
     call Galacticus_Display_Indent('Augmenting merger tree',verbosityWorking)
@@ -321,6 +321,7 @@ contains
           treeBest%baseNode              => null()
           treeBestOverride               = .false.
           treeBestHasNodeAboveResolution = .false.
+          newRescale                     = .false.
           ! Reset all factors used in tree acceptance and scaling.
           multiplier                     =      0.000d0
           constant                       =      0.000d0
@@ -360,7 +361,8 @@ contains
                   &                                               scalingFactor                 , &
                   &                                               massCutoffScale               , &
                   &                                               treeNewHasNodeAboveResolution , &
-                  &                                               treeBestHasNodeAboveResolution  &
+                  &                                               treeBestHasNodeAboveResolution, &
+                  &                                               newRescale                      &
                   &                                              )
              ! Check for exhaustion of retry attempts.
              if (retryCount == self%retryMaximum) then
@@ -370,6 +372,9 @@ contains
                 ! Check for exhaustion of rescaling attempts.
                 rescaleCount=rescaleCount+1
                 if (rescaleCount > self%rescaleMaximum) call Galacticus_Display_Message('Node build attempts exhausted',verbosityWorking)
+                newRescale = .true.
+             else 
+                newRescale = .false.
              end if
              ! Increment the retry count in cases where the tree was not acepted due to matching tolerance.
              select case (treeBuilt)
@@ -410,7 +415,7 @@ contains
     return
   end subroutine augmentOperate
   
-  recursive integer function augmentBuildTreeFromNode(self,node,extendingEndNode,tolerance,timeEarliestIn,treeBest,treeBestWorstFit,treeBestOverride,multiplier,constant,scalingFactor,massCutoffScale,treeNewHasNodeAboveResolution,treeBestHasNodeAboveResolution)
+  recursive integer function augmentBuildTreeFromNode(self,node,extendingEndNode,tolerance,timeEarliestIn,treeBest,treeBestWorstFit,treeBestOverride,multiplier,constant,scalingFactor,massCutoffScale,treeNewHasNodeAboveResolution,treeBestHasNodeAboveResolution, newRescale)
     use, intrinsic :: ISO_C_Binding
     use               Arrays_Search
     use               Galacticus_Nodes
@@ -422,7 +427,8 @@ contains
          &                                                                    constant                     , scalingFactor                 , &
          &                                                                    massCutoffScale
     logical                                        , intent(in   )         :: extendingEndNode
-    logical                                        , intent(inout)         :: treeNewHasNodeAboveResolution, treeBestHasNodeAboveResolution
+    logical                                        , intent(inout)         :: treeNewHasNodeAboveResolution, treeBestHasNodeAboveResolution, &
+         &                                                                    newRescale
     type            (mergerTree                   ), intent(inout)         :: treeBest
     type            (treeNode                     ), pointer               :: baseNode
     class           (nodeComponentBasic           ), pointer               :: basic                        , baseBasic                     , &
@@ -507,6 +513,8 @@ contains
           &     )                                      &
           &     .and.                                  &
           &      .not.newTreeBest                      &
+          &     .and.                                  &
+          &      newRescale                            &
           &    .or.                                    &
           &     treeBestOverride                       &
           &   )                                        &
@@ -541,7 +549,7 @@ contains
              &                   massCutoffScale               , &
              &                   treeNewHasNodeAboveResolution , &
              &                   treeBestHasNodeAboveResolution, &
-             &                   newTreeBest                     & 
+             &                   newTreeBest                     &
              &                  )                                &
              &  ==                                               &
              &   treeBuildSuccess                                &
@@ -579,7 +587,7 @@ contains
     type            (mergerTree               ), intent(inout)            , target  :: tree
     type            (mergerTree               ), intent(inout)            , target  :: treeBest
     logical                                    , intent(inout)                      :: treeNewHasNodeAboveResolution, treeBestHasNodeAboveResolution, &
-         &                                                                             newTreeBest
+         &                                                                             newTreeBest                  
     logical                                    , intent(in   )                      :: treeBestOverride             , extendingEndNode
     double precision                           , intent(inout)                      :: treeBestWorstFit             , multiplier                    , &
          &                                                                             constant                     , scalingFactor                 , &
@@ -1046,11 +1054,13 @@ contains
     type            (treeNode                 )               , pointer :: nodeCurrent            , nodeNonOverlap
     double precision                                                    :: falseWorstFit          , falseMultiplier             , &
          &                                                                 falseConstant          , falseScalingFactor
-    logical                                                             :: falseNewNodeAboveCutoff, falseBestTreeNodeAboveCutoff
+    logical                                                             :: falseNewNodeAboveCutoff, falseBestTreeNodeAboveCutoff, &
+         &                                                                 falseNewRescale
     integer                                                             :: treeStatus
     
     falseBestTreeNodeAboveCutoff =  .false.
     falseNewNodeAboveCutoff      =  .false.
+    falseNewRescale              =  .false.
     falseMultiplier              =  0.0d0
     falseConstant                =  0.0d0
     falseScalingFactor           =  1.0d0
@@ -1070,7 +1080,8 @@ contains
             &                            falseScalingFactor          , &
             &                            massCutoffScale             , &
             &                            falseNewNodeAboveCutoff     , &
-            &                            falseBestTreeNodeAboveCutoff  &
+            &                            falseBestTreeNodeAboveCutoff, &
+            &                            falseNewRescale               &
             &                           )
        if (treeStatus /= treeBuildSuccess) call Galacticus_Error_Report('augmentExtendNonOverlapNodes','extension of non-overlap node failed')
        nodeCurrent => nodeCurrent%sibling
