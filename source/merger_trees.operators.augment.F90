@@ -429,7 +429,7 @@ contains
     integer                                                                :: endNodeCount                 , nodeChildCount                , &
          &                                                                    i                            , treeAccepted
     type            (mergerTreeOperatorPruneByTime)                        :: pruneByTime
-    logical                                                                :: treeBestOverride
+    logical                                                                :: treeBestOverride, newTreeBest
 
     ! Find the earliest time to which the tree should be built.
     basic => node%basic()
@@ -482,8 +482,9 @@ contains
           &                         scalingFactor                 , &
           &                         massCutoffScale               , &
           &                         treeNewHasNodeAboveResolution , &
-          &                         treeBestHasNodeAboveResolution  &
-          &                        )
+          &                         treeBestHasNodeAboveResolution, &
+          &                         newTreeBest                     &
+          &                         )
      ! Determine whether to use stored best tree, newly created tree, or reject the tree.
      if     (                                          &
           &   associated(treeBest%baseNode)            &
@@ -496,6 +497,8 @@ contains
           &      .and.                                 &
           &       .not.treeBestHasNodeAboveResolution  &
           &     )                                      &
+          &     .and.                                  &
+          &      .not.newTreeBest                      &
           &    .or.                                    &
           &     treeBestOverride                       &
           &   )                                        &
@@ -529,7 +532,8 @@ contains
              &                   scalingFactor                 , &
              &                   massCutoffScale               , &
              &                   treeNewHasNodeAboveResolution , &
-             &                   treeBestHasNodeAboveResolution  &
+             &                   treeBestHasNodeAboveResolution, &
+             &                   newTreeBest                     & 
              &                  )                                &
              &  ==                                               &
              &   treeBuildSuccess                                &
@@ -553,7 +557,7 @@ contains
     return
   end function augmentBuildTreeFromNode
 
-  recursive integer function augmentAcceptTree(self,node,tree,nodeChildCount,extendingEndNode,tolerance,timeEarliest,treeBest,treeBestWorstFit,treeBestOverride,multiplier,constant,scalingFactor,massCutoffScale,treeNewHasNodeAboveResolution,treeBestHasNodeAboveResolution)
+  recursive integer function augmentAcceptTree(self,node,tree,nodeChildCount,extendingEndNode,tolerance,timeEarliest,treeBest,treeBestWorstFit,treeBestOverride,multiplier,constant,scalingFactor,massCutoffScale,treeNewHasNodeAboveResolution,treeBestHasNodeAboveResolution, newTreeBest)
     use Galacticus_Nodes
     use Galacticus_Display
     use Merger_Trees_Builders
@@ -566,7 +570,8 @@ contains
          &                                                                             basicNonOverlap
     type            (mergerTree               ), intent(inout)            , target  :: tree
     type            (mergerTree               ), intent(inout)            , target  :: treeBest
-    logical                                    , intent(inout)                      :: treeNewHasNodeAboveResolution, treeBestHasNodeAboveResolution
+    logical                                    , intent(inout)                      :: treeNewHasNodeAboveResolution, treeBestHasNodeAboveResolution, &
+         &                                                                             newTreeBest
     logical                                    , intent(in   )                      :: treeBestOverride             , extendingEndNode
     double precision                           , intent(inout)                      :: treeBestWorstFit             , multiplier                    , &
          &                                                                             constant                     , scalingFactor                 , &
@@ -757,7 +762,8 @@ contains
             &       .and.                                                 &
             &             treeScalable
     end if
-    ! Process the tree depending on acceptance state.    
+    ! Process the tree depending on acceptance state.
+    newTreeBest = .false.    
     if (treeAccepted) then
        ! Tree was accepted, unscale and insert it into the original tree.
        call augmentResetUniqueIDs (tree)
@@ -770,6 +776,7 @@ contains
        call self%nonOverlapReinsert(nodeNonOverlapFirst)
        call augmentResetUniqueIDs(tree)
        if (treeCurrentWorstFit < treeBestWorstFit) then
+          newTreeBest = .true.
           ! Current tree is better than the current best tree. Replace the best tree with the current tree.
           if (associated(treeBest%baseNode)) call treeBest%destroyBranch(treeBest%baseNode)
           treeBest                      %baseNode          => tree                         %baseNode
