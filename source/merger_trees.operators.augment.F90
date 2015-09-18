@@ -29,7 +29,7 @@
           &                                                                  toleranceScale    , massCutOffScaleFactor
      integer                                                              :: retryMaximum      , rescaleMaximum           , &
           &                                                                  attemptsMaximum   , massCutOffAttemptsMaximum
-     logical                                                              :: performChecks
+     logical                                                              :: performChecks     , useOneNodeTrees
      class           (mergerTreeBuilderClass), pointer                    :: mergerTreeBuilder_
    contains
      ! AJB : need argument data adding here
@@ -123,7 +123,7 @@ contains
          &                                                                      massCutOffScaleFactor
     integer                                                                  :: retryMaximum                , rescaleMaximum           , &
          &                                                                      attemptsMaximum             , massCutOffAttemptsMaximum
-    logical                                                                  :: performChecks
+    logical                                                                  :: performChecks               , useOneNodeTrees
     !# <inputParameterList label="allowedParameterNames" />
 
     !# <objectBuilder class="mergerTreeBuilder" name="mergerTreeBuilder_" source="parameters"/>
@@ -191,6 +191,14 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..</cardinality>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>useOneNodeTrees</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>If true, trees only consisting of their base node will be augmented.</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     if (parameters%isPresent('snapshotRedshifts')) then
        allocate(timeSnapshots(parameters%count('snapshotRedshifts')))
        !# <inputParameter>
@@ -209,14 +217,14 @@ contains
                &                                                            )                 &
                &                                                           )
        end do
-       augmentConstructorParameters=augmentConstructorInternal(massResolution,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,mergerTreeBuilder_,timeSnapshots)
+       augmentConstructorParameters=augmentConstructorInternal(massResolution,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,useOneNodeTrees,mergerTreeBuilder_,timeSnapshots)
     else
-       augmentConstructorParameters=augmentConstructorInternal(massResolution,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,mergerTreeBuilder_              )
+       augmentConstructorParameters=augmentConstructorInternal(massResolution,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,useOneNodeTrees,mergerTreeBuilder_              )
     end if
     return
   end function augmentConstructorParameters
 
-  function augmentConstructorInternal(massResolution,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,mergerTreeBuilder_,timeSnapshots)
+  function augmentConstructorInternal(massResolution,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,useOneNodeTrees,mergerTreeBuilder_,timeSnapshots)
     !% Internal constructor for the {\normalfont \ttfamily augment} merger tree operator class.
     use Memory_Management
     use Cosmology_Functions
@@ -229,7 +237,7 @@ contains
          &                                                                                attemptsMaximum                  , massCutOffAttemptsMaximum
     double precision                           , intent(in   ), dimension(:), optional :: timeSnapshots
     class           (mergerTreeBuilderClass   ), intent(in   ), pointer                :: mergerTreeBuilder_
-    logical                                    , intent(in   )                         :: performChecks
+    logical                                    , intent(in   )                         :: performChecks                    , useOneNodeTrees
     class           (cosmologyFunctionsClass  )               , pointer                :: cosmologyFunctions_
     double precision                           , parameter                             :: expansionFactorDefault    =0.01d0
 
@@ -253,6 +261,7 @@ contains
     augmentConstructorInternal%attemptsMaximum           =  attemptsMaximum
     augmentConstructorInternal%massCutOffAttemptsMaximum =  massCutOffAttemptsMaximum
     augmentConstructorInternal%massCutOffScaleFactor     =  massCutOffScaleFactor
+    augmentConstructorInternal%useOneNodeTrees           =  useOneNodeTrees
     augmentConstructorInternal%mergerTreeBuilder_        => mergerTreeBuilder_
      call augmentConstructorInternal%mergerTreeBuilder_%timeEarliestSet(augmentConstructorInternal%timeEarliest)    
    return
@@ -290,7 +299,8 @@ contains
          &                                                                        multiplier                    , constant                     , &
          &                                                                        scalingFactor                 , massCutoffScale
     logical                                                                    :: treeBestOverride              , treeNewHasNodeAboveResolution, &
-         &                                                                        treeBestHasNodeAboveResolution, newRescale
+         &                                                                        treeBestHasNodeAboveResolution, newRescale                   , &
+         &                                                                        useOneNodeTrees
     
     ! Iterate over all linked trees in this forest.
     call Galacticus_Display_Indent('Augmenting merger tree',verbosityWorking)
@@ -298,118 +308,120 @@ contains
     do while (associated(treeCurrent))
        ! Allocate array of original anchor nodes from which new high-resolution branches will be built.
        nodeCount=augmentTreeStatistics(treeCurrent,treeStatisticNodeCount)
-       if (Galacticus_Verbosity_Level() >= verbosityWorking) then
-          message="Number of nodes in tree: "
-          message=message//nodeCount
-          call Galacticus_Display_Message(message)
-       end if
-       allocate(anchorNodes(nodeCount))
-       ! Build pointers to all anchor nodes.
-       node => treeCurrent%baseNode
-       do i=1,nodeCount
-          anchorNodes(i)%node => node
-          node                => node%walkTree()
-       end do
-       ! Walk the tree.
-       i=1
-       do while (i <= nodeCount)
-          ! Get the node to work with.
-          node                           => anchorNodes(i)%node
-          basic                          => node          %basic()
-          ! Initialize the current best-known tree to null.
-          treeBestWorstFit               =      3.000d0
-          treeBest%baseNode              => null()
-          treeBestOverride               = .false.
-          treeBestHasNodeAboveResolution = .false.
-          newRescale                     = .false.
-          ! Reset all factors used in tree acceptance and scaling.
-          multiplier                     =      0.000d0
-          constant                       =      0.000d0
-          scalingFactor                  =      1.000d0
-          ! Currently not used: call augmentScaleChildren(self, node, multiplier, constant, scalingFactor)
-          tolerance                      =  self%toleranceScale
-          rescaleCount                   =      0
-          retryCount                     =      1
-          treeBuilt                      =  treeBuildFailureGeneric
-          attemptsRemaining              =  self%attemptsMaximum
-          massCutoffScale                =      1.0d0
-          massCutoffAttemptsRemaining    =  self%massCutOffAttemptsMaximum
-          ! Begin building trees from this node, searching for an acceptable tree.
+       if (nodeCount > 1 .or. self%useOneNodeTrees) then
           if (Galacticus_Verbosity_Level() >= verbosityWorking) then
-             message="Building tree from node: "
-             message=message//node%index()
-             call Galacticus_Display_Indent(message)
+             message="Number of nodes in tree: "
+             message=message//nodeCount
+             call Galacticus_Display_Message(message)
           end if
-          do while (                                            &
-               &     treeBuilt         /= treeBuildSuccess      & ! Exit if tree successfully built.
-               &    .and.                                       &
-               &     rescaleCount      <= self%rescaleMaximum   & ! Exit once number of rescalings exceeds maximum allowed.
-               &    .and.                                       &
-               &     attemptsRemaining >  0                     & ! Exit if no more attempts remain.
-               &   )
-             treeNewHasNodeAboveResolution=.false.
-             treeBuilt                    =self%buildTreeFromNode(                                &
-                  &                                               node                          , &
-                  &                                               .false.                       , &
-                  &                                               tolerance                     , &
-                  &                                               self%timeEarliest             , &
-                  &                                               treeBest                      , &
-                  &                                               treeBestWorstFit              , &
-                  &                                               treeBestOverride              , &
-                  &                                               multiplier                    , &
-                  &                                               constant                      , &
-                  &                                               scalingFactor                 , &
-                  &                                               massCutoffScale               , &
-                  &                                               treeNewHasNodeAboveResolution , &
-                  &                                               treeBestHasNodeAboveResolution, &
-                  &                                               newRescale                      &
-                  &                                              )
-             ! Check for exhaustion of retry attempts.
-             if (retryCount == self%retryMaximum) then
-                ! Rescale the tolerance to allow less accurate tree matches to be accepted in future.
-                retryCount  =0
-                tolerance   =tolerance   *self%toleranceScale
-                ! Check for exhaustion of rescaling attempts.
-                rescaleCount=rescaleCount+1
-                if (rescaleCount > self%rescaleMaximum) call Galacticus_Display_Message('Node build attempts exhausted',verbosityWorking)
-                newRescale = .true.
-             else 
-                newRescale = .false.
-             end if
-             ! Increment the retry count in cases where the tree was not acepted due to matching tolerance.
-             select case (treeBuilt)
-             case (treeBuildSuccess         )
-                retryCount=retryCount-1
-             case (treeBuildFailureTolerance)
-                retryCount=retryCount+1
-             end select
-             ! Decrement the number of attempts remaining and, if the best tree is to be forcibly used, set no attempts remaining.
-             attemptsRemaining                                                          =attemptsRemaining-1
-             if (treeBestOverride .and. treeBuilt /= treeBuildSuccess) attemptsRemaining=attemptsRemaining+1
-             ! If all attempts have been used but no match has been found, insert the best tree on next pass through loop.
-             if (attemptsRemaining == 1 .and. associated(treeBest%baseNode)) treeBestOverride=.true.
-             ! If the new tree contains nodes above the mass cut-off, decrement the number of remaining retries.
-             if (treeNewHasNodeAboveResolution) then
-                massCutoffAttemptsRemaining=massCutoffAttemptsRemaining-1
-                ! If number of retries is exhausted, adjust the tolerance for declaring nodes to be above the mass cut-off.
-                if (massCutoffAttemptsRemaining == 0) then
-                   massCutoffAttemptsRemaining=                self%massCutoffAttemptsMaximum
-                   massCutoffScale            =massCutoffScale+self%massCutOffScaleFactor
-                end if
-             end if
+          allocate(anchorNodes(nodeCount))
+          ! Build pointers to all anchor nodes.
+          node => treeCurrent%baseNode
+          do i=1,nodeCount
+             anchorNodes(i)%node => node
+             node                => node%walkTree()
           end do
-          ! Clean up the best tree if one exists.
-          if (associated(treeBest%baseNode)) then
-             call treeBest%destroyBranch(treeBest%baseNode)
-             treeBest%baseNode => null() 
-          end if
-          ! Move on to the nest node.
-          i=i+1
-          call Galacticus_Display_Unindent('Finished building tree',verbosityWorking)
-       end do
-       ! Move to the next tree.
+          ! Walk the tree.
+          i=1
+          do while (i <= nodeCount)
+             ! Get the node to work with.
+             node                           => anchorNodes(i)%node
+             basic                          => node          %basic()
+             ! Initialize the current best-known tree to null.
+             treeBestWorstFit               =      3.000d0
+             treeBest%baseNode              => null()
+             treeBestOverride               = .false.
+             treeBestHasNodeAboveResolution = .false.
+             newRescale                     = .false.
+             ! Reset all factors used in tree acceptance and scaling.
+             multiplier                     =      0.000d0
+             constant                       =      0.000d0
+             scalingFactor                  =      1.000d0
+             ! Currently not used: call augmentScaleChildren(self, node, multiplier, constant, scalingFactor)
+             tolerance                      =  self%toleranceScale
+             rescaleCount                   =      0
+             retryCount                     =      1
+             treeBuilt                      =  treeBuildFailureGeneric
+             attemptsRemaining              =  self%attemptsMaximum
+             massCutoffScale                =      1.0d0
+             massCutoffAttemptsRemaining    =  self%massCutOffAttemptsMaximum
+             ! Begin building trees from this node, searching for an acceptable tree.
+             if (Galacticus_Verbosity_Level() >= verbosityWorking) then
+                message="Building tree from node: "
+                message=message//node%index()
+                call Galacticus_Display_Indent(message)
+             end if
+             do while (                                            &
+                  &     treeBuilt         /= treeBuildSuccess      & ! Exit if tree successfully built.
+                  &    .and.                                       &
+                  &     rescaleCount      <= self%rescaleMaximum   & ! Exit once number of rescalings exceeds maximum allowed.
+                  &    .and.                                       &
+                  &     attemptsRemaining >  0                     & ! Exit if no more attempts remain.
+                  &   )
+                treeNewHasNodeAboveResolution=.false.
+                treeBuilt                    =self%buildTreeFromNode(                                &
+                     &                                               node                          , &
+                     &                                               .false.                       , &
+                     &                                               tolerance                     , &
+                     &                                               self%timeEarliest             , &
+                     &                                               treeBest                      , &
+                     &                                               treeBestWorstFit              , &
+                     &                                               treeBestOverride              , &
+                     &                                               multiplier                    , &
+                     &                                               constant                      , &
+                     &                                               scalingFactor                 , &
+                     &                                               massCutoffScale               , &
+                     &                                               treeNewHasNodeAboveResolution , &
+                     &                                               treeBestHasNodeAboveResolution, &
+                     &                                               newRescale                      &
+                     &                                              )
+                !Check for exhaustion of retry attempts.
+                if (retryCount == self%retryMaximum) then
+                   ! Rescale the tolerance to allow less accurate tree matches to be accepted in future.
+                   retryCount  =0
+                   tolerance   =tolerance   *self%toleranceScale
+                   ! Check for exhaustion of rescaling attempts.
+                   rescaleCount=rescaleCount+1
+                   if (rescaleCount > self%rescaleMaximum) call Galacticus_Display_Message('Node build attempts exhausted',verbosityWorking)
+                   newRescale = .true.
+                else 
+                   newRescale = .false.
+                end if
+                ! Increment the retry count in cases where the tree was not acepted due to matching tolerance.
+                select case (treeBuilt)
+                case (treeBuildSuccess         )
+                   retryCount=retryCount-1
+                case (treeBuildFailureTolerance)
+                   retryCount=retryCount+1
+                end select
+                ! Decrement the number of attempts remaining and, if the best tree is to be forcibly used, set no attempts remaining.
+                attemptsRemaining                                                          =attemptsRemaining-1
+                if (treeBestOverride .and. treeBuilt /= treeBuildSuccess) attemptsRemaining=attemptsRemaining+1
+                ! If all attempts have been used but no match has been found, insert the best tree on next pass through loop.
+                if (attemptsRemaining == 1 .and. associated(treeBest%baseNode)) treeBestOverride=.true.
+                ! If the new tree contains nodes above the mass cut-off, decrement the number of remaining retries.
+                if (treeNewHasNodeAboveResolution) then
+                   massCutoffAttemptsRemaining=massCutoffAttemptsRemaining-1
+                   ! If number of retries is exhausted, adjust the tolerance for declaring nodes to be above the mass cut-off.
+                   if (massCutoffAttemptsRemaining == 0) then
+                      massCutoffAttemptsRemaining=                self%massCutoffAttemptsMaximum
+                      massCutoffScale            =massCutoffScale+self%massCutOffScaleFactor
+                   end if
+                end if
+             end do
+             ! Clean up the best tree if one exists.
+             if (associated(treeBest%baseNode)) then
+                call treeBest%destroyBranch(treeBest%baseNode)
+                treeBest%baseNode => null() 
+             end if
+             ! Move on to the nest node.
+             i=i+1
+             call Galacticus_Display_Unindent('Finished building tree',verbosityWorking)
+          end do
+          deallocate(anchorNodes)
+       end if
+       !Move to the next tree.
        treeCurrent => treeCurrent%nextTree
-       deallocate(anchorNodes)
     end do
     call Galacticus_Display_Unindent('done',verbosityWorking)
     return
