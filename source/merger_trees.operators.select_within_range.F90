@@ -1,0 +1,121 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015 Andrew Benson <abenson@obs.carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+!% Contains a module which implements a select-within-range operator on the base nodes of merger trees.
+
+  !# <mergerTreeOperator name="mergerTreeOperatorSelectWithinRange">
+  !#  <description>Provides a select-within-range operator on the base nodes of merger trees.</description>
+  !# </mergerTreeOperator>
+  type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorSelectWithinRange
+     !% A select-within-range merger tree operator class.
+     private
+     double precision :: baseMassMin, baseMassMax
+   contains
+     final     ::            selectWithinRangeDestructor
+     procedure :: operate => selectWithinRangeOperate
+  end type mergerTreeOperatorSelectWithinRange
+
+  interface mergerTreeOperatorSelectWithinRange
+     !% Constructors for the select-within-range merger tree operator class.
+     module procedure selectWithinRangeConstructorParameters
+     module procedure selectWithinRangeConstructorInternal
+  end interface mergerTreeOperatorSelectWithinRange
+
+contains
+
+  function selectWithinRangeConstructorParameters(parameters)
+    !% Constructor for the select-within-range merger tree operator class which takes a parameter set as input.
+    use Input_Parameters2
+    implicit none
+    type(mergerTreeOperatorSelectWithinRange)                :: selectWithinRangeConstructorParameters
+    type(inputParameters              ), intent(in   ) :: parameters
+    !# <inputParameterList label="allowedParameterNames" />
+    
+    call parameters%checkParameters(allowedParameterNames)
+    !# <inputParameter>
+    !#   <name>baseMassMin</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <variable>selectWithinRangeConstructorParameters%baseMassMin</variable>
+    !#   <description>Base node mass below which trees should be ignored.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>baseMassMax</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <variable>selectWithinRangeConstructorParameters%baseMassMax</variable>
+    !#   <description>Base node mass above which trees should be ignored.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    return
+  end function selectWithinRangeConstructorParameters
+
+  function selectWithinRangeConstructorInternal(baseMassMin, baseMassMax)
+    !% Internal constructor for the select-within-range merger tree operator class.
+    implicit none
+    type            (mergerTreeOperatorSelectWithinRange)                :: selectWithinRangeConstructorInternal
+    double precision                               , intent(in   ) :: baseMassMin, baseMassMax
+    
+    selectWithinRangeConstructorInternal%baseMassMin            =baseMassMin
+    selectWithinRangeConstructorInternal%baseMassMax            =baseMassMax
+
+    return
+  end function selectWithinRangeConstructorInternal
+
+  elemental subroutine selectWithinRangeDestructor(self)
+    !% Destructor for the merger tree operator function class.
+    implicit none
+    type(mergerTreeOperatorSelectWithinRange), intent(inout) :: self
+
+    ! Nothing to do.
+    return
+  end subroutine selectWithinRangeDestructor
+
+  subroutine selectWithinRangeOperate(self,tree)
+    !% Perform a select-within-range operation on a merger tree.
+    use Merger_Trees_Pruning_Utilities
+    implicit none
+    class  (mergerTreeOperatorSelectWithinRange), intent(inout)         :: self
+    type   (mergerTree                   ), intent(inout), target :: tree
+    type   (treeNode                     ), pointer               :: baseNode, nodeNext
+    class  (nodeComponentBasic           ), pointer               :: baseNodeBasic
+    type   (mergerTree                   ), pointer               :: currentTree
+
+    ! Iterate over trees.
+    currentTree => tree
+    do while (associated(currentTree))
+       ! Get root node of the tree.
+       baseNode  => currentTree%baseNode
+       baseNodeBasic => baseNode       %basic   ()
+       if (baseNodeBasic%mass() < self%baseMassMin .or. baseNodeBasic%mass() > self%baseMassMax) then
+          ! Entire tree is outside range. Destroy all but this base node. (Leaving just
+          ! the base node makes the tree inert - i.e. it can not do anything.)
+          baseNode => baseNode%firstChild
+          do while (associated(baseNode))
+             nodeNext => baseNode%sibling
+             call currentTree%destroyBranch(baseNode)
+             baseNode => nodeNext
+          end do
+       end if
+       ! Move to the next tree.
+       currentTree => currentTree%nextTree
+    end do    
+    return
+  end subroutine selectWithinRangeOperate
