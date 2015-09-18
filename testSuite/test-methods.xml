@@ -326,13 +326,6 @@
 	<darkMatterProfileConcentrationMethod     value="gao2008"         />
 	<linearGrowthMethod                       value="simple"          />
 	<cosmologyFunctionsMethod                 value="matterLambda"    />
-	<cosmologyParametersMethod                value="simple"           >
-	  <HubbleConstant   value="70.0" />
-	  <OmegaMatter      value="0.31"  />
-	  <OmegaDarkEnergy  value="0.69"  />
-	  <OmegaBaryon      value="0.045"/>
-	  <temperatureCMB   value="2.725"/>
-	</cosmologyParametersMethod>
 	<powerSpectrumPrimordialMethod value="powerLaw">
 	  <index               value="1.0"/>
 	  <wavenumberReference value="1.0"/>
