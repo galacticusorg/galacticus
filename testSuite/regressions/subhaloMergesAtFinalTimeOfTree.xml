@@ -6,8 +6,9 @@
   <treeNodeMethodDarkMatterProfile value="null"/>
   <starFormationTimescaleDisksHaloScalingRedshiftExponent value="0.0"/>
   <coolingTimeMethod value="simple"/>
-  <sigma_8 value="0.9"/>
-  <intergalaticMediumStateFileName value="constraints/data/igmState.xml"/>
+  <cosmologicalMassVarianceMethod value="filteredPower">
+    <sigma_8 value="0.9"/>
+  </cosmologicalMassVarianceMethod><intergalaticMediumStateFileName value="constraints/data/igmState.xml"/>
   <mergerTreeReadPresetMergerTimes value="true"/>
   <timestepSimpleAbsolute value="1.0"/>
   <darkMatterProfileMethod value="isothermal"/>
@@ -20,9 +21,9 @@
   </cosmologyParametersMethod><haloMassFunctionSamplingStellarMassFunctionErrorConstant value="1.0e-8"/>
   <coolingTimeAvailableAgeFactor value="0"/>
   <powerSpectrumPrimordialMethod value="powerLaw">
-    <index               value="1.000"/>
+    <index value="1.000"/>
     <wavenumberReference value="1.000"/>
-    <running             value="0.000"/>
+    <running value="0.000"/>
   </powerSpectrumPrimordialMethod>
   <stellarPopulationSpectraMethod value="FSPS"/>
   <mergerTreeReadTreeIndexToRootNodeIndex value="true"/>
@@ -36,7 +37,7 @@
   <diskOutflowVirialVelocityExponent value="-3.0"/>
   <conditionalMassFunctionBehrooziBSatellite value="19.5579686429"/>
   <mergerTreeBuildTreesPerDecade value="3200"/>
-  <criticalOverdensityMethod value="Kitayama-Suto1996"/>
+  <criticalOverdensityMethod value="kitayamaSuto1996"/>
   <cosmologyFunctionsMethod value="matterLambda"/>
   <haloMassFunctionSamplingStellarMassFunctionErrorBeta value="0.75"/>
   <modifiedPressSchechterGamma2 value="-0.01"/>
@@ -73,9 +74,9 @@
   <coolingRateSimpleScalingTimescale value="1.0"/>
   <hotHaloMassDistributionMethod value="betaProfile"/>
   <allTreesExistAtFinalTime value="false"/>
-  <hotHaloTemperatureMethod value="virial"/>
+  <hotHaloTemperatureProfileMethod value="virial"/>
   <mergerTreeReadPresetSpins value="false"/>
-  <virialOrbitsMethod value="fixed"/>
+  <virialOrbitMethod value="fixed"/>
   <mergerTreeReadPresetPositions value="true"/>
   <virialDensityContrastMethod value="kitayamaSuto1996"/>
   <nodeMergersMethod value="singleLevelHierarchy"/>
@@ -85,7 +86,7 @@
   <satelliteMergingMassMovementsMethod value="verySimple"/>
   <haloMassFunctionSamplingStellarMassFunctionErrorMassMinimum value="1.2589254e8"/>
   <mergingTimescaleMultiplier value="1.0"/>
-  <haloMassFunctionMethod value="Tinker2008"/>
+  <haloMassFunctionMethod value="tinker2008"/>
   <diskOutflowFraction value="1.0"/>
   <treeNodeMethodSatellite value="preset"/>
   <mergerTreeBuildTreesHaloMassDistribution value="uniform"/>

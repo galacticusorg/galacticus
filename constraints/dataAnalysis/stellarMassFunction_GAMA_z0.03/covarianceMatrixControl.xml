@@ -1,0 +1,39 @@
+<constrain>
+  <!-- Configuration file for fitting of CSMF to Baldry et al. (2012) mass function -->
+  <!-- Andrew Benson                                                                -->
+  <!-- 11-June-2014                                                                 -->
+
+  <observedDataFile>data/observations/massFunctionsStellar/Stellar_Mass_Function_GAMA_2012.xml</observedDataFile>
+
+  <baseDirectory>constraints/dataAnalysis/stellarMassFunction_GAMA_z0.03/</baseDirectory>
+
+  <mcmcConfigFile>constraints/dataAnalysis/stellarMassFunction_GAMA_z0.03/mcmcConfig.xml</mcmcConfigFile>
+
+  <constraintFile>constraints/dataAnalysis/stellarMassFunction_GAMA_z0.03/covarianceMatrix.hdf5</constraintFile>
+
+  <parameterFile>constraints/dataAnalysis/stellarMassFunction_GAMA_z0.03/covarianceMatrix.xml</parameterFile>
+
+  <!-- Label for PBS jobs -->
+  <pbsLabel>smfGAMA</pbsLabel>
+
+  <!-- Number of stages (iterations) to carry out -->
+  <stageCount>4</stageCount>
+
+  <!-- Source for mass function -->
+  <sourceLabel>Baldry et al. (2012)</sourceLabel>
+
+  <!-- Label for mass type -->
+  <massType>stellar</massType>
+  <massVariable>M_\star</massVariable>
+
+  <!-- Redshift ranges -->
+  <redshift>
+    <minimum>0.00</minimum>
+    <maximum>0.06</maximum>
+  </redshift>
+
+  <!-- Thread control -->
+  <nodeCount>1</nodeCount>
+  <threadsPerNode>12</threadsPerNode>
+
+</constrain>
