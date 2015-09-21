@@ -24,18 +24,23 @@ unlink($outFileName);
 my $inFile  = new PDL::IO::HDF5(     $inFileName);
 my $outFile = new PDL::IO::HDF5(">".$outFileName);
 
+# Detect file version and set group names appropriately.
+my $inFormatVersion =  (grep {$_ eq "formatVersion"} $inFile->attrs()) ? $inFile->attrGet("formatVersion") : 1;
+my $forestName      = $inFormatVersion == 1 ? "treeIndex" : "forestIndex";
+my $halosName       = $inFormatVersion == 1 ? "haloTrees" : "forestHalos";
+
 # Find the tree to extract.
-my $forestIndex = $inFile->group("forestIndex")->dataset("forestIndex"  )->get();
-my $firstNode   = $inFile->group("forestIndex")->dataset("firstNode"    )->get();
-my $nodeCount   = $inFile->group("forestIndex")->dataset("numberOfNodes")->get();
+my $forestIndex = $inFile->group($forestName)->dataset($forestName  )->get();
+my $firstNode   = $inFile->group($forestName)->dataset("firstNode"    )->get();
+my $nodeCount   = $inFile->group($forestName)->dataset("numberOfNodes")->get();
 my $selected    = which($forestIndex == $tree);
 my $start       = $firstNode->index($selected)->sclr();
 my $count       = $nodeCount->index($selected)->sclr();
 my $end         = $start+$count-1;
 
-# Read all haloTrees datasets.
-foreach my $datasetName ( $inFile->group("forestHalos")->datasets() ) {
-    my $dataset    = $inFile->group("forestHalos")->dataset($datasetName)->get();
+# Read all halo datasets.
+foreach my $datasetName ( $inFile->group($halosName)->datasets() ) {
+    my $dataset    = $inFile->group($halosName)->dataset($datasetName)->get();
     my $dimensions = $dataset->ndims();
      if      ( $dimensions == 1 ) {
      	$outFile->group("forestHalos")->dataset($datasetName)->set($dataset->(  $start:$end));
@@ -55,7 +60,6 @@ $outFile->group("forestIndex")->dataset("numberOfNodes")->set(pdl longlong([$cou
 my $formatVersion;
 if ( grep {$_ eq "formatVersion"} $outFile->attrs() ) {
     $formatVersion = $inFile->attrGet("formatVersion");
-    
 } else {
     $formatVersion = pdl long 2;
 }
@@ -63,8 +67,15 @@ $outFile->attrSet("formatVersion" => $formatVersion);
 
 # Copy all attributes.
 foreach my $groupName ( $inFile->groups() ) {
-    my $fromGroup = $inFile ->group($groupName);
-    my $toGroup   = $outFile->group($groupName);
+    my $outGroupName = $groupName;
+    $outGroupName = "forestIndex"
+	if ( $groupName eq "treeIndex" );
+    $outGroupName = "forestHalos"
+	if ( $groupName eq "haloTrees" );
+    next 
+	if ( $groupName eq "particles" );
+    my $fromGroup = $inFile ->group(   $groupName);
+    my $toGroup   = $outFile->group($outGroupName);
     &Copy_Attributes($fromGroup,$toGroup);
 }
 
