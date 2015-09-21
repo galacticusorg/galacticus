@@ -334,8 +334,6 @@ contains
          &                                                                               status
     double precision                                                                  :: lightconeRadialDistance
     integer         (c_size_t              )                                          :: iOutput
-    character       (len=6                 )                                          :: label
-    type            (varying_string        )                                          :: message
     
     ! Return immediately if this filter is not active.
     if (.not.lightconeFilterActive) return
@@ -354,15 +352,7 @@ contains
     end if
     
     ! Determine to which output this galaxy corresponds.
-    iOutput=Search_Array_For_Closest(lightconeTime,thisBasicComponent%time(),timeTolerance,status)
-    if (status /= errorStatusSuccess) then
-       message=         'failed to find matching time in lightcone'                       //char(10)
-       write (label,'(f6.3)') thisBasicComponent%time()
-       message=message//'                node time = '//trim(label)//' Gyr'               //char(10)
-       write (label,'(f6.3)') lightconeTime(iOutput)
-       message=message//'  closest lightcone time = '//trim(label)//' Gyr ['//iOutput//']'
-       call Galacticus_Error_Report('Galacticus_Merger_Tree_Output_Filter_Lightcone',message)
-    end if
+    iOutput=Search_Array_For_Closest(lightconeTime,thisBasicComponent%time())
 
     ! Determine range of possible replicants of this galaxy which could be in the lightcone.
     periodicRange(:,1)=floor  ((lightconeOrigin+lightconeMinimumDistance(iOutput)*lightconeUnitVector(:,1))/lightconeReplicationPeriod)-1
@@ -370,7 +360,7 @@ contains
 
     ! Get position of galaxy in original coordinates.
     thisPositionComponent => thisNode             %position()
-    galaxyPosition        =  thisPositionComponent%position()/cosmologyFunctionsDefault%expansionFactor(lightconeTime(iOutput))
+    galaxyPosition        =  thisPositionComponent%position()/cosmologyFunctionsDefault%expansionFactor(thisBasicComponent%time())
 
     ! Loop over all replicants.
     galaxyIsInLightcone=.false.
