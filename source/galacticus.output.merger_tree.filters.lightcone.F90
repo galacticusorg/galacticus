@@ -51,6 +51,10 @@ module Galacticus_Merger_Tree_Output_Filter_Lightcones
   double precision                                         :: lightconeRedshift
   !$omp threadprivate(lightconePosition,lightconeVelocity,lightconeRedshift)
 
+  ! Flag indicating that tree pruning is being carried out.
+  logical                                                  :: pruning=.false.
+  !$omp threadprivate(pruning)
+  
 contains
 
   subroutine Galacticus_Merger_Tree_Lightcone_Geometry_Initialize()
@@ -340,7 +344,7 @@ contains
     ! Return immediately if this filter is not active.
     if (.not.lightconeFilterActive) return
 
-   ! Get the default cosmology functions object.
+    ! Get the default cosmology functions object.
     cosmologyFunctionsDefault => cosmologyFunctions()
 
     ! Get components.
@@ -355,7 +359,7 @@ contains
     
     ! Determine to which output this galaxy corresponds.
     iOutput=Search_Array_For_Closest(lightconeTime,thisBasicComponent%time(),timeTolerance,status)
-    if (status /= errorStatusSuccess) then
+    if (status /= errorStatusSuccess .and. .not.pruning) then
        message=         'failed to find matching time in lightcone'                       //char(10)
        write (label,'(f6.3)') thisBasicComponent%time()
        message=message//'                node time = '//trim(label)//' Gyr'               //char(10)
@@ -370,7 +374,7 @@ contains
 
     ! Get position of galaxy in original coordinates.
     thisPositionComponent => thisNode             %position()
-    galaxyPosition        =  thisPositionComponent%position()/cosmologyFunctionsDefault%expansionFactor(lightconeTime(iOutput))
+    galaxyPosition        =  thisPositionComponent%position()/cosmologyFunctionsDefault%expansionFactor(thisBasicComponent%time())
 
     ! Loop over all replicants.
     galaxyIsInLightcone=.false.
@@ -658,6 +662,8 @@ contains
     end if
     ! Check if tree can be pruned.
     if (filterLightconePruneTrees) then
+       ! Record that pruning is being carried out.
+       pruning=.true.
        ! Iterate over trees.
        currentTree => thisTree
        do while (associated(currentTree))
@@ -667,7 +673,10 @@ contains
              doOutput=.true.
              call Galacticus_Merger_Tree_Output_Filter_Lightcone(thisNode,doOutput)
              ! If node is in lightcone, do not prune this tree - simply return.
-             if (doOutput) return
+             if (doOutput) then
+                pruning=.false.
+                return
+             end if
              ! Move to the next node.
              thisNode => thisNode%walkTree()
           end do
@@ -681,6 +690,7 @@ contains
           deallocate(currentTree%baseNode)
           currentTree => currentTree%nextTree
        end do
+       pruning=.false.
     end if
     return
   end subroutine Merger_Tree_Prune_Lightcone
