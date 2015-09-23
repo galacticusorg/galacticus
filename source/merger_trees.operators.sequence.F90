@@ -83,8 +83,17 @@ contains
     !% Destructor for the merger tree operator function class.
     implicit none
     type(mergerTreeOperatorSequence), intent(inout) :: self
+    type(operatorList              ), pointer       :: operator_, operatorNext
 
-    ! Nothing to do.
+    if (associated(self%operators)) then
+       operator_ => self%operators
+       do while (associated(operator_))
+          operatorNext => operator_%next
+          deallocate(operator_%operator_)
+          deallocate(operator_          )
+          operator_ => operatorNext
+       end do
+    end if
     return
   end subroutine sequenceDestructor
 
