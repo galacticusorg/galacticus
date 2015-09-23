@@ -33,7 +33,10 @@ subroutine stateInitializorResumeInitialize(self,simulationState,parameterPriors
   !% Initialize simulation state by resuming from a previous simulation.
   use Constraints_Priors
   use Constraints_State
+  use Constraints_Constants
   use MPI_Utilities
+  use String_Handling
+  use Galacticus_Display
   implicit none
   class           (stateInitializorResume), intent(inout)               :: self
   class           (state                 ), intent(inout)               :: simulationState
@@ -41,13 +44,14 @@ subroutine stateInitializorResumeInitialize(self,simulationState,parameterPriors
   type            (mappingList           ), intent(in   ), dimension(:) :: parameterMappings
   double precision                        , intent(  out)               :: timeEvaluatePrevious
   double precision                        , allocatable  , dimension(:) :: stateVector
-  type            (varying_string        )                              :: logFileName
+  type            (varying_string        )                              :: logFileName    , message
   integer                                                               :: stateCount     , mpiRank     , &
        &                                                                   logFileUnit    , ioStatus    , &
        &                                                                   i
   double precision                                                      :: logPosterior
   logical                                                               :: converged      , first
-
+  character       (len=12                )                              :: label
+  
   ! Allocate the state vector.
   allocate(stateVector(simulationState%dimension()))
   ! Read state from the log file.
@@ -75,6 +79,15 @@ subroutine stateInitializorResumeInitialize(self,simulationState,parameterPriors
   close(logFileUnit)
   ! Set the simulation state.
   call simulationState%update(stateVector,.false.,.false.)
+  ! Check for out of range state.
+  do i=1,simulationState%dimension()
+     if (parameterPriors(i)%logDensity(simulationState) <= logImpossible) then
+        write (label,'(e12.6)') parameterMappings(i)%thisMapping%unmap(stateVector(i))
+        message='Out of range state for parameter '
+        message=message//i//' ['//trim(label)//']'
+        call Galacticus_Display_Message(message)
+     end if
+  end do
   ! Deallocate the state vector.
   deallocate(stateVector)
   return
