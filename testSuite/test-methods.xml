@@ -816,7 +816,9 @@
     <mergerTreeBuildHaloMassMaximum value="1.0e15"/>
     <mergerTreeBuildHaloMassMinimum value="1.0e10"/>
     <mergerTreeBuildTreesPerDecade value="5"/>
-    <mergerTreeBuildMassResolutionFixed value="5.0e9"/>
+    <mergerTreeMassResolutionMethod value="fixed">
+      <massResolution value="5.0e9"/>
+    </mergerTreeMassResolutionMethod>
   </parameters>
 
   <!-- Detailed satellite orbits -->

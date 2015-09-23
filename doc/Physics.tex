@@ -1875,11 +1875,11 @@ Note that currently this method does not support storing and restoring of trees 
 
 The method to be used for computing the mass resolution to use when building merger trees is specified by the {\normalfont \ttfamily mergerTreesBuildMassResolutionMetod} parameter.
 
-\subsection{Fixed}
+\subsection{Fixed}\label{phys:mergerTreeMassResolution:mergerTreeMassResolutionFixed}
 
 Selected with {\normalfont \ttfamily mergerTreesBuildMassResolutionMetod}$=${\normalfont \ttfamily fixed}, this method assumes a fixed mass resolution of {\normalfont \ttfamily [mergerTreeBuildMassResolutionFixed]} for all merger trees.
 
-\subsection{Scaled}
+\subsection{Scaled}\label{phys:mergerTreeMassResolution:mergerTreeMassResolutionScaled}
 
 Selected with {\normalfont \ttfamily mergerTreesBuildMassResolutionMetod}$=${\normalfont \ttfamily scaled}, this method computes the mass resolution to be the larger of {\normalfont \ttfamily [mergerTreeBuildMassResolutionScaledMinimum]} and {\normalfont \ttfamily [mergerTreeBuildMassResolutionScaledFraction]}$\times M_{\mathrm base}$, where $M_{\mathrm base}$ is the base mass of the merger tree.
 
