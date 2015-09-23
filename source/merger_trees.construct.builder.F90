@@ -36,6 +36,12 @@ module Merger_Trees_Builders
   !#   <pass>yes</pass>
   !#   <argument>type(mergerTree), intent(inout), target :: tree</argument>
   !#  </method>
+  !#  <method name="timeEarliestSet">
+  !#   <description>Set the earliest time for the builder to the given value.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: timeEarliest</argument>
+  !#  </method>
   !# </functionClass>
   
 end module Merger_Trees_Builders

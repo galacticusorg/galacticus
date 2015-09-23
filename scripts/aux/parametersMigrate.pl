@@ -338,7 +338,11 @@ my @translations =
 	     "powerSpectrumWindowFunctionSharpKSpaceNormalization"            => "powerSpectrumWindowFunctionMethod.sharpKSpace.--normalization"                  ,
 	     "powerSpectrumWindowFunctionSharpKSpaceTopHatRadiiRatio"         => "powerSpectrumWindowFunctionMethod.topHatSharpKHybrid.--radiiRatio"              ,
 	     "haloMassFunctionSimpleSystematicAlpha"                          => "haloMassFunctionMethod.simpleSystematic.--alpha"                                ,
-	     "haloMassFunctionSimpleSystematicBeta"                           => "haloMassFunctionMethod.simpleSystematic.--beta"
+	     "haloMassFunctionSimpleSystematicBeta"                           => "haloMassFunctionMethod.simpleSystematic.--beta"                                 ,
+	     "mergerTreeBuildMassResolutionFixed"                             => "mergerTreeMassResolutionMethod.fixed.--massResolution"                          ,
+	     "mergerTreeBuildMassResolutionScaledMinimum"                     => "mergerTreeMassResolutionMethod.scaled.--massResolutionMinimum"                  ,
+	     "mergerTreeBuildMassResolutionScaledFraction"                    => "mergerTreeMassResolutionMethod.scaled.--massResolutionFractional"
+		 
 	 },
  	 values        =>
          {
