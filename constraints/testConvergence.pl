@@ -84,7 +84,7 @@ if ( $arguments{'make'} eq "yes" ) {
 my @constraints = @{$constraintsRef};
 
 # Set an initial random number seed.
-$parameters>{'randomSeed'}->{'value'} = 824;
+$parameters->{'randomSeed'}->{'value'} = 824;
 
 # Set a dummy baseline variable.
 $parameters->{'baseline'  }->{'value'} = 1.0;
