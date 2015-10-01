@@ -25,8 +25,10 @@
   type, extends(haloMassFunctionClass) :: haloMassFunctionShethTormen
      !% A halo mass function class using the fitting function of \cite{sheth_ellipsoidal_2001}.
      private
-     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
-     class(criticalOverdensityClass     ), pointer :: criticalOverdensity_
+     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+     class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_
+     double precision                                         :: aValue                   , pValue, &
+          &                                                      normalizationValue
    contains
      !@ <objectMethods>
      !@   <object>haloMassFunctionShethTormen</object>
@@ -77,21 +79,53 @@ contains
     !# <objectBuilder class="cosmologyParameters"      name="shethTormenConstructorParameters%cosmologyParameters_"      source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="shethTormenConstructorParameters%cosmologicalMassVariance_" source="parameters"/>
     !# <objectBuilder class="criticalOverdensity"      name="shethTormenConstructorParameters%criticalOverdensity_"      source="parameters"/>
+    !# <inputParameter>
+    !#   <name>a</name>
+    !#   <source>parameters</source>
+    !#   <variable>shethTormenConstructorParameters%aValue</variable>
+    !#   <defaultValue>0.707d0</defaultValue>
+    !#   <description>The parameter $a$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>p</name>
+    !#   <source>parameters</source>
+    !#   <variable>shethTormenConstructorParameters%pValue</variable>
+    !#   <defaultValue>0.3d0</defaultValue>
+    !#   <description>The parameter $p$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>normalization</name>
+    !#   <source>parameters</source>
+    !#   <variable>shethTormenConstructorParameters%normalizationValue</variable>
+    !#   <defaultValue>0.3221836349d0</defaultValue>
+    !#   <description>The normalization parameter $A$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
    return
   end function shethTormenConstructorParameters
 
-  function shethTormenConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_)
+  function shethTormenConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,a,p,normalization)
     !% Internal constructor for the {\normalfont \ttfamily shethTormen} halo mass function class.
     implicit none
-    type (haloMassFunctionShethTormen  )                        :: shethTormenConstructorInternal
-    class(cosmologyParametersClass     ), target, intent(in   ) :: cosmologyParameters_    
-    class(cosmologicalMassVarianceClass), target, intent(in   ) :: cosmologicalMassVariance_
-    class(criticalOverdensityClass     ), target, intent(in   ) :: criticalOverdensity_
+    type            (haloMassFunctionShethTormen  )                        :: shethTormenConstructorInternal
+    class           (cosmologyParametersClass     ), target, intent(in   ) :: cosmologyParameters_    
+    class           (cosmologicalMassVarianceClass), target, intent(in   ) :: cosmologicalMassVariance_
+    class           (criticalOverdensityClass     ), target, intent(in   ) :: criticalOverdensity_
+    double precision                                       , intent(in   ) :: a                             , p, &
+         &                                                                    normalization
 
     shethTormenConstructorInternal%cosmologyParameters_      => cosmologyParameters_
     shethTormenConstructorInternal%cosmologicalMassVariance_ => cosmologicalMassVariance_
     shethTormenConstructorInternal%criticalOverdensity_      => criticalOverdensity_
-    return
+    shethTormenConstructorInternal%aValue                    =  a
+    shethTormenConstructorInternal%pValue                    =  p
+    shethTormenConstructorInternal%normalizationValue        =  normalization
+   return
   end function shethTormenConstructorInternal
 
   subroutine shethTormenDestructor(self)
@@ -151,7 +185,7 @@ contains
     class           (haloMassFunctionShethTormen), intent(inout) :: self
     double precision                             , intent(in   ) :: time , mass    
 
-    shethTormenA=0.707d0
+    shethTormenA=self%aValue
     return
   end function shethTormenA
  
@@ -162,7 +196,7 @@ contains
     class           (haloMassFunctionShethTormen), intent(inout) :: self
     double precision                             , intent(in   ) :: time , mass    
 
-    shethTormenP=0.3d0
+    shethTormenP=self%pValue
     return
   end function shethTormenP
   
@@ -173,7 +207,7 @@ contains
     class           (haloMassFunctionShethTormen), intent(inout) :: self
     double precision                             , intent(in   ) :: time , mass    
 
-    shethTormenNormalization=0.3221836349d0
+    shethTormenNormalization=self%normalizationValue
     return
   end function shethTormenNormalization
  
