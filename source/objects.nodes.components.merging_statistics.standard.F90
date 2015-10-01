@@ -61,6 +61,13 @@ module Node_Component_Merging_Statistics_Standard
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <output unitsInSI="0.0d0" comment="Initial level of the node in the tree hierarchy."/>
   !#   </property>
+  !#   <property>
+  !#     <name>nodeHierarchyLevelMaximum</name>
+  !#     <type>integer</type>
+  !#     <rank>0</rank>
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+  !#     <output unitsInSI="0.0d0" comment="Maximum level of the node in the tree hierarchy."/>
+  !#   </property>
   !#  </properties>
   !# </component>
 
@@ -114,6 +121,10 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Merging_Statistics_Standard_Merger_Tree_Init(thisNode)
     !% Initialize the merging statistics component by creating components in nodes and computing formation times.
+
+    use kind_numbers
+
+    
     implicit none
     type   (treeNode                      ), intent(inout), pointer :: thisNode
     type   (treeNode                      )               , pointer :: descendentNode
@@ -138,14 +149,14 @@ contains
     class is (nodeComponentMergingStatisticsStandard)
        hierarchyLevel=0
        descendentNode => thisNode
-       do while (associated(descendentNode))
+      do while (associated(descendentNode))
           if (associated(descendentNode%parent).and..not.descendentNode%isPrimaryProgenitor()) hierarchyLevel=hierarchyLevel+1
           if (.not.associated(thisNode,descendentNode)) then
              descendentMergingStatistics => descendentNode%mergingStatistics()
              select type (descendentMergingStatistics)
              class is (nodeComponentMergingStatisticsStandard)
                 hierarchyLevel=hierarchyLevel+descendentMergingStatistics%nodeHierarchyLevel()
-                exit
+               exit
              end select
           end if
           descendentNode => descendentNode%parent
@@ -157,7 +168,7 @@ contains
              descendentNode => descendentNode%parent
           else
              descendentNode => null()
-          end if
+          end if          
        end do
     end select
     return
@@ -172,10 +183,11 @@ contains
     class  (nodeComponentMergingStatistics),                pointer :: thisMergingStatistics
 
     thisMergingStatistics => thisNode%mergingStatistics(autoCreate=.true.)
-    call thisMergingStatistics%   nodeHierarchyLevelSet(hierarchyLevel)
-    call thisMergingStatistics%galaxyMajorMergerTimeSet(        -1.0d0)
-    call thisMergingStatistics%  nodeMajorMergerTimeSet(        -1.0d0)
-    call thisMergingStatistics%    nodeFormationTimeSet(Dark_Matter_Halo_Formation_Time(thisNode,nodeFormationMassFraction))
+    call thisMergingStatistics%          nodeHierarchyLevelSet(hierarchyLevel)
+    call thisMergingStatistics%   nodeHierarchyLevelMaximumSet(hierarchyLevel)
+    call thisMergingStatistics%       galaxyMajorMergerTimeSet(        -1.0d0)
+    call thisMergingStatistics%         nodeMajorMergerTimeSet(        -1.0d0)
+    call thisMergingStatistics%           nodeFormationTimeSet(Dark_Matter_Halo_Formation_Time(thisNode,nodeFormationMassFraction))
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Merger_Tree_Init_Set
 
@@ -218,7 +230,9 @@ contains
     thisMergingStatisticsComponent   => thisNode       %mergingStatistics()
     if (parentMergingStatisticsComponent%nodeMajorMergerTime() > thisMergingStatisticsComponent%nodeMajorMergerTime()) &
          & call thisMergingStatisticsComponent%nodeMajorMergerTimeSet(parentMergingStatisticsComponent%nodeMajorMergerTime())
-    call thisMergingStatisticsComponent%nodeFormationTimeSet(parentMergingStatisticsComponent%nodeFormationTime())
+   
+    call thisMergingStatisticsComponent%nodeHierarchyLevelSet(parentMergingStatisticsComponent%nodeHierarchyLevel())
+    call thisMergingStatisticsComponent%nodeFormationTimeSet (parentMergingStatisticsComponent%nodeFormationTime ())
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Node_Promotion
 
