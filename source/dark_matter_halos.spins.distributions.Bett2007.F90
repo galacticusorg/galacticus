@@ -15,162 +15,174 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the \cite{bett_spin_2007} halo spin distribution.
+  !% An implementation of the dark matter halo spin distribution which uses the fitting function proposed by
+  !% \cite{bett_spin_2007}.
 
-module Halo_Spin_Distributions_Bett2007
-  !% Implements the \cite{bett_spin_2007} halo spin distribution.
-  use FGSL
   use Tables
-  implicit none
-  private
-  public :: Halo_Spin_Distribution_Bett2007_Initialize, Halo_Spin_Distribution_Bett2007_Snapshot,&
-       & Halo_Spin_Distribution_Bett2007_State_Store, Halo_Spin_Distribution_Bett2007_State_Retrieve
+  use Table_Labels
 
-  ! Parameters of the spin distribution.
-  double precision                                        :: spinDistributionBett2007Alpha           , spinDistributionBett2007Lambda0
+  !# <haloSpinDistribution name="haloSpinDistributionBett2007">
+  !#  <description>A halo spin distribution using the fitting formula of \cite{bett_spin_2007}.</description>
+  !# </haloSpinDistribution>
+  type, extends(haloSpinDistributionClass) :: haloSpinDistributionBett2007
+     !% A dark matter halo spin distribution class which assumes a \cite{bett_spin_2007} distribution.
+     private
+     double precision                                        :: alpha               , lambda0
+     type            (table1DLogarithmicLinear)              :: distribution
+     class           (table1D                 ), allocatable :: distributionInverse
+     type            (fgsl_rng                )              :: clonedPseudoSequence, randomSequence
+     logical                                                 :: resetRandomSequence , resetRandomSequenceSnapshot
+   contains
+     final     ::                  bett2007Destructor
+     procedure :: sample        => bett2007Sample
+     procedure :: stateSnapshot => bett2007StateSnapshot
+     procedure :: stateStore    => bett2007StateStore
+     procedure :: stateRestore  => bett2007StateRestore
+  end type haloSpinDistributionBett2007
+  
+  interface haloSpinDistributionBett2007
+     !% Constructors for the {\normalfont \ttfamily bett2007} dark matter halo spin
+     !% distribution class.
+     module procedure bett2007ConstructorParameters
+     module procedure bett2007ConstructorInternal
+  end interface haloSpinDistributionBett2007
 
-  ! Tabulation of the spin distribution.
-  integer                                   , parameter   :: spinDistributionTableNumberPoints=1000
-  double precision                          , parameter   :: spinDistributionTableSpinMaximum =0.2d0                                   !    Maximum spin to tabulate.
-  double precision                          , parameter   :: spinDistributionTableMinimum     =1.0d-6                                  !    Minimum spin in units of lambda_.
-  double precision                                        :: spinDistributionTableMaximum
-  type            (table1DLogarithmicLinear)              :: spinDistributionTable
-  class           (table1D                 ), allocatable :: spinDistributionTableInverse
-
-  ! Random number objects.
-  type            (fgsl_rng                )              :: clonedPseudoSequenceObject              , randomSequenceObject
-  logical                                                 :: resetRandomSequence              =.true., resetRandomSequenceSnapshot
-  !$omp threadprivate(resetRandomSequence,randomSequenceObject,resetRandomSequenceSnapshot,clonedPseudoSequenceObject)
+  ! Tabulation parameters.
+  integer         , parameter :: bett2007TabulationPointsCount=1000
+  double precision, parameter :: bett2007SpinMaximum          =   0.2d+0
+  double precision, parameter :: bett2007SpinMinimum          =   1.0d-6
 
 contains
 
-  !# <haloSpinDistributionMethod>
-  !#  <unitName>Halo_Spin_Distribution_Bett2007_Initialize</unitName>
-  !# </haloSpinDistributionMethod>
-  subroutine Halo_Spin_Distribution_Bett2007_Initialize(haloSpinDistributionMethod,Halo_Spin_Sample_Get)
-    !% Initializes the ``Bett2007'' halo spin distribution module.
-    use ISO_Varying_String
-    use Input_Parameters
-    use Gamma_Functions
-    use Table_Labels
+  function bett2007ConstructorParameters(parameters)
+    !% Constructor for the {\normalfont \ttfamily bett2007} dark matter halo spin
+    !% distribution class which takes a parameter list as input.
+    use Input_Parameters2
     implicit none
-    type            (varying_string                 ), intent(in   )          :: haloSpinDistributionMethod
-    procedure       (Halo_Spin_Distribution_Bett2007), intent(inout), pointer :: Halo_Spin_Sample_Get
-    integer                                                                   :: iSpin
-    double precision                                                          :: spinDimensionless
+    type            (haloSpinDistributionBett2007)                :: bett2007ConstructorParameters
+    type            (inputParameters             ), intent(in   ) :: parameters
+    double precision                                              :: lambda0                      , alpha
+    !# <inputParameterList label="allowedParameterNames" />
 
-    if (haloSpinDistributionMethod == 'Bett2007') then
-       Halo_Spin_Sample_Get => Halo_Spin_Distribution_Bett2007
-       !@ <inputParameter>
-       !@   <name>spinDistributionBett2007Lambda0</name>
-       !@   <defaultValue>0.04326 \citep{bett_spin_2007}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The median in a lognormal halo spin distribution.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('spinDistributionBett2007Lambda0',spinDistributionBett2007Lambda0,defaultValue=0.04326d0)
-       !@ <inputParameter>
-       !@   <name>spinDistributionBett2007Alpha</name>
-       !@   <defaultValue>2.509 \citep{bett_spin_2007}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The dispersion in a lognormal halo spin distribution.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('spinDistributionBett2007Alpha',spinDistributionBett2007Alpha,defaultValue=2.509d0)
-
-       ! Maximum value of x=(lambda/lambda_0)^(3/alpha) to tabulate.
-       spinDistributionTableMaximum=(spinDistributionTableSpinMaximum/spinDistributionBett2007Lambda0)**(3.0d0/spinDistributionBett2007Alpha)
-       ! Tabulate the cumulative distribution.
-       call spinDistributionTable%destroy()
-       call spinDistributiontable%create(&
-            &                            spinDistributionBett2007Lambda0*spinDistributionTableMinimum**(spinDistributionBett2007Alpha/3.0d0), &
-            &                            spinDistributionBett2007Lambda0*spinDistributionTableMaximum**(spinDistributionBett2007Alpha/3.0d0), &
-            &                            spinDistributionTableNumberPoints                                                                  , &
-            &                            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                         &
-            &                           )
-       ! Compute the cumulative probability distribution.
-       do iSpin=1,spinDistributionTableNumberPoints
-          spinDimensionless=                                         &
-               &            (                                        &
-               &              spinDistributionTable%x(iSpin)         &
-               &             /spinDistributionBett2007Lambda0        &
-               &            )**(3.0d0/spinDistributionBett2007Alpha)
-          call spinDistributionTable%populate(                                                                        &
-               &                              Gamma_Function_Incomplete_Complementary                                 &
-               &                                                                     (                                &
-               &                                                                       spinDistributionBett2007Alpha, &
-               &                                                                       spinDistributionBett2007Alpha  &
-               &                                                                      *spinDimensionless              &
-               &                                                                     )                              , &
-               &                              iSpin                                                                   &
-               &                             )
-       end do
-       call spinDistributionTable%reverse(spinDistributionTableInverse)
-    end if
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>lambda0</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.04326d0</defaultValue>
+    !#   <defaultSource>\citep{bett_spin_2007}</defaultSource>
+    !#   <description>The parameter $\lambda_0$ in the halo spin distribution of \cite{bett_spin_2007}.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>alpha</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>2.509d0</defaultValue>
+    !#   <defaultSource>\citep{bett_spin_2007}</defaultSource>
+    !#   <description>The parameter $\alpha$ in the halo spin distribution of \cite{bett_spin_2007}.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    bett2007ConstructorParameters=bett2007ConstructorInternal(lambda0,alpha)
     return
-  end subroutine Halo_Spin_Distribution_Bett2007_Initialize
+  end function bett2007ConstructorParameters
 
-  double precision function Halo_Spin_Distribution_Bett2007(thisNode)
-    !% Return a halo spin from a lognormal distribution.
-    use Galacticus_Nodes
+  function bett2007ConstructorInternal(lambda0,alpha)
+    !% Internal constructor for the {\normalfont \ttfamily bett2007} dark matter halo spin
+    !% distribution class.
+    use Gamma_Functions
+    implicit none
+    type            (haloSpinDistributionBett2007)                :: bett2007ConstructorInternal
+    double precision                              , intent(in   ) :: lambda0                    , alpha
+    double precision                                              :: spinDimensionless
+    integer                                                       :: iSpin
+
+    bett2007ConstructorInternal%lambda0=lambda0
+    bett2007ConstructorInternal%alpha  =alpha
+    ! Tabulate the cumulative distribution.
+    call bett2007ConstructorInternal%distribution%destroy()
+    call bett2007ConstructorInternal%distribution%create (                                                                                        &
+         &                                                lambda0*bett2007SpinMinimum**(alpha/3.0d0),                                             &
+         &                                                lambda0*bett2007SpinMaximum**(alpha/3.0d0)                                            , &
+         &                                                bett2007TabulationPointsCount                                                         , &
+         &                                                extrapolationType                         =[extrapolationTypeFix,extrapolationTypeFix]  &
+         &                                               )
+    ! Compute the cumulative probability distribution.
+    do iSpin=1,bett2007TabulationPointsCount
+       spinDimensionless=(                                                   &
+            &             +bett2007ConstructorInternal%distribution%x(iSpin) &
+            &             /lambda0                                           &
+            &            )**(3.0d0/alpha)
+       call bett2007ConstructorInternal%distribution%populate(                                                            &
+            &                                                 Gamma_Function_Incomplete_Complementary(                    &
+            &                                                                                         +alpha            , &
+            &                                                                                         +alpha              &
+            &                                                                                         *spinDimensionless  &
+            &                                                                                        )                  , &
+            &                                                 iSpin                                                       &
+            &                                                )
+    end do
+    call bett2007ConstructorInternal%distribution%reverse(bett2007ConstructorInternal%distributionInverse)
+    return
+  end function bett2007ConstructorInternal
+
+  subroutine bett2007Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily bett2007} dark matter halo spin
+    !% distribution class.
     use Pseudo_Random
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision                                   :: randomDeviate
+    type(haloSpinDistributionBett2007), intent(inout) :: self
 
-    randomDeviate=Pseudo_Random_Get(randomSequenceObject,resetRandomSequence)
-    !$omp critical(Halo_Spin_Distribution_Bett2007)
-    Halo_Spin_Distribution_Bett2007=spinDistributionTableInverse%interpolate(randomDeviate)
-    !$omp end critical(Halo_Spin_Distribution_Bett2007)
-   return
-  end function Halo_Spin_Distribution_Bett2007
+    if (.not.self%resetRandomSequence        ) call Pseudo_Random_Free(self%randomSequence      )
+    if (.not.self%resetRandomSequenceSnapshot) call Pseudo_Random_Free(self%clonedPseudoSequence)
+    return
+  end subroutine bett2007Destructor
 
-  !# <galacticusStateSnapshotTask>
-  !#  <unitName>Halo_Spin_Distribution_Bett2007_Snapshot</unitName>
-  !# </galacticusStateSnapshotTask>
-  subroutine Halo_Spin_Distribution_Bett2007_Snapshot
+  double precision function bett2007Sample(self,node)
+    !% Sample from a \cite{bett_spin_2007} spin parameter distribution for the given {\normalfont
+    !% \ttfamily node}.
+    use Pseudo_Random
+    implicit none
+    class(haloSpinDistributionBett2007), intent(inout)          :: self
+    type (treeNode                    ), intent(inout), pointer :: node
+
+    bett2007Sample=self%distributionInverse%interpolate(Pseudo_Random_Get(self%randomSequence,self%resetRandomSequence))
+    return
+  end function bett2007Sample
+
+  subroutine bett2007StateSnapshot(self)
     !% Store a snapshot of the random number generator internal state.
     implicit none
+    class(haloSpinDistributionBett2007), intent(inout) :: self
 
-    if (.not.resetRandomSequence) clonedPseudoSequenceObject=FGSL_Rng_Clone(randomSequenceObject)
-    resetRandomSequenceSnapshot=resetRandomSequence
+    if (.not.self%resetRandomSequence) self%clonedPseudoSequence=FGSL_Rng_Clone(self%randomSequence)
+    self%resetRandomSequenceSnapshot=self%resetRandomSequence
     return
-  end subroutine Halo_Spin_Distribution_Bett2007_Snapshot
+  end subroutine bett2007StateSnapshot
 
-  !# <galacticusStateStoreTask>
-  !#  <unitName>Halo_Spin_Distribution_Bett2007_State_Store</unitName>
-  !# </galacticusStateStoreTask>
-  subroutine Halo_Spin_Distribution_Bett2007_State_Store(stateFile,fgslStateFile)
+  subroutine bett2007StateStore(self,stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
     use Pseudo_Random
     implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
+    class  (haloSpinDistributionBett2007), intent(inout) :: self
+    integer                               , intent(in   ) :: stateFile
+    type   (fgsl_file                    ), intent(in   ) :: fgslStateFile
 
-    write (stateFile) resetRandomSequenceSnapshot
-    if (.not.resetRandomSequenceSnapshot) call Pseudo_Random_Store(clonedPseudoSequenceObject,fgslStateFile)
+    write (stateFile) self%resetRandomSequenceSnapshot
+    if (.not.self%resetRandomSequenceSnapshot) call Pseudo_Random_Store(self%clonedPseudoSequence,fgslStateFile)
     return
-  end subroutine Halo_Spin_Distribution_Bett2007_State_Store
+  end subroutine bett2007StateStore
 
-  !# <galacticusStateRetrieveTask>
-  !#  <unitName>Halo_Spin_Distribution_Bett2007_State_Retrieve</unitName>
-  !# </galacticusStateRetrieveTask>
-  subroutine Halo_Spin_Distribution_Bett2007_State_Retrieve(stateFile,fgslStateFile)
+  subroutine bett2007StateRestore(self,stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
     use Pseudo_Random
     implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
+    class  (haloSpinDistributionBett2007), intent(inout) :: self
+    integer                               , intent(in   ) :: stateFile
+    type   (fgsl_file                    ), intent(in   ) :: fgslStateFile
 
-    read (stateFile) resetRandomSequence
-    if (.not.resetRandomSequence) call Pseudo_Random_Retrieve(randomSequenceObject,fgslStateFile)
+    read (stateFile) self%resetRandomSequence
+    if (.not.self%resetRandomSequence) call Pseudo_Random_Retrieve(self%randomSequence,fgslStateFile)
     return
-  end subroutine Halo_Spin_Distribution_Bett2007_State_Retrieve
-
-end module Halo_Spin_Distributions_Bett2007
+  end subroutine bett2007StateRestore
