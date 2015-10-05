@@ -825,15 +825,15 @@ is used to model the error, $\sigma(M)$, on the observed stellar mass function a
 
 The method used to compute the distribution of dark matter halo spin parameters is selected via the {\normalfont \ttfamily haloSpinDistributionMethod} parameter.
 
-\subsubsection{Lognormal}
+\subsubsection{Lognormal}\label{phys:haloSpinDistribution:haloSpinDistributionLogNormal}
 
 Selected with {\normalfont \ttfamily haloSpinDistributionMethod}$=${\normalfont \ttfamily lognormal}, under this method the spin is drawn from a lognormal distribution with median {\normalfont \ttfamily [lognormalSpinDistributionMedian]} and width {\normalfont \ttfamily [lognormalSpinDistributionSigma]}.
 
-\subsubsection{Bett et al. (2007)}
+\subsubsection{Bett et al. (2007)}\label{phys:haloSpinDistribution:haloSpinDistributionBett2007}
 
 Selected with {\normalfont \ttfamily haloSpinDistributionMethod}$=${\normalfont \ttfamily Bett2007}, under this method the spin is drawn from the distribution found by \cite{bett_spin_2007}. The $\lambda_0$ and $\alpha$ parameter of Bett et al.'s distribution are set by the {\normalfont \ttfamily [spinDistributionBett2007Lambda0]} and {\normalfont \ttfamily [spinDistributionBett2007Alpha]} input parameters.
 
-\subsubsection{Delta Function}
+\subsubsection{Delta Function}\label{phys:haloSpinDistribution:haloSpinDistributionDeltaFunction}
 
 Selected with {\normalfont \ttfamily haloSpinDistributionMethod}$=${\normalfont \ttfamily deltaFunction}, under this method the spin is drawn from a delta function distribution, $P(\lambda) = \delta(\lambda-\lambda_0)$, where $\lambda_0=${\normalfont \ttfamily [deltaFunctionSpinDistributionSpin]}, i.e. a fixed value of spin equal to $\lambda_0$ is returned.
 
