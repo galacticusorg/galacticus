@@ -340,6 +340,11 @@ my @translations =
 	     "haloMassFunctionSimpleSystematicAlpha"                          => "haloMassFunctionMethod.simpleSystematic.--alpha"                                ,
 	     "haloMassFunctionSimpleSystematicBeta"                           => "haloMassFunctionMethod.simpleSystematic.--beta"                                 ,
 	     "mergerTreeBuildMassResolutionFixed"                             => "mergerTreeMassResolutionMethod.fixed.--massResolution"                          ,
+	     "spinDistributionBett2007Lambda0"	                              => "haloSpinDistributionMethod.bett2007.--lambda0"                                  ,
+	     "spinDistributionBett2007Alpha"	                              => "haloSpinDistributionMethod.bett2007.--alpha"                                    ,
+	     "lognormalSpinDistributionMedian"                                => "haloSpinDistributionMethod.logNormal.--median"                                  ,
+	     "lognormalSpinDistributionSigma"	                              => "haloSpinDistributionMethod.logNormal.--sigma"                                   ,
+	     "deltaFunctionSpinDistributionSpin"	                      => "haloSpinDistributionMethod.deltaFunction.--spin"                                ,
 	     "mergerTreeBuildMassResolutionScaledMinimum"                     => "mergerTreeMassResolutionMethod.scaled.--massResolutionMinimum"                  ,
 	     "mergerTreeBuildMassResolutionScaledFraction"                    => "mergerTreeMassResolutionMethod.scaled.--massResolutionFractional"
 		 
@@ -375,8 +380,11 @@ my @translations =
 	     {
 	         "Conroy-White-Gunn2009"     => "FSPS"
              },
-	     criticalOverdensityMethod =>
+	     haloSpinDistributionMethod =>
 	     {
+	         "Bett2007"                  => "bett2007"
+	     },
+	     criticalOverdensityMethod =>	     {
 		 "Kitayama-Suto1996"         => "kitayamaSuto1996"             ,
 		 "sphericalTopHat"           => "sphericalCollapseMatterLambda",
 		 "sphericalTopHatDarkEnergy" => "sphericalCollapseMatterDE"

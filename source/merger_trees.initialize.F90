@@ -40,6 +40,8 @@ contains
     if (thisTree%initializedUntil < endTime) then
        node => thisTree%baseNode
        do while (associated(node))
+          node => node%walkTreeWithSatellites()
+          if (.not.associated(node)) exit
           ! Initialize only nodes that exist before the end time.
           basic => node%basic()
           if (basic%time() > thisTree%initializedUntil .and. basic%time() <= endTime) then
@@ -49,11 +51,9 @@ contains
              include 'merger_trees.initialize.tasks.inc'
              !# </include>
           end if
-          node => node%walkTreeWithSatellites()
        end do
        thisTree%initializedUntil=endTime
     end if
-
     return
   end subroutine Merger_Tree_Initialize
 

@@ -15,119 +15,146 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a lognormal halo spin distribution.
+  !% An implementation of the dark matter halo spin distribution which assumes a
+  !% log-normal distribution.
 
-module Halo_Spin_Distributions_Lognormal
-  !% Implements a lognormal halo spin distribution.
-  use FGSL
-  implicit none
-  private
-  public :: Halo_Spin_Distribution_Lognormal_Initialize, Halo_Spin_Distribution_Lognormal_Snapshot,&
-       & Halo_Spin_Distribution_Lognormal_State_Store, Halo_Spin_Distribution_Lognormal_State_Retrieve
+  !# <haloSpinDistribution name="haloSpinDistributionLogNormal">
+  !#  <description>A log-normal halo spin distribution.</description>
+  !# </haloSpinDistribution>
+  type, extends(haloSpinDistributionClass) :: haloSpinDistributionLogNormal
+     !% A dark matter halo spin distribution concentration class which assumes a
+     !% log-normal distribution.
+     private
+     double precision           :: median              , sigma
+     type            (fgsl_rng) :: clonedPseudoSequence, randomSequence
+     logical                    :: resetRandomSequence , resetRandomSequenceSnapshot
+   contains
+     final     ::                  logNormalDestructor
+     procedure :: sample        => logNormalSample
+     procedure :: stateSnapshot => logNormalStateSnapshot
+     procedure :: stateStore    => logNormalStateStore
+     procedure :: stateRestore  => logNormalStateRestore
+  end type haloSpinDistributionLogNormal
+  
+  interface haloSpinDistributionLogNormal
+     !% Constructors for the {\normalfont \ttfamily logNormal} dark matter halo spin
+     !% distribution class.
+     module procedure logNormalConstructorParameters
+     module procedure logNormalConstructorInternal
+  end interface haloSpinDistributionLogNormal
 
-  ! Parameters of the spin distribution.
-  double precision           :: lognormalSpinDistributionMedian       , lognormalSpinDistributionSigma
-
-  ! Random number objects
-  type            (fgsl_rng) :: clonedPseudoSequenceObject            , randomSequenceObject
-  logical                    :: resetRandomSequence            =.true., resetRandomSequenceSnapshot
-  !$omp threadprivate(resetRandomSequence,randomSequenceObject,clonedPseudoSequenceObject,resetRandomSequenceSnapshot)
 contains
 
-  !# <haloSpinDistributionMethod>
-  !#  <unitName>Halo_Spin_Distribution_Lognormal_Initialize</unitName>
-  !# </haloSpinDistributionMethod>
-  subroutine Halo_Spin_Distribution_Lognormal_Initialize(haloSpinDistributionMethod,Halo_Spin_Sample_Get)
-    !% Initializes the ``Lognormal'' halo spin distribution module.
-    use ISO_Varying_String
-    use Input_Parameters
+  function logNormalConstructorParameters(parameters)
+    !% Constructor for the {\normalfont \ttfamily logNormal} dark matter halo spin
+    !% distribution class which takes a parameter list as input.
+    use Input_Parameters2
     implicit none
-    type     (varying_string                  ), intent(in   )          :: haloSpinDistributionMethod
-    procedure(Halo_Spin_Distribution_Lognormal), intent(inout), pointer :: Halo_Spin_Sample_Get
+    type(haloSpinDistributionLogNormal)                :: logNormalConstructorParameters
+    type(inputParameters                  ), intent(in   ) :: parameters
+    !# <inputParameterList label="allowedParameterNames" />
 
-    if (haloSpinDistributionMethod == 'lognormal') then
-       Halo_Spin_Sample_Get => Halo_Spin_Distribution_Lognormal
-       !@ <inputParameter>
-       !@   <name>lognormalSpinDistributionMedian</name>
-       !@   <defaultValue>0.03687 \citep{bett_spin_2007}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The median in a lognormal halo spin distribution.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('lognormalSpinDistributionMedian',lognormalSpinDistributionMedian,defaultValue=0.03687d0)
-       !@ <inputParameter>
-       !@   <name>lognormalSpinDistributionSigma</name>
-       !@   <defaultValue>0.2216 \citep{bett_spin_2007}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The dispersion in a lognormal halo spin distribution.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('lognormalSpinDistributionSigma' ,lognormalSpinDistributionSigma ,defaultValue=0.51025d0)
-       lognormalSpinDistributionMedian=log(lognormalSpinDistributionMedian)
-    end if
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>median</name>
+    !#   <source>parameters</source>
+    !#   <variable>logNormalConstructorParameters%median</variable>
+    !#   <defaultValue>0.03687d0</defaultValue>
+    !#   <defaultSource>\citep{bett_spin_2007}</defaultSource>
+    !#   <description>The median spin in a log-normal spin distribution.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>sigma</name>
+    !#   <source>parameters</source>
+    !#   <variable>logNormalConstructorParameters%sigma</variable>
+    !#   <defaultValue>0.2216d0</defaultValue>
+    !#   <defaultSource>\citep{bett_spin_2007}</defaultSource>
+    !#   <description>The width of a log-normal spin distribution.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    logNormalConstructorParameters%median=log(logNormalConstructorParameters%median)
     return
-  end subroutine Halo_Spin_Distribution_Lognormal_Initialize
+  end function logNormalConstructorParameters
 
-  double precision function Halo_Spin_Distribution_Lognormal(thisNode)
-    !% Return a halo spin from a lognormal distribution.
-    use Galacticus_Nodes
+  function logNormalConstructorInternal(median,sigma)
+    !% Internal constructor for the {\normalfont \ttfamily logNormal} dark matter halo spin
+    !% distribution class.
+    implicit none
+    type            (haloSpinDistributionLogNormal)                :: logNormalConstructorInternal
+    double precision                               , intent(in   ) :: median                      , sigma
+
+    logNormalConstructorInternal%median=log(median)
+    logNormalConstructorInternal%sigma =    sigma
+    return
+  end function logNormalConstructorInternal
+
+  subroutine logNormalDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily logNormal} dark matter halo spin
+    !% distribution class.
+    use Pseudo_Random
+    implicit none
+    type(haloSpinDistributionLogNormal), intent(inout) :: self
+
+    if (.not.self%resetRandomSequence        ) call Pseudo_Random_Free(self%randomSequence      )
+    if (.not.self%resetRandomSequenceSnapshot) call Pseudo_Random_Free(self%clonedPseudoSequence)
+    return
+  end subroutine logNormalDestructor
+
+  double precision function logNormalSample(self,node)
+    !% Sample from a log-normal spin parameter distribution for the given {\normalfont
+    !% \ttfamily node}.
     use Gaussian_Random
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision                                   :: logLambda, randomDeviate
+    class(haloSpinDistributionLogNormal), intent(inout)          :: self
+    type (treeNode                     ), intent(inout), pointer :: node
 
-    randomDeviate=Gaussian_Random_Get(randomSequenceObject,lognormalSpinDistributionSigma,resetRandomSequence)
-    logLambda=lognormalSpinDistributionMedian+randomDeviate
-    Halo_Spin_Distribution_Lognormal=exp(logLambda)
+    logNormalSample=exp(                                               &
+         &              +self%median                                   &
+         &              +Gaussian_Random_Get(                          &
+         &                                   self%randomSequence     , &
+         &                                   self%sigma              , &
+         &                                   self%resetRandomSequence  &
+         &                                   )                         &
+         &             )
     return
-  end function Halo_Spin_Distribution_Lognormal
+  end function logNormalSample
 
-  !# <galacticusStateSnapshotTask>
-  !#  <unitName>Halo_Spin_Distribution_Lognormal_Snapshot</unitName>
-  !# </galacticusStateSnapshotTask>
-  subroutine Halo_Spin_Distribution_Lognormal_Snapshot
+  subroutine logNormalStateSnapshot(self)
     !% Store a snapshot of the random number generator internal state.
     implicit none
+    class(haloSpinDistributionLogNormal), intent(inout) :: self
 
-    if (.not.resetRandomSequence) clonedPseudoSequenceObject=FGSL_Rng_Clone(randomSequenceObject)
-    resetRandomSequenceSnapshot=resetRandomSequence
+    if (.not.self%resetRandomSequence) self%clonedPseudoSequence=FGSL_Rng_Clone(self%randomSequence)
+    self%resetRandomSequenceSnapshot=self%resetRandomSequence
     return
-  end subroutine Halo_Spin_Distribution_Lognormal_Snapshot
+  end subroutine logNormalStateSnapshot
 
-  !# <galacticusStateStoreTask>
-  !#  <unitName>Halo_Spin_Distribution_Lognormal_State_Store</unitName>
-  !# </galacticusStateStoreTask>
-  subroutine Halo_Spin_Distribution_Lognormal_State_Store(stateFile,fgslStateFile)
+  subroutine logNormalStateStore(self,stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
     use Pseudo_Random
     implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
+    class  (haloSpinDistributionLogNormal), intent(inout) :: self
+    integer                               , intent(in   ) :: stateFile
+    type   (fgsl_file                    ), intent(in   ) :: fgslStateFile
 
-    write (stateFile) resetRandomSequenceSnapshot
-    if (.not.resetRandomSequenceSnapshot) call Pseudo_Random_Store(clonedPseudoSequenceObject,fgslStateFile)
+    write (stateFile) self%resetRandomSequenceSnapshot
+    if (.not.self%resetRandomSequenceSnapshot) call Pseudo_Random_Store(self%clonedPseudoSequence,fgslStateFile)
     return
-  end subroutine Halo_Spin_Distribution_Lognormal_State_Store
+  end subroutine logNormalStateStore
 
-  !# <galacticusStateRetrieveTask>
-  !#  <unitName>Halo_Spin_Distribution_Lognormal_State_Retrieve</unitName>
-  !# </galacticusStateRetrieveTask>
-  subroutine Halo_Spin_Distribution_Lognormal_State_Retrieve(stateFile,fgslStateFile)
+  subroutine logNormalStateRestore(self,stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
     use Pseudo_Random
     implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
+    class  (haloSpinDistributionLogNormal), intent(inout) :: self
+    integer                               , intent(in   ) :: stateFile
+    type   (fgsl_file                    ), intent(in   ) :: fgslStateFile
 
-    read (stateFile) resetRandomSequence
-    if (.not.resetRandomSequence) call Pseudo_Random_Retrieve(randomSequenceObject,fgslStateFile)
+    read (stateFile) self%resetRandomSequence
+    if (.not.self%resetRandomSequence) call Pseudo_Random_Retrieve(self%randomSequence,fgslStateFile)
     return
-  end subroutine Halo_Spin_Distribution_Lognormal_State_Retrieve
-
-end module Halo_Spin_Distributions_Lognormal
+  end subroutine logNormalStateRestore

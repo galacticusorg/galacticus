@@ -92,11 +92,12 @@ contains
     !% Initialize the spin of {\normalfont \ttfamily thisNode}.
     use Halo_Spin_Distributions
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    type            (treeNode          )               , pointer :: relatedNode
-    class           (nodeComponentSpin )               , pointer :: relatedSpinComponent , thisSpinComponent
-    class           (nodeComponentBasic)               , pointer :: relatedBasicComponent
-    double precision                                             :: previousSetMass      , previousSetSpin
+    type            (treeNode                 ), intent(inout), pointer :: thisNode
+    type            (treeNode                 )               , pointer :: relatedNode
+    class           (nodeComponentSpin        )               , pointer :: relatedSpinComponent , thisSpinComponent
+    class           (nodeComponentBasic       )               , pointer :: relatedBasicComponent
+    class           (haloSpinDistributionClass), pointer                :: haloSpinDistribution_
+    double precision                                                    :: previousSetMass      , previousSetSpin
 
     ! Check if we are the default method.
     if (defaultSpinComponent%randomIsActive()) then
@@ -107,6 +108,8 @@ contains
        ! Ensure that the spin has not yet been assigned for this node.
        select type (thisSpinComponent)
        type is (nodeComponentSpin)
+          ! Get required objects.
+          haloSpinDistribution_ => haloSpinDistribution()
           ! Walk the tree back along primary children to the earliest such progenitor.
           relatedNode => thisNode
           do while (associated(relatedNode%firstChild))
@@ -115,16 +118,16 @@ contains
           ! Walk forward through the branch, assigning spins. If the mass of the halo exceeds that of the halo for which we last
           ! selected a spin by a given factor, then select a new spin from the distribution. Otherwise, use the previously
           ! assigned spin.
-          relatedSpinComponent  => relatedNode%spin (autoCreate=.true.)
-          relatedBasicComponent => relatedNode%basic(                 )
-          previousSetSpin=Halo_Spin_Distribution_Sample(relatedNode)
-          previousSetMass=relatedBasicComponent%mass()
+          relatedSpinComponent  => relatedNode          %spin  (autoCreate =.true.)
+          relatedBasicComponent => relatedNode          %basic (                  )
+          previousSetSpin       =  haloSpinDistribution_%sample(relatedNode       )
+          previousSetMass       =  relatedBasicComponent%mass  (                  )
           call relatedSpinComponent%spinSet(previousSetSpin)
           do while (relatedNode%isPrimaryProgenitor())
              relatedNode           => relatedNode%parent
              relatedBasicComponent => relatedNode%basic()
              if (relatedBasicComponent%mass() > randomSpinResetMassFactor*previousSetMass) then
-                previousSetSpin=Halo_Spin_Distribution_Sample(relatedNode)
+                previousSetSpin=haloSpinDistribution_%sample(relatedNode)
                 previousSetMass=relatedBasicComponent%mass()
              end if
              relatedSpinComponent => relatedNode%spin(autoCreate=.true.)
