@@ -205,27 +205,6 @@ contains
 
     isInside=.true.
     ! Check whether valueToFind is outside range of arrayToSearch().
-
-
-if (arrayIndex(1) <= 0 .or. arrayIndex(1) > size(arrayToSearch,kind=c_size_t)) then
-write (0,*) "problem #1 ",arrayIndex(1),size(arrayToSearch,kind=c_size_t)
-write (404,*) "problem #1 ",arrayIndex(1),size(arrayToSearch,kind=c_size_t)
-call flush(0)
-call flush(404)
-end if 
-if (size(arrayToSearch,kind=c_size_t) > size(arrayIndex,kind=c_size_t)) then
-write (0,*) "problem #2 ",size(arrayToSearch,kind=c_size_t),size(arrayIndex,kind=c_size_t)
-write (404,*) "problem #2 ",size(arrayToSearch,kind=c_size_t),size(arrayIndex,kind=c_size_t)
-call flush(0)
-call flush(404)
-end if
-if (arrayIndex(size(arrayToSearch,kind=c_size_t)) <= 0 .or. arrayIndex(size(arrayToSearch,kind=c_size_t)) > size(arrayToSearch,kind=c_size_t)) then
-write (0,*) "problem #3 ",arrayIndex(size(arrayToSearch,kind=c_size_t)),size(arrayToSearch,kind=c_size_t)
-write (404,*) "problem #3 ",arrayIndex(size(arrayToSearch,kind=c_size_t)),size(arrayToSearch,kind=c_size_t)
-call flush(0)
-call flush(404)
-end if
-
     if (arrayToSearch(arrayIndex(size(arrayToSearch,kind=c_size_t))) >= arrayToSearch(arrayIndex(1))) then ! arrayToSearch() is in ascending order.
        if      (valueToFind < arrayToSearch(arrayIndex(1                  ))) then
           isInside=.false.

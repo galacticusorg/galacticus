@@ -27,7 +27,7 @@ The file {\normalfont \ttfamily galacticusConfig.xml}, is present, is used to co
 The name and e-mail address in the {\normalfont \ttfamily contact} section will be stored in any \glc\ models run---this helps track the provenance of the model. The {\normalfont \ttfamily email} section determines how e-mail will be sent. Within this section, you can place one or more {\normalfont \ttfamily host} elements, the {\normalfont \ttfamily name} element of which specifies the host name of the computer to which these rules apply (the {\normalfont \ttfamily default} host is used if no other match is found). For each host, the {\normalfont \ttfamily method} element specifies how e-mail should be sent, either by {\normalfont \ttfamily sendmail} or via {\normalfont \ttfamily smtp}. For SMTP transport (which currently supports SSL connections only), you must specify the {\normalfont \ttfamily host} SMTP server, {\normalfont \ttfamily user} name. The {\normalfont \ttfamily passwordFrom} element specifies how the password for the SMTP log in should be obtained. If set to {\normalfont \ttfamily input} then the user will be prompted for the password as needed. Alternatively, if you use the \href{http://www.kde.org/}{KDE} desktop and the \href{http://utils.kde.org/projects/kwalletmanager/}{KDEWallet} password manager, 
 setting {\normalfont \ttfamily passwordFrom} to {\normalfont \ttfamily kdewallet} will cause the password to be stored in the KDE wallet and retrieved from there subsequently.
 
-\section{Parameter Files}
+\section{Parameter Files}\label{sec:ParameterFiles}
 
 \glc\ requires a file of parameters to be given as a command line argument. The parameter file is an XML file (which makes it easy to manipulate and construct these files from within many languages, e.g. Perl) with the following structure:
 \begin{verbatim}
@@ -51,6 +51,21 @@ setting {\normalfont \ttfamily passwordFrom} to {\normalfont \ttfamily kdewallet
  </parameters>
 \end{verbatim}
 Each named element must have a {\normalfont \ttfamily value} attribute (preferred), or else contains a value element, which contains desired value respectively. The value can be a number, word(s) or an array of space-separated numbers or words. Parameters are used to control the values of numerical parameters and also to select methods and other options. If a parameter is not specified in the file a default value (hard coded into \glc) will be used instead. The default values have been chosen to produce a realistic model of galaxy formation, but may change as \glc\ evolves. Parameters may have sub-parameters embedded within them, as in the example above.
+
+Sub-parameters are used in object composition within \glc. For example, the following would specify that linear growth of cosmological large scale structure should be modeled using the {\normalfont \ttfamily simple} method:
+\begin{verbatim}
+  <linearGrowthMethod value="simple">
+    <cosmologyParametersMethod value="simple">
+      <HubbleConstant   value="70.0" />
+      <OmegaMatter      value="0.31"  />
+      <OmegaDarkEnergy  value="0.69"  />
+      <OmegaBaryon      value="0.045"/>
+      <temperatureCMB   value="2.725"/>
+    </cosmologyParametersMethod>
+    <cosmologyFunctionsMethod value="matterLambda"/>
+  </linearGrowthMethod>
+\end{verbatim}
+The linear growth function object requires knowledge about the cosmological parameters and model. In the above, we specify this explicitly by including a definition of the cosmological parameter object and cosmological functions object that our linear growth function object should use. Note that the cosmological functions object also requires knowledge of the cosmological parameters. When the {\normalfont \ttfamily cosmologyFunctionsMethod} object is built from the above definition it will first check for a cosmological parameters object defined in its own subparameters. Since it does not find one in this instance it will check for a cosmological parameters definition in its parent object (the {\normalfont \ttfamily linearGrowthMethod} element) and, in this case, will use that definition. If no definition were to be found in any parent element, a default set of cosmological parameters would be used instead\footnote{This approach allows a direct connection to be made between the structure of the input parameter XML file and the internal object hierarchy used by \glc, allowing very fine-grained control over the composition of \glc\ functionality. In particular it permits easy construction of objects which work by modifying results from other objects, such as the {\normalfont \ttfamily schneider2015} model for dark matter halo concentrations (\S\ref{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationSchneider2015}).}.
 
 The optional {\normalfont \ttfamily version} element specifies which version of \glc\ this parameter file is intended for. The optional {\normalfont \ttfamily formatVersion} element specifies the parameter file version number (the current standard for parameter files is version 2). While optional, these elements can be useful when migrating parameter files between versions of \glc\ (see \S\ref{sec:MigrateParameters}).
 
@@ -341,6 +356,10 @@ where {\normalfont \ttfamily model1} etc. are the names of the various output fi
 \subsection{Limiting the Load Average}\index{load average}
 
 If {\normalfont \ttfamily [treeEvolveLimitLoadAverage]}$=${\normalfont \ttfamily true} then \glc\ will attempt to keep the load average of the system under {\normalfont \ttfamily [treeEvolveLoadAverageMaximum]} by waiting to run trees if the current load average exceeds this value. {\normalfont \ttfamily [treeEvolveLoadAverageMaximum]} can be set to the numerical maximum load average desired or, alternatively, can be set to {\normalfont \ttfamily processorCount} in which case the number of processor cores present on the system will be used for {\normalfont \ttfamily [treeEvolveLoadAverageMaximum]}.
+
+\subsubsection{Thread Locking via Semaphores}\label{sec:Semaphores}\index{semaphores}
+
+An alternative is to use Linux's semaphoring system to share processors between multiple instances of \glc\ running on a single machine. To activiate this mode, set {\normalfont \ttfamily [treeEvolveThreadLock]} to the total number of threads that should be active at any one time across all instances of \glc\ running on a machine. You can also set this parameter to {\normalfont \ttfamily processorCount} to set a a value equal to the total number of processors on the machine. With this parameter set, each instance of \glc\ running on a machine will request a semaphore for each thread that it attempts to run, with the maximum number of semaphores set to the value of {\normalfont \ttfamily [treeEvolveThreadLock]}. This means that, if one instance of \glc\ has claimed 6 semaphores when {\normalfont \ttfamily [treeEvolveThreadLock]}$=${\normalfont \ttfamily 8}, then a second instance of \glc\ will only run 2 threads. Once the first instance releases its semaphores, the second instance will claim them and begin running more threads.
 
 \section{Additional Codes}
 
