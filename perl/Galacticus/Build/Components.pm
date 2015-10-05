@@ -101,8 +101,10 @@ sub Components_Generate_Output {
 	print "   --> ".ucfirst($phase)."...\n";
 	foreach my $hook ( @hooks ) {	
 	    if ( exists($hook->{'hook'}->{'validate'}) ) {
-		print "      --> ".$hook->{'name'}."\n";
-		&{$hook->{'hook'}->{'validate'}}($buildData);
+		foreach my $function ( &ExtraUtils::as_array($hook->{'hook'}->{'validate'}) ) {
+		    print "      --> ".$hook->{'name'}."\n";
+		    &{$function}($buildData);
+		}
 	    }
 	}
     }
@@ -110,8 +112,6 @@ sub Components_Generate_Output {
     # Iterate over all functions, calling them with the build data object.
     &{$_}($buildData)
 	foreach (
-	    # Construct null implementations for all component classes.
-	    \&Validate_Deferreds                                     ,
 	    # Construct null implementations for all component classes.
 	    \&Construct_Null_Components                              ,
 	    # Construct component class list and membership lists for all classes.
@@ -458,28 +458,6 @@ sub padLinkedData {
     $padLength = $extraPad[1] if ($extraPad[1] > $padLength);
     my $paddedText = $text." " x ($padLength-length($text));
     return $paddedText;
-}
-
-sub Validate_Deferreds {
-    # Validate deferred properties. These must not have functions specified at build time.
-    my $buildData = shift;
-    # Iterate over component IDs.
-    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
-	# Get the component.
-	my $component               = $buildData->{'components'}->{$componentID};
-	# Iterate over all properties belonging to this component.	
-	if ( exists($buildData->{'components'}->{$componentID}->{'properties'}) ) {
-	    foreach my $propertyName ( &ExtraUtils::sortedKeys($buildData->{'components'}->{$componentID}->{'properties'}->{'property'}) ) {
-		my $property = $buildData->{'components'}->{$componentID}->{'properties'}->{'property'}->{$propertyName};
-		my @deferredMethods = split(/:/,$property->{'attributes'}->{'isDeferred'})
-		    if ( exists($property->{'attributes'}->{'isDeferred'}) );
-		foreach ( @deferredMethods ) {
-		    die("Validate_Deferreds(): cannot specify '".$_."Function' when '".$_."' method is deferred for property '".$propertyName."' of component '".$componentID."'")
-			if ( exists($property->{$_."Function"}) );
-		}
-	    }
-	}
-    }
 }
 
 sub Construct_Class_Membership {

@@ -21,11 +21,17 @@ require Galacticus::Build::Components::Utils;
     (
      %Galacticus::Build::Component::Utils::componentUtils,
      attributes => {
-	 validate => \&Attributes_Validate
+	 validate =>
+	     [
+	      \&Validate_Boolean               ,
+	      \&Validate_Evolvable_Intrinsics  ,
+	      \&Validate_Deferreds_Functionless
+	     ]
      }
     );
 
-sub Attributes_Validate {
+sub Validate_Boolean {
+    # Validate that property attributes are "true" or "false".
     my $build = shift();
     # Iterate over components.
     foreach my $component ( &ExtraUtils::hashList($build->{'components'}) ) {
@@ -42,23 +48,36 @@ sub Attributes_Validate {
 			$property->{'attributes'}->{$_} = 0;
 		    } else {
 			die(
-			    "Attributes_Validate: value of '".
-			    $_.
-			    "' attribute of '".
-			    $property->{'name'}.
-			    "' of '".
+			    "Validate_Boolean: value of '"                     .
+			    $_                                                 . 
+			    "' attribute of '"                                 .
+			    $property->{'name'}                                .
+			    "' of '"                                           .
 			    $component->{'class'}.ucfirst($component->{'name'}).
 			    "' must be either 'true' or 'false'"
 			    );
 		    }
 		}
 	    }
+	}
+    }
+}
+
+sub Validate_Evolvable_Intrinsics {
+    # Validate that evolvable intrinsic properties are of "double" type only.
+    my $build = shift();
+    # Iterate over components.
+    foreach my $component ( &ExtraUtils::hashList($build->{'components'}) ) {
+	# Iterate over all properties belonging to this component.	
+	next 
+	    unless ( exists($component->{'properties'}) );
+	foreach my $property ( &ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' ) ) {
 	    # Assert that non-real intrinsic properties be not evolvable.
 	    die(
-		"Attributes_Validate: non-real intrinsic property '".
-		$property->{'name'}.
-		"' of '".
-		$component->{'class'}.ucfirst($component->{'name'}).
+		"Validate_Evolvable_Intrinsics: non-real intrinsic property '".
+		$property->{'name'}                                           .
+		"' of '"                                                      .
+		$component->{'class'}.ucfirst($component->{'name'})           .
 		"' component can not be evolvable"
 		)
 		if (
@@ -68,6 +87,35 @@ sub Attributes_Validate {
 		    &&
 		    $property->{'attributes'}->{'isEvolvable'}
 		);
+	}
+    }
+}
+
+sub Validate_Deferreds_Functionless {
+    # Validate that deferred attributes of properties do not have functions specified at build time.
+    my $build = shift();
+    # Iterate over components.
+    foreach my $component ( &ExtraUtils::hashList($build->{'components'}) ) {
+	# Iterate over all properties belonging to this component.	
+	next 
+	    unless ( exists($component->{'properties'}) );
+	foreach my $property ( &ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' ) ) {
+	    my @deferredMethods = split(/:/,$property->{'attributes'}->{'isDeferred'})
+		if ( exists($property->{'attributes'}->{'isDeferred'}) );
+	    foreach ( @deferredMethods ) {
+		die(
+		    "Validate_Deferreds_Functionless(): cannot specify '".
+		    $_                                                   .
+		    "Function' when '"                                   .
+		    $_                                                   .
+		    "' method is deferred for property '"                .
+		    $property->{'name'}                                  .
+		    "' of component '"                                   .
+		    $component->{'class'}.ucfirst($component->{'name'})  .
+		    "'"
+		    )
+			if ( exists($property->{$_."Function"}) );
+		}
 	}
     }
 }
