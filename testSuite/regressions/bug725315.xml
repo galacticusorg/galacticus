@@ -31,7 +31,10 @@
     <running value="0.000"/>
   </powerSpectrumPrimordialMethod>
   <diskMassToleranceAbsolute value="1e-06"/>
-  <haloSpinDistributionMethod value="Bett2007"/>
+  <haloSpinDistributionMethod value="bett2007">
+    <alpha value="2.509"/>
+    <lambda0 value="0.04326"/>
+  </haloSpinDistributionMethod>
   <barInstabilityMethod value="ELN"/>
   <mergerRemnantSizeOrbitalEnergy value="1"/>
   <modifiedPressSchechterG0 value="0.57"/>
@@ -68,7 +71,6 @@
   <mergerTreeBuildTreesBeginAtTree value="1"/>
   <mergerTreeBuildHaloMassMinimum value="1.0e12"/>
   <darkMatterProfileConcentrationMethod value="gao2008"/>
-  <spinDistributionBett2007Alpha value="2.509"/>
   <spheroidEnergeticOutflowMassRate value="1"/>
   <diskOutflowVelocity value="200"/>
   <starveSatellites value="true"/>
@@ -78,7 +80,6 @@
   <hotHaloTemperatureMethod value="virial"/>
   <starFormationHistoryTimeStep value="1.0"/>
   <verbosityLevel value="1"/>
-  <spinDistributionBett2007Lambda0 value="0.04326"/>
   <imfSalpeterYieldInstantaneous value="0.02"/>
   <virialOrbitsMethod value="Benson2005"/>
   <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
