@@ -331,8 +331,12 @@ my @translations =
 	     "darkMatterProfileConcentrationCDMMethod"                        => "darkMatterProfileConcentrationMethod.wdm.--darkMatterProfileConcentrationMethod",
 	     "mergerTreeBuildMassResolutionFixed"                             => "mergerTreeMassResolutionMethod.fixed.--massResolution"                          ,
 	     "mergerTreeBuildMassResolutionScaledMinimum"                     => "mergerTreeMassResolutionMethod.scaled.--massResolutionMinimum"                  ,
-	     "mergerTreeBuildMassResolutionScaledFraction"                    => "mergerTreeMassResolutionMethod.scaled.--massResolutionFractional"
-		 
+	     "mergerTreeBuildMassResolutionScaledFraction"                    => "mergerTreeMassResolutionMethod.scaled.--massResolutionFractional"               ,
+	     "spinDistributionBett2007Lambda0"	                              => "haloSpinDistributionMethod.bett2007.--lambda0"                                  ,
+	     "spinDistributionBett2007Alpha"	                              => "haloSpinDistributionMethod.bett2007.--alpha"                                    ,
+	     "lognormalSpinDistributionMedian"                                => "haloSpinDistributionMethod.logNormal.--median"                                  ,
+	     "lognormalSpinDistributionSigma"	                              => "haloSpinDistributionMethod.logNormal.--sigma"                                   ,
+	     "deltaFunctionSpinDistributionSpin"	                      => "haloSpinDistributionMethod.deltaFunction.--spin"
 	 },
  	 values        =>
          {
@@ -352,7 +356,11 @@ my @translations =
 	     stellarPopulationSpectraMethod =>
 	     {
 	         "Conroy-White-Gunn2009" => "FSPS"
-             }		     
+             },
+	     haloSpinDistributionMethod =>
+	     {
+	         "Bett2007"              => "bett2007"
+	     }
 	 }
     }
     );

@@ -1771,18 +1771,20 @@ contains
     use Galacticus_Error
     use Halo_Spin_Distributions
     implicit none
-    class           (nodeData              )         , dimension(:), intent(inout) :: nodes              
-    type            (treeNodeList          )         , dimension(:), intent(inout) :: nodeList           
-    class           (nodeComponentBasic    ), pointer                              :: thisBasicComponent 
-    class           (nodeComponentSpin     ), pointer                              :: thisSpinComponent  
-    class           (darkMatterProfileClass), pointer                              :: darkMatterProfile_
-    integer                                                                        :: iNode              
-    integer         (c_size_t              )                                       :: iIsolatedNode      
-    double precision                                                               :: spin
-    double precision                                 , dimension(3)                :: spin3D               
+    class           (nodeData                 )         , dimension(:), intent(inout) :: nodes              
+    type            (treeNodeList             )         , dimension(:), intent(inout) :: nodeList           
+    class           (nodeComponentBasic       ), pointer                              :: thisBasicComponent 
+    class           (nodeComponentSpin        ), pointer                              :: thisSpinComponent  
+    class           (darkMatterProfileClass   ), pointer                              :: darkMatterProfile_
+    class           (haloSpinDistributionClass), pointer                              :: haloSpinDistribution_
+    integer                                                                           :: iNode              
+    integer         (c_size_t                 )                                       :: iIsolatedNode      
+    double precision                                                                  :: spin
+    double precision                                    , dimension(3)                :: spin3D               
     
     ! Get required objects.
-    darkMatterProfile_ => darkMatterProfile()
+    darkMatterProfile_    => darkMatterProfile   ()
+    haloSpinDistribution_ => haloSpinDistribution()
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node.
        if (nodes(iNode)%isolatedNodeIndex /= nodeIsUnreachable) then
@@ -1802,7 +1804,7 @@ contains
                 call Galacticus_Error_Report('Assign_Spin_Parameters','no method exists to set spins')
              end if
              if (mergerTreeReadPresetUnphysicalSpins.and.thisSpinComponent%spin() <= 0.0d0) &
-                  & call thisSpinComponent%spinSet(Halo_Spin_Distribution_Sample(nodeList(iIsolatedNode)%node))
+                  & call thisSpinComponent%spinSet(haloSpinDistribution_%sample(nodeList(iIsolatedNode)%node))
           end if
           if (mergerTreeReadPresetSpins3D) then
              if      (defaultImporter%          spin3DAvailable()) then
