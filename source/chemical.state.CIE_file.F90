@@ -185,7 +185,7 @@ contains
     use Galacticus_Input_Paths
     implicit none
     type(chemicalStateCIEFile)                :: cieFileConstructorParameters
-    type(inputParameters     ), intent(in   ) :: parameters
+    type(inputParameters     ), intent(inout) :: parameters
     type(varying_string      )                :: fileName
     !# <inputParameterList label="allowedParameterNames" />
 
@@ -791,14 +791,12 @@ contains
     use Input_Parameters2
     use FoX_DOM
     implicit none
-    class    (chemicalStateCIEFile), intent(inout) :: self
-    type     (inputParameters     ), intent(inout) :: descriptor
-    type     (node                ), pointer       :: parameterNode
-    type     (inputParameters     )                :: subParameters
+    class(chemicalStateCIEFile), intent(inout) :: self
+    type (inputParameters     ), intent(inout) :: descriptor
+    type (inputParameters     )                :: subParameters
 
     call descriptor%addParameter("chemicalStateMethod","cieFile")
-    parameterNode => descriptor%node("chemicalStateMethod")
-    subParameters=inputParameters(parameterNode)
+    subParameters=descriptor%subparameters("chemicalStateMethod")
     call subParameters%addParameter("fileName",char(self%fileName))
     return
   end subroutine cieFileDescriptor

@@ -3,11 +3,13 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-  <sigma_8 value="0.8"/>
+  <cosmologicalMassVarianceMethod value="filteredPower">
+    <sigma_8 value="0.8"/>
+  </cosmologicalMassVarianceMethod>
   <transferFunctionMethod value="identity"/>
   <powerSpectrumPrimordialMethod value="powerLaw">
-    <index               value="-1.000"/>
+    <index value="-1.000"/>
     <wavenumberReference value="+1.000"/>
-    <running             value="+0.000"/>
+    <running value="+0.000"/>
   </powerSpectrumPrimordialMethod>
 </parameters>
