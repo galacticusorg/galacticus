@@ -51,7 +51,7 @@ contains
     use Input_Parameters2
     implicit none
     type(haloSpinDistributionLogNormal)                :: logNormalConstructorParameters
-    type(inputParameters                  ), intent(in   ) :: parameters
+    type(inputParameters              ), intent(inout) :: parameters
     !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
