@@ -498,11 +498,11 @@ contains
     type            (mergerTree                     ), intent(inout)                         , target :: tree
     type            (treeNode                       ), pointer                                        :: node                          , nodeChild            , &
          &                                                                                               nodeParent                    , nodeParentChild      , &
-         &                                                                                               descendentNode
+         &                                                                                               descendentNode                , nodeSibling
     type            (mergerTree                     ), pointer                                        :: treeCurrent
     class           (nodeComponentBasic             ), pointer                                        :: basic                         , basicChild           , &
          &                                                                                               basicParent                   , descendentBasic      , &
-         &                                                                                               basicParentChild
+         &                                                                                               basicParentChild              , basicSibling
     integer                                                                                           :: i                             , binMassParent        , &
          &                                                                                               binMassRatio                  , iPrimary             , &
          &                                                                                               jPrimary                      , binMassRatioCreation , &
@@ -522,8 +522,8 @@ contains
          &                                                        self%primaryProgenitorDepth                                                                   &
          &                                                       )                                    :: primaryProgenitorMass
     
-   ! Iterate over trees.
-    treeCurrent => tree
+    ! Iterate over trees.
+    treeCurrent => tree    
     do while (associated(treeCurrent))
        ! Initialize primary progenitor masses to zero.
        primaryProgenitorMass=0.0d0
@@ -573,6 +573,16 @@ contains
                    branchMassInitial=basicChild%mass()
                    if (nodeChild%isPrimaryProgenitor()) then
                       branchMassFinal=basic%mass()
+                      ! Remove the mass in any non-primary progenitors - we don't want to include
+                      ! their mass in the estimated mass growth rate of this node.
+                      nodeSibling => node%firstChild%sibling
+                      do while (associated(nodeSibling))
+                         basicSibling    => nodeSibling%basic()
+                         branchMassFinal =  branchMassFinal-basicSibling%mass()
+                         nodeSibling     => nodeSibling%sibling
+                      end do
+                      ! Do not let the parent mass decrease along the branch.
+                      branchMassFinal=max(branchMassFinal,branchMassInitial)
                    else
                       branchMassFinal=branchMassInitial
                    end if

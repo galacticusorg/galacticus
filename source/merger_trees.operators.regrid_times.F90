@@ -297,8 +297,8 @@ contains
                 nodeChild => node%parent%firstChild%sibling
                 do while (associated(nodeChild))
                    basicChild => nodeChild%basic()
-                   massParent          =  massParent-basicChild%mass()
-                   nodeChild           => nodeChild%sibling
+                   massParent =  massParent-basicChild%mass()
+                   nodeChild  => nodeChild%sibling
                 end do
                 ! Do not let the parent mass decrease along the branch.
                 massParent=max(massParent,massNow)

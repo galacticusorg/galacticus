@@ -23,7 +23,7 @@
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorSelectWithinRange
      !% A select-within-range merger tree operator class.
      private
-     double precision :: baseMassMin, baseMassMax
+     double precision :: baseMassMinimum, baseMassMaximum
    contains
      final     ::            selectWithinRangeDestructor
      procedure :: operate => selectWithinRangeOperate
@@ -42,24 +42,24 @@ contains
     use Input_Parameters2
     implicit none
     type(mergerTreeOperatorSelectWithinRange)                :: selectWithinRangeConstructorParameters
-    type(inputParameters              ), intent(in   ) :: parameters
+    type(inputParameters                    ), intent(in   ) :: parameters
     !# <inputParameterList label="allowedParameterNames" />
     
     call parameters%checkParameters(allowedParameterNames)
     !# <inputParameter>
-    !#   <name>baseMassMin</name>
+    !#   <name>baseMassMinimum</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
-    !#   <variable>selectWithinRangeConstructorParameters%baseMassMin</variable>
+    !#   <variable>selectWithinRangeConstructorParameters%baseMassMinimum</variable>
     !#   <description>Base node mass below which trees should be ignored.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>baseMassMax</name>
+    !#   <name>baseMassMaximum</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
-    !#   <variable>selectWithinRangeConstructorParameters%baseMassMax</variable>
+    !#   <variable>selectWithinRangeConstructorParameters%baseMassMaximum</variable>
     !#   <description>Base node mass above which trees should be ignored.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
@@ -67,15 +67,14 @@ contains
     return
   end function selectWithinRangeConstructorParameters
 
-  function selectWithinRangeConstructorInternal(baseMassMin, baseMassMax)
+  function selectWithinRangeConstructorInternal(baseMassMinimum,baseMassMaximum)
     !% Internal constructor for the select-within-range merger tree operator class.
     implicit none
     type            (mergerTreeOperatorSelectWithinRange)                :: selectWithinRangeConstructorInternal
-    double precision                               , intent(in   ) :: baseMassMin, baseMassMax
+    double precision                                     , intent(in   ) :: baseMassMinimum                         , baseMassMaximum
     
-    selectWithinRangeConstructorInternal%baseMassMin            =baseMassMin
-    selectWithinRangeConstructorInternal%baseMassMax            =baseMassMax
-
+    selectWithinRangeConstructorInternal%baseMassMinimum=baseMassMinimum
+    selectWithinRangeConstructorInternal%baseMassMaximum=baseMassMaximum
     return
   end function selectWithinRangeConstructorInternal
 
@@ -90,23 +89,26 @@ contains
 
   subroutine selectWithinRangeOperate(self,tree)
     !% Perform a select-within-range operation on a merger tree.
-    use Merger_Trees_Pruning_Utilities
     implicit none
     class  (mergerTreeOperatorSelectWithinRange), intent(inout)         :: self
-    type   (mergerTree                   ), intent(inout), target :: tree
-    type   (treeNode                     ), pointer               :: baseNode, nodeNext
-    class  (nodeComponentBasic           ), pointer               :: baseNodeBasic
-    type   (mergerTree                   ), pointer               :: currentTree
+    type   (mergerTree                         ), intent(inout), target :: tree
+    type   (treeNode                           ), pointer               :: baseNode     , nodeNext
+    class  (nodeComponentBasic                 ), pointer               :: baseNodeBasic
+    type   (mergerTree                         ), pointer               :: currentTree
 
     ! Iterate over trees.
     currentTree => tree
     do while (associated(currentTree))
        ! Get root node of the tree.
-       baseNode  => currentTree%baseNode
-       baseNodeBasic => baseNode       %basic   ()
-       if (baseNodeBasic%mass() < self%baseMassMin .or. baseNodeBasic%mass() > self%baseMassMax) then
-          ! Entire tree is outside range. Destroy all but this base node. (Leaving just
-          ! the base node makes the tree inert - i.e. it can not do anything.)
+       baseNode      => currentTree%baseNode
+       baseNodeBasic => baseNode   %basic   ()
+       if     (                                             &
+            &   baseNodeBasic%mass() < self%baseMassMinimum &
+            &  .or.                                         &
+            &   baseNodeBasic%mass() > self%baseMassMaximum &
+            & ) then
+          ! Tree is outside range. Destroy all but the base node. (Leaving just the base node
+          ! makes the tree inert - i.e. it can not do anything.)
           baseNode => baseNode%firstChild
           do while (associated(baseNode))
              nodeNext => baseNode%sibling
