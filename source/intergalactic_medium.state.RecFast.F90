@@ -74,7 +74,7 @@ contains
     parameters=inputParameterList()
     write (parameterLabel,'(f5.3)') thisCosmologyParameters%OmegaMatter    (                   )
     recFastConstructor%fileName=recFastConstructor%fileName//'_OmegaMatter'    //trim(parameterLabel)
-    call parameters%add("Omega Matter"   ,parameterLabel)
+    call parameters%add("OmegaMatter"    ,parameterLabel)
     write (parameterLabel,'(f5.3)') thisCosmologyParameters%OmegaDarkEnergy(                   )
     recFastConstructor%fileName=recFastConstructor%fileName//'_OmegaDarkEnergy'//trim(parameterLabel)
     call parameters%add("OmegaDarkEnergy",parameterLabel)
