@@ -55,7 +55,7 @@ contains
     use Input_Parameters2
     implicit none
     type            (haloSpinDistributionBett2007)                :: bett2007ConstructorParameters
-    type            (inputParameters             ), intent(in   ) :: parameters
+    type            (inputParameters             ), intent(inout) :: parameters
     double precision                                              :: lambda0                      , alpha
     !# <inputParameterList label="allowedParameterNames" />
 
