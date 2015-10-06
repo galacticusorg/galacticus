@@ -15,80 +15,71 @@ use utf8;
 use DateTime;
 use Data::Dumper;
 use Text::Table;
+use Text::Template 'fill_in_string';
 use Sort::Topological qw(toposort);
 use Scalar::Util 'reftype';
 use XML::SAX::ParserFactory;
 use XML::Validator::Schema;
 use LaTeX::Encode;
 use Carp 'verbose';
-$SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
 require File::Changes;
 require Fortran::Utils;
 require Galacticus::Build::Hooks;
+require Galacticus::Build::Components::Utils;
+require Galacticus::Build::Components::Classes;
+require Galacticus::Build::Components::Implementations;
+require Galacticus::Build::Components::Attributes;
+$SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
 
 # Insert hooks for our functions.
 %Hooks::moduleHooks = 
     (
      %Hooks::moduleHooks,
-     component => {parse => \&Components_Parse_Directive, generate => \&Components_Generate_Output, validate => \&Components_Validate}
+     component => 
+     {
+	 parse    => \&Components_Parse_Directive,
+	 generate => \&Components_Generate_Output,
+	 validate => \&Components_Validate
+     }
     );
 
 # Include debugging code.
 my $debugging                           = 0;
 
-# Global verbosity level.
-my $verbosityLevel                      = 1;
-
 # Switch to control gfortran workarounds.
 my $workaround                          = 1;
 
 # Records of the longest component and property names.
-my $classNameLengthMax                  = 0;
-my $implementationNameLengthMax         = 0;
-my $fullyQualifiedNameLengthMax         = 0;
 my $propertyNameLengthMax               = 0;
 my $linkedDataNameLengthMax             = 0;
 my $implementationPropertyNameLengthMax = 0;
-
-# Intrinsic types.
-my %intrinsicTypes =
-    (
-     "integer"     => "integer"                ,
-     "longInteger" => "integer(kind=kind_int8)",
-     "logical"     => "logical"                ,
-     "double"      => "double precision"       ,
-     "void"        => "void"
-    );
 
 sub Components_Validate {
     # Validate a component document.
     my $document  = shift;
     my $file      = shift;
-    my $validator = XML::Validator::Schema->new(file => 'schema/componentSchema.xsd');
+    my $validator = XML::Validator::Schema->new(file => $galacticusPath."schema/componentSchema.xsd");
     my $parser    = XML::SAX::ParserFactory->parser(Handler => $validator); 
     eval { $parser->parse_string($document) };
-    die "Component failed validation in file ".$file.":\n".$@
-	if $@;
+    die "Galacticus::Build::Components::Components_Validate(): validation failed in file ".$file.":\n".$@
+	if ( $@ );
 }
 
 sub Components_Parse_Directive {
     # Parse content for a "component" directive.
     my $buildData = shift;
 
-    # Assert that we have a prefix, currentDocument and directive.
+    # Assert that we have a name and class.
     die("Galacticus::Build::Components::Components_Parse_Directive: no currentDocument present")
 	unless ( exists($buildData->{'currentDocument'}           ) );
     die("Galacticus::Build::Components::Components_Parse_Directive: no name present"           )
 	unless ( exists($buildData->{'currentDocument'}->{'name' }) );
     die("Galacticus::Build::Components::Components_Parse_Directive: no class present"          )
 	unless ( exists($buildData->{'currentDocument'}->{'class'}) );
-
     # Construct an ID for this component.
-    my $componentID = ucfirst($buildData->{'currentDocument'}->{'class'}).ucfirst($buildData->{'currentDocument'}->{'name'});
-    
+    my $componentID = ucfirst($buildData->{'currentDocument'}->{'class'}).ucfirst($buildData->{'currentDocument'}->{'name'});    
     # Store a copy of the component's defining document.
     $buildData->{'components'}->{$componentID} = $buildData->{'currentDocument'};
-
 }
 
 sub Components_Generate_Output {
@@ -96,17 +87,30 @@ sub Components_Generate_Output {
     my $buildData = shift;
 
     # Construct a list of all component names.
-    @{$buildData->{'componentIdList'}} = keys(%{$buildData->{'components'}});
-    
+    @{$buildData->{'componentIdList'}} = &ExtraUtils::sortedKeys($buildData->{'components'});
+
+    # Sort hooks.
+    my @hooks = map
+    {{name => $_, hook => $Galacticus::Build::Component::Utils::componentUtils{$_}}}
+    &ExtraUtils::sortedKeys(\%Galacticus::Build::Component::Utils::componentUtils);
+
+    # Iterate over phases.
+    print "--> Phase:\n";
+    foreach my $phase ( "default", "gather", "validate" ) {
+	print "   --> ".ucfirst($phase)."...\n";
+	foreach my $hook ( @hooks ) {	
+	    if ( exists($hook->{'hook'}->{$phase}) ) {
+		foreach my $function ( &ExtraUtils::as_array($hook->{'hook'}->{$phase}) ) {
+		    print "      --> ".$hook->{'name'}."\n";
+		    &{$function}($buildData);
+		}
+	    }
+	}
+    }
+
     # Iterate over all functions, calling them with the build data object.
     &{$_}($buildData)
 	foreach (
-	    # Construct null implementations for all component classes.
-	    \&Validate_Deferreds                                     ,
-	    # Construct null implementations for all component classes.
-	    \&Construct_Null_Components                              ,
-	    # Construct component class list and membership lists for all classes.
-	    \&Construct_Class_Membership                             ,
 	    # Distribute class default values to all members of a class.
 	    \&Distribute_Class_Defaults                              ,
 	    # Set defaults for unspecified attributes.
@@ -267,8 +271,8 @@ sub dataObjectDocName {
     my $dataObject = shift;
     # Construct the documentation.
     my $name = "\\textcolor{red}{\\textless ";
-    if ( exists($intrinsicTypes{$dataObject->{'type'}}) ) {
-	$name .= latex_encode($intrinsicTypes{$dataObject->{'type'}});
+    if ( exists($Utils::intrinsicTypes{$dataObject->{'type'}}) ) {
+	$name .= latex_encode($Utils::intrinsicTypes{$dataObject->{'type'}});
     } else {
 	$name .= "type(".latex_encode($dataObject->{'type'}).")";
     }
@@ -287,8 +291,8 @@ sub dataObjectName {
     my $dataObject = shift;
     # Create the object name.
     my $name = "nodeData";
-    if ( exists($intrinsicTypes{$dataObject->{'type'}}) ) {
-	$name .= join("",map {ucfirst($_)} split(" ",$intrinsicTypes{$dataObject->{'type'}}));
+    if ( exists($Utils::intrinsicTypes{$dataObject->{'type'}}) ) {
+	$name .= join("",map {ucfirst($_)} split(" ",$Utils::intrinsicTypes{$dataObject->{'type'}}));
     } else {
 	$name .= ucfirst($dataObject->{'type'});
     }
@@ -298,7 +302,7 @@ sub dataObjectName {
 	$name .= $dataObject->{'rank'}."D";
     }
     $name .= "Evolvable"
-	if ( $dataObject->{'isEvolvable'} eq "true" );
+	if ( $dataObject->{'isEvolvable'} );
     $name =~ s/\s//g;
     return $name;
 }
@@ -318,8 +322,8 @@ sub dataObjectPrimitiveName {
 	unless ( exists($dataObject->{'rank'}) );
     # Construct name, type, and attributes.
     my $name;
-    if ( exists($intrinsicTypes{$dataObject->{'type'}}) ) {
-	$name = $intrinsicTypes{$dataObject->{'type'}};
+    if ( exists($Utils::intrinsicTypes{$dataObject->{'type'}}) ) {
+	$name = $Utils::intrinsicTypes{$dataObject->{'type'}};
     } else {
 	$name = "type(".$dataObject->{'type'}.")";
     }
@@ -354,8 +358,8 @@ sub Data_Object_Definition {
     die "Build_Include_File.pl::dataObjectPrimitiveName: no 'type' specifier present"
 	unless ( exists($dataObject->{'type'}) );
     # Construct properties.
-    if ( exists($intrinsicTypes{$dataObject->{'type'}}) ) {
-	$intrinsicName = $intrinsicTypes{$dataObject->{'type'}};
+    if ( exists($Utils::intrinsicTypes{$dataObject->{'type'}}) ) {
+	$intrinsicName = $Utils::intrinsicTypes{$dataObject->{'type'}};
     } else {
 	$intrinsicName =                               "type"  ;
 	$type          =                 $dataObject->{'type'} ;
@@ -401,36 +405,6 @@ sub padImplementationProperty {
     return $paddedText;
 }
 
-sub padComponentClass {
-    # Pad a string to give nicely aligned formatting in the output code.
-    my $text     = shift;
-    my @extraPad = @{$_[0]};
-    my $padLength = $classNameLengthMax+$extraPad[0];
-    $padLength = $extraPad[1] if ($extraPad[1] > $padLength);
-    my $paddedText = $text." " x ($padLength-length($text));
-    return $paddedText;
-}
-
-sub padImplementation {
-    # Pad a string to give nicely aligned formatting in the output code.
-    my $text       = shift;
-    my @extraPad   = @{$_[0]};
-    my $padLength  = $implementationNameLengthMax+$extraPad[0];
-    $padLength     = $extraPad[1] if ($extraPad[1] > $padLength);
-    my $paddedText = $text." " x ($padLength-length($text));
-    return $paddedText;
-}
-
-sub padFullyQualified {
-    # Pad a string to give nicely aligned formatting in the output code.
-    my $text       = shift;
-    my @extraPad   = @{$_[0]};
-    my $padLength  = $fullyQualifiedNameLengthMax+$extraPad[0];
-    $padLength     = $extraPad[1] if ($extraPad[1] > $padLength);
-    my $paddedText = $text." " x ($padLength-length($text));
-    return $paddedText;
-}
-
 sub padProperty {
     # Pad a string to give nicely aligned formatting in the output code.
     my $text     = shift;
@@ -451,74 +425,9 @@ sub padLinkedData {
     return $paddedText;
 }
 
-sub Validate_Deferreds {
-    # Validate deferred properties. These must not have functions specified at build time.
-    my $buildData = shift;
-    # Iterate over component IDs.
-    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
-	# Get the component.
-	my $component               = $buildData->{'components'}->{$componentID};
-	# Iterate over all properties belonging to this component.	
-	if ( exists($buildData->{'components'}->{$componentID}->{'properties'}) ) {
-	    foreach my $propertyName ( keys(%{$buildData->{'components'}->{$componentID}->{'properties'}->{'property'}}) ) {
-		my $property = $buildData->{'components'}->{$componentID}->{'properties'}->{'property'}->{$propertyName};
-		my @deferredMethods = split(/:/,$property->{'attributes'}->{'isDeferred'})
-		    if ( exists($property->{'attributes'}->{'isDeferred'}) );
-		foreach ( @deferredMethods ) {
-		    die("Validate_Deferreds(): cannot specify '".$_."Function' when '".$_."' method is deferred for property '".$propertyName."' of component '".$componentID."'")
-			if ( exists($property->{$_."Function"}) );
-		}
-	    }
-	}
-    }
-}
-
-sub Construct_Class_Membership {
-    # Generates a null implementation for each component class and makes it the default if no default is specified.
-    my $buildData = shift;
-
-    # Iterate over component IDs.
-    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
-	# Get the component.
-	my $component               = $buildData->{'components'}->{$componentID};
-	# Get the name of the component class.
-	my $componentClass          = $component->{'class'};
-	# Get the name of the implementation.
-	my $componentImplementation = $component->{'name'};
-	# Append the component name to the list of members for its class.
-	push(
-	    @{$buildData->{'componentClasses'}->{$componentClass}->{'members'}},
-	    $component->{'name'}
-	    );
-	# Record the longest class name, implementation name and component ID.
-	$classNameLengthMax          = length($componentClass         )
-	    if (length($componentClass         ) > $classNameLengthMax         );
-	$fullyQualifiedNameLengthMax = length($componentID            )
-	    if (length($componentID            ) > $fullyQualifiedNameLengthMax);
-	$implementationNameLengthMax = length($componentImplementation)
-	    if (length($componentImplementation) > $implementationNameLengthMax);
-    }
-
-    # Construct a list of component classes.
-    @{$buildData->{'componentClassList'}} = keys(%{$buildData->{'componentClasses'}});
-
-    # Order class members such that parent classes come before child classes.
-    foreach my $className ( @{$buildData->{'componentClassList'}} ) {
-	my %dependencies;
-	foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$className}->{'members'}} ) {
-	    my $implementationID = ucfirst($className).ucfirst($implementationName);
- 	    my $implementation   = $buildData->{'components'}->{$implementationID};
-	    push(@{$dependencies{$implementation->{'extends'}->{'name'}}},$implementationName)
-	       if ( exists($implementation->{'extends'}) );
-	}
-	@{$buildData->{'componentClasses'}->{$className}->{'members'}} = toposort(sub { @{$dependencies{$_[0]} || []}; }, \@{$buildData->{'componentClasses'}->{$className}->{'members'}});
-    }
-}
-
 sub Distribute_Class_Defaults {
     # Distribute class defaults to all members of a class.
     my $buildData = shift;
-
     # Iterate over component classes.
     foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
 	# Initialize hash to hold defaults.
@@ -529,7 +438,7 @@ sub Distribute_Class_Defaults {
 	    my $componentID = ucfirst($componentClassName).ucfirst($componentName);
 	    my $component   = $buildData->{'components'}->{$componentID};
 	    # Iterate over the properties of this implementation.
-	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		# Get the property.
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check for class defaults.
@@ -579,7 +488,7 @@ sub Distribute_Class_Defaults {
 	    my $componentID = ucfirst($componentClassName).ucfirst($componentName);
 	    my $component   = $buildData->{'components'}->{$componentID};
 	    # Iterate over the properties of this implementation.
-	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		# Get the property.
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Set class default if available.
@@ -588,9 +497,6 @@ sub Distribute_Class_Defaults {
 	    }
 	}
     }
-
-    # Construct a list of component classes.
-    @{$buildData->{'componentClassList'}} = keys(%{$buildData->{'componentClasses'}});
 }
 
 sub Construct_Linked_Data {
@@ -601,7 +507,7 @@ sub Construct_Linked_Data {
     foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
 	# Iterate over all properties belonging to this component.	
 	if ( exists($buildData->{'components'}->{$componentID}->{'properties'}) ) {
-	    foreach my $propertyName ( keys(%{$buildData->{'components'}->{$componentID}->{'properties'}->{'property'}}) ) {
+	    foreach my $propertyName ( &ExtraUtils::sortedKeys($buildData->{'components'}->{$componentID}->{'properties'}->{'property'}) ) {
 		my $property = $buildData->{'components'}->{$componentID}->{'properties'}->{'property'}->{$propertyName};
 		# Record the longest property name.
 		$propertyNameLengthMax = length($propertyName) if (length($propertyName) > $propertyNameLengthMax);
@@ -660,57 +566,6 @@ sub Construct_Linked_Data {
     }
 }
 
-sub Construct_Null_Components {
-    # Generates a null implementation for each component class and makes it the default if no default is specified.
-    my $buildData = shift;
-
-    # Iterate over components to determine which classes need a null case building.
-    my %classes;
-    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
-	# Get the component object.
-	my $component = $buildData->{'components'}->{$componentID};
-	# Initialize this class if it hasn't been seen before.
-	unless ( exists($classes{$component->{'class'}}) ) {
-	    $classes{$component->{'class'}}->{'hasNull'   } = 0;
-	    $classes{$component->{'class'}}->{'hasDefault'} = 0;
-	}
-	# Record if a null component already exists.
-	$classes{$component->{'class'}}->{'hasNull'   } = 1
-	    if ( $component->{'name'} eq "null" );
-	# Record if a default is already specified.
-	$classes{$component->{'class'}}->{'hasDefault'} = 1
-	    if ( $component->{'isDefault'} eq "yes" );
-    }
-
-    # Iterate over classes, creating null components as necessary.
-    foreach my $class ( keys(%classes) ) {       
-	# Test for pre-existing null component.
-	if ( $classes{$class}->{'hasNull'} == 0 ) {
-	    # No pre-existing null component is present, so simply insert one into the build data.
-	    my $componentID = ucfirst($class)."Null";
-	    my $isDefault   = "no";
-	    $isDefault      = "yes"
-		if ( $classes{$class}->{'hasDefault'} == 0 );
-	    $buildData->{'components'}->{$componentID}->{'class'    } = $class;
-	    $buildData->{'components'}->{$componentID}->{'name'     } = "null";
-	    $buildData->{'components'}->{$componentID}->{'isDefault'} = $isDefault;
-	    # Append this new component ID to the component ID list.
-	    push(@{$buildData->{'componentIdList'}},$componentID);
-	    # Display a message.
-	    if ( $verbosityLevel >= 1 ) {
-		print " -> Adding null implementation ";
-		print "as default "
-		    if ( $classes{$class}->{'hasDefault'} == 0 );
-		print "for ".$class." class\n";
-	    }
-	} elsif ( $verbosityLevel >= 1 ) {
-	    # Advise that null components don't need to be explicitly specified.
-	    print " -> INFO: a pre-existing null component exists for ".$class." class,\n";
-	    print " ->       but would be built automatically.\n";
-	}
-    }
-}
-
 sub Set_Default_Attributes{
     # Set any missing attributes to default values.
     my $buildData = shift;
@@ -752,7 +607,7 @@ sub Set_Default_Attributes{
 		}
 	    }
 	    # Iterate over properties.
-	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		# Get the property.
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Add the property's name.
@@ -1057,14 +912,14 @@ sub Generate_Component_Classes{
 	    # Construct a fully-qualified name for this implementation.
 	    my $componentName = ucfirst($componentClass).ucfirst($implementationName);
 	    # Iterate over properties beloning to this implementation.
-	    foreach my $propertyName ( keys(%{$buildData->{'components'}->{$componentName}->{'properties'}->{'property'}}) ) {
+	    foreach my $propertyName ( &ExtraUtils::sortedKeys($buildData->{'components'}->{$componentName}->{'properties'}->{'property'}) ) {
 		# Get the property.
 		my $property = $buildData->{'components'}->{$componentName}->{'properties'}->{'property'}->{$propertyName};
 		# Create functions to set/get/evolve each property as necessary.
 		if ( 
-		    $property->{'attributes'}->{'isGettable' } eq "true"
-		    || $property->{'attributes'}->{'isSettable' } eq "true"
-		    || $property->{'attributes'}->{'isEvolvable'} eq "true"
+		    $property->{'attributes'}->{'isGettable' }
+		    || $property->{'attributes'}->{'isSettable' }
+		    || $property->{'attributes'}->{'isEvolvable'}
 		    )
 		{
 		    # Name of function being processed.
@@ -1095,7 +950,7 @@ sub Generate_Component_Classes{
 			$propertiesCreated{$functionName} = 1;
 		    }
 		    # Handle set functions and related functions.
-		    unless ( $property->{'attributes'}->{'isSettable'} eq "false" ) {
+		    if ( $property->{'attributes'}->{'isSettable'} ) {
 			# Create a "set" function if one does not already exist.
 			$functionName = $propertyName."Set";
 			unless ( exists($propertiesCreated{$functionName}) ) {
@@ -1117,7 +972,7 @@ sub Generate_Component_Classes{
 		    }
 
 		    # Handle evolve functions.
-		    unless ( $property->{'attributes'}->{'isEvolvable'} eq "false" ) {
+		    if ( $property->{'attributes'}->{'isEvolvable'} ) {
 			# Create the "count" function.
 			$functionName = $propertyName."Count";
 			unless ( exists($propertiesCreated{$functionName}) ) {
@@ -1245,14 +1100,16 @@ sub Generate_Implementations {
 	my $component          = $buildData->{'components'}->{$componentID};
 	# Get the parent class.
 	my $componentClassName = $component->{'class'};
-    	# By default this component will be an extension of the base "nodeComponent" class.
-    	my $extensionOf = "nodeComponent".ucfirst($componentClassName);
-    	# If it specifies a particular component that it should extend, use that instead.
-    	$extensionOf = "nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})
-	    if (exists($component->{'extends'}));
+    	# Determine the name of the class which this component extends (use the "nodeComponent" class by default).
+    	my $extensionOf = 
+	    exists($component->{'extends'})
+	    ?
+	    "nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})
+	    : 
+	    "nodeComponent".ucfirst($componentClassName);
      	# Create data objects to store all of the linked data for this component.
 	my @dataContent;
-    	foreach ( keys(%{$component->{'content'}->{'data'}}) ) {
+    	foreach ( &ExtraUtils::sortedKeys($component->{'content'}->{'data'}) ) {
     	    my $type = &dataObjectName($component->{'content'}->{'data'}->{$_});
 	    (my $typeDefinition, my $typeLabel) = &Data_Object_Definition($component->{'content'}->{'data'}->{$_});
 	    $typeDefinition->{'variables'} = [ $_ ];
@@ -1317,13 +1174,13 @@ sub Generate_Implementations {
 	    }
 	}
 	# Iterate over properties.
-	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    # Get the property.
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    push(
 		@typeBoundFunctions,
-		{type => "procedure", pass => "nopass", name => $propertyName."IsGettable", function => "Boolean_".ucfirst($property->{'attributes'}->{'isGettable'})},
-		{type => "procedure", pass => "nopass", name => $propertyName."IsSettable", function => "Boolean_".ucfirst($property->{'attributes'}->{'isSettable'})}
+		{type => "procedure", pass => "nopass", name => $propertyName."IsGettable", function => "Boolean_".ucfirst($Utils::booleanLabel[$property->{'attributes'}->{'isGettable'}])},
+		{type => "procedure", pass => "nopass", name => $propertyName."IsSettable", function => "Boolean_".ucfirst($Utils::booleanLabel[$property->{'attributes'}->{'isSettable'}])}
 		);
 	}
 	# Create the type.
@@ -1664,7 +1521,7 @@ sub Generate_Deferred_Procedure_Pointers {
 		&&        $component->{'createFunction'}->{'isDeferred'} eq "true"
 	    );
 	# Iterate over properties.
-	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    unless ( $property->{'attributes' }->{'isDeferred'} eq "" ) {
 		my $selfType = "generic";
@@ -1683,7 +1540,7 @@ sub Generate_Deferred_Procedure_Pointers {
 		    # Determine if this attribute is deferred and has not yet had a procedure pointer created.
 		    if (
 			$property->{'attributes' }->{'isDeferred'} =~ m/$_/ 
-			&& $property->{'attributes' }->{'is'.ucfirst($_).'table'} eq "true"
+			&& $property->{'attributes' }->{'is'.ucfirst($_).'table'}
 			&& ! exists($createdPointers{$functionLabel})
 			) {
 			# Construct the template function.
@@ -1726,7 +1583,7 @@ sub Generate_Node_Event_Interface {
     # Generate interace for node event tasks.
     my $buildData = shift;
     # Initialize data content.
-    my @dataContent = 
+    @code::dataContent = 
 	(
 	 {
 	     intrinsic  => "class",
@@ -1747,66 +1604,56 @@ sub Generate_Node_Event_Interface {
 	 }
 	);
     # Insert interface.
-    $buildData->{'content'} .= "  ! Interface for node event tasks.\n";
-    $buildData->{'content'} .= "  abstract interface\n";
-    $buildData->{'content'} .= "    logical function nodeEventTask(thisEvent,thisNode,deadlockStatus)\n";
-    $buildData->{'content'} .= "      import nodeEvent,treeNode\n";
-    $buildData->{'content'} .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent, indent => 2)."\n";
-    $buildData->{'content'} .= "    end function nodeEventTask\n";
-    $buildData->{'content'} .= "  end interface\n";
+    $buildData->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+! Interface for node event tasks.
+abstract interface
+  logical function nodeEventTask(thisEvent,thisNode,deadlockStatus)
+    import nodeEvent,treeNode
+{&Fortran_Utils::Format_Variable_Defintions(\@dataContent, indent => 4)}
+  end function nodeEventTask
+end interface
+CODE
 }
 
 sub Generate_Default_Component_Sources{
     # Generate records of which component implementations are selected.
     my $buildData = shift;
-    # Create a table.
-    my $recordTable = Text::Table->new(
-	{
-	    is_sep => 1,
-	    body   => "  class(nodeComponent"
-	},
-	{
-	    align  => "left"
-	},
-	{
-	    is_sep => 1,
-	    body   => "), allocatable, public :: default"
-	},
-	{
-	    align  => "left"
-	}
-	);
-    # Iterate over all component implementations.
-    foreach ( @{$buildData->{'componentClassList'}} ) {
-	$recordTable->add(ucfirst($_),ucfirst($_)."Component");
-    }
-    # Insert into the document.
+    # Create default objects for each class.
     $buildData->{'content'} .= "  ! Objects that will record which type of each component is to be used by default.\n";
-    $buildData->{'content'} .= $recordTable->table()."\n";
-    # Create a table for the class types.
-    $recordTable = Text::Table->new(
-	{
-	    is_sep => 1,
-	    body   => "  type(nodeComponent"
-	},
-	{
-	    align  => "left"
-	},
-	{
-	    is_sep => 1,
-	    body   => ") :: "
-	},
-	{
-	    align  => "left"
-	}
+    $buildData->{'content'} .= &Fortran_Utils::Format_Variable_Defintions
+	(
+	 [
+	  map
+	  {
+	      {
+		  intrinsic  => "class"                              ,
+		  type       => "nodeComponent".ucfirst($_)          ,
+		  attributes => [ "public", "allocatable" ]          ,
+		  variables  => [ "default".ucfirst($_)."Component" ]
+	      }
+	  } 
+	  @{$buildData->{'componentClassList'}}
+	 ],
+	 indent => 2
 	);
-    # Iterate over all component implementations.
-    foreach ( @{$buildData->{'componentClassList'}} ) {
-	$recordTable->add(ucfirst($_),ucfirst($_)."Class");
-    }
-    # Insert into the document.
-    $buildData->{'content'} .= "  ! Objects that will record which type of each component is to be used by default.\n";
-    $buildData->{'content'} .= $recordTable->table()."\n";
+    # Create source objects for each class.
+    $buildData->{'content'} .= "  ! Objects used to allocate components of given class..\n";
+    $buildData->{'content'} .= &Fortran_Utils::Format_Variable_Defintions
+	(
+	 [
+	  map
+	  {
+	      {
+		  intrinsic  => "type"                               ,
+		  type       => "nodeComponent".ucfirst($_)          ,
+		  attributes => [ ]                                  ,
+		  variables  => [ $_."Class" ]
+	      }
+	  } 
+	  @{$buildData->{'componentClassList'}}
+	 ],
+	 indent => 2
+	);
 }
 
 sub Generate_Initialization_Status {
@@ -2235,24 +2082,24 @@ sub Generate_Initialization_Function {
         $functionCode .= "       !@   <type>string</type>\n";
         $functionCode .= "       !@   <cardinality>1</cardinality>\n";
         $functionCode .= "       !@ </inputParameter>\n";
-    	$functionCode .= "       call Get_Input_Parameter('treeNodeMethod".padComponentClass(ucfirst($componentClass)."'",[1,0]).",methodSelection,defaultValue='".padImplementation($defaultMethod."'",[1,0]).")\n";
+    	$functionCode .= "       call Get_Input_Parameter('treeNodeMethod".&Utils::padClass(ucfirst($componentClass)."'",[1,0]).",methodSelection,defaultValue='".&Utils::padImplementation($defaultMethod."'",[1,0]).")\n";
     	foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClass}->{'members'}} ) {
     	    my $fullName  = ucfirst($componentClass).ucfirst($implementationName);
 	    my $component = $buildData->{'components'}->{$fullName};
-    	    $functionCode .= "       if (methodSelection == '".padImplementation($implementationName."'",[1,0]).") then\n";
-	    $functionCode .= "          allocate(default".padComponentClass(ucfirst($componentClass)."Component",[9,0]).",source=default".padFullyQualified($fullName."Component",[9,0]).")\n";
-	    $functionCode .= "          nodeComponent".padFullyQualified($fullName."IsActive",[8,0])."=.true.\n";
+    	    $functionCode .= "       if (methodSelection == '".&Utils::padImplementation($implementationName."'",[1,0]).") then\n";
+	    $functionCode .= "          allocate(default".&Utils::padClass(ucfirst($componentClass)."Component",[9,0]).",source=default".&Utils::padFullyQualified($fullName."Component",[9,0]).")\n";
+	    $functionCode .= "          nodeComponent".&Utils::padFullyQualified($fullName."IsActive",[8,0])."=.true.\n";
 	    until ( $fullName eq "" ) {
 		if ( exists($buildData->{'components'}->{$fullName}->{'extends'}) ) {
 		    $fullName = ucfirst($buildData->{'components'}->{$fullName}->{'extends'}->{'class'}).ucfirst($buildData->{'components'}->{$fullName}->{'extends'}->{'name'});
-		    $functionCode .= "          nodeComponent".padFullyQualified($fullName."IsActive",[8,0])."=.true.\n";
+		    $functionCode .= "          nodeComponent".&Utils::padFullyQualified($fullName."IsActive",[8,0])."=.true.\n";
 		} else {
 		    $fullName = "";
 		}
 	    }
 	    $functionCode .= "    end if\n";
 	    # Insert code to read and parameters controlling outputs.
-	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check for output and output condition.
 		if (
@@ -2281,7 +2128,7 @@ sub Generate_Initialization_Function {
 	    }
 
     	}
-    	$functionCode .= "       if (.not.allocated(default".padComponentClass(ucfirst($componentClass)."Component",[9,0]).")) then\n";
+    	$functionCode .= "       if (.not.allocated(default".&Utils::padClass(ucfirst($componentClass)."Component",[9,0]).")) then\n";
     	$functionCode .= "          message='unrecognized method \"'//methodSelection//'\" for \"".$componentClass."\" component'\n";
 	$functionCode .= "          message=message//char(10)//'  available methods are:'\n";
     	foreach my $implementationName ( sort(@{$buildData->{'componentClasses'}->{$componentClass}->{'members'}}) ) {
@@ -2373,9 +2220,9 @@ sub Generate_Map_Functions {
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-     	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[19,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[19,0]).")\n";
-	$functionCode .= "        call mapFunction(self%component".padComponentClass(ucfirst($_),[19,0])."(i))\n";
+     	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[19,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[19,0]).")\n";
+	$functionCode .= "        call mapFunction(self%component".&Utils::padClass(ucfirst($_),[19,0])."(i))\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
@@ -2459,7 +2306,7 @@ sub Generate_Map_Functions {
 		    die("Generate_Map_Functions(): unrecognized reduction");
 		}
 		# Iterate over available types.
-		foreach my $type ( keys(%{$buildData->{'types'}}) ) {
+		foreach my $type ( &ExtraUtils::sortedKeys($buildData->{'types'}) ) {
 		    if ( $type =~ m/^nodeComponent.+/  && grep {$_->{'name'} eq $boundFunction->{'name'}} @{$buildData->{'types'}->{$type}->{'boundFunctions'}} ) {
 			# Determine the class of this component.
 			my $baseClass = $type;
@@ -2469,17 +2316,17 @@ sub Generate_Map_Functions {
 			$baseClass =~ s/^nodeComponent//;
 			$baseClass = lc($baseClass);
 			# Construct code for this component.
-			$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($baseClass),[0,0]).")) then\n";
-			$functionCode .= "      select type (c => self%component".padComponentClass(ucfirst($baseClass),[0,0]).")\n";
+			$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($baseClass),[0,0]).")) then\n";
+			$functionCode .= "      select type (c => self%component".&Utils::padClass(ucfirst($baseClass),[0,0]).")\n";
 			$functionCode .= "      type is (".$type.")\n";
-			$functionCode .= "         do i=1,size(self%component".padComponentClass(ucfirst($baseClass),[0,0]).")\n";
+			$functionCode .= "         do i=1,size(self%component".&Utils::padClass(ucfirst($baseClass),[0,0]).")\n";
 			$functionCode .= "            mapComponentsDouble0=mapComponentsDouble0";
 			if ( $reduction eq "summation" ) {
 			    $functionCode .= "+";
 			} elsif ( $reduction eq "product" ) {
 			    $functionCode .= "*";
 			}
-			$functionCode .= "mapFunction(self%component".padComponentClass(ucfirst($baseClass),[0,0])."(i))\n";
+			$functionCode .= "mapFunction(self%component".&Utils::padClass(ucfirst($baseClass),[0,0])."(i))\n";
 			$functionCode .= "         end do\n";
 			$functionCode .= "      end select\n";
 			$functionCode .= "    end if\n";
@@ -2499,9 +2346,9 @@ sub Generate_Map_Functions {
     $functionCode .= "      mapComponentsDouble0=1.0d0\n";
     $functionCode .= "    end select\n";
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-     	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-     	$functionCode .= "        componentValue=mapFunction(self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
+     	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+     	$functionCode .= "        componentValue=mapFunction(self%component".&Utils::padClass(ucfirst($_),[0,0])."(i))\n";
      	$functionCode .= "        select case (reduction)\n";
      	$functionCode .= "        case (reductionSummation)\n";
      	$functionCode .= "          mapComponentsDouble0=mapComponentsDouble0+componentValue\n";
@@ -2570,9 +2417,9 @@ sub Generate_Node_Dump_Function {
     $functionCode .= "   call Galacticus_Display_Unindent('done')\n";
     # Iterate over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%dump()\n";
+	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%dump()\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
@@ -2633,9 +2480,9 @@ sub Generate_Node_Dump_Function {
     $functionCode .= "    write (fileHandle,'(a)') '  </pointer>'\n";
     # Iterate over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%dumpXML(fileHandle)\n";
+	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%dumpXML(fileHandle)\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
@@ -2679,17 +2526,17 @@ sub Generate_Node_Dump_Function {
     $functionCode .= "    write (fileHandle) self%isPhysicallyPlausible\n";
     # Iterate over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-	$functionCode .= "    write (fileHandle) allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "    write (fileHandle) allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
 	$functionCode .= "      select type (component => self%component".ucfirst($_)."(1))\n";
 	$functionCode .= "      type is (nodeComponent".ucfirst($_).")\n";
 	$functionCode .= "        write (fileHandle) .false.\n";
 	$functionCode .= "      class is (nodeComponent".ucfirst($_).")\n";
 	$functionCode .= "        write (fileHandle) .true.\n";
 	$functionCode .= "      end select\n";
-	$functionCode .= "      write (fileHandle) size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%dumpRaw(fileHandle)\n";
+	$functionCode .= "      write (fileHandle) size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%dumpRaw(fileHandle)\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
@@ -2752,11 +2599,11 @@ sub Generate_Node_Dump_Function {
 	$functionCode .= "        end do\n";
 	$functionCode .= "      end select\n";
 	$functionCode .= "      do i=1,componentCount\n";
-	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%readRaw(fileHandle)\n";
+	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%readRaw(fileHandle)\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    else\n";
-	$functionCode .= "       if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) deallocate(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "       allocate(self%component".padComponentClass(ucfirst($_),[0,0])."(1))\n";
+	$functionCode .= "       if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) deallocate(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "       allocate(self%component".&Utils::padClass(ucfirst($_),[0,0])."(1))\n";
 	$functionCode .= "    end if\n";
     }
     $functionCode .= "    return\n";
@@ -2808,9 +2655,9 @@ sub Generate_Node_Output_Functions {
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Iterate over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%outputCount(integerPropertyCount,doublePropertyCount,time,instance=i)\n";
+	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%outputCount(integerPropertyCount,doublePropertyCount,time,instance=i)\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
@@ -2868,9 +2715,9 @@ sub Generate_Node_Output_Functions {
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Iterate over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance=i)\n";
+	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance=i)\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
@@ -2928,9 +2775,9 @@ sub Generate_Node_Output_Functions {
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Iterate over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty&
+	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time,instance=i)\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
@@ -2988,9 +2835,9 @@ sub Generate_Node_Property_Name_From_Index_Function {
     $functionCode .= "  name='unknown'\n";
     $functionCode .= "  count=index\n";
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-     	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%nameFromIndex(count,name)\n";
+     	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%nameFromIndex(count,name)\n";
 	$functionCode .= "        if (count <= 0) return\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
@@ -3036,9 +2883,9 @@ sub Generate_Node_Serialization_Functions {
     $functionCode .= "    count=0\n";
     # Loop over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-     	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        count=count+self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
+     	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        count=count+self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
@@ -3081,10 +2928,10 @@ sub Generate_Node_Serialization_Functions {
     $functionCode .= "    offset=1\n";
     # Loop over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        count=self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
-	$functionCode .= "        if (count > 0) call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serializeValues(array(offset:))\n";
+	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        count=self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
+	$functionCode .= "        if (count > 0) call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%serializeValues(array(offset:))\n";
 	$functionCode .= "        offset=offset+count\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
@@ -3128,10 +2975,10 @@ sub Generate_Node_Serialization_Functions {
     $functionCode .= "    offset=1\n";
     # Loop over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        count=self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
-	$functionCode .= "        if (count > 0) call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%deserializeValues(array(offset:))\n";
+	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        count=self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
+	$functionCode .= "        if (count > 0) call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%deserializeValues(array(offset:))\n";
 	$functionCode .= "        offset=offset+count\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
@@ -3274,7 +3121,7 @@ sub Generate_Implementation_Dump_Functions {
 		    variables  => [ "label" ]
 		}
 		);
-	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property has any linked data in this component.
 		if ( exists($property->{'linkedData'}) ) {
@@ -3313,23 +3160,15 @@ sub Generate_Implementation_Dump_Functions {
 	    # Dump the parent type if necessary.
 	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%dump()\n"
 		if ( exists($component->{'extends'}) );
-	    $functionCode .= "    call Galacticus_Display_Indent('".$component->{'class'}.": ".(" " x ($fullyQualifiedNameLengthMax-length($component->{'class'}))).$component->{'name'}."')\n";
-	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    $functionCode .= "    call Galacticus_Display_Indent('".$component->{'class'}.": ".(" " x ($Utils::fullyQualifiedNameLengthMax-length($component->{'class'}))).$component->{'name'}."')\n";
+	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property has any linked data in this component.
 		if ( exists($property->{'linkedData'}) ) {
 		    my $linkedDataName = $property->{'linkedData'};
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    if ( $linkedData->{'rank'} == 0 ) {
-			if (
-			    $linkedData->{'type'} eq "double"
-			    ||
-			    $linkedData->{'type'} eq "integer"
-			    ||
-			    $linkedData->{'type'} eq "longInteger"
-			    ||
-			    $linkedData->{'type'} eq "logical"
-			    ) {
+			if (&Utils::isIntrinsic($linkedData->{'type'})) {
 			    $functionCode .= "    write (label,".$formatLabel{$linkedData->{'type'}}.") self%".padLinkedData($linkedDataName,[0,0])."\n";
 			    $functionCode .= "    message='".$propertyName.": ".(" " x ($implementationPropertyNameLengthMax-length($propertyName)))."'//label\n";
 			    $functionCode .= "    call Galacticus_Display_Message(message)\n";
@@ -3341,15 +3180,7 @@ sub Generate_Implementation_Dump_Functions {
 			    $functionCode .= "    call Galacticus_Display_Unindent('end')\n";
 			}
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
-			if (
-			    $linkedData->{'type'} eq "double"
-			    ||
-			    $linkedData->{'type'} eq "integer"
-			    ||
-			    $linkedData->{'type'} eq "longInteger"
-			    ||
-			    $linkedData->{'type'} eq "logical"
-			    ) {
+			if (&Utils::isIntrinsic($linkedData->{'type'})) {
 			    $functionCode .= "    do i=1,size(self%".$linkedDataName.")\n";
 			    $functionCode .= "       write (label,'(i3)') i\n";
 			    $functionCode .= "       message='".$propertyName.": ".(" " x ($implementationPropertyNameLengthMax-length($propertyName)))." '//trim(label)\n";
@@ -3417,39 +3248,23 @@ sub Generate_Implementation_Dump_Functions {
 	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%dumpXML(fileHandle)\n"
 		if ( exists($component->{'extends'}) );
 	    $functionCode .= "    write (fileHandle,'(a)') '  <".$component->{'class'}." type=\"".$component->{'name'}."\">'\n";
-	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property has any linked data in this component.
 		if ( exists($property->{'linkedData'}) ) {
 		    my $linkedDataName = $property->{'linkedData'};
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    if ( $linkedData->{'rank'} == 0 ) {
-			if (
-			    $linkedData->{'type'} eq "double"
-			    ||
-			    $linkedData->{'type'} eq "integer"
-			    ||
-			    $linkedData->{'type'} eq "longInteger"
-			    ||
-			    $linkedData->{'type'} eq "logical"  
-			    ) {
-				(my $typeFormat = $formatLabel{$linkedData->{'type'}}) =~ s/^\'\((.*)\)\'$/$1/g;
-				$functionCode .= "    write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".padLinkedData($linkedDataName,[0,0]).",'</".$propertyName.">'\n";
+			if (&Utils::isIntrinsic($linkedData->{'type'})) {
+			    (my $typeFormat = $formatLabel{$linkedData->{'type'}}) =~ s/^\'\((.*)\)\'$/$1/g;
+			    $functionCode .= "    write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".padLinkedData($linkedDataName,[0,0]).",'</".$propertyName.">'\n";
 			}
 			else {
 			    $functionCode .= "    write (fileHandle,'(a)') '   <".$propertyName.">'\n";
 			    $functionCode .= "    write (fileHandle,'(a)') '   </".$propertyName.">'\n";
 			}
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
-			if ( 
-			    $linkedData->{'type'} eq "double"
-			    ||
-			    $linkedData->{'type'} eq "integer"
-			    ||
-			    $linkedData->{'type'} eq "longInteger"
-			    ||
-			    $linkedData->{'type'} eq "logical" 
-			    ) {
+			if (&Utils::isIntrinsic($linkedData->{'type'})) {
 			    (my $typeFormat = $formatLabel{$linkedData->{'type'}}) =~ s/^\'\((.*)\)\'$/$1/g;
 			    $functionCode .= "    do i=1,size(self%".$linkedDataName.")\n";
 			    $functionCode .= "       write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".$linkedDataName."(i),'</".$propertyName.">'\n";
@@ -3463,15 +3278,7 @@ sub Generate_Implementation_Dump_Functions {
 			}			
 		    }
 		} elsif ( $property->{'isVirtual'} eq "true" && $property->{'rank'} == 0 ) {
-		    if (
-			$property->{'type'} eq "double"
-			||
-			$property->{'type'} eq "integer"
-			||
-			$property->{'type'} eq "longInteger"
-			||
-			$property->{'type'} eq "logical"
-			) {
+		    if (&Utils::isIntrinsic($property->{'type'})) {
 			(my $typeFormat = $formatLabel{$property->{'type'}}) =~ s/^\'\((.*)\)\'$/$1/g;
 			$functionCode .= "    write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".padImplementationProperty($propertyName,[0,0])."(),'</".$propertyName.">'\n";
 		    }
@@ -3508,25 +3315,14 @@ sub Generate_Implementation_Dump_Functions {
 	     }
 	    );
 	$counterAdded = 0;
-	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    # Check if this property has any linked data in this component.
 	    if ( exists($property->{'linkedData'}) ) {
 		my $linkedDataName = $property->{'linkedData'};
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		if ( $linkedData->{'rank'} == 1 && $counterAdded == 0) {
-		    if (
-			$linkedData->{'type'} eq "double"
-			||
-			$linkedData->{'type'} eq "integer"
-			||
-			$linkedData->{'type'} eq "longInteger"
-			||
-			$linkedData->{'type'} eq "logical"
-			) {
-			# Nothing to do in these cases.
-		    }
-		    else {
+		    unless (&Utils::isIntrinsic($linkedData->{'type'})) {
 			push(
 			    @dataContent,
 			    {
@@ -3548,22 +3344,14 @@ sub Generate_Implementation_Dump_Functions {
 	    # Dump the parent type if necessary.
 	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%dumpRaw(fileHandle)\n"
 		if ( exists($component->{'extends'}) );
-	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property has any linked data in this component.
 		if ( exists($property->{'linkedData'}) ) {
 		    my $linkedDataName = $property->{'linkedData'};
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    if ( $linkedData->{'rank'} == 0 ) {
-			if (
-			    $linkedData->{'type'} eq "double"
-			    ||
-			    $linkedData->{'type'} eq "integer"
-			    ||
-			    $linkedData->{'type'} eq "longInteger"
-			    ||
-			    $linkedData->{'type'} eq "logical"
-			    ) {
+			if (&Utils::isIntrinsic($linkedData->{'type'})) {
 			    $functionCode .= "    write (fileHandle) self%".padLinkedData($linkedDataName,[0,0])."\n";
 			}
 			else {
@@ -3573,15 +3361,7 @@ sub Generate_Implementation_Dump_Functions {
 			$functionCode .= "    write (fileHandle) allocated(self%".$linkedDataName.")\n";
 			$functionCode .= "    if (allocated(self%".$linkedDataName.")) then\n";
 			$functionCode .= "       write (fileHandle) size(self%".$linkedDataName.")\n";
-			if (
-			    $linkedData->{'type'} eq "double"
-			    ||
-			    $linkedData->{'type'} eq "integer"
-			    ||
-			    $linkedData->{'type'} eq "longInteger"
-			    ||
-			    $linkedData->{'type'} eq "logical"
-			    ) {
+			if (&Utils::isIntrinsic($linkedData->{'type'})) {
 			    $functionCode .= "      write (fileHandle) self%".$linkedDataName."\n";
 			}
 			else {
@@ -3624,7 +3404,7 @@ sub Generate_Implementation_Dump_Functions {
 	    );
 	my $readCounterAdded = 0;
 	my $readArraysAdded  = 0;
-	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    # Check if this property has any linked data in this component.
 	    if ( exists($property->{'linkedData'}) ) {
@@ -3646,17 +3426,7 @@ sub Generate_Implementation_Dump_Functions {
 			$readArraysAdded = 1;
 		    }
 		    if ( $readCounterAdded == 0 ) {
-			if (
-			    $linkedData->{'type'} eq "double"
-			    ||
-			    $linkedData->{'type'} eq "integer"
-			    ||
-			    $linkedData->{'type'} eq "longInteger"
-			    ||
-			    $linkedData->{'type'} eq "logical"
-			    ) {
-			}
-			else {
+			unless (&Utils::isIntrinsic($linkedData->{'type'})) {
 			    push(
 				@dataContent,
 				{
@@ -3680,40 +3450,23 @@ sub Generate_Implementation_Dump_Functions {
 	    # Dump the parent type if necessary.
 	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%readRaw(fileHandle)\n"
 		if ( exists($component->{'extends'}) );
-	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property has any linked data in this component.
 		if ( exists($property->{'linkedData'}) ) {
 		    my $linkedDataName = $property->{'linkedData'};
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    if ( $linkedData->{'rank'} == 0 ) {
-			if (
-			    $linkedData->{'type'} eq "double"
-			    ||
-			    $linkedData->{'type'} eq "integer"
-			    ||
-			    $linkedData->{'type'} eq "longInteger"
-			    ||
-			    $linkedData->{'type'} eq "logical"
-			    ) {
+			if (&Utils::isIntrinsic($linkedData->{'type'})) {
 			    $functionCode .= "    read (fileHandle) self%".padLinkedData($linkedDataName,[0,0])."\n";
-			}
-			else {
+			} else {
 			    $functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%readRaw(fileHandle)\n";
 			}
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
 			$functionCode .= "    read (fileHandle) isAllocated\n";
 			$functionCode .= "    if (isAllocated) then\n";
 			$functionCode .= "       read (fileHandle) arraySize\n";
-			if (
-			    $linkedData->{'type'} eq "double"
-			    ||
-			    $linkedData->{'type'} eq "integer"
-			    ||
-			    $linkedData->{'type'} eq "longInteger"
-			    ||
-			    $linkedData->{'type'} eq "logical"
-			    ) {
+			if (&Utils::isIntrinsic($linkedData->{'type'})) {
 			    $functionCode .= "      call Alloc_Array(self%".$linkedDataName.",[arraySize])\n";
 			    $functionCode .= "      read (fileHandle) self%".$linkedDataName."\n";
 			}
@@ -3765,7 +3518,7 @@ sub Generate_Implementation_Initializor_Functions {
 	# Generate the initialization code.
 	my %requiredComponents;
 	my $initializeCode = "";
-	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    if ( exists($property->{'linkedData'}) ) {
 		my $linkedDataName = $property->{'linkedData'};
@@ -3816,14 +3569,14 @@ sub Generate_Implementation_Initializor_Functions {
 		variables  => [ "self".ucfirst($_)."Component" ]
 	    }
 	    )
-	    foreach ( keys(%requiredComponents) );
+	    foreach ( &ExtraUtils::sortedKeys(\%requiredComponents) );
 	# Generate initializor function.
 	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Initializor(self)\n";
 	$functionCode .= "    !% Initialize a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
 	$functionCode .= "    use Memory_Management\n";
 	# Insert any required modules.
 	my %requiredModules;
-	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    if ( exists($property->{'classDefault'}) && exists($property->{'classDefault'}->{'modules'}) ) {
 		foreach ( @{$property->{'classDefault'}->{'modules'}} ) {
@@ -3831,7 +3584,7 @@ sub Generate_Implementation_Initializor_Functions {
 		}
 	    }
 	}
-	foreach ( keys(%requiredModules) ) {
+	foreach ( &ExtraUtils::sortedKeys(\%requiredModules) ) {
 	    $functionCode .= "    use ".$_."\n";
 	}
 	$functionCode .= "    implicit none\n";
@@ -3841,7 +3594,7 @@ sub Generate_Implementation_Initializor_Functions {
 	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%initialize()\n"
 		if ( exists($component->{'extends'}) );
 	}
-	foreach my $requiredComponent ( keys(%requiredComponents) ) {
+	foreach my $requiredComponent ( &ExtraUtils::sortedKeys(\%requiredComponents) ) {
 	    $functionCode .= "     self".$requiredComponent."Component => self%hostNode%".lc($requiredComponent)."()\n";
 	}
 	$functionCode .= $initializeCode;
@@ -3902,7 +3655,7 @@ sub Generate_Implementation_Builder_Functions {
 		}
 		);
 	    my $counterAdded = 0;
-	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property has any linked data in this component.
 		if ( exists($property->{'linkedData'}) ) {
@@ -3935,7 +3688,7 @@ sub Generate_Implementation_Builder_Functions {
 	    # Build the parent type if necessary.
 	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%builder(componentDefinition)\n"
 		if ( exists($component->{'extends'}) );
-	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property has any linked data in this component.
 		if ( exists($property->{'linkedData'}) ) {
@@ -3963,15 +3716,7 @@ sub Generate_Implementation_Builder_Functions {
 			$functionCode .= "    end if\n";
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
 			$functionCode .= "    if (getLength(propertyList) >= 1) then\n";
-			if (
-			    $linkedData->{'type'} eq "double"
-			    ||
-			    $linkedData->{'type'} eq "integer"
-			    ||
-			    $linkedData->{'type'} eq "longInteger"
-			    ||
-			    $linkedData->{'type'} eq "logical"
-			    ) {
+			if (&Utils::isIntrinsic($linkedData->{'type'})) {
 			    $functionCode .= "      call Alloc_Array(self%".$linkedDataName.",[getLength(propertyList)])\n";
 			    $functionCode .= "      do i=1,getLength(propertyList)\n";
 			    $functionCode .= "        property => item(propertyList,i-1)\n";
@@ -4014,7 +3759,7 @@ sub Generate_Implementation_Output_Functions {
 	my $component = $buildData->{'components'}->{$componentID};
 	# Find modules required.
 	my %modulesRequired;
-	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    # Check if this property is to be output.
 	    if ( exists($property->{'output'}) ) {
@@ -4058,7 +3803,7 @@ sub Generate_Implementation_Output_Functions {
 	    );
 	# Check for rank-1 outputs.
 	my $counterAdded = 0;
-	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    # Check if this property is to be output.
 	    if ( exists($property->{'output'}) ) {
@@ -4071,20 +3816,14 @@ sub Generate_Implementation_Output_Functions {
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    $rank   = $linkedData->{'rank'};
 		    $type   = $linkedData->{'type'};
-		} elsif ( $property->{'isVirtual'} eq "true" && $property->{'attributes'}->{'isGettable'} eq "true" ) {
+		} elsif ( $property->{'isVirtual'} eq "true" && $property->{'attributes'}->{'isGettable'} ) {
 		    $rank = $property->{'rank'};
 		    $type = $property->{'type'};
 		} else {
 		    die("Generate_Implementation_Output_Functions(): can not output [".$propertyName."]");
 		}
 		# Increment the counters.
-		if (
-		    $type eq "double"
-		    ||
-		    $type eq "integer"
-		    ||
-		    $type eq "longInteger"
-		    ) {
+		if (&Utils::isOutputIntrinsic($type)) {
 		    if ( $rank == 1 && exists($property->{'output'}->{'condition'}) && $counterAdded == 0 ) {
 			push(
 			    @dataContent,
@@ -4100,7 +3839,7 @@ sub Generate_Implementation_Output_Functions {
 	}
 	# Find all derived types to be output.
 	my %outputTypes;
-	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    # Check if property is to be output.
 	    if ( exists($property->{'output'}) ) {
@@ -4114,11 +3853,11 @@ sub Generate_Implementation_Output_Functions {
 		    $type = $property->{'type'};		
 		}
 		$outputTypes{$type} = 1
-		    unless ( $type eq "double" || $type eq "integer" || $type eq "longInteger" );
+		    unless (&Utils::isOutputIntrinsic($type));
 	    }
 	}
 	my @outputTypes;
-	foreach ( keys(%outputTypes) ){
+	foreach ( &ExtraUtils::sortedKeys(\%outputTypes) ){
 	    push(
 		@outputTypes,
 		{
@@ -4134,7 +3873,7 @@ sub Generate_Implementation_Output_Functions {
 	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Output_Count(self,integerPropertyCount,doublePropertyCount,time,instance)\n";
 	$functionCode .= "    !% Increment output property count for a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
 	$functionCode .= "    use ".$_."\n"
-	    foreach ( keys(%modulesRequired) );
+	    foreach ( &ExtraUtils::sortedKeys(\%modulesRequired) );
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	unless ( $component->{'name'} eq "null" ) {
@@ -4163,7 +3902,7 @@ sub Generate_Implementation_Output_Functions {
 		 integer         => "integer",
 		 longInteger     => "integer"
 		);
-	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property is to be output.
 		if ( exists($property->{'output'}) ) {
@@ -4176,7 +3915,7 @@ sub Generate_Implementation_Output_Functions {
 			my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 			$rank   = $linkedData->{'rank'};
 			$type   = $linkedData->{'type'};
-		    } elsif ( $property->{'isVirtual'} eq "true" && $property->{'attributes'}->{'isGettable'} eq "true" ) {
+		    } elsif ( $property->{'isVirtual'} eq "true" && $property->{'attributes'}->{'isGettable'} ) {
 			$rank = $property->{'rank'};
 			$type = $property->{'type'};
 		    } else {
@@ -4204,13 +3943,7 @@ sub Generate_Implementation_Output_Functions {
 			die("Generate_Implementation_Output_Functions(): output of rank>1 arrays not supported");
 		    }
 		    # Increment the counters.
-		    if (
-			$type eq "double"
-			||
-			$type eq "integer"
-			||
-			$type eq "longInteger"
-			) {
+		    if (&Utils::isOutputIntrinsic($type)) {
 			if ( $rank == 0 ) {
 			    if ( exists($property->{'output'}->{'condition'}) ) {
 				my $condition = $property->{'output'}->{'condition'};
@@ -4311,7 +4044,7 @@ sub Generate_Implementation_Output_Functions {
 	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Output_Names(self,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance)\n";
 	$functionCode .= "    !% Establish property names for a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
 	$functionCode .= "    use ".$_."\n"
-	    foreach ( keys(%modulesRequired) );
+	    foreach ( &ExtraUtils::sortedKeys(\%modulesRequired) );
 	$functionCode .= "    implicit none\n";
 	my $functionBody;
 	my $nameCounterAdded = 0;
@@ -4335,7 +4068,7 @@ sub Generate_Implementation_Output_Functions {
 		 integer         => "integer",
 		 longInteger     => "integer"
 		);
-	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property is to be output.
 		if ( exists($property->{'output'}) ) {
@@ -4350,20 +4083,14 @@ sub Generate_Implementation_Output_Functions {
 			$rank   = $linkedData->{'rank'};
 			$type   = $linkedData->{'type'};
 			$object = "self%".$linkedDataName;
-		    } elsif ( $property->{'isVirtual'} eq "true" && $property->{'attributes'}->{'isGettable'} eq "true" ) {
+		    } elsif ( $property->{'isVirtual'} eq "true" && $property->{'attributes'}->{'isGettable'} ) {
 			$rank = $property->{'rank'};
 			$type = $property->{'type'};
 		    } else {
 			die("Generate_Implementation_Output_Functions(): can not output [".$propertyName."]");
 		    }		   
 		    # Increment the counters.
-		    if (
-			$type eq "double"
-			||
-			$type eq "integer"
-			||
-			$type eq "longInteger"
-			) {
+		    if (&Utils::isOutputIntrinsic($type)) {
 			if ( $rank == 0 ) {
 			    if ( exists($property->{'output'}->{'condition'}) ) {
 				my $condition = $property->{'output'}->{'condition'};
@@ -4514,14 +4241,14 @@ sub Generate_Implementation_Name_From_Index_Functions {
 	    $functionCode .= "    if (count <= 0) return\n";
 	}
 	# Iterate over properties.
-	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
    	    # Check if this property has any linked data in this component.
 	    if ( exists($property->{'linkedData'}) ) {
 		# For each linked datum count if necessary.
 		my $linkedDataName = $property->{'linkedData'};
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
-		if ( $linkedData->{'isEvolvable'} eq "true" ) {
+		if ( $linkedData->{'isEvolvable'} ) {
 		    if ( $linkedData->{'rank'} == 0 ) {
 			if ( $linkedData->{'type'} eq "double" ) {
 			    $functionCode .= "    count=count-1\n";
@@ -4630,14 +4357,14 @@ sub Generate_Implementation_Serialization_Functions {
 	# Initialize a count of scalar properties.
 	my $scalarPropertyCount = 0;
 	# Iterate over properties.
-	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
    	    # Check if this property has any linked data in this component.
 	    if ( exists($property->{'linkedData'}) ) {
 		# For each linked datum count if necessary.
 		my $linkedDataName = $property->{'linkedData'};
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
-		if ( $linkedData->{'isEvolvable'} eq "true" ) {
+		if ( $linkedData->{'isEvolvable'} ) {
 		    if ( $linkedData->{'rank'} == 0 ) {
 			if ( $linkedData->{'type'} eq "double" ) {
 			    ++$scalarPropertyCount;
@@ -4697,13 +4424,13 @@ sub Generate_Implementation_Serialization_Functions {
 	    $serializationCode .= " end if\n";
 	    $needCount = 1;
 	}
-	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    # Check if this property has any linked data in this component.
 	    if ( exists($property->{'linkedData'}) ) {
 		my $linkedDataName = $property->{'linkedData'};
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
-		if ( $linkedData->{'isEvolvable'} eq "true" ) {
+		if ( $linkedData->{'isEvolvable'} ) {
 		    if ( $linkedData->{'rank'} == 0 ) {
 			if ( $linkedData->{'type'} eq "double" ) {
 			    $serializationCode .= "    write (0,*) 'DEBUG -> Node_Component_".ucfirst($componentID)."_Serialize_Values -> ".$linkedDataName."',offset,size(array)\n"
@@ -4791,14 +4518,14 @@ sub Generate_Implementation_Serialization_Functions {
 	    $deserializationCode .= " end if\n";
 	    $needCount = 1;
 	}
-	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    # Check if this property has any linked data in this component.
 	    if ( exists($property->{'linkedData'}) ) {
 		# For each linked datum count if necessary.
 		my $linkedDataName = $property->{'linkedData'};
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
-		if ( $linkedData->{'isEvolvable'} eq "true" ) {
+		if ( $linkedData->{'isEvolvable'} ) {
 		    if ( $linkedData->{'rank'} == 0 ) {
 			if ( $linkedData->{'type'} eq  "double" ) {
 			    $deserializationCode .= "    self%".padLinkedData($linkedDataName,[0,0])."=array(offset)\n";
@@ -4883,14 +4610,14 @@ sub Generate_Serialization_Offset_Variables {
 	# Get the component.
 	my $component = $buildData->{'components'}->{$componentID};
 	# Iterate over properties.
-	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
    	    # Check if this property has any linked data in this component.
 	    if ( exists($property->{'linkedData'}) ) {
 		# For each linked datum count if necessary.
 		my $linkedDataName = $property->{'linkedData'};
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
-		if ( $linkedData->{'isEvolvable'} eq "true" ) {
+		if ( $linkedData->{'isEvolvable'} ) {
 		    my $offsetName = &offsetName($componentID,$propertyName);
 		    $offsetTable ->add($offsetName);
 		    $privateTable->add($offsetName);
@@ -4939,9 +4666,9 @@ sub Generate_Node_Offset_Functions {
     $functionCode .= "    count=0\n";
     # Loop over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-     	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serializationOffsets(count)\n";
+     	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%serializationOffsets(count)\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
@@ -5009,14 +4736,14 @@ sub Generate_Implementation_Offset_Functions {
 	    $functionCode .= "call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serializationOffsets(count)\n";
 	}
 	# Iterate over properties.
-	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
    	    # Check if this property has any linked data in this component.
 	    if ( exists($property->{'linkedData'}) ) {
 		# For each linked datum count if necessary.
 		my $linkedDataName = $property->{'linkedData'};
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
-		if ( $linkedData->{'isEvolvable'} eq "true" ) {
+		if ( $linkedData->{'isEvolvable'} ) {
 		    my $offsetName = &offsetName($componentID,$propertyName);
 		    $functionCode .= "    ".$offsetName."=count+1\n";
 		    if ( $linkedData->{'rank'} == 0 ) {
@@ -5209,7 +4936,7 @@ sub Generate_Component_Get_Functions {
 		    $functionCode .= "    select type (".$componentClassName.")\n";
 		    $foundCreateFunctions = 1;
 		}
-		$functionCode .= "    type is (nodeComponent".padFullyQualified(ucfirst($componentID),[0,0]).")\n";
+		$functionCode .= "    type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentID),[0,0]).")\n";
 		my $createFunction = $component->{'createFunction'};
 		$createFunction = $component->{'createFunction'}->{'content'}
 		if ( exists($component->{'createFunction'}->{'content'}) );
@@ -5417,22 +5144,22 @@ sub Generate_Node_Copy_Function {
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     $functionCode .= "    skipFormationNodeActual=.false.\n";
     $functionCode .= "    if (present(skipFormationNode)) skipFormationNodeActual=skipFormationNode\n";
-    $functionCode .= "    targetNode%".padComponentClass($_,[8,14])." =  self%".$_."\n"
+    $functionCode .= "    targetNode%".&Utils::padClass($_,[8,14])." =  self%".$_."\n"
 	foreach ( "uniqueIdValue", "indexValue", "timeStepValue" );
-    $functionCode .= "    targetNode%".padComponentClass($_,[8,14])." => self%".$_."\n"
+    $functionCode .= "    targetNode%".&Utils::padClass($_,[8,14])." => self%".$_."\n"
 	foreach ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "event", "hostTree" );
     $functionCode .= "    if (.not.skipFormationNodeActual) targetNode%formationNode => self%formationNode\n";
     # Loop over all component classes
     if ( $workaround == 1 ) { # Workaround "Assignment to an allocatable polymorphic variable is not yet supported"
 	foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
-	    $functionCode .= "    if (allocated(targetNode%component".padComponentClass(ucfirst($componentClassName),[0,0]).")) deallocate(targetNode%component".padComponentClass(ucfirst($componentClassName),[0,0]).")\n";
-	    $functionCode .= "    allocate(targetNode%component".padComponentClass(ucfirst($componentClassName),[0,0])."(size(self%component".padComponentClass(ucfirst($componentClassName),[0,0]).")),source=self%component".padComponentClass(ucfirst($componentClassName),[0,0])."(1))\n";
-	    $functionCode .= "    do i=1,size(self%component".padComponentClass(ucfirst($componentClassName),[0,0]).")\n";
+	    $functionCode .= "    if (allocated(targetNode%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")) deallocate(targetNode%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")\n";
+	    $functionCode .= "    allocate(targetNode%component".&Utils::padClass(ucfirst($componentClassName),[0,0])."(size(self%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")),source=self%component".&Utils::padClass(ucfirst($componentClassName),[0,0])."(1))\n";
+	    $functionCode .= "    do i=1,size(self%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")\n";
 	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
-		$functionCode .= "      select type (from => self%component".padComponentClass(ucfirst($componentClassName),[0,0]).")\n";
-		$functionCode .= "      type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
-		$functionCode .= "        select type (to => targetNode%component".padComponentClass(ucfirst($componentClassName),[0,0]).")\n";
-		$functionCode .= "        type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
+		$functionCode .= "      select type (from => self%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")\n";
+		$functionCode .= "      type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
+		$functionCode .= "        select type (to => targetNode%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")\n";
+		$functionCode .= "        type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
 		$functionCode .= "          to=from\n";
 		$functionCode .= "        end select\n";
 		$functionCode .= "      end select\n";
@@ -5441,16 +5168,16 @@ sub Generate_Node_Copy_Function {
 	}
     } else {
 	foreach ( @{$buildData->{'componentClassList'}} ) {
-	    $functionCode .= "    targetNode%component".padComponentClass(ucfirst($_),[0,14])."=  self%component".ucfirst($_)."\n";
+	    $functionCode .= "    targetNode%component".&Utils::padClass(ucfirst($_),[0,14])."=  self%component".ucfirst($_)."\n";
 	}
     }
     # Update target node pointers.
     $functionCode .= "    select type (targetNode)\n";
     $functionCode .= "    type is (treeNode)\n";
     foreach ( @{$buildData->{'componentClassList'}} ) {
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
 	
-	$functionCode .= "        targetNode%component".padComponentClass(ucfirst($_),[0,14])."(i)%hostNode =>  targetNode\n";
+	$functionCode .= "        targetNode%component".&Utils::padClass(ucfirst($_),[0,14])."(i)%hostNode =>  targetNode\n";
 	$functionCode .= "      end do\n";
     }
     $functionCode .= "    end select\n";
@@ -5500,16 +5227,16 @@ sub Generate_Node_Move_Function {
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Loop over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-	$functionCode .= "    if (allocated(targetNode%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(targetNode%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        call targetNode%component".padComponentClass(ucfirst($_),[0,0])."(i)%destroy()\n";
+	$functionCode .= "    if (allocated(targetNode%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(targetNode%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        call targetNode%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%destroy()\n";
 	$functionCode .= "      end do\n";
-	$functionCode .= "      deallocate(targetNode%component".padComponentClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "      deallocate(targetNode%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
 	$functionCode .= "    end if\n";
-	$functionCode .= "    if (allocated(self      %component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "       call Move_Alloc(self%component".padComponentClass(ucfirst($_),[0,0]).",targetNode%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "       do i=1,size(targetNode%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "         targetNode%component".padComponentClass(ucfirst($_),[0,0])."(i)%hostNode => targetNode\n";
+	$functionCode .= "    if (allocated(self      %component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "       call Move_Alloc(self%component".&Utils::padClass(ucfirst($_),[0,0]).",targetNode%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "       do i=1,size(targetNode%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "         targetNode%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%hostNode => targetNode\n";
 	$functionCode .= "       end do\n";
 	$functionCode .= "    end if\n";
     }
@@ -5631,7 +5358,7 @@ sub Generate_Deferred_GSR_Function {
 	# Get the component.
 	my $component = $buildData->{'components'}->{$componentID};
 	# Iterate over properties.
-	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    # Get the property.
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    # Get the component fully-qualified and class names.
@@ -5648,7 +5375,7 @@ sub Generate_Deferred_GSR_Function {
 		# Identify properties with a deferred get function to be built.
 		if (
 		    $property->{'attributes' }->{'isDeferred'} =~ m/get/ &&
-		    $property->{'attributes' }->{'isGettable'} eq "true" &&
+		    $property->{'attributes' }->{'isGettable'}           &&
 		    $property->{'getFunction'}->{'build'     } eq "true"
 		    )
 		{
@@ -5690,7 +5417,7 @@ sub Generate_Deferred_GSR_Function {
 		# Identify properties with a deferred set function to be built.
 		if (
 		    $property->{'attributes' }->{'isDeferred'} =~ m/set/
-		    && $property->{'attributes' }->{'isSettable'} eq "true" 
+		    && $property->{'attributes' }->{'isSettable'} 
 		    && $property->{'setFunction'}->{'build'     } eq "true"
 		    )
 		{
@@ -5728,7 +5455,7 @@ sub Generate_Deferred_GSR_Function {
 		# Identify properties with a deferred rate function to be built.
 		if (
 		    $property->{'attributes' }->{'isDeferred' } =~ m/rate/
-		    && $property->{'attributes' }->{'isEvolvable'} eq "true" 
+		    && $property->{'attributes' }->{'isEvolvable'} 
 		    )
 		{
 		    # Define data content of this function.
@@ -5805,11 +5532,11 @@ sub Generate_GSR_Functions {
 	# Get the parent class.
 	my $componentClassName = $component->{'class'};
 	# Iterate over properties.
-	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    # Handle cases where a get function is explicitly specified for a non-deferred virtual property.
 	    if (
-		$property->{'attributes' }->{'isGettable'} eq "true"      &&
+		$property->{'attributes' }->{'isGettable'}                &&
 		$property->{'getFunction'}->{'build'     } eq "false"     &&
 		$property->{'getFunction'}->{'bindsTo'   } eq "component" &&
 		$property->{'attributes' }->{'isDeferred'} !~ m/get/
@@ -5822,7 +5549,7 @@ sub Generate_GSR_Functions {
 	    }
 	    # Handle cases where a set function is explicitly specified for a non-deferred virtual property.
 	    if (
-		$property->{'attributes' }->{'isSettable'} eq "true"      &&
+		$property->{'attributes' }->{'isSettable'}                &&
 		$property->{'setFunction'}->{'build'     } eq "false"     &&
 		$property->{'setFunction'}->{'bindsTo'   } eq "component" &&
 		$property->{'attributes' }->{'isDeferred'} !~ m/set/
@@ -5839,7 +5566,7 @@ sub Generate_GSR_Functions {
 		my $linkedDataName = $property->{'linkedData'};
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		# Create a "get" function if the property is gettable.
-		if ( $property->{'attributes'}->{'isGettable'} eq "true" ) {
+		if ( $property->{'attributes'}->{'isGettable'} ) {
 		    # Skip get function creation if a custom function which binds at the component level has been specified.
 		    unless (
 			$property->{'getFunction'}->{'build'  } eq "false"     &&
@@ -5883,7 +5610,7 @@ sub Generate_GSR_Functions {
 		    }
 		}
 		# Create a "set" method unless the property is not settable or a custom set function has been specified.
-		if ( $property->{'attributes' }->{'isSettable'} eq "true" ) {
+		if ( $property->{'attributes' }->{'isSettable'} ) {
 		    if ( $property->{'setFunction'}->{'build'} eq "true" ) {
 			# Determine the suffix for this function.
 			my $suffix = "";
@@ -5939,7 +5666,7 @@ sub Generate_GSR_Functions {
 		    }
 		}
 		# Create "count", "rate" and "scale" functions if the property is evolvable.
-		if ( $property->{'attributes'}->{'isEvolvable'} eq "true" ) {
+		if ( $property->{'attributes'}->{'isEvolvable'} ) {
 		    # Specify the "count" function data content.
 		    @dataContent = (
 			{
@@ -6106,33 +5833,15 @@ sub Generate_GSR_Functions {
 			    $functionCode .= "    type is (nodeComponent".ucfirst($componentClassName).")\n";
 			    $functionCode .= "      ! No specific component exists, we must interrupt and create one.\n";
 			    if ( $linkedData->{'rank'} == 0 ) {
-				if    ( $linkedData->{'type'} eq"double" ) {
+				if    ( $linkedData->{'type'} eq "double" ) {
 				    $functionCode .= "   if (setValue == 0.0d0) return\n";
-				}
-				elsif ( $linkedData->{'type'} eq"integer"     ) {
-				    die('integer should not be evolvable')
-				}
-				elsif ( $linkedData->{'type'} eq"longInteger" ) {
-				    die('longInteger should not be evolvable')
-				}
-				elsif ( $linkedData->{'type'} eq"logical"     ) {
-				    die('logical should not be evolvable')
 				}
 				else {
 				    $functionCode .= "   if (setValue%isZero()) return\n";
 				}
 			    } else {
-				if    ( $linkedData->{'type'} eq"double" ) {
+				if    ( $linkedData->{'type'} eq "double" ) {
 				    $functionCode .= "   if (all(setValue == 0.0d0)) return\n";
-				}
-				elsif ( $linkedData->{'type'} eq"integer"     ) {
-				    die('integer should not be evolvable')
-				}
-				elsif ( $linkedData->{'type'} eq"longInteger" ) {
-				    die('integer should not be evolvable')
-				}
-				elsif ( $linkedData->{'type'} eq"logical"     ) {
-				    die('logical should not be evolvable')
 				}
 				else {
 				    die('auto-create of rank>0 objects not supported');
@@ -6190,30 +5899,12 @@ sub Generate_GSR_Functions {
 				if    ( $linkedData->{'type'} eq"double" ) {
 				    $functionCode .= "   if (setValue == 0.0d0) return\n";
 				}
-				elsif ( $linkedData->{'type'} eq"integer"     ) {
-				    die('integer should not be evolvable')
-				}
-				elsif ( $linkedData->{'type'} eq"longInteger" ) {
-				    die('longInteger should not be evolvable')
-				}
-				elsif ( $linkedData->{'type'} eq"logical"     ) {
-				    die('logical should not be evolvable')
-				}
 				else {
 				    $functionCode .= "   if (setValue%isZero()) return\n";
 				}
 			    } else {
 				if    ( $linkedData->{'type'} eq"double" ) {
 				    $functionCode .= "   if (all(setValue == 0.0d0)) return\n";
-				}
-				elsif ( $linkedData->{'type'} eq"integer"     ) {
-				    die('integer should not be evolvable')
-				}
-				elsif ( $linkedData->{'type'} eq"longInteger" ) {
-				    die('longInteger should not be evolvable')
-				}
-				elsif ( $linkedData->{'type'} eq"logical"     ) {
-				    die('logical should not be evolvable')
 				}
 				else {
 				    die('auto-create of rank>0 objects not supported');
@@ -6311,15 +6002,15 @@ sub Generate_Tree_Node_Creation_Function {
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     $functionCode .= "    ! Ensure pointers are nullified.\n";
-    $functionCode .= "    nullify (self%".padComponentClass($_,[9,14]).")\n"
+    $functionCode .= "    nullify (self%".&Utils::padClass($_,[9,14]).")\n"
 	foreach ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "formationNode", "event" );
     foreach ( @{$buildData->{'componentClassList'}} ) {
-    	$functionCode .= "    allocate(self%".padComponentClass("component".ucfirst($_),[9,14])."(1))\n";
+    	$functionCode .= "    allocate(self%".&Utils::padClass("component".ucfirst($_),[9,14])."(1))\n";
     }
     $functionCode .= "    select type (self)\n";
     $functionCode .= "    type is (treeNode)\n";
     foreach ( @{$buildData->{'componentClassList'}} ) {
-	$functionCode .= "       self%component".padComponentClass(ucfirst($_),[0,0])."(1)%hostNode => self\n";
+	$functionCode .= "       self%component".&Utils::padClass(ucfirst($_),[0,0])."(1)%hostNode => self\n";
     }
     $functionCode .= "    end select\n";
     $functionCode .= "    ! Assign a host tree if supplied.\n";
@@ -6373,7 +6064,7 @@ sub Generate_Tree_Node_Destruction_Function {
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
-     	$functionCode .= "    call self%".padComponentClass(lc($componentClass)."Destroy",[7,0])."()\n";
+     	$functionCode .= "    call self%".&Utils::padClass(lc($componentClass)."Destroy",[7,0])."()\n";
     }
     # Remove any events attached to the node, along with their paired event in other nodes.
     $functionCode .= "    ! Iterate over all attached events.\n";
@@ -6516,7 +6207,7 @@ sub Generate_GSR_Availability_Functions {
 	    my $componentID = ucfirst($componentClassName).ucfirst($componentName);
 	    my $component   = $buildData->{'components'}->{$componentID};
 	    # Iterate over the properties of this implementation.
-	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		# Get the property.
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Record attributes.
@@ -6526,7 +6217,7 @@ sub Generate_GSR_Availability_Functions {
 	    }
 	}
 	# Iterate over properties, creating a function for each.
-	foreach my $propertyName ( keys(%{$properties}) ) {
+	foreach my $propertyName ( &ExtraUtils::sortedKeys($properties) ) {
 	    my $property = $properties->{$propertyName};
 	    my $functionName = $componentClassName.ucfirst($propertyName)."AttributeMatch";
 	    my $functionCode;
@@ -6545,15 +6236,15 @@ sub Generate_GSR_Availability_Functions {
 	    $functionCode .= "   if (present(requireGettable )) requireGettableActual =requireGettable\n";
 	    $functionCode .= "   if (present(requireEvolvable)) requireEvolvableActual=requireEvolvable\n";
 	    # Iterate over component implementations.
-	    foreach my $componentName ( sort(keys(%{$property})) ) {
+	    foreach my $componentName ( &ExtraUtils::sortedKeys($property) ) {
 		my $component = $property->{$componentName};
 		my @logic;
 		push(@logic,".not.requireSettableActual" )
-		    if ( $component->{'set' } eq "false" );
+		    unless ( $component->{'set' } );
 		push(@logic,".not.requireGettableActual" )
-		    if ( $component->{'get' } eq "false" );
+		    unless ( $component->{'get' } );
 		push(@logic,".not.requireEvolvableActual")
-		    if ( $component->{'rate'} eq "false" );
+		    unless ( $component->{'rate'} );
 		my $logicCode;
 		if ( @logic ) {
 		    $logicCode .= "   if (".join(".and.",@logic).") then\n";
@@ -6617,7 +6308,7 @@ sub Generate_Type_Name_Functions {
 	$functionCode .= "     !% Returns the type for the ".$_." component.\n";
 	$functionCode .= "     implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	$functionCode .= "     ".padComponentClass("Node_Component_".ucfirst($_)."_Type",[20,0])."='nodeComponent:".$_."'\n";
+	$functionCode .= "     ".&Utils::padClass("Node_Component_".ucfirst($_)."_Type",[20,0])."='nodeComponent:".$_."'\n";
 	$functionCode .= "     return\n";
 	$functionCode .= "  end function Node_Component_".ucfirst($_)."_Type\n\n";
 	# Insert into the function list.
@@ -6701,10 +6392,10 @@ sub Generate_Component_Assignment_Function {
     $functionCode .= "    select type (to)\n";
     foreach my $componentName ( @{$buildData->{'componentIdList'}} ) {
 	my $component = $buildData->{'components'}->{$componentName};
-	$functionCode .= "    type is (nodeComponent".padFullyQualified($componentName,[0,0]).")\n";
+	$functionCode .= "    type is (nodeComponent".&Utils::padFullyQualified($componentName,[0,0]).")\n";
 	$functionCode .= "       select type (from)\n";
-	$functionCode .= "       type is (nodeComponent".padFullyQualified($componentName,[0,0]).")\n";
-	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	$functionCode .= "       type is (nodeComponent".&Utils::padFullyQualified($componentName,[0,0]).")\n";
+	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    if ( exists($property->{'linkedData'}) ) {
 		my $linkedDataName = $property->{'linkedData'};		
@@ -6838,9 +6529,9 @@ sub Generate_Component_Class_Removal_Functions {
 	$functionCode .= "      allocate(instancesTemporary(instanceCount-1),source=self%component".ucfirst($componentClassName)."(1))\n";
 	foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 	    $functionCode .= "      select type (from => self%component".ucfirst($componentClassName).")\n";
-	    $functionCode .= "      type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
+	    $functionCode .= "      type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
 	    $functionCode .= "        select type (to => instancesTemporary)\n";
-	    $functionCode .= "        type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
+	    $functionCode .= "        type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
 	    $functionCode .= "          if (instance >             1) to(       1:instance     -1)=from(         1:instance     -1)\n";
 	    $functionCode .= "          if (instance < instanceCount) to(instance:instanceCount-1)=from(instance+1:instanceCount  )\n";
 	    $functionCode .= "        end select\n";
@@ -6935,18 +6626,18 @@ sub Generate_Component_Class_Move_Functions {
 	$functionCode .= "      allocate(instancesTemporary(instanceCount+targetCount),source=self%component".ucfirst($componentClassName)."(1))\n";
 	foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 	    $functionCode .= "      select type (from => targetNode%component".ucfirst($componentClassName).")\n";
-	    $functionCode .= "      type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
+	    $functionCode .= "      type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
 	    $functionCode .= "        select type (to => instancesTemporary)\n";
-	    $functionCode .= "        type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
+	    $functionCode .= "        type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
 	    $functionCode .= "          to(1:targetCount)=from\n";
 	    $functionCode .= "        end select\n";
 	    $functionCode .= "      end select\n";
 	}
 	foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 	    $functionCode .= "      select type (from => self%component".ucfirst($componentClassName).")\n";
-	    $functionCode .= "      type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
+	    $functionCode .= "      type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
 	    $functionCode .= "        select type (to => instancesTemporary)\n";
-	    $functionCode .= "        type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
+	    $functionCode .= "        type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
 	    $functionCode .= "          to(targetCount+1:targetCount+instanceCount)=from\n";
 	    $functionCode .= "        end select\n";
 	    $functionCode .= "      end select\n";
@@ -6998,7 +6689,7 @@ sub Generate_Component_Class_Dump_Functions {
 	$functionCode .= "    use ISO_Varying_String\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	$functionCode .= "    call Galacticus_Display_Indent('".$componentClassName.": ".(" " x ($fullyQualifiedNameLengthMax-length($componentClassName)))."generic')\n";
+	$functionCode .= "    call Galacticus_Display_Indent('".$componentClassName.": ".(" " x ($Utils::fullyQualifiedNameLengthMax-length($componentClassName)))."generic')\n";
 	$functionCode .= "    call Galacticus_Display_Unindent('done')\n";
 	$functionCode .= "    return\n";
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Dump\n";
@@ -7269,7 +6960,7 @@ sub Generate_Component_Class_Output_Functions {
 	    # Get the component.
 	    my $componentID  = ucfirst($componentClassName).ucfirst($componentName);
 	    my $component    = $buildData->{'components'}->{$componentID};
-	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if property is to be output.
 		if ( exists($property->{'output'}) ) {
@@ -7283,10 +6974,9 @@ sub Generate_Component_Class_Output_Functions {
 			$type = $property->{'type'};		
 		    }
 		    $outputTypes{$type} = 1
-			unless ( $type eq "double" || $type eq "integer" || $type eq "longInteger" );
-		    if ( ( $type eq "double" || $type eq "integer" || $type eq "longInteger" ) && $property->{'rank'} == 1 && exists($property->{'output'}->{'condition'}) ) {
-			$rank1OutputTypes{$type} = 1;
-		    }
+			unless (&Utils::isOutputIntrinsic($type));
+		    $rank1OutputTypes{$type} = 1
+			if ( &Utils::isOutputIntrinsic($type) && $property->{'rank'} == 1 && exists($property->{'output'}->{'condition'}) );
 		}
 	    }
 	}
@@ -7296,7 +6986,7 @@ sub Generate_Component_Class_Output_Functions {
 	     longInteger     => "integer(kind=kind_int8)",
 	     double => "double precision"
 	    );
-	foreach ( keys(%rank1OutputTypes) ) {
+	foreach ( &ExtraUtils::sortedKeys(\%rank1OutputTypes) ) {
 	    push(
 		@dataContent,
 		{
@@ -7315,7 +7005,7 @@ sub Generate_Component_Class_Output_Functions {
 	    )
 	    if ( scalar(keys(%rank1OutputTypes)) > 0 );
 	my @outputTypes;
-	foreach ( keys(%outputTypes) ){
+	foreach ( &ExtraUtils::sortedKeys(\%outputTypes) ){
 	    push(
 		@outputTypes,
 		{
@@ -7333,7 +7023,7 @@ sub Generate_Component_Class_Output_Functions {
 	    # Get the component.
 	    my $componentID  = ucfirst($componentClassName).ucfirst($componentName);
 	    my $component    = $buildData->{'components'}->{$componentID};
-	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property is to be output.
 		if ( exists($property->{'output'}) ) {
@@ -7352,7 +7042,7 @@ sub Generate_Component_Class_Output_Functions {
 	$functionCode  = "  subroutine Node_Component_".ucfirst($componentClassName)."_Output(self,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time,instance)\n";
 	$functionCode .= "    !% Output ptoperties for a ".$componentClassName." component.\n";
 	$functionCode .= "    use ".$_."\n" 
-	    foreach ( keys(%modulesRequired) );
+	    foreach ( &ExtraUtils::sortedKeys(\%modulesRequired) );
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	foreach my $componentName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
@@ -7368,7 +7058,7 @@ sub Generate_Component_Class_Output_Functions {
 		);
 	    $activeCheck .= ") then\n";
 	    my $outputsFound = 0;
-	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property is to be output.
 		if ( exists($property->{'output'}) ) {
@@ -7386,7 +7076,7 @@ sub Generate_Component_Class_Output_Functions {
 			my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 			$rank   = $linkedData->{'rank'};
 			$type   = $linkedData->{'type'};
-		    } elsif ( $property->{'isVirtual'} eq "true" && $property->{'attributes'}->{'isGettable'} eq "true" ) {
+		    } elsif ( $property->{'isVirtual'} eq "true" && $property->{'attributes'}->{'isGettable'} ) {
 			$rank = $property->{'rank'};
 			$type = $property->{'type'};
 		    } else {
@@ -7414,13 +7104,7 @@ sub Generate_Component_Class_Output_Functions {
 			die("Generate_Component_Class_Output_Functions(): output of rank>1 arrays not supported");
 		    }
 		    # Increment the counters.
-		    if (
-			$type eq "double"
-			||
-			$type eq "integer"
-			||
-			$type eq "longInteger"
-			) {
+		    if (&Utils::isOutputIntrinsic($type)) {
 			if ( $rank == 0 ) {
 			    if ( exists($property->{'output'}->{'condition'}) ) {
 				my $condition = $property->{'output'}->{'condition'};
@@ -7535,7 +7219,7 @@ sub Generate_Component_Implementation_Destruction_Functions {
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	# Iterate over properties.
-	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
    	    # Check if this property has any linked data in this component.
 	    if ( exists($property->{'linkedData'}) ) {
@@ -7581,11 +7265,11 @@ sub Generate_Null_Binding_Functions {
     # Generate null binding functions.
     my $buildData = shift;
     # Iterate over component classes.
-    foreach my $componentClassName ( keys(%{$buildData->{'nullProperties'}}) ) {
+    foreach my $componentClassName ( &ExtraUtils::sortedKeys($buildData->{'nullProperties'}) ) {
 	# Get the null functions required for this component class.
 	my $componentClass = $buildData->{'nullProperties'}->{$componentClassName};
 	# Iterate over required null functions for this component class.
-	foreach my $nullFunctionName ( keys(%{$componentClass}) ) {
+	foreach my $nullFunctionName ( &ExtraUtils::sortedKeys($componentClass) ) {
 	    # Get the null function definition.
 	    my $nullFunction = $componentClass->{$nullFunctionName};
 	    # Construct a datatype for this null function.
@@ -7705,7 +7389,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 	    my $componentID = ucfirst($componentClassName).ucfirst($componentName);
 	    my $component   = $buildData->{'components'}->{$componentID};
 	    # Iterate over the properties of this implementation.
-	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		# Get the property.
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Get the linked data.
@@ -7785,7 +7469,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 				    $default =~ s/self([a-zA-Z]+)Component\s*%//;
 				}
 				$defaultLines .= "    selfNode => self%host()\n" if ( scalar(keys(%selfComponents)) > 0 );
-				foreach my $selfComponent ( keys(%selfComponents) ) {
+				foreach my $selfComponent ( &ExtraUtils::sortedKeys(\%selfComponents) ) {
 				    $defaultLines .= "     self".$selfComponent."Component => selfNode%".lc($selfComponent)."()\n";
 				}
 				$defaultLines .= "       call Alloc_Array(".ucfirst($componentClassName).ucfirst($propertyName).",[".$property2->{'classDefault'}->{'count'}."])\n"
@@ -7816,7 +7500,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 			    variables  => [ "self".ucfirst($_)."Component" ]
 			}
 			)
-			foreach ( keys(%requiredComponents) );
+			foreach ( &ExtraUtils::sortedKeys(\%requiredComponents) );
 		    # Insert data content.
 		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 		    # Insert code to set required default.
