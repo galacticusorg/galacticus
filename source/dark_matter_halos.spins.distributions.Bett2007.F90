@@ -93,10 +93,8 @@ contains
     double precision                                              :: spinDimensionless          , tableMaximum
     integer                                                       :: iSpin
 
-    bett2007ConstructorInternal%lambda0                    =lambda0
-    bett2007ConstructorInternal%alpha                      =alpha
-    bett2007ConstructorInternal%resetRandomSequence        =.true.
-    bett2007ConstructorInternal%resetRandomSequenceSnapshot=.true.
+    bett2007ConstructorInternal%lambda0=lambda0
+    bett2007ConstructorInternal%alpha  =alpha
     ! Tabulate the cumulative distribution.
     tableMaximum=(bett2007SpinMaximum/lambda0)**(3.0d0/alpha)
     call bett2007ConstructorInternal%distribution%destroy()
