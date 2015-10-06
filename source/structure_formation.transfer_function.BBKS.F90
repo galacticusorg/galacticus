@@ -44,7 +44,7 @@
 
   ! Fitting function parameters.
   double precision, parameter :: bbksP=2.34d0, bbksA=3.89d0, bbksB=16.10d0, bbksC=5.46d0, bbksD=6.71d0
-  
+
 contains
 
   function bbksConstructorParameters(parameters)
@@ -52,7 +52,7 @@ contains
     use Input_Parameters2
     implicit none
     type (transferFunctionBBKS    )                :: bbksConstructorParameters
-    type (inputParameters         ), intent(in   ) :: parameters
+    type (inputParameters         ), intent(inout) :: parameters
     class(cosmologyParametersClass), pointer       :: cosmologyParameters_
     
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
@@ -98,11 +98,7 @@ contains
     implicit none
     type(transferFunctionBBKS), intent(inout) :: self
     
-    if     (                                                       &
-         &   associated(self%cosmologyParameters_                ) &
-         &  .and.                                                  &
-         &              self%cosmologyParameters_%isFinalizable()  &
-         & ) deallocate(self%cosmologyParameters_                )
+    !# <objectDestructor name="self%cosmologyParameters_"/>
     return
   end subroutine bbksDestructor
 
@@ -211,14 +207,12 @@ contains
     use Input_Parameters2
     use FoX_DOM
     implicit none
-    class    (transferFunctionBBKS), intent(inout) :: self
-    type     (inputParameters     ), intent(inout) :: descriptor
-    type     (node                ), pointer       :: parameterNode
-    type     (inputParameters     )                :: subParameters
+    class(transferFunctionBBKS), intent(inout) :: self
+    type (inputParameters     ), intent(inout) :: descriptor
+    type (inputParameters     )                :: subParameters
 
     call descriptor%addParameter("transferFunctionMethod","BBKS")
-    parameterNode => descriptor%node("transferFunctionMethod")
-    subParameters=inputParameters(parameterNode)
+    subParameters=descriptor%subparameters("transferFunctionMethod")
     call self%cosmologyParameters_%descriptor(subParameters)
     return
   end subroutine bbksDescriptor
