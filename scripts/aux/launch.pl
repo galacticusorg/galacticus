@@ -88,7 +88,7 @@ sub Construct_Models {
 	$modelBaseName    = $parameterSet->{'label'}
 	   if ( exists($parameterSet->{'label'}) );
 	# Create an array of hashes giving the parameters for this parameter set.
-	my @parameterHashes = &Create_Parameter_Hashes($parameterSet);	
+	my @parameterHashes = &Create_Parameter_Hashes($parameterSet);
 	# Loop over all models and run them.
 	my $iModel     = 0;
 	my $mergeGroup = 0;
@@ -164,7 +164,8 @@ sub Construct_Models {
 		    # Transfer parameters for this model from the array of model parameter hashes to the
 		    # active hash.
 		    foreach my $parameter ( keys(%{$parameterData}) ) {
-			$parameters->{$parameter} = $parameterData->{$parameter};
+			$parameters->{$parameter} = $parameterData->{$parameter}
+			   unless ( $parameterData->{$parameter} =~ m/^\s*\%\%nochange\%\%\s*$/ );
 		    }
 		    # Transfer values from the active hash to an array suitable for XML output.
 		    my $data;
@@ -235,7 +236,7 @@ sub Create_Parameter_Hashes {
 		push(@stack,map {$node->{'subParameters'}->{$_}} keys(%{$node->{'subParameters'}}))
 		    if ( exists($node->{'subParameters'}) );
 		# Check for non-flat structure.
-		if ( scalar(@{$node->{'values'}}) > 1 ) {
+		if ( exists($node->{'values'}) && scalar(@{$node->{'values'}}) > 1 ) {
 		    # Parameter has multiple values. Iterate over them, generating a new hash for each value, and
 		    # push these new hashes back onto the stack.
 		    my @values = @{$node->{'values'}};
@@ -305,11 +306,13 @@ sub Create_Parameter_Hashes {
 	    my $nodeArray = pop(@stack);
 	    # Iterate over nodes.
 	    foreach my $node ( @{$nodeArray} ) {
-		my $value = $node->{'values'}->[0]->{'value'};
-		$value =~ s/^\s*//;
-		$value =~ s/\s*$//;
-		$node->{'value'} = $value;
-		delete($node->{'values'});
+		if ( $node->{'values'}->[0]->{'value'} ) {
+		    my $value = $node->{'values'}->[0]->{'value'};
+		    $value =~ s/^\s*//;
+		    $value =~ s/\s*$//;
+		    $node->{'value'} = $value;
+		    delete($node->{'values'});
+		}
 		# Handle sub-parameters:
 		#  --> Transfer them out of the "subParameters" element so that they will be in the correct location in the output XML;
 		#  --> Push them onto the stack for conversion to simple form.
@@ -335,10 +338,10 @@ sub Parameters_To_Hash {
 	next
 	    unless ( reftype($parameters->{$name}) );
 	# Iterate over all subelements of this node.
-	my $subParameters;
 	my $elementCounter = -1;
 	foreach my $element ( &ExtraUtils::as_array($parameters->{$name}) ) {
-	    ++$elementCounter;	    
+	    my $subParameters;
+	    ++$elementCounter;
 	    foreach my $subElementName ( keys(%{$element}) ) { 
 		if ( $subElementName eq "value" ) {
 		    foreach my $value ( &ExtraUtils::as_array($element->{'value'}) ) {

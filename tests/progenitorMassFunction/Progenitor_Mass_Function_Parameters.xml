@@ -5,8 +5,9 @@
   <mergerTreeBuildTreesPerDecade value="1000"/>
   <mergerTreeBuildHaloMassMinimum value="1.0d11"/>
   <mergerTreeBuildHaloMassMaximum value="2.0d15"/>  
-  <mergerTreesBuildMassResolutionMethod value="fixed"/>
-  <mergerTreeBuildMassResolutionFixed value="2.3561d10"/>
+  <mergerTreesBuildMassResolutionMethod value="fixed">
+    <massResolution value="2.3561d10"/>
+  </mergerTreesBuildMassResolutionMethod>
   <outputRedshifts value="0.0 0.5 1.0 2.0 4.0"/>
   <mergerTreeBuilderMethod value="cole2000">
     <mergeProbability value="0.1"/>
@@ -19,12 +20,13 @@
     <OmegaBaryon value="0.0"/>
     <HubbleConstant value="73.0"/>
   </cosmologyParametersMethod>
-  <sigma_8 value="0.9"/>
-  <powerSpectrumPrimordialMethod value="powerLaw">
+  <cosmologicalMassVarianceMethod value="filteredPower">
+    <sigma_8 value="0.9"/>
+  </cosmologicalMassVarianceMethod><powerSpectrumPrimordialMethod value="powerLaw">
     <index value="1.0"/>
     <running value="0.0"/>
   </powerSpectrumPrimordialMethod>
   <galacticusOutputFileName value="tests/progenitorMassFunction/progenitorMassFunctionTest.hdf5"/>
-  <haloMassFunctionMethod value="Tinker2008"/>
+  <haloMassFunctionMethod value="tinker2008"/>
   <transferFunctionMethod value="eisensteinHu1999"/>
 </parameters>

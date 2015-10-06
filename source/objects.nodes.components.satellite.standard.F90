@@ -176,14 +176,16 @@ contains
     type (keplerOrbit                   )                :: Node_Component_Satellite_Standard_Virial_Orbit
     class(nodeComponentSatelliteStandard), intent(inout) :: self
     type (treeNode                      ), pointer       :: hostNode                                      , selfNode
+    class(virialOrbitClass              ), pointer       :: virialOrbit_
 
     selfNode => self%host()
     if (selfNode%isSatellite().or..not.selfNode%isPrimaryProgenitor().and.associated(selfNode%parent)) then
        if (satelliteOrbitStoreOrbitalParameters) then
           Node_Component_Satellite_Standard_Virial_Orbit=self%virialOrbitValue()
        else
-          hostNode => selfNode%parent
-          Node_Component_Satellite_Standard_Virial_Orbit=Virial_Orbital_Parameters(selfNode,hostNode,acceptUnboundOrbits)
+          hostNode     => selfNode%parent
+          virialOrbit_ => virialOrbit()
+          Node_Component_Satellite_Standard_Virial_Orbit=virialOrbit_%orbit(selfNode,hostNode,acceptUnboundOrbits)
        end if
     else
        call Node_Component_Satellite_Standard_Virial_Orbit%reset()
@@ -287,6 +289,7 @@ contains
     class           (nodeComponentSatellite         )               , pointer :: satelliteComponent
     class           (nodeComponentBasic             )               , pointer :: basicComponent
     class           (satelliteMergingTimescalesClass)               , pointer :: satelliteMergingTimescalesDefault
+    class           (virialOrbitClass               )               , pointer :: virialOrbit_
     logical                                                                   :: isNewSatellite
     double precision                                                          :: mergeTime
     type            (keplerOrbit                    )                         :: thisOrbit
@@ -319,8 +322,9 @@ contains
        ! Ensure the module has been initialized.
        call Node_Component_Satellite_Standard_Initialize()
        ! Get an orbit for this satellite.
-       hostNode => thisNode%parent
-       thisOrbit=Virial_Orbital_Parameters(thisNode,hostNode,acceptUnboundOrbits)
+       hostNode     => thisNode%parent
+       virialOrbit_ => virialOrbit()
+       thisOrbit=virialOrbit_%orbit(thisNode,hostNode,acceptUnboundOrbits)
        ! Store the orbit if necessary.
        if (satelliteOrbitStoreOrbitalParameters) call satelliteComponent%virialOrbitSet(thisOrbit)
        ! Compute and store a time until merging.
