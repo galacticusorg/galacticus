@@ -2,11 +2,13 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-  <cosmologyFunctionsMethod value="matterDarkEnergy"/>
+  <cosmologyFunctionsMethod value="matterDarkEnergy">
+    <darkEnergyEquationOfStateW0 value="-0.8"/>
+  </cosmologyFunctionsMethod>
   <linearGrowthMethod value="simple"/>
   <cosmologyParametersMethod value="simple">
     <OmegaMatter value="0.3"/>
     <OmegaDarkEnergy value="0.7"/>
     <OmegaBaryon value="0.0"/>
-  </cosmologyParametersMethod><darkEnergyEquationOfStateW0 value="-0.8"/>
+  </cosmologyParametersMethod>
 </parameters>

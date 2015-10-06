@@ -51,7 +51,7 @@ contains
     !% Constructor for the prune-hierarchy merger tree operator class which takes a parameter set as input.
     implicit none
     type   (mergerTreeOperatorPruneHierarchy)                :: pruneHierarchyConstructorParameters
-    type   (inputParameters                 ), intent(in   ) :: parameters
+    type   (inputParameters                 ), intent(inout) :: parameters
     integer                                                  :: hierarchyDepth
     !# <inputParameterList label="allowedParameterNames" />
         
@@ -146,7 +146,8 @@ contains
                 ! Clean the branch.
                 call Merger_Tree_Prune_Clean_Branch(node)
                 ! Destroy the branch.
-                call treeCurrent%destroyBranch(node)
+                call node%destroyBranch()
+                deallocate(node)
                 ! Return to parent node.
                 node => nodePrevious
              end if
@@ -156,6 +157,8 @@ contains
        ! Move to the next tree.
        treeCurrent => treeCurrent%nextTree
     end do
+    ! Uniqueify nodes.
+    call Merger_Tree_Prune_Uniqueify_IDs(tree)
     return
   end subroutine pruneHierarchyOperate
   
