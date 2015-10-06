@@ -26,6 +26,8 @@ require File::Changes;
 require Fortran::Utils;
 require Galacticus::Build::Hooks;
 require Galacticus::Build::Components::Utils;
+require Galacticus::Build::Components::Classes;
+require Galacticus::Build::Components::Implementations;
 require Galacticus::Build::Components::Attributes;
 $SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
 
@@ -48,9 +50,6 @@ my $debugging                           = 0;
 my $workaround                          = 1;
 
 # Records of the longest component and property names.
-my $classNameLengthMax                  = 0;
-my $implementationNameLengthMax         = 0;
-my $fullyQualifiedNameLengthMax         = 0;
 my $propertyNameLengthMax               = 0;
 my $linkedDataNameLengthMax             = 0;
 my $implementationPropertyNameLengthMax = 0;
@@ -97,11 +96,11 @@ sub Components_Generate_Output {
 
     # Iterate over phases.
     print "--> Phase:\n";
-    foreach my $phase ( "validate" ) {
+    foreach my $phase ( "default", "gather", "validate" ) {
 	print "   --> ".ucfirst($phase)."...\n";
 	foreach my $hook ( @hooks ) {	
-	    if ( exists($hook->{'hook'}->{'validate'}) ) {
-		foreach my $function ( &ExtraUtils::as_array($hook->{'hook'}->{'validate'}) ) {
+	    if ( exists($hook->{'hook'}->{$phase}) ) {
+		foreach my $function ( &ExtraUtils::as_array($hook->{'hook'}->{$phase}) ) {
 		    print "      --> ".$hook->{'name'}."\n";
 		    &{$function}($buildData);
 		}
@@ -112,10 +111,6 @@ sub Components_Generate_Output {
     # Iterate over all functions, calling them with the build data object.
     &{$_}($buildData)
 	foreach (
-	    # Construct null implementations for all component classes.
-	    \&Construct_Null_Components                              ,
-	    # Construct component class list and membership lists for all classes.
-	    \&Construct_Class_Membership                             ,
 	    # Distribute class default values to all members of a class.
 	    \&Distribute_Class_Defaults                              ,
 	    # Set defaults for unspecified attributes.
@@ -410,36 +405,6 @@ sub padImplementationProperty {
     return $paddedText;
 }
 
-sub padComponentClass {
-    # Pad a string to give nicely aligned formatting in the output code.
-    my $text     = shift;
-    my @extraPad = @{$_[0]};
-    my $padLength = $classNameLengthMax+$extraPad[0];
-    $padLength = $extraPad[1] if ($extraPad[1] > $padLength);
-    my $paddedText = $text." " x ($padLength-length($text));
-    return $paddedText;
-}
-
-sub padImplementation {
-    # Pad a string to give nicely aligned formatting in the output code.
-    my $text       = shift;
-    my @extraPad   = @{$_[0]};
-    my $padLength  = $implementationNameLengthMax+$extraPad[0];
-    $padLength     = $extraPad[1] if ($extraPad[1] > $padLength);
-    my $paddedText = $text." " x ($padLength-length($text));
-    return $paddedText;
-}
-
-sub padFullyQualified {
-    # Pad a string to give nicely aligned formatting in the output code.
-    my $text       = shift;
-    my @extraPad   = @{$_[0]};
-    my $padLength  = $fullyQualifiedNameLengthMax+$extraPad[0];
-    $padLength     = $extraPad[1] if ($extraPad[1] > $padLength);
-    my $paddedText = $text." " x ($padLength-length($text));
-    return $paddedText;
-}
-
 sub padProperty {
     # Pad a string to give nicely aligned formatting in the output code.
     my $text     = shift;
@@ -460,52 +425,9 @@ sub padLinkedData {
     return $paddedText;
 }
 
-sub Construct_Class_Membership {
-    # Generates a null implementation for each component class and makes it the default if no default is specified.
-    my $buildData = shift;
-
-    # Iterate over component IDs.
-    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
-	# Get the component.
-	my $component               = $buildData->{'components'}->{$componentID};
-	# Get the name of the component class.
-	my $componentClass          = $component->{'class'};
-	# Get the name of the implementation.
-	my $componentImplementation = $component->{'name'};
-	# Append the component name to the list of members for its class.
-	push(
-	    @{$buildData->{'componentClasses'}->{$componentClass}->{'members'}},
-	    $component->{'name'}
-	    );
-	# Record the longest class name, implementation name and component ID.
-	$classNameLengthMax          = length($componentClass         )
-	    if (length($componentClass         ) > $classNameLengthMax         );
-	$fullyQualifiedNameLengthMax = length($componentID            )
-	    if (length($componentID            ) > $fullyQualifiedNameLengthMax);
-	$implementationNameLengthMax = length($componentImplementation)
-	    if (length($componentImplementation) > $implementationNameLengthMax);
-    }
-
-    # Construct a list of component classes.
-    @{$buildData->{'componentClassList'}} = &ExtraUtils::sortedKeys($buildData->{'componentClasses'});
-
-    # Order class members such that parent classes come before child classes.
-    foreach my $className ( @{$buildData->{'componentClassList'}} ) {
-	my %dependencies;
-	foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$className}->{'members'}} ) {
-	    my $implementationID = ucfirst($className).ucfirst($implementationName);
- 	    my $implementation   = $buildData->{'components'}->{$implementationID};
-	    push(@{$dependencies{$implementation->{'extends'}->{'name'}}},$implementationName)
-	       if ( exists($implementation->{'extends'}) );
-	}
-	@{$buildData->{'componentClasses'}->{$className}->{'members'}} = toposort(sub { @{$dependencies{$_[0]} || []}; }, \@{$buildData->{'componentClasses'}->{$className}->{'members'}});
-    }
-}
-
 sub Distribute_Class_Defaults {
     # Distribute class defaults to all members of a class.
     my $buildData = shift;
-
     # Iterate over component classes.
     foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
 	# Initialize hash to hold defaults.
@@ -575,9 +497,6 @@ sub Distribute_Class_Defaults {
 	    }
 	}
     }
-
-    # Construct a list of component classes.
-    @{$buildData->{'componentClassList'}} = &ExtraUtils::sortedKeys($buildData->{'componentClasses'});
 }
 
 sub Construct_Linked_Data {
@@ -643,57 +562,6 @@ sub Construct_Linked_Data {
 			if (length($implementationPropertyName) > $implementationPropertyNameLengthMax);
 		}
 	    }
-	}
-    }
-}
-
-sub Construct_Null_Components {
-    # Generates a null implementation for each component class and makes it the default if no default is specified.
-    my $buildData = shift;
-
-    # Iterate over components to determine which classes need a null case building.
-    my %classes;
-    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
-	# Get the component object.
-	my $component = $buildData->{'components'}->{$componentID};
-	# Initialize this class if it hasn't been seen before.
-	unless ( exists($classes{$component->{'class'}}) ) {
-	    $classes{$component->{'class'}}->{'hasNull'   } = 0;
-	    $classes{$component->{'class'}}->{'hasDefault'} = 0;
-	}
-	# Record if a null component already exists.
-	$classes{$component->{'class'}}->{'hasNull'   } = 1
-	    if ( $component->{'name'} eq "null" );
-	# Record if a default is already specified.
-	$classes{$component->{'class'}}->{'hasDefault'} = 1
-	    if ( $component->{'isDefault'} eq "yes" );
-    }
-
-    # Iterate over classes, creating null components as necessary.
-    foreach my $class ( &ExtraUtils::sortedKeys(\%classes) ) {       
-	# Test for pre-existing null component.
-	if ( $classes{$class}->{'hasNull'} == 0 ) {
-	    # No pre-existing null component is present, so simply insert one into the build data.
-	    my $componentID = ucfirst($class)."Null";
-	    my $isDefault   = "no";
-	    $isDefault      = "yes"
-		if ( $classes{$class}->{'hasDefault'} == 0 );
-	    $buildData->{'components'}->{$componentID}->{'class'    } = $class;
-	    $buildData->{'components'}->{$componentID}->{'name'     } = "null";
-	    $buildData->{'components'}->{$componentID}->{'isDefault'} = $isDefault;
-	    # Append this new component ID to the component ID list.
-	    push(@{$buildData->{'componentIdList'}},$componentID);
-	    # Display a message.
-	    if ( $Utils::verbosityLevel >= 1 ) {
-		print " -> Adding null implementation ";
-		print "as default "
-		    if ( $classes{$class}->{'hasDefault'} == 0 );
-		print "for ".$class." class\n";
-	    }
-	} elsif ( $Utils::verbosityLevel >= 1 ) {
-	    # Advise that null components don't need to be explicitly specified.
-	    print " -> INFO: a pre-existing null component exists for ".$class." class,\n";
-	    print " ->       but would be built automatically.\n";
 	}
     }
 }
@@ -2214,17 +2082,17 @@ sub Generate_Initialization_Function {
         $functionCode .= "       !@   <type>string</type>\n";
         $functionCode .= "       !@   <cardinality>1</cardinality>\n";
         $functionCode .= "       !@ </inputParameter>\n";
-    	$functionCode .= "       call Get_Input_Parameter('treeNodeMethod".padComponentClass(ucfirst($componentClass)."'",[1,0]).",methodSelection,defaultValue='".padImplementation($defaultMethod."'",[1,0]).")\n";
+    	$functionCode .= "       call Get_Input_Parameter('treeNodeMethod".&Utils::padClass(ucfirst($componentClass)."'",[1,0]).",methodSelection,defaultValue='".&Utils::padImplementation($defaultMethod."'",[1,0]).")\n";
     	foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClass}->{'members'}} ) {
     	    my $fullName  = ucfirst($componentClass).ucfirst($implementationName);
 	    my $component = $buildData->{'components'}->{$fullName};
-    	    $functionCode .= "       if (methodSelection == '".padImplementation($implementationName."'",[1,0]).") then\n";
-	    $functionCode .= "          allocate(default".padComponentClass(ucfirst($componentClass)."Component",[9,0]).",source=default".padFullyQualified($fullName."Component",[9,0]).")\n";
-	    $functionCode .= "          nodeComponent".padFullyQualified($fullName."IsActive",[8,0])."=.true.\n";
+    	    $functionCode .= "       if (methodSelection == '".&Utils::padImplementation($implementationName."'",[1,0]).") then\n";
+	    $functionCode .= "          allocate(default".&Utils::padClass(ucfirst($componentClass)."Component",[9,0]).",source=default".&Utils::padFullyQualified($fullName."Component",[9,0]).")\n";
+	    $functionCode .= "          nodeComponent".&Utils::padFullyQualified($fullName."IsActive",[8,0])."=.true.\n";
 	    until ( $fullName eq "" ) {
 		if ( exists($buildData->{'components'}->{$fullName}->{'extends'}) ) {
 		    $fullName = ucfirst($buildData->{'components'}->{$fullName}->{'extends'}->{'class'}).ucfirst($buildData->{'components'}->{$fullName}->{'extends'}->{'name'});
-		    $functionCode .= "          nodeComponent".padFullyQualified($fullName."IsActive",[8,0])."=.true.\n";
+		    $functionCode .= "          nodeComponent".&Utils::padFullyQualified($fullName."IsActive",[8,0])."=.true.\n";
 		} else {
 		    $fullName = "";
 		}
@@ -2260,7 +2128,7 @@ sub Generate_Initialization_Function {
 	    }
 
     	}
-    	$functionCode .= "       if (.not.allocated(default".padComponentClass(ucfirst($componentClass)."Component",[9,0]).")) then\n";
+    	$functionCode .= "       if (.not.allocated(default".&Utils::padClass(ucfirst($componentClass)."Component",[9,0]).")) then\n";
     	$functionCode .= "          message='unrecognized method \"'//methodSelection//'\" for \"".$componentClass."\" component'\n";
 	$functionCode .= "          message=message//char(10)//'  available methods are:'\n";
     	foreach my $implementationName ( sort(@{$buildData->{'componentClasses'}->{$componentClass}->{'members'}}) ) {
@@ -2352,9 +2220,9 @@ sub Generate_Map_Functions {
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-     	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[19,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[19,0]).")\n";
-	$functionCode .= "        call mapFunction(self%component".padComponentClass(ucfirst($_),[19,0])."(i))\n";
+     	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[19,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[19,0]).")\n";
+	$functionCode .= "        call mapFunction(self%component".&Utils::padClass(ucfirst($_),[19,0])."(i))\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
@@ -2448,17 +2316,17 @@ sub Generate_Map_Functions {
 			$baseClass =~ s/^nodeComponent//;
 			$baseClass = lc($baseClass);
 			# Construct code for this component.
-			$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($baseClass),[0,0]).")) then\n";
-			$functionCode .= "      select type (c => self%component".padComponentClass(ucfirst($baseClass),[0,0]).")\n";
+			$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($baseClass),[0,0]).")) then\n";
+			$functionCode .= "      select type (c => self%component".&Utils::padClass(ucfirst($baseClass),[0,0]).")\n";
 			$functionCode .= "      type is (".$type.")\n";
-			$functionCode .= "         do i=1,size(self%component".padComponentClass(ucfirst($baseClass),[0,0]).")\n";
+			$functionCode .= "         do i=1,size(self%component".&Utils::padClass(ucfirst($baseClass),[0,0]).")\n";
 			$functionCode .= "            mapComponentsDouble0=mapComponentsDouble0";
 			if ( $reduction eq "summation" ) {
 			    $functionCode .= "+";
 			} elsif ( $reduction eq "product" ) {
 			    $functionCode .= "*";
 			}
-			$functionCode .= "mapFunction(self%component".padComponentClass(ucfirst($baseClass),[0,0])."(i))\n";
+			$functionCode .= "mapFunction(self%component".&Utils::padClass(ucfirst($baseClass),[0,0])."(i))\n";
 			$functionCode .= "         end do\n";
 			$functionCode .= "      end select\n";
 			$functionCode .= "    end if\n";
@@ -2478,9 +2346,9 @@ sub Generate_Map_Functions {
     $functionCode .= "      mapComponentsDouble0=1.0d0\n";
     $functionCode .= "    end select\n";
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-     	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-     	$functionCode .= "        componentValue=mapFunction(self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
+     	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+     	$functionCode .= "        componentValue=mapFunction(self%component".&Utils::padClass(ucfirst($_),[0,0])."(i))\n";
      	$functionCode .= "        select case (reduction)\n";
      	$functionCode .= "        case (reductionSummation)\n";
      	$functionCode .= "          mapComponentsDouble0=mapComponentsDouble0+componentValue\n";
@@ -2549,9 +2417,9 @@ sub Generate_Node_Dump_Function {
     $functionCode .= "   call Galacticus_Display_Unindent('done')\n";
     # Iterate over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%dump()\n";
+	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%dump()\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
@@ -2612,9 +2480,9 @@ sub Generate_Node_Dump_Function {
     $functionCode .= "    write (fileHandle,'(a)') '  </pointer>'\n";
     # Iterate over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%dumpXML(fileHandle)\n";
+	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%dumpXML(fileHandle)\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
@@ -2658,17 +2526,17 @@ sub Generate_Node_Dump_Function {
     $functionCode .= "    write (fileHandle) self%isPhysicallyPlausible\n";
     # Iterate over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-	$functionCode .= "    write (fileHandle) allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "    write (fileHandle) allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
 	$functionCode .= "      select type (component => self%component".ucfirst($_)."(1))\n";
 	$functionCode .= "      type is (nodeComponent".ucfirst($_).")\n";
 	$functionCode .= "        write (fileHandle) .false.\n";
 	$functionCode .= "      class is (nodeComponent".ucfirst($_).")\n";
 	$functionCode .= "        write (fileHandle) .true.\n";
 	$functionCode .= "      end select\n";
-	$functionCode .= "      write (fileHandle) size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%dumpRaw(fileHandle)\n";
+	$functionCode .= "      write (fileHandle) size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%dumpRaw(fileHandle)\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
@@ -2731,11 +2599,11 @@ sub Generate_Node_Dump_Function {
 	$functionCode .= "        end do\n";
 	$functionCode .= "      end select\n";
 	$functionCode .= "      do i=1,componentCount\n";
-	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%readRaw(fileHandle)\n";
+	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%readRaw(fileHandle)\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    else\n";
-	$functionCode .= "       if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) deallocate(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "       allocate(self%component".padComponentClass(ucfirst($_),[0,0])."(1))\n";
+	$functionCode .= "       if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) deallocate(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "       allocate(self%component".&Utils::padClass(ucfirst($_),[0,0])."(1))\n";
 	$functionCode .= "    end if\n";
     }
     $functionCode .= "    return\n";
@@ -2787,9 +2655,9 @@ sub Generate_Node_Output_Functions {
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Iterate over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%outputCount(integerPropertyCount,doublePropertyCount,time,instance=i)\n";
+	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%outputCount(integerPropertyCount,doublePropertyCount,time,instance=i)\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
@@ -2847,9 +2715,9 @@ sub Generate_Node_Output_Functions {
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Iterate over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance=i)\n";
+	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance=i)\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
@@ -2907,9 +2775,9 @@ sub Generate_Node_Output_Functions {
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Iterate over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty&
+	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time,instance=i)\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
@@ -2967,9 +2835,9 @@ sub Generate_Node_Property_Name_From_Index_Function {
     $functionCode .= "  name='unknown'\n";
     $functionCode .= "  count=index\n";
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-     	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%nameFromIndex(count,name)\n";
+     	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%nameFromIndex(count,name)\n";
 	$functionCode .= "        if (count <= 0) return\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
@@ -3015,9 +2883,9 @@ sub Generate_Node_Serialization_Functions {
     $functionCode .= "    count=0\n";
     # Loop over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-     	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        count=count+self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
+     	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        count=count+self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
@@ -3060,10 +2928,10 @@ sub Generate_Node_Serialization_Functions {
     $functionCode .= "    offset=1\n";
     # Loop over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        count=self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
-	$functionCode .= "        if (count > 0) call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serializeValues(array(offset:))\n";
+	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        count=self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
+	$functionCode .= "        if (count > 0) call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%serializeValues(array(offset:))\n";
 	$functionCode .= "        offset=offset+count\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
@@ -3107,10 +2975,10 @@ sub Generate_Node_Serialization_Functions {
     $functionCode .= "    offset=1\n";
     # Loop over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        count=self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
-	$functionCode .= "        if (count > 0) call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%deserializeValues(array(offset:))\n";
+	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        count=self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
+	$functionCode .= "        if (count > 0) call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%deserializeValues(array(offset:))\n";
 	$functionCode .= "        offset=offset+count\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
@@ -3292,7 +3160,7 @@ sub Generate_Implementation_Dump_Functions {
 	    # Dump the parent type if necessary.
 	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%dump()\n"
 		if ( exists($component->{'extends'}) );
-	    $functionCode .= "    call Galacticus_Display_Indent('".$component->{'class'}.": ".(" " x ($fullyQualifiedNameLengthMax-length($component->{'class'}))).$component->{'name'}."')\n";
+	    $functionCode .= "    call Galacticus_Display_Indent('".$component->{'class'}.": ".(" " x ($Utils::fullyQualifiedNameLengthMax-length($component->{'class'}))).$component->{'name'}."')\n";
 	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property has any linked data in this component.
@@ -4798,9 +4666,9 @@ sub Generate_Node_Offset_Functions {
     $functionCode .= "    count=0\n";
     # Loop over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-     	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serializationOffsets(count)\n";
+     	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%serializationOffsets(count)\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
@@ -5068,7 +4936,7 @@ sub Generate_Component_Get_Functions {
 		    $functionCode .= "    select type (".$componentClassName.")\n";
 		    $foundCreateFunctions = 1;
 		}
-		$functionCode .= "    type is (nodeComponent".padFullyQualified(ucfirst($componentID),[0,0]).")\n";
+		$functionCode .= "    type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentID),[0,0]).")\n";
 		my $createFunction = $component->{'createFunction'};
 		$createFunction = $component->{'createFunction'}->{'content'}
 		if ( exists($component->{'createFunction'}->{'content'}) );
@@ -5276,22 +5144,22 @@ sub Generate_Node_Copy_Function {
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     $functionCode .= "    skipFormationNodeActual=.false.\n";
     $functionCode .= "    if (present(skipFormationNode)) skipFormationNodeActual=skipFormationNode\n";
-    $functionCode .= "    targetNode%".padComponentClass($_,[8,14])." =  self%".$_."\n"
+    $functionCode .= "    targetNode%".&Utils::padClass($_,[8,14])." =  self%".$_."\n"
 	foreach ( "uniqueIdValue", "indexValue", "timeStepValue" );
-    $functionCode .= "    targetNode%".padComponentClass($_,[8,14])." => self%".$_."\n"
+    $functionCode .= "    targetNode%".&Utils::padClass($_,[8,14])." => self%".$_."\n"
 	foreach ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "event", "hostTree" );
     $functionCode .= "    if (.not.skipFormationNodeActual) targetNode%formationNode => self%formationNode\n";
     # Loop over all component classes
     if ( $workaround == 1 ) { # Workaround "Assignment to an allocatable polymorphic variable is not yet supported"
 	foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
-	    $functionCode .= "    if (allocated(targetNode%component".padComponentClass(ucfirst($componentClassName),[0,0]).")) deallocate(targetNode%component".padComponentClass(ucfirst($componentClassName),[0,0]).")\n";
-	    $functionCode .= "    allocate(targetNode%component".padComponentClass(ucfirst($componentClassName),[0,0])."(size(self%component".padComponentClass(ucfirst($componentClassName),[0,0]).")),source=self%component".padComponentClass(ucfirst($componentClassName),[0,0])."(1))\n";
-	    $functionCode .= "    do i=1,size(self%component".padComponentClass(ucfirst($componentClassName),[0,0]).")\n";
+	    $functionCode .= "    if (allocated(targetNode%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")) deallocate(targetNode%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")\n";
+	    $functionCode .= "    allocate(targetNode%component".&Utils::padClass(ucfirst($componentClassName),[0,0])."(size(self%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")),source=self%component".&Utils::padClass(ucfirst($componentClassName),[0,0])."(1))\n";
+	    $functionCode .= "    do i=1,size(self%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")\n";
 	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
-		$functionCode .= "      select type (from => self%component".padComponentClass(ucfirst($componentClassName),[0,0]).")\n";
-		$functionCode .= "      type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
-		$functionCode .= "        select type (to => targetNode%component".padComponentClass(ucfirst($componentClassName),[0,0]).")\n";
-		$functionCode .= "        type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
+		$functionCode .= "      select type (from => self%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")\n";
+		$functionCode .= "      type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
+		$functionCode .= "        select type (to => targetNode%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")\n";
+		$functionCode .= "        type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
 		$functionCode .= "          to=from\n";
 		$functionCode .= "        end select\n";
 		$functionCode .= "      end select\n";
@@ -5300,16 +5168,16 @@ sub Generate_Node_Copy_Function {
 	}
     } else {
 	foreach ( @{$buildData->{'componentClassList'}} ) {
-	    $functionCode .= "    targetNode%component".padComponentClass(ucfirst($_),[0,14])."=  self%component".ucfirst($_)."\n";
+	    $functionCode .= "    targetNode%component".&Utils::padClass(ucfirst($_),[0,14])."=  self%component".ucfirst($_)."\n";
 	}
     }
     # Update target node pointers.
     $functionCode .= "    select type (targetNode)\n";
     $functionCode .= "    type is (treeNode)\n";
     foreach ( @{$buildData->{'componentClassList'}} ) {
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
 	
-	$functionCode .= "        targetNode%component".padComponentClass(ucfirst($_),[0,14])."(i)%hostNode =>  targetNode\n";
+	$functionCode .= "        targetNode%component".&Utils::padClass(ucfirst($_),[0,14])."(i)%hostNode =>  targetNode\n";
 	$functionCode .= "      end do\n";
     }
     $functionCode .= "    end select\n";
@@ -5359,16 +5227,16 @@ sub Generate_Node_Move_Function {
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Loop over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-	$functionCode .= "    if (allocated(targetNode%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(targetNode%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        call targetNode%component".padComponentClass(ucfirst($_),[0,0])."(i)%destroy()\n";
+	$functionCode .= "    if (allocated(targetNode%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(targetNode%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        call targetNode%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%destroy()\n";
 	$functionCode .= "      end do\n";
-	$functionCode .= "      deallocate(targetNode%component".padComponentClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "      deallocate(targetNode%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
 	$functionCode .= "    end if\n";
-	$functionCode .= "    if (allocated(self      %component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "       call Move_Alloc(self%component".padComponentClass(ucfirst($_),[0,0]).",targetNode%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "       do i=1,size(targetNode%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "         targetNode%component".padComponentClass(ucfirst($_),[0,0])."(i)%hostNode => targetNode\n";
+	$functionCode .= "    if (allocated(self      %component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "       call Move_Alloc(self%component".&Utils::padClass(ucfirst($_),[0,0]).",targetNode%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "       do i=1,size(targetNode%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "         targetNode%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%hostNode => targetNode\n";
 	$functionCode .= "       end do\n";
 	$functionCode .= "    end if\n";
     }
@@ -6134,15 +6002,15 @@ sub Generate_Tree_Node_Creation_Function {
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     $functionCode .= "    ! Ensure pointers are nullified.\n";
-    $functionCode .= "    nullify (self%".padComponentClass($_,[9,14]).")\n"
+    $functionCode .= "    nullify (self%".&Utils::padClass($_,[9,14]).")\n"
 	foreach ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "formationNode", "event" );
     foreach ( @{$buildData->{'componentClassList'}} ) {
-    	$functionCode .= "    allocate(self%".padComponentClass("component".ucfirst($_),[9,14])."(1))\n";
+    	$functionCode .= "    allocate(self%".&Utils::padClass("component".ucfirst($_),[9,14])."(1))\n";
     }
     $functionCode .= "    select type (self)\n";
     $functionCode .= "    type is (treeNode)\n";
     foreach ( @{$buildData->{'componentClassList'}} ) {
-	$functionCode .= "       self%component".padComponentClass(ucfirst($_),[0,0])."(1)%hostNode => self\n";
+	$functionCode .= "       self%component".&Utils::padClass(ucfirst($_),[0,0])."(1)%hostNode => self\n";
     }
     $functionCode .= "    end select\n";
     $functionCode .= "    ! Assign a host tree if supplied.\n";
@@ -6196,7 +6064,7 @@ sub Generate_Tree_Node_Destruction_Function {
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
-     	$functionCode .= "    call self%".padComponentClass(lc($componentClass)."Destroy",[7,0])."()\n";
+     	$functionCode .= "    call self%".&Utils::padClass(lc($componentClass)."Destroy",[7,0])."()\n";
     }
     # Remove any events attached to the node, along with their paired event in other nodes.
     $functionCode .= "    ! Iterate over all attached events.\n";
@@ -6440,7 +6308,7 @@ sub Generate_Type_Name_Functions {
 	$functionCode .= "     !% Returns the type for the ".$_." component.\n";
 	$functionCode .= "     implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	$functionCode .= "     ".padComponentClass("Node_Component_".ucfirst($_)."_Type",[20,0])."='nodeComponent:".$_."'\n";
+	$functionCode .= "     ".&Utils::padClass("Node_Component_".ucfirst($_)."_Type",[20,0])."='nodeComponent:".$_."'\n";
 	$functionCode .= "     return\n";
 	$functionCode .= "  end function Node_Component_".ucfirst($_)."_Type\n\n";
 	# Insert into the function list.
@@ -6524,9 +6392,9 @@ sub Generate_Component_Assignment_Function {
     $functionCode .= "    select type (to)\n";
     foreach my $componentName ( @{$buildData->{'componentIdList'}} ) {
 	my $component = $buildData->{'components'}->{$componentName};
-	$functionCode .= "    type is (nodeComponent".padFullyQualified($componentName,[0,0]).")\n";
+	$functionCode .= "    type is (nodeComponent".&Utils::padFullyQualified($componentName,[0,0]).")\n";
 	$functionCode .= "       select type (from)\n";
-	$functionCode .= "       type is (nodeComponent".padFullyQualified($componentName,[0,0]).")\n";
+	$functionCode .= "       type is (nodeComponent".&Utils::padFullyQualified($componentName,[0,0]).")\n";
 	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    if ( exists($property->{'linkedData'}) ) {
@@ -6661,9 +6529,9 @@ sub Generate_Component_Class_Removal_Functions {
 	$functionCode .= "      allocate(instancesTemporary(instanceCount-1),source=self%component".ucfirst($componentClassName)."(1))\n";
 	foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 	    $functionCode .= "      select type (from => self%component".ucfirst($componentClassName).")\n";
-	    $functionCode .= "      type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
+	    $functionCode .= "      type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
 	    $functionCode .= "        select type (to => instancesTemporary)\n";
-	    $functionCode .= "        type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
+	    $functionCode .= "        type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
 	    $functionCode .= "          if (instance >             1) to(       1:instance     -1)=from(         1:instance     -1)\n";
 	    $functionCode .= "          if (instance < instanceCount) to(instance:instanceCount-1)=from(instance+1:instanceCount  )\n";
 	    $functionCode .= "        end select\n";
@@ -6758,18 +6626,18 @@ sub Generate_Component_Class_Move_Functions {
 	$functionCode .= "      allocate(instancesTemporary(instanceCount+targetCount),source=self%component".ucfirst($componentClassName)."(1))\n";
 	foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 	    $functionCode .= "      select type (from => targetNode%component".ucfirst($componentClassName).")\n";
-	    $functionCode .= "      type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
+	    $functionCode .= "      type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
 	    $functionCode .= "        select type (to => instancesTemporary)\n";
-	    $functionCode .= "        type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
+	    $functionCode .= "        type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
 	    $functionCode .= "          to(1:targetCount)=from\n";
 	    $functionCode .= "        end select\n";
 	    $functionCode .= "      end select\n";
 	}
 	foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 	    $functionCode .= "      select type (from => self%component".ucfirst($componentClassName).")\n";
-	    $functionCode .= "      type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
+	    $functionCode .= "      type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
 	    $functionCode .= "        select type (to => instancesTemporary)\n";
-	    $functionCode .= "        type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
+	    $functionCode .= "        type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
 	    $functionCode .= "          to(targetCount+1:targetCount+instanceCount)=from\n";
 	    $functionCode .= "        end select\n";
 	    $functionCode .= "      end select\n";
@@ -6821,7 +6689,7 @@ sub Generate_Component_Class_Dump_Functions {
 	$functionCode .= "    use ISO_Varying_String\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	$functionCode .= "    call Galacticus_Display_Indent('".$componentClassName.": ".(" " x ($fullyQualifiedNameLengthMax-length($componentClassName)))."generic')\n";
+	$functionCode .= "    call Galacticus_Display_Indent('".$componentClassName.": ".(" " x ($Utils::fullyQualifiedNameLengthMax-length($componentClassName)))."generic')\n";
 	$functionCode .= "    call Galacticus_Display_Unindent('done')\n";
 	$functionCode .= "    return\n";
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Dump\n";
