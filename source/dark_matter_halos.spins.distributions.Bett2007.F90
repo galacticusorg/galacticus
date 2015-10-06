@@ -27,8 +27,7 @@
   type, extends(haloSpinDistributionClass) :: haloSpinDistributionBett2007
      !% A dark matter halo spin distribution class which assumes a \cite{bett_spin_2007} distribution.
      private
-     double precision                                        :: alpha               , lambda0                    , &
-          &                                                     cumulativeMaximum
+     double precision                                        :: alpha               , lambda0
      type            (table1DLogarithmicLinear)              :: distribution
      class           (table1D                 ), allocatable :: distributionInverse
      type            (fgsl_rng                )              :: clonedPseudoSequence, randomSequence
@@ -96,16 +95,19 @@ contains
     implicit none
     type            (haloSpinDistributionBett2007)                :: bett2007ConstructorInternal
     double precision                              , intent(in   ) :: lambda0                    , alpha
-    double precision                                              :: spinDimensionless
+    double precision                                              :: spinDimensionless          , tableMaximum
     integer                                                       :: iSpin
 
-    bett2007ConstructorInternal%lambda0=lambda0
-    bett2007ConstructorInternal%alpha  =alpha
+    bett2007ConstructorInternal%lambda0                    =lambda0
+    bett2007ConstructorInternal%alpha                      =alpha
+    bett2007ConstructorInternal%resetRandomSequence        =.true.
+    bett2007ConstructorInternal%resetRandomSequenceSnapshot=.true.
     ! Tabulate the cumulative distribution.
+    tableMaximum=(bett2007SpinMaximum/lambda0)**(3.0d0/alpha)
     call bett2007ConstructorInternal%distribution%destroy()
     call bett2007ConstructorInternal%distribution%create (                                                                                        &
          &                                                lambda0*bett2007SpinMinimum**(alpha/3.0d0),                                             &
-         &                                                lambda0*bett2007SpinMaximum**(alpha/3.0d0)                                            , &
+         &                                                lambda0*tableMaximum       **(alpha/3.0d0)                                            , &
          &                                                bett2007TabulationPointsCount                                                         , &
          &                                                extrapolationType                         =[extrapolationTypeFix,extrapolationTypeFix]  &
          &                                               )
@@ -124,7 +126,6 @@ contains
             &                                                 iSpin                                                       &
             &                                                )
     end do
-    bett2007ConstructorInternal%cumulativeMaximum=bett2007ConstructorInternal%distribution%y(bett2007TabulationPointsCount)
     call bett2007ConstructorInternal%distribution%reverse(bett2007ConstructorInternal%distributionInverse)
     return
   end function bett2007ConstructorInternal
@@ -149,7 +150,7 @@ contains
     class(haloSpinDistributionBett2007), intent(inout)          :: self
     type (treeNode                    ), intent(inout), pointer :: node
 
-    bett2007Sample=self%distributionInverse%interpolate(self%cumulativeMaximum*Pseudo_Random_Get(self%randomSequence,self%resetRandomSequence))
+    bett2007Sample=self%distributionInverse%interpolate(Pseudo_Random_Get(self%randomSequence,self%resetRandomSequence))
     return
   end function bett2007Sample
 
