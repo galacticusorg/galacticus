@@ -315,13 +315,13 @@ deps: $(MAKE_DEPS) $(BUILDPATH)/Makefile_All_Execs
 source/FFTlog/fftlog.f:
 	mkdir -p source/FFTlog
 	wget http://casa.colorado.edu/~ajsh/FFTLog/fftlog.tar.gz -O - | tar xvz -C source/FFTlog -f -
-	if [ ! -e source/FFTlog/fftlog.f ]; then
-	 echo "subroutine fhti(n,mu,q,dlnr,kr,kropt,wsave,ok)" > source/FFTlog/fftlog.f
-	 echo " stop 'FFTlog was not downloaded'" > source/FFTlog/fftlog.f
-	 echo "end subroutine fhti" >> source/FFTlog/fftlog.f
-	 touch source/FFTlog/cdgamma.f
-	 touch source/FFTlog/drfftb.f 
-	 touch source/FFTlog/drfftf.f 
-	 touch source/FFTlog/drffti.f 
+	if [ ! -e source/FFTlog/fftlog.f ]; then \
+	 echo "subroutine fhti(n,mu,q,dlnr,kr,kropt,wsave,ok)" > source/FFTlog/fftlog.f; \
+	 echo " stop 'FFTlog was not downloaded'" > source/FFTlog/fftlog.f; \
+	 echo "end subroutine fhti" >> source/FFTlog/fftlog.f; \
+	 touch source/FFTlog/cdgamma.f; \
+	 touch source/FFTlog/drfftb.f; \
+	 touch source/FFTlog/drfftf.f; \
+	 touch source/FFTlog/drffti.f; \
 	fi
 
