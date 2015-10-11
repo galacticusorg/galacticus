@@ -88,7 +88,7 @@ sub Construct_Models {
 	$modelBaseName    = $parameterSet->{'label'}
 	   if ( exists($parameterSet->{'label'}) );
 	# Create an array of hashes giving the parameters for this parameter set.
-	my @parameterHashes = &Create_Parameter_Hashes($parameterSet);	
+	my @parameterHashes = &Create_Parameter_Hashes($parameterSet);
 	# Loop over all models and run them.
 	my $iModel     = 0;
 	my $mergeGroup = 0;
@@ -335,10 +335,10 @@ sub Parameters_To_Hash {
 	next
 	    unless ( reftype($parameters->{$name}) );
 	# Iterate over all subelements of this node.
-	my $subParameters;
 	my $elementCounter = -1;
 	foreach my $element ( &ExtraUtils::as_array($parameters->{$name}) ) {
-	    ++$elementCounter;	    
+	    my $subParameters;
+	    ++$elementCounter;
 	    foreach my $subElementName ( keys(%{$element}) ) { 
 		if ( $subElementName eq "value" ) {
 		    foreach my $value ( &ExtraUtils::as_array($element->{'value'}) ) {
