@@ -28,6 +28,7 @@ module Power_Spectrum_Window_Functions
   !#  <descriptiveName>Power Spectrum Window Functions</descriptiveName>
   !#  <description>Class providing window functions for filtering of power spectra.</description>
   !#  <default>topHat</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <stateful>no</stateful>
   !#  <defaultThreadprivate>no</defaultThreadprivate>
   !#  <method name="value" >

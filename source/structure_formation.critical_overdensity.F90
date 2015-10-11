@@ -29,6 +29,7 @@ module Critical_Overdensities
   !#  <descriptiveName>Critical Overdensity</descriptiveName>
   !#  <description>Object providing critical overdensities.</description>
   !#  <default>sphericalCollapseMatterLambda</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <stateful>yes</stateful>
   !#  <data>double precision                                         :: criticalOverdensityTarget, mass, time</data>
   !#  <data>logical                                                  :: massPresent                          </data>
