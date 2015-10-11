@@ -20,7 +20,7 @@
   use Power_Spectra_Primordial
   use Transfer_Functions, only : transferFunction, transferFunctionClass
   
-  !# <powerSpectrumPrimordialTransferred name="powerSpectrumPrimordialTransferredSimple">
+  !# <powerSpectrumPrimordialTransferred name="powerSpectrumPrimordialTransferredSimple" defaultThreadPrivate="yes">
   !#  <description>Implements a simple transferred primordial power spectrum.</description>
   !# </powerSpectrumPrimordialTransferred>
   type, extends(powerSpectrumPrimordialTransferredClass) :: powerSpectrumPrimordialTransferredSimple
