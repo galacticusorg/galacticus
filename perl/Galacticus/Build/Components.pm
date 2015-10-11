@@ -3935,6 +3935,8 @@ sub Generate_Implementation_Builder_Functions {
 	    # Build the parent type if necessary.
 	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%builder(componentDefinition)\n"
 		if ( exists($component->{'extends'}) );
+	    # Enter critical section.
+	    $functionCode .= "    !\$omp critical (FoX_DOM_Access)\n";
 	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property has any linked data in this component.
@@ -3989,6 +3991,7 @@ sub Generate_Implementation_Builder_Functions {
 		    }
 		}
 	    }
+	    $functionCode .= "    !\$omp end critical (FoX_DOM_Access)\n";
 	}
 	$functionCode .= "    return\n";
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Builder\n";
@@ -6454,6 +6457,11 @@ sub Generate_Tree_Node_Builder_Function {
 	     intrinsic  => "type",
 	     type       => "integerScalarHash",
 	     variables  => [ "componentIndex" ]
+	 },
+	 {
+	     intrinsic  => "character",
+	     type       => "len=128",
+	     variables  => [ "nodeName" ]
 	 }
 	);
     # Create the function code.
@@ -6467,7 +6475,8 @@ sub Generate_Tree_Node_Builder_Function {
     $functionCode .= "    select type (self)\n";
     $functionCode .= "    type is (treeNode)\n";
     $functionCode .= "       call componentIndex%initialize()\n";
-    foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
+    $functionCode .= "       !\$omp critical (FoX_DOM_Access)\n";
+   foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
 	$functionCode .= "    componentList => getChildNodes(nodeDefinition)\n";
 	$functionCode .= "    componentCount=0\n";
 	$functionCode .= "    do i=0,getLength(componentList)-1\n";
@@ -6480,10 +6489,15 @@ sub Generate_Tree_Node_Builder_Function {
 	$functionCode .= "      call componentIndex%set('".$componentClass."',0)\n";
 	$functionCode .= "    end if\n";
     }
-    $functionCode .= "    do i=0,getLength(componentList)-1\n";
+    $functionCode .= "    componentCount=getLength(componentList)\n";
+    $functionCode .= "    !\$omp end critical (FoX_DOM_Access)\n";
+    $functionCode .= "    do i=0,componentCount-1\n";
     foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
+	$functionCode .= "     !\$omp critical (FoX_DOM_Access)\n";
 	$functionCode .= "     componentDefinition => item(componentList,i)\n";
-	$functionCode .= "     if (getNodeName(componentDefinition) == '".$componentClass."') then\n";
+	$functionCode .= "     nodeName=getNodeName(componentDefinition)\n";
+	$functionCode .= "     !\$omp end critical (FoX_DOM_Access)\n";
+	$functionCode .= "     if (trim(nodeName) == '".$componentClass."') then\n";
 	$functionCode .= "       j=componentIndex%value('".$componentClass."')\n";
 	$functionCode .= "       j=j+1\n";
 	$functionCode .= "       self%component".ucfirst($componentClass)."(j)%hostNode => self\n";
