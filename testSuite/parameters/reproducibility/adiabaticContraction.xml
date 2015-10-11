@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Test of adiabatic contraction -->
+<!-- 2-September-2015              -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Component selection -->
+  <treeNodeMethodBasic value="standard"/>
+  <treeNodeMethodHotHalo value="null"/>
+  <treeNodeMethodBlackHole value="null"/>
+  <treeNodeMethodDarkMatterProfile value="scale"/>
+  <treeNodeMethodDisk value="null"/>
+  <treeNodeMethodSatellite value="preset"/>
+  <treeNodeMethodSpheroid value="standard"/>
+  <treeNodeMethodSpin value="null"/>
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctionsMethod value="matterLambda"/>
+  <cosmologyParametersMethod value="simple">
+    <HubbleConstant value="70.0"/>
+    <OmegaMatter value="0.3"/>
+    <OmegaDarkEnergy value="0.7"/>
+    <OmegaBaryon value="0.05"/>
+    <temperatureCMB value="2.72548"/>
+  </cosmologyParametersMethod>
+
+  <!-- Power spectrum options -->
+  <cosmologicalMassVarianceMethod value="filteredPower">
+    <sigma_8 value="0.807"/>
+  </cosmologicalMassVarianceMethod><transferFunctionMethod value="eisensteinHu1999">
+    <neutrinoNumberEffective value="3.046"/>
+    <neutrinoMassSummed value="0.000"/>
+  </transferFunctionMethod>
+  <powerSpectrumPrimordialMethod value="powerLaw">
+    <index value="1.000"/>
+    <wavenumberReference value="1.000"/>
+    <running value="0.000"/>
+  </powerSpectrumPrimordialMethod>
+
+  <!-- Structure formation options -->
+  <linearGrowthMethod value="simple"/>
+  <haloMassFunctionMethod value="tinker2008"/>
+  <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
+  <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
+
+  <!-- Merger tree building options -->
+  <mergerTreeConstructMethod value="fullySpecified"/>
+  <mergerTreeConstructFullySpecifiedFileName value="testSuite/parameters/reproducibility/adiabaticContractionTree.xml"/>
+
+  <!-- Dark matter halo profile -->
+  <darkMatterProfileMethod value="isothermal"/>
+  
+  <!-- Halo accretion options -->
+  <accretionHaloMethod value="null"/>
+
+  <!-- Hot halo gas cooling model options -->
+  <hotHaloMassDistributionMethod value="null"/>
+
+  <!-- Adiabatic contraction solver -->
+  <adiabaticContractionGnedinA value="1.0"/>
+  <adiabaticContractionGnedinOmega value="1.0"/>
+  
+  <!-- Numerical tolerances -->
+  <odeToleranceAbsolute value="0.01"/>
+  <odeToleranceRelative value="0.01"/>
+  <timestepHostAbsolute value="1.00"/>
+  <timestepHostRelative value="0.10"/>
+  <timestepSimpleAbsolute value="1.00"/>
+  <timestepSimpleRelative value="0.10"/>
+
+  <!-- Output options -->
+  <outputRedshifts>0.00 0.0001</outputRedshifts>
+  <mergerTreeOutputReferences value="false"/>
+  <outputRotationCurveData value="true"/>
+  <outputRotationCurveRadii value="spheroidRadius:all:all:loaded:1.0 spheroidRadius:darkHalo:dark:loaded:1.0 spheroidRadius:spheroid:baryonic:loaded:1.0"/>
+  <outputVirialData value="true"/>
+
+  <!-- Output file -->
+  <galacticusOutputFileName value="testSuite/outputs/reproducibility/adiabaticContraction.hdf5"/>
+  
+</parameters>

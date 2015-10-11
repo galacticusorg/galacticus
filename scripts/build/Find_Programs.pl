@@ -19,11 +19,11 @@ my $sourcedir = $ARGV[0];
 
 #
 # Open an output file
-open(my $outfile,">$sourcedir/work/build/Makefile_All_Execs");
+open(my $outfile,">".$sourcedir."/".$ENV{'BUILDPATH'}."/Makefile_All_Execs");
 
 #
 # Specify work directory.
-my $workDir = "/work/build/";
+my $workDir = $ENV{'BUILDPATH'}."/";
 
 # Build a list of source directories.
 my @sourcedirs = ( $sourcedir."/source" );
@@ -63,7 +63,7 @@ foreach my $srcdir ( @sourcedirs ) {
 		    if ( $ibase == 0 ) {
 			push(@exes,$ename)
 			    unless ( $exclude == 1 );
-			if ( ! -e $sourcedir."/Extensions/Sources/".$fname ) {$do_entry = 1};
+			$do_entry = 1;
 		    } else {
 			if ( ! -e $sourcedir."/$fname" && $exclude == 0 ) {push(@exes,$ename)};
 			$do_entry = 1;
@@ -76,9 +76,9 @@ foreach my $srcdir ( @sourcedirs ) {
 			my $root = $fname;
 			$root =~ s/\.[fF](90)?t?$//;
 			my $eleaf = $root.".exe";
-			print $outfile "$root.exe: .$workDir$base$ofile .$workDir$base$dfile \$(MAKE_DEPS)\n";
-			print $outfile "\t\$(FCCOMPILER) `cat .$workDir$base$dfile` -o $root.exe \$(FCFLAGS) `scripts/build/Library_Dependencies.pl $root.exe \$(FCFLAGS)`\n";
-			print $outfile "\t./scripts/build/Find_Executable_Size.pl $root.exe .$workDir$root.size\n";
+			print $outfile "$root.exe: $workDir$base$ofile $workDir$base$dfile \$(MAKE_DEPS)\n";
+			print $outfile "\t\$(FCCOMPILER) `cat $workDir$base$dfile` -o $root.exe \$(FCFLAGS) `scripts/build/Library_Dependencies.pl $root.exe \$(FCFLAGS)`\n";
+			print $outfile "\t./scripts/build/Find_Executable_Size.pl $root.exe $workDir$root.size\n";
 			print $outfile "\t./scripts/build/Find_Parameter_Dependencies.pl `pwd` $root.exe\n\n";
 		    }
                 }

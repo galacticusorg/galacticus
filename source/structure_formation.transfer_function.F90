@@ -15,6 +15,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!% Contains a module which provides a class that implements transfer functions.
+
 module Transfer_Functions
   !% Provides an object that implements transfer functions.
   use FGSL
