@@ -207,7 +207,7 @@ contains
     class(pseudoRandom), intent(inout) :: self
 
     self%pseudoSequenceReset=.true.
-    if (FGSL_Well_Defined(self%pseudoSequence)) call FGSL_Obj_C_Ptr(self%pseudoSequence,C_Null_Ptr)
+    call FGSL_Obj_C_Ptr(self%pseudoSequence,C_Null_Ptr)
     return
   end subroutine pseudoRandomInitialize
 
