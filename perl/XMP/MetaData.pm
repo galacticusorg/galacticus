@@ -5,12 +5,21 @@ use strict;
 use warnings;
 use Image::ExifTool qw(:Public);
 use File::Slurp;
-use File::Which;
 use PDL;
 use PDL::IO::HDF5;
 use Text::Wrap;
 use XML::Simple;
 use Data::Dumper;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+ $ENV{"GALACTICUS_ROOT_V094"} = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
+require File::Which;
 
 # Define new XMP tags.
 my %sourceStruct = (
