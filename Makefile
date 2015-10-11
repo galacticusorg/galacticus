@@ -321,7 +321,7 @@ source/FFTlog/fftlog.f:
 	 echo "end subroutine fhti" >> source/FFTlog/fftlog.f; \
 	 touch source/FFTlog/cdgamma.f; \
 	 touch source/FFTlog/drfftb.f; \
-	 touch source/FFTlog/drfftf.f; \
+	 touch source/FFTlog/drfftf.f; \ 
 	 touch source/FFTlog/drffti.f; \
 	fi
 

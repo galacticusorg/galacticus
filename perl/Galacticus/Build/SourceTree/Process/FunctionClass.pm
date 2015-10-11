@@ -422,6 +422,21 @@ sub Process_FunctionClass {
 		my $classNode = $classTree->{'firstChild'};
 		my $contained = 0;
 		while ( $classNode ) {
+		    # Check for composition in nonprivate instances.
+		    if ( $class->{'defaultThreadPrivate'} eq "no" ) {
+			my $subNode = $classNode;
+			while ( $subNode ) {
+			    if ( $subNode->{'type'} eq "objectBuilder" ) {
+				print 
+				    "WARN: instance '"                                                                                          .
+				    $class    ->{'type'}                                                                                  .
+				    "' of function class '"                                                                               .
+				    $directive->{'name'}                                                                                  .
+				    "' is not default thread private, but composites other objects which may be default thread private.\n";
+			    }
+			    $subNode = &SourceTree::Walk_Tree($subNode);
+			}
+		    }		    
 		    if ( $classNode->{'type'} eq "contains" ) {
 			$classNode = $classNode->{'firstChild'};
 			$contained = 1;

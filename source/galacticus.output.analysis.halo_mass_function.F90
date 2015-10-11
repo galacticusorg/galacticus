@@ -41,6 +41,7 @@ module Galacticus_Output_Analyses_Halo_Mass_Function
           &                                                             massesLogarithmicMinimum, massesLogarithmicMaximum    , &
           &                                                             massFunction
      integer         (c_size_t      )                                :: outputIndex
+     logical                                                         :: alwaysIsolatedHalosOnly
      ! Arrays for accumulation of of main branch halos
      double precision                , allocatable, dimension(:,:  ) :: mainBranchHaloWeights   , mainBranchHaloWeightsSquared
      ! Array for the covariance matrix.
@@ -102,6 +103,7 @@ contains
     integer         (c_size_t                      ), intent(in   )                 :: iOutput
     type            (varying_string                ), intent(in   ), dimension(:  ) :: mergerTreeAnalyses
     class           (nodeComponentBasic            )               , pointer        :: thisBasic
+    class           (nodeComponentMergingStatistics)               , pointer        :: mergingStatistics
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctions_
     integer                                                                         :: currentAnalysis,activeAnalysisCount,haloMassBin,massBin,iError,i,k
     double precision                                                                :: mass,massLogarithmic,redshift
@@ -225,7 +227,11 @@ contains
           ! Determine how many supported mass functions are requested.
           activeAnalysisCount=0
           do i=1,size(mergerTreeAnalyses)
-             if (extract(mergerTreeAnalyses(i),1,17) == "haloMassFunctionZ") activeAnalysisCount=activeAnalysisCount+1
+             if     (                                                                    &
+                  &   extract(mergerTreeAnalyses(i),1,17) ==         "haloMassFunctionZ" &
+                  &  .or.                                                                &
+                  &   extract(mergerTreeAnalyses(i),1,25) == "isolatedHaloMassFunctionZ" &
+                  & ) activeAnalysisCount=activeAnalysisCount+1
           end do
           ! Allocate mass function arrays and populate with required data.
           if (activeAnalysisCount <= 0) then
@@ -237,7 +243,11 @@ contains
              currentAnalysis=0
              allocate(massFunctions(activeAnalysisCount))
              do i=1,size(mergerTreeAnalyses)
-                if (extract(mergerTreeAnalyses(i),1,17) == "haloMassFunctionZ") then
+                if     (                                                                    &
+                     &   extract(mergerTreeAnalyses(i),1,17) ==         "haloMassFunctionZ" &
+                     &  .or.                                                                &
+                     &   extract(mergerTreeAnalyses(i),1,25) == "isolatedHaloMassFunctionZ" &
+                     & ) then
                    currentAnalysis=currentAnalysis+1
                    massFunctions(currentAnalysis)%label=mergerTreeAnalyses(i)
                    ! Allocate arrays.
@@ -250,7 +260,7 @@ contains
                    call Alloc_Array(massFunctions(currentAnalysis)%mainBranchHaloWeights       ,[analysisHaloMassFunctionsMassBinsCount,analysisHaloMassFunctionsHaloMassBinsCount])
                    call Alloc_Array(massFunctions(currentAnalysis)%mainBranchHaloWeightsSquared,[analysisHaloMassFunctionsMassBinsCount,analysisHaloMassFunctionsHaloMassBinsCount])
                    ! Initialize arrays.
-                   massFunctions(currentAnalysis)%masses                      =Make_Range(analysisHaloMassFunctionsMassMinimum,analysisHaloMassFunctionsHaloMassMaximum,analysisHaloMassFunctionsHaloMassBinsCount,rangeTypeLogarithmic)
+                   massFunctions(currentAnalysis)%masses                      =Make_Range(analysisHaloMassFunctionsMassMinimum,analysisHaloMassFunctionsHaloMassMaximum,analysisHaloMassFunctionsMassBinsCount,rangeTypeLogarithmic)
                    massFunctions(currentAnalysis)%massesLogarithmic           =log10(massFunctions(currentAnalysis)%masses)
                    massFunctions(currentAnalysis)%massFunction                =0.0d0
                    massFunctions(currentAnalysis)%massFunctionCovariance      =0.0d0
@@ -268,8 +278,26 @@ contains
                          massFunctions(currentAnalysis)%massesLogarithmicMaximum(k)=                                                   +0.5d0*(massFunctions(currentAnalysis)%massesLogarithmic(k+1)+massFunctions(currentAnalysis)%massesLogarithmic(k  ))
                       end if
                    end do
+                   if      (extract(mergerTreeAnalyses(i),1,17) ==         "haloMassFunctionZ") then
+                      redshiftLabel=extract(mergerTreeAnalyses(i),18,len(mergerTreeAnalyses(i)))
+                      massFunctions(currentAnalysis)%alwaysIsolatedHalosOnly=.false.
+                   else if (extract(mergerTreeAnalyses(i),1,25) == "isolatedHaloMassFunctionZ") then
+                      if (.not.defaultMergingStatisticsComponent%nodeHierarchyLevelMaximumIsGettable())                                                                              &
+                           & call Galacticus_Error_Report                                                                                                                            &
+                           &      (                                                                                                                                                  &
+                           &       'Galacticus_Output_Analysis_Halo_Mass_Functions'                                                                                               ,  &
+                           &       'mass functions of always isolated halos require a merging statistics component that provides a gettable "nodeHierarchyLevelMaximum" property.'// &
+                           &       Galacticus_Component_List(                                                                                                                        &
+                           &                                 'mergingStatistics'                                                                                                   , &
+                           &                                  defaultMergingStatisticsComponent%nodeHierarchyLevelMaximumAttributeMatch(requireGettable=.true.)                      &
+                           &                                )                                                                                                                        &
+                           &      )    
+                      redshiftLabel=extract(mergerTreeAnalyses(i),26,len(mergerTreeAnalyses(i)))
+                      massFunctions(currentAnalysis)%alwaysIsolatedHalosOnly=.true.
+                   else
+                      call Galacticus_Error_Report('Galacticus_Output_Analysis_Halo_Mass_Functions','unrecognized mass function type')
+                   end if
                    ! Find the index of the output corresponding to the requested redshift.
-                   redshiftLabel=extract(mergerTreeAnalyses(i),18,len(mergerTreeAnalyses(i)))
                    read (redshiftLabel,*) redshift
                    massFunctions(currentAnalysis)%outputIndex=Galacticus_Output_Time_Index(cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),findClosest=.true.)
                 end if
@@ -292,13 +320,18 @@ contains
        if (iOutput /= massFunctions(i)%outputIndex) cycle
        ! Cycle if this is a subhalo.
        if (thisNode%isSatellite()) cycle
+       ! Exclude halos which were not always isolated, if required.
+       if (massFunctions(i)%alwaysIsolatedHalosOnly) then       
+          mergingStatistics => thisNode%mergingStatistics()
+          if (mergingStatistics%nodeHierarchyLevelMaximum() > 0) cycle
+       end if
        ! Allocate workspace.
        if (.not.allocated(thisHalo(i)%massFunction)) then
-          call Alloc_Array(thisHalo(i)%massFunction,[analysisHaloMassFunctionsHaloMassBinsCount])
-          call Alloc_Array(thisHalo(i)%covariance  ,[                                             &
-               &                                     analysisHaloMassFunctionsHaloMassBinsCount,  &
-               &                                     analysisHaloMassFunctionsHaloMassBinsCount   &
-               &                                    ]                                             &
+          call Alloc_Array(thisHalo(i)%massFunction,[analysisHaloMassFunctionsMassBinsCount])
+          call Alloc_Array(thisHalo(i)%covariance  ,[                                         &
+               &                                     analysisHaloMassFunctionsMassBinsCount,  &
+               &                                     analysisHaloMassFunctionsMassBinsCount   &
+               &                                    ]                                         &
                &          )
        end if
        ! Get the galactic mass.
@@ -361,12 +394,12 @@ contains
           do m=1,analysisHaloMassFunctionsHaloMassBinsCount
              haloWeightBinTotal=sum(massFunctions(k)%mainBranchHaloWeights(:,m))
              if ( haloWeightBinTotal > 0.0 ) then
-                do i=1,analysisHaloMassFunctionsHaloMassBinsCount
+                do i=1,analysisHaloMassFunctionsMassBinsCount
                    massFunctions               (k)%massFunctionCovariance      (i,i)=                    &
                         &         massFunctions(k)%massFunctionCovariance      (i,i)                     &
                         & +(1.0d0-massFunctions(k)%mainBranchHaloWeights       (i,m)/haloWeightBinTotal) &
                         & *       massFunctions(k)%mainBranchHaloWeightsSquared(i,m)
-                   do j=1,analysisHaloMassFunctionsHaloMassBinsCount
+                   do j=1,analysisHaloMassFunctionsMassBinsCount
                       if (i == j) cycle
                       massFunctions               (k)%massFunctionCovariance      (i,j)= &
                            &  +      massFunctions(k)%massFunctionCovariance      (i,j)  &
@@ -384,8 +417,8 @@ contains
        end if
        ! Truncate the covariance where the correlation is below threshold. This avoids creating noisy covariances matrices
        ! which can lead to discontinuities in the likelihood surface.
-       do i=1,analysisHaloMassFunctionsHaloMassBinsCount
-          do j=1,analysisHaloMassFunctionsHaloMassBinsCount
+       do i=1,analysisHaloMassFunctionsMassBinsCount
+          do j=1,analysisHaloMassFunctionsMassBinsCount
              if (i == j) cycle
              if     (                                                           &
                   &     abs( massFunctions(k)%massFunctionCovariance(i,j))      &
@@ -402,11 +435,11 @@ contains
           end do
        end do
        ! Convert model mass function to differential per log(M).
-       forall(i=1:analysisHaloMassFunctionsHaloMassBinsCount)
+       forall(i=1:analysisHaloMassFunctionsMassBinsCount)
           massFunctions(k)%massFunction             (i  )=  massFunctions(k)%massFunction          (i  )                              &
                &                         /(massFunctions(k)%massesLogarithmicMaximum(i)-massFunctions(k)%massesLogarithmicMinimum(i)) &
                &                         / log(10.0d0)
-          forall(j=1:analysisHaloMassFunctionsHaloMassBinsCount)
+          forall(j=1:analysisHaloMassFunctionsMassBinsCount)
              massFunctions(k)%massFunctionCovariance(i,j)=  massFunctions(k)%massFunctionCovariance(i,j)                              &
                   &                      /(massFunctions(k)%massesLogarithmicMaximum(i)-massFunctions(k)%massesLogarithmicMinimum(i)) &
                   &                      /(massFunctions(k)%massesLogarithmicMaximum(j)-massFunctions(k)%massesLogarithmicMinimum(j)) &

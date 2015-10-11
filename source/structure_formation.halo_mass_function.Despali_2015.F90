@@ -26,7 +26,7 @@
      !% A halo mass function class using the fitting function of \cite{despali_universality_2015}.
      private
      class(virialDensityContrastClass                        ), pointer :: virialDensityContrast_
-     type (virialDensityContrastSphericalCollapseMatterLambda), pointer :: referenceDensityContrast
+     type (virialDensityContrastSphericalCollapseMatterLambda)          :: referenceDensityContrast
     contains
      !@ <objectMethods>
      !@   <object>haloMassFunctionDespali2015</object>
