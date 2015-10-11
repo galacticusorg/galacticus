@@ -21,7 +21,7 @@ require Galacticus::Build::Components::Utils;
     (
      %Galacticus::Build::Component::Utils::componentUtils,
      attributes => {
-	 validate =>
+	 postValidate =>
 	     [
 	      \&Validate_Boolean               ,
 	      \&Validate_Evolvable_Intrinsics  ,

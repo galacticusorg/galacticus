@@ -28,6 +28,7 @@ require Galacticus::Build::Hooks;
 require Galacticus::Build::Components::Utils;
 require Galacticus::Build::Components::Classes;
 require Galacticus::Build::Components::Implementations;
+require Galacticus::Build::Components::Properties;
 require Galacticus::Build::Components::Attributes;
 $SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
 
@@ -96,7 +97,7 @@ sub Components_Generate_Output {
 
     # Iterate over phases.
     print "--> Phase:\n";
-    foreach my $phase ( "default", "gather", "validate" ) {
+    foreach my $phase ( "preValidate", "default", "gather", "scatter", "postValidate" ) {
 	print "   --> ".ucfirst($phase)."...\n";
 	foreach my $hook ( @hooks ) {	
 	    if ( exists($hook->{'hook'}->{$phase}) ) {
@@ -111,8 +112,6 @@ sub Components_Generate_Output {
     # Iterate over all functions, calling them with the build data object.
     &{$_}($buildData)
 	foreach (
-	    # Distribute class default values to all members of a class.
-	    \&Distribute_Class_Defaults                              ,
 	    # Set defaults for unspecified attributes.
 	    \&Set_Default_Attributes                                 ,
 	    # Construct linked data for component properties.
@@ -423,80 +422,6 @@ sub padLinkedData {
     $padLength = $extraPad[1] if ($extraPad[1] > $padLength);
     my $paddedText = $text." " x ($padLength-length($text));
     return $paddedText;
-}
-
-sub Distribute_Class_Defaults {
-    # Distribute class defaults to all members of a class.
-    my $buildData = shift;
-    # Iterate over component classes.
-    foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
-	# Initialize hash to hold defaults.
-	my %classDefaults;
-	# Iterate over class members.
-	foreach my $componentName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
-	    # Get the component.
-	    my $componentID = ucfirst($componentClassName).ucfirst($componentName);
-	    my $component   = $buildData->{'components'}->{$componentID};
-	    # Iterate over the properties of this implementation.
-	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
-		# Get the property.
-		my $property = $component->{'properties'}->{'property'}->{$propertyName};
-		# Check for class defaults.
-		if ( exists($property->{'classDefault'}) ) {
-		    my $code;
-		    if ( ref($property->{'classDefault'}) && exists($property->{'classDefault'}->{'content'}) ) {
-			$code = $property->{'classDefault'}->{'content'};
-		    } else {
-			$code = $property->{'classDefault'};
-		    }
-		    if ( exists($classDefaults{$componentID.$propertyName}) ) {
-			die("Distribute_Class_Defaults: inconsistent class defaults for ".$componentID." ".$property)
-			    unless ($code eq $classDefaults{$componentID.$propertyName}->{'code'} );
-		    } else {
-			$classDefaults{$componentID.$propertyName}->{'code'} = $code;
-		    }
-		    if ( ref($property->{'classDefault'}) && exists($property->{'classDefault'}->{'modules'}) ) {
-			my @requiredModules = split(/\s*,\s*/,$property->{'classDefault'}->{'modules'});
-			push(
-			    @{$classDefaults{$componentID.$propertyName}->{'modules'}},
-			    @requiredModules
-			    );
-		    }
-		    if ( ref($property->{'classDefault'}) && exists($property->{'classDefault'}->{'count'}) ) {
-			if ( exists($classDefaults{$componentID.$propertyName}->{'count'}) ) {
-			    die("Distribute_Class_Defaults: inconsistent class default counts for ".$componentID." ".$property)
-				unless ($property->{'classDefault'}->{'count'} eq $classDefaults{$componentID.$propertyName}->{'count'} );
-			} else {
-			    $classDefaults{$componentID.$propertyName}->{'count'} = $property->{'classDefault'}->{'count'};
-			}
-		    } elsif ( $property->{'classDefault'} =~ m/^\[.*\]$/ ) {
-			my @splitDefault = split(/,/,$property->{'classDefault'});
-			my $defaultCount = scalar(@splitDefault);
-			if ( exists($classDefaults{$componentID.$propertyName}->{'count'}) ) {
-			    die("Distribute_Class_Defaults: inconsistent class default counts for ".$componentID." ".$property)
-				unless ( $defaultCount eq $classDefaults{$componentID.$propertyName}->{'count'} );
-			} else {
-			    $classDefaults{$componentID.$propertyName}->{'count'} = $defaultCount
-			}
-		    }
-		}
-	    }
-	}
-	# Iterate over class members.
-	foreach my $componentName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
-	    # Get the component.
-	    my $componentID = ucfirst($componentClassName).ucfirst($componentName);
-	    my $component   = $buildData->{'components'}->{$componentID};
-	    # Iterate over the properties of this implementation.
-	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
-		# Get the property.
-		my $property = $component->{'properties'}->{'property'}->{$propertyName};
-		# Set class default if available.
-		$property->{'classDefault'} = $classDefaults{$componentID.$propertyName}
-		if ( exists($classDefaults{$componentID.$propertyName}) );
-	    }
-	}
-    }
 }
 
 sub Construct_Linked_Data {
