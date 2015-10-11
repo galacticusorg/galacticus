@@ -86,6 +86,7 @@ module Constraints_Likelihoods
   include 'constraints.likelihoods.Galacticus.type.inc'
   include 'constraints.likelihoods.gaussian_regression.type.inc'
   include 'constraints.likelihoods.mass_function.type.inc'
+  include 'constraints.likelihoods.halo_mass_function.type.inc'
   include 'constraints.likelihoods.projected_correlation_function.type.inc'
   include 'constraints.likelihoods.SED_fit.type.inc'
   include 'constraints.likelihoods.posterior_as_prior.type.inc'
@@ -118,7 +119,8 @@ contains
          &                                                           likelihoodNeighborCountDefinition              , likelihoodProjectedCorrelationFunctionFileNameDefinition, &
          &                                                           likelihoodLineOfSightDepthDefinition           , likelihoodHalfIntegralDefinition                        , &
          &                                                           likelihoodExclusionsDefinition                 , likelihoodDumpEmulatorDefinition                        , &
-         &                                                           likelihoodDelayIntervalDefinition              , likelihoodDummyEmulatorDefinition
+         &                                                           likelihoodDelayIntervalDefinition              , likelihoodDummyEmulatorDefinition                       , &
+         &                                                           likelihoodRedshiftDefinition                   , likelihoodMassRangeMinimumDefinition
     type            (nodeList      ), pointer                     :: covarianceRows                                 , typeNodes
     double precision                , allocatable, dimension(:  ) :: likelihoodMean
     double precision                , allocatable, dimension(:,:) :: likelihoodCovariance
@@ -132,7 +134,8 @@ contains
          &                                                           likelihoodRedshiftMinimum                      , likelihoodRedshiftMaximum                 , &
          &                                                           likelihoodLogLikelihoodErrorTolerance          , likelihoodSurfaceBrightnessLimit          , &
          &                                                           likelihoodTolerance                            , likelihoodLineOfSightDepth                , &
-         &                                                           likelihoodDelayInterval
+         &                                                           likelihoodDelayInterval                        , likelihoodRedshift                        , &
+         &                                                           likelihoodMassRangeMinimum
     logical                                                       :: likelihoodEmulateOutliers                      , likelihoodUseSurveyLimits                 , &
          &                                                           likelihoodModelSurfaceBrightness               , likelihoodHalfIntegral                    , &
          &                                                           likelihoodDummyEmulator
@@ -282,6 +285,21 @@ contains
                &                               likelihoodSurfaceBrightnessLimit                          &
                &                              )
        end select
+    case ("haloMassFunction")
+       allocate(likelihoodHaloMassFunction :: newLikelihood)
+       select type (newLikelihood)
+       type is (likelihoodHaloMassFunction)
+          likelihoodRedshiftDefinition             => XML_Get_First_Element_By_Tag_Name(definition,"redshift"        )
+          likelihoodMassRangeMinimumDefinition     => XML_Get_First_Element_By_Tag_Name(definition,"massRangeMinimum")
+          likelihoodMassFunctionFileNameDefinition => XML_Get_First_Element_By_Tag_Name(definition,"fileName"        )
+          call extractDataContent(likelihoodRedshiftDefinition        ,likelihoodRedshift        )
+          call extractDataContent(likelihoodMassRangeMinimumDefinition,likelihoodMassRangeMinimum)
+          newLikelihood=likelihoodHaloMassFunction(                                                          &
+               &                                   getTextContent(likelihoodMassFunctionFileNameDefinition), &
+               &                                   likelihoodRedshift                                      , &
+               &                                   likelihoodMassRangeMinimum                                &
+               &                                  )
+       end select
     case ("projectedCorrelationFunction")
        allocate(likelihoodProjectedCorrelationFunction :: newLikelihood)
        select type (newLikelihood)
@@ -334,6 +352,7 @@ contains
   include 'constraints.likelihoods.Galacticus.methods.inc'
   include 'constraints.likelihoods.gaussian_regression.methods.inc'
   include 'constraints.likelihoods.mass_function.methods.inc'
+  include 'constraints.likelihoods.halo_mass_function.methods.inc'
   include 'constraints.likelihoods.projected_correlation_function.methods.inc'
   include 'constraints.likelihoods.SED_fit.methods.inc'
   include 'constraints.likelihoods.posterior_as_prior.methods.inc'
