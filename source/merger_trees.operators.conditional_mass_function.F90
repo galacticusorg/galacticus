@@ -172,7 +172,7 @@ contains
     use Memory_Management
     implicit none
     type            (mergerTreeOperatorConditionalMF)                            :: conditionalMFConstructorParameters
-    type            (inputParameters                ), intent(in   )             :: parameters
+    type            (inputParameters                ), intent(inout)             :: parameters
     double precision                                 , allocatable, dimension(:) :: progenitorRedshifts               , parentRedshifts
     integer                                                                      :: parentMassCount                   , massRatioCount       , &
          &                                                                          primaryProgenitorDepth            , subhaloHierarchyDepth
@@ -318,12 +318,13 @@ contains
     integer                                                                        :: i
     
     ! Store array sizes.
-    conditionalMFConstructorInternal%timeCount             =size(parentRedshifts)
-    conditionalMFConstructorInternal%parentMassCount       =parentMassCount
-    conditionalMFConstructorInternal%massRatioCount        =massRatioCount
-    conditionalMFConstructorInternal%primaryProgenitorDepth=primaryProgenitorDepth
-    conditionalMFConstructorInternal%subhaloHierarchyDepth =subhaloHierarchyDepth
-    conditionalMFConstructorInternal%outputGroupName       =outputGroupName
+    conditionalMFConstructorInternal%timeCount                =size(parentRedshifts)
+    conditionalMFConstructorInternal%parentMassCount          =parentMassCount
+    conditionalMFConstructorInternal%massRatioCount           =massRatioCount
+    conditionalMFConstructorInternal%primaryProgenitorDepth   =primaryProgenitorDepth
+    conditionalMFConstructorInternal%subhaloHierarchyDepth    =subhaloHierarchyDepth
+    conditionalMFConstructorInternal%formationRateTimeFraction=formationRateTimeFraction
+    conditionalMFConstructorInternal%outputGroupName          =outputGroupName
     if (size(progenitorRedshifts) /= conditionalMFConstructorInternal%timeCount) &
          & call Galacticus_Error_Report('conditionalMFConstructorInternal','mismatch in sizes of parent and progenitor redshift arrays')
     ! Allocate arrays.
@@ -443,6 +444,7 @@ contains
     ! Get the default cosmology functions object.
     cosmologyFunctions_ => cosmologyFunctions()
     ! Construct arrays of times for progenitors.
+    conditionalMFConstructorInternal%progenitorRedshifts=progenitorRedshifts
     do i=1,conditionalMFConstructorInternal%timeCount
        conditionalMFConstructorInternal%timeProgenitors(i)=              &
                      & cosmologyFunctions_%cosmicTime(                   &
@@ -452,6 +454,7 @@ contains
                      & )
     end do
     ! Construct arrays of times for parents.
+    conditionalMFConstructorInternal%parentRedshifts=parentRedshifts
     do i=1,conditionalMFConstructorInternal%timeCount
        conditionalMFConstructorInternal%timeParents(i)=         & 
             & cosmologyFunctions_%cosmicTime(                   &
