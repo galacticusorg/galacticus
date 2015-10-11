@@ -3,6 +3,14 @@
 package PBS;
 use strict;
 use warnings;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use Data::Dumper;
 use Sys::CPU;
 require File::Which;
@@ -167,9 +175,11 @@ sub Launch {
 	# Find all PBS jobs that are running.
 	my %runningPBSJobs;
 	undef(%runningPBSJobs);
+	my $jobID;
 	open(pHndl,"qstat -f|");
 	while ( my $line = <pHndl> ) {
-	    if ( $line =~ m/^Job\sId:\s+(\S+)/ ) {$runningPBSJobs{$1} = 1};
+	    if ( $line =~ m/^Job\sId:\s+(\S+)/ ) {$jobID = $1};
+	    if ( $line =~ m/^\s*job_state\s*=\s*[^C]\s*$/ ) {$runningPBSJobs{$jobID} = 1};
 	}
 	close(pHndl);
 	foreach my $jobID ( keys(%pbsJobs) ) {
