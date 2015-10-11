@@ -157,7 +157,7 @@ module Tables
      type   (fgsl_interp      ) :: interpolator
      type   (fgsl_interp_accel) :: accelerator
      type   (fgsl_interp_type ) :: interpolationType
-     logical                    :: reset
+     logical                    :: reset            =.true.
    contains
      !@ <objectMethods>
      !@   <object>table1DGeneric</object>
