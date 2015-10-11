@@ -29,7 +29,7 @@ require Galacticus::Build::Components::Utils;
 	     ],
 	 gather =>
 	     [
-	      \&Implementation_Dependencies 
+	      \&Implementation_Dependencies
 	     ]
      }
     );
