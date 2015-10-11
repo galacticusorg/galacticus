@@ -306,6 +306,7 @@ contains
     inputParametersConstructorNull%rootNode   => getDocumentElement(inputParametersConstructorNull%document)
     inputParametersConstructorNull%parameters => null()
     inputParametersConstructorNull%global     = .false.
+    call setLiveNodeLists(inputParametersConstructorNull%document,.true.)
     return
   end function inputParametersConstructorNull
   
@@ -1225,9 +1226,11 @@ contains
     type     (node           ), pointer       :: parameterNode   , dummy
     type     (inputParameter ), pointer       :: currentParameter
 
+    !$omp critical(FoX_DOM_Access)
     parameterNode   => createElementNS(self%document,getNamespaceURI(self%document),parameterName)
     call setAttribute(parameterNode,"value",trim(parameterValue))
     dummy           => appendChild  (self%rootNode,parameterNode)
+    !$omp end critical(FoX_DOM_Access)
     if (associated(self%parameters)) then
        if (associated(self%parameters%firstChild)) then
           currentParameter => self%parameters%firstChild
