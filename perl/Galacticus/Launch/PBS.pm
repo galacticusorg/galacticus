@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Data::Dumper;
 use Sys::CPU;
-use File::Which;
+require File::Which;
 require Galacticus::Options;
 require Galacticus::Launch::Hooks;
 require Galacticus::Launch::PostProcess;
