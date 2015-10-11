@@ -18,7 +18,7 @@
   !% Contains a module which implements an augmenting operator on merger trees.
   use Merger_Trees_Builders
 
-  !# <mergerTreeOperator name="mergerTreeOperatorAugment">
+  !# <mergerTreeOperator name="mergerTreeOperatorAugment" defaultThreadPrivate="yes">
   !#  <description>Provides a merger tree operator which augments tree resolution by inserting high-resolution branches.</description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorAugment

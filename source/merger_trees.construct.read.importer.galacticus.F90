@@ -595,14 +595,16 @@ contains
     class           (mergerTreeImporterGalacticus), intent(inout)             :: self
     type            (hdf5Object                  )                            :: treeIndexGroup
     integer         (kind=kind_int8              ), allocatable, dimension(:) :: descendentIndex
-    double precision                              , allocatable, dimension(:) :: nodeMass       , treeMass , nodeTime, treeTime
-    integer         (kind=HSIZE_T                )             , dimension(1) :: firstNodeIndex , nodeCount
+    double precision                              , allocatable, dimension(:) :: nodeMass                 , treeMass    , &
+         &                                                                       nodeTime                 , treeTime
+    integer         (kind=HSIZE_T                )             , dimension(1) :: firstNodeIndex           , nodeCount
     integer         (kind=c_size_t               ), allocatable, dimension(:) :: sortOrder
     class           (cosmologyFunctionsClass     ), pointer                   :: cosmologyFunctionsDefault
     class           (haloMassFunctionClass       ), pointer                   :: haloMassFunction_
     integer                                                                   :: i
     integer         (c_size_t                    )                            :: iNode
-    double precision                                                          :: massMinimum    , massMaximum
+    double precision                                                          :: massMinimum              , massMaximum
+    logical                                                                   :: hasForestWeights
     
     if (self%forestIndicesRead) return
     !$omp critical(HDF5_Access)
@@ -612,6 +614,7 @@ contains
     call treeIndexGroup%readDataset("firstNode"                      ,self%firstNodes   )
     call treeIndexGroup%readDataset("numberOfNodes"                  ,self%nodeCounts   )
     call treeIndexGroup%readDataset(trim(self%forestIndexDatasetName),self%forestIndices)
+    hasForestWeights=treeIndexGroup%hasDataset(trim(self%forestWeightDatasetName))
     !$omp end critical(HDF5_Access)
     if (self%reweightTrees) then
        cosmologyFunctionsDefault => cosmologyFunctions()
@@ -682,7 +685,7 @@ contains
        !$omp end critical(HDF5_Access)
        deallocate(treeMass)
        deallocate(treeTime)
-    else if (treeIndexGroup%hasDataset(trim(self%forestWeightDatasetName))) then
+    else if (hasForestWeights) then
        !$omp critical(HDF5_Access)
        call treeIndexGroup%readDataset(trim(self%forestWeightDatasetName),self%weights)
        !$omp endcritical(HDF5_Access)
