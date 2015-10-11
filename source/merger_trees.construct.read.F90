@@ -744,12 +744,16 @@ contains
             !$ &       mod(nextTreeToReadActual,omp_get_num_threads()) /= omp_get_thread_num()  &
             !$ &     )                                                                          &
             &   )
-          ! Record if we've now found the first merger tree to process.
-          if (mergerTreeReadBeginAt > 0 .and. defaultImporter%treeIndex(nextTreeToReadActual) /= mergerTreeReadBeginAt) mergerTreeReadBeginAt=-1
           nextTreeToReadActual=nextTreeToReadActual+1
           ! If the end of the list has been reached, exit.
           if (nextTreeToReadActual > defaultImporter%treeCount()) exit
        end do
+       ! Record if we've now found the first merger tree to process.
+       if     (                                                                          &
+            &   mergerTreeReadBeginAt                           >  0                     &
+            &  .and.                                                                     &
+            &   defaultImporter%treeIndex(nextTreeToReadActual) == mergerTreeReadBeginAt &
+            & ) mergerTreeReadBeginAt=-1
        !$ if (mergerTreeReadFixedThreadAssignment) then       
        !$    nextTreeToReadThread=nextTreeToReadActual
        !$ else
@@ -1102,14 +1106,25 @@ contains
        call Scan_for_Branch_Jumps(nodes,thisNodeList)
        
        ! Allocate arrays for history building.
-       if (historyCountMaximum > 0) then
-          if (allocated(position)) call Dealloc_Array(position)
-          if (allocated(velocity)) call Dealloc_Array(velocity)
-          call Alloc_Array(historyTime,[int(historyCountMaximum)])
-          if (mergerTreeReadPresetSubhaloIndices                             ) call Alloc_Array(historyIndex,[  int(historyCountMaximum)])
-          if (mergerTreeReadPresetSubhaloMasses                              ) call Alloc_Array(historyMass ,[  int(historyCountMaximum)])
-          if (mergerTreeReadPresetPositions    .or.mergerTreeReadPresetOrbits) call Alloc_Array(position    ,[3,int(historyCountMaximum)])
-          if (mergerTreeReadPresetPositions    .or.mergerTreeReadPresetOrbits) call Alloc_Array(velocity    ,[3,int(historyCountMaximum)])
+       if (allocated(position)) call Dealloc_Array(position)
+       if (allocated(velocity)) call Dealloc_Array(velocity)
+       call Alloc_Array(historyTime,[int(historyCountMaximum)])
+       if (mergerTreeReadPresetSubhaloIndices                             ) then
+          call Alloc_Array(historyIndex,[  int(historyCountMaximum)])
+       else
+          call Alloc_Array(historyIndex,[                        0 ])
+       end if
+       if (mergerTreeReadPresetSubhaloMasses                              ) then
+          call Alloc_Array(historyMass ,[  int(historyCountMaximum)])
+       else
+          call Alloc_Array(historyMass ,[                        0 ])
+       end if
+       if (mergerTreeReadPresetPositions    .or.mergerTreeReadPresetOrbits) then
+          call Alloc_Array(position    ,[3,int(historyCountMaximum)])
+          call Alloc_Array(velocity    ,[3,int(historyCountMaximum)])
+       else
+          call Alloc_Array(position    ,[0,                      0 ])
+          call Alloc_Array(velocity    ,[0,                      0 ])
        end if
        
        ! Build subhalo mass histories if required.
