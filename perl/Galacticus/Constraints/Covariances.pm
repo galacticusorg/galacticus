@@ -92,7 +92,7 @@ sub EigenInvert {
     my $logDeterminant = sum(log($eigenValues));
     # Perform sanity checks on the inverse covariance matrix and its determinant.
     unless (     isfinite($logDeterminant)  ) {
-	print "EigennInvert: covariance matrix determinant failed\n";
+	print "EigenInvert: covariance matrix determinant failed\n";
 	die
 	    unless ( $options{'errorTolerant'} == 1 );
     }
