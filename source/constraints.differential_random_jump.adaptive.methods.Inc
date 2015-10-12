@@ -31,11 +31,11 @@ function deRandomJumpAdaptiveSample(self,randomDistributions,simulationState)
   use MPI_Utilities
   implicit none
   class           (deRandomJumpAdaptive)                                      , intent(inout) :: self
-  type            (distributionList     ), dimension(:)                        , intent(in   ) :: randomDistributions
-  class           (state                )                                      , intent(in   ) :: simulationState
-  double precision                       , dimension(size(randomDistributions))                :: deRandomJumpAdaptiveSample
-  double precision                       , dimension(:)                        , allocatable   :: parameterRange
-  integer                                                                                      :: i
+  type            (distributionList    ), dimension(:)                        , intent(in   ) :: randomDistributions
+  class           (state               )                                      , intent(in   ) :: simulationState
+  double precision                      , dimension(size(randomDistributions))                :: deRandomJumpAdaptiveSample
+  double precision                      , dimension(:)                        , allocatable   :: parameterRange
+  integer                                                                                     :: i
 
   ! Find the current range of each parameter.
   parameterRange=mpiSelf%maxval(simulationState%get())-mpiSelf%minval(simulationState%get())
