@@ -19,7 +19,7 @@
     <random>
       <type>Cauchy</type>
       <median>0.0</median>
-      <scale>1.0e-3</scale>
+      <scale>1.0e-5</scale>
     </random>
   </parameter>
   <parameter>
@@ -39,7 +39,7 @@
     <random>
       <type>Cauchy</type>
       <median>0.0</median>
-      <scale>1.0e-3</scale>
+      <scale>1.0e-5</scale>
     </random>
   </parameter>
   <parameter>
@@ -59,7 +59,7 @@
     <random>
       <type>Cauchy</type>
       <median>0.0</median>
-      <scale>1.0e-3</scale>
+      <scale>1.0e-5</scale>
     </random>
   </parameter>
   <parameter>
@@ -79,7 +79,7 @@
     <random>
       <type>Cauchy</type>
       <median>0.0</median>
-      <scale>1.0e-3</scale>
+      <scale>1.0e-5</scale>
     </random>
   </parameter>
   <parameter>
@@ -99,7 +99,7 @@
     <random>
       <type>Cauchy</type>
       <median>0.0</median>
-      <scale>1.0e-3</scale>
+      <scale>1.0e-5</scale>
     </random>
   </parameter>
   <parameter>
@@ -119,7 +119,7 @@
     <random>
       <type>Cauchy</type>
       <median>0.0</median>
-      <scale>1.0e-3</scale>
+      <scale>1.0e-5</scale>
     </random>
   </parameter>
   
