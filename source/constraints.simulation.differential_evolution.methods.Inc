@@ -212,6 +212,7 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
              &                timeEvaluate                   , &
              &                self%isConverged               , &
              &                self%logPosterior              , &
+             &                logLikelihood                  , &
              &                stateVector
         if (mod(self%simulationState%count(),self%logFlushCount) == 0) call flush(logFileUnit)
      end if

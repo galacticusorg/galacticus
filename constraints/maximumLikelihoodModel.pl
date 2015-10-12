@@ -78,7 +78,7 @@ for(my $i=0;$i<$chainCount;++$i) {
 	    my @columns = split(/\s+/,$line);
 	    if ( $columns[4] > $maximumLikelihood ) {
 		$maximumLikelihood           = $columns[4];
-		@maximumLikelihoodParameters = @columns[5..$#columns];
+		@maximumLikelihoodParameters = @columns[6..$#columns];
 	    }
 	}
     }

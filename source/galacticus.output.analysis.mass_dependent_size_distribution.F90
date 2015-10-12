@@ -173,7 +173,7 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Sz_Dstrbtins
   integer                     :: analysisSizeFunctionsHaloMassBinsCount                 , analysisSizeFunctionsHaloMassBinsPerDecade
   double precision            :: analysisSizeFunctionsHaloMassMinimum                   , analysisSizeFunctionsHaloMassMaximum           , &
        &                         analysisSizeFunctionsHaloMassIntervalLogarithmicInverse, analysisSizeFunctionsHaloMassMinimumLogarithmic
-
+  
   ! Table of half-light radius vs. inclination.
   type   (table1DLinearLinear) :: inclinationTable
   type   (fgsl_rng           ) :: randomSequenceObject
@@ -221,17 +221,18 @@ contains
     integer         (c_size_t                      )                                :: k,jOutput
     double precision                                , parameter                     :: massRandomErrorMinimum =1.0d-3
     integer                                         , parameter                     :: inclinationAngleCount  =100
+    integer                                         , parameter                     :: sampleStepCount        =100
     double precision                                , parameter                     :: inclinationAngleEpsilon=1.0d-3
-    integer                                                                         :: i,j,l,currentAnalysis,activeAnalysisCount,haloMassBin,iDistribution,jDistribution
+    integer                                                                         :: i,j,l,currentAnalysis,activeAnalysisCount,haloMassBin,iDistribution,jDistribution,sampleStep
     double precision                                                                :: dataHubbleParameter ,mass,massLogarithmic&
-         &,massRandomError,radiusLogarithmic,radius,sizeRandomError,dataOmegaDarkEnergy,dataOmegaMatter,sersicIndexMaximum,redshift,timeMinimum,timeMaximum,distanceMinimum,distanceMaximum,xIntegrate,inclinationAngle,halfLightRadius,halfLightRadiusFaceOn
+         &,massRandomError,radiusLogarithmic,radius,sizeRandomError,dataOmegaDarkEnergy,dataOmegaMatter,sersicIndexMaximum,redshift,timeMinimum,timeMaximum,distanceMinimum,distanceMaximum,xIntegrate,inclinationAngle,halfLightRadius,halfLightRadiusFaceOn,radiusLogarithmicFaceOn
     type            (varying_string                )                                :: parameterName&
          &,analysisSizeFunctionCovarianceModelText,cosmologyScalingSizeFunction,cosmologyScalingMass,cosmologyScalingSize,message
     character       (len=128                       )                                :: distributionGroupName
     logical                                                                         :: groupFound
     type            (hdf5Object                    )                                :: dataFile,sizeDataset,distributionGroup,cosmologyGroup
     type            (rootFinder                    )                                :: finder
-    
+
     ! Initialize the module if necessary.
     if (.not.moduleInitialized) then
        !$omp critical(Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Initialize)
@@ -671,13 +672,10 @@ contains
        radius   =  thisDisk%radius()
        if (associated(sizeFunctions(i)%descriptor%mapRadius)) radius=sizeFunctions(i)%descriptor%mapRadius(radius,thisNode)
        radius=radius*sizeFunctions(i)%cosmologyConversionSize(iOutput) ! Convert for cosmology.
-       radiusLogarithmic=log10(radius)
+       radiusLogarithmicFaceOn=log10(radius)
        do j=1,sizeFunctions(i)%descriptor%radiusSystematicCoefficientCount
-          radiusLogarithmic=radiusLogarithmic+sizeFunctions(i)%radiusSystematicCoefficients(j)*(log10(radius)-sizeFunctions(i)%descriptor%radiusSystematicLogR0)**(j-1)
+          radiusLogarithmicFaceOn=radiusLogarithmicFaceOn+sizeFunctions(i)%radiusSystematicCoefficients(j)*(log10(radius)-sizeFunctions(i)%descriptor%radiusSystematicLogR0)**(j-1)
        end do
-       ! Adjust radius for inclination.
-       inclinationAngle =acos(thisTree%randomNumberGenerator%sample())
-       radiusLogarithmic=radiusLogarithmic+log10(inclinationTable%interpolate(inclinationAngle))
        ! Compute contributions to each bin.
        if (associated(sizeFunctions(i)%descriptor%massRandomErrorFunction)) then
           massRandomError=sizeFunctions(i)%descriptor%massRandomErrorFunction(mass,thisNode)
@@ -698,11 +696,21 @@ contains
        else
           sizeRandomError=sizeFunctions(i)%descriptor%radiusRandomError
        end if
-       thisGalaxy(i)%sizeFunction=       (                                                                                               &
-            &                             +erf((sizeFunctions(i)%radiiLogarithmicMaximum-radiusLogarithmic)/sizeRandomError/sqrt(2.0d0)) &
-            &                             -erf((sizeFunctions(i)%radiiLogarithmicMinimum-radiusLogarithmic)/sizeRandomError/sqrt(2.0d0)) &
-            &                            )                                                                                               &
-            &                            /2.0d0
+       ! Averge the contribution to the size function over galaxy inclination angles.
+       thisGalaxy(i)%sizeFunction=0.0d0
+       do sampleStep=1,sampleStepCount
+          ! Adjust radius for inclination.
+          inclinationAngle =acos(dble(sampleStep-1)/dble(sampleStepCount-1))
+          radiusLogarithmic=radiusLogarithmicFaceOn+log10(inclinationTable%interpolate(inclinationAngle))
+          thisGalaxy(i)%sizeFunction=+thisGalaxy(i)%sizeFunction                                                                      &
+               &                     +(                                                                                               &
+               &                       +erf((sizeFunctions(i)%radiiLogarithmicMaximum-radiusLogarithmic)/sizeRandomError/sqrt(2.0d0)) &
+               &                       -erf((sizeFunctions(i)%radiiLogarithmicMinimum-radiusLogarithmic)/sizeRandomError/sqrt(2.0d0)) &
+               &                      )                                                                                               &
+               &                      /2.0d0
+       end do
+       thisGalaxy(i)%sizeFunction=thisGalaxy(i)%sizeFunction/dble(sampleStepCount)
+       ! Compute contribution to mass bins.
        thisGalaxy(i)%sizeFunctionWeights=(                                                                                               &
             &                             +erf((sizeFunctions(i)%massesLogarithmicMaximum- massLogarithmic)/massRandomError/sqrt(2.0d0)) &
             &                             -erf((sizeFunctions(i)%massesLogarithmicMinimum- massLogarithmic)/massRandomError/sqrt(2.0d0)) &
