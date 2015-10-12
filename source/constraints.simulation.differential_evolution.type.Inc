@@ -21,7 +21,7 @@
      integer                                                    :: parameterCount       , stepsMaximum          , &
           &                                                        stateSwapCount       , acceptanceAverageCount, & 
           &                                                        logFlushCount        , reportCount
-     double precision                                           :: logPosterior
+     double precision                                           :: logPosterior         , logPrior
      logical                                                    :: isConverged          , sampleOutliers, &
           &                                                        isInteractive
      type            (prior            ), pointer, dimension(:) :: parameterPriors
