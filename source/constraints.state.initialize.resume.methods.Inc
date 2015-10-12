@@ -43,17 +43,18 @@ subroutine stateInitializorResumeInitialize(self,simulationState,parameterPriors
   type            (prior                 ), intent(inout), dimension(:) :: parameterPriors
   type            (mappingList           ), intent(in   ), dimension(:) :: parameterMappings
   double precision                        , intent(  out)               :: timeEvaluatePrevious
-  double precision                        , allocatable  , dimension(:) :: stateVector
-  type            (varying_string        )                              :: logFileName    , message
-  integer                                                               :: stateCount     , mpiRank     , &
-       &                                                                   logFileUnit    , ioStatus    , &
+  double precision                        , allocatable  , dimension(:) :: stateVector         , stateVectorMapped
+  type            (varying_string        )                              :: logFileName         , message
+  integer                                                               :: stateCount          , mpiRank          , &
+       &                                                                   logFileUnit         , ioStatus         , &
        &                                                                   i
-  double precision                                                      :: logPosterior
-  logical                                                               :: converged      , first
+  double precision                                                      :: logPosterior        , logLikelihood
+  logical                                                               :: converged           , first
   character       (len=12                )                              :: label
   
   ! Allocate the state vector.
-  allocate(stateVector(simulationState%dimension()))
+  allocate(stateVector      (simulationState%dimension()))
+  allocate(stateVectorMapped(simulationState%dimension()))
   ! Read state from the log file.
   logFileName=self%logFileRoot//'_'//mpiSelf%rankLabel()//'.log'
   open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted')
@@ -65,30 +66,32 @@ subroutine stateInitializorResumeInitialize(self,simulationState,parameterPriors
           &                               timeEvaluatePrevious, &
           &                               converged           , &
           &                               logPosterior        , &
+          &                               logLikelihood       , &
           &                               stateVector     
      if (ioStatus == 0) then
         ! Map the state.
         do i=1,size(stateVector)
-           stateVector(i)=parameterMappings(i)%thisMapping%map(stateVector(i))
+           stateVectorMapped(i)=parameterMappings(i)%thisMapping%map(stateVector(i))
         end do
         ! Restore the state object.
-        if (self%restoreState) call simulationState%restore(stateVector,first)
+        if (self%restoreState) call simulationState%restore(stateVectorMapped,first)
         first=.false.
      end if
   end do
   close(logFileUnit)
   ! Set the simulation state.
-  call simulationState%update(stateVector,.false.,.false.)
+  call simulationState%update(stateVectorMapped,.false.,.false.)
   ! Check for out of range state.
   do i=1,simulationState%dimension()
      if (parameterPriors(i)%logDensity(simulationState) <= logImpossible) then
-        write (label,'(e12.6)') parameterMappings(i)%thisMapping%unmap(stateVector(i))
+        write (label,'(e12.6)') parameterMappings(i)%thisMapping%unmap(stateVectorMapped(i))
         message='Out of range state for parameter '
         message=message//i//' ['//trim(label)//']'
         call Galacticus_Display_Message(message)
      end if
   end do
   ! Deallocate the state vector.
-  deallocate(stateVector)
+  deallocate(stateVector      )
+  deallocate(stateVectorMapped)
   return
 end subroutine stateInitializorResumeInitialize
