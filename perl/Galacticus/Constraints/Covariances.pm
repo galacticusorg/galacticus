@@ -44,7 +44,7 @@ sub SVDInvert {
     # Invert the matrix.
     my $minimumValue = 0.0;
     $minimumValue = $s->(($options{'keepTerms'}))
-     	if ( exists($options{'keepTerms'}) && $s->(($options{'keepTerms'})) > 0.0 );
+     	if ( exists($options{'keepTerms'}) && $options{'keepTerms'} < nelem($s) && $s->(($options{'keepTerms'})) > 0.0 );
     my $nonZeroSingularValues = which($s > $minimumValue);
     my $sInverse                                        = zeroes($r1);
     $sInverse->diagonal(0,1)->($nonZeroSingularValues) .= 1.0/$s->($nonZeroSingularValues);
@@ -152,10 +152,20 @@ sub ComputeLikelihood {
     } else {
 	die("ComputeLikelihood(): unknown inversion method");
     }
-    # Construct the likelihood.
-    my $vCv                           = $d x $CInverse x transpose($d);
-    die("ComputeLikelihood: inverse covariance matrix is not semi-positive definite")
-	unless ( $vCv->((0),(0)) >= 0.0 );
+    # Construct the product of offsets with the inverse covariance matrix.
+    my $productMethod = exists($options{'productMethod'}) ? $options{'productMethod'} : "inverseMatrix";
+    my $vCv;
+    if ( $productMethod eq "inverseMatrix" ) {
+	$vCv = $d x $CInverse x transpose($d);
+	die("ComputeLikelihood: inverse covariance matrix is not semi-positive definite")
+	    unless ( $vCv->((0),(0)) > 0.0 );
+    } elsif ( $productMethod eq "linearSolver" ) {
+	my $x = mpossolvex($C,0,transpose($d), equilibrate => 1);
+	$vCv = $d x $x;
+    } else {
+	die("ComputeLikelihood(): unknown product method");
+    }
+    # Construct the likelihood.    
     my $logLikelihoodLog              = -0.5*$vCv->((0),(0))-0.5*nelem($y1)*log(2.0*3.1415927)-0.5*$logDeterminant;
     $logLikelihoodLog                 = $vCv->((0),(0))
 	if ( exists($options{'normalized'}) && $options{'normalized'} == 0 );
