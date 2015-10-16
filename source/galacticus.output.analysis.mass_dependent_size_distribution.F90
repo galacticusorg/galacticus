@@ -108,8 +108,8 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Sz_Dstrbtins
        & [                                                                                                 &
        ! SDSS late-type galaxy sizes from Shen et al. (2003). 
        &                           sizeFunctionDescriptor(                                                 &
-       &                                                  11.0000d+0                         ,             &
-       &                                                   1.0000d-3                         ,             &
+       &                                                  11.3000d+0                         ,             &
+       &                                                   0.0000d+0                         ,             &
        &                                                   0.0128d+0                         ,             &
        &                                                   null()                            ,             &
        &                                                   null()                            ,             &
@@ -707,7 +707,7 @@ contains
                &                       +erf((sizeFunctions(i)%radiiLogarithmicMaximum-radiusLogarithmic)/sizeRandomError/sqrt(2.0d0)) &
                &                       -erf((sizeFunctions(i)%radiiLogarithmicMinimum-radiusLogarithmic)/sizeRandomError/sqrt(2.0d0)) &
                &                      )                                                                                               &
-               &                      /2.0d0
+               &                      /2.0d0            
        end do
        thisGalaxy(i)%sizeFunction=thisGalaxy(i)%sizeFunction/dble(sampleStepCount)
        ! Compute contribution to mass bins.
