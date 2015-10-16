@@ -160,7 +160,7 @@ if ( exists($arguments{'resultFile'}) ) {
 if ( exists($arguments{'outputFile'}) ) {
     # Construct the full covariance matrix, which is the covariance matrix of the observations plus that of the model.
     my $fullCovariance =
-	$data->{'model'   }->{'combined'}->{'correlationFunctionCovariance'}+
+ 	$data->{'model'   }->{'combined'}->{'correlationFunctionCovariance'}+
 	$data->{'observed'}->{'combined'}->{'correlationFunctionCovariance'};
     # Compute the likelihood.
     my $constraint;
@@ -175,6 +175,7 @@ if ( exists($arguments{'outputFile'}) ) {
 	determinant       => \$logDeterminant   ,
 	inverseCovariance => \$inverseCovariance,
 	offsets           => \$offsets          ,
+	productMethod     => "linearSolver"     ,
 	quiet             => 0
 	);
     $constraint->{'label'        } = "sdssClusteringZ0.07";
