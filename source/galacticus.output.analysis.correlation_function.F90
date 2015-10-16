@@ -81,11 +81,11 @@ module Galacticus_Output_Analyses_Correlation_Functions
        & [                                                                                                                      &
        ! Hearin et al. (2013) SDSS.
        &                           correlationFunctionDescriptor(                                                               &
-       &                                                          0.07000+0                                              ,      &
+       &                                                          11.300d0                                               ,      &
        &                                                          null()                                                 ,      &
-       &                                                          8.000d0                                                ,      &
-       &                                                          2                                                      ,      &
-       &                                                          2                                                      ,      &
+       &                                                           8.000d0                                               ,      &
+       &                                                           2                                                     ,      &
+       &                                                           2                                                     ,      &
        &                                                          massTypeStellar                                        ,      &
        &                                                          massSolar                                              ,      &
        &                                                          .false.                                                ,      &
@@ -248,6 +248,8 @@ contains
           analysisProjectedCorrelationFunctionsHaloMassMinimumLogarithmic=log10(analysisProjectedCorrelationFunctionsHaloMassMinimum)
           analysisProjectedCorrelationFunctionsHaloMassBinsCount=int(log10(analysisProjectedCorrelationFunctionsHaloMassMaximum/analysisProjectedCorrelationFunctionsHaloMassMinimum)*dble(analysisProjectedCorrelationFunctionsHaloMassBinsPerDecade)+0.5d0)
           haloMassIntervalLogarithmicInverse=dble(analysisProjectedCorrelationFunctionsHaloMassBinsCount)/log10(analysisProjectedCorrelationFunctionsHaloMassMaximum/analysisProjectedCorrelationFunctionsHaloMassMinimum)
+          ! Validate correlation function descriptors.
+          call validateDescriptors(correlationFunctionDescriptors)
           ! Establish mapping functions for correlation function descriptors.
           correlationFunctionDescriptors(1)%mapMass => null()
           ! Determine how many supported mass functions are requested.
@@ -562,11 +564,11 @@ contains
        thisHalo%haloIndex         =-1_kind_int8
     end if
     ! Check if the host has changed.
-    if     (                                                     &
+    if     (                                      &
          &   thisTree%index /= thisHalo%treeIndex &
-         &  .or.                                                 &
+         &  .or.                                  &
          &   hostIndex      /= thisHalo%haloIndex &
-         & )                                                     &
+         & )                                      &
          & call Accumulate_Halo(thisCorrelationFunction,thisHalo)
     ! Accumulate properties to the current halo.
     thisHalo%treeIndex=thisTree%index
@@ -1255,6 +1257,30 @@ contains
     indexDensity=(iMass-1)*(2*wavenumberCount+1)+2*wavenumberCount+1
     return
   end subroutine Term_Indices
+
+  subroutine validateDescriptors(descriptors)
+    !% Perform some validation on correlation function descriptors to catch potential errors.
+    use Galacticus_Error
+    use ISO_Varying_String
+    implicit none
+    type     (correlationFunctionDescriptor), dimension(:), intent(in   ) :: descriptors
+    type     (varying_string               )                              :: message
+    character(len=8                        )                              :: label
+    integer                                                               :: i
+    
+    do i=1,size(descriptors)
+       if     (                                             &
+            &   descriptors(i)%massSystematicLogM0 <  6.0d0 &
+            &  .or.                                         &
+            &   descriptors(i)%massSystematicLogM0 > 16.0d0 &
+            & ) then
+          write (label,'(f8.5)') descriptors(i)%massSystematicLogM0
+          message="Error model mass zero-point ["//trim(adjustl(label))//"] for correlation function descriptor ["//trim(descriptors(i)%label)//"] is outside of plausible range"
+          call Galacticus_Error_Report('validateDescriptors',message)
+       end if
+    end do
+    return
+  end subroutine validateDescriptors
   
 end module Galacticus_Output_Analyses_Correlation_Functions
 
