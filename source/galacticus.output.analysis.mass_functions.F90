@@ -1423,7 +1423,7 @@ contains
                &          )
        end if
        ! Get the galactic mass.
-       mass=                                                                                                                &
+       mass=                                                                                                                                            &
             &  Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeDisk    ,massType=massFunctions(i)%descriptor%massType) &
             & +Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeSpheroid,massType=massFunctions(i)%descriptor%massType)
        if (mass <= 0.0d0) cycle
@@ -1444,11 +1444,11 @@ contains
           randomError(1)=0.0d0
           do j=1,massFunctions(i)%descriptor%randomCoefficientCount
              randomError(1)=+randomError(1)                                &
-             &              +massFunctions(i)%randomCoefficients(j)        &
-             &              *(                                             &
-             &                +log10(mass)                                 &
-             &                -massFunctions(i)%descriptor%errorModelLogM0 &
-             &               )**(j-1)
+                  &         +massFunctions(i)%randomCoefficients(j)        &
+                  &         *(                                             &
+                  &           +log10(mass)                                 &
+                  &           -massFunctions(i)%descriptor%errorModelLogM0 &
+                  &          )**(j-1)
           end do
           randomError      (1)=max(randomError(1),randomErrorMinimum)
           randomErrorWeight(1)=1.0d0
