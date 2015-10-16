@@ -277,27 +277,20 @@ sub Construct {
 		    if ( nelem($noConstraint) > 0 );
 	    }	    
 	    # Compute the likelihood.
-	    my $logDeterminant;
 	    my $offsets;
-	    my $inverseCovariance;
+	    my $jacobian;
 	    my $logLikelihood =
 		&Covariances::ComputeLikelihood
 		(
 		 $yGalacticusLimited                              ,
 		 $config            ->{'y'}                       ,
 		 $fullCovariance                                  ,
-		 determinant                => \$logDeterminant   , 
-		 inverseCovariance          => \$inverseCovariance,
+		 jacobian                   => \$jacobian         ,
 		 offsets                    => \$offsets          ,
 		 quiet                      => $arguments{'quiet'},
 		 productMethod              => "linearSolver" 
 		);
 	    $constraint->{'logLikelihood'} = $logLikelihood;
-	    # Find the Jacobian of the log-likelihood with respect to the model mass function.
-	    my $jacobian = pdl zeroes(1,nelem($yGalacticus));
-	    for(my $i=0;$i<nelem($yGalacticus);++$i) {
-		$jacobian->((0),($i)) .= sum($inverseCovariance->(($i),:)*$offsets);
-	    }
 	    # Compute the variance in the log-likelihood due to errors in the model.
 	    my $logLikelihoodVariance = transpose($jacobian) x $covarianceGalacticus x $jacobian;
 	    $constraint->{'logLikelihoodVariance'} = $logLikelihoodVariance->sclr();

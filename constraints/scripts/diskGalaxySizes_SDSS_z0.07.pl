@@ -326,6 +326,7 @@ if ( exists($arguments{'outputFile'}) ) {
     my $logDeterminant;
     my $offsets;
     my $inverseCovariance;
+    my $jacobian;
     my $logLikelihood =
 	&Covariances::ComputeLikelihood
 	(
@@ -333,8 +334,7 @@ if ( exists($arguments{'outputFile'}) ) {
 	 $modelRadiusFunctionExcluded                         ,
 	 $fullCovarianceExcluded                              ,
 	 upperLimits                  =>  $upperLimitsExcluded,
-	 determinant                  => \$logDeterminant     ,
-	 inverseCovariance            => \$inverseCovariance  ,
+	 jacobian                     => \$jacobian           ,
 	 offsets                      => \$offsets            ,
 	 quiet                        =>  $arguments{'quiet'} ,
 	 inversionMethod              => "eigendecomposition" ,
@@ -342,11 +342,6 @@ if ( exists($arguments{'outputFile'}) ) {
 	);
     $constraint->{'label'        } = "diskGalaxySizeZ0.07";
     $constraint->{'logLikelihood'} = $logLikelihood;
-    # Find the Jacobian of the log-likelihood with respect to the model mass function.
-    my $jacobian = pdl zeroes(1,nelem($modelRadiusFunctionExcluded));
-    for(my $i=0;$i<nelem($modelRadiusFunctionExcluded);++$i) {
-	$jacobian->((0),($i)) .= sum($inverseCovariance->(($i),:)*$offsets);
-    }
     # Compute the variance in the log-likelihood due to errors in the model.
     my $logLikelihoodVariance = transpose($jacobian) x $modelCovarianceExcluded x $jacobian;
     $constraint->{'logLikelihoodVariance'} = $logLikelihoodVariance->sclr();
