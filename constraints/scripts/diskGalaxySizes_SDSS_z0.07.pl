@@ -304,21 +304,51 @@ if ( exists($arguments{'outputFile'}) ) {
     my $modelRadiusFunction              = $model->{'radiusFunction'}->flat()->copy();
     my $modelZero                        = which($modelRadiusFunction <= 0.0);
     $modelRadiusFunction->($modelZero)  .= 1.0e-3*$dataRadiusFunction->($modelZero);
+    # For each function, find the peak value, and exclude from the likelihood calculation.
+    my $exclude = pdl ones($sizeData->{'radiusFunction'});
+    for(my $i=0;$i<$sizeData->{'radiusFunction'}->dim(1);++$i) {
+	# Get the index of the peak value in this size function.
+	my $maxIndex = maximum_ind($sizeData->{'radiusFunction'}->(:,($i)));
+	# Mark this element as excluded.
+	$exclude->(($maxIndex),($i)) .= 0;
+    }
+    # Create excluded copies.
+    my $includeIndices              = which($exclude == 1.0);
+    my $dataRadiusFunctionExcluded  = $dataRadiusFunction                     ->           ($includeIndices                )  ;
+    my $modelRadiusFunctionExcluded = $modelRadiusFunction                    ->           ($includeIndices                )  ;
+    my $fullCovarianceExcluded      = $fullCovariance                         ->           ($includeIndices,$includeIndices)  ;
+    my $modelCovarianceExcluded     = $model              ->    {'covariance'}->           ($includeIndices,$includeIndices)  ;
+    my $shiftedIndices              = $exclude            ->flat(            )->cumusumover(                               )-1;
+    my $upperLimitsExcluded         = $shiftedIndices                         ->           ($upperLimits                   )  ;
+
     # Compute the likelihood.
     my $constraint;
     my $logDeterminant;
     my $offsets;
     my $inverseCovariance;
-    my $logLikelihood = &Covariances::ComputeLikelihood($dataRadiusFunction,$modelRadiusFunction,$fullCovariance, upperLimits => $upperLimits, determinant => \$logDeterminant, inverseCovariance => \$inverseCovariance, offsets => \$offsets, quiet => $arguments{'quiet'}, inversionMethod => "eigendecomposition");
+    my $logLikelihood =
+	&Covariances::ComputeLikelihood
+	(
+	 $dataRadiusFunctionExcluded                          ,
+	 $modelRadiusFunctionExcluded                         ,
+	 $fullCovarianceExcluded                              ,
+	 upperLimits                  =>  $upperLimitsExcluded,
+	 determinant                  => \$logDeterminant     ,
+	 inverseCovariance            => \$inverseCovariance  ,
+	 offsets                      => \$offsets            ,
+	 quiet                        =>  $arguments{'quiet'} ,
+	 inversionMethod              => "eigendecomposition" ,
+	 productMethod                => "linearSolver"
+	);
     $constraint->{'label'        } = "diskGalaxySizeZ0.07";
     $constraint->{'logLikelihood'} = $logLikelihood;
     # Find the Jacobian of the log-likelihood with respect to the model mass function.
-    my $jacobian = pdl zeroes(1,nelem($modelRadiusFunction));
-    for(my $i=0;$i<nelem($modelRadiusFunction);++$i) {
+    my $jacobian = pdl zeroes(1,nelem($modelRadiusFunctionExcluded));
+    for(my $i=0;$i<nelem($modelRadiusFunctionExcluded);++$i) {
 	$jacobian->((0),($i)) .= sum($inverseCovariance->(($i),:)*$offsets);
     }
     # Compute the variance in the log-likelihood due to errors in the model.
-    my $logLikelihoodVariance = transpose($jacobian) x $model->{'covariance'} x $jacobian;
+    my $logLikelihoodVariance = transpose($jacobian) x $modelCovarianceExcluded x $jacobian;
     $constraint->{'logLikelihoodVariance'} = $logLikelihoodVariance->sclr();
     # Output the constraint.
     my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"constraint");
