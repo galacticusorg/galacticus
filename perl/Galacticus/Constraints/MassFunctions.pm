@@ -275,12 +275,23 @@ sub Construct {
 		my $noConstraint = which($config->{'x'} > $config->{'constraintMassMaximum'});
 		$yGalacticusLimited->($noConstraint) .= $config->{'y'}->($noConstraint)
 		    if ( nelem($noConstraint) > 0 );
-	    }
+	    }	    
 	    # Compute the likelihood.
 	    my $logDeterminant;
 	    my $offsets;
 	    my $inverseCovariance;
-	    my $logLikelihood = &Covariances::ComputeLikelihood($yGalacticusLimited,$config->{'y'},$fullCovariance, determinant => \$logDeterminant, inverseCovariance => \$inverseCovariance, offsets => \$offsets, quiet => $arguments{'quiet'});
+	    my $logLikelihood =
+		&Covariances::ComputeLikelihood
+		(
+		 $yGalacticusLimited                              ,
+		 $config            ->{'y'}                       ,
+		 $fullCovariance                                  ,
+		 determinant                => \$logDeterminant   , 
+		 inverseCovariance          => \$inverseCovariance,
+		 offsets                    => \$offsets          ,
+		 quiet                      => $arguments{'quiet'},
+		 productMethod              => "linearSolver" 
+		);
 	    $constraint->{'logLikelihood'} = $logLikelihood;
 	    # Find the Jacobian of the log-likelihood with respect to the model mass function.
 	    my $jacobian = pdl zeroes(1,nelem($yGalacticus));
