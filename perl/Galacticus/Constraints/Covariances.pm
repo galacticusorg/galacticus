@@ -162,6 +162,8 @@ sub ComputeLikelihood {
     } elsif ( $productMethod eq "linearSolver" ) {
 	my $x = mpossolvex($C,0,transpose($d), equilibrate => 1);
 	$vCv = $d x $x;
+	${$options{'jacobian'}} = $x
+	    if ( exists($options{'jacobian'}) );
     } else {
 	die("ComputeLikelihood(): unknown product method");
     }
