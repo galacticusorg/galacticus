@@ -935,12 +935,43 @@
         <value>0.00044</value>
 	<error>0.00020</error>
       </massStellar>
-      <publication>
-	<value>Laevens et al. (2015; arXiv:1503.05554)</value>
-      </publication>
-      <publicationURL>
-	<value>http://arxiv.org/abs/1503.05554</value>
-      </publicationURL>
+      <velocityDispersionStellar>
+        <errorHigh>4.0</errorHigh>
+        <errorLow>1.4</errorLow>
+        <value>5.1</value>
+        <reference>Kirby et al. (2015; arXiv:1510.03856)</reference>
+        <referenceURL>http://arxiv.org/abs/1510.03856</referenceURL>
+      </velocityDispersionStellar>
+      <velocityRadialHeliocentric>
+        <error>2.9</error>
+        <value>-382.1</value>
+        <reference>Kirby et al. (2015; arXiv:1510.03856)</reference>
+        <referenceURL>http://arxiv.org/abs/1510.03856</referenceURL>
+      </velocityRadialHeliocentric>
+       <massDynamicalHalfLightRadius>
+        <errorHigh>1.201</errorHigh>
+        <errorLow>0.293</errorLow>
+        <value>0.794</value>
+        <reference>Kirby et al. (2015; arXiv:1510.03856)</reference>
+        <referenceURL>http://arxiv.org/abs/1510.03856</referenceURL>
+       </massDynamicalHalfLightRadius>
+       <metallicityStellar>
+        <error>0.08</error>
+        <value>-2.50</value>
+        <reference>Kirby et al. (2015; arXiv:1510.03856)</reference>
+        <referenceURL>http://arxiv.org/abs/1510.03856</referenceURL>
+       </metallicityStellar>
+       <metallicityMeasurementTechnique>
+         <value>1</value>
+         <reference>Kirby et al. (2015; arXiv:1510.03856)</reference>
+         <referenceURL>http://arxiv.org/abs/1510.03856</referenceURL>
+       </metallicityMeasurementTechnique>
+       <publication>
+	 <value>Laevens et al. (2015; arXiv:1503.05554)</value>
+       </publication>
+       <publicationURL>
+	 <value>http://arxiv.org/abs/1503.05554</value>
+       </publicationURL>
     </galaxy>
     <galaxy>
       <name>Reticulum II</name>
