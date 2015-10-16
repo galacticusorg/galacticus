@@ -164,27 +164,20 @@ if ( exists($arguments{'outputFile'}) ) {
 	$data->{'observed'}->{'combined'}->{'correlationFunctionCovariance'};
     # Compute the likelihood.
     my $constraint;
-    my $logDeterminant;
     my $offsets;
-    my $inverseCovariance;
+    my $jacobian;
     my $logLikelihood = 
 	&Covariances::ComputeLikelihood(
 	$data->{'model'   }->{'combined'}->{'correlationFunction'},
 	$data->{'observed'}->{'combined'}->{'correlationFunction'},
 	$fullCovariance                         ,
-	determinant       => \$logDeterminant   ,
-	inverseCovariance => \$inverseCovariance,
+	jacobian          => \$jacobian         ,
 	offsets           => \$offsets          ,
 	productMethod     => "linearSolver"     ,
 	quiet             => 0
 	);
     $constraint->{'label'        } = "sdssClusteringZ0.07";
     $constraint->{'logLikelihood'} = $logLikelihood;
-    # Find the Jacobian of the log-likelihood with respect to the model mass function.
-    my $jacobian = pdl zeroes(nelem($data->{'model'}->{'combined'}->{'correlationFunction'}),1);
-    for(my $i=0;$i<nelem($data->{'model'}->{'combined'}->{'correlationFunction'});++$i) {
-	$jacobian->(($i),(0)) .= sum($inverseCovariance->(($i),:)*$offsets);
-    }
     # Compute the variance in the log-likelihood due to errors in the model.
     my $logLikelihoodVariance = $jacobian x $data->{'model'}->{'combined'}->{'correlationFunctionCovariance'} x transpose($jacobian);
     $constraint->{'logLikelihoodVariance'} = $logLikelihoodVariance->sclr();
