@@ -156,10 +156,14 @@ contains
 
   subroutine bett2007StateSnapshot(self)
     !% Store a snapshot of the random number generator internal state.
+    use Pseudo_Random
     implicit none
     class(haloSpinDistributionBett2007), intent(inout) :: self
-
-    if (.not.self%resetRandomSequence) self%clonedPseudoSequence=FGSL_Rng_Clone(self%randomSequence)
+    
+    if (.not.self%resetRandomSequence) then
+       if (FGSL_Well_Defined(self%clonedPseudoSequence)) call Pseudo_Random_Free(self%clonedPseudoSequence)
+       self%clonedPseudoSequence=FGSL_Rng_Clone(self%randomSequence)
+    end if
     self%resetRandomSequenceSnapshot=self%resetRandomSequence
     return
   end subroutine bett2007StateSnapshot

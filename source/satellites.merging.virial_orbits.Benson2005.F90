@@ -110,10 +110,14 @@ contains
   !# </galacticusStateSnapshotTask>
   subroutine Virial_Orbital_Parameters_Benson2005_Snapshot
     !% Store a snapshot of the random number generator internal state.
+    use Pseudo_Random
     implicit none
 
-    if (.not.resetSequence) clonedPseudoSequenceObject=FGSL_Rng_Clone(pseudoSequenceObject)
-    resetSequenceSnapshot=resetSequence
+    if (.not.resetSequence) then
+       if (FGSL_Well_Defined(clonedPseudoSequenceObject)) call Pseudo_Random_Free(clonedPseudoSequenceObject)
+       clonedPseudoSequenceObject=FGSL_Rng_Clone(pseudoSequenceObject)
+       resetSequenceSnapshot=resetSequence
+    end if
     return
   end subroutine Virial_Orbital_Parameters_Benson2005_Snapshot
 
