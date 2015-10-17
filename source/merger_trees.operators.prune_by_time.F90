@@ -23,7 +23,8 @@
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneByTime
      !% A merger tree operator class which prunes branches to end at a fixed time.
      private
-     double precision :: timeEarliest
+     double precision :: massMinimum , massMaximum, &
+          &              timeEarliest
    contains
      final     ::            pruneByTimeDestructor
      procedure :: operate => pruneByTimeOperate
@@ -56,6 +57,24 @@ contains
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>massMinimum</name>
+    !#   <source>parameters</source>
+    !#   <variable>pruneByTimeConstructorParameters%massMinimum</variable>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>Minimum mass for which to consider merger tree branches for truncation.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>massMaximum</name>
+    !#   <source>parameters</source>
+    !#   <variable>pruneByTimeConstructorParameters%massMaximum</variable>
+    !#   <defaultValue>huge(0.0d0)</defaultValue>
+    !#   <description>Maximum mass for which to consider merger tree branches for truncation.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
     cosmologyFunctions_ => cosmologyFunctions()
     pruneByTimeConstructorParameters%timeEarliest             &
          & =cosmologyFunctions_ %cosmicTime(                  &
@@ -66,13 +85,16 @@ contains
     return
   end function pruneByTimeConstructorParameters
 
-  function pruneByTimeConstructorInternal(timeEarliest)
+  function pruneByTimeConstructorInternal(timeEarliest,massMinimum,massMaximum)
     !% Internal constructor for the prune-by-time merger tree operator class.
     implicit none
     type            (mergerTreeOperatorPruneByTime)                :: pruneByTimeConstructorInternal
-    double precision                               , intent(in   ) :: timeEarliest
+    double precision                               , intent(in   ) :: massMinimum                   , massMaximum, &
+         &                                                            timeEarliest
 
     pruneByTimeConstructorInternal%timeEarliest=timeEarliest
+    pruneByTimeConstructorInternal%massMinimum =massMinimum
+    pruneByTimeConstructorInternal%massMaximum =massMaximum
     return
   end function pruneByTimeConstructorInternal
 
@@ -91,24 +113,25 @@ contains
     implicit none
     class           (mergerTreeOperatorPruneByTime), intent(inout)          :: self
     type            (mergerTree                   ), intent(inout), target  :: tree
-    type            (treeNode                     )               , pointer :: node       , nodePrevious, &
-         &                                                                     nodeNew    , nodeChild
-    class           (nodeComponentBasic           )               , pointer :: basic      , basicParent , &
+    type            (treeNode                     )               , pointer :: node              , nodeNext    , &
+         &                                                                     nodeNew           , nodeChild
+    class           (nodeComponentBasic           )               , pointer :: basic             , basicParent , &
          &                                                                     basicChild
     type            (mergerTree                   )               , pointer :: currentTree
-    double precision                                                        :: massNow    , massParent  , &
-         &                                                                     timeNow    , timeParent
-
+    double precision                                                        :: massNow           , massParent  , &
+         &                                                                     timeNow           , timeParent  , &
+         &                                                                     massAtTimeEarliest
+    
     ! Iterate over trees.
     currentTree => tree
     do while (associated(currentTree))
        ! Walk the tree, locating branches which cross the earliest allowed time.
        node => currentTree%baseNode
        do while (associated(node))
+          ! Find the node to walk to next.
+          nodeNext => node%walkTree()          
           ! Skip this node if it is the root node.
           if (associated(node%parent)) then
-             ! Record the parent node to which we will return.
-             nodePrevious => node%parent
              ! Get basic components.
              basic       => node       %basic()
              basicParent => node%parent%basic()             
@@ -119,7 +142,7 @@ contains
              if (timeParent > self%timeEarliest .and. timeNow < self%timeEarliest) then
                 ! Get masses of these halos.
                 massNow   =basic  %mass()
-                massParent=basicParent%mass()
+                massParent=basicParent%mass()   
                 if (node%isPrimaryProgenitor()) then
                    ! Remove the mass in any non-primary progenitors - we don't want to include their mass in the estimated mass
                    ! growth rate of this node.
@@ -133,41 +156,54 @@ contains
                    ! Halo is not the primary progenitor of its parent. Assume that its mass does not grow further.
                    massParent=massNow
                 end if
-                ! Create new node.
-                nodeNew => treeNode(hostTree=currentTree)
-                call nodeNew%indexSet(node%index())
-                ! Assign a time and a mass
-                basic => nodeNew%basic(autoCreate=.true.)
-                call basic%timeSet(                              self%timeEarliest                              )
-                call basic%massSet(massNow+(massParent-massNow)*(self%timeEarliest-timeNow)/(timeParent-timeNow))
-                ! No child node.
-                nodeNew%firstChild => null()
-                ! Link to parent node.
-                nodeNew%parent     => node%parent
-                ! Link  sibling to current node sibling.
-                nodeNew%sibling    => node%sibling
-                ! Link the parent if necessary.
-                if (node%isPrimaryProgenitor()) then
-                   ! Node is the main progenitor of its parent, so simply replace it with the final node in our list.
-                   node%parent%firstChild  => nodeNew
-                else
-                   ! Node is not the main progenitor of its parent, so find the child node that has it as a sibling.
-                   nodeChild => node%parent%firstChild
-                   do while (.not.associated(nodeChild%sibling,node))
-                      nodeChild => nodeChild%sibling
-                   end do
-                   nodeChild%sibling => nodeNew
+                ! Determine mass at truncation time.
+                massAtTimeEarliest=massNow+(massParent-massNow)*(self%timeEarliest-timeNow)/(timeParent-timeNow)
+                ! Check if mass is within range.
+                if     (                                        &
+                     &   massAtTimeEarliest >= self%massMinimum &
+                     &  .and.                                   &
+                     &   massAtTimeEarliest <= self%massMaximum &
+                     & ) then
+                   ! Update the node to walk to next
+                   if (associated(node%sibling)) then
+                      nodeNext => node%sibling
+                   else
+                      nodeNext => node%parent
+                   end if
+                   ! Create new node.
+                   nodeNew => treeNode(hostTree=currentTree)
+                   call nodeNew%indexSet(node%index())
+                   ! Assign a time and a mass
+                   basic => nodeNew%basic(autoCreate=.true.)
+                   call basic%timeSet(self%timeEarliest )
+                   call basic%massSet(massAtTimeEarliest)
+                   ! No child node.
+                   nodeNew%firstChild => null()
+                   ! Link to parent node.
+                   nodeNew%parent     => node%parent
+                   ! Link  sibling to current node sibling.
+                   nodeNew%sibling    => node%sibling
+                   ! Link the parent if necessary.
+                   if (node%isPrimaryProgenitor()) then
+                      ! Node is the main progenitor of its parent, so simply replace it with the final node in our list.
+                      node%parent%firstChild  => nodeNew
+                   else
+                      ! Node is not the main progenitor of its parent, so find the child node that has it as a sibling.
+                      nodeChild => node%parent%firstChild
+                      do while (.not.associated(nodeChild%sibling,node))
+                         nodeChild => nodeChild%sibling
+                      end do
+                      nodeChild%sibling => nodeNew
+                   end if
+                   ! Clean the branch.
+                   call Merger_Tree_Prune_Clean_Branch(node)
+                   ! Destroy the branch.
+                   call currentTree%destroyBranch(node)
                 end if
-                ! Clean the branch.
-                call Merger_Tree_Prune_Clean_Branch(node)
-                ! Destroy the branch.
-                call currentTree%destroyBranch(node)
-                ! Return to parent node.
-                node => nodePrevious
              end if
           end if
           ! Step to the next node.
-          node => node%walkTree()
+          node => nodeNext
        end do
        ! Move to the next tree.
        currentTree => currentTree%nextTree
