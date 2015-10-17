@@ -217,6 +217,11 @@ contains
        end if
 
        ! Set size of node if requested.
+
+
+write (0,*) "MASS ",log10(thisBasicComponent%mass())
+
+
        if (scaleNodesByLogMassActual.and.nodeMassMaximum > nodeMassMinimum) then
           nodeMass=10.0d0*(log(thisBasicComponent%mass())-nodeMassMinimum)/(nodeMassMaximum-nodeMassMinimum)+1.0d0
           write (fileUnit,'(a,i16.16,a,f10.6,a)') '"',thisNode%uniqueID(),'" [width=',nodeMass,'];'

@@ -76,7 +76,9 @@
   <treeNodeMethodDisk value="exponential"/>
   <linearGrowthMethod value="simple"/>
   <hotHaloRamPressureStrippingMethod value="Font2008"/>
-  <mergerTreeBuildMassResolutionFixed value="5.0e9"/>
+  <mergerTreeMassResolutionMethod value="fixed">
+    <massResolution value="5.0e9"/>
+  </mergerTreeMassResolutionMethod>
   <mergerTreeBuilderMethod value="cole2000"/>
   <mergerTreeBuildHaloMassMinimum value="2.0e10"/>
   <darkMatterProfileConcentrationMethod value="gao2008"/>
