@@ -4450,7 +4450,7 @@ contains
     end if
 
     ! Close the memory dataspace if necessary.
-    if (isReference) then
+    if (memorySpaceID /= H5S_ALL_F) then
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
@@ -4734,7 +4734,7 @@ contains
     end if
 
     ! Close the memory dataspace if necessary.
-    if (isReference) then
+    if (memorySpaceID /= H5S_ALL_F) then
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
@@ -5199,7 +5199,7 @@ contains
     end if
 
     ! Close the memory dataspace if necessary.
-    if (isReference) then
+    if (memorySpaceID /= H5S_ALL_F) then
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
@@ -5485,7 +5485,7 @@ contains
     end if
 
     ! Close the memory dataspace if necessary.
-    if (isReference) then
+    if (memorySpaceID /= H5S_ALL_F) then
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
@@ -5934,7 +5934,7 @@ contains
     end if
 
     ! Close the memory dataspace if necessary.
-    if (isReference) then
+    if (memorySpaceID /= H5S_ALL_F) then
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
@@ -6225,7 +6225,7 @@ contains
     end if
 
     ! Close the memory dataspace if necessary.
-    if (isReference) then
+    if (memorySpaceID /= H5S_ALL_F) then
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
@@ -6689,7 +6689,7 @@ contains
     end if
 
     ! Close the memory dataspace if necessary.
-    if (isReference) then
+    if (memorySpaceID /= H5S_ALL_F) then
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
@@ -6974,7 +6974,7 @@ contains
     end if
 
     ! Close the memory dataspace if necessary.
-    if (isReference) then
+    if (memorySpaceID /= H5S_ALL_F) then
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
@@ -7438,7 +7438,7 @@ contains
     end if
 
     ! Close the memory dataspace if necessary.
-    if (isReference) then
+    if (memorySpaceID /= H5S_ALL_F) then
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
@@ -7723,7 +7723,7 @@ contains
     end if
 
     ! Close the memory dataspace if necessary.
-    if (isReference) then
+    if (memorySpaceID /= H5S_ALL_F) then
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
@@ -8187,7 +8187,7 @@ contains
     end if
 
     ! Close the memory dataspace if necessary.
-    if (isReference) then
+    if (memorySpaceID /= H5S_ALL_F) then
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
@@ -8472,7 +8472,7 @@ contains
     end if
 
     ! Close the memory dataspace if necessary.
-    if (isReference) then
+    if (memorySpaceID /= H5S_ALL_F) then
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
@@ -8936,7 +8936,7 @@ contains
     end if
 
     ! Close the memory dataspace if necessary.
-    if (isReference) then
+    if (memorySpaceID /= H5S_ALL_F) then
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
@@ -9220,7 +9220,7 @@ contains
     end if
 
     ! Close the memory dataspace if necessary.
-    if (isReference) then
+    if (memorySpaceID /= H5S_ALL_F) then
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
@@ -9711,7 +9711,7 @@ contains
     end if
 
     ! Close the memory dataspace if necessary.
-    if (isReference) then
+    if (memorySpaceID /= H5S_ALL_F) then
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
@@ -10010,7 +10010,7 @@ contains
     end if
 
     ! Close the memory dataspace if necessary.
-    if (isReference) then
+    if (memorySpaceID /= H5S_ALL_F) then
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
