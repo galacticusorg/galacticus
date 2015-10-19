@@ -113,7 +113,6 @@ contains
        hostGasMovesTo =doesNotMove
        hostStarsMoveTo=doesNotMove
     end if
-
     return
   end subroutine Satellite_Merging_Mass_Movement_Simple
 

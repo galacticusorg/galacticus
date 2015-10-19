@@ -13,7 +13,6 @@ use XML::Simple;
 use File::Find;
 use Term::ReadKey;
 use Data::Dumper;
-use Net::DBus;
 use Switch;
 
 # Read in any configuration options.
@@ -50,6 +49,7 @@ switch ( $dbConfig->{'passwordFrom'} ) {
 	$dbPassword = &getPassword;
     }
     case ( "kdewallet" ) {
+	require Net::DBus;
 	my $appName          = "Galacticus";
 	my $folderName       = "glc-millennium-db";
 	my $bus           = Net::DBus->find;

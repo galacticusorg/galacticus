@@ -20,7 +20,7 @@
   use Power_Spectra_Primordial
   use Transfer_Functions, only : transferFunction, transferFunctionClass
   
-  !# <powerSpectrumPrimordialTransferred name="powerSpectrumPrimordialTransferredSimple">
+  !# <powerSpectrumPrimordialTransferred name="powerSpectrumPrimordialTransferredSimple" defaultThreadPrivate="yes">
   !#  <description>Implements a simple transferred primordial power spectrum.</description>
   !# </powerSpectrumPrimordialTransferred>
   type, extends(powerSpectrumPrimordialTransferredClass) :: powerSpectrumPrimordialTransferredSimple
@@ -49,7 +49,7 @@ contains
     use Input_Parameters2
     implicit none
     type(powerSpectrumPrimordialTransferredSimple)                :: simpleConstructorParameters
-    type(inputParameters                         ), intent(in   ) :: parameters
+    type(inputParameters                         ), intent(inout) :: parameters
 
     !# <objectBuilder class="powerSpectrumPrimordial" name="simpleConstructorParameters%powerSpectrumPrimordial_" source="parameters"/>
     !# <objectBuilder class="transferFunction"        name="simpleConstructorParameters%transferFunction_"        source="parameters"/>
@@ -110,12 +110,10 @@ contains
     implicit none
     class(powerSpectrumPrimordialTransferredSimple), intent(inout) :: self
     type (inputParameters                         ), intent(inout) :: descriptor
-    type (node                                    ), pointer       :: parameterNode
     type (inputParameters                         )                :: subParameters
 
     call descriptor%addParameter("powerSpectrumPrimordialTransferredMethod","simple")
-    parameterNode => descriptor%node("powerSpectrumPrimordialTransferredMethod")
-    subParameters=inputParameters(parameterNode)
+    subParameters=descriptor%subparameters("powerSpectrumPrimordialTransferredMethod")
     call self%powerSpectrumPrimordial_%descriptor(subParameters)
     call self%transferFunction_       %descriptor(subParameters)
     return

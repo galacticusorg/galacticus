@@ -164,7 +164,7 @@ contains
     use Input_Parameters2
     implicit none
     type(coolingFunctionCIEFile)                :: cieFileConstructorParameters
-    type(inputParameters       ), intent(in   ) :: parameters
+    type(inputParameters       ), intent(inout) :: parameters
     !# <inputParameterList label="allowedParameterNames" />
     
     if (.not.cieFileInitialized) then
@@ -663,12 +663,10 @@ contains
     implicit none
     class(coolingFunctionCIEFile), intent(inout) :: self
     type (inputParameters       ), intent(inout) :: descriptor
-    type (node                  ), pointer       :: parameterNode
     type (inputParameters       )                :: subParameters
 
     call descriptor%addParameter("coolingFunctionMethod","cieFile")
-    parameterNode => descriptor%node("coolingFunctionMethod")
-    subParameters=inputParameters(parameterNode)
+    subParameters=descriptor%subparameters("coolingFunctionMethod")
     call subParameters%addParameter("fileName",char(self%fileName))
     return
   end subroutine cieFileDescriptor
