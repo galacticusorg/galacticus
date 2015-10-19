@@ -1,0 +1,11 @@
+<!-- Defines a constraint to match to the M31 satellite stellar mass functions. -->
+<constraint>
+  <name>M31 satellite stellar mass functions</name>
+  <label>m31SMF</label>
+  <outputRedshift>0.0</outputRedshift>
+  <haloMassResolution>1.0e8</haloMassResolution>
+  <haloMassMinimum>1.0e12</haloMassMinimum>
+  <haloMassMaximum>3.0e12</haloMassMaximum>
+  <analysis>constraints/scripts/localGroupSatellitesStellarMassFunction.pl</analysis>
+  <analysisArguments>--central M31</analysisArguments>
+</constraint>

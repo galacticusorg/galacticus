@@ -23,51 +23,39 @@ module Spherical_Collapse_Matter_Lambda
   use, intrinsic :: ISO_C_Binding
   implicit none
   private
-  public :: Spherical_Collape_Delta_Critical_Initialize, Spherical_Collapse_Critical_Overdensity,&
+  public :: Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate,&
        & Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate,&
        & Spherical_Collapse_Matter_Lambda_State_Store, Spherical_Collapse_Matter_Lambda_State_Retrieve
 
   ! Variables to hold the tabulated critical overdensity data.
   double precision            :: deltaTableTimeMaximum     =20.0d0, deltaTableTimeMinimum =1.0d0
   integer         , parameter :: deltaTableNPointsPerDecade=1000
-
+  !$omp threadprivate(deltaTableTimeMaximum,deltaTableTimeMinimum)
   ! Variables used in root finding.
   double precision            :: OmegaDE                          , OmegaM                      , &
        &                         epsilonPerturbationShared        , hubbleParameterInvGyr       , &
        &                         tNow
-
+  !$omp threadprivate(OmegaDE,OmegaM,epsilonPerturbationShared,hubbleParameterInvGyr,tNow)
+  
   ! Calculation types.
   integer         , parameter :: calculationDeltaCrit      =0     , calculationDeltaVirial=1
 
 contains
 
-  !# <criticalOverdensityMethod>
-  !#  <unitName>Spherical_Collape_Delta_Critical_Initialize</unitName>
-  !# </criticalOverdensityMethod>
-  subroutine Spherical_Collape_Delta_Critical_Initialize(criticalOverdensityMethod,Critical_Overdensity_Tabulate)
-    !% Initializes the $\delta_{\mathrm crit}$ calculation for the spherical collapse module.
-    use ISO_Varying_String
-    implicit none
-    type     (varying_string                         ), intent(in   )          :: criticalOverdensityMethod
-    procedure(Spherical_Collapse_Critical_Overdensity), intent(inout), pointer :: Critical_Overdensity_Tabulate
-
-    if (criticalOverdensityMethod == 'sphericalTopHat') Critical_Overdensity_Tabulate => Spherical_Collapse_Critical_Overdensity
-    return
-  end subroutine Spherical_Collape_Delta_Critical_Initialize
-
-  subroutine Spherical_Collapse_Critical_Overdensity(time,deltaCritTable)
+  subroutine Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate(time,deltaCritTable,linearGrowth_,cosmologyFunctions_)
     !% Tabulate the critical overdensity for collapse for the spherical collapse model.
     use Tables
+    use Cosmology_Functions
+    use Linear_Growth
     implicit none
-    double precision                      , intent(in   ) :: time
-    class           (table1D), allocatable, intent(inout) :: deltaCritTable
+    double precision                                      , intent(in   ) :: time
+    class           (table1D                ), allocatable, intent(inout) :: deltaCritTable
+    class           (cosmologyFunctionsClass), target     , intent(in   ) :: cosmologyFunctions_    
+    class           (linearGrowthClass      ), target     , intent(in   ) :: linearGrowth_    
 
-    !$omp critical(Spherical_Collapse_Make_Table)
-    call Make_Table(time,deltaCritTable,calculationDeltaCrit)
-    !$omp end critical(Spherical_Collapse_Make_Table)
-
+    call Make_Table(time,deltaCritTable,calculationDeltaCrit,linearGrowth_,cosmologyFunctions_)
     return
-  end subroutine Spherical_Collapse_Critical_Overdensity
+  end subroutine Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate
 
   subroutine Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate(time,deltaVirialTable)
     !% Tabulate the virial density contrast for the spherical collapse model.
@@ -76,13 +64,11 @@ contains
     double precision                      , intent(in   ) :: time
     class           (table1D), allocatable, intent(inout) :: deltaVirialTable
 
-    !$omp critical(Spherical_Collapse_Make_Table)
     call Make_Table(time,deltaVirialTable,calculationDeltaVirial)
-    !$omp end critical(Spherical_Collapse_Make_Table)
     return
   end subroutine Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate
 
-  subroutine Make_Table(time,deltaTable,calculationType)
+  subroutine Make_Table(time,deltaTable,calculationType,linearGrowth_,cosmologyFunctions_)
     !% Tabulate $\delta_{\mathrm crit}$ or $\Delta_{\mathrm vir}$ vs. time.
     use Linear_Growth
     use Cosmology_Functions
@@ -91,22 +77,34 @@ contains
     use Kind_Numbers
     use Galacticus_Error
     implicit none
-    double precision                                      , intent(in   ) :: time
-    integer                                               , intent(in   ) :: calculationType
-    class           (table1D                ), allocatable, intent(inout) :: deltaTable
-    double precision                         , parameter                  :: toleranceAbsolute         =0.0d0, toleranceRelative         =1.0d-9
-    type            (rootFinder             ), save                       :: finder
+    double precision                                      , intent(in   )           :: time
+    integer                                               , intent(in   )           :: calculationType
+    class           (table1D                ), allocatable, intent(inout)           :: deltaTable
+    class           (cosmologyFunctionsClass), target     , intent(in   ), optional :: cosmologyFunctions_    
+    class           (linearGrowthClass      ), target     , intent(in   ), optional :: linearGrowth_    
+    double precision                         , parameter                            :: toleranceAbsolute         =0.0d0, toleranceRelative         =1.0d-9
+    type            (rootFinder             ), save                                 :: finder
     !$omp threadprivate(finder)
-    class           (cosmologyFunctionsClass), pointer                    :: cosmologyFunctionsDefault
-    integer                                                               :: deltaTableNumberPoints          , iTime
-    double precision                                                      :: aExpansionNow                   , epsilonPerturbation              , &
-         &                                                                   epsilonPerturbationMaximum      , epsilonPerturbationMinimum       , &
-         &                                                                   eta                             , normalization                    , &
-         &                                                                   radiiRatio                      , radiusMaximum
-    double complex                                                         :: a,b,c,d,Delta
+    class           (cosmologyFunctionsClass), pointer                              :: cosmologyFunctions__
+    class           (linearGrowthClass      ), pointer                              :: linearGrowth__
+    integer                                                                         :: deltaTableNumberPoints          , iTime
+    double precision                                                                :: aExpansionNow                   , epsilonPerturbation              , &
+         &                                                                             epsilonPerturbationMaximum      , epsilonPerturbationMinimum       , &
+         &                                                                             eta                             , normalization                    , &
+         &                                                                             radiiRatio                      , radiusMaximum
+    double complex                                                                  :: a,b,c,d,Delta
 
-    ! Get the default cosmology functions object.
-    cosmologyFunctionsDefault => cosmologyFunctions()
+    ! Get required objects.
+    if (present(cosmologyFunctions_)) then
+       cosmologyFunctions__ => cosmologyFunctions_
+    else
+       cosmologyFunctions__ => cosmologyFunctions()
+    end if
+    if (present(linearGrowth_      )) then
+       linearGrowth__       => linearGrowth_      
+    else
+       linearGrowth__       => linearGrowth      ()
+    end if
     ! Find minimum and maximum times to tabulate.
     deltaTableTimeMinimum=min(deltaTableTimeMinimum,time/2.0d0)
     deltaTableTimeMaximum=max(deltaTableTimeMaximum,time*2.0d0)
@@ -129,10 +127,10 @@ contains
        do iTime=1,deltaTableNumberPoints
 
           ! Get the current expansion factor.
-          aExpansionNow=cosmologyFunctionsDefault%expansionFactor(deltaTable%x(iTime))
+          aExpansionNow=cosmologyFunctions__%expansionFactor(deltaTable%x(iTime))
           ! Determine the largest (i.e. least negative) value of epsilonPerturbation for which a perturbation can collapse.
-          if (cosmologyFunctionsDefault%omegaDarkEnergyEpochal(expansionFactor=aExpansionNow)>0.0d0) then
-             epsilonPerturbationMaximum=-(27.0d0*cosmologyFunctionsDefault%omegaDarkEnergyEpochal(expansionFactor=aExpansionNow)*(cosmologyFunctionsDefault%omegaMatterEpochal(expansionFactor=aExpansionNow)&
+          if (cosmologyFunctions__%omegaDarkEnergyEpochal(expansionFactor=aExpansionNow)>0.0d0) then
+             epsilonPerturbationMaximum=-(27.0d0*cosmologyFunctions__%omegaDarkEnergyEpochal(expansionFactor=aExpansionNow)*(cosmologyFunctions__%omegaMatterEpochal(expansionFactor=aExpansionNow)&
                   & **2)/4.0d0)**(1.0d0/3.0d0)
           else
              epsilonPerturbationMaximum=-1.0d-6
@@ -141,9 +139,9 @@ contains
           ! Estimate a suitably negative minimum value for epsilon.
           epsilonPerturbationMinimum=-10.0d0
 
-          OmegaM               =cosmologyFunctionsDefault%omegaMatterEpochal(expansionFactor=aExpansionNow)
-          OmegaDE              =cosmologyFunctionsDefault%omegaDarkEnergyEpochal (expansionFactor=aExpansionNow)
-          hubbleParameterInvGyr=cosmologyFunctionsDefault%expansionRate    (           aExpansionNow)
+          OmegaM               =cosmologyFunctions__%omegaMatterEpochal    (expansionFactor=aExpansionNow)
+          OmegaDE              =cosmologyFunctions__%omegaDarkEnergyEpochal(expansionFactor=aExpansionNow)
+          hubbleParameterInvGyr=cosmologyFunctions__%expansionRate         (                aExpansionNow)
           tNow                 =deltaTable%x(iTime)
 
           ! Find the value of epsilon for which the perturbation just collapses at this time.
@@ -154,11 +152,11 @@ contains
                   &                   rangeExpandUpward          =0.5d0                        , &
                   &                   rangeExpandType            =rangeExpandMultiplicative    , &
                   &                   rangeExpandUpwardSignExpect=rangeExpandSignExpectPositive  &
-                  &)
+                  &                  )
           end if
           epsilonPerturbation=finder%find(rootRange=[epsilonPerturbationMinimum,epsilonPerturbationMaximum])
           ! Compute the corresponding critical overdensity.
-          normalization=Linear_Growth_Factor(tNow,normalize=normalizeMatterDominated)/Linear_Growth_Factor(tNow)/aExpansionNow
+          normalization=linearGrowth__%value(tNow,normalize=normalizeMatterDominated)/linearGrowth__%value(tNow)/aExpansionNow
           select case (calculationType)
           case (calculationDeltaCrit)
              ! Critical linear overdensity.
@@ -262,6 +260,7 @@ contains
     type   (fgsl_function             )               , save :: integrandFunction
     type   (fgsl_integration_workspace)               , save :: integrationWorkspace
     logical                                           , save :: integrationReset     =.true.
+    !$omp threadprivate(integrandFunction,integrationWorkspace,integrationReset)
     real   (kind=c_double             ), parameter           :: aMinimum             =0.0d0
     real   (kind=c_double             ), parameter           :: numericalLimitEpsilon=1.0d-4
     type   (c_ptr                     )                      :: parameterPointer

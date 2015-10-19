@@ -24,21 +24,74 @@ module Pseudo_Random
   private
   public :: Pseudo_Random_Get, Pseudo_Random_Free, Pseudo_Random_Store, Pseudo_Random_Retrieve
 
+  type, public :: pseudoRandom
+     !% Wrapper class for pseudo random sequence.
+     private
+     type   (fgsl_rng) :: pseudoSequence
+     logical           :: pseudoSequenceReset=.true.
+   contains
+     final     ::           pseudoRandomDestructor
+     !@ <objectMethods>
+     !@   <object>pseudoRandom</object>
+     !@   <objectMethod>
+     !@     <method>sample</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return a pseudo-random number.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>initialize</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Initialize a pseudo-random number generator.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>clone</method>
+     !@     <type>\textless type(pseudoRandom)\textgreater</type>
+     !@     <arguments></arguments>
+     !@     <description>Clone a pseudo-random number generator.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>store</method>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ stateFile\argin, \textless type(fgsl\_file)\textgreater\ fgslStateFile\argin</arguments>
+     !@     <description>Store a pseudo-random number generator state to file.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>restore</method>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ stateFile\argin, \textless type(fgsl\_file)\textgreater\ fgslStateFile\argin</arguments>
+     !@     <description>Restore a pseudo-random number generator state from file.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     procedure :: sample     => pseudoRandomSample
+     procedure :: initialize => pseudoRandomInitialize
+     procedure :: clone      => pseudoRandomClone
+     procedure :: store      => pseudoRandomStore
+     procedure :: restore    => pseudoRandomRestore
+  end type pseudoRandom
+  
   logical                 :: Seed_Is_Set=.false.
   integer                 :: randomSeed
   integer(kind=fgsl_long) :: randomSeedC=-1
   !$omp threadprivate(randomSeedC)
+
 contains
 
-  double precision function Pseudo_Random_Get(pseudoSequenceObject,reset,ompThreadOffset,incrementSeed)
+  double precision function Pseudo_Random_Get(pseudoSequenceObject,reset,ompThreadOffset,mpiRankOffset,incrementSeed)
     !% Returns a scalar giving a pseudo-random number.
     use Input_Parameters
+#ifdef USEMPI
+    use MPI
+#endif
     !$ use OMP_Lib
     implicit none
     type   (fgsl_rng), intent(inout)           :: pseudoSequenceObject
-    logical          , intent(inout), optional :: reset,ompThreadOffset
+    logical          , intent(inout), optional :: reset
+    logical          , intent(in   ), optional :: ompThreadOffset     , mpiRankOffset
     integer          , intent(in   ), optional :: incrementSeed
     logical                                    :: resetActual
+    integer                                    :: mpiRank             , iError
 
     ! Determine if we need to reset.
     if (present(reset)) then
@@ -73,6 +126,12 @@ contains
           !$ if (present(ompThreadOffset)) then
           !$    if (ompThreadOffset) randomSeedC=randomSeedC+omp_get_thread_num()
           !$ end if
+          if (present(mpiRankOffset).and.mpiRankOffset) then
+#ifdef USEMPI
+             call MPI_Comm_Rank(MPI_Comm_World,mpiRank,iError)
+#endif
+             randomSeedC=randomSeedC+mpiRank
+          end if
           if (present(incrementSeed)) randomSeedC=randomSeedC+incrementSeed
        end if
        randomSeedC=randomSeedC+1
@@ -113,5 +172,89 @@ contains
     iError=FGSL_Rng_FRead(fgslFile,pseudoSequenceObject)
     return
   end subroutine Pseudo_Random_Retrieve
+
+  subroutine pseudoRandomDestructor(self)
+    !% Destroy the pseudo-sequence wrapper classs.
+    implicit none
+    type(pseudoRandom), intent(inout) :: self
+    
+    if (.not.self%pseudoSequenceReset) call Pseudo_Random_Free(self%pseudoSequence)
+    return
+  end subroutine pseudoRandomDestructor
+
+  double precision function pseudoRandomSample(self,ompThreadOffset,mpiRankOffset,incrementSeed)
+    !% Sample from a pseudo-random sequence.
+    implicit none
+    class  (pseudoRandom), intent(inout)           :: self
+    logical              , intent(in   ), optional :: ompThreadOffset     , mpiRankOffset
+    integer              , intent(in   ), optional :: incrementSeed
+
+    pseudoRandomSample=Pseudo_Random_Get(                          &
+         &                               self%pseudoSequence     , &
+         &                               self%pseudoSequenceReset, &
+         &                               ompThreadOffset         , &
+         &                               mpiRankOffset           , &
+         &                               incrementSeed             &
+         &                              )
+    return
+  end function pseudoRandomSample
+
+  subroutine pseudoRandomInitialize(self)
+    !% Initialize a pseudo-random sequence object.
+    use, intrinsic :: ISO_C_Binding
+    use FGSL
+    implicit none
+    class(pseudoRandom), intent(inout) :: self
+
+    self%pseudoSequenceReset=.true.
+    call FGSL_Obj_C_Ptr(self%pseudoSequence,C_Null_Ptr)
+    return
+  end subroutine pseudoRandomInitialize
+
+  function pseudoRandomClone(self)
+    !% Clone a pseudo-random sequence object.
+    use FGSL
+    implicit none
+    type (pseudoRandom)                :: pseudoRandomClone
+    class(pseudoRandom), intent(inout) :: self
+
+    if (.not.self%pseudoSequenceReset) then
+       if (FGSL_Well_Defined(pseudoRandomClone%pseudoSequence)) call Pseudo_Random_Free(pseudoRandomClone%pseudoSequence)
+       pseudoRandomClone%pseudoSequence=FGSL_Rng_Clone(self%pseudoSequence)
+    end if
+    pseudoRandomClone%pseudoSequenceReset=self%pseudoSequenceReset
+    return
+  end function pseudoRandomClone
+
+  subroutine pseudoRandomStore(self,stateFile,fgslStateFile)
+    !% Store a pseudo-random sequence object state to file.
+    use FGSL
+    implicit none
+    class  (pseudoRandom), intent(inout) :: self
+    integer              , intent(in   ) :: stateFile
+    type   (fgsl_file   ), intent(in   ) :: fgslStateFile
+    integer                              :: iStatus
+
+    write (stateFile) self%pseudoSequenceReset
+    if (.not.self%pseudoSequenceReset) iStatus=FGSL_Rng_FWrite(fgslStateFile,self%pseudoSequence)
+    return
+  end subroutine pseudoRandomStore
+
+  subroutine pseudoRandomRestore(self,stateFile,fgslStateFile)
+    !% Store a pseudo-random sequence object state to file.
+    use FGSL
+    implicit none
+    class  (pseudoRandom), intent(inout) :: self
+    integer              , intent(in   ) :: stateFile
+    type   (fgsl_file   ), intent(in   ) :: fgslStateFile
+    integer                              :: iStatus
+
+    read (stateFile) self%pseudoSequenceReset
+    if (.not.self%pseudoSequenceReset) then
+       if (.not.FGSL_Well_Defined(self%pseudoSequence)) self%pseudoSequence=FGSL_RNG_Alloc(FGSL_RNG_Default)
+       iStatus=FGSL_Rng_FRead(fgslStateFile,self%pseudoSequence)
+    end if
+    return
+  end subroutine pseudoRandomRestore
 
 end module Pseudo_Random
