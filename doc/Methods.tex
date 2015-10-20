@@ -1738,46 +1738,6 @@ Here, $x_i$ is a number between 0 and 1 and $\alpha=${\normalfont \ttfamily merg
 \item [{\normalfont \ttfamily stellarMassFunction}] The sampling density is chosen to give optimally minimal errors on the model stellar mass function (see \S\ref{sec:OptimalSamplingStellarMassFunction} for full details).
 \end{description}
 
-\subsubsection{Halo Spin Distribution}
-
-Additional methods for the halo spin distribution can be added using the {\normalfont \ttfamily haloSpinDistributionMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily lognormal} method is described by a directive:
-\begin{verbatim}
- !# <haloSpinDistributionMethod>
- !#  <unitName>Halo_Spin_Distribution_Lognormal_Initialize</unitName>
- !# </haloSpinDistributionMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Halo\_Spin\_Distribution\_Lognormal\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(haloSpinDistributionMethod,Halo_Spin_Sample_Get)
-    implicit none
-    type(varying_string),          intent(in)    :: haloSpinDistributionMethod
-    procedure(),          pointer, intent(inout) :: Halo_Spin_Sample_Get
-    
-    if (haloSpinDistributionMethod == 'myMethod') Halo_Spin_Sample_Get => My_Method_Get
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily haloSpinDistributionMethod} input parameter. The procedure pointer {\normalfont \ttfamily Halo\_Spin\_Sample\_Get} must be set to point to a function which returns a halo spin drawn at random from the distribution. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The halo spin sampling function must have the form:
-\begin{verbatim}
- double precision function Halo_Spin_Sample_Get(thisNode)
-    implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    .
-    .
-    .
-    return
- end function Halo_Spin_Sample_Get
-\end{verbatim}
-The function must return a halo spin drawn at random for the distribution appropriate to {\normalfont \ttfamily thisNode}. 
-
-Currently defined halo spin distribution methods are:
-\begin{description}
- \item [\hyperlink{dark_matter_halos.spins.distributions.lognormal.F90:halo_spin_distributions_lognormal:halo_spin_distribution_lognormal}{{\normalfont \ttfamily lognormal}}] Implements a lognormal distribution with median {\normalfont \ttfamily lognormalSpinDistributionMedian} and dispersion in $\ln\lambda$ of {\normalfont \ttfamily lognormalSpinDistributionSigma}, both of which are input parameters to \glc.
- \item [\hyperlink{dark_matter_halos.spins.distributions.Bett2007.F90:halo_spin_distributions_bett2007}{{\normalfont \ttfamily Bett2007}}] Implements distribution from \cite{bett_spin_2007} with parameter $\lambda_0=${\normalfont \ttfamily [spinDistributionBett2007Lambda0]} and $\alpha=${\normalfont \ttfamily [spinDistributionBett2007Alpha]}, both of which are input parameters to \glc.
-\end{description}
-
 \subsubsection{Initial Mass Function Functions}\label{sec:IMF_functions}
 
 Each registered \gls{imf} must provide multiple functions, specified by the following directives:
