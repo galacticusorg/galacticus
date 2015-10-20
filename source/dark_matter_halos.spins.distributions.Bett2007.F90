@@ -91,6 +91,7 @@ contains
   function bett2007ConstructorInternal(lambda0,alpha)
     !% Internal constructor for the {\normalfont \ttfamily bett2007} dark matter halo spin
     !% distribution class.
+    use, intrinsic :: ISO_C_Binding
     use Gamma_Functions
     implicit none
     type            (haloSpinDistributionBett2007)                :: bett2007ConstructorInternal
@@ -102,6 +103,10 @@ contains
     bett2007ConstructorInternal%alpha                      =alpha
     bett2007ConstructorInternal%resetRandomSequence        =.true.
     bett2007ConstructorInternal%resetRandomSequenceSnapshot=.true.
+    if (FGSL_Well_Defined(bett2007ConstructorInternal%      randomSequence))                &
+         & call FGSL_Obj_C_Ptr(bett2007ConstructorInternal%      randomSequence,C_Null_Ptr)
+    if (FGSL_Well_Defined(bett2007ConstructorInternal%clonedPseudoSequence))                &
+         & call FGSL_Obj_C_Ptr(bett2007ConstructorInternal%clonedPseudoSequence,C_Null_Ptr)
     ! Tabulate the cumulative distribution.
     tableMaximum=(bett2007SpinMaximum/lambda0)**(3.0d0/alpha)
     call bett2007ConstructorInternal%distribution%destroy()

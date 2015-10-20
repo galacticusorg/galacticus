@@ -113,10 +113,10 @@ contains
     use Pseudo_Random
     implicit none
 
+    resetSequenceSnapshot=resetSequence
     if (.not.resetSequence) then
        if (FGSL_Well_Defined(clonedPseudoSequenceObject)) call Pseudo_Random_Free(clonedPseudoSequenceObject)
        clonedPseudoSequenceObject=FGSL_Rng_Clone(pseudoSequenceObject)
-       resetSequenceSnapshot=resetSequence
     end if
     return
   end subroutine Virial_Orbital_Parameters_Benson2005_Snapshot
