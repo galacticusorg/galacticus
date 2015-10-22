@@ -185,7 +185,7 @@ contains
              thisNode => thisNode%walkTree()
           end do
        end if
-        ! Determine if this node has a descendent.
+       ! Determine if this node has a descendent.
        if (.not.associated(node%parent)) then
           ! For parent-less nodes (i.e. the root node of the tree), the rate is set equal to that of the
           ! progenitor, if it has one.
