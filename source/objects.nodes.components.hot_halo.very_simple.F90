@@ -238,15 +238,15 @@ contains
     use Cosmology_Parameters
     use Accretion_Halos
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: thisNode
-    type            (treeNode                )               , pointer :: childNode
-    class           (nodeComponentHotHalo    )               , pointer :: currentHotHaloComponent, thisHotHaloComponent
-    class           (nodeComponentBasic      )               , pointer :: childBasicComponent    , currentBasicComponent
-    class           (accretionHaloClass      )               , pointer :: accretionHalo_
-    double precision                                                   :: hotHaloMass            , failedHotHaloMass
+    type            (treeNode            ), intent(inout), pointer :: thisNode
+    type            (treeNode            )               , pointer :: childNode
+    class           (nodeComponentHotHalo)               , pointer :: currentHotHaloComponent, thisHotHaloComponent
+    class           (nodeComponentBasic  )               , pointer :: childBasicComponent    , currentBasicComponent
+    class           (accretionHaloClass  )               , pointer :: accretionHalo_
+    double precision                                               :: hotHaloMass            , failedHotHaloMass
 
     ! If the very simple hot halo is not active, then return immediately.
-    if (.not.defaultHotHaloComponent%verySimpleIsActive()) return
+    if (associated(thisNode%firstChild).or..not.defaultHotHaloComponent%verySimpleIsActive()) return
 
     ! Ensure that this module has been initialized.
     call Node_Component_Hot_Halo_Very_Simple_Initialize()
