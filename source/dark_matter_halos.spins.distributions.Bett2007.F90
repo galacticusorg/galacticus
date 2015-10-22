@@ -96,10 +96,6 @@ contains
 
     bett2007ConstructorInternal%lambda0=lambda0
     bett2007ConstructorInternal%alpha  =alpha
-    if (FGSL_Well_Defined(bett2007ConstructorInternal%      randomSequence))                &
-         & call FGSL_Obj_C_Ptr(bett2007ConstructorInternal%      randomSequence,C_Null_Ptr)
-    if (FGSL_Well_Defined(bett2007ConstructorInternal%clonedPseudoSequence))                &
-         & call FGSL_Obj_C_Ptr(bett2007ConstructorInternal%clonedPseudoSequence,C_Null_Ptr)
     ! Tabulate the cumulative distribution.
     tableMaximum=(bett2007SpinMaximum/lambda0)**(3.0d0/alpha)
     call bett2007ConstructorInternal%distribution%destroy()
