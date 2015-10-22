@@ -133,20 +133,6 @@ integer :: j
             &          /boxLength                      &
             &         )**3
     end where
-
-! wavemax=wavenumber(22)
-! a=0.0d0
-! !$omp parallel do private(i,j,mag) reduction(+:a)
-! do i=1,size(dataPosition,dim=2)
-! do j=i+1,size(dataPosition,dim=2)
-! mag=wavemax*vector_magnitude(dataposition(:,i)-dataposition(:,j))
-! a=a+2.0d0*sin(mag)/mag
-! enddo
-! enddo
-! !$omp end parallel do
-! a=a/dble(size(dataPosition,dim=2))**2
-! write (0,*) wavemax,a*wavemax**3/2.0d0/Pi**2
-
     return
   end subroutine Statistics_Points_Power_Spectrum
 
