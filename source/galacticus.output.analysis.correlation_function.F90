@@ -140,7 +140,8 @@ module Galacticus_Output_Analyses_Correlation_Functions
      double precision                , allocatable, dimension(  :) :: centralProbability  , fourierProfile
      integer                                                       :: satelliteCount      , outputNumber
      double precision                                              :: haloBias            , haloWeight    , &
-          &                                                           haloTime            , haloMass
+          &                                                           haloTime            , haloMass      , &
+          &                                                           hostMass
      logical                                                       :: propertiesSet       , isMainBranch  , &
           &                                                           initialized
      ! Indices of current halo.
@@ -619,6 +620,7 @@ contains
           thisBasic                     => hostNode          %basic(        )
           rootBasic                     => thisTree %baseNode%basic(        )
           thisHalo%haloMass             =  rootBasic%mass          (        )
+          thisHalo%hostMass             =  thisBasic%mass          (        )
           thisHalo%haloWeight           =  thisTree %volumeWeight
           thisHalo%outputNumber         =  iOutput
           thisHalo%haloTime             =  thisBasic%time          (        )
@@ -760,7 +762,7 @@ contains
                      &                                       termOneHalo                                                           , &
                      &                                       thisOneHaloTerm(:,i)                                                  , &
                      &                                       modifierCovariance                                                    , &
-                     &                                       mass=thisHalo%haloMass                                                  &
+                     &                                       mass=thisHalo%hostMass                                                  &
                      &                                     )
                 call Term_Indices(i,wavenumberCount,indexOneHalo,indexTwoHalo,indexDensity)
                 forall(j=1:wavenumberCount)
@@ -783,7 +785,7 @@ contains
                   &                                       termTwoHalo                                                           , &
                   &                                       thisTwoHaloTerm(:,i)                                                  , &
                   &                                       modifierCovariance                                                    , &
-                  &                                       mass=thisHalo%haloMass                                                  &
+                  &                                       mass=thisHalo%hostMass                                                  &
                   &                                     )
              call Term_Indices(i,wavenumberCount,indexOneHalo,indexTwoHalo,indexDensity)
              forall(j=1:wavenumberCount)
