@@ -489,9 +489,20 @@ foreach my $constraint ( @constraints ) {
     # Read the likelihood.
     ++$i;
     my $likelihood = $xml->XMLin($scratchDirectory."/likelihood".$mpiRank.":".$i.".xml");
-    if ( $likelihood->{'logLikelihood'} eq "nan" ) {
+    if ( $likelihood->{'logLikelihood'} =~ m/nan/i ) {
 	# Issue a failure.
         print "ERROR: Likelihood is NaN\n";
+	&reportFailure($config,$scratchDirectory,$logFile,$stateFileRoot,0);
+	# Display the final likelihood.
+	&outputLikelihood($config,$badLogLikelihood,$badLogLikelihoodVariance);
+	print "constrainGalacticus.pl: likelihood calculation failed";
+	system("rm ".join(" ",@temporaryFiles))
+	    if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} eq "yes" && scalar(@temporaryFiles) > 0 );
+	exit;
+    }
+    if ( $likelihood->{'logLikelihood'} =~ m/inf/i ) {
+	# Issue a failure.
+        print "ERROR: Likelihood is infinity\n";
 	&reportFailure($config,$scratchDirectory,$logFile,$stateFileRoot,0);
 	# Display the final likelihood.
 	&outputLikelihood($config,$badLogLikelihood,$badLogLikelihoodVariance);
