@@ -596,6 +596,7 @@ module Galacticus_Output_Analyses_Mass_Functions
      double precision                        , allocatable, dimension(:    ) :: systematicCoefficients
      ! Parameters for the random error model.
      double precision                        , allocatable, dimension(:    ) :: randomCoefficients
+     double precision                                                        :: randomMinimum
      ! The number of mass bins.
      integer                                                                 :: massesCount
      ! Arrays for the masses and mass function.
@@ -705,7 +706,6 @@ contains
     double precision                                , allocatable  , dimension(:  ) :: randomError, randomErrorWeight
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
     double precision                                , parameter                     :: massBufferFactor              =100.0d+0 ! Multiplicative buffer size in mass to add below/above observed masses.
-    double precision                                , parameter                     :: randomErrorMinimum            =1.0d-3
     type            (hdf5Object                    )                                :: dataFile,massDataset,parameters
     integer         (c_size_t                      )                                :: jOutput
     integer                                                                         :: currentAnalysis,activeAnalysisCount,haloMassBin,iError
@@ -1128,6 +1128,18 @@ contains
                             call Get_Input_Parameter(char(parameterName),massFunctions(currentAnalysis)%randomCoefficients(k),defaultValue=0.0d0)
                          end do
                       end if
+                      parameterName=trim(massFunctionLabels(j))//'MassRandomMinimum'
+                      !@ <inputParameter>
+                      !@   <regEx>(sdssStellarMassFunction|bernardiSdssStellarMassFunction|gamaStellarMassFunction|alfalfaHiMassFunction|primusStellarMassFunction|vipersStellarMassFunction|ukidssUdsStellarMassFunction|zfourgeStellarMassFunction|ultravistaStellarMassFunction)Z[0-9\.]+MassRandomMinimum</regEx>
+                      !@   <defaultValue>$10^{-3}$</defaultValue>
+                      !@   <attachedTo>module</attachedTo>
+                      !@   <description>
+                      !@     Mass function random error model minimum error
+                      !@   </description>
+                      !@   <type>real</type>
+                      !@   <cardinality>1</cardinality>
+                      !@ </inputParameter>
+                      call Get_Input_Parameter(char(parameterName),massFunctions(currentAnalysis)%randomMinimum,defaultValue=1.0d-3)
                       ! Read the appropriate observational data definition.
                       allocate(cosmologyParametersObserved)
                       select case (trim(massFunctionLabels(j)))
@@ -1450,7 +1462,7 @@ contains
                   &           -massFunctions(i)%descriptor%errorModelLogM0 &
                   &          )**(j-1)
           end do
-          randomError      (1)=max(randomError(1),randomErrorMinimum)
+          randomError      (1)=max(randomError(1),massFunctions(i)%randomMinimum)
           randomErrorWeight(1)=1.0d0
        end if
        thisGalaxy(i)%massFunction=0.0d0
