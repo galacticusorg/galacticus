@@ -74,12 +74,13 @@ contains
     use String_Handling
     use File_Utilities
     use Memory_Management
-    use Power_Spectra
+    use Cosmological_Mass_Variance
     implicit none
     class           (mergerTreeImporterSussingHDF5), intent(inout)             :: self
     type            (varying_string               ), intent(in   )             :: fileName
     class           (cosmologyParametersClass     ), pointer                   :: cosmologyParameters_
     class           (cosmologyFunctionsClass      ), pointer                   :: cosmologyFunctions_
+    class           (cosmologicalMassVarianceClass), pointer                   :: cosmologicalMassVariance_
     real                                           , allocatable, dimension(:) :: snapshotExpansionFactors
     type            (varying_string               )                            :: message
     character       (len=14                       )                            :: valueString
@@ -95,11 +96,11 @@ contains
     cosmologyParameters_ => cosmologyParameters()
     cosmologyFunctions_  => cosmologyFunctions ()
     ! Get cosmological parameters. We do this in advance to avoid HDF5 thread conflicts.
-    localLittleH0   =cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH)
-    localOmegaMatter=cosmologyParameters_%OmegaMatter    (                  )
-    localOmegaDE    =cosmologyParameters_%OmegaDarkEnergy(                  )
-    localOmegaBaryon=cosmologyParameters_%OmegaBaryon    (                  )
-    localSigma8     =sigma_8()
+    localLittleH0   =cosmologyParameters_     %HubbleConstant (hubbleUnitsLittleH)
+    localOmegaMatter=cosmologyParameters_     %OmegaMatter    (                  )
+    localOmegaDE    =cosmologyParameters_     %OmegaDarkEnergy(                  )
+    localOmegaBaryon=cosmologyParameters_     %OmegaBaryon    (                  )
+    localSigma8     =cosmologicalMassVariance_%sigma8         (                  )
     !$omp critical (HDF5_Access)
     ! Open the HDF5 file.
     call self%file%openFile(char(fileName),overWrite=.false.)

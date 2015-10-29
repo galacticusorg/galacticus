@@ -33,6 +33,7 @@ my $derivedTypeCloseRegex = "^\\s*end\\s+type\\s+([a-z0-9_]+)";
 
 # Specify regex for type-bound procedures.
 my $typeBoundRegex = "^\\s*(procedure|generic)\\s*(,\\s*nopass\\s*)*::\\s*([a-z0-9_]+)\\s*=>\\s*([a-z0-9_,\\s]+)\$";
+my $genericRegex   = "^\\s*procedure\\s*(,\\s*nopass\\s*)*::\\s*([a-z0-9_]+)\\s*\$";
 
 # Create XML object.
 my $xml = new XML::Simple;
@@ -151,6 +152,10 @@ foreach my $fileName ( @fileNames ) {
 		    my $method = lc($3);
 		    $objects{lc($inDerivedType)}->{'methods'}->{$method}->{'description'} = "UNDEFINED"
 			unless ( exists($objects{lc($inDerivedType)}->{'methods'}->{$method}) );
+		}
+		if ( $processedLine =~ m/$genericRegex/i ) {
+		    my $procedure = lc($2);
+		    $objects{lc($inDerivedType)}->{'procedures'}->{$procedure} = 1;
 		}
 	    }
 	    
@@ -346,6 +351,14 @@ while ( $foundExtensions == 1 ) {
 		    if ( ( ! exists($objects{$object}->{'methods'}->{$method}) ) || $objects{$object}->{'methods'}->{$method}->{'description'} eq "UNDEFINED" ) {
 			$objects{$object}->{'methods'}->{$method} = $objects{$parent}->{'methods'}->{$method};
 		    }
+		}
+		foreach my $procedure ( keys(%{$objects{$parent}->{'procedures'}}) ) {
+		    delete($objects{$object}->{'methods'}->{$procedure})
+			if (
+			    exists($objects{$object}->{'methods'}->{$procedure})
+			    &&
+			           $objects{$object}->{'methods'}->{$procedure}->{'description'} eq "UNDEFINED"
+			);
 		}
 		undef($objects{$object}->{'extends'});
 	    }

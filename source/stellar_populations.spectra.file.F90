@@ -117,7 +117,7 @@ contains
     use Galacticus_Input_Paths
     implicit none
     type   (stellarPopulationSpectraFile)                             :: fileConstructorParameters
-    type   (inputParameters             ), intent(in   )              :: parameters
+    type   (inputParameters             ), intent(inout)              :: parameters
     integer                              , dimension(:) , allocatable :: imfIndices
     type   (varying_string              ), dimension(:) , allocatable :: fileNames
     logical                                                           :: forceZeroMetallicity
@@ -491,14 +491,12 @@ contains
     implicit none
     class    (stellarPopulationSpectraFile), intent(inout) :: self
     type     (inputParameters             ), intent(inout) :: descriptor
-    type     (node                        ), pointer       :: parameterNode
     type     (inputParameters             )                :: subParameters
     character(len=10                      )                :: parameterLabel
     integer                                                :: i
     
     call descriptor%addParameter("stellarPopulationSpectraMethod","file")
-    parameterNode => descriptor%node("stellarPopulationSpectraMethod")
-    subParameters=inputParameters(parameterNode)
+    subParameters=descriptor%subparameters("stellarPopulationSpectraMethod")
     if (self%forceZeroMetallicity) then
        parameterLabel="true"
     else

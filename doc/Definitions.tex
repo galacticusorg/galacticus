@@ -2,6 +2,40 @@
 
 \glc\ adopts various definitions and conventions internally. These are explained below.
 
+\section{Halo Masses and Dark Matter Mass}
+
+Halo masses require some care in specifying exactly what mass they represent due to the way in which merger trees are typically created. For example, when merger trees are extracted from N-body simulations, those simulations frequently represent \emph{all} matter as collisionless. That is, the simulation contains a density $\Omega_{\rm M}=\Omega_{\rm DM}+\Omega_{\rm b}$ which is the sum of dark and baryonic matter densities, but all of this mass is represented as collisionless particles. Similarly, masses in merger trees built through Monte Carlo techniques typically represent all mass as collisionless.
+
+The exact way in which masses within \glc\ are defined and used in specified in the following subsections.
+
+\subsection{Masses in the Basic Component}
+
+The {\normalfont \ttfamily basic} component (see \S\ref{sec:ComponentBasicProperties}) tracks the mass of each halo as defined in the merger tree. As such, it should be considered to be the mass which the halo would have if baryonic matter behaved just as dark matter. Note that these masses are inclusive of subhalos---that is, the mass of a host halo includes the mass of all of its subhalos.
+
+\subsection{Dark Matter Profiles}
+
+The dark matter profile functions (see \S\ref{phys:darkMatterProfile}) return masses and densities etc. which are normalized to match the mass of the {\normalfont \ttfamily basic} component at the virial radius of the halo. As such, their returned values should be considered to represent the case where baryonic matter behaves as dark matter. This is a convention, and is useful for calculations of large scale structure for example.
+
+\subsection{Galactic Structure Functions}
+
+The various galactic structure functions assume that the masses/densities/etc. reported by the dark matter profile functions should be scaled by a factor $(\Omega_{\rm M}-\Omega_{\rm b})/\Omega_{\rm b}$ to leave only the dark matter part of the profile. Baryonic contributions to the mass/density/etc. will be provided by the components representing those mass distributions.
+
+\subsection{Satellite Virial Orbits}
+
+These functions (see \S\ref{sec:SatelliteVirialOrbits}) typically use the {\normalfont \ttfamily basic} component mass in determining parameters of an orbit, since they are typically calibrated to simulations of collisionless matter only.
+
+\subsection{Satellite Merging Timescales}
+
+These functions (see \S\ref{sec:SatelliteMergingTimescales}) typically use the {\normalfont \ttfamily basic} component mass in determining parameters of an orbit, since they are typically calibrated to simulations of collisionless matter only.
+
+\subsection{Dynamical Friction}
+
+These functions (see \S\ref{sec:satelliteDynamicalFrictionMethod})  evaluate densities through the relevant galactic structure function, and so correctly account for the fraction of the {\normalfont \ttfamily basic} component mass which is in the form of dark matter.
+
+\subsection{Galactic Structure Radius Solvers}
+
+WTF????????? (see \S\ref{phys:galacticStructureRadiusSolver}).
+
 \section{Luminosity Units}
 
 Galaxy luminosities are output in the \gls{ABmagnitude} system, such that a luminosity of $1$ corresponds to an object of $0^{\mathrm th}$ absolute magnitude in the \gls{ABmagnitude} system. This implies that the luminosities are in units of $4.4659\times 10^{13}$~W/Hz.
@@ -15,3 +49,12 @@ If peculiar velocities are stored it is important to use the same definition of 
 {\mathbf v}_{\mathrm pec} \equiv {{\mathrm d} {\mathbf r} \over {\mathrm d} t} - H {\mathbf r} = a {{\mathrm d} {\mathbf x}\over{\mathrm d} t} = {{\mathrm d}{\mathbf x}\over{\mathrm d}\eta},
 \end{equation}
 where ${\mathrm d}\eta = {\mathrm d}t/a$ is conformal time. 
+
+\section{Gravitational Potentials}\index{potential!gravitational}\index{gravitational potential}
+
+Gravitational potentials are measured in velocity units (i.e. km$^2$/s$^2$), and the arbitrary constant offset is chosen such that the total gravitational potential in any halo at the virial radius is $\Phi(r_{\rm virial})=-V_{\rm virial}^2$. This choice is made for two reasons:
+\begin{enumerate}
+\item some mass distributions used have potentials which diverge as $r\rightarrow\infty$, so the usual choice of $\Phi(r) \rightarrow 0$ as $r \rightarrow \infty$ is not applicable;
+\item this choice is consistent with the potential at the virial radius of the halo considered as a point mass as is used in Keplerian orbit calculations.
+\end{enumerate}
+Note that the choice of constant offset for the potential of any mass distribution or galactic component is irrelevant---the galactic structure function which computes potential will ensure that the potential is always offset to match the definition given above.

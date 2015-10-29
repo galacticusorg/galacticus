@@ -15,92 +15,34 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements window functions for computing the variance of the power spectrum.
+!% Contains a module which provides a class that implements window functions for computing the
+!% variance of the power spectrum.
 
 module Power_Spectrum_Window_Functions
-  !% Implements window functions for computing the variance of the power spectrum.
-  use ISO_Varying_String
-  implicit none
+  !% Provides a class which implements window functions for computing the variance of the power
+  !% spectrum.
   private
-  public :: Power_Spectrum_Window_Function, Power_Spectrum_Window_Function_Wavenumber_Maximum
 
-  ! Flag to indicate if this module has been initialized.
-  logical                                                               :: moduleInitialized                                    =.false.
-
-  ! Name of cooling rate available method used.
-  type     (varying_string                                   )          :: powerSpectrumWindowFunctionMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Power_Spectrum_Window_Function                   ), pointer :: Power_Spectrum_Window_Function_Get                   =>null()
-  procedure(Power_Spectrum_Window_Function_Wavenumber_Maximum), pointer :: Power_Spectrum_Window_Function_Wavenumber_Maximum_Get=>null()
-
-contains
-
-  subroutine Power_Spectrum_Window_Functions_Initialize
-    !% Initialize the power spectrum window function module.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="powerSpectrumWindowFunctionMethod" type="moduleUse">
-    include 'structure_formation.power_spectrum.variance.window_function.modules.inc'
-    !# </include>
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.moduleInitialized) then
-       !$omp critical(Power_Spectrum_Window_Functions_Initialization)
-       if (.not.moduleInitialized) then
-          ! Get the window function method parameter.
-          !@ <inputParameter>
-          !@   <name>powerSpectrumWindowFunctionMethod</name>
-          !@   <defaultValue>topHat</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for computing window functions to estimate variance from the power spectrum.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('powerSpectrumWindowFunctionMethod',powerSpectrumWindowFunctionMethod,defaultValue='topHat')
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="powerSpectrumWindowFunctionMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>powerSpectrumWindowFunctionMethod,Power_Spectrum_Window_Function_Get,Power_Spectrum_Window_Function_Wavenumber_Maximum_Get</functionArgs>
-          include 'structure_formation.power_spectrum.variance.window_function.inc'
-          !# </include>
-          if (.not.(associated(Power_Spectrum_Window_Function_Get).and.associated(Power_Spectrum_Window_Function_Wavenumber_Maximum_Get))) call Galacticus_Error_Report('Power_Spectrum_Window_Functions_Initialize'&
-               &,'method '//char(powerSpectrumWindowFunctionMethod)//' is unrecognized')
-          moduleInitialized=.true.
-       end if
-       !$omp end critical(Power_Spectrum_Window_Functions_Initialization)
-    end if
-    return
-  end subroutine Power_Spectrum_Window_Functions_Initialize
-
-  double precision function Power_Spectrum_Window_Function(wavenumber,smoothingMass)
-    !% Returns the window function for power spectrum variance computation at the specified {\normalfont \ttfamily wavenumber} (in Mpc$^{-1}$) for a
-    !% given {\normalfont \ttfamily smoothingMass} (in $M_\odot$).
-    implicit none
-    double precision, intent(in   ) :: smoothingMass, wavenumber
-
-    ! Initialize the module.
-    call Power_Spectrum_Window_Functions_Initialize
-
-    ! Call the function that does the work.
-    Power_Spectrum_Window_Function=Power_Spectrum_Window_Function_Get(wavenumber,smoothingMass)
-    return
-  end function Power_Spectrum_Window_Function
-
-  double precision function Power_Spectrum_Window_Function_Wavenumber_Maximum(smoothingMass)
-    !% Returns the maximum wavenumber for which the window function for power spectrum variance computation is non-zero for a
-    !% given {\normalfont \ttfamily smoothingMass} (in $M_\odot$).
-    implicit none
-    double precision, intent(in   ) :: smoothingMass
-
-    ! Initialize the module.
-    call Power_Spectrum_Window_Functions_Initialize
-
-    ! Call the function that does the work.
-    Power_Spectrum_Window_Function_Wavenumber_Maximum=Power_Spectrum_Window_Function_Wavenumber_Maximum_Get(smoothingMass)
-    return
-  end function Power_Spectrum_Window_Function_Wavenumber_Maximum
-
+  !# <functionClass>
+  !#  <name>powerSpectrumWindowFunction</name>
+  !#  <descriptiveName>Power Spectrum Window Functions</descriptiveName>
+  !#  <description>Class providing window functions for filtering of power spectra.</description>
+  !#  <default>topHat</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <stateful>no</stateful>
+  !#  <defaultThreadprivate>no</defaultThreadprivate>
+  !#  <method name="value" >
+  !#   <description> Returns the window function for power spectrum variance computation at the specified {\normalfont \ttfamily wavenumber} (in Mpc$^{-1}$) for a given {\normalfont \ttfamily smoothingMass} (in $M_\odot$).</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: wavenumber, smoothingMass</argument>
+  !#  </method>
+  !#  <method name="wavenumberMaximum" >
+  !#   <description>Returns the maximum wavenumber for which the window function for power spectrum variance computation is non-zero for a given {\normalfont \ttfamily smoothingMass} (in $M_\odot$).</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: smoothingMass</argument>
+  !#  </method>
+  !# </functionClass>
+  
 end module Power_Spectrum_Window_Functions
