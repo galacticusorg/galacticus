@@ -258,7 +258,7 @@ foreach my $morphology ( @{$data->{'morphology'}} ) {
     }
 }
 die("Plot_Morphological_Luminosity_Function.pl: 'pdfmerge' tool is required")
-    unless ( which("pdfmerge") );
+    unless ( &File::Which::which("pdfmerge") );
 &SystemRedirect::tofile("rm -f ".$outputFile."; cd ".$outputDir."; pdfmerge ".join(" ",@leafFiles)." tmp.pdf; cd -; mv ".$outputDir."/tmp.pdf ".$outputFile,"/dev/null");
 &MetaData::Write($outputFile,$galacticusFile,$self);
 unlink(@plotFiles);
