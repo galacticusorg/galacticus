@@ -66,7 +66,9 @@
     <accretionLimit value="0.1"/>
     <mergeProbability value="0.1"/>
   </mergerTreeBuilderMethod>
-  <mergerTreeBuildMassResolutionFixed value="5.0e9"/>
+  <mergerTreeMassResolutionMethod value="fixed">
+    <massResolution value="5.0e9"/>
+  </mergerTreeMassResolutionMethod>
   <mergerTreeBuildHaloMassMinimum value="2.0e10"/>
   <conditionalMassFunctionBehrooziBetaSatellite value="1.46136840213"/>
   <mergerTreeReadFileName value="testSuite/data/mergerTrees/mergerAtFinalTimeInTree.hdf5"/>
