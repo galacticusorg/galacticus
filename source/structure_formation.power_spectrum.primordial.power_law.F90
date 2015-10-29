@@ -51,7 +51,7 @@ contains
     use Galacticus_Display
     implicit none
     type(powerSpectrumPrimordialPowerLaw)                :: powerLawConstructorParameters
-    type(inputParameters                ), intent(in   ) :: parameters
+    type(inputParameters                ), intent(inout) :: parameters
     !# <inputParameterList label="allowedParameterNames" />
 
     call parameters%checkParameters(allowedParameterNames)    
@@ -151,13 +151,11 @@ contains
     implicit none
     class    (powerSpectrumPrimordialPowerLaw), intent(inout) :: self
     type     (inputParameters                ), intent(inout) :: descriptor
-    type     (node                           ), pointer       :: parameterNode
     type     (inputParameters                )                :: subParameters
     character(len=10                         )                :: parameterLabel
 
     call descriptor%addParameter("powerSpectrumPrimordialMethod","powerLaw")
-    parameterNode => descriptor%node("powerSpectrumPrimordialMethod")
-    subParameters=inputParameters(parameterNode)
+    subParameters=descriptor%subparameters("powerSpectrumPrimordialMethod")
     write (parameterLabel,'(f10.6)') self%index
     call subParameters%addParameter("index"              ,trim(adjustl(parameterLabel)))
     write (parameterLabel,'(f10.6)') self%running

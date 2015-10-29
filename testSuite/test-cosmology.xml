@@ -7,6 +7,11 @@
   <doAnalysis>no</doAnalysis>
   <modelRootDirectory>testSuite/outputs/test-cosmology</modelRootDirectory>
   <baseParameters>testSuite/test-cosmology-base.xml</baseParameters>
+  <launchMethod>pbs</launchMethod>
+  <pbs>
+    <ompThreads>12</ompThreads>
+    <maxJobsInQueue>40</maxJobsInQueue>
+  </pbs>
   <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
