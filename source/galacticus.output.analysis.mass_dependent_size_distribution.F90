@@ -135,6 +135,7 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Sz_Dstrbtins
      ! Parameters for the systematic error model.
      double precision                        , allocatable, dimension(:    ) :: massSystematicCoefficients, radiusSystematicCoefficients, &
           &                                                                     massRandomCoefficients
+     double precision                                                           massRandomMinimum
      ! The number of bins.
      integer                                                                 :: massesCount               , radiiCount
      ! Arrays for the masses, radii and size function.
@@ -219,7 +220,6 @@ contains
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )               , pointer        :: cosmologyParametersObserved
     integer         (c_size_t                      )                                :: k,jOutput
-    double precision                                , parameter                     :: massRandomErrorMinimum =1.0d-3
     integer                                         , parameter                     :: inclinationAngleCount  =100
     integer                                         , parameter                     :: sampleStepCount        =100
     double precision                                , parameter                     :: inclinationAngleEpsilon=1.0d-3
@@ -391,6 +391,18 @@ contains
                             call Get_Input_Parameter(char(parameterName),sizeFunctions(currentAnalysis)%massRandomCoefficients(k),defaultValue=0.0d0)
                          end do
                       end if
+                      parameterName=trim(sizeFunctionLabels(j))//'MassRandomMinimum'
+                      !@ <inputParameter>
+                      !@   <regEx>(sdssSizeFunction)Z[0-9\.]+MassRandomMinimum</regEx>
+                      !@   <defaultValue>$10^{-3}$</defaultValue>
+                      !@   <attachedTo>module</attachedTo>
+                      !@   <description>
+                      !@     Mass-dependent size function mass random error minimum.
+                      !@   </description>
+                      !@   <type>real</type>
+                      !@   <cardinality>1</cardinality>
+                      !@ </inputParameter>
+                      call Get_Input_Parameter(char(parameterName),sizeFunctions(currentAnalysis)%massRandomMinimum,defaultValue=1.0d-3)
                       ! Read the appropriate observational data definition.
                       select case (trim(sizeFunctionLabels(j)))
                       case ('sdssSizeFunctionZ0.07')
@@ -689,7 +701,7 @@ contains
                   &            -sizeFunctions(i)%descriptor%massSystematicLogM0 &
                   &           )**(j-1)
           end do
-          massRandomError=max(massRandomError,massRandomErrorMinimum)
+          massRandomError=max(massRandomError,sizeFunctions(i)%massRandomMinimum)
        end if
        if (associated(sizeFunctions(i)%descriptor%radiusRandomErrorFunction)) then
           sizeRandomError=sizeFunctions(i)%descriptor%radiusRandomErrorFunction(radius,thisNode)

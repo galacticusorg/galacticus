@@ -484,6 +484,8 @@ foreach my $constraint ( @constraints ) {
 	print "constrainGalacticus.pl: analysis code failed";
 	unlink(@temporaryFiles)
 	    if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} eq "yes" && scalar(@temporaryFiles) > 0 );
+	my $ignoredResults = $_->{'thread'}->join()
+	    foreach ( @threads );
 	exit;
     }
     # Read the likelihood.
@@ -498,6 +500,8 @@ foreach my $constraint ( @constraints ) {
 	print "constrainGalacticus.pl: likelihood calculation failed";
 	system("rm ".join(" ",@temporaryFiles))
 	    if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} eq "yes" && scalar(@temporaryFiles) > 0 );
+	my $ignoredResults = $_->{'thread'}->join()
+	    foreach ( @threads );
 	exit;
     }
     if ( $likelihood->{'logLikelihood'} =~ m/inf/i ) {
@@ -509,8 +513,12 @@ foreach my $constraint ( @constraints ) {
 	print "constrainGalacticus.pl: likelihood calculation failed";
 	system("rm ".join(" ",@temporaryFiles))
 	    if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} eq "yes" && scalar(@temporaryFiles) > 0 );
+	my $ignoredResults = $_->{'thread'}->join()
+	    foreach ( @threads );
 	exit;
     }
+    $likelihood->{'logLikelihoodVariance'} = 0.0
+	if ( $likelihood->{'logLikelihoodVariance'} =~ m/nan/i || $likelihood->{'logLikelihoodVariance'} =~ m/infinity/i );
     # Extract the likelihood (and variance) and weight it.
     my $thisLogLikelihood         = $likelihood->{'logLikelihood'        };
     my $thisLogLikelihoodVariance = $likelihood->{'logLikelihoodVariance'};

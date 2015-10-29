@@ -102,6 +102,7 @@ module Galacticus_Output_Analyses_Correlation_Functions
      type            (correlationFunctionDescriptor), pointer                       :: descriptor
      ! Parameters for the systematic error model.
      double precision                               , allocatable, dimension(:    ) :: massSystematicCoefficients, massRandomCoefficients
+     double precision                                                               :: massRandomMinimum
      ! Weights to apply to each output.
      double precision                               , allocatable, dimension(:,:  ) :: outputWeight
      ! Mass range.
@@ -308,6 +309,18 @@ contains
                             call Get_Input_Parameter(char(parameterName),correlationFunctions(currentAnalysis)%massRandomCoefficients(k),defaultValue=0.0d0)
                          end do
                       end if
+                      parameterName=trim(correlationFunctionLabels(j))//'MassRandomMinimum'
+                      !@ <inputParameter>
+                      !@   <regEx>(sdssClustering)Z[0-9\.]+MassRandomMinimum</regEx>
+                      !@   <defaultValue>$10^{-3}$</defaultValue>
+                      !@   <attachedTo>module</attachedTo>
+                      !@   <description>
+                      !@     Mass-dependent size function mass random minimum.
+                      !@   </description>
+                      !@   <type>real</type>
+                      !@   <cardinality>1</cardinality>
+                      !@ </inputParameter>
+                      call Get_Input_Parameter(char(parameterName),correlationFunctions(currentAnalysis)%massRandomMinimum,defaultValue=1.0d-3)
                       ! Read the appropriate observational data definition.
                       select case (trim(correlationFunctionLabels(j)))
                       case ('sdssClusteringZ0.07')
@@ -536,7 +549,6 @@ contains
     class           (darkMatterProfileClass )               , pointer        :: darkMatterProfile_
     double precision                         , allocatable  , dimension(:,:) :: satelliteProbabilityTmp
     integer                                  , parameter                     :: satelliteCountMinimum=100
-    double precision                         , parameter                     :: massRandomErrorMinimum=1.0d-3
     integer         (kind=kind_int8        )                                 :: hostIndex    
     integer                                                                  :: i, j
     double precision                                                         :: expansionFactor          , galaxyInclusionProbability, &
@@ -587,7 +599,7 @@ contains
                &            -thisCorrelationFunction%descriptor%massSystematicLogM0 &
                &           )**(j-1)
        end do
-       randomError=max(randomError,massRandomErrorMinimum)
+       randomError=max(randomError,thisCorrelationFunction%massRandomMinimum)
     end if
     ! Iterate over mass ranges.
     satelliteIncluded=.false.
