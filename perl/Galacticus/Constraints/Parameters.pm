@@ -257,9 +257,13 @@ sub Convert_Parameters_To_Galacticus {
 	}
     }
     # Set the values of any parameters that are defined in terms of other parameters.
-    my $failCount = 1;
+    my $failCount  = 1;
+    my $iterations = 0;
     while ( $failCount > 0 ) {
 	$failCount = 0;
+	++$iterations;
+	die("Convert_Parameters_To_Galacticus: Failed to resolve parameter definitions")
+	    if ( $iterations > 100000 );
 	for(my $i=0;$i<scalar(@parameters);++$i) {
 	    if ( exists($parameters[$i]->{'define'}) ) {
 		die ("Convert_Parameters_To_Galacticus: cannot specify a prior for a defined parameter")
@@ -273,9 +277,9 @@ sub Convert_Parameters_To_Galacticus {
 			++$failCount;
 			last;
 		    }
-		    $parameterValues{$parameters[$i]->{'name'}} = eval($parameters[$i]->{'define'})
-			unless ( $parameters[$i]->{'define'} =~ m/\%\[([a-zA-Z0-9_\.\-\>]+)\]/ );
 		}
+		$parameterValues{$parameters[$i]->{'name'}} = eval($parameters[$i]->{'define'})
+		    unless ( $parameters[$i]->{'define'} =~ m/\%\[([a-zA-Z0-9_\.\-\>]+)\]/ );
 	    }
 	}
     }
