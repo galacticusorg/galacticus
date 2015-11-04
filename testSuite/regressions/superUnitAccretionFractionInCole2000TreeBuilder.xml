@@ -81,8 +81,6 @@
   <mergerTreeMassResolutionMethod value="fixed">
     <massResolution value="5.0e9"/>
   </mergerTreeMassResolutionMethod>
-    <accretionLimit value="1.00059263316574"/>
-  </mergerTreeBuilderMethod>
   <mergerTreeBuildHaloMassMinimum value="2.0e10"/>
   <darkMatterProfileConcentrationMethod value="gao2008"/>
   <diskOutflowVelocity value="250.0"/>
@@ -161,7 +159,8 @@
   <mergerTreeBuilderMethod value="cole2000">
     <mergeProbability value="0.1"/>
     <accretionLimit value="1.00059263316574"/>
-  </mergerTreeBuilderMethod><outputRedshifts value="0.0700"/>
+  </mergerTreeBuilderMethod>
+  <outputRedshifts value="0.0700"/>
   <hotHaloTrackStrippedGas value="true"/>
   <haloMassFunctionSamplingStellarMassFunctionErrorLogBinWidth value="0.097"/>
   <randomSpinResetMassFactor value="2.0"/>
