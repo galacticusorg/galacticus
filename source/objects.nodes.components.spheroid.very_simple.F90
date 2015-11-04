@@ -42,7 +42,7 @@ module Node_Component_Spheroid_Very_Simple
   !#   </property>
   !#   <property>
   !#     <name>massStellar</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of stars in the very simple spheroid."/>
@@ -56,7 +56,7 @@ module Node_Component_Spheroid_Very_Simple
   !#   </property>
   !#   <property>
   !#     <name>massGas</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of gas in the very simple spheroid."/>
@@ -71,7 +71,7 @@ module Node_Component_Spheroid_Very_Simple
   !#   <property>
   !#     <name>starFormationRate</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" createIfNeeded="true" />
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <isVirtual>true</isVirtual>
   !#     <output condition="[[spheroidOutputStarFormationRate]]" unitsInSI="massSolar/gigaYear" comment="Spheroid star formation rate."/>
@@ -84,7 +84,7 @@ module Node_Component_Spheroid_Very_Simple
   !#   </property>
   !#   <property>
   !#     <name>radius</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <output unitsInSI="megaparsec" comment="Radial scale length in the spheroid."/>
@@ -92,14 +92,14 @@ module Node_Component_Spheroid_Very_Simple
   !#   <property>
   !#     <name>halfMassRadius</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <isVirtual>true</isVirtual>
   !#     <getFunction>Node_Component_Spheroid_Very_Simple_Half_Mass_Radius</getFunction>
   !#   </property>
   !#   <property>
   !#     <name>velocity</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <output unitsInSI="kilo" comment="Circular velocity of the spheroid."/>
@@ -143,7 +143,7 @@ contains
        !@   <description>
        !@    The absolute mass scale below which calculations in the very simple spheroid component are allowed to become inaccurate.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('spheroidVerySimpleMassScaleAbsolute',spheroidVerySimpleMassScaleAbsolute,defaultValue=100.0d0)
@@ -154,7 +154,7 @@ contains
        !@   <description>
        !@    The minimum timescale (in units of the halo dynamical time) on which outflows may deplete gas in the spheroid.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('spheroidOutflowTimescaleMinimum',spheroidOutflowTimescaleMinimum,defaultValue=1.0d-3)
@@ -165,7 +165,7 @@ contains
        !@   <description>
        !@    The minimum timescale (in units of the halo dynamical time) on which star formation may occur in the spheroid.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('spheroidStarFormationTimescaleMinimum',spheroidStarFormationTimescaleMinimum,defaultValue=1.0d-3)
@@ -187,7 +187,7 @@ contains
        !@   <description>
        !@    The mass tolerance used to judge whether the spheroid is physically plausible.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('spheroidMassToleranceAbsolute',spheroidMassToleranceAbsolute,defaultValue=1.0d-6)
