@@ -282,10 +282,10 @@ sub Prepare_Dataset {
 
     # Create attribute for line type, assuming no specification if type option is not present.
     my %lineType;
-    $lineType{'lower'} = " lt 1";
-    $lineType{'upper'} = " lt 1";
-    $lineType{'lower'} = " lt ".$options{'linePattern'} if ( exists($options{'linePattern'}) );
-    $lineType{'upper'} = " lt ".$options{'linePattern'} if ( exists($options{'linePattern'}) );
+    $lineType{'lower'} = " dt 1";
+    $lineType{'upper'} = " dt 1";
+    $lineType{'lower'} = " dt ".$options{'linePattern'} if ( exists($options{'linePattern'}) );
+    $lineType{'upper'} = " dt ".$options{'linePattern'} if ( exists($options{'linePattern'}) );
 
     # Create attribute for point type, assuming no specification if symbol option is not present.
     my %pointType;
