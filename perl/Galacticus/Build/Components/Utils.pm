@@ -103,4 +103,44 @@ sub padGeneric {
     return $paddedText;
 }
 
+sub applyDefaults {
+    # Applies a set of default values to a nested data structure using recursion.
+    my $object  = shift();
+    my $name    = shift();
+    my $default = shift();
+    if ( ref($default) ) {
+	# The default we've been passed is actually a list of deeper default settings. Iterate over them if the currently named
+	# element exists ion the current data structure and apply them by calling ourself recursively.
+	if ( exists($object->{$name}) ) {
+	    foreach my $subObject ( &ExtraUtils::as_array($object->{$name}) ) {
+		&applyDefaults($subObject,$_,$default->{$_})
+		    foreach ( keys(%{$default}) );
+	    }
+	# Alternatively if the special name "ALL" is used, then iterate over all members of the object.    
+	} elsif ( $name eq "ALL" ) {
+	    foreach my $subObject ( &ExtraUtils::hashList($object) ) {
+		&applyDefaults($subObject,$_,$default->{$_})
+		    foreach ( keys(%{$default}) );
+	    }	    
+	}
+    } else {
+	# We've been passed an actual default. Iterate over all named objects in our data structure and apply the default if
+	# necessary.
+	foreach ( &ExtraUtils::as_array($object) ) {
+	    if ( $default =~ m/^boolean/ ) {
+		# In the case of a boolean default, we also translate any preset value into the associated boolean.
+		if ( exists($_->{$name}) ) {
+		    $_->{$name} = $_->{$name} eq        "true" ? 1 : 0;
+		} else {
+		    $_->{$name} = $default    eq "booleanTrue" ? 1 : 0;
+		}
+	    } else {
+		# A regular (non-boolean) default.
+		$_->{$name} = $default
+		    unless ( exists($_->{$name}) );
+	    }
+	}
+    }
+}
+
 1;

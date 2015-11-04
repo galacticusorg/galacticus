@@ -28,6 +28,10 @@ require Galacticus::Build::Components::Utils;
 	     [
 	      \&Class_Defaults_Validate
 	     ],
+	 default     =>
+	      [
+	       \&Property_Defaults
+	       ],
 	 gather      =>
 	     [
 	      \&Class_Defaults_Gather
@@ -38,6 +42,36 @@ require Galacticus::Build::Components::Utils;
 	     ]
      }
     );
+
+sub Property_Defaults {
+    # Set defaults for properties.
+    my $build = shift();
+    # Default settings for properties.
+    my %defaults =
+	(
+	 properties =>
+	 {
+	     property =>
+	     {
+		 ALL =>
+		 {
+		     attributes =>
+		     {
+			 bindsTo        => "component",
+			 createIfNeeded => "false"    ,
+			 isDeferred     => "false"    ,
+			 makeGeneric    => "false"
+		     }
+		 }
+	     }
+	 }
+	);
+    # Iterate over implementations and apply all defaults.
+    foreach my $implementation ( &ExtraUtils::hashList($build->{'components'}) ) {
+	&Utils::applyDefaults($implementation,$_,$defaults{$_})
+	    foreach ( keys(%defaults) );
+    }
+}
 
 sub Class_Defaults_Validate {
     # Validate class default settings over all properties.
