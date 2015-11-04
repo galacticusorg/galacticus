@@ -52,7 +52,7 @@ contains
     use Input_Parameters2
     implicit none
     type(galacticFilterStarFormationRate)                :: starFormationRateConstructorParameters
-    type(inputParameters                ), intent(in   ) :: parameters
+    type(inputParameters                ), intent(inout) :: parameters
     !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
