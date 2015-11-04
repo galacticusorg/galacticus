@@ -208,7 +208,7 @@ sub Launch {
 
 sub mpiDetect {
     # Attempt to detect MPI implementation.
-    my $haveMpiRun = which("mpirun");
+    my $haveMpiRun = &File::Which::which("mpirun");
     if ( defined($haveMpiRun) ) {
 	my $mpiVersion = `$haveMpiRun -V 2>&1`;
 	return "OpenMPI"
