@@ -14,6 +14,7 @@ use warnings;
 use utf8;
 use Data::Dumper;
 use Sort::Topological qw(toposort);
+use Scalar::Util;
 require List::ExtraUtils;
 require Galacticus::Build::Components::Utils;
 
@@ -25,14 +26,52 @@ require Galacticus::Build::Components::Utils;
      {
 	 default =>
 	     [
-	      \&Null_Implementations
+	      \&Null_Implementations   ,
+	      \&Default_Full_Name      ,
+	      \&Implementation_Defaults
 	     ],
 	 gather =>
 	     [
-	      \&Implementation_Dependencies
+	      \&Implementation_Dependencies    ,
+	      \&Implementation_Parents         ,
+	      \&Implementation_Bindings_Inherit
 	     ]
      }
     );
+
+
+sub Default_Full_Name {
+    # Set a fully-qualified name for each implementation.
+    my $build = shift();
+    # Iterate over components.
+    $_->{'fullyQualifiedName'} = ucfirst($_->{'class'}).ucfirst($_->{'name'})
+	foreach ( &ExtraUtils::hashList($build->{'components'}) );
+}
+
+sub Implementation_Defaults {
+    # Set defaults for implementations.
+    my $build = shift();
+    # Default settings for implementations.
+    my %defaults =
+	(
+	 bindings =>
+	 {
+	     binding =>
+	     {
+		 isDeferred => "booleanFalse"
+	     }
+	 },
+	 createFunction =>
+	 {
+	     isDeferred => "false"
+	 }
+	);
+    # Iterate over implementations and apply all defaults.
+    foreach my $implementation ( &ExtraUtils::hashList($build->{'components'}) ) {
+	&Utils::applyDefaults($implementation,$_,$defaults{$_})
+	    foreach ( keys(%defaults) );
+    }
+}
 
 sub Null_Implementations {
     # Create a null implementation for each class.
@@ -103,6 +142,42 @@ sub Implementation_Dependencies {
 	    print "            --> ".$className.":\n";
 	    print "               --> ".$_."\n"
 		foreach ( @{$build->{'componentClasses'}->{$className}->{'members'}} );
+	}
+    }
+}
+
+sub Implementation_Parents {
+    # Create links to parent implementations.
+    my $build = shift();
+    # Iterate over implementations.
+    foreach my $implementation ( &ExtraUtils::hashList($build->{'components'}) ) {
+	# For extensions, locate and link to the parent.
+	if ( exists($implementation->{'extends'}) ) {
+	    my $parentIdentifier = ucfirst($implementation->{'extends'}->{'class'}).ucfirst($implementation->{'extends'}->{'name'});
+	    $implementation->{'extends'}->{'implementation'} = $build->{'components'}->{$parentIdentifier};
+	}
+    }
+}
+
+sub Implementation_Bindings_Inherit {
+    # Inherit bindings from any parent implementations.
+    my $build = shift();
+    # Iterate over implementations.
+    foreach my $implementation ( &ExtraUtils::hashList($build->{'components'}) ) {
+	# For extensions, copy any binding from the parent class.
+	if ( exists($implementation->{'extends'}) ) {
+	    foreach my $parentBinding ( @{$implementation->{'extends'}->{'implementation'}->{'bindings'}->{'binding'}} ) {
+		push
+		    (
+		     @{$implementation->{'bindings'}->{'binding'}},
+		     $parentBinding
+		    )
+		    unless ( 
+			! $parentBinding->{'isDeferred'}
+			||
+			grep {$_->{'method'} eq $parentBinding->{'method'}} @{$implementation->{'bindings'}->{'binding'}}
+		    );		    
+	    }
 	}
     }
 }

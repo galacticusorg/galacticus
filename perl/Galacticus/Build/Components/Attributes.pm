@@ -13,6 +13,7 @@ use strict;
 use warnings;
 use utf8;
 use Data::Dumper;
+use Scalar::Util 'reftype';
 require List::ExtraUtils;
 require Galacticus::Build::Components::Utils;
 
@@ -21,11 +22,18 @@ require Galacticus::Build::Components::Utils;
     (
      %Galacticus::Build::Component::Utils::componentUtils,
      attributes => {
+	 preValidate  =>
+	     [
+	      \&Validate_Deferreds_Functionless
+	     ],
+	 default      =>
+	     [
+	      \&Default_Functions              ,
+	     ],
 	 postValidate =>
 	     [
 	      \&Validate_Boolean               ,
-	      \&Validate_Evolvable_Intrinsics  ,
-	      \&Validate_Deferreds_Functionless
+	      \&Validate_Evolvable_Intrinsics 
 	     ]
      }
     );
@@ -116,6 +124,59 @@ sub Validate_Deferreds_Functionless {
 		    )
 			if ( exists($property->{$_."Function"}) );
 		}
+	}
+    }
+}
+
+sub Default_Functions {
+    # Set default functions for property attributes.
+    my $build = shift();
+    # Iterate over implementations.
+    foreach my $implementation ( &ExtraUtils::hashList($build->{'components'}) ) {
+	my $componentIdentifier = 
+	    ucfirst($implementation->{'class'}).
+	    ucfirst($implementation->{'name' });
+	# Iterate over all properties belonging to this component.	
+	next 
+	    unless ( exists($implementation->{'properties'}) );
+	foreach my $property ( &ExtraUtils::hashList($implementation->{'properties'}->{'property'}, keyAs => 'name' ) ) {	    
+	    # Rate function.
+	    $property->{'rateFunction'} = 
+		$componentIdentifier         .
+		ucfirst($property->{'name' }).
+		"Rate"
+		unless ( exists($property->{'rateFunction'}) );
+	    # Get/Set functions.
+	    foreach ( "get", "set" ) {
+		if ( exists($property->{$_.'Function'}) ) {
+		    # A function element was specified.
+		    if ( reftype($property->{$_.'Function'}) ) {
+			# The function element contains structure, so simple set its bindsTo element if not already defined.
+			$property->{$_.'Function'}->{'bindsTo'} = "component"
+			    unless ( exists($property->{$_.'Function'}->{'bindsTo'}) );
+		    } else {
+			# The function element is simply the function name. Replace with a structure with default binding.
+			$property->{$_.'Function'} = 
+			{
+			    content => $property->{$_.'Function'},
+			    bindsTo => "component"
+			};
+		    }
+		    # Since function was specified, we will not need to build a function.
+		    $property->{$_.'Function'}->{'build'} = "false";
+		} else {
+		    # No function element was specified, assign a default function and record that a function must be built.
+		    $property->{$_.'Function'} = 
+		    {
+			content => 
+			    lcfirst($componentIdentifier          ).
+			    ucfirst($property           ->{'name'}).
+			    ucfirst($_                            ),
+			bindsTo => "component"                     ,
+			build   => "true"
+		    };
+		}
+	    }
 	}
     }
 }

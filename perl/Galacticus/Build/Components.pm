@@ -55,6 +55,14 @@ my $propertyNameLengthMax               = 0;
 my $linkedDataNameLengthMax             = 0;
 my $implementationPropertyNameLengthMax = 0;
 
+# Adjectives for attributes.
+my %attributeAdjective =
+    (
+     get  => "isGettable" ,
+     set  => "isSettable" ,
+     rate => "isEvolvable"
+    );
+
 sub Components_Validate {
     # Validate a component document.
     my $document  = shift;
@@ -112,8 +120,6 @@ sub Components_Generate_Output {
     # Iterate over all functions, calling them with the build data object.
     &{$_}($buildData)
 	foreach (
-	    # Set defaults for unspecified attributes.
-	    \&Set_Default_Attributes                                 ,
 	    # Construct linked data for component properties.
 	    \&Construct_Linked_Data                                  ,
 	    # Generate the nodeComponent type.
@@ -491,126 +497,6 @@ sub Construct_Linked_Data {
     }
 }
 
-sub Set_Default_Attributes{
-    # Set any missing attributes to default values.
-    my $buildData = shift;
-    # Iterate over component implementations.
-    foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
-    	foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClass}->{'members'}} ) {
-	    my $componentID = ucfirst($componentClass).ucfirst($implementationName);
-	    # Get the component.
-	    my $component = $buildData->{'components'}->{$componentID};
-	    # Add a fully-qualified name to the component.
-	    $component->{'fullyQualifiedName'} = $componentID;
-	    # If a create function is specified, set it to be non-deferred by default.
-	    $component->{'createFunction'}->{'isDeferred'} = "false"
-		if ( exists($component->{'createFunction'}) && ! exists($component->{'createFunction'}->{'isDeferred'}) );
-	    # Iterate over bindings.
-	    foreach my $binding ( @{$component->{'bindings'}->{'binding'}} ) {
-		$binding->{'isDeferred'} = "false"
-		    unless ( exists($binding->{'isDeferred'}) );
-	    }
-	    # For extensions, copy any binding from the parent class.
-	    if ( exists($component->{'extends'}) ) {
-		my $parentID        = ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'});
-		my $parentComponent = $buildData->{'components'}->{$parentID};
-		foreach my $parentBinding ( @{$parentComponent->{'bindings'}->{'binding'}} ) {
-		    if ( $parentBinding->{'isDeferred'} eq "true" ){
-			my $copyBinding = 1;
-			foreach my $binding ( @{$component->{'bindings'}->{'binding'}} ) {
-			    if ( $binding->{'method'} eq $parentBinding->{'method'} ) {
-				$copyBinding = 0;
-				last;
-			    }
-			}
-			push(
-			    @{$component->{'bindings'}->{'binding'}},
-			    $parentBinding
-			    )
-			    if ( $copyBinding == 1 );
-		    }
-		}
-	    }
-	    # Iterate over properties.
-	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
-		# Get the property.
-		my $property = $component->{'properties'}->{'property'}->{$propertyName};
-		# Add the property's name.
-		$property->{'name'} = $propertyName;
-		# Binding.
-		$property->{'attributes'}->{'bindsTo'} = "component"
-		    unless ( exists($property->{'attributes'}->{'bindsTo'}) );
-		# Auto-creation.
-		$property->{'attributes'}->{'createIfNeeded'} = "false"
-		    unless ( exists($property->{'attributes'}->{'createIfNeeded'}) );
-		# Deferred status.
-		$property->{'attributes'}->{'isDeferred'} = ""
-		    unless ( exists($property->{'attributes'}->{'isDeferred'}) );
-		# Generic status.
-		$property->{'attributes'}->{'makeGeneric'} = "false"
-		    unless ( exists($property->{'attributes'}->{'makeGeneric'}) );
-		# isEvolable synonym.
-		$property->{'attributes'}->{'isRatetable'} = $property->{'attributes'}->{'isEvolvable'};
-		# Rate function.
-		$property->{'rateFunction'} = $componentID.ucfirst($propertyName)."Rate"
-		    unless ( exists($property->{'rateFunction'}) );
-		# Get function.
-		if ( exists($property->{'getFunction'}) ) {
-		    # A getFunction element was specified.
-		    if ( defined(reftype($property->{'getFunction'})) ) {
-			# The getFunction element contains structure, so simple set its bindsTo element if not already defined.
-			$property->{'getFunction'}->{'bindsTo'} = "component"
-			    unless ( exists($property->{'getFunction'}->{'bindsTo'}) );
-		    } else {
-			# The getFunction element is simply the function name. Replace with a structure with default binding.
-			$property->{'getFunction'} = 
-			{
-			    content => $property->{'getFunction'},
-			    bindsTo => "component"
-			};
-		    }
-		    # Since getFunction was specified, we will not need to build a get function.
-		    $property->{'getFunction'}->{'build'} = "false";
-		} else {
-		    # No getFunction element was specified, assign a default function and record that a get function must be built.
-		    $property->{'getFunction'} = 
-		    {
-			content => lcfirst($componentID).ucfirst($propertyName)."Get",
-			bindsTo => "component"                               ,
-			build   => "true"
-		    };
-		}
-		# Set function.
-		if ( exists($property->{'setFunction'}) ) {
-		    # A setFunction element was specified.
-		    if ( defined(reftype($property->{'setFunction'})) ) {
-			# The setFunction element contains structure, so simple set its bindsTo element if not already defined.
-			$property->{'setFunction'}->{'bindsTo'} = "component"
-			    unless ( exists($property->{'setFunction'}->{'bindsTo'}) );
-		    } else {
-			# The setFunction element is simply the function name. Replace with a structure with default binding.
-			$property->{'setFunction'} = 
-			{
-			    content => $property->{'setFunction'},
-			    bindsTo => "component"
-			};
-		    }
-		    # Since setFunction was specified, we will not need to build a set function.
-		    $property->{'setFunction'}->{'build'} = "false";
-		} else {
-		    # No setFunction element was specified, assign a default function and record that a set function must be built.
-		    $property->{'setFunction'} = 
-		    {
-			content => lcfirst($componentID).ucfirst($propertyName)."Set",
-			bindsTo => "component"                               ,
-			build   => "true"
-		    };
-		}
-	    }
-	}
-    }
-}
-
 sub Generate_Node_Component_Type{
     # Generate the top-level object in the class hierachy: nodeComponent.
     my $buildData = shift;
@@ -944,7 +830,7 @@ sub Generate_Component_Classes{
 				    type => "procedure",
 				    name => $_->{'method'},
 				    );
-				if ( $_->{'isDeferred'} eq "false" ) {
+				if ( ! $_->{'isDeferred'} ) {
 				    # Binding is not deferred, simply map to the given function.
 				    $function{'function'} = $_->{'function'};
 				} else {
@@ -1061,7 +947,7 @@ sub Generate_Implementations {
 		    type        => "procedure",
 		    name        => $_->{'method'}
 		    );
-		if ( $_->{'isDeferred'} eq "false" ) {
+		if ( ! $_->{'isDeferred'} ) {
 		    # Binding is not deferred, simply map to the given function.
 		    $function{'function'} = $_->{'function'};
 		} else {
@@ -1160,7 +1046,7 @@ sub Generate_Deferred_Binding_Procedure_Pointers {
 	my $component = $buildData->{'components'}->{$componentID};
 	# Iterate over bindings.
 	foreach my $binding ( @{$component->{'bindings'}->{'binding'}} ) {
-	    if ( $binding->{'isDeferred'} eq "true" ) {
+	    if ( $binding->{'isDeferred'} ) {
 		# Create a pointer for the component class level if needed.
 		my $classFunctionName = $component->{'class'}.ucfirst($binding->{'method'});
 		if ( $binding->{'bindsTo'} eq 'componentClass' && ! exists($classPointers{$classFunctionName}) ) {
@@ -1213,7 +1099,7 @@ sub Generate_Deferred_Binding_Functions {
 	my $component = $buildData->{'components'}->{$componentID};
 	# Iterate over bindings.
 	foreach my $binding ( @{$component->{'bindings'}->{'binding'}} ) {
-	    if ( $binding->{'isDeferred'} eq "true" ) {
+	    if ( $binding->{'isDeferred'} ) {
 		# Determine type and arguments of the function.
 		my $type = $binding->{'interface'}->{'type'};
 		($type, my $name, my $attributeList) = &dataObjectPrimitiveName($binding->{'interface'})
@@ -1465,7 +1351,7 @@ sub Generate_Deferred_Procedure_Pointers {
 		    # Determine if this attribute is deferred and has not yet had a procedure pointer created.
 		    if (
 			$property->{'attributes' }->{'isDeferred'} =~ m/$_/ 
-			&& $property->{'attributes' }->{'is'.ucfirst($_).'table'}
+			&& $property->{'attributes' }->{$attributeAdjective{$_}}
 			&& ! exists($createdPointers{$functionLabel})
 			) {
 			# Construct the template function.
