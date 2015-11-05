@@ -26,6 +26,7 @@ require File::Changes;
 require Fortran::Utils;
 require Galacticus::Build::Hooks;
 require Galacticus::Build::Components::Utils;
+require Galacticus::Build::Components::BaseTypes;
 require Galacticus::Build::Components::Classes;
 require Galacticus::Build::Components::Implementations;
 require Galacticus::Build::Components::Properties;
@@ -71,27 +72,27 @@ sub Components_Validate {
 
 sub Components_Parse_Directive {
     # Parse content for a "component" directive.
-    my $buildData = shift;
+    my $build = shift;
 
     # Assert that we have a name and class.
     die("Galacticus::Build::Components::Components_Parse_Directive: no currentDocument present")
-	unless ( exists($buildData->{'currentDocument'}           ) );
+	unless ( exists($build->{'currentDocument'}           ) );
     die("Galacticus::Build::Components::Components_Parse_Directive: no name present"           )
-	unless ( exists($buildData->{'currentDocument'}->{'name' }) );
+	unless ( exists($build->{'currentDocument'}->{'name' }) );
     die("Galacticus::Build::Components::Components_Parse_Directive: no class present"          )
-	unless ( exists($buildData->{'currentDocument'}->{'class'}) );
+	unless ( exists($build->{'currentDocument'}->{'class'}) );
     # Construct an ID for this component.
-    my $componentID = ucfirst($buildData->{'currentDocument'}->{'class'}).ucfirst($buildData->{'currentDocument'}->{'name'});    
+    my $componentID = ucfirst($build->{'currentDocument'}->{'class'}).ucfirst($build->{'currentDocument'}->{'name'});    
     # Store a copy of the component's defining document.
-    $buildData->{'components'}->{$componentID} = $buildData->{'currentDocument'};
+    $build->{'components'}->{$componentID} = $build->{'currentDocument'};
 }
 
 sub Components_Generate_Output {
     # Generate output for a "component" directive.
-    my $buildData = shift;
+    my $build = shift;
 
     # Construct a list of all component names.
-    @{$buildData->{'componentIdList'}} = &ExtraUtils::sortedKeys($buildData->{'components'});
+    @{$build->{'componentIdList'}} = &ExtraUtils::sortedKeys($build->{'components'});
 
     # Sort hooks.
     my @hooks = map
@@ -106,17 +107,15 @@ sub Components_Generate_Output {
 	    if ( exists($hook->{'hook'}->{$phase}) ) {
 		foreach my $function ( &ExtraUtils::as_array($hook->{'hook'}->{$phase}) ) {
 		    print "      --> ".$hook->{'name'}."\n";
-		    &{$function}($buildData);
+		    &{$function}($build);
 		}
 	    }
 	}
     }
 
     # Iterate over all functions, calling them with the build data object.
-    &{$_}($buildData)
+    &{$_}($build)
 	foreach (
-	    # Generate the nodeComponent type.
-	    \&Generate_Node_Component_Type                           ,
 	    # Generate component class types.
 	    \&Generate_Component_Classes                             ,
 	    # Sort component implementations such that they will be defined after any component of which they are an extension.
@@ -234,14 +233,14 @@ sub Components_Generate_Output {
 	);
 
     # Insert all functions into content.
-    $buildData->{'content'} .= join("\n",@{$buildData->{'code'}->{'functions'}})."\n";
+    $build->{'content'} .= join("\n",@{$build->{'code'}->{'functions'}})."\n";
     
     # Insert include statements to bring in all functions associated with components.
     my @includeDependencies;
-    foreach my $component ( @{$buildData->{'componentIdList'}} ) {
-     	if ( exists($buildData->{'components'}->{$component}->{'functions'}) ) {
-     	    $buildData->{'content'} .= "  include \"".$buildData->{'components'}->{$component}->{'functions'}."\"\n";
-     	    push(@includeDependencies,$buildData->{'components'}->{$component}->{'functions'});
+    foreach my $component ( @{$build->{'componentIdList'}} ) {
+     	if ( exists($build->{'components'}->{$component}->{'functions'}) ) {
+     	    $build->{'content'} .= "  include \"".$build->{'components'}->{$component}->{'functions'}."\"\n";
+     	    push(@includeDependencies,$build->{'components'}->{$component}->{'functions'});
      	}
     }
 
@@ -256,11 +255,11 @@ sub Components_Generate_Output {
 
 sub Get_Type {
     # Returns the type of a method of pipe.
-    my $buildData->{'currentDocument'} = shift;
+    my $build->{'currentDocument'} = shift;
     # Assume scalar type by default
     my $type = "scalar";
     # If a type is specified, then return it instead.
-    if ( exists($buildData->{'currentDocument'}->{'type'}) ) {$type = $buildData->{'currentDocument'}->{'type'}};
+    if ( exists($build->{'currentDocument'}->{'type'}) ) {$type = $build->{'currentDocument'}->{'type'}};
     return $type;
 }
 
@@ -393,220 +392,13 @@ sub pad {
     return $paddedText;
 }
 
-sub Generate_Node_Component_Type{
-    # Generate the top-level object in the class hierachy: nodeComponent.
-    my $buildData = shift;
-    # Define type-bound functions.
-    my @typeBoundFunctions = 
-	(
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "type"                                                                                                 ,
-	     function    => "Node_Component_Generic_Type"                                                                          ,
-	     description => "Return the type of this object."                                                                      ,
-	     returnType  => "\\textcolor{red}{\\textless type(varying\\_string)\\textgreater}"                                     ,
-	     arguments   => ""
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "host"                                                                                                 ,
-	     function    => "Node_Component_Host_Node"                                                                             ,
-	     description => "Return a pointer to the host {\\normalfont \\ttfamily treeNode} object."                                                 ,
-	     returnType  => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater}"                                            ,
-	     arguments   => ""
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "destroy"                                                                                              ,
-	     function    => "Node_Component_Generic_Destroy"                                                                       ,
-	     description => "Destroy the object."                                                                                  ,
-	     returnType  => "\\void"                                                                                               ,
-	     arguments   => ""
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "serializeCount"                                                                                       ,
-	     function    => "Node_Component_Serialize_Count_Zero"                                                                  ,
-	     description => "Return a count of the number of evolvable quantities to be evolved."                                  ,
-	     returnType  => "\\intzero"                                                                                            ,
-	     arguments   => ""
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "serializationOffsets"                                                                                 ,
-	     function    => "Node_Component_Serialization_Offsets"                                                                 ,
-	     description => "Set offsets into serialization arrays."                                                               ,
-	     returnType  => "\\void"                                                                                               ,
-	     arguments   => ""
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "serializeValues"                                                                                      ,
-	     function    => "Node_Component_Serialize_Null"                                                                        ,
-	     description => "Serialize the evolvable quantities to an array."                                                      ,
-	     returnType  => "\\void"                                                                                               ,
-	     arguments   => "\\doubleone\\ array\\argin"
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "readRaw"                                                                                              ,
-	     function    => "Node_Component_Read_Raw_Null"                                                                         ,
-	     description => "Read properties from raw file."                                                                       ,
-	     returnType  => "\\void"                                                                                               ,
-	     arguments   => "\\intzero\\ fileHandle\\argin"
-	 },	 
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "deserializeValues"                                                                                    ,
-	     function    => "Node_Component_Deserialize_Null"                                                                      ,
-	     description => "Deserialize the evolvable quantities from an array."                                                  ,
-	     returnType  => "\\void"                                                                                               ,
-	     arguments   => "\\doubleone\\ array\\argout"
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "odeStepRatesInitialize"                                                                               ,
-	     function    => "Node_Component_ODE_Step_Initialize_Null"                                                              ,
-	     description => "Initialize rates for evolvable properties."                                                           ,
-	     returnType  => "\\void"                                                                                               ,
-	     arguments   => ""
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "odeStepScalesInitialize"                                                                              ,
-	     function    => "Node_Component_ODE_Step_Initialize_Null"                                                              ,
-	     description => "Initialize scales for evolvable properties."                                                          ,
-	     returnType  => "\\void"                                                                                               ,
-	     arguments   => ""          
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "dump"                                                                                                 ,
-	     function    => "Node_Component_Dump_Null"                                                                             ,
-	     description => "Generate an ASCII dump of all properties."                                                            ,
-	     returnType  => "\\void"                                                                                               ,
-	     arguments   => ""
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "dumpXML"                                                                                              ,
-	     function    => "Node_Component_Dump_XML_Null"                                                                         ,
-	     description => "Generate an XML dump of all properties."                                                              ,
-	     returnType  => "\\void"                                                                                               ,
-	     arguments   => ""
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "dumpRaw"                                                                                              ,
-	     function    => "Node_Component_Dump_Raw_Null"                                                                         ,
-	     description => "Generate a binary dump of all properties."                                                            ,
-	     returnType  => "\\void"                                                                                               ,
-	     arguments   => "\\intzero\\ fileHandle\\argin"                   
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "outputCount"                                                                                          ,
-	     function    => "Node_Component_Output_Count_Null"                                                                     ,
-	     description => "Compute a count of outputtable properties."                                                           ,
-	     returnType  => "\\void"                                                                                               ,
-	     arguments   => "\\intzero\\ integerPropertyCount\\arginout, \\intzero\\ doublePropertyCount\\arginout, \\doublezero\\ time\\argin, \\intzero\\ instance\\argin"
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "outputNames"                                                                                          ,
-	     function    => "Node_Component_Output_Names_Null"                                                                     ,
-	     description => "Generate names of outputtable properties."                                                            ,
-	     returnType  => "\\void"                                                                                               ,
-	     arguments   => "\\intzero\\ integerProperty\\arginout, \\textcolor{red}{\\textless char[*](:)\\textgreater} integerPropertyNames\\arginout, \\textcolor{red}{\\textless char[*](:)\\textgreater} integerPropertyComments\\arginout, \\doubleone\\ integerPropertyUnitsSI\\arginout, \\intzero\\ doubleProperty\\arginout, \\textcolor{red}{\\textless char[*](:)\\textgreater} doublePropertyNames\\arginout, \\textcolor{red}{\\textless char[*](:)\\textgreater} doublePropertyComments\\arginout, \\doubleone\\ doublePropertyUnitsSI\\arginout, \\doublezero\\ time\\argin, \\intzero\\ instance\\argin"
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "output"                                                                                               ,
-	     function    => "Node_Component_Output_Null"                                                                           ,
-	     description => "Generate values of outputtable properties."                                                           ,
-	     returnType  => "\\void"                                                                                               ,
-	     arguments   => "\\intzero\\ integerProperty\\arginout, \\intzero\\ integerBufferCount\\arginout, \\inttwo\\ integerBuffer\\arginout, \\intzero doubleProperty\\arginout, \\intzero\\ doubleBufferCount\\arginout, \\doubletwo\\ doubleBuffer\\arginout, \\doublezero\\ time\\argin, \\intzero\\ instance\\argin"
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "enclosedMass"                                                                                         ,
-	     function    => "Node_Component_Enclosed_Mass_Null"                                                                    ,
-	     description => "Compute the mass enclosed within a radius."                                                           ,
-	     mappable    => "summation"                                                                                            ,
-	     returnType  => "\\doublezero"                                                                                         ,
-	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\enumWeightBy\\ [weightBy]\\argin, \\intzero\\ [weightIndex]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "density"                                                                                              ,
-	     function    => "Node_Component_Density_Null"                                                                          ,
-	     description => "Compute the density."                                                                                 ,
-	     returnType  => "\\doublezero"                                                                                         ,
-	     arguments   => "\\textcolor{red}{\\textless double(3)\\textgreater} positionSpherical\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\enumWeightBy\\ [weightBy]\\argin, \\intzero\\ [weightIndex]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "surfaceDensity"                                                                                       ,
-	     function    => "Node_Component_Surface_Density_Null"                                                                  ,
-	     description => "Compute the surface density."                                                                         ,
-	     mappable    => "summation"                                                                                            ,
-	     returnType  => "\\doublezero"                                                                                         ,
-	     arguments   => "\\textcolor{red}{\\textless double(3)\\textgreater} positionCylindrical\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\enumWeightBy\\ [weightBy]\\argin, \\intzero\\ [weightIndex]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "potential"                                                                                            ,
-	     function    => "Node_Component_Potential_Null"                                                                        ,
-	     description => "Compute the gravitational potential."                                                                 ,
-	     returnType  => "\\doublezero"                                                                                         ,
-	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "rotationCurve"                                                                                        ,
-	     function    => "Node_Component_Rotation_Curve_Null"                                                                   ,
-	     description => "Compute the rotation curve."                                                                          ,
-	     mappable    => "summation"                                                                                            ,
-	     returnType  => "\\doublezero"                                                                                         ,
-	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "rotationCurveGradient"                                                                                ,
-	     function    => "Node_Component_Rotation_Curve_Gradient_Null"                                                          ,
-	     description => "Compute the rotation curve gradient."                                                                 ,
-	     returnType  => "\\doublezero"                                                                                         ,
-	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
-	 }
-	);
-    # Specify the data content.
-    my @dataContent =
-	(
-	 {
-	     intrinsic  => "type",
-	     type       => "treeNode",
-	     attributes => [ "pointer", "public" ],
-	     variables  => [ "hostNode" ]
-	 }
-	);
-    # Create the nodeComponent class.
-    $buildData->{'types'}->{'nodeComponent'} = {
-	name           => "nodeComponent",
-	comment        => "A class for components in \\glspl{node}.",
-	isPublic       => "true",
-	boundFunctions => \@typeBoundFunctions,
-	dataContent    => \@dataContent
-    };
-
-}
-
 sub Generate_Component_Classes{
     # Generate object types for each component class.
-    my $buildData = shift;
+    my $build = shift;
     
     # Iterate over all component classes.
     my %classGetDefaults;
-    foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
+    foreach my $componentClass ( @{$build->{'componentClassList'}} ) {
 	# Define a hash to record which properties have already been created.
 	my %propertiesCreated;
 
@@ -614,13 +406,13 @@ sub Generate_Component_Classes{
 	my @typeBoundFunctions;
 
   	# Insert definitions for each method associated with a component implementation of this component class.
-    	foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClass}->{'members'}} ) {
+    	foreach my $implementationName ( @{$build->{'componentClasses'}->{$componentClass}->{'members'}} ) {
 	    # Construct a fully-qualified name for this implementation.
 	    my $componentName = ucfirst($componentClass).ucfirst($implementationName);
 	    # Iterate over properties beloning to this implementation.
-	    foreach my $propertyName ( &ExtraUtils::sortedKeys($buildData->{'components'}->{$componentName}->{'properties'}->{'property'}) ) {
+	    foreach my $propertyName ( &ExtraUtils::sortedKeys($build->{'components'}->{$componentName}->{'properties'}->{'property'}) ) {
 		# Get the property.
-		my $property = $buildData->{'components'}->{$componentName}->{'properties'}->{'property'}->{$propertyName};
+		my $property = $build->{'components'}->{$componentName}->{'properties'}->{'property'}->{$propertyName};
 		# Create functions to set/get/evolve each property as necessary.
 		if ( 
 		    $property->{'attributes'}->{'isGettable' }
@@ -634,13 +426,13 @@ sub Generate_Component_Classes{
 		    (my $intrinsic,my $type,my $attributes) = &dataObjectPrimitiveName($property);
 		    $type .= $property->{'rank'}."InOut";
 		    # Record the null bindings needed.
-		    $buildData->{'nullProperties'}->{$componentClass}->{"Integer0In"} =
+		    $build->{'nullProperties'}->{$componentClass}->{"Integer0In"} =
 		    {
 			type   => "integer",
 			rank   => 0        ,
 			intent => "in"
 		    };
-		    $buildData->{'nullProperties'}->{$componentClass}->{$type       } = 
+		    $build->{'nullProperties'}->{$componentClass}->{$type       } = 
 		    {
 			type   => $property->{'type'},
 			rank   => $property->{'rank'},
@@ -717,8 +509,8 @@ sub Generate_Component_Classes{
 			}
 		    }
 		    # Add any bindings which bind at the component class level.
-		    if ( exists($buildData->{'components'}->{$componentName}->{'bindings'}) ) {
-			foreach ( @{$buildData->{'components'}->{$componentName}->{'bindings'}->{'binding'}} ) {
+		    if ( exists($build->{'components'}->{$componentName}->{'bindings'}) ) {
+			foreach ( @{$build->{'components'}->{$componentName}->{'bindings'}->{'binding'}} ) {
 			    if ( $_->{'bindsTo'} eq "componentClass" ) {
 				print Dumper($_);
 				my %function = (
@@ -764,10 +556,10 @@ sub Generate_Component_Classes{
 	    }
 	}
 	# Create the type.
-	$buildData->{'types'}->{'nodeComponent'.ucfirst($componentClass)} = {
+	$build->{'types'}->{'nodeComponent'.ucfirst($componentClass)} = {
 	    name           => "nodeComponent".ucfirst($componentClass),
 	    comment        => "Type for the {\\normalfont \\ttfamily ".$componentClass."} component class.",
-	    isPublic       => "true",
+	    isPublic       => 1,
 	    extends        => "nodeComponent",
 	    boundFunctions => \@typeBoundFunctions,
 	};
@@ -776,12 +568,12 @@ sub Generate_Component_Classes{
 
 sub Sort_Implementations {
     # Sort component implementations such that they will be defined after any component of which they are an extension.
-    my $buildData = shift;
+    my $build = shift;
     # Construct depenencies for type extension.
     my %dependencies;
-    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
+    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
 	# Get the component.
-	my $component = $buildData->{'components'}->{$componentID};
+	my $component = $build->{'components'}->{$componentID};
 	# Get the parent class.
 	my $componentClassName = $component->{'class'};
     	# By default this component will be an extension of the base "nodeComponent" class.
@@ -792,17 +584,17 @@ sub Sort_Implementations {
 	push(@{$dependencies{$extensionOf}},$componentID);
     }
     # Perform a dependency sort on the implementation list.
-    @{$buildData->{'componentIdList'}} = toposort(sub { @{$dependencies{$_[0]} || []}; }, \@{$buildData->{'componentIdList'}});
+    @{$build->{'componentIdList'}} = toposort(sub { @{$dependencies{$_[0]} || []}; }, \@{$build->{'componentIdList'}});
 
 }
 
 sub Generate_Implementations {
     # Generate a type for each component implementation.
-    my $buildData = shift;
+    my $build = shift;
     # Create classes for each specific implementation.
-    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
+    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
 	# Get the implementation.
-	my $component          = $buildData->{'components'}->{$componentID};
+	my $component          = $build->{'components'}->{$componentID};
 	# Get the parent class.
 	my $componentClassName = $component->{'class'};
     	# Determine the name of the class which this component extends (use the "nodeComponent" class by default).
@@ -889,10 +681,10 @@ sub Generate_Implementations {
 		);
 	}
 	# Create the type.
-	$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)} = {
+	$build->{'types'}->{'nodeComponent'.ucfirst($componentID)} = {
 	    name           => "nodeComponent".ucfirst($componentID),
 	    comment        => "Class for the ".$component->{'name'}." implementation of the ".$componentClassName." component.",
-	    isPublic       => "true",
+	    isPublic       => 1,
 	    extends        => $extensionOf,
 	    boundFunctions => \@typeBoundFunctions,
 	    dataContent    => \@dataContent
@@ -902,7 +694,7 @@ sub Generate_Implementations {
 
 sub Generate_Active_Implementation_Records{
     # Generate records of which component implementations are selected.
-    my $buildData = shift;
+    my $build = shift;
     # Create a table.
     my $recordTable = Text::Table->new(
 	{
@@ -918,25 +710,25 @@ sub Generate_Active_Implementation_Records{
 	}
 	);
     # Iterate over all component implementations.
-    foreach ( @{$buildData->{'componentIdList'}} ) {
+    foreach ( @{$build->{'componentIdList'}} ) {
 	$recordTable->add("nodeComponent".$_."IsActive");
     }
     # Insert into the document.
-    $buildData->{'content'} .= "  ! Records of which component implementations are active.\n";
-    $buildData->{'content'} .= $recordTable->table()."\n";
+    $build->{'content'} .= "  ! Records of which component implementations are active.\n";
+    $build->{'content'} .= $recordTable->table()."\n";
 }
 
 sub Generate_Deferred_Binding_Procedure_Pointers {
     # Generate deferred binding procedure pointers.
-    my $buildData = shift;
+    my $build = shift;
     # Initialize data content.
     my @dataContent;
     # Initialize class pointers.
     my %classPointers;
     # Iterate over component implementations.
-    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
+    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
 	# Get the component.
-	my $component = $buildData->{'components'}->{$componentID};
+	my $component = $build->{'components'}->{$componentID};
 	# Iterate over bindings.
 	foreach my $binding ( @{$component->{'bindings'}->{'binding'}} ) {
 	    if ( $binding->{'isDeferred'} ) {
@@ -976,20 +768,20 @@ sub Generate_Deferred_Binding_Procedure_Pointers {
 	    }
 	}
     }
-    $buildData->{'content'} .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent, indent => 2)."\n";
+    $build->{'content'} .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent, indent => 2)."\n";
 }
 
 sub Generate_Deferred_Binding_Functions {
     # Generate deferred binding functions.
-    my $buildData = shift;
+    my $build = shift;
     # Initialize class functions.
     my %classFunctions;
     # Initialize interfaces.
     my %interfaces;
     # Iterate over component implementations.
-    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
+    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
 	# Get the component.
-	my $component = $buildData->{'components'}->{$componentID};
+	my $component = $build->{'components'}->{$componentID};
 	# Iterate over bindings.
 	foreach my $binding ( @{$component->{'bindings'}->{'binding'}} ) {
 	    if ( $binding->{'isDeferred'} ) {
@@ -1033,22 +825,22 @@ sub Generate_Deferred_Binding_Functions {
 		    my $parentComponent = $component;
 		    while ( exists($parentComponent->{'extends'}) ) {
 			$highLevel = ucfirst($parentComponent->{'extends'}->{'class'}).ucfirst($parentComponent->{'extends'}->{'name'});
-			$parentComponent = $buildData->{'components'}->{$highLevel};
+			$parentComponent = $build->{'components'}->{$highLevel};
 		    }
 		}
 		# Create an abstract interface for the deferred function.
 		my $interfaceName = $component->{'class'}.ucfirst($binding->{'method'});
 		unless ( exists($interfaces{$interfaceName}) ) {
-		    $buildData->{'content'} .= "abstract interface\n";
-		    $buildData->{'content'} .= "  ".$type." ".$interfaceName."Interface(".join(",",@arguments).")\n";
-		    $buildData->{'content'} .= "    import nodeComponent".$highLevel."\n"
+		    $build->{'content'} .= "abstract interface\n";
+		    $build->{'content'} .= "  ".$type." ".$interfaceName."Interface(".join(",",@arguments).")\n";
+		    $build->{'content'} .= "    import nodeComponent".$highLevel."\n"
 			if ( $binding->{'interface'}->{'self'}->{'pass'} eq "true" );
-		    $buildData->{'content'} .= "    class(nodeComponent".$highLevel."), intent(".$binding->{'interface'}->{'self'}->{'intent'}.") :: self\n"
+		    $build->{'content'} .= "    class(nodeComponent".$highLevel."), intent(".$binding->{'interface'}->{'self'}->{'intent'}.") :: self\n"
 			if ( $binding->{'interface'}->{'self'}->{'pass'} eq "true" );
-		    $buildData->{'content'} .= "    ".$_."\n"
+		    $build->{'content'} .= "    ".$_."\n"
 			foreach ( @{$binding->{'interface'}->{'argument'}} );
-		    $buildData->{'content'} .= "  end ".$endType." ".$interfaceName."Interface\n";
-		    $buildData->{'content'} .= "end interface\n\n";
+		    $build->{'content'} .= "  end ".$endType." ".$interfaceName."Interface\n";
+		    $build->{'content'} .= "end interface\n\n";
 		    $interfaces{$interfaceName} = 1;
 		}
 		# Create functions for the component class level if needed.
@@ -1073,7 +865,7 @@ sub Generate_Deferred_Binding_Functions {
 		    $functionCode .= "  end subroutine ".$classFunctionName."DeferredFunctionSet\n";
 		    # Insert into the function list.
 		    push(
-			@{$buildData->{'code'}->{'functions'}},
+			@{$build->{'code'}->{'functions'}},
 			$functionCode
 			);
 		    $functionCode  = "  logical function ".$classFunctionName."DfrrdFnctnIsSet()\n";
@@ -1084,7 +876,7 @@ sub Generate_Deferred_Binding_Functions {
 		    $functionCode .= "  end function ".$classFunctionName."DfrrdFnctnIsSet\n";
 		    # Insert into the function list.
 		    push(
-			@{$buildData->{'code'}->{'functions'}},
+			@{$build->{'code'}->{'functions'}},
 			$functionCode
 			);
 		    # Create a function to call the deferred function.
@@ -1108,7 +900,7 @@ sub Generate_Deferred_Binding_Functions {
 		    $functionCode .= "  end ".$endType." ".$classFunctionName."\n";
 		    # Insert into the function list.
 		    push(
-			@{$buildData->{'code'}->{'functions'}},
+			@{$build->{'code'}->{'functions'}},
 			$functionCode
 			);
 		    # Record that we have created functions for this class.
@@ -1135,7 +927,7 @@ sub Generate_Deferred_Binding_Functions {
 		$functionCode .= "  end subroutine ".$componentFunctionName."DeferredFunctionSet\n";
 		# Insert into the function list.
 		push(
-		    @{$buildData->{'code'}->{'functions'}},
+		    @{$build->{'code'}->{'functions'}},
 		    $functionCode
 		    );
 		$functionCode  = "  logical function ".$componentFunctionName."DfrrdFnctnIsSet()\n";
@@ -1146,7 +938,7 @@ sub Generate_Deferred_Binding_Functions {
 		$functionCode .= "  end function ".$componentFunctionName."DfrrdFnctnIsSet\n";
 		# Insert into the function list.
 		push(
-		    @{$buildData->{'code'}->{'functions'}},
+		    @{$build->{'code'}->{'functions'}},
 		    $functionCode
 		    );
 		# Create a function that calls the deferred function.
@@ -1187,7 +979,7 @@ sub Generate_Deferred_Binding_Functions {
 		$functionCode .= "  end ".$endType." ".$componentFunctionName."\n";
 		# Insert into the function list.
 		push(
-		    @{$buildData->{'code'}->{'functions'}},
+		    @{$build->{'code'}->{'functions'}},
 		    $functionCode
 		    );
 	    }
@@ -1197,17 +989,17 @@ sub Generate_Deferred_Binding_Functions {
 
 sub Generate_Deferred_Procedure_Pointers {
     # Generate deferred procedure pointers.
-    my $buildData = shift;
+    my $build = shift;
     # Initialize record of pointers which have been created.
     my %createdPointers;
     # Insert comment.
-    $buildData->{'content'} .= "  ! Procedure pointers for deferred custom functions.\n";
+    $build->{'content'} .= "  ! Procedure pointers for deferred custom functions.\n";
     # Initialize data content.
     my @dataContent;
     # Iterate over component implementations.
-    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
+    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
 	# Get the component.
-	my $component = $buildData->{'components'}->{$componentID};
+	my $component = $build->{'components'}->{$componentID};
 	# Get the component class name.
 	my $componentClassName = $component->{'class'};
 	# Create pointer for deferred create functions.
@@ -1266,7 +1058,7 @@ sub Generate_Deferred_Procedure_Pointers {
 			    },
 			    );
 			# Add the required null property to the list.
-			$buildData->{'nullProperties'}->{$selfType}->{$dataType."InOut"} =
+			$build->{'nullProperties'}->{$selfType}->{$dataType."InOut"} =
 			{
 			    type   => $property->{'type'},
 			    rank   => $property->{'rank'},
@@ -1280,12 +1072,12 @@ sub Generate_Deferred_Procedure_Pointers {
 	}
     }
     # Insert data content.
-    $buildData->{'content'} .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent, indent => 2)."\n";
+    $build->{'content'} .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent, indent => 2)."\n";
 }
 
 sub Generate_Node_Event_Interface {
     # Generate interace for node event tasks.
-    my $buildData = shift;
+    my $build = shift;
     # Initialize data content.
     @code::dataContent = 
 	(
@@ -1308,7 +1100,7 @@ sub Generate_Node_Event_Interface {
 	 }
 	);
     # Insert interface.
-    $buildData->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+    $build->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 ! Interface for node event tasks.
 abstract interface
   logical function nodeEventTask(thisEvent,thisNode,deadlockStatus)
@@ -1321,10 +1113,10 @@ CODE
 
 sub Generate_Default_Component_Sources{
     # Generate records of which component implementations are selected.
-    my $buildData = shift;
+    my $build = shift;
     # Create default objects for each class.
-    $buildData->{'content'} .= "  ! Objects that will record which type of each component is to be used by default.\n";
-    $buildData->{'content'} .= &Fortran_Utils::Format_Variable_Defintions
+    $build->{'content'} .= "  ! Objects that will record which type of each component is to be used by default.\n";
+    $build->{'content'} .= &Fortran_Utils::Format_Variable_Defintions
 	(
 	 [
 	  map
@@ -1336,13 +1128,13 @@ sub Generate_Default_Component_Sources{
 		  variables  => [ "default".ucfirst($_)."Component" ]
 	      }
 	  } 
-	  @{$buildData->{'componentClassList'}}
+	  @{$build->{'componentClassList'}}
 	 ],
 	 indent => 2
 	);
     # Create source objects for each class.
-    $buildData->{'content'} .= "  ! Objects used to allocate components of given class..\n";
-    $buildData->{'content'} .= &Fortran_Utils::Format_Variable_Defintions
+    $build->{'content'} .= "  ! Objects used to allocate components of given class..\n";
+    $build->{'content'} .= &Fortran_Utils::Format_Variable_Defintions
 	(
 	 [
 	  map
@@ -1354,7 +1146,7 @@ sub Generate_Default_Component_Sources{
 		  variables  => [ $_."Class" ]
 	      }
 	  } 
-	  @{$buildData->{'componentClassList'}}
+	  @{$build->{'componentClassList'}}
 	 ],
 	 indent => 2
 	);
@@ -1362,15 +1154,15 @@ sub Generate_Default_Component_Sources{
 
 sub Generate_Initialization_Status {
     # Generate a variable that stores initialization status..
-    my $buildData = shift;
+    my $build = shift;
     # Insert into the document.
-    $buildData->{'content'} .= "  ! Record of module initialization status.\n";
-    $buildData->{'content'} .= "  logical :: moduleIsInitialized=.false.\n";
+    $build->{'content'} .= "  ! Record of module initialization status.\n";
+    $build->{'content'} .= "  logical :: moduleIsInitialized=.false.\n";
 }
 
 sub Generate_Tree_Node_Object {
     # Generate the treeNode object.
-    my $buildData = shift;
+    my $build = shift;
 
     # Define bound functions.
     my @typeBoundFunctions = 
@@ -1653,7 +1445,7 @@ sub Generate_Tree_Node_Object {
 	     variables  => [ "hostTree" ]
 	 }
 	);
-    foreach ( @{$buildData->{'componentClassList'}} ) {
+    foreach ( @{$build->{'componentClassList'}} ) {
 	push(
 	    @dataContent,
 	    {
@@ -1666,10 +1458,10 @@ sub Generate_Tree_Node_Object {
 	    );
     }
     # Create the tree node class.
-    $buildData->{'types'}->{'treeNode'} = {
+    $build->{'types'}->{'treeNode'} = {
 	name           => "treeNode",
 	comment        => "A class for \\glspl{node} in merger trees.",
-	isPublic       => "true",
+	isPublic       => 1,
 	boundFunctions => \@typeBoundFunctions,
 	dataContent    => \@dataContent
     };
@@ -1677,7 +1469,7 @@ sub Generate_Tree_Node_Object {
 
 sub Generate_Node_Event_Object {
     # Generate the nodeEvent object.
-    my $buildData = shift;
+    my $build = shift;
     # Add data content.
     my @dataContent =
 	(
@@ -1712,17 +1504,17 @@ sub Generate_Node_Event_Object {
 	 }
 	);
     # Create the tree node class.
-    $buildData->{'types'}->{'nodeEvent'} = {
+    $build->{'types'}->{'nodeEvent'} = {
 	name           => "nodeEvent",
 	comment        => "Type for events attached to nodes.",
-	isPublic       => "true",
+	isPublic       => 1,
 	dataContent    => \@dataContent
     };
 }
 
 sub Generate_Initialization_Function {
     # Generate an initialization function.
-    my $buildData = shift;
+    my $build = shift;
     # Generate the function code.
     my $functionCode;
     $functionCode .= "  subroutine Galacticus_Nodes_Initialize()\n";
@@ -1740,8 +1532,8 @@ sub Generate_Initialization_Function {
 	     variables  => [ "methodSelection", "message" ]
 	 }
 	);
-    foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
-    	foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClass}->{'members'}} ) {
+    foreach my $componentClass ( @{$build->{'componentClassList'}} ) {
+    	foreach my $implementationName ( @{$build->{'componentClasses'}->{$componentClass}->{'members'}} ) {
 	    my $fullName = ucfirst($componentClass).ucfirst($implementationName);
 	    push(
 		@dataContent,
@@ -1761,14 +1553,14 @@ sub Generate_Initialization_Function {
     # Record of output conditions seen.
     my %outputConditions;
     # Iterate over all component classes.
-    $buildData->{'content'} .= "  ! Parameters controlling output.\n\n";
-    foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
+    $build->{'content'} .= "  ! Parameters controlling output.\n\n";
+    foreach my $componentClass ( @{$build->{'componentClassList'}} ) {
 	# Identify the default implementation.
     	my $defaultMethod;
-    	foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClass}->{'members'}} ) {
+    	foreach my $implementationName ( @{$build->{'componentClasses'}->{$componentClass}->{'members'}} ) {
     	    my $fullName = ucfirst($componentClass).ucfirst($implementationName);
     	    $defaultMethod = $implementationName
-		if ( $buildData->{'components'}->{$fullName}->{'isDefault'} eq "yes" );
+		if ( $build->{'components'}->{$fullName}->{'isDefault'} eq "yes" );
     	}
 	die("No default method was found for ".$componentClass." class")
 	    unless ( defined($defaultMethod) );
@@ -1784,15 +1576,15 @@ sub Generate_Initialization_Function {
         $functionCode .= "       !@   <cardinality>1</cardinality>\n";
         $functionCode .= "       !@ </inputParameter>\n";
     	$functionCode .= "       call Get_Input_Parameter('treeNodeMethod".&Utils::padClass(ucfirst($componentClass)."'",[1,0]).",methodSelection,defaultValue='".&Utils::padImplementation($defaultMethod."'",[1,0]).")\n";
-    	foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClass}->{'members'}} ) {
+    	foreach my $implementationName ( @{$build->{'componentClasses'}->{$componentClass}->{'members'}} ) {
     	    my $fullName  = ucfirst($componentClass).ucfirst($implementationName);
-	    my $component = $buildData->{'components'}->{$fullName};
+	    my $component = $build->{'components'}->{$fullName};
     	    $functionCode .= "       if (methodSelection == '".&Utils::padImplementation($implementationName."'",[1,0]).") then\n";
 	    $functionCode .= "          allocate(default".&Utils::padClass(ucfirst($componentClass)."Component",[9,0]).",source=default".&Utils::padFullyQualified($fullName."Component",[9,0]).")\n";
 	    $functionCode .= "          nodeComponent".&Utils::padFullyQualified($fullName."IsActive",[8,0])."=.true.\n";
 	    until ( $fullName eq "" ) {
-		if ( exists($buildData->{'components'}->{$fullName}->{'extends'}) ) {
-		    $fullName = ucfirst($buildData->{'components'}->{$fullName}->{'extends'}->{'class'}).ucfirst($buildData->{'components'}->{$fullName}->{'extends'}->{'name'});
+		if ( exists($build->{'components'}->{$fullName}->{'extends'}) ) {
+		    $fullName = ucfirst($build->{'components'}->{$fullName}->{'extends'}->{'class'}).ucfirst($build->{'components'}->{$fullName}->{'extends'}->{'name'});
 		    $functionCode .= "          nodeComponent".&Utils::padFullyQualified($fullName."IsActive",[8,0])."=.true.\n";
 		} else {
 		    $fullName = "";
@@ -1822,7 +1614,7 @@ sub Generate_Initialization_Function {
 			$functionCode .= "       !@   <cardinality>1</cardinality>\n";
 			$functionCode .= "       !@ </inputParameter>\n";
 			$functionCode .= "       call Get_Input_Parameter('".$parameterName."',".$parameterName.",defaultValue=.false.)\n";
-			$buildData->{'content'} .= "  logical :: ".$parameterName."\n";
+			$build->{'content'} .= "  logical :: ".$parameterName."\n";
 			$outputConditions{$parameterName} = 1;
 		    }
 		}
@@ -1832,13 +1624,13 @@ sub Generate_Initialization_Function {
     	$functionCode .= "       if (.not.allocated(default".&Utils::padClass(ucfirst($componentClass)."Component",[9,0]).")) then\n";
     	$functionCode .= "          message='unrecognized method \"'//methodSelection//'\" for \"".$componentClass."\" component'\n";
 	$functionCode .= "          message=message//char(10)//'  available methods are:'\n";
-    	foreach my $implementationName ( sort(@{$buildData->{'componentClasses'}->{$componentClass}->{'members'}}) ) {
+    	foreach my $implementationName ( sort(@{$build->{'componentClasses'}->{$componentClass}->{'members'}}) ) {
 	    $functionCode .= "          message=message//char(10)//'    ".$implementationName."'\n";
 	}
     	$functionCode .= "          call Galacticus_Error_Report('Galacticus_Nodes_Initialize',message)\n";
     	$functionCode .= "       end if\n";
     }
-    $buildData->{'content'} .= "\n";
+    $build->{'content'} .= "\n";
     $functionCode .= "         ! Record that the module is now initialized.\n";
     $functionCode .= "         moduleIsInitialized=.true.\n";
     $functionCode .= "       end if\n";
@@ -1848,14 +1640,14 @@ sub Generate_Initialization_Function {
     $functionCode .= "  end subroutine Galacticus_Nodes_Initialize\n";	
     # Insert into the function list.
     push(
-	@{$buildData->{'code'}->{'functions'}},
+	@{$build->{'code'}->{'functions'}},
 	$functionCode
 	);
 }
 
 sub Generate_Finalization_Function {
     # Generate a finalization function.
-    my $buildData = shift;
+    my $build = shift;
     # Create a table for the deallocation code.
     my $table = Text::Table->new(
 	{
@@ -1871,7 +1663,7 @@ sub Generate_Finalization_Function {
 	},
 	);
     # Populate the table.
-    foreach ( @{$buildData->{'componentClassList'}} ) {
+    foreach ( @{$build->{'componentClassList'}} ) {
 	$table->add(ucfirst($_)."Component");
     }
     # Generate the function code.
@@ -1885,14 +1677,14 @@ sub Generate_Finalization_Function {
     $functionCode .= "  end subroutine Galacticus_Nodes_Finalize\n";
     # Insert into the function list.
     push(
-	@{$buildData->{'code'}->{'functions'}},
+	@{$build->{'code'}->{'functions'}},
 	$functionCode
 	);
 }
 
 sub Generate_Map_Functions {
     # Generate functions to map other functions over components.
-    my $buildData = shift;
+    my $build = shift;
 
     # Function for mapping a void function.
     # Generate variables.
@@ -1920,7 +1712,7 @@ sub Generate_Map_Functions {
     $functionCode .= "    !% Map a void function over components.\n";
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    foreach ( @{$buildData->{'componentClassList'}} ) {	    
+    foreach ( @{$build->{'componentClassList'}} ) {	    
      	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[19,0]).")) then\n";
 	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[19,0]).")\n";
 	$functionCode .= "        call mapFunction(self%component".&Utils::padClass(ucfirst($_),[19,0])."(i))\n";
@@ -1931,12 +1723,12 @@ sub Generate_Map_Functions {
     $functionCode .= "  end subroutine mapComponentsVoid\n\n";
     # Insert into the function list.
     push(
-	@{$buildData->{'code'}->{'functions'}},
+	@{$build->{'code'}->{'functions'}},
 	$functionCode
 	);
     # Insert a type-binding for this function into the treeNode type.
     push(
-	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{type => "procedure", name => "mapVoid", function => "mapComponentsVoid", description => "Map a void function over components.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless *function()\\textgreater} mapFunction"}
 	);
 
@@ -1983,7 +1775,7 @@ sub Generate_Map_Functions {
     # for them.
     my $optimizationLabel      = -1;
     my $optimizationsGenerated = 0;
-    foreach my $boundFunction ( @{$buildData->{'types'}->{'nodeComponent'}->{'boundFunctions'}} ) {
+    foreach my $boundFunction ( @{$build->{'types'}->{'nodeComponent'}->{'boundFunctions'}} ) {
 	if ( exists($boundFunction->{'mappable'}) ) {
 	    my @reductions = split(/:/,$boundFunction->{'mappable'});
 	    foreach my $reduction ( @reductions ) {
@@ -1991,7 +1783,7 @@ sub Generate_Map_Functions {
 		$optimizationsGenerated = 1;
 		# Insert test for optimized case.
 		++$optimizationLabel;
-		$buildData->{'content'} .= "   integer, public, parameter :: optimizeFor".ucfirst($boundFunction->{'name'}).ucfirst($reduction)."=".$optimizationLabel."\n";
+		$build->{'content'} .= "   integer, public, parameter :: optimizeFor".ucfirst($boundFunction->{'name'}).ucfirst($reduction)."=".$optimizationLabel."\n";
 		$functionCode .= "   ";
 		$functionCode .= "else"
 		    unless ( $optimizationLabel == 0 );
@@ -2007,12 +1799,12 @@ sub Generate_Map_Functions {
 		    die("Generate_Map_Functions(): unrecognized reduction");
 		}
 		# Iterate over available types.
-		foreach my $type ( &ExtraUtils::sortedKeys($buildData->{'types'}) ) {
-		    if ( $type =~ m/^nodeComponent.+/  && grep {$_->{'name'} eq $boundFunction->{'name'}} @{$buildData->{'types'}->{$type}->{'boundFunctions'}} ) {
+		foreach my $type ( &ExtraUtils::sortedKeys($build->{'types'}) ) {
+		    if ( $type =~ m/^nodeComponent.+/  && grep {$_->{'name'} eq $boundFunction->{'name'}} @{$build->{'types'}->{$type}->{'boundFunctions'}} ) {
 			# Determine the class of this component.
 			my $baseClass = $type;
-			while ( exists($buildData->{'types'}->{$baseClass}->{'extends'}) && $buildData->{'types'}->{$baseClass}->{'extends'} ne "nodeComponent" ) {
-			    $baseClass = $buildData->{'types'}->{$baseClass}->{'extends'};
+			while ( exists($build->{'types'}->{$baseClass}->{'extends'}) && $build->{'types'}->{$baseClass}->{'extends'} ne "nodeComponent" ) {
+			    $baseClass = $build->{'types'}->{$baseClass}->{'extends'};
 			}
 			$baseClass =~ s/^nodeComponent//;
 			$baseClass = lc($baseClass);
@@ -2036,7 +1828,7 @@ sub Generate_Map_Functions {
 	    }
 	}
     }
-    $buildData->{'content'} .= "\n";
+    $build->{'content'} .= "\n";
     # Generate the generic, unoptimized function.
     $functionCode .= "    else\n"
 	if ( $optimizationsGenerated == 1 );
@@ -2046,7 +1838,7 @@ sub Generate_Map_Functions {
     $functionCode .= "    case (reductionProduct  )\n";
     $functionCode .= "      mapComponentsDouble0=1.0d0\n";
     $functionCode .= "    end select\n";
-    foreach ( @{$buildData->{'componentClassList'}} ) {	    
+    foreach ( @{$build->{'componentClassList'}} ) {	    
      	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
 	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
      	$functionCode .= "        componentValue=mapFunction(self%component".&Utils::padClass(ucfirst($_),[0,0])."(i))\n";
@@ -2065,19 +1857,19 @@ sub Generate_Map_Functions {
     $functionCode .= "  end function mapComponentsDouble0\n\n";
     # Insert into the function list.
     push(
-	@{$buildData->{'code'}->{'functions'}},
+	@{$build->{'code'}->{'functions'}},
 	$functionCode
 	);
     # Insert a type-binding for this function into the treeNode type.
     push(
-	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{type => "procedure", name => "mapDouble0", function => "mapComponentsDouble0", description => "Map a scalar double function over components.", returnType => "\\doublezero", arguments => "\\textcolor{red}{\\textless *function()\\textgreater} mapFunction"}
 	);
 }
 
 sub Generate_Node_Dump_Function {
     # Generate function to dump node properties.
-    my $buildData = shift;
+    my $build = shift;
     # Create the function.
     my @dataContent =
 	(
@@ -2117,7 +1909,7 @@ sub Generate_Node_Dump_Function {
     }
     $functionCode .= "   call Galacticus_Display_Unindent('done')\n";
     # Iterate over all component classes
-    foreach ( @{$buildData->{'componentClassList'}} ) {	    
+    foreach ( @{$build->{'componentClassList'}} ) {	    
 	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
 	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
 	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%dump()\n";
@@ -2129,12 +1921,12 @@ sub Generate_Node_Dump_Function {
     $functionCode .= "  end subroutine Node_Dump\n";
     # Insert into the function list.
     push(
-	@{$buildData->{'code'}->{'functions'}},
+	@{$build->{'code'}->{'functions'}},
 	$functionCode
 	);
     # Insert a type-binding for this function into the treeNode type.
     push(
-	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{type => "procedure", name => "dump", function => "Node_Dump", description => "Generate an ASCII dump of all content of a node.", returnType => "\\void", arguments => ""}
 	);
     # Create the function.
@@ -2180,7 +1972,7 @@ sub Generate_Node_Dump_Function {
     }
     $functionCode .= "    write (fileHandle,'(a)') '  </pointer>'\n";
     # Iterate over all component classes
-    foreach ( @{$buildData->{'componentClassList'}} ) {	    
+    foreach ( @{$build->{'componentClassList'}} ) {	    
 	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
 	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
 	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%dumpXML(fileHandle)\n";
@@ -2193,12 +1985,12 @@ sub Generate_Node_Dump_Function {
     $functionCode .= "  end subroutine Node_Dump_XML\n";
     # Insert into the function list.
     push(
-	@{$buildData->{'code'}->{'functions'}},
+	@{$build->{'code'}->{'functions'}},
 	$functionCode
 	);
     # Insert a type-binding for this function into the treeNode type.
     push(
-	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{type => "procedure", name => "dumpXML", function => "Node_Dump_XML", description => "Generate an XML dump of all content of a node.", returnType => "\\void", arguments => ""}
 	);
     # Create a function for doing a raw (binary) dump.
@@ -2226,7 +2018,7 @@ sub Generate_Node_Dump_Function {
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     $functionCode .= "    write (fileHandle) self%isPhysicallyPlausible\n";
     # Iterate over all component classes
-    foreach ( @{$buildData->{'componentClassList'}} ) {	    
+    foreach ( @{$build->{'componentClassList'}} ) {	    
 	$functionCode .= "    write (fileHandle) allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
 	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
 	$functionCode .= "      select type (component => self%component".ucfirst($_)."(1))\n";
@@ -2245,12 +2037,12 @@ sub Generate_Node_Dump_Function {
     $functionCode .= "  end subroutine Node_Dump_Raw\n";
     # Insert into the function list.
     push(
-	@{$buildData->{'code'}->{'functions'}},
+	@{$build->{'code'}->{'functions'}},
 	$functionCode
 	);
     # Insert a type-binding for this function into the treeNode type.
     push(
-	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{type => "procedure", name => "dumpRaw", function => "Node_Dump_Raw", description => "Generate a binary dump of all content of a node.", returnType => "\\void", arguments => "\\intzero\\ fileHandle\\argin"}
 	);
     # Create a function for doing a raw (binary) read.
@@ -2282,7 +2074,7 @@ sub Generate_Node_Dump_Function {
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     $functionCode .= "    read (fileHandle) self%isPhysicallyPlausible\n";
     # Iterate over all component classes
-    foreach ( @{$buildData->{'componentClassList'}} ) {	    
+    foreach ( @{$build->{'componentClassList'}} ) {	    
 	$functionCode .= "    read (fileHandle) isAllocated\n";
 	$functionCode .= "    if (isAllocated) then\n";
 	$functionCode .= "      read (fileHandle) isAllocated\n";
@@ -2311,19 +2103,19 @@ sub Generate_Node_Dump_Function {
     $functionCode .= "  end subroutine Node_Read_Raw\n";
     # Insert into the function list.
     push(
-	@{$buildData->{'code'}->{'functions'}},
+	@{$build->{'code'}->{'functions'}},
 	$functionCode
 	);
     # Insert a type-binding for this function into the treeNode type.
     push(
-	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{type => "procedure", name => "readRaw", function => "Node_Read_Raw", description => "Read a binary dump of all content of a node.", returnType => "\\void", arguments => "\\intzero\\ fileHandle\\argin"}
 	);
 }
 
 sub Generate_Node_Output_Functions {
     # Generate functions to output node properties.
-    my $buildData = shift;
+    my $build = shift;
 
     # Create an output count function.
     my @dataContent =
@@ -2355,7 +2147,7 @@ sub Generate_Node_Output_Functions {
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Iterate over all component classes
-    foreach ( @{$buildData->{'componentClassList'}} ) {	    
+    foreach ( @{$build->{'componentClassList'}} ) {	    
 	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
 	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
 	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%outputCount(integerPropertyCount,doublePropertyCount,time,instance=i)\n";
@@ -2366,12 +2158,12 @@ sub Generate_Node_Output_Functions {
     $functionCode .= "  end subroutine Node_Output_Count\n";
     # Insert into the function list.
     push(
-	@{$buildData->{'code'}->{'functions'}},
+	@{$build->{'code'}->{'functions'}},
 	$functionCode
 	);
     # Insert a type-binding for this function into the treeNode type.
     push(
-	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{type => "procedure", name => "outputCount", function => "Node_Output_Count", description => "Increment the count of properties to output for a node.", returnType => "\\void", arguments => "\\intzero\\ integerPropertyCount\\arginout, \\intzero\\ doublePropertyCount\\arginout, \\doublezero\\ time\\argin"}
 	);
     # Create an output property names function.
@@ -2415,7 +2207,7 @@ sub Generate_Node_Output_Functions {
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Iterate over all component classes
-    foreach ( @{$buildData->{'componentClassList'}} ) {	    
+    foreach ( @{$build->{'componentClassList'}} ) {	    
 	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
 	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
 	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance=i)\n";
@@ -2426,12 +2218,12 @@ sub Generate_Node_Output_Functions {
     $functionCode .= "  end subroutine Node_Output_Names\n";
     # Insert into the function list.
     push(
-	@{$buildData->{'code'}->{'functions'}},
+	@{$build->{'code'}->{'functions'}},
 	$functionCode
 	);
     # Insert a type-binding for this function into the treeNode type.
     push(
-	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{type => "procedure", name => "outputNames", function => "Node_Output_Names", description => "Establish the names of properties to output for a node.", returnType  => "\\void", arguments   => "\\intzero\\ integerProperty\\arginout, \\textcolor{red}{\\textless char[*](:)\\textgreater} integerPropertyNames\\arginout, \\textcolor{red}{\\textless char[*](:)\\textgreater} integerPropertyComments\\arginout, \\doubleone\\ integerPropertyUnitsSI\\arginout, \\intzero\\ doubleProperty\\arginout, \\textcolor{red}{\\textless char[*](:)\\textgreater} doublePropertyNames\\arginout, \\textcolor{red}{\\textless char[*](:)\\textgreater} doublePropertyComments\\arginout, \\doubleone\\ doublePropertyUnitsSI\\arginout, \\doublezero\\ time\\argin"}
 	);
     # Create an output function.
@@ -2475,7 +2267,7 @@ sub Generate_Node_Output_Functions {
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Iterate over all component classes
-    foreach ( @{$buildData->{'componentClassList'}} ) {	    
+    foreach ( @{$build->{'componentClassList'}} ) {	    
 	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
 	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
 	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty&
@@ -2487,19 +2279,19 @@ sub Generate_Node_Output_Functions {
     $functionCode .= "  end subroutine Node_Output\n";
     # Insert into the function list.
     push(
-	@{$buildData->{'code'}->{'functions'}},
+	@{$build->{'code'}->{'functions'}},
 	$functionCode
 	);
     # Insert a type-binding for this function into the treeNode type.
     push(
-	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{type => "procedure", name => "output", function => "Node_Output", description => "Populate output buffers with properties for a node.", returnType  => "\\void", arguments   => "\\intzero\\ integerProperty\\arginout, \\intzero\\ integerBufferCount\\arginout, \\inttwo\\ integerBuffer\\arginout, \\intzero doubleProperty\\arginout, \\intzero\\ doubleBufferCount\\arginout, \\doubletwo\\ doubleBuffer\\arginout, \\doublezero\\ time\\argin"}
 	);
 }
 
 sub Generate_Node_Property_Name_From_Index_Function {
     # Generate function to get the name of a property given an index.
-    my $buildData = shift;
+    my $build = shift;
 
     # Define variables.
     my @dataContent =
@@ -2535,7 +2327,7 @@ sub Generate_Node_Property_Name_From_Index_Function {
     # Loop over all component classes
     $functionCode .= "  name='unknown'\n";
     $functionCode .= "  count=index\n";
-    foreach ( @{$buildData->{'componentClassList'}} ) {	    
+    foreach ( @{$build->{'componentClassList'}} ) {	    
      	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
 	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
 	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%nameFromIndex(count,name)\n";
@@ -2548,19 +2340,19 @@ sub Generate_Node_Property_Name_From_Index_Function {
     $functionCode .= "  end function Node_Property_Name_From_Index\n";
     # Insert into the function list.
     push(
-	@{$buildData->{'code'}->{'functions'}},
+	@{$build->{'code'}->{'functions'}},
 	$functionCode
 	);
     # Insert a type-binding for this function into the treeNode type.
     push(
-	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{type => "procedure", name => "nameFromIndex", function => "Node_Property_Name_From_Index", description => "Return the name of a property given its index in a node.", returnType => "\\textcolor{red}{\\textless varying\\_string\\textgreater}", arguments => "\\intzero\\ index\\argin"}
 	);
 }
 
 sub Generate_Node_Serialization_Functions {
     # Generate functions to serialize/deserialize nodes to/from arrays.
-    my $buildData = shift;
+    my $build = shift;
 
     # Function computing a count of the serialization length.
     my @dataContent =
@@ -2583,7 +2375,7 @@ sub Generate_Node_Serialization_Functions {
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     $functionCode .= "    count=0\n";
     # Loop over all component classes
-    foreach ( @{$buildData->{'componentClassList'}} ) {	    
+    foreach ( @{$build->{'componentClassList'}} ) {	    
      	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
 	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
 	$functionCode .= "        count=count+self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
@@ -2594,12 +2386,12 @@ sub Generate_Node_Serialization_Functions {
     $functionCode .= "  end function SerializeToArrayCount\n\n";
     # Insert into the function list.
     push(
-	@{$buildData->{'code'}->{'functions'}},
+	@{$build->{'code'}->{'functions'}},
 	$functionCode
 	);
     # Insert a type-binding for this function into the treeNode type.
     push(
-	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{type => "procedure", name => "serializeCount", function => "serializeToArrayCount", description => "Return a count of the number of evolvable properties of the serialized object.", returnType => "\\intzero", arguments => ""}
 	);
     # Create the serialization function.
@@ -2628,7 +2420,7 @@ sub Generate_Node_Serialization_Functions {
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     $functionCode .= "    offset=1\n";
     # Loop over all component classes
-    foreach ( @{$buildData->{'componentClassList'}} ) {	    
+    foreach ( @{$build->{'componentClassList'}} ) {	    
 	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
 	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
 	$functionCode .= "        count=self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
@@ -2641,12 +2433,12 @@ sub Generate_Node_Serialization_Functions {
     $functionCode .= "  end subroutine SerializeToArrayValues\n\n";
     # Insert into the function list.
     push(
-	@{$buildData->{'code'}->{'functions'}},
+	@{$build->{'code'}->{'functions'}},
 	$functionCode
 	);
     # Insert a type-binding for this function into the treeNode type.
     push(
-	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{type => "procedure", name => "serializeValues", function => "serializeToArrayValues", description => "Serialize values to {\\normalfont \\ttfamily array}.", returnType => "\\void", arguments => "\\doubleone\\ array\\argout"}
 	);
     # Create the deserialization function.
@@ -2675,7 +2467,7 @@ sub Generate_Node_Serialization_Functions {
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     $functionCode .= "    offset=1\n";
     # Loop over all component classes
-    foreach ( @{$buildData->{'componentClassList'}} ) {	    
+    foreach ( @{$build->{'componentClassList'}} ) {	    
 	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
 	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
 	$functionCode .= "        count=self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
@@ -2688,12 +2480,12 @@ sub Generate_Node_Serialization_Functions {
     $functionCode .= "  end subroutine DeserializeFromArrayValues\n\n";
     # Insert into the function list.
     push(
-	@{$buildData->{'code'}->{'functions'}},
+	@{$build->{'code'}->{'functions'}},
 	$functionCode
 	);
     # Insert a type-binding for this function into the treeNode type.
     push(
-	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{type => "procedure", name => "deserializeValues", function => "deserializeFromArrayValues", description => "Deserialize values from {\\normalfont \\ttfamily array}.", returnType => "\\void", arguments => "\\doubleone\\ array\\argin"}
 	);
     # Generate serialization functions for scales and rates.
@@ -2722,12 +2514,12 @@ sub Generate_Node_Serialization_Functions {
 	$functionCode .= "  end subroutine SerializeToArray".ucfirst($content)."s\n\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Insert a type-binding for this function into the treeNode type.
 	push(
-	    @{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	    {type => "procedure", name => "serialize".ucfirst($content)."s", function => "serializeToArray".ucfirst($content)."s", description => "Serialize ".$content."s to {\\normalfont \\ttfamily array}.", returnType => "\\void", arguments => "\\doubleone\\ array\\argout"}
 	    );
     }
@@ -2735,7 +2527,7 @@ sub Generate_Node_Serialization_Functions {
 
 sub Generate_Node_ODE_Initialization_Functions {
     # Generate functions initialize a node for an ODE step.
-    my $buildData = shift;
+    my $build = shift;
     # Create functions to initialize property rates for an ODE step.
     my @dataContent =
 	(
@@ -2760,12 +2552,12 @@ sub Generate_Node_ODE_Initialization_Functions {
     $functionCode .= "  end subroutine Tree_Node_ODE_Step_Rates_Initialize\n\n";
     # Insert into the function list.
     push(
-	@{$buildData->{'code'}->{'functions'}},
+	@{$build->{'code'}->{'functions'}},
 	$functionCode
 	);
     # Insert a type-binding for this function into the treeNode type.
     push(
-	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{type => "procedure", name => "odeStepRatesInitialize", function => "Tree_Node_ODE_Step_Rates_Initialize", description => "Initialize rates of evolvable properties.", returnType => "\\void", arguments => ""},
 	);    
     # Create functions to initialize property scales for an ODE step.
@@ -2778,23 +2570,23 @@ sub Generate_Node_ODE_Initialization_Functions {
     $functionCode .= "  end subroutine Tree_Node_ODE_Step_Scales_Initialize\n\n";
     # Insert into the function list.
     push(
-	@{$buildData->{'code'}->{'functions'}},
+	@{$build->{'code'}->{'functions'}},
 	$functionCode
 	);
     # Insert a type-binding for this function into the treeNode type.
     push(
-	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{type => "procedure", name => "odeStepScalesInitialize" , function => "Tree_Node_ODE_Step_Scales_Initialize", description => "Initialize tolerance scales of evolvable properties.", returnType => "\\void", arguments => ""}
 	);
 }
 
 sub Generate_Implementation_Dump_Functions {
     # Generate dump for each component implementation.
-    my $buildData = shift;
+    my $build = shift;
     # Iterate over component implementations.
-    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
+    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
 	# Get the component.
-	my $component = $buildData->{'components'}->{$componentID};
+	my $component = $build->{'components'}->{$componentID};
 	# Initialize function code.
 	my $functionCode;
 	# Initialize data content.
@@ -2908,12 +2700,12 @@ sub Generate_Implementation_Dump_Functions {
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Dump\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Insert a type-binding for this function into the implementation type.
 	push(
-	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 	    {type => "procedure", name => "dump", function => "Node_Component_".ucfirst($componentID)."_Dump"},
 	    );
 	# Initialize data content.
@@ -2991,12 +2783,12 @@ sub Generate_Implementation_Dump_Functions {
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Dump_XML\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Insert a type-binding for this function into the implementation type.
 	push(
-	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 	    {type => "procedure", name => "dumpXML", function => "Node_Component_".ucfirst($componentID)."_Dump_XML"},
 	    );
 	# Create function to do a raw (binary) dump.
@@ -3079,12 +2871,12 @@ sub Generate_Implementation_Dump_Functions {
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Dump_Raw\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Insert a type-binding for this function into the implementation type.
 	push(
-	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 	    {type => "procedure", name => "dumpRaw", function => "Node_Component_".ucfirst($componentID)."_Dump_Raw"},
 	    );
 	# Create function to do a raw (binary) read.
@@ -3186,12 +2978,12 @@ sub Generate_Implementation_Dump_Functions {
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Read_Raw\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Insert a type-binding for this function into the implementation type.
 	push(
-	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 	    {type => "procedure", name => "readRaw", function => "Node_Component_".ucfirst($componentID)."_Read_Raw", description => "Read a binary dump of the {\\normalfont \\ttfamily nodeComponent} from the given {\\normalfont \\ttfamily fileHandle}.", returnType => "\\void", arguments => "\\intzero\\ fileHandle\\argin"},
 	    );
     }
@@ -3199,11 +2991,11 @@ sub Generate_Implementation_Dump_Functions {
 
 sub Generate_Implementation_Initializor_Functions {
     # Generate initializor for each component implementation.
-    my $buildData = shift;
+    my $build = shift;
     # Iterate over component implementations.
-    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
+    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
 	# Get the component.
-	my $component = $buildData->{'components'}->{$componentID};
+	my $component = $build->{'components'}->{$componentID};
 	# Initialize function code.
 	my $functionCode;
 	# Initialize data content.
@@ -3303,12 +3095,12 @@ sub Generate_Implementation_Initializor_Functions {
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Initializor\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Insert a type-binding for this function into the implementation type.
 	push(
-	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 	    {type => "procedure", name => "initialize", function => "Node_Component_".ucfirst($componentID)."_Initializor"},
 	    );
     }
@@ -3316,11 +3108,11 @@ sub Generate_Implementation_Initializor_Functions {
 
 sub Generate_Implementation_Builder_Functions {
     # Generate builder for each component implementation.
-    my $buildData = shift;
+    my $build = shift;
     # Iterate over component implementations.
-    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
+    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
 	# Get the component.
-	my $component = $buildData->{'components'}->{$componentID};
+	my $component = $build->{'components'}->{$componentID};
 	# Initialize function code.
 	my $functionCode;
 	# Initialize data content.
@@ -3440,12 +3232,12 @@ sub Generate_Implementation_Builder_Functions {
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Builder\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Insert a type-binding for this function into the implementation type.
 	push(
-	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 	    {type => "procedure", name => "builder", function => "Node_Component_".ucfirst($componentID)."_Builder"},
 	    );
     }
@@ -3453,11 +3245,11 @@ sub Generate_Implementation_Builder_Functions {
 
 sub Generate_Implementation_Output_Functions {
     # Generate output functions for each component implementation.
-    my $buildData = shift;
+    my $build = shift;
     # Iterate over component implementations.
-    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
+    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
 	# Get the component.
-	my $component = $buildData->{'components'}->{$componentID};
+	my $component = $build->{'components'}->{$componentID};
 	# Find modules required.
 	my %modulesRequired;
 	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
@@ -3696,12 +3488,12 @@ sub Generate_Implementation_Output_Functions {
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Output_Count\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Insert a type-binding for this function into the implementation type.
 	push(
-	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 	    {type => "procedure", name => "outputCount", function => "Node_Component_".ucfirst($componentID)."_Output_Count"},
 	    );
 	# Create property names function.
@@ -3886,12 +3678,12 @@ sub Generate_Implementation_Output_Functions {
 	$functionCode .= $functionBody;
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Insert a type-binding for this function into the implementation type.
 	push(
-	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 	    {type => "procedure", name => "outputNames", function => "Node_Component_".ucfirst($componentID)."_Output_Names"},
 	    );
     }
@@ -3899,15 +3691,15 @@ sub Generate_Implementation_Output_Functions {
 
 sub Generate_Implementation_Name_From_Index_Functions {
     # Generate serialization/deserialization functions for each component implementation.
-    my $buildData = shift;
+    my $build = shift;
     # Initialize function code.
     my $functionCode;
     # Initialize data content.
     my @dataContent;
     # Iterate over component implementations.
-    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
+    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
 	# Get the component.
-	my $component = $buildData->{'components'}->{$componentID};
+	my $component = $build->{'components'}->{$componentID};
 	# Generate data content.
 	@dataContent =
 	    (
@@ -3936,8 +3728,8 @@ sub Generate_Implementation_Name_From_Index_Functions {
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	# If this component is an extension, first call on the extended type.
-	if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
-	    my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
+	if ( exists($build->{'components'}->{$componentID}->{'extends'}) ) {
+	    my $extends = $build->{'components'}->{$componentID}->{'extends'};
 	    $functionCode .= "    call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%nameFromIndex(count,name)\n";
 	    $functionCode .= "    if (count <= 0) return\n";
 	}
@@ -3971,12 +3763,12 @@ sub Generate_Implementation_Name_From_Index_Functions {
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Name_From_Index\n\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Insert a type-binding for this function into the implementation type.
 	push(
-	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 	    {type => "procedure", name => "nameFromIndex", function => "Node_Component_".ucfirst($componentID)."_Name_From_Index"}
 	    );
     }
@@ -4011,27 +3803,27 @@ sub Generate_Implementation_Name_From_Index_Functions {
     $functionCode .= "  end subroutine Node_Component_Name_From_Index\n\n";
     # Insert into the function list.
     push(
-	@{$buildData->{'code'}->{'functions'}},
+	@{$build->{'code'}->{'functions'}},
 	$functionCode
 	);
     # Insert a type-binding for this function into the implementation type.
     push(
-	@{$buildData->{'types'}->{'nodeComponent'}->{'boundFunctions'}},
+	@{$build->{'types'}->{'nodeComponent'}->{'boundFunctions'}},
 	{type => "procedure", name => "nameFromIndex", function => "Node_Component_Name_From_Index", description => "Return the name of a property given is index.", returnType => "\\void", arguments => "\\intzero\\ count\\argin, \\textcolor{red}{\\textless varying\\_string\\textgreater}name\\argout"}
 	);
 }
 
 sub Generate_Implementation_Serialization_Functions {
     # Generate serialization/deserialization functions for each component implementation.
-    my $buildData = shift;
+    my $build = shift;
     # Initialize function code.
     my $functionCode;
     # Initialize data content.
     my @dataContent;
     # Iterate over component implementations.
-    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
+    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
 	# Get the component.
-	my $component = $buildData->{'components'}->{$componentID};
+	my $component = $build->{'components'}->{$componentID};
 	# Generate data content.
 	@dataContent =
 	    (
@@ -4049,8 +3841,8 @@ sub Generate_Implementation_Serialization_Functions {
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	# If this component is an extension, get the count of the extended type.
 	$functionCode .= "    Node_Component_".ucfirst($componentID)."_Count=";
-	if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
-	    my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
+	if ( exists($build->{'components'}->{$componentID}->{'extends'}) ) {
+	    my $extends = $build->{'components'}->{$componentID}->{'extends'};
 	    $functionCode .= "self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serializeCount()\n";
 	} else {
 	    $functionCode .= "0\n";
@@ -4086,12 +3878,12 @@ sub Generate_Implementation_Serialization_Functions {
 	$functionCode .= "  end function Node_Component_".ucfirst($componentID)."_Count\n\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Insert a type-binding for this function into the treeNode type.
 	push(
-	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 	    {type => "procedure", name => "serializeCount", function => "Node_Component_".ucfirst($componentID)."_Count"}
 	    );
 	# Specify data content for serialization functions.
@@ -4116,8 +3908,8 @@ sub Generate_Implementation_Serialization_Functions {
 	my $serializationCode;
 	my $needCount = 0;
 	# If this component is an extension, call serialization on the extended type.
-	if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
-	    my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
+	if ( exists($build->{'components'}->{$componentID}->{'extends'}) ) {
+	    my $extends = $build->{'components'}->{$componentID}->{'extends'};
 	    $serializationCode .= " count=self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serializeCount()\n";
 	    $serializationCode .= " if (count > 0) then\n";
 	    $serializationCode .= "  call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serializeValues(array)\n";
@@ -4180,12 +3972,12 @@ sub Generate_Implementation_Serialization_Functions {
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Serialize_Values\n\n";
 	# Insert into the function list.
 	push(
-	    	@{$buildData->{'code'}->{'functions'}},
+	    	@{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Insert a type-binding for this function into the implementation type.
 	push(
-	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 	    {type => "procedure", name => "serializeValues", function => "Node_Component_".ucfirst($componentID)."_Serialize_Values"},
 	    );
 	# Specify data content for deserialization functions.
@@ -4210,8 +4002,8 @@ sub Generate_Implementation_Serialization_Functions {
 	my $deserializationCode;
 	$needCount = 0;
 	# If this component is an extension, call deserialization on the extended type.
-	if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
-	    my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
+	if ( exists($build->{'components'}->{$componentID}->{'extends'}) ) {
+	    my $extends = $build->{'components'}->{$componentID}->{'extends'};
 	    $deserializationCode .= " count=self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serializeCount()\n";
 	    $deserializationCode .= " if (count > 0) then\n";
 	    $deserializationCode .= "  call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%deserializeValues(array)\n";
@@ -4269,12 +4061,12 @@ sub Generate_Implementation_Serialization_Functions {
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Deserialize_Values\n\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Insert a type-binding for this function into the implementation type.
 	push(
-	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 	    {type => "procedure", name => "deserializeValues", function => "Node_Component_".ucfirst($componentID)."_Deserialize_Values"},
 	    );
     }
@@ -4282,7 +4074,7 @@ sub Generate_Implementation_Serialization_Functions {
 
 sub Generate_Serialization_Offset_Variables {
     # Generate variables which store offsets into arrays for serialization.
-    my $buildData = shift;
+    my $build = shift;
     # Create a table.
     my $offsetTable = Text::Table->new(
 	{
@@ -4307,9 +4099,9 @@ sub Generate_Serialization_Offset_Variables {
 	}
 	);
     # Iterate over component implementations.
-    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
+    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
 	# Get the component.
-	my $component = $buildData->{'components'}->{$componentID};
+	my $component = $build->{'components'}->{$componentID};
 	# Iterate over properties.
 	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
@@ -4327,12 +4119,12 @@ sub Generate_Serialization_Offset_Variables {
 	}
     }
     # Insert into the document.
-    $buildData->{'content'} .= "  ! Offsets into serialization arrays.\n";
-    $buildData->{'content'} .= $offsetTable ->table()."\n";
-    $buildData->{'content'} .= $privateTable->table()."\n";
-    $buildData->{'content'} .= " integer                                     :: nodeSerializationCount\n";
-    $buildData->{'content'} .= " double precision, allocatable, dimension(:) :: nodeScales, nodeRates, nodeRatesIncrement\n";
-    $buildData->{'content'} .= " !\$omp threadprivate(nodeScales,nodeRates,nodeRatesIncrement,nodeSerializationCount)\n";
+    $build->{'content'} .= "  ! Offsets into serialization arrays.\n";
+    $build->{'content'} .= $offsetTable ->table()."\n";
+    $build->{'content'} .= $privateTable->table()."\n";
+    $build->{'content'} .= " integer                                     :: nodeSerializationCount\n";
+    $build->{'content'} .= " double precision, allocatable, dimension(:) :: nodeScales, nodeRates, nodeRatesIncrement\n";
+    $build->{'content'} .= " !\$omp threadprivate(nodeScales,nodeRates,nodeRatesIncrement,nodeSerializationCount)\n";
 }
 
 sub offsetName {
@@ -4343,7 +4135,7 @@ sub offsetName {
 
 sub Generate_Node_Offset_Functions {
     # Generate functions to compute offsets into serialization arrays.
-    my $buildData = shift;
+    my $build = shift;
 
     # Function computing a count of the serialization length.
     my @dataContent =
@@ -4366,7 +4158,7 @@ sub Generate_Node_Offset_Functions {
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     $functionCode .= "    count=0\n";
     # Loop over all component classes
-    foreach ( @{$buildData->{'componentClassList'}} ) {	    
+    foreach ( @{$build->{'componentClassList'}} ) {	    
      	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
 	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
 	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%serializationOffsets(count)\n";
@@ -4390,27 +4182,27 @@ sub Generate_Node_Offset_Functions {
     $functionCode .= "  end subroutine SerializationOffsets\n\n";
     # Insert into the function list.
     push(
-	@{$buildData->{'code'}->{'functions'}},
+	@{$build->{'code'}->{'functions'}},
 	$functionCode
 	);
     # Insert a type-binding for this function into the treeNode type.
     push(
-	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{type => "procedure", name => "serializationOffsets", function => "SerializationOffsets", description => "Compute offsets into serialization arrays for all properties", returnType => "\\void", arguments => ""}
 	);
 }
 
 sub Generate_Implementation_Offset_Functions {
     # Generate serialization offset functions for each component implementation.
-    my $buildData = shift;
+    my $build = shift;
     # Initialize function code.
     my $functionCode;
     # Initialize data content.
     my @dataContent;
     # Iterate over component implementations.
-    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
+    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
 	# Get the component.
-	my $component = $buildData->{'components'}->{$componentID};
+	my $component = $build->{'components'}->{$componentID};
 	# Generate data content.
 	@dataContent =
 	    (
@@ -4432,8 +4224,8 @@ sub Generate_Implementation_Offset_Functions {
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	# If this component is an extension, compute offsets of the extended type.
-	if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
-	    my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
+	if ( exists($build->{'components'}->{$componentID}->{'extends'}) ) {
+	    my $extends = $build->{'components'}->{$componentID}->{'extends'};
 	    $functionCode .= "call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serializationOffsets(count)\n";
 	}
 	# Iterate over properties.
@@ -4464,12 +4256,12 @@ sub Generate_Implementation_Offset_Functions {
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Offsets\n\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Insert a type-binding for this function into the treeNode type.
 	push(
-	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 	    {type => "procedure", name => "serializationOffsets", function => "Node_Component_".ucfirst($componentID)."_Offsets"}
 	    );
     }
@@ -4477,13 +4269,13 @@ sub Generate_Implementation_Offset_Functions {
 
 sub Generate_Component_Count_Functions {
     # Generate component count functions.
-    my $buildData = shift;
+    my $build = shift;
     # Initialize function code.
     my $functionCode;
     # Initialize data content.
     my @dataContent;
     # Create methods to get components.
-    foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
+    foreach my $componentClassName ( @{$build->{'componentClassList'}} ) {
 	# Specify data content for component get function.
 	@dataContent =
 	    (
@@ -4516,12 +4308,12 @@ sub Generate_Component_Count_Functions {
     	$functionCode .= "  end function ".$componentClassName."CountLinked\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Bind this function to the treeNode type.
 	push(
-	    @{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	    {type => "procedure", name => $componentClassName."Count", function => $componentClassName."CountLinked", description => "Returns the number of {\\normalfont \\ttfamily ".$componentClassName."} components in the node.", returnType => "\\intzero", arguments => ""}
 	    );
     }
@@ -4529,13 +4321,13 @@ sub Generate_Component_Count_Functions {
 
 sub Generate_Component_Get_Functions {
     # Generate component get methods.
-    my $buildData = shift;
+    my $build = shift;
     # Initialize function code.
     my $functionCode;
     # Initialize data content.
     my @dataContent;
     # Create methods to get components.
-    foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
+    foreach my $componentClassName ( @{$build->{'componentClassList'}} ) {
 	# Specify data content for component get function.
 	@dataContent =
 	    (
@@ -4597,12 +4389,12 @@ sub Generate_Component_Get_Functions {
     	$functionCode .= "  end function ".$componentClassName."Get\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Bind this function to the treeNode type.
 	push(
-	    @{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	    {type => "procedure", name => $componentClassName, function => $componentClassName."Get", description => "Return a ".$componentClassName." component member of the node. If no {\\normalfont \\ttfamily instance} is specified, return the first instance. If {\\normalfont \\ttfamily autoCreate} is {\\normalfont \\ttfamily true} then create a single instance of the component if none exists in the node.", returnType => "\\textcolor{red}{\\textless *class(nodeComponent".ucfirst($componentClassName).")\\textgreater}", arguments => "\\intzero\\ [instance]\\argin, \\logicalzero\\ [autoCreate]\\argin"}
 	    );
 	# Specify data content for create-by-interrupt function.
@@ -4629,9 +4421,9 @@ sub Generate_Component_Get_Functions {
 	$functionCode .= "    ".$componentClassName." => self%".$componentClassName."(autoCreate=.true.)\n";
 	# Loop over instances of this class, and call custom create routines if necessary.
 	my $foundCreateFunctions = 0;
-    	foreach my $componentName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+    	foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 	    my $componentID = ucfirst($componentClassName).ucfirst($componentName);
-	    my $component = $buildData->{'components'}->{$componentID};
+	    my $component = $build->{'components'}->{$componentID};
 	    if ( exists($component->{'createFunction'}) ) {
 		if ( $foundCreateFunctions == 0 ) {
 		    $functionCode .= "    select type (".$componentClassName.")\n";
@@ -4655,13 +4447,13 @@ sub Generate_Component_Get_Functions {
     	$functionCode .= "  end subroutine ".$componentClassName."CreateByInterrupt\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# If any create function is deferred, create a function to set it at runt time.
-    	foreach my $componentName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+    	foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 	    my $componentID = ucfirst($componentClassName).ucfirst($componentName);
-	    my $component = $buildData->{'components'}->{$componentID};
+	    my $component = $build->{'components'}->{$componentID};
 	    if (
 		exists($component->{'createFunction'}                           ) && 
 		exists($component->{'createFunction'}->{'isDeferred'}           ) &&
@@ -4677,7 +4469,7 @@ sub Generate_Component_Get_Functions {
 		$functionCode .= "   end subroutine ".$componentID."CreateFunctionSet\n";
 		# Insert into the function list.
 		push(
-		    @{$buildData->{'code'}->{'functions'}},
+		    @{$build->{'code'}->{'functions'}},
 		    $functionCode
 		    );
 	    }
@@ -4687,9 +4479,9 @@ sub Generate_Component_Get_Functions {
 
 sub Generate_Component_Destruction_Functions {
     # Generate component destruction functions.
-    my $buildData = shift;
+    my $build = shift;
     # Iterate over component classes.
-    foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
+    foreach my $componentClassName ( @{$build->{'componentClassList'}} ) {
 	my @dataContent =
 	    (
 	     {
@@ -4717,12 +4509,12 @@ sub Generate_Component_Destruction_Functions {
     	$functionCode   .= "  end subroutine ".$componentClassName."DestroyLinked\n\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Bind this function to the treeNode type.
 	push(
-	    @{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	    {type => "procedure", name => $componentClassName."Destroy" , function => $componentClassName."DestroyLinked", description => "Destroy the {\\normalfont \\ttfamily ".$componentClassName."} component(s) of the node.", returnType => "\\void", arguments => ""}
 	    );
     }
@@ -4730,9 +4522,9 @@ sub Generate_Component_Destruction_Functions {
 
 sub Generate_Component_Creation_Functions {
     # Generate component creation functions.
-    my $buildData = shift;
+    my $build = shift;
     # Iterate over component classes.
-    foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
+    foreach my $componentClassName ( @{$build->{'componentClassList'}} ) {
 	# Specify data content.
 	my @dataContent =
 	    (
@@ -4794,12 +4586,12 @@ sub Generate_Component_Creation_Functions {
     	$functionCode .= "  end subroutine ".$componentClassName."CreateLinked\n\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Bind this function to the treeNode type.
 	push(
-	    @{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	    {type => "procedure", name => $componentClassName."Create" , function => $componentClassName."CreateLinked", description => "Create a {\\normalfont \\ttfamily ".$componentClassName."} component in the node. If no {\\normalfont \\ttfamily template} is specified use the active implementation of this class.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless class(nodeComponent".ucfirst($componentClassName).")\\textgreater}\\ [template]\\argin"}
 	    );
     }
@@ -4807,7 +4599,7 @@ sub Generate_Component_Creation_Functions {
 
 sub Generate_Node_Copy_Function {
     # Generate function to copy one node to another.
-    my $buildData = shift;
+    my $build = shift;
     # Specify variables.
     my @dataContent =
 	(
@@ -4852,11 +4644,11 @@ sub Generate_Node_Copy_Function {
     $functionCode .= "    if (.not.skipFormationNodeActual) targetNode%formationNode => self%formationNode\n";
     # Loop over all component classes
     if ( $workaround == 1 ) { # Workaround "Assignment to an allocatable polymorphic variable is not yet supported"
-	foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
+	foreach my $componentClassName ( @{$build->{'componentClassList'}} ) {
 	    $functionCode .= "    if (allocated(targetNode%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")) deallocate(targetNode%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")\n";
 	    $functionCode .= "    allocate(targetNode%component".&Utils::padClass(ucfirst($componentClassName),[0,0])."(size(self%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")),source=self%component".&Utils::padClass(ucfirst($componentClassName),[0,0])."(1))\n";
 	    $functionCode .= "    do i=1,size(self%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")\n";
-	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+	    foreach my $implementationName ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 		$functionCode .= "      select type (from => self%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")\n";
 		$functionCode .= "      type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
 		$functionCode .= "        select type (to => targetNode%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")\n";
@@ -4868,14 +4660,14 @@ sub Generate_Node_Copy_Function {
 	    $functionCode .= "    end do\n";
 	}
     } else {
-	foreach ( @{$buildData->{'componentClassList'}} ) {
+	foreach ( @{$build->{'componentClassList'}} ) {
 	    $functionCode .= "    targetNode%component".&Utils::padClass(ucfirst($_),[0,14])."=  self%component".ucfirst($_)."\n";
 	}
     }
     # Update target node pointers.
     $functionCode .= "    select type (targetNode)\n";
     $functionCode .= "    type is (treeNode)\n";
-    foreach ( @{$buildData->{'componentClassList'}} ) {
+    foreach ( @{$build->{'componentClassList'}} ) {
 	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
 	
 	$functionCode .= "        targetNode%component".&Utils::padClass(ucfirst($_),[0,14])."(i)%hostNode =>  targetNode\n";
@@ -4886,19 +4678,19 @@ sub Generate_Node_Copy_Function {
     $functionCode .= "  end subroutine Tree_Node_Copy_Node_To\n\n";
     # Insert into the function list.
     push(
-	@{$buildData->{'code'}->{'functions'}},
+	@{$build->{'code'}->{'functions'}},
 	$functionCode
 	);
     # Insert a type-binding for this function into the treeNode type.
     push(
-	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{type => "procedure", name => "copyNodeTo", function => "Tree_Node_Copy_Node_To", description => "Make a copy of the node in {\\normalfont \\ttfamily targetNode}. If {\\normalfont \\ttfamily skipFormationNode} is {\\normalfont \\ttfamily true} then do not copy any pointer to the formation node.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless class(treeNode)\\textgreater} targetNode\\arginout, \\logicalzero\\ [skipFormationNode]\\argin"}
 	);
 }
 
 sub Generate_Node_Move_Function {
     # Generate function to move one node to another.
-    my $buildData = shift;
+    my $build = shift;
     # Specify variables.
     my @dataContent =
 	(
@@ -4927,7 +4719,7 @@ sub Generate_Node_Move_Function {
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Loop over all component classes
-    foreach ( @{$buildData->{'componentClassList'}} ) {	    
+    foreach ( @{$build->{'componentClassList'}} ) {	    
 	$functionCode .= "    if (allocated(targetNode%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
 	$functionCode .= "      do i=1,size(targetNode%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
 	$functionCode .= "        call targetNode%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%destroy()\n";
@@ -4945,12 +4737,12 @@ sub Generate_Node_Move_Function {
     $functionCode .= "  end subroutine Tree_Node_Move_Components\n\n";
     # Insert into the function list.
     push(
-	@{$buildData->{'code'}->{'functions'}},
+	@{$build->{'code'}->{'functions'}},
 	$functionCode
 	);
     # Insert a type-binding for this function into the treeNode type.
     push(
-	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{type => "procedure", name => "moveComponentsTo", function => "Tree_Node_Move_Components", description => "Move components from a node to {\\normalfont \\ttfamily targetNode}.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless class(treeNode)\\textgreater} targetNode\\arginout"}
 	);
 }
@@ -4959,7 +4751,7 @@ sub Generate_Deferred_Function_Attacher {
     # Generate functions to attach a function to a deferred method and to query the attachment state.
     my $component = shift;
     my $property  = shift;
-    my $buildData = shift;
+    my $build = shift;
     my $gsr       = shift;
     my $gsrSuffix = "";
     $gsrSuffix = ucfirst($gsr)
@@ -4976,7 +4768,7 @@ sub Generate_Deferred_Function_Attacher {
     my $functionLabel = lcfirst($attachTo).ucfirst($propertyName).ucfirst($gsr);
     my $functionName = $functionLabel."Function";
     # Skip if this function was already created.
-    unless ( exists($buildData->{'deferredFunctionComponentClassMethodsMade'}->{$functionLabel}) ) {
+    unless ( exists($build->{'deferredFunctionComponentClassMethodsMade'}->{$functionLabel}) ) {
 	# Define the data content.
 	my $selfType = "generic";
 	$selfType = $component->{'class'}
@@ -5006,7 +4798,7 @@ sub Generate_Deferred_Function_Attacher {
 	$functionCode .= "  end subroutine ".$functionName."\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Bind this function to the relevant type.
@@ -5018,7 +4810,7 @@ sub Generate_Deferred_Function_Attacher {
 	    $functionType = &dataObjectDocName($property)
 		if ( $gsr eq "get" );
 	    push(
-		@{$buildData->{'types'}->{"nodeComponent".ucfirst($attachTo)}->{'boundFunctions'}},
+		@{$build->{'types'}->{"nodeComponent".ucfirst($attachTo)}->{'boundFunctions'}},
 		{type => "procedure", pass => "nopass", name => $propertyName.$gsrSuffix."Function", function => $functionName, description => "Set the function to be used for the {\\normalfont \\ttfamily ".$gsr."} method of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$attachTo."} component.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless function()\\textgreater} deferredFunction"}
 		);
 	}
@@ -5031,7 +4823,7 @@ sub Generate_Deferred_Function_Attacher {
 	$functionCode .= "  end function ".$functionLabel."IsAttached\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Bind this function to the relevant type.
@@ -5040,24 +4832,24 @@ sub Generate_Deferred_Function_Attacher {
 	    (                                                      $gsr eq "rate"                   )
 	    ) {
 	    push(
-		@{$buildData->{'types'}->{"nodeComponent".ucfirst($attachTo)}->{'boundFunctions'}},
+		@{$build->{'types'}->{"nodeComponent".ucfirst($attachTo)}->{'boundFunctions'}},
 		{type => "procedure", pass => "nopass", name => $propertyName.$gsrSuffix."IsAttached", function => $functionLabel."IsAttached", description => "Return whether the ".$gsr." method of the ".$propertyName." property of the {\\normalfont \\ttfamily ".$attachTo."} component has been attached to a function.", returnType => "\\logicalzero", arguments => ""}
 		);
 	}
 	# Record that these functions have now been created.
-	$buildData->{'deferredFunctionComponentClassMethodsMade'}->{$functionLabel} = 1;
+	$build->{'deferredFunctionComponentClassMethodsMade'}->{$functionLabel} = 1;
     }
 }
 
 sub Generate_Deferred_GSR_Function {
     # Generate function to get/set/rate the value of a property via a deferred function.
-    my $buildData = shift;
+    my $build = shift;
     # Record bindings already made.
     my %bindings;
     # Iterate over component implementations
-    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
+    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
 	# Get the component.
-	my $component = $buildData->{'components'}->{$componentID};
+	my $component = $build->{'components'}->{$componentID};
 	# Iterate over properties.
 	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    # Get the property.
@@ -5102,16 +4894,16 @@ sub Generate_Deferred_GSR_Function {
 		    $functionCode .= "  end function ".$componentName.ucfirst($propertyName)."Get\n";
 		    # Insert into the function list.
 		    push(
-			@{$buildData->{'code'}->{'functions'}},
+			@{$build->{'code'}->{'functions'}},
 			$functionCode
 			);
 		    # Bind this function to the relevant type.
 		    push(
-			@{$buildData->{'types'}->{"nodeComponent".ucfirst($componentName)}->{'boundFunctions'}},
+			@{$build->{'types'}->{"nodeComponent".ucfirst($componentName)}->{'boundFunctions'}},
 			{type => "procedure", name => $propertyName, function => $componentName.ucfirst($propertyName)."Get"}
 			);
 		    # Generate an attacher function.
-		    &Generate_Deferred_Function_Attacher($component,$property,$buildData,"get");
+		    &Generate_Deferred_Function_Attacher($component,$property,$build,"get");
 		}
 		# Add an "intent(in)" attribute to the data definition for set and rate functions.
 		push(@{$dataDefinition->{'attributes'}},"intent(in   )");
@@ -5142,16 +4934,16 @@ sub Generate_Deferred_GSR_Function {
 		    $functionCode .= "  end subroutine ".$componentName.ucfirst($propertyName)."Set\n\n";
 		    # Insert into the function list.
 		    push(
-			@{$buildData->{'code'}->{'functions'}},
+			@{$build->{'code'}->{'functions'}},
 			$functionCode
 			);
 		    # Bind this function to the relevant type.
 		    push(
-			@{$buildData->{'types'}->{"nodeComponent".ucfirst($componentName)}->{'boundFunctions'}},
+			@{$build->{'types'}->{"nodeComponent".ucfirst($componentName)}->{'boundFunctions'}},
 			{type => "procedure", name => $propertyName."Set", function => $componentName.ucfirst($propertyName)."Set"}
 			);
 		    # Generate an attacher function.
-		    &Generate_Deferred_Function_Attacher($component,$property,$buildData,"set");		  
+		    &Generate_Deferred_Function_Attacher($component,$property,$build,"set");		  
 		}
 		# Identify properties with a deferred rate function to be built.
 		if (
@@ -5197,20 +4989,20 @@ sub Generate_Deferred_GSR_Function {
 		    $functionCode .= "  end subroutine ".$componentName.ucfirst($propertyName)."Rate\n\n";
 		    # Insert into the function list.
 		    push(
-			@{$buildData->{'code'}->{'functions'}},
+			@{$build->{'code'}->{'functions'}},
 			$functionCode
 			);
 		    # Bind this function to the relevant type.
 		    my $bindingName = $type.$propertyName."Rate";
 		    unless ( exists($bindings{$bindingName}) && $property->{'attributes' }->{'bindsTo'} eq "top" ) {
 			push(
-			    @{$buildData->{'types'}->{$type}->{'boundFunctions'}},
+			    @{$build->{'types'}->{$type}->{'boundFunctions'}},
 			    {type => "procedure", name => $propertyName."Rate", function => $componentName.ucfirst($propertyName)."Rate", description => "Cumulate to the rate of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => "\\void", arguments => &dataObjectDocName($property)."\\ value"}
 			    );
 			$bindings{$bindingName} = 1;
 		    }
 		    # Generate an attacher function.
-		    &Generate_Deferred_Function_Attacher($component,$property,$buildData,"rate");
+		    &Generate_Deferred_Function_Attacher($component,$property,$build,"rate");
 		}
 	    }
 	}
@@ -5219,7 +5011,7 @@ sub Generate_Deferred_GSR_Function {
 
 sub Generate_GSR_Functions {
     # Generate functions to get/set/rate the value of a property directly.
-    my $buildData = shift;
+    my $build = shift;
     # Initialize function code.
     my $functionCode;
     # Initialize data content.
@@ -5228,8 +5020,8 @@ sub Generate_GSR_Functions {
     my %classRatesCreated;
     my %deferredFunctionComponentClassMethodsMade;
     # Iterate over component implementations.
-    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
-	my $component = $buildData->{'components'}->{$componentID};
+    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
+	my $component = $build->{'components'}->{$componentID};
 	# Get the parent class.
 	my $componentClassName = $component->{'class'};
 	# Iterate over properties.
@@ -5244,7 +5036,7 @@ sub Generate_GSR_Functions {
 		) {
 		# No need to build the function - just insert a type-binding into the implementation type.
 		push(
-		    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+		    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 		    {type => "procedure", name => $propertyName, function => $property->{'getFunction'}->{'content'}}
 		    );
 	    }
@@ -5257,7 +5049,7 @@ sub Generate_GSR_Functions {
 		) {
 		# No need to build the function - just insert a type-binding into the implementation type.
 		push(
-		    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+		    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 		    {type => "procedure", name => $propertyName."Set", function => $property->{'setFunction'}->{'content'}}
 		    );	
 	    }
@@ -5300,12 +5092,12 @@ sub Generate_GSR_Functions {
 			$functionCode .= "  end function ".$componentID.ucfirst($propertyName)."Get".$suffix."\n\n";
 			# Insert into the function list.
 			push(
-			    @{$buildData->{'code'}->{'functions'}},
+			    @{$build->{'code'}->{'functions'}},
 			    $functionCode
 			    );
 			# Insert a type-binding for this function into the implementation type.
 			push(
-			    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+			    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 			    {type => "procedure", name => $propertyName.$suffix, function => $componentID.ucfirst($propertyName)."Get".$suffix, description => "Get the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => &dataObjectDocName($property), arguments => ""}
 			    );
 		    }
@@ -5356,12 +5148,12 @@ sub Generate_GSR_Functions {
 			$functionCode .= "  end subroutine ".$componentID.ucfirst($propertyName)."Set".$suffix."\n\n";
 			# Insert into the function list.
 			push(
-			    @{$buildData->{'code'}->{'functions'}},
+			    @{$build->{'code'}->{'functions'}},
 			    $functionCode
 			    );
 			# Insert a type-binding for this function into the implementation type.
 			push(
-			    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+			    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 			    {type => "procedure", name => $propertyName."Set".$suffix, function => $componentID.ucfirst($propertyName)."Set".$suffix, description => "Set the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => "\\void", arguments => &dataObjectDocName($property)."\\ value"}
 			    );
 		    }
@@ -5396,12 +5188,12 @@ sub Generate_GSR_Functions {
 		    $functionCode .= "  end function ".$componentID.ucfirst($propertyName)."Count\n\n";
 		    # Insert into the function list.
 		    push(
-			@{$buildData->{'code'}->{'functions'}},
+			@{$build->{'code'}->{'functions'}},
 			$functionCode
 			);
 		    # Insert a type-binding for this function into the implementation type.
 		    push(
-			@{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+			@{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 			{type => "procedure", name => $propertyName."Count", function => $componentID.ucfirst($propertyName)."Count"}
 			);
 		    # Get the data content for remaining functions.
@@ -5466,7 +5258,7 @@ sub Generate_GSR_Functions {
 		    $functionCode .= "  end subroutine ".$componentID.ucfirst($propertyName)."Rate".$rateSuffix."\n\n";
 		    # Insert into the function list.
 		    push(
-			@{$buildData->{'code'}->{'functions'}},
+			@{$build->{'code'}->{'functions'}},
 			$functionCode
 			);
 		    # Insert a type-binding for this function into the implementation type.
@@ -5481,7 +5273,7 @@ sub Generate_GSR_Functions {
 			$typeDefinition{'arguments'  } = &dataObjectDocName($property)."\\ value";
 		    }
 		    push(
-			@{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+			@{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 			\%typeDefinition
 			);
 		    if ( $property->{'attributes' }->{'makeGeneric'} eq "true" ) {
@@ -5559,7 +5351,7 @@ sub Generate_GSR_Functions {
 			$functionCode .= "  end subroutine ".$componentID.ucfirst($propertyName)."RateGeneric\n\n";
 			# Insert into the function list.
 			push(
-			    @{$buildData->{'code'}->{'functions'}},
+			    @{$build->{'code'}->{'functions'}},
 			    $functionCode
 			    );
 		    }
@@ -5618,7 +5410,7 @@ sub Generate_GSR_Functions {
 			    $functionCode .= "  end subroutine ".$componentClassName.ucfirst($propertyName)."Rate\n\n";
 			    # Insert into the function list.
 			    push(
-				@{$buildData->{'code'}->{'functions'}},
+				@{$build->{'code'}->{'functions'}},
 				$functionCode
 				);
 			}
@@ -5656,12 +5448,12 @@ sub Generate_GSR_Functions {
 		    $functionCode .= "  end subroutine ".$componentID.ucfirst($propertyName)."Scale\n\n";
 		    # Insert into the function list.
 		    push(
-			@{$buildData->{'code'}->{'functions'}},
+			@{$build->{'code'}->{'functions'}},
 			$functionCode
 			);
 		    # Insert a type-binding for this function into the implementation type.
 		    push(
-			@{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+			@{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 			{type => "procedure", name => $propertyName."Scale", function => $componentID.ucfirst($propertyName)."Scale"}
 			);
 		}
@@ -5672,7 +5464,7 @@ sub Generate_GSR_Functions {
 
 sub Generate_Tree_Node_Creation_Function {
     # Generate a tree node creation function.
-    my $buildData = shift;
+    my $build = shift;
     # Specify data content.
     my @dataContent =
 	(
@@ -5705,12 +5497,12 @@ sub Generate_Tree_Node_Creation_Function {
     $functionCode .= "    ! Ensure pointers are nullified.\n";
     $functionCode .= "    nullify (self%".&Utils::padClass($_,[9,14]).")\n"
 	foreach ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "formationNode", "event" );
-    foreach ( @{$buildData->{'componentClassList'}} ) {
+    foreach ( @{$build->{'componentClassList'}} ) {
     	$functionCode .= "    allocate(self%".&Utils::padClass("component".ucfirst($_),[9,14])."(1))\n";
     }
     $functionCode .= "    select type (self)\n";
     $functionCode .= "    type is (treeNode)\n";
-    foreach ( @{$buildData->{'componentClassList'}} ) {
+    foreach ( @{$build->{'componentClassList'}} ) {
 	$functionCode .= "       self%component".&Utils::padClass(ucfirst($_),[0,0])."(1)%hostNode => self\n";
     }
     $functionCode .= "    end select\n";
@@ -5730,14 +5522,14 @@ sub Generate_Tree_Node_Creation_Function {
     $functionCode .= "  end subroutine treeNodeInitialize\n";	
     # Insert into the function list.
     push(
-	@{$buildData->{'code'}->{'functions'}},
+	@{$build->{'code'}->{'functions'}},
 	$functionCode
 	);
 }
 
 sub Generate_Tree_Node_Destruction_Function {
     # Generate a tree node destruction function.
-    my $buildData = shift;
+    my $build = shift;
     # Specify data content.
     my @dataContent =
 	(
@@ -5764,7 +5556,7 @@ sub Generate_Tree_Node_Destruction_Function {
     $functionCode .= "    !% Destroy a {\\normalfont \\ttfamily treeNode} object.\n";
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
+    foreach my $componentClass ( @{$build->{'componentClassList'}} ) {
      	$functionCode .= "    call self%".&Utils::padClass(lc($componentClass)."Destroy",[7,0])."()\n";
     }
     # Remove any events attached to the node, along with their paired event in other nodes.
@@ -5803,14 +5595,14 @@ sub Generate_Tree_Node_Destruction_Function {
     $functionCode .= "  end subroutine treeNodeDestroy\n";	
     # Insert into the function list.
     push(
-	@{$buildData->{'code'}->{'functions'}},
+	@{$build->{'code'}->{'functions'}},
 	$functionCode
 	);
 }
 
 sub Generate_Tree_Node_Builder_Function {
     # Generate a tree node builder function.
-    my $buildData = shift;
+    my $build = shift;
     # Specify data content.
     my @dataContent =
 	(
@@ -5859,7 +5651,7 @@ sub Generate_Tree_Node_Builder_Function {
     $functionCode .= "    select type (self)\n";
     $functionCode .= "    type is (treeNode)\n";
     $functionCode .= "       call componentIndex%initialize()\n";
-    foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
+    foreach my $componentClass ( @{$build->{'componentClassList'}} ) {
 	$functionCode .= "    componentList => getChildNodes(nodeDefinition)\n";
 	$functionCode .= "    componentCount=0\n";
 	$functionCode .= "    do i=0,getLength(componentList)-1\n";
@@ -5873,7 +5665,7 @@ sub Generate_Tree_Node_Builder_Function {
 	$functionCode .= "    end if\n";
     }
     $functionCode .= "    do i=0,getLength(componentList)-1\n";
-    foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
+    foreach my $componentClass ( @{$build->{'componentClassList'}} ) {
 	$functionCode .= "     componentDefinition => item(componentList,i)\n";
 	$functionCode .= "     if (getNodeName(componentDefinition) == '".$componentClass."') then\n";
 	$functionCode .= "       j=componentIndex%value('".$componentClass."')\n";
@@ -5890,23 +5682,23 @@ sub Generate_Tree_Node_Builder_Function {
     $functionCode .= "  end subroutine Tree_Node_Component_Builder\n";	
     # Insert into the function list.
     push(
-	@{$buildData->{'code'}->{'functions'}},
+	@{$build->{'code'}->{'functions'}},
 	$functionCode
 	);
 }
 
 sub Generate_GSR_Availability_Functions {
     # Generate functions to return text described which components support setting/getting/rating of a particular property.
-    my $buildData = shift;
+    my $build = shift;
     # Iterate over classes.
-    foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
+    foreach my $componentClassName ( @{$build->{'componentClassList'}} ) {
 	# Initialize a structure of properties.
 	my $properties;
 	# Iterate over class members.
-	foreach my $componentName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+	foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 	    # Get the component.
 	    my $componentID = ucfirst($componentClassName).ucfirst($componentName);
-	    my $component   = $buildData->{'components'}->{$componentID};
+	    my $component   = $build->{'components'}->{$componentID};
 	    # Iterate over the properties of this implementation.
 	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		# Get the property.
@@ -5968,12 +5760,12 @@ sub Generate_GSR_Availability_Functions {
 	    $functionCode .= "  end function ".$functionName."\n\n";
 	    # Insert into the function list.
 	    push(
-		@{$buildData->{'code'}->{'functions'}},
+		@{$build->{'code'}->{'functions'}},
 		$functionCode
 		);
 	    # Bind this function to the relevant type.
 	    push(
-		@{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
+		@{$build->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
 		{type => "procedure", pass => "nopass", name => $propertyName."AttributeMatch", function => $functionName, description => "Return a list of implementations that provide the given list off attributes for the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component", returnType => "\\textcolor{red}{\\textless type(varying\\_string)(:)\\textgreater}", arguments => "\\logicalzero [requireGettable]\\argin, \\logicalzero [requireSettable]\\argin, \\logicalzero [requireEvolvable]\\argin"}
 		);
 	}
@@ -5982,13 +5774,13 @@ sub Generate_GSR_Availability_Functions {
 
 sub Generate_Type_Name_Functions {
     # Generate a type name functions.
-    my $buildData = shift;
+    my $build = shift;
     # Initialize data content.
     my @dataContent;
     # Initialize the function code.
     my $functionCode;
     # Iterate over component classes.
-    foreach ( @{$buildData->{'componentClassList'}} ) {
+    foreach ( @{$build->{'componentClassList'}} ) {
 	# Specify data content.
 	@dataContent =
 	    (
@@ -6014,19 +5806,19 @@ sub Generate_Type_Name_Functions {
 	$functionCode .= "  end function Node_Component_".ucfirst($_)."_Type\n\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 
 	# Bind this function to the relevant type.
 	push(
-	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($_)}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'nodeComponent'.ucfirst($_)}->{'boundFunctions'}},
 	    {type => "procedure", name => "type", function => "Node_Component_".ucfirst($_)."_Type"}
 	    );
     }
     # Iterate over implementations.
-    foreach my $componentName ( @{$buildData->{'componentIdList'}} ) {
-	my $component = $buildData->{'components'}->{$componentName};
+    foreach my $componentName ( @{$build->{'componentIdList'}} ) {
+	my $component = $build->{'components'}->{$componentName};
 	# Specify data content.
 	@dataContent =
 	    (
@@ -6052,12 +5844,12 @@ sub Generate_Type_Name_Functions {
 	$functionCode .= "  end function Node_Component_".ucfirst($componentName)."_Type\n\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );	
 	# Bind this function to the relevant type.
 	push(
-	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentName)}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentName)}->{'boundFunctions'}},
 	    {type => "procedure", name => "type", function => "Node_Component_".ucfirst($componentName)."_Type"}
 	    );
     }
@@ -6065,7 +5857,7 @@ sub Generate_Type_Name_Functions {
 
 sub Generate_Component_Assignment_Function {
     # Generate a type name functions.
-    my $buildData = shift;
+    my $build = shift;
     # Specify data content.
     my @dataContent =
 	(
@@ -6091,8 +5883,8 @@ sub Generate_Component_Assignment_Function {
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     $functionCode .= "    to%hostNode => from%hostNode\n";
     $functionCode .= "    select type (to)\n";
-    foreach my $componentName ( @{$buildData->{'componentIdList'}} ) {
-	my $component = $buildData->{'components'}->{$componentName};
+    foreach my $componentName ( @{$build->{'componentIdList'}} ) {
+	my $component = $build->{'components'}->{$componentName};
 	$functionCode .= "    type is (nodeComponent".&Utils::padFullyQualified($componentName,[0,0]).")\n";
 	$functionCode .= "       select type (from)\n";
 	$functionCode .= "       type is (nodeComponent".&Utils::padFullyQualified($componentName,[0,0]).")\n";
@@ -6128,12 +5920,12 @@ sub Generate_Component_Assignment_Function {
     $functionCode .= "  end subroutine Node_Component_Assign\n\n";
     # Insert into the function list.
     push(
-	@{$buildData->{'code'}->{'functions'}},
+	@{$build->{'code'}->{'functions'}},
 	$functionCode
 	);	
     # Bind this function to the nodeComponent type.
     push(
-	@{$buildData->{'types'}->{'nodeComponent'}->{'boundFunctions'}},
+	@{$build->{'types'}->{'nodeComponent'}->{'boundFunctions'}},
 	{type => "procedure", name => "assign"       , function => "Node_Component_Assign", description => "Assign a {\\normalfont \\ttfamily nodeComponent} to another {\\normalfont \\ttfamily nodeComponent}.", returnType => "\\textcolor{red}{\\textless class(nodeComponent)\\textgreater}", arguments => "\\textcolor{red}{\\textless class(nodeComponent)\\textgreater} from\\argin"},
 	{type => "generic"  , name => "assignment(=)", function => "assign" }
 	);
@@ -6141,12 +5933,12 @@ sub Generate_Component_Assignment_Function {
 
 sub Generate_Component_Class_Destruction_Functions {
     # Generate class destruction functions.
-    my $buildData = shift;
+    my $build = shift;
     # Initialize data content.
     my @dataContent;
     # Generate the function code.
     my $functionCode;
-    foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
+    foreach my $componentClassName ( @{$build->{'componentClassList'}} ) {
 	# Specify data content.
 	@dataContent =
 	    (
@@ -6167,12 +5959,12 @@ sub Generate_Component_Class_Destruction_Functions {
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Destroy\n\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Bind this function to the treeNode type.
 	push(
-	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
 	    {type => "procedure", name => "destroy", function => "Node_Component_".ucfirst($componentClassName)."_Destroy"}
 	    );
     }
@@ -6180,13 +5972,13 @@ sub Generate_Component_Class_Destruction_Functions {
 
 sub Generate_Component_Class_Removal_Functions {
     # Generate class removal functions.
-    my $buildData = shift;
+    my $build = shift;
 
     # Initialize data content.
     my @dataContent;
     # Generate the function code.
     my $functionCode;
-    foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
+    foreach my $componentClassName ( @{$build->{'componentClassList'}} ) {
 	# Specify data content.
 	@dataContent =
 	    (
@@ -6228,7 +6020,7 @@ sub Generate_Component_Class_Removal_Functions {
 	$functionCode .= "    else\n";
 	$functionCode .= "      ! Multiple instances, so remove the specified instance.\n";
 	$functionCode .= "      allocate(instancesTemporary(instanceCount-1),source=self%component".ucfirst($componentClassName)."(1))\n";
-	foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+	foreach my $implementationName ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 	    $functionCode .= "      select type (from => self%component".ucfirst($componentClassName).")\n";
 	    $functionCode .= "      type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
 	    $functionCode .= "        select type (to => instancesTemporary)\n";
@@ -6246,12 +6038,12 @@ sub Generate_Component_Class_Removal_Functions {
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Remove\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Bind this function to the treeNode type.
 	push(
-	    @{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	    {type => "procedure", name => $componentClassName."Remove", function => "Node_Component_".ucfirst($componentClassName)."_Remove", description => "Remove an instance of the ".$componentClassName." component, shifting other instances to keep the array contiguous. If no {\\normalfont \\ttfamily instance} is specified, the first instance is assumed.", returnType => "\\void", arguments => "\\intzero\\ [instance]\\argin"}
 	    );
     }
@@ -6259,12 +6051,12 @@ sub Generate_Component_Class_Removal_Functions {
 
 sub Generate_Component_Class_Move_Functions {
     # Generate class move functions.
-    my $buildData = shift;
+    my $build = shift;
     # Initialize data content.
     my @dataContent;
     # Generate the function code.
     my $functionCode;
-    foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
+    foreach my $componentClassName ( @{$build->{'componentClassList'}} ) {
 	# Specify data content.
 	@dataContent =
 	    (
@@ -6325,7 +6117,7 @@ sub Generate_Component_Class_Move_Functions {
 	$functionCode .= "    else\n";
 	$functionCode .= "      ! Multiple instances, so remove the specified instance.\n";
 	$functionCode .= "      allocate(instancesTemporary(instanceCount+targetCount),source=self%component".ucfirst($componentClassName)."(1))\n";
-	foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+	foreach my $implementationName ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 	    $functionCode .= "      select type (from => targetNode%component".ucfirst($componentClassName).")\n";
 	    $functionCode .= "      type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
 	    $functionCode .= "        select type (to => instancesTemporary)\n";
@@ -6334,7 +6126,7 @@ sub Generate_Component_Class_Move_Functions {
 	    $functionCode .= "        end select\n";
 	    $functionCode .= "      end select\n";
 	}
-	foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+	foreach my $implementationName ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 	    $functionCode .= "      select type (from => self%component".ucfirst($componentClassName).")\n";
 	    $functionCode .= "      type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
 	    $functionCode .= "        select type (to => instancesTemporary)\n";
@@ -6355,12 +6147,12 @@ sub Generate_Component_Class_Move_Functions {
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Move\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Bind this function to the treeNode type.
 	push(
-	    @{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	    {type => "procedure", name => $componentClassName."Move", function => "Node_Component_".ucfirst($componentClassName)."_Move", description => "", returnType => "\\void", arguments => "\\textcolor{red}{\\textless type(treeNode)\\textgreater} targetNode\\arginout"}
 	    );
     }
@@ -6368,9 +6160,9 @@ sub Generate_Component_Class_Move_Functions {
 
 sub Generate_Component_Class_Dump_Functions {
     # Generate dump for each component class.
-    my $buildData = shift;
+    my $build = shift;
     # Iterate over component classes.
-    foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
+    foreach my $componentClassName ( @{$build->{'componentClassList'}} ) {
 	# Initialize function code.
 	my $functionCode;
 	# Initialize data content.
@@ -6396,12 +6188,12 @@ sub Generate_Component_Class_Dump_Functions {
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Dump\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Insert a type-binding for this function into the implementation type.
 	push(
-	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
 	    {type => "procedure", name => "dump", function => "Node_Component_".ucfirst($componentClassName)."_Dump"},
 	    );
     }
@@ -6409,9 +6201,9 @@ sub Generate_Component_Class_Dump_Functions {
 
 sub Generate_Component_Class_Initializor_Functions {
     # Generate initializor for each component class.
-    my $buildData = shift;
+    my $build = shift;
     # Iterate over component classes.
-    foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
+    foreach my $componentClassName ( @{$build->{'componentClassList'}} ) {
 	# Initialize function code.
 	my $functionCode;
 	# Initialize data content.
@@ -6435,12 +6227,12 @@ sub Generate_Component_Class_Initializor_Functions {
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Initializor\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Insert a type-binding for this function into the implementation type.
 	push(
-	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
 	    {type => "procedure", name => "initialize", function => "Node_Component_".ucfirst($componentClassName)."_Initializor", description => "Initialize the object.", returnType => "\\void", arguments => ""},
 	    );
     }
@@ -6448,9 +6240,9 @@ sub Generate_Component_Class_Initializor_Functions {
 
 sub Generate_Component_Class_Builder_Functions {
     # Generate builder for each component class.
-    my $buildData = shift;
+    my $build = shift;
     # Iterate over component classes.
-    foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
+    foreach my $componentClassName ( @{$build->{'componentClassList'}} ) {
 	# Initialize function code.
 	my $functionCode;
 	# Initialize data content.
@@ -6481,12 +6273,12 @@ sub Generate_Component_Class_Builder_Functions {
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Builder\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Insert a type-binding for this function into the implementation type.
 	push(
-	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
 	    {type => "procedure", name => "builder", function => "Node_Component_".ucfirst($componentClassName)."_Builder", description => "Build a {\\normalfont \\ttfamily nodeComponent} from a supplied XML definition.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless *type(node)\\textgreater}componentDefinition\\argin"},
 	    );
     }
@@ -6494,9 +6286,9 @@ sub Generate_Component_Class_Builder_Functions {
 
 sub Generate_Component_Class_Output_Functions {
     # Generate output for each component class.
-    my $buildData = shift;
+    my $build = shift;
     # Iterate over component classes.
-    foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
+    foreach my $componentClassName ( @{$build->{'componentClassList'}} ) {
 	# Initialize function code.
 	my $functionCode;
 	# Create property count function.
@@ -6542,12 +6334,12 @@ sub Generate_Component_Class_Output_Functions {
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Output_Count\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Insert a type-binding for this function into the implementation type.
 	push(
-	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
 	    {type => "procedure", name => "outputCount", function => "Node_Component_".ucfirst($componentClassName)."_Output_Count"},
 	    );
 	# Create property names function.
@@ -6604,12 +6396,12 @@ sub Generate_Component_Class_Output_Functions {
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Output_Names\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Insert a type-binding for this function into the implementation type.
 	push(
-	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
 	    {type => "procedure", name => "outputNames", function => "Node_Component_".ucfirst($componentClassName)."_Output_Names"},
 	    );
 	# Create output function.
@@ -6657,10 +6449,10 @@ sub Generate_Component_Class_Output_Functions {
 	# Find all derived types to be output.
 	my %outputTypes;
 	my %rank1OutputTypes;
-	foreach my $componentName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+	foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 	    # Get the component.
 	    my $componentID  = ucfirst($componentClassName).ucfirst($componentName);
-	    my $component    = $buildData->{'components'}->{$componentID};
+	    my $component    = $build->{'components'}->{$componentID};
 	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if property is to be output.
@@ -6720,10 +6512,10 @@ sub Generate_Component_Class_Output_Functions {
 	undef($functionCode);
 	# Find modules required.
 	my %modulesRequired;
-	foreach my $componentName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+	foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 	    # Get the component.
 	    my $componentID  = ucfirst($componentClassName).ucfirst($componentName);
-	    my $component    = $buildData->{'components'}->{$componentID};
+	    my $component    = $build->{'components'}->{$componentID};
 	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property is to be output.
@@ -6746,10 +6538,10 @@ sub Generate_Component_Class_Output_Functions {
 	    foreach ( &ExtraUtils::sortedKeys(\%modulesRequired) );
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	foreach my $componentName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+	foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 	    # Get the component.
 	    my $componentID  = ucfirst($componentClassName).ucfirst($componentName);
-	    my $component    = $buildData->{'components'}->{$componentID};
+	    my $component    = $build->{'components'}->{$componentID};
 	    my $activeCheck  = "    if (default".ucfirst($componentClassName)."Component%".$componentName."IsActive()";
 	    $activeCheck .= ".and.instance == 1"
 		if (
@@ -6858,12 +6650,12 @@ sub Generate_Component_Class_Output_Functions {
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Output\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Insert a type-binding for this function into the implementation type.
 	push(
-	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
 	    {type => "procedure", name => "output", function => "Node_Component_".ucfirst($componentClassName)."_Output"},
 	    );
     }
@@ -6871,12 +6663,12 @@ sub Generate_Component_Class_Output_Functions {
 
 sub Generate_Is_Active_Functions {
     # Generate "isActive" functions.
-    my $buildData = shift;
+    my $build = shift;
     # Initialize function code.
     my $functionCode;
     # Iterate over component implementations.
-    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
-	my $component = $buildData->{'components'}->{$componentID};
+    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
+	my $component = $build->{'components'}->{$componentID};
 	$functionCode  = "  logical function Node_Component_".ucfirst($componentID)."_Is_Active()\n";
 	$functionCode .= "    !% Return true if the ".$component->{'name'}." implementation of the ".$component->{'class'}." component is the active choice.\n";
 	$functionCode .= "    implicit none\n\n";
@@ -6885,12 +6677,12 @@ sub Generate_Is_Active_Functions {
 	$functionCode .= "  end function Node_Component_".ucfirst($componentID)."_Is_Active\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Bind this function to the implementation type.
 	push(
-	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($component->{'class'})}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'nodeComponent'.ucfirst($component->{'class'})}->{'boundFunctions'}},
 	    {type => "procedure", pass => "nopass", name => lcfirst($component->{'name'})."IsActive", function => "Node_Component_".ucfirst($componentID)."_Is_Active", description => "Return whether the ".$component->{'name'}." implementation of the ".$component->{'class'}." component class is active.", returnType => "\\logicalzero", arguments => ""}
 	    );
     }
@@ -6898,11 +6690,11 @@ sub Generate_Is_Active_Functions {
 
 sub Generate_Component_Implementation_Destruction_Functions {
     # Generate component implementation destruction functions.
-    my $buildData = shift;
+    my $build = shift;
     # Initialize function code.
     my $functionCode;
-    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
-	my $component = $buildData->{'components'}->{$componentID};
+    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
+	my $component = $build->{'components'}->{$componentID};
 	# Specify data content.
 	my @dataContent =
 	    (
@@ -6951,12 +6743,12 @@ sub Generate_Component_Implementation_Destruction_Functions {
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Destroy\n\n";
 	# Insert into the function list.
 	push(
-	    @{$buildData->{'code'}->{'functions'}},
+	    @{$build->{'code'}->{'functions'}},
 	    $functionCode
 	    );
 	# Bind this function to the implementation type.
 	push(
-	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 	    {type => "procedure", name => "destroy", function => "Node_Component_".ucfirst($componentID)."_Destroy"}
 	    );    
     }
@@ -6964,11 +6756,11 @@ sub Generate_Component_Implementation_Destruction_Functions {
 
 sub Generate_Null_Binding_Functions {
     # Generate null binding functions.
-    my $buildData = shift;
+    my $build = shift;
     # Iterate over component classes.
-    foreach my $componentClassName ( &ExtraUtils::sortedKeys($buildData->{'nullProperties'}) ) {
+    foreach my $componentClassName ( &ExtraUtils::sortedKeys($build->{'nullProperties'}) ) {
 	# Get the null functions required for this component class.
-	my $componentClass = $buildData->{'nullProperties'}->{$componentClassName};
+	my $componentClass = $build->{'nullProperties'}->{$componentClassName};
 	# Iterate over required null functions for this component class.
 	foreach my $nullFunctionName ( &ExtraUtils::sortedKeys($componentClass) ) {
 	    # Get the null function definition.
@@ -7010,7 +6802,7 @@ sub Generate_Null_Binding_Functions {
 	    $functionCode .= "  end subroutine ".$componentClassName."NullBindingSet".$label.$intent."\n";
 	    # Insert into the function list.
 	    push(
-		@{$buildData->{'code'}->{'functions'}},
+		@{$build->{'code'}->{'functions'}},
 		$functionCode
 		);
 	    # Build code for the null rate function.
@@ -7043,7 +6835,7 @@ sub Generate_Null_Binding_Functions {
 	    $functionCode .= "  end subroutine ".$componentClassName."NullBindingRate".$label.$intent."\n";
 	    # Insert into the function list.
 	    push(
-		@{$buildData->{'code'}->{'functions'}},
+		@{$build->{'code'}->{'functions'}},
 		$functionCode
 		);
 	    # Build code for the null get function.
@@ -7070,7 +6862,7 @@ sub Generate_Null_Binding_Functions {
 	    $functionCode .= "  end function ".$componentClassName."NullBinding".$label.$intent."\n\n";
 	    # Insert into the function list.
 	    push(
-		@{$buildData->{'code'}->{'functions'}},
+		@{$build->{'code'}->{'functions'}},
 		$functionCode
 		);
 	}
@@ -7079,16 +6871,16 @@ sub Generate_Null_Binding_Functions {
 
 sub Generate_Component_Class_Default_Value_Functions {
     # Generate component class default value functions.
-    my $buildData = shift;
+    my $build = shift;
     # Iterate over component classes.
-    foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
+    foreach my $componentClassName ( @{$build->{'componentClassList'}} ) {
 	# Initialize hash to track which property have been created already.
 	my %propertiesCreated;
 	# Iterate over implementations in this class.
-    	foreach my $componentName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+    	foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 	    # Get the component.
 	    my $componentID = ucfirst($componentClassName).ucfirst($componentName);
-	    my $component   = $buildData->{'components'}->{$componentID};
+	    my $component   = $build->{'components'}->{$componentID};
 	    # Iterate over the properties of this implementation.
 	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		# Get the property.
@@ -7121,9 +6913,9 @@ sub Generate_Component_Class_Default_Value_Functions {
 		    $functionCode .= "     !% Returns true if the {\\normalfont \\ttfamily ".$propertyName."} property is gettable for the {\\normalfont \\ttfamily ".$componentClassName."} component class.\n\n"; 
 		    $functionCode .= "     implicit none\n";
 		    $functionCode .= "     ".ucfirst($componentClassName).ucfirst($propertyName)."IsGettable=.false.\n";
-		    foreach my $componentName2 ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+		    foreach my $componentName2 ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 			my $component2ID = ucfirst($componentClassName).ucfirst($componentName2);
-			my $component2   = $buildData->{'components'}->{$component2ID};
+			my $component2   = $build->{'components'}->{$component2ID};
 			$functionCode .= "     if (nodeComponent".ucfirst($component2ID)."IsActive) ".ucfirst($componentClassName).ucfirst($propertyName)."IsGettable=.true.\n"
 			    if (
 				exists($component2->{'properties'}->{'property'}->{$propertyName}                  ) && 
@@ -7134,12 +6926,12 @@ sub Generate_Component_Class_Default_Value_Functions {
 		    $functionCode .= "   end function ".ucfirst($componentClassName).ucfirst($propertyName)."IsGettable\n";
 		    # Insert into the function list.
 		    push(
-			@{$buildData->{'code'}->{'functions'}},
+			@{$build->{'code'}->{'functions'}},
 			$functionCode
 			);
 		    # Bind this function to the implementation type.
 		    push(
-			@{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
+			@{$build->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
 			{type => "procedure", pass => "nopass", name => $propertyName."IsGettable", function => ucfirst($componentClassName).ucfirst($propertyName)."IsGettable", description => "Get the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => &dataObjectDocName($property), arguments => ""}
 			);
 		    # Generate code for default value function.
@@ -7155,9 +6947,9 @@ sub Generate_Component_Class_Default_Value_Functions {
 		    # Build default value code, and accumulate which additional components are needed.
 		    my $defaultLines = "";
 		    my %requiredComponents;
-		    foreach my $componentName2 ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+		    foreach my $componentName2 ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 			my $component2ID = ucfirst($componentClassName).ucfirst($componentName2);
-			my $component2   = $buildData->{'components'}->{$component2ID};
+			my $component2   = $build->{'components'}->{$component2ID};
 			if ( exists($component2->{'properties'}->{'property'}->{$propertyName}) ) {
 			    my $property2 = $component2->{'properties'}->{'property'}->{$propertyName};
 			    if ( exists($property2->{'classDefault'}) ) {
@@ -7231,12 +7023,12 @@ sub Generate_Component_Class_Default_Value_Functions {
 		    $functionCode .= "  end function ".ucfirst($componentClassName).ucfirst($propertyName)."\n";
 		    # Insert into the function list.
 		    push(
-			@{$buildData->{'code'}->{'functions'}},
+			@{$build->{'code'}->{'functions'}},
 			$functionCode
 			);
 		    # Bind this function to the implementation type.
 		    push(
-			@{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
+			@{$build->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
 			{type => "procedure", name => $propertyName, function => ucfirst($componentClassName).ucfirst($propertyName), description => "Get the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => &dataObjectDocName($property), arguments => ""}
 			);
 		    # Record that this property has been created.
@@ -7345,10 +7137,10 @@ sub Bound_Function_Table {
 
 sub Insert_Type_Definitions {
     # Generate and insert code for all type definitions.
-    my $buildData = shift;
+    my $build = shift;
     # Sort types into dependency order.
     my %typeDependencies;
-    foreach ( &ExtraUtils::hashList($buildData->{'types'}) ) {
+    foreach ( &ExtraUtils::hashList($build->{'types'}) ) {
 	# Types are dependent on their parent type.
 	push(@{$typeDependencies{$_->{'extends'}}},$_->{'name'})
 	    if ( exists($_->{'extends'}) );
@@ -7363,13 +7155,13 @@ sub Insert_Type_Definitions {
 		   $dataContent->{'intrinsic'} eq "class"
 		  )
 		  && 
-		  exists($buildData->{'types'}->{$dataContent->{'type'}})
+		  exists($build->{'types'}->{$dataContent->{'type'}})
 		  &&
 		  ! grep {$_ eq "pointer"} @{$dataContent->{'attributes'}}
 		 );
 	}
     }
-    my @typeSort  = &ExtraUtils::sortedKeys($buildData->{'types'});
+    my @typeSort  = &ExtraUtils::sortedKeys($build->{'types'});
     my @typeOrder =
 	toposort
 	(
@@ -7379,50 +7171,50 @@ sub Insert_Type_Definitions {
     # Iterate over types.
     foreach ( @typeOrder ) {
 	# Get the type.
-	my $type = $buildData->{'types'}->{$_};
+	my $type = $build->{'types'}->{$_};
 	# Insert the type opening.
-	$buildData->{'content'} .= "  type";
-	$buildData->{'content'} .= ", public"
-	    if ( exists($type->{'isPublic'}) && $type->{'isPublic'} eq "true" );
-	$buildData->{'content'} .= ", extends(".$type->{'extends'}.")"
+	$build->{'content'} .= "  type";
+	$build->{'content'} .= ", public"
+	    if ( exists($type->{'isPublic'}) && $type->{'isPublic'} );
+	$build->{'content'} .= ", extends(".$type->{'extends'}.")"
 	    if ( exists($type->{'extends'}) );
-	$buildData->{'content'} .= " :: ".$type->{'name'}."\n";
+	$build->{'content'} .= " :: ".$type->{'name'}."\n";
 	# Insert any comment.
-	$buildData->{'content'} .= "  !% ".$type->{'comment'}."\n"
+	$build->{'content'} .= "  !% ".$type->{'comment'}."\n"
 	    if ( exists($type->{'comment'}) );
 	# Declare contents private.
-	$buildData->{'content'} .= "    private\n";
+	$build->{'content'} .= "    private\n";
 	# Process any data content.
-	$buildData->{'content'} .= &Fortran_Utils::Format_Variable_Defintions($type->{'dataContent'})
+	$build->{'content'} .= &Fortran_Utils::Format_Variable_Defintions($type->{'dataContent'})
 	    if ( exists($type->{'dataContent'}) );
 	# Generate and insert a type-bound function table.
 	if ( exists($type->{'boundFunctions'}) ) {
-	    $buildData->{'content'} .= "   contains\n";
+	    $build->{'content'} .= "   contains\n";
 	    my $boundFunctionTable = &Bound_Function_Table($type->{'name'},$type->{'boundFunctions'});   
-	    $buildData->{'content'} .= $boundFunctionTable;
+	    $build->{'content'} .= $boundFunctionTable;
 	}
 	# Insert the type closing.
-	$buildData->{'content'} .= "  end type ".$type->{'name'}."\n\n";
+	$build->{'content'} .= "  end type ".$type->{'name'}."\n\n";
     }
 }
 
 sub Insert_Interrupt_Interface {
     # Insert the interrupt procedure interface.
-    my $buildData = shift;
+    my $build = shift;
 
-    $buildData->{'content'} .= "! Procedure template for interrupt routines.\n";
-    $buildData->{'content'} .= "abstract interface\n";
-    $buildData->{'content'} .= "   subroutine Interrupt_Procedure_Template(thisNode)\n";
-    $buildData->{'content'} .= "     import treeNode\n";
-    $buildData->{'content'} .= "     type(treeNode), pointer, intent(inout) :: thisNode\n";
-    $buildData->{'content'} .= "   end subroutine Interrupt_Procedure_Template\n";
-    $buildData->{'content'} .= "end interface\n\n";  
+    $build->{'content'} .= "! Procedure template for interrupt routines.\n";
+    $build->{'content'} .= "abstract interface\n";
+    $build->{'content'} .= "   subroutine Interrupt_Procedure_Template(thisNode)\n";
+    $build->{'content'} .= "     import treeNode\n";
+    $build->{'content'} .= "     type(treeNode), pointer, intent(inout) :: thisNode\n";
+    $build->{'content'} .= "   end subroutine Interrupt_Procedure_Template\n";
+    $build->{'content'} .= "end interface\n\n";  
 }
 
 sub Insert_Contains {
     # Insert the "contains" line.
-    my $buildData = shift;
-    $buildData->{'content'} .= "contains\n\n";
+    my $build = shift;
+    $build->{'content'} .= "contains\n\n";
 }
 
 1;

@@ -13,7 +13,6 @@ use strict;
 use warnings;
 use utf8;
 use Data::Dumper;
-use Sort::Topological qw(toposort);
 use List::Uniq ':all';
 require List::ExtraUtils;
 require Galacticus::Build::Components::Utils;
@@ -26,11 +25,12 @@ require Galacticus::Build::Components::Utils;
      {
 	 preValidate =>
 	     [
-	      \&Class_Defaults_Validate
+	      \&Class_Defaults_Validate,
+	      \&Data_Validate
 	     ],
 	 default     =>
 	      [
-	       \&Property_Defaults
+	       \&Property_Defaults,
 	       ],
 	 gather      =>
 	     [
@@ -39,6 +39,10 @@ require Galacticus::Build::Components::Utils;
 	 scatter     =>
 	     [
 	      \&Class_Defaults_Scatter
+	     ],
+	 build       =>
+	     [
+	      \&Construct_Data
 	     ]
      }
     );
@@ -53,13 +57,14 @@ sub Property_Defaults {
 	 {
 	     property =>
 	     {
-		 ALL =>
+		 ALL       =>
 		 {
 		     attributes =>
 		     {
-			 bindsTo        => "component",
-			 createIfNeeded => "false"    ,
-			 isDeferred     => "false"    ,
+			 isVirtual      => "booleanFalse",
+			 bindsTo        => "component"   ,
+			 createIfNeeded => "false"       ,
+			 isDeferred     => "false"       ,
 			 makeGeneric    => "false"
 		     }
 		 }
@@ -70,6 +75,33 @@ sub Property_Defaults {
     foreach my $implementation ( &ExtraUtils::hashList($build->{'components'}) ) {
 	&Utils::applyDefaults($implementation,$_,$defaults{$_})
 	    foreach ( keys(%defaults) );
+    }
+}
+
+sub Data_Validate {
+    # Validate that data type can be determined for each property.
+    my $build = shift();
+    # Iterate over components.
+    foreach my $component ( &ExtraUtils::hashList($build->{'components'}) ) {
+	# Iterate over all properties belonging to this component.	
+	foreach my $property ( &ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' ) ) {
+	    # Check that we have type, and rank specified.
+	    foreach my $requiredElement ( "type", "rank" ) {
+		die
+		    (
+		     "Data_Validate: no "          .
+		     $requiredElement              .
+		     " was specified for the '"    .
+		             $property->{'name' }  .
+		     "' property of the '"         .
+		     lcfirst($component->{'name'} ).
+		     "' component of the '"        .
+		     lcfirst($component->{'class'}).
+		     "' class"
+		    )
+		    unless ( exists($property->{$requiredElement}) );
+	    }
+	}
     }
 }
 
@@ -93,10 +125,10 @@ sub Class_Defaults_Validate {
 		if ( exists($classDefaults->{$component->{'class'}}->{$property->{'name'}}->{'code'}) ) {
 		    die
 			(
-			 "Class_Defaults: inconsistent class defaults for property '".
-			 $property ->{'name' }                                       .
-			 "' of class '"                                              .
-			 $component->{'class'}                                       .
+			 "Class_Defaults_Validate: inconsistent class defaults for property '".
+			 $property ->{'name' }                                                .
+			 "' of class '"                                                       .
+			 $component->{'class'}                                                .
 			 "'\n"
 			)
 			unless ( $code eq $classDefaults->{$component->{'class'}}->{$property->{'name'}}->{'code'} );
@@ -191,6 +223,44 @@ sub Class_Defaults_Scatter {
 		    "' is being assigned a class default even though it does not have one explicitly declared\n"
 		unless ( exists($property->{'classDefault'}) );
 		$property->{'classDefault'} = $build->{'classDefaults'}->{$component->{'class'}}->{$property->{'name'}};
+	    }
+	}
+    }
+}
+
+sub Construct_Data {
+    # Construct data objects for each property.
+    my $build = shift();
+    # Iterate over components.
+    foreach my $component ( &ExtraUtils::hashList($build->{'components'}) ) {
+	# Write a message.
+	print 
+	    "         --> Creating linked data objects for implementation '".
+	    lcfirst($component->{'name' })                                  .
+	    "' of '"                                                        .
+	    lcfirst($component->{'class'})                                  .
+	    "' class\n";
+	# Iterate over all properties belonging to this component.	
+	foreach my $property ( &ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' ) ) {
+	    # Create the data object.
+	    $property->{'data'} = 
+	    {
+		type        => $property->{'type'      }                 ,
+		rank        => $property->{'rank'      }                 ,
+		isEvolvable => $property->{'attributes'}->{'isEvolvable'}
+	    };
+	    # Unless this property is virtual, create a linked data object for it.
+	    unless ( $property->{'attributes'}->{'isVirtual'} ) {
+		# Write a message.
+		print "            --> '".$property->{'name'}."'\n";
+		# Create the linked data name.
+		my $linkedDataName = $property->{'name'}."Data";
+		# Create the linked data object.
+		$property ->{'linkedData'}                              = $linkedDataName;
+		$component->{'content'   }->{'data'}->{$linkedDataName} = $property->{'data'};
+		# Record the longest linked data name.
+		$Utils::linkedDataNameLengthMax = length($linkedDataName)
+		    if (length($linkedDataName) > $Utils::linkedDataNameLengthMax);
 	    }
 	}
     }
