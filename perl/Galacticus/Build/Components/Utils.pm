@@ -44,9 +44,12 @@ our %intrinsicTypes =
     );
 
 # Maximum lengths of labels (used for formatting).
-our $classNameLengthMax;
-our $implementationNameLengthMax;
-our $fullyQualifiedNameLengthMax;
+our $classNameLengthMax                     ;
+our $implementationNameLengthMax            ; 
+our $fullyQualifiedNameLengthMax            ;
+our $propertyNameLengthMax                  ;
+our $implementationPropertyNameLengthMax    ;
+our $linkedDataNameLengthMax             = 0;
 
 sub Label_Lengths {
     # Determine the lengths of various types of label for use in formatting.
@@ -55,6 +58,25 @@ sub Label_Lengths {
     $classNameLengthMax          = max map {                      length($_->{'class'})} &ExtraUtils::hashList($build->{'components'});
     $implementationNameLengthMax = max map {length($_->{'name' })                      } &ExtraUtils::hashList($build->{'components'});
     $fullyQualifiedNameLengthMax = max map {length($_->{'name' })+length($_->{'class'})} &ExtraUtils::hashList($build->{'components'});
+    # Get property label lengths.
+    $implementationPropertyNameLengthMax = 0;
+    foreach my $component ( &ExtraUtils::hashList($build->{'components'}) ) {
+	$propertyNameLengthMax               = max map {length($_->{'name' })} &ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' );
+	$implementationPropertyNameLengthMax = 
+	    max 
+	    (
+	     $implementationPropertyNameLengthMax,
+	     map 
+	     {
+		 length($component->{'name' })
+		  +
+		 length($component->{'class'})
+		  +
+		 length($_        ->{'name' })
+	     }
+	     &ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' )
+	    );
+    }
     # Report.
     if ( $verbosityLevel >= 1 ) {
 	print "         --> Maximum label lengths:\n";
@@ -89,6 +111,21 @@ sub padImplementation {
 sub padFullyQualified {
     # Pad a fully-qualified name to give nicely aligned formatting in the output code.
     return &padGeneric($fullyQualifiedNameLengthMax,@_);
+}
+
+sub padPropertyName {
+    # Pad a property name to give nicely aligned formatting in the output code.
+    return &padGeneric($propertyNameLengthMax,@_);
+}
+
+sub padImplementationPropertyName {
+    # Pad a implementation + property name to give nicely aligned formatting in the output code.
+    return &padGeneric($implementationPropertyNameLengthMax,@_);
+}
+
+sub padLinkedData {
+    # Pad a linked data name to give nicely aligned formatting in the output code.
+    return &padGeneric($linkedDataNameLengthMax,@_);
 }
 
 sub padGeneric {
