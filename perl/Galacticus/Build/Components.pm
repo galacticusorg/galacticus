@@ -50,11 +50,6 @@ my $debugging                           = 0;
 # Switch to control gfortran workarounds.
 my $workaround                          = 1;
 
-# Records of the longest component and property names.
-my $propertyNameLengthMax               = 0;
-my $linkedDataNameLengthMax             = 0;
-my $implementationPropertyNameLengthMax = 0;
-
 # Adjectives for attributes.
 my %attributeAdjective =
     (
@@ -105,7 +100,7 @@ sub Components_Generate_Output {
 
     # Iterate over phases.
     print "--> Phase:\n";
-    foreach my $phase ( "preValidate", "default", "gather", "scatter", "postValidate" ) {
+    foreach my $phase ( "preValidate", "default", "gather", "scatter", "postValidate", "build" ) {
 	print "   --> ".ucfirst($phase)."...\n";
 	foreach my $hook ( @hooks ) {	
 	    if ( exists($hook->{'hook'}->{$phase}) ) {
@@ -120,8 +115,6 @@ sub Components_Generate_Output {
     # Iterate over all functions, calling them with the build data object.
     &{$_}($buildData)
 	foreach (
-	    # Construct linked data for component properties.
-	    \&Construct_Linked_Data                                  ,
 	    # Generate the nodeComponent type.
 	    \&Generate_Node_Component_Type                           ,
 	    # Generate component class types.
@@ -400,103 +393,6 @@ sub pad {
     return $paddedText;
 }
 
-sub padImplementationProperty {
-    # Pad a string to give nicely aligned formatting in the output code.
-    my $text     = shift;
-    my @extraPad = @{$_[0]};
-    my $padLength = $implementationPropertyNameLengthMax+$extraPad[0];
-    $padLength = $extraPad[1] if ($extraPad[1] > $padLength);
-    my $paddedText = $text." " x ($padLength-length($text));
-    return $paddedText;
-}
-
-sub padProperty {
-    # Pad a string to give nicely aligned formatting in the output code.
-    my $text     = shift;
-    my @extraPad = @{$_[0]};
-    my $padLength = $propertyNameLengthMax+$extraPad[0];
-    $padLength = $extraPad[1] if ($extraPad[1] > $padLength);
-    my $paddedText = $text." " x ($padLength-length($text));
-    return $paddedText;
-}
-
-sub padLinkedData {
-    # Pad a string to give nicely aligned formatting in the output code.
-    my $text     = shift;
-    my @extraPad = @{$_[0]};
-    my $padLength = $linkedDataNameLengthMax+$extraPad[0];
-    $padLength = $extraPad[1] if ($extraPad[1] > $padLength);
-    my $paddedText = $text." " x ($padLength-length($text));
-    return $paddedText;
-}
-
-sub Construct_Linked_Data {
-    # Generates linked data for component properties.
-    my $buildData = shift;
-
-    # Iterate over all component implementations.
-    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
-	# Iterate over all properties belonging to this component.	
-	if ( exists($buildData->{'components'}->{$componentID}->{'properties'}) ) {
-	    foreach my $propertyName ( &ExtraUtils::sortedKeys($buildData->{'components'}->{$componentID}->{'properties'}->{'property'}) ) {
-		my $property = $buildData->{'components'}->{$componentID}->{'properties'}->{'property'}->{$propertyName};
-		# Record the longest property name.
-		$propertyNameLengthMax = length($propertyName) if (length($propertyName) > $propertyNameLengthMax);
-		# Check for a pre-defined linkedData element.
-		my $linkedDataName;
-		if ( exists($property->{'linkedData'}) ) {		    
-		    # A linkedData element has been explicitly declared, write an informational message.
-		    print " -> INFO: linkedData can be created automatically for ".$propertyName." property of the ".lcfirst($componentID)." component\n";
-		    # Get the name of the linked data and the data itself.
-		    $linkedDataName = $property->{'linkedData'};
-		    my $linkedData  = $buildData->{'components'}->{$componentID}->{'content'}->{'data'}->{$linkedDataName};
-		    # Set the isEvolvable flag on the linked data.
-		    $linkedData->{'isEvolvable'} = $property->{'attributes'}->{'isEvolvable'};
-		    # Create a copy of the linked data.
-		    $property->{'data'} = $linkedData;
-		    $property->{'type'} = $linkedData->{'type'};
-		    $property->{'rank'} = $linkedData->{'rank'};
-		} else {
-		    # No linkedData element is explicitly declared. Therefore, we must have type, and rank specified.
-		    foreach my $requiredElement ( "type", "rank" ) {
-			die("No ".$requiredElement." was specified for ".$propertyName." property of the ".lcfirst($componentID)." component")
-			    unless ( exists($property->{$requiredElement}) );
-		    }
-		    # If no isVirtual element is present, assume "false" by default.
-		    $property->{'isVirtual'} = "false"
-			unless ( exists($property->{'isVirtual'}) );
-		    # Copy the attributes to the data element.
-		    $property->{'data'} = 
-		    {
-			type        => $property->{'type'      }                 ,
-			rank        => $property->{'rank'      }                 ,
-			isEvolvable => $property->{'attributes'}->{'isEvolvable'}
-		    };
-		    # Unless this property is virtual, create a linked data object for it.
-		    unless ( $property->{'isVirtual'} eq "true" ) {
-			# Write a message.
-			print " -> Creating linked data object for ".$propertyName." property of the ".lcfirst($componentID)." component\n";
-			# Create the linked data name.
-			$linkedDataName = $propertyName."Data";
-			# Create the linked data object.
-			$property->{'linkedData'} = $linkedDataName;
-			$buildData->{'components'}->{$componentID}->{'content'}->{'data'}->{$linkedDataName} = $property->{'data'};
-		    }
-		}
-		# Record the longest linked data name.
-		if ( defined($linkedDataName) ) {
-		    $linkedDataNameLengthMax = length($linkedDataName) 
-			if (length($linkedDataName) > $linkedDataNameLengthMax);
-		    # Record the longest possible implementation plus property name length.
-		    my $implementationPropertyName = $buildData->{'components'}->{$componentID}->{'name'}.$linkedDataName;
-		    $implementationPropertyNameLengthMax = length($implementationPropertyName) 
-			if (length($implementationPropertyName) > $implementationPropertyNameLengthMax);
-		}
-	    }
-	}
-    }
-}
-
 sub Generate_Node_Component_Type{
     # Generate the top-level object in the class hierachy: nodeComponent.
     my $buildData = shift;
@@ -701,7 +597,6 @@ sub Generate_Node_Component_Type{
 	boundFunctions => \@typeBoundFunctions,
 	dataContent    => \@dataContent
     };
-    push(@{$buildData->{'typesOrder'}},'nodeComponent');
 
 }
 
@@ -817,7 +712,7 @@ sub Generate_Component_Classes{
 				@typeBoundFunctions,
 				{type => "procedure", name => $propertyName."Scale", function => $componentClass."NullBindingSet".$type, description => "Set the scale of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentName."} component.", returnType => "\\void", arguments => &dataObjectDocName($property)."\\ value"}
 				)
-				unless ( $property->{'isVirtual'} eq "true" );
+				unless ( $property->{'attributes'}->{'isVirtual'} );
 			    $propertiesCreated{$functionName} = 1;
 			}
 		    }
@@ -876,7 +771,6 @@ sub Generate_Component_Classes{
 	    extends        => "nodeComponent",
 	    boundFunctions => \@typeBoundFunctions,
 	};
-	push(@{$buildData->{'typesOrder'}},'nodeComponent'.ucfirst($componentClass));
     }
 }
 
@@ -1003,7 +897,6 @@ sub Generate_Implementations {
 	    boundFunctions => \@typeBoundFunctions,
 	    dataContent    => \@dataContent
 	};
-	push(@{$buildData->{'typesOrder'}},'nodeComponent'.ucfirst($componentID));
     }
 }
 
@@ -1780,8 +1673,6 @@ sub Generate_Tree_Node_Object {
 	boundFunctions => \@typeBoundFunctions,
 	dataContent    => \@dataContent
     };
-    push(@{$buildData->{'typesOrder'}
-	 },"treeNode");
 }
 
 sub Generate_Node_Event_Object {
@@ -1827,7 +1718,6 @@ sub Generate_Node_Event_Object {
 	isPublic       => "true",
 	dataContent    => \@dataContent
     };
-    push(@{$buildData->{'typesOrder'}},"nodeEvent");
 }
 
 sub Generate_Initialization_Function {
@@ -2980,21 +2870,21 @@ sub Generate_Implementation_Dump_Functions {
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    if ( $linkedData->{'rank'} == 0 ) {
 			if (&Utils::isIntrinsic($linkedData->{'type'})) {
-			    $functionCode .= "    write (label,".$formatLabel{$linkedData->{'type'}}.") self%".padLinkedData($linkedDataName,[0,0])."\n";
-			    $functionCode .= "    message='".$propertyName.": ".(" " x ($implementationPropertyNameLengthMax-length($propertyName)))."'//label\n";
+			    $functionCode .= "    write (label,".$formatLabel{$linkedData->{'type'}}.") self%".&Utils::padLinkedData($linkedDataName,[0,0])."\n";
+			    $functionCode .= "    message='".$propertyName.": ".(" " x ($Utils::implementationPropertyNameLengthMax-length($propertyName)))."'//label\n";
 			    $functionCode .= "    call Galacticus_Display_Message(message)\n";
 			}
 			else {
 			    $functionCode .= "    message='".$propertyName.":'\n";
 			    $functionCode .= "    call Galacticus_Display_Indent(message)\n";
-			    $functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%dump()\n";
+			    $functionCode .= "    call self%".&Utils::padLinkedData($linkedDataName,[0,0])."%dump()\n";
 			    $functionCode .= "    call Galacticus_Display_Unindent('end')\n";
 			}
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
 			if (&Utils::isIntrinsic($linkedData->{'type'})) {
 			    $functionCode .= "    do i=1,size(self%".$linkedDataName.")\n";
 			    $functionCode .= "       write (label,'(i3)') i\n";
-			    $functionCode .= "       message='".$propertyName.": ".(" " x ($implementationPropertyNameLengthMax-length($propertyName)))." '//trim(label)\n";
+			    $functionCode .= "       message='".$propertyName.": ".(" " x ($Utils::implementationPropertyNameLengthMax-length($propertyName)))." '//trim(label)\n";
 			    $functionCode .= "       write (label,".$formatLabel{$linkedData->{'type'}}.") self%".$linkedDataName."(i)\n";
 			    $functionCode .= "       message=message//': '//label\n";
 			    $functionCode .= "       call Galacticus_Display_Message(message)\n";
@@ -3003,7 +2893,7 @@ sub Generate_Implementation_Dump_Functions {
 			else {
 			    $functionCode .= "    do i=1,size(self%".$linkedDataName.")\n";
 			    $functionCode .= "       write (label,'(i3)') i\n";
-			    $functionCode .= "       message='".$propertyName.": ".(" " x ($implementationPropertyNameLengthMax-length($propertyName)))." '//trim(label)\n";
+			    $functionCode .= "       message='".$propertyName.": ".(" " x ($Utils::implementationPropertyNameLengthMax-length($propertyName)))." '//trim(label)\n";
 			    $functionCode .= "       call Galacticus_Display_Indent(message)\n";
 			    $functionCode .= "       call self%".$linkedDataName."(i)%dump()\n";
 			    $functionCode .= "       call Galacticus_Display_Unindent('end')\n";
@@ -3068,7 +2958,7 @@ sub Generate_Implementation_Dump_Functions {
 		    if ( $linkedData->{'rank'} == 0 ) {
 			if (&Utils::isIntrinsic($linkedData->{'type'})) {
 			    (my $typeFormat = $formatLabel{$linkedData->{'type'}}) =~ s/^\'\((.*)\)\'$/$1/g;
-			    $functionCode .= "    write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".padLinkedData($linkedDataName,[0,0]).",'</".$propertyName.">'\n";
+			    $functionCode .= "    write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".&Utils::padLinkedData($linkedDataName,[0,0]).",'</".$propertyName.">'\n";
 			}
 			else {
 			    $functionCode .= "    write (fileHandle,'(a)') '   <".$propertyName.">'\n";
@@ -3088,10 +2978,10 @@ sub Generate_Implementation_Dump_Functions {
 			    $functionCode .= "    end do\n";
 			}			
 		    }
-		} elsif ( $property->{'isVirtual'} eq "true" && $property->{'rank'} == 0 ) {
+		} elsif ( $property->{'attributes'}->{'isVirtual'} && $property->{'rank'} == 0 ) {
 		    if (&Utils::isIntrinsic($property->{'type'})) {
 			(my $typeFormat = $formatLabel{$property->{'type'}}) =~ s/^\'\((.*)\)\'$/$1/g;
-			$functionCode .= "    write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".padImplementationProperty($propertyName,[0,0])."(),'</".$propertyName.">'\n";
+			$functionCode .= "    write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".&Utils::padImplementationPropertyName($propertyName,[0,0])."(),'</".$propertyName.">'\n";
 		    }
 		}
 	    }
@@ -3163,10 +3053,10 @@ sub Generate_Implementation_Dump_Functions {
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    if ( $linkedData->{'rank'} == 0 ) {
 			if (&Utils::isIntrinsic($linkedData->{'type'})) {
-			    $functionCode .= "    write (fileHandle) self%".padLinkedData($linkedDataName,[0,0])."\n";
+			    $functionCode .= "    write (fileHandle) self%".&Utils::padLinkedData($linkedDataName,[0,0])."\n";
 			}
 			else {
-			    $functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%dumpRaw(fileHandle)\n";
+			    $functionCode .= "    call self%".&Utils::padLinkedData($linkedDataName,[0,0])."%dumpRaw(fileHandle)\n";
 			}
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
 			$functionCode .= "    write (fileHandle) allocated(self%".$linkedDataName.")\n";
@@ -3269,9 +3159,9 @@ sub Generate_Implementation_Dump_Functions {
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    if ( $linkedData->{'rank'} == 0 ) {
 			if (&Utils::isIntrinsic($linkedData->{'type'})) {
-			    $functionCode .= "    read (fileHandle) self%".padLinkedData($linkedDataName,[0,0])."\n";
+			    $functionCode .= "    read (fileHandle) self%".&Utils::padLinkedData($linkedDataName,[0,0])."\n";
 			} else {
-			    $functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%readRaw(fileHandle)\n";
+			    $functionCode .= "    call self%".&Utils::padLinkedData($linkedDataName,[0,0])."%readRaw(fileHandle)\n";
 			}
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
 			$functionCode .= "    read (fileHandle) isAllocated\n";
@@ -3343,29 +3233,29 @@ sub Generate_Implementation_Initializor_Functions {
 		    }
 		    $default = $property->{'classDefault'}->{'code'};
 		    if ( exists($property->{'classDefault'}->{'count'}) ) {
-			$initializeCode .= "           call Alloc_Array(self%".padLinkedData($linkedDataName,[0,0]).",[".$property->{'classDefault'}->{'count'}."])\n";
+			$initializeCode .= "           call Alloc_Array(self%".&Utils::padLinkedData($linkedDataName,[0,0]).",[".$property->{'classDefault'}->{'count'}."])\n";
 		    }
-		    $initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."=".$default."\n";
+		    $initializeCode .= "            self%".&Utils::padLinkedData($linkedDataName,[0,0])."=".$default."\n";
 		} else {
 		    # Set to null.
 		    if    ( $linkedData->{'type'} eq"double" ) {
 			if ( $linkedData->{'rank'} == 0 ) {
-			    $initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."=0.0d0\n";
+			    $initializeCode .= "            self%".&Utils::padLinkedData($linkedDataName,[0,0])."=0.0d0\n";
 			} else {
-			    $initializeCode .= "            call Alloc_Array(self%".padLinkedData($linkedDataName,[0,0]).",[".join(",","0" x $linkedData->{'rank'})."])\n";
+			    $initializeCode .= "            call Alloc_Array(self%".&Utils::padLinkedData($linkedDataName,[0,0]).",[".join(",","0" x $linkedData->{'rank'})."])\n";
 			}
 		    }
 		    elsif ( $linkedData->{'type'} eq"integer"     ) {
-			$initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."=0\n";
+			$initializeCode .= "            self%".&Utils::padLinkedData($linkedDataName,[0,0])."=0\n";
 		    }
 		    elsif ( $linkedData->{'type'} eq"longInteger" ) {
-			$initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."=0_kind_int8\n";
+			$initializeCode .= "            self%".&Utils::padLinkedData($linkedDataName,[0,0])."=0_kind_int8\n";
 		    }
 		    elsif ( $linkedData->{'type'} eq"logical"     ) {
-			$initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."=.false.\n";
+			$initializeCode .= "            self%".&Utils::padLinkedData($linkedDataName,[0,0])."=.false.\n";
 		    }
 		    else {
-			$initializeCode .= "       call self%".padLinkedData($linkedDataName,[0,0])."%reset()\n";			    
+			$initializeCode .= "       call self%".&Utils::padLinkedData($linkedDataName,[0,0])."%reset()\n";			    
 		    }
 		}
 	    }
@@ -3517,12 +3407,12 @@ sub Generate_Implementation_Builder_Functions {
 			    ||
 			    $linkedData->{'type'} eq "logical"
 			    ) {
-			    $functionCode .= "      call extractDataContent(property,self%".padLinkedData($linkedDataName,[0,0]).")\n";
+			    $functionCode .= "      call extractDataContent(property,self%".&Utils::padLinkedData($linkedDataName,[0,0]).")\n";
 			} elsif ( $linkedData->{'type'} eq "longInteger" ) {
 			    $functionCode .= "      call Galacticus_Error_Report('Node_Component_".ucfirst($componentID)."_Builder','building of long integer properties currently not supported')\n";
 			}
 			else {
-			    $functionCode .= "      call self%".padLinkedData($linkedDataName,[0,0])."%builder(property)\n";
+			    $functionCode .= "      call self%".&Utils::padLinkedData($linkedDataName,[0,0])."%builder(property)\n";
 			}
 			$functionCode .= "    end if\n";
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
@@ -3627,7 +3517,7 @@ sub Generate_Implementation_Output_Functions {
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    $rank   = $linkedData->{'rank'};
 		    $type   = $linkedData->{'type'};
-		} elsif ( $property->{'isVirtual'} eq "true" && $property->{'attributes'}->{'isGettable'} ) {
+		} elsif ( $property->{'attributes'}->{'isVirtual'} && $property->{'attributes'}->{'isGettable'} ) {
 		    $rank = $property->{'rank'};
 		    $type = $property->{'type'};
 		} else {
@@ -3726,7 +3616,7 @@ sub Generate_Implementation_Output_Functions {
 			my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 			$rank   = $linkedData->{'rank'};
 			$type   = $linkedData->{'type'};
-		    } elsif ( $property->{'isVirtual'} eq "true" && $property->{'attributes'}->{'isGettable'} ) {
+		    } elsif ( $property->{'attributes'}->{'isVirtual'} && $property->{'attributes'}->{'isGettable'} ) {
 			$rank = $property->{'rank'};
 			$type = $property->{'type'};
 		    } else {
@@ -3894,7 +3784,7 @@ sub Generate_Implementation_Output_Functions {
 			$rank   = $linkedData->{'rank'};
 			$type   = $linkedData->{'type'};
 			$object = "self%".$linkedDataName;
-		    } elsif ( $property->{'isVirtual'} eq "true" && $property->{'attributes'}->{'isGettable'} ) {
+		    } elsif ( $property->{'attributes'}->{'isVirtual'} && $property->{'attributes'}->{'isGettable'} ) {
 			$rank = $property->{'rank'};
 			$type = $property->{'type'};
 		    } else {
@@ -4065,10 +3955,10 @@ sub Generate_Implementation_Name_From_Index_Functions {
 			    $functionCode .= "    count=count-1\n";
 			}
 			else {
-			    $functionCode .= "    count=count-self%".padLinkedData($linkedDataName,[0,0])."%serializeCount()\n";
+			    $functionCode .= "    count=count-self%".&Utils::padLinkedData($linkedDataName,[0,0])."%serializeCount()\n";
 			}
 		    } else {
-			$functionCode .= "    if (allocated(self%".padLinkedData($linkedDataName,[0,0]).")) count=count-size(self%".padLinkedData($linkedDataName,[0,0]).")\n";
+			$functionCode .= "    if (allocated(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")) count=count-size(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")\n";
 		    }
 		    $functionCode .= "    if (count <= 0) then\n";
 		    $functionCode .= "      name='".$component->{'class'}.":".$component->{'name'}.":".$propertyName."'\n";
@@ -4181,10 +4071,10 @@ sub Generate_Implementation_Serialization_Functions {
 			    ++$scalarPropertyCount;
 			}
 			else {
-			    $functionCode .= "    Node_Component_".ucfirst($componentID)."_Count=Node_Component_".ucfirst($componentID)."_Count+self%".padLinkedData($linkedDataName,[0,0])."%serializeCount()\n";
+			    $functionCode .= "    Node_Component_".ucfirst($componentID)."_Count=Node_Component_".ucfirst($componentID)."_Count+self%".&Utils::padLinkedData($linkedDataName,[0,0])."%serializeCount()\n";
 			}
 		    } else {
-			$functionCode .= "    if (allocated(self%".padLinkedData($linkedDataName,[0,0]).")) Node_Component_".ucfirst($componentID)."_Count=Node_Component_".ucfirst($componentID)."_Count+size(self%".padLinkedData($linkedDataName,[0,0]).")\n";
+			$functionCode .= "    if (allocated(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")) Node_Component_".ucfirst($componentID)."_Count=Node_Component_".ucfirst($componentID)."_Count+size(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")\n";
 		    }
 		}
 	    }
@@ -4246,23 +4136,23 @@ sub Generate_Implementation_Serialization_Functions {
 			if ( $linkedData->{'type'} eq "double" ) {
 			    $serializationCode .= "    write (0,*) 'DEBUG -> Node_Component_".ucfirst($componentID)."_Serialize_Values -> ".$linkedDataName."',offset,size(array)\n"
 				if ( $debugging == 1 );
-			    $serializationCode .= "    array(offset)=self%".padLinkedData($linkedDataName,[0,0])."\n";
+			    $serializationCode .= "    array(offset)=self%".&Utils::padLinkedData($linkedDataName,[0,0])."\n";
 			    $serializationCode .= "    offset=offset+1\n";
 			}
 			else {
-			    $serializationCode .= "    count=self%".padLinkedData($linkedDataName,[0,0])."%serializeCount(                            )\n";
+			    $serializationCode .= "    count=self%".&Utils::padLinkedData($linkedDataName,[0,0])."%serializeCount(                            )\n";
 			    $serializationCode .= "    write (0,*) 'DEBUG -> Node_Component_".ucfirst($componentID)."_Serialize_Values -> ".$linkedDataName."',offset,count,size(array)\n"
 				if ( $debugging == 1 );
-			    $serializationCode .= "    if (count > 0) call  self%".padLinkedData($linkedDataName,[0,0])."%serialize     (array(offset:offset+count-1))\n";
+			    $serializationCode .= "    if (count > 0) call  self%".&Utils::padLinkedData($linkedDataName,[0,0])."%serialize     (array(offset:offset+count-1))\n";
 			    $serializationCode .= "    offset=offset+count\n";
 			    $needCount = 1;
 			}
 		    } else {
-			$serializationCode .= "    if (allocated(self%".padLinkedData($linkedDataName,[0,0]).")) then\n";
-			$serializationCode .= "       count=size(self%".padLinkedData($linkedDataName,[0,0]).")\n";
+			$serializationCode .= "    if (allocated(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")) then\n";
+			$serializationCode .= "       count=size(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")\n";
 			$serializationCode .= "    write (0,*) 'DEBUG -> Node_Component_".ucfirst($componentID)."_Serialize_Values -> ".$linkedDataName."',offset,count,size(array)\n"
 			    if ( $debugging == 1 );
-			$serializationCode .= "       array(offset:offset+count-1)=reshape(self%".padLinkedData($linkedDataName,[0,0]).",[count])\n";
+			$serializationCode .= "       array(offset:offset+count-1)=reshape(self%".&Utils::padLinkedData($linkedDataName,[0,0]).",[count])\n";
 			$serializationCode .= "       offset=offset+count\n";
 			$serializationCode .= "    end if\n";
 			$needCount = 1;
@@ -4339,19 +4229,19 @@ sub Generate_Implementation_Serialization_Functions {
 		if ( $linkedData->{'isEvolvable'} ) {
 		    if ( $linkedData->{'rank'} == 0 ) {
 			if ( $linkedData->{'type'} eq  "double" ) {
-			    $deserializationCode .= "    self%".padLinkedData($linkedDataName,[0,0])."=array(offset)\n";
+			    $deserializationCode .= "    self%".&Utils::padLinkedData($linkedDataName,[0,0])."=array(offset)\n";
 			    $deserializationCode .= "    offset=offset+1\n";
 			}
 			else {
-			    $deserializationCode .= "    count=self%".padLinkedData($linkedDataName,[0,0])."%serializeCount(                            )\n";
-			    $deserializationCode .= "    call  self%".padLinkedData($linkedDataName,[0,0])."%deserialize   (array(offset:offset+count-1))\n";
+			    $deserializationCode .= "    count=self%".&Utils::padLinkedData($linkedDataName,[0,0])."%serializeCount(                            )\n";
+			    $deserializationCode .= "    call  self%".&Utils::padLinkedData($linkedDataName,[0,0])."%deserialize   (array(offset:offset+count-1))\n";
 			    $deserializationCode .= "    offset=offset+count\n";
 			    $needCount = 1;
 			}
 		    } else {
-			$deserializationCode .= "    if (allocated(self%".padLinkedData($linkedDataName,[0,0]).")) then\n";
-			$deserializationCode .= "       count=size(self%".padLinkedData($linkedDataName,[0,0]).")\n";
-			$deserializationCode .= "       self%".padLinkedData($linkedDataName,[0,0])."=reshape(array(offset:offset+count-1),shape(self%".padLinkedData($linkedDataName,[0,0])."))\n";
+			$deserializationCode .= "    if (allocated(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")) then\n";
+			$deserializationCode .= "       count=size(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")\n";
+			$deserializationCode .= "       self%".&Utils::padLinkedData($linkedDataName,[0,0])."=reshape(array(offset:offset+count-1),shape(self%".&Utils::padLinkedData($linkedDataName,[0,0])."))\n";
 			$deserializationCode .= "       offset=offset+count\n";
 			$deserializationCode .= "    end if\n";
 			$needCount = 1;
@@ -4562,10 +4452,10 @@ sub Generate_Implementation_Offset_Functions {
 			    $functionCode .= "    count=count+1\n";
 			}
 			else {
-			    $functionCode .= "    count=count+self%".padLinkedData($linkedDataName,[0,0])."%serializeCount()\n";
+			    $functionCode .= "    count=count+self%".&Utils::padLinkedData($linkedDataName,[0,0])."%serializeCount()\n";
 			}
 		    } else {
-			$functionCode .= "    if (allocated(self%".padLinkedData($linkedDataName,[0,0]).")) count=count+size(self%".padLinkedData($linkedDataName,[0,0]).")\n";
+			$functionCode .= "    if (allocated(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")) count=count+size(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")\n";
 		    }
 		}
 	    }
@@ -6157,7 +6047,7 @@ sub Generate_Type_Name_Functions {
 	$functionCode .= "    !% Returns the type for the ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	$functionCode .= "    ".padImplementationProperty("Node_Component_".ucfirst($componentName)."_Type",[20,0])."='nodeComponent:".$component->{'class'}.":".$component->{'name'}."'\n";
+	$functionCode .= "    ".&Utils::padImplementationPropertyName("Node_Component_".ucfirst($componentName)."_Type",[20,0])."='nodeComponent:".$component->{'class'}.":".$component->{'name'}."'\n";
 	$functionCode .= "    return\n";
 	$functionCode .= "  end function Node_Component_".ucfirst($componentName)."_Type\n\n";
 	# Insert into the function list.
@@ -6213,7 +6103,7 @@ sub Generate_Component_Assignment_Function {
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		if ( $linkedData->{'type'} eq"double" ) {
 		    # Deallocate if necessary.
-		    $functionCode .= "   if (allocated(to%".padLinkedData($linkedDataName,[0,0]).")) call Dealloc_Array(to%".padLinkedData($linkedDataName,[0,0]).") \n"
+		    $functionCode .= "   if (allocated(to%".&Utils::padLinkedData($linkedDataName,[0,0]).")) call Dealloc_Array(to%".&Utils::padLinkedData($linkedDataName,[0,0]).") \n"
 			if ( $linkedData->{'rank'} > 0 );
 		}
 		elsif ( $linkedData->{'type'} eq"integer"     ) {
@@ -6226,9 +6116,9 @@ sub Generate_Component_Assignment_Function {
 		    # Nothing to do in this case.
 		}
 		else {
-		    $functionCode .= "    call to%".padLinkedData($linkedDataName,[0,0])."%destroy()\n";
+		    $functionCode .= "    call to%".&Utils::padLinkedData($linkedDataName,[0,0])."%destroy()\n";
 		}
-		$functionCode .= "          to%".padLinkedData($linkedDataName,[0,0])."=from%".padLinkedData($linkedDataName,[0,0])."\n";
+		$functionCode .= "          to%".&Utils::padLinkedData($linkedDataName,[0,0])."=from%".&Utils::padLinkedData($linkedDataName,[0,0])."\n";
 	    }
 	}
 	$functionCode .= "       end select\n";
@@ -6887,7 +6777,7 @@ sub Generate_Component_Class_Output_Functions {
 			my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 			$rank   = $linkedData->{'rank'};
 			$type   = $linkedData->{'type'};
-		    } elsif ( $property->{'isVirtual'} eq "true" && $property->{'attributes'}->{'isGettable'} ) {
+		    } elsif ( $property->{'attributes'}->{'isVirtual'} && $property->{'attributes'}->{'isGettable'} ) {
 			$rank = $property->{'rank'};
 			$type = $property->{'type'};
 		    } else {
@@ -7050,10 +6940,10 @@ sub Generate_Component_Implementation_Destruction_Functions {
 		    # Nothing to do in this case.
 		}
 		else {
-		    $functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%destroy()\n";
+		    $functionCode .= "    call self%".&Utils::padLinkedData($linkedDataName,[0,0])."%destroy()\n";
 		}
 		if ( $linkedData->{'rank'} > 0 ) {
-		    $functionCode .= "    if (allocated(self%".padLinkedData($linkedDataName,[0,0]).")) call Dealloc_Array(self%".padLinkedData($linkedDataName,[0,0]).")\n";
+		    $functionCode .= "    if (allocated(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")) call Dealloc_Array(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")\n";
 		}
 	    }
 	}
@@ -7456,8 +7346,38 @@ sub Bound_Function_Table {
 sub Insert_Type_Definitions {
     # Generate and insert code for all type definitions.
     my $buildData = shift;
+    # Sort types into dependency order.
+    my %typeDependencies;
+    foreach ( &ExtraUtils::hashList($buildData->{'types'}) ) {
+	# Types are dependent on their parent type.
+	push(@{$typeDependencies{$_->{'extends'}}},$_->{'name'})
+	    if ( exists($_->{'extends'}) );
+	# Types are also dependent on any types used as components, unless that component is a pointer.
+	foreach my $dataContent ( @{$_->{'dataContent'}} ) {
+	    push(@{$typeDependencies{$dataContent->{'type'}}},$_->{'name'})
+		 if
+		 (
+		  (
+		   $dataContent->{'intrinsic'} eq "type"
+		   ||
+		   $dataContent->{'intrinsic'} eq "class"
+		  )
+		  && 
+		  exists($buildData->{'types'}->{$dataContent->{'type'}})
+		  &&
+		  ! grep {$_ eq "pointer"} @{$dataContent->{'attributes'}}
+		 );
+	}
+    }
+    my @typeSort  = &ExtraUtils::sortedKeys($buildData->{'types'});
+    my @typeOrder =
+	toposort
+	(
+	 sub { @{$typeDependencies{$_[0]} || []}; },
+	 \@typeSort
+	);
     # Iterate over types.
-    foreach ( @{$buildData->{'typesOrder'}} ) {
+    foreach ( @typeOrder ) {
 	# Get the type.
 	my $type = $buildData->{'types'}->{$_};
 	# Insert the type opening.
