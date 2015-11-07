@@ -287,6 +287,16 @@ contains
                          do k=1,correlationFunctionDescriptors(j)%massSystematicCoefficientCount
                             parameterName=trim(correlationFunctionLabels(j))//'MassSystematic'
                             parameterName=parameterName//(k-1)
+                            !@ <inputParameter>
+                            !@   <regEx>(sdssClustering)Z[0-9\.]+MassSystematic[0-9]+</regEx>
+                            !@   <defaultValue>0</defaultValue>
+                            !@   <attachedTo>module</attachedTo>
+                            !@   <description>
+                            !@     Mass-dependent size function mass systematics parameters.
+                            !@   </description>
+                            !@   <type>real</type>
+                            !@   <cardinality>1</cardinality>
+                            !@ </inputParameter>
                             call Get_Input_Parameter(char(parameterName),correlationFunctions(currentAnalysis)%massSystematicCoefficients(k),defaultValue=0.0d0)
                          end do
                       end if

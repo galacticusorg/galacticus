@@ -1,0 +1,10 @@
+<!-- Defines a constraint to match to the z~0.03 GAMA early-type fraction function. -->
+<constraint>
+  <name>GAMA z0.03 early-type fraction</name>
+  <label>gamaEarlyTypeFractionZ0.03</label>
+  <outputRedshift>0.03</outputRedshift>
+  <haloMassResolution>1.0e8</haloMassResolution>
+  <haloMassMinimum>2.0e08</haloMassMinimum>
+  <haloMassMaximum>1.0e15</haloMassMaximum>
+  <analysis>constraints/scripts/earlyTypeFraction_Kelvin2014.pl</analysis>
+</constraint>
