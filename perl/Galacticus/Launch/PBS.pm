@@ -253,9 +253,15 @@ sub SubmitJobs {
 	# Find all PBS jobs that are running.
 	my %runningPBSJobs;
 	undef(%runningPBSJobs);
+	my $jobID;
 	open(pHndl,"qstat -f|");
 	while ( my $line = <pHndl> ) {
-	    if ( $line =~ m/^Job\sId:\s+(\S+)/ ) {$runningPBSJobs{$1} = 1};
+	    if ( $line =~ m/^Job\sId:\s+(\S+)/ ) {$jobID = $1};
+	    if ( $line =~ m/job_state\s*=\s*[RQHE]/ && $jobID ) {
+		$runningPBSJobs{$jobID} = 1;
+		undef($jobID);
+	    }
+
 	}
 	close(pHndl);
 	foreach my $jobID ( keys(%pbsJobs) ) {
