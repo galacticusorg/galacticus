@@ -29,7 +29,7 @@ module Cooling_Rates_Velocity_Maximum_Scaling
   ! The fixed timescale for cooling.
   double precision :: coolingRateVelocityMaximumScalingTimescale     , coolingRateVelocityMaximumScalingTimescaleExponent, &
        &              coolingRateVelocityMaximumScalingCutOffWidth   , coolingRateVelocityMaximumScalingCutOffVelocity   , &
-       &              coolingRateVelocityMaximumScalingCutOffExponent
+       &              coolingRateVelocityMaximumScalingCutOffExponent, coolingRateVelocityMaximumScalingVelocityExponent
 
 contains
 
@@ -72,6 +72,17 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('coolingRateVelocityMaximumScalingTimescaleExponent',coolingRateVelocityMaximumScalingTimescaleExponent,defaultValue=-1.5d0)
+       !@ <inputParameter>
+       !@   <name>coolingRateVelocityMaximumScalingVelocityExponent</name>
+       !@   <defaultValue>$0.0$</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The exponent of velocity in the cooling timescale for low mass halos in the simple scaling cooling rate model.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('coolingRateVelocityMaximumScalingVelocityExponent',coolingRateVelocityMaximumScalingVelocityExponent,defaultValue=0.0d0)
        !@ <inputParameter>
        !@   <name>coolingRateVelocityMaximumScalingCutOffVelocity</name>
        !@   <defaultValue>$200$ km/s</defaultValue>
@@ -143,6 +154,7 @@ contains
     implicit none
     type            (treeNode               ), intent(inout), pointer :: thisNode
     double precision                         , parameter              :: expArgumentMaximum       =100.0d0
+    double precision                         , parameter              :: velocityNormalization    =200.0d0
     class           (nodeComponentBasic     )               , pointer :: thisBasicComponent
     class           (nodeComponentHotHalo   )               , pointer :: thisHotHaloComponent
     class           (cosmologyFunctionsClass)               , pointer :: cosmologyFunctions_
@@ -171,8 +183,12 @@ contains
        else
           expFactor=       exp(+expArgument   *(-coolingRateVelocityMaximumScalingCutOffExponent))
        end if
-       coolingRate= expansionFactor**coolingRateVelocityMaximumScalingTimescaleExponent &
-            &      /coolingRateVelocityMaximumScalingTimescale                          &
+       coolingRate=+expansionFactor                           **coolingRateVelocityMaximumScalingTimescaleExponent &
+            &      *(                                                                                              &
+            &        +velocityMaximum                                                                              &
+            &        /velocityNormalization                                                                        &
+            &       )                                         **coolingRateVelocityMaximumScalingVelocityExponent  &            
+            &      /coolingRateVelocityMaximumScalingTimescale                                                     &
             &      *expFactor
        expansionFactorPrevious=expansionFactor
        velocityMaximumPrevious=velocityMaximum
