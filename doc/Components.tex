@@ -1138,7 +1138,7 @@ The preset dark matter halo spin implementation defines the following properties
 
 \subsubsection{Initialization}
 
-The spin parameter of each \gls{node} is assumed to have been preset prior to merger tree initialization. The growth rate is comptued assuming linear growth with time along each branch.
+The spin parameter of each \gls{node} is assumed to have been preset prior to merger tree initialization. The growth rate is computed assuming linear growth with time along each branch.
 
 \subsubsection{Differential Evolution}
 
@@ -1179,6 +1179,35 @@ The spin parameter evolves linearly with time between \gls{node} and parent node
 \noindent\emph{Satellite merging:} None.\\
 
 \noindent\emph{Node promotion:} The spin vector and growth rate are updated to equal those of the parent node.\\
+
+\subsection{``Vitvitska Implementation}
+
+\subsubsection{Properties}
+
+The Vitvitska dark matter halo spin implementation follows the \cite{vitvitska_origin_2002} model for halo spins, and defines the following properties:
+\begin{description}
+ \item [{\normalfont \ttfamily spin}] The spin parameter of the halo: $\lambda$ [{\normalfont \ttfamily spinSpin}].
+\end{description}
+
+\subsubsection{Initialization}
+
+The spin parameters of nodes having no children are drawn at random from the selected spin distribution function. For other nodes, their angular momentum is set equal to the sum of the spin angular momentum of their primary progenitor and the orbital angular momenta of all non-primary progenitors (which are determined from the orbital parameters) modulated by a factor dependent on the mass ratio of the merging halos:
+\begin{equation}
+ {\bf J}^{\rm (spin)}_{\rm parent} = {\bf J}^{\rm (spin)}_{1} + \sum_{i=2}^N \left(1+{m_i \over m_{1}}\right)^{-\alpha} {\bf J}^{\rm (orbit)}_{i}.
+\end{equation}
+where $\alpha=${\normalfont \ttfamily [spinVitvitskaMergerRatioExponent]}. 
+
+\subsubsection{Differential Evolution}
+
+The spin parameter does not evolve.
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Node mergers:} None.\\
+
+\noindent\emph{Satellite merging:} None.\\
+
+\noindent\emph{Node promotion:} None.
 
 \section{Dark Matter Profile}\label{sec:DarkMatterProfileComponent}
 
