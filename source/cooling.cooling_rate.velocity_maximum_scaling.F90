@@ -27,9 +27,10 @@ module Cooling_Rates_Velocity_Maximum_Scaling
   public :: Cooling_Rate_Velocity_Maximum_Scaling_Initialize
 
   ! The fixed timescale for cooling.
-  double precision :: coolingRateVelocityMaximumScalingTimescale     , coolingRateVelocityMaximumScalingTimescaleExponent, &
-       &              coolingRateVelocityMaximumScalingCutOffWidth   , coolingRateVelocityMaximumScalingCutOffVelocity   , &
-       &              coolingRateVelocityMaximumScalingCutOffExponent, coolingRateVelocityMaximumScalingVelocityExponent
+  double precision :: coolingRateVelocityMaximumScalingTimescale       , coolingRateVelocityMaximumScalingTimescaleExponent, &
+       &              coolingRateVelocityMaximumScalingCutOffWidth     , coolingRateVelocityMaximumScalingCutOffVelocity   , &
+       &              coolingRateVelocityMaximumScalingCutOffExponent  , coolingRateVelocityMaximumScalingVelocityExponent , &
+       &              coolingRateVelocityMaximumScalingTimescaleMinimum
 
 contains
 
@@ -61,6 +62,17 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('coolingRateVelocityMaximumScalingTimescale',coolingRateVelocityMaximumScalingTimescale,defaultValue=1.0d0)
+       !@ <inputParameter>
+       !@   <name>coolingRateVelocityMaximumScalingTimescaleMinimum</name>
+       !@   <defaultValue>0.001 Gyr</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The minimum timescale (in Gyr) for cooling the simple scaling cooling rate model.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('coolingRateVelocityMaximumScalingTimescaleMinimum',coolingRateVelocityMaximumScalingTimescaleMinimum,defaultValue=1.0d-3)
        !@ <inputParameter>
        !@   <name>coolingRateVelocityMaximumScalingTimescaleExponent</name>
        !@   <defaultValue>$-1.5$</defaultValue>
@@ -190,6 +202,10 @@ contains
             &       )                                         **coolingRateVelocityMaximumScalingVelocityExponent  &            
             &      /coolingRateVelocityMaximumScalingTimescale                                                     &
             &      *expFactor
+       coolingRate=min(                                                         &
+            &          coolingRate                                            , &
+            &          1.0d0/coolingRateVelocityMaximumScalingTimescaleMinimum  &
+            &         )
        expansionFactorPrevious=expansionFactor
        velocityMaximumPrevious=velocityMaximum
     end if

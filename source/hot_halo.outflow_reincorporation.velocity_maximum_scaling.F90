@@ -26,7 +26,8 @@
      private
      double precision                 :: timeScaleNormalization , velocityExponent       , &
           &                              redshiftExponent       , velocityMaximumFactor  , &
-          &                              expansionFactorFactor  , rateStored
+          &                              expansionFactorFactor  , rateStored             , &
+          &                              timeScaleMinimum
      logical                          :: velocityMaximumComputed, expansionFactorComputed, &
           &                              rateComputed
      integer         (kind=kind_int8) :: lastUniqueID
@@ -50,7 +51,7 @@
 
   ! Default parameters.
   double precision            :: velocityMaximumScalingVelocityExponent, velocityMaximumScalingRedshiftExponent, &
-       &                         velocityMaximumScalingTimeScale
+       &                         velocityMaximumScalingTimeScale       , velocityMaximumScalingTimescaleMinimum
 
 contains
 
@@ -96,6 +97,17 @@ contains
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('hotHaloOutflowReincorporationVlctyMxSclngRedshiftExponent',velocityMaximumScalingRedshiftExponent,defaultValue=-1.5d0)
+          !@ <inputParameter>
+          !@   <name>hotHaloOutflowReincorporationVlctyMxSclngTimescaleMinimum</name>
+          !@   <defaultValue>$0.001$</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The minimum timescale for outflow reincorporation in the velocity maximum scaling model.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('hotHaloOutflowReincorporationVlctyMxSclngTimescaleMinimum',velocityMaximumScalingTimescaleMinimum,defaultValue=1.0d-3)
           ! Record that class is initialized.
           velocityMaximumScalingDefaultInitialized=.true.
        end if
@@ -103,23 +115,25 @@ contains
     end if
     velocityMaximumScalingDefaultConstructor=velocityMaximumScalingConstructor(                                        &
          &                                                                     velocityMaximumScalingTimeScale       , &
+         &                                                                     velocityMaximumScalingTimescaleMinimum, &
          &                                                                     velocityMaximumScalingVelocityExponent, &
          &                                                                     velocityMaximumScalingRedshiftExponent  &
          &                                                                    )
     return
   end function velocityMaximumScalingDefaultConstructor
   
-  function velocityMaximumScalingConstructor(timeScale,velocityExponent,redshiftExponent)
+  function velocityMaximumScalingConstructor(timeScale,timeScaleMinimum,velocityExponent,redshiftExponent)
     !% Default constructor for the velocityMaximumScaling hot halo outflow reincorporation class.
     implicit none
     type            (hotHaloOutflowReincorporationVelocityMaximumScaling)                :: velocityMaximumScalingConstructor
     double precision                                                     , intent(in   ) :: timeScale       , velocityExponent, &
-         &                                                                                  redshiftExponent
+         &                                                                                  redshiftExponent, timeScaleMinimum
     
     ! Initialize.
     call velocityMaximumScalingInitalize()
     ! Construct the object.
     velocityMaximumScalingConstructor%timeScaleNormalization =timeScale/velocityMaximumScalingVelocityNormalization**velocityExponent
+    velocityMaximumScalingConstructor%timeScaleMinimum       =timeScaleMinimum
     velocityMaximumScalingConstructor%velocityExponent       =velocityExponent
     velocityMaximumScalingConstructor%redshiftExponent       =redshiftExponent
     velocityMaximumScalingConstructor%lastUniqueID           =-1_kind_int8
@@ -202,11 +216,14 @@ contains
     end if
     ! Compute the rate.
     if (.not.self%rateComputed) then
-       hotHalo          =>  node   %hotHalo               ()
-       timeScale        =  +self   %timeScaleNormalization   &
-            &              *self   %velocityMaximumFactor    &
-            &              *self   %expansionFactorFactor
-       self%rateStored  =  +hotHalo%outflowedMass         () &
+       hotHalo          =>  node    %hotHalo               ()
+       timeScale        =  max(                                &
+            &                  +self%timeScaleNormalization    &
+            &                  *self%velocityMaximumFactor     &
+            &                  *self%expansionFactorFactor   , &
+            &                   self%timeScaleMinimum          &
+            &                 )
+       self%rateStored  =  +hotHalo %outflowedMass         ()  &
             &              /timeScale
        self%rateComputed=  .true.
     end if
