@@ -34,6 +34,8 @@ sub Construct {
     # Construct a mass function from Galacticus for constraint purposes.
     my %arguments = %{$_[0]};
     my $config    =   $_[1];
+    $arguments{'quiet'} = 0
+	unless ( exists($arguments{'quiet'}) );
     
     # Create data structure to read the results.
     my $galacticus;
@@ -60,13 +62,13 @@ sub Construct {
     }
     
     # Map from any logarithmic scaling to linear scaling.
-    $config->{'x'          } = +10.0** $config->{'x'          }
+    $config->{'x'          } = +10.0** $config->{'x'}
         if ( $config->{'xScaling'} eq "log10" );
-    $config->{'yUpperError'} = +10.0**($config->{'y'          }+$config->{'yUpperError'})-10.0**$config->{'y'          }
+    $config->{'yUpperError'} = +10.0**($config->{'y'}+$config->{'yUpperError'})-10.0**$config->{'y'}
         if ( $config->{'yScaling'} eq "log10" );
-    $config->{'yLowerError'} = -10.0**($config->{'y'          }-$config->{'LowerError' })+10.0**$config->{'y'          }
+    $config->{'yLowerError'} = -10.0**($config->{'y'}-$config->{'LowerError' })+10.0**$config->{'y'}
         if ( $config->{'yScaling'} eq "log10" );
-    $config->{'y'          } = +10.0** $config->{'y'          }
+    $config->{'y'          } = +10.0** $config->{'y'}
         if ( $config->{'yScaling'} eq "log10" );
     
     # Convert from per log10(M) to per log(M) if necessary.
@@ -163,7 +165,7 @@ sub Construct {
 		my $parameterName = $config->{'systematicParameter'}.$i;
 		$systematicOffset += 
 		    $galacticus->{'parameters'}->{$parameterName}->{'value'}
-		    *($logarithmicMass-$config->{'systematicZeroPoint'})**$i;
+		*($logarithmicMass-$config->{'systematicZeroPoint'})**$i;
 	    }
 	    $logarithmicMass += $systematicOffset;
 	}
@@ -237,67 +239,42 @@ sub Construct {
     if ( exists($arguments{'outputFile'}) ) {
 	my $constraint;
 	$constraint->{'label'} = $config->{'analysisLabel'};
-	# We must have at least the first two bins having non-zero entries.
-	if ( $yGalacticus->((0)) > 0.0 && $yGalacticus->((1)) > 0.0 ) {
-	    # For any bins in which the model mass function is zero, we extrapolate from adjacent bins. This is necessary in order to
-	    # permit a finite likelihood to be computed. Such models will always have a very low likelihood, so the details of the
-	    # extrapolation should not matter.
-	    my $yDefined                 = pdl zeroes(nelem($yGalacticus));
-	    my $nonZero                  = which($yGalacticus > 0.0);
-	    $yDefined->($nonZero)       .= 1.0;
-	    my $logYGalacticus           = $yGalacticus->copy();
-	    $logYGalacticus->($nonZero) .= log($yGalacticus->index($nonZero));
-	    for(my $i=2;$i<nelem($yGalacticus);++$i) {
-		if ( $yDefined->(($i)) == 0.0 && $yDefined->(($i-1)) > 0.0 && $yDefined->(($i-2)) > 0.0 ) {
-		    $logYGalacticus->(($i)) .= $logYGalacticus->(($i-1))*2.0-$logYGalacticus->(($i-2));
-		    $yDefined      ->(($i)) .= 1.0;
-		}
-	    }
-	    for(my $i=nelem($yGalacticus)-3;$i>=0;--$i) {
-		if ( $yDefined->(($i)) == 0.0 && $yDefined->(($i+1)) > 0.0 && $yDefined->(($i+2)) > 0.0 ) {
-		    $logYGalacticus->(($i)) .= $logYGalacticus->(($i+1))*2.0-$logYGalacticus->(($i+2));
-		    $yDefined      ->(($i)) .= 1.0;
-		}
-	    }
-	    $yGalacticus .= exp($logYGalacticus);
-	    # Construct the full covariance matrix, which is the covariance matrix of the observations
-	    # plus that of the model.
-	    my $fullCovariance        = $config->{'covariance'}+$covarianceGalacticus;
-	    # If the range of masses over which to constrain is limited, set the model mass function outside of that range equal to
-	    # the observed mass function.
-	    my $yGalacticusLimited = $yGalacticus->copy();
-	    if ( exists($config->{'constraintMassMinimum'}) ) {
-		my $noConstraint = which($config->{'x'} < $config->{'constraintMassMinimum'});
-		$yGalacticusLimited->($noConstraint) .= $config->{'y'}->($noConstraint)
-		    if ( nelem($noConstraint) > 0 );
-	    }
-	    if ( exists($config->{'constraintMassMaximum'}) ) {
-		my $noConstraint = which($config->{'x'} > $config->{'constraintMassMaximum'});
-		$yGalacticusLimited->($noConstraint) .= $config->{'y'}->($noConstraint)
-		    if ( nelem($noConstraint) > 0 );
-	    }	    
-	    # Compute the likelihood.
-	    my $offsets;
-	    my $jacobian;
-	    my $logLikelihood =
-		&Covariances::ComputeLikelihood
-		(
-		 $yGalacticusLimited                              ,
-		 $config            ->{'y'}                       ,
-		 $fullCovariance                                  ,
-		 jacobian                   => \$jacobian         ,
-		 offsets                    => \$offsets          ,
-		 quiet                      => $arguments{'quiet'},
-		 productMethod              => "linearSolver" 
-		);
-	    $constraint->{'logLikelihood'} = $logLikelihood;
-	    # Compute the variance in the log-likelihood due to errors in the model.
-	    my $logLikelihoodVariance = transpose($jacobian) x $covarianceGalacticus x $jacobian;
-	    $constraint->{'logLikelihoodVariance'} = $logLikelihoodVariance->sclr();
-	} else {
-	    $constraint->{'logLikelihood'        } = -1.0e30;
-	    $constraint->{'logLikelihoodVariance'} =  0.0   ;
+	# Construct the full covariance matrix, which is the covariance matrix of the observations
+	# plus that of the model.
+	my $fullCovariance        = $config->{'covariance'}+$covarianceGalacticus;
+	# If the range of masses over which to constrain is limited, set the model mass function outside of that range equal to
+	# the observed mass function.
+	my $yGalacticusLimited = $yGalacticus->copy();
+	if ( exists($config->{'constraintMassMinimum'}) ) {
+	    my $noConstraint = which($config->{'x'} < $config->{'constraintMassMinimum'});
+	    $yGalacticusLimited->($noConstraint) .= $config->{'y'}->($noConstraint)
+		if ( nelem($noConstraint) > 0 );
 	}
+	if ( exists($config->{'constraintMassMaximum'}) ) {
+	    my $noConstraint = which($config->{'x'} > $config->{'constraintMassMaximum'});
+	    $yGalacticusLimited->($noConstraint) .= $config->{'y'}->($noConstraint)
+		if ( nelem($noConstraint) > 0 );
+	}
+	# Handle zero elements in the observed mass function.
+	my $nonZeroObserved = which($config->{'y'} > 1.0e-30);
+	# Compute the likelihood.
+	my $offsets;
+	my $jacobian;
+	my $logLikelihood =
+	    &Covariances::ComputeLikelihood
+	    (
+	     $yGalacticusLimited       ->($nonZeroObserved                 ),
+	     $config            ->{'y'}->($nonZeroObserved                 ),
+	     $fullCovariance           ->($nonZeroObserved,$nonZeroObserved),
+	     jacobian                   => \$jacobian                       ,
+	     offsets                    => \$offsets                        ,
+	     quiet                      => $arguments{'quiet'}              ,
+	     productMethod              => "linearSolver" 
+	    );
+	$constraint->{'logLikelihood'} = $logLikelihood;
+	# Compute the variance in the log-likelihood due to errors in the model.
+	my $logLikelihoodVariance = transpose($jacobian) x $covarianceGalacticus->($nonZeroObserved,$nonZeroObserved) x $jacobian;
+	$constraint->{'logLikelihoodVariance'} = $logLikelihoodVariance->sclr();
 	# Output the constraint.
 	my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"constraint");
 	open(oHndl,">".$arguments{'outputFile'});
