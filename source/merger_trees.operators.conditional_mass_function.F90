@@ -318,12 +318,13 @@ contains
     integer                                                                        :: i
     
     ! Store array sizes.
-    conditionalMFConstructorInternal%timeCount             =size(parentRedshifts)
-    conditionalMFConstructorInternal%parentMassCount       =parentMassCount
-    conditionalMFConstructorInternal%massRatioCount        =massRatioCount
-    conditionalMFConstructorInternal%primaryProgenitorDepth=primaryProgenitorDepth
-    conditionalMFConstructorInternal%subhaloHierarchyDepth =subhaloHierarchyDepth
-    conditionalMFConstructorInternal%outputGroupName       =outputGroupName
+    conditionalMFConstructorInternal%timeCount                =size(parentRedshifts)
+    conditionalMFConstructorInternal%parentMassCount          =parentMassCount
+    conditionalMFConstructorInternal%massRatioCount           =massRatioCount
+    conditionalMFConstructorInternal%primaryProgenitorDepth   =primaryProgenitorDepth
+    conditionalMFConstructorInternal%subhaloHierarchyDepth    =subhaloHierarchyDepth
+    conditionalMFConstructorInternal%formationRateTimeFraction=formationRateTimeFraction
+    conditionalMFConstructorInternal%outputGroupName          =outputGroupName
     if (size(progenitorRedshifts) /= conditionalMFConstructorInternal%timeCount) &
          & call Galacticus_Error_Report('conditionalMFConstructorInternal','mismatch in sizes of parent and progenitor redshift arrays')
     ! Allocate arrays.
@@ -443,6 +444,7 @@ contains
     ! Get the default cosmology functions object.
     cosmologyFunctions_ => cosmologyFunctions()
     ! Construct arrays of times for progenitors.
+    conditionalMFConstructorInternal%progenitorRedshifts=progenitorRedshifts
     do i=1,conditionalMFConstructorInternal%timeCount
        conditionalMFConstructorInternal%timeProgenitors(i)=              &
                      & cosmologyFunctions_%cosmicTime(                   &
@@ -452,6 +454,7 @@ contains
                      & )
     end do
     ! Construct arrays of times for parents.
+    conditionalMFConstructorInternal%parentRedshifts=parentRedshifts
     do i=1,conditionalMFConstructorInternal%timeCount
        conditionalMFConstructorInternal%timeParents(i)=         & 
             & cosmologyFunctions_%cosmicTime(                   &
@@ -495,11 +498,11 @@ contains
     type            (mergerTree                     ), intent(inout)                         , target :: tree
     type            (treeNode                       ), pointer                                        :: node                          , nodeChild            , &
          &                                                                                               nodeParent                    , nodeParentChild      , &
-         &                                                                                               descendentNode
+         &                                                                                               descendentNode                , nodeSibling
     type            (mergerTree                     ), pointer                                        :: treeCurrent
     class           (nodeComponentBasic             ), pointer                                        :: basic                         , basicChild           , &
          &                                                                                               basicParent                   , descendentBasic      , &
-         &                                                                                               basicParentChild
+         &                                                                                               basicParentChild              , basicSibling
     integer                                                                                           :: i                             , binMassParent        , &
          &                                                                                               binMassRatio                  , iPrimary             , &
          &                                                                                               jPrimary                      , binMassRatioCreation , &
@@ -519,8 +522,8 @@ contains
          &                                                        self%primaryProgenitorDepth                                                                   &
          &                                                       )                                    :: primaryProgenitorMass
     
-   ! Iterate over trees.
-    treeCurrent => tree
+    ! Iterate over trees.
+    treeCurrent => tree    
     do while (associated(treeCurrent))
        ! Initialize primary progenitor masses to zero.
        primaryProgenitorMass=0.0d0
@@ -570,6 +573,16 @@ contains
                    branchMassInitial=basicChild%mass()
                    if (nodeChild%isPrimaryProgenitor()) then
                       branchMassFinal=basic%mass()
+                      ! Remove the mass in any non-primary progenitors - we don't want to include
+                      ! their mass in the estimated mass growth rate of this node.
+                      nodeSibling => node%firstChild%sibling
+                      do while (associated(nodeSibling))
+                         basicSibling    => nodeSibling%basic()
+                         branchMassFinal =  branchMassFinal-basicSibling%mass()
+                         nodeSibling     => nodeSibling%sibling
+                      end do
+                      ! Do not let the parent mass decrease along the branch.
+                      branchMassFinal=max(branchMassFinal,branchMassInitial)
                    else
                       branchMassFinal=branchMassInitial
                    end if
