@@ -80,6 +80,7 @@
 		      <xs:attribute name="createIfNeeded" type="xs:boolean"               />
 		      <xs:attribute name="makeGeneric"    type="xs:boolean"               />
 		      <xs:attribute name="isDeferred"     type="xs:string"                />
+		      <xs:attribute name="isVirtual"      type="xs:boolean"               />
 		      <xs:attribute name="bindsTo"        type="level"                    />
 		    </xs:complexType>
 		  </xs:element>
@@ -121,7 +122,6 @@
 		      </xs:simpleContent>
 		    </xs:complexType>
 		  </xs:element>
-		  <xs:element name="isVirtual"    type="xs:boolean" minOccurs="0"/>
 		</xs:all>
 	      </xs:complexType>
 	    </xs:element>
