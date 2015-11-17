@@ -63,15 +63,17 @@ program Tests_Tree_Branch_Destroy
   nodes(4)%node%sibling => nodes(5)%node
 
   ! Destroy the branch rooted at node 2.
-  call thisTree%destroyBranch(nodes(2)%node)
+  call nodes(2)%node%destroyBranch()
+  deallocate(nodes(2)%node)
 
   ! The child node of node 1 should have been shifted to point to node 3.
   call Assert('Child node of node 1 updated',nodes(1)%node%firstChild%index(),3_kind_int8)
 
-  ! Destroy the tree. If danling pointers are not fixed during tree destruction, this will trigger errors when running inside
+  ! Destroy the tree. If dangling pointers are not fixed during tree destruction, this will trigger errors when running inside
   ! Valgrind.
   call thisTree%destroy()
-
+  deallocate(thisTree)
+  
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()

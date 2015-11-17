@@ -46,7 +46,7 @@ sub ModuleUse_Parse_Directive {
 	    if ( $include == 1 );
     } elsif ( $buildData->{'codeType'} eq "c" ) {
 	(my $leafName = $buildData->{'currentFileName'}) =~ s/.*?([^\/]+)\.c(pp)??$/$1.o/;
-	$buildData->{'moduleUses'}->{$buildData->{'moduleName'}} = "!: ./work/build/".$leafName."\n";
+	$buildData->{'moduleUses'}->{$buildData->{'moduleName'}} = "!: ".$ENV{'BUILDPATH'}."/".$leafName."\n";
     }
 }
 
