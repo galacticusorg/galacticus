@@ -11,6 +11,7 @@ if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
 unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use PDL::NiceSlice;
+use PDL::IO::HDF5;
 use XML::Simple;
 require Galacticus::HDF5;
 require Galacticus::Magnitudes;
@@ -52,10 +53,10 @@ my $xBins   = pdl @{$columns->{'magnitude'}->{'data'}};
 my $x       = pdl @{$columns->{'magnitude'}->{'data'}};
 my $y       = pdl @{$columns->{'luminosityFunction'}->{'data'}};
 my $error   = pdl @{$columns->{'error'}->{'data'}};
-$xBins      = $xBins-5.0*log10($columns->{'magnitude'}->{'hubble'}/$model->{'parameters'}->{'H_0'});
-$x          = $x-5.0*log10($columns->{'magnitude'}->{'hubble'}/$model->{'parameters'}->{'H_0'});
-$y          = $y*($model->{'parameters'}->{'H_0'}/$columns->{'luminosityFunction'}->{'hubble'})**3;
-$error      = $error*($model->{'parameters'}->{'H_0'}/$columns->{'luminosityFunction'}->{'hubble'})**3;
+$xBins      = $xBins-5.0*log10($columns->{'magnitude'}->{'hubble'}/$model->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'});
+$x          = $x-5.0*log10($columns->{'magnitude'}->{'hubble'}/$model->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'});
+$y          = $y*($model->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'}/$columns->{'luminosityFunction'}->{'hubble'})**3;
+$error      = $error*($model->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'}/$columns->{'luminosityFunction'}->{'hubble'})**3;
 
 # Reverse the order of the vectors.
 $xBins = $xBins(-1:0);
@@ -74,30 +75,10 @@ my $weight    = $dataSets->{'mergerTreeWeight'};
 
 # Output the results to file if requested.
 if ( exists($arguments{'resultFile'}) ) {
-    my $results;
-    @{$results->{'x'    }} = $xGalacticus    ->list();
-    @{$results->{'y'    }} = $yGalacticus    ->list();
-    @{$results->{'error'}} = $errorGalacticus->list();
-    my $xmlOut = new XML::Simple (RootName=>"results", NoAttr => 1);;
-    # Output the parameters to file.
-    open(pHndl,">".$arguments{'resultFile'});
-    print pHndl $xmlOut->XMLout($results);
-    close pHndl;
-}
-
-# Output accuracy to file if requested.
-if ( exists($arguments{'accuracyFile'}) ) {
-    my $results;
-    @{$results->{'x'         }} = $xGalacticus    ->list();
-    @{$results->{'yModel'    }} = $yGalacticus    ->list();
-    @{$results->{'yData'     }} = $y              ->list();
-    @{$results->{'errorModel'}} = $errorGalacticus->list();
-    @{$results->{'errorData' }} = $error          ->list();
-    my $xmlOut = new XML::Simple (RootName=>"accuracy", NoAttr => 1);;
-    # Output the parameters to file.
-    open(pHndl,">".$arguments{'accuracyFile'});
-    print pHndl $xmlOut->XMLout($results);
-    close pHndl;
+    my $resultFile = new PDL::IO::HDF5(">".$arguments{'resultFile'});
+    $resultFile->dataset('x'    )->set($xGalacticus    );
+    $resultFile->dataset('y'    )->set($yGalacticus    );
+    $resultFile->dataset('error')->set($errorGalacticus);
 }
 
 # Compute chi^2.

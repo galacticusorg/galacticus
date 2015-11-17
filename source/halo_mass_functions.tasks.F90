@@ -17,7 +17,7 @@
 
 !% Contains a module which implements calculations of halo mass functions and related properties for output.
 
-module Halo_Mass_Function_Tasks
+module Halo_Mass_Functions_Tasks
   !% Implements calculations of halo mass functions and related properties for output.
   use IO_HDF5
   implicit none
@@ -75,30 +75,34 @@ contains
     !% Computes mass functions and related properties for output.
     use Galacticus_Nodes
     use Node_Components
-    use Halo_Mass_Function
+    use Halo_Mass_Functions
     use Dark_Matter_Halo_Biases
     use Dark_Matter_Profiles
     use Dark_Matter_Profile_Scales
     use Memory_Management
     use Numerical_Ranges
     use Input_Parameters
-    use Critical_Overdensity
-    use Power_Spectra
+    use Critical_Overdensities
+    use Cosmological_Mass_Variance
     use Dark_Matter_Halo_Scales
     use Cosmology_Functions
     use Linear_Growth
     use Virial_Density_Contrast
     use Galacticus_Display
     use Galacticus_Calculations_Resets
-use iso_varying_string
+    use ISO_Varying_String
     implicit none
     class           (nodeComponentBasic            ), pointer :: thisBasic
     class           (nodeComponentDarkMatterProfile), pointer :: thisDarkMatterProfile
     type            (treeNode                      ), pointer :: thisNode
-    class           (cosmologyFunctionsClass       ), pointer :: cosmologyFunctionsDefault
+    class           (cosmologyFunctionsClass       ), pointer :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass      ), pointer :: darkMatterHaloScale_
     class           (darkMatterProfileClass        ), pointer :: darkMatterProfile_
     class           (virialDensityContrastClass    ), pointer :: virialDensityContrast_
+    class           (criticalOverdensityClass      ), pointer :: criticalOverdensity_
+    class           (linearGrowthClass             ), pointer :: linearGrowth_
+    class           (cosmologicalMassVarianceClass ), pointer :: cosmologicalMassVariance_
+    class           (haloMassFunctionClass         ), pointer :: haloMassFunction_
     integer                                                   :: haloMassFunctionsCount      , haloMassFunctionsPointsPerDecade, &
          &                                                       iMass                       , iOutput                         , &
          &                                                       outputCount                 , verbosityLevel
@@ -148,20 +152,13 @@ use iso_varying_string
        call Get_Input_Parameter('outputRedshifts',outputRedshifts                     )
     end if
     ! Get required objects.
-    cosmologyFunctionsDefault => cosmologyFunctions   ()
-    virialDensityContrast_    => virialDensityContrast()
-    darkMatterProfile_        => darkMatterProfile    ()
-
-    ! Compute output time properties.
-    do iOutput=1,outputCount
-       outputExpansionFactors     (iOutput)=cosmologyFunctionsDefault%expansionFactorFromRedshift(outputRedshifts       (iOutput))
-       outputTimes                (iOutput)=cosmologyFunctionsDefault%cosmicTime                 (outputExpansionFactors(iOutput))
-       outputGrowthFactors        (iOutput)=Linear_Growth_Factor                                 (outputTimes           (iOutput))
-       outputCriticalOverdensities(iOutput)=Critical_Overdensity_for_Collapse                    (outputTimes           (iOutput))
-       outputVirialDensityContrast(iOutput)=virialDensityContrast_%densityContrast               (outputTimes           (iOutput))
-       outputCharacteristicMass   (iOutput)=Critical_Overdensity_Collapsing_Mass                 (outputTimes           (iOutput))
-    end do
-
+    cosmologyFunctions_    => cosmologyFunctions   ()
+    virialDensityContrast_ => virialDensityContrast()
+    darkMatterProfile_     => darkMatterProfile    ()
+    criticalOverdensity_   => criticalOverdensity  ()
+    linearGrowth_          => linearGrowth         ()
+    haloMassFunction_      => haloMassFunction     ()
+    
     ! Find the mass range and increment size.
     !@ <inputParameter>
     !@   <name>haloMassFunctionsMassMinimum</name>
@@ -200,6 +197,16 @@ use iso_varying_string
     ! Compute number of tabulation points.
     haloMassFunctionsCount=int(log10(haloMassFunctionsMassMaximum/haloMassFunctionsMassMinimum)*dble(haloMassFunctionsPointsPerDecade))+1
 
+    ! Compute output time properties.
+    do iOutput=1,outputCount
+       outputExpansionFactors     (iOutput)=cosmologyFunctions_   %expansionFactorFromRedshift(                             outputRedshifts       (iOutput))
+       outputTimes                (iOutput)=cosmologyFunctions_   %cosmicTime                 (                             outputExpansionFactors(iOutput))
+       outputGrowthFactors        (iOutput)=linearGrowth_         %value                      (                             outputTimes           (iOutput))
+       outputCriticalOverdensities(iOutput)=criticalOverdensity_  %value                      (                             outputTimes           (iOutput))
+       outputVirialDensityContrast(iOutput)=virialDensityContrast_%densityContrast            (haloMassFunctionsMassMinimum,outputTimes           (iOutput))
+       outputCharacteristicMass   (iOutput)=criticalOverdensity_  %collapsingMass             (                             outputTimes           (iOutput))
+    end do
+
     ! Allocate arrays for halo mass functions.
     call Alloc_Array(haloMassFunction_Mass             ,[haloMassFunctionsCount,outputCount])
     call Alloc_Array(haloMassFunction_dndM             ,[haloMassFunctionsCount,outputCount])
@@ -216,8 +223,9 @@ use iso_varying_string
     call Alloc_Array(haloMassFunction_velocityMaximum  ,[haloMassFunctionsCount,outputCount])
 
     ! Get required objects.
-    darkMatterHaloScale_   => darkMatterHaloScale  ()
-    virialDensityContrast_ => virialDensityContrast()
+    darkMatterHaloScale_      => darkMatterHaloScale     ()
+    virialDensityContrast_    => virialDensityContrast   ()
+    cosmologicalMassVariance_ => cosmologicalMassVariance()
 
     ! Create a node object.
     thisNode => treeNode()
@@ -243,11 +251,11 @@ use iso_varying_string
           ! Set the node scale radius.
           call thisDarkMatterProfile%scaleSet(Dark_Matter_Profile_Scale(thisNode))
           ! Compute halo properties.
-          haloMassFunction_dndM             (iMass,iOutput)=Halo_Mass_Function_Differential(outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput))
+          haloMassFunction_dndM             (iMass,iOutput)=haloMassFunction_%differential(outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput))
           haloMassFunction_dndlnM           (iMass,iOutput)=haloMassFunction_dndM(iMass,iOutput)*haloMassFunction_Mass(iMass,iOutput)
-          haloMassFunction_cumulative       (iMass,iOutput)=Halo_Mass_Function_Integrated(outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity)
-          haloMassFunction_massFraction     (iMass,iOutput)=Halo_Mass_Fraction_Integrated(outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity)
-          haloMassFunction_sigma            (iMass,iOutput)=Cosmological_Mass_Root_Variance(haloMassFunction_Mass(iMass,iOutput))
+          haloMassFunction_cumulative       (iMass,iOutput)=haloMassFunction_%integrated  (outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity)
+          haloMassFunction_massFraction     (iMass,iOutput)=haloMassFunction_%massFraction(outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity)
+          haloMassFunction_sigma            (iMass,iOutput)=cosmologicalMassVariance_%rootVariance(haloMassFunction_Mass(iMass,iOutput))
           haloMassFunction_nu               (iMass,iOutput)=outputCriticalOverdensities(iOutput)/haloMassFunction_sigma(iMass,iOutput)
           haloMassFunction_bias             (iMass,iOutput)=Dark_Matter_Halo_Bias                        (thisNode)
           haloMassFunction_virialVelocity   (iMass,iOutput)=darkMatterHaloScale_ %virialVelocity         (thisNode)
@@ -340,4 +348,4 @@ use iso_varying_string
     return
   end subroutine Halo_Mass_Function_Output
 
-end module Halo_Mass_Function_Tasks
+end module Halo_Mass_Functions_Tasks
