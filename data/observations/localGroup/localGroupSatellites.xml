@@ -743,6 +743,11 @@
       <alias>
 	<value>HydII</value>
       </alias>
+      <massNeutralHydrogen>
+        <limit confidenceLevel="99.999971%" type="upper">0.000210</limit>
+        <reference>Janzen et al. (arXiv:1511.05069)</reference>
+        <referenceURL>http://arxiv.org/abs/1511.05069</referenceURL>
+      </massNeutralHydrogen>
       <velocityRadialHeliocentric>
         <value>303.1</value>
         <error>1.4</error>
