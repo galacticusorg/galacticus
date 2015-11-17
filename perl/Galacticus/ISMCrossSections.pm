@@ -82,8 +82,12 @@ sub Cross_Sections {
 	    );
 	# Download the files that we need to compute the absorption.
 	foreach my $file ( @files ) {
-	    system("mkdir -p aux/XSpec; wget ".$file->{'url'}.$file->{'name'}." -O aux/XSpec/".$file->{'name'})
-		unless ( -e "aux/XSpec/".$file->{'name'} );
+	    unless ( -e "aux/XSpec/".$file->{'name'} ) {
+		system("mkdir -p aux/XSpec; wget ".$file->{'url'}.$file->{'name'}." -O aux/XSpec/".$file->{'name'});
+		(my $dependencyFile = "aux/XSpec/".$file->{'name'}) =~ s/\.f$.d//;
+		unlink($dependencyFile)
+		    if ( -e $dependencyFile );
+	    }
 	}
 	# Build the wrapper code that will be used to generate the table of absorptions.
 	system("make XRay_Absorption_ISM_Wilms2000.exe")
