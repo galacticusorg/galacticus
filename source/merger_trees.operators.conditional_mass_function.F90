@@ -1,22 +1,22 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015 Andrew Benson <abenson@obs.carnegiescience.edu>
-!!
-!! This file is part of Galacticus.
-!!
-!!    Galacticus is free software: you can redistribute it and/or modify
-!!    it under the terms of the GNU General Public License as published by
-!!    the Free Software Foundation, either version 3 of the License, or
-!!    (at your option) any later version.
-!!
-!!    Galacticus is distributed in the hope that it will be useful,
-!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
-!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-!!    GNU General Public License for more details.
-!!
-!!    You should have received a copy of the GNU General Public License
-!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-
+  !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015 Andrew Benson <abenson@obs.carnegiescience.edu>
+  !!
+  !! This file is part of Galacticus.
+  !!
+  !!    Galacticus is free software: you can redistribute it and/or modify
+  !!    it under the terms of the GNU General Public License as published by
+  !!    the Free Software Foundation, either version 3 of the License, or
+  !!    (at your option) any later version.
+  !!
+  !!    Galacticus is distributed in the hope that it will be useful,
+  !!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+  !!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  !!    GNU General Public License for more details.
+  !!
+  !!    You should have received a copy of the GNU General Public License
+  !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+  
   !% Contains a module which implements a merger tree operator which accumulates conditional mass functions for trees.
-
+  
   !# <mergerTreeOperator name="mergerTreeOperatorConditionalMF" defaultThreadPrivate="no">
   !#  <description>
   !#   Provides a merger tree operator which accumulates conditional mass functions for trees. In
@@ -152,13 +152,14 @@
      double precision                                                  :: massParentLogarithmicMinimum        , massRatioLogarithmicMinimum        , &
           &                                                               massParentLogarithmicBinWidthInverse, massRatioLogarithmicBinWidthInverse, &
           &                                                               formationRateTimeFraction
+     logical                                                           :: alwaysIsolatedHalosOnly
      type            (varying_string)                                  :: outputGroupName
    contains
      final     ::             conditionalMFDestructor
      procedure :: operate  => conditionalMFOperate
      procedure :: finalize => conditionalMFFinalize
   end type mergerTreeOperatorConditionalMF
-  
+
   interface mergerTreeOperatorConditionalMF
      !% Constructors for the conditional mass function merger tree operator class.
      module procedure conditionalMFConstructorParameters
@@ -172,13 +173,14 @@ contains
     use Memory_Management
     implicit none
     type            (mergerTreeOperatorConditionalMF)                            :: conditionalMFConstructorParameters
-    type            (inputParameters                ), intent(in   )             :: parameters
+    type            (inputParameters                ), intent(inout)             :: parameters
     double precision                                 , allocatable, dimension(:) :: progenitorRedshifts               , parentRedshifts
     integer                                                                      :: parentMassCount                   , massRatioCount       , &
          &                                                                          primaryProgenitorDepth            , subhaloHierarchyDepth
     double precision                                                             :: parentMassMinimum                 , parentMassMaximum    , &
          &                                                                          massRatioMinimum                  , massRatioMaximum     , &
          &                                                                          formationRateTimeFraction
+    logical                                                                         alwaysIsolatedHalosOnly
     type            (varying_string                 )                            :: outputGroupName
     !# <inputParameterList label="allowedParameterNames" />
 
@@ -274,6 +276,14 @@ contains
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
+    !#   <name>alwaysIsolatedHalosOnly</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>Include only halos which have always been isolated when computing merger tree statistics?</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
     !#   <name>outputGroupName</name>
     !#   <source>parameters</source>
     !#   <defaultValue>var_str('conditionalMassFunction')</defaultValue>
@@ -294,12 +304,13 @@ contains
          &                                                              primaryProgenitorDepth   , &
          &                                                              formationRateTimeFraction, &
          &                                                              subhaloHierarchyDepth    , &
+         &                                                              alwaysIsolatedHalosOnly  , &
          &                                                              outputGroupName            &
          &                                                             )
     return
   end function conditionalMFConstructorParameters
 
-  function conditionalMFConstructorInternal(parentMassCount,parentMassMinimum,parentMassMaximum,massRatioCount,massRatioMinimum,massRatioMaximum,parentRedshifts,progenitorRedshifts,primaryProgenitorDepth,formationRateTimeFraction,subhaloHierarchyDepth,outputGroupName)
+  function conditionalMFConstructorInternal(parentMassCount,parentMassMinimum,parentMassMaximum,massRatioCount,massRatioMinimum,massRatioMaximum,parentRedshifts,progenitorRedshifts,primaryProgenitorDepth,formationRateTimeFraction,subhaloHierarchyDepth,alwaysIsolatedHalosOnly,outputGroupName)
     !% Internal constructor for the conditional mass function merger tree operator class.
     use Cosmology_Functions
     use Numerical_Ranges
@@ -313,19 +324,33 @@ contains
     double precision                                 , intent(in   )               :: parentMassMinimum               , parentMassMaximum    , &
          &                                                                            massRatioMinimum                , massRatioMaximum     , &
          &                                                                            formationRateTimeFraction
+    logical                                          , intent(in   )               :: alwaysIsolatedHalosOnly
     type            (varying_string                 ), intent(in   )               :: outputGroupName
     class           (cosmologyFunctionsClass        ), pointer                     :: cosmologyFunctions_
     integer                                                                        :: i
-    
+
     ! Store array sizes.
-    conditionalMFConstructorInternal%timeCount             =size(parentRedshifts)
-    conditionalMFConstructorInternal%parentMassCount       =parentMassCount
-    conditionalMFConstructorInternal%massRatioCount        =massRatioCount
-    conditionalMFConstructorInternal%primaryProgenitorDepth=primaryProgenitorDepth
-    conditionalMFConstructorInternal%subhaloHierarchyDepth =subhaloHierarchyDepth
-    conditionalMFConstructorInternal%outputGroupName       =outputGroupName
+    conditionalMFConstructorInternal%timeCount                =size(parentRedshifts)
+    conditionalMFConstructorInternal%parentMassCount          =parentMassCount
+    conditionalMFConstructorInternal%massRatioCount           =massRatioCount
+    conditionalMFConstructorInternal%primaryProgenitorDepth   =primaryProgenitorDepth
+    conditionalMFConstructorInternal%subhaloHierarchyDepth    =subhaloHierarchyDepth
+    conditionalMFConstructorInternal%formationRateTimeFraction=formationRateTimeFraction
+    conditionalMFConstructorInternal%alwaysIsolatedHalosOnly  =alwaysIsolatedHalosOnly
+    conditionalMFConstructorInternal%outputGroupName          =outputGroupName
     if (size(progenitorRedshifts) /= conditionalMFConstructorInternal%timeCount) &
          & call Galacticus_Error_Report('conditionalMFConstructorInternal','mismatch in sizes of parent and progenitor redshift arrays')
+    ! Check for required property attributes.
+    if (alwaysIsolatedHalosOnly.and..not.defaultMergingStatisticsComponent%nodeHierarchyLevelMaximumIsGettable())                                              &
+         & call Galacticus_Error_Report                                                                                                                        &
+         &      (                                                                                                                                              &
+         &       'conditionalMFConstructorInternal'                                                                                                         ,  &
+         &       'statistics of always isolated halos require a merging statistics component that provides a gettable "nodeHierarchyLevelMaximum" property.'// &
+         &       Galacticus_Component_List(                                                                                                                    &
+         &                                 'mergingStatistics'                                                                                               , &
+         &                                  defaultMergingStatisticsComponent%nodeHierarchyLevelMaximumAttributeMatch(requireGettable=.true.)                  &
+         &                                )                                                                                                                    &
+         &      )     
     ! Allocate arrays.
     call Alloc_Array(conditionalMFConstructorInternal%parentRedshifts    ,[conditionalMFConstructorInternal%timeCount        ])
     call Alloc_Array(conditionalMFConstructorInternal%progenitorRedshifts,[conditionalMFConstructorInternal%timeCount        ])
@@ -443,15 +468,17 @@ contains
     ! Get the default cosmology functions object.
     cosmologyFunctions_ => cosmologyFunctions()
     ! Construct arrays of times for progenitors.
+    conditionalMFConstructorInternal%progenitorRedshifts=progenitorRedshifts
     do i=1,conditionalMFConstructorInternal%timeCount
        conditionalMFConstructorInternal%timeProgenitors(i)=              &
-                     & cosmologyFunctions_%cosmicTime(                   &
-                     &  cosmologyFunctions_%expansionFactorFromRedshift( &
-                     &   progenitorRedshifts(i)                          &
-                     &  )                                                &
-                     & )
+            & cosmologyFunctions_%cosmicTime(                   &
+            &  cosmologyFunctions_%expansionFactorFromRedshift( &
+            &   progenitorRedshifts(i)                          &
+            &  )                                                &
+            & )
     end do
     ! Construct arrays of times for parents.
+    conditionalMFConstructorInternal%parentRedshifts=parentRedshifts
     do i=1,conditionalMFConstructorInternal%timeCount
        conditionalMFConstructorInternal%timeParents(i)=         & 
             & cosmologyFunctions_%cosmicTime(                   &
@@ -500,6 +527,7 @@ contains
     class           (nodeComponentBasic             ), pointer                                        :: basic                         , basicChild           , &
          &                                                                                               basicParent                   , descendentBasic      , &
          &                                                                                               basicParentChild
+    class           (nodeComponentMergingStatistics ), pointer                                        :: mergingStatistics
     integer                                                                                           :: i                             , binMassParent        , &
          &                                                                                               binMassRatio                  , iPrimary             , &
          &                                                                                               jPrimary                      , binMassRatioCreation , &
@@ -518,8 +546,8 @@ contains
          &                                                        self%parentMassCount       ,                                                                  &
          &                                                        self%primaryProgenitorDepth                                                                   &
          &                                                       )                                    :: primaryProgenitorMass
-    
-   ! Iterate over trees.
+
+    ! Iterate over trees.
     treeCurrent => tree
     do while (associated(treeCurrent))
        ! Initialize primary progenitor masses to zero.
@@ -540,239 +568,247 @@ contains
           !$omp end critical(conditionalMassFunctionAccumulate)
        end if
        ! Walk the tree, accumulating statistics.
-       do while (associated(node))          
+       do while (associated(node))
           ! Get the child node, and process if child exists.
           nodeChild => node%firstChild
           do while (associated(nodeChild))
-             ! Get the basic components.
-             basic      => node     %basic()
-             basicChild => nodeChild%basic()
-             ! Determine range of times spanned by this branch.
-             branchBegin=basicChild%time()
-             branchEnd  =basic     %time()
-             ! Does the branch span a progenitor node time?
-             do i=1,self%timeCount
-                ! Does the branch span a parent node time?
-                if     (                                                               &
-                     &     branchBegin <= self%timeParents(i)                          &
-                     &  .and.                                                          &
-                     &   (                                                             &
-                     &     branchEnd   >  self%timeParents(i)                          &
-                     &    .or.                                                         &
-                     &     (                                                           &
-                     &       .not.associated(node%parent)                              &
-                     &      .and.                                                      &
-                     &       Values_Agree(branchEnd,self%timeParents(i),relTol=1.0d-6) &
-                     &     )                                                           &
-                     &   )                                                             &
-                     & ) then
-                   ! Get the masses on the branch.
-                   branchMassInitial=basicChild%mass()
-                   if (nodeChild%isPrimaryProgenitor()) then
-                      branchMassFinal=basic%mass()
-                   else
-                      branchMassFinal=branchMassInitial
+             ! Check if child should be included.
+             mergingStatistics => nodeChild%mergingStatistics()
+             if     (                                                         &
+                  &   .not.self             %alwaysIsolatedHalosOnly          &
+                  &  .or.                                                     &
+                  &        mergingStatistics%nodeHierarchyLevelMaximum() == 0 &
+                  & ) then
+                ! Get the basic components.
+                basic      => node     %basic()
+                basicChild => nodeChild%basic()
+                ! Determine range of times spanned by this branch.
+                branchBegin=basicChild%time()
+                branchEnd  =basic     %time()
+                ! Does the branch span a progenitor node time?
+                do i=1,self%timeCount
+                   ! Does the branch span a parent node time?
+                   if     (                                                               &
+                        &     branchBegin <= self%timeParents(i)                          &
+                        &  .and.                                                          &
+                        &   (                                                             &
+                        &     branchEnd   >  self%timeParents(i)                          &
+                        &    .or.                                                         &
+                        &     (                                                           &
+                        &       .not.associated(node%parent)                              &
+                        &      .and.                                                      &
+                        &       Values_Agree(branchEnd,self%timeParents(i),relTol=1.0d-6) &
+                        &     )                                                           &
+                        &   )                                                             &
+                        & ) then
+                      ! Get the masses on the branch.
+                      branchMassInitial=basicChild%mass()
+                      if (nodeChild%isPrimaryProgenitor()) then
+                         branchMassFinal=basic%mass()
+                      else
+                         branchMassFinal=branchMassInitial
+                      end if
+                      ! Interpolate to get the mass at the required time.
+                      massParent=                     +branchMassInitial  &
+                           &     +(branchMassFinal    -branchMassInitial) &
+                           &     *(self%timeParents(i)-branchBegin      ) &
+                           &     /(branchEnd          -branchBegin      )
+                      massParentLogarithmic=log(massParent)
+                      binMassParent=int(                                                            &
+                           &            +(+massParentLogarithmic-self%massParentLogarithmicMinimum) &
+                           &            *self%massParentLogarithmicBinWidthInverse                  &
+                           &           )                                                            &
+                           &        +1
+                      if (binMassParent >= 1 .and. binMassParent <= self%parentMassCount) then
+                         !$omp critical(conditionalMassFunctionAccumulate)
+                         self%normalization(i,binMassParent)=self%normalization(i,binMassParent)+treeCurrent%volumeWeight
+                         !$omp end critical(conditionalMassFunctionAccumulate)
+                      end if
                    end if
-                   ! Interpolate to get the mass at the required time.
-                   massParent=                     +branchMassInitial  &
-                        &     +(branchMassFinal    -branchMassInitial) &
-                        &     *(self%timeParents(i)-branchBegin      ) &
-                        &     /(branchEnd          -branchBegin      )
-                   massParentLogarithmic=log(massParent)
-                   binMassParent=int(                                                            &
-                        &            +(+massParentLogarithmic-self%massParentLogarithmicMinimum) &
-                        &            *self%massParentLogarithmicBinWidthInverse                  &
-                        &           )                                                            &
-                        &        +1
-                   if (binMassParent >= 1 .and. binMassParent <= self%parentMassCount) then
-                      !$omp critical(conditionalMassFunctionAccumulate)
-                      self%normalization(i,binMassParent)=self%normalization(i,binMassParent)+treeCurrent%volumeWeight
-                      !$omp end critical(conditionalMassFunctionAccumulate)
-                   end if
-                end if
-                ! Check if the branch spans the progenitor time.
-                if     (                                        &
-                     &   branchBegin <= self%timeProgenitors(i) &
-                     &  .and.                                   &
-                     &   branchEnd   >  self%timeProgenitors(i) &
-                     & ) then
-                   ! Get the masses on the branch.
-                   branchMassInitial=basicChild%mass()
-                   if (nodeChild%isPrimaryProgenitor()) then
-                      branchMassFinal=basic%mass()
-                   else
-                      branchMassFinal=branchMassInitial
-                   end if
-                   ! Interpolate to get the mass at the required time.
-                   massProgenitor=                         +branchMassInitial  &
-                        &         +(branchMassFinal        -branchMassInitial) &
-                        &         *(self%timeProgenitors(i)-branchBegin      ) &
-                        &         /(branchEnd              -branchBegin      )
-                   ! Walk up the tree to find parents.
-                   nodeParent => node
-                   parentWalk : do while (associated(nodeParent))
-                      ! Get the parent's child.
-                      nodeParentChild   => nodeParent      %firstChild
-                      ! Get the basic components.
-                      basicParent       => nodeParent      %basic     ()
-                      basicParentChild  => nodeParentChild %basic     ()
-                      ! Determine range of times spanned by this branch.
-                      parentBranchBegin =  basicParentChild%time      ()
-                      parentBranchEnd   =  basicParent     %time      ()
-                      ! Does the branch span a parent node time?
-                      if     (                                                                     &
-                           &   parentBranchBegin <= self%timeParents(i)                            &
-                           &  .and.                                                                &
-                           &   (                                                                   &
-                           &     parentBranchEnd >  self%timeParents(i)                            &
-                           &    .or.                                                               &
-                           &     (                                                                 &
-                           &       .not.associated(nodeParent%parent)                              &
-                           &      .and.                                                            &
-                           &       Values_Agree(parentBranchEnd,self%timeParents(i),relTol=1.0d-6) &
-                           &     )                                                                 &
-                           &   )                                                                   &
-                           & ) then
-                         ! Get the masses on the parent branch.
-                         parentBranchMassInitial=basicParentChild%mass()
-                         parentBranchMassFinal  =     basicParent%mass()
-                         ! Find the parent mass at the required time.
-                         massParent=                       +parentBranchMassInitial  &
-                              &     +(parentBranchMassFinal-parentBranchMassInitial) &
-                              &     *(self%timeParents(i)  -parentBranchBegin      ) &
-                              &     /(parentBranchEnd      -parentBranchBegin      )
-                         ! Accumulate to mass function array.
-                         massParentLogarithmic=log(               massParent)
-                         massRatio            =    massProgenitor/massParent
-                         massRatioLogarithmic =log(               massRatio )
-                         binMassParent        =int(                                                           &
-                              &                     (massParentLogarithmic-self%massParentLogarithmicMinimum) &
-                              &                    *self%massParentLogarithmicBinWidthInverse                 &
-                              &                   )                                                           &
-                              &                +1
-                         binMassRatio         =int(                                                           &
-                              &                     (massRatioLogarithmic -self%massRatioLogarithmicMinimum ) &
-                              &                    *self%massRatioLogarithmicBinWidthInverse                  &
-                              &                   )                                                           &
-                              &                +1
-                         ! Check if within binned ranges.
-                         if    (binMassParent >= 1 .and. binMassParent <= self%parentMassCount) then
-                            if (binMassRatio  >= 1 .and. binMassRatio  <= self%massRatioCount) then
-                               !$omp critical(conditionalMassFunctionAccumulate)
-                               self%conditionalMassFunction             (i,binMassParent,binMassRatio) &
-                                    & =self%conditionalMassFunction     (i,binMassParent,binMassRatio) &
-                                    &   +massRatio                                                     &
-                                    &   *treeCurrent%volumeWeight
-                               self%conditionalMassFunctionError        (i,binMassParent,binMassRatio) &
-                                    & =self%conditionalMassFunctionError(i,binMassParent,binMassRatio) &
-                                    & +(                                                               &
-                                    &   +massRatio                                                     &
-                                    &   *treeCurrent%volumeWeight                                      &
-                                    &  )**2
-                               !$omp end critical(conditionalMassFunctionAccumulate)
-                            end if
-                            ! Check for formation.
-                            if (branchBegin > self%timeProgenitors(i)*(1.0d0-self%formationRateTimeFraction) .and. .not.associated(nodeChild%firstChild)) then
-                               ! This is a newly formed halo, accumulate to formation rate arrays.
-                               ! Find the mass at creation.
-                               massRatioCreation           =branchMassInitial/massParent
-                               massRatioCreationLogarithmic=log(massRatioCreation)
-                               binMassRatioCreation=int(                                                                   &
-                                    &                      (massRatioCreationLogarithmic-self%massRatioLogarithmicMinimum) &
-                                    &                   *self%massRatioLogarithmicBinWidthInverse                          &
-                                    &                  )                                                                   &
-                                    &               +1
-                               if (binMassRatioCreation >= 1 .and. binMassRatioCreation <= self%massRatioCount) then
+                   ! Check if the branch spans the progenitor time.
+                   if     (                                        &
+                        &   branchBegin <= self%timeProgenitors(i) &
+                        &  .and.                                   &
+                        &   branchEnd   >  self%timeProgenitors(i) &
+                        & ) then
+                      ! Get the masses on the branch.
+                      branchMassInitial=basicChild%mass()
+                      if (nodeChild%isPrimaryProgenitor()) then
+                         branchMassFinal=basic%mass()
+                      else
+                         branchMassFinal=branchMassInitial
+                      end if
+                      ! Interpolate to get the mass at the required time.
+                      massProgenitor=                         +branchMassInitial  &
+                           &         +(branchMassFinal        -branchMassInitial) &
+                           &         *(self%timeProgenitors(i)-branchBegin      ) &
+                           &         /(branchEnd              -branchBegin      )
+                      ! Walk up the tree to find parents.
+                      nodeParent => node
+                      parentWalk : do while (associated(nodeParent))
+                         ! Get the parent's child.
+                         nodeParentChild   => nodeParent      %firstChild
+                         ! Get the basic components.
+                         basicParent       => nodeParent      %basic     ()
+                         basicParentChild  => nodeParentChild %basic     ()
+                         ! Determine range of times spanned by this branch.
+                         parentBranchBegin =  basicParentChild%time      ()
+                         parentBranchEnd   =  basicParent     %time      ()
+                         ! Does the branch span a parent node time?
+                         if     (                                                                     &
+                              &   parentBranchBegin <= self%timeParents(i)                            &
+                              &  .and.                                                                &
+                              &   (                                                                   &
+                              &     parentBranchEnd >  self%timeParents(i)                            &
+                              &    .or.                                                               &
+                              &     (                                                                 &
+                              &       .not.associated(nodeParent%parent)                              &
+                              &      .and.                                                            &
+                              &       Values_Agree(parentBranchEnd,self%timeParents(i),relTol=1.0d-6) &
+                              &     )                                                                 &
+                              &   )                                                                   &
+                              & ) then
+                            ! Get the masses on the parent branch.
+                            parentBranchMassInitial=basicParentChild%mass()
+                            parentBranchMassFinal  =     basicParent%mass()
+                            ! Find the parent mass at the required time.
+                            massParent=                       +parentBranchMassInitial  &
+                                 &     +(parentBranchMassFinal-parentBranchMassInitial) &
+                                 &     *(self%timeParents(i)  -parentBranchBegin      ) &
+                                 &     /(parentBranchEnd      -parentBranchBegin      )
+                            ! Accumulate to mass function array.
+                            massParentLogarithmic=log(               massParent)
+                            massRatio            =    massProgenitor/massParent
+                            massRatioLogarithmic =log(               massRatio )
+                            binMassParent        =int(                                                           &
+                                 &                     (massParentLogarithmic-self%massParentLogarithmicMinimum) &
+                                 &                    *self%massParentLogarithmicBinWidthInverse                 &
+                                 &                   )                                                           &
+                                 &                +1
+                            binMassRatio         =int(                                                           &
+                                 &                     (massRatioLogarithmic -self%massRatioLogarithmicMinimum ) &
+                                 &                    *self%massRatioLogarithmicBinWidthInverse                  &
+                                 &                   )                                                           &
+                                 &                +1
+                            ! Check if within binned ranges.
+                            if    (binMassParent >= 1 .and. binMassParent <= self%parentMassCount) then
+                               if (binMassRatio  >= 1 .and. binMassRatio  <= self%massRatioCount) then
                                   !$omp critical(conditionalMassFunctionAccumulate)
-                                  self%formationRateFunction     (i,binMassParent,binMassRatioCreation,1)=self%formationRateFunction     (i,binMassParent,binMassRatioCreation,1)+ massRatioCreation*treeCurrent%volumeWeight
-                                  self%formationRateFunctionError(i,binMassParent,binMassRatioCreation,1)=self%formationRateFunctionError(i,binMassParent,binMassRatioCreation,1)+(massRatioCreation*treeCurrent%volumeWeight)**2
+                                  self%conditionalMassFunction             (i,binMassParent,binMassRatio) &
+                                       & =self%conditionalMassFunction     (i,binMassParent,binMassRatio) &
+                                       &   +massRatio                                                     &
+                                       &   *treeCurrent%volumeWeight
+                                  self%conditionalMassFunctionError        (i,binMassParent,binMassRatio) &
+                                       & =self%conditionalMassFunctionError(i,binMassParent,binMassRatio) &
+                                       & +(                                                               &
+                                       &   +massRatio                                                     &
+                                       &   *treeCurrent%volumeWeight                                      &
+                                       &  )**2
                                   !$omp end critical(conditionalMassFunctionAccumulate)
                                end if
-                               ! Find the mass of this node just prior to it becoming a subhalo.
-                               descendentNode => node
-                               do while (associated(descendentNode%parent).and.associated(descendentNode%parent%firstChild,descendentNode))
-                                  descendentNode => descendentNode%parent
-                               end do
-                               descendentBasic     => descendentNode %basic()
-                               massRatioDescendent =  descendentBasic%mass ()/massParent
-                               massRatioDescendentLogarithmic=log(massRatioDescendent)
-                               binMassRatioDescendent=int(                                                                   &
-                                    &                      (massRatioDescendentLogarithmic-self%massRatioLogarithmicMinimum) &
-                                    &                     *self%massRatioLogarithmicBinWidthInverse                          &
-                                    &                    )                                                                   &
-                                    &                 +1
-                               if (binMassRatioDescendent >= 1 .and. binMassRatioDescendent <= self%massRatioCount) then
-                                  !$omp critical(conditionalMassFunctionAccumulate)
-                                  self%formationRateFunction     (i,binMassParent,binMassRatioDescendent,2)=self%formationRateFunction     (i,binMassParent,binMassRatioDescendent,2)+ massRatioDescendent*treeCurrent%volumeWeight
-                                  self%formationRateFunctionError(i,binMassParent,binMassRatioDescendent,2)=self%formationRateFunctionError(i,binMassParent,binMassRatioDescendent,2)+(massRatioDescendent*treeCurrent%volumeWeight)**2
-                                  !$omp end critical(conditionalMassFunctionAccumulate)
-                               end if
-                            end if
-                            ! Accumulate to the primary progenitor mass array if necessary.
-                            iPrimary=1
-                            do while (massRatio < primaryProgenitorMass(i,binMassParent,iPrimary))
-                               iPrimary=iPrimary+1
-                               if (iPrimary > self%primaryProgenitorDepth) exit
-                            end do
-                            if (iPrimary <= self%primaryProgenitorDepth) then
-                               if (iPrimary < self%primaryProgenitorDepth) then
-                                  do jPrimary=self%primaryProgenitorDepth,iPrimary+1,-1
-                                     primaryProgenitorMass        (i,binMassParent,jPrimary  ) &
-                                          & =primaryProgenitorMass(i,binMassParent,jPrimary-1)
+                               ! Check for formation.
+                               if (branchBegin > self%timeProgenitors(i)*(1.0d0-self%formationRateTimeFraction) .and. .not.associated(nodeChild%firstChild)) then
+                                  ! This is a newly formed halo, accumulate to formation rate arrays.
+                                  ! Find the mass at creation.
+                                  massRatioCreation           =branchMassInitial/massParent
+                                  massRatioCreationLogarithmic=log(massRatioCreation)
+                                  binMassRatioCreation=int(                                                                   &
+                                       &                      (massRatioCreationLogarithmic-self%massRatioLogarithmicMinimum) &
+                                       &                   *self%massRatioLogarithmicBinWidthInverse                          &
+                                       &                  )                                                                   &
+                                       &               +1
+                                  if (binMassRatioCreation >= 1 .and. binMassRatioCreation <= self%massRatioCount) then
+                                     !$omp critical(conditionalMassFunctionAccumulate)
+                                     self%formationRateFunction     (i,binMassParent,binMassRatioCreation,1)=self%formationRateFunction     (i,binMassParent,binMassRatioCreation,1)+ massRatioCreation*treeCurrent%volumeWeight
+                                     self%formationRateFunctionError(i,binMassParent,binMassRatioCreation,1)=self%formationRateFunctionError(i,binMassParent,binMassRatioCreation,1)+(massRatioCreation*treeCurrent%volumeWeight)**2
+                                     !$omp end critical(conditionalMassFunctionAccumulate)
+                                  end if
+                                  ! Find the mass of this node just prior to it becoming a subhalo.
+                                  descendentNode => node
+                                  do while (associated(descendentNode%parent).and.associated(descendentNode%parent%firstChild,descendentNode))
+                                     descendentNode => descendentNode%parent
                                   end do
+                                  descendentBasic     => descendentNode %basic()
+                                  massRatioDescendent =  descendentBasic%mass ()/massParent
+                                  massRatioDescendentLogarithmic=log(massRatioDescendent)
+                                  binMassRatioDescendent=int(                                                                   &
+                                       &                      (massRatioDescendentLogarithmic-self%massRatioLogarithmicMinimum) &
+                                       &                     *self%massRatioLogarithmicBinWidthInverse                          &
+                                       &                    )                                                                   &
+                                       &                 +1
+                                  if (binMassRatioDescendent >= 1 .and. binMassRatioDescendent <= self%massRatioCount) then
+                                     !$omp critical(conditionalMassFunctionAccumulate)
+                                     self%formationRateFunction     (i,binMassParent,binMassRatioDescendent,2)=self%formationRateFunction     (i,binMassParent,binMassRatioDescendent,2)+ massRatioDescendent*treeCurrent%volumeWeight
+                                     self%formationRateFunctionError(i,binMassParent,binMassRatioDescendent,2)=self%formationRateFunctionError(i,binMassParent,binMassRatioDescendent,2)+(massRatioDescendent*treeCurrent%volumeWeight)**2
+                                     !$omp end critical(conditionalMassFunctionAccumulate)
+                                  end if
                                end if
-                               primaryProgenitorMass(i,binMassParent,iPrimary)=massRatio
+                               ! Accumulate to the primary progenitor mass array if necessary.
+                               iPrimary=1
+                               do while (massRatio < primaryProgenitorMass(i,binMassParent,iPrimary))
+                                  iPrimary=iPrimary+1
+                                  if (iPrimary > self%primaryProgenitorDepth) exit
+                               end do
+                               if (iPrimary <= self%primaryProgenitorDepth) then
+                                  if (iPrimary < self%primaryProgenitorDepth) then
+                                     do jPrimary=self%primaryProgenitorDepth,iPrimary+1,-1
+                                        primaryProgenitorMass        (i,binMassParent,jPrimary  ) &
+                                             & =primaryProgenitorMass(i,binMassParent,jPrimary-1)
+                                     end do
+                                  end if
+                                  primaryProgenitorMass(i,binMassParent,iPrimary)=massRatio
+                               end if
                             end if
                          end if
-                      end if
-                      nodeParent => nodeParent%parent
-                   end do parentWalk
-                end if
-                ! Record the mass of the branch at the parent time.
-             end do
-             ! Accumulate unevoled subhalo mass functions.
-             if (.not.associated(nodeChild%firstChild)) then
-                ! This is a branch tip. Follow until it to the final time, storing its mass just prior to becoming a subhalo, and
-                ! the hierarchy depth.                
-                depthHierarchy =  0
-                descendentNode => nodeChild
-                do while (associated(descendentNode).and.depthHierarchy <= self%subhaloHierarchyDepth)
-                   if (associated(descendentNode%parent).and..not.descendentNode%isPrimaryProgenitor()) then
-                      depthHierarchy=depthHierarchy+1
-                      if (depthHierarchy == 1) then
-                         descendentBasic => descendentNode %basic()
-                         massUnevolved   =  descendentBasic%mass ()
-                      end if
+                         nodeParent => nodeParent%parent
+                      end do parentWalk
                    end if
-                   descendentNode => descendentNode%parent
+                   ! Record the mass of the branch at the parent time.
                 end do
-                if (depthHierarchy > 0 .and. depthHierarchy <= self%subhaloHierarchyDepth) then
-                   basicParent           => treeCurrent%baseNode%basic()
-                   massParentLogarithmic =  log(basicParent  %mass())
-                   massRatioLogarithmic  =  log(massUnevolved       )-massParentLogarithmic
-                   binMassParent=int(                                                            &
-                        &            +(+massParentLogarithmic-self%massParentLogarithmicMinimum) &
-                        &            *self%massParentLogarithmicBinWidthInverse                  &
-                        &           )                                                            &
-                        &        +1
-                   binMassRatio =int(                                                            &
-                        &            +(+massRatioLogarithmic -self%massRatioLogarithmicMinimum ) &
-                        &            *self%massRatioLogarithmicBinWidthInverse                   &
-                        &           )                                                            &
-                        &        +1
-                   if     (                                                                &
-                        &   binMassParent >= 1 .and. binMassParent <= self%parentMassCount &
-                        &  .and.                                                           &
-                        &   binMassRatio  >= 1 .and. binMassRatio  <= self% massRatioCount &
-                        & ) then
-                      !$omp critical(conditionalMassFunctionAccumulate)
-                      self               %subhaloMassFunction     (binMassParent,binMassRatio,depthHierarchy)= &
-                           & +self       %subhaloMassFunction     (binMassParent,binMassRatio,depthHierarchy)  &
-                           & +treeCurrent%volumeWeight
-                      self               %subhaloMassFunctionError(binMassParent,binMassRatio,depthHierarchy)= &
-                           & +self       %subhaloMassFunctionError(binMassParent,binMassRatio,depthHierarchy)  &
-                           & +treeCurrent%volumeWeight**2
-                      !$omp end critical(conditionalMassFunctionAccumulate)
+                ! Accumulate unevoled subhalo mass functions.
+                if (.not.associated(nodeChild%firstChild)) then
+                   ! This is a branch tip. Follow until it to the final time, storing its mass just prior to becoming a subhalo, and
+                   ! the hierarchy depth.                
+                   depthHierarchy =  0
+                   descendentNode => nodeChild
+                   do while (associated(descendentNode).and.depthHierarchy <= self%subhaloHierarchyDepth)
+                      if (associated(descendentNode%parent).and..not.descendentNode%isPrimaryProgenitor()) then
+                         depthHierarchy=depthHierarchy+1
+                         if (depthHierarchy == 1) then
+                            descendentBasic => descendentNode %basic()
+                            massUnevolved   =  descendentBasic%mass ()
+                         end if
+                      end if
+                      descendentNode => descendentNode%parent
+                   end do
+                   if (depthHierarchy > 0 .and. depthHierarchy <= self%subhaloHierarchyDepth) then
+                      basicParent           => treeCurrent%baseNode%basic()
+                      massParentLogarithmic =  log(basicParent  %mass())
+                      massRatioLogarithmic  =  log(massUnevolved       )-massParentLogarithmic
+                      binMassParent=int(                                                            &
+                           &            +(+massParentLogarithmic-self%massParentLogarithmicMinimum) &
+                           &            *self%massParentLogarithmicBinWidthInverse                  &
+                           &           )                                                            &
+                           &        +1
+                      binMassRatio =int(                                                            &
+                           &            +(+massRatioLogarithmic -self%massRatioLogarithmicMinimum ) &
+                           &            *self%massRatioLogarithmicBinWidthInverse                   &
+                           &           )                                                            &
+                           &        +1
+                      if     (                                                                &
+                           &   binMassParent >= 1 .and. binMassParent <= self%parentMassCount &
+                           &  .and.                                                           &
+                           &   binMassRatio  >= 1 .and. binMassRatio  <= self% massRatioCount &
+                           & ) then
+                         !$omp critical(conditionalMassFunctionAccumulate)
+                         self               %subhaloMassFunction     (binMassParent,binMassRatio,depthHierarchy)= &
+                              & +self       %subhaloMassFunction     (binMassParent,binMassRatio,depthHierarchy)  &
+                              & +treeCurrent%volumeWeight
+                         self               %subhaloMassFunctionError(binMassParent,binMassRatio,depthHierarchy)= &
+                              & +self       %subhaloMassFunctionError(binMassParent,binMassRatio,depthHierarchy)  &
+                              & +treeCurrent%volumeWeight**2
+                         !$omp end critical(conditionalMassFunctionAccumulate)
+                      end if
                    end if
                 end if
              end if
@@ -954,5 +990,5 @@ contains
       end if
       return
     end subroutine weightedAverage
-      
+
   end subroutine conditionalMFFinalize

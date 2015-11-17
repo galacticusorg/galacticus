@@ -69,12 +69,13 @@ sub Select_Output {
     my $dataBlock = shift;
     my $redshift = $_[0];
     &Get_Times($dataBlock) unless ( exists($dataBlock->{'outputs'}) );
-    my $outputs = $dataBlock->{'outputs'};
+    my $outputs         = $dataBlock->{'outputs'};
     my $expansionFactor = pdl 1.0/($redshift+1.0);
-    my $tolerance = pdl 1.0e-3;
-    my $foundMatch = 0;
+    my $tolerance       = pdl 1.0e-3;
+    my $foundMatch      = 0;
     for(my $i=0;$i<nelem($outputs->{'expansionFactor'});++$i) {
 	if ( abs($outputs->{'expansionFactor'}->index($i)-$expansionFactor) < $tolerance ) {
+	    $tolerance = abs($outputs->{'expansionFactor'}->index($i)-$expansionFactor);
 	    $dataBlock->{'output'     } = $outputs->{'outputNumber'}->index($i);
 	    $dataBlock->{'outputIndex'} =                                   $i ;
 	    $foundMatch = 1;

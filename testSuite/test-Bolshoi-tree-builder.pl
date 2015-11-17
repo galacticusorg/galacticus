@@ -16,9 +16,6 @@ require File::Which;
 # Andrew Benson (12-October-2012)
 # Contributions to this file made by: Stephanie Dörschner.
 
-# Build the file maker code.
-system("cd ..; make Bolshoi_Merger_Tree_File_Maker.exe Galacticus.exe");
-
 # Create output folder.
 system("cd ..; mkdir -p testSuite/outputs");
 

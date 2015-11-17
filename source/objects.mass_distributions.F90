@@ -20,11 +20,12 @@
 module Mass_Distributions
   !% Implements the mass distribution class.
   use FGSL
+  use Tables
   implicit none
   private
   public :: Mass_Distribution_Create
 
-  type, public                            :: massDistribution
+  type, public :: massDistribution
      !% The basic mass distribution class. Has no symmetry and will abort on inqueries.
      logical :: dimensionless
    contains
@@ -72,6 +73,18 @@ module Mass_Distributions
      !@     <type>\doublezero</type>
      !@     <arguments>\textcolor{red}{\textless class(coordinate)\textgreater} coordinates\argin</arguments>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>stateStore</method>
+     !@     <description>Store the state of the mass distribution to file.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ stateFile\argin, \textcolor{red}{\textless type(fgsl\_file)\textgreater} fgslStateFile\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>stateRestore</method>
+     !@     <description>Restore the state of the mass distribution from file.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ stateFile\argin, \textcolor{red}{\textless type(fgsl\_file)\textgreater} fgslStateFile\argin</arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure, nopass :: symmetry             =>Mass_Distribution_Symmetry_None
      procedure         :: isDimensionless      =>Mass_Distribution_Is_Dimensionless
@@ -80,6 +93,8 @@ module Mass_Distributions
      procedure         :: densityRadialMoment  =>Mass_Distribution_Density_Radial_Moment_Null
      procedure         :: massEnclosedBySphere =>Mass_Distribution_Mass_Enc_By_Sphere_Null
      procedure         :: potential            =>Mass_Distribution_Potential_Null
+     procedure         :: stateStore           =>Mass_Distribution_State_Store_Null
+     procedure         :: stateRestore         =>Mass_Distribution_State_Restore_Null
   end type massDistribution
 
   type, public, extends(massDistribution) :: massDistributionSpherical
@@ -98,12 +113,52 @@ module Mass_Distributions
      procedure         :: massEnclosedBySphere=>Mass_Distribution_Mass_Enc_By_Sphere_Spherical
      procedure         :: halfMassRadius      =>Mass_Distribution_Half_Mass_Radius_Spherical
   end type massDistributionSpherical
+
   class(massDistributionSpherical), pointer :: massDistributionSphericalActive
   !$omp threadprivate(massDistributionSphericalActive)
+  
   type, public, extends(massDistribution) :: massDistributionCylindrical
      !% A cylindrical mass distribution class.
    contains
-     procedure, nopass :: symmetry=>Mass_Distribution_Symmetry_Cylindrical
+     !@ <objectMethods>
+     !@   <object>massDistributionCylindrical</object>
+     !@   <objectMethod>
+     !@     <method>halfMassRadius</method>
+     !@     <description>Returns the cylindrical radius enclosing half of the mass of the mass distribution.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>surfaceDensityRadialMoment</method>
+     !@     <description>Returns the $n^{\mathrm th}$ moment of the integral of the surface density over radius, $\int_0^\infty \Sigma({\mathbf x}) |x|^n {\mathrm d} {\mathbf x}$.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ moment\argin, \doublezero\ radiusMinimum\argin, \doublezero\ radiusMaximum\argin, \logicalzero\ [isInfinite]\argout</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>rotationCurve</method>
+     !@     <description>Returns the circular velocity at the given {\normalfont \ttfamily radius}.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ radius\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>rotationCurveGradient</method>
+     !@     <description>Returns the gradient of the circular velocity at the given {\normalfont \ttfamily radius}.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ radius\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>surfaceDensity</method>
+     !@     <description>Returns the surface density at the given {\normalfont \ttfamily coordinates}.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\textcolor{red}{\textless class(coordinate)\textgreater} coordinates\argin</arguments>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     procedure, nopass :: symmetry                   => Mass_Distribution_Symmetry_Cylindrical
+     procedure         :: halfMassRadius             => Mass_Distribution_Half_Mass_Radius_Cylindrical
+     procedure         :: surfaceDensity             => Mass_Distribution_Surface_Density_Cylindrical
+     procedure         :: rotationCurve              => Mass_Distribution_Rotation_Curve_Cylindrical
+     procedure         :: rotationCurveGradient      => Mass_Distribution_Rotation_Curve_Gradient_Cylindrical
+     procedure         :: surfaceDensityRadialMoment => Mass_Distribution_Surface_Density_Radial_Moment_Cylindrical
   end type massDistributionCylindrical
 
   ! Include type definitions.
@@ -111,6 +166,8 @@ module Mass_Distributions
   include 'objects.mass_distributions.beta_profile.type.inc'
   include 'objects.mass_distributions.Hernquist.type.inc'
   include 'objects.mass_distributions.Sersic.type.inc'
+  include 'objects.mass_distributions.exponential_disk.type.inc'
+  include 'objects.mass_distributions.Miyamoto_Nagai.type.inc'
 
   ! Enumeration of mass distribution symmetries.
   !# <enumeration>
@@ -123,10 +180,11 @@ module Mass_Distributions
   !# </enumeration>
 
   ! Template distributions.
-  type   (massDistributionNFW        )                    :: massDistributionTemplateNFW
-  type   (massDistributionBetaProfile)                    :: massDistributionTemplateBetaProfile
-  type   (massDistributionHernquist  )                    :: massDistributionTemplateHernquist
-  type   (massDistributionSersic     )                    :: massDistributionTemplateSersic
+  type   (massDistributionNFW            )                    :: massDistributionTemplateNFW
+  type   (massDistributionBetaProfile    )                    :: massDistributionTemplateBetaProfile
+  type   (massDistributionHernquist      )                    :: massDistributionTemplateHernquist
+  type   (massDistributionSersic         )                    :: massDistributionTemplateSersic
+  type   (massDistributionExponentialDisk)                    :: massDistributionTemplateExponentialDisk
 
 contains
 
@@ -137,14 +195,16 @@ contains
     class    (massDistribution), pointer       :: newMassDistribution
     character(len=*           ), intent(in   ) :: type
 
-    if      (trim(type) == "NFW"        ) then
-       allocate(newMassDistribution,source=massDistributionTemplateNFW        )
-    else if (trim(type) == "betaProfile") then
-       allocate(newMassDistribution,source=massDistributionTemplateBetaProfile)
-    else if (trim(type) == "hernquist") then
-       allocate(newMassDistribution,source=massDistributionTemplateHernquist  )
-    else if (trim(type) == "sersic") then
-       allocate(newMassDistribution,source=massDistributionTemplateSersic     )
+    if      (trim(type) == "NFW"            ) then
+       allocate(newMassDistribution,source=massDistributionTemplateNFW            )
+    else if (trim(type) == "betaProfile"    ) then
+       allocate(newMassDistribution,source=massDistributionTemplateBetaProfile    )
+    else if (trim(type) == "hernquist"      ) then
+       allocate(newMassDistribution,source=massDistributionTemplateHernquist      )
+    else if (trim(type) == "sersic"         ) then
+       allocate(newMassDistribution,source=massDistributionTemplateSersic         )
+    else if (trim(type) == "exponentialDisk") then
+       allocate(newMassDistribution,source=massDistributionTemplateExponentialDisk)
     else
        call Galacticus_Error_Report('Mass_Distribution_Create','unrecognized mass distribution')
     end if
@@ -226,7 +286,7 @@ contains
     !% Aborts on attempts to get the mass enclosed by a sphere for mass distributions with no density defined.
     use Galacticus_Error
     implicit none
-    class           (massDistribution), intent(in   ), target :: self
+    class           (massDistribution), intent(inout), target :: self
     double precision                  , intent(in   )         :: radius
 
     call Galacticus_Error_Report('Mass_Distribution_Mass_Enc_By_Sphere_Null','this mass distribution has no massEnclosedBySphere defined')
@@ -240,7 +300,7 @@ contains
     use Numerical_Integration
     use Numerical_Constants_Math
     implicit none
-    class           (massDistributionSpherical ), intent(in   ), target :: self
+    class           (massDistributionSpherical ), intent(inout), target :: self
     double precision                            , intent(in   )         :: radius
     type            (c_ptr                     )                        :: parameterPointer
     type            (fgsl_function             )                        :: integrandFunction
@@ -276,7 +336,7 @@ contains
     use Coordinates
     use Galacticus_Error
     implicit none
-    class(massDistribution), intent(in   ) :: self
+    class(massDistribution), intent(inout) :: self
     class(coordinate      ), intent(in   ) :: coordinates
 
     call Galacticus_Error_Report('Mass_Distribution_Potential_Null','this mass distribution has no potential method defined')
@@ -287,16 +347,99 @@ contains
     !% Aborts on attempts to get half-mass radius in spherical mass distributions.
     use Galacticus_Error
     implicit none
-    class(massDistributionSpherical), intent(in   ) :: self
+    class(massDistributionSpherical), intent(inout) :: self
 
     call Galacticus_Error_Report('Mass_Distribution_Half_Mass_Radius_Spherical','this mass distribution has no halfMassRadius method defined')
     return
   end function Mass_Distribution_Half_Mass_Radius_Spherical
+
+  double precision function Mass_Distribution_Half_Mass_Radius_Cylindrical(self)
+    !% Aborts on attempts to get half-mass radius in cylindrical mass distributions.
+    use Galacticus_Error
+    implicit none
+    class(massDistributionCylindrical), intent(inout) :: self
+
+    call Galacticus_Error_Report('Mass_Distribution_Half_Mass_Radius_Cylindrical','this mass distribution has no halfMassRadius method defined')
+    return
+  end function Mass_Distribution_Half_Mass_Radius_Cylindrical
+
+  double precision function Mass_Distribution_Surface_Density_Cylindrical(self,coordinates)
+    !% Aborts on attempts to get surface density in cylindrical mass distributions.
+    use Coordinates
+    use Galacticus_Error
+    implicit none
+    class(massDistributionCylindrical), intent(inout) :: self
+    class(coordinate                 ), intent(in   ) :: coordinates
+
+    call Galacticus_Error_Report('Mass_Distribution_Surface_Density_Cylindrical','this mass distribution has no surface density method defined')
+    return
+  end function Mass_Distribution_Surface_Density_Cylindrical
+
+  double precision function Mass_Distribution_Rotation_Curve_Cylindrical(self,radius)
+    !% Aborts on attempts to get surface density in cylindrical mass distributions.
+    use Coordinates
+    use Galacticus_Error
+    implicit none
+    class           (massDistributionCylindrical), intent(inout) :: self
+    double precision                             , intent(in   ) :: radius
+
+    call Galacticus_Error_Report('Mass_Distribution_Rotation_Curve_Cylindrical','this mass distribution has no rotation curve method defined')
+    return
+  end function Mass_Distribution_Rotation_Curve_Cylindrical
+
+  double precision function Mass_Distribution_Rotation_Curve_Gradient_Cylindrical(self,radius)
+    !% Aborts on attempts to get surface density in cylindrical mass distributions.
+    use Coordinates
+    use Galacticus_Error
+    implicit none
+    class           (massDistributionCylindrical), intent(inout) :: self
+    double precision                             , intent(in   ) :: radius
+
+    call Galacticus_Error_Report('Mass_Distribution_Rotation_Curve_Gradient_Cylindrical','this mass distribution has no rotation curve gradient method defined')
+    return
+  end function Mass_Distribution_Rotation_Curve_Gradient_Cylindrical
+
+  double precision function Mass_Distribution_Surface_Density_Radial_Moment_Cylindrical(self,moment,radiusMinimum,radiusMaximum,isInfinite)
+    !% Aborts on attempts to get radial surface density moment of mass distributions with no density defined.
+    use Galacticus_Error
+    implicit none
+    class           (massDistributionCylindrical), intent(inout)           :: self
+    double precision                             , intent(in   )           :: moment 
+    double precision                             , intent(in   ), optional :: radiusMinimum, radiusMaximum
+    logical                                      , intent(  out), optional :: isInfinite
+
+    call Galacticus_Error_Report('Mass_Distribution_Surface_Density_Radial_Moment_Null','this mass distribution has no radial surface density moment method defined')
+    return
+  end function Mass_Distribution_Surface_Density_Radial_Moment_Cylindrical
+
+  subroutine Mass_Distribution_State_Store_Null(self,stateFile,fgslStateFile)
+    !% Store the mass distribution to file.
+    use FGSL
+    implicit none
+    class  (massDistribution), intent(inout) :: self
+    integer                  , intent(in   ) :: stateFile
+    type   (fgsl_file       ), intent(in   ) :: fgslStateFile
+
+    return
+  end subroutine Mass_Distribution_State_Store_Null
+  
+  subroutine Mass_Distribution_State_Restore_Null(self,stateFile,fgslStateFile)
+    !% Restore the mass distribution from file.
+    use FGSL
+    implicit none
+    class  (massDistribution), intent(inout) :: self
+    integer                  , intent(in   ) :: stateFile
+    type   (fgsl_file       ), intent(in   ) :: fgslStateFile
+
+    return
+  end subroutine Mass_Distribution_State_Restore_Null
 
   ! Include mass distribution methods.
   include 'objects.mass_distributions.NFW.methods.inc'
   include 'objects.mass_distributions.beta_profile.methods.inc'
   include 'objects.mass_distributions.Hernquist.methods.inc'
   include 'objects.mass_distributions.Sersic.methods.inc'
-
+  include 'objects.mass_distributions.exponential_disk.methods.inc'
+  include 'objects.mass_distributions.Miyamoto_Nagai.methods.inc'
+  
 end module Mass_Distributions
