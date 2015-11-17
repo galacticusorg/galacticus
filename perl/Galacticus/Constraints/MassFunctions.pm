@@ -16,6 +16,7 @@ use PDL;
 use PDL::NiceSlice;
 use PDL::Constants qw(PI);
 use PDL::MatrixOps;
+use PDL::IO::HDF5;
 use Math::SigFigs;
 use Data::Dumper;
 use LaTeX::Encode;
@@ -33,6 +34,8 @@ sub Construct {
     # Construct a mass function from Galacticus for constraint purposes.
     my %arguments = %{$_[0]};
     my $config    =   $_[1];
+    $arguments{'quiet'} = 0
+	unless ( exists($arguments{'quiet'}) );
     
     # Create data structure to read the results.
     my $galacticus;
@@ -59,13 +62,13 @@ sub Construct {
     }
     
     # Map from any logarithmic scaling to linear scaling.
-    $config->{'x'          } = +10.0** $config->{'x'          }
+    $config->{'x'          } = +10.0** $config->{'x'}
         if ( $config->{'xScaling'} eq "log10" );
-    $config->{'yUpperError'} = +10.0**($config->{'y'          }+$config->{'yUpperError'})-10.0**$config->{'y'          }
+    $config->{'yUpperError'} = +10.0**($config->{'y'}+$config->{'yUpperError'})-10.0**$config->{'y'}
         if ( $config->{'yScaling'} eq "log10" );
-    $config->{'yLowerError'} = -10.0**($config->{'y'          }-$config->{'LowerError' })+10.0**$config->{'y'          }
+    $config->{'yLowerError'} = -10.0**($config->{'y'}-$config->{'LowerError' })+10.0**$config->{'y'}
         if ( $config->{'yScaling'} eq "log10" );
-    $config->{'y'          } = +10.0** $config->{'y'          }
+    $config->{'y'          } = +10.0** $config->{'y'}
         if ( $config->{'yScaling'} eq "log10" );
     
     # Convert from per log10(M) to per log(M) if necessary.
@@ -84,6 +87,9 @@ sub Construct {
 
     # Get logarithmic bins in mass.
     my $xBins = log10($config->{'x'});
+    my $xBinWidths;
+    $xBinWidths = log10($config->{'xWidth'})
+	if ( exists($config->{'xWidth'}) );
 
     # Model results.
     my $yGalacticus;
@@ -104,7 +110,10 @@ sub Construct {
     	}
     }
     # Read galaxy data and construct mass function if necessary.
-    if ( $gotModelMassFunction == 0 ) {
+    if ( $gotModelMassFunction == 0 || (exists($arguments{'recompute'}) && $arguments{'recompute'} eq "yes") ) {
+	# If this mass function requires modeling of incompleteness, we cannot proceed.
+	die('MassFunctions::Construct: incompleteness modeling is not supported')
+	    if ( exists($arguments{'incompletenessModel'}) );
 	$galacticus->{'tree'} = "all";
 	&HDF5::Get_Parameters($galacticus);
 	&HDF5::Count_Trees  ($galacticus                      );
@@ -115,18 +124,18 @@ sub Construct {
 	# Find cosmological conversion factors.
 	my $cosmologyObserved = Astro::Cosmology->new(omega_matter => $config->{'omegaMatterObserved'}, omega_lambda =>  $config->{'omegaDarkEnergyObserved'}, h0 =>  $config->{'hubbleConstantObserved'});
 	my $cosmologyModel    = Astro::Cosmology->new(omega_matter => $galacticus->{'parameters'}->{'cosmologyParametersMethod'}->{'OmegaMatter'}->{'value'}, omega_lambda => $galacticus->{'parameters'}->{'cosmologyParametersMethod'}->{'OmegaDarkEnergy'}->{'value'}, h0 => $galacticus->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'});
-	my $cosmologyScalingMass        ;
-	my $cosmologyScalingMassFunction;
-	if ( $config->{'cosmologyScalingMass'}->atstr(0) eq 'none' ) {
+	my $cosmologyScalingMass         = 1.0;
+	my $cosmologyScalingMassFunction = 1.0;
+	if ( $config->{'cosmologyScalingMass'} eq 'none' || $config->{'redshift'} <= 0.0 ) {
 	    # Nothing to do.
-	} elsif ( $config->{'cosmologyScalingMass'}->atstr(0) eq 'luminosity' ) {
+	} elsif ( $config->{'cosmologyScalingMass'} eq 'luminosity' ) {
 	    $cosmologyScalingMass = ($cosmologyObserved->luminosity_distance($config->{'redshift'})/$cosmologyModel->luminosity_distance($config->{'redshift'}))**2;
 	} else {
 	    die('MassFunctions::Construct: unrecognized cosmology scaling');
 	}
-	if ( $config->{'cosmologyScalingMassFunction'}->atstr(0) eq 'none' ) {
+	if ( $config->{'cosmologyScalingMassFunction'} eq 'none' || $config->{'redshift'} <= 0.0 ) {
 	    # Nothing to do.
-	} elsif ( $config->{'cosmologyScalingMassFunction'}->atstr(0) eq 'inverseComovingVolume' ) {
+	} elsif ( $config->{'cosmologyScalingMassFunction'} eq 'inverseComovingVolume' ) {
 	    $cosmologyScalingMassFunction =
 		($cosmologyModel->comoving_distance($config->{'redshift'})/$cosmologyObserved->comoving_distance($config->{'redshift'}))**2
 		/($cosmologyModel->h0($config->{'redshift'})/$cosmologyObserved->h0($config->{'redshift'}))**2;
@@ -144,7 +153,7 @@ sub Construct {
 	}
 	# Add random Gaussian errors to the masses.
 	my $sigma = pdl ones(nelem($logarithmicMass));
-	if ( reftype($config->{'massErrorRandomDex'}) && reftype($config->{'massErrorRandomDex'}) eq "CODE" ) {
+	if ( ref($config->{'massErrorRandomDex'}) && reftype($config->{'massErrorRandomDex'}) eq "CODE" ) {
 	    $sigma .= &{$config->{'massErrorRandomDex'}}($logarithmicMass,$galacticus);
 	} else {
 	    $sigma *= $config->{'massErrorRandomDex'};
@@ -156,7 +165,7 @@ sub Construct {
 		my $parameterName = $config->{'systematicParameter'}.$i;
 		$systematicOffset += 
 		    $galacticus->{'parameters'}->{$parameterName}->{'value'}
-		    *($logarithmicMass-$config->{'systematicZeroPoint'})**$i;
+		*($logarithmicMass-$config->{'systematicZeroPoint'})**$i;
 	    }
 	    $logarithmicMass += $systematicOffset;
 	}
@@ -166,6 +175,8 @@ sub Construct {
 	     differential   => 1,
 	     gaussianSmooth => $sigma
 	    );
+	$options{'binWidths'} = $xBinWidths
+	    if ( defined($xBinWidths) );
 	($yGalacticus,$errorGalacticus,$covarianceGalacticus) = &Histograms::Histogram($xBins,$logarithmicMass,$weight,%options);
 	# Convert model mass function from per log10(M) to per log(M).
 	$yGalacticus          /= log(10.0);
@@ -216,67 +227,54 @@ sub Construct {
 
     # Output the results to file if requested.
     if ( exists($arguments{'resultFile'}) ) {
-	my $results;
-	@{$results->{'x'             }} = $xBins                 ->list();
-	@{$results->{'y'             }} = $yGalacticus           ->list();
-	@{$results->{'error'         }} = $errorGalacticus       ->list();
-	@{$results->{'covariance'    }} = $covarianceGalacticus  ->list();
-	@{$results->{'yData'         }} = $config->{'y'}         ->list();
-	@{$results->{'covarianceData'}} = $config->{'covariance'}->list();
-	my $xmlOut = new XML::Simple (RootName=>"results", NoAttr => 1);;
-	# Output the parameters to file.
-	open(pHndl,">".$arguments{'resultFile'});
-	print pHndl $xmlOut->XMLout($results);
-	close pHndl;
-    }
-
-    # Output accuracy to file if requested.
-    if ( exists($arguments{'accuracyFile'}) ) {
-	my $results;
-	@{$results->{'x'         }} = $xBins          ->list();
-	@{$results->{'yModel'    }} = $yGalacticus    ->list();
-	@{$results->{'yData'     }} = $config->{'y'}  ->list();
-	@{$results->{'errorModel'}} = $errorGalacticus->list();
-	@{$results->{'errorData' }} = $error          ->list();
-	my $xmlOut = new XML::Simple (RootName=>"accuracy", NoAttr => 1);;
-	# Output the parameters to file.
-	open(pHndl,">".$arguments{'accuracyFile'});
-	print pHndl $xmlOut->XMLout($results);
-	close pHndl;
+	my $resultsFile = new PDL::IO::HDF5(">".$arguments{'resultFile'});
+	$resultsFile->dataset('x'             )->set($xBins                 );
+	$resultsFile->dataset('y'             )->set($yGalacticus           );
+	$resultsFile->dataset('covariance'    )->set($covarianceGalacticus  );
+	$resultsFile->dataset('yData'         )->set($config->{'y'         });
+	$resultsFile->dataset('covarianceData')->set($config->{'covariance'});
     }
 
     # Compute the likelihood:
     if ( exists($arguments{'outputFile'}) ) {
-	# For any bins in which the model mass function is zero, we extrapolate from adjacent bins. This is necessary in order to
-	# permit a finite likelihood to be computed. Such models will always have a very low likelihood, so the details of the
-	# extrapolation should not matter.
-	my $yDefined                 = pdl zeroes(nelem($yGalacticus));
-	my $nonZero                  = which($yGalacticus > 0.0);
-	$yDefined->($nonZero)       .= 1.0;
-	my $logYGalacticus           = $yGalacticus->copy();
-	$logYGalacticus->($nonZero) .= log($yGalacticus->index($nonZero));
-	for(my $i=2;$i<nelem($yGalacticus);++$i) {
-	    if ( $yDefined->(($i)) == 0.0 && $yDefined->(($i-1)) > 0.0 && $yDefined->(($i-2)) > 0.0 ) {
-		$logYGalacticus->(($i)) .= $logYGalacticus->(($i-1))*2.0-$logYGalacticus->(($i-2));
-		$yDefined      ->(($i)) .= 1.0;
-	    }
-	}
-	for(my $i=nelem($yGalacticus)-3;$i>=0;--$i) {
-	    if ( $yDefined->(($i)) == 0.0 && $yDefined->(($i+1)) > 0.0 && $yDefined->(($i+2)) > 0.0 ) {
-		$logYGalacticus->(($i)) .= $logYGalacticus->(($i+1))*2.0-$logYGalacticus->(($i+2));
-		$yDefined      ->(($i)) .= 1.0;
-	    }
-	}
-	$yGalacticus .= exp($logYGalacticus);
-
+	my $constraint;
+	$constraint->{'label'} = $config->{'analysisLabel'};
 	# Construct the full covariance matrix, which is the covariance matrix of the observations
 	# plus that of the model.
 	my $fullCovariance        = $config->{'covariance'}+$covarianceGalacticus;
+	# If the range of masses over which to constrain is limited, set the model mass function outside of that range equal to
+	# the observed mass function.
+	my $yGalacticusLimited = $yGalacticus->copy();
+	if ( exists($config->{'constraintMassMinimum'}) ) {
+	    my $noConstraint = which($config->{'x'} < $config->{'constraintMassMinimum'});
+	    $yGalacticusLimited->($noConstraint) .= $config->{'y'}->($noConstraint)
+		if ( nelem($noConstraint) > 0 );
+	}
+	if ( exists($config->{'constraintMassMaximum'}) ) {
+	    my $noConstraint = which($config->{'x'} > $config->{'constraintMassMaximum'});
+	    $yGalacticusLimited->($noConstraint) .= $config->{'y'}->($noConstraint)
+		if ( nelem($noConstraint) > 0 );
+	}
+	# Handle zero elements in the observed mass function.
+	my $nonZeroObserved = which($config->{'y'} > 1.0e-30);
 	# Compute the likelihood.
-	my $constraint;
-	my $logDeterminant;
-	my $logLikelihood = &Covariances::ComputeLikelihood($yGalacticus,$config->{'y'},$fullCovariance, determinant => \$logDeterminant, quiet => $arguments{'quiet'});
+	my $offsets;
+	my $jacobian;
+	my $logLikelihood =
+	    &Covariances::ComputeLikelihood
+	    (
+	     $yGalacticusLimited       ->($nonZeroObserved                 ),
+	     $config            ->{'y'}->($nonZeroObserved                 ),
+	     $fullCovariance           ->($nonZeroObserved,$nonZeroObserved),
+	     jacobian                   => \$jacobian                       ,
+	     offsets                    => \$offsets                        ,
+	     quiet                      => $arguments{'quiet'}              ,
+	     productMethod              => "linearSolver" 
+	    );
 	$constraint->{'logLikelihood'} = $logLikelihood;
+	# Compute the variance in the log-likelihood due to errors in the model.
+	my $logLikelihoodVariance = transpose($jacobian) x $covarianceGalacticus->($nonZeroObserved,$nonZeroObserved) x $jacobian;
+	$constraint->{'logLikelihoodVariance'} = $logLikelihoodVariance->sclr();
 	# Output the constraint.
 	my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"constraint");
 	open(oHndl,">".$arguments{'outputFile'});
@@ -311,7 +309,7 @@ sub Construct {
 	print $gnuPlot "set format y '\$10^{\%L}\$'\n";
 	print $gnuPlot "set xrange [".$config->{'xRange'}."]\n";
 	print $gnuPlot "set yrange [".$config->{'yRange'}."]\n";
-	print $gnuPlot "set title '".$config->{'title'}."'\n";
+	print $gnuPlot "set title offset 0,-0.5 '".$config->{'title'}."'\n";
 	print $gnuPlot "set xlabel '".$config->{'xLabel'}."'\n";
 	print $gnuPlot "set ylabel '".$config->{'yLabel'}."'\n";
 	&PrettyPlots::Prepare_Dataset(\$plot,
