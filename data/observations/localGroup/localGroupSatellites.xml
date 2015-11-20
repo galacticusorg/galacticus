@@ -1401,6 +1401,35 @@
       <alias>
 	<value>GruI</value>
       </alias>
+      <velocityRadialHeliocentric>
+        <value>-140.5</value>
+        <errorHigh>2.4</errorHigh>
+	<errorLow>1.6</errorLow>
+        <reference>Walker et al. (2015; arXiv:1511.06296)</reference>
+        <referenceURL>http://arxiv.org/abs/1511.06296</referenceURL>
+      </velocityRadialHeliocentric>
+      <velocityDispersionStellar>
+        <limit confidenceLevel="?" type="upper">9.8</limit>
+       <reference>Walker et al. (2015; arXiv:1511.06296)</reference>
+        <referenceURL>http://arxiv.org/abs/1511.06296</referenceURL>
+      </velocityDispersionStellar>
+      <metallicityStellar>
+        <value>-1.42</value>
+	<errorHigh>0.55</errorHigh>
+	<errorLow>0.42</errorLow>
+        <reference>Walker et al. (2015; arXiv:1511.06296)</reference>
+        <referenceURL>http://arxiv.org/abs/1511.06296</referenceURL>
+      </metallicityStellar>
+      <metallicityDispersionStellar>
+        <limit confidenceLevel="?" type="upper">0.9</limit>
+        <reference>Walker et al. (2015; arXiv:1511.06296)</reference>
+        <referenceURL>http://arxiv.org/abs/1511.06296</referenceURL>
+      </metallicityDispersionStellar>     
+      <massDynamicalHalfLightRadius>
+        <limit confidenceLevel="?" type="upper">2.5</limit>
+        <reference>Walker et al. (2015; arXiv:1511.06296)</reference>
+        <referenceURL>http://arxiv.org/abs/1511.06296</referenceURL>
+      </massDynamicalHalfLightRadius>
       <massNeutralHydrogen>
         <limit confidenceLevel="99.999971%" type="upper">0.003020</limit>
         <reference>Westmeier et al. (arXiv:1507.03661)</reference>
@@ -1535,6 +1564,38 @@
       <alias>
 	<value>TucII</value>
       </alias>
+      <velocityRadialHeliocentric>
+        <value>-129.1</value>
+        <error>3.5</error>
+        <reference>Walker et al. (2015; arXiv:1511.06296)</reference>
+        <referenceURL>http://arxiv.org/abs/1511.06296</referenceURL>
+      </velocityRadialHeliocentric>
+      <velocityDispersionStellar>
+        <value>8.6</value>
+	<errorHigh>0.48</errorHigh>
+	<errorLow>0.26</errorLow>
+        <reference>Walker et al. (2015; arXiv:1511.06296)</reference>
+        <referenceURL>http://arxiv.org/abs/1511.06296</referenceURL>
+      </velocityDispersionStellar>
+      <metallicityStellar>
+        <value>-2.23</value>
+	<errorHigh>0.18</errorHigh>
+	<errorLow>0.12</errorLow>
+        <reference>Walker et al. (2015; arXiv:1511.06296)</reference>
+        <referenceURL>http://arxiv.org/abs/1511.06296</referenceURL>
+      </metallicityStellar>
+      <metallicityDispersionStellar>
+        <limit confidenceLevel="?" type="upper">0.4</limit>
+        <reference>Walker et al. (2015; arXiv:1511.06296)</reference>
+        <referenceURL>http://arxiv.org/abs/1511.06296</referenceURL>
+      </metallicityDispersionStellar>     
+      <massDynamicalHalfLightRadius>
+        <value>2.7</value>
+        <errorHigh>3.1</errorHigh>
+        <errorLow>1.3</errorLow>
+        <reference>Walker et al. (2015; arXiv:1511.06296)</reference>
+        <referenceURL>http://arxiv.org/abs/1511.06296</referenceURL>
+      </massDynamicalHalfLightRadius>
       <massNeutralHydrogen>
         <limit confidenceLevel="99.999971%" type="upper">0.0006918</limit>
         <reference>Westmeier et al. (arXiv:1507.03661)</reference>
