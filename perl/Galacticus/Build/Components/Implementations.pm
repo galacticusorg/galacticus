@@ -15,6 +15,7 @@ use utf8;
 use Data::Dumper;
 use Sort::Topological qw(toposort);
 use Scalar::Util;
+use NestedMap;
 require List::ExtraUtils;
 require Galacticus::Build::Components::Utils;
 
@@ -24,13 +25,17 @@ require Galacticus::Build::Components::Utils;
      %Galacticus::Build::Component::Utils::componentUtils,
      implementations => 
      {
-	 default =>
+	 preValidate =>
+	     [
+	      \&Implementation_ID_List
+	      ],
+	 default     =>
 	     [
 	      \&Null_Implementations   ,
 	      \&Default_Full_Name      ,
 	      \&Implementation_Defaults
 	     ],
-	 gather =>
+	 gather      =>
 	     [
 	      \&Implementation_Dependencies    ,
 	      \&Implementation_Parents         ,
@@ -39,13 +44,19 @@ require Galacticus::Build::Components::Utils;
      }
     );
 
-
 sub Default_Full_Name {
     # Set a fully-qualified name for each implementation.
     my $build = shift();
     # Iterate over components.
     $_->{'fullyQualifiedName'} = ucfirst($_->{'class'}).ucfirst($_->{'name'})
 	foreach ( &ExtraUtils::hashList($build->{'components'}) );
+}
+
+sub Implementation_ID_List {
+    # Create a list of component IDs.
+    my $build = shift();
+    # Construct a list of all component names.
+    @{$build->{'componentIdList'}} = &ExtraUtils::sortedKeys($build->{'components'});
 }
 
 sub Implementation_Defaults {
@@ -144,6 +155,13 @@ sub Implementation_Dependencies {
 		foreach ( @{$build->{'componentClasses'}->{$className}->{'members'}} );
 	}
     }
+    # Update the component ID list such that it is in dependency order.
+    @{$build->{'componentIdList'}} =
+	nestedmap {
+	    nestedmap {
+		ucfirst($NestedMap::stack[1]).ucfirst($NestedMap::stack[0])		
+	    } @{$build->{'componentClasses'}->{$NestedMap::stack[0]}->{'members'}}	    
+    } @{$build->{'componentClassList'}};
 }
 
 sub Implementation_Parents {
