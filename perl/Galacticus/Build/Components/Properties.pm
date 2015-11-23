@@ -40,7 +40,7 @@ require Galacticus::Build::Components::Utils;
 	     [
 	      \&Class_Defaults_Scatter
 	     ],
-	 build       =>
+	 types       =>
 	     [
 	      \&Construct_Data
 	     ]
@@ -63,7 +63,7 @@ sub Property_Defaults {
 		     {
 			 isVirtual      => "booleanFalse",
 			 bindsTo        => "component"   ,
-			 createIfNeeded => "false"       ,
+			 createIfNeeded => "booleanFalse",
 			 isDeferred     => "false"       ,
 			 makeGeneric    => "false"
 		     }
