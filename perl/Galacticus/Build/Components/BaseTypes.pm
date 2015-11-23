@@ -20,7 +20,7 @@ require Galacticus::Build::Components::Utils;
      %Galacticus::Build::Component::Utils::componentUtils,
      baseTypes => 
      {
-	 build       =>
+	 types =>
 	     [
 	      \&Build_Node_Component_Class
 	     ]

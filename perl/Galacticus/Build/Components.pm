@@ -30,7 +30,9 @@ require Galacticus::Build::Components::BaseTypes;
 require Galacticus::Build::Components::Classes;
 require Galacticus::Build::Components::Implementations;
 require Galacticus::Build::Components::Properties;
+require Galacticus::Build::Components::Properties::Set;
 require Galacticus::Build::Components::Attributes;
+require Galacticus::Build::Components::DataTypes;
 $SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
 
 # Insert hooks for our functions.
@@ -101,7 +103,7 @@ sub Components_Generate_Output {
 
     # Iterate over phases.
     print "--> Phase:\n";
-    foreach my $phase ( "preValidate", "default", "gather", "scatter", "postValidate", "build" ) {
+    foreach my $phase ( "preValidate", "default", "gather", "scatter", "postValidate", "types", "functions" ) {
 	print "   --> ".ucfirst($phase)."...\n";
 	foreach my $hook ( @hooks ) {	
 	    if ( exists($hook->{'hook'}->{$phase}) ) {
@@ -116,8 +118,6 @@ sub Components_Generate_Output {
     # Iterate over all functions, calling them with the build data object.
     &{$_}($build)
 	foreach (
-	    # Generate component class types.
-	    \&Generate_Component_Classes                             ,
 	    # Sort component implementations such that they will be defined after any component of which they are an extension.
 	    \&Sort_Implementations                                   ,
 	    # Generate implementation types.
@@ -263,26 +263,6 @@ sub Get_Type {
     return $type;
 }
 
-sub dataObjectDocName {
-    # Construct and return the name of the object to use in documentation for data of given type and rank.
-    my $dataObject = shift;
-    # Construct the documentation.
-    my $name = "\\textcolor{red}{\\textless ";
-    if ( exists($Utils::intrinsicTypes{$dataObject->{'type'}}) ) {
-	$name .= latex_encode($Utils::intrinsicTypes{$dataObject->{'type'}});
-    } else {
-	$name .= "type(".latex_encode($dataObject->{'type'}).")";
-    }
-    if ( exists($dataObject->{'rank'}) ) {
-	$name .= "[".join(",",(":") x $dataObject->{'rank'})."]"
-	    if ( $dataObject->{'rank'} > 0 );
-    } elsif ( $dataObject->{'type'} ne "void" ) {
-	die "Build_Include_File.pl::dataObjectDocName: no 'rank' specifier present";
-    }
-    $name .= "\\textgreater}";
-    return $name;
-}
-
 sub dataObjectName {
     # Construct and return the name of the object to use for data of given type and rank.
     my $dataObject = shift;
@@ -304,42 +284,6 @@ sub dataObjectName {
     return $name;
 }
 
-sub dataObjectPrimitiveName {
-    # Construct and return the name and attributes of the primitive data class to use for data of given type and rank.
-    my $dataObject = shift;
-    my %options;
-    (%options) = @_
-	if ( $#_ >= 1 );
-    # Variables to store the object name and attributes.
-    my @attributes;
-    # Validate input.
-    die "Build_Include_File.pl::dataObjectPrimitiveName: no 'type' specifier present"
-	unless ( exists($dataObject->{'type'}) );
-    die "Build_Include_File.pl::dataObjectPrimitveName: no 'rank' specifier present"
-	unless ( exists($dataObject->{'rank'}) );
-    # Construct name, type, and attributes.
-    my $name;
-    if ( exists($Utils::intrinsicTypes{$dataObject->{'type'}}) ) {
-	$name = $Utils::intrinsicTypes{$dataObject->{'type'}};
-    } else {
-	$name = "type(".$dataObject->{'type'}.")";
-    }
-    my $type = join("",map {ucfirst($_)} split(" ",$dataObject->{'type'}));
-    if ( exists($dataObject->{'rank'}) ) {
-	if ( $dataObject->{'rank'} > 0 ) {
-	    push(@attributes,"dimension(".join(",",(":") x $dataObject->{'rank'}).")");
-	    push(@attributes,"allocatable" )
-		unless ( exists($options{'matchOnly'}) && $options{'matchOnly'} == 1 );
-	}
-    } else {
-	die "Build_Include_File.pl::dataObjectPrimitveName: no 'rank' specifier present";
-    }
-    my $attributeList = "";
-    $attributeList = ", ".join(", ",@attributes)
-	if ( scalar(@attributes) > 0 );
-    return ($name,$type,$attributeList);
-}
-
 sub Data_Object_Definition {
     # Construct and return the name and attributes of the primitive data class to use for data of given type and rank.
     my $dataObject = shift;
@@ -352,7 +296,7 @@ sub Data_Object_Definition {
     my $label        ;
     my @attributes   ;
     # Validate.
-    die "Build_Include_File.pl::dataObjectPrimitiveName: no 'type' specifier present"
+    die "Build_Include_File.pl::Data_Object_Definition: no 'type' specifier present"
 	unless ( exists($dataObject->{'type'}) );
     # Construct properties.
     if ( exists($Utils::intrinsicTypes{$dataObject->{'type'}}) ) {
@@ -388,182 +332,12 @@ sub pad {
 	unless (scalar(@_) == 2);
     my $text       = shift;
     my $padLength  = $_[0];
+
+    die("pad(): text is too long to pad: '".$text."'")
+	if ( length($text) > $padLength );
+    
     my $paddedText = $text." " x ($padLength-length($text));
     return $paddedText;
-}
-
-sub Generate_Component_Classes{
-    # Generate object types for each component class.
-    my $build = shift;
-    
-    # Iterate over all component classes.
-    my %classGetDefaults;
-    foreach my $componentClass ( @{$build->{'componentClassList'}} ) {
-	# Define a hash to record which properties have already been created.
-	my %propertiesCreated;
-
-	# Create a list for type-bound functions.
-	my @typeBoundFunctions;
-
-  	# Insert definitions for each method associated with a component implementation of this component class.
-    	foreach my $implementationName ( @{$build->{'componentClasses'}->{$componentClass}->{'members'}} ) {
-	    # Construct a fully-qualified name for this implementation.
-	    my $componentName = ucfirst($componentClass).ucfirst($implementationName);
-	    # Iterate over properties beloning to this implementation.
-	    foreach my $propertyName ( &ExtraUtils::sortedKeys($build->{'components'}->{$componentName}->{'properties'}->{'property'}) ) {
-		# Get the property.
-		my $property = $build->{'components'}->{$componentName}->{'properties'}->{'property'}->{$propertyName};
-		# Create functions to set/get/evolve each property as necessary.
-		if ( 
-		    $property->{'attributes'}->{'isGettable' }
-		    || $property->{'attributes'}->{'isSettable' }
-		    || $property->{'attributes'}->{'isEvolvable'}
-		    )
-		{
-		    # Name of function being processed.
-		    my $functionName;
-		    # Get a fully-qualified type identfier for this property.
-		    (my $intrinsic,my $type,my $attributes) = &dataObjectPrimitiveName($property);
-		    $type .= $property->{'rank'}."InOut";
-		    # Record the null bindings needed.
-		    $build->{'nullProperties'}->{$componentClass}->{"Integer0In"} =
-		    {
-			type   => "integer",
-			rank   => 0        ,
-			intent => "in"
-		    };
-		    $build->{'nullProperties'}->{$componentClass}->{$type       } = 
-		    {
-			type   => $property->{'type'},
-			rank   => $property->{'rank'},
-			intent => "inout"
-		    };
-		    # Create the "isSettable" function.
-		    $functionName = $propertyName."IsSettable";
-		    unless ( exists($propertiesCreated{$functionName}) ) {
-			push(
-			    @typeBoundFunctions,
-			    {type => "procedure", pass => "nopass", name => $functionName, function => "Boolean_False", description => "Specify whether the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClass."} component is settable.", returnType => "\\logicalzero", arguments => ""}
-			    );
-			$propertiesCreated{$functionName} = 1;
-		    }
-		    # Handle set functions and related functions.
-		    if ( $property->{'attributes'}->{'isSettable'} ) {
-			# Create a "set" function if one does not already exist.
-			$functionName = $propertyName."Set";
-			unless ( exists($propertiesCreated{$functionName}) ) {
-			    my $boundTo;
-			    if ( $property->{'setFunction'}->{'bindsTo'} eq "componentClass" )
-			    {
-				# A setFunction was specified that binds to the component class, so bind to it here.
-				$boundTo = $property->{'setFunction'}->{'content'};
-			    } else {
-				# Create a binding to a null function here. 
-				$boundTo = $componentClass."NullBindingSet".$type;
-			    }
-			    push(
-				@typeBoundFunctions,
-				{type => "procedure", name => $functionName, function => $boundTo, description => "Set the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClass."} component.", returnType => "\\void", arguments => &dataObjectDocName($property)."\\ value"}
-				);
-			    $propertiesCreated{$functionName} = 1;
-			}
-		    }
-
-		    # Handle evolve functions.
-		    if ( $property->{'attributes'}->{'isEvolvable'} ) {
-			# Create the "count" function.
-			$functionName = $propertyName."Count";
-			unless ( exists($propertiesCreated{$functionName}) ) {
-			    push(
-				@typeBoundFunctions,
-				{type => "procedure", name => $functionName, function => $componentClass."NullBindingInteger0In", description => "Compute the count of evolvable quantities in the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentName."} component.", returnType => "\\intzero", arguments => ""}
-				);
-			    $propertiesCreated{$functionName} = 1;
-			}
-			# Create the "rate" function.
-			$functionName = $propertyName."Rate";
-			unless (  exists($propertiesCreated{$functionName}) ) {
-			    unless ( 
-				$property->{'attributes'}->{'isDeferred' } =~ m/rate/
-				&& $property->{'attributes'}->{'bindsTo'    } eq "top"
-				) {
-				my $boundTo;
-				if ( $property->{'attributes'}->{'createIfNeeded'} eq "true" ) 
-				{
-				    $boundTo = $componentClass.ucfirst($propertyName)."Rate";
-				} else {
-				    $boundTo = $componentClass."NullBindingRate".$type;
-				}
-				push(
-				    @typeBoundFunctions,
-				    {type => "procedure", name => $functionName, function => $boundTo, description => "Cumulate to the rate of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentName."} component.", returnType => "\\void", arguments => &dataObjectDocName($property)."\\ value"}
-				    );
-			    }
-			    # Create a "scale" function unless this is a virtual property.
-			    push(
-				@typeBoundFunctions,
-				{type => "procedure", name => $propertyName."Scale", function => $componentClass."NullBindingSet".$type, description => "Set the scale of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentName."} component.", returnType => "\\void", arguments => &dataObjectDocName($property)."\\ value"}
-				)
-				unless ( $property->{'attributes'}->{'isVirtual'} );
-			    $propertiesCreated{$functionName} = 1;
-			}
-		    }
-		    # Add any bindings which bind at the component class level.
-		    if ( exists($build->{'components'}->{$componentName}->{'bindings'}) ) {
-			foreach ( @{$build->{'components'}->{$componentName}->{'bindings'}->{'binding'}} ) {
-			    if ( $_->{'bindsTo'} eq "componentClass" ) {
-				print Dumper($_);
-				my %function = (
-				    type => "procedure",
-				    name => $_->{'method'},
-				    );
-				if ( ! $_->{'isDeferred'} ) {
-				    # Binding is not deferred, simply map to the given function.
-				    $function{'function'} = $_->{'function'};
-				} else {
-				    # Binding is deferred, map to a suitable wrapper function.
-				    $function{'function'} = $componentClass.ucfirst($_->{'method'});
-				    # Also add bindings to functions to set and test the deferred function.
-				    my %setFunction = (
-					type       => "procedure",
-					pass        => "nopass",
-					name        => $_->{'method'}."Function",
-					function    => $componentClass.$_->{'method'}."DeferredFunctionSet",
-					returnType  => "\\void",
-					arguments   => "procedure(".$componentClass.$_->{'method'}."Interface) deferredFunction",
-					description => "Set the function for the deferred {\\normalfont \\ttfamily ".$_->{'method'}."} propert of the {\\normalfont \\ttfamily ". $componentClass."} component."
-					);
-				    my %testFunction = (
-					type        => "procedure",
-					pass        => "nopass",
-					name        => $_->{'method'}."FunctionIsSet",
-					function    => $componentClass.$_->{'method'}."DfrrdFnctnIsSet",
-					returnType  => "\\logicalzero",
-					arguments   => "",
-					description => "Specift whether the deferred function for the {\\normalfont \\ttfamily ".$_->{'method'}."} propert of the {\\normalfont \\ttfamily ". $componentClass."} component has been set."
-					);
-				    push(@typeBoundFunctions,\%setFunction,\%testFunction);
-				}
-				foreach my $attribute ( "description", "returnType", "arguments" ) {
-				    $function{$attribute} = $_->{$attribute}
-				    if ( exists($_->{$attribute}) );
-				    push(@typeBoundFunctions,\%function);
-				}
-			    }
-			}
-		    }
-		}
-	    }
-	}
-	# Create the type.
-	$build->{'types'}->{'nodeComponent'.ucfirst($componentClass)} = {
-	    name           => "nodeComponent".ucfirst($componentClass),
-	    comment        => "Type for the {\\normalfont \\ttfamily ".$componentClass."} component class.",
-	    isPublic       => 1,
-	    extends        => "nodeComponent",
-	    boundFunctions => \@typeBoundFunctions,
-	};
-    }
 }
 
 sub Sort_Implementations {
@@ -639,7 +413,7 @@ sub Generate_Implementations {
 		} else {
 		    # Binding is deferred, map to a suitable wrapper function.
 		    $function{'function'   } = $componentID.$_->{'method'};
-		    $function{'returnType' } = &dataObjectDocName($_->{'interface'});
+		    $function{'returnType' } = &DataTypes::dataObjectDocName($_->{'interface'});
 		    $function{'arguments'  } = "";
 		    $function{'description'} = "Get the {\\normalfont \\ttfamily ".$_->{'method'}."} property of the {\\normalfont \\ttfamily ". $componentID."} component.";
 		    # Also add bindings to functions to set and test the deferred function.
@@ -787,7 +561,7 @@ sub Generate_Deferred_Binding_Functions {
 	    if ( $binding->{'isDeferred'} ) {
 		# Determine type and arguments of the function.
 		my $type = $binding->{'interface'}->{'type'};
-		($type, my $name, my $attributeList) = &dataObjectPrimitiveName($binding->{'interface'})
+		($type, my $name, my $attributeList) = &DataTypes::dataObjectPrimitiveName($binding->{'interface'})
 		    unless ( $type eq "void" );
 		my $endType;
 		if ( $type eq "void" ) {
@@ -2505,7 +2279,7 @@ sub Generate_Node_Serialization_Functions {
 		 variables  => [ "array" ]
 	     }
 	    );
-	$functionCode  = "  subroutine SerializeToArray".pad(ucfirst($content)."s",5)."(self,array)\n";
+	$functionCode  = "  subroutine SerializeToArray".pad(ucfirst($content)."s",6)."(self,array)\n";
 	$functionCode .= "    !% Serialize ".$content."s to array.\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
@@ -4807,7 +4581,7 @@ sub Generate_Deferred_Function_Attacher {
 	    (                                                    $gsr eq "rate"                   )
 	    ) {
 	    my $functionType = "\\void";
-	    $functionType = &dataObjectDocName($property)
+	    $functionType = &DataTypes::dataObjectDocName($property)
 		if ( $gsr eq "get" );
 	    push(
 		@{$build->{'types'}->{"nodeComponent".ucfirst($attachTo)}->{'boundFunctions'}},
@@ -4997,7 +4771,7 @@ sub Generate_Deferred_GSR_Function {
 		    unless ( exists($bindings{$bindingName}) && $property->{'attributes' }->{'bindsTo'} eq "top" ) {
 			push(
 			    @{$build->{'types'}->{$type}->{'boundFunctions'}},
-			    {type => "procedure", name => $propertyName."Rate", function => $componentName.ucfirst($propertyName)."Rate", description => "Cumulate to the rate of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => "\\void", arguments => &dataObjectDocName($property)."\\ value"}
+			    {type => "procedure", name => $propertyName."Rate", function => $componentName.ucfirst($propertyName)."Rate", description => "Cumulate to the rate of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => "\\void", arguments => &DataTypes::dataObjectDocName($property)."\\ value"}
 			    );
 			$bindings{$bindingName} = 1;
 		    }
@@ -5098,7 +4872,7 @@ sub Generate_GSR_Functions {
 			# Insert a type-binding for this function into the implementation type.
 			push(
 			    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-			    {type => "procedure", name => $propertyName.$suffix, function => $componentID.ucfirst($propertyName)."Get".$suffix, description => "Get the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => &dataObjectDocName($property), arguments => ""}
+			    {type => "procedure", name => $propertyName.$suffix, function => $componentID.ucfirst($propertyName)."Get".$suffix, description => "Get the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => &DataTypes::dataObjectDocName($property), arguments => ""}
 			    );
 		    }
 		}
@@ -5154,7 +4928,7 @@ sub Generate_GSR_Functions {
 			# Insert a type-binding for this function into the implementation type.
 			push(
 			    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-			    {type => "procedure", name => $propertyName."Set".$suffix, function => $componentID.ucfirst($propertyName)."Set".$suffix, description => "Set the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => "\\void", arguments => &dataObjectDocName($property)."\\ value"}
+			    {type => "procedure", name => $propertyName."Set".$suffix, function => $componentID.ucfirst($propertyName)."Set".$suffix, description => "Set the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => "\\void", arguments => &DataTypes::dataObjectDocName($property)."\\ value"}
 			    );
 		    }
 		}
@@ -5270,7 +5044,7 @@ sub Generate_GSR_Functions {
 		    if ( $rateSuffix eq "intrinsic" ) {
 			$typeDefinition{'description'} = "Cumulate directly (i.e. circumventing any deferred function binding) to the rate of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentID."} component.";
 			$typeDefinition{'returnType' } = "\\void";
-			$typeDefinition{'arguments'  } = &dataObjectDocName($property)."\\ value";
+			$typeDefinition{'arguments'  } = &DataTypes::dataObjectDocName($property)."\\ value";
 		    }
 		    push(
 			@{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
@@ -5316,12 +5090,12 @@ sub Generate_GSR_Functions {
 			$functionCode  = "  subroutine ".$componentID.ucfirst($propertyName)."RateGeneric(self,setValue,interrupt,interruptProcedure)\n";
 			$functionCode .= "    !% Set the rate of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentID."} component via a generic {\\normalfont \\ttfamily nodeComponent}.\n";
 			$functionCode .= "    use Galacticus_Error\n"
-			    if ( $property->{'attributes'}->{'createIfNeeded'} eq "true" );
+			    if ( $property->{'attributes'}->{'createIfNeeded'} );
 			$functionCode .= "    implicit none\n";
 			$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 			$functionCode .= "    thisNode => self%host()\n";
 			$functionCode .= "    this".ucfirst($componentClassName)." => thisNode%".$componentClassName."()\n";
-			if ( $property->{'attributes'}->{'createIfNeeded'} eq "true" ) {
+			if ( $property->{'attributes'}->{'createIfNeeded'} ) {
 			    $functionCode .= "    select type (this".ucfirst($componentClassName).")\n";
 			    $functionCode .= "    type is (nodeComponent".ucfirst($componentClassName).")\n";
 			    $functionCode .= "      ! No specific component exists, we must interrupt and create one.\n";
@@ -5355,7 +5129,7 @@ sub Generate_GSR_Functions {
 			    $functionCode
 			    );
 		    }
-		    if ( $property->{'attributes' }->{'createIfNeeded'} eq "true" ) {
+		    if ( $property->{'attributes' }->{'createIfNeeded'} ) {
 			# Create a version of this rate function which binds to the component class, and so can auto-create the component as needed.
 			my $label = $componentClassName.ucfirst($propertyName);
 			unless ( exists($classRatesCreated{$label}) ) {
@@ -6932,7 +6706,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 		    # Bind this function to the implementation type.
 		    push(
 			@{$build->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
-			{type => "procedure", pass => "nopass", name => $propertyName."IsGettable", function => ucfirst($componentClassName).ucfirst($propertyName)."IsGettable", description => "Get the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => &dataObjectDocName($property), arguments => ""}
+			{type => "procedure", pass => "nopass", name => $propertyName."IsGettable", function => ucfirst($componentClassName).ucfirst($propertyName)."IsGettable", description => "Get the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => &DataTypes::dataObjectDocName($property), arguments => ""}
 			);
 		    # Generate code for default value function.
 		    $functionCode  = "  function ".ucfirst($componentClassName).ucfirst($propertyName)."(self)\n";
@@ -7029,7 +6803,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 		    # Bind this function to the implementation type.
 		    push(
 			@{$build->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
-			{type => "procedure", name => $propertyName, function => ucfirst($componentClassName).ucfirst($propertyName), description => "Get the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => &dataObjectDocName($property), arguments => ""}
+			{type => "procedure", name => $propertyName, function => ucfirst($componentClassName).ucfirst($propertyName), description => "Get the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => &DataTypes::dataObjectDocName($property), arguments => ""}
 			);
 		    # Record that this property has been created.
 		    $propertiesCreated{$propertyName} = 1;
@@ -7042,7 +6816,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 sub Bound_Function_Table {
     # Get the list of type-bound functions.
     my $objectName         = shift;
-    my @typeBoundFunctions = @{$_[0]};
+    my @typeBoundFunctions = sort(@{$_[0]});
     # Create a text table object suitable for type-bound function definitions.
     my $table =  Text::Table->new(
 	{
