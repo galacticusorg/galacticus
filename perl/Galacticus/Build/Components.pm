@@ -26,6 +26,7 @@ require File::Changes;
 require Fortran::Utils;
 require Galacticus::Build::Hooks;
 require Galacticus::Build::Components::Utils;
+require Galacticus::Build::Components::TreeNodes;
 require Galacticus::Build::Components::BaseTypes;
 require Galacticus::Build::Components::Classes;
 require Galacticus::Build::Components::Implementations;
@@ -93,9 +94,6 @@ sub Components_Generate_Output {
     # Generate output for a "component" directive.
     my $build = shift;
 
-    # Construct a list of all component names.
-    @{$build->{'componentIdList'}} = &ExtraUtils::sortedKeys($build->{'components'});
-
     # Sort hooks.
     my @hooks = map
     {{name => $_, hook => $Galacticus::Build::Component::Utils::componentUtils{$_}}}
@@ -114,16 +112,11 @@ sub Components_Generate_Output {
 	    }
 	}
     }
-
     # Iterate over all functions, calling them with the build data object.
     &{$_}($build)
 	foreach (
-	    # Sort component implementations such that they will be defined after any component of which they are an extension.
-	    \&Sort_Implementations                                   ,
 	    # Generate implementation types.
 	    \&Generate_Implementations                               ,
-	    # Generate the treeNode object.
-	    \&Generate_Tree_Node_Object                              ,
 	    # Create the node event object.
 	    \&Generate_Node_Event_Object                             ,
 	    # Create an initialization method.
@@ -338,28 +331,6 @@ sub pad {
     
     my $paddedText = $text." " x ($padLength-length($text));
     return $paddedText;
-}
-
-sub Sort_Implementations {
-    # Sort component implementations such that they will be defined after any component of which they are an extension.
-    my $build = shift;
-    # Construct depenencies for type extension.
-    my %dependencies;
-    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
-	# Get the component.
-	my $component = $build->{'components'}->{$componentID};
-	# Get the parent class.
-	my $componentClassName = $component->{'class'};
-    	# By default this component will be an extension of the base "nodeComponent" class.
-    	my $extensionOf = "nodeComponent".ucfirst($componentClassName);
-    	# If it specifies a particular component that it should extend, use that instead.
-    	$extensionOf = ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})
-	    if (exists($component->{'extends'}));
-	push(@{$dependencies{$extensionOf}},$componentID);
-    }
-    # Perform a dependency sort on the implementation list.
-    @{$build->{'componentIdList'}} = toposort(sub { @{$dependencies{$_[0]} || []}; }, \@{$build->{'componentIdList'}});
-
 }
 
 sub Generate_Implementations {
@@ -932,313 +903,6 @@ sub Generate_Initialization_Status {
     # Insert into the document.
     $build->{'content'} .= "  ! Record of module initialization status.\n";
     $build->{'content'} .= "  logical :: moduleIsInitialized=.false.\n";
-}
-
-sub Generate_Tree_Node_Object {
-    # Generate the treeNode object.
-    my $build = shift;
-
-    # Define bound functions.
-    my @typeBoundFunctions = 
-	(
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "type"                                                                                                            ,
-	     function    => "Tree_Node_Type"                                                                                                  ,
-	     description => "Return the type of this node."                                                                                   ,
-	     returnType  => "\\textcolor{red}{\\textless type(varying\\_string)\\textgreater}"                                                ,
-	     arguments   => ""
-
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "index"                                                                                                           ,
-	     function    => "Tree_Node_Index"                                                                                                 ,
-	     description => "Return the index of this node."                                                                                  ,
-	     returnType  => "\\textcolor{red}{\\textless integer(kind\\_int8)\\textgreater}"                                                  ,
-	     arguments   => ""
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "indexSet"                                                                                                        ,
-	     function    => "Tree_Node_Index_Set"                                                                                             ,
-	     description => "Set the index of this node."                                                                                     ,
-	     returnType  => "\\void"                                                                                                          ,
-	     arguments   => "\\textcolor{red}{\\textless integer(kind\\_int8)\\textgreater} index\\argin"
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "timeStep"                                                                                                        ,
-	     function    => "Tree_Node_Time_Step"                                                                                             ,
-	     description => "Return the time-step last used by this node."                                                                    ,
-	     returnType  => "\\doublezero"                                                                                                    ,
-	     arguments   => ""
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "timeStepSet"                                                                                                     ,
-	     function    => "Tree_Node_Time_Step_Set"                                                                                         ,
-	     description => "Set the time-step used by this node."                                                                            ,
-	     returnType  => "\\void"                                                                                                          ,
-	     arguments   => "\\doublezero\ index\\argin"
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "uniqueID"                                                                                                        ,
-	     function    => "Tree_Node_Unique_ID"                                                                                             ,
-	     description => "Return the unique identifier for this node."                                                                     ,
-	     returnType  => "\\textcolor{red}{\\textless integer(kind\\_int8)\\textgreater}"                                                  ,
-	     arguments   => ""
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "uniqueIDSet"                                                                                                     ,
-	     function    => "Tree_Node_Unique_ID_Set"                                                                                         ,
-	     description => "Set the unique identifier for this node."                                                                        ,
-	     returnType  => "\\void"                                                                                                          ,
-	     arguments   => "\\textcolor{red}{\\textless integer(kind\\_int8)\\textgreater} uniqueID\\argin"
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "initialize"                                                                                                      ,
-	     function    => "treeNodeInitialize"                                                                                              ,
-	     description => "Initialize this node (assigns a unique identifier, creates generic components)."                                 ,
-	     returnType  => "\\void"                                                                                                          ,
-	     arguments   => "\\textcolor{red}{\\textless integer(kind\\_int8)\\textgreater} index\\argin"
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "destroy"                                                                                                         ,
-	     function    => "treeNodeDestroy"                                                                                                 ,
-	     description => "Destroy this node."                                                                                              ,
-	     returnType  => "\\void"                                                                                                          ,
-	     arguments   => ""
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "componentBuilder"                                                                                                ,
-	     function    => "Tree_Node_Component_Builder"                                                                                     ,
-	     description => "Build components in this node given an XML description of their properties."                                     ,
-	     returnType  => "\\void"                                                                                                          ,
-	     arguments   => "\\textcolor{red}{\\textless *type(node)\\textgreater} nodeDefinition\\argin"
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "removeFromHost"                                                                                                  ,
-	     function    => "Tree_Node_Remove_From_Host"                                                                                      ,
-	     description => "Remove this node from the satellite population of its host halo."                                                ,
-	     returnType  => "\\void"                                                                                                          ,
-	     arguments   => ""
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "removeFromMergee"                                                                                                ,
-	     function    => "Tree_Node_Remove_From_Mergee"                                                                                    ,
-	     description => "Remove this node from the list of mergees associated with its merge target."                                     ,
-	     returnType  => "\\void"                                                                                                          ,
-	     arguments   => ""
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "isPrimaryProgenitor"                                                                                             ,
-	     function    => "Tree_Node_Is_Primary_Progenitor"                                                                                 ,
-	     description => "Return true if this node is the primary progenitor of its descendent, false otherwise."                          ,
-	     returnType  => "\\logicalzero"                                                                                                   ,
-	     arguments   => ""
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     function    => "Tree_Node_Is_Primary_Progenitor_Of_Index"
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     function    => "Tree_Node_Is_Primary_Progenitor_Of_Node" 
-	 },
-	 {
-	     type        => "generic"                                                                                                         ,
-	     name        => "isPrimaryProgenitorOf"                                                                                           ,
-	     function    => ["Tree_Node_Is_Primary_Progenitor_Of_Index","Tree_Node_Is_Primary_Progenitor_Of_Node"]                            ,
-	     description => "Return true is this node is the primary progenitor of the specified (by index or pointer) node, false otherwise.",
-	     returnType  => "\\logicalzero"                                                                                                   ,
-	     arguments   => "\\textcolor{red}{\\textless integer(kind\\_int8)\\textgreater} targetNodeIndex\\argin|\\textcolor{red}{\\textless *type(treeNode)\\textgreater} targetNode\\argin"
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     function    => "Tree_Node_Is_Progenitor_Of_Index"
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     function    => "Tree_Node_Is_Progenitor_Of_Node" 
-	 },
-	 {
-	     type        => "generic"                                                                                                         ,
-	     name        => "isProgenitorOf"                                                                                                  ,
-	     function    => ["Tree_Node_Is_Progenitor_Of_Index","Tree_Node_Is_Progenitor_Of_Node"]                                            ,
-	     description => "Return true is this node is a progenitor of the specified (by index or pointer) node, false otherwise."          ,
-	     returnType  => "\\logicalzero"                                                                                                   ,
-	     arguments   => "\\textcolor{red}{\\textless integer(kind\\_int8)\\textgreater} targetNodeIndex\\argin|\\textcolor{red}{\\textless *type(treeNode)\\textgreater} targetNode\\argin"
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "isOnMainBranch"                                                                                                  ,
-	     function    => "Tree_Node_Is_On_Main_Branch"                                                                                     ,
-	     description => "Return true if this node is on the main branch of its tree, false otherwise."                                    ,
-	     returnType  => "\\logicalzero"                                                                                                   ,
-	     arguments   => ""
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "isSatellite"                                                                                                     ,
-	     function    => "Tree_Node_Is_Satellite"                                                                                          ,
-	     description => "Return true if this node is a satellite, false otherwise."                                                       ,
-	     returnType  => "\\logicalzero"                                                                                                   ,
-	     arguments   => ""
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "lastSatellite"                                                                                                   ,
-	     function    => "Tree_Node_Get_Last_Satellite"                                                                                    ,
-	     description => "Return a pointer to the last satellite in the list of satellites beloning to this node."                         ,
-	     returnType  => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater}"                                                       ,
-	     arguments   => ""
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "earliestProgenitor"                                                                                              ,
-	     function    => "Tree_Node_Get_Earliest_Progenitor"                                                                               ,
-	     description => "Return a pointer to the earliest progenitor (along the main branch) of this node."                               ,
-	     returnType  => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater}"                                                       ,
-	     arguments   => ""
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "mergesWith"                                                                                                      ,
-	     function    => "Tree_Node_Merges_With_Node"                                                                                      ,
-	     description => "Return a pointer to the node with which this node will merge."                                                   ,
-	     returnType  => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater}"                                                       ,
-	     arguments   => ""
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "walkBranch"                                                                                                      ,
-	     function    => "treeNodeWalkBranch"                                                                                              ,
-	     description => "Return a pointer to the next node when performing a walk of a single branch of the tree, excluding satellites."  ,
-	     returnType  => "\\void"                                                                                                          ,
-	     arguments   => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater} startNode\\arginout"
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "walkBranchWithSatellites"                                                                                        ,
-	     function    => "treeNodeWalkBranchWithSatellites"                                                                                ,
-	     description => "Return a pointer to the next node when performing a walk of a single branch of the tree, including satellites."  ,
-	     returnType  => "\\void"                                                                                                          ,
-	     arguments   => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater} startNode\\arginout"
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "walkTree"                                                                                                        ,
-	     function    => "treeNodeWalkTree"                                                                                                ,
-	     description => "Return a pointer to the next node when performing a walk of the entire tree, excluding satellites."              ,
-	     returnType  => "\\void"                                                                                                          ,
-	     arguments   => ""                                                       
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "walkTreeUnderConstruction"                                                                                       ,
-	     function    => "treeNodeWalkTreeUnderConstruction"                                                                               ,
-	     description => "Return a pointer to the next node when performing a walk of a tree under construction."                          ,
-	     returnType  => "\\void"                                                                                                          ,
-	     arguments   => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater} nextNode\\arginout"
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "walkTreeWithSatellites"                                                                                          ,
-	     function    => "treeNodeWalkTreeWithSatellites"                                                                                  ,
-	     description => "Return a pointer to the next node when performing a walk of the entire tree, including satellites."              ,
-	     returnType  => "\\void"                                                                                                          ,
-	     arguments   => ""
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "destroyBranch"                                                                                                   ,
-	     function    => "treeNodeDestroyBranch"                                                                                           ,
-	     description => "Destroy a branch of a merger tree rooted at this node."                                                          ,
-	     returnType  => "\\void"                                                                                                          ,
-	     arguments   => ""
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "createEvent"                                                                                                     ,
-	     function    => "Tree_Node_Create_Event"                                                                                          ,
-	     description => "Create a {\\normalfont \\ttfamily nodeEvent} object in this node."                                               ,
-	     returnType  => "\\textcolor{red}{\\textless *type(nodeEvent)\\textgreater}"                                                      ,
-	     arguments   => ""
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "removePairedEvent"                                                                                               ,
-	     function    => "Tree_Node_Remove_Paired_Event"                                                                                   ,
-	     description => "Remove a paired {\\normalfont \\ttfamily nodeEvent} from this node."                                             ,
-	     returnType  => "\\void"                                                                                                          ,
-	     arguments   => "\\textcolor{red}{\\textless type(nodeEvent)\\textgreater} event\\argin"
-	 }
-	);
-    # Add data content.
-    my @dataContent =
-	(
-	 {
-	     intrinsic  => "integer",
-	     type       => "kind=kind_int8",
-	     variables  => [ "indexValue", "uniqueIdValue" ]
-	 },
-	 {
-	     intrinsic  => "double precision",
-	     variables  => [ "timeStepValue" ]
-	 },
-	 {
-	     intrinsic  => "type",
-	     type       => "treeNode",
-	     attributes => [ "pointer", "public" ],
-	     variables  => [ "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "formationNode" ]
-	 },
-	 {
-	     intrinsic  => "logical",
-	     attributes => [ "public" ],
-	     variables  => [ "isPhysicallyPlausible" ]
-	 },
-	 {
-	     intrinsic  => "type",
-	     type       => "nodeEvent",
-	     attributes => [ "public", "pointer" ],
-	     variables  => [ "event" ]
-	 },
-	 {
-	     intrinsic  => "type",
-	     type       => "mergerTree",
-	     attributes => [ "public", "pointer" ],
-	     variables  => [ "hostTree" ]
-	 }
-	);
-    foreach ( @{$build->{'componentClassList'}} ) {
-	push(
-	    @dataContent,
-	    {
-		intrinsic  => "class",
-		type       => "nodeComponent".ucfirst($_),
-		attributes => [ "allocatable", "dimension(:)" ],
-		variables  => [ "component".ucfirst($_) ],
-		comment    => "A generic ".$_." object."
-	    }
-	    );
-    }
-    # Create the tree node class.
-    $build->{'types'}->{'treeNode'} = {
-	name           => "treeNode",
-	comment        => "A class for \\glspl{node} in merger trees.",
-	isPublic       => 1,
-	boundFunctions => \@typeBoundFunctions,
-	dataContent    => \@dataContent
-    };
 }
 
 sub Generate_Node_Event_Object {
@@ -6816,7 +6480,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 sub Bound_Function_Table {
     # Get the list of type-bound functions.
     my $objectName         = shift;
-    my @typeBoundFunctions = sort(@{$_[0]});
+    my @typeBoundFunctions = sort {$a->{'function'} cmp $b->{'function'}} @{$_[0]};
     # Create a text table object suitable for type-bound function definitions.
     my $table =  Text::Table->new(
 	{
@@ -6863,7 +6527,7 @@ sub Bound_Function_Table {
 	if ( defined(reftype($_->{'function'})) && reftype($_->{'function'}) eq "ARRAY" ) {
 	    # Multiple functions specified. List them, one per row.
 	    my $i = 0;
-	    foreach my $function ( @{$_->{'function'}} ) {
+	    foreach my $function ( sort(@{$_->{'function'}}) ) {
 		++$i;
 		# Determine a suitable suffix for this line.
 		my $suffix = ", &";
@@ -6874,7 +6538,7 @@ sub Bound_Function_Table {
 		    $table->add($_->{'type'},$pass," :: ",$name,$connector,$function,$suffix);
 		} else {
 		    $table->add("     &"    ,""   ,""    ,""   ,""        ,$function,$suffix);
-		}
+		}		
 	    }
 	} else {
 	    # Single function specified. Simply add to the table.
