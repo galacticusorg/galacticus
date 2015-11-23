@@ -26,7 +26,9 @@ require File::Changes;
 require Fortran::Utils;
 require Galacticus::Build::Hooks;
 require Galacticus::Build::Components::Utils;
+require Galacticus::Build::Components::CodeGeneration;
 require Galacticus::Build::Components::TreeNodes;
+require Galacticus::Build::Components::NodeEvents;
 require Galacticus::Build::Components::BaseTypes;
 require Galacticus::Build::Components::Classes;
 require Galacticus::Build::Components::Implementations;
@@ -117,8 +119,6 @@ sub Components_Generate_Output {
 	foreach (
 	    # Generate implementation types.
 	    \&Generate_Implementations                               ,
-	    # Create the node event object.
-	    \&Generate_Node_Event_Object                             ,
 	    # Create an initialization method.
 	    \&Generate_Initialization_Function                       ,
 	    # Generate a finalization method.
@@ -216,11 +216,13 @@ sub Components_Generate_Output {
 	    # Generate deferred binding procedure pointers.
 	    \&Generate_Deferred_Binding_Functions                    ,
 	    # Generate interface for nodeEvent tasks.
-	    \&Generate_Node_Event_Interface                          ,
+#	    \&Generate_Node_Event_Interface                          ,
 	    # Generate required null binding functions.
 	    \&Generate_Null_Binding_Functions                        ,
 	    # Insert interrupt procedure interface.
 	    \&Insert_Interrupt_Interface                             ,
+	    # Generate all interfaces.
+	    \&Generate_Interfaces                                    ,
 	    # Insert the "contains" line.
 	    \&Insert_Contains
 	);
@@ -903,51 +905,6 @@ sub Generate_Initialization_Status {
     # Insert into the document.
     $build->{'content'} .= "  ! Record of module initialization status.\n";
     $build->{'content'} .= "  logical :: moduleIsInitialized=.false.\n";
-}
-
-sub Generate_Node_Event_Object {
-    # Generate the nodeEvent object.
-    my $build = shift;
-    # Add data content.
-    my @dataContent =
-	(
-	 {
-	     intrinsic  => "integer",
-	     type       => "kind=kind_int8",
-	     attributes => [ "public" ],
-	     variables  => [ "ID" ]
-	 },
-	 {
-	     intrinsic  => "type",
-	     type       => "treeNode",
-	     attributes => [ "pointer", "public" ],
-	     variables  => [ "node" ]
-	 },
-	 {
-	     intrinsic  => "double precision",
-	     attributes => [ "public" ],
-	     variables  => [ "time" ]
-	 },
-	 {
-	     intrinsic  => "type",
-	     type       => "nodeEvent",
-	     attributes => [ "public", "pointer" ],
-	     variables  => [ "next" ]
-	 },
-	 {
-	     intrinsic  => "procedure",
-	     type       => "nodeEventTask",
-	     attributes => [ "public", "pointer" ],
-	     variables  => [ "task" ]
-	 }
-	);
-    # Create the tree node class.
-    $build->{'types'}->{'nodeEvent'} = {
-	name           => "nodeEvent",
-	comment        => "Type for events attached to nodes.",
-	isPublic       => 1,
-	dataContent    => \@dataContent
-    };
 }
 
 sub Generate_Initialization_Function {
@@ -6653,6 +6610,27 @@ sub Insert_Contains {
     # Insert the "contains" line.
     my $build = shift;
     $build->{'content'} .= "contains\n\n";
+}
+
+sub Generate_Interfaces {
+    # Generate and insert code for all interfaces.
+    my $build = shift;
+    # Iterate over interfaces.
+    foreach ( &ExtraUtils::hashList($build->{'interfaces'}) ) {
+	$CodeGeneration::interface = $_;
+	$build->{'content'} .= 
+	    fill_in_string(<<'CODE', PACKAGE => 'CodeGeneration')."\n";
+! {$interface->{'comment'}}
+abstract interface
+  {$interface->{'intrinsic'}} function {$interface->{'name'}}({join(",",&Function_Arguments($interface->{'data'}))})
+    {&Importables($interface->{'data'}) ? "import ".join(", ",&Importables($interface->{'data'})) : ""}
+{&Fortran_Utils::Format_Variable_Defintions($interface->{'data'}, indent => 4)}
+  end function {$interface->{'name'}}
+end interface
+CODE
+
+    }
+    
 }
 
 1;
