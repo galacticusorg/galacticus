@@ -423,7 +423,7 @@ contains
     implicit none
     class           (nodeComponentSpheroid       ), intent(inout)                    :: self
     logical                                       , intent(inout), optional          :: interrupt
-    procedure       (Interrupt_Procedure_Template), intent(inout), optional, pointer :: interruptProcedure
+    procedure       (interruptTask), intent(inout), optional, pointer :: interruptProcedure
     double precision                              , intent(in   )                    :: rate
     double precision                                                                 :: gasMass           , stellarMass
 
@@ -455,7 +455,7 @@ contains
     implicit none
     class           (nodeComponentSpheroid        ), intent(inout)                    :: self
     logical                                        , intent(inout), optional          :: interrupt
-    procedure       (Interrupt_Procedure_Template ), intent(inout), optional, pointer :: interruptProcedure
+    procedure       (interruptTask ), intent(inout), optional, pointer :: interruptProcedure
     double precision                               , intent(in   )                    :: rate
     class           (nodeComponentHotHalo         )                         , pointer :: selfHotHaloComponent
     type            (treeNode                     )                         , pointer :: selfNode
@@ -682,7 +682,7 @@ contains
     class    (nodeComponentSpheroid        ), intent(inout)                    :: self
     type     (history                      ), intent(in   )                    :: rate
     logical                                 , intent(inout), optional          :: interrupt
-    procedure(Interrupt_Procedure_Template ), intent(inout), optional, pointer :: interruptProcedure
+    procedure(interruptTask ), intent(inout), optional, pointer :: interruptProcedure
     type     (history                      )                                   :: starFormationHistory
 
     ! Get the star formation history in the spheroid.

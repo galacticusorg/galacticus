@@ -20,9 +20,13 @@ require Galacticus::Build::Components::Utils;
      %Galacticus::Build::Component::Utils::componentUtils,
      treeNodes => 
      {
-	 types =>
+	 types     =>
 	     [
 	      \&Build_Tree_Node_Class
+	     ],
+	 functions =>
+	     [
+	      \&Insert_Interrupt_Interface
 	     ]
      }
     );
@@ -332,4 +336,26 @@ sub Build_Tree_Node_Class {
 	dataContent    => \@dataContent
     };
 }
+
+sub Insert_Interrupt_Interface {
+    # Insert the interrupt procedure interface.
+    my $build = shift();
+    # Define the interface.
+    $build->{'interfaces'}->{'interruptTask'} =
+    {
+	name      => "interruptTask"                                        ,
+	comment   => "Interface for differential evolution interrupt tasks.",
+	intrinsic => "void"                                                 ,
+	data      =>
+	    [
+	     {
+		 intrinsic  => "type",
+		 type       => "treeNode",
+		 attributes => [ "pointer", "intent(inout)" ],
+		 variables  => [ "node" ]
+	     }
+	    ]		
+    };    
+}
+
 1;
