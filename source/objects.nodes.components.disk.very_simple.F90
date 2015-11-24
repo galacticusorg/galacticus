@@ -322,8 +322,8 @@ contains
     class           (nodeComponentDisk           )               , pointer :: disk
     class           (nodeComponentHotHalo        )               , pointer :: hotHalo
     logical                                       , intent(inout)          :: interrupt
-    procedure       (Interrupt_Procedure_Template), intent(inout), pointer :: interruptProcedureReturn
-    procedure       (Interrupt_Procedure_Template)               , pointer :: interruptProcedure
+    procedure       (interruptTask), intent(inout), pointer :: interruptProcedureReturn
+    procedure       (interruptTask)               , pointer :: interruptProcedure
     double precision                                                       :: stellarMassRate         , fuelMassRate          , &
          &                                                                    massOutflowRate
     type            (history                     )                         :: stellarHistoryRate

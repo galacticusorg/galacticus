@@ -577,8 +577,8 @@ contains
     class           (nodeComponentHotHalo        )               , pointer :: thisHotHalo
     class           (darkMatterHaloScaleClass    )               , pointer :: darkMatterHaloScale_
     logical                                       , intent(inout)          :: interrupt
-    procedure       (Interrupt_Procedure_Template), intent(inout), pointer :: interruptProcedureReturn
-    procedure       (Interrupt_Procedure_Template)               , pointer :: interruptProcedure
+    procedure       (interruptTask), intent(inout), pointer :: interruptProcedureReturn
+    procedure       (interruptTask)               , pointer :: interruptProcedure
     type            (abundances                  ), save                   :: fuelAbundances              , fuelAbundancesRates       , &
          &                                                                    stellarAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)

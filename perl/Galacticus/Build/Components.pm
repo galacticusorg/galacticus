@@ -215,12 +215,8 @@ sub Components_Generate_Output {
 	    \&Generate_Deferred_Binding_Procedure_Pointers           ,
 	    # Generate deferred binding procedure pointers.
 	    \&Generate_Deferred_Binding_Functions                    ,
-	    # Generate interface for nodeEvent tasks.
-#	    \&Generate_Node_Event_Interface                          ,
 	    # Generate required null binding functions.
 	    \&Generate_Null_Binding_Functions                        ,
-	    # Insert interrupt procedure interface.
-	    \&Insert_Interrupt_Interface                             ,
 	    # Generate all interfaces.
 	    \&Generate_Interfaces                                    ,
 	    # Insert the "contains" line.
@@ -4370,7 +4366,7 @@ sub Generate_Deferred_GSR_Function {
 			 },
 			 {
 			     intrinsic  => "procedure",
-			     type       => "Interrupt_Procedure_Template",
+			     type       => "interruptTask",
 			     attributes => [ "pointer", "optional", "intent(inout)" ],
 			     variables  => [ "interruptProcedure" ]
 			 }
@@ -4617,7 +4613,7 @@ sub Generate_GSR_Functions {
 			},
 			{
 			    intrinsic  => "procedure",
-			    type       => "Interrupt_Procedure_Template",
+			    type       => "interruptTask",
 			    attributes => [ "optional", "intent(inout)", "pointer" ],
 			    variables  => [ "interruptProcedure" ]
 			},
@@ -4690,7 +4686,7 @@ sub Generate_GSR_Functions {
 			    },
 			    {
 				intrinsic  => "procedure",
-				type       => "Interrupt_Procedure_Template",
+				type       => "interruptTask",
 				attributes => [ "optional", "intent(inout)", "pointer" ],
 				variables  => [ "interruptProcedure" ]
 			    },
@@ -4771,7 +4767,7 @@ sub Generate_GSR_Functions {
 				},
 				{
 				    intrinsic  => "procedure",
-				    type       => "Interrupt_Procedure_Template",
+				    type       => "interruptTask",
 				    attributes => [ "optional", "intent(inout)", "pointer" ],
 				    variables  => [ "interruptProcedure" ]
 				}
@@ -6217,7 +6213,7 @@ sub Generate_Null_Binding_Functions {
 		 },
 		 {
 		     intrinsic  => "procedure",
-		     type       => "Interrupt_Procedure_Template", 
+		     type       => "interruptTask", 
 		     attributes => [ "intent(inout)", "optional", "pointer" ],
 		     variables  => [ "interruptProcedure" ]
 		 }
@@ -6593,19 +6589,6 @@ sub Insert_Type_Definitions {
     }
 }
 
-sub Insert_Interrupt_Interface {
-    # Insert the interrupt procedure interface.
-    my $build = shift;
-
-    $build->{'content'} .= "! Procedure template for interrupt routines.\n";
-    $build->{'content'} .= "abstract interface\n";
-    $build->{'content'} .= "   subroutine Interrupt_Procedure_Template(thisNode)\n";
-    $build->{'content'} .= "     import treeNode\n";
-    $build->{'content'} .= "     type(treeNode), pointer, intent(inout) :: thisNode\n";
-    $build->{'content'} .= "   end subroutine Interrupt_Procedure_Template\n";
-    $build->{'content'} .= "end interface\n\n";  
-}
-
 sub Insert_Contains {
     # Insert the "contains" line.
     my $build = shift;
@@ -6614,18 +6597,20 @@ sub Insert_Contains {
 
 sub Generate_Interfaces {
     # Generate and insert code for all interfaces.
-    my $build = shift;
+    my $build = shift();
     # Iterate over interfaces.
+    print "   --> Interfaces...\n";
     foreach ( &ExtraUtils::hashList($build->{'interfaces'}) ) {
+	print "      ---> ".$_->{'name'}."\n";
 	$CodeGeneration::interface = $_;
 	$build->{'content'} .= 
 	    fill_in_string(<<'CODE', PACKAGE => 'CodeGeneration')."\n";
 ! {$interface->{'comment'}}
 abstract interface
-  {$interface->{'intrinsic'}} function {$interface->{'name'}}({join(",",&Function_Arguments($interface->{'data'}))})
+  {$interface->{'intrinsic'} eq "void" ? "subroutine" : $interface->{'intrinsic'}." function"} {$interface->{'name'}}({join(",",&Function_Arguments($interface->{'data'}))})
     {&Importables($interface->{'data'}) ? "import ".join(", ",&Importables($interface->{'data'})) : ""}
 {&Fortran_Utils::Format_Variable_Defintions($interface->{'data'}, indent => 4)}
-  end function {$interface->{'name'}}
+  end {$interface->{'intrinsic'} eq "void" ? "subroutine" : "function"} {$interface->{'name'}}
 end interface
 CODE
 

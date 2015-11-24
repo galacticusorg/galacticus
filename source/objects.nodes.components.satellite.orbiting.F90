@@ -172,7 +172,7 @@ contains
     implicit none
     type            (treeNode                      ), pointer     , intent(inout) :: thisNode
     logical                                                       , intent(inout) :: interrupt
-    procedure       (Interrupt_Procedure_Template  ), pointer     , intent(inout) :: interruptProcedure
+    procedure       (interruptTask  ), pointer     , intent(inout) :: interruptProcedure
     class           (nodeComponentSatellite        ), pointer                     :: satelliteComponent
     class           (nodeComponentBasic            ), pointer                     :: basicComponent
     type            (treeNode                      ), pointer                     :: hostNode
