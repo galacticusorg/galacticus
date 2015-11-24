@@ -18,6 +18,7 @@ use Scalar::Util;
 use NestedMap;
 require List::ExtraUtils;
 require Galacticus::Build::Components::Utils;
+require Galacticus::Build::Components::DataTypes;
 
 # Insert hooks for our functions.
 %Galacticus::Build::Component::Utils::componentUtils = 
@@ -40,6 +41,10 @@ require Galacticus::Build::Components::Utils;
 	      \&Implementation_Dependencies    ,
 	      \&Implementation_Parents         ,
 	      \&Implementation_Bindings_Inherit
+	     ],
+	 types       =>
+	     [
+	      \&Build_Component_Implementations
 	     ]
      }
     );
@@ -74,7 +79,7 @@ sub Implementation_Defaults {
 	 },
 	 createFunction =>
 	 {
-	     isDeferred => "false"
+	     isDeferred => "booleanFalse"
 	 }
 	);
     # Iterate over implementations and apply all defaults.
@@ -197,6 +202,127 @@ sub Implementation_Bindings_Inherit {
 		    );		    
 	    }
 	}
+    }
+}
+
+sub Build_Component_Implementations {
+    # Generate a class for each component implementation.
+    my $build = shift();
+    # Iterate over implementations.
+    foreach my $implementation ( &ExtraUtils::hashList($build->{'components'}) ) {
+    	# Determine the name of the class which this component extends (use the "nodeComponent" class by default).
+    	my $extensionOf = 
+	    exists($implementation->{'extends'})
+	    ?
+	    "nodeComponent".$implementation->{'extends'}->{'implementation'}->{'fullyQualifiedName'}
+	    : 
+	    "nodeComponent".ucfirst($implementation->{'class'});
+     	# Create data objects to store all of the linked data for this component.
+	my @dataContent;
+    	foreach ( &ExtraUtils::sortedKeys($implementation->{'content'}->{'data'}) ) {
+	    (my $typeDefinition, my $typeLabel) = &DataTypes::dataObjectDefinition($implementation->{'content'}->{'data'}->{$_});
+	    $typeDefinition->{'variables'} = [ $_ ];
+	    push(
+		@dataContent,
+		$typeDefinition
+		);
+    	}
+	# Create a list for type-bound functions.
+	my @typeBoundFunctions;
+	# Add binding for deferred create function set function.
+	push
+	    (
+	     @typeBoundFunctions,
+	     {
+		 type        => "procedure", 
+		 pass        => "nopass", 
+		 name        => "createFunctionSet", 
+		 function    => $implementation->{'fullyQualifiedName'}."CreateFunctionSet", 
+		 description => "Set the function used to create {\\normalfont \\ttfamily ".$implementation->{'fullyQualifiedName'}."} components.", 
+		 returnType  => "\\void", 
+		 arguments   => "\\textcolor{red}{\\textless function()\\textgreater}"
+	     }
+	    )
+	    if ( 
+		exists($implementation->{'createFunction'})
+		&&        
+		$implementation->{'createFunction'}->{'isDeferred'}
+	    );
+     	# If this component has bindings defined, scan through them and create an appropriate method.
+    	if ( exists($implementation->{'bindings'}) ) {
+    	    foreach ( @{$implementation->{'bindings'}->{'binding'}} ) {
+		my %function = (
+		    type        => "procedure",
+		    name        => $_->{'method'}
+		    );
+		if ( ! $_->{'isDeferred'} ) {
+		    # Binding is not deferred, simply map to the given function.
+		    $function{'function'} = $_->{'function'};
+		} else {
+		    # Binding is deferred, map to a suitable wrapper function.
+		    $function{'function'   } = $implementation->{'fullyQualifiedName'}.$_->{'method'};
+		    $function{'returnType' } = &DataTypes::dataObjectDocName($_->{'interface'});
+		    $function{'arguments'  } = "";
+		    $function{'description'} = "Get the {\\normalfont \\ttfamily ".$_->{'method'}."} property of the {\\normalfont \\ttfamily ". $implementation->{'fullyQualifiedName'}."} component.";
+		    # Also add bindings to functions to set and test the deferred function.
+		    my %setFunction = (
+			type        => "procedure",
+			pass        => "nopass",
+			name        => $_->{'method'}."Function",
+			function    => $implementation->{'fullyQualifiedName'}.$_->{'method'}."DeferredFunctionSet",
+			returnType  => "\\void",
+			arguments   => "procedure(".$implementation->{'fullyQualifiedName'}.$_->{'method'}."Interface) deferredFunction",
+			description => "Set the function for the deferred {\\normalfont \\ttfamily ".$_->{'method'}."} propert of the {\\normalfont \\ttfamily ". $implementation->{'fullyQualifiedName'}."} component."
+			);
+		    my %testFunction = (
+			type        => "procedure",
+			pass        => "nopass",
+			name        => $_->{'method'}."FunctionIsSet",
+			function    => $implementation->{'fullyQualifiedName'}.$_->{'method'}."DfrrdFnctnIsSet",
+			returnType  => "\\logicalzero",
+			arguments   => "",
+			description => "Specify whether the deferred function for the {\\normalfont \\ttfamily ".$_->{'method'}."} property of the {\\normalfont \\ttfamily ". $implementation->{'fullyQualifiedName'}."} component has been set."
+			);
+		    push(@typeBoundFunctions,\%setFunction,\%testFunction);
+		}
+		foreach my $attribute ( "description", "returnType", "arguments" ) {
+		    $function{$attribute} = $_->{$attribute}
+		        if ( exists($_->{$attribute}) );
+		}
+		push(@typeBoundFunctions,\%function);
+	    }
+	}
+	# Iterate over properties.
+	foreach my $propertyName ( &ExtraUtils::sortedKeys($implementation->{'properties'}->{'property'}) ) {
+	    # Get the property.
+	    my $property = $implementation->{'properties'}->{'property'}->{$propertyName};
+	    push
+		(
+		 @typeBoundFunctions,
+		 {
+		     type     => "procedure", 
+		     pass     => "nopass",
+		     name     => $propertyName."IsGettable", 
+		     function => "Boolean_".ucfirst($Utils::booleanLabel[$property->{'attributes'}->{'isGettable'}])
+		 },
+		 {
+		     type     => "procedure",
+		     pass     => "nopass", 
+		     name     => $propertyName."IsSettable",
+		     function => "Boolean_".ucfirst($Utils::booleanLabel[$property->{'attributes'}->{'isSettable'}])
+		 }
+		);
+	}
+	# Create the type.
+	$build->{'types'}->{'nodeComponent'.ucfirst($implementation->{'fullyQualifiedName'})} = 
+	{
+	    name           => "nodeComponent".ucfirst($implementation->{'fullyQualifiedName'}),
+	    comment        => "Class for the ".$implementation->{'name'}." implementation of the ".$implementation->{'class'}." component.",
+	    isPublic       => 1,
+	    extends        => $extensionOf,
+	    boundFunctions => \@typeBoundFunctions,
+	    dataContent    => \@dataContent
+	};
     }
 }
 

@@ -40,7 +40,7 @@ require Galacticus::Build::Components::Utils;
 	     [
 	      \&Class_Defaults_Scatter
 	     ],
-	 types       =>
+	 content     =>
 	     [
 	      \&Construct_Data
 	     ]
