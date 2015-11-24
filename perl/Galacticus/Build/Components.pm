@@ -103,7 +103,7 @@ sub Components_Generate_Output {
 
     # Iterate over phases.
     print "--> Phase:\n";
-    foreach my $phase ( "preValidate", "default", "gather", "scatter", "postValidate", "types", "functions" ) {
+    foreach my $phase ( "preValidate", "default", "gather", "scatter", "postValidate", "content", "types", "functions" ) {
 	print "   --> ".ucfirst($phase)."...\n";
 	foreach my $hook ( @hooks ) {	
 	    if ( exists($hook->{'hook'}->{$phase}) ) {
@@ -117,8 +117,6 @@ sub Components_Generate_Output {
     # Iterate over all functions, calling them with the build data object.
     &{$_}($build)
 	foreach (
-	    # Generate implementation types.
-	    \&Generate_Implementations                               ,
 	    # Create an initialization method.
 	    \&Generate_Initialization_Function                       ,
 	    # Generate a finalization method.
@@ -254,69 +252,6 @@ sub Get_Type {
     return $type;
 }
 
-sub dataObjectName {
-    # Construct and return the name of the object to use for data of given type and rank.
-    my $dataObject = shift;
-    # Create the object name.
-    my $name = "nodeData";
-    if ( exists($Utils::intrinsicTypes{$dataObject->{'type'}}) ) {
-	$name .= join("",map {ucfirst($_)} split(" ",$Utils::intrinsicTypes{$dataObject->{'type'}}));
-    } else {
-	$name .= ucfirst($dataObject->{'type'});
-    }
-    if ( exists($dataObject->{'rank'}) ) {
-	$name .= "Scalar";
-    } elsif ( $dataObject->{'type'} ne "void" ) {	
-	$name .= $dataObject->{'rank'}."D";
-    }
-    $name .= "Evolvable"
-	if ( $dataObject->{'isEvolvable'} );
-    $name =~ s/\s//g;
-    return $name;
-}
-
-sub Data_Object_Definition {
-    # Construct and return the name and attributes of the primitive data class to use for data of given type and rank.
-    my $dataObject = shift;
-    my %options;
-    (%options) = @_
-	if ( $#_ >= 1 );
-    # Variables to store the object name and attributes.
-    my $intrinsicName;
-    my $type         ;
-    my $label        ;
-    my @attributes   ;
-    # Validate.
-    die "Build_Include_File.pl::Data_Object_Definition: no 'type' specifier present"
-	unless ( exists($dataObject->{'type'}) );
-    # Construct properties.
-    if ( exists($Utils::intrinsicTypes{$dataObject->{'type'}}) ) {
-	$intrinsicName = $Utils::intrinsicTypes{$dataObject->{'type'}};
-    } else {
-	$intrinsicName =                               "type"  ;
-	$type          =                 $dataObject->{'type'} ;
-    }
-    $label =ucfirst($dataObject->{'type'});
-    if ( exists($dataObject->{'rank'}) ) {
-	if ( $dataObject->{'rank'} > 0 ) {
-	    push(@attributes,"dimension(".join(",",(":") x $dataObject->{'rank'}).")");
-	    push(@attributes,"allocatable" )
-		unless ( exists($options{'matchOnly'}) && $options{'matchOnly'} == 1 );
-	}
-    } else {
-	die "Build_Include_File.pl::dataObjectDefinition: no 'rank' specifier present";
-    }
-    # Construct the definitions.
-    my $dataDefinition;
-    $dataDefinition  ->{'intrinsic' }  = $intrinsicName;
-    $dataDefinition  ->{'type'      }  = $type
-	if ( defined($type) );
-    @{$dataDefinition->{'attributes'}} = @attributes
-	if ( @attributes    );
-    # Return the data definition and label.
-    return ($dataDefinition,$label);
-}
-
 sub pad {
     # Pad a string to give nicely aligned formatting in the output code.
     die("pad() requires two arguments")
@@ -350,8 +285,8 @@ sub Generate_Implementations {
      	# Create data objects to store all of the linked data for this component.
 	my @dataContent;
     	foreach ( &ExtraUtils::sortedKeys($component->{'content'}->{'data'}) ) {
-    	    my $type = &dataObjectName($component->{'content'}->{'data'}->{$_});
-	    (my $typeDefinition, my $typeLabel) = &Data_Object_Definition($component->{'content'}->{'data'}->{$_});
+    	    my $type = &DataTypes::dataObjectName($component->{'content'}->{'data'}->{$_});
+	    (my $typeDefinition, my $typeLabel) = &DataTypes::dataObjectDefinition($component->{'content'}->{'data'}->{$_});
 	    $typeDefinition->{'variables'} = [ $_ ];
 	    push(
 		@dataContent,
@@ -367,7 +302,8 @@ sub Generate_Implementations {
 	    )
 	    if ( 
 		exists($component->{'createFunction'})
-		&&        $component->{'createFunction'}->{'isDeferred'} eq "true" 
+		&&
+		$component->{'createFunction'}->{'isDeferred'}
 	    );
      	# If this component has bindings defined, scan through them and create an appropriate method.
     	if ( exists($component->{'bindings'}) ) {
@@ -757,7 +693,8 @@ sub Generate_Deferred_Procedure_Pointers {
 	    )
 	    if (
 		exists($component->{'createFunction'})
-		&&        $component->{'createFunction'}->{'isDeferred'} eq "true"
+		&&
+		$component->{'createFunction'}->{'isDeferred'}
 	    );
 	# Iterate over properties.
 	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
@@ -766,7 +703,7 @@ sub Generate_Deferred_Procedure_Pointers {
 		my $selfType = "generic";
 		$selfType = $component->{'class'}
 		   unless ( $property->{'attributes'}->{'bindsTo'} eq "top" );
-		(my $dataObject, my $label) = &Data_Object_Definition($property);
+		(my $dataObject, my $label) = &DataTypes::dataObjectDefinition($property);
 		my $dataType = $label.$property->{'rank'};
 		# Determine where to attach.
 		my $attachTo = $componentID;
@@ -3826,8 +3763,9 @@ sub Generate_Component_Get_Functions {
 		if ( exists($component->{'createFunction'}->{'content'}) );
 		$createFunction = $componentID."CreateFunction"
 		    if (
-			exists($component->{'createFunction'}->{'isDeferred'}          ) &&
-			$component->{'createFunction'}->{'isDeferred'} eq "true"
+			exists($component->{'createFunction'}->{'isDeferred'})
+			&&
+			$component->{'createFunction'}->{'isDeferred'}
 		    );
 		$functionCode .= "       call ".$createFunction."(".$componentClassName.")\n";
 	    }
@@ -3848,7 +3786,7 @@ sub Generate_Component_Get_Functions {
 	    if (
 		exists($component->{'createFunction'}                           ) && 
 		exists($component->{'createFunction'}->{'isDeferred'}           ) &&
-		$component->{'createFunction'}->{'isDeferred'} eq "true"
+		$component->{'createFunction'}->{'isDeferred'}
 		) {
 		$functionCode  = "   subroutine ".$componentID."CreateFunctionSet(createFunction)\n";
 		$functionCode .= "     !% Set the create function for the {\\normalfont \\ttfamily ".$componentID."} component.\n";
@@ -4164,7 +4102,7 @@ sub Generate_Deferred_Function_Attacher {
 	my $selfType = "generic";
 	$selfType = $component->{'class'}
 	   unless ( $property->{'attributes'}->{'bindsTo'} eq "top" );
-	(my $dataObject, my $label) = &Data_Object_Definition($property);
+	(my $dataObject, my $label) = &DataTypes::dataObjectDefinition($property);
 	my $dataType = $label.$property->{'rank'};
 	my $type = $selfType."NullBinding".ucfirst($gsr).$dataType."InOut";
 	$type = $componentName.ucfirst($propertyName).ucfirst($gsr)
@@ -4255,7 +4193,7 @@ sub Generate_Deferred_GSR_Function {
 		# Get the name of the property.
 		my $propertyName = $property->{'name'};
 		# Get properties of the data type needed.
-		(my $dataDefinition, my $label) = &Data_Object_Definition($property,matchOnly => 1);
+		(my $dataDefinition, my $label) = &DataTypes::dataObjectDefinition($property,matchOnly => 1);
 		# Identify properties with a deferred get function to be built.
 		if (
 		    $property->{'attributes' }->{'isDeferred'} =~ m/get/ &&
@@ -4462,7 +4400,7 @@ sub Generate_GSR_Functions {
 			$suffix = "Value"
 			    if ( $property->{'attributes' }->{'isDeferred'} =~ m/get/ );
 			# Specify the data content.
-			(my $dataDefinition,my $label) = &Data_Object_Definition($linkedData);
+			(my $dataDefinition,my $label) = &DataTypes::dataObjectDefinition($linkedData);
 			push(@{$dataDefinition->{'variables'}},$componentID.ucfirst($propertyName)."Get".$suffix);
 			@dataContent = (
 			    $dataDefinition,
@@ -4501,7 +4439,7 @@ sub Generate_GSR_Functions {
 			$suffix = "Value"
 			    if ( $property->{'attributes' }->{'isDeferred'} =~ m/set/ );
 			# Specify the data content.
-			(my $dataDefinition,my $label) = &Data_Object_Definition($linkedData,matchOnly => 1);
+			(my $dataDefinition,my $label) = &DataTypes::dataObjectDefinition($linkedData,matchOnly => 1);
 			push(@{$dataDefinition->{'attributes'}},"intent(in   )");
 			push(@{$dataDefinition->{'variables' }},"setValue"     );
 			@dataContent = (
@@ -4588,10 +4526,10 @@ sub Generate_GSR_Functions {
 			{type => "procedure", name => $propertyName."Count", function => $componentID.ucfirst($propertyName)."Count"}
 			);
 		    # Get the data content for remaining functions.
-		    (my $dataDefinition,my $label) = &Data_Object_Definition($linkedData,matchOnly => 1);
+		    (my $dataDefinition,my $label) = &DataTypes::dataObjectDefinition($linkedData,matchOnly => 1);
 		    push(@{$dataDefinition->{'variables' }},"setValue"     );
 		    push(@{$dataDefinition->{'attributes'}},"intent(in   )");
-		    (my $currentDefinition,my $currentLabel) = &Data_Object_Definition($linkedData,matchOnly => 1);
+		    (my $currentDefinition,my $currentLabel) = &DataTypes::dataObjectDefinition($linkedData,matchOnly => 1);
 		    push(@{$currentDefinition->{'variables' }},"current"     );
 		    # If rate function is deferred, then create an intrinsic version.
 		    my $rateSuffix = "";
@@ -6157,7 +6095,7 @@ sub Generate_Null_Binding_Functions {
 	    # Get the null function definition.
 	    my $nullFunction = $componentClass->{$nullFunctionName};
 	    # Construct a datatype for this null function.
-	    (my $dataDefinition, my $label) = &Data_Object_Definition($nullFunction,matchOnly => 1);
+	    (my $dataDefinition, my $label) = &DataTypes::dataObjectDefinition($nullFunction,matchOnly => 1);
 	    # Build a label describing the intrinsic type of the data.
 	    my $intrinsicType = $dataDefinition->{'intrinsic'};
 	    $intrinsicType .= $dataDefinition->{'type'}
@@ -6285,7 +6223,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 		    $linkedData = $property;
 		}
 		# Specify required data content.
-		(my $dataDefinition, my $label ) = &Data_Object_Definition($linkedData);
+		(my $dataDefinition, my $label ) = &DataTypes::dataObjectDefinition($linkedData);
 		push(@{$dataDefinition->{'variables' }},ucfirst($componentClassName).ucfirst($propertyName));
 		my @dataContent = (
 		    $dataDefinition,

@@ -73,4 +73,67 @@ sub dataObjectDocName {
 	"\\textgreater}";
 }
 
+sub dataObjectName {
+    # Construct and return the name of the object to use for data of given type and rank.
+    my $dataObject = shift;
+    # Create the object name.
+    my $name = "nodeData";
+    if ( exists($Utils::intrinsicTypes{$dataObject->{'type'}}) ) {
+	$name .= join("",map {ucfirst($_)} split(" ",$Utils::intrinsicTypes{$dataObject->{'type'}}));
+    } else {
+	$name .= ucfirst($dataObject->{'type'});
+    }
+    if ( exists($dataObject->{'rank'}) ) {
+	$name .= "Scalar";
+    } elsif ( $dataObject->{'type'} ne "void" ) {	
+	$name .= $dataObject->{'rank'}."D";
+    }
+    $name .= "Evolvable"
+	if ( $dataObject->{'isEvolvable'} );
+    $name =~ s/\s//g;
+    return $name;
+}
+
+sub dataObjectDefinition {
+    # Construct and return the name and attributes of the primitive data class to use for data of given type and rank.
+    my $dataObject = shift();
+    my %options;
+    (%options) = @_
+	if ( $#_ >= 1 );
+    # Variables to store the object name and attributes.
+    my $intrinsicName;
+    my $type         ;
+    my $label        ;
+    my @attributes   ;
+    # Validate.
+    die "dataObjectDefinition: no 'type' specifier present"
+	unless ( exists($dataObject->{'type'}) );
+    # Construct properties.
+    if ( exists($Utils::intrinsicTypes{$dataObject->{'type'}}) ) {
+	$intrinsicName = $Utils::intrinsicTypes{$dataObject->{'type'}};
+    } else {
+	$intrinsicName =                               "type"  ;
+	$type          =                 $dataObject->{'type'} ;
+    }
+    $label =ucfirst($dataObject->{'type'});
+    if ( exists($dataObject->{'rank'}) ) {
+	if ( $dataObject->{'rank'} > 0 ) {
+	    push(@attributes,"dimension(".join(",",(":") x $dataObject->{'rank'}).")");
+	    push(@attributes,"allocatable" )
+		unless ( exists($options{'matchOnly'}) && $options{'matchOnly'} == 1 );
+	}
+    } else {
+	die "dataObjectDefinition: no 'rank' specifier present";
+    }
+    # Construct the definitions.
+    my $dataDefinition;
+    $dataDefinition  ->{'intrinsic' }  = $intrinsicName;
+    $dataDefinition  ->{'type'      }  = $type
+	if ( defined($type) );
+    @{$dataDefinition->{'attributes'}} = @attributes
+	if ( @attributes    );
+    # Return the data definition and label.
+    return ($dataDefinition,$label);
+}
+
 1;
