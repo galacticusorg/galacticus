@@ -135,7 +135,11 @@ contains
     character(len=*         ), intent(in   ), optional :: defaultValue
     logical                  , intent(in   ), optional :: writeOutput
 
-    call globalParameters1%value(parameterName,parameterValue,defaultValue=var_str(defaultValue),writeOutput=writeOutput)    
+    if (present(defaultValue)) then
+       call globalParameters1%value(parameterName,parameterValue,defaultValue=var_str(defaultValue),writeOutput=writeOutput)    
+    else
+       call globalParameters1%value(parameterName,parameterValue                                   ,writeOutput=writeOutput)    
+    end if
     return
   end subroutine Get_Input_Parameter_VarString
 
@@ -147,10 +151,14 @@ contains
     character(len=*         ), intent(in   ), optional :: defaultValue  (:)
     logical                  , intent(in   ), optional :: writeOutput
 
-    call globalParameters1%value(parameterName,parameterValue,defaultValue=var_str(defaultValue),writeOutput=writeOutput)    
+    if (present(defaultValue)) then
+       call globalParameters1%value(parameterName,parameterValue,defaultValue=var_str(defaultValue),writeOutput=writeOutput)
+    else
+       call globalParameters1%value(parameterName,parameterValue                                   ,writeOutput=writeOutput)
+    end if
     return
   end subroutine Get_Input_Parameter_VarString_Array
-
+  
   subroutine Get_Input_Parameter_Double(parameterName,parameterValue,defaultValue,writeOutput)
     !% Read a {\normalfont \ttfamily double precision} parameter from the parameter file.
     implicit none
