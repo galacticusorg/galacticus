@@ -18,6 +18,7 @@
   !% An implementation of virial orbits using the \cite{jiang_orbital_2014} orbital parameter distribution.
 
   use FGSL
+  use Statistics_Distributions
 
   !# <virialOrbit name="virialOrbitJiang2014">
   !#  <description>Virial orbits using the \cite{jiang_orbital_2014} orbital parameter distribution.</description>
@@ -41,6 +42,21 @@
      module procedure jiang2014Constructor
   end interface virialOrbitJiang2014
 
+  ! Module scope variables used in root finding.
+  double precision                                                :: jiang2014XTotal                       , jiang2014XRadial              , &
+       &                                                             jiang204ProbabilityRadialNormalization, jiang2014VelocityTotalInternal
+  integer                                                         :: jiang2014I                            , jiang2014J
+  type            (distributionVoight)                            :: jiang2014VoightDistribution
+  double precision                    , parameter, dimension(3,3) :: jiang2014B                 =reshape(                                    &
+       &                                                                                                 [                                   &
+       &                                                                                                  +0.049d0, +0.548d0, +1.229d0,      &
+       &                                                                                                  +1.044d0, +1.535d0, +3.396d0,      &
+       &                                                                                                  +2.878d0, +3.946d0, +2.982d0       &
+       &                                                                                                 ]                                 , &
+       &                                                                                                 [3,3]                               &
+       &                                                                                                )
+  !$omp threadprivate(jiang2014XTotal,jiang2014XRadial,jiang204ProbabilityRadialNormalization,jiang2014VelocityTotalInternal,jiang2014I,jiang2014J,jiang2014VoightDistribution)
+  
 contains
 
   function jiang2014Constructor()
@@ -60,7 +76,6 @@ contains
     use Galacticus_Error
     use Pseudo_Random
     use Root_Finder
-    use Statistics_Distributions
     implicit none
     type            (keplerOrbit               )                                :: jiang2014Orbit
     class           (virialOrbitJiang2014      ), intent(inout)                 :: self
@@ -69,55 +84,43 @@ contains
     class           (darkMatterHaloScaleClass  )               , pointer        :: darkMatterHaloScale_
     class           (nodeComponentBasic        )               , pointer        :: hostBasic              , basic
     class           (virialDensityContrastClass), pointer                       :: virialDensityContrast_
+    integer                                     , parameter                     :: attemptsMaximum        =10000
     double precision                            , parameter                     :: boundTolerance         =1.0d-4 !  Tolerence to ensure that orbits are sufficiently bound.
-    double precision                            , parameter    , dimension(3,3) :: B    =reshape(                                  &
-         &                                                                                       [                                 &
-         &                                                                                        +0.049d0, +0.548d0, +1.229d0,    &
-         &                                                                                        +1.044d0, +1.535d0, +3.396d0,    &
-         &                                                                                        +2.878d0, +3.946d0, +2.982d0     &
-         &                                                                                       ]                               , &
-         &                                                                                       [3,3]                             &
+    double precision                            , parameter    , dimension(3,3) :: gamma=reshape(                                                   &
+         &                                                                                       [                                                  &
+         &                                                                                        +0.109d0, +0.114d0, +0.110d0,                     &
+         &                                                                                        +0.098d0, +0.087d0, +0.050d0,                     &
+         &                                                                                        +0.071d0, +0.030d0, -0.012d0                      &
+         &                                                                                       ]                                                , &
+         &                                                                                       [3,3]                                              &
          &                                                                                      )
-    double precision                            , parameter    , dimension(3,3) :: gamma=reshape(                                  &
-         &                                                                                       [                                 &
-         &                                                                                        +0.109d0, +0.114d0, +0.110d0,    &
-         &                                                                                        +0.098d0, +0.087d0, +0.050d0,    &
-         &                                                                                        +0.071d0, +0.030d0, -0.012d0     &
-         &                                                                                       ]                               , &
-         &                                                                                       [3,3]                             &
+    double precision                            , parameter    , dimension(3,3) :: sigma=reshape(                                                   &
+         &                                                                                       [                                                  &
+         &                                                                                        +0.077d0, +0.094d0, +0.072d0,                     &
+         &                                                                                        +0.073d0, +0.083d0, +0.118d0,                     &
+         &                                                                                        +0.091d0, +0.139d0, +0.187d0                      &
+         &                                                                                       ]                                                , &
+         &                                                                                       [3,3]                                              &
          &                                                                                      )
-    double precision                            , parameter    , dimension(3,3) :: sigma=reshape(                                  &
-         &                                                                                       [                                 &
-         &                                                                                        +0.077d0, +0.094d0, +0.072d0,    &
-         &                                                                                        +0.073d0, +0.083d0, +0.118d0,    &
-         &                                                                                        +0.091d0, +0.139d0, +0.187d0     &
-         &                                                                                       ]                               , &
-         &                                                                                       [3,3]                             &
-         &                                                                                      )
-    double precision                            , parameter    , dimension(3,3) :: mu   =reshape(                                  &
-         &                                                                                       [                                 &
-         &                                                                                        +1.220d0, +1.231d0, +1.254d0,    &
-         &                                                                                        +1.181d0, +1.201d0, +1.236d0,    &
-         &                                                                                        +1.100d0, +1.100d0, +1.084d0     &
-         &                                                                                       ]                               , &
-         &                                                                                       [3,3]                             &
+    double precision                            , parameter    , dimension(3,3) :: mu   =reshape(                                                   &
+         &                                                                                       [                                                  &
+         &                                                                                        +1.220d0, +1.231d0, +1.254d0,                     &
+         &                                                                                        +1.181d0, +1.201d0, +1.236d0,                     &
+         &                                                                                        +1.100d0, +1.100d0, +1.084d0                      &
+         &                                                                                       ]                                                , &
+         &                                                                                       [3,3]                                              &
          &                                                                                      )
     double precision                            , parameter                     :: toleranceAbsolute=0.0d+0
     double precision                            , parameter                     :: toleranceRelative=1.0d-3
     type            (rootFinder                ), save                          :: totalFinder                    , radialFinder
     !$omp threadprivate(totalFinder,radialFinder)
-    double precision                                                            :: velocityHost                   , radiusHost   , &
-         &                                                                         massHost                       , massSatellite, &
-         &                                                                         energyInternal                 , probabilityRadialNormalization, &
-         &                                                                         velocityRadialInternal         , velocityTangentialInternal, &
-         &                                                                         velocityTotalInternal          , xRadial                  , &
-         &                                                                         xTotal
+    double precision                                                            :: velocityHost                   , radiusHost                    , &
+         &                                                                         massHost                       , massSatellite                 , &
+         &                                                                         energyInternal                 , radiusHostSelf                , &
+         &                                                                         velocityRadialInternal         , velocityTangentialInternal
     logical                                                                     :: foundOrbit
-    integer                                                                     :: i                              , j
-    type            (distributionVoight        )                                :: voightDistribution
+    integer                                                                     :: attempts
 
-    ! Reset the orbit.
-    call jiang2014Orbit%reset()
     ! Get required objects.
     darkMatterHaloScale_ => darkMatterHaloScale()
     ! Get basic components.
@@ -126,30 +129,27 @@ contains
     ! Find virial density contrast under Jiang et al. (2014) definition.
     virialDensityContrast_ => self %densityContrastDefinition()
     ! Find mass, radius, and velocity in the host and satellite corresponding to the Jiang et al. (2014) virial density contrast definition.
-    massHost     =Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%time()),radiusHost,velocityHost)
-    massSatellite=Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%time())                        )
+    massHost     =Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%time()),radiusHostSelf,velocityHost)
+    massSatellite=Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%time())                            )
     deallocate(virialDensityContrast_)
-    ! Set basic properties of the orbit.
-    call jiang2014Orbit%massesSet(massSatellite,massHost)
-    call jiang2014Orbit%radiusSet(radiusHost            )
     ! Select parameters appropriate for this host-satellite pair.
     if      (massHost < 10.0d0**12.5d0) then
-       i=1
+       jiang2014I=1
     else if (massHost < 10.0d0**13.5d0) then
-       i=2
+       jiang2014I=2
     else
-       i=3
+       jiang2014I=3
     end if
     if      (massSatellite/massHost < 0.005d0) then
-       j=1
+       jiang2014J=1
     else if (massSatellite/massHost < 0.050d0) then
-       j=2
+       jiang2014J=2
     else
-       j=3
+       jiang2014J=3
     end if
     ! Configure finder objects.
     if (.not.totalFinder %isInitialized()) then
-       call totalFinder %rootFunction(totalVelocityCDF )
+       call totalFinder %rootFunction(jiang2014TotalVelocityCDF          )
        call totalFinder %tolerance   (toleranceAbsolute,toleranceRelative)
        call totalFinder %rangeExpand (                                                             &
             &                         rangeExpandUpward            =2.0d0                        , &
@@ -160,7 +160,7 @@ contains
             &                        )
     end if
     if (.not.radialFinder%isInitialized()) then
-       call radialFinder%rootFunction(radialVelocityCDF)
+       call radialFinder%rootFunction(jiang2014RadialVelocityCDF         )
        call radialFinder%tolerance   (toleranceAbsolute,toleranceRelative)
        call radialFinder%rangeExpand (                                                             &
             &                         rangeExpandUpward            =2.0d0                        , &
@@ -172,24 +172,42 @@ contains
     end if
     ! Select an orbit.
     foundOrbit=.false.
-    do while(.not.foundOrbit)
+    attempts  =0
+    do while (.not.foundOrbit .and. attempts < attemptsMaximum)
+       ! Increment number of attempts.
+       attempts=attempts+1
+       ! Reset the orbit.
+       call jiang2014Orbit%reset()
+       ! Set basic properties of the orbit.
+       call jiang2014Orbit%massesSet(massSatellite,massHost      )
+       call jiang2014Orbit%radiusSet(              radiusHostSelf)
        ! Solve for the total velocity.
-       xTotal                        =Pseudo_Random_Get(self%pseudoSequenceObject,self%resetSequence)
-       voightDistribution            =distributionVoight(gamma(i,j),mu(i,j),sigma(i,j),limitLower=0.0d0,limitUpper=2.0d0)
-       velocityTotalInternal         =totalFinder %find(rootGuess=1.0d0)
+       jiang2014XTotal               =Pseudo_Random_Get(self%pseudoSequenceObject,self%resetSequence)
+       jiang2014VoightDistribution   =distributionVoight(                                         &
+            &                                            gamma     (jiang2014I,jiang2014J)      , &
+            &                                            mu        (jiang2014I,jiang2014J)      , &
+            &                                            sigma     (jiang2014I,jiang2014J)      , &
+            &                                            limitLower                       =0.0d0, &
+            &                                            limitUpper                       =2.0d0  &
+            &                                           )
+       jiang2014VelocityTotalInternal=totalFinder %find(rootGuess=1.0d0)
        ! Solve for the radial velocity.
-       xRadial                       =0.0d0
-       probabilityRadialNormalization=1.0d0
-       probabilityRadialNormalization=1.0d0/(radialVelocityCDF(velocityTotalInternal)-radialVelocityCDF(0.0d0))
-       xRadial                       =Pseudo_Random_Get(self%pseudoSequenceObject,self%resetSequence)
-       velocityRadialInternal        =radialFinder%find(rootGuess=sqrt(2.0d0)*velocityTotalInternal)
-       ! Compute tangential velocity.
-       velocityTangentialInternal=sqrt(max(0.0d0,velocityTotalInternal**2-velocityRadialInternal**2))
+       jiang2014XRadial                      =+0.0d0
+       jiang204ProbabilityRadialNormalization=+1.0d0
+       jiang204ProbabilityRadialNormalization=+1.0d0                                                        &
+            &                                 /(                                                            &
+            &                                   +jiang2014RadialVelocityCDF(jiang2014VelocityTotalInternal) &
+            &                                   -jiang2014RadialVelocityCDF(0.0d0                         ) &
+            &                                  )
+       jiang2014XRadial                      =Pseudo_Random_Get(self%pseudoSequenceObject,self%resetSequence)
+       velocityRadialInternal                =radialFinder%find(rootGuess=sqrt(2.0d0)*jiang2014VelocityTotalInternal)
+       ! Compute tangential velocity.       
+       velocityTangentialInternal=sqrt(max(0.0d0,jiang2014VelocityTotalInternal**2-velocityRadialInternal**2))
        ! If requested, check that the orbit is bound. We require it to have E<-boundTolerance to ensure that it is sufficiently
        ! bound that later rounding errors will not make it appear unbound.
        foundOrbit=.true.
        if (.not.acceptUnboundOrbits) then
-          energyInternal=-1.0d0+0.5d0*velocityTotalInternal**2*jiang2014Orbit%specificReducedMass()
+          energyInternal=-1.0d0+0.5d0*jiang2014VelocityTotalInternal**2*jiang2014Orbit%specificReducedMass()
           foundOrbit=(energyInternal < -boundTolerance)
        end if
        if (.not.foundOrbit) cycle
@@ -204,43 +222,42 @@ contains
           call jiang2014Orbit%massesSet(basic%mass(),hostBasic%mass())
        end if
     end do
+    ! If too many iterations were required to find an orbit, abort.
+    if (attempts >= attemptsMaximum) call Galacticus_Error_Report('jiang2014Orbit','maximum number of attempts exceeded')
     return
-
-  contains
-
-    double precision function totalVelocityCDF(velocityTotal)
-      !% Cumulative distribution function for the total velocity.
-      implicit none
-      double precision, intent(in   ) :: velocityTotal
-
-      totalVelocityCDF=voightDistribution%cumulative(velocityTotal)-xTotal
-      return
-    end function totalVelocityCDF
-
-    double precision function radialVelocityCDF(velocityRadial)
-      !% Cumulative distribution function for the radial velocity.
-      implicit none
-      double precision, intent(in   ) :: velocityRadial
-
-      radialVelocityCDF=+probabilityRadialNormalization &
-           &            *(                              &
-           &              +velocityTotalInternal        &
-           &              /B(i,j)                       &
-           &              *(                            &
-           &                +exp(                       &
-           &                     +B(i,j)                &
-           &                     *velocityRadial        &
-           &                     /velocityTotalInternal &
-           &                    )                       &
-           &                -1.0d0                      &
-           &               )                            &
-           &              -velocityRadial               &
-           &             )                              &
-           &            -xRadial
-      return
-    end function radialVelocityCDF
-
   end function jiang2014Orbit
+  
+  double precision function jiang2014TotalVelocityCDF(velocityTotal)
+    !% Cumulative distribution function for the total velocity.
+    implicit none
+    double precision, intent(in   ) :: velocityTotal
+    
+    jiang2014TotalVelocityCDF=jiang2014VoightDistribution%cumulative(velocityTotal)-jiang2014XTotal
+    return
+  end function jiang2014TotalVelocityCDF
+  
+  double precision function jiang2014RadialVelocityCDF(velocityRadial)
+    !% Cumulative distribution function for the radial velocity.
+    implicit none
+    double precision, intent(in   ) :: velocityRadial
+    
+    jiang2014RadialVelocityCDF=+jiang204ProbabilityRadialNormalization                         &
+         &                     *(                                                              &
+         &                       +       jiang2014VelocityTotalInternal                        &
+         &                       /       jiang2014B                    (jiang2014I,jiang2014J) &
+         &                       *(                                                            &
+         &                         +exp(                                                       &
+         &                              +jiang2014B                    (jiang2014I,jiang2014J) &
+         &                              *         velocityRadial                               &
+         &                              /jiang2014VelocityTotalInternal                        &
+         &                             )                                                       &
+         &                         -1.0d0                                                      &
+         &                        )                                                            &
+         &                       -velocityRadial                                               &
+         &                      )                                                              &
+         &                     -jiang2014XRadial
+    return
+  end function jiang2014RadialVelocityCDF
 
   function jiang2014DensityContrastDefinition(self)
     !% Return a virial density contrast object defining that used in the definition of \cite{jiang_orbital_2014} virial orbits.
