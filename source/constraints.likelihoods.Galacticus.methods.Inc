@@ -126,9 +126,9 @@ double precision function likelihoodGalacticusEvaluate(self,simulationState,para
      message="Galacticus wrapper failed with status code "
      message=message//status
      if (File_Exists(likelihoodFileName)) then
-        message=message//" (likelihood file does exist)"
+        message=message//" (likelihood file '"//char(likelihoodFileName)//"' does exist)"
      else
-        message=message//" (likelihood file DOES NOT exist)"
+        message=message//" (likelihood file '"//char(likelihoodFileName)//"' DOES NOT exist)"
      end if
      call Galacticus_Error_Report('likelihoodGalacticusEvaluate',message)
   end if
