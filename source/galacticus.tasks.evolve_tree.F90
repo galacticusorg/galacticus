@@ -402,7 +402,7 @@ contains
                 call Galacticus_Display_Unindent('Suspending tree')
              else
                 ! Unindent messages.
-                call Galacticus_Display_Unindent('Finished tree'  )
+                call Galacticus_Display_Unindent('Finished tree'  )                
              end if
              
           end if
