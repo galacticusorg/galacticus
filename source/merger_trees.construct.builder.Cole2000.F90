@@ -252,9 +252,12 @@ contains
              nodeIndex=nodeIndex+1
              newNode1  => treeNode(nodeIndex,tree)
              newBasic1 => newNode1%basic(autoCreate=.true.)
-             ! Compute mass of one of the new nodes. First convert the realized probability back to a rate.
+             ! Compute mass of the new nodes. First convert the realized probability back to a rate.
              branchingProbability=uniformRandom/deltaW
              nodeMass1=Tree_Branch_Mass(thisBasic%mass(),thisBasic%time(),massResolution,branchingProbability)
+             nodeMass2=thisBasic%mass()-nodeMass1
+             nodeMass1=nodeMass1*(1.0d0-accretionFraction)
+             nodeMass2=nodeMass2*(1.0d0-accretionFraction)            
              ! Compute the time corresponding to this branching event.
              time=Time_of_Collapse(criticalOverdensity=deltaCritical,mass=thisBasic%mass())
              ! Set properties of first new node.
@@ -265,8 +268,6 @@ contains
              nodeIndex=nodeIndex+1
              newNode2  => treeNode(nodeIndex,tree)
              newBasic2 => newNode2%basic(autoCreate=.true.)
-             ! Compute mass of second new node.
-             nodeMass2=thisBasic%mass()*(1.0d0-accretionFraction)-nodeMass1
              ! Set properties of second new node.
              deltaCritical2=Critical_Overdensity_for_Collapse(time=time,mass=nodeMass2)
              call newBasic2%massSet(nodeMass2     )
