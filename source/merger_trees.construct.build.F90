@@ -70,7 +70,7 @@ contains
     implicit none
     type            (varying_string            )             , intent(in   )          :: mergerTreeConstructMethod
     procedure       (Merger_Tree_Build_Do      )             , intent(inout), pointer :: Merger_Tree_Construct
-    type            (Node                      )                            , pointer :: doc
+    type            (Node                      )                            , pointer :: doc                                  , rootNode
     class           (cosmologyFunctionsClass   )                            , pointer :: cosmologyFunctionsDefault
     integer                                     , parameter                           :: massFunctionSamplePerDecade  =100
     double precision                            , parameter                           :: toleranceAbsolute            =1.0d-12, toleranceRelative                 =1.0d-3
@@ -302,7 +302,8 @@ contains
              treeCount=size(treeHaloMass)
              call Alloc_Array(treeWeight,[treeCount])
              ! Extract tree weights if available.
-             if (XML_Path_Exists(doc,"treeWeight")) then
+             rootNode => getDocumentElement(doc)
+             if (XML_Path_Exists(rootNode,"treeWeight")) then
                 computeTreeWeights=.false.
                 call XML_Array_Read_Static(doc,"treeWeight",treeWeight)
              end if
