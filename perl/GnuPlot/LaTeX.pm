@@ -162,7 +162,7 @@ sub GnuPlot2PDF {
     my (%options) = @_ if ( $#_ >= 0 );
 
     # Get the root name.
-    (my $gnuplotRoot = $gnuplotEpsFile) =~ s/\.eps//;
+    (my $gnuplotRoot = $gnuplotEpsFile) =~ s/\.(eps|tex)//;
 
     # Get any folder name.
     my $folderName = "./";
