@@ -25,21 +25,24 @@
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorAugment
      !% An augmenting merger tree operator class.
      private
-     double precision                               , allocatable, dimension (:) :: timeSnapshots
-     double precision                                                            :: massCutOff               , timeEarliest             , &
-          &                                                                         toleranceScale           , massCutOffScaleFactor
-     integer                                                                     :: retryMaximum             , rescaleMaximum           , &
-          &                                                                         attemptsMaximum          , massCutOffAttemptsMaximum
-     logical                                                                     :: performChecks            , useOneNodeTrees
-     class           (mergerTreeBuilderClass       ), pointer                    :: mergerTreeBuilder_
-     class           (mergerTreeMassResolutionClass), pointer                    :: mergerTreeMassResolution_
+     double precision                               , allocatable, dimension(   :) :: timeSnapshots
+     integer                                                     , dimension(0:10) :: retryHistogram
+     double precision                                                              :: massCutOff                  , timeEarliest             , &
+          &                                                                           toleranceScale              , massCutOffScaleFactor    , &
+          &                                                                           massOvershootScaleFactor
+     integer                                                                       :: retryMaximum                , rescaleMaximum           , &
+          &                                                                           attemptsMaximum             , massCutOffAttemptsMaximum, &
+          &                                                                           massOvershootAttemptsMaximum
+     logical                                                                       :: performChecks               , useOneNodeTrees
+     class           (mergerTreeBuilderClass       ), pointer                      :: mergerTreeBuilder_
+     class           (mergerTreeMassResolutionClass), pointer                      :: mergerTreeMassResolution_
    contains
      !@ <objectMethods>
      !@   <object>mergerTreeOperatorAugment</object>
      !@   <objectMethod>
      !@     <method>buildTreeFromNode</method>
      !@     <type>\intzero</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout,\logicalzero extendingEndNode\argin,\doublezero tolerance\argin,\doublezero timeEarliestIn\argin,\textcolor{red}{\textless type(mergerTree)\textgreater} treeBest\arginout,\doublezero treeBestWorstFit\arginout,\logicalzero treeBestOverride\argin,\doublezero massCutoffScale\arginout,\logicalzero treeNewHasNodeAboveResolution\arginout,\logicalzero treeBestHasNodeAboveResolution\arginout,\logicalzero newRescale\argin,\doublezero massResolution\argin</arguments>
+     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout,\logicalzero extendingEndNode\argin,\doublezero tolerance\argin,\doublezero timeEarliestIn\argin,\textcolor{red}{\textless type(mergerTree)\textgreater} treeBest\arginout,\doublezero treeBestWorstFit\arginout,\logicalzero treeBestOverride\argin,\doublezero massCutoffScale\arginout,\doublezero massOvershootScale\arginout,\logicalzero treeNewHasNodeAboveResolution\arginout,\logicalzero treeBestHasNodeAboveResolution\arginout,\logicalzero newRescale\argin,\doublezero massResolution\argin</arguments>
      !@     <description>Build a merger tree starting from the given node.</description>
      !@   </objectMethod>
      !@   <objectMethod>
@@ -69,6 +72,7 @@
      !@ </objectMethods>
      final     ::                          augmentDestructor
      procedure :: operate               => augmentOperate
+     procedure :: finalize              => augmentFinalize
      procedure :: buildTreeFromNode     => augmentBuildTreeFromNode
      procedure :: acceptTree            => augmentAcceptTree
      procedure :: extendNonOverlapNodes => augmentExtendNonOverlapNodes
@@ -97,7 +101,7 @@
   !#  <entry label="failureStructure"/>
   !#  <entry label="failureGeneric"  />
   !# </enumeration>
-
+  
 contains
 
   function augmentConstructorParameters(parameters)
@@ -115,9 +119,10 @@ contains
     class           (mergerTreeMassResolutionClass), pointer                     :: mergerTreeMassResolution_ 
     integer                                                                      :: i
     double precision                                                             :: massCutOff                  , toleranceScale           , &
-         &                                                                          massCutOffScaleFactor
+         &                                                                          massCutOffScaleFactor       , massOvershootScaleFactor
     integer                                                                      :: retryMaximum                , rescaleMaximum           , &
-         &                                                                          attemptsMaximum             , massCutOffAttemptsMaximum
+         &                                                                          attemptsMaximum             , massCutOffAttemptsMaximum, &
+         &                                                                          massOvershootAttemptsMaximum
     logical                                                                      :: performChecks               , useOneNodeTrees
     !# <inputParameterList label="allowedParameterNames" />
 
@@ -188,6 +193,22 @@ contains
     !#   <cardinality>0..</cardinality>
     !# </inputParameter>
     !# <inputParameter>
+    !#   <name>massOvershootAttemptsMaximum</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>50</defaultValue>
+    !#   <description>The number of failed trees to allow before increasing the mass of the parent node.</description>
+    !#   <type>integer</type>
+    !#   <cardinality>0..</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>massOvershootScaleFactor</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.05d0</defaultValue>
+    !#   <description>The amount by which to increase the mass overshoot factor after exhausting tree build attempts.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
     !#   <name>useOneNodeTrees</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
@@ -213,14 +234,14 @@ contains
                &                                                            )                 &
                &                                                           )
        end do
-       augmentConstructorParameters=augmentConstructorInternal(massCutOff,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,useOneNodeTrees,mergerTreeBuilder_,mergerTreeMassResolution_,timeSnapshots)
+       augmentConstructorParameters=augmentConstructorInternal(massCutOff,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,massOvershootAttemptsMaximum,massOvershootScaleFactor,useOneNodeTrees,mergerTreeBuilder_,mergerTreeMassResolution_,timeSnapshots)
     else
-       augmentConstructorParameters=augmentConstructorInternal(massCutOff,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,useOneNodeTrees,mergerTreeBuilder_,mergerTreeMassResolution_              )
+       augmentConstructorParameters=augmentConstructorInternal(massCutOff,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,massOvershootAttemptsMaximum,massOvershootScaleFactor,useOneNodeTrees,mergerTreeBuilder_,mergerTreeMassResolution_              )
     end if
     return
   end function augmentConstructorParameters
 
-  function augmentConstructorInternal(massCutOff,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,useOneNodeTrees,mergerTreeBuilder_,mergerTreeMassResolution_,timeSnapshots)
+  function augmentConstructorInternal(massCutOff,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,massOvershootAttemptsMaximum,massOvershootScaleFactor,useOneNodeTrees,mergerTreeBuilder_,mergerTreeMassResolution_,timeSnapshots)
     !% Internal constructor for the {\normalfont \ttfamily augment} merger tree operator class.
     use Memory_Management
     use Cosmology_Functions
@@ -228,9 +249,10 @@ contains
     implicit none
     type            (mergerTreeOperatorAugment    )                                        :: augmentConstructorInternal
     double precision                               , intent(in   )                         :: massCutOff                       , toleranceScale           , &
-         &                                                                                    massCutOffScaleFactor
+         &                                                                                    massCutOffScaleFactor            , massOvershootScaleFactor
     integer                                        , intent(in   )                         :: retryMaximum                     , rescaleMaximum           , &
-         &                                                                                    attemptsMaximum                  , massCutOffAttemptsMaximum
+         &                                                                                    attemptsMaximum                  , massCutOffAttemptsMaximum, &
+         &                                                                                    massOvershootAttemptsMaximum
     double precision                               , intent(in   ), dimension(:), optional :: timeSnapshots
     class           (mergerTreeBuilderClass       ), intent(in   ), pointer                :: mergerTreeBuilder_
     class           (mergerTreeMassResolutionClass), intent(in   ), pointer                :: mergerTreeMassResolution_
@@ -250,17 +272,20 @@ contains
     else
        augmentConstructorInternal%timeEarliest=    cosmologyFunctions_       %cosmicTime   (expansionFactorDefault)
     end if
-    augmentConstructorInternal%massCutOff                =  massCutOff
-    augmentConstructorInternal%performChecks             =  performChecks
-    augmentConstructorInternal%toleranceScale            =  toleranceScale
-    augmentConstructorInternal%retryMaximum              =  retryMaximum
-    augmentConstructorInternal%rescaleMaximum            =  rescaleMaximum
-    augmentConstructorInternal%attemptsMaximum           =  attemptsMaximum
-    augmentConstructorInternal%massCutOffAttemptsMaximum =  massCutOffAttemptsMaximum
-    augmentConstructorInternal%massCutOffScaleFactor     =  massCutOffScaleFactor
-    augmentConstructorInternal%useOneNodeTrees           =  useOneNodeTrees
-    augmentConstructorInternal%mergerTreeBuilder_        => mergerTreeBuilder_
-    augmentConstructorInternal%mergerTreeMassResolution_ => mergerTreeMassResolution_
+    augmentConstructorInternal%retryHistogram               =  0
+    augmentConstructorInternal%massCutOff                   =  massCutOff
+    augmentConstructorInternal%performChecks                =  performChecks
+    augmentConstructorInternal%toleranceScale               =  toleranceScale
+    augmentConstructorInternal%retryMaximum                 =  retryMaximum
+    augmentConstructorInternal%rescaleMaximum               =  rescaleMaximum
+    augmentConstructorInternal%attemptsMaximum              =  attemptsMaximum
+    augmentConstructorInternal%massCutOffAttemptsMaximum    =  massCutOffAttemptsMaximum
+    augmentConstructorInternal%massCutOffScaleFactor        =  massCutOffScaleFactor
+    augmentConstructorInternal%massOvershootAttemptsMaximum =  massOvershootAttemptsMaximum
+    augmentConstructorInternal%massOvershootScaleFactor     =  massOvershootScaleFactor
+    augmentConstructorInternal%useOneNodeTrees              =  useOneNodeTrees
+    augmentConstructorInternal%mergerTreeBuilder_           => mergerTreeBuilder_
+    augmentConstructorInternal%mergerTreeMassResolution_    => mergerTreeMassResolution_
     call augmentConstructorInternal%mergerTreeBuilder_%timeEarliestSet(augmentConstructorInternal%timeEarliest)    
     return
   end function augmentConstructorInternal
@@ -285,21 +310,21 @@ contains
     implicit none
     class           (mergerTreeOperatorAugment), intent(inout)                :: self
     type            (mergerTree               ), intent(inout ), target       :: tree
-    type            (treeNode                 ), pointer                      :: node
-    class           (nodeComponentBasic       ), pointer                      :: basic
+    type            (treeNode                 ), pointer                      :: node,childNode
+    class           (nodeComponentBasic       ), pointer                      :: basic,baseBasic
     type            (mergerTree               ), pointer                      :: treeCurrent
     type            (treeNodeList             ), allocatable   , dimension(:) :: anchorNodes
     double precision                           , allocatable   , dimension(:) :: anchorTimes
     integer         (c_size_t                 ), allocatable   , dimension(:) :: anchorIndex
     type            (varying_string           )                               :: message
     type            (mergerTree               )                               :: treeBest
-    integer                                                                   :: nodeCount                     , i                            , &
-         &                                                                       retryCount                    , treeBuilt                    , &
-         &                                                                       attemptsRemaining             , rescaleCount                 , &
-         &                                                                       massCutoffAttemptsRemaining
-    double precision                                                          :: tolerance                     , treeBestWorstFit             , &
-         &                                                                       massCutoffScale
-    logical                                                                   :: treeBestOverride              , treeNewHasNodeAboveResolution, &
+    integer                                                                   :: nodeCount                     , i                             , &
+         &                                                                       retryCount                    , treeBuilt                     , &
+         &                                                                       attemptsRemaining             , rescaleCount                  , &
+         &                                                                       massCutoffAttemptsRemaining   , massOvershootAttemptsRemaining
+    double precision                                                          :: tolerance                     , treeBestWorstFit              , &
+         &                                                                       massCutoffScale               , massOvershootScale
+    logical                                                                   :: treeBestOverride              , treeNewHasNodeAboveResolution , &
          &                                                                       treeBestHasNodeAboveResolution, newRescale
 
     ! Iterate over all linked trees in this forest.
@@ -346,7 +371,9 @@ contains
              treeBuilt                      =  treeBuildFailureGeneric
              attemptsRemaining              =  self%attemptsMaximum
              massCutoffScale                =      1.0d0
+             massOvershootScale             =      1.0d0
              massCutoffAttemptsRemaining    =  self%massCutOffAttemptsMaximum
+             massOvershootAttemptsRemaining =  self%massOvershootAttemptsMaximum
              ! Begin building trees from this node, searching for an acceptable tree.
              if (Galacticus_Verbosity_Level() >= verbosityWorking) then
                 message="Building tree from node: "
@@ -370,11 +397,12 @@ contains
                      &                                               treeBestWorstFit                               , &
                      &                                               treeBestOverride                               , &
                      &                                               massCutoffScale                                , &
+                     &                                               massOvershootScale                             , &
                      &                                               treeNewHasNodeAboveResolution                  , &
                      &                                               treeBestHasNodeAboveResolution                 , &
                      &                                               newRescale                                     , &
                      &                                               self%mergerTreeMassResolution_%resolution(tree)  &
-                     &                                              )
+                     &                                              )                
                 ! Check for exhaustion of retry attempts.
                 if (retryCount == self%retryMaximum) then
                    ! Rescale the tolerance to allow less accurate tree matches to be accepted in future.
@@ -408,7 +436,20 @@ contains
                       massCutoffScale            =massCutoffScale+self%massCutOffScaleFactor
                    end if
                 end if
+                ! Increment the mass overshoot budget if attempts are exhausted.
+                massOvershootAttemptsRemaining=massOvershootAttemptsRemaining-1
+                ! If number of retries is exhausted, adjust the tolerance for declaring nodes to be above the mass cut-off.
+                if (massOvershootAttemptsRemaining == 0) then
+                   massOvershootAttemptsRemaining=                   self%massOvershootAttemptsMaximum
+                   massOvershootScale            =massOvershootScale+self%massOvershootScaleFactor
+                end if                
              end do
+             ! Accumulate the histrogram of rescalings.
+             !$omp critical (Augment_Statistics)
+             self        %retryHistogram(min(rescaleCount,ubound(self%retryHistogram)))= &
+                  & +self%retryHistogram(min(rescaleCount,ubound(self%retryHistogram)))  &
+                  & +1
+             !$omp end critical (Augment_Statistics)
              ! Clean up the best tree if one exists.
              if (associated(treeBest%baseNode)) then
                 call treeBest%destroyBranch(treeBest%baseNode)
@@ -428,26 +469,29 @@ contains
     return
   end subroutine augmentOperate
   
-  recursive integer function augmentBuildTreeFromNode(self,node,extendingEndNode,tolerance,timeEarliestIn,treeBest,treeBestWorstFit,treeBestOverride,massCutoffScale,treeNewHasNodeAboveResolution,treeBestHasNodeAboveResolution,newRescale,massResolution)
+  recursive integer function augmentBuildTreeFromNode(self,node,extendingEndNode,tolerance,timeEarliestIn,treeBest,treeBestWorstFit,treeBestOverride,massCutoffScale,massOvershootScale,treeNewHasNodeAboveResolution,treeBestHasNodeAboveResolution,newRescale,massResolution)
     use, intrinsic :: ISO_C_Binding
     use               Arrays_Search
     use               Galacticus_Nodes
     use               Galacticus_Error
+    use String_Handling
     implicit none
     class           (mergerTreeOperatorAugment    ), intent(inout)          :: self
     type            (treeNode                     ), intent(inout), pointer :: node
     double precision                               , intent(in   )          :: timeEarliestIn               , tolerance                     , &
          &                                                                     massResolution
-    double precision                               , intent(inout)          :: treeBestWorstFit             , massCutoffScale
+    double precision                               , intent(inout)          :: treeBestWorstFit             , massCutoffScale               , &
+         &                                                                     massOvershootScale
     logical                                        , intent(in   )          :: extendingEndNode
     logical                                        , intent(inout)          :: treeNewHasNodeAboveResolution, treeBestHasNodeAboveResolution, &
          &                                                                     newRescale
     type            (mergerTree                   ), intent(inout)          :: treeBest
-    type            (treeNode                     ), pointer                :: baseNode
+    type            (treeNode                     ), pointer                :: baseNode                     , childNode
     class           (nodeComponentBasic           ), pointer                :: basic                        , baseBasic                     , &
          &                                                                     childBasic
     type            (mergerTree                   )                         :: newTree
-    double precision                                                        :: timeEarliest
+    double precision                                                        :: timeEarliest                 , timeFirstChild                , &
+         &                                                                     massInChildren               , newTreeBaseMass
     integer         (c_size_t                     )                         :: timeIndex
     integer                                                                 :: endNodeCount                 , nodeChildCount                , &
          &                                                                     i                            , treeAccepted                  , &
@@ -455,8 +499,8 @@ contains
     type            (mergerTreeOperatorPruneByTime)                         :: pruneByTime
     logical                                                                 :: treeBestOverride, newTreeBest
     type            (varying_string               )                         :: message
-    character       (len=6                        )                         :: label
-
+    character       (len=8                        )                         :: label
+    
     ! Find the earliest time to which the tree should be built.
     basic => node%basic()
     if (extendingEndNode) then
@@ -487,7 +531,38 @@ contains
        end if
     else
        timeEarliest=timeEarliestIn
-    end if    
+    end if
+    ! Check that all children exists at the same time, and accumulate mass in children.
+    massInChildren=0.0d0
+    if (associated(node%firstChild)) then
+       childNode     => node%firstChild
+       basic         => childNode%basic()
+       timeFirstChild=basic%time()
+       do while (associated(childNode))
+          basic     => childNode%basic()
+          massInChildren=massInChildren+basic%mass()
+          if (basic%time() /= timeFirstChild) then
+             message="Child node ["
+             write (label,'(f8.5)') basic%time()
+             message=message                                              // &
+                  &  childNode      %index()                              // &
+                  &  "] of parent node ["                                 // &
+                  &  node           %index()                              // &
+                  &  "] does not exist at same time as first child node ["// &
+                  &  node%firstChild%index()                              // &
+                  &  "]: "                                                // &
+                  &  trim(adjustl(label))
+             write (label,'(f8.5)') timeFirstChild
+             message=message                                                                                               // &
+                  &  " Gyr ≠ "                                                                                             // &
+                  &  trim(adjustl(label))                                                                                  // &
+                  &  " Gyr."                                                                                     //char(10)// &
+                  &  "Consider using the 'regridTimes' operator first to force halos onto a fixed array of times" 
+             call Galacticus_Error_Report('augmentBuildTreeFromNode',message)  
+          end if
+          childNode => childNode%sibling
+       end do
+    end if
     ! Build trees from the nodes above the mass resolution. 
     ! Create a new base node, matched to the current node, build a tree from it, and truncate that tree to the desired earliest time.
     pruneByTime      =  mergerTreeOperatorPruneByTime(              &
@@ -497,17 +572,19 @@ contains
          &                                           )
     baseNode         => treeNode                     (node%index(),newTree            )
     baseBasic        => baseNode%basic               (             autoCreate  =.true.)
+    basic            => node    %basic               (                                )   
     newTree%baseNode => baseNode
-    call baseBasic  %                   timeSet        (basic       %time())
-    call baseBasic  %                   massSet        (basic       %mass())
-    call self       %mergerTreeBuilder_%timeEarliestSet(timeEarliest       ) 
-    call self       %mergerTreeBuilder_%build          (newTree            )
-    call pruneByTime%operate                           (newTree            )     
+    ! Determine the mass to use for the base mass of the new tree. This will be the mass of the node in the original tree if this
+    ! exceeds the scale mass of the child nodes, otherwise, set to the scaled mass of the child nodes.
+    newTreeBaseMass=max(basic%mass(),massInChildren)
+    call baseBasic  %                   timeSet        (basic          %time())
+    call baseBasic  %                   massSet        (newTreeBaseMass       )
+    call self       %mergerTreeBuilder_%timeEarliestSet(timeEarliest          )
+    call self       %mergerTreeBuilder_%build          (newTree               )
+    call pruneByTime%operate                           (newTree               )
     ! Assert that the new tree has some branches.
-    if (.not.associated(newTRee%baseNode%firstChild)) then
-write (0,*) "DEETS ",basic%time(),log10(basic%mass()),timeearliest
-       call Galacticus_Error_Report('augmentBuildTreeFromNode','proposed tree has no branches - check cut off mass settings')
-    end if
+    if (.not.(extendingEndNode.or.associated(newTree%baseNode%firstChild))) &
+         & call Galacticus_Error_Report('augmentBuildTreeFromNode','proposed tree has no branches - check cut off mass settings')
     ! Sort children of our node by mass, and gather statistics on number of children and number of end-nodes in the new tree.
     call self%sortChildren(node)
     nodeChildCount=augmentChildCount    (node                             )
@@ -524,6 +601,7 @@ write (0,*) "DEETS ",basic%time(),log10(basic%mass()),timeearliest
          &                         treeBestWorstFit              , &
          &                         treeBestOverride              , &
          &                         massCutoffScale               , &
+         &                         massOvershootScale            , &
          &                         treeNewHasNodeAboveResolution , &
          &                         treeBestHasNodeAboveResolution, &
          &                         newTreeBest                   , &
@@ -575,6 +653,7 @@ write (0,*) "DEETS ",basic%time(),log10(basic%mass()),timeearliest
             &                   treeBestWorstFit              , &
             &                   treeBestOverride              , &
             &                   massCutoffScale               , &
+            &                   massOvershootScale            , &
             &                   treeNewHasNodeAboveResolution , &
             &                   treeBestHasNodeAboveResolution, &
             &                   newTreeBest                   , &
@@ -602,7 +681,7 @@ write (0,*) "DEETS ",basic%time(),log10(basic%mass()),timeearliest
     return
   end function augmentBuildTreeFromNode
 
-  recursive integer function augmentAcceptTree(self,node,tree,nodeChildCount,extendingEndNode,tolerance,timeEarliest,treeBest,treeBestWorstFit,treeBestOverride,massCutoffScale,treeNewHasNodeAboveResolution,treeBestHasNodeAboveResolution, newTreeBest,massResolution)
+  recursive integer function augmentAcceptTree(self,node,tree,nodeChildCount,extendingEndNode,tolerance,timeEarliest,treeBest,treeBestWorstFit,treeBestOverride,massCutoffScale,massOvershootScale,treeNewHasNodeAboveResolution,treeBestHasNodeAboveResolution, newTreeBest,massResolution)
     use Galacticus_Nodes
     use Galacticus_Display
     use Merger_Trees_Builders
@@ -619,7 +698,8 @@ write (0,*) "DEETS ",basic%time(),log10(basic%mass()),timeearliest
     logical                                    , intent(inout)                      :: treeNewHasNodeAboveResolution, treeBestHasNodeAboveResolution, &
          &                                                                             newTreeBest                  
     logical                                    , intent(in   )                      :: treeBestOverride             , extendingEndNode
-    double precision                           , intent(inout)                      :: treeBestWorstFit             , massCutoffScale
+    double precision                           , intent(inout)                      :: treeBestWorstFit             , massCutoffScale               , &
+         &                                                                             massOvershootScale
     double precision                           , intent(in   )                      :: tolerance                    , timeEarliest                  , &
          &                                                                             massResolution
     integer                                    , intent(inout)                      :: nodeChildCount
@@ -627,11 +707,11 @@ write (0,*) "DEETS ",basic%time(),log10(basic%mass()),timeearliest
     integer                                                                         :: i                            , j                             , &
          &                                                                             endNodesSorted               , iNode
     logical                                                                         :: treeAccepted                 , nodeMassesAgree               , &
-         &                                                                             nodeCurrentBelowAll          , treeScalable
+         &                                                                             nodeCurrentBelowAll
     double precision                                                                :: treeCurrentWorstFit          , massDiscrepancy
     type            (varying_string           )                                     :: message
     character       (len=12                   )                                     :: label
-
+    
     ! Initialize.
     treeNewHasNodeAboveResolution =  .false.
     nodeNonOverlapFirst           => null()
@@ -746,24 +826,6 @@ write (0,*) "DEETS ",basic%time(),log10(basic%mass()),timeearliest
           nodeCurrent => nodeCurrent%sibling
        end do
     end if
-    ! Also test for agreement in the total mass of overlap nodes. Require this to match within an absolute value equal to the
-    ! resolution to which we're building the trees. This should prevent the occurence of additional, low mass progenitors which
-    ! could otherwise appear.
-    if (nodeChildCount <= endNodesSorted .and. nodeMassesAgree) then
-       massDiscrepancy =  0.0d0
-       nodeOriginal    => node%firstChild
-       do iNode=1,nodeChildCount
-          basicOriginal   =>  nodeOriginal            %basic()
-          basicNew        =>  endNodes    (iNode)%node%basic()
-          massDiscrepancy =  +massDiscrepancy                  &
-               &             +basicNew                %mass () &
-               &             -basicOriginal           %mass ()
-          nodeOriginal    =>  nodeOriginal            %sibling
-       end do
-       ! If the absolute value of the mass discrepancy exceeds the tree resolution, we could be gaining/losing halos
-       ! erroneously. Fail in such cases.
-       if (abs(massDiscrepancy) > massResolution) nodeMassesAgree=.false.
-    end if
     ! If we have a matching tree, extend the non-overlapping nodes.
     if     (                                      &
          &   nodeChildCount <= endNodesSorted     &
@@ -783,13 +845,9 @@ write (0,*) "DEETS ",basic%time(),log10(basic%mass()),timeearliest
             &                          timeEarliest       , &
             &                          treeBest           , &
             &                          massCutoffScale    , &
+            &                          massOvershootScale , &
             &                          massResolution       &
             &                         )
-       treeScalable=.true.
-    else
-       ! Tree is not scalable either because of structural difference (mismatch in number of overlap nodes), or because overlap
-       ! nodes differ significantly in mass.
-       treeScalable=.false.
     end if
     ! Determine if the tree is accepted.
     if (treeBestOverride .and. associated(tree%baseNode)) then
@@ -801,12 +859,10 @@ write (0,*) "DEETS ",basic%time(),log10(basic%mass()),timeearliest
             &       .and.                                                 &
             &             nodeChildCount                <= endNodesSorted &
             &       .and.                                                 &
-            &        .not.treeNewHasNodeAboveResolution                   &
-            &       .and.                                                 &
-            &             treeScalable
+            &        .not.treeNewHasNodeAboveResolution
     end if
     ! Process the tree depending on acceptance state.
-    newTreeBest = .false.    
+    newTreeBest=.false.    
     if (treeAccepted) then
        ! Tree was accepted, insert it into the original tree.
        call augmentSimpleInsert(self,node,tree,endNodes,nodeChildCount,nodeNonOverlapFirst)
@@ -862,7 +918,7 @@ write (0,*) "DEETS ",basic%time(),log10(basic%mass()),timeearliest
     type   (treeNodeList             ), intent(inout), dimension(nodeChildCount) :: endNodes
     type   (treeNode                 ), pointer                                  :: nodeCurrent        , nodeCurrentSibling
     integer                                                                      :: i
-
+    
     ! Reinsert the non-overlap nodes which have been removed from the tree during acceptance testing.
     call self%nonOverlapReinsert(nodeNonOverlapFirst)
     ! Test if we have overlap nodes.
@@ -1071,7 +1127,7 @@ write (0,*) "DEETS ",basic%time(),log10(basic%mass()),timeearliest
     return
   end subroutine augmentNonOverlapReinsert
 
-  subroutine augmentExtendNonOverlapNodes(self,tree,nodeNonOverlapFirst,tolerance,timeEarliest,treeBest,massCutoffScale,massResolution)
+  subroutine augmentExtendNonOverlapNodes(self,tree,nodeNonOverlapFirst,tolerance,timeEarliest,treeBest,massCutoffScale,massOvershootScale,massResolution)
     !% Extend any non-overlap nodes in an accepted tree by growing a new tree from each such node.
     use Galacticus_Error
     use Galacticus_Nodes
@@ -1081,7 +1137,7 @@ write (0,*) "DEETS ",basic%time(),log10(basic%mass()),timeearliest
     type            (treeNode                 )               , pointer :: nodeNonOverlapFirst
     double precision                           , intent(in   )          :: tolerance              , timeEarliest                , &
          &                                                                 massResolution
-    double precision                           , intent(inout)          :: massCutoffScale 
+    double precision                           , intent(inout)          :: massCutoffScale        , massOvershootScale
     type            (treeNode                 )               , pointer :: nodeCurrent            , nodeNonOverlap
     double precision                                                    :: falseWorstFit
     logical                                                             :: falseNewNodeAboveCutoff, falseBestTreeNodeAboveCutoff, &
@@ -1103,6 +1159,7 @@ write (0,*) "DEETS ",basic%time(),log10(basic%mass()),timeearliest
             &                            falseWorstFit               , &
             &                            .false.                     , &
             &                            massCutoffScale             , &
+            &                            massOvershootScale          , &
             &                            falseNewNodeAboveCutoff     , &
             &                            falseBestTreeNodeAboveCutoff, &
             &                            falseNewRescale             , &
@@ -1164,3 +1221,34 @@ write (0,*) "DEETS ",basic%time(),log10(basic%mass()),timeearliest
     end select
     return
   end function augmentTreeStatistics
+
+  subroutine augmentFinalize(self)
+    !% Output augmentation histogram.
+    use ISO_Varying_String
+    use IO_HDF5
+    use Galacticus_HDF5
+    use Memory_Management
+    implicit none
+    class  (mergerTreeOperatorAugment), intent(inout)               :: self
+    integer                           , allocatable  , dimension(:) :: retryHistogram
+    type   (hdf5Object               )                              :: augmentStatisticsGroup
+
+    ! Output the data.
+    !$omp critical(HDF5_Access)
+    ! Check if our output group already exists.
+    if (galacticusOutputFile%hasGroup('augmentStatistics')) then
+       ! Our group does exist. Read existing histogram, add them to our own, then write back to file.
+       augmentStatisticsGroup=galacticusOutputFile%openGroup('augmentStatistics','Statistics of merger tree augmentation.',objectsOverwritable=.true.,overwriteOverride=.true.)
+       call Alloc_Array(retryHistogram,shape(self%retryHistogram))
+       call augmentStatisticsGroup%readDataset('retryHistogram',retryHistogram)
+       self%retryHistogram=self%retryHistogram+retryHistogram
+       call Dealloc_Array(retryHistogram)
+    else
+       ! Our group does not already exist. Simply write the data.
+       augmentStatisticsGroup=galacticusOutputFile%openGroup('augmentStatistics','Statistics of merger tree augmentation.',objectsOverwritable=.true.,overwriteOverride=.true.)
+    end if
+    call augmentStatisticsGroup%writeDataset(self%retryHistogram,"retryHistogram","Retry histogram []")
+    call augmentStatisticsGroup%close       (                                                         )    
+    !$omp end critical(HDF5_Access)
+    return
+  end subroutine augmentFinalize
