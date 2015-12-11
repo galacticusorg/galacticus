@@ -135,8 +135,11 @@ contains
        end do
        parentBasicComponent => parentNode%basic()
        call thisBasicComponent%timeLastIsolatedSet(parentBasicComponent%time())
-       ! Determine if this node has a descendent.
-       if (.not.associated(thisNode%parent)) then
+       ! Determine node status.
+       if (thisNode%isSatellite()) then
+          ! Node is a satellite - we assume no accretion.
+          call thisBasicComponent%accretionRateSet(0.0d0)
+       else if (.not.associated(thisNode%parent)) then
           ! For parent-less nodes (i.e. the root node of the tree), the rate is set equal to that of the
           ! progenitor, if it has one.
           childNode => thisNode%firstChild
@@ -178,7 +181,6 @@ contains
              if (deltaTime > 0.0d0) call thisBasicComponent%accretionRateSet((massUnresolved/deltaTime)*(thisBasicComponent%mass()/progenitorMassTotal))
           end if
        end if
-
     end select
     return
   end subroutine Node_Component_Basic_Standard_Tree_Initialize
