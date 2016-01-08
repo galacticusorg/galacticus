@@ -117,7 +117,7 @@ contains
     ! Find the node to merge with.
     hostNode           => thisNode%mergesWith()
     hostBasicComponent => hostNode%basic     ()
-    if (hostBasicComponent%time() < mergeTargetTimeMinimum) then
+    if (hostBasicComponent%time() < mergeTargetTimeMinimum .and. associated(hostNode%parent)) then
        timeStepAllowed=max(timeUntilMerging-0.5d0*mergeTargetTimeOffsetMaximum,0.0d0)
 
        ! Set return value if our timestep is smaller than current one. Do not set an end of timestep task in this case - we want
