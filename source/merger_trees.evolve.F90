@@ -236,7 +236,7 @@ contains
                    
                    ! Find the next node that we will process.
                    nextNode => thisNode%walkTreeWithSatellites()
-                   
+
                    ! Evolve this node if it has a parent, exists before the output time, has no children
                    ! (i.e. they've already all been processed), and either exists before the final time
                    ! in its tree, or exists precisely at that time and has some attached event yet to occur.
@@ -275,8 +275,7 @@ contains
                       ! the node has reached the requested end time) or the node no longer exists (e.g. if it was destroyed).
                       interrupted=.true.
                       do while (interrupted.and.associated(thisNode))
-                         interrupted=.false.
-                         
+                         interrupted=.false.                         
                          ! Find maximum allowed end time for this particular node.
                          if (deadlockStatus == deadlockStatusIsReporting) then
                             vMessage="node "
@@ -335,6 +334,27 @@ contains
                                   call Tree_Node_Promote(currentTree,thisNode)
                                end if
                             end select
+                         end if
+                      end if
+                   else
+                      if (deadlockStatus == deadlockStatusIsReporting) then
+                         vMessage="node "
+                         write (label,'(e12.6)') thisBasicComponent%time()
+                         vMessage=vMessage//thisNode%index()//" (current:target times = "//label
+                         write (label,'(e12.6)') endTime
+                         vMessage=vMessage//":"//label//")"
+                         call Galacticus_Display_Indent(vMessage)
+                         call Galacticus_Display_Unindent("end node")
+                         ! Determine why this node could not be evolved. We check the "has child" condition first as it's the only
+                         ! one that provides additional connection between nodes, so leads to the most informative deadlock graph.
+                         if      (associated(thisNode%firstChild)) then
+                            call Deadlock_Add_Node(thisNode,currentTree%index,thisNode%firstChild,var_str("has child"          ))
+                        else if (.not.associated(thisNode%parent)) then
+                            call Deadlock_Add_Node(thisNode,currentTree%index,thisNode           ,var_str("no parent"          ))
+                         else if (thisBasicComponent%time() >= endTime) then
+                            call Deadlock_Add_Node(thisNode,currentTree%index,thisNode           ,var_str("in future of output"))
+                         else
+                            call Deadlock_Add_Node(thisNode,currentTree%index,thisNode           ,var_str("in future of tree"  ))
                          end if
                       end if
                    end if evolveCondition
@@ -572,7 +592,7 @@ contains
     if (report) call Galacticus_Display_Indent("timestepping criteria")
     End_Of_Timestep_Task_Internal => null()
     Evolve_To_Time=min(Evolve_To_Time,thisBasicComponent%time()+Time_Step_Get(thisNode,Evolve_To_Time,End_Of_Timestep_Task_Internal,report,lockNode,lockType))
-    End_Of_Timestep_Task => End_Of_Timestep_Task_Internal
+    End_Of_Timestep_Task => End_Of_Timestep_Task_Internal    
     if (report) call Galacticus_Display_Unindent("done")
 
     ! Also ensure that the timestep doesn't exceed any event attached to the node.

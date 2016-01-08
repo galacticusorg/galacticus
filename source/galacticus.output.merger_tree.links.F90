@@ -70,18 +70,6 @@ contains
     integerPropertyUnitsSI (integerProperty)=0.0d0
     integerProperty=integerProperty+1
     !@ <outputProperty>
-    !@   <name>childIndex</name>
-    !@   <datatype>integer</datatype>
-    !@   <cardinality>0..1</cardinality>
-    !@   <description>ID of primary child node.</description>
-    !@   <label>???</label>
-    !@   <outputType>nodeData</outputType>
-    !@ </outputProperty>
-    integerPropertyNames   (integerProperty)='childIndex'
-    integerPropertyComments(integerProperty)='ID of primary child node.'
-    integerPropertyUnitsSI (integerProperty)=0.0d0
-    integerProperty=integerProperty+1
-    !@ <outputProperty>
     !@   <name>siblingIndex</name>
     !@   <datatype>integer</datatype>
     !@   <cardinality>0..1</cardinality>
