@@ -177,7 +177,6 @@ Masses enclosed within specific radii can be output by setting {\normalfont \ttf
 The following properties are output to permit the merger tree structure to be recovered:
 \begin{description}
  \item [{\normalfont \ttfamily nodeIndex}] A unique\footnote{Node indices are typically unique, but there is no actual requirement within \protect\glc\ that this must be the case. A merger tree construction method could create nodes with non-unique indices.} (within a tree) integer index identifying the node;
- \item [{\normalfont \ttfamily childIndex}] The index of this node's primary child node (or $-1$ if it has no child);
  \item [{\normalfont \ttfamily parentIndex}] The index of this node's parent node (or $-1$ if it has no parent);
  \item [{\normalfont \ttfamily siblingIndex}] The index of this node's sibling node (or $-1$ if it has no sibling);
  \item [{\normalfont \ttfamily satelliteIndex}] The index of this node's first satellite node (or $-1$ if it has no satellites);
