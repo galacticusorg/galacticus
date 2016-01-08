@@ -165,7 +165,6 @@ contains
     type   (varying_string)                         :: message
 
     ! Report if necessary.
-    ! Report if necessary.
     if (Galacticus_Verbosity_Level() >= verbosityInfo) then
        message='Satellite node ['
        message=message//thisNode%index()//'] is being merged'
@@ -177,7 +176,6 @@ contains
     !#  <functionArgs>thisNode</functionArgs>
     include 'merger_trees.evolve.timesteps.satellite.inc'
     !# </include>
-
     ! Finally remove the satellite node from the host and merge targets and destroy it.
     call thisNode%removeFromHost  ()
     call thisNode%removeFromMergee()
