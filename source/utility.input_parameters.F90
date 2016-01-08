@@ -157,7 +157,11 @@ contains
     logical                  , intent(in   ), optional :: writeOutput
 
     call Make_Parameters_Group()
-    call globalParameters1%value(parameterName,parameterValue,defaultValue=var_str(defaultValue),writeOutput=writeOutput)    
+    if (present(defaultValue)) then
+       call globalParameters1%value(parameterName,parameterValue,defaultValue=var_str(defaultValue),writeOutput=writeOutput)
+    else
+       call globalParameters1%value(parameterName,parameterValue                                   ,writeOutput=writeOutput)
+    end if
     return
   end subroutine Get_Input_Parameter_VarString_Array
 
