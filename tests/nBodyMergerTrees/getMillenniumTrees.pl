@@ -13,7 +13,6 @@ use XML::Simple;
 use File::Find;
 use Term::ReadKey;
 use Data::Dumper;
-use Net::DBus;
 use Switch;
 
 # Read in any configuration options.
@@ -48,21 +47,6 @@ switch ( $dbConfig->{'passwordFrom'} ) {
     case ( "input" ) {
 	print "Please enter your Millennium database password:\n";
 	$dbPassword = &getPassword;
-    }
-    case ( "kdewallet" ) {
-	my $appName          = "Galacticus";
-	my $folderName       = "glc-millennium-db";
-	my $bus           = Net::DBus->find;
-	my $walletService = $bus->get_service("org.kde.kwalletd");
-	my $walletObject  = $walletService->get_object("/modules/kwalletd");
-	my $walletID      = $walletObject->open("kdewallet",0,$appName);
-	if ( $walletObject->hasEntry($walletID,$folderName,"dbPassword",$appName) == 1 ) {
-	    $dbPassword = $walletObject->readPassword($walletID,$folderName,"dbPassword",$appName); 
-	} else {
-	    print "Please enter your Millennium database password:\n";
-	    $dbPassword = &getPassword;
-	    $walletObject->writePassword($walletID,$folderName,"dbPassword",$dbPassword,$appName); 
-	}
     }
 }
 
