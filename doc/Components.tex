@@ -798,7 +798,7 @@ None. Positions and velocities do not evolve for a given node. When output, if a
 
 \subsubsection{Event Evolution}
 
-\noindent\emph{Node mergers:} None.\\
+\noindent\emph{Node mergers:} If {\normalfont \ttfamily positionsPresetSatelliteToHost}$=${\normalfont \ttfamily true} then the position and velocity of the satellite node is set equal to that of the host node (this is useful if position data is not available for orphaned halos for example, which would otherwise remain fixed in physical coordinates at their last known position---the position/velocity will also be updated to that of the new host each time a satellite's host changes), otherwise, none.\\
 
 \noindent\emph{Satellite merging:} None.\\
 

@@ -25,7 +25,7 @@ module Galacticus_Output_Trees_Links
   public :: Galacticus_Output_Tree_Links, Galacticus_Output_Tree_Links_Property_Count, Galacticus_Output_Tree_Links_Names
 
   ! Number of link properties.
-  integer, parameter :: linkPropertyCount=6
+  integer, parameter :: linkPropertyCount=5
 
 contains
 
@@ -142,8 +142,6 @@ contains
     integerBuffer(integerBufferCount,integerProperty)=thisNode               %index()
     integerProperty=integerProperty+1
     integerBuffer(integerBufferCount,integerProperty)=thisNode%parent        %index()
-    integerProperty=integerProperty+1
-    integerBuffer(integerBufferCount,integerProperty)=thisNode%firstChild    %index()
     integerProperty=integerProperty+1
     integerBuffer(integerBufferCount,integerProperty)=thisNode%sibling       %index()
     integerProperty=integerProperty+1
