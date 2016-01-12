@@ -85,7 +85,7 @@
     <version>0.9.4</version>
     <haloSpinDistributionMethod>
       <value>bett2007</value>
-      <value>lognormal</value>
+      <value>logNormal</value>
       <value>deltaFunction</value>
     </haloSpinDistributionMethod>
   </parameters>
