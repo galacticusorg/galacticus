@@ -1396,7 +1396,7 @@ contains
                    pairEvent%ID   =  newEvent%ID
                 else if (mergerTreeReadAllowBranchJumps) then
                    ! Node is isolated, has no isolated node that descends into it, and our subhalo is not the most massive subhalo
-                   ! which descends into it. Therefore, our subhalo must branch jump if this is allowed.                   
+                   ! which descends into it. Therefore, our subhalo must branch jump if this is allowed.
                    call Create_Branch_Jump_Event(                                                 &
                         &                        nodeList(nodes(inode)  %isolatedNodeIndex)%node, &
                         &                        nodeList(descendentNode%isolatedNodeIndex)%node, &
@@ -2351,11 +2351,11 @@ contains
     implicit none
     class           (nodeData      ), dimension(:), intent(inout), target :: nodes                                                        
     type            (treeNodeList  ), dimension(:), intent(inout)         :: nodeList                                                     
-    class           (nodeData      ), pointer                             :: currentHost  , descendentNode, hostDescendent, jumpToHost, & 
-         &                                                                   previousNode                                                 
+    class           (nodeData      ), pointer                             :: currentHost  , descendentNode  , hostDescendent      , jumpToHost, & 
+         &                                                                   previousNode , isolatedHostNode, isolatedHostHostNode                                             
     integer                                                               :: iNode                                                        
     integer         (c_size_t      )                                      :: iIsolatedNode                                                
-    logical                                                               :: isMergerEvent, subhaloJumps  , wasMergerEvent                
+    logical                                                               :: isMergerEvent, subhaloJumps    , wasMergerEvent                
     double precision                                                      :: timeOfJump                                                   
     type            (varying_string)                                      :: message                                                      
     
@@ -2383,7 +2383,7 @@ contains
           ! so we do not attempt to process this branch.
           if (Is_Subhalo_Subhalo_Merger(nodes,nodes(iNode))) then
              descendentNode => null()
-             currentHost => Last_Host_Descendent(nodes(iNode))
+             currentHost    => Last_Host_Descendent(nodes(iNode))
              ! Add a jump if the tree ends before the descendent time.
              if (currentHost%nodeTime <= nodes(iNode)%descendent%nodeTime) then
                 timeOfJump     =  currentHost%nodeTime
@@ -2439,22 +2439,37 @@ contains
                    ! Does this subhalo's descendent live in the host to which the subhalo's host descends.
                    if (.not.associated(descendentNode%host%descendent)) then
                       ! Host has no descendent, so this must be a branch jump.
-                      subhaloJumps=.true.
-                   else if (descendentNode%descendent%hostIndex /= descendentNode%host%descendent%hostIndex) then
-                      ! Host has a descendent, but it's host is not the same as our descendent's host.
-                      subhaloJumps=.true.
-                      ! Check that is not simply a case of the subhalo skipping one or more timesteps before
-                      ! reappearing in the expected host.
-                      hostDescendent => descendentNode%host%descendent%host
-                      do while (descendentNode%descendent%host%nodeTime > hostDescendent%nodeTime)
-                         if (associated(hostDescendent%descendent)) then
-                            hostDescendent => hostDescendent%descendent%host
-                         else
-                            exit
-                         end if
+                      subhaloJumps=.true.                      
+                   else
+                      ! In nested hierarchies we must find the isolated node which hosts our node and our node's host.
+                      isolatedHostNode     => descendentNode     %descendent%host
+                      do while (associated(isolatedHostNode    %host).and..not.associated(isolatedHostNode    %host,isolatedHostNode    ))
+                         isolatedHostNode     => isolatedHostNode    %host
                       end do
-                      ! Subhalo reappeared in the expected host. This is not a branch jump.
-                      if (descendentNode%descendent%hostIndex == hostDescendent%nodeIndex) subhaloJumps=.false.
+                      isolatedHostHostNode => descendentNode%host%descendent%host
+                      do while (associated(isolatedHostHostNode%host).and..not.associated(isolatedHostHostNode%host,isolatedHostHostNode))
+                         isolatedHostHostNode => isolatedHostHostNode%host
+                      end do
+                      if (isolatedHostNode%nodeIndex /= isolatedHostHostNode%nodeIndex) then
+                         ! Host has a descendent, but its host is not the same as our descendent's host.
+                         subhaloJumps=.true.
+                         ! Check that is not simply a case of the subhalo skipping one or more timesteps before
+                         ! reappearing in the expected host.
+                         hostDescendent => isolatedHostHostNode
+                         do while (isolatedHostNode%nodeTime > hostDescendent%nodeTime)
+                            if (associated(hostDescendent%descendent)) then
+                               hostDescendent => hostDescendent%descendent%host
+                               ! In nested hierarchies, find the isolated host node.
+                               do while (associated(hostDescendent%host).and..not.associated(hostDescendent%host,hostDescendent))
+                                  hostDescendent => hostDescendent%host
+                               end do
+                            else
+                               exit
+                            end if
+                         end do
+                         ! Subhalo reappeared in the expected host. This is not a branch jump.
+                         if (isolatedHostNode%nodeIndex == hostDescendent%nodeIndex) subhaloJumps=.false.
+                      end if
                    end if
                 else
                    ! Since this is a merger event, we're finished checking this branch.
