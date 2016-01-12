@@ -8,7 +8,7 @@ To perform this test, do:
 
 tests/nBodyMergerTrees/getMillenniumTrees.pl
 make Galacticus.exe
-scripts/aux/Run_Galacticus.pl tests/nBodyMergerTrees/modelsToRun.xml
+scripts/aux/launch.pl tests/nBodyMergerTrees/modelsToRun.xml
 tests/nBodyMergerTrees/comparisonPlots.pl
 
 The resulting plots should then exist in:
