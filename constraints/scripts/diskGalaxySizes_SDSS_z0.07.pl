@@ -400,7 +400,8 @@ if ( exists($arguments{'plotFile'}) ) {
 	$errorUp           ->($upperLimits)        .= 0.0;
 	$errorDown         ->($upperLimits)        .= -0.5;
 	my $shortArrows                             = which($dataRadiusFunction->($upperLimits) < 0.6);
-	$errorDown->($upperLimits)->($shortArrows) .= -$dataRadiusFunction->($upperLimits)->($shortArrows)+0.1;
+	$errorDown->($upperLimits)->($shortArrows) .= -$dataRadiusFunction->($upperLimits)->($shortArrows)+0.1
+	    if (nelem($shortArrows) > 0);
 	&PrettyPlots::Prepare_Dataset(\$plot,
 				      1.0e3*$dataCompilation->{'radius'}->(:,($i)),$dataRadiusFunction,
 				      errorUp   => $errorUp,
