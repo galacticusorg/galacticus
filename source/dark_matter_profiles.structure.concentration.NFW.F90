@@ -37,6 +37,9 @@
      module procedure nfw1996ConstructorInternal
   end interface darkMatterProfileConcentrationNFW1996
 
+  ! Target value used in concentration root finder.
+  double precision :: nfw1996RootTarget
+  
 contains
 
   function nfw1996ConstructorParameters(parameters)
@@ -116,8 +119,7 @@ contains
     double precision                                                                :: collapseCriticalOverdensity             , collapseExpansionFactor       , &
          &                                                                             collapseMass                            , collapseOverdensity           , &
          &                                                                             collapseTime                            , expansionFactor               , &
-         &                                                                             nodeMass                                , nodeTime                      , &
-         &                                                                             rootTarget
+         &                                                                             nodeMass                                , nodeTime
 
     ! Get required objects.
     cosmologyFunctions_        => cosmologyFunctions                   (        )
@@ -137,7 +139,7 @@ contains
     ! Compute the overdensity of the progenitor at collapse using the scaling given by NFW.
     collapseOverdensity        =self%C*(expansionFactor/collapseExpansionFactor)**3
     ! Find the ratio of this overdensity to that at for the present node.
-    rootTarget                 =collapseOverdensity/virialDensityContrast_%densityContrast(nodeTime)
+    nfw1996RootTarget          =collapseOverdensity/virialDensityContrast_%densityContrast(nodeTime)
     ! Initialize our root finder.
     if (.not.finder%isInitialized()) then
        call finder%rangeExpand (                                               &
@@ -145,26 +147,23 @@ contains
             &                   rangeExpandUpward  =2.0d0                    , &
             &                   rangeExpandType    =rangeExpandMultiplicative  &
             &                  )
-       call finder%rootFunction(concentrationRoot                  )
+       call finder%rootFunction(nfw1996ConcentrationRoot           )
        call finder%tolerance   (toleranceAbsolute,toleranceRelative)
     end if
     ! Find the concentration.
     nfw1996Concentration=finder%find(rootRange=[1.0d0,20.0d0])
     return
-
-  contains
-    
-    double precision function concentrationRoot(concentration)
-      !% Root function used in finding concentrations in the \cite{navarro_structure_1996} method.
-      implicit none
-      double precision, intent(in   ) :: concentration
-      
-      concentrationRoot=concentration**3/(log(1.0d0+concentration)-concentration/(1.0d0+concentration))/3.0d0-rootTarget
-      return
-    end function concentrationRoot
-    
   end function nfw1996Concentration
 
+  double precision function nfw1996ConcentrationRoot(concentration)
+    !% Root function used in finding concentrations in the \cite{navarro_structure_1996} method.
+    implicit none
+    double precision, intent(in   ) :: concentration
+    
+    nfw1996ConcentrationRoot=concentration**3/(log(1.0d0+concentration)-concentration/(1.0d0+concentration))/3.0d0-nfw1996RootTarget
+    return
+  end function nfw1996ConcentrationRoot
+    
   function nfw1996DensityContrastDefinition(self)
     !% Return a virial density contrast object defining that used in the definition of
     !% concentration in the \cite{navarro_structure_1996} algorithm.
