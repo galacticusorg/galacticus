@@ -33,7 +33,7 @@ die("FAILED: failed to make IRATE-format merger tree file from Bolshoi merger tr
     unless ( $? == 0 );
 
 # Validate the IRATE format file.
-my $validator = which('iratevalidate');
+my $validator = &File::Which::which('iratevalidate');
 if ( $validator ) {
     system("cd ..; iratevalidate testSuite/outputs/bolshoiTestTreesIRATE_in.hdf5");
     die("FAILED: IRATE-format file generated from Bolshoi merger tree did not validate")

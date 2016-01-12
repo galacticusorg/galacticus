@@ -78,7 +78,7 @@
     <version>0.9.4</version>
     <haloSpinDistributionMethod>
       <value>bett2007</value>
-      <value>lognormal</value>
+      <value>logNormal</value>
       <value>deltaFunction</value>
     </haloSpinDistributionMethod>
   </parameters>
@@ -779,9 +779,10 @@
     <mergerTreeConstructMethod value="build"/>
     <mergerTreeBuilderMethod value="cole2000"/>
     <mergerTreeBuilderMethod value="cole2000">
-    <accretionLimit value="0.1"/>
-    <mergeProbability value="0.1"/>
-  </mergerTreeBuilderMethod><treeBranchingMethod value="modifiedPress-Schechter"/>
+      <accretionLimit value="0.1"/>
+      <mergeProbability value="0.1"/>
+    </mergerTreeBuilderMethod>
+    <treeBranchingMethod value="modifiedPress-Schechter"/>
     <modifiedPressSchechterG0 value="0.57"/>
     <modifiedPressSchechterGamma1 value="0.38"/>
     <modifiedPressSchechterGamma2 value="-0.01"/>
@@ -793,7 +794,7 @@
     <haloSpinDistributionMethod value="bett2007">
       <alpha value="2.509"/>
       <lambda0 value="0.04326"/>
-    <haloSpinDistributionMethod/>
+    </haloSpinDistributionMethod>
     <randomSpinResetMassFactor value="2.0"/>
     <accretionHaloMethod value="simple"/>
     <reionizationSuppressionRedshift value="10.5"/>

@@ -93,7 +93,7 @@ contains
     double precision                                            , dimension(2)                                    :: wavelengthRange
     double precision                                            , dimension(0:1)                                  :: hAge                                        , hMetallicity
     class           (stellarPopulationSpectraClass), pointer                                                      :: stellarPopulationSpectra_
-    integer         (c_int                        )                                                               :: lockFileDescriptor
+    type            (lockDescriptor               )                                                               :: lockFileDescriptor
     integer         (c_size_t                     )                                                               :: iAge                                        , iLuminosity                , &
          &                                                                                                           iMetallicity                                , jLuminosity
     integer                                                                                                       :: loopCountMaximum                            , jAge                       , &
@@ -263,7 +263,7 @@ contains
                    datasetName="redshift"//adjustl(trim(redshiftLabel))
                    ! Open the file and check for the required dataset.
                    !$omp critical (HDF5_Access)
-                   lockFileDescriptor=File_Lock(char(luminositiesFileName)//".lock",lockIsShared=.true.)
+                   call File_Lock(char(luminositiesFileName),lockFileDescriptor,lockIsShared=.true.)
                    call luminositiesFile%openFile(char(luminositiesFileName),readOnly=.true.)
                    if (luminositiesFile%hasDataset(trim(datasetName))) then
                       ! Read the dataset.
@@ -368,7 +368,7 @@ contains
                    datasetName="redshift"//adjustl(trim(redshiftLabel))
                    ! Open the file.
                    !$omp critical (HDF5_Access)
-                   lockFileDescriptor=File_Lock(char(luminositiesFileName)//".lock",lockIsShared=.false.)
+                   call File_Lock(char(luminositiesFileName),lockFileDescriptor,lockIsShared=.false.)
                    call luminositiesFile%openFile(char(luminositiesFileName))
                    ! Write the dataset.
                    if (.not.luminositiesFile%hasDataset(trim(datasetName))) &
