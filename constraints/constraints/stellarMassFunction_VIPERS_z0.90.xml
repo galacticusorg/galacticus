@@ -12,4 +12,6 @@
   <haloMassMinimum>2.0e8</haloMassMinimum>
   <haloMassMaximum>1.0e15</haloMassMaximum>
   <analysis>constraints/scripts/stellarMassFunction_VIPERS_z0.90.pl</analysis>
+  <massSystematicZeroPoint>11.3</massSystematicZeroPoint>
+  <massSystematicOrder>1</massSystematicOrder>
 </constraint>

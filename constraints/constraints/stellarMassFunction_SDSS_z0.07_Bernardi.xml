@@ -19,4 +19,6 @@
   <analysis>constraints/scripts/stellarMassFunction_SDSS_z0.07_Bernardi.pl</analysis>
   <massSystematicZeroPoint>11.3</massSystematicZeroPoint>
   <massSystematicOrder>1</massSystematicOrder>
+  <massSystematicZeroPoint>11.3</massSystematicZeroPoint>
+  <massSystematicOrder>1</massSystematicOrder>
 </constraint>

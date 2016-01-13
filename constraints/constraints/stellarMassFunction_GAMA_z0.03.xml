@@ -21,4 +21,6 @@
   <haloMassMinimum>2.0e06</haloMassMinimum>
   <haloMassMaximum>1.0e15</haloMassMaximum>
   <analysis>constraints/scripts/stellarMassFunction_GAMA_z0.03.pl</analysis>
+  <massSystematicZeroPoint>11.3</massSystematicZeroPoint>
+  <massSystematicOrder>1</massSystematicOrder>
 </constraint>
