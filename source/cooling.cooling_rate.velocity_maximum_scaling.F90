@@ -27,10 +27,10 @@ module Cooling_Rates_Velocity_Maximum_Scaling
   public :: Cooling_Rate_Velocity_Maximum_Scaling_Initialize
 
   ! The fixed timescale for cooling.
-  double precision :: coolingRateVelocityMaximumScalingTimescale       , coolingRateVelocityMaximumScalingTimescaleExponent, &
-       &              coolingRateVelocityMaximumScalingCutOffWidth     , coolingRateVelocityMaximumScalingCutOffVelocity   , &
-       &              coolingRateVelocityMaximumScalingCutOffExponent  , coolingRateVelocityMaximumScalingVelocityExponent , &
-       &              coolingRateVelocityMaximumScalingTimescaleMinimum
+  double precision :: coolingRateVelocityMaximumScalingTimescale       , coolingRateVelocityMaximumScalingTimescaleExponent             , &
+       &              coolingRateVelocityMaximumScalingCutOffWidth     , coolingRateVelocityMaximumScalingCutOffVelocity                , &
+       &              coolingRateVelocityMaximumScalingCutOffExponent  , coolingRateVelocityMaximumScalingVelocityExponent              , &
+       &              coolingRateVelocityMaximumScalingTimescaleMinimum, coolingRateVelocityMaximumScalingCutOffVelocityRedshiftExponent
 
 contains
 
@@ -106,6 +106,17 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('coolingRateVelocityMaximumScalingCutOffVelocity',coolingRateVelocityMaximumScalingCutOffVelocity,defaultValue=200.0d0)
+       !@ <inputParameter>
+       !@   <name>coolingRateVelocityMaximumScalingCutOffVelocityRedshiftExponent</name>
+       !@   <defaultValue>0.0</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The exponent of $(1+z)$ in the velocity scale appearing in the exponential term for cooling timescale in the velocity maximum scaling cooling rate model.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('coolingRateVelocityMaximumScalingCutOffVelocityRedshiftExponent',coolingRateVelocityMaximumScalingCutOffVelocityRedshiftExponent,defaultValue=0.0d0)
        !@ <inputParameter>
        !@   <name>coolingRateVelocityMaximumScalingCutOffWidth</name>
        !@   <defaultValue>$1$</defaultValue>
@@ -185,10 +196,11 @@ contains
     expansionFactor      =  cosmologyFunctions_%expansionFactor        (thisBasicComponent%time())
     velocityMaximum      =  darkMatterProfile_ %circularVelocityMaximum(thisNode                 )
     if (expansionFactor /= expansionFactorPrevious .or. velocityMaximum /= velocityMaximumPrevious) then
-       expArgument=log10(                                                  &
-            &             velocityMaximum                                  &
-            &            /coolingRateVelocityMaximumScalingCutOffVelocity  &
-            &           )                                                  &
+       expArgument=log10(                                                                                  &
+            &             velocityMaximum                                                                  &
+            &            /coolingRateVelocityMaximumScalingCutOffVelocity                                  &
+            &            *expansionFactor**coolingRateVelocityMaximumScalingCutOffVelocityRedshiftExponent &
+            &           )                                                                                  &
             &      /coolingRateVelocityMaximumScalingCutOffWidth
        if (expArgument < expArgumentMaximum) then
           expFactor=(1.0d0+exp(+expArgument))**(-coolingRateVelocityMaximumScalingCutOffExponent)
