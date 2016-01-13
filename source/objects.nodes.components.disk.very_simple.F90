@@ -55,10 +55,9 @@ module Node_Component_Disk_Very_Simple
   !#   </property>
   !#   <property>
   !#     <name>starFormationRate</name>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" />
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" isVirtual="true" />
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>true</isVirtual>
   !#     <output condition="[[diskOutputStarFormationRate]]" unitsInSI="massSolar/gigaYear" comment="Disk star formation rate."/>
   !#   </property>
   !#   <property>
@@ -346,8 +345,8 @@ contains
     class           (nodeComponentDisk           )               , pointer :: disk
     class           (nodeComponentHotHalo        )               , pointer :: hotHalo
     logical                                       , intent(inout)          :: interrupt
-    procedure       (Interrupt_Procedure_Template), intent(inout), pointer :: interruptProcedureReturn
-    procedure       (Interrupt_Procedure_Template)               , pointer :: interruptProcedure
+    procedure       (interruptTask), intent(inout), pointer :: interruptProcedureReturn
+    procedure       (interruptTask)               , pointer :: interruptProcedure
     double precision                                                       :: stellarMassRate         , fuelMassRate          , &
          &                                                                    massOutflowRate
     type            (history                     )                         :: stellarHistoryRate

@@ -69,7 +69,7 @@ contains
     implicit none
     type            (treeNode                    )           , intent(inout), pointer :: thisNode
     logical                                                  , intent(inout)          :: interrupt
-    procedure       (Interrupt_Procedure_Template)           , intent(inout), pointer :: interruptProcedure
+    procedure       (interruptTask)           , intent(inout), pointer :: interruptProcedure
     class           (nodeComponentHotHalo        )                          , pointer :: thisHotHalo
     class           (darkMatterHaloScaleClass    )                          , pointer :: darkMatterHaloScale_
     double precision                                                                  :: massReturnRate
