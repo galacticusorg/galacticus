@@ -53,7 +53,7 @@ module Merger_Trees_Evolve_Node
   ! Variables to track interrupt events.
   logical                                                 :: firstInterruptFound
   double precision                                        :: firstInterruptTime
-  procedure       (Interrupt_Procedure_Template), pointer :: firstInterruptProcedure
+  procedure       (interruptTask), pointer :: firstInterruptProcedure
   !$omp threadprivate(firstInterruptFound,firstInterruptTime,firstInterruptProcedure)
   ! Flag to indicate if node merging event method has been initialized.
   logical                                                 :: nodeMergersInitialized  =.false.
@@ -190,7 +190,7 @@ contains
     type            (treeNode                    )      , intent(inout), pointer :: thisNode
     double precision                                    , intent(in   )          :: endTime
     logical                                             , intent(  out)          :: interrupted
-    procedure       (Interrupt_Procedure_Template)      , intent(  out), pointer :: interruptProcedure
+    procedure       (interruptTask)      , intent(  out), pointer :: interruptProcedure
     class           (nodeComponentBasic          )                     , pointer :: basicComponent
     integer                                       , save                         :: nPropertiesPrevious=-1
     !$omp threadprivate(nPropertiesPrevious)
@@ -351,7 +351,7 @@ contains
     real     (kind=c_double               )                       :: dydt              (*)
     type     (c_ptr                       )               , value :: parameterPointer
     logical                                                       :: interrupt
-    procedure(Interrupt_Procedure_Template), pointer              :: interruptProcedure
+    procedure(interruptTask), pointer              :: interruptProcedure
 
     ! Return success by default.
     Tree_Node_ODEs=FGSL_Success
