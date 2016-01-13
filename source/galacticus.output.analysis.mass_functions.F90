@@ -160,14 +160,14 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                   null()                                       ,        &
        &                                                   null()                                                &
        &                                                 )                                                     , &
-                                ! ALFALFA survey. Note that HI/total gas mass fraction must be taken into account by the systematic errors model.
+                                ! ALFALFA survey.
        &                           massFunctionDescriptor(                                                       &
-       &                                                   9.000d0                                      ,        &
+       &                                                  10.000d0                                      ,        &
        &                                                   null()                                       ,        &
        &                                                   4.500d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
-       &                                                   1                                            ,        &
+       &                                                   2                                            ,        &
        &                                                   0                                            ,        &
        &                                                   massTypeGaseous                              ,        &
        &                                                   'alfalfaHiMassFunctionZ0.00'                 ,        &
@@ -2005,7 +2005,7 @@ contains
             &     *massStellar                                       &
             &    )                                                   &
             &   /diskRadius**4                                       &
-            &  )**alfalfaHiMassFunctionZ0_00MolecularFractionBeta
+            &  )**alfalfaHiMassFunctionZ0_00MolecularFractionBeta       
        if (molecularRatioCentral > 0.0d0) then
           Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00                                      &
                & = 1.0d0                                                                      &
