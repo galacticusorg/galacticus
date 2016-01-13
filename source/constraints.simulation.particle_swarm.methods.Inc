@@ -18,7 +18,7 @@
 !% Defines methods for the ``particleSwarm'' simulator class.
 
 function simulatorParticleSwarmConstructor(parameterPriors,parameterMappings,modelLikelihood,simulationConvergence,simulationStoppingCriterion&
-     &,simulationState,simulationStateInitializor,stepsMaximum,logFileRoot,logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient)
+     &,simulationState,simulationStateInitializor,stepsMaximum,logFileRoot,logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient,interactionRoot)
   !% Constructor for ``particleSwarm'' simulator class.
   implicit none
   type            (simulatorParticleSwarm)                                              :: simulatorParticleSwarmConstructor
@@ -29,7 +29,7 @@ function simulatorParticleSwarmConstructor(parameterPriors,parameterMappings,mod
   class           (stoppingCriterion             ), intent(in   ), target               :: simulationStoppingCriterion
   class           (state                         ), intent(in   ), target               :: simulationState
   class           (stateInitializor              ), intent(in   ), target               :: simulationStateInitializor
-  character       (len=*                         ), intent(in   )                       :: logFileRoot
+  character       (len=*                         ), intent(in   )                       :: logFileRoot, interactionRoot
   integer                                         , intent(in   )                       :: stepsMaximum                     , reportCount                    , &
        &                                                                                   logFlushCount
   double precision                                , intent(in   )                       :: inertiaWeight                    , accelerationCoefficientPersonal, &
@@ -51,6 +51,8 @@ function simulatorParticleSwarmConstructor(parameterPriors,parameterMappings,mod
   simulatorParticleSwarmConstructor%accelerationCoefficientGlobal  =  accelerationCoefficientGlobal
   simulatorParticleSwarmConstructor%velocityCoefficient            =  velocityCoefficient
   simulatorParticleSwarmConstructor%logFileRoot                    =  logFileRoot
+  simulatorParticleSwarmConstructor%interactionRoot                =  trim(interactionRoot)
+  simulatorParticleSwarmConstructor%isInteractive                  =  trim(interactionRoot) /= "none"
   return
 end function simulatorParticleSwarmConstructor
 
@@ -71,7 +73,7 @@ subroutine simulatorParticleSwarmSimulate(self)
   double precision                        , dimension(self%parameterCount)              :: stateVector                    , positionMinimum                  , &
        &                                                                                   positionMaximum                , velocityParticle                 , &
        &                                                                                   velocityMaximum                , stateBestPersonal                , &
-       &                                                                                   stateBestGlobal
+       &                                                                                   stateBestGlobal                , stateVectorInteractive
   double precision                        , dimension(:,:)                , allocatable :: stateVectors
   double precision                        , dimension(:  )                , allocatable :: logPosteriorsAll               , logLikelihoodVariancesAll 
   double precision                        , dimension(1,1)                              :: pseudoScalar
@@ -83,12 +85,14 @@ subroutine simulatorParticleSwarmSimulate(self)
        &                                                                                   combinedVariance               , probabilityNewBest               , &
        &                                                                                   logLikelihoodVarianceBestGlobal, logLikelihood
   type            (pseudoRandom          )                                              :: randomNumberGenerator
-  type            (varying_string        )                                              :: logFileName                    , message
+  type            (varying_string        )                                              :: logFileName                    , message                     , &
+       &                                                                                   interactionFileName
   integer                                                                               :: logFileUnit                    , convergedAtStep                  , &
        &                                                                                   convergenceFileUnit            , i                                , &
-       &                                                                                   ioStatus
+       &                                                                                   ioStatus                       , interactionFile
   logical                                                                               :: isConverged                    , accept
-  
+  character       (len=32                )                                              :: label
+
   ! Write start-up message.
   message="Process "//mpiSelf%rankLabel()//" [PID: "
   message=message//getPID()//"] is running on host '"//mpiSelf%hostAffinity()//"'"
@@ -170,6 +174,43 @@ subroutine simulatorParticleSwarmSimulate(self)
            stateVector     (i)=+positionMaximum (i)
         end if
      end do
+     ! If simulation is interactive, check for any interaction file.
+     if (self%isInteractive) then
+        ! Check if an interaction file exists.
+        interactionFileName=self%interactionRoot//"_"//mpiSelf%rankLabel()
+        if (File_Exists(interactionFileName)) then
+           ! Read the file and validate.
+           open(newUnit=interactionFile,file=char(interactionFileName),status='old',form='formatted',ioStat=ioStatus)
+           if (ioStatus == 0) then
+              read (interactionFile,*,ioStat=ioStatus) stateVectorInteractive
+              if (ioStatus == 0) then
+                 ! Copy the state to the proposed state vector.
+                 stateVector=stateVectorInteractive
+                 message="Chain "//mpiSelf%rankLabel()//" is being interactively moved to state:"
+                 call Galacticus_Display_Indent(message)
+                 ! Map parameters of interactively proposed state.
+                 do i=1,size(stateVector)
+                    write (label,*) stateVector(i)
+                    message="State["
+                    message=message//i//"] = "//trim(adjustl(label))
+                    call Galacticus_Display_Message(message)
+                    stateVector(i)=self%parameterMappings(i)%thisMapping%map(stateVector(i))
+                 end do
+                 call Galacticus_Display_Unindent('end')
+              else
+                 message="WARNING: state proposed in interaction file '"//interactionFileName//"' cannot be read"
+                 call Galacticus_Display_Message(message)
+              end if
+           else
+              message="WARNING: unable to open interaction file '"//interactionFileName//"'"
+              call Galacticus_Display_Message(message)
+           end if
+           close(interactionFile)
+           ! Remove the interaction file.
+           call System_Command_Do("rm -f "//interactionFileName)
+        end if
+     end if
+     ! Store the state vector.
      call self%simulationState%update(stateVector,.true.,self%simulationConvergence%isConverged())
      ! Update the velocity.
      velocityParticle=+self%inertiaWeight                   &
