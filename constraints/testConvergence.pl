@@ -22,6 +22,7 @@ use Text::Table;
 use Math::SigFigs;
 require Galacticus::Constraints::Parameters;
 require Galacticus::Constraints::Covariances;
+require Galacticus::Launch::PBS;
 require GnuPlot::PrettyPlots;
 require GnuPlot::LaTeX;
 
@@ -89,6 +90,9 @@ $parameters->{'randomSeed'}->{'value'} = 824;
 # Set a dummy baseline variable.
 $parameters->{'baseline'  }->{'value'} = 1.0;
 
+# Ensure that trees will be built, not read.
+$parameters->{'mergerTreeConstructMethod'}->{'value'} = "build";
+
 # Set the number of trees per decade of halo mass if specified on the command line.
 $parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'} = $arguments{'treesPerDecade'}
    if ( exists($arguments{'treesPerDecade'}) );
@@ -115,13 +119,13 @@ my @convergences =
      ideal     => "largest"
  },
  {
-     parameter => "mergerTreeBuildCole2000MergeProbability",
+     parameter => "mergerTreeBuilderMethod:mergeProbability",
      factor    => 1.259,
      steps     => 21,
      ideal     => "smallest"
  },
  {
-     parameter => "mergerTreeBuildCole2000AccretionLimit",
+     parameter => "mergerTreeBuilderMethod:accretionLimit",
      factor    => 1.259,
      steps     => 21,
      ideal     => "smallest"
@@ -171,27 +175,27 @@ my @convergences =
 );
 
 # Add convergence checks for mass resolution.
-if ( $parameters->{'mergerTreesBuildMassResolutionMethod'}->{'value'} eq "fixed" ) {
+if ( $parameters->{'mergerTreeMassResolutionMethod'}->{'value'} eq "fixed" ) {
     push(
 	@convergences,
 	{
-	    parameter => "mergerTreeBuildMassResolutionFixed",
+	    parameter => "mergerTreeMassResolutionMethod:massResolution",
 	    factor    => 0.794,
 	    steps     => 11,
 	    ideal     => "smallest"
 	}
 	);
-} elsif ( $parameters->{'mergerTreesBuildMassResolutionMethod'}->{'value'} eq "scaled" ) {
+} elsif ( $parameters->{'mergerTreeMassResolutionMethod'}->{'value'} eq "scaled" ) {
     push(
 	@convergences,
 	{
-	    parameter => "mergerTreeBuildMassResolutionScaledMinimum",
+	    parameter => "mergerTreeMassResolutionMethod:massResolutionMinimum",
 	    factor    => 0.794,
 	    steps     => 11,
 	    ideal     => "smallest"
 	},
 	{
-	    parameter => "mergerTreeBuildMassResolutionScaledFraction",
+	    parameter => "mergerTreeMassResolutionMethod:massResolutionFractional",
 	    factor    => 0.794,
 	    steps     => 11,
 	    ideal     => "smallest"
@@ -206,6 +210,10 @@ foreach my $convergence ( @convergences ) {
     print "Running convergence models for: ".$convergence->{'parameter'}."\n";    
     # Make a copy of the parameters.
     my $currentParameters = clone($parameters);
+    # Find the active parameter.
+    my $activeParameter = $currentParameters;
+    $activeParameter = $activeParameter->{$_}
+        foreach ( split(":",$convergence->{'parameter'}) );
     # Override parameters.
     foreach ( keys(%arguments) ) {
 	if ( $_ =~ m/^parameterOverride:(.+)/ ) {
@@ -221,10 +229,11 @@ foreach my $convergence ( @convergences ) {
     # Step through values of this parameter.
     for(my $i=0;$i<$convergence->{'steps'};++$i) {
 	# Adjust the parameter.
-	$currentParameters->{$convergence->{'parameter'}}->{'value'} *= $convergence->{'factor'}
+	$activeParameter->{'value'} *= $convergence->{'factor'}
 	   if ( $i > 0 );
 	# Create a directory for output.
-	my $modelDirectory = $workDirectory."/".$arguments{'directory'}."/".$convergence->{'parameter'}."/".$i;
+	(my $parameterSafe = $convergence->{'parameter'}) =~ s/://g;
+	my $modelDirectory = $workDirectory."/".$arguments{'directory'}."/".$parameterSafe."/".$i;
 	system("mkdir -p ".$modelDirectory);
 	# Specify the output file name.
 	my $galacticusFileName = $modelDirectory."/galacticus.hdf5";
@@ -242,44 +251,40 @@ foreach my $convergence ( @convergences ) {
 	    # Generate the parameter file.
 	    my $parameterFileName = $modelDirectory."/parameters.xml";
 	    &Parameters::Output($currentParameters,$parameterFileName);
-	    # Create a batch script for PBS.
-	    my $batchScriptFileName = $modelDirectory."/launch.pbs";
-	    open(oHndl,">".$batchScriptFileName);
-	    print oHndl "#!/bin/bash\n";
-	    print oHndl "#PBS -N convergence".ucfirst($convergence->{'parameter'}).$i."\n";
-	    print oHndl "#PBS -l walltime=24:00:00\n";
-	    print oHndl "#PBS -l mem=4gb\n";
-	    print oHndl "#PBS -l nodes=1:ppn=12\n";
-	    print oHndl "#PBS -j oe\n";
-	    print oHndl "#PBS -o ".$modelDirectory."/launch.log\n";
-	    print oHndl "#PBS -V\n";
-	    print oHndl "cd \$PBS_O_WORKDIR\n";
-	    print oHndl "export LD_LIBRARY_PATH=/home/abenson/Galacticus/Tools/lib:/home/abenson/Galacticus/Tools/lib64:\$LD_LIBRARY_PATH\n";
-	    print oHndl "export PATH=/home/abenson/Galacticus/Tools/bin:\$PATH\n";
-	    print oHndl "export GFORTRAN_ERROR_DUMPCORE=YES\n";
-	    print oHndl "ulimit -t unlimited\n";
-	    print oHndl "ulimit -c unlimited\n";
-	    print oHndl "export OMP_NUM_THREADS=12\n";
-	    print oHndl "mpirun --bynode -np 1 Galacticus.exe ".$parameterFileName."\n";
+	    # Create a PBS job.
+	    my $command = "mpirun --bynode -np 1 Galacticus.exe ".$parameterFileName."\n";
 	    foreach my $constraint ( @constraints ) {
 		# Parse the definition file.
 		my $xml = new XML::Simple;
 		my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
 		# Insert code to run the analysis code.
 		my $analysisCode = $constraintDefinition->{'analysis'};
-		print oHndl $analysisCode." ".$galacticusFileName." --resultFile ".$modelDirectory."/".$constraintDefinition->{'label'}.".hdf5\n";
+		$command .= $analysisCode." ".$galacticusFileName." --resultFile ".$modelDirectory."/".$constraintDefinition->{'label'}.".hdf5\n";
 	    }
-	    close(oHndl);
+	    my %job =
+		(
+		 launchFile  => $modelDirectory."/launch.pbs",
+		 label       => "convergence".ucfirst($parameterSafe).$i,
+		 logFile     => $modelDirectory."/launch.log",
+		 ppn         => 16,
+		 command     => $command,
+		 environment =>
+		 [
+		  "LD_LIBRARY_PATH=/home/abenson/Galacticus/Tools/lib:/home/abenson/Galacticus/Tools/lib64:\$LD_LIBRARY_PATH",
+		  "PATH=/home/abenson/Galacticus/Tools/bin:\$PATH",
+		  "GFORTRAN_ERROR_DUMPCORE=NO"
+		 ]
+		);
 	    # Queue the calculation.
 	    push(
 		@pbsStack,
-		$batchScriptFileName
+		\%job
 		);
 	}
     }
 }
 # Send jobs to PBS.
-&PBS_Submit(@pbsStack)
+&PBS::SubmitJobs(\%arguments,@pbsStack)
     if ( scalar(@pbsStack) > 0 );
 # Iterate over constraints.
 foreach my $constraint ( @constraints ) {
@@ -331,24 +336,30 @@ foreach my $constraint ( @constraints ) {
 	my @results;
 	# Make a copy of the parameters.
 	my $currentParameters = clone($parameters);
+	# Find the active parameter.
+	my $activeParameter = $currentParameters;
+	$activeParameter = $activeParameter->{$_}
+           foreach ( split(":",$convergence->{'parameter'}) );
 	# Step through values of this parameter.
 	for(my $i=0;$i<$convergence->{'steps'};++$i) {
 	    # Adjust the parameter.
-	    $currentParameters->{$convergence->{'parameter'}}->{'value'} *= $convergence->{'factor'}
+	    $activeParameter->{'value'} *= $convergence->{'factor'}
 	       if ( $i > 0 );
 	    # Locate the model directory.
-	    my $modelDirectory = $workDirectory."/".$arguments{'directory'}."/".$convergence->{'parameter'}."/".$i;
+	    (my $parameterSafe = $convergence->{'parameter'}) =~ s/://g;
+	    my $modelDirectory = $workDirectory."/".$arguments{'directory'}."/".$parameterSafe."/".$i;
 	    # Read the results.
 	    my $result = new PDL::IO::HDF5($modelDirectory."/".$constraintDefinition->{'label'}.".hdf5");
 	    # Store the results for later use.
 	    my $x          = $result->dataset('x'         )->get();
 	    my $y          = $result->dataset('y'         )->get();
 	    my $covariance = $result->dataset('covariance')->get();
+	    my $activeParameterCurrent = clone($activeParameter);
 	    push
 		(
 		 @results,
 		 {
-		     parameter  => $currentParameters->{$convergence->{'parameter'}}->{'value'},
+		     parameter  => $activeParameterCurrent,
 		     x          => $x,
 		     y          => $y,
 		     covariance => $covariance
@@ -390,10 +401,10 @@ foreach my $constraint ( @constraints ) {
 		$measureError         = sqrt(2.0*$dCd->((0),(0)));
 	    }
 	    unless ( $measure == 0.0 ) {
-		$parameter            = $parameter         ->append($_->{'parameter'});
-		$convergenceMeasure   = $convergenceMeasure->append($measure         );
-		$convergenceError     = $convergenceError  ->append($measureError    );
-	    }
+		$parameter            = $parameter         ->append($_->{'parameter'}->{'value'});
+		$convergenceMeasure   = $convergenceMeasure->append($measure                    );
+		$convergenceError     = $convergenceError  ->append($measureError               );
+	    }	    
 	}
     	if ( $convergence->{'parameter'} eq "baseline" ) {
 	    $baselineTestStatistic         = average( $convergenceMeasure                                                          );
@@ -426,7 +437,10 @@ foreach my $constraint ( @constraints ) {
 	    my $plotFileName = $constraintDefinition->{'label'}."_".$convergence->{'parameter'};
 	    $plotFileName =~ s/\./_/g;
 	    $plotFileName = $workDirectory."/".$arguments{'directory'}."/".$plotFileName.".pdf";
-	    my $usedValueX = pdl ( $parameters->{$convergence->{'parameter'}}->{'value'} );
+	    my $activeUsedParameter = $parameters;
+	    $activeUsedParameter = $activeUsedParameter->{$_}
+	       foreach ( split(":",$convergence->{'parameter'}) );
+	    my $usedValueX = pdl ( $activeUsedParameter->{'value'} );
 	    my $usedValueY = pdl ( 1.0 );
 	    my $parameterFull = $parameter->append($usedValueX); 
 	    my $xMinimum = minimum($parameterFull     )/1.05;
@@ -529,14 +543,14 @@ foreach my $constraint ( @constraints ) {
 	    $yMinimum = pdl +1.0e30;
 	    $yMaximum = pdl -1.0e30;
 	    foreach ( @results ) {
-	    $xMinimum = minimum(10.0**$_->{'x'})
-		if ( minimum(10.0**$_->{'x'}) < $xMinimum );
-	    $xMaximum = maximum(10.0**$_->{'x'})
-		if ( maximum(10.0**$_->{'x'}) > $xMaximum );
-	    $yMinimum = minimum($_->{'y'})
-		if ( minimum($_->{'y'}) < $yMinimum );
-	    $yMaximum = maximum($_->{'y'})
-		if ( maximum($_->{'y'}) > $yMaximum );
+		$xMinimum = minimum(10.0**$_->{'x'})
+		    if ( minimum(10.0**$_->{'x'}) < $xMinimum );
+		$xMaximum = maximum(10.0**$_->{'x'})
+		    if ( maximum(10.0**$_->{'x'}) > $xMaximum );
+		$yMinimum = minimum($_->{'y'})
+		    if ( minimum($_->{'y'}) < $yMinimum );
+		$yMaximum = maximum($_->{'y'})
+		    if ( maximum($_->{'y'}) > $yMaximum );
 	    }
 	    $xMinimum /= 2.0;
 	    $xMaximum *= 2.0;
@@ -588,51 +602,3 @@ foreach my $constraint ( @constraints ) {
 }
 
 exit;
-
-sub PBS_Submit {
-    # Submit jobs to PBS and wait for them to finish.
-    my @pbsStack = @_;
-    my %pbsJobs;
-    # Determine maximum number allowed in queue at once.
-    my $jobMaximum = 10;
-    $jobMaximum = $arguments{'pbsJobMaximum'}
-        if ( exists($arguments{'pbsJobMaximum'}) );
-    # Submit jobs and wait.
-    print "Waiting for PBS jobs to finish...\n";
-    while ( scalar(keys %pbsJobs) > 0 || scalar(@pbsStack) > 0 ) {
-	# Find all PBS jobs that are running.
-	my %runningPBSJobs;
-	undef(%runningPBSJobs);
-	open(pHndl,"qstat -f|");
-	while ( my $line = <pHndl> ) {
-	    if ( $line =~ m/^Job\sId:\s+(\S+)/ ) {$runningPBSJobs{$1} = 1};
-	}
-	close(pHndl);
-	foreach my $jobID ( keys(%pbsJobs) ) {
-	    unless ( exists($runningPBSJobs{$jobID}) ) {
-		print "PBS job ".$jobID." has finished.\n";
-		# Remove the job ID from the list of active PBS jobs.
-		delete($pbsJobs{$jobID});
-	    }
-	}
-	# If fewer than the maximum number of jobs are in the queue, pop one off the stack.
-	if ( scalar(@pbsStack) > 0 && scalar(keys %pbsJobs) < $jobMaximum ) {
-	    my $batchScript = pop(@pbsStack);
-	    # Submit the PBS job.
-	    open(pHndl,"qsub ".$batchScript."|");
-	    my $jobID = "";
-	    while ( my $line = <pHndl> ) {
-	    	if ( $line =~ m/^(\d+\S+)/ ) {$jobID = $1};
-	    }
-	    close(pHndl);	    
-	    # Add the job number to the active job hash.
-	    unless ( $jobID eq "" ) {
-	    	$pbsJobs{$jobID} = 1;
-	    }
-	    sleep 1;
-	} else {
-	    # Wait.
-	    sleep 5;
-	}
-    }
-}
