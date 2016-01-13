@@ -28,14 +28,14 @@ module Star_Formation_Timescale_Disks_VlctyMxSclng
   public :: Star_Formation_Timescale_Disks_VlctyMxSclng_Initialize, Star_Formation_Timescale_Disks_VlctyMxSclng_Reset
 
   ! Parameters of the timescale model.
-  double precision                             :: starFormationTimescaleDisksVlctyMxSclngRedshiftExponent              , starFormationTimescaleDisksVlctyMxSclngTimescale, &
+  double precision                             :: starFormationTimescaleDisksVlctyMxSclngRedshiftExponent        , starFormationTimescaleDisksVlctyMxSclngTimescale, &
        &                                          starFormationTimescaleDisksVlctyMxSclngVelocityExponent
 
   ! Record of unique ID of node which we last computed results for.
-  integer         (kind=kind_int8)             :: lastUniqueID                                                =-1
+  integer         (kind=kind_int8)             :: lastUniqueID                                           =-1
   !$omp threadprivate(lastUniqueID)
   ! Record of whether or not timescale has already been computed for this node.
-  logical                                      :: timescaleComputed                                           =.false.
+  logical                                      :: timescaleComputed                                      =.false.
   !$omp threadprivate(timescaleComputed)
   ! Stored values of the timescale.
   double precision                             :: timeScaleStored
@@ -43,7 +43,7 @@ module Star_Formation_Timescale_Disks_VlctyMxSclng
   ! Normalization of the timescale.
   double precision                            :: timeScaleNormalization
   ! Normalization for velocities. 
-  double precision                , parameter :: velocityNormalization=200.0d0
+  double precision                , parameter :: velocityNormalization                                   =200.0d0
 
 contains
 
@@ -55,8 +55,8 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type            (varying_string                                        ), intent(in   )          :: starFormationTimescaleDisksMethod 
-    procedure       (Star_Formation_Timescale_Disk_VlctyMxSclng), intent(inout), pointer :: Star_Formation_Timescale_Disk_Get 
+    type     (varying_string                            ), intent(in   )          :: starFormationTimescaleDisksMethod 
+    procedure(Star_Formation_Timescale_Disk_VlctyMxSclng), intent(inout), pointer :: Star_Formation_Timescale_Disk_Get 
 
     if (starFormationTimescaleDisksMethod == 'velocityMaximumScaling') then
        Star_Formation_Timescale_Disk_Get => Star_Formation_Timescale_Disk_VlctyMxSclng
