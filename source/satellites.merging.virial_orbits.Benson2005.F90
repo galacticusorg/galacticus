@@ -80,11 +80,9 @@ contains
          &                                                                  uniformRandom                  , velocityRadialInternal    , &
          &                                                                  velocityHost                   , velocityTangentialInternal, &
          &                                                                  massHost                       , radiusHost                , &
-         &                                                                  massSatellite
+         &                                                                  massSatellite                  , radiusHostSelf
     logical                                                              :: foundOrbit
 
-    ! Reset the orbit.
-    call benson2005Orbit%reset()
     ! Get required objects.
     darkMatterHaloScale_ => darkMatterHaloScale()
     ! Get basic components.
@@ -93,15 +91,17 @@ contains
     ! Find virial density contrast under Benson (2005) definition.
     virialDensityContrast_ => self %densityContrastDefinition()
     ! Find mass, radius, and velocity in the host corresponding to the Benson (2005) virial density contrast definition.
-    massHost     =Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%time()),radiusHost,velocityHost)
-    massSatellite=Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%time())                        )
+    massHost     =Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%time()),radiusHostSelf,velocityHost)
+    massSatellite=Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%time())                            )
     if (virialDensityContrast_%isFinalizable()) deallocate(virialDensityContrast_)
-    ! Set basic properties of the orbit.
-    call benson2005Orbit%massesSet(massSatellite,massHost)
-    call benson2005Orbit%radiusSet(radiusHost            )
     ! Select an orbit.
     foundOrbit=.false.
     do while(.not.foundOrbit)
+       ! Reset the orbit.
+       call benson2005Orbit%reset()
+       ! Set basic properties of the orbit.
+       call benson2005Orbit%massesSet(massSatellite,massHost      )
+       call benson2005Orbit%radiusSet(              radiusHostSelf)
        ! Select potential radial and tangential velocities.
        velocityRadialInternal    =Pseudo_Random_Get(self%pseudoSequenceObject,self%resetSequence)*velocityMax
        velocityTangentialInternal=Pseudo_Random_Get(self%pseudoSequenceObject,self%resetSequence)*velocityMax
