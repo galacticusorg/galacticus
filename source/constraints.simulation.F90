@@ -300,6 +300,7 @@ contains
           simulatorStepsMaximumDefinition                    => XML_Get_First_Element_By_Tag_Name(definition,"stepsMaximum"                   )
           simulatorLogFileDefinition                         => XML_Get_First_Element_By_Tag_Name(definition,"logFileRoot"                    )
           simulatorReportCountDefinition                     => XML_Get_First_Element_By_Tag_Name(definition,"reportCount"                    )
+          simulatorInteractionRootDefinition                 => XML_Get_First_Element_By_Tag_Name(definition,"interactionRoot"                )
           simulatorInertiaWeightDefinition                   => XML_Get_First_Element_By_Tag_Name(definition,"inertialWeight"                 )
           simulatorAccelerationCoefficientPersonalDefinition => XML_Get_First_Element_By_Tag_Name(definition,"accelerationCoefficientPersonal")
           simulatorAccelerationCoefficientGlobalDefinition   => XML_Get_First_Element_By_Tag_Name(definition,"accelerationCoefficientGlobal"  )
@@ -312,7 +313,8 @@ contains
           call extractDataContent(simulatorAccelerationCoefficientGlobalDefinition  ,simulatorAccelerationCoefficientGlobal  )
           call extractDataContent(simulatorVelocityCoefficientDefinition            ,simulatorVelocityCoefficient            )
           call extractDataContent(simulatorLogFlushCountDefinition                  ,simulatorLogFlushCount                  )
-          simulatorLogFile=XML_Extract_Text(simulatorLogFileDefinition)
+          simulatorLogFile        =XML_Extract_Text(simulatorLogFileDefinition        )
+          simulatorInteractionRoot=XML_Extract_Text(simulatorInteractionRootDefinition)
           newSimulator=simulatorParticleSwarm(                                          &
                &                              parameterPriors                         , &
                &                              parameterMappings                       , &
@@ -328,7 +330,8 @@ contains
                &                              simulatorInertiaWeight                  , &
                &                              simulatorAccelerationCoefficientPersonal, &
                &                              simulatorAccelerationCoefficientGlobal  , &
-               &                              simulatorVelocityCoefficient              &
+               &                              simulatorVelocityCoefficient            , &
+               &                              char(simulatorInteractionRoot)            &
                &                             )
        end select
     case default
