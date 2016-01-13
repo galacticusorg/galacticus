@@ -10,4 +10,6 @@
   <haloMassMinimum>2.0e10</haloMassMinimum>
   <haloMassMaximum>2.0e14</haloMassMaximum>
   <analysis>constraints/scripts/stellarMassFunction_PRIMUS_z0.575.pl</analysis>
+  <massSystematicZeroPoint>11.3</massSystematicZeroPoint>
+  <massSystematicOrder>1</massSystematicOrder>
 </constraint>
