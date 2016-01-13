@@ -669,20 +669,24 @@ contains
     ! If timescale is finite and gas mass is positive, then compute star formation rate.
     if (starFormationTimescale > 0.0d0 .and. gasMass > 0.0d0 .and. self%radius() > 0.0d0) then
        ! Find mass of gas actively involved in star formation.
-       surfaceDensityCentral  =+gasMass          &
-            &                  /self%radius()**2 &
-            &                  /2.0d0            &
-            &                  /Pi
-       surfaceDensityThreshold=+  diskVerySimpleSurfaceDensityThreshold                      &
-            &                  *(                                                            &
-            &                    +darkMatterProfile_ %circularVelocityMaximum(self%hostNode) &
-            &                    /velocityNormalization                                      &
-            &                  )**diskVerySimpleSurfaceDensityVelocityExponent
-       if (surfaceDensityCentral > surfaceDensityThreshold) then
-          radiusThreshold=-log(surfaceDensityThreshold/surfaceDensityCentral)
-          massStarForming=gasMass*(1.0d0-(1.0d0+radiusThreshold)*exp(-radiusThreshold))
+       if (diskVerySimpleSurfaceDensityThreshold > 0.0d0) then
+          surfaceDensityCentral  =+gasMass          &
+               &                  /self%radius()**2 &
+               &                  /2.0d0            &
+               &                  /Pi
+          surfaceDensityThreshold=+  diskVerySimpleSurfaceDensityThreshold                      &
+               &                  *(                                                            &
+               &                    +darkMatterProfile_ %circularVelocityMaximum(self%hostNode) &
+               &                    /velocityNormalization                                      &
+               &                  )**diskVerySimpleSurfaceDensityVelocityExponent
+          if (surfaceDensityCentral > surfaceDensityThreshold) then
+             radiusThreshold=-log(surfaceDensityThreshold/surfaceDensityCentral)
+             massStarForming=gasMass*(1.0d0-(1.0d0+radiusThreshold)*exp(-radiusThreshold))
+          else
+             massStarForming=0.0d0
+          end if
        else
-          massStarForming=0.0d0
+          massStarForming=gasMass
        end if
        Node_Component_Disk_Very_Simple_SFR=massStarForming/starFormationTimescale
     else
