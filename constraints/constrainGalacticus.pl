@@ -490,6 +490,12 @@ foreach my $constraint ( @constraints ) {
     }
     # Read the likelihood.
     ++$i;
+    my $waitTime = 0; # Wait for the file to appear if necessary.
+    while ( $waitTime < 10 && ! -e $scratchDirectory."/likelihood".$mpiRank.":".$i.".xml" ) {
+	sleep(1);
+	++$waitTime;
+    }
+    sleep(3);
     my $likelihood = $xml->XMLin($scratchDirectory."/likelihood".$mpiRank.":".$i.".xml");
     if ( $likelihood->{'logLikelihood'} =~ m/nan/i ) {
 	# Issue a failure.
@@ -545,7 +551,6 @@ if ( $store eq "none" ) {
 	system("mv ".$file." ".$storeDirectory."/");
     }
 }
-
 # Display the final likelihood.
 &outputLikelihood($config,$logLikelihood,$logLikelihoodVariance);
 
