@@ -504,6 +504,18 @@ where
 \end{equation}
 $\tau_{\mathrm cool,0}=${\normalfont \ttfamily [coolingRateSimpleScalingTimescale]}, $\beta_{\mathrm cool}=${\normalfont \ttfamily [coolingRateSimpleScalingTimescaleExponent]}, $M_{\mathrm transition}=${\normalfont \ttfamily [coolingRateSimpleScalingTransitionMass]}, and $\gamma_{\mathrm cool}=${\normalfont \ttfamily [coolingRateSimpleScalingCutoffExponent]}.
 
+\subsubsection{Velocity Maximum Scaling}
+
+Selected with {\normalfont \ttfamily coolingRateMethod}$=${\normalfont \ttfamily velocityMaximumScaling}, this method computes the cooling rate using
+\begin{equation}
+\dot{M}_{\mathrm cool} = M_{\mathrm hot}/\tau_{\mathrm cool}(V_{\mathrm max,halo},z) ,
+\end{equation}
+where 
+\begin{equation}
+\tau_{\mathrm cool}=\hbox{max}\left[ \tau_{\rm infall} \left({V_{\rm max} \over 200 \hbox{km/s}}\right)^{-\gamma_{\rm infall}} (1+z)^{\alpha_{\rm infall}} \left( 1 + \exp\left[ {\log_{10}(V_{\rm max}/(1+z)^{\delta_{\rm infall}}\mathcal{V}_{\rm infall})] \over \Delta \log_{10} \mathcal{V}_{\rm infall}}\right]\right)^{\beta_{\rm infall}}, \tau_{\rm infall,min} \right],
+\end{equation}
+with $\tau_{\rm infall}=${\normalfont \ttfamily [coolingRateVelocityMaximumScalingTimescale]}, $\tau_{\rm infall,min}=${\normalfont \ttfamily [coolingRateVelocityMaximumScalingTimescaleMinimum]}, $\alpha_{\rm infall}=${\normalfont \ttfamily [coolingRateVelocityMaximumScalingTimescaleExponent]}, $\beta_{\rm infall}=${\normalfont \ttfamily [coolingRateVelocityMaximumScalingCutOffExponent]}, $\gamma_{\rm infall}=${\normalfont \ttfamily [coolingRateVelocityMaximumScalingVelocityExponent]}, $\delta_{\rm infall}=${\normalfont \ttfamily []coolingRateVelocityMaximumScalingCutOffVelocityRedshiftExponent}, $\mathcal{V}_{\rm infall}=${\normalfont \ttfamily [coolingRateVelocityMaximumScalingCutOffVelocity]}, and $\Delta \log_{10} \mathcal{V}_{\rm infall}=${\normalfont \ttfamily [coolingRateVelocityMaximumScalingCutOffWidth]}.
+
 \subsubsection{White \& Frenk}
 
 Selected with {\normalfont \ttfamily coolingRateMethod}$=${\normalfont \ttfamily White-Frenk1991}, this method computes the cooling rate using the expression given by \cite{white_galaxy_1991}, namely
