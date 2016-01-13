@@ -85,7 +85,8 @@ module Node_Component_Disk_Very_Simple
  
   ! Parameters controlling the physical implementation.
   double precision :: diskOutflowTimescaleMinimum                       , diskStarFormationTimescaleMinimum       , &
-       &              diskVerySimpleMassScaleAbsolute
+       &              diskVerySimpleMassScaleAbsolute                   , diskVerySimpleSurfaceDensityThreshold   , &
+       &              diskVerySimpleSurfaceDensityVelocityExponent
   
 contains
 
@@ -137,6 +138,28 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('diskStarFormationTimescaleMinimum',diskStarFormationTimescaleMinimum,defaultValue=1.0d-3)
+       !@ <inputParameter>
+       !@   <name>diskVerySimpleSurfaceDensityThreshold</name>
+       !@   <defaultValue>0</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    The threshold gas surface denisty above this star formation occurs [$M_\odot$/Mpc$^2$].
+       !@   </description>
+       !@   <type>double</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('diskVerySimpleSurfaceDensityThreshold',diskVerySimpleSurfaceDensityThreshold,defaultValue=0.0d0)
+       !@ <inputParameter>
+       !@   <name>diskVerySimpleSurfaceDensityVelocityExponent</name>
+       !@   <defaultValue>0</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    The exponent of velocity in the threshold gas surface denisty above this star formation occurs.
+       !@   </description>
+       !@   <type>double</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('diskVerySimpleSurfaceDensityVelocityExponent',diskVerySimpleSurfaceDensityVelocityExponent,defaultValue=0.0d0)
        !@ <inputParameter>
        !@   <name>diskVerySimpleUseAnalyticSolver</name>
        !@   <defaultValue>false</defaultValue>
@@ -397,6 +420,9 @@ contains
              hotHalo   => node%hotHalo  ()
              satellite => node%satellite()
              call Node_Component_Disk_Very_Simple_Rates(node,rateFuel,rateStars,rateOutflow,stellarHistoryRate)
+             ! If any rates are zero, return without an analytic solution
+             if (rateFuel == 0.0d0 .and. rateStars == 0.0d0 .and. rateOutflow == 0.0d0) return
+             ! Compute timescales.             
              timescaleFuel    =massGasInitial/(+rateOutflow-rateFuel          )
              timescaleStellar =massGasInitial/(                     +rateStars)
              timescaleOutflow =massGasInitial/(+rateOutflow                   )
@@ -619,11 +645,17 @@ contains
     !% Return the star formation rate of the very simple disk.
     use Star_Formation_Timescales_Disks
     use Dark_Matter_Halo_Scales
+    use Dark_Matter_Profiles
+    use Numerical_Constants_Math
     implicit none
     class           (nodeComponentDiskVerySimple), intent(inout) :: self
     class           (darkMatterHaloScaleClass   ), pointer       :: darkMatterHaloScale_
-    double precision                                             :: diskDynamicalTime     , gasMass, &
-         &                                                          starFormationTimescale
+    class           (darkMatterProfileClass     ), pointer       :: darkMatterProfile_
+    double precision                             , parameter     :: velocityNormalization  =200.0d0
+    double precision                                             :: diskDynamicalTime              , gasMass              , &
+         &                                                          starFormationTimescale         , surfaceDensityCentral, &
+         &                                                          radiusThreshold                , massStarForming      , &
+         &                                                          surfaceDensityThreshold
 
     ! Get the gas mass.
     gasMass=self%massGas()    
@@ -631,11 +663,28 @@ contains
     starFormationTimescale=Star_Formation_Timescale_Disk(self%hostNode)
     ! Limit the star formation timescale to a multiple of the dynamical time.
     darkMatterHaloScale_   => darkMatterHaloScale()
+    darkMatterProfile_     => darkMatterProfile  ()
     diskDynamicalTime      =darkMatterHaloScale_%dynamicalTimescale(self%hostNode)
     starFormationTimescale =max(starFormationTimescale,diskStarFormationTimescaleMinimum*diskDynamicalTime)
     ! If timescale is finite and gas mass is positive, then compute star formation rate.
-    if (starFormationTimescale > 0.0d0 .and. gasMass > 0.0d0) then
-       Node_Component_Disk_Very_Simple_SFR=gasMass/starFormationTimescale
+    if (starFormationTimescale > 0.0d0 .and. gasMass > 0.0d0 .and. self%radius() > 0.0d0) then
+       ! Find mass of gas actively involved in star formation.
+       surfaceDensityCentral  =+gasMass          &
+            &                  /self%radius()**2 &
+            &                  /2.0d0            &
+            &                  /Pi
+       surfaceDensityThreshold=+  diskVerySimpleSurfaceDensityThreshold                      &
+            &                  *(                                                            &
+            &                    +darkMatterProfile_ %circularVelocityMaximum(self%hostNode) &
+            &                    /velocityNormalization                                      &
+            &                  )**diskVerySimpleSurfaceDensityVelocityExponent
+       if (surfaceDensityCentral > surfaceDensityThreshold) then
+          radiusThreshold=-log(surfaceDensityThreshold/surfaceDensityCentral)
+          massStarForming=gasMass*(1.0d0-(1.0d0+radiusThreshold)*exp(-radiusThreshold))
+       else
+          massStarForming=0.0d0
+       end if
+       Node_Component_Disk_Very_Simple_SFR=massStarForming/starFormationTimescale
     else
        Node_Component_Disk_Very_Simple_SFR=0.0d0
     end if
