@@ -320,7 +320,6 @@ if ( exists($arguments{'outputFile'}) ) {
     my $modelCovarianceExcluded     = $model              ->    {'covariance'}->           ($includeIndices,$includeIndices)  ;
     my $shiftedIndices              = $exclude            ->flat(            )->cumusumover(                               )-1;
     my $upperLimitsExcluded         = $shiftedIndices                         ->           ($upperLimits                   )  ;
-
     # Compute the likelihood.
     my $constraint;
     my $logDeterminant;
@@ -354,13 +353,34 @@ if ( exists($arguments{'outputFile'}) ) {
 
 # Output the results to file if requested.
 if ( exists($arguments{'resultFile'}) ) {
+    # Identify upper limits.
+    my $upperLimits                      = which($sizeData->{'radiusFunction'} < 0.0);
+    my $dataRadiusFunction               =       $sizeData->{'radiusFunction'}->flat()->copy();
+    $dataRadiusFunction->($upperLimits) .= -$dataRadiusFunction->($upperLimits);
+    # For each function, find the peak value, and exclude from the points.
+    my $exclude = pdl ones($sizeData->{'radiusFunction'});
+    for(my $i=0;$i<$sizeData->{'radiusFunction'}->dim(1);++$i) {
+	# Get the index of the peak value in this size function.
+	my $maxIndex = maximum_ind($sizeData->{'radiusFunction'}->(:,($i)));
+	# Mark this element as excluded.
+	$exclude->(($maxIndex),($i)) .= 0;
+    }
+    # Create excluded copies.
+    my $includeIndices              = which($exclude == 1.0);
+    my $radiusExcluded              = $sizeData          ->{'radius'        }->flat()->($includeIndices                );
+    my $dataRadiusFunctionExcluded  = $dataRadiusFunction                            ->($includeIndices                );
+    my $modelRadiusFunctionExcluded = $model             ->{'radiusFunction'}->flat()->($includeIndices                );
+    my $dataCovarianceExcluded      = $sizeData          ->{'covariance'    }        ->($includeIndices,$includeIndices);
+    my $modelCovarianceExcluded     = $model             ->{'covariance'    }        ->($includeIndices,$includeIndices);
+    my $errorExcluded               = sqrt($dataCovarianceExcluded->diagonal(0,1)+$modelCovarianceExcluded->diagonal(0,1));
+    # Write out the results.
     my $resultsFile = new PDL::IO::HDF5(">".$arguments{'resultFile'});
-    $resultsFile->dataset('x'             )->set($sizeData->{'radius'             }->flat());
-    $resultsFile->dataset('y'             )->set($model   ->{'radiusFunction'     }->flat());
-    $resultsFile->dataset('error'         )->set($model   ->{'radiusFunctionError'}->flat());
-    $resultsFile->dataset('covariance'    )->set($model   ->{'covariance'         }        );
-    $resultsFile->dataset('yData'         )->set($sizeData->{'radiusFunction'     }->flat());
-    $resultsFile->dataset('covarianceData')->set($sizeData->{'covariance'         }        );
+    $resultsFile->dataset('x'             )->set($radiusExcluded             );
+    $resultsFile->dataset('y'             )->set($modelRadiusFunctionExcluded);
+    $resultsFile->dataset('error'         )->set($errorExcluded              );
+    $resultsFile->dataset('covariance'    )->set($modelCovarianceExcluded    );
+    $resultsFile->dataset('yData'         )->set($dataRadiusFunctionExcluded );
+    $resultsFile->dataset('covarianceData')->set($dataCovarianceExcluded     );
 }
 
 # Create a plot of the radius function.
