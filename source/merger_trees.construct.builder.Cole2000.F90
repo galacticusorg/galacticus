@@ -361,6 +361,9 @@ contains
                 newBasic1     => newNode1%basic(autoCreate=.true.)
                 ! Compute mass of one of the new nodes.
                 nodeMass1     =  Tree_Branch_Mass(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,branchingProbability,tree%randomNumberGenerator)
+                nodeMass2     =  thisBasic%mass()-nodeMass1
+                nodeMass1=nodeMass1*(1.0d0-accretionFractionCumulative)
+                nodeMass2=nodeMass2*(1.0d0-accretionFractionCumulative)            
                 ! Compute the time corresponding to this branching event.
                 time          =  criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical,mass=branchMassCurrent)
                 ! Set properties of first new node.
@@ -371,8 +374,6 @@ contains
                 nodeIndex=nodeIndex+1
                 newNode2  => treeNode(nodeIndex,tree)
                 newBasic2 => newNode2%basic(autoCreate=.true.)
-                ! Compute mass of second new node.
-                nodeMass2=thisBasic%mass()*(1.0d0-accretionFractionCumulative)-nodeMass1
                 ! Set properties of second new node.
                 deltaCritical2=criticalOverdensity_%value(time=time,mass=nodeMass2)
                 call newBasic2%massSet(nodeMass2     )
