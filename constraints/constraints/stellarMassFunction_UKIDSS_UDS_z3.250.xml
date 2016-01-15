@@ -10,6 +10,7 @@
   <haloMassMinimum>1.0e10</haloMassMinimum>
   <haloMassMaximum>1.0e15</haloMassMaximum>
   <analysis>constraints/scripts/stellarMassFunction_UKIDSS_UDS_z3.250.pl</analysis>
+  <systematicMassShift>yes</systematicMassShift>
   <massSystematicZeroPoint>11.3</massSystematicZeroPoint>
   <massSystematicOrder>1</massSystematicOrder>
 </constraint>

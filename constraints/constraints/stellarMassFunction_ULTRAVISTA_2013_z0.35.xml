@@ -9,6 +9,7 @@
   <haloMassMinimum>2.0e10</haloMassMinimum>
   <haloMassMaximum>2.0e14</haloMassMaximum>
   <analysis>constraints/scripts/stellarMassFunction_ULTRAVISTA_z0.35.pl</analysis>
+  <systematicMassShift>yes</systematicMassShift>
   <massSystematicZeroPoint>11.3</massSystematicZeroPoint>
   <massSystematicOrder>1</massSystematicOrder>
 </constraint>
