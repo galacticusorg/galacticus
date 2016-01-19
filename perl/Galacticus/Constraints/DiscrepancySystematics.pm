@@ -49,15 +49,17 @@ sub MassFunctionMassShift {
     if ( $systematicMassShiftOrder eq "constraint" ) {
 	die("MassFunctionMassShift: constraint must specify a mass systematic order")
 	    unless ( exists($constraint->{'massSystematicOrder'}) );
-	$zeroPoint = $constraint->{'massSystematicOrder'};
+	$systematicMassShiftOrder = $constraint->{'massSystematicOrder'};
     }
+    # Convert X to logarithmic units.
+    my $Xlog                         = log10($X);
     # First find cumulative mass functions.
     my $discrepantCumulative         = $discrepantY               ->(-1:0)->cumusumover()->(-1:0);
     my $discrepantCumulativeVariance = $discrepantC->diagonal(0,1)->(-1:0)->cumusumover()->(-1:0);
     my $trueCumulative               = $trueY                     ->(-1:0)->cumusumover()->(-1:0);
     my $trueCumulativeVariance       = $trueC      ->diagonal(0,1)->(-1:0)->cumusumover()->(-1:0);
     # Find the errors in the x-values.
-    my $deltaX                       = $X->((1))-$X->((0));
+    my $deltaX                       = $Xlog->((1))-$Xlog->((0));
     my $discrepantGradient           = ($discrepantY/$deltaX);
     my $trueGradient                 = ($trueY      /$deltaX);
     my $discrepantXVariance          = $discrepantCumulativeVariance/$discrepantGradient**2;
@@ -79,14 +81,15 @@ sub MassFunctionMassShift {
     my $done = 0;
     while ( $done == 0 ) {
 	# Shift the x-axis in the discrepant model using systematic model.
-	my $discrepantXShifted                          = $X->copy();
+	my $discrepantXShifted                          = $Xlog->copy();
 	for(my $i=0;$i<=$systematicMassShiftOrder;++$i) {
-	    $discrepantXShifted += $coefficient->(($i))*($X-$zeroPoint)**$i;
+	    $discrepantXShifted += $coefficient->(($i))*($Xlog-$zeroPoint)**$i;
 	}
 	# Interpolate these shifted x-values by matching abundances between discrepant and true models.
-	(my $discrepantXShiftedInterpolated, my $error) = interpolate($trueCumulative,$discrepantCumulative,$discrepantXShifted);
+	(my $discrepantXShiftedInterpolatedReversed, my $error) = interpolate($trueCumulative->(-1:0),$discrepantCumulative->(-1:0),$discrepantXShifted->(-1:0));
+	my $discrepantXShiftedInterpolated = $discrepantXShiftedInterpolatedReversed->(-1:0);
 	# Compute a test statistic.
-	my $offset                                      = $discrepantXShiftedInterpolated-$X;
+	my $offset                                      = $discrepantXShiftedInterpolated-$Xlog;
 	my $variance                                    = $discrepantXVariance+$trueXVariance;
 	my $testStatistic                               = sum($offset**2/$variance);
 	# Minimize the test statistic.
@@ -113,12 +116,12 @@ sub MassFunctionMassShift {
     # Report on best-fit systematic model.
     print "Best fit systematic model coefficients: ".$coefficientBest."\n";
     # Shift the discrepant model x-values by the best fit systematic model.
-    my $discrepantXShiftedBest  = $X->copy();
+    my $discrepantXShiftedBest  = $Xlog->copy();
     for(my $i=0;$i<=$systematicMassShiftOrder;++$i) {
-	$discrepantXShiftedBest += $coefficientBest->(($i))*($X-$zeroPoint)**$i;
+	$discrepantXShiftedBest += $coefficientBest->(($i))*($Xlog-$zeroPoint)**$i;
     }
     # Interpolate the y-values from the shifted discrepant model onto the original x-values.
-    my $discrepantYShiftedBest  = interpol($X,$discrepantXShiftedBest,$discrepantY);
+    my $discrepantYShiftedBest  = interpol($Xlog,$discrepantXShiftedBest,$discrepantY);
     # Compute multiplicative correction.
     my $discrepantYMultiplier   = $discrepantYShiftedBest/$discrepantY;
     # Replace the original y-values of the discrepant model.
