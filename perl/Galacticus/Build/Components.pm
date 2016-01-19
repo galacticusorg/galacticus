@@ -6515,14 +6515,23 @@ sub Generate_GSR_Availability_Functions {
 	    # Get the component.
 	    my $componentID = ucfirst($componentClassName).ucfirst($componentName);
 	    my $component   = $buildData->{'components'}->{$componentID};
-	    # Iterate over the properties of this implementation.
-	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
-		# Get the property.
-		my $property = $component->{'properties'}->{'property'}->{$propertyName};
-		# Record attributes.
-		$properties->{$propertyName}->{$componentName}->{'set' } = $property->{'attributes'}->{'isSettable' }; 
-		$properties->{$propertyName}->{$componentName}->{'get' } = $property->{'attributes'}->{'isGettable' }; 
-		$properties->{$propertyName}->{$componentName}->{'rate'} = $property->{'attributes'}->{'isEvolvable'}; 
+	    # Iterate over component and parents.
+	    while ( defined($component) ) {
+		# Iterate over the properties of this implementation.
+		foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+		    # Get the property.
+		    my $property = $component->{'properties'}->{'property'}->{$propertyName};
+		    # Record attributes.
+		    $properties->{$propertyName}->{$componentName}->{'set' } = $property->{'attributes'}->{'isSettable' }; 
+		    $properties->{$propertyName}->{$componentName}->{'get' } = $property->{'attributes'}->{'isGettable' }; 
+		    $properties->{$propertyName}->{$componentName}->{'rate'} = $property->{'attributes'}->{'isEvolvable'}; 
+		}
+		if ( exists($component->{'extends'}) ) {
+		    my $parentID = ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'});
+		    $component = $buildData->{'components'}->{$parentID};
+		} else {
+		    undef($component);
+		}
 	    }
 	}
 	# Iterate over properties, creating a function for each.
