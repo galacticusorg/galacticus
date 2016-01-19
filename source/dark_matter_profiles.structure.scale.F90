@@ -142,9 +142,9 @@ contains
       !% Root function used to find the mass of a halo corresponding to the definition used for a particular concentration class.
       implicit none
       double precision            , intent(in   ) :: massDefinitionTrial
-      double precision                            :: radiusOuterDefinition, concentrationDefinition  , &
-           &                                         radiusCore           , massOuterDefinition      , &
-           &                                         radiusOuter          , massOuter
+      double precision                            :: radiusOuterDefinition, concentrationDefinition, &
+           &                                         radiusCore           , massOuter              , &
+           &                                         radiusOuter
       type            (rootFinder)                :: radiusFinder
       
       ! Set the mass of the worker node.
@@ -152,11 +152,9 @@ contains
       call Galacticus_Calculations_Reset                 (workNode)
       call darkMatterProfileDefinition  %calculationReset(workNode)
       ! Get outer radius for this trial definition mass.
-      radiusOuterDefinition  =darkMatterHaloScaleDefinition           %virialRadius (workNode                      )
-      ! Get mass normalization.
-      massOuterDefinition    =darkMatterProfileDefinition             %enclosedMass (workNode,radiusOuterDefinition)
+      radiusOuterDefinition  =darkMatterHaloScaleDefinition           %virialRadius (workNode)
       ! Get concentration for this a trial definition mass.
-      concentrationDefinition=darkMatterProfileConcentrationDefinition%concentration(workNode                      )
+      concentrationDefinition=darkMatterProfileConcentrationDefinition%concentration(workNode)
       ! Get core radius.
       radiusCore             =radiusOuterDefinition/concentrationDefinition
       call workDarkMatterProfile%scaleSet(radiusCore)
