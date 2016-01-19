@@ -40,18 +40,21 @@ my %arguments =
 my $config = &Parameters::Parse_Config($configFile);
 
 # Validate the config file.
-die("randomSpins.pl: workDirectory must be specified in config file" ) unless ( exists($config->{'workDirectory' }) );
-die("randomSpins.pl: compilation must be specified in config file"   ) unless ( exists($config->{'compilation'   }) );
-die("randomSpins.pl: baseParameters must be specified in config file") unless ( exists($config->{'baseParameters'}) );
+die("randomSpins.pl: workDirectory must be specified in config file" ) unless ( exists($config->{'likelihood'}->{'workDirectory' }) );
+die("randomSpins.pl: compilation must be specified in config file"   ) unless ( exists($config->{'likelihood'}->{'compilation'   }) );
+die("randomSpins.pl: baseParameters must be specified in config file") unless ( exists($config->{'likelihood'}->{'baseParameters'}) );
 
 # Determine the scratch and work directories.
-my $workDirectory    = $config->{'workDirectory'};
-my $scratchDirectory = $config->{'workDirectory'};
-$scratchDirectory    = $config->{'scratchDirectory'}
-    if ( exists($config->{'scratchDirectory'}) );
+my $workDirectory    = $config->{'likelihood'}->{'workDirectory'   };
+my $scratchDirectory = $config->{'likelihood'}->{'workDirectory'   };
+$scratchDirectory    = $config->{'likelihood'}->{'scratchDirectory'}
+    if ( exists($config->{'likelihood'}->{'scratchDirectory'}) );
 
 # Create the work and scratch directories.
-system("mkdir -p ".$config->{'workDirectory'});
+system("mkdir -p ".$config->{'likelihood'}->{'workDirectory'});
+
+# Determine base parameters to use.
+my $baseParameters = exists($arguments{'baseParameters'}) ? $arguments{'baseParameters'} : $config->{'likelihood'}->{'baseParameters'};
 
 # Ensure that Galacticus is built.
 if ( $arguments{'make'} eq "yes" ) {
@@ -61,17 +64,17 @@ if ( $arguments{'make'} eq "yes" ) {
 }
 
 # Get a hash of the parameter values.
-(my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'compilation'},$config->{'baseParameters'});
+(my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'likelihood'}->{'compilation'},$baseParameters);
 my @constraints = @{$constraintsRef};
 
 # Switch off thread locking.
-$parameters->{'parameter'}->{'treeEvolveThreadLock'}->{'value'} = "false";
+$parameters->{'treeEvolveThreadLock'}->{'value'} = "false";
 
 # Initialize a stack for PBS models.
 my @pbsStack;
 
 # Extract the standard reset factor for spins.
-my $resetFactor = $parameters->{'parameter'}->{'randomSpinResetMassFactor'};
+my $resetFactor = $parameters->{'randomSpinResetMassFactor'}->{'value'};
 
 # Specify models to run.
 my @models = 
@@ -114,15 +117,15 @@ foreach my $model ( @models ) {
 	}
 	);
     my $newParameters = clone($parameters);
-    $newParameters->{'parameter'}->{$_->{'name'}}->{'value'} = $_->{'value'}
+    $newParameters->{$_->{'name'}}->{'value'} = $_->{'value'}
         foreach ( @{$model->{'parameters'}} );
     # Adjust the number of trees to run if specified.
-    $newParameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'} = $arguments{'treesPerDecade'}
+    $newParameters->{'mergerTreeBuildTreesPerDecade'}->{'value'} = $arguments{'treesPerDecade'}
         if ( exists($arguments{'treesPerDecade'}) );
     # Set the fixed mass resolution.
-    $newParameters->{'parameter'}->{'mergerTreeBuildMassResolutionScaledMinimum'}->{'value'} =
-	$newParameters->{'parameter'}->{'mergerTreeBuildMassResolutionScaledMinimum'}->{'value'};
-    $newParameters->{'parameter'}->{'mergerTreeBuildMassResolutionScaledMinimum'}->{'value'} =
+    $newParameters->{'mergerTreeBuildMassResolutionScaledMinimum'}->{'value'} =
+	$newParameters->{'mergerTreeBuildMassResolutionScaledMinimum'}->{'value'};
+    $newParameters->{'mergerTreeBuildMassResolutionScaledMinimum'}->{'value'} =
 	$arguments{'massResolutionFixed'}
            if ( exists($arguments{'massResolutionFixed'}) );
     # Run the model.
@@ -150,7 +153,7 @@ foreach my $model ( @models ) {
 	    );
 	foreach ( 'ppn', 'walltime', 'memory' ) {
 	    $job{$_} = $arguments{$_}
-	    if ( exists($arguments{$_}) );
+	       if ( exists($arguments{$_}) );
 	}
 	# Queue the calculation.
 	push(
@@ -168,6 +171,8 @@ foreach my $constraint ( @constraints ) {
     # Parse the definition file.
     my $xml                  = new XML::Simple;
     my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
+    # Report.
+    print "Constructing discrepancy for: ".$constraintDefinition->{'label'}."\n";    
     # Locate the model results.
     my $standardFileName   = $workDirectory."/modelDiscrepancy/randomSpins/standard/".$constraintDefinition->{'label'}.".hdf5";
     my $shortFileName      = $workDirectory."/modelDiscrepancy/randomSpins/short/"   .$constraintDefinition->{'label'}.".hdf5";
@@ -185,17 +190,26 @@ foreach my $constraint ( @constraints ) {
     foreach my $argument ( keys(%arguments) ) {
 	if ( $argument =~ m/^systematic(.*)/ ) {
 	    my $model = $1;
-	    if ( exists($DiscrepancySystematics::models{$model}) ) {
-		%{$systematicResults{$model}} =
-		    &{$DiscrepancySystematics::models{$model}}(
-		    \%arguments          ,
-		    $constraintDefinition,
-		    $shortX              ,
-		    $shortY              ,
-		    $shortCovariance     ,
-		    $standardY           ,
-		    $standardCovariance
-		);
+	    if 
+		( 
+		  exists($DiscrepancySystematics::models{$model}) 
+		  && 
+		  $arguments{$argument} eq "yes"
+		  &&
+		  exists($constraintDefinition->{$argument})
+		  &&
+		  $constraintDefinition->{$argument} eq "yes"
+		) {
+		    %{$systematicResults{$model}} =
+			&{$DiscrepancySystematics::models{$model}}(
+			\%arguments          ,
+			$constraintDefinition,
+			$shortX              ,
+			$shortY              ,
+			$shortCovariance     ,
+			$standardY           ,
+			$standardCovariance
+		    );
 	    }
 	}
     }
@@ -221,11 +235,15 @@ foreach my $constraint ( @constraints ) {
     # Create a plot if requested.
     if ( $arguments{'plot'} eq "yes" ) {
 	# Determine suitable x and y ranges.
-	my $x    = 10.0**$shortX;
+	my $yCombined = $shortY->append($standardY);
+	my $yNonZero  = which($yCombined > 0.0);
+	my $x    = $shortX;
 	my $xMin = 0.67*min($x     );
 	my $xMax = 1.50*max($x     );
-	my $yMin = 0.67*min($shortY->append($standardY));
-	my $yMax = 1.50*max($shortY->append($standardY));
+	my $yMin = 0.67*min($yCombined->($yNonZero));
+	my $yMax = 1.50*max($yCombined->($yNonZero));
+	$yMin = 1.0e-10*$yMax
+	    if ( $yMin < 1.0e-10*$yMax );
 	# Declare standards for GnuPlot;
 	my ($gnuPlot, $plotFileEPS, $plot);
 	# Open a pipe to GnuPlot.
@@ -251,7 +269,7 @@ foreach my $constraint ( @constraints ) {
 	print $gnuPlot "set xrange [".$xMin.":".$xMax."]\n";
 	print $gnuPlot "set yrange [".$yMin.":".$yMax."]\n";
 	print $gnuPlot "set xlabel '\$x\$'\n";
-	print $gnuPlot "set ylabel '\$y\$'\n";
+	print $gnuPlot "set ylabel '\$y\$'\n";	
 	&PrettyPlots::Prepare_Dataset(\$plot,
 				      $x,$shortY,
 				      errorUp   => sqrt($shortCovariance->diagonal(0,1)),
