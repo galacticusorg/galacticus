@@ -228,7 +228,7 @@ sub Construct {
     # Output the results to file if requested.
     if ( exists($arguments{'resultFile'}) ) {
 	my $resultsFile = new PDL::IO::HDF5(">".$arguments{'resultFile'});
-	$resultsFile->dataset('x'             )->set($xBins                 );
+	$resultsFile->dataset('x'             )->set($config->{'x'}         );
 	$resultsFile->dataset('y'             )->set($yGalacticus           );
 	$resultsFile->dataset('covariance'    )->set($covarianceGalacticus  );
 	$resultsFile->dataset('yData'         )->set($config->{'y'         });
