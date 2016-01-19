@@ -24,6 +24,7 @@ module Virial_Orbits
   use Virial_Density_Contrast
   use Kepler_Orbits
   use FGSL
+  use Statistics_Distributions
   !# <include directive="virialOrbit" type="functionModules" >
   include 'virialOrbit.functionModules.inc'
   !# </include>
