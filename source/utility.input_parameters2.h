@@ -23,7 +23,9 @@ class inputParameters
   void *selfParameters;
  public:
   inputParameters              (void *parameters    );
+  ~inputParameters             (                    );
   inputParameters subParameters(char parameterName[]);
+  void            setParameters(void *parameters    );
   void            value        (char parameterName[], double *parameterValue, double *defaultValue = NULL, int *errorStatus = NULL, bool *writeOutput = NULL);
   void            value        (char parameterName[], long   *parameterValue, long   *defaultValue = NULL, int *errorStatus = NULL, bool *writeOutput = NULL);
 };

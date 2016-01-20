@@ -7,36 +7,36 @@
   <massFunctionCovarianceFFTGridSize value="64"/>
 
   <!-- Options controlling survey geometry -->
-  <surveyGeometryMethod value="Caputi-2011-UKIDSS-UDS"/>
+  <surveyGeometryMethod value="caputi2011UKIDSSUDS"/>
 
   <!-- Options controlling the mass function -->
   <massFunctionCovarianceRedshiftMinimum value="3.0"/>
   <massFunctionCovarianceRedshiftMaximum value="5.0"/>
   <massFunctionCovarianceBinCount value="7"/>
-  <massFunctionCovarianceMassMinimum value="2.4975941000e10"/>
-  <massFunctionCovarianceMassMaximum value="3.95841980000e11"/>
+  <massFunctionCovarianceMassMinimum value="2.5118864e+10"/>
+  <massFunctionCovarianceMassMaximum value="3.9810717e+11"/>
   <massFunctionCovarianceHaloMassMinimum value="1.0e10"/>
   <massFunctionCovarianceHaloMassMaximum value="1.0e15"/>
   <massFunctionCovarianceIncludePoisson value="true"/>
   <massFunctionCovarianceIncludeHalo value="true"/>
   <massFunctionCovarianceIncludeLSS value="true"/>
-  <conditionalStellarMassFunctionMassCount value="7"/>
-  <conditionalStellarMassFunctionMassMinimum value="2.4975941000e10"/>
-  <conditionalStellarMassFunctionMassMaximum value="3.95841980000e11"/>
-  <conditionalStellarMassFunctionHaloMassMinimum value="1.0e10"/>
-  <conditionalStellarMassFunctionHaloMassMaximum value="1.0e15"/>
-  <conditionalStellarMassFunctionRedshiftMinimum value="3.0"/>
-  <conditionalStellarMassFunctionRedshiftMaximum value="5.0"/>
-  <conditionalStellarMassFunctionUseSurveyLimits value="true"/>
-  <conditionalStellarMassFunctionHaloMass value="all"/>
+  <conditionalMassFunctionMassCount value="7"/>
+  <conditionalMassFunctionMassMinimum value="2.5118864e+10"/>
+  <conditionalMassFunctionMassMaximum value="3.9810717e+11"/>
+  <conditionalMassFunctionHaloMassMinimum value="1.0e10"/>
+  <conditionalMassFunctionHaloMassMaximum value="1.0e15"/>
+  <conditionalMassFunctionRedshiftMinimum value="3.0"/>
+  <conditionalMassFunctionRedshiftMaximum value="5.0"/>
+  <conditionalMassFunctionUseSurveyLimits value="true"/>
+  <conditionalMassFunctionHaloMass value="all"/>
 
   <!-- Cosmological parameters and options -->
-  <cosmologyMethod value="matter-lambda"/>
+  <cosmologyFunctionsMethod value="matterLambda"/>
   <cosmologyParametersMethod value="simple">
-    <HubbleConstant value="70.2"/>
-    <OmegaMatter value="0.2725"/>
-    <OmegaDarkEnergy value="0.7275"/>
-    <OmegaBaryon value="0.0455"/>
+    <HubbleConstant value="70.0"/>
+    <OmegaMatter value="0.3"/>
+    <OmegaDarkEnergy value="0.7"/>
+    <OmegaBaryon value="0.0"/>
     <temperatureCMB value="2.72548"/>
   </cosmologyParametersMethod><!-- Power spectrum options -->
   <sigma_8 value="0.807"/>
