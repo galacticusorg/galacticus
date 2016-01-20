@@ -135,8 +135,11 @@ contains
        end do
        parentBasicComponent => parentNode%basic()
        call thisBasicComponent%timeLastIsolatedSet(parentBasicComponent%time())
-       ! Determine if this node has a descendent.
-       if (.not.associated(thisNode%parent)) then
+       ! Determine node status.
+       if (thisNode%isSatellite()) then
+          ! Node is a satellite - we assume no accretion.
+          call thisBasicComponent%accretionRateSet(0.0d0)
+       else if (.not.associated(thisNode%parent)) then
           ! For parent-less nodes (i.e. the root node of the tree), the rate is set equal to that of the
           ! progenitor, if it has one.
           childNode => thisNode%firstChild
@@ -178,7 +181,6 @@ contains
              if (deltaTime > 0.0d0) call thisBasicComponent%accretionRateSet((massUnresolved/deltaTime)*(thisBasicComponent%mass()/progenitorMassTotal))
           end if
        end if
-
     end select
     return
   end subroutine Node_Component_Basic_Standard_Tree_Initialize
@@ -212,11 +214,15 @@ contains
      !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, we simply update the mass of {\normalfont \ttfamily thisNode}
      !% to be that of its parent.
      use Galacticus_Error
+     use ISO_Varying_String
+     use String_Handling
      implicit none
-     type (treeNode          ), intent(inout), pointer :: thisNode
-     type (treeNode          )               , pointer :: parentNode
-     class(nodeComponentBasic)               , pointer :: parentBasicComponent, thisBasicComponent
-
+     type     (treeNode          ), intent(inout), pointer :: thisNode
+     type     (treeNode          )               , pointer :: parentNode
+     class    (nodeComponentBasic)               , pointer :: parentBasicComponent, thisBasicComponent
+     type     (varying_string    )                         :: message
+     character(len=12            )                         :: label
+     
      ! Get the basic component.
      thisBasicComponent => thisNode%basic()
      ! Ensure that it is of the standard class.
@@ -226,8 +232,14 @@ contains
         parentNode           => thisNode  %parent
         parentBasicComponent => parentNode%basic()
         ! Ensure the two halos exist at the same time.
-        if (thisBasicComponent%time() /= parentBasicComponent%time()) call Galacticus_Error_Report('Node_Component_Basic_Standard_Promote','thisNode&
-             & has not been evolved to its parent')
+        if (thisBasicComponent%time() /= parentBasicComponent%time()) then
+           message=var_str("node [")//thisNode%index()//"] has not been evolved to its parent ["//parentNode%index()//"]"//char(10)
+           write (label,'(f12.6)') thisBasicComponent%time()
+           message=message//"    node is at time: "//label//" Gyr"//char(10)
+           write (label,'(f12.6)') parentBasicComponent%time()
+           message=message//"  parent is at time: "//label//" Gyr"
+           call Galacticus_Error_Report('Node_Component_Basic_Standard_Promote',message)
+        end if
         ! Adjust the mass to that of the parent node.
         call thisBasicComponent%massSet         (parentBasicComponent%mass         ())
         ! Adjust the accretion rate to that of the parent node.

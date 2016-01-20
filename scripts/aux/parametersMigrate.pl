@@ -335,6 +335,9 @@ my @translations =
 	     "prada2011ConcentrationAlpha"                                    => "darkMatterProfileConcentrationMethod.prada2011.--alpha"                         ,
 	     "prada2011ConcentrationBeta"                                     => "darkMatterProfileConcentrationMethod.prada2011.--beta"                          ,
 	     "darkMatterProfileConcentrationCDMMethod"                        => "darkMatterProfileConcentrationMethod.wdm.--darkMatterProfileConcentrationMethod",
+	     "mergerTreeBuildMassResolutionFixed"                             => "mergerTreeMassResolutionMethod.fixed.--massResolution"                          ,
+	     "mergerTreeBuildMassResolutionScaledMinimum"                     => "mergerTreeMassResolutionMethod.scaled.--massResolutionMinimum"                  ,
+	     "mergerTreeBuildMassResolutionScaledFraction"                    => "mergerTreeMassResolutionMethod.scaled.--massResolutionFractional"               ,
 	     "powerSpectrumWindowFunctionSharpKSpaceNormalization"            => "powerSpectrumWindowFunctionMethod.sharpKSpace.--normalization"                  ,
 	     "powerSpectrumWindowFunctionSharpKSpaceTopHatRadiiRatio"         => "powerSpectrumWindowFunctionMethod.topHatSharpKHybrid.--radiiRatio"              ,
 	     "haloMassFunctionSimpleSystematicAlpha"                          => "haloMassFunctionMethod.simpleSystematic.--alpha"                                ,
@@ -344,10 +347,7 @@ my @translations =
 	     "spinDistributionBett2007Alpha"	                              => "haloSpinDistributionMethod.bett2007.--alpha"                                    ,
 	     "lognormalSpinDistributionMedian"                                => "haloSpinDistributionMethod.logNormal.--median"                                  ,
 	     "lognormalSpinDistributionSigma"	                              => "haloSpinDistributionMethod.logNormal.--sigma"                                   ,
-	     "deltaFunctionSpinDistributionSpin"	                      => "haloSpinDistributionMethod.deltaFunction.--spin"                                ,
-	     "mergerTreeBuildMassResolutionScaledMinimum"                     => "mergerTreeMassResolutionMethod.scaled.--massResolutionMinimum"                  ,
-	     "mergerTreeBuildMassResolutionScaledFraction"                    => "mergerTreeMassResolutionMethod.scaled.--massResolutionFractional"
-		 
+	     "deltaFunctionSpinDistributionSpin"	                      => "haloSpinDistributionMethod.deltaFunction.--spin"
 	 },
  	 values        =>
          {
