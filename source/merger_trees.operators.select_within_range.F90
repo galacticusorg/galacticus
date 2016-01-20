@@ -89,6 +89,7 @@ contains
 
   subroutine selectWithinRangeOperate(self,tree)
     !% Perform a select-within-range operation on a merger tree.
+    use Merger_Trees_Pruning_Utilities
     implicit none
     class  (mergerTreeOperatorSelectWithinRange), intent(inout)         :: self
     type   (mergerTree                         ), intent(inout), target :: tree
@@ -112,6 +113,7 @@ contains
           baseNode => baseNode%firstChild
           do while (associated(baseNode))
              nodeNext => baseNode%sibling
+             call Merger_Tree_Prune_Clean_Branch(baseNode)
              call currentTree%destroyBranch(baseNode)
              baseNode => nodeNext
           end do
