@@ -24,6 +24,7 @@
      !% A merger tree operator class which restructures the tree onto a fixed grid of timesteps.
      private
      logical                                     :: dumpTrees
+     double precision                            :: snapTolerance
      double precision, allocatable, dimension(:) :: timeGrid
    contains
      final     ::            regridTimesDestructor
@@ -62,7 +63,8 @@ contains
     logical                                                                      :: dumpTrees
     integer                                                                      :: regridCount                     , snapshotSpacing   , &
          &                                                                          iTime
-    double precision                                                             :: expansionFactorStart            , expansionFactorEnd
+    double precision                                                             :: expansionFactorStart            , expansionFactorEnd, &
+         &                                                                          snapTolerance
     type            (varying_string               )                              :: snapshotSpacingText
     !# <inputParameterList label="allowedParameterNames" />
         
@@ -73,6 +75,14 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether or not to dump merger trees as they are regridded.</description>
     !#   <type>boolean</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>snapTolerance</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>The fractional tolerance used in deciding if a node should be snapped to a time on the grid.</description>
+    !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -128,11 +138,11 @@ contains
        end do
     end if
     ! Build the instance.
-    regridTimesConstructorParameters=regridTimesConstructorInternal(regridCount,expansionFactorStart,expansionFactorEnd,snapshotSpacing,dumpTrees,snapshotTimes)
+    regridTimesConstructorParameters=regridTimesConstructorInternal(snapTolerance,regridCount,expansionFactorStart,expansionFactorEnd,snapshotSpacing,dumpTrees,snapshotTimes)
     return
   end function regridTimesConstructorParameters
 
-  function regridTimesConstructorInternal(regridCount,expansionFactorStart,expansionFactorEnd,snapshotSpacing,dumpTrees,snapshotTimes)
+  function regridTimesConstructorInternal(snapTolerance,regridCount,expansionFactorStart,expansionFactorEnd,snapshotSpacing,dumpTrees,snapshotTimes)
     !% Internal constructor for the regrid times merger tree operator class.
     use Cosmology_Functions
     use Critical_Overdensity
@@ -143,7 +153,8 @@ contains
     implicit none
     type            (mergerTreeOperatorRegridTimes)                                        :: regridTimesConstructorInternal
     integer                                        , intent(in   )                         :: regridCount
-    double precision                               , intent(in   )                         :: expansionFactorStart          , expansionFactorEnd
+    double precision                               , intent(in   )                         :: expansionFactorStart          , expansionFactorEnd, &
+         &                                                                                    snapTolerance
     integer                                        , intent(in   )                         :: snapshotSpacing
     logical                                        , intent(in   )                         :: dumpTrees
     double precision                               , intent(in   ), optional, dimension(:) :: snapshotTimes
@@ -153,7 +164,8 @@ contains
     ! Validate arguments.
     if (regridCount < 2) call Galacticus_Error_Report('regridTimesConstructorInternal','regridCount > 2 is required')
     ! Store options.
-    regridTimesConstructorInternal%dumpTrees=dumpTrees
+    regridTimesConstructorInternal%dumpTrees    =dumpTrees
+    regridTimesConstructorInternal%snapTolerance=snapTolerance
     ! Construct array of grid expansion factors.
     call Alloc_Array(regridTimesConstructorInternal%timeGrid,[regridCount])
     cosmologyFunctions_ => cosmologyFunctions()
@@ -229,18 +241,22 @@ contains
     use               Galacticus_Error
     use               FGSL
     use               Numerical_Interpolation
+    use               Numerical_Comparison
     use               Kind_Numbers
     use               Merger_Trees_Dump
     implicit none
     class           (mergerTreeOperatorRegridTimes), intent(inout)                        :: self
     type            (mergerTree                   ), intent(inout), target                :: tree
     type            (treeNode                     )                             , pointer :: nodeChild               , nodeNext   , &
-         &                                                                                   nodeSibling             , node
+         &                                                                                   nodeSibling             , node       , &
+         &                                                                                   mergee
     type            (treeNodeList                 ), allocatable  , dimension(:)          :: newNodes
     integer         (kind=kind_int8               ), allocatable  , dimension(:)          :: highlightNodes
     class           (nodeComponentBasic           )                             , pointer :: basicChild              , basicParent, &
          &                                                                                   basic
+    class           (nodeComponentSatellite       )                             , pointer :: mergeeSatellite
     type            (mergerTree                   )                             , pointer :: currentTree
+    type            (nodeEvent                    )                             , pointer :: event                   , pairedEvent
     type            (fgsl_interp_accel            )                                       :: interpolationAccelerator
     logical                                                                               :: interpolationReset
     integer         (c_size_t                     )                                       :: iNow                    , iParent    , &
@@ -270,20 +286,70 @@ contains
             &                                   )
        ! Ensure interpolation accelerator gets reset.
        interpolationReset=.true.
-       ! Find the current maximum node index in the tree.
-       nodeIndex=0_kind_int8
-       node => currentTree%baseNode
+       ! Iterate through to tree to:
+       !  a) Find the current maximum node index in the tree, and;
+       !  b) Snap halos to snapshot times if requested.
+       nodeIndex =  0_kind_int8
+       node      => currentTree%baseNode
        do while (associated(node))
           nodeIndex=max(nodeIndex,node%index())
-          node => node%walkTree()
+          ! Check if this node can be snapped to a grid time.
+          if (self%snapTolerance > 0.0d0) then
+             ! Get the basic component.
+             basic   => node %basic()
+             ! Get the time for this node.
+             timeNow =  basic%time ()
+             ! Find the closest time in the new time grid.
+             iNow    =  Interpolate_Locate(self%timeGrid,interpolationAccelerator,timeNow,reset=interpolationReset,closest=.true.)
+             ! Test how close the node is to this time.
+             if (Values_Agree(timeNow,self%timeGrid(iNow),relTol=self%snapTolerance)) then
+                ! Adjust the time of the node.
+                call basic%timeSet(self%timeGrid(iNow))
+                ! Check for mergees with their merge times set to match the time of this node.
+                mergee => node%firstMergee
+                do while (associated(mergee))
+                   mergeeSatellite => mergee         %satellite    ()
+                   ! Get the merge time for this mergee.
+                   timeNow         =  mergeeSatellite%timeOfMerging()
+                   ! Find the closest time in the new time grid.
+                   iNow    =  Interpolate_Locate(self%timeGrid,interpolationAccelerator,timeNow,reset=interpolationReset,closest=.true.)
+                   if (Values_Agree(timeNow,self%timeGrid(iNow),relTol=self%snapTolerance)) &
+                        & call mergeeSatellite%timeOfMergingSet(self%timeGrid(iNow))
+                   mergee => mergee%siblingMergee
+                end do
+                ! Check for events with their event times set to match the time of this node.
+                event => node%event
+                do while (associated(event))
+                   ! Get the merge time for this event.
+                   timeNow=event%time
+                   ! Find the closest time in the new time grid.
+                   iNow   =Interpolate_Locate(self%timeGrid,interpolationAccelerator,timeNow,reset=interpolationReset,closest=.true.)
+                   if (Values_Agree(timeNow,self%timeGrid(iNow),relTol=self%snapTolerance)) then
+                      event%time=self%timeGrid(iNow)
+                      if (associated(event%node)) then
+                         pairedEvent => event%node%event
+                         do while (associated(pairedEvent))
+                            if (pairedEvent%ID == event%ID) then
+                               pairedEvent%time=self%timeGrid(iNow)
+                               exit
+                            end if
+                            pairedEvent => pairedEvent%next
+                         end do
+                      end if
+                   end if
+                   event => event%next
+                end do
+             end if
+          end if
+          node => node%walkTreeWithSatellites()
        end do
        firstNewNode=nodeIndex+1
        ! Walk the tree, locating branches which intersect grid times.
        node => currentTree%baseNode
        do while (associated(node))
-          basic => node%basic()
           ! Skip this node if it is the root node.
           if (associated(node%parent)) then
+             basic       => node       %basic()
              basicParent => node%parent%basic()             
              ! Get the time of this node and its parent.
              timeNow   =basic  %time()
