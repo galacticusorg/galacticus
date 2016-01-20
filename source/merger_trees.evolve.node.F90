@@ -537,9 +537,10 @@ contains
     implicit none
     class(mergerTree    ), intent(inout)          :: thisTree
     type (treeNode      ), intent(inout), pointer :: thisNode
-    type (treeNode      )               , pointer :: parentNode, satelliteNode
+    type (treeNode      )               , pointer :: parentNode, satelliteNode, &
+         &                                           mergeeNode
     type (varying_string)                         :: message
-
+    
     ! Get pointer to parent node.
     parentNode => thisNode%parent
 
@@ -589,6 +590,22 @@ contains
        end do
     end if
 
+    ! Mergees of the node to be promoted must have their merge targets reset to the parent node.
+    mergeeNode => thisNode%firstMergee
+    do while (associated(mergeeNode))
+       mergeeNode%mergeTarget => parentNode
+       mergeeNode => mergeeNode%siblingMergee
+    end do
+    if (associated(parentNode%firstMergee)) then
+       mergeeNode => parentNode%firstMergee
+       do while (associated(mergeeNode%siblingMergee))
+          mergeeNode => mergeeNode%siblingMergee
+       end do
+       mergeeNode%siblingMergee => thisNode%firstMergee
+    else
+       parentNode%firstMergee => thisNode%firstMergee
+    end if
+    
     ! Nullify the child pointer for the parent.
     parentNode%firstChild => null()
 
