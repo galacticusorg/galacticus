@@ -106,9 +106,11 @@ contains
     double precision function haloRadiusRootFunction(haloRadiusTrial)
       !% Root function used to find the radius of a halo giving the correct bounding density.
       use Dark_Matter_Profile_Scales
+      use Dark_Matter_Profiles_Shape
       implicit none
-      double precision, intent(in   ) :: haloRadiusTrial
-      double precision                :: scaleRadius         , densityHaloRadius
+      double precision                             , intent(in   ) :: haloRadiusTrial
+      double precision                                             :: scaleRadius            , densityHaloRadius
+      class           (darkMatterProfileShapeClass), pointer       :: darkMatterProfileShape_
 
       ! Construct the current density contrast.
       densityContrastCurrent=+3.0d0                                             &
@@ -120,6 +122,10 @@ contains
       ! Find scale radius of the halo.
       scaleRadius=Dark_Matter_Profile_Scale(workNode,darkMatterProfileConcentration_)
       call workDarkMatterProfile%scaleSet(scaleRadius)
+      if (workDarkMatterProfile%shapeIsSettable()) then
+         darkMatterProfileShape_ => darkMatterProfileShape()
+         call workDarkMatterProfile%shapeSet(darkMatterProfileShape_%shape(workNode))
+      end if
       call Galacticus_Calculations_Reset(workNode)
       ! Compute density at the halo radius.
       densityHaloRadius=darkMatterProfile_%density(workNode,haloRadiusTrial)

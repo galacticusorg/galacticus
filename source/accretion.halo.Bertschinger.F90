@@ -119,7 +119,7 @@ contains
   end function bertschingerConstructor
 
   double precision function bertschingerVelocityScale(self,node)
-    !% Returns the velocity scale to use for {\normalfont \ttfamily node}. Use the virial velocity.
+    !% Returns the velocity scale to use for {\normalfont \ttfamily node}. Use the maximum circular velocity.
     use Galacticus_Nodes
     use Dark_Matter_Profiles
     implicit none
@@ -133,7 +133,7 @@ contains
   end function bertschingerVelocityScale
 
   double precision function bertschingerAccretionRateTotal(self,node)
-    !% Returns the velocity scale to use for {\normalfont \ttfamily node}. Use the virial velocity.
+    !% Returns the total accretion rate to use for {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     implicit none
     class(accretionHaloBertschinger), intent(inout)          :: self
@@ -146,7 +146,7 @@ contains
   end function bertschingerAccretionRateTotal
 
   double precision function bertschingerMassTotal(self,node)
-    !% Returns the velocity scale to use for {\normalfont \ttfamily node}. Use the virial velocity.
+    !% Returns the total mass to use for {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     implicit none
     class(accretionHaloBertschinger), intent(inout)          :: self
