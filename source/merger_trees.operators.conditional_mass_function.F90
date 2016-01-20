@@ -543,7 +543,7 @@ contains
           !$omp end critical(conditionalMassFunctionAccumulate)
        end if
        ! Walk the tree, accumulating statistics.
-       do while (associated(node))          
+       do while (associated(node))
           ! Get the child node, and process if child exists.
           nodeChild => node%firstChild
           do while (associated(nodeChild))
@@ -587,10 +587,14 @@ contains
                       branchMassFinal=branchMassInitial
                    end if
                    ! Interpolate to get the mass at the required time.
-                   massParent=                     +branchMassInitial  &
-                        &     +(branchMassFinal    -branchMassInitial) &
-                        &     *(self%timeParents(i)-branchBegin      ) &
-                        &     /(branchEnd          -branchBegin      )
+                   if (branchEnd == branchBegin) then
+                      massParent=branchMassFinal
+                   else
+                      massParent=                     +branchMassInitial  &
+                           &     +(branchMassFinal    -branchMassInitial) &
+                           &     *(self%timeParents(i)-branchBegin      ) &
+                           &     /(branchEnd          -branchBegin      )
+                   end if
                    massParentLogarithmic=log(massParent)
                    binMassParent=int(                                                            &
                         &            +(+massParentLogarithmic-self%massParentLogarithmicMinimum) &
@@ -617,10 +621,14 @@ contains
                       branchMassFinal=branchMassInitial
                    end if
                    ! Interpolate to get the mass at the required time.
-                   massProgenitor=                         +branchMassInitial  &
-                        &         +(branchMassFinal        -branchMassInitial) &
-                        &         *(self%timeProgenitors(i)-branchBegin      ) &
-                        &         /(branchEnd              -branchBegin      )
+                   if (branchEnd == branchBegin) then
+                      massProgenitor=branchMassFinal
+                   else
+                      massProgenitor=                         +branchMassInitial  &
+                           &         +(branchMassFinal        -branchMassInitial) &
+                           &         *(self%timeProgenitors(i)-branchBegin      ) &
+                           &         /(branchEnd              -branchBegin      )
+                   end if
                    ! Walk up the tree to find parents.
                    nodeParent => node
                    parentWalk : do while (associated(nodeParent))
@@ -650,10 +658,14 @@ contains
                          parentBranchMassInitial=basicParentChild%mass()
                          parentBranchMassFinal  =     basicParent%mass()
                          ! Find the parent mass at the required time.
-                         massParent=                       +parentBranchMassInitial  &
-                              &     +(parentBranchMassFinal-parentBranchMassInitial) &
-                              &     *(self%timeParents(i)  -parentBranchBegin      ) &
-                              &     /(parentBranchEnd      -parentBranchBegin      )
+                         if (parentBranchEnd == parentBranchBegin) then
+                            massParent=parentBranchMassFinal
+                         else
+                            massParent=                       +parentBranchMassInitial  &
+                                 &     +(parentBranchMassFinal-parentBranchMassInitial) &
+                                 &     *(self%timeParents(i)  -parentBranchBegin      ) &
+                                 &     /(parentBranchEnd      -parentBranchBegin      )
+                         end if
                          ! Accumulate to mass function array.
                          massParentLogarithmic=log(               massParent)
                          massRatio            =    massProgenitor/massParent
