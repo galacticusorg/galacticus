@@ -61,6 +61,9 @@ $scratchDirectory    = $config->{'likelihood'}->{'scratchDirectory'}
 # Create the work and scratch directories.
 system("mkdir -p ".$config->{'likelihood'}->{'workDirectory'});
 
+# Determine base parameters to use.
+my $baseParameters = exists($arguments{'baseParameters'}) ? $arguments{'baseParameters'} : $config->{'likelihood'}->{'baseParameters'};
+
 # Ensure that Galacticus is built.
 if ( $arguments{'make'} eq "yes" ) {
     system("make Galacticus.exe");
@@ -73,12 +76,12 @@ if ( $arguments{'make'} eq "yes" ) {
     &Parameters::Compilation
     (
      $config->{'likelihood'}->{'compilation'},
-     $config->{'likelihood'}->{'baseParameters'}
+     $baseParameters
     );
 my @constraints = @{$constraintsRef};
 
 # Switch off thread locking.
-$parameters->{'parameter'}->{'treeEvolveThreadLock'}->{'value'} = "false";
+$parameters->{'treeEvolveThreadLock'}->{'value'} = "false";
 
 # Initialize a stack for PBS models.
 my @pbsStack;
@@ -101,10 +104,14 @@ my @models =
 	 label      => "alternativeDarkMatterProfile",
 	 parameters => 
 	     [
-	      # Use an alternative concentration method.
+	      # Use an alternative dark matter profile method.
 	      {
 		  name  => "darkMatterProfileMethod",
 		  value => "einasto"
+	      },
+	      {
+		  name  => "treeNodeMethodDarkMatterProfile",
+		  value => "scaleShape"
 	      }
 	     ]
      }
@@ -124,11 +131,14 @@ foreach my $model ( @models ) {
 	}
 	);
     my $newParameters = clone($parameters);
-    $newParameters->{'parameter'}->{$_->{'name'}}->{'value'} = $_->{'value'}
+    $newParameters->{$_->{'name'}}->{'value'} = $_->{'value'}
         foreach ( @{$model->{'parameters'}} );
     # Adjust the number of trees to run if specified.
-    $newParameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'} = $arguments{'treesPerDecade'}
-        if ( exists($arguments{'treesPerDecade'}) );
+    if ( exists($arguments{'treesPerDecade'}) ) {
+	# Must also specify that trees are to be built in this case.
+	$newParameters->{'mmergerTreeConstructMethod'   }->{'value'} = "build";
+	$newParameters->{'mergerTreeBuildTreesPerDecade'}->{'value'} = $arguments{'treesPerDecade'};
+    }
     # Run the model.
     unless ( -e $galacticusFileName ) {
 	# Generate the parameter file.
@@ -181,8 +191,8 @@ foreach my $constraint ( @constraints ) {
     my $alternativeDarkMatterProfileResult = new PDL::IO::HDF5($alternativeDarkMatterProfileResultFileName);
     my $defaultDarkMatterProfileResult     = new PDL::IO::HDF5($defaultDarkMatterProfileResultFileName   );
     # Extract the results.
-    my $defaultX              = $defaultDarkMatterProfileResult   ->dataset('x'         )->get();
-    my $defaultY              = $defaultDarkMatterProfileResult   ->dataset('y'         )->get();
+    my $defaultX              = $defaultDarkMatterProfileResult    ->dataset('x'         )->get();
+    my $defaultY              = $defaultDarkMatterProfileResult    ->dataset('y'         )->get();
     my $defaultCovariance     = $alternativeDarkMatterProfileResult->dataset('covariance')->get();
     my $alternativeY          = $alternativeDarkMatterProfileResult->dataset('y'         )->get();
     my $alternativeCovariance = $alternativeDarkMatterProfileResult->dataset('covariance')->get();
@@ -191,7 +201,16 @@ foreach my $constraint ( @constraints ) {
     foreach my $argument ( keys(%arguments) ) {
 	if ( $argument =~ m/^systematic(.*)/ ) {
 	    my $model = $1;
-	    if ( exists($DiscrepancySystematics::models{$model}) ) {
+	    if 
+		( 
+		  exists($DiscrepancySystematics::models{$model}) 
+		  && 
+		  $arguments{$argument} eq "yes"
+		  &&
+		  exists($constraintDefinition->{$argument})
+		  &&
+		  $constraintDefinition->{$argument} eq "yes"
+		) {
 		%{$systematicResults{$model}} =
 		    &{$DiscrepancySystematics::models{$model}}(
 		    \%arguments           ,
