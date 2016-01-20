@@ -207,9 +207,11 @@ contains
     use Galacticus_Error
     use Array_Utilities
     implicit none
-    type (darkMatterProfileEinasto), target :: einastoConstructor
-    class(darkMatterHaloScaleClass), target :: scale
-
+    type (darkMatterProfileEinasto), target                    :: einastoConstructor
+    class(darkMatterHaloScaleClass), target                    :: scale
+    type (varying_string          ), allocatable, dimension(:) :: matchingComponentsShape, matchingComponentsScale, &
+         &                                                        matchingComponents
+    
     ! Initialize table states.
     einastoConstructor%angularMomentumTableRadiusMinimum                 = 1.0d-3
     einastoConstructor%angularMomentumTableRadiusMaximum                 =20.0d+0
@@ -252,18 +254,23 @@ contains
          &        .and.                                                                                                      &
          &         defaultDarkMatterProfileComponent%shapeIsGettable()                                                       &
          &       )                                                                                                           &
-         & ) call Galacticus_Error_Report                                                                                    &
-         &        (                                                                                                          &
-         &         'einastoConstructor'                                                                                    , &
-         &         'Einasto dark matter profile requires a dark matter profile component that supports gettable '//          &
-         &         '"scale" and "shape" properties.'                                                             //          &
-         &         Galacticus_Component_List(                                                                                &
-         &                                   'darkMatterProfile'                                                           , &
-         &                                    defaultDarkMatterProfileComponent%shapeAttributeMatch(requireGettable=.true.)  &
-         &                                   .intersection.                                                                  &
-         &                                    defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)  &
-         &                                  )                                                                                &
-         &        )
+         & ) then
+       matchingComponentsShape=defaultDarkMatterProfileComponent%shapeAttributeMatch(requireGettable=.true.)
+       matchingComponentsScale=defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)
+       matchingComponents     = matchingComponentsShape &
+            &                  .intersection.           &
+            &                   matchingComponentsScale
+       call Galacticus_Error_Report                                                                                     &
+            &        (                                                                                                  &
+            &         'einastoConstructor'                                                                            , &
+            &         'Einasto dark matter profile requires a dark matter profile component that supports gettable '//  &
+            &         '"scale" and "shape" properties.'                                                             //  &
+            &         Galacticus_Component_List(                                                                        &
+            &                                   'darkMatterProfile'                                                   , &
+            &                                    matchingComponents                                                     &
+            &                                  )                                                                        &
+            &        )
+    end if
     return
   end function einastoConstructor
   
@@ -1154,13 +1161,14 @@ contains
     use Galacticus_Display
     implicit none
     class           (darkMatterProfileEinasto  ), intent(inout) :: self
-    double precision                            , intent(in   ) :: alphaRequired       , concentrationRequired, wavenumberRequired
-    integer                                                     :: iAlpha              , iConcentration       , iWavenumber       , &
+    double precision                            , intent(in   ) :: alphaRequired                , concentrationRequired, wavenumberRequired
+    double precision                            , parameter     :: profileTruncateLevel  =1.0d-6
+    integer                                                     :: iAlpha                       , iConcentration       , iWavenumber        , &
          &                                                         percentage
     logical                                                     :: makeTable
-    double precision                                            :: alpha               , concentration        , radiusMaximum     , &
-         &                                                         radiusMinimum       , wavenumber           , wavenumberParameter, &
-         &                                                         concentrationParameter, alphaParameter
+    double precision                                            :: alpha                        , concentration        , radiusMaximum      , &
+         &                                                         radiusMinimum                , wavenumber           , wavenumberParameter, &
+         &                                                         concentrationParameter       , alphaParameter
     type            (c_ptr                     )                :: parameterPointer
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
@@ -1227,18 +1235,23 @@ contains
              call Galacticus_Display_Counter(percentage,iAlpha == 1 .and. iConcentration == 1,verbosityWorking)
 
              do iWavenumber=1,self%fourierProfileTableWavenumberCount
-                wavenumber=self%fourierProfileTableWavenumber(iWavenumber)
-                ! Compute the potential fourierProfile.
-                radiusMinimum         =0.0d0
-                radiusMaximum         =concentration
-                wavenumberParameter   =wavenumber
-                alphaParameter        =alpha
-                concentrationParameter=concentration
-                self%fourierProfileTable(iWavenumber,iConcentration,iAlpha)=Integrate(radiusMinimum,radiusMaximum&
-                     &,einastoFourierProfileIntegrand ,parameterPointer,integrandFunction,integrationWorkspace&
-                     &,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-2,maxIntervals=10000)
-                call Integrate_Done(integrandFunction,integrationWorkspace)
-
+                ! If the Fourier profile has fallen below some minimal level, simply truncate to zero to avoid numerical
+                ! integration problems.
+                if (iWavenumber > 1 .and. self%fourierProfileTable(iWavenumber-1,iConcentration,iAlpha) <= profileTruncateLevel) then
+                   self%fourierProfileTable(iWavenumber,iConcentration,iAlpha)=0.0d0
+                else
+                   wavenumber=self%fourierProfileTableWavenumber(iWavenumber)
+                   ! Compute the potential fourierProfile.
+                   radiusMinimum         =0.0d0
+                   radiusMaximum         =concentration
+                   wavenumberParameter   =wavenumber
+                   alphaParameter        =alpha
+                   concentrationParameter=concentration
+                   self%fourierProfileTable(iWavenumber,iConcentration,iAlpha)=Integrate(radiusMinimum,radiusMaximum&
+                        &,einastoFourierProfileIntegrand ,parameterPointer,integrandFunction,integrationWorkspace&
+                        &,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-2,maxIntervals=10000)
+                   call Integrate_Done(integrandFunction,integrationWorkspace)
+                end if
              end do
           end do
        end do
