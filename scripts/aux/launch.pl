@@ -164,7 +164,8 @@ sub Construct_Models {
 		    # Transfer parameters for this model from the array of model parameter hashes to the
 		    # active hash.
 		    foreach my $parameter ( keys(%{$parameterData}) ) {
-			$parameters->{$parameter} = $parameterData->{$parameter};
+			$parameters->{$parameter} = $parameterData->{$parameter}
+			   unless ( $parameterData->{$parameter} =~ m/^\s*\%\%nochange\%\%\s*$/ );
 		    }
 		    # Transfer values from the active hash to an array suitable for XML output.
 		    my $data;
@@ -235,7 +236,7 @@ sub Create_Parameter_Hashes {
 		push(@stack,map {$node->{'subParameters'}->{$_}} keys(%{$node->{'subParameters'}}))
 		    if ( exists($node->{'subParameters'}) );
 		# Check for non-flat structure.
-		if ( scalar(@{$node->{'values'}}) > 1 ) {
+		if ( exists($node->{'values'}) && scalar(@{$node->{'values'}}) > 1 ) {
 		    # Parameter has multiple values. Iterate over them, generating a new hash for each value, and
 		    # push these new hashes back onto the stack.
 		    my @values = @{$node->{'values'}};
@@ -309,11 +310,13 @@ sub Create_Parameter_Hashes {
 	    my $nodeArray = pop(@stack);
 	    # Iterate over nodes.
 	    foreach my $node ( @{$nodeArray} ) {
-		my $value = $node->{'values'}->[0]->{'value'};
-		$value =~ s/^\s*//;
-		$value =~ s/\s*$//;
-		$node->{'value'} = $value;
-		delete($node->{'values'});
+		if ( $node->{'values'}->[0]->{'value'} ) {
+		    my $value = $node->{'values'}->[0]->{'value'};
+		    $value =~ s/^\s*//;
+		    $value =~ s/\s*$//;
+		    $node->{'value'} = $value;
+		    delete($node->{'values'});
+		}
 		# Handle sub-parameters:
 		#  --> Transfer them out of the "subParameters" element so that they will be in the correct location in the output XML;
 		#  --> Push them onto the stack for conversion to simple form.

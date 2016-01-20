@@ -72,8 +72,9 @@
     <OmegaMatter value="0.3"/>
     <OmegaDarkEnergy value="0.7"/>
     <OmegaBaryon value="0.04"/>
-  </cosmologyParametersMethod><sigma_8 value="0.93"/>
-  <hotHaloRamPressureStrippingMethod value="virialRadius"/>
+  </cosmologyParametersMethod><cosmologicalMassVarianceMethod value="filteredPower">
+    <sigma_8 value="0.93"/>
+  </cosmologicalMassVarianceMethod><hotHaloRamPressureStrippingMethod value="virialRadius"/>
   <hotHaloTrackStrippedGas value="false"/>
   <satelliteOrbitStoreOrbitalParameters value="false"/>
 </parameters>
