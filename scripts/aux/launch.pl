@@ -61,6 +61,8 @@ die("launch.pl: unrecognized launch method")
 
 # Construct models.
 my @jobs = &Construct_Models($launchScript);
+## AJB HACK
+exit;
 
 # Launch models.
 &{$Hooks::moduleHooks{$launchScript->{'launchMethod'}}->{'launch'}}
@@ -109,9 +111,7 @@ sub Construct_Models {
 		    $parameterData->{'treeEvolveWorkerCount' }->{'value'} = $launchScript->{'splitModels'};
 		}
 		# Specify the output directory.
-		my $modelLabel    = $iModelSet.":".$iModel;
-		$modelLabel      .= "_".$parameterData->{'label'}
-		    if ( exists($parameterData->{'label'}) );
+		my $modelLabel    = exists($parameterData->{'label'}) ? $parameterData->{'label'}->[0]->{'value'} : $iModelSet.":".$iModel;
 		my $galacticusOutputDirectory =  $launchScript->{'modelRootDirectory'}
 		."/".$modelBaseName."_".$modelLabel;
 		# Change output directory name to an md5 hash if so requested.
@@ -251,8 +251,8 @@ sub Create_Parameter_Hashes {
 		} elsif ( exists(${$node->{'values'}}[0]->{'subtree'}) ) {
 		    # Parameter has only one value, but it has sub-structure. Promote that substructure and push
 		    # the hash back onto the stack.
-		    foreach my $subName ( keys(%{${$node->{'values'}}[0]->{'subtree'}}) ) {
-			# Look for parameter definitions which modify existing values, and apply them			
+		    foreach my $subName ( keys(%{${$node->{'values'}}[0]->{'subtree'}}) ) {		
+			# Look for parameter definitions which modify existing values, and apply them.			
 			my $subValuesCount = -1;
 			foreach my $subValues ( @{${$node->{'values'}}[0]->{'subtree'}->{$subName}}  ) {
 			    ++$subValuesCount;
@@ -274,9 +274,13 @@ sub Create_Parameter_Hashes {
 				    @{$subValues} = @newValues;
 				}
 			    }
-			    @{$hash->{$subName}->[$subValuesCount]->{'values'}} = @{$subValues->{'values'}};
+			    if ( $subName eq "label" && exists($hash->{$subName}) ) {
+				$hash->{$subName}->[$subValuesCount]->{'values'}->[0]->{'value'} .= "_".$subValues->{'values'}->[0]->{'value'};
+			    } else {
+				@{$hash->{$subName}->[$subValuesCount]->{'values'}} = @{$subValues->{'values'}};
+			    }
 			    $hash->{$subName}->[$subValuesCount]->{'subParameters'} = $subValues->{'subParameters'}
-			    if ( exists($subValues->{'subParameters'}) );
+			        if ( exists($subValues->{'subParameters'}) );
 			}
 		    }
 		    delete(${$node->{'values'}}[0]->{'subtree'});
@@ -295,7 +299,7 @@ sub Create_Parameter_Hashes {
 	push(
 	    @processedHashes,
 	    $hash
-	    ) if ( $isFlat == 1 );
+	    ) if ( $isFlat == 1 );	
     }
     # Hashes are now flattened. Convert to simple form.
     foreach my $hash ( @processedHashes ) {
