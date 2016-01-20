@@ -384,27 +384,47 @@ foreach my $constraint ( @constraints ) {
 	}
 	my $optimal            = $results[$optimalEntry];
 	foreach ( @results ) {
-	    my $difference           = $_->{'y'         }-$optimal->{'y'         };
-	    my $covariance           = $_->{'covariance'}+$optimal->{'covariance'};	    
-	    my $covarianceNormalized = $covariance/$covariance->daverage()->daverage();
-	    my $determinant          = det($covarianceNormalized);
+	    # Construct measure.
 	    my $measure;
 	    my $measureError;
-	    # Skip entries with singular covariance matrices.
-	    if ( $determinant == 0.0 ) {
-		$measure              = 0.0;
-		$measureError         = 0.0;
+	    # Find non-empty entries.
+	    my $nonEmpty = 
+		which
+		(
+		 ($_      ->{'y'} > 0.0)
+		 |
+		 ($optimal->{'y'} > 0.0)
+		);
+	    # Find difference between models and its covariance.
+	    my $covariance = $_->{'covariance'}->($nonEmpty,$nonEmpty)+$optimal->{'covariance'}->($nonEmpty,$nonEmpty);
+	    # Catch empty covariance matrices.
+	    if ( all($covariance == 0.0) ) {
+		$measure      = pdl 0.0;
+		$measureError = pdl 0.0;
 	    } else {
-		my $covarianceInverse = msyminv($covariance);
-		my $dCd               = $difference x $covarianceInverse x transpose($difference);
-		$measure              = $dCd->((0),(0));
-		$measureError         = sqrt(2.0*$dCd->((0),(0)));
+		# Evaluate the convergence measure.
+		$measure =
+		    &Covariances::ComputeLikelihood
+		    (
+		     $_         ->{'y'}->($nonEmpty),
+		     $optimal   ->{'y'}->($nonEmpty),
+		     $covariance                    ,
+		     quiet                  =>  $arguments{'quiet'} ,
+		     inversionMethod        => "eigendecomposition" ,
+		     productMethod          => "linearSolver"       ,
+		     normalized             => 0                    ,
+		     assumePositiveDefinite => 0
+		    );
+		if ( $measure > 0.0 ) {
+		    $measureError = sqrt(2.0*$measure);
+		} else {
+		    $measure      .=     0.0;
+		    $measureError  = pdl 0.0;
+		}
 	    }
-	    unless ( $measure == 0.0 ) {
-		$parameter            = $parameter         ->append($_->{'parameter'}->{'value'});
-		$convergenceMeasure   = $convergenceMeasure->append($measure                    );
-		$convergenceError     = $convergenceError  ->append($measureError               );
-	    }	    
+	    $parameter            = $parameter         ->append($_->{'parameter'}->{'value'});
+	    $convergenceMeasure   = $convergenceMeasure->append($measure                    );
+	    $convergenceError     = $convergenceError  ->append($measureError               );
 	}
     	if ( $convergence->{'parameter'} eq "baseline" ) {
 	    $baselineTestStatistic         = average( $convergenceMeasure                                                          );
@@ -543,14 +563,15 @@ foreach my $constraint ( @constraints ) {
 	    $yMinimum = pdl +1.0e30;
 	    $yMaximum = pdl -1.0e30;
 	    foreach ( @results ) {
-		$xMinimum = minimum(10.0**$_->{'x'})
-		    if ( minimum(10.0**$_->{'x'}) < $xMinimum );
-		$xMaximum = maximum(10.0**$_->{'x'})
-		    if ( maximum(10.0**$_->{'x'}) > $xMaximum );
-		$yMinimum = minimum($_->{'y'})
-		    if ( minimum($_->{'y'}) < $yMinimum );
-		$yMaximum = maximum($_->{'y'})
-		    if ( maximum($_->{'y'}) > $yMaximum );
+		my $nonZeroY = which($_->{'y'} > 0.0);
+		$xMinimum = minimum($_->{'x'})
+		    if ( minimum($_->{'x'}) < $xMinimum );
+		$xMaximum = maximum($_->{'x'})
+		    if ( maximum($_->{'x'}) > $xMaximum );
+		$yMinimum = minimum($_->{'y'}->($nonZeroY))
+		    if ( minimum($_->{'y'}->($nonZeroY)) < $yMinimum );
+		$yMaximum = maximum($_->{'y'}->($nonZeroY))
+		    if ( maximum($_->{'y'}->($nonZeroY)) > $yMaximum );
 	    }
 	    $xMinimum /= 2.0;
 	    $xMaximum *= 2.0;
@@ -565,7 +586,7 @@ foreach my $constraint ( @constraints ) {
 		&PrettyPlots::Prepare_Dataset
 		    (
 		     \$plot,
-		     10.0**$_->{'x'},
+		     $_->{'x'},
 		     $_->{'y'},
 		     style  => "point",
 		     symbol => [6,7],

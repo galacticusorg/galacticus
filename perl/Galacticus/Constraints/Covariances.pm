@@ -156,11 +156,17 @@ sub ComputeLikelihood {
     my $productMethod = exists($options{'productMethod'}) ? $options{'productMethod'} : "inverseMatrix";
     my $vCv;
     if ( $productMethod eq "inverseMatrix" ) {
-	$vCv = $d x $CInverse x transpose($d);
+	$vCv = $d x $CInverse x transpose($d);	
 	die("ComputeLikelihood: inverse covariance matrix is not semi-positive definite")
-	    unless ( $vCv->((0),(0)) > 0.0 );
+	    unless ( $vCv->((0),(0)) >= 0.0 );
     } elsif ( $productMethod eq "linearSolver" ) {
-	my $x = mpossolvex($C,0,transpose($d), equilibrate => 1);
+	my $assumePositiveDefinite = exists($options{'assumePositiveDefinite'}) ? $options{'assumePositiveDefinite'} : 1;
+	my $x;
+	if ( $assumePositiveDefinite ) {
+	    $x = mpossolvex($C,0,transpose($d), equilibrate => 1);
+	} else {
+	    $x = msymsolvex($C,0,transpose($d)                  );
+	}
 	$vCv = $d x $x;
 	${$options{'jacobian'}} = $x
 	    if ( exists($options{'jacobian'}) );
