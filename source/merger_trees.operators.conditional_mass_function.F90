@@ -522,11 +522,11 @@ contains
     type            (mergerTree                     ), intent(inout)                         , target :: tree
     type            (treeNode                       ), pointer                                        :: node                          , nodeChild            , &
          &                                                                                               nodeParent                    , nodeParentChild      , &
-         &                                                                                               descendentNode
+         &                                                                                               descendentNode                , nodeSibling
     type            (mergerTree                     ), pointer                                        :: treeCurrent
     class           (nodeComponentBasic             ), pointer                                        :: basic                         , basicChild           , &
          &                                                                                               basicParent                   , descendentBasic      , &
-         &                                                                                               basicParentChild
+         &                                                                                               basicParentChild              , basicSibling
     class           (nodeComponentMergingStatistics ), pointer                                        :: mergingStatistics
     integer                                                                                           :: i                             , binMassParent        , &
          &                                                                                               binMassRatio                  , iPrimary             , &
@@ -548,7 +548,7 @@ contains
          &                                                       )                                    :: primaryProgenitorMass
 
     ! Iterate over trees.
-    treeCurrent => tree
+    treeCurrent => tree    
     do while (associated(treeCurrent))
        ! Initialize primary progenitor masses to zero.
        primaryProgenitorMass=0.0d0
@@ -605,14 +605,28 @@ contains
                       branchMassInitial=basicChild%mass()
                       if (nodeChild%isPrimaryProgenitor()) then
                          branchMassFinal=basic%mass()
+                      ! Remove the mass in any non-primary progenitors - we don't want to include
+                      ! their mass in the estimated mass growth rate of this node.
+                      nodeSibling => node%firstChild%sibling
+                      do while (associated(nodeSibling))
+                         basicSibling    => nodeSibling%basic()
+                         branchMassFinal =  branchMassFinal-basicSibling%mass()
+                         nodeSibling     => nodeSibling%sibling
+                      end do
+                      ! Do not let the parent mass decrease along the branch.
+                      branchMassFinal=max(branchMassFinal,branchMassInitial)
                       else
                          branchMassFinal=branchMassInitial
                       end if
                       ! Interpolate to get the mass at the required time.
+                   if (branchEnd == branchBegin) then
+                      massParent=branchMassFinal
+                   else
                       massParent=                     +branchMassInitial  &
                            &     +(branchMassFinal    -branchMassInitial) &
                            &     *(self%timeParents(i)-branchBegin      ) &
                            &     /(branchEnd          -branchBegin      )
+                   end if
                       massParentLogarithmic=log(massParent)
                       binMassParent=int(                                                            &
                            &            +(+massParentLogarithmic-self%massParentLogarithmicMinimum) &
@@ -639,10 +653,14 @@ contains
                          branchMassFinal=branchMassInitial
                       end if
                       ! Interpolate to get the mass at the required time.
+                   if (branchEnd == branchBegin) then
+                      massProgenitor=branchMassFinal
+                   else
                       massProgenitor=                         +branchMassInitial  &
                            &         +(branchMassFinal        -branchMassInitial) &
                            &         *(self%timeProgenitors(i)-branchBegin      ) &
                            &         /(branchEnd              -branchBegin      )
+                   end if
                       ! Walk up the tree to find parents.
                       nodeParent => node
                       parentWalk : do while (associated(nodeParent))
@@ -672,10 +690,14 @@ contains
                             parentBranchMassInitial=basicParentChild%mass()
                             parentBranchMassFinal  =     basicParent%mass()
                             ! Find the parent mass at the required time.
+                         if (parentBranchEnd == parentBranchBegin) then
+                            massParent=parentBranchMassFinal
+                         else
                             massParent=                       +parentBranchMassInitial  &
                                  &     +(parentBranchMassFinal-parentBranchMassInitial) &
                                  &     *(self%timeParents(i)  -parentBranchBegin      ) &
                                  &     /(parentBranchEnd      -parentBranchBegin      )
+                         end if
                             ! Accumulate to mass function array.
                             massParentLogarithmic=log(               massParent)
                             massRatio            =    massProgenitor/massParent

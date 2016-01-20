@@ -203,6 +203,9 @@ our %colorPairSequences = (
     ],
     slideSequence => [
 	 "yellowGreen", "thistle", "orange", "lightGoldenrod"
+    ],
+    contrast => [
+	"cornflowerBlue", "yellowGreen", "indianRed", "peachPuff", "midnightBlue", "yellowGreen"
     ]
     );
 
@@ -283,10 +286,11 @@ sub Prepare_Dataset {
 
     # Create attribute for line type, assuming no specification if type option is not present.
     my %lineType;
-    $lineType{'lower'} = " dt 1";
-    $lineType{'upper'} = " dt 1";
-    $lineType{'lower'} = " dt ".$options{'linePattern'} if ( exists($options{'linePattern'}) );
-    $lineType{'upper'} = " dt ".$options{'linePattern'} if ( exists($options{'linePattern'}) );
+    my $lineTypeCommand = $versionMajor >= 5 ? "dt" : "lt";
+    $lineType{'lower'} = " ".$lineTypeCommand." 1";
+    $lineType{'upper'} = " ".$lineTypeCommand." 1";
+    $lineType{'lower'} = " ".$lineTypeCommand." ".$options{'linePattern'} if ( exists($options{'linePattern'}) );
+    $lineType{'upper'} = " ".$lineTypeCommand." ".$options{'linePattern'} if ( exists($options{'linePattern'}) );
 
     # Create attribute for point type, assuming no specification if symbol option is not present.
     my %pointType;
@@ -380,7 +384,7 @@ sub Prepare_Dataset {
 		${$plot}->{$phase}->{'command'} .= ${$plot}->{$phase}->{'prefix'}." '-' with filledcurve "
 		    .$options{'filledCurve'}
 		.$title
-		    .$lineType  {$level}
+		.$lineType  {$level}
 		.$lineColor {$level}
 		.$lineWeight{$level}
 		." fill noborder";

@@ -78,60 +78,67 @@ sub Compare {
 	    print "Parameter ".$parameter1->{'name'}." [value: ".$parameter1->{'parameter'}->{'value'}."] in file ".$label1." is not present in file ".$label2.".\n";
 	    $filesMatch = 0;
 	} elsif ( $checkValues ) {
-	    # It does, so test for equality. Have to figure out if the values are numeric or strings.
-	    my $areEqual;
-	    if ( looks_like_number($parameter1->{'parameter'}->{'value'}) == 0 ) {
-		# First value is a string.
-		if ( looks_like_number($parameter2->{'parameter'}->{'value'}) == 0 ) {
-		    # Both values are strings - test equality.
-		    if ( $parameter1->{'parameter'}->{'value'} eq $parameter2->{'parameter'}->{'value'} ) {
-			$areEqual = 1;
+	    # Check if there is a value for this parameter.
+	    unless ( reftype($parameter1->{'parameter'}) eq "ARRAY" ) {
+		# It does, so test for equality. Have to figure out if the values are numeric or strings.
+		my $areEqual;
+		if ( looks_like_number($parameter1->{'parameter'}->{'value'}) == 0 ) {
+		    # First value is a string.
+		    if ( looks_like_number($parameter2->{'parameter'}->{'value'}) == 0 ) {
+			# Both values are strings - test equality.
+			if ( $parameter1->{'parameter'}->{'value'} eq $parameter2->{'parameter'}->{'value'} ) {
+			    $areEqual = 1;
+			} else {
+			    $areEqual = 0;
+			}
 		    } else {
+			# Second value is numeric - the values can't be equal.
 			$areEqual = 0;
 		    }
 		} else {
-		    # Second value is numeric - the values can't be equal.
-		    $areEqual = 0;
-		}
-	    } else {
-		# First value is numeric.
-		if ( looks_like_number($parameter2->{'parameter'}->{'value'}) != 0 ) {
-		    # Both values are numeric - test for equality.
-		    if ( $parameter1->{'parameter'}->{'value'} == $parameter2->{'parameter'}->{'value'} ) {
-			$areEqual = 1;
+		    # First value is numeric.
+		    if ( looks_like_number($parameter2->{'parameter'}->{'value'}) != 0 ) {
+			# Both values are numeric - test for equality.
+			if ( $parameter1->{'parameter'}->{'value'} == $parameter2->{'parameter'}->{'value'} ) {
+			    $areEqual = 1;
+			} else {
+			    $areEqual = 0;
+			}
 		    } else {
+			# Second value is not numeric - the two values can't be equal.
 			$areEqual = 0;
 		    }
-		} else {
-		    # Second value is not numeric - the two values can't be equal.
-		    $areEqual = 0;
 		}
-	    }
-	    # Report unequal values.
-	    unless ( $areEqual == 1 ) {
-		print "Values for ".$parameter1->{'name'}." differ:\n";
-		if ( $reverseLabels ) {
-		    print " -> File 1: ".$parameter2->{'parameter'}->{'value'}."\n";
-		    print " -> File 2: ".$parameter1->{'parameter'}->{'value'}."\n";
-		} else {
-		    print " -> File 1: ".$parameter1->{'parameter'}->{'value'}."\n";
-		    print " -> File 2: ".$parameter2->{'parameter'}->{'value'}."\n";
+		# Report unequal values.
+		unless ( $areEqual == 1 ) {
+		    print "Values for ".$parameter1->{'name'}." differ:\n";
+		    if ( $reverseLabels ) {
+			print " -> File 1: ".$parameter2->{'parameter'}->{'value'}."\n";
+			print " -> File 2: ".$parameter1->{'parameter'}->{'value'}."\n";
+		    } else {
+			print " -> File 1: ".$parameter1->{'parameter'}->{'value'}."\n";
+			print " -> File 2: ".$parameter2->{'parameter'}->{'value'}."\n";
+		    }
+		    $filesMatch = 0;
 		}
-		$filesMatch = 0;
 	    }
 	}
-	# Push any subparametefs onto the stack.
-	foreach ( keys(%{$parameter1->{'parameter'}}) ) {
-	    push
-		(
-		 @parameters1Stack,
-		 {
-		     name      => $parameter1->{'name'     }."-->".$_ ,
-		     parameter => $parameter1->{'parameter'}   -> {$_}
-		 }
-		)
-		unless ( $_ eq "value" );
+	# Push any subparameters onto the stack.
+	if ( reftype($parameter1->{'parameter'}) eq "HASH" ) {
+	    foreach ( keys(%{$parameter1->{'parameter'}}) ) {
+		push
+		    (
+		     @parameters1Stack,
+		     {
+			 name      => $parameter1->{'name'     }."-->".$_ ,
+			 parameter => $parameter1->{'parameter'}   -> {$_}
+		     }
+		    )
+		    unless ( $_ eq "value" );
+	    }
+	} elsif  ( reftype($parameter1->{'parameter'}) eq "ARRAY" ) {
+	    # Arrays are currently not handled.
 	}
     }
-return $filesMatch;
+    return $filesMatch;
 }
