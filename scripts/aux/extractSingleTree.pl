@@ -25,12 +25,12 @@ my $inFile  = new PDL::IO::HDF5(     $inFileName);
 my $outFile = new PDL::IO::HDF5(">".$outFileName);
 
 # Detect file version and set group names appropriately.
-my $inFormatVersion =  (grep {$_ eq "formatVersion"} $inFile->attrs()) ? $inFile->attrGet("formatVersion") : 1;
+my $inFormatVersion = (grep {$_ eq "formatVersion"} $inFile->attrs()) ? $inFile->attrGet("formatVersion") : 1;
 my $forestName      = $inFormatVersion == 1 ? "treeIndex" : "forestIndex";
 my $halosName       = $inFormatVersion == 1 ? "haloTrees" : "forestHalos";
 
 # Find the tree to extract.
-my $forestIndex = $inFile->group($forestName)->dataset($forestName  )->get();
+my $forestIndex = $inFile->group($forestName)->dataset($forestName    )->get();
 my $firstNode   = $inFile->group($forestName)->dataset("firstNode"    )->get();
 my $nodeCount   = $inFile->group($forestName)->dataset("numberOfNodes")->get();
 my $selected    = which($forestIndex == $tree);
@@ -40,6 +40,8 @@ my $end         = $start+$count-1;
 
 # Read all halo datasets.
 foreach my $datasetName ( $inFile->group($halosName)->datasets() ) {
+    next
+	if ( $datasetName =~ m/^particleIndex(Start|Count)$/ );
     my $dataset    = $inFile->group($halosName)->dataset($datasetName)->get();
     my $dimensions = $dataset->ndims();
      if      ( $dimensions == 1 ) {
