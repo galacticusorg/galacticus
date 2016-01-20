@@ -1189,7 +1189,7 @@ contains
     end do
     close(fileUnit)
 
-    ! Report number of trees found.
+    ! Report number of forests found.
     message='Found '
     message=message//mergerTrees%forestCount//' forests'
     call Galacticus_Display_Message(message)

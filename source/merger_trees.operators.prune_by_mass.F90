@@ -118,13 +118,14 @@ contains
              node => node%firstChild
              do while (associated(node))
                 nodeNext => node%sibling
+                call Merger_Tree_Prune_Clean_Branch(node)
                 call node%destroyBranch()
                 deallocate(node)
                 node => nodeNext
              end do
           else
              ! Walk the tree, pruning branches.
-             do while (associated(node))
+             do while (associated(node))               
                 basic => node%basic()
                 ! Record the parent node to which we will return.
                 nodePrevious => node%parent
@@ -147,7 +148,7 @@ contains
        end do
        ! Move to the next tree.
        currentTree => currentTree%nextTree
-    end do    
+    end do
     ! Uniqueify nodes.
     call Merger_Tree_Prune_Uniqueify_IDs(tree)
     return

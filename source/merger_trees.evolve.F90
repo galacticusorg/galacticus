@@ -226,10 +226,10 @@ contains
                 thisBasicComponent => thisNode%basic()
                 
                 ! Tree walk loop: Walk to each node in the tree and consider whether or not to evolve it.
-                treeWalkLoop: do while (associated(thisNode))
+                treeWalkLoop: do while (associated(thisNode))                   
 
                    ! Get the basic component of the node.
-                   thisBasicComponent => thisNode%basic()
+                   thisBasicComponent => thisNode%basic()    
                    
                    ! Count nodes in the tree.
                    nodesTotalCount=nodesTotalCount+1
@@ -325,10 +325,9 @@ contains
                                   call Events_Node_Merger(currentTree,thisNode)
                                end if
                             case (.true.)
-                               ! This is the major progenitor, so promote the node to its parent as it is the main progenitor
-                               ! providing that the node has no siblings - this ensures that any siblings have already been evolved
-                               ! and become satellites of the parent halo. Also record that the tree is not deadlock, as we are
-                               ! changing the tree state.
+                               ! This is the major progenitor, so promote the node to its parent providing that the node has no
+                               ! siblings - this ensures that any siblings have already been evolved and become satellites of the
+                               ! parent halo. Also record that the tree is not deadlocked, as we are changing the tree state.
                                if (.not.associated(thisNode%sibling)) then
                                   deadlockStatus=deadlockStatusIsNotDeadlocked
                                   call Tree_Node_Promote(currentTree,thisNode)
@@ -697,7 +696,7 @@ contains
     logical                                             :: foundLockNode
     integer                                             :: treeUnit
     integer         (kind=kind_int8    )                :: uniqueID
-    logical                                             :: inCycle
+    logical                                             :: inCycle           , nodesAdded
     character       (len=20            )                :: color             , style
 
     ! Begin tree.
@@ -705,48 +704,53 @@ contains
     write (treeUnit,*) 'digraph Tree {'
 
     ! Find any nodes that cause a lock but which are not in our list.
-    thisNode => deadlockHeadNode
-    do while (associated(thisNode))
-       if (associated(thisNode%lockNode)) then
-          testNode => deadlockHeadNode
-          foundLockNode=.false.
-          do while (associated(testNode).and..not.foundLockNode)
-             foundLockNode=(associated(thisNode%lockNode,testNode%node))
-             testNode => testNode%next
-          end do
-          if (.not.foundLockNode) then
+    nodesAdded=.true.
+    do while (nodesAdded)
+       nodesAdded=.false.
+       thisNode => deadlockHeadNode
+       do while (associated(thisNode))
+          if (associated(thisNode%lockNode)) then
              testNode => deadlockHeadNode
-             do while (associated(testNode%next))
+             foundLockNode=.false.
+             do while (associated(testNode).and..not.foundLockNode)
+                foundLockNode=(associated(thisNode%lockNode,testNode%node))
                 testNode => testNode%next
              end do
-             allocate(testNode%next)
-             testNode => testNode%next
-             ! Find root node.
-             parentNode => thisNode%lockNode
-             do while (associated(parentNode%parent))
-                parentNode => parentNode%parent
-             end do
-             ! Set properties.
-             testNode%node      => thisNode%lockNode
-             testNode%treeIndex =  parentNode%index()
-             testNode%lockNode  => null()
-             testNode%lockType  =  "unknown"
-             thisBasicComponent => thisNode%lockNode%basic()
-             if (associated(thisNode%lockNode%firstChild)) then
-                testNode%lockType = "child"
-                lockNode        => deadlockHeadNode
-                do while (associated(lockNode))
-                   if (associated(thisNode%lockNode%firstChild,lockNode%node)) then
-                      testNode%lockNode => thisNode%lockNode%firstChild
-                      exit
-                   end if
-                   lockNode => lockNode%next
+             if (.not.foundLockNode) then
+                nodesAdded =  .true.
+                testNode   => deadlockHeadNode
+                do while (associated(testNode%next))
+                   testNode => testNode%next
                 end do
+                allocate(testNode%next)
+                testNode => testNode%next
+                ! Find root node.
+                parentNode => thisNode%lockNode
+                do while (associated(parentNode%parent))
+                   parentNode => parentNode%parent
+                end do
+                ! Set properties.
+                testNode%node      => thisNode%lockNode
+                testNode%treeIndex =  parentNode%index()
+                testNode%lockNode  => null()
+                testNode%lockType  =  "unknown"
+                thisBasicComponent => thisNode%lockNode%basic()
+                if (associated(thisNode%lockNode%firstChild)) then
+                   testNode%lockType = "child"
+                   lockNode        => deadlockHeadNode
+                   do while (associated(lockNode))
+                      if (associated(thisNode%lockNode%firstChild,lockNode%node)) then
+                         testNode%lockNode => thisNode%lockNode%firstChild
+                         exit
+                      end if
+                      lockNode => lockNode%next
+                   end do
+                end if
+                if (thisBasicComponent%time() >= endTime) testNode%lockType = "end time"
              end if
-             if (thisBasicComponent%time() >= endTime) testNode%lockType = "end time"
           end if
-       end if
-       thisNode => thisNode%next
+          thisNode => thisNode%next
+       end do
     end do
 
     ! Iterate over all nodes visited.
@@ -772,8 +776,8 @@ contains
           color="black"
           style="solid"
        end if
-       write (treeUnit,'(a,i16.16,a,a,a,a,a,i16.16,a,i16.16,a,f7.4,a,a,a)') '"',thisNode%node%index(),'" [shape=circle, color=',trim(color),', style=',trim(style),' label="',thisNode%node%index(),'\ntree: ',thisNode%treeIndex,'\ntime: ',thisBasicComponent%time(),'\n',char(thisNode%lockType),'"];'
-       if (associated(thisNode%lockNode)) write (treeUnit,'(a,i16.16,a,i16.16,a)') '"',thisNode%node%index(),'" -> "',thisNode%lockNode%index(),'"' ;
+       write (treeUnit,'(a,i16.16,a,a,a,a,a,i16.16,a,i16.16,a,f13.10,a,a,a)') '"',thisNode%node%uniqueID(),'" [shape=circle, color=',trim(color),', style=',trim(style),' label="',thisNode%node%index(),'\ntree: ',thisNode%treeIndex,'\ntime: ',thisBasicComponent%time(),'\n',char(thisNode%lockType),'"];'
+       if (associated(thisNode%lockNode)) write (treeUnit,'(a,i16.16,a,i16.16,a)') '"',thisNode%node%uniqueID(),'" -> "',thisNode%lockNode%uniqueID(),'"' ;
        thisNode => thisNode%next
     end do
     ! Close the tree.
