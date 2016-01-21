@@ -61,8 +61,6 @@ die("launch.pl: unrecognized launch method")
 
 # Construct models.
 my @jobs = &Construct_Models($launchScript);
-## AJB HACK
-exit;
 
 # Launch models.
 &{$Hooks::moduleHooks{$launchScript->{'launchMethod'}}->{'launch'}}
