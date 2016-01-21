@@ -47,19 +47,19 @@ unless ( -e $galacticusPath."aux/CAMB.tar.gz" ) {
 }
 
 # Unpack the code.
-unless ( -e $galacticusPath."aux/camb" ) {
+unless ( -e $galacticusPath."aux/CAMB" ) {
     print "CAMB_Driver.pl: unpacking CAMB code.\n";
     system("tar -x -v -z -C ".$galacticusPath."aux -f ".$galacticusPath."aux/CAMB.tar.gz");
     die("CAMB_Driver.pl: FATAL - failed to unpack CAMB code.")
-	unless ( -e $galacticusPath."aux/camb" );
+	unless ( -e $galacticusPath."aux/CAMB" );
 }
 
 # Build the code.
-unless ( -e $galacticusPath."aux/camb/camb" ) {
+unless ( -e $galacticusPath."aux/CAMB/camb" ) {
     print "CAMB_Driver.pl: compiling CMBFast code.\n";
-    system("cd ".$galacticusPath."aux/camb/; sed -r -i~ s/\"F90C\\s*=\\s*.*\"/\"F90C = gfortran\"/ Makefile; sed -r -i~ s/\"^FFLAGS\\s*=\\s*.*\"/\"FFLAGS = -Ofast -march=native -fopenmp\"/ Makefile; sed -r -i~ /\"F90CRLINK\\s*=\\s*.*\"/d Makefile; make -j1");
+    system("cd ".$galacticusPath."aux/CAMB/; sed -r -i~ s/\"F90C\\s*=\\s*.*\"/\"F90C = gfortran\"/ Makefile; sed -r -i~ s/\"^FFLAGS\\s*=\\s*.*\"/\"FFLAGS = -Ofast -march=native -fopenmp\"/ Makefile; sed -r -i~ /\"F90CRLINK\\s*=\\s*.*\"/d Makefile; make -j1");
     die("CAMB_Driver.pl: FATAL - failed to build CAMB code.")
-	unless ( -e $galacticusPath."aux/camb/camb" );
+	unless ( -e $galacticusPath."aux/CAMB/camb" );
 }
 
 # Specify default parameters.
@@ -201,7 +201,7 @@ END
    close(cambInput);
 
    # Run CAMB.
-   system($galacticusPath."aux/camb/camb ".$transferFunctionFile.".inp");
+   system($galacticusPath."aux/CAMB/camb ".$transferFunctionFile.".inp");
 
    # Read in the tabulated data and output as an XML file.
    my @transferFunctionData;
