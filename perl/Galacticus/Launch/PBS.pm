@@ -3,9 +3,18 @@
 package PBS;
 use strict;
 use warnings;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V093"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+ $ENV{"GALACTICUS_ROOT_V093"} = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use Data::Dumper;
 use Sys::CPU;
-use File::Which;
+require File::Which;
 require Galacticus::Options;
 require Galacticus::Launch::Hooks;
 require Galacticus::Launch::PostProcess;

@@ -14,7 +14,7 @@ use PDL::NiceSlice;
 use XML::Simple;
 use Math::SigFigs;
 use Data::Dumper;
-use File::Which;
+require File::Which;
 require Galacticus::HDF5;
 require Galacticus::Magnitudes;
 require GnuPlot::PrettyPlots;

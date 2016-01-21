@@ -1,6 +1,15 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V093"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+ $ENV{"GALACTICUS_ROOT_V093"} = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use XML::Writer;
 use XML::Simple;
 use IO::File;
@@ -8,7 +17,7 @@ use DateTime;
 use Data::Dumper;
 use LaTeX::Decode;
 use LaTeX::BibTeX;
-use File::Which;
+require File::Which;
 $LaTeX::Decode::DefaultScheme = 'full';
 
 # Construct a SimDB XML document for Galacticus.
