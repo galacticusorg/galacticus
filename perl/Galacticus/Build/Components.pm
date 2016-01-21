@@ -6781,7 +6781,7 @@ sub Generate_Component_Class_Removal_Functions {
 	$functionCode .= "      allocate(self%component".ucfirst($componentClassName)."(1))\n";
 	$functionCode .= "    else\n";
 	$functionCode .= "      ! Multiple instances, so remove the specified instance.\n";
-	$functionCode .= "      allocate(instancesTemporary(instanceCount-1),source=self%component".ucfirst($componentClassName).")\n";
+	$functionCode .= "      allocate(instancesTemporary(instanceCount-1),source=self%component".ucfirst($componentClassName)."(1))\n";
 	if ( $workaround == 1 ) {
 	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 		$functionCode .= "      select type (from => self%component".ucfirst($componentClassName).")\n";
