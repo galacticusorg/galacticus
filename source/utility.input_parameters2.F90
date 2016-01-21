@@ -288,6 +288,7 @@ contains
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     !% specified as a character variable.
     use Galacticus_Error
+    use File_Utilities
     implicit none
     type     (inputParameters)                                        :: inputParametersConstructorFileChar
     character(len=*          )              , intent(in   )           :: fileName
@@ -300,7 +301,13 @@ contains
     ! Open and parse the data file.
     !$omp critical (FoX_DOM_Access)
     parameterNode => parseFile(fileName,iostat=errorStatus)
-    if (errorStatus /= 0) call Galacticus_Error_Report('inputParametersConstructorFileChar','Unable to find or parse parameter file')
+    if (errorStatus /= 0) then
+       if (File_Exists(fileName)) then
+          call Galacticus_Error_Report('inputParametersConstructorFileChar','Unable to parse parameter file: "'//fileName//'"')
+       else
+          call Galacticus_Error_Report('inputParametersConstructorFileChar','Unable to find parameter file: "' //fileName//'"')
+       end if
+    end if
     !$omp end critical (FoX_DOM_Access)
     inputParametersConstructorFileChar=inputParametersConstructorNode(                                                 &
          &                                                            XML_Get_First_Element_By_Tag_Name(               &
