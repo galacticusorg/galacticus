@@ -62,7 +62,7 @@ contains
     !% Constructor for the {\normalfont \ttfamily file} accretion disk spectra class which takes a parameter set as input.
     implicit none
     type(accretionDiskSpectraFile)                :: fileConstructorParameters
-    type(inputParameters         ), intent(in   ) :: parameters
+    type(inputParameters         ), intent(inout) :: parameters
     type(varying_string          )                :: fileName
     !# <inputParameterList label="allowedParameterNames" />
 
@@ -213,12 +213,10 @@ contains
     implicit none
     class(accretionDiskSpectraFile), intent(inout) :: self
     type (inputParameters         ), intent(inout) :: descriptor
-    type (node                    ), pointer       :: parameterNode
     type (inputParameters         )                :: subParameters
 
     call descriptor%addParameter("accretionDiskSpectraMethod","file")
-    parameterNode => descriptor%node("accretionDiskSpectraMethod")
-    subParameters=inputParameters(parameterNode)
+    subParameters=descriptor%subparameters("accretionDiskSpectraMethod")
     call subParameters%addParameter("fileName",char(self%fileName))
     return
   end subroutine fileDescriptor
