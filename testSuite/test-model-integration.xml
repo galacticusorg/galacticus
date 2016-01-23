@@ -7,6 +7,11 @@
   <doAnalysis>no</doAnalysis>
   <modelRootDirectory>testSuite/outputs/test-model-integration</modelRootDirectory>
   <baseParameters>parameters.xml</baseParameters>
+  <launchMethod>pbs</launchMethod>
+  <pbs>
+    <ompThreads>12</ompThreads>
+    <maxJobsInQueue>40</maxJobsInQueue>
+  </pbs>
 
   <parameters>
   <formatVersion>2</formatVersion>

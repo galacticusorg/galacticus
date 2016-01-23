@@ -36,7 +36,7 @@ sub Process_InputParameterList {
     $fileName = $tree->{'name'}
         if ( $tree->{'type'} eq "file" );
     # Get code directive locations.
-    my $directiveLocations = $xml->XMLin($galacticusPath."work/build/Code_Directive_Locations.xml");
+    my $directiveLocations = $xml->XMLin($galacticusPath.$ENV{'BUILDPATH'}."/Code_Directive_Locations.xml");
     # Initialize list of unlisted parameters.
     my @unlistedInputParameters;
     # Walk the tree, looking for input parameter list directives.
@@ -44,50 +44,63 @@ sub Process_InputParameterList {
     my $depth = 0;
     while ( $node ) {
 	# Look for inputParameterList directives and process them.
-	if ( $node->{'type'} eq "inputParameterList" && ! $node->{'directive'}->{'processed'} ) {
+	if ( $node->{'type'} eq "inputParameterList" && ! $node->{'directive'}->{'processed'} ) {	    
 	    # Record that this directive has been processed.
 	    $node->{'directive'}->{'processed'} =  1;
+	    # Determine the source name.
+	    my $sourceMatch;
+	    $sourceMatch = $node->{'directive'}->{'source'}
+	        if ( exists($node->{'directive'}->{'source'}) );
 	    # Step through sibling nodes looking for input parameter directives.
 	    my @inputParameterNames;
 	    my $sibling = $node->{'parent'}->{'firstChild'};
 	    while ( $sibling ) {
 		if ( $sibling->{'type'} eq "inputParameter" ) {
-		    if      ( exists($sibling->{'directive'}->{'name'}) ) {
-			# Single parameter defined by its name - simply push onto the list.
-			push(@inputParameterNames,$sibling->{'directive'}->{'name'});
-		    } elsif ( exists($sibling->{'directive'}->{'iterator'}) ) {
-			# A parameter whose name iterates over a set of possible names.
-			if ( $sibling->{'directive'}->{'iterator'} =~ m/\(\#([a-zA-Z0-9]+)\-\>([a-zA-Z0-9]+)\)/ ) {
-			    my $directiveName = $1;
-			    my $attributeName = $2;
-			    die('Process_InputParameterList(): locations not found for directives')
-				unless ( exists($directiveLocations->{$directiveName}) );
-			    foreach my $fileName ( &ExtraUtils::as_array($directiveLocations->{$directiveName}->{'file'}) ) {
-				foreach ( &Directives::Extract_Directives($fileName,$directiveName) ) {
-				    (my $parameterName = $sibling->{'directive'}->{'iterator'}) =~ s/\(\#$directiveName\-\>$attributeName\)/$_->{$attributeName}/;
-				    push(@inputParameterNames,$parameterName);
+		    my $source = "globalParameters";
+		    $source = $sibling->{'directive'}->{'source'}
+		        if ( exists($sibling->{'directive'}->{'source'}) );
+		    if ( ! $sourceMatch || $sourceMatch eq $source ) {
+			if      ( exists($sibling->{'directive'}->{'name'}) ) {
+			    # Single parameter defined by its name - simply push onto the list.
+			    push(@inputParameterNames,$sibling->{'directive'}->{'name'});
+			} elsif ( exists($sibling->{'directive'}->{'iterator'}) ) {
+			    # A parameter whose name iterates over a set of possible names.
+			    if ( $sibling->{'directive'}->{'iterator'} =~ m/\(\#([a-zA-Z0-9]+)\-\>([a-zA-Z0-9]+)\)/ ) {
+				my $directiveName = $1;
+				my $attributeName = $2;
+				die('Process_InputParameterList(): locations not found for directives')
+				    unless ( exists($directiveLocations->{$directiveName}) );
+				foreach my $fileName ( &ExtraUtils::as_array($directiveLocations->{$directiveName}->{'file'}) ) {
+				    foreach ( &Directives::Extract_Directives($fileName,$directiveName) ) {
+					(my $parameterName = $sibling->{'directive'}->{'iterator'}) =~ s/\(\#$directiveName\-\>$attributeName\)/$_->{$attributeName}/;
+					push(@inputParameterNames,$parameterName);
+				    }
 				}
+			    } else {
+				die('Process_InputParameterList(): nothing to iterate over');
 			    }
-			} else {
-			    die('Process_InputParameterList(): nothing to iterate over');
 			}
 		    }
+		} elsif ( $sibling->{'type'} eq "objectBuilder" ) {
+		    # Add methods read by objectBuilder directives.
+		    push(@inputParameterNames,$sibling->{'directive'}->{'class'}."Method")
+			if ( ! $sourceMatch || $sourceMatch eq $sibling->{'directive'}->{'source'} );
 		}
 		$sibling = $sibling->{'sibling'};
 	    }
+	    # Generate the variable declaration.
+	    my $declaration =
+	    {
+		intrinsic  => "type",
+		type       => "varying_string",
+		attributes => [ "dimension(".scalar(@inputParameterNames).")" ],
+		variables  => [ $node->{'directive'}->{'label'} ]
+	    };
+	    &Declarations::AddDeclarations($node->{'parent'},[$declaration]);
+	    # Add module usage.
+	    &ModuleUses::AddUses($node->{'parent'},{moduleUse => {ISO_Varying_String => {all => 1}}});
+	    # Generate the setting code.
 	    if ( scalar(@inputParameterNames) > 0 ) {
-		# Generate the variable declaration.
-		my $declaration =
-		{
-		    intrinsic  => "type",
-		    type       => "varying_string",
-		    attributes => [ "dimension(".scalar(@inputParameterNames).")" ],
-		    variables  => [ $node->{'directive'}->{'label'} ]
-		};
-		&Declarations::AddDeclarations($node->{'parent'},[$declaration]);
-		# Add module usage.
-		&ModuleUses::AddUses($node->{'parent'},{moduleUse => {ISO_Varying_String => {all => 1}}});
-		# Generate the setting code.
 		my $setter;
 		for(my $i=1;$i<=scalar(@inputParameterNames);++$i) {
 		    $setter .= $node->{'directive'}->{'label'}."(".$i.")='".$inputParameterNames[$i-1]."'\n";
@@ -128,7 +141,7 @@ sub Process_InputParameterList {
     # Output file of unlisted parameters.
     if ( @unlistedInputParameters ) {
 	$fileName =~ s/\.F90$/.p/;
-	open(my $parametersFile,">>work/build/".$fileName);
+	open(my $parametersFile,">>".$ENV{'BUILDPATH'}."/".$fileName);
 	print $parametersFile $_."\n"
 	    foreach ( @unlistedInputParameters );
 	close($parametersFile);

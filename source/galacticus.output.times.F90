@@ -147,22 +147,27 @@ contains
     return
   end function Galacticus_Output_Redshift
 
-  function Galacticus_Output_Time_Index(time)
+  function Galacticus_Output_Time_Index(time,findClosest)
     !% Returns the index of the output given the corresponding time.
     use Kind_Numbers
     use Galacticus_Error
     use Numerical_Comparison
     use Arrays_Search
     implicit none
-    integer         (c_size_t)                :: Galacticus_Output_Time_Index
-    double precision          , intent(in   ) :: time
+    integer         (c_size_t)                          :: Galacticus_Output_Time_Index
+    double precision          , intent(in   )           :: time
+    logical                   , intent(in   ), optional :: findClosest
 
     ! Ensure the module is initialized.
     call Output_Times_Initialize()
 
-    Galacticus_Output_Time_Index=Search_Array(outputTimes,time)
-    if (Values_Differ(time,outputTimes(Galacticus_Output_Time_Index),relTol=1.0d-6)) &
-         & call Galacticus_Error_Report('Galacticus_Output_Time_Index','time does not correspond to an output')
+    if (present(findClosest).and.findClosest) then
+       Galacticus_Output_Time_Index=Search_Array_For_Closest(outputTimes,time)
+   else
+       Galacticus_Output_Time_Index=Search_Array(outputTimes,time)
+       if (Values_Differ(time,outputTimes(Galacticus_Output_Time_Index),relTol=1.0d-6)) &
+            & call Galacticus_Error_Report('Galacticus_Output_Time_Index','time does not correspond to an output')
+    end if
     return
   end function Galacticus_Output_Time_Index
 
