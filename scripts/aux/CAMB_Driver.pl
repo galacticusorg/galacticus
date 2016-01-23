@@ -59,7 +59,7 @@ unless ( -e $galacticusPath."aux/CAMB" ) {
 # Build the code.
 unless ( -e $galacticusPath."aux/CAMB/camb" ) {
     print "CAMB_Driver.pl: compiling CAMB code.\n";
-    system("cd ".$galacticusPath."aux/CAMB/; sed -r -i~ s/\"F90C\\s*=\\s*.*\"/\"F90C = gfortran\"/ Makefile; sed -r -i~ s/\"^FFLAGS\\s*=\\s*.*\"/\"FFLAGS = -Ofast -fopenmp\"/ Makefile; sed -r -i~ /\"F90CRLINK\\s*=\\s*.*\"/d Makefile; make -j1");
+    system("cd ".$galacticusPath."aux/CAMB/; sed -r -i~ s/\"F90C\\s*=\\s*.*\"/\"F90C = gfortran\"/ Makefile; sed -r -i~ s/\"^FFLAGS\\s*=\\s*.*\"/\"FFLAGS = -Ofast -fopenmp\"/ Makefile; sed -r -i~ s/\"^FFLAGS\\s*\\+=\\s*\\-march=native\"/\"FFLAGS+=\"/ Makefile; sed -r -i~ /\"F90CRLINK\\s*=\\s*.*\"/d Makefile; make -j1");
     die("CAMB_Driver.pl: FATAL - failed to build CAMB code.")
 	unless ( -e $galacticusPath."aux/CAMB/camb" );
 }
