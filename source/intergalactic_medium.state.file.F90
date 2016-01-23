@@ -113,6 +113,7 @@ contains
     use FoX_dom
     use IO_XML
     use Cosmology_Functions
+    use File_Utilities
     implicit none
     class  (intergalacticMediumStateFile), intent(inout) :: self
     type   (node                        ), pointer       :: doc                      , thisItem
@@ -124,7 +125,13 @@ contains
     if (.not.self%dataRead) then
        !$omp critical (FoX_DOM_Access)
        doc => parseFile(char(self%fileName),iostat=ioStatus)
-       if (ioStatus /= 0) call Galacticus_Error_Report('fileReadData','Unable to parse intergalactic medium state file')
+       if (ioStatus /= 0) then
+          if (File_Exists(char(self%fileName))) then
+             call Galacticus_Error_Report('fileReadData','Unable to find intergalactic medium state file "' //char(self%fileName)//'"')
+          else
+             call Galacticus_Error_Report('fileReadData','Unable to parse intergalactic medium state file "'//char(self%fileName)//'"')
+          end if
+       end if
        ! Check the file format version of the file.
        thisItem             => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
        call extractDataContent(thisItem,fileFormatVersion)
