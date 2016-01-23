@@ -38,6 +38,7 @@ module Node_Component_Dark_Matter_Profile_Scale
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" isDeferred="get" />
   !#     <output unitsInSI="megaParsec" comment="Scale radius of the dark matter profile [Mpc]."/>
+  !#     <classDefault>-1.0d0</classDefault>
   !#   </property>
   !#   <property>
   !#     <name>scaleGrowthRate</name>
@@ -85,7 +86,7 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('darkMatterProfileMinimumConcentration',darkMatterProfileMinimumConcentration,defaultValue=4.0d0)
-        !@ <inputParameter>
+       !@ <inputParameter>
        !@   <name>darkMatterProfileMaximumConcentration</name>
        !@   <defaultValue>100</defaultValue>
        !@   <attachedTo>module</attachedTo>
@@ -120,16 +121,19 @@ contains
   double precision function Node_Component_Dark_Matter_Profile_Scale_Scale(self)
     !% Return the scale radius in the dark matter halo profile.
     use Dark_Matter_Halo_Scales
+    use Dark_Matter_Profile_Scales
     implicit none
     class           (nodeComponentDarkMatterProfileScale), intent(inout) :: self
     type            (treeNode                           ), pointer       :: selfNode
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                                                     :: scaleLengthMaximum, scaleLengthMinimum
+    class           (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
+    double precision                                                     :: scaleLengthMaximum  , scaleLengthMinimum
 
+    ! Set the scale if it isn't already set.
     selfNode             => self%host          ()
     darkMatterHaloScale_ => darkMatterHaloScale()
     scaleLengthMaximum=darkMatterHaloScale_%virialRadius(selfNode)/darkMatterProfileMinimumConcentration
     scaleLengthMinimum=darkMatterHaloScale_%virialRadius(selfNode)/darkMatterProfileMaximumConcentration
+    if (self%scaleValue() < 0.0d0) call self%scaleSet(Dark_Matter_Profile_Scale(selfNode))
     Node_Component_Dark_Matter_Profile_Scale_Scale= &
          & min(                                     &
          &     scaleLengthMaximum    ,              &
@@ -152,14 +156,14 @@ contains
     logical                                         , intent(inout)          :: interrupt
     procedure       (                              ), intent(inout), pointer :: interruptProcedure
     class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    class           (darkMatterHaloScaleClass      )               , pointer :: darkMatterHaloScale_
     double precision                                                         :: concentration                 , growthRate
 
     ! Get the dark matter profile component.
     thisDarkMatterProfileComponent => thisNode%darkMatterProfile()
     ! Ensure that it is of the scale class.
     select type (thisDarkMatterProfileComponent)
-       class is (nodeComponentDarkMatterProfileScale)
+    class is (nodeComponentDarkMatterProfileScale)
        ! Find the concentration of this halo.
        darkMatterHaloScale_ => darkMatterHaloScale()
        concentration=darkMatterHaloScale_%virialRadius(thisNode)/thisDarkMatterProfileComponent%scale()
@@ -171,31 +175,6 @@ contains
     end select
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Rate_Compute
-
-  subroutine Node_Component_Dark_Matter_Profile_Scale_Initialize_Scale(thisNode)
-    !% Initialize the scale radius of {\normalfont \ttfamily thisNode}.
-    use Dark_Matter_Profile_Scales
-    use Dark_Matter_Halo_Scales
-    implicit none
-    type            (treeNode                           ), intent(inout), pointer :: thisNode
-    class           (nodeComponentDarkMatterProfile     )               , pointer :: newDarkMatterProfileComponent  , thisDarkMatterProfileComponent
-    class           (darkMatterHaloScaleClass           )               , pointer :: darkMatterHaloScale_
-    double precision                                                              :: radiusScale
-
-    ! Ensure that the module is initialized.
-    call Node_Component_Dark_Matter_Profile_Scale_Initialize()
-    ! Get the dark matter profile component.
-    thisDarkMatterProfileComponent => thisNode%darkMatterProfile()
-    select type (thisDarkMatterProfileComponent)
-    type is (nodeComponentDarkMatterProfile)
-       newDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
-       ! Set the scale radius of the halo.
-       darkMatterHaloScale_ => darkMatterHaloScale()
-       radiusScale          =  min(Dark_Matter_Profile_Scale(thisNode),darkMatterHaloScale_%virialRadius(thisNode)/darkMatterProfileMinimumConcentration)
-       call newDarkMatterProfileComponent%scaleSet(radiusScale)
-    end select
-    return
-  end subroutine Node_Component_Dark_Matter_Profile_Scale_Initialize_Scale
 
   !# <radiusSolverPlausibility>
   !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Plausibility</unitName>
@@ -230,15 +209,11 @@ contains
     double precision                                                         :: deltaTime
 
     if (defaultDarkMatterProfileComponent%scaleIsActive()) then
-       ! Ensure that current node has its scale set.
-       call Node_Component_Dark_Matter_Profile_Scale_Initialize_Scale(thisNode)
        ! Get the dark matter profile component.
        thisDarkMatterProfileComponent => thisNode%darkMatterProfile()
        ! Check if this node is the primary progenitor.
        if (thisNode%isPrimaryProgenitor()) then
           ! It is, so compute the scale radius growth rate.
-          ! First ensure that parent node has scale radius set.
-          call Node_Component_Dark_Matter_Profile_Scale_Initialize_Scale(thisNode%parent)
           ! Now compute the growth rate.
           thisBasicComponent   => thisNode       %basic()
           parentBasicComponent => thisNode%parent%basic()

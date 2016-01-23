@@ -368,12 +368,11 @@ contains
           end select
           ! Store the rotation curve.
           doubleProperty=doubleProperty+1
-          doubleBuffer(doubleBufferCount,doubleProperty)=                                                                    &
-               &                                         Galactic_Structure_Rotation_Curve(                                  &
+          doubleBuffer(doubleBufferCount,doubleProperty)=Galactic_Structure_Rotation_Curve(                                  &
                &                                                                           thisNode                        , &
                &                                                                           radius                          , &
                &                                                                           componentType=radii(i)%component, &
-               &                                                                           massType=radii(i)%mass          , &
+               &                                                                           massType     =radii(i)%mass     , &
                &                                                                           haloLoaded   =radii(i)%loaded     &
                &                                                                          )
        end do

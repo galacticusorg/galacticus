@@ -686,7 +686,8 @@ contains
        ! No node was in the lightcone, so this tree can be pruned (i.e. destroy primary branch of each tree)
        currentTree => thisTree
        do while (associated(currentTree))
-          call currentTree%destroyBranch(currentTree%baseNode)
+          call currentTree%baseNode%destroyBranch()
+          deallocate(currentTree%baseNode)
           currentTree => currentTree%nextTree
        end do
        pruning=.false.

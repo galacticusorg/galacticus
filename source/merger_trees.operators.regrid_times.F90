@@ -57,7 +57,7 @@ contains
     use Cosmology_Functions
     implicit none
     type            (mergerTreeOperatorRegridTimes)                              :: regridTimesConstructorParameters
-    type            (inputParameters              ), intent(in   )               :: parameters
+    type            (inputParameters              ), intent(inout)               :: parameters
     class           (cosmologyFunctionsClass      ), pointer                     :: cosmologyFunctions_
     double precision                               , allocatable  , dimension(:) :: snapshotTimes
     logical                                                                      :: dumpTrees
@@ -145,7 +145,7 @@ contains
   function regridTimesConstructorInternal(snapTolerance,regridCount,expansionFactorStart,expansionFactorEnd,snapshotSpacing,dumpTrees,snapshotTimes)
     !% Internal constructor for the regrid times merger tree operator class.
     use Cosmology_Functions
-    use Critical_Overdensity
+    use Critical_Overdensities
     use Numerical_Ranges
     use Galacticus_Error
     use Memory_Management
@@ -159,6 +159,7 @@ contains
     logical                                        , intent(in   )                         :: dumpTrees
     double precision                               , intent(in   ), optional, dimension(:) :: snapshotTimes
     class           (cosmologyFunctionsClass      ), pointer                               :: cosmologyFunctions_
+    class           (criticalOverdensityClass     ), pointer                               :: criticalOverdensity_
     integer                                                                                :: iTime
     
     ! Validate arguments.
@@ -168,7 +169,8 @@ contains
     regridTimesConstructorInternal%snapTolerance=snapTolerance
     ! Construct array of grid expansion factors.
     call Alloc_Array(regridTimesConstructorInternal%timeGrid,[regridCount])
-    cosmologyFunctions_ => cosmologyFunctions()
+    cosmologyFunctions_  => cosmologyFunctions ()
+    criticalOverdensity_ => criticalOverdensity()
     select case (snapshotSpacing)
     case (snapshotSpacingLinear                )
        regridTimesConstructorInternal%timeGrid=Make_Range(expansionFactorStart,expansionFactorEnd,regridCount,rangeTypeLinear     )
@@ -184,16 +186,16 @@ contains
        end do
     case (snapshotSpacingLogCriticalOverdensity)
        ! Build a logarithmic grid in critical overdensity.
-       regridTimesConstructorInternal%timeGrid                                                                     &
-            & =Make_Range(                                                                                         &
-            &              Critical_Overdensity_for_Collapse(cosmologyFunctions_%cosmicTime(expansionFactorStart)) &
-            &             ,Critical_Overdensity_for_Collapse(cosmologyFunctions_%cosmicTime(expansionFactorEnd  )) &
-            &             ,regridCount                                                                             &
-            &             ,rangeTypeLogarithmic                                                                    &
+       regridTimesConstructorInternal%timeGrid                                                              &
+            & =Make_Range(                                                                                  &
+            &              criticalOverdensity_%value(cosmologyFunctions_%cosmicTime(expansionFactorStart)) &
+            &             ,criticalOverdensity_%value(cosmologyFunctions_%cosmicTime(expansionFactorEnd  )) &
+            &             ,regridCount                                                                      &
+            &             ,rangeTypeLogarithmic                                                             &
             &            )
        ! Convert critical overdensity to time.
        do iTime=1,regridCount
-          regridTimesConstructorInternal%timeGrid(iTime)=Time_of_Collapse(regridTimesConstructorInternal%timeGrid(iTime))
+          regridTimesConstructorInternal%timeGrid(iTime)=criticalOverdensity_%timeOfCollapse(regridTimesConstructorInternal%timeGrid(iTime))
        end do
     case (snapshotSpacingMillennium            )
        ! Use the timesteps used in the original Millennium Simulation as reported by Croton et al.  (2006; MNRAS; 365;
