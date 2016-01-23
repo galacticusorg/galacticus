@@ -7,7 +7,8 @@ use warnings;
 
 # First run the models.
 system("cd ..; scripts/aux/launch.pl testSuite/parameters/test-plotting-scripts.xml");
-system("cd ..; bunzip2 testSuite/outputs/test-plotting-scripts/galacticus_*/galacticus.hdf5.bz2");
+system("cd ..; bunzip2 testSuite/outputs/test-plotting-scripts/galacticus_*/galacticus.hdf5.bz2")
+    if ( -e "../testSuite/outputs/test-plotting-scripts/galacticus_*/galacticus.hdf5.bz2" );
 
 # Run plotting commands.
 my @plottingScripts =
