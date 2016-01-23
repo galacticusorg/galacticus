@@ -303,9 +303,9 @@ contains
     parameterNode => parseFile(fileName,iostat=errorStatus)
     if (errorStatus /= 0) then
        if (File_Exists(fileName)) then
-          call Galacticus_Error_Report('inputParametersConstructorFileChar','Unable to parse parameter file: "'//fileName//'"')
+          call Galacticus_Error_Report('inputParametersConstructorFileChar','Unable to parse parameter file: "'//trim(fileName)//'"')
        else
-          call Galacticus_Error_Report('inputParametersConstructorFileChar','Unable to find parameter file: "' //fileName//'"')
+          call Galacticus_Error_Report('inputParametersConstructorFileChar','Unable to find parameter file: "' //trim(fileName)//'"')
        end if
     end if
     !$omp end critical (FoX_DOM_Access)
