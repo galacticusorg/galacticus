@@ -708,7 +708,7 @@
     <intergalacticMediumStateMethod>
       <value>recFast</value>
       <value>file
-      <intergalaticMediumStateFileName value="data/intergalacticMedium/recFast_OmegaM0.281_OmegaDE0.719_Omegab0.0461_H069.7_TCMB2.725_YHe0.22.xml"/>
+      <intergalaticMediumStateFileName value="data/intergalacticMedium/recFast_OmegaMatter0.281_OmegaDarkEnergy0.719_OmegaBaryon0.0461_HubbleConstant69.7_temperatureCMB2.725_YHe0.22.xml"/>
       </value>
       <value>simple</value>
     </intergalacticMediumStateMethod>
