@@ -56,8 +56,8 @@ unless ( -e $galacticusPath."aux/CAMB" ) {
 
 # Build the code.
 unless ( -e $galacticusPath."aux/CAMB/camb" ) {
-    print "CAMB_Driver.pl: compiling CMBFast code.\n";
-    system("cd ".$galacticusPath."aux/CAMB/; sed -r -i~ s/\"F90C\\s*=\\s*.*\"/\"F90C = gfortran\"/ Makefile; sed -r -i~ s/\"^FFLAGS\\s*=\\s*.*\"/\"FFLAGS = -Ofast -march=native -fopenmp\"/ Makefile; sed -r -i~ /\"F90CRLINK\\s*=\\s*.*\"/d Makefile; make -j1");
+    print "CAMB_Driver.pl: compiling CAMB code.\n";
+    system("cd ".$galacticusPath."aux/CAMB/; sed -r -i~ s/\"F90C\\s*=\\s*.*\"/\"F90C = gfortran\"/ Makefile; sed -r -i~ s/\"^FFLAGS\\s*=\\s*.*\"/\"FFLAGS = -Ofast -fopenmp\"/ Makefile; sed -r -i~ s/\"^FFLAGS\\s*\\+=\\s*\\-march=native\"/\"FFLAGS+=\"/ Makefile; sed -r -i~ /\"F90CRLINK\\s*=\\s*.*\"/d Makefile; make -j1");
     die("CAMB_Driver.pl: FATAL - failed to build CAMB code.")
 	unless ( -e $galacticusPath."aux/CAMB/camb" );
 }
@@ -66,8 +66,8 @@ unless ( -e $galacticusPath."aux/CAMB/camb" ) {
 my $Omega_nu          = 0.0;
 
 # Parse the parameter file.
-my $xml           = new XML::Simple;
-my $data          = $xml->XMLin($parameterFile);
+my $xml  = new XML::Simple;
+my $data = $xml->XMLin($parameterFile);
 my $parameterHash = $data->{'parameter'};
 
 # Check that required parameters exist.
@@ -202,7 +202,6 @@ END
 
    # Run CAMB.
    system($galacticusPath."aux/CAMB/camb ".$transferFunctionFile.".inp");
-
    # Read in the tabulated data and output as an XML file.
    my @transferFunctionData;
    my %transferFunction;
