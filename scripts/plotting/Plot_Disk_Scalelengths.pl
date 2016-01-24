@@ -181,7 +181,7 @@ foreach my $dataSet ( @{$data->{'sizeDistribution'}} ) {
     push(@plotFiles,$plotFile);
 }
 die("Plot_Disk_Scalelengths.pl: 'pdfmerge' tool is required")
-    unless ( which("pdfmerge") );
+    unless ( &File::Which::which("pdfmerge") );
 &SystemRedirect::tofile("rm -f ".$outputFile."; cd ".$outputDir."; pdfmerge ".join(" ",@leafFiles)." tmp.pdf; cd -; mv ".$outputDir."/tmp.pdf ".$outputFile,"/dev/null");
 unlink(@plotFiles);
 &MetaData::Write($outputFile,$galacticusFile,$self);

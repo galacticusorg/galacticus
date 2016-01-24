@@ -225,7 +225,7 @@ close(pHndl);
 system("ps2pdf tmp.ps tmp2.pdf");
 unlink($outputFile);
 die("Plot_SDSS_Color_Distribution.pl: 'pdfmerge' tool is required")
-    unless ( which("pdfmerge") );
+    unless ( &File::Which::which("pdfmerge") );
 &SystemRedirect::tofile("pdfmerge tmp.pdf tmp2.pdf ".$outputFile,"/dev/null");
 unlink("tmp.ps","tmp.pdf","tmp2.pdf");
 &MetaData::Write($outputFile,$galacticusFile,$self);
