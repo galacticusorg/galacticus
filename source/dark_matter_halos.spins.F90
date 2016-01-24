@@ -21,7 +21,7 @@ module Dark_Matter_Halo_Spins
   !% Implements calculations of dark matter halo angular momentum.
   implicit none
   private
-  public :: Dark_Matter_Halo_Angular_Momentum, Dark_Matter_Halo_Angular_Momentum_Growth_Rate
+  public :: Dark_Matter_Halo_Angular_Momentum, Dark_Matter_Halo_Spin, Dark_Matter_Halo_Angular_Momentum_Growth_Rate
 
   ! Record of whether the module has been initialized.
   logical :: moduleInitialized=.false.
@@ -111,5 +111,25 @@ contains
 
     return
   end function Dark_Matter_Halo_Angular_Momentum_Growth_Rate
+
+  double precision function Dark_Matter_Halo_Spin(node,angularMomentum)
+    !% Returns the spin of {\normalfont \ttfamily node} given its angular momentum.
+    use Galacticus_Nodes
+    use Numerical_Constants_Physical
+    use Dark_Matter_Profiles
+    implicit none
+    type            (treeNode              ), intent(inout), pointer :: node
+    double precision                        , intent(in   )          :: angularMomentum
+    class           (nodeComponentBasic    )               , pointer :: basic
+    class           (darkMatterProfileClass)               , pointer :: darkMatterProfile_
+
+    basic                 =>  node             %basic()
+    darkMatterProfile_    =>  darkMatterProfile      ()
+    Dark_Matter_Halo_Spin =  +angularMomentum                             &
+         &                   /gravitationalConstantGalacticus             &
+         &                   *abs(darkMatterProfile_%energy(node))**0.5d0 &
+         &                   /    basic             %mass  (    ) **2.5d0
+    return
+  end function Dark_Matter_Halo_Spin
 
 end module Dark_Matter_Halo_Spins
