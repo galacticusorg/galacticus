@@ -41,7 +41,7 @@ contains
     use Input_Parameters2
     implicit none
     type(mergerTreeOperatorPruneClones)                :: pruneClonesConstructorParameters
-    type(inputParameters              ), intent(in   ) :: parameters
+    type(inputParameters              ), intent(inout) :: parameters
 
     return
   end function pruneClonesConstructorParameters
@@ -94,7 +94,7 @@ contains
                 ! Clean the branch.
                 call Merger_Tree_Prune_Clean_Branch (node                             )
                 ! Destroy the branch.
-                call currentTree%destroyBranch(node)
+                call node%destroyBranch()
                 ! Return to parent node.
                 node => nodePrevious
              end if

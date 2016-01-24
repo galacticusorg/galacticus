@@ -49,7 +49,7 @@ contains
     !% Constructor for the prune-non-essential merger tree operator class which takes a parameter set as input.
     implicit none
     type   (mergerTreeOperatorPruneNonEssential)                :: pruneNonEssentialConstructorParameters
-    type   (inputParameters                    ), intent(in   ) :: parameters
+    type   (inputParameters                    ), intent(inout) :: parameters
     !# <inputParameterList label="allowedParameterNames" />
 
     call parameters%checkParameters(allowedParameterNames)
@@ -148,7 +148,8 @@ contains
                 ! Clean the branch.
                 call Merger_Tree_Prune_Clean_Branch(node)
                 ! Destroy the branch.
-                call treeCurrent%destroyBranch(node)
+                call node%destroyBranch()
+                deallocate(node)
                 ! Return to parent node.
                 node => nodePrevious
              end if
@@ -161,12 +162,15 @@ contains
           do while (associated(node))
              nodePrevious => node%sibling
              call Merger_Tree_Prune_Clean_Branch(node)
-            call treeCurrent%destroyBranch(node)
+             call node%destroyBranch()
+             deallocate(node)
              node => nodePrevious
           end do
        end if
        ! Move to the next tree.
        treeCurrent => treeCurrent%nextTree
     end do
+    ! Uniqueify nodes.
+    call Merger_Tree_Prune_Uniqueify_IDs(tree)
     return
   end subroutine pruneNonEssentialOperate
