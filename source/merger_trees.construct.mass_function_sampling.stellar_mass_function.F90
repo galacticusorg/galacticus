@@ -136,22 +136,24 @@ contains
     !% Computes the halo mass function sampling rate using a power-law distribution.
     use, intrinsic :: ISO_C_Binding
     use FGSL
-    use Halo_Mass_Function
+    use Halo_Mass_Functions
     use Galacticus_Meta_Compute_Times
     use Numerical_Integration
     implicit none
-    double precision                            , intent(in   ) :: mass                        , massMaximum                 , &
-         &                                                         massMinimum                 , time
-    double precision                            , parameter     :: toleranceAbsolute    =1.0d-3, toleranceRelative    =1.0d-2
-    double precision                                            :: haloMassFunction            , logStellarMassMaximum       , &
-         &                                                         logStellarMassMinimum       , treeComputeTime             , &
-         &                                                         xi                          , xiIntegral
+    double precision                            , intent(in   ) :: mass                               , massMaximum                 , &
+         &                                                         massMinimum                        , time
+    double precision                            , parameter     :: toleranceAbsolute           =1.0d-3, toleranceRelative    =1.0d-2
+    class           (haloMassFunctionClass     ), pointer       :: haloMassFunction_
+    double precision                                            :: haloMassFunctionDifferential       , logStellarMassMaximum       , &
+         &                                                         logStellarMassMinimum              , treeComputeTime             , &
+         &                                                         xi                                 , xiIntegral
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
     type            (c_ptr                     )                :: parameterPointer
 
     ! Get the halo mass function, defined per logarithmic interval in halo mass.
-    haloMassFunction=mass*Halo_Mass_Function_Differential(time,mass)
+    haloMassFunction_            => haloMassFunction()
+    haloMassFunctionDifferential =  mass*haloMassFunction_%differential(time,mass)
 
     ! Compute the integral that appears in the "xi" function.
     massHalo             =mass
@@ -162,7 +164,7 @@ contains
     call Integrate_Done(integrandFunction,integrationWorkspace)
 
     ! Compute the "xi" function.
-    xi              =haloMassFunction**2*xiIntegral
+    xi              =haloMassFunctionDifferential**2*xiIntegral
 
     ! Get the time taken to compute a tree of this mass.
     treeComputeTime =Galacticus_Time_Per_Tree(mass)
@@ -177,12 +179,13 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Conditional_Mass_Functions
     implicit none
-    real            (kind=c_double)        :: Xi_Integrand
-    real            (kind=c_double), value :: logStellarMass
-    type            (c_ptr        ), value :: parameterPointer
-    double precision                       :: conditionalMassFunctionVariance , stellarMass       , &
-         &                                    stellarMassFunctionObservedError, stellarMassMaximum, &
-         &                                    stellarMassMinimum
+    real            (kind=c_double               )          :: Xi_Integrand
+    real            (kind=c_double               ), value   :: logStellarMass
+    type            (c_ptr                       ), value   :: parameterPointer
+    class           (conditionalMassFunctionClass), pointer :: conditionalMassFunction_
+    double precision                                        :: conditionalMassFunctionVariance , stellarMass       , &
+         &                                                     stellarMassFunctionObservedError, stellarMassMaximum, &
+         &                                                     stellarMassMinimum
 
     ! Compute the stellar mass and range corresponding to data bins.
     stellarMass       =10.0d0** logStellarMass
@@ -190,7 +193,8 @@ contains
     stellarMassMaximum=10.0d0**(logStellarMass+0.5d0*haloMassFunctionSamplingStellarMassFunctionErrorLogBinWidth)
 
     ! Compute the variance in the model conditional stellar mass function.
-    conditionalMassFunctionVariance=Cumulative_Conditional_Mass_Function_Variance(massHalo,stellarMassMinimum,stellarMassMaximum)
+    conditionalMassFunction_        => conditionalMassFunction()
+    conditionalMassFunctionVariance =  conditionalMassFunction_%massFunctionVariance(massHalo,stellarMassMinimum,stellarMassMaximum)
 
     ! Compute the error in the observed stellar mass. We use a simple Schechter function (plus minimum error) fit.
     stellarMassFunctionObservedError= haloMassFunctionSamplingStellarMassFunctionErrorPhi0                                                                             &

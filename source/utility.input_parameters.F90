@@ -31,7 +31,7 @@ module Input_Parameters
   use Input_Parameters2
   implicit none
   private
-  public :: Input_Parameters_File_Open, Close_Parameters_Group, Input_Parameters_File_Close, Get_Input_Parameter, Get_Input_Parameter_Array_Size,&
+  public :: Input_Parameters_File_Open, Input_Parameters_File_Close, Get_Input_Parameter, Get_Input_Parameter_Array_Size,&
        & Input_Parameter_Is_Present
 
   ! Generic interface to parameter value functions.
@@ -50,42 +50,36 @@ module Input_Parameters
      module procedure Get_Input_Parameter_Logical_Array
   end interface Get_Input_Parameter
 
-  ! Parameters group identifier in the output file.
-  logical                        :: parametersGroupCreated=.false.
-  type   (hdf5Object)            :: parametersGroup
-
-  ! Local pointer to the main output file object.
-  type   (hdf5Object), pointer   :: outputFileObject => null()
-
   type(inputParameters), target :: globalParameters1
   
 contains
 
-  subroutine Input_Parameters_File_Open(parameterFile,outputFileObjectTarget,allowedParametersFile)
+  subroutine Input_Parameters_File_Open(parameterFile,outputFileObject,allowedParametersFile)
     !% Open an XML data file containing parameter values and parse it.
     implicit none
-    type     (varying_string)         , intent(in   )                   :: parameterFile
-    type     (hdf5Object    )         , intent(in   ), optional, target :: outputFileObjectTarget
-    character(len=*         )         , intent(in   ), optional         :: allowedParametersFile
+    type     (varying_string)         , intent(in   )           :: parameterFile
+    type     (hdf5Object    )         , intent(in   ), optional :: outputFileObject
+    character(len=*         )         , intent(in   ), optional :: allowedParametersFile
 
-    ! Create a pointer to the output object if given.
-    if (present(outputFileObjectTarget)) outputFileObject => outputFileObjectTarget
     ! Wrap the new input parameters code.
-    if (present(outputFileObjectTarget)) then
-       globalParameters1=inputParameters(parameterFile,allowedParametersFile=allowedParametersFile,outputParameters=parametersGroup)
+    if (present(outputFileObject)) then
+       globalParameters1=inputParameters(parameterFile,allowedParametersFile=allowedParametersFile,outputParametersGroup=outputFileObject)
     else
-       globalParameters1=inputParameters(parameterFile,allowedParametersFile=allowedParametersFile)
+       globalParameters1=inputParameters(parameterFile,allowedParametersFile=allowedParametersFile                                       )
     end if
+    call globalParameters1%markGlobal()
     globalParameters => globalParameters1
     return
   end subroutine Input_Parameters_File_Open
 
-  subroutine Input_Parameters_File_Close
+  !# <hdfPreCloseTask>
+  !# <unitName>Input_Parameters_File_Close</unitName>
+  !# </hdfPreCloseTask>
+  subroutine Input_Parameters_File_Close()
     !% Close the parameter file.
     implicit none
 
     call globalParameters1%destroy()
-    call Close_Parameters_Group()
     return
   end subroutine Input_Parameters_File_Close
 
@@ -116,7 +110,6 @@ contains
     character(len=*       ), intent(in   ), optional :: defaultValue
     logical                , intent(in   ), optional :: writeOutput
  
-    call Make_Parameters_Group()
     call globalParameters1%value(parameterName,parameterValue,defaultValue=defaultValue,writeOutput=writeOutput)    
     return
   end subroutine Get_Input_Parameter_Char
@@ -130,7 +123,6 @@ contains
     character(len=*         ), intent(in   ), optional :: defaultValue  (:)
     logical                  , intent(in   ), optional :: writeOutput
 
-    call Make_Parameters_Group()
     call globalParameters1%value(parameterName,parameterValue,defaultValue=defaultValue,writeOutput=writeOutput)    
     return
   end subroutine Get_Input_Parameter_Char_Array
@@ -143,8 +135,11 @@ contains
     character(len=*         ), intent(in   ), optional :: defaultValue
     logical                  , intent(in   ), optional :: writeOutput
 
-    call Make_Parameters_Group()
-    call globalParameters1%value(parameterName,parameterValue,defaultValue=var_str(defaultValue),writeOutput=writeOutput)    
+    if (present(defaultValue)) then
+       call globalParameters1%value(parameterName,parameterValue,defaultValue=var_str(defaultValue),writeOutput=writeOutput)    
+    else
+       call globalParameters1%value(parameterName,parameterValue                                   ,writeOutput=writeOutput)    
+    end if
     return
   end subroutine Get_Input_Parameter_VarString
 
@@ -156,7 +151,6 @@ contains
     character(len=*         ), intent(in   ), optional :: defaultValue  (:)
     logical                  , intent(in   ), optional :: writeOutput
 
-    call Make_Parameters_Group()
     if (present(defaultValue)) then
        call globalParameters1%value(parameterName,parameterValue,defaultValue=var_str(defaultValue),writeOutput=writeOutput)
     else
@@ -164,7 +158,7 @@ contains
     end if
     return
   end subroutine Get_Input_Parameter_VarString_Array
-
+  
   subroutine Get_Input_Parameter_Double(parameterName,parameterValue,defaultValue,writeOutput)
     !% Read a {\normalfont \ttfamily double precision} parameter from the parameter file.
     implicit none
@@ -173,7 +167,6 @@ contains
     double precision              , intent(in   ), optional :: defaultValue
     logical                       , intent(in   ), optional :: writeOutput
 
-    call Make_Parameters_Group()
     call globalParameters1%value(parameterName,parameterValue,defaultValue=defaultValue,writeOutput=writeOutput)    
     return
   end subroutine Get_Input_Parameter_Double
@@ -186,7 +179,6 @@ contains
     double precision              , intent(in   ), optional :: defaultValue  (:)
     logical                       , intent(in   ), optional :: writeOutput
     
-    call Make_Parameters_Group()
     call globalParameters1%value(parameterName,parameterValue,defaultValue=defaultValue,writeOutput=writeOutput)    
     return
   end subroutine Get_Input_Parameter_Double_Array
@@ -199,7 +191,6 @@ contains
     integer                , intent(in   ), optional :: defaultValue
     logical                , intent(in   ), optional :: writeOutput
 
-    call Make_Parameters_Group()
     call globalParameters1%value(parameterName,parameterValue,defaultValue=defaultValue,writeOutput=writeOutput)    
     return
   end subroutine Get_Input_Parameter_Integer
@@ -212,7 +203,6 @@ contains
     integer                , intent(in   ), optional :: defaultValue  (:)
     logical                , intent(in   ), optional :: writeOutput
 
-    call Make_Parameters_Group()
     call globalParameters1%value(parameterName,parameterValue,defaultValue=defaultValue,writeOutput=writeOutput)    
     return
   end subroutine Get_Input_Parameter_Integer_Array
@@ -225,7 +215,6 @@ contains
     logical                , intent(in   ), optional :: defaultValue
     logical                , intent(in   ), optional :: writeOutput
 
-    call Make_Parameters_Group()
     call globalParameters1%value(parameterName,parameterValue,defaultValue=defaultValue,writeOutput=writeOutput)    
     return
   end subroutine Get_Input_Parameter_Logical
@@ -251,7 +240,6 @@ contains
     integer  (kind=kind_int8            ), intent(in   ), optional :: defaultValue
     logical                              , intent(in   ), optional :: writeOutput
 
-    call Make_Parameters_Group()
     call globalParameters1%value(parameterName,parameterValue,defaultValue=defaultValue,writeOutput=writeOutput)    
     return
   end subroutine Get_Input_Parameter_Integer_Long
@@ -265,37 +253,9 @@ contains
     integer  (kind=kind_int8            ), intent(in   ), optional :: defaultValue  (:)
     logical                              , intent(in   ), optional :: writeOutput
 
-    call Make_Parameters_Group()
     call globalParameters1%value(parameterName,parameterValue,defaultValue=defaultValue,writeOutput=writeOutput)    
     return
   end subroutine Get_Input_Parameter_Integer_Long_Array
-
-  subroutine Make_Parameters_Group
-    !% Create a group in the \glc\ output file in which to store parameters.
-    implicit none
-
-    if (.not.parametersGroupCreated.and.associated(outputFileObject)) then
-       !$omp critical (HDF5_Access)
-       if (outputFileObject%isOpen()) then
-          parametersGroup=outputFileObject%openGroup('Parameters','Contains values for Galacticus parameters')
-          parametersGroupCreated=.true.
-       end if
-       !$omp end critical (HDF5_Access)
-    end if
-    return
-  end subroutine Make_Parameters_Group
-
-  !# <hdfPreCloseTask>
-  !# <unitName>Close_Parameters_Group</unitName>
-  !# </hdfPreCloseTask>
-  subroutine Close_Parameters_Group()
-    implicit none
-
-    !$omp critical (HDF5_Access)
-    if (parametersGroup%isOpen()) call parametersGroup%close()
-    !$omp end critical (HDF5_Access)
-    return
-  end subroutine Close_Parameters_Group
 
   subroutine Get_Input_Parameter_Double_C(parameterNameLength,parameterName,parameterValue,defaultValue) bind(c,name="Get_Input_Parameter_Double")
     !% C-bound wrapper function for getting {\normalfont \ttfamily double precision} parameter values.
