@@ -404,7 +404,7 @@ contains
              luminosityTables(imfIndex)%isTabulated(luminosityIndex(iLuminosity))=.true.
              if (luminosityIndex(iLuminosity) > luminosityTables(imfIndex)%isTabulatedMaximum) then
                 jLuminosity=luminosityTables(imfIndex)%isTabulatedMaximum
-                do while (jLuminosity < size(luminosityTables(imfIndex)%isTabulated) .and. luminosityTables(imfIndex)%isTabulated(jLuminosity+1))
+                do while (jLuminosity < size(luminosityTables(imfIndex)%isTabulated) .and. luminosityTables(imfIndex)%isTabulated(min(jLuminosity+1,size(luminosityTables(imfIndex)%isTabulated))))
                    jLuminosity=jLuminosity+1
                 end do
                 luminosityTables(imfIndex)%isTabulatedMaximum=jLuminosity
