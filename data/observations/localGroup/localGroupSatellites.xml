@@ -4,6 +4,81 @@
   <doi>doi:10.1088/0004-6256/144/1/4</doi>
   <galaxies>
     <galaxy>
+      <name>Crater II</name>
+      <alias>
+	<value>Cra II</value>
+      </alias>
+      <rightAscensionHours>
+        <value>11</value>
+      </rightAscensionHours>
+      <rightAscensionMinutes>
+        <value>49</value>
+      </rightAscensionMinutes>
+      <rightAscensionSeconds>
+        <value>14.4</value>
+	<error>7.2</error>
+      </rightAscensionSeconds>
+      <declinationDegrees>
+        <value>-18</value>
+      </declinationDegrees>
+      <declinationArcMinutes>
+        <value>24</value>
+      </declinationArcMinutes>
+      <declinationArcSeconds>
+        <value>46.8</value>
+	<error>108</error>
+      </declinationArcSeconds>
+      <longitudeGalactic>
+        <value>282.908</value>
+      </longitudeGalactic>
+      <latitudeGalactic>
+        <value>42.027</value>
+      </latitudeGalactic>
+      <distanceModulus>
+        <value>20.35</value>
+	<error>0.02</error>
+      </distanceModulus>
+       <distanceHeliocentric>
+         <value>117.5</value>
+	 <error>1.1</error>
+      </distanceHeliocentric>
+      <magnitudeAbsoluteV>
+        <value>-7.8</value>
+        <error>0.1</error>
+      </magnitudeAbsoluteV>
+      <radiusHalfLight>
+        <value>1.066</value>
+        <error>0.086</error>
+      </radiusHalfLight>
+      <radiusHalfLightAngular>
+        <value>31.2</value>
+        <error>2.5</error>
+      </radiusHalfLightAngular>
+      <ellipticityProjected>
+        <limit confidenceLevel="84%" type="upper">0.1</limit>
+      </ellipticityProjected>
+      <massStellar>
+        <value></value>
+      </massStellar>
+      <ageStellar>
+	<value>10</value>
+	<error>1</error>
+      </ageStellar>
+      <metallicityStellar>
+	<value>-1.7</value>
+	<error>0.1</error>
+      </metallicityStellar>
+      <metallicityMeasurementTechnique>
+	<value>4</value>
+      </metallicityMeasurementTechnique>
+      <publication>
+	<value>Torrealba et al. (2016; arXiv:1601.07178)</value>
+      </publication>
+      <publicationURL>
+	<value>http://arxiv.org/abs/1601.07178</value>
+      </publicationURL>
+    </galaxy>
+    <galaxy>
       <name>DES J2204−4626</name>
       <alias>
 	<value>Grus II</value>
