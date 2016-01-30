@@ -30,14 +30,9 @@
      double precision                                        :: alpha               , lambda0
      type            (table1DLogarithmicLinear)              :: distribution
      class           (table1D                 ), allocatable :: distributionInverse
-     type            (fgsl_rng                )              :: clonedPseudoSequence, randomSequence
-     logical                                                 :: resetRandomSequence , resetRandomSequenceSnapshot
    contains
-     final     ::                  bett2007Destructor
-     procedure :: sample        => bett2007Sample
-     procedure :: stateSnapshot => bett2007StateSnapshot
-     procedure :: stateStore    => bett2007StateStore
-     procedure :: stateRestore  => bett2007StateRestore
+     final     ::           bett2007Destructor
+     procedure :: sample => bett2007Sample
   end type haloSpinDistributionBett2007
   
   interface haloSpinDistributionBett2007
@@ -60,7 +55,7 @@ contains
     use Input_Parameters2
     implicit none
     type            (haloSpinDistributionBett2007)                :: bett2007ConstructorParameters
-    type            (inputParameters             ), intent(in   ) :: parameters
+    type            (inputParameters             ), intent(inout) :: parameters
     double precision                                              :: lambda0                      , alpha
     !# <inputParameterList label="allowedParameterNames" />
 
@@ -99,14 +94,8 @@ contains
     double precision                                              :: spinDimensionless          , tableMaximum
     integer                                                       :: iSpin
 
-    bett2007ConstructorInternal%lambda0                    =lambda0
-    bett2007ConstructorInternal%alpha                      =alpha
-    bett2007ConstructorInternal%resetRandomSequence        =.true.
-    bett2007ConstructorInternal%resetRandomSequenceSnapshot=.true.
-    if (FGSL_Well_Defined(bett2007ConstructorInternal%      randomSequence))                &
-         & call FGSL_Obj_C_Ptr(bett2007ConstructorInternal%      randomSequence,C_Null_Ptr)
-    if (FGSL_Well_Defined(bett2007ConstructorInternal%clonedPseudoSequence))                &
-         & call FGSL_Obj_C_Ptr(bett2007ConstructorInternal%clonedPseudoSequence,C_Null_Ptr)
+    bett2007ConstructorInternal%lambda0=lambda0
+    bett2007ConstructorInternal%alpha  =alpha
     ! Tabulate the cumulative distribution.
     tableMaximum=(bett2007SpinMaximum/lambda0)**(3.0d0/alpha)
     call bett2007ConstructorInternal%distribution%destroy()
@@ -138,12 +127,10 @@ contains
   subroutine bett2007Destructor(self)
     !% Destructor for the {\normalfont \ttfamily bett2007} dark matter halo spin
     !% distribution class.
-    use Pseudo_Random
     implicit none
     type(haloSpinDistributionBett2007), intent(inout) :: self
 
-    if (.not.self%resetRandomSequence        ) call Pseudo_Random_Free(self%randomSequence      )
-    if (.not.self%resetRandomSequenceSnapshot) call Pseudo_Random_Free(self%clonedPseudoSequence)
+    ! Nothing to do.
     return
   end subroutine bett2007Destructor
 
@@ -155,46 +142,6 @@ contains
     class(haloSpinDistributionBett2007), intent(inout)          :: self
     type (treeNode                    ), intent(inout), pointer :: node
 
-    bett2007Sample=self%distributionInverse%interpolate(Pseudo_Random_Get(self%randomSequence,self%resetRandomSequence))
+    bett2007Sample=self%distributionInverse%interpolate(node%hostTree%randomNumberGenerator%sample())
     return
   end function bett2007Sample
-
-  subroutine bett2007StateSnapshot(self)
-    !% Store a snapshot of the random number generator internal state.
-    use Pseudo_Random
-    implicit none
-    class(haloSpinDistributionBett2007), intent(inout) :: self
-    
-    if (.not.self%resetRandomSequence) then
-       if (FGSL_Well_Defined(self%clonedPseudoSequence)) call Pseudo_Random_Free(self%clonedPseudoSequence)
-       self%clonedPseudoSequence=FGSL_Rng_Clone(self%randomSequence)
-    end if
-    self%resetRandomSequenceSnapshot=self%resetRandomSequence
-    return
-  end subroutine bett2007StateSnapshot
-
-  subroutine bett2007StateStore(self,stateFile,fgslStateFile)
-    !% Write the stored snapshot of the random number state to file.
-    use Pseudo_Random
-    implicit none
-    class  (haloSpinDistributionBett2007), intent(inout) :: self
-    integer                               , intent(in   ) :: stateFile
-    type   (fgsl_file                    ), intent(in   ) :: fgslStateFile
-
-    write (stateFile) self%resetRandomSequenceSnapshot
-    if (.not.self%resetRandomSequenceSnapshot) call Pseudo_Random_Store(self%clonedPseudoSequence,fgslStateFile)
-    return
-  end subroutine bett2007StateStore
-
-  subroutine bett2007StateRestore(self,stateFile,fgslStateFile)
-    !% Write the stored snapshot of the random number state to file.
-    use Pseudo_Random
-    implicit none
-    class  (haloSpinDistributionBett2007), intent(inout) :: self
-    integer                               , intent(in   ) :: stateFile
-    type   (fgsl_file                    ), intent(in   ) :: fgslStateFile
-
-    read (stateFile) self%resetRandomSequence
-    if (.not.self%resetRandomSequence) call Pseudo_Random_Retrieve(self%randomSequence,fgslStateFile)
-    return
-  end subroutine bett2007StateRestore

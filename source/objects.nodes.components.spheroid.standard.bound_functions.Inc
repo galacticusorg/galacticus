@@ -188,7 +188,7 @@ double precision function Node_Component_Spheroid_Standard_Density(self,position
   return
 end function Node_Component_Spheroid_Standard_Density
 
-double precision function Node_Component_Spheroid_Standard_Potential(self,radius,componentType,massType,haloLoaded)
+double precision function Node_Component_Spheroid_Standard_Potential(self,radius,componentType,massType,haloLoaded,status)
   use Galactic_Structure_Options
   use Numerical_Constants_Physical
   use Coordinates
@@ -198,8 +198,9 @@ double precision function Node_Component_Spheroid_Standard_Potential(self,radius
   integer                                        , intent(in   )           :: componentType, massType
   double precision                               , intent(in   )           :: radius
   logical                                        , intent(in   ), optional :: haloLoaded
+  integer                                        , intent(inout), optional :: status
   double precision                                                         :: componentMass
-  type            (coordinateSpherical  )                                  :: position
+  type            (coordinateSpherical          )                          :: position
 
   ! Set to zero by default.
   Node_Component_Spheroid_Standard_Potential=0.0d0

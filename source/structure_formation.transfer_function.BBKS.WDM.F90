@@ -49,7 +49,7 @@ contains
     use Input_Parameters2
     implicit none
     type            (transferFunctionBBKSWDM )                :: bbksWDMConstructorParameters
-    type            (inputParameters         ), intent(in   ) :: parameters
+    type            (inputParameters         ), intent(inout) :: parameters
     class           (transferFunctionClass   ), pointer       :: transferFunctionCDM
     class           (cosmologyParametersClass), pointer       :: cosmologyParameters_    
     double precision                                          :: freeStreamingLength    
@@ -65,8 +65,7 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    ! Construct the CDM transfer function.
-    transferFunctionCDM          => transferFunction(parameters)
+    !# <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
     ! Call the internal constructor
     bbksWDMConstructorParameters =  bbksWDMConstructorInternal(transferFunctionCDM,freeStreamingLength,cosmologyParameters_)
     return
@@ -90,13 +89,14 @@ contains
     end if
     return
   end function bbksWDMConstructorInternal
-
-  elemental subroutine bbksWDMDestructor(self)
+  
+  subroutine bbksWDMDestructor(self)
     !% Destructor for the bbksWDM transfer function class.
     implicit none
     type(transferFunctionBBKSWDM), intent(inout) :: self
 
-    if (associated(self%transferFunctionCDM)) deallocate(self%transferFunctionCDM)
+    !# <objectDestructor name="self%cosmologyParameters_"/>
+    !# <objectDestructor name="self%transferFunctionCDM" />
     return
   end subroutine bbksWDMDestructor
 
@@ -172,13 +172,11 @@ contains
     implicit none
     class    (transferFunctionBBKSWDM), intent(inout) :: self
     type     (inputParameters        ), intent(inout) :: descriptor
-    type     (node                   ), pointer       :: parameterNode
     type     (inputParameters        )                :: subParameters
     character(len=10                 )                :: parameterLabel
 
     call descriptor%addParameter("transferFunctionMethod","BBKSWDM")
-    parameterNode => descriptor%node("transferFunctionMethod")
-    subParameters=inputParameters(parameterNode)
+    subParameters=descriptor%subparameters("transferFunctionMethod")
     write (parameterLabel,'(f10.6)') self%freeStreamingLength
     call subParameters%addParameter("freeStreamingLength",trim(adjustl(parameterLabel)))
     call self%transferFunctionCDM% descriptor(subParameters)
