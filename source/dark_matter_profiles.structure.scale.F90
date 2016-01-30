@@ -109,7 +109,7 @@ contains
        call workBasic%timeSet            (basic%time())
        call workBasic%timeLastIsolatedSet(basic%time())
        call finder   %tolerance          (                                               &
-            &                             toleranceRelative  =1.0d-6                     &
+            &                             toleranceRelative  =1.0d-3                     &
             &                            )
        call finder   %rangeExpand        (                                               &
             &                             rangeExpandUpward  =2.0d0                    , &
@@ -127,7 +127,8 @@ contains
             &                    /darkMatterProfileConcentrationDefinition%concentration(workNode)
        call workNode%destroy()
        deallocate(workNode                   )
-       deallocate(darkMatterProfileDefinition)
+       ! Destroy objects as necessary.
+       if (darkMatterProfileDefinition%isFinalizable()) deallocate(darkMatterProfileDefinition)
     else
        Dark_Matter_Profile_Scale= darkMatterHaloScale_                    %virialRadius (node) &
             &                    /darkMatterProfileConcentrationDefinition%concentration(node)
@@ -141,9 +142,9 @@ contains
       !% Root function used to find the mass of a halo corresponding to the definition used for a particular concentration class.
       implicit none
       double precision            , intent(in   ) :: massDefinitionTrial
-      double precision                            :: radiusOuterDefinition, concentrationDefinition  , &
-           &                                         radiusCore           , massOuterDefinition      , &
-           &                                         radiusOuter          , massOuter
+      double precision                            :: radiusOuterDefinition, concentrationDefinition, &
+           &                                         radiusCore           , massOuter              , &
+           &                                         radiusOuter
       type            (rootFinder)                :: radiusFinder
       
       ! Set the mass of the worker node.
@@ -151,11 +152,9 @@ contains
       call Galacticus_Calculations_Reset                 (workNode)
       call darkMatterProfileDefinition  %calculationReset(workNode)
       ! Get outer radius for this trial definition mass.
-      radiusOuterDefinition  =darkMatterHaloScaleDefinition           %virialRadius (workNode                      )
-      ! Get mass normalization.
-      massOuterDefinition    =darkMatterProfileDefinition             %enclosedMass (workNode,radiusOuterDefinition)
+      radiusOuterDefinition  =darkMatterHaloScaleDefinition           %virialRadius (workNode)
       ! Get concentration for this a trial definition mass.
-      concentrationDefinition=darkMatterProfileConcentrationDefinition%concentration(workNode                      )
+      concentrationDefinition=darkMatterProfileConcentrationDefinition%concentration(workNode)
       ! Get core radius.
       radiusCore             =radiusOuterDefinition/concentrationDefinition
       call workDarkMatterProfile%scaleSet(radiusCore)
@@ -163,7 +162,7 @@ contains
       call darkMatterProfileDefinition  %calculationReset(workNode)
       ! Solve for radius which encloses required non-alt density contrast.
       call radiusFinder%tolerance   (                                                 &
-           &                         toleranceRelative  =1.0d-6                       &
+           &                         toleranceRelative  =1.0d-3                       &
            &                        )
       call radiusFinder%rangeExpand (                                                 &
            &                         rangeExpandUpward  =2.0d0                      , &
@@ -189,14 +188,13 @@ contains
       double precision                :: massTrial  , densityContrastTrial
       
       massTrial                  = darkMatterProfileDefinition%enclosedMass(workNode,radiusTrial)
-      densityContrastTrial       =+3.0d0                                  &
-           &                      *massTrial                              &
-           &                      /4.0d0                                  &
-           &                      /Pi                                     &
-           &                      /cosmologyParameters_%OmegaMatter    () &
-           &                      /cosmologyParameters_%densityCritical() &
+      densityContrastTrial       =+3.0d0                                                      &
+           &                      *massTrial                                                  &
+           &                      /4.0d0                                                      &
+           &                      /Pi                                                         &
+           &                      /cosmologyFunctions_%matterDensityEpochal(workBasic%time()) &
            &                      /radiusTrial**3
-      densityContrastRootFunction=+densityContrastTrial-virialDensityContrast_%densityContrast(workBasic%time())
+      densityContrastRootFunction=+densityContrastTrial-virialDensityContrast_%densityContrast(workBasic%mass(),workBasic%time())
       return
     end function densityContrastRootFunction
 

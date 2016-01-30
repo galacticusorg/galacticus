@@ -42,7 +42,7 @@ contains
     use Input_Parameters2
     implicit none
     type(mergerTreeOperatorSelectWithinRange)                :: selectWithinRangeConstructorParameters
-    type(inputParameters                    ), intent(in   ) :: parameters
+    type(inputParameters                    ), intent(inout) :: parameters
     !# <inputParameterList label="allowedParameterNames" />
     
     call parameters%checkParameters(allowedParameterNames)
@@ -114,7 +114,7 @@ contains
           do while (associated(baseNode))
              nodeNext => baseNode%sibling
              call Merger_Tree_Prune_Clean_Branch(baseNode)
-             call currentTree%destroyBranch(baseNode)
+             call baseNode%destroyBranch()
              baseNode => nodeNext
           end do
        end if

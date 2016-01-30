@@ -85,7 +85,7 @@ contains
     type            (treeNode              ), pointer     , intent(inout) :: thisNode
     type            (treeNode              ), pointer                     :: hostNode
     double precision                        , dimension(3)                :: position,velocity
-    double precision                        , parameter                   :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
+    double precision                        , parameter                   :: toleranceAbsolute      =0.0d0 , toleranceRelative=1.0d-3
     double precision                        , parameter                   :: radiusZero             =0.0d0
     double precision                        , parameter                   :: tidalRadiusTinyFraction=1.0d-6
     type            (rootFinder            ), save                        :: finder
@@ -136,6 +136,7 @@ contains
          &  .and.                                                                &
          &   Galactic_Structure_Enclosed_Mass(thisNode,radiusZero) >= 0.0d0      &
          & ) then
+       ! Initial estimate of the tidal radius.
        tidalRadius=                                  &
             &      (                                 &
             &        gravitationalConstantGalacticus &
@@ -146,8 +147,7 @@ contains
             &        )                               &
             &       *(kilo*gigaYear/megaParsec)**2   &
             &      )**(1.0d0/3.0d0)
-
-       ! Find the tidal radius in the heated dark matter profile.
+       ! Find the tidal radius in the dark matter profile.
        if (.not.finder%isInitialized()) then
           call finder%rootFunction(Tidal_Radius_Heated_Halo_Solver)
           call finder%tolerance   (toleranceAbsolute,toleranceRelative)
@@ -159,8 +159,8 @@ contains
                &                   rangeExpandType              =rangeExpandMultiplicative      &
                &                  )
        end if
-       tidalPullGlobal   =  angularVelocity**2-tidalTensor
-       activeNode        => thisNode
+       tidalPullGlobal =  angularVelocity**2-tidalTensor
+       activeNode      => thisNode
        ! Check for complete stripping.
        if (Tidal_Radius_Heated_Halo_Solver(tidalRadiusTinyFraction*tidalRadius) > 0.0d0) then
           tidalRadius=0.0d0
@@ -172,7 +172,7 @@ contains
             &                 0.0d0                                                                                              &
             &                )
     else
-       outerSatelliteMass=  0.0d0
+       outerSatelliteMass=0.0d0
     end if
     ! Compute the rate of mass loss.
     Satellite_Tidal_Stripping_Rate_Zentner2005=-satelliteTidalStrippingZentner2005Rate*outerSatelliteMass/orbitalPeriod
@@ -180,31 +180,30 @@ contains
   end function Satellite_Tidal_Stripping_Rate_Zentner2005
 
   double precision function Tidal_Radius_Heated_Halo_Solver(radius)
-    !% Root function used to find the tidal radius within a subhalo prior to heating.
+    !% Root function used to find the tidal radius within a subhalo.
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
     use Galactic_Structure_Enclosed_Masses
+    use Galactic_Structure_Options
     implicit none
     double precision                        , intent(in   ) :: radius
     class           (nodeComponentSatellite), pointer       :: satelliteComponent
-    double precision                                        :: tidalHeatingNormalized, enclosedMass
+    double precision                                        :: enclosedMass
 
     ! Get the satellite component.
-    satelliteComponent             =>     activeNode        %satellite             ()
-    tidalHeatingNormalized         =  max(satelliteComponent%tidalHeatingNormalized(),0.0d0)
+    satelliteComponent             => activeNode%satellite()
     enclosedMass                   =  Galactic_Structure_Enclosed_Mass(activeNode,radius)
     Tidal_Radius_Heated_Halo_Solver=+tidalPullGlobal                    &
          &                          -gravitationalConstantGalacticus    &
          &                          *enclosedMass                       &
          &                          /radius                         **3 &
+         &                          /radius                         **3 &
          &                          *(                                  &
          &                            +kilo                             &
          &                            *gigaYear                         &
          &                            /megaParsec                       &
-         &                           )                              **2 &
-         &                          +2.0d0                              &
-         &                          *tidalHeatingNormalized 
+         &                           )                              **2
     return
   end function Tidal_Radius_Heated_Halo_Solver
 

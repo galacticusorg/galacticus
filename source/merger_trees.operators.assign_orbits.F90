@@ -41,7 +41,7 @@ contains
     use Input_Parameters2
     implicit none
     type(mergerTreeOperatorAssignOrbits)                :: assignOrbitsConstructorParameters
-    type(inputParameters               ), intent(in   ) :: parameters
+    type(inputParameters               ), intent(inout) :: parameters
 
     return
   end function assignOrbitsConstructorParameters
@@ -69,20 +69,20 @@ contains
     use Kepler_Orbits
     use Satellite_Merging_Timescales
     implicit none
-    class(mergerTreeOperatorAssignOrbits ), intent(inout)         :: self
-    type (mergerTree                     ), intent(inout), target :: tree
-    type (treeNode                       ), pointer               :: node                       , nodeProgenitor, mergee
-    type (mergerTree                     ), pointer               :: currentTree
-    class(nodeComponentSatellite         ), pointer               :: satellite                  , satelliteProgenitor
-    class(satelliteMergingTimescalesClass), pointer               :: satelliteMergingTimescales_
-    type (keplerOrbit                    )                        :: virialOrbit, virialOrbitProgenitor
+    class  (mergerTreeOperatorAssignOrbits ), intent(inout)         :: self
+    type   (mergerTree                     ), intent(inout), target :: tree
+    type   (treeNode                       ), pointer               :: node                       , nodeProgenitor, mergee
+    type   (mergerTree                     ), pointer               :: currentTree
+    class  (nodeComponentSatellite         ), pointer               :: satellite                  , satelliteProgenitor
+    class  (nodeComponentBasic             ), pointer               :: basic                      , basicProgenitor
+    class  (satelliteMergingTimescalesClass), pointer               :: satelliteMergingTimescales_
+    class  (virialOrbitClass               ), pointer               :: virialOrbit_
+    type   (keplerOrbit                    )                        :: virialOrbitNode            , virialOrbitProgenitor
+    logical                                                         :: satelliteProgenitorFound
 
-    logical :: satelliteProgenitorFound
-    class(nodeComponentBasic), pointer :: basic, basicProgenitor
-
-    
     ! Get required objects.
     satelliteMergingTimescales_ => satelliteMergingTimescales()
+    virialOrbit_                => virialOrbit               ()
     ! Iterate over trees.
     currentTree => tree
     do while (associated(currentTree))   
@@ -96,8 +96,8 @@ contains
                &   .not.           node%isPrimaryProgenitor()  &               
                & ) then
              satellite   => node     %satellite  (autoCreate=.true.)
-             virialOrbit =  satellite%virialOrbit(                 )
-             if (.not.virialOrbit%isDefined()) then
+             virialOrbitNode =  satellite%virialOrbit(                 )
+             if (.not.virialOrbitNode%isDefined()) then
                 ! Check for a primary progenitor with a pre-existing satellite.
                 satelliteProgenitorFound =  .false.
                 nodeProgenitor           => node
@@ -154,9 +154,9 @@ contains
                    nodeProgenitor => nodeProgenitor%firstChild
                 end do
                 if (.not.satelliteProgenitorFound) then
-                   virialOrbit=Virial_Orbital_Parameters(node,node%parent,.false.)
-                   call satellite%  mergeTimeSet(satelliteMergingTimescales_%timeUntilMerging(node,virialOrbit))
-                   call satellite%virialOrbitSet(                                                  virialOrbit )
+                   virialOrbitNode=virialOrbit_%orbit(node,node%parent,.false.)
+                   call satellite%  mergeTimeSet(satelliteMergingTimescales_%timeUntilMerging(node,virialOrbitNode))
+                   call satellite%virialOrbitSet(                                                  virialOrbitNode )
                 end if
              else
                 ! The merge target must be reachable at the merge time. If it is not, find a
