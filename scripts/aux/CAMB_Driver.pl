@@ -219,12 +219,14 @@ close(cambInput);
    my %transferFunction;
    open(inHndl,"camb_transfer_out.dat");
    while ( my $line = <inHndl> ) {
+       next
+	   if ( $line =~ m/^#/ );
        $line =~ s/^\s*//;
        my @columns = split(/\s+/,$line);
        my $k = $columns[0]*($data->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'}/100.0);
        push(@transferFunctionData,$k." ".$columns[1]);
    }
-   close(inHndl);
+   close(inHndl);   
    unlink("camb_params.ini","camb_transfer_out.dat","camb_matterpower.dat",$transferFunctionFile.".inp");
    @{$transferFunction{'datum'}} = @transferFunctionData;
    @{$transferFunction{'column'}} = (
