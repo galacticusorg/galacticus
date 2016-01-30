@@ -126,7 +126,8 @@ contains
        Dark_Matter_Profile_Scale=+darkMatterHaloScaleDefinition           %virialRadius (workNode) &
             &                    /darkMatterProfileConcentrationDefinition%concentration(workNode)
        call workNode%destroy()
-       deallocate(workNode)
+       deallocate(workNode                   )
+       deallocate(darkMatterProfileDefinition)
     else
        Dark_Matter_Profile_Scale= darkMatterHaloScale_                    %virialRadius (node) &
             &                    /darkMatterProfileConcentrationDefinition%concentration(node)
