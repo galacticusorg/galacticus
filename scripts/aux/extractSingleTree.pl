@@ -25,7 +25,7 @@ my $inFile  = new PDL::IO::HDF5(     $inFileName);
 my $outFile = new PDL::IO::HDF5(">".$outFileName);
 
 # Detect file version and set group names appropriately.
-my $inFormatVersion = (grep {$_ eq "formatVersion"} $inFile->attrs()) ? $inFile->attrGet("formatVersion") : 1;
+(my $inFormatVersion) = (grep {$_ eq "formatVersion"} $inFile->attrs()) ? $inFile->attrGet("formatVersion") : (1);
 my $forestName      = $inFormatVersion == 1 ? "treeIndex" : "forestIndex";
 my $halosName       = $inFormatVersion == 1 ? "haloTrees" : "forestHalos";
 
