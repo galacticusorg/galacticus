@@ -551,6 +551,25 @@ contains
           call Galacticus_Display_Message(message,verbosityWarn)
        end if
 
+       ! Warn if subhalo promotions are allowed, but branch jumps are not.
+       if (mergerTreeReadAllowBranchJumps.and..not.mergerTreeReadPresetMergerTimes) then
+          message='WARNING: allowing branch jumps while not presetting merger times can lead to tree deadlock if merging occurs prior to the jumped-to node time and before an output time which blocks the jumped-to node''s child.'//char(10)
+          message=message//'For example, "a" in the following tree (in which "<==" indicates subhalo host) jump from "3" to "1", but cannot merge with "1" since "1" still has a child, and that child, "2", cannot reach one because it is blocked by the otuput time, resulting in a deadlock of the tree:'//char(10)//char(10)
+          message=message//' ---           ---'//char(10)
+          message=message//' |1|<==========|a|'//char(10)
+          message=message//' ---           ---'//char(10)
+          message=message//'  ^             | '//char(10)
+          message=message//'  |             | '//char(10)
+          message=message//' ~~~output time~~~'//char(10)
+          message=message//'  |             | '//char(10)
+          message=message//' ~~~merge  time~~~'//char(10)
+          message=message//'  |             | '//char(10)
+          message=message//' ---     ---   ---'//char(10)
+          message=message//' |2|     |3|<==|a|'//char(10)
+          message=message//' ---     ---   ---'//char(10)
+          call Galacticus_Display_Message(message,verbosityWarn)
+       end if
+
        ! Perform sanity checks if subhalos are not included.
        if (defaultimporter%treesHaveSubhalos() == booleanFalse) then
           if (mergerTreeReadPresetMergerTimes   ) call Galacticus_Error_Report('Merger_Tree_Read_Initialize','cannot preset merger times as no subhalos are present; try setting [mergerTreeReadPresetMergerTimes]=false'      )
@@ -2427,7 +2446,7 @@ contains
              if (subhaloJumps) then
                 if (timeOfJump < 0.0d0)                   &
                      & timeOfJump=descendentNode%nodeTime
-                jumpToHost => descendentNode%descendent%host
+                jumpToHost => descendentNode%descendent%host                
                 ! Find an isolated host.
                 do while (jumpToHost%isSubhalo)
                    jumpToHost => jumpToHost%host
