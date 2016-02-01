@@ -85,16 +85,43 @@ contains
     return
   end function Accretion_Disk_Radiative_Efficiency_Eddington
 
-  double precision function Accretion_Disk_Jet_Power_Eddington(thisBlackHole,massAccretionRate)
-    !% Computes the jet power for an Eddington-limited accretion disk.
+  double precision function Accretion_Disk_Jet_Power_Eddington(blackHole,massAccretionRate)
+    !% Computes the jet power for an Eddington-limited accretion disk. The jet power is held at
+    !% a fixed fraction of the Eddington accretion rate, independent of the mass accretion rate
+    !% onto the black hole, until the mass accretion rate falls below some small fraction of the
+    !% Eddington rate, at which point the jet power is smoothly reduced to zero as mass
+    !% accretion rate approaches zero. This avoids the unphysical behavior of having finite jet
+    !% power at zero accretion rate.
     use Galacticus_Nodes
     use Black_Hole_Fundamentals
     use Numerical_Constants_Physical
     implicit none
-    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
+    class           (nodeComponentBlackHole), intent(inout) :: blackHole
     double precision                        , intent(in   ) :: massAccretionRate
+    double precision                        , parameter     :: fractionalRateCutOff                    =0.01d0
+    double precision                                        :: massAccretionRateEddingtonLimited              , &
+         &                                                     massAccretionRateEddingtonLimitedReduced       , &
+         &                                                     fractionalRate
 
-    Accretion_Disk_Jet_Power_Eddington=accretionDiskJetPowerEddington*Black_Hole_Eddington_Accretion_Rate(thisBlackHole)*(speedLight/kilo)**2
+    massAccretionRateEddingtonLimited=+accretionDiskJetPowerEddington                 &
+         &                            *Black_Hole_Eddington_Accretion_Rate(blackHole)
+    if (massAccretionRate > fractionalRateCutOff*massAccretionRateEddingtonLimited) then
+       massAccretionRateEddingtonLimitedReduced=massAccretionRateEddingtonLimited
+    else
+       fractionalRate                          =+massAccretionRate                 &
+            &                                   /fractionalRateCutOff              &
+            &                                   /massAccretionRateEddingtonLimited
+       massAccretionRateEddingtonLimitedReduced=+massAccretionRateEddingtonLimited &
+            &                                   *(                                 &
+            &                                     +3.0d0*fractionalRate**2         &
+            &                                     -2.0d0*fractionalRate**3         &
+            &                                   )
+    end if
+    Accretion_Disk_Jet_Power_Eddington=+massAccretionRateEddingtonLimitedReduced &
+         &                             *(                                        &
+         &                              +speedLight                              &
+         &                              /kilo                                    &
+         &                             )**2
     return
   end function Accretion_Disk_Jet_Power_Eddington
 
