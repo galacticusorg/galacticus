@@ -22,7 +22,7 @@ module Stellar_Luminosities_Structure
   use ISO_Varying_String
   implicit none
   private
-  public :: stellarLuminosities, max, operator(*), Stellar_Luminosities_Parameter_Map
+  public :: stellarLuminosities, max, abs, operator(*), Stellar_Luminosities_Parameter_Map
 
   ! Interface to parameter mapping functions.
   interface Stellar_Luminosities_Parameter_Map
@@ -33,6 +33,11 @@ module Stellar_Luminosities_Structure
   interface max
      module procedure stellarLuminositiesMax
   end interface max
+
+  ! Interface to abs() function for stellar luminosities objects.
+  interface abs
+     module procedure stellarLuminositiesAbs
+  end interface abs
 
   ! Interface to multiplication operators with stellar luminosities objects as their second argument.
   interface operator(*)
@@ -683,7 +688,7 @@ contains
 
     if (luminosityCount > 0) then
        luminosityCountActual=stellarLuminositiesCountMaximum(luminosities1,luminosities2)
-       stellarLuminositiesMax%luminosityValue=spread(-HUGE(0.0d0),1,luminosityCountActual)
+       stellarLuminositiesMax%luminosityValue=spread(-huge(0.0d0),1,luminosityCountActual)
        if (allocated(luminosities1%luminosityValue))                                              &
             & stellarLuminositiesMax     %luminosityValue(1:size(luminosities1%luminosityValue))= &
             &  max(                                                                               &
@@ -699,6 +704,16 @@ contains
     end if
     return
   end function stellarLuminositiesMax
+
+  function stellarLuminositiesAbs(luminosities)
+    !% Return an element-by-element {\normalfont \ttfamily abs()} on a stellar luminosity object.
+    implicit none
+    type(stellarLuminosities)                :: stellarLuminositiesAbs
+    type(stellarLuminosities), intent(in   ) :: luminosities
+
+    if (luminosityCount > 0) stellarLuminositiesAbs%luminosityValue=abs(luminosities%luminosityValue)
+    return
+  end function stellarLuminositiesAbs
 
   function Stellar_Luminosities_Add(luminosities1,luminosities2)
     !% Add two stellar luminosities objects.
