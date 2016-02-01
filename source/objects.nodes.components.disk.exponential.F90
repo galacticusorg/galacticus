@@ -771,38 +771,47 @@ contains
        call thisDiskComponent%angularMomentumScale(max(angularMomentum,angularMomentumMinimum))
 
        ! Set scale for masses.
-       mass           = thisDiskComponent%massGas       ()+thisSpheroidComponent%massGas        () &
-            &          +thisDiskComponent%massStellar   ()+thisSpheroidComponent%massStellar    ()
+       mass           =abs(                                                                     &
+            &              +thisDiskComponent%massGas    ()+thisSpheroidComponent%massGas    () &
+            &              +thisDiskComponent%massStellar()+thisSpheroidComponent%massStellar() &
+            &             )
        call thisDiskComponent%massGasScale              (max(           mass,           massMinimum))
        call thisDiskComponent%massStellarScale          (max(           mass,           massMinimum))
 
        ! Set scales for abundances if necessary.
        if (abundancesCount > 0) then
           ! Set scale for gas abundances.
-          call thisDiskComponent%abundancesGasScale      (                                                  &
-               &                                          max(                                              &
-               &                                               thisDiskComponent    %abundancesGas      ()  &
-               &                                              +thisSpheroidComponent%abundancesGas      (), &
-               &                                               massMinimum*unitAbundances                   &
-               &                                             )                                              &
+          call thisDiskComponent%abundancesGasScale      (                                                &
+               &                                          max(                                            &
+               &                                              abs(                                        &
+               &                                                  +thisDiskComponent    %abundancesGas()  &
+               &                                                  +thisSpheroidComponent%abundancesGas()  &
+               &                                                 )                                      , &
+               &                                                  +massMinimum                            &
+               &                                                  *unitAbundances                         &
+               &                                             )                                            &
                &                                         )
 
           ! Set scale for stellar abundances.
-          call thisDiskComponent%abundancesStellarScale  (                                                  &
-               &                                          max(                                              &
-               &                                               thisDiskComponent    %abundancesStellar  ()  &
-               &                                              +thisSpheroidComponent%abundancesStellar  (), &
-               &                                               massMinimum*unitAbundances                   &
-               &                                             )                                              &
+          call thisDiskComponent%abundancesStellarScale  (                                                      &
+               &                                          max(                                                  &
+               &                                              abs(                                              &
+               &                                                  +thisDiskComponent    %abundancesStellar  ()  &
+               &                                                  +thisSpheroidComponent%abundancesStellar  ()  &
+               &                                                 )                                            , &
+               &                                                  +massMinimum                                  &
+               &                                                  *unitAbundances                               &
+               &                                             )                                                  &
                &                                         )
        end if
-
        ! Set scale for stellar luminosities.
-       stellarLuminositiesScale=max(                                              &
-            &                        thisDiskComponent    %luminositiesStellar()  &
-            &                       +thisSpheroidComponent%luminositiesStellar(), &
-            &                        unitStellarLuminosities                      &
-            &                       *luminosityMinimum                            &
+       stellarLuminositiesScale=max(                                                    &
+            &                       abs(                                                &
+            &                           +thisDiskComponent      %luminositiesStellar()  &
+            &                           +thisSpheroidComponent  %luminositiesStellar()  &
+            &                          )                                              , &
+            &                           +unitStellarLuminosities                        &
+            &                           *luminosityMinimum                              &
             &                      )
        call stellarLuminositiesScale%truncate                (thisDiskComponent       %luminositiesStellar())
        call thisDiskComponent       %luminositiesStellarScale(stellarLuminositiesScale                      )
