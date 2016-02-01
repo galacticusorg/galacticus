@@ -42,7 +42,7 @@ contains
     use Star_Formation_IMF
     implicit none
     type   (stellarPopulationSpectraFSPS)                :: fspsConstructorParameters
-    type   (inputParameters             ), intent(in   ) :: parameters
+    type   (inputParameters             ), intent(inout) :: parameters
     logical                                              :: forceZeroMetallicity
     !# <inputParameterList label="allowedParameterNames" />
 

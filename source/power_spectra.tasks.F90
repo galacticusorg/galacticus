@@ -64,13 +64,15 @@ contains
     use Numerical_Ranges
     use Input_Parameters
     use Power_Spectra
+    use Cosmological_Mass_Variance
     use Numerical_Constants_Math
     use Cosmology_Parameters
     implicit none
-    integer                                             :: iWavenumber                  , powerSpectraCount            , &
-         &                                                 powerSpectraPointsPerDecade
-    double precision                                    :: powerSpectraWavenumberMaximum, powerSpectraWavenumberMinimum
-    class           (cosmologyParametersClass), pointer :: thisCosmologyParameters
+    integer                                                  :: iWavenumber                  , powerSpectraCount            , &
+         &                                                      powerSpectraPointsPerDecade
+    double precision                                         :: powerSpectraWavenumberMaximum, powerSpectraWavenumberMinimum
+    class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_
+    class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
 
     ! Find the wavenumber range and increment size.
     !@ <inputParameter>
@@ -120,18 +122,19 @@ contains
     ! Build a range of wavenumbers.
     powerSpectrum_Wavenumber(:)=Make_Range(powerSpectraWavenumberMinimum,powerSpectraWavenumberMaximum,powerSpectraCount,rangeTypeLogarithmic)
 
-    ! Get the default cosmology.
-    thisCosmologyParameters => cosmologyParameters()
+    ! Get required objects.
+    cosmologyParameters_      => cosmologyParameters     ()
+    cosmologicalMassVariance_ => cosmologicalMassVariance()
     ! Loop over all halo wavenumberes.
     do iWavenumber=1,powerSpectraCount
        ! Compute power spectrum.
        powerSpectrum_Power        (iWavenumber)=Power_Spectrum(powerSpectrum_Wavenumber(iWavenumber))
        ! Compute corresponding mass scale.
-       powerSpectrum_Mass         (iWavenumber)=4.0d0*Pi*thisCosmologyParameters%OmegaMatter()*thisCosmologyParameters%densityCritical()/3.0d0/powerSpectrum_Wavenumber(iWavenumber)**3
+       powerSpectrum_Mass         (iWavenumber)=4.0d0*Pi*cosmologyParameters_%OmegaMatter()*cosmologyParameters_%densityCritical()/3.0d0/powerSpectrum_Wavenumber(iWavenumber)**3
        ! Compute fluctuation on this mass scale.
-       powerSpectrum_sigma        (iWavenumber)=Cosmological_Mass_Root_Variance                       (powerSpectrum_Mass(iWavenumber))
+       powerSpectrum_sigma        (iWavenumber)=cosmologicalMassVariance_%rootVariance                   (powerSpectrum_Mass(iWavenumber))
        ! Compute gradient of mass fluctuations.
-       powerSpectrum_sigmaGradient(iWavenumber)=Cosmological_Mass_Root_Variance_Logarithmic_Derivative(powerSpectrum_Mass(iWavenumber))
+       powerSpectrum_sigmaGradient(iWavenumber)=cosmologicalMassVariance_%rootVarianceLogarithmicGradient(powerSpectrum_Mass(iWavenumber))
     end do
 
     return
