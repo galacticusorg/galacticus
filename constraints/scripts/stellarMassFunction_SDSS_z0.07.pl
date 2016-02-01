@@ -10,7 +10,6 @@ if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
 }
 unshift(@INC,$galacticusPath."perl"); 
 use PDL;
-use PDL::NiceSlice;
 use PDL::IO::HDF5;
 require Galacticus::Options;
 require Galacticus::Constraints::MassFunctions;
@@ -27,7 +26,10 @@ $massFunctionConfig->{'self'          } = $0;
 $massFunctionConfig->{'galacticusFile'} = $ARGV[0];
 # Create a hash of named arguments.
 my $iArg = -1;
-my %arguments;
+my %arguments =
+    (
+     quiet => 0
+    );
 &Options::Parse_Options(\@ARGV,\%arguments);
 
 # Specify the properties of this mass function.
@@ -35,7 +37,7 @@ my $entry                                    = 0;
 $massFunctionConfig->{'redshift'           } = pdl 0.070;
 $massFunctionConfig->{'analysisLabel'      } = "sdssStellarMassFunctionZ0.07";
 $massFunctionConfig->{'discrepancyFileName'} = "discrepancy".ucfirst($massFunctionConfig->{'analysisLabel'}).".hdf5";
-$massFunctionConfig->{'massType'           } = "stellarMass";
+$massFunctionConfig->{'massType'           } = "massStellar";
 $massFunctionConfig->{'massErrorRandomDex' } = 0.07;
 $massFunctionConfig->{'xRange'             } = "1.0e8:1.0e13";
 $massFunctionConfig->{'yRange'             } = "1.0e-9:1.0e-1";

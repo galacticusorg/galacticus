@@ -18,7 +18,7 @@
 !% Contains a module which stores file units and finds available file units.
 
 ! Specify an explicit dependence on the flock.o object file.
-!: ./work/build/flock.o
+!: $(BUILDPATH)/flock.o
 
 module File_Utilities
   !% Contains a function which returns an available file unit. Also stores the name of the output directory and unit numbers for
@@ -27,7 +27,7 @@ module File_Utilities
   use ISO_Varying_String
   implicit none
   private
-  public :: Count_Lines_in_File, File_Exists, File_Lock, File_Unlock
+  public :: Count_Lines_in_File, File_Exists, File_Lock, File_Unlock, Executable_Find
 
   interface Count_Lines_in_File
      !% Generic interface for {\normalfont \ttfamily Count\_Lines\_in\_File} function.
@@ -167,4 +167,44 @@ contains
     return
   end subroutine File_Unlock
 
+  function Executable_Find(executableName)
+    !% Return the full path to the executable of the given name.
+    use ISO_Varying_String
+    use String_Handling
+    implicit none
+    type     (varying_string)                            :: Executable_Find
+    character(len=*         ), intent(in   )             :: executableName
+    type     (varying_string), allocatable, dimension(:) :: path
+    integer                                              :: pathsLength    , pathsStatus, i
+    type     (varying_string)                            :: paths
+
+    call Get_Environment_Variable('PATH',length=pathsLength,status=pathsStatus)
+    call Get_Paths               (              pathsLength                   )
+    allocate(path(String_Count_Words(char(paths),":")))
+    call String_Split_Words(path,char(paths),":")
+    do i=1,size(path)
+       Executable_Find=path(i)//"/"//executableName
+       if (File_Exists(Executable_Find)) return
+    end do
+    Executable_Find=""
+    deallocate(path)
+    return
+
+  contains
+    
+    subroutine Get_Paths(pathsLength)
+      !% Retrieve the {\normalfont \ttfamily PATH} environment variable.
+      implicit none
+      integer                     , intent(in   ) :: pathsLength
+      character(len=pathsLength+1)                :: pathsName
+      
+      ! Get the paths.
+      call Get_Environment_Variable("PATH",value=pathsName)
+      ! Store the paths.
+      paths=pathsName
+      return
+    end subroutine Get_Paths
+
+  end function Executable_Find
+  
 end module File_Utilities

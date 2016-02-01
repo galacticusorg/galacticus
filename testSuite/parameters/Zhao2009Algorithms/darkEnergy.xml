@@ -9,8 +9,9 @@
     <OmegaDarkEnergy value="0.75"/>
     <OmegaBaryon value="0.0"/>
     <HubbleConstant value="100.0"/>
-  </cosmologyParametersMethod><sigma_8 value="0.8"/>
-  <transferFunctionMethod value="BBKS"/>
+  </cosmologyParametersMethod><cosmologicalMassVarianceMethod value="filteredPower">
+    <sigma_8 value="0.8"/>
+  </cosmologicalMassVarianceMethod><transferFunctionMethod value="BBKS"/>
   <powerSpectrumPrimordialMethod value="powerLaw">
     <index value="1.000"/>
     <wavenumberReference value="1.000"/>
