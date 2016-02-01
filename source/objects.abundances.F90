@@ -24,7 +24,7 @@ module Abundances_Structure
   implicit none
   private
   public :: abundances, Abundances_Names, Abundances_Atomic_Index, Abundances_Property_Count, Abundances_Get_Metallicity&
-       &, Abundances_Mass_To_Mass_Fraction, operator(*), max
+       &, Abundances_Mass_To_Mass_Fraction, operator(*), max, abs
 
   ! Interface to multiplication operators with abundances objects as their second argument.
   interface operator(*)
@@ -35,6 +35,11 @@ module Abundances_Structure
   interface max
      module procedure Abundances_Max
   end interface max
+
+  ! Interface to abs() function for abundances objects.
+  interface abs
+     module procedure Abundances_Abs
+  end interface abs
 
   type abundances
      !% The abundances structure used for describing elemental abundances in \glc.
@@ -557,6 +562,17 @@ contains
     if (elementsCount > 0) Abundances_Max%  elementalValue=max(abundances1%  elementalValue,abundances2%  elementalValue)
     return
   end function Abundances_Max
+
+  function Abundances_Abs(abundances1)
+    !% Return an element-by-element {\normalfont \ttfamily abs()} on an abundances objects.
+    implicit none
+    type(abundances)                :: Abundances_Abs
+    type(abundances), intent(in   ) :: abundances1
+
+    Abundances_Abs                       %metallicityValue=abs(abundances1%metallicityValue)
+    if (elementsCount > 0) Abundances_Abs%  elementalValue=abs(abundances1%  elementalValue)
+    return
+  end function Abundances_Abs
 
   function Abundances_Divide(abundances1,divisor)
     !% Divide an abundances object by a scalar.
