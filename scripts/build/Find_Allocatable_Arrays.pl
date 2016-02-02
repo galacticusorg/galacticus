@@ -1,6 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
+use Data::Dumper;
 my $galacticusPath;
 if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
  $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
@@ -105,9 +106,9 @@ my %allocatables;
 foreach my $type ( sort keys %type_dim ) {
     my @entries = split(/:/,$type);
     ++$iAllocatable;
-    ${${$allocatables{'allocatable'}}[$iAllocatable]}{"type"}      = $entries[0];
-    ${${$allocatables{'allocatable'}}[$iAllocatable]}{"dimension"} = $entries[1];
-    ${${$allocatables{'allocatable'}}[$iAllocatable]}{"kind"}      = $entries[2];
+    ${${$allocatables{'allocatable'}}[$iAllocatable]}{"type"}      =                        $entries[0]     ;
+    ${${$allocatables{'allocatable'}}[$iAllocatable]}{"dimension"} =                        $entries[1]     ;
+    ${${$allocatables{'allocatable'}}[$iAllocatable]}{"kind"}      = defined($entries[2]) ? $entries[2] : "";
 }
 
 # Create XML object.
