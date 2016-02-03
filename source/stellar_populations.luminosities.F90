@@ -332,8 +332,8 @@ contains
                                toleranceRelative=2.0d0*toleranceRelative
                                write (label,'(e9.3)') 2.0d0*stellarPopulationLuminosityIntegrationToleranceRelative
                                message=         "WARNING: increasing relative tolerance for stellar population luminosities to"          //char(10)
-                               message=message//trim(adjustl(label))//" and retrying integral"
-                               call Galacticus_Display_Message(message,verbosityWarn)
+                               message=message//trim(adjustl(label))//" and retrying integral"//{introspection:location}
+                               call Galacticus_Warn(message)
                             else if (stellarPopulationLuminosityIntegrationToleranceDegrade) then
                                message="integration of stellar populations failed"
                                call Galacticus_Error_Report('Stellar_Population_Luminosity',message)

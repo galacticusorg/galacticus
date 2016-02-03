@@ -48,7 +48,7 @@ contains
 
   function simpleConstructorParameters(parameters)
     !% Constructor for the simple cosmological parameters class which takes a parameter set as input.
-    use Galacticus_Display
+    use Galacticus_Error
     implicit none
     type(cosmologyParametersSimple)                :: simpleConstructorParameters
     type(inputParameters          ), intent(in   ) :: parameters
@@ -105,11 +105,8 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     ! Validate the input.
-    if (simpleConstructorParameters%HubbleConstantValue <= 0.0d0)                                                                                               &
-         & call Galacticus_Display_Message(                                                                                                                     &
-         &                                 "WARNING [cosmologyParametersSimple::simpleConstructorParameters]: H_0 ≤ 0 - are you sure this is what you wanted?", &
-         &                                 verbosityWarn                                                                                                        &
-         &                                )
+    if (simpleConstructorParameters%HubbleConstantValue <= 0.0d0)                                                                                    &
+         & call Galacticus_Warn("WARNING [cosmologyParametersSimple::simpleConstructorParameters]: H_0 ≤ 0 - are you sure this is what you wanted? "//{introspection:location})
     return
   end function simpleConstructorParameters
 

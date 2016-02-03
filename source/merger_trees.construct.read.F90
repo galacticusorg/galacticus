@@ -547,8 +547,8 @@ contains
           message=message//'  |      |  '//char(10)
           message=message//' ---   -----'//char(10)
           message=message//' |c|   | 3 |'//char(10)
-          message=message//' ---   -----'//char(10)
-          call Galacticus_Display_Message(message,verbosityWarn)
+          message=message//' ---   -----'//{introspection:location}//char(10)
+          call Galacticus_Warn(message)
        end if
 
        ! Warn if subhalo promotions are allowed, but branch jumps are not.
@@ -566,8 +566,8 @@ contains
           message=message//'  |             | '//char(10)
           message=message//' ---     ---   ---'//char(10)
           message=message//' |2|     |3|<==|a|'//char(10)
-          message=message//' ---     ---   ---'//char(10)
-          call Galacticus_Display_Message(message,verbosityWarn)
+          message=message//' ---     ---   ---'//{introspection:location}//char(10)
+          call Galacticus_Warn(message)
        end if
 
        ! Perform sanity checks if subhalos are not included.

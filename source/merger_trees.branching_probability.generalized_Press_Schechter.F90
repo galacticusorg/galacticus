@@ -332,8 +332,8 @@ contains
              ! Attempt the integral again with lower tolerance. Issue a warnings if this is the first time this has happened.
              !$omp critical(Generalized_Press_Schechter_Subresolution_Fraction_Warn)
              if (.not.subresolutionFractionIntegrandFailureWarned) then
-                message='WARNING: Integration of the subresolution fraction in the generalized Press-Schechter branching probability module failed.'//char(10)//'Will try again with lower tolerance. This warning will not be issued again.'
-                call Galacticus_Display_Message(message,verbosity=verbosityWarn)
+                message='WARNING: Integration of the subresolution fraction in the generalized Press-Schechter branching probability module failed.'//char(10)//'Will try again with lower tolerance. This warning will not be issued again.'//{introspection:location}
+                call Galacticus_Warn(message)
                 subresolutionFractionIntegrandFailureWarned=.true.
              end if
              !$omp end critical(Generalized_Press_Schechter_Subresolution_Fraction_Warn)

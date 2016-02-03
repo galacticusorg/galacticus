@@ -443,7 +443,7 @@ contains
       ! Check for trailing question mark.
       if (unitString(len_trim(unitString):len_trim(unitString)) == "?") then
          unitWork=trim(unitString(1:len_trim(unitString)-1))
-         call Galacticus_Display_Message('WARNING: file seems to be unsure about units "'//trim(unitString)//'"',verbosityWarn)
+         call Galacticus_Warn('WARNING: file seems to be unsure about units "'//trim(unitString)//'"')
       else
          unitWork=trim(unitString)
       end if
