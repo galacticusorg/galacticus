@@ -4,6 +4,13 @@
 
 \glc\ has its own preprocessor for Fortran source files. This preprocesses parses each source file into an internal tree representation, performs various manipulations on that tree, and then outputs the preprocessed file for compilation. The preprocessor is used to automate and standardize many common tasks, through the inclusion of directives into the source code. Directives are specified in comment lines beginning {\normalfont \ttfamily !\#}, and are written in XML. The remainder of this section describes the various preprocessor functionalities, and gives examples of their usage.
 
+\subsection{Source Code Introspection}
+
+The source code introspection functionality allows automated generation of information about the source code. Specifically:
+\begin{itemize}
+\item The directive {\normalfont \ttfamily \{introspection:location\}} in source code will be replaced with a character string giving a backtrace of the current location in the code, including any function, module, and file (including line number).
+\end{itemize}
+
 \subsection{Source Digest}
 
 The {\normalfont \ttfamily sourceDigest} directive will generate an \gls{MD5hash} hash of the source code of the file in which the directive is placed, along with the source code of any files upon which it depends. This can be useful in generating unique labels (e.g. to use as suffixes in file names) which automatically update if the source code is modified. To generate a source digest simply use:
