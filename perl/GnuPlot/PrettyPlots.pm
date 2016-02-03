@@ -172,6 +172,7 @@ our %colors = (
 our %colorPairs = (
     greenRed       => [$colors{'Green'         },$colors{'Red'           }],
     redYellow      => [$colors{'Red'           },$colors{'Yellow'        }],
+    redYellowFaint => [$colors{'OrangeRed'    },$colors{'LightYellow'   }],
     blackGray      => [$colors{'SlateGray'     },$colors{'Black'         }],
     blueCyan       => [$colors{'Blue'          },$colors{'Cyan'          }],
     peachPuff      => [$colors{'Bisque3'       },$colors{'PeachPuff'     }],
@@ -209,10 +210,10 @@ our %colorPairSequences = (
     );
 
 sub Color_Gradient {
-    my $f       =   shift() ;
-    my @start   = @{shift()};
-    my @end     = @{shift()};
-    my @thisHSV = 
+    my $f         =   shift() ;
+    my @start     = @{shift()};
+    my @end       = @{shift()};
+    my @thisHSV   = 
 	(
 	 $start[0]+($end[0]-$start[0])*$f,
 	 $start[1]+($end[1]-$start[1])*$f,
@@ -387,13 +388,18 @@ sub Prepare_Dataset {
 		.$lineColor {$level}
 		.$lineWeight{$level}
 		." fill noborder";
+		${$plot}->{$phase}->{'command'} .= " fs transparent solid ".$options{'transparency'}
+		    if ( exists($options{'transparency'}) );
 		${$plot}->{$phase}->{'data'   } .= $dummyPoint;
 		${$plot}->{$phase}->{'data'   } .= $endPoint;
 		${$plot}->{$phase}->{'prefix'} = ",";
 	    } else {
 		my $level = "upper";
 		${$plot}->{$phase}->{'data'} .= "set style fill solid 1.0 noborder\n";
-		${$plot}->{$phase}->{'data'} .= "plot '-' with filledcurve ".$options{'filledCurve'}." notitle".$lineType{$level}.$lineColor{$level}.$lineWeight{$level}." fill border\n";
+		${$plot}->{$phase}->{'data'} .= "plot '-' with filledcurve ".$options{'filledCurve'}." notitle".$lineType{$level}.$lineColor{$level}.$lineWeight{$level}." fill border";
+		${$plot}->{$phase}->{'data'} .= " fs transparent solid ".$options{'transparency'}
+		    if ( exists($options{'transparency'}) );
+		${$plot}->{$phase}->{'data'} .= "\n";
 		${$plot}->{$phase}->{'data'} .= $x->index(0)." ".$y->index(0)." ".$y->index(0)."\n"
 		    if ( $options{'filledCurve'} eq "closed" );
 		for(my $iPoint=0;$iPoint<nelem($x);++$iPoint) {

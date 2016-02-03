@@ -47,7 +47,7 @@ program Galacticus
   parameterFile=parameterFileCharacter
 
   ! Open the parameter file.
-  call Input_Parameters_File_Open(parameterFile,galacticusOutputFile,allowedParametersFile='Galacticus.parameters.xml')
+  call Input_Parameters_File_Open(parameterFile,allowedParametersFile='Galacticus.parameters.xml')
 
   ! Perform tasks, until all tasks are done.
   call Galacticus_Task_Do

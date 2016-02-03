@@ -19,7 +19,7 @@
 
 module Generalized_Press_Schechter_Branching
   !% Implements calculations of branching probabilties in generalized Press-Schechter theory.
-  use Power_Spectra
+  use Cosmological_Mass_Variance
   use Numerical_Constants_Math
   implicit none
   private
@@ -60,23 +60,25 @@ contains
   !# <treeBranchingMethod>
   !#  <unitName>Generalized_Press_Schechter_Branching_Initialize</unitName>
   !# </treeBranchingMethod>
-  subroutine Generalized_Press_Schechter_Branching_Initialize(treeBranchingMethod,Tree_Branching_Probability&
+  subroutine Generalized_Press_Schechter_Branching_Initialize(treeBranchingMethod,Tree_Branching_Probability_Bound,Tree_Branching_Probability&
        &,Tree_Subresolution_Fraction,Tree_Branch_Mass,Tree_Maximum_Step)
     !% Initialize the generalized Press-Schechter branching routines.
     use Input_Parameters
     use ISO_Varying_String
     implicit none
     type     (varying_string  ), intent(in   )          :: treeBranchingMethod
+    procedure(Generalized_Press_Schechter_Branching_Probability_Bound), intent(inout), pointer :: Tree_Branching_Probability_Bound
     procedure(Generalized_Press_Schechter_Branching_Probability), intent(inout), pointer :: Tree_Branching_Probability
     procedure(Generalized_Press_Schechter_Subresolution_Fraction), intent(inout), pointer :: Tree_Subresolution_Fraction
     procedure(Generalized_Press_Schechter_Branch_Mass), intent(inout), pointer :: Tree_Branch_Mass
     procedure(Generalized_Press_Schechter_Branching_Maximum_Step), intent(inout), pointer :: Tree_Maximum_Step
 
     if (treeBranchingMethod == 'generalizedPress-Schechter') then
-       Tree_Branching_Probability  => Generalized_Press_Schechter_Branching_Probability
-       Tree_Subresolution_Fraction => Generalized_Press_Schechter_Subresolution_Fraction
-       Tree_Branch_Mass            => Generalized_Press_Schechter_Branch_Mass
-       Tree_Maximum_Step           => Generalized_Press_Schechter_Branching_Maximum_Step
+       Tree_Branching_Probability_Bound => Generalized_Press_Schechter_Branching_Probability_Bound
+       Tree_Branching_Probability       => Generalized_Press_Schechter_Branching_Probability
+       Tree_Subresolution_Fraction      => Generalized_Press_Schechter_Subresolution_Fraction
+       Tree_Branch_Mass                 => Generalized_Press_Schechter_Branch_Mass
+       Tree_Maximum_Step                => Generalized_Press_Schechter_Branching_Maximum_Step
        !@ <inputParameter>
        !@   <name>generalizedPressSchechterDeltaStepMaximum</name>
        !@   <defaultValue>0.1</defaultValue>
@@ -122,16 +124,18 @@ contains
     use Excursion_Sets_First_Crossings
     use Cosmology_Functions
     implicit none
-    class           (cosmologyFunctionsClass), pointer :: cosmologyFunctionsDefault
-    double precision                                   :: presentTime              , testResult, &
-         &                                                varianceMaximum
+    class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_
+    class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+    double precision                                         :: presentTime              , testResult, &
+         &                                                      varianceMaximum
 
     !$omp critical (Excursion_Sets_Maximum_Sigma_Test)
     if (.not.excursionSetsTested) then
-       ! Get the default cosmology functions object.
-       cosmologyFunctionsDefault => cosmologyFunctions()
-       presentTime    =cosmologyFunctionsDefault%cosmicTime(1.0d0)
-       sigmaMaximum   =Cosmological_Mass_Root_Variance(generalizedPressSchechterMinimumMass)
+       ! Get required objects.
+       cosmologyFunctions_       => cosmologyFunctions      ()
+       cosmologicalMassVariance_ => cosmologicalMassVariance()
+       presentTime    =cosmologyFunctions_      %cosmicTime  (1.0d0                               )
+       sigmaMaximum   =cosmologicalMassVariance_%rootVariance(generalizedPressSchechterMinimumMass)
        varianceMaximum=sigmaMaximum**2
        testResult     =Excursion_Sets_First_Crossing_Probability(                      varianceMaximum,presentTime)
        testResult     =Excursion_Sets_First_Crossing_Rate       (0.5d0*varianceMaximum,varianceMaximum,presentTime)
@@ -141,30 +145,35 @@ contains
     return
   end subroutine Excursion_Sets_Maximum_Sigma_Test
 
-  double precision function Generalized_Press_Schechter_Branch_Mass(haloMass,deltaCritical,massResolution,probability)
+  double precision function Generalized_Press_Schechter_Branch_Mass(haloMass,deltaCritical,massResolution,probability,randomNumberGenerator)
     !% Determine the mass of one of the halos to which the given halo branches, given the branching probability,
     !% {\normalfont \ttfamily probability}. Typically, {\normalfont \ttfamily probabilityFraction} is found by multiplying {\tt
     !% Generalized\_Press\_Schechter\_Branching\_Probability()} by a random variable drawn in the interval 0--1 if a halo
     !% branches. This routine then finds the progenitor mass corresponding to this value.
+    use Pseudo_Random
     use ISO_Varying_String
     use Root_Finder
     use Galacticus_Display
     use Galacticus_Error
     implicit none
-    double precision                , intent(in   ) :: deltaCritical                  , haloMass                , &
-         &                                             massResolution                 , probability
-    double precision                , parameter     :: toleranceAbsolute       =0.0d0 , toleranceRelative=1.0d-9
-    double precision                , parameter     :: smallProbabilityFraction=1.0d-3
-    type            (varying_string)                :: message
-    character       (len=26        )                :: label
-    type            (rootFinder    ), save          :: finder
+    double precision                               , intent(in   ) :: deltaCritical                   , haloMass                , &
+         &                                                            massResolution                  , probability
+    type            (pseudoRandom                 ), intent(inout) :: randomNumberGenerator
+    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+    double precision                               , parameter     :: toleranceAbsolute        =0.0d0 , toleranceRelative=1.0d-9
+    double precision                               , parameter     :: smallProbabilityFraction =1.0d-3
+    type            (varying_string               )                :: message
+    character       (len=26                       )                :: label
+    type            (rootFinder                   ), save          :: finder
     !$omp threadprivate(finder)
 
+    ! Get required objects.
+    cosmologicalMassVariance_ => cosmologicalMassVariance()
     ! Ensure excursion set calculations have sufficient range in sigma.
     call Excursion_Sets_Maximum_Sigma_Test()
     ! Initialize global variables.
-    parentHaloMass        =haloMass
-    parentSigma           =Cosmological_Mass_Root_Variance(haloMass)
+    parentHaloMass        =                                       haloMass
+    parentSigma           =cosmologicalMassVariance_%rootVariance(haloMass)
     parentDelta           =deltaCritical
     probabilityMinimumMass=massResolution
     probabilitySeek       =probability
@@ -242,23 +251,36 @@ contains
     return
   end function Generalized_Press_Schechter_Branching_Maximum_Step
 
+  double precision function Generalized_Press_Schechter_Branching_Probability_Bound(haloMass,deltaCritical,massResolution,bound)
+    !% Return bounds onthe probability per unit change in $\delta_{\mathrm crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\tt
+    !% deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}.
+    implicit none
+    double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
+    integer         , intent(in   ) :: bound
+    
+    Generalized_Press_Schechter_Branching_Probability_Bound=Generalized_Press_Schechter_Branching_Probability(haloMass,deltaCritical,massResolution)
+    return
+  end function Generalized_Press_Schechter_Branching_Probability_Bound
+
   double precision function Generalized_Press_Schechter_Branching_Probability(haloMass,deltaCritical,massResolution)
     !% Return the probability per unit change in $\delta_{\mathrm crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\tt
     !% deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}.
     use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     implicit none
-    double precision                            , intent(in   ) :: deltaCritical       , haloMass   , massResolution
-    type            (c_ptr                     )                :: parameterPointer
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
-    double precision                                            :: massMaximum         , massMinimum
+    double precision                               , intent(in   ) :: deltaCritical            , haloMass   , massResolution
+    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+    type            (c_ptr                        )                :: parameterPointer
+    type            (fgsl_function                )                :: integrandFunction
+    type            (fgsl_integration_workspace   )                :: integrationWorkspace
+    double precision                                               :: massMaximum              , massMinimum
 
     call Excursion_Sets_Maximum_Sigma_Test()
     ! Get sigma and delta_critical for the parent halo.
     if (haloMass>2.0d0*massResolution) then
-       parentHaloMass           =haloMass
-       parentSigma              =Cosmological_Mass_Root_Variance(haloMass)
+       cosmologicalMassVariance_ => cosmologicalMassVariance()
+       parentHaloMass           =                                       haloMass
+       parentSigma              =cosmologicalMassVariance_%rootVariance(haloMass)
        parentDelta              =deltaCritical
        call Compute_Common_Factors
        massMinimum=massResolution
@@ -284,23 +306,26 @@ contains
     use ISO_Varying_String
     use Galacticus_Display
     implicit none
-    double precision                            , intent(in   ) :: deltaCritical                                 , haloMass       , &
-         &                                                         massResolution
-    double precision                            , save          :: massResolutionPrevious                 =-1.0d0, resolutionSigma
+    double precision                               , intent(in   ) :: deltaCritical                                 , haloMass       , &
+         &                                                            massResolution
+    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+    double precision                               , save          :: massResolutionPrevious                 =-1.0d0, resolutionSigma
     !$omp threadprivate(resolutionSigma,massResolutionPrevious)
-    double precision                            , parameter     :: resolutionSigmaOverParentSigmaTolerance=1.0d-3
-    double precision                                            :: massMaximum                                   , massMinimum    , &
-         &                                                         resolutionSigmaOverParentSigma
-    type            (c_ptr                     )                :: parameterPointer
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
-    integer                                                     :: errorStatus
-    type            (varying_string            )                :: message
+    double precision                               , parameter     :: resolutionSigmaOverParentSigmaTolerance=1.0d-3
+    double precision                                               :: massMaximum                                   , massMinimum    , &
+         &                                                            resolutionSigmaOverParentSigma
+    type            (c_ptr                        )                :: parameterPointer
+    type            (fgsl_function                )                :: integrandFunction
+    type            (fgsl_integration_workspace   )                :: integrationWorkspace
+    integer                                                        :: errorStatus
+    type            (varying_string               )                :: message
 
     call Excursion_Sets_Maximum_Sigma_Test()
+    ! Get required objects.
+    cosmologicalMassVariance_ => cosmologicalMassVariance()
     ! Get sigma and delta_critical for the parent halo.
-    parentHaloMass           =haloMass
-    parentSigma              =Cosmological_Mass_Root_Variance(haloMass)
+    parentHaloMass           =                                       haloMass
+    parentSigma              =cosmologicalMassVariance_%rootVariance(haloMass)
     parentDelta              =deltaCritical
     call Compute_Common_Factors
 
@@ -313,7 +338,7 @@ contains
     end if
 
     if (massResolution /= massResolutionPrevious) then
-       resolutionSigma       =Cosmological_Mass_Root_Variance(massResolution)
+       resolutionSigma       =cosmologicalMassVariance_%rootVariance(massResolution)
        massResolutionPrevious=massResolution
     end if
     resolutionSigmaOverParentSigma=resolutionSigma/parentSigma
@@ -353,12 +378,14 @@ contains
     !% Integrand for the branching probability.
     use, intrinsic :: ISO_C_Binding
     implicit none
-    real(kind=c_double)        :: Branching_Probability_Integrand_Generalized
-    real(kind=c_double), value :: childHaloMass
-    type(c_ptr        ), value :: parameterPointer
-    real(kind=c_double)        :: childAlpha                                 , childSigma
+    real (kind=c_double                )         :: Branching_Probability_Integrand_Generalized
+    real (kind=c_double                ), value  :: childHaloMass
+    type (c_ptr                        ), value  :: parameterPointer
+    class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+    real (kind=c_double                )         :: childAlpha                                 , childSigma
 
-    call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(childHaloMass,childSigma,childAlpha)
+    cosmologicalMassVariance_ => cosmologicalMassVariance()
+    call cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(childHaloMass,childSigma,childAlpha)
     Branching_Probability_Integrand_Generalized=Progenitor_Mass_Function(childHaloMass,childSigma,childAlpha)
     return
   end function Branching_Probability_Integrand_Generalized
@@ -367,13 +394,15 @@ contains
     !% Integrand for the subresolution fraction.
     use, intrinsic :: ISO_C_Binding
     implicit none
-    real(kind=c_double)        :: Subresolution_Fraction_Integrand_Generalized
-    real(kind=c_double), value :: childHaloMass
-    type(c_ptr        ), value :: parameterPointer
-    real(kind=c_double)        :: childAlpha                                  , childSigma
+    real (kind=c_double                )         :: Subresolution_Fraction_Integrand_Generalized
+    real (kind=c_double                ), value  :: childHaloMass
+    type (c_ptr                        ), value  :: parameterPointer
+    class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+    real (kind=c_double                )         :: childAlpha                                  , childSigma
 
     if (childHaloMass>0.0d0) then
-       call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(childHaloMass,childSigma,childAlpha)
+    cosmologicalMassVariance_ => cosmologicalMassVariance()
+       call cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(childHaloMass,childSigma,childAlpha)
        Subresolution_Fraction_Integrand_Generalized=Progenitor_Mass_Function(childHaloMass,childSigma,childAlpha)*(childHaloMass&
             &/parentHaloMass)
     else
@@ -413,12 +442,14 @@ contains
 
   subroutine Compute_Common_Factors
     !% Precomputes some useful factors that are used in the generalized Press-Schechter branching integrals.
-    use Critical_Overdensity
+    use Critical_Overdensities
     implicit none
+    class(criticalOverdensityClass), pointer :: criticalOverdensity_
 
-    parentSigmaSquared       =parentSigma**2
-    parentTime               =Time_of_Collapse(parentDelta,parentHaloMass)
-    parentDTimeDDeltaCritical=1.0d0/Critical_Overdensity_for_Collapse_Time_Gradient(parentTime,mass=parentHaloMass)
+    criticalOverdensity_     =>       criticalOverdensity                (                               )
+    parentSigmaSquared       =                                            parentSigma                     **2
+    parentTime               =        criticalOverdensity_%timeOfCollapse(parentDelta,     parentHaloMass)
+    parentDTimeDDeltaCritical=  1.0d0/criticalOverdensity_%gradientTime  (parentTime ,mass=parentHaloMass)
     return
   end subroutine Compute_Common_Factors
 

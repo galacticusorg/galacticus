@@ -21,10 +21,11 @@
      !% The merger tree object type.
      integer         (kind=kind_int8)                  :: index
      type            (hdf5Object    )                  :: hdf5Group
-     double precision                                  :: volumeWeight, initializedUntil
-     type            (treeNode      ), pointer         :: baseNode    =>null()
-     type            (mergerTree    ), pointer         :: nextTree    =>null()
+     double precision                                  :: volumeWeight                  , initializedUntil
+     type            (treeNode      ), pointer         :: baseNode             => null()
+     type            (mergerTree    ), pointer         :: nextTree             => null()
      type            (treeEvent     ), pointer, public :: event
+     type            (pseudoRandom  )                  :: randomNumberGenerator
    contains
      ! Tree creation/destruction.
      !@ <objectMethods>
@@ -34,14 +35,6 @@
      !@     <description>Destroys the merger tree, including all nodes and their components.</description>
      !@     <type>\void</type>
      !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>destroyBranch</method>
-     !@     <description>
-     !@       Destroys a branch of a merger tree starting from the supplied node. All nodes and their components are destroyed.
-     !@     </description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless *type(treeNode)\textgreater} thisNode\arginout</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>getNode</method>
@@ -81,7 +74,6 @@
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: destroy              => Merger_Tree_Destroy
-     procedure :: destroyBranch        => Merger_Tree_Destroy_Branch
      procedure :: getNode              => Merger_Tree_Node_Get
      procedure :: createEvent          => Merger_Tree_Create_Event                      
      procedure :: removeEvent          => Merger_Tree_Remove_Event               
@@ -109,7 +101,4 @@
       integer            , intent(inout) :: deadlockStatus 
     end function treeEventTask
  end interface
- 
- ! Flag to indicate if the tree node create routines have been initialized.
- logical :: treeNodeCreateInitialized=.false.
  

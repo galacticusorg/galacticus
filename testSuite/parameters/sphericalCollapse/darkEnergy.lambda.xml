@@ -3,13 +3,14 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-  <cosmologyFunctionsMethod value="matterDarkEnergy"/>
-  <darkEnergyEquationOfStateW0 value="-1.0"/>
+  <cosmologyFunctionsMethod value="matterDarkEnergy">
+    <darkEnergyEquationOfStateW0 value="-1.0"/>
+  </cosmologyFunctionsMethod>
   <cosmologyParametersMethod value="simple">
     <OmegaMatter value="0.3"/>
     <OmegaDarkEnergy value="0.7"/>
     <OmegaBaryon value="0.0"/>
     <HubbleConstant value="70.0"/>
-  </cosmologyParametersMethod><criticalOverdensityMethod value="sphericalTopHatDarkEnergy"/>
+  </cosmologyParametersMethod><criticalOverdensityMethod value="sphericalCollapseMatterDE"/>
   <virialDensityContrastMethod value="sphericalCollapseMatterDE"/>
 </parameters>
