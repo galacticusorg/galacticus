@@ -48,6 +48,7 @@ switch ( $dbConfig->{'passwordFrom'} ) {
 	print "Please enter your Millennium database password:\n";
 	$dbPassword = &getPassword;
     }
+	require Net::DBus;
 }
 
 # Run the script to grab the trees.

@@ -44,9 +44,11 @@ contains
     use Power_Spectra
     use Linear_Growth
     implicit none
-    double precision, intent(in   ) :: time, waveNumber
+    double precision                   , intent(in   ) :: time         , waveNumber
+    class           (linearGrowthClass), pointer       :: linearGrowth_
 
-    Power_Spectrum_Nonlinear_Linear=Power_Spectrum(wavenumber)*Linear_Growth_Factor(time)**2
+    linearGrowth_ => linearGrowth()
+    Power_Spectrum_Nonlinear_Linear=Power_Spectrum(wavenumber)*linearGrowth_%value(time)**2
     return
   end function Power_Spectrum_Nonlinear_Linear
 
