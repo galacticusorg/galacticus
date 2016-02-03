@@ -11,7 +11,6 @@ if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
  $galacticusPath = "./";
 }
 unshift(@INC,$galacticusPath."perl");
-use File::Slurp qw(slurp);
 use Data::Dumper;
 use Scalar::Util qw(reftype);
 require Fortran::Utils;
@@ -26,15 +25,16 @@ require Galacticus::Build::SourceTree::Process::InputParameterList;
 require Galacticus::Build::SourceTree::Process::FunctionClass;
 require Galacticus::Build::SourceTree::Process::OptionalArgument;
 require Galacticus::Build::SourceTree::Process::Generics;
-require Galacticus::Build::SourceTree::Process::SourceDigest;                                                                                
-require Galacticus::Build::SourceTree::Process::ObjectBuilder;                                                                               
+require Galacticus::Build::SourceTree::Process::SourceDigest;
+require Galacticus::Build::SourceTree::Process::SourceIntrospection;
+require Galacticus::Build::SourceTree::Process::ObjectBuilder;
 require Galacticus::Build::SourceTree::Process::DebugHDF5;
 
 sub ParseFile {
     # Grab the file name.
     my $fileName = shift();
     # Read the code.
-    my $code = slurp($fileName);
+    my $code = &SourceIntrospection::ReadFile($fileName);
     # Initialize root object.
     (my $fileRootName = $fileName) =~ s/^.*\/([^\/]+)$/$1/;
     my $tree =
