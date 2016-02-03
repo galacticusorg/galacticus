@@ -223,8 +223,8 @@ contains
                 message=message//hostNode%index()//' has become very small'//char(10)
                 message=message//' --> this will likely lead to a crash soon'
                 message=message//'NOTE: this can happen with the Covington2008 implementation of the satelliteMergingRemnantSizeMethod method'//char(10)
-                message=message//' --> an alternative choice (e.g. the Cole2000 implementation) may avoid this problem'
-                call Galacticus_Display_Message(message,verbosityWarn)
+                message=message//' --> an alternative choice (e.g. the Cole2000 implementation) may avoid this problem'//{introspection:location}
+                call Galacticus_Warn(message)
                 warningGiven=.true.
              end if
           end if

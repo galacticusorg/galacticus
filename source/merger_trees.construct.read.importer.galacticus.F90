@@ -197,7 +197,7 @@ contains
     case (1)
        ! This version will be deprecated.
        !# <expiry version="1.0.0"/>
-       call Galacticus_Display_Message('WARNING: merger tree file format version is outdated - this format will soon be deprecated')
+       call Galacticus_Warn('WARNING: merger tree file format version is outdated - this format will soon be deprecated')
        self%forestHalosGroupName          ='haloTrees'
        self%forestContainmentAttributeName='treesAreSelfContained'
        self%forestIndexGroupName          ='treeIndex'
@@ -954,7 +954,7 @@ contains
        call self%forestHalos%readDatasetStatic("expansionFactor",nodes%nodeTime,firstNodeIndex,nodeCount)
        ! Validate expansion factors.
        if (any(nodes%nodeTime <= 0.0d0)) call Galacticus_Error_Report("galacticusImport","expansionFactor dataset values must be >0")
-       if (any(nodes%nodeTime >  1.0d0)) call Galacticus_Display_Message("WARNING: some expansion factors are in the future when importing merger tree",verbosityWarn)
+       if (any(nodes%nodeTime >  1.0d0)) call Galacticus_Warn        ("WARNING: some expansion factors are in the future when importing merger tree")
        ! Convert expansion factors to times.
        do iNode=1,nodeCount(1)
           nodes(iNode)%nodeTime=cosmologyFunctionsDefault%cosmicTime(nodes(iNode)%nodeTime)
@@ -964,7 +964,7 @@ contains
        call self%forestHalos%readDatasetStatic("redshift"       ,nodes%nodeTime,firstNodeIndex,nodeCount)
       ! Validate redshifts.
        if (any(nodes%nodeTime <= -1.0d0)) call Galacticus_Error_Report("galacticusImport","redshift dataset values must be >-1")
-       if (any(nodes%nodeTime <   0.0d0)) call Galacticus_Display_Message("WARNING: some redshifts are in the future when importing merger tree",verbosityWarn)
+       if (any(nodes%nodeTime <   0.0d0)) call Galacticus_Warn        ("WARNING: some redshifts are in the future when importing merger tree")
        ! Convert redshifts to times.
        do iNode=1,nodeCount(1)
           nodes(iNode)%nodeTime=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(nodes(iNode)%nodeTime))

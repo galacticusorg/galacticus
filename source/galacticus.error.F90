@@ -24,16 +24,23 @@ module Galacticus_Error
   use Semaphores
   use FGSL
   use Semaphores
+  use ISO_Varying_String
   implicit none
   private
   public :: Galacticus_Error_Report               , Galacticus_Error_Handler_Register    , &
        &    Galacticus_Component_List             , Galacticus_GSL_Error_Handler_Abort_On, &
-       &    Galacticus_GSL_Error_Handler_Abort_Off, Galacticus_GSL_Error_Status
+       &    Galacticus_GSL_Error_Handler_Abort_Off, Galacticus_GSL_Error_Status          , &
+       &    Galacticus_Warn
 
   interface Galacticus_Error_Report
      module procedure Galacticus_Error_Report_Char
      module procedure Galacticus_Error_Report_VarStr
   end interface Galacticus_Error_Report
+
+  interface Galacticus_Warn
+     module procedure Galacticus_Warn_Char
+     module procedure Galacticus_Warn_VarStr
+  end interface Galacticus_Warn
 
   ! Specify an explicit dependence on the hdf5_cFuncs.o object file.
   !: $(BUILDPATH)/hdf5_cFuncs.o
@@ -42,8 +49,8 @@ module Galacticus_Error
      end subroutine H5Close_C
   end interface
 
-  ! Public error codes. Where relevant these copy GSL error codes, otherwise values above 1024 are used so as not to conflict with
-  ! GSL error codes.
+  ! Public error codes. Where relevant these copy GSL error codes, otherwise values above 1024
+  ! are used so as not to conflict with GSL error codes.
   integer, parameter, public :: errorStatusSuccess    =FGSL_Success ! Success.
   integer, parameter, public :: errorStatusFail       =FGSL_Failure ! Generic failure.
   integer, parameter, public :: errorStatusInputDomain=FGSL_eDom    ! Input domain error.
@@ -55,11 +62,20 @@ module Galacticus_Error
   integer(kind=c_int) :: errorStatusGSL
   !$omp threadprivate(abortOnErrorGSL,errorStatusGSL)
   
+  ! Type used to accumulate warning messages.
+  type :: warning
+     type(varying_string)          :: message
+     type(warning       ), pointer :: next
+  end type warning
+
+  ! Record of warnings.
+  type   (warning), pointer :: warningList
+  logical                   :: warningsFound=.false.
+  
 contains
 
   subroutine Galacticus_Error_Report_VarStr(unitName,message)
     !% Display an error message.
-    use ISO_Varying_String
     implicit none
     character(len=*         ), intent(in   ) :: unitName
     type     (varying_string), intent(in   ) :: message
@@ -83,18 +99,78 @@ contains
     !$ else
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
-    call Flush(0)
+    call Galacticus_Warn_Review   (     )
+    call Flush                    (    0)
 #ifdef UNCLEANEXIT
     call Exit(1)
 #else
-    call H5Close_F(error)
-    call H5Close_C()
-    call Semaphore_Post_On_Error()
-    call Abort()
+    call H5Close_F                (error)
+    call H5Close_C                (     )
+    call Semaphore_Post_On_Error  (     )
+    call Abort                    (     )
 #endif
     return
   end subroutine Galacticus_Error_Report_Char
 
+  subroutine Galacticus_Warn_VarStr(message)
+    !% Display a warning message
+    implicit none
+    type(varying_string), intent(in   ) :: message
+
+    call Galacticus_Warn_Char(char(message))
+    return
+  end subroutine Galacticus_Warn_VarStr
+
+  subroutine Galacticus_Warn_Char(message)
+    !% Display a warning message.
+    use Galacticus_Display
+    implicit none
+    character(len=*  ), intent(in   ) :: message
+    type     (warning), pointer       :: newWarning
+
+    ! Display the message.
+    call Galacticus_Display_Message(message,verbosity=verbosityWarn)
+    ! Add this warning message to the list of warnings in case we need to display them on an
+    ! error condition.
+    !$omp critical (Galacticus_Warn)
+    if (Galacticus_Verbosity_Level() < verbosityWarn) then
+       if (.not.warningsFound) then
+          allocate(warningList)
+          newWarning => warningList
+       else
+          newWarning => warningList
+          do while (associated(newWarning%next))
+             newWarning => newWarning%next
+          end do
+          allocate(newWarning%next)
+          newWarning => newWarning%next
+       end if
+       newWarning%next    => null   ()
+       newWarning%message =  message
+    end if
+    warningsFound=.true.
+    !$omp end critical (Galacticus_Warn)
+    return
+  end subroutine Galacticus_Warn_Char
+
+  subroutine Galacticus_Warn_Review()
+    !% Review any warning messages emitted during the run.
+    implicit none
+    type(warning), pointer :: warning_
+
+    !$omp critical (Galacticus_Warn)
+    if (warningsFound) then
+       write (0,*) " => The following warnings were issued:"
+       warning_ => warningList
+       do while (associated(warning_))
+          write (0,*) char(warning_%message)
+          warning_ => warning_%next
+       end do
+    end if
+    !$omp end critical (Galacticus_Warn)
+    return
+  end subroutine Galacticus_Warn_Review
+  
   subroutine Galacticus_Error_Handler_Register()
     !% Register signal handlers.
     use FGSL
@@ -128,7 +204,8 @@ contains
     !$ else
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
-    call Flush(0)
+    call Galacticus_Warn_Review   (     )
+    call Flush                    (    0)
 #ifdef UNCLEANEXIT
     call Exit(1)
 #else
@@ -143,10 +220,10 @@ contains
        call Sleep(86400)
     end if
 #endif
-    call H5Close_F(error)
-    call H5Close_C()
-    call Semaphore_Post_On_Error()
-    call Abort()
+    call H5Close_F                (error)
+    call H5Close_C                (     )
+    call Semaphore_Post_On_Error  (     )
+    call Abort                    (     )
 #endif
     return
   end subroutine Galacticus_Signal_Handler_SIGINT
@@ -168,7 +245,8 @@ contains
     !$ else
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
-    call Flush(0)
+    call Galacticus_Warn_Review   (     )
+    call Flush                    (    0)
 #ifdef UNCLEANEXIT
     call Exit(1)
 #else
@@ -183,10 +261,10 @@ contains
        call Sleep(86400)
     end if
 #endif
-    call H5Close_F(error)
-    call H5Close_C()
-    call Semaphore_Post_On_Error()
-    call Abort()
+    call H5Close_F                (error)
+    call H5Close_C                (     )
+    call Semaphore_Post_On_Error  (     )
+    call Abort                    (     )
 #endif
     return
   end subroutine Galacticus_Signal_Handler_SIGSEGV
@@ -208,7 +286,8 @@ contains
     !$ else
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
-    call Flush(0)
+    call Galacticus_Warn_Review   (     )
+    call Flush                    (    0)
 #ifdef UNCLEANEXIT
     call Exit(1)
 #else
@@ -223,10 +302,10 @@ contains
        call Sleep(86400)
     end if
 #endif
-    call H5Close_F(error)
-    call H5Close_C()
-    call Semaphore_Post_On_Error()
-    call Abort()
+    call H5Close_F                (error)
+    call H5Close_C                (     )
+    call Semaphore_Post_On_Error  (     )
+    call Abort                    (     )
 #endif
     return
   end subroutine Galacticus_Signal_Handler_SIGFPE
@@ -271,7 +350,8 @@ contains
        !$ else
        !$    write (0,*) " => Error occurred in master thread"
        !$ end if
-       call Flush(0)
+    call Galacticus_Warn_Review   (     )
+    call Flush                    (    0)
 #ifdef UNCLEANEXIT
        call Exit(1)
 #else
@@ -286,10 +366,10 @@ contains
           call Sleep(86400)
        end if
 #endif
-       call H5Close_F(error)
-       call H5Close_C()
-       call Semaphore_Post_On_Error()
-       call Abort()
+    call H5Close_F                (error)
+    call H5Close_C                (     )
+    call Semaphore_Post_On_Error  (     )
+    call Abort                    (     )
 #endif
     else
        errorStatusGSL=errorNumber
@@ -323,7 +403,6 @@ contains
   
   function Galacticus_Component_List(className,componentList)
     !% Construct a message describing which implementations of a component class provide required functionality. 
-    use ISO_Varying_String
     use String_Handling
     implicit none
     type     (varying_string)                                           :: Galacticus_Component_List
