@@ -199,6 +199,7 @@ contains
                    call Merger_Tree_Prune_Clean_Branch(node)
                    ! Destroy the branch.
                    call node%destroyBranch()
+                   deallocate(node)
                 end if
              end if
           end if
