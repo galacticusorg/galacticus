@@ -206,11 +206,13 @@ contains
     type            (treeNode                      ), intent(inout), pointer :: thisNode
     class           (nodeComponentDarkMatterProfile)               , pointer :: parentDarkMatterProfileComponent, thisDarkMatterProfileComponent
     class           (nodeComponentBasic            )               , pointer :: parentBasicComponent            , thisBasicComponent
-    double precision                                                         :: deltaTime
+    double precision                                                         :: deltaTime                       , radiusScale
 
     if (defaultDarkMatterProfileComponent%scaleIsActive()) then
-       ! Get the dark matter profile component.
-       thisDarkMatterProfileComponent => thisNode%darkMatterProfile()
+       ! Get the dark matter profile component - creating if if necessary.
+       thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+       ! Get the scale radius - this will initialize the radius if necessary.
+       radiusScale=thisDarkMatterProfileComponent%scale()
        ! Check if this node is the primary progenitor.
        if (thisNode%isPrimaryProgenitor()) then
           ! It is, so compute the scale radius growth rate.
@@ -219,7 +221,7 @@ contains
           parentBasicComponent => thisNode%parent%basic()
           deltaTime=parentBasicComponent%time()-thisBasicComponent%time()
           if (deltaTime > 0.0d0) then
-             parentDarkMatterProfileComponent => thisNode%parent%darkMatterProfile()
+             parentDarkMatterProfileComponent => thisNode%parent%darkMatterProfile(autoCreate=.true.)
              call thisDarkMatterProfileComponent%scaleGrowthRateSet(                                           &
                   &                                                 (                                          &
                   &                                                   parentDarkMatterProfileComponent%scale() &
