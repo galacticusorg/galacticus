@@ -206,7 +206,7 @@ contains
     else if (trim(type) == "exponentialDisk") then
        allocate(newMassDistribution,source=massDistributionTemplateExponentialDisk)
     else
-       call Galacticus_Error_Report('Mass_Distribution_Create','unrecognized mass distribution')
+       call Galacticus_Error_Report('Mass_Distribution_Create','unrecognized mass distribution: "'//trim(type)//'"')
     end if
     return
   end function Mass_Distribution_Create
