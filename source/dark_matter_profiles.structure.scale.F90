@@ -55,9 +55,10 @@ contains
     type            (treeNode                                          ), pointer                          :: workNode
     class           (nodeComponentBasic                                ), pointer                          :: workBasic                               , basic
     class           (nodeComponentDarkMatterProfile                    ), pointer                          :: workDarkMatterProfile
+    type            (rootFinder                                        ), save                             :: finder
+    !$omp threadprivate(finder)
     type            (darkMatterHaloScaleVirialDensityContrastDefinition)                                   :: darkMatterHaloScaleDefinition
     double precision                                                                                       :: mass                                    , massDefinition
-    type            (rootFinder                                        )                                   :: finder
 
     ! Initialize as necessary.
     if (.not.moduleInitialized) then
@@ -141,10 +142,11 @@ contains
       !% Root function used to find the mass of a halo corresponding to the definition used for a particular concentration class.
       implicit none
       double precision            , intent(in   ) :: massDefinitionTrial
+      type            (rootFinder), save          :: radiusFinder
+      !$omp threadprivate(radiusFinder)
       double precision                            :: radiusOuterDefinition, concentrationDefinition  , &
            &                                         radiusCore           , massOuterDefinition      , &
            &                                         radiusOuter          , massOuter
-      type            (rootFinder)                :: radiusFinder
       
       ! Set the mass of the worker node.
       call workBasic%massSet(massDefinitionTrial)
