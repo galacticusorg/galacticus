@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!!    Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -13,7 +14,7 @@
 !!    GNU General Public License for more details.
 !!
 !!    You should have received a copy of the GNU General Public License
-!!    along with Galacticus.  I not, see <http://www.gnu.org/licenses/>.
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which handles outputting of tree host data to the \glc\ output file.
 
