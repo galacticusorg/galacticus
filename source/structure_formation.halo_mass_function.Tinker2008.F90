@@ -15,7 +15,7 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+
   !% Contains a module which implements a \cite{tinker_towardhalo_2008} dark matter halo mass function class.
   use Cosmological_Mass_Variance
   use Linear_Growth
