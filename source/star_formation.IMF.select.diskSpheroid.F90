@@ -32,18 +32,20 @@ contains
   !# <imfSelectionMethod>
   !#  <unitName>IMF_Select_Disk_Spheroid_Initialize</unitName>
   !# </imfSelectionMethod>
-  subroutine IMF_Select_Disk_Spheroid_Initialize(imfSelectionMethod,IMF_Select_Do,imfNames)
+  subroutine IMF_Select_Disk_Spheroid_Initialize(imfSelectionMethod,IMF_Select_Do,IMF_Is_Star_Formation_Rate_Dependent_Do,imfNames)
     !% Initializes the ``diskSpheroid'' IMF selection module.
     use ISO_Varying_String
     use Input_Parameters
     use Star_Formation_IMF_Utilities
     implicit none
-    type     (varying_string), intent(in   )          :: imfNames        (:), imfSelectionMethod
-    procedure(IMF_Select_Disk_Spheroid), intent(inout), pointer :: IMF_Select_Do
-    type     (varying_string)                         :: imfSelectionDisk   , imfSelectionSpheroid
+    type     (varying_string                                    ), intent(in   )          :: imfNames        (:), imfSelectionMethod
+    procedure(IMF_Select_Disk_Spheroid                          ), intent(inout), pointer :: IMF_Select_Do
+    procedure(IMF_Is_Star_Formation_Rate_Dependent_Disk_Spheroid), intent(inout), pointer :: IMF_Is_Star_Formation_Rate_Dependent_Do
+    type     (varying_string                                    )                         :: imfSelectionDisk   , imfSelectionSpheroid
 
     if (imfSelectionMethod == 'diskSpheroid') then
-       IMF_Select_Do => IMF_Select_Disk_Spheroid
+       IMF_Select_Do                           => IMF_Select_Disk_Spheroid
+       IMF_Is_Star_Formation_Rate_Dependent_Do => IMF_Is_Star_Formation_Rate_Dependent_Disk_Spheroid
        ! Get IMF choices.
        !@ <inputParameter>
        !@   <name>imfSelectionDisk</name>
@@ -96,5 +98,13 @@ contains
     end select
     return
   end function IMF_Select_Disk_Spheroid
+
+  logical function IMF_Is_Star_Formation_Rate_Dependent_Disk_Spheroid()
+    !% Return false as the IMF does not depend on star formation rate.
+    implicit none
+
+    IMF_Is_Star_Formation_Rate_Dependent_Disk_Spheroid=.false.
+    return
+  end function IMF_Is_Star_Formation_Rate_Dependent_Disk_Spheroid
 
 end module Star_Formation_IMF_Select_Disk_Spheroid

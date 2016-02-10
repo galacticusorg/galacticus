@@ -40,6 +40,7 @@ my $end         = $start+$count-1;
 
 # Read all halo datasets.
 foreach my $datasetName ( $inFile->group($halosName)->datasets() ) {
+    my $dataset    = $inFile->group($halosName)->dataset($datasetName)->get();
     next
 	if ( $datasetName =~ m/^particleIndex(Start|Count)$/ );
     my $dataset    = $inFile->group($halosName)->dataset($datasetName)->get();

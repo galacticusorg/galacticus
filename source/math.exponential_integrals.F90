@@ -23,7 +23,12 @@ module Exponential_Integrals
   use FGSL
   implicit none
   private
-  public :: Sine_Integral, Cosine_Integral
+  public :: Sine_Integral, Cosine_Integral, Exponential_Integral
+
+  interface Exponential_Integral
+     module procedure Exponential_Integral_Double
+     module procedure Exponential_Integral_Double_Complex
+  end interface Exponential_Integral
 
 contains
 
@@ -45,4 +50,27 @@ contains
     return
   end function Cosine_Integral
 
+  double complex function Exponential_Integral_Double_Complex(z)
+    !% Exponential integral, $E_{\mathrm i}(z)$, for complex argument {\normalfont \ttfamily z}.
+    use Numerical_Constants_Math
+    implicit none
+    double complex, intent(in   ) :: z
+
+    call e1z(-z,Exponential_Integral_Double_Complex)
+    Exponential_Integral_Double_Complex=-Exponential_Integral_Double_Complex+dcmplx(0.0d0,1.0d0)*Pi
+    return
+  end function Exponential_Integral_Double_Complex
+
+  double precision function Exponential_Integral_Double(x)
+    !% Exponential integral for real argument {\normalfont \ttfamily x}.
+    implicit none
+    double precision, intent(in   ) :: x
+
+    Exponential_Integral_Double=dreal(Exponential_Integral_Double_Complex(dcmplx(x,0.0d0)))
+    return
+  end function Exponential_Integral_Double
+
+  ! Include functions.
+  include "math.exponential_integrals.functions.inc"
+  
 end module Exponential_Integrals

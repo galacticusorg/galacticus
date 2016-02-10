@@ -25,13 +25,25 @@ module ODEIV2_Solver
   private
   public :: ODEIV2_Solve, ODEIV2_Solver_Free
 
+  ! Interface for ODE solver function.
+  interface
+     function func(t, y, dydt, params) bind(c)
+       use, intrinsic :: iso_c_binding
+       real   (kind=c_double)              , value         :: t
+       real   (kind=c_double), dimension(*), intent(in   ) :: y
+       real   (kind=c_double), dimension(*)                :: dydt
+       type   (c_ptr        )              , value         :: params
+       integer(kind=c_int   )                              :: func
+     end function func
+  end interface
+  
 contains
 
   subroutine ODEIV2_Solve(odeDriver,odeSystem,x0,x1,yCount,y,odeFunction,parameterPointer,toleranceAbsolute,toleranceRelative&
 #ifdef PROFILE
        &,Error_Analyzer &
 #endif
-       &,yScale,errorHandler,algorithm,reset,odeStatus)
+       &,yScale,errorHandler,algorithm,reset,odeStatus,stepSize)
     !% Interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} \href{http://www.gnu.org/software/gsl/manual/html_node/Ordinary-Differential-Equations.html}{ODEIV2} differential equation solvers.
     use Galacticus_Error
     use, intrinsic :: ISO_C_Binding
@@ -49,20 +61,21 @@ contains
     procedure       (                 )               , optional, pointer :: errorHandler
     type            (fodeiv2_step_type), intent(in   ), optional          :: algorithm
     integer                            , intent(  out), optional          :: odeStatus
+    double precision                   , intent(inout), optional          :: stepSize
 #ifdef PROFILE
-    type(c_funptr), intent(in   ) :: Error_Analyzer
+    type            (c_funptr         ), intent(in   ), optional          :: Error_Analyzer
 #endif
-    integer         (kind=4           ), external  :: odeFunction
-    integer                            , parameter :: genericFailureCountMaximum=10
-    double precision                   , parameter :: dydtScaleUniform          =0.0d0, yScaleUniform=1.0d0
-    integer                                        :: status
-    integer         (kind=c_size_t    )            :: odeNumber
-    double precision                               :: h                               , x                   , &
-         &                                            x1Internal
-    logical                                        :: forwardEvolve                   , resetActual
-    type            (fodeiv2_step_type)            :: algorithmActual
-    type            (varying_string   )            :: message
-
+    procedure       (func             )                                   :: odeFunction
+    integer                            , parameter                        :: genericFailureCountMaximum=10
+    double precision                   , parameter                        :: dydtScaleUniform          =0.0d0, yScaleUniform=1.0d0
+    integer                                                               :: status
+    integer         (kind=c_size_t    )                                   :: odeNumber
+    double precision                                                      :: h                               , x                   , &
+         &                                                                   x1Internal
+    logical                                                               :: forwardEvolve                   , resetActual
+    type            (fodeiv2_step_type)                                   :: algorithmActual
+    type            (varying_string   )                                   :: message
+    
     ! Number of ODEs to solve.
     odeNumber=yCount
 
@@ -75,6 +88,7 @@ contains
     if (resetActual.or..not.FODEIV2_Driver_Status(odeDriver)) then
        ! Make initial guess for timestep.
        h=(x1-x0)
+       if (present(stepSize).and.stepSize > 0.0d0) h=min(stepSize,h)
        odeSystem=FODEIV2_System_Init(odeFunction,odeNumber,parameterPointer)
        ! Select the algorithm to use.
        if (present(algorithm)) then
@@ -89,7 +103,7 @@ contains
        else
           ! No scales given, assume they are all unity.
           odeDriver=FODEIV2_Driver_Alloc_y_New     (odeSystem,algorithmActual,h,toleranceAbsolute,toleranceRelative)
-       end if
+       end if       
     end if
     ! Keep a local copy of the end point as we may reset it.
     x1Internal=x1
@@ -101,14 +115,19 @@ contains
     status=FODEIV2_Driver_Reset(odeDriver)
     ! Evolve the system until the final time is reached.
     do while ((forwardEvolve.and.x<x1Internal).or.(.not.forwardEvolve.and.x>x1Internal))
-      status=FODEIV2_Driver_Apply(odeDriver,x,x1Internal,y&
 #ifdef PROFILE
-           &,Error_Analyzer&
+       if (present(Error_Analyzer)) then
+          status=FODEIV2_Driver_Apply(odeDriver,x,x1Internal,y,Error_Analyzer)
+       else
+          status=FODEIV2_Driver_Apply(odeDriver,x,x1Internal,y,C_NULL_FUNPTR )
+       end if
+#else
+       status   =FODEIV2_Driver_Apply(odeDriver,x,x1Internal,y               )
 #endif
-           &)
        select case (status)
        case (FGSL_Success)
-          ! Successful completion of the step - do nothing except resetting failure count.
+          ! Successful completion of the step - do nothing except store the step-size used.
+          if (present(stepSize)) stepSize=FODEIV2_Driver_h(odeDriver)          
        case (FGSL_Failure)
           ! Generic failure - most likely a stepsize underflow.
           if (present(errorHandler)) call errorHandler(x,y)
