@@ -181,7 +181,11 @@ contains
        ! index plus the redshift, separated by a colon.
        ! Determine node color.
        if (present(highlightNodes)) then
-          if (any(highlightNodes == thisNode%index())) then
+          if     (                                                                           &
+               &   (     labelUniqueActual .and. any(highlightNodes == thisNode%uniqueID())) &
+               &  .or.                                                                       &
+               &   (.not.labelUniqueActual .and. any(highlightNodes == thisNode%index   ())) &
+               & ) then
              color=highlightColorActual
              style=highlightStyleActual
           else

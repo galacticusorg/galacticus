@@ -2139,6 +2139,11 @@ sub Generate_Node_Event_Object {
 	     variables  => [ "ID" ]
 	 },
 	 {
+	     intrinsic  => "integer",
+	     attributes => [ "public" ],
+	     variables  => [ "type" ]
+	 },
+	 {
 	     intrinsic  => "type",
 	     type       => "treeNode",
 	     attributes => [ "pointer", "public" ],
