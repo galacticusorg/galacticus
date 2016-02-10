@@ -61,6 +61,17 @@ module Galacticus_Nodes
   ! Event ID counter.
   integer         (kind=kind_int8)                                  :: eventID           =0
 
+  ! Enumeration of event types.
+  !# <enumeration>
+  !#  <name>nodeEventType</name>
+  !#  <description>Enumerates all possible types of node event.</description>
+  !#  <visibility>public</visibility>
+  !#  <validator>no</validator>
+  !#  <encodeFunction>no</encodeFunction>
+  !#  <entry label="subhaloPromotion" />
+  !#  <entry label="branchJump" />
+  !# </enumeration>
+  
   ! Define a constructor for treeNodes.
   interface treeNode
      module procedure Tree_Node_Constructor

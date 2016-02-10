@@ -116,6 +116,7 @@ contains
              nodeNext => baseNode%sibling
              call Merger_Tree_Prune_Clean_Branch(baseNode)
              call baseNode%destroyBranch()
+             deallocate(baseNode)
              baseNode => nodeNext
           end do
        end if
