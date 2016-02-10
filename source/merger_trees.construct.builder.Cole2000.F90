@@ -187,7 +187,7 @@ contains
          &                                                                snapEarliestTime
     type            (varying_string           )                        :: message
     character       (len=16                   )                        :: label
-    
+
     ! Get default objects.
     criticalOverdensity_ => criticalOverdensity()
     ! Begin construction.
@@ -200,6 +200,7 @@ contains
        self%branchingIntervalDistributionInitialized=.true.
     end if
     ! Restart the random number sequence.
+    call tree%randomNumberGenerator%initialize()
     uniformRandom=tree%randomNumberGenerator%sample(ompThreadOffset=.false.,incrementSeed=int(tree%index))
     ! Get the mass resolution for this tree.
     massResolution=self%mergerTreeMassResolution_%resolution(tree)
