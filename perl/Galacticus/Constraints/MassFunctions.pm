@@ -264,7 +264,7 @@ sub Construct {
 	my $covarianceGalacticusMapped    ;
 	my $isBad                      = 0;
 	if ( exists($config->{'errorModel'}) && $config->{'errorModel'} eq "logNormal" ) {
-	    if ( any() ) { 
+	    if ( any($config->{'y'}->($nonZeroObserved) <= 0.0) ) { 
 		$isBad = 1;
 	    } else {
 		$yGalacticusMapped          = log($yGalacticusLimited         ->($nonZeroObserved                 ));
