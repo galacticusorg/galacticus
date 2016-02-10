@@ -50,41 +50,24 @@ contains
   function summationConstructorParameters(parameters)
     !% Constructor for the ``summation'' cooling function class which takes a parameter set as input.
     use Input_Parameters2
-    use FoX_DOM
-    use IO_XML
-    use omp_lib
     implicit none
-    type(coolingFunctionSummation)                :: summationConstructorParameters
-    type(inputParameters         ), intent(in   ) :: parameters
-    type(node                    ), pointer       :: coolingFunctionNode           , parent, &
-         &                                           removedCoolants
-    type(coolantList             ), pointer       :: coolant
+    type   (coolingFunctionSummation)                :: summationConstructorParameters
+    type   (inputParameters         ), intent(inout) :: parameters
+    type   (coolantList             ), pointer       :: coolant
+    integer                                          :: i
 
     !$omp critical(coolingFunctionSummationInitialize)
-    removedCoolants => createElement(parameters%document,'removedCoolants')
-    coolant         => null         (                                     )
-    do while (parameters%isPresent('coolingFunctionMethod'))
-       coolingFunctionNode => parameters%node('coolingFunctionMethod')
+    coolant => null()
+    do i=1,parameters%copiesCount('coolingFunctionMethod',zeroIfNotPresent=.true.)
        if (associated(coolant)) then
           allocate(coolant                       %next    )
-          coolant => coolant                        %next
+          coolant => coolant                       %next
        else
           allocate(summationConstructorParameters%coolants)
           coolant => summationConstructorParameters%coolants
        end if
-       coolant%coolingFunction => coolingFunction(parameters)
-       !$omp critical (FoX_DOM_Access)
-       parent              =>                             getParentNode(       coolingFunctionNode)
-       coolingFunctionNode => appendChild(removedCoolants,removeChild  (parent,coolingFunctionNode))
-       !$omp end critical (FoX_DOM_Access)
+       coolant%coolingFunction => coolingFunction(parameters,i)
     end do
-    ! Restore removed children.
-    !$omp critical (FoX_DOM_Access)
-    do while (hasChildNodes(removedCoolants))
-       coolingFunctionNode =>                    getFirstChild(removedCoolants                    )
-       coolingFunctionNode => appendChild(parent,removeChild  (removedCoolants,coolingFunctionNode))
-    end do
-    !$omp end critical (FoX_DOM_Access)
     !$omp end critical(coolingFunctionSummationInitialize)
     return
   end function summationConstructorParameters
@@ -114,12 +97,6 @@ contains
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Radiation_Structure
-
-use root_finder
-
-
-
-
     implicit none
     class           (coolingFunctionSummation), intent(inout) :: self
     double precision                          , intent(in   ) :: numberDensityHydrogen, temperature
@@ -249,13 +226,11 @@ use root_finder
     implicit none
     class(coolingFunctionSummation), intent(inout) :: self
     type (inputParameters         ), intent(inout) :: descriptor
-    type (node                    ), pointer       :: parameterNode
     type (coolantList             ), pointer       :: coolant
     type (inputParameters         )                :: subParameters
 
     call descriptor%addParameter("coolingFunctionMethod","summation")
-    parameterNode => descriptor%node("coolingFunctionMethod")
-    subParameters =  inputParameters(parameterNode)
+    subParameters=descriptor%subparameters("coolingFunctionMethod")
     coolant       => self%coolants
     do while (associated(coolant))
        call coolant%coolingFunction%descriptor(subParameters)

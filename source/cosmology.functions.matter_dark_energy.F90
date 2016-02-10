@@ -19,9 +19,6 @@
   !% An implementation of the cosmological functions class for cosmologies consisting of collisionless
   !% matter and dark energy with an equation of state of the form: $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.
 
-  !# <cosmologyFunctions name="cosmologyFunctionsMatterDarkEnergy">
-  !#  <description>Cosmological relations are computed assuming a universe that contains only matter and dark energy with an equation of state $w(a)=w_0+w_1a(1-a)$.</description>
-  !# </cosmologyFunctions>
   use FGSL
   use Cosmology_Parameters
 
@@ -37,10 +34,9 @@
   double precision            :: matterDarkEnergyDominateFactorCurrent
   !$omp threadprivate(matterDarkEnergyDominateFactorCurrent)
 
-  ! Default parameters of the dark energy equation of state
-  logical                     :: matterDarkEnergyDefaultsRead=.false.
-  double precision            :: matterDarkEnergyEquationOfStateW0Default, matterDarkEnergyEquationOfStateW1Default
-
+  !# <cosmologyFunctions name="cosmologyFunctionsMatterDarkEnergy">
+  !#  <description>Cosmological relations are computed assuming a universe that contains only matter and dark energy with an equation of state $w(a)=w_0+w_1a(1-a)$.</description>
+  !# </cosmologyFunctions>
   type, extends(cosmologyFunctionsMatterLambda) :: cosmologyFunctionsMatterDarkEnergy
      !% A cosmological functions class for cosmologies consisting of matter plus dark energy with equation of state $w(a)=w_0+a(1-a)w_1$.
      private
@@ -83,65 +79,51 @@
 
   interface cosmologyFunctionsMatterDarkEnergy
      !% Constructors for the matter plus dark energy cosmological functions class.
-     module procedure matterDarkEnergyDefaultConstructor
-     module procedure matterDarkEnergyConstructor
+     module procedure matterDarkEnergyConstructorParameters
+     module procedure matterDarkEnergyConstructorInternal
   end interface cosmologyFunctionsMatterDarkEnergy
 
 contains
 
-  function matterDarkEnergyDefaultConstructor()
+  function matterDarkEnergyConstructorParameters(parameters)
     !% Default constructor for the matter plus dark energy cosmological functions class.
-    use Input_Parameters
-    use Cosmology_Parameters
+    use Input_Parameters2
     implicit none
-    type (cosmologyFunctionsMatterDarkEnergy), target  :: matterDarkEnergyDefaultConstructor
-    class(cosmologyParametersClass          ), pointer :: thisCosmologyParameters
-
-    if (.not.matterDarkEnergyDefaultsRead) then
-       !$omp critical(matterDarkEnergyDefaultConstructorParameters)
-       if (.not.matterDarkEnergyDefaultsRead) then
-          ! Read the dark energy equation of state.
-          !@ <inputParameter>
-          !@   <name>darkEnergyEquationOfStateW0</name>
-          !@   <defaultValue>-1 (cosmological constant)</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The equation of state parameter for dark energy, $w_0$, defined such that $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>cosmology</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('darkEnergyEquationOfStateW0',matterDarkEnergyEquationOfStateW0Default,defaultValue=-1.0d0)
-          !@ <inputParameter>
-          !@   <name>darkEnergyEquationOfStateW1</name>
-          !@   <defaultValue>0 (constant equation of state)</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The equation of state parameter for dark energy, $w_1$, defined such that $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>cosmology</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('darkEnergyEquationOfStateW1',matterDarkEnergyEquationOfStateW1Default,defaultValue=0.0d0)
-          matterDarkEnergyDefaultsRead=.true.
-       end if
-       !$omp end critical(matterDarkEnergyDefaultConstructorParameters)
-    end if
-    ! Get the default cosmological parameters.
-    thisCosmologyParameters => cosmologyParameters()
+    type            (cosmologyFunctionsMatterDarkEnergy)                :: matterDarkEnergyConstructorParameters
+    type            (inputParameters                   ), intent(inout) :: parameters
+    class           (cosmologyParametersClass          ), pointer       :: cosmologyParameters_
+    double precision                                                    :: darkEnergyEquationOfStateW0          , darkEnergyEquationOfStateW1
+    !# <inputParameterList label="allowedParameterNames" />
+    
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>darkEnergyEquationOfStateW0</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>-1.0d0</defaultValue>
+    !#   <description>The equation of state parameter for dark energy, $w_0$, defined such that $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>darkEnergyEquationOfStateW1</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>The equation of state parameter for dark energy, $w_1$, defined such that $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     ! Use it to construct a matter plus dark energy cosmological functions class.
-    matterDarkEnergyDefaultConstructor                                            &
-         & =matterDarkEnergyConstructor(                                          &
-         &                              thisCosmologyParameters                 , &
-         &                              matterDarkEnergyEquationOfStateW0Default, &
-         &                              matterDarkEnergyEquationOfStateW1Default  &
-         &                             )
+    matterDarkEnergyConstructorParameters                                    &
+         & =matterDarkEnergyConstructorInternal(                             &
+         &                                      cosmologyParameters_       , &
+         &                                      darkEnergyEquationOfStateW0, &
+         &                                      darkEnergyEquationOfStateW1  &
+         &                                     )
     return
-  end function matterDarkEnergyDefaultConstructor
+  end function matterDarkEnergyConstructorParameters
 
-  function matterDarkEnergyConstructor(thisCosmologyParameters,darkEnergyEquationOfStateW0,darkEnergyEquationOfStateW1)
+  function matterDarkEnergyConstructorInternal(cosmologyParameters_,darkEnergyEquationOfStateW0,darkEnergyEquationOfStateW1)
     !% Constructor for the matter plus dark energy cosmological functions class.
     use Numerical_Comparison
     use Cosmology_Parameters
@@ -149,19 +131,19 @@ contains
     use ODE_Solver
     use, intrinsic :: ISO_C_Binding
     implicit none
-    type            (cosmologyFunctionsMatterDarkEnergy)                        :: matterDarkEnergyConstructor
-    class           (cosmologyParametersClass          ), intent(in   ), target :: thisCosmologyParameters
-    double precision                                    , intent(in   )         :: darkEnergyEquationOfStateW0, darkEnergyEquationOfStateW1
+    type            (cosmologyFunctionsMatterDarkEnergy)                        :: matterDarkEnergyConstructorInternal
+    class           (cosmologyParametersClass          ), intent(in   ), target :: cosmologyParameters_
+    double precision                                    , intent(in   )         :: darkEnergyEquationOfStateW0        , darkEnergyEquationOfStateW1
 
     ! Store a pointer to the cosmological parameters object.
-    matterDarkEnergyConstructor%cosmology => thisCosmologyParameters
+    matterDarkEnergyConstructorInternal%cosmology => cosmologyParameters_
     ! Store equation of state.
-    matterDarkEnergyConstructor%darkEnergyEquationOfStateW0=darkEnergyEquationOfStateW0
-    matterDarkEnergyConstructor%darkEnergyEquationOfStateW1=darkEnergyEquationOfStateW1
+    matterDarkEnergyConstructorInternal%darkEnergyEquationOfStateW0=darkEnergyEquationOfStateW0
+    matterDarkEnergyConstructorInternal%darkEnergyEquationOfStateW1=darkEnergyEquationOfStateW1
     ! Force a build of the expansion factor table, which will determine if this Universe collapses.
-    call matterDarkEnergyConstructor%expansionFactorTabulate()
+    call matterDarkEnergyConstructorInternal%expansionFactorTabulate()
     return
-  end function matterDarkEnergyConstructor
+  end function matterDarkEnergyConstructorInternal
 
   double precision function matterDarkEnergyCosmicTime(self,expansionFactor,collapsingPhase)
     !% Return the cosmological matter density in units of the critical density at the present day.
@@ -218,7 +200,7 @@ contains
     logical                                             , intent(in   ), optional :: collapsingPhase
     double precision                                                              :: expansionFactorActual
 
-   ! Determine the actual expansion factor to use.
+    ! Determine the actual expansion factor to use.
     if (present(time)) then
        if (present(expansionFactor)) then
           call Galacticus_Error_Report('matterDarkEnergyOmegaDarkEnergyEpochal','only one of time or expansion factor can be specified')

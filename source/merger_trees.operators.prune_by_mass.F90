@@ -44,7 +44,7 @@ contains
     use Input_Parameters2
     implicit none
     type(mergerTreeOperatorPruneByMass)                :: pruneByMassConstructorParameters
-    type(inputParameters              ), intent(in   ) :: parameters
+    type(inputParameters              ), intent(inout) :: parameters
     !# <inputParameterList label="allowedParameterNames" />
     
     call parameters%checkParameters(allowedParameterNames)
@@ -115,11 +115,13 @@ contains
           if (basic%mass() < self%massThreshold) then
              ! Entire tree is below threshold. Destroy all but this base node. (Leaving just
              ! the base node makes the tree inert - i.e. it can not do anything.)
+             call Merger_Tree_Prune_Clean_Branch (node)
              node => node%firstChild
              do while (associated(node))
                 nodeNext => node%sibling
                 call Merger_Tree_Prune_Clean_Branch(node)
-                call currentTree%destroyBranch(node)
+                call node%destroyBranch()
+                deallocate(node)
                 node => nodeNext
              end do
           else
@@ -129,14 +131,15 @@ contains
                 ! Record the parent node to which we will return.
                 nodePrevious => node%parent
                 if (basic%mass() < self%massThreshold) then
-                   didPruning=.true.                   
+                   didPruning=.true.
                    ! Decouple from other nodes.
                    basicPrevious => nodePrevious%basic()
                    call Merger_Tree_Prune_Unlink_Parent(node,nodePrevious,basicPrevious%mass() < self%massThreshold,self%preservePrimaryProgenitor)
                    ! Clean the branch.
-                   call Merger_Tree_Prune_Clean_Branch (node                                                       )
+                   call Merger_Tree_Prune_Clean_Branch (node)
                    ! Destroy the branch.
-                   call currentTree%destroyBranch(node)
+                   call node%destroyBranch()
+                   deallocate(node)
                    ! Return to parent node.
                    node => nodePrevious
                 end if
@@ -147,5 +150,7 @@ contains
        ! Move to the next tree.
        currentTree => currentTree%nextTree
     end do
+    ! Uniqueify nodes.
+    call Merger_Tree_Prune_Uniqueify_IDs(tree)
     return
   end subroutine pruneByMassOperate

@@ -32,19 +32,21 @@ contains
   !# <imfSelectionMethod>
   !#  <unitName>IMF_Select_Fixed_Initialize</unitName>
   !# </imfSelectionMethod>
-  subroutine IMF_Select_Fixed_Initialize(imfSelectionMethod,IMF_Select_Do,imfNames)
+  subroutine IMF_Select_Fixed_Initialize(imfSelectionMethod,IMF_Select_Do,IMF_Is_Star_Formation_Rate_Dependent_Do,imfNames)
     !% Initializes the ``fixed'' IMF selection module.
     use ISO_Varying_String
     use Input_Parameters
     use Star_Formation_IMF_Utilities
     implicit none
-    type     (varying_string  ), intent(in   )          :: imfNames         (:), imfSelectionMethod
-    procedure(IMF_Select_Fixed), intent(inout), pointer :: IMF_Select_Do
-    type     (varying_string  )                         :: imfSelectionFixed
+    type     (varying_string                            ), intent(in   )          :: imfNames         (:), imfSelectionMethod
+    procedure(IMF_Select_Fixed                          ), intent(inout), pointer :: IMF_Select_Do
+    procedure(IMF_Is_Star_Formation_Rate_Dependent_Fixed), intent(inout), pointer :: IMF_Is_Star_Formation_Rate_Dependent_Do
+    type     (varying_string                            )                         :: imfSelectionFixed
 
     if (imfSelectionMethod == 'fixed') then
-       IMF_Select_Do => IMF_Select_Fixed
-       ! Get IMF choice.
+       IMF_Select_Do                           => IMF_Select_Fixed
+       IMF_Is_Star_Formation_Rate_Dependent_Do => IMF_Is_Star_Formation_Rate_Dependent_Fixed
+      ! Get IMF choice.
        !@ <inputParameter>
        !@   <name>imfSelectionFixed</name>
        !@   <defaultValue>Chabrier</defaultValue>
@@ -73,5 +75,13 @@ contains
     IMF_Select_Fixed=imfSelectedIndex
     return
   end function IMF_Select_Fixed
+
+  logical function IMF_Is_Star_Formation_Rate_Dependent_Fixed()
+    !% Return false as the IMF does not depend on star formation rate.
+    implicit none
+
+    IMF_Is_Star_Formation_Rate_Dependent_Fixed=.false.
+    return
+  end function IMF_Is_Star_Formation_Rate_Dependent_Fixed
 
 end module Star_Formation_IMF_Select_Fixed

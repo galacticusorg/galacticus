@@ -27,18 +27,23 @@ module Merger_Tree_Build
   public :: Merger_Tree_Build_Initialize
 
   ! Variables giving the mass range and sampling frequency for mass function sampling.
-  double precision                                                          :: mergerTreeBuildHaloMassMaximum               , mergerTreeBuildHaloMassMinimum          , &
-       &                                                                       mergerTreeBuildTreesBaseRedshift             , mergerTreeBuildTreesBaseTime            , &
+  double precision                                                          :: mergerTreeBuildHaloMassMaximum          , mergerTreeBuildHaloMassMinimum          , &
+       &                                                                       mergerTreeBuildTreesBaseRedshift        , mergerTreeBuildTreesBaseTime            , &
        &                                                                       mergerTreeBuildTreesPerDecade
   integer                                                                   :: mergerTreeBuildTreesBeginAtTree
-  type            (varying_string              )                            :: mergerTreeBuildTreeMassesFile                , mergerTreeBuildTreesHaloMassDistribution
+  type            (varying_string              )                            :: mergerTreeBuildTreeMassesFile           , mergerTreeBuildTreesHaloMassDistribution
 
   ! Direction in which to process trees.
   logical                                                                   :: mergerTreeBuildTreesProcessDescending
 
+  ! Assignment of trees to threads.
+  logical                                                                   :: mergerTreesBuildFixedThreadAssignment
+
   ! Array of halo masses to use.
-  integer                                                                   :: nextTreeIndex                                , treeCount
-  double precision                              , allocatable, dimension(:) :: treeHaloMass                                 , treeWeight
+  integer                                                                   :: nextTreeIndex                           , treeCount                               , &
+       &                                                                       nextTreeIndexThread                  =-1
+  !$omp threadprivate(nextTreeIndexThread)
+  double precision                              , allocatable, dimension(:) :: treeHaloMass                            , treeWeight
 
 contains
 
@@ -54,7 +59,8 @@ contains
     use FGSL
     use Quasi_Random
     use Pseudo_Random
-    use Halo_Mass_Function
+    use Halo_Mass_Functions
+    use Merger_Trees_Mass_Function_Sampling_Modifiers
     use Sort
     use Galacticus_Error
     use Galacticus_Display
@@ -69,31 +75,34 @@ contains
     include 'merger_trees.build.modules.inc'
     !# </include>
     implicit none
-    type            (varying_string            )             , intent(in   )          :: mergerTreeConstructMethod
-    procedure       (Merger_Tree_Build_Do      )             , intent(inout), pointer :: Merger_Tree_Construct
+    type            (varying_string                   )             , intent(in   )          :: mergerTreeConstructMethod
+    procedure       (Merger_Tree_Build_Do             )             , intent(inout), pointer :: Merger_Tree_Construct
     type            (Node                      )                            , pointer :: doc                                  , rootNode
-    class           (cosmologyFunctionsClass   )                            , pointer :: cosmologyFunctionsDefault
-    integer                                     , parameter                           :: massFunctionSamplePerDecade  =100
-    double precision                            , parameter                           :: toleranceAbsolute            =1.0d-12, toleranceRelative                 =1.0d-3
-    double precision                            , allocatable, dimension(:)           :: massFunctionSampleLogMass            , massFunctionSampleLogMassMonotonic       , &
-         &                                                                               massFunctionSampleProbability
-    logical                                                                           :: computeTreeWeights
-    integer                                                                           :: ioErr                                , jSample                                  , &
-         &                                                                               massFunctionSampleCount              , iSample                                  , &
-         &                                                                               iTree
-    type            (fgsl_qrng                 )                                      :: quasiSequenceObject
-    type            (fgsl_rng                  )                                      :: pseudoSequenceObject
-    logical                                                                           :: quasiSequenceReset           =.true. , pseudoSequenceReset               =.true.
-    double precision                                                                  :: expansionFactor                      , massFunctionSampleLogPrevious            , &
-         &                                                                               massMaximum                          , massMinimum                              , &
-         &                                                                               probability
-    type            (fgsl_function             )                                      :: integrandFunction
-    type            (fgsl_integration_workspace)                                      :: integrationWorkspace
-    type            (fgsl_interp               )                                      :: interpolationObject
-    type            (fgsl_interp_accel         )                                      :: interpolationAccelerator
-    type            (c_ptr                     )                                      :: parameterPointer
-    logical                                                                           :: integrandReset               =.true. , interpolationReset                =.true.
-    type(hdf5Object)                                :: treeFile
+    class           (cosmologyFunctionsClass          )                            , pointer :: cosmologyFunctionsDefault
+    class           (haloMassFunctionClass            )                            , pointer :: haloMassFunction_
+    class           (massFunctionSamplingModifierClass)                            , pointer :: massFunctionSamplingModifier_
+    integer                                            , parameter                           :: massFunctionSamplePerDecade  =100
+    double precision                                   , parameter                           :: toleranceAbsolute            =1.0d-12, toleranceRelative                 =1.0d-3
+    double precision                                   , allocatable, dimension(:)           :: massFunctionSampleLogMass            , massFunctionSampleLogMassMonotonic       , &
+         &                                                                                      massFunctionSampleProbability
+    logical                                                                                  :: computeTreeWeights
+    integer                                                                                  :: ioErr                                , jSample                                  , &
+         &                                                                                      massFunctionSampleCount              , iSample                                  , &
+         &                                                                                      iTree                                , iTreeFirst                               , &
+         &                                                                                      iTreeLast
+    type            (fgsl_qrng                        )                                      :: quasiSequenceObject
+    type            (fgsl_rng                         )                                      :: pseudoSequenceObject
+    logical                                                                                  :: quasiSequenceReset           =.true. , pseudoSequenceReset               =.true.
+    double precision                                                                         :: expansionFactor                      , massFunctionSampleLogPrevious            , &
+         &                                                                                      massMaximum                          , massMinimum                              , &
+         &                                                                                      probability
+    type            (fgsl_function                    )                                      :: integrandFunction
+    type            (fgsl_integration_workspace       )                                      :: integrationWorkspace
+    type            (fgsl_interp                      )                                      :: interpolationObject
+    type            (fgsl_interp_accel                )                                      :: interpolationAccelerator
+    type            (c_ptr                            )                                      :: parameterPointer
+    logical                                                                                  :: integrandReset               =.true. , interpolationReset                =.true.
+    type            (hdf5Object                       )                                      :: treeFile
 
     ! Check if our method is to be used.
     if (mergerTreeConstructMethod == 'build') then
@@ -177,6 +186,17 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildTreesProcessDescending',mergerTreeBuildTreesProcessDescending,defaultValue=.true.)
+       !@ <inputParameter>
+       !@   <name>mergerTreesBuildFixedThreadAssignment</name>
+       !@   <defaultValue>true</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     If true, assignment of trees to OpenMP threads will be done deterministically. Otherwise, assignment is on a first-come-first-served basis.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreesBuildFixedThreadAssignment',mergerTreesBuildFixedThreadAssignment,defaultValue=.false.)
        !@ <inputParameter>
        !@   <name>mergerTreeBuildTreeMassesFile</name>
        !@   <defaultValue>null</defaultValue>
@@ -290,6 +310,12 @@ contains
           call Dealloc_Array(massFunctionSampleLogMass         )
           call Dealloc_Array(massFunctionSampleProbability     )
           call Dealloc_Array(massFunctionSampleLogMassMonotonic)
+          ! Allow modification of the halo mass sample.
+          massFunctionSamplingModifier_ => massFunctionSamplingModifier()
+          call massFunctionSamplingModifier_%modify(treeHaloMass,mergerTreeBuildTreesBaseTime)
+          call Sort_Do(treeHaloMass)
+          treeCount=size(treeHaloMass)
+          call Alloc_Array(treeWeight,[treeCount])
        case ("read")
           ! Read masses from a file.
           ! Detect file type.
@@ -331,39 +357,53 @@ contains
        case default
           call Galacticus_Error_Report('Merger_Tree_Build_Initialize','unknown halo mass distribution option')
        end select
-
        ! Compute the weight (number of trees per unit volume) for each tree.
        if (computeTreeWeights) then
-          do iTree=1,treeCount
+          haloMassFunction_ => haloMassFunction()
+          iTreeFirst=0
+          do while (iTreeFirst < treeCount)
+             iTreeFirst=iTreeFirst+1
+             ! Find the last tree with the same mass.
+             iTreeLast=iTreeFirst
+             if (iTreeLast < treeCount) then
+                do while (treeHaloMass(iTreeLast+1) == treeHaloMass(iTreeFirst))
+                   iTreeLast=iTreeLast+1
+                   if (iTreeLast == treeCount) exit
+                end do
+             end if
              ! Get the minimum mass of the interval occupied by this tree.
-             if (iTree==1) then
+             if (iTreeFirst == 1) then
                 if (char(mergerTreeBuildTreesHaloMassDistribution) == "read") then
-                   massMinimum=treeHaloMass(iTree)*sqrt(treeHaloMass(iTree)/treeHaloMass(iTree+1))
+                   massMinimum=treeHaloMass(iTreeFirst)*sqrt(treeHaloMass(iTreeFirst)/treeHaloMass(iTreeFirst+1))
                 else
-                   massMinimum=mergerTreeBuildHaloMassMinimum
+                   massMinimum=min(mergerTreeBuildHaloMassMinimum,treeHaloMass(iTreeFirst))
                 end if
              else
-                massMinimum=sqrt(treeHaloMass(iTree)*treeHaloMass(iTree-1))
+                massMinimum=sqrt(treeHaloMass(iTreeFirst)*treeHaloMass(iTreeFirst-1))
              end if
              ! Get the maximum mass of the interval occupied by this tree.
-             if (iTree==treeCount) then
+             if (iTreeLast == treeCount) then
                 if (char(mergerTreeBuildTreesHaloMassDistribution) == "read") then
-                   massMaximum=treeHaloMass(iTree)*sqrt(treeHaloMass(iTree)/treeHaloMass(iTree-1))
+                   massMaximum=treeHaloMass(iTreeLast)*sqrt(treeHaloMass(iTreeLast)/treeHaloMass(iTreeLast-1))
                 else
-                   massMaximum=mergerTreeBuildHaloMassMaximum
+                   massMaximum=max(mergerTreeBuildHaloMassMaximum,treeHaloMass(iTreeLast))
                 end if
              else
-                massMaximum=sqrt(treeHaloMass(iTree)*treeHaloMass(iTree+1))
+                massMaximum=sqrt(treeHaloMass(iTreeLast)*treeHaloMass(iTreeLast+1))
              end if
              ! For distributions of masses, adjust the masses at the end points so that they are at the
              ! geometric mean of their range.
              if     (                                                          &
-                  &   (iTree == 1 .or. iTree == treeCount)                     &
+                  &   (iTreeFirst == 1 .or.  iTreeLast == treeCount)           &
+                  &  .and..not.                                                &
+                  &   (iTreeFirst == 1 .and. iTreeLast == treeCount)           &
                   &  .and.                                                     &
                   &   char(mergerTreeBuildTreesHaloMassDistribution) /= "read" &
-                  & ) treeHaloMass(iTree)=sqrt(massMinimum*massMaximum)
+                  & ) treeHaloMass(iTreeFirst:iTreeLast)=sqrt(massMinimum*massMaximum)
              ! Get the integral of the halo mass function over this range.
-             treeWeight(iTree)=Halo_Mass_Function_Integrated(mergerTreeBuildTreesBaseTime,MassMinimum,MassMaximum)
+             treeWeight(iTreeFirst:iTreeLast)=haloMassFunction_%integrated(mergerTreeBuildTreesBaseTime,MassMinimum,MassMaximum)/dble(iTreeLast-iTreeFirst+1)
+             ! Update to the last tree processed.
+             iTreeFirst=iTreeLast
           end do
        end if
        ! Determine the index of the tree at which to begin.
@@ -397,6 +437,7 @@ contains
     use Kind_Numbers
     use String_Handling
     use Merger_Trees_Builders
+    !$ use OMP_Lib
     implicit none
     type   (mergerTree            ), intent(inout), target :: thisTree
     logical                        , intent(in   )         :: skipTree
@@ -405,41 +446,71 @@ contains
     integer(kind=kind_int8        ), parameter             :: baseNodeIndex         =1
     integer(kind=kind_int8        )                        :: thisTreeIndex
     type   (varying_string        )                        :: message
-
+    logical                                                :: finished
+    
     ! Get a base halo mass and initialize. Do this within an OpenMP critical section so that threads don't try to get the same
     ! tree.
     !$omp critical (Merger_Tree_Build_Do)
-    if (nextTreeIndex <= treeCount) then
+    if     (                                                                                      &
+         &   (.not. mergerTreesBuildFixedThreadAssignment .and. nextTreeIndex       <= treeCount) &
+         &  .or.                                                                                  &
+         &   (      mergerTreesBuildFixedThreadAssignment .and. nextTreeIndexThread <= treeCount) &
+         & ) then
        ! Retrieve stored internal state if possible.
        call Galacticus_State_Retrieve
        ! Take a snapshot of the internal state and store it.
        call Galacticus_State_Snapshot
        message='Storing state for tree #'
-       message=message//nextTreeIndex
+       if (mergerTreesBuildFixedThreadAssignment) then
+          message=message//nextTreeIndexThread
+       else
+          message=message//nextTreeIndex
+       end if
        call Galacticus_State_Store(message)
        ! Determine the index of the tree to process.
-       select case (mergerTreeBuildTreesProcessDescending)
-       case(.false.)
-          ! Processing trees in ascending order, to just use nextTreeIndex as the index of the tree to process.
-          thisTreeIndex=nextTreeIndex
-       case(.true. )
-          ! Processing trees in descending order, so begin from the final index and work back.
-          thisTreeIndex=treeCount+1-nextTreeIndex
-       end select
-       ! Give the tree an index.
-       thisTree%index=thisTreeIndex
-       ! Create the base node.
-       thisTree%baseNode => treeNode(baseNodeIndex,thisTree)
-       ! Assign a weight to the tree.
-       thisTree%volumeWeight=treeWeight(thisTreeIndex)
-       ! Get the basic component of the base node.
-       baseNodeBasicComponent => thisTree%baseNode%basic(autoCreate=.true.)
-       ! Assign a mass to it.
-       call baseNodeBasicComponent%massSet(treeHaloMass(thisTreeIndex) )
-       ! Assign a time.
-       call baseNodeBasicComponent%timeSet(mergerTreeBuildTreesBaseTime)
-       ! Increment the tree index counter.
-       nextTreeIndex=nextTreeIndex+1
+       finished=.false.
+       if (mergerTreesBuildFixedThreadAssignment) then
+          if (nextTreeIndexThread == -1) nextTreeIndexThread=nextTreeIndex
+          !$ do while (mod(nextTreeIndexThread,omp_get_num_threads()) /= omp_get_thread_num() .and. nextTreeIndexThread <= treeCount)
+          !$    nextTreeIndexThread=nextTreeIndexThread+1
+          !$ end do
+          select case (mergerTreeBuildTreesProcessDescending)
+          case(.false.)
+             ! Processing trees in ascending order, to just use nextTreeIndex as the index of the tree to process.
+             thisTreeIndex=nextTreeIndexThread
+          case(.true. )
+             ! Processing trees in descending order, so begin from the final index and work back.
+             thisTreeIndex=treeCount+1-nextTreeIndexThread
+          end select    
+          ! Increment the tree index counter.
+          finished=(nextTreeIndexThread > treeCount) 
+          nextTreeIndexThread=nextTreeIndexThread+1
+       else
+          select case (mergerTreeBuildTreesProcessDescending)
+          case(.false.)
+             ! Processing trees in ascending order, to just use nextTreeIndex as the index of the tree to process.
+             thisTreeIndex=nextTreeIndex
+          case(.true. )
+             ! Processing trees in descending order, so begin from the final index and work back.
+             thisTreeIndex=treeCount+1-nextTreeIndex
+          end select
+          ! Increment the tree index counter.
+          nextTreeIndex=nextTreeIndex+1
+       end if
+       if (.not.finished) then
+          ! Give the tree an index.
+          thisTree%index=thisTreeIndex
+          ! Create the base node.
+          thisTree%baseNode => treeNode(baseNodeIndex,thisTree)
+          ! Assign a weight to the tree.
+          thisTree%volumeWeight=treeWeight(thisTreeIndex)
+          ! Get the basic component of the base node.
+          baseNodeBasicComponent => thisTree%baseNode%basic(autoCreate=.true.)
+          ! Assign a mass to it.
+          call baseNodeBasicComponent%massSet(treeHaloMass(thisTreeIndex) )
+          ! Assign a time.
+          call baseNodeBasicComponent%timeSet(mergerTreeBuildTreesBaseTime)
+       end if
     end if
     !$omp end critical (Merger_Tree_Build_Do)
     ! If we got a tree, we can now process it (in parallel if running under OpenMP).

@@ -28,20 +28,46 @@ sub Process_ObjectBuilder {
     my $depth = 0;
     while ( $node ) {
 	if ( $node->{'type'} eq "objectBuilder" && ! $node->{'directive'}->{'processed'} ) {
-	    # Generate source code for the object builder. The logic here is that, if the passed
-	    # parameter set is *not* the global set, and *does* contain a definition of the
-	    # relevant class, then use that definition to build an object of the
-	    # class. Otherwise, we want to use the default (global) implementation of the class,
-	    # so we simply get a pointer to the default object. This avoids building the default
-	    # implementation more than once.
+	    # Generate source code for the object builder. The logic here is that we search for
+	    # a matching parameter in the given parameter set. If none is found, we step up
+	    # through parent parameters until we do find one or we reach the top-level parameter
+	    # set. If a match is found, we use that definition to build our object, unless this
+	    # is the global parameter set and we're at the top level (in which case we use the
+	    # default object of the relevant class). If no object is found, we again use the
+	    # default object of the class if this is the global parameter set, otherwise we
+	    # abort. If using a specific, given definition to build the object, we first check
+	    # if it has already been built, reusing if it has, and building and storing if it
+	    # has not. This prevents creating instances more than once when not necessary.
 	    my $builderCode;
-	    $builderCode .= "if (".$node->{'directive'}->{'source'}."%isPresent('".$node->{'directive'}->{'class'}."Method').and..not.".$node->{'directive'}->{'source'}."%isGlobal()) then\n";
-	    $builderCode .= "   ! ...construct the object from the provided parameters.\n";
-	    $builderCode .= "   ".$node->{'directive'}->{'name'}." => ".$node->{'directive'}->{'class'}."(".$node->{'directive'}->{'source'}.")\n";
-	    $builderCode .= "else\n";
-	    $builderCode .= "   ! ...otherwise, use the default object.\n";
-	    $builderCode .= "   ".$node->{'directive'}->{'name'}." => ".$node->{'directive'}->{'class'}."()\n";
-	    $builderCode .= "end if\n";
+	    $builderCode .= "   ! Determine where to build+store or point to the required object....\n";
+	    $builderCode .= "   parametersCurrent => ".$node->{'directive'}->{'source'}."\n";
+	    $builderCode .= "   do while (.not.parametersCurrent%isPresent('".$node->{'directive'}->{'class'}."Method').and.associated(parametersCurrent%parent))\n";
+	    $builderCode .= "      parametersCurrent => parametersCurrent%parent\n";
+	    $builderCode .= "   end do\n";
+	    $builderCode .= "   if (parametersCurrent%isPresent('".$node->{'directive'}->{'class'}."Method').and.(.not.".$node->{'directive'}->{'source'}."%isGlobal().or.associated(parametersCurrent%parent))) then\n";
+	    $builderCode .= "      ! Object should belong to the parameter node. Get the node and test whether the object has already been created in it.\n";
+	    $builderCode .= "      parameterNode => parametersCurrent%node('".$node->{'directive'}->{'class'}."Method')\n";
+	    $builderCode .= "      if (parameterNode%objectCreated()) then\n";
+	    $builderCode .= "         ! Object already exists - simply get a pointer to it.\n";
+	    $builderCode .= "         genericObject => parameterNode%objectGet()\n";
+	    $builderCode .= "         select type (genericObject)\n";
+	    $builderCode .= "         class is (".$node->{'directive'}->{'class'}."Class)\n";
+	    $builderCode .= "            ".$node->{'directive'}->{'name'}." => genericObject\n";
+	    $builderCode .= "         class default\n";
+	    $builderCode .= "            call Galacticus_Error_Report('".$node->{'parent'}->{'name'}."','parameter-stored object is not of [$node->{'directive'}->{'class'}] class')\n";
+	    $builderCode .= "         end select\n";
+	    $builderCode .= "      else\n";
+	    $builderCode .= "         ! Object does not yet exist - build it and store in the parameter node.\n";
+	    $builderCode .= "         ".$node->{'directive'}->{'name'}." => ".$node->{'directive'}->{'class'}."(parametersCurrent)\n";
+	    $builderCode .= "         call parameterNode%objectSet(".$node->{'directive'}->{'name'}.")\n";
+	    $builderCode .= "      end if\n";
+	    $builderCode .= "   else if (".$node->{'directive'}->{'source'}."%isGlobal()) then\n";
+	    $builderCode .= "      ! This is the global parameter set - so we can use the default object of this class.\n";
+	    $builderCode .= "      ".$node->{'directive'}->{'name'}." => ".$node->{'directive'}->{'class'}."()\n";
+	    $builderCode .= "   else\n";
+	    $builderCode .= "      ! No means to define the object.\n";
+	    $builderCode .= "      call Galacticus_Error_Report('".$node->{'parent'}->{'name'}."','[$node->{'directive'}->{'class'}] object is undefined')\n";
+	    $builderCode .= "   end if\n";
 	    # Build a code node.
 	    my $newNode =
 	    {
@@ -51,6 +77,51 @@ sub Process_ObjectBuilder {
 	    };
 	    # Insert the node.
 	    &SourceTree::InsertAfterNode($node,[$newNode]);
+	    # Add new variables and attributes.
+	    unless ( exists($node->{'parent'}->{'objectBuilderDeclarations'}) ) {
+		my @declarations =
+		    (
+		     {
+			 intrinsic  => "type"                 ,
+			 type       => "inputParameters"      ,
+			 variables  => [ "parametersCurrent" ],
+			 attributes => [ "pointer"           ]
+		     },
+		     {
+			 intrinsic  => "type"                 ,
+			 type       => "inputParameter"       ,
+			 variables  => [ "parameterNode"     ],
+			 attributes => [ "pointer"           ]
+		     },
+		     {
+			 intrinsic  => "class"                ,
+			 type       => "*"                    ,
+			 variables  => [ "genericObject"     ],
+			 attributes => [ "pointer"           ]
+		     }
+		    );
+		&Declarations::AddDeclarations($node->{'parent'},\@declarations);
+		# Ensure error reporting module is used.
+		my $usesNode =
+		{
+		    type      => "moduleUse",
+		    moduleUse =>
+		    {
+			Galacticus_Error =>
+			{
+			    intrinsic => 0,
+			    all       => 1
+			}
+		    }
+		};
+		&ModuleUses::AddUses($node->{'parent'},$usesNode);
+		# Record that we have added the necessary declarations to the parent.
+		$node->{'parent'}->{'objectBuilderDeclarations'} = 1;
+	    }
+	    unless ( exists($node->{'parent'}->{'objectBuilderAttributes'}->{$node->{'directive'}->{'source'}}) ) {
+		&Declarations::AddAttributes($node->{'parent'},$node->{'directive'}->{'source'},["target"]);
+		$node->{'parent'}->{'objectBuilderAttributes'}->{$node->{'directive'}->{'source'}} = 1;
+	    }
 	    # Mark the directive as processed.
 	    $node->{'directive'}->{'processed'} =  1;
 	}

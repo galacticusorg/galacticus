@@ -18,7 +18,8 @@
 
 type, public, extends(massDistributionSpherical) :: massDistributionBetaProfile
    !% The $\beta$-profile: $\rho(r)=\rho_0/[1+(r/r_{\mathrm core})^2]^{3\beta/2}$
-   double precision :: beta, coreRadius, densityNormalization
+   double precision :: beta           , coreRadius, densityNormalization
+   logical          :: betaIsTwoThirds
  contains
    !@ <objectMethods>
    !@   <object>massDistributionBetaProfile</object>

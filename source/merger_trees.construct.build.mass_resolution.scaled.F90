@@ -42,7 +42,7 @@ contains
     !% provided parameter list.
     implicit none
     type(mergerTreeMassResolutionScaled)                :: scaledConstructorParameters    
-    type(inputParameters               ), intent(in   ) :: parameters
+    type(inputParameters               ), intent(inout) :: parameters
     !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.

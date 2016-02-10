@@ -35,13 +35,15 @@ contains
     use Galacticus_Display
     use Merger_Trees_Evolve_Node
     implicit none
-    class  (nodeEvent     ), intent(in   )          :: thisEvent
-    type   (treeNode      ), intent(inout), pointer :: thisNode
-    integer                , intent(inout)          :: deadlockStatus
-    type   (treeNode      )               , pointer :: promotionNode
-    type   (mergerTree    )                         :: thisTree
-    type   (varying_string)                         :: message
-
+    class  (nodeEvent                     ), intent(in   )          :: thisEvent
+    type   (treeNode                      ), intent(inout), pointer :: thisNode
+    integer                                , intent(inout)          :: deadlockStatus
+    type   (treeNode                      )               , pointer :: promotionNode
+    class  (nodeComponentBasic            )               , pointer :: parentBasic
+    class  (nodeComponentMergingStatistics)               , pointer :: mergingStatistics
+    type   (mergerTree                    )                         :: thisTree
+    type   (varying_string                )                         :: message
+    
     ! Find the node to promote to.
     promotionNode => thisEvent%node
     ! If the target node has a child, we must wait for that child to be processed before promoting. Note that this should only
@@ -60,6 +62,12 @@ contains
     thisNode%parent          => promotionNode
     thisNode%sibling         => null()
     promotionNode%firstChild => thisNode
+    ! Reset the mass-when-first-isolated property of the merging statistics component if possible.
+    mergingStatistics => thisNode%mergingStatistics()
+    if (mergingStatistics%massWhenFirstIsolatedIsSettable()) then
+       parentBasic => promotionNode%basic()
+       call mergingStatistics%massWhenFirstIsolatedSet(parentBasic%mass())
+    end if
     ! Promote the halo.
     call Tree_Node_Promote(thisTree,thisNode)
     ! Since we changed the tree, record that the tree is not deadlocked.
