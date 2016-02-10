@@ -105,18 +105,19 @@ function SatellitePresetNodeIndex(self)
   selfNode         => self%host            ()
   ! Get the preset history.
   nodeIndexHistory =  self%nodeIndexHistory()
-  ! Check if the history exists.
-  if (nodeIndexHistory%exists()) then
-     ! It does, so find the preset time closest to the present one and return the index at that time.
+  ! For isolated nodes, or nodes with no nodeIndex history, return the current node index.
+  if (.not.selfNode%isSatellite().or..not.nodeIndexHistory%exists()) then
+     ! Return the standard node index.
+     SatellitePresetNodeIndex=selfNode%index()
+  else
+     ! Node is a satellite with a node index history, so find the preset time closest to the
+     ! present one and return the index at that time.
      selfBasicComponent => selfNode%basic()
      interpolationReset=.true.
      iTime=Interpolate_Locate(nodeIndexHistory%time,interpolationAccelerator&
           &,selfBasicComponent%time(),reset=interpolationReset,closest=.true.)
      SatellitePresetNodeIndex=nodeIndexHistory%data(iTime,1)
      call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)
-  else
-     ! It does not, so return standard node index.
-     SatellitePresetNodeIndex=selfNode%index()
   end if
   call nodeIndexHistory%destroy()
   return
