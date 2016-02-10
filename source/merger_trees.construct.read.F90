@@ -2756,6 +2756,8 @@ contains
                 newNode%sibling                         => nodes(iNode)%node
                 newNode%parent                          => nodes(iNode)%node%parent
                 newNode%firstChild                      => null()
+                newNode%mergeTarget                     => null()
+                newNode%siblingMergee                   => null()
                 nodes(iNode)%node%parent%firstChild     => newNode
                 newBasicComponent                       => newNode%basic()
                 call newBasicComponent%timeSet(newBasicComponent%time()*(1.0d0-1.0d-6))
