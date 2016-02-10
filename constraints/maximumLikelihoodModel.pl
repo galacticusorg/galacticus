@@ -19,8 +19,9 @@ die("Usage: maximumLikelihoodModel.pl <configFile> [options...]")
 my $configFile = $ARGV[0];
 # Create a hash of named arguments.
 my %arguments = (
-    runModel => "yes",
-    directory => "maximumLikelihoodModel"    
+    runModel  => "yes",
+    directory => "maximumLikelihoodModel"    ,
+    chain     => "all"
     );
 &Options::Parse_Options(\@ARGV,\%arguments);
 
@@ -70,6 +71,13 @@ while () {
 my $maximumLikelihood = -1e30;
 my @maximumLikelihoodParameters;
 for(my $i=0;$i<$chainCount;++$i) {
+    next
+	unless
+	(
+	 $arguments{'chain'} eq "all"
+	 ||
+	 $arguments{'chain'} == $i
+	);
     open(iHndl,sprintf("%s_%4.4i.log",$logFileRoot,$i));
     while ( my $line = <iHndl> ) {
 	unless ( $line =~ m/^\"/ ) {
