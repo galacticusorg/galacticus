@@ -56,6 +56,7 @@ $massFunctionConfig ->{'yIsPer'                      }  = "ln";
 $massFunctionConfig ->{'xScaling'                    }  = "linear";
 $massFunctionConfig ->{'yScaling'                    }  = "linear";
 $massFunctionConfig ->{'covariance'                  }  = $observations->dataset('covariance'          )->get    (                  );
+$massFunctionConfig ->{'errorModel'                  }  = "logNormal"                                                                ;
 ($massFunctionConfig->{'observationLabel'            }) = $observations                                 ->attrGet('label'           );
 ($massFunctionConfig->{'hubbleConstantObserved'      }) = $observations->group  ('Parameters'          )->attrGet('H_0'             );
 ($massFunctionConfig->{'omegaMatterObserved'         }) = $observations->group  ('Parameters'          )->attrGet('Omega_Matter'    );
