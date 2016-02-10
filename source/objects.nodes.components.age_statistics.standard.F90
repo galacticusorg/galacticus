@@ -111,7 +111,7 @@ contains
     implicit none
     type            (treeNode                    ), intent(inout), pointer :: thisNode
     logical                                       , intent(inout)          :: interrupt
-    procedure       (Interrupt_Procedure_Template), intent(inout), pointer :: interruptProcedure
+    procedure       (interruptTask), intent(inout), pointer :: interruptProcedure
     class           (nodeComponentAgeStatistics  )               , pointer :: thisAgeStatistics
     class           (nodeComponentDisk           )               , pointer :: thisDisk
     class           (nodeComponentSpheroid       )               , pointer :: thisSpheroid
