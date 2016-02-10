@@ -69,7 +69,7 @@ contains
        !@   <defaultValue>virial</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The radius to use in the ``fixed'' galacticus structure radius solver algorithm. Allowed options are ``virial'' and ``turnaround''.
+       !@     The radius to use in the ``fixed'' galactic structure radius solver algorithm. Allowed options are ``virial'' and ``turnaround''.
        !@   </description>
        !@   <type>string</type>
        !@   <cardinality>1</cardinality>
@@ -104,6 +104,7 @@ contains
     type            (treeNode              ), intent(inout), pointer :: thisNode
     procedure       (Structure_Get_Template)               , pointer :: Radius_Get                     => null(), Velocity_Get => null()
     procedure       (Structure_Set_Template)               , pointer :: Radius_Set                     => null(), Velocity_Set => null()
+    !$omp threadprivate(Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
     logical                                 , parameter              :: specificAngularMomentumRequired=  .false.
     logical                                                          :: componentActive
     double precision                                                 :: specificAngularMomentum
