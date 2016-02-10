@@ -257,24 +257,62 @@ sub Construct {
 	}
 	# Handle zero elements in the observed mass function.
 	my $nonZeroObserved = which($config->{'y'} > 1.0e-30);
-	# Compute the likelihood.
-	my $offsets;
-	my $jacobian;
-	my $logLikelihood =
-	    &Covariances::ComputeLikelihood
-	    (
-	     $yGalacticusLimited       ->($nonZeroObserved                 ),
-	     $config            ->{'y'}->($nonZeroObserved                 ),
-	     $fullCovariance           ->($nonZeroObserved,$nonZeroObserved),
-	     jacobian                   => \$jacobian                       ,
-	     offsets                    => \$offsets                        ,
-	     quiet                      => $arguments{'quiet'}              ,
-	     productMethod              => "linearSolver" 
-	    );
-	$constraint->{'logLikelihood'} = $logLikelihood;
-	# Compute the variance in the log-likelihood due to errors in the model.
-	my $logLikelihoodVariance = transpose($jacobian) x $covarianceGalacticus->($nonZeroObserved,$nonZeroObserved) x $jacobian;
-	$constraint->{'logLikelihoodVariance'} = $logLikelihoodVariance->sclr();
+	# If log-normal errors are requested, map y-values and covariances to logarithmic values.
+	my $yGalacticusMapped             ;
+	my $yDataMapped                   ;
+	my $covarianceFullMapped          ;
+	my $covarianceGalacticusMapped    ;
+	my $isBad                      = 0;
+	if ( exists($config->{'errorModel'}) && $config->{'errorModel'} eq "logNormal" ) {
+	    if ( any() ) { 
+		$isBad = 1;
+	    } else {
+		$yGalacticusMapped          = log($yGalacticusLimited         ->($nonZeroObserved                 ));
+		$yDataMapped                = log($config              ->{'y'}->($nonZeroObserved                 ));
+		$covarianceFullMapped       =     $fullCovariance             ->($nonZeroObserved,$nonZeroObserved)
+		    *outer
+		    (
+	 	                              1.0/$config              ->{'y'}->($nonZeroObserved                 ),
+		                              1.0/$config              ->{'y'}->($nonZeroObserved                 )
+		    );
+		$covarianceGalacticusMapped =     $covarianceGalacticus       ->($nonZeroObserved,$nonZeroObserved)
+		    *outer
+		    (
+		                              1.0/$config              ->{'y'}->($nonZeroObserved                 ),
+		                              1.0/$config              ->{'y'}->($nonZeroObserved                 )
+		    );
+	    }
+	} else {
+	    $yGalacticusMapped          =     $yGalacticusLimited         ->($nonZeroObserved                 );
+	    $yDataMapped                =     $config              ->{'y'}->($nonZeroObserved                 );
+	    $covarianceFullMapped       =     $fullCovariance             ->($nonZeroObserved,$nonZeroObserved);
+	    $covarianceGalacticusMapped =     $covarianceGalacticus       ->($nonZeroObserved,$nonZeroObserved);
+	}
+	# Check for a bad model.
+	if ( $isBad ) {
+	    # Model was bad, report a very low likelihood.
+	    $constraint->{'logLikelihood'        } = -1.0e30;
+	    $constraint->{'logLikelihoodVariance'} = +1.0e30;
+	} else {
+	    # Compute the likelihood.
+	    my $offsets;
+	    my $jacobian;
+	    my $logLikelihood =
+		&Covariances::ComputeLikelihood
+		(
+		 $yGalacticusMapped                          ,
+		 $yDataMapped                                ,
+		 $covarianceFullMapped                       ,
+		 jacobian              => \$jacobian         ,
+		 offsets               => \$offsets          ,
+		 quiet                 => $arguments{'quiet'},
+		 productMethod         => "linearSolver" 
+		);
+	    $constraint->{'logLikelihood'} = $logLikelihood;
+	    # Compute the variance in the log-likelihood due to errors in the model.
+	    my $logLikelihoodVariance = transpose($jacobian) x $covarianceGalacticusMapped x $jacobian;
+	    $constraint->{'logLikelihoodVariance'} = $logLikelihoodVariance->sclr();
+	}
 	# Output the constraint.
 	my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"constraint");
 	open(oHndl,">".$arguments{'outputFile'});
