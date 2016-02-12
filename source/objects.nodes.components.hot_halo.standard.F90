@@ -1318,12 +1318,24 @@ contains
     class           (nodeComponentHotHalo)               , pointer :: currentHotHaloComponent, thisHotHaloComponent
     class           (nodeComponentBasic  )               , pointer :: thisBasicComponent
     class           (accretionHaloClass  )               , pointer :: accretionHalo_
+    type            (nodeEvent           )               , pointer :: event
     double precision                                               :: angularMomentum        , failedHotHaloMass   , &
          &                                                            hotHaloMass
 
     ! If the node has a child or the standard hot halo is not active, then return immediately.
     if (associated(thisNode%firstChild).or..not.defaultHotHaloComponent%standardIsActive()) return
 
+    ! Search for a subhalo promotion events associated with this node.
+    event => thisNode%event
+    do while (associated(event))
+       ! Check if this event:
+       !  a) is a subhalo promotion event;
+       !  b) has no associated task (which means this is the node being promoted to, not the node being promoted itself).
+       ! Do not assign any mass to such nodes, as they should receive gas from the node which is promoted to them.
+       if (event%type == nodeEventTypeSubhaloPromotion .and. .not.associated(event%task)) return
+       event => event%next
+    end do
+    
     ! Get the hot halo component.
     currentHotHaloComponent => thisNode%hotHalo()
     ! Ensure that it is of unspecified class.
