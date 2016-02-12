@@ -229,9 +229,9 @@ contains
        !@ <inputParameter>
        !@   <name>mergerTreeReadSubhaloAngularMomentaMethod</name>
        !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>true</defaultValue>
+       !@   <defaultValue>summation</defaultValue>
        !@   <description>
-       !@     Specifies whether subhalo mass should be preset when reading merger trees from a file.
+       !@     Specifies how to account for subhalo angular momentum when adding subhalo mass to host halo mass.
        !@   </description>
        !@   <type>boolean</type>
        !@   <cardinality>1</cardinality>
@@ -535,7 +535,7 @@ contains
 
        ! Warn if subhalo promotions are allowed, but branch jumps are not.
        if (mergerTreeReadAllowSubhaloPromotions.and..not.mergerTreeReadAllowBranchJumps) then
-          message='WARNING: allowing subhalo promotions while not allowed branch jumps can lead to deadlocking of trees.'//char(10)
+          message='WARNING: allowing subhalo promotions while not allowing branch jumps can lead to deadlocking of trees.'//char(10)
           message=message//'Be sure that your trees have no promotion events for subhalos which survive beyond the end of their original branch'//char(10)
           message=message//'For example, without branch jumping, "a" in the following tree (in which "==>" indicates subhalo host) is stuck in "1", so it cannot evolve to become "b" causing the subhalo promotion "b" to "c" to be unreachable, resulting in a deadlock of the tree:'//char(10)//char(10)
           message=message//' ---   -----'//char(10)
