@@ -24,7 +24,8 @@ program Halo_Mass_Functions
   use ISO_Varying_String
   use Input_Parameters
   use Memory_Management
-  use Halo_Mass_Function_Tasks
+  use Halo_Mass_Functions_Tasks
+  use Functions_Global_Utilities
   implicit none
   integer                             , parameter :: fileNameLengthMaximum         =1024
   character(len=fileNameLengthMaximum)            :: fileCharacter
@@ -41,6 +42,9 @@ program Halo_Mass_Functions
   if (len_trim(fileCharacter) == 0) call Galacticus_Error_Report(message="Usage: Halo_Mass_Function.exe <parameterFile> <outputFile>")
   haloMassFunctionOutputFileName=fileCharacter
 
+  ! Initialize global functions.
+  call Functions_Global_Set()
+  
   ! Open the output file.
   call Halo_Mass_Function_Open_File(haloMassFunctionOutputFileName)
 

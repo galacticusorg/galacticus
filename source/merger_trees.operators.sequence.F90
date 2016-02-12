@@ -48,19 +48,15 @@ contains
   function sequenceConstructorParameters(parameters)
     !% Constructor for the sequence merger tree operator class which takes a parameter set as input.
     use Input_Parameters2
-    use FoX_DOM
     implicit none
-    type(mergerTreeOperatorSequence)                :: sequenceConstructorParameters
-    type(inputParameters           ), intent(in   ) :: parameters
-    type(node                      ), pointer       :: operatorNode                 , parent, &
-         &                                             removedOperators
-    type(operatorList              ), pointer       :: operator_
+    type   (mergerTreeOperatorSequence)                :: sequenceConstructorParameters
+    type   (inputParameters           ), intent(inout) :: parameters
+    type   (operatorList              ), pointer       :: operator_
+    integer                                            :: i
 
     !$omp critical(mergerTreeOperatorSequenceInitialize)
-    removedOperators => createElement(parameters%document,'removedOperators')
     operator_ => null()
-    do while (parameters%isPresent('mergerTreeOperatorMethod'))
-       operatorNode => parameters%node('mergerTreeOperatorMethod')
+    do i=1,parameters%copiesCount('mergerTreeOperatorMethod',zeroIfNotPresent=.true.)
        if (associated(operator_)) then
           allocate(operator_%next)
           operator_ => operator_%next
@@ -68,19 +64,8 @@ contains
           allocate(sequenceConstructorParameters%operators)
           operator_ => sequenceConstructorParameters%operators
        end if
-       operator_%operator_ => mergerTreeOperator(parameters)
-       !$omp critical (FoX_DOM_Access)
-       parent       =>                              getParentNode(       operatorNode)
-       operatorNode => appendChild(removedOperators,removeChild  (parent,operatorNode))
-       !$omp end critical (FoX_DOM_Access)
+       operator_%operator_ => mergerTreeOperator(parameters,i)
     end do
-    ! Restore removed children.
-    !$omp critical (FoX_DOM_Access)
-    do while (hasChildNodes(removedOperators))
-       operatorNode =>                    getFirstChild(removedOperators             )
-       operatorNode => appendChild(parent,removeChild  (removedOperators,operatorNode))
-    end do
-    !$omp end critical (FoX_DOM_Access)
     !$omp end critical(mergerTreeOperatorSequenceInitialize)
     return
   end function sequenceConstructorParameters
