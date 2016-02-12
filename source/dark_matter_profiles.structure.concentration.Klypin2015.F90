@@ -92,7 +92,7 @@ contains
     use Galacticus_Error
     implicit none
     type(darkMatterProfileConcentrationKlypin2015)                :: klypin2015ConstructorParameters
-    type(inputParameters                         ), intent(in   ) :: parameters
+    type(inputParameters                         ), intent(inout) :: parameters
     type(varying_string                          )                :: sample
     !# <inputParameterList label="allowedParameterNames" />
 
@@ -615,7 +615,7 @@ contains
   double precision function klypin2015Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
     !% \cite{klypin_multidark_2014} algorithm.
-    use Power_Spectra
+    use Cosmological_Mass_Variance
     use Cosmology_Parameters
     use Cosmology_Functions
     implicit none
@@ -624,6 +624,7 @@ contains
     class           (nodeComponentBasic                      )               , pointer :: basic
     class           (cosmologyParametersClass                )               , pointer :: cosmologyParameters_
     class           (cosmologyFunctionsClass                 )               , pointer :: cosmologyFunctions_
+    class           (cosmologicalMassVarianceClass           )               , pointer :: cosmologicalMassVariance_
     double precision                                                                   :: massLittleH         , concentration0, &
          &                                                                                mass0               , gamma         , &
          &                                                                                redshift            , a0            , &
@@ -658,7 +659,8 @@ contains
             &                  /  (massLittleH/1.0d12)**gamma
     case (klypin2015FittingFunctionEqn25)
        ! Find sigma.
-       sigma         =Cosmological_Mass_Root_Variance(basic%mass())
+       cosmologicalMassVariance_ => cosmologicalMassVariance()
+       sigma         =cosmologicalMassVariance_%rootVariance(basic%mass())
        ! Evaluate fitting function parameters.
        a0            =self%fitParameters%interpolate(redshift,table=1)
        b0            =self%fitParameters%interpolate(redshift,table=2)

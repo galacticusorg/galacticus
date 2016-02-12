@@ -23,6 +23,7 @@ module Dark_Matter_Profiles_Concentration
   use Galacticus_Nodes
   use Virial_Density_Contrast
   use Dark_Matter_Profiles
+  use               FGSL
   private
 
   !# <functionClass>
@@ -31,7 +32,7 @@ module Dark_Matter_Profiles_Concentration
   !#  <description>Object providing dark matter profile concentrations.</description>
   !#  <default>gao2008</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
-  !#  <stateful>no</stateful>
+  !#  <stateful>yes</stateful>
   !#  <method name="concentration" >
   !#   <description>Returns the concentration parameter for the given {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>

@@ -309,17 +309,19 @@ contains
     !% Output the linear theory power spectrum to the main output file.
     use Linear_Growth
     use IO_HDF5
-    type            (hdf5Object), intent(inout) :: outputGroup
-    double precision            , intent(in   ) :: time
-    double precision                            :: growthFactor, growthFactorDerivative
+    type            (hdf5Object       ), intent(inout) :: outputGroup
+    double precision                   , intent(in   ) :: time
+    class           (linearGrowthClass), pointer       :: linearGrowth_
+    double precision                                   :: growthFactor, growthFactorDerivative
 
     ! Initialize the module.
     call Galacticus_Output_Halo_Model_Initialize
 
     ! Store growth factor if we are outputting halo model data.
     if (outputHaloModelData) then
-       growthFactor          =Linear_Growth_Factor                       (time)
-       growthFactorDerivative=Linear_Growth_Factor_Logarithmic_Derivative(time)
+       linearGrowth_         => linearGrowth                                      (    )
+       growthFactor          =  linearGrowth_%value                               (time)
+       growthFactorDerivative=  linearGrowth_%logarithmicDerivativeExpansionFactor(time)
        !$omp critical (HDF5_Access)
        call outputGroup%writeAttribute(growthFactor          ,'linearGrowthFactor'             )
        call outputGroup%writeAttribute(growthFactorDerivative,'linearGrowthFactorLogDerivative')
