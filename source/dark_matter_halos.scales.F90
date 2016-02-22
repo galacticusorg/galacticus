@@ -65,7 +65,12 @@ module Dark_Matter_Halo_Scales
   !#   <pass>yes</pass>
   !#   <argument>type(treeNode), pointer, intent(inout) :: thisNode</argument>
   !#  </method>
+  !#  <method name="virialRadiusGradientLogarithmicMass" >
+  !#   <description>The logarithmic gradient of virial radius of a dark matter halo with halo mass at fixed epoch.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
   !#   <argument>type(treeNode), pointer, intent(inout) :: thisNode</argument>
+  !#  </method>
   !#  <method name="virialRadiusGrowthRate" >
   !#   <description>The growth rate of the virial radius of a dark matter halo.</description>
   !#   <type>double precision</type>
