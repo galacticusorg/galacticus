@@ -2,6 +2,7 @@
 use strict;
 use warnings;
 use PDL;
+use PDL::NiceSlice;
 use PDL::IO::HDF5;
 use PDL::IO::HDF5::Dataset;
 use PDL::IO::HDF5::Group;
@@ -49,151 +50,153 @@ foreach my $groupName ( "Parameters", "Version" ) {
     &Copy_Attributes($group,$newGroup);
 }
 
-# Copy output group attributes.
-my $outputsGroup = $mergeFiles[0]->group("Outputs");
-my @outputGroups = $outputsGroup->groups;
-# Loop over all outputs groups.
-foreach my $outputGroupName ( @outputGroups ) {
-    my $outputGroup    = $outputsGroup->group($outputGroupName);
-    my $newOutputGroup = $outputFile->group("Outputs")->group($outputGroupName);
-    &Copy_Attributes($outputGroup,$newOutputGroup);
-}
-
 # Modify the parameters to reflect that this is now a complete model.
 print "-> Modifying parameter attributes of base file\n";
 my $group = $outputFile->group("Parameters");
-$group->attrSet(
-		"treeEvolveWorkerNumber" => pdl 1,
-		"treeEvolveWorkerCount" => pdl 1
-		);
+$group->attrSet("treeEvolveWorkerNumber" => pdl 1);
+$group->attrSet("treeEvolveWorkerCount"  => pdl 1);
 
-# Combine the datasets in the nodeData group.
-print "-> Combining main datasets\n";
-# Get the Outputs group from the output file.
-$outputsGroup = $mergeFiles[0]->group("Outputs");
-# Get a list of subgroups to search.
-@outputGroups = $outputsGroup->groups;
-# Declare a structure to hold merger tree offset data.
-my $offsets;
-# Loop over all outputs groups.
-foreach my $outputGroup ( @outputGroups ) {
-    # Get the node data group.
-    my $nodeDataGroup    = $outputsGroup->group($outputGroup."/nodeData");
-    my $newNodeDataGroup = $outputFile->group("Outputs")->group($outputGroup)->group("nodeData");
-    # Get a list of all datasets.
-    my @datasets = $nodeDataGroup->datasets;
-    # Loop over datasets.
-    foreach my $dataset ( @datasets ) {
-	my $newDatasetValues = pdl->null();
-	# Loop over merge files.
-	my $iFile = -1;
-	foreach my $mergeFile ( @mergeFiles ) {
-	    # Read the dataset from this file.
-	    ++$iFile;
-	    my $outputsGroup  = $mergeFile    ->group("Outputs");
-	    my $nodeDataGroup = $outputsGroup ->group($outputGroup."/nodeData");
-	    my $thisDataset   = $nodeDataGroup->dataset($dataset);
-	    # Test if the dataset exists.
-	    if ( my $testID = $thisDataset->IDget ) {
-		my $datasetValues = $thisDataset  ->get();
-		$offsets->{$outputGroup}->{$iFile} = nelem($datasetValues);
-		# Append to the combined dataset.
-		$newDatasetValues = $newDatasetValues->append($datasetValues);
-	    }
-	}
-	# Create a new dataset in the output file.
-	my $newDataset = new PDL::IO::HDF5::Dataset( name    => $dataset,
-						     parent  => $newNodeDataGroup,
-						     fileObj => $outputFile
-						     );
-	# Write the new dataset back to the output file.
-	$newDataset->set($newDatasetValues);
-
-	# Copy any attributes to the new dataset.
-	my $thisDataset = $mergeFiles[0]->group("Outputs")->group($outputGroup)->group("nodeData")->dataset($dataset);
-	&Copy_Attributes($thisDataset,$newDataset);
-
-
+# Handle main outputs.
+my @rootGroups = $mergeFiles[0]->groups();
+if ( grep {$_ eq "Outputs"} @rootGroups ) {
+# Copy output group attributes.
+    my $outputsGroup = $mergeFiles[0]->group("Outputs");
+    my @outputGroups = $outputsGroup->groups();
+    # Loop over all outputs groups.
+    foreach my $outputGroupName ( @outputGroups ) {
+	my $outputGroup    = $outputsGroup->group($outputGroupName);
+	my $newOutputGroup = $outputFile->group("Outputs")->group($outputGroupName);
+	&Copy_Attributes($outputGroup,$newOutputGroup);
     }
-}
 
-# Combine tree datasets.
-print "-> Combining tree datasets\n";
-# Get the Outputs group from the output file.
-$outputsGroup = $mergeFiles[0]->group("Outputs");
-# Get a list of subgroups to search.
-@outputGroups    = $outputsGroup->groups;
-# Loop over all outputs groups.
-foreach my $outputGroup ( @outputGroups ) {
-    # Get the new output group.
-    my $newOutputGroup = $outputFile->group("Outputs")->group($outputGroup);
-    # Loop over the tree datasets.
-    foreach my $dataset ( "mergerTreeIndex", "mergerTreeCount", "mergerTreeStartIndex", "mergerTreeWeight" ) {
-	# Reset values.
-	my $newDatasetValues = pdl->null();
-	# Loop over merge files.
-	my $iFile = -1;
-	my $offset = 0;
-	foreach my $mergeFile ( @mergeFiles ) {
-	    # Read the dataset from this file.
-	    ++$iFile;
-	    my $thisOutputGroup= $mergeFile  ->group("Outputs")->group($outputGroup);
-	    my $thisDataset    = $thisOutputGroup->dataset($dataset);
-	    my $datasetValues  = $thisDataset->get();
-	    # Adjust dataset if necessary.
-	    $datasetValues += $offset if ( $dataset eq "mergerTreeStartIndex" );
-	    # Append to the combined dataset.
-	    $newDatasetValues = $newDatasetValues->append($datasetValues);
-            # Adjust the offset.
-	    $offset += $offsets->{$outputGroup}->{$iFile} if ( exists($offsets->{$outputGroup}->{$iFile}) );
-	}
-	# Create a new dataset in the output file.
-	my $newDataset = new PDL::IO::HDF5::Dataset( name    => $dataset,
-						     parent  => $newOutputGroup,
-						     fileObj => $outputFile
-						     );
-	# Write the new dataset back to the output file.
-	$newDataset->set($newDatasetValues);
-    }
-}
-
-# Create references for each tree.
-my @parameters = $mergeFiles[0]->group('Parameters')->attrGet("mergerTreeOutputReferences");
-if ( $parameters[0] eq "true" ) {
-    print "-> Creating merger tree references\n";
-    # Get the Outputs group.
-    $outputsGroup = $outputFile->group("Outputs");
+    # Combine the datasets in the nodeData group.
+    print "-> Combining main datasets\n";
+    # Get the Outputs group from the output file.
+    $outputsGroup = $mergeFiles[0]->group("Outputs");
     # Get a list of subgroups to search.
-    @outputGroups = $outputsGroup->groups();
+    @outputGroups = $outputsGroup->groups;
+    # Declare a structure to hold merger tree offset data.
+    my $offsets;
     # Loop over all outputs groups.
     foreach my $outputGroup ( @outputGroups ) {
-	# Get the nodeData group.
-	my $nodeDataGroup = $outputFile->group("Outputs")->group($outputGroup)->group("nodeData");
-	# Get a list of all datasets in the nodeData group.
-	my @datasets = $nodeDataGroup->datasets();
-	# Read the merger tree indices, starts, offsets and weights.
-	my $mergerTreeIndex      = $outputFile->group("Outputs")->group($outputGroup)->dataset("mergerTreeIndex"     )->get();
-	my $mergerTreeStartIndex = $outputFile->group("Outputs")->group($outputGroup)->dataset("mergerTreeStartIndex")->get();
-	my $mergerTreeCount      = $outputFile->group("Outputs")->group($outputGroup)->dataset("mergerTreeCount"     )->get();
-	my $mergerTreeWeight     = $outputFile->group("Outputs")->group($outputGroup)->dataset("mergerTreeWeight"    )->get();
-	# Loop over each merger tree.
-	for(my $iTree=0;$iTree<nelem($mergerTreeIndex);++$iTree) {
-	    # Create a group for this tree.
-	    my $treeGroup = $outputFile->group("Outputs")->group($outputGroup)->group("mergerTree".$mergerTreeIndex->index($iTree));
-	    # Create start and count arrays.
-	    my @start;
-	    my @count;
-	    $start[0] = $mergerTreeStartIndex->index($iTree);
-	    $count[0] = $mergerTreeCount     ->index($iTree);
-	    if ( $count[0] > 0 ) {
-		# Loop over all datasets.
-		foreach my $dataset ( @datasets ) {
-		    # Create reference.
-		    my $nodeData = $nodeDataGroup->dataset($dataset);
-		    $treeGroup->reference($nodeData,$dataset,@start,@count);
+	# Get the node data group.
+	my $nodeDataGroup    = $outputsGroup->group($outputGroup."/nodeData");
+	my $newNodeDataGroup = $outputFile->group("Outputs")->group($outputGroup)->group("nodeData");
+	# Get a list of all datasets.
+	my @datasets = $nodeDataGroup->datasets;
+	# Loop over datasets.
+	foreach my $dataset ( @datasets ) {
+	    my $newDatasetValues = pdl->null();
+	    # Loop over merge files.
+	    my $iFile = -1;
+	    foreach my $mergeFile ( @mergeFiles ) {
+		# Read the dataset from this file.
+		++$iFile;
+		my $outputsGroup  = $mergeFile    ->group("Outputs");
+		my $nodeDataGroup = $outputsGroup ->group($outputGroup."/nodeData");
+		my $thisDataset   = $nodeDataGroup->dataset($dataset);
+		# Test if the dataset exists.
+		if ( my $testID = $thisDataset->IDget ) {
+		    my $datasetValues = $thisDataset  ->get();
+		    $offsets->{$outputGroup}->{$iFile} = nelem($datasetValues);
+		    # Append to the combined dataset.
+		    $newDatasetValues = $newDatasetValues->append($datasetValues);
 		}
-		# Set the volumeWeight attribute.
-		$treeGroup->attrSet("volumeWeight" => $mergerTreeWeight->index($iTree));
+	    }
+	    # Create a new dataset in the output file.
+	    my $newDataset = new PDL::IO::HDF5::Dataset( name    => $dataset,
+							 parent  => $newNodeDataGroup,
+							 fileObj => $outputFile
+		);
+	# Write the new dataset back to the output file.
+	    $newDataset->set($newDatasetValues);
+	    
+	    # Copy any attributes to the new dataset.
+	    my $thisDataset = $mergeFiles[0]->group("Outputs")->group($outputGroup)->group("nodeData")->dataset($dataset);
+	    &Copy_Attributes($thisDataset,$newDataset);
+	    
+	    
+	}
+    }
+    
+    # Combine tree datasets.
+    print "-> Combining tree datasets\n";
+    # Get the Outputs group from the output file.
+    $outputsGroup = $mergeFiles[0]->group("Outputs");
+    # Get a list of subgroups to search.
+    @outputGroups    = $outputsGroup->groups;
+    # Loop over all outputs groups.
+    foreach my $outputGroup ( @outputGroups ) {
+	# Get the new output group.
+	my $newOutputGroup = $outputFile->group("Outputs")->group($outputGroup);
+	# Loop over the tree datasets.
+	foreach my $dataset ( "mergerTreeIndex", "mergerTreeCount", "mergerTreeStartIndex", "mergerTreeWeight" ) {
+	    # Reset values.
+	    my $newDatasetValues = pdl->null();
+	    # Loop over merge files.
+	    my $iFile = -1;
+	    my $offset = 0;
+	    foreach my $mergeFile ( @mergeFiles ) {
+		# Read the dataset from this file.
+		++$iFile;
+		my $thisOutputGroup= $mergeFile  ->group("Outputs")->group($outputGroup);
+		my $thisDataset    = $thisOutputGroup->dataset($dataset);
+		my $datasetValues  = $thisDataset->get();
+		# Adjust dataset if necessary.
+		$datasetValues += $offset if ( $dataset eq "mergerTreeStartIndex" );
+		# Append to the combined dataset.
+		$newDatasetValues = $newDatasetValues->append($datasetValues);
+		# Adjust the offset.
+		$offset += $offsets->{$outputGroup}->{$iFile} if ( exists($offsets->{$outputGroup}->{$iFile}) );
+	    }
+	    # Create a new dataset in the output file.
+	    my $newDataset = new PDL::IO::HDF5::Dataset( name    => $dataset,
+							 parent  => $newOutputGroup,
+							 fileObj => $outputFile
+		);
+	    # Write the new dataset back to the output file.
+	    $newDataset->set($newDatasetValues);
+	}
+    }
+    
+    # Create references for each tree.
+    my @parameters = $mergeFiles[0]->group('Parameters')->attrGet("mergerTreeOutputReferences");
+    if ( $parameters[0] eq "true" ) {
+	print "-> Creating merger tree references\n";
+	# Get the Outputs group.
+	$outputsGroup = $outputFile->group("Outputs");
+	# Get a list of subgroups to search.
+	@outputGroups = $outputsGroup->groups();
+	# Loop over all outputs groups.
+	foreach my $outputGroup ( @outputGroups ) {
+	    # Get the nodeData group.
+	    my $nodeDataGroup = $outputFile->group("Outputs")->group($outputGroup)->group("nodeData");
+	    # Get a list of all datasets in the nodeData group.
+	    my @datasets = $nodeDataGroup->datasets();
+	    # Read the merger tree indices, starts, offsets and weights.
+	    my $mergerTreeIndex      = $outputFile->group("Outputs")->group($outputGroup)->dataset("mergerTreeIndex"     )->get();
+	    my $mergerTreeStartIndex = $outputFile->group("Outputs")->group($outputGroup)->dataset("mergerTreeStartIndex")->get();
+	    my $mergerTreeCount      = $outputFile->group("Outputs")->group($outputGroup)->dataset("mergerTreeCount"     )->get();
+	    my $mergerTreeWeight     = $outputFile->group("Outputs")->group($outputGroup)->dataset("mergerTreeWeight"    )->get();
+	    # Loop over each merger tree.
+	    for(my $iTree=0;$iTree<nelem($mergerTreeIndex);++$iTree) {
+		# Create a group for this tree.
+		my $treeGroup = $outputFile->group("Outputs")->group($outputGroup)->group("mergerTree".$mergerTreeIndex->index($iTree));
+		# Create start and count arrays.
+		my @start;
+		my @count;
+		$start[0] = $mergerTreeStartIndex->index($iTree);
+		$count[0] = $mergerTreeCount     ->index($iTree);
+		if ( $count[0] > 0 ) {
+		    # Loop over all datasets.
+		    foreach my $dataset ( @datasets ) {
+			# Create reference.
+			my $nodeData = $nodeDataGroup->dataset($dataset);
+			$treeGroup->reference($nodeData,$dataset,@start,@count);
+		    }
+		    # Set the volumeWeight attribute.
+		    $treeGroup->attrSet("volumeWeight" => $mergerTreeWeight->index($iTree));
+		}
 	    }
 	}
     }
@@ -201,49 +204,73 @@ if ( $parameters[0] eq "true" ) {
 
 # Other datasets.
 my %outputRules = (
-		   globalHistory          => {
-		       "^historyExpansion\$"                                   => "singleCopy",
-		       "^historyTime\$"                                        => "singleCopy",
-		       "^historyGasDensity\$"                                  => "cumulate",
-		       "^historyHotGasDensity\$"                               => "cumulate",
-		       "^historyNodeDensity\$"                                 => "cumulate",
-		       "^historyStellarDensity\$"                              => "cumulate",
-		       "^historyDiskStellarDensity\$"                          => "cumulate",
-		       "^historySpheroidStellarDensity\$"                      => "cumulate",
-		       "^historyStarFormationRate\$"                           => "cumulate",
-		       "^historyDiskStarFormationRate\$"                       => "cumulate",
-		       "^historySpheroidStarFormationRate\$"                   => "cumulate"
-		       },
-		   haloModel              => {
-		       "^powerSpectrum\$"                                      => "singleCopy",
-		       "^wavenumber\$"                                         => "singleCopy",
-		       "^Output\\d+\\/mergerTree\\d+\\/fourierProfile\\d+\$"   => "copy"
-		       },
-		   massAccretionHistories => {
-		       "^mergerTree\\d+\\/node*"                               => "copy"
-		       },
-		   mergerTreeStructures   => {
-		       "^mergerTree\\d+\\/*"                                   => "copy"
-		       },
-		   starFormationHistories => {
-		       "^metallicities\$"                                      => "singleCopy",
-		       "^Output\\d+\\/mergerTree\\d+\\/(disk|spheroid).*\$"    => "copy"
-                       },
-		   blackHole              => {
-		       "^Output\\d+\\/.*\$"                                    => "append"
-		       },
-		   blackHoleMergers       => {
-		       "^massBlackHole1\$"                                     => "append",
-		       "^massBlackHole2\$"                                     => "append",
-		       "^timeOfMerger\$"                                       => "append",
-		       "^volumeWeight\$"                                       => "append"
-                       },
-		   grasilSEDs             => {
-		       "^Output\\d+\\/mergerTree\\d+\\/node\\d+\\/SED"         => "copy",
-		       "^Output\\d+\\/mergerTree\\d+\\/node\\d+\\/inclination" => "copy",
-		       "^Output\\d+\\/mergerTree\\d+\\/node\\d+\\/wavelength"  => "copy"
-		       }
-		   );
+    globalHistory          => {
+	"^historyExpansion\$"                                   => "singleCopy",
+	"^historyTime\$"                                        => "singleCopy",
+	"^historyGasDensity\$"                                  => "cumulate",
+	"^historyHotGasDensity\$"                               => "cumulate",
+	"^historyNodeDensity\$"                                 => "cumulate",
+	"^historyStellarDensity\$"                              => "cumulate",
+	"^historyDiskStellarDensity\$"                          => "cumulate",
+	"^historySpheroidStellarDensity\$"                      => "cumulate",
+	"^historyStarFormationRate\$"                           => "cumulate",
+	"^historyDiskStarFormationRate\$"                       => "cumulate",
+	"^historySpheroidStarFormationRate\$"                   => "cumulate"
+    },
+    haloModel              => {
+	"^powerSpectrum\$"                                      => "singleCopy",
+	"^wavenumber\$"                                         => "singleCopy",
+	"^Output\\d+\\/mergerTree\\d+\\/fourierProfile\\d+\$"   => "copy"
+    },
+    massAccretionHistories => {
+	"^mergerTree\\d+\\/node*"                               => "copy"
+    },
+    mergerTreeStructures   => {
+	"^mergerTree\\d+\\/*"                                   => "copy"
+    },
+    starFormationHistories => {
+	"^metallicities\$"                                      => "singleCopy",
+	"^Output\\d+\\/mergerTree\\d+\\/(disk|spheroid).*\$"    => "copy"
+    },
+    blackHole              => {
+	"^Output\\d+\\/.*\$"                                    => "append"
+    },
+    blackHoleMergers       => {
+	"^massBlackHole1\$"                                     => "append",
+	"^massBlackHole2\$"                                     => "append",
+	"^timeOfMerger\$"                                       => "append",
+	"^volumeWeight\$"                                       => "append"
+    },
+    grasilSEDs             => {
+	"^Output\\d+\\/mergerTree\\d+\\/node\\d+\\/SED"         => "copy",
+	"^Output\\d+\\/mergerTree\\d+\\/node\\d+\\/inclination" => "copy",
+	"^Output\\d+\\/mergerTree\\d+\\/node\\d+\\/wavelength"  => "copy"
+    },
+    analysis => {
+	"^haloMassFunctionZ[\\d\\.]+\\/mass\$"                           => "singleCopy",
+	"^haloMassFunctionZ[\\d\\.]+\\/massFunction\$"                   => "cumulate",
+	"^haloMassFunctionZ[\\d\\.]+\\/massFunctionCovariance\$"         => "cumulate",
+	"^isolatedHaloMassFunctionZ[\\d\\.]+\\/mass\$"                   => "singleCopy",
+	"^isolatedHaloMassFunctionZ[\\d\\.]+\\/massFunction\$"           => "cumulate",
+	"^isolatedHaloMassFunctionZ[\\d\\.]+\\/massFunctionCovariance\$" => "cumulate",	
+    },
+    conditionalMassFunction => {
+	"^normalization\$"                      => "cumulate"                 ,
+	"^normalizationSubhaloMassFunction\$"   => "cumulate"                 ,
+	"^massParent\$"                         => "singleCopy"               ,
+	"^massRatio\$"                          => "singleCopy"               ,
+	"^redshiftParent\$"                     => "singleCopy"               ,
+	"^redshiftProgenitor\$"                 => "singleCopy"               ,
+	"^conditionalMassFunction\$"            => "averageWeighted"          ,
+	"^conditionalMassFunctionError\$"       => "averageWeightedQuadrature",
+	"^primaryProgenitorMassFunction\$"      => "averageWeighted"          ,
+	"^primaryProgenitorMassFunctionError\$" => "averageWeightedQuadrature",
+	"^formationRateFunction\$"              => "averageWeighted"          ,
+	"^formationRateFunctionError\$"         => "averageWeightedQuadrature",
+	"^subhaloMassFunction\$"                => "averageWeighted"          ,
+	"^subhaloMassFunctionError\$"           => "averageWeightedQuadrature"
+    }    
+    );
 my %availableGroupNames;
 foreach my $mergeFile ( @mergeFiles ) {
     my @availableGroups = $mergeFile->groups();
@@ -257,8 +284,11 @@ foreach my $outputGroup ( keys(%outputRules) ) {
     if ( exists( $availableGroupNames{$outputGroup}) ) {
 	my $foundGroup = 0;
 	# Loop over all merge files.
-	my $isFirstFile = 1;
+	my $iFile       = -1;
 	foreach my $mergeFile ( @mergeFiles ) {
+	    ++$iFile;
+	    my $isFirstFile = $iFile == 0            ? 1 : 0;
+	    my $isLastFile  = $iFile == $#mergeFiles ? 1 : 0;
 	    # Check if the group exists in this file.
 	    my @availableGroups = $mergeFile->groups();
 	    my $groupIsPresent = 0;
@@ -293,7 +323,8 @@ foreach my $outputGroup ( keys(%outputRules) ) {
 		    # Loop over all datasets.
 		    foreach my $dataset ( @datasets ) {
 			# Write a message.
-			print "  -> processing\n" if ( $foundGroup == 0 );
+			print "  -> processing\n"
+			    if ( $foundGroup == 0 );
 			$foundGroup = 1;
 			# Check for a match to an instruction.
 			my %instructions = %{$outputRules{$outputGroup}};
@@ -336,8 +367,131 @@ foreach my $outputGroup ( keys(%outputRules) ) {
 									  fileObj => $outputFile
 				    );
 			    } else {
-				$newDataset = $thisGroupObject->dataset($dataset);
+				$newDataset     = $thisGroupObject->dataset($dataset);
 				$datasetValues += $newDataset->get;
+			    }
+			    $newDataset->set($datasetValues);
+			    &Copy_Attributes($originalDataset,$newDataset) if ( $isFirstFile == 1 );
+			} elsif ( $action eq "cumulateQuadrature" ) {
+			    my $thisGroupObject = $outputFile->group($thisGroup);
+			    my $originalDataset = $mergeFile ->group($thisGroup)->dataset($dataset);
+			    my $datasetValues   = $originalDataset->get;
+			    $datasetValues .= $datasetValues**2;
+			    my $newDataset;
+			    if ( $isFirstFile == 1 ) {
+				$newDataset = new PDL::IO::HDF5::Dataset( name    => $dataset,
+									  parent  => $thisGroupObject,
+									  fileObj => $outputFile
+				    );
+			    } else {
+				$newDataset     = $thisGroupObject->dataset($dataset);
+				$datasetValues += $newDataset->get;
+			    }
+			    $datasetValues .= sqrt($datasetValues)
+				if ( $isLastFile == 1 );
+			    $newDataset->set($datasetValues);
+			    &Copy_Attributes($originalDataset,$newDataset) if ( $isFirstFile == 1 );
+			} elsif ( $action eq "average" ) {
+			    my $thisGroupObject = $outputFile->group($thisGroup);
+			    my $originalDataset = $mergeFile->group($thisGroup)->dataset($dataset);
+			    my $datasetValues = $originalDataset->get;
+			    my $newDataset;
+			    if ( $isFirstFile == 1 ) {
+				$newDataset = new PDL::IO::HDF5::Dataset( name    => $dataset,
+									  parent  => $thisGroupObject,
+									  fileObj => $outputFile
+				    );
+			    } else {
+				$newDataset     = $thisGroupObject->dataset($dataset);
+				$datasetValues += $newDataset->get;
+			    }
+			    $datasetValues /= scalar(@mergeFiles)
+				if ( $isLastFile == 1 );
+			    $newDataset->set($datasetValues);
+			    &Copy_Attributes($originalDataset,$newDataset) if ( $isFirstFile == 1 );
+			} elsif ( $action eq "averageQuadrature" ) {
+			    my $thisGroupObject = $outputFile->group($thisGroup);
+			    my $originalDataset = $mergeFile ->group($thisGroup)->dataset($dataset);
+			    my $datasetValues   = $originalDataset->get;
+			    $datasetValues .= $datasetValues**2;
+			    my $newDataset;
+			    if ( $isFirstFile == 1 ) {
+				$newDataset = new PDL::IO::HDF5::Dataset( name    => $dataset,
+									  parent  => $thisGroupObject,
+									  fileObj => $outputFile
+				    );
+			    } else {
+				$newDataset     = $thisGroupObject->dataset($dataset);
+				$datasetValues += $newDataset->get;
+			    }
+			    $datasetValues .= sqrt($datasetValues)/scalar(@mergeFiles)
+				if ( $isLastFile == 1 );
+			    $newDataset->set($datasetValues);
+			    &Copy_Attributes($originalDataset,$newDataset) if ( $isFirstFile == 1 );
+			} elsif ( $action eq "averageWeighted" ) {
+			    my $thisGroupObject = $outputFile->group($thisGroup);
+			    my $originalDataset = $mergeFile->group($thisGroup)->dataset($dataset         );
+			    my $originalWeights = $mergeFile->group($thisGroup)->dataset($dataset."Weight");
+			    my $datasetValues   = $originalDataset->get;
+			    my $datasetWeights  = $originalWeights->get;
+			    $datasetValues     *= $datasetWeights;
+			    my $newDataset;
+			    my $newWeights;
+			    if ( $isFirstFile == 1 ) {
+				$newDataset = new PDL::IO::HDF5::Dataset( name    => $dataset,
+									  parent  => $thisGroupObject,
+									  fileObj => $outputFile
+				    );
+				$newWeights = new PDL::IO::HDF5::Dataset( name    => $dataset."Weight",
+									  parent  => $thisGroupObject,
+									  fileObj => $outputFile
+				    );
+			    } else {
+				$newDataset      = $thisGroupObject->dataset($dataset         );
+				$newWeights      = $thisGroupObject->dataset($dataset."Weight");
+				my $oldValues    = $newDataset->get;
+				my $oldWeights   = $newWeights->get;
+				$datasetValues  += $oldValues ;
+				$datasetWeights += $oldWeights;
+			    }
+			    if ( $isLastFile == 1 ) {
+				my $nonZeroWeights = which($datasetWeights > 0.0);
+				$datasetValues->flat()->($nonZeroWeights) /= $datasetWeights->flat()->($nonZeroWeights);
+			    }
+			    $newDataset->set($datasetValues );
+			    $newWeights->set($datasetWeights);
+			    &Copy_Attributes($originalDataset,$newDataset) if ( $isFirstFile == 1 );
+			} elsif ( $action eq "averageWeightedQuadrature" ) {
+			    my $weightDataset;
+			    if ( $dataset =~ m/Error$/ ) {
+				($weightDataset = $dataset) =~ s/Error/Weight/;
+			    } else {
+				$weightDataset = $dataset."Weight";
+			    }
+			    my $thisGroupObject = $outputFile->group($thisGroup);
+			    my $originalDataset = $mergeFile ->group($thisGroup)->dataset($dataset      );
+			    my $originalWeights = $mergeFile ->group($thisGroup)->dataset($weightDataset);
+			    my $datasetValues   = $originalDataset->get;
+			    my $datasetWeights  = $originalWeights->get;
+			    $datasetValues     .= ($datasetValues*$datasetWeights)**2;
+			    my $newDataset;
+			    my $newWeights;
+			    if ( $isFirstFile == 1 ) {
+				$newDataset = new PDL::IO::HDF5::Dataset( name    => $dataset,
+									  parent  => $thisGroupObject,
+									  fileObj => $outputFile
+				    );
+			    } else {
+				$newDataset      = $thisGroupObject->dataset($dataset      );
+				$newWeights      = $thisGroupObject->dataset($weightDataset);
+				my $oldValues    = $newDataset->get;
+				my $oldWeights   = $newWeights->get;
+				$datasetValues  += $oldValues ;
+				$datasetWeights += $oldWeights;
+			    }
+			    if ( $isLastFile == 1 ) {
+				my $nonZeroWeights = which($datasetValues > 0.0);
+				$datasetValues->flat()->($nonZeroWeights) .= sqrt($datasetValues->flat()->($nonZeroWeights))/$datasetWeights->flat()->($nonZeroWeights);
 			    }
 			    $newDataset->set($datasetValues);
 			    &Copy_Attributes($originalDataset,$newDataset) if ( $isFirstFile == 1 );
@@ -360,10 +514,6 @@ foreach my $outputGroup ( keys(%outputRules) ) {
 			}
 		    }
 		}
-	    
-		# Mark that we have processed the first file.
-		$isFirstFile = 0;
-
 	    }	    
 	}
     }

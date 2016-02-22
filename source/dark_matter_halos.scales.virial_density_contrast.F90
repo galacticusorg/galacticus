@@ -45,18 +45,19 @@
      type            (table1DLogarithmicLinear  )            :: meanDensityTable
      logical                                                 :: resetMeanDensityTable
    contains
-     final     ::                             virialDensityContrastDefinitionDestructor
-     procedure :: dynamicalTimescale       => virialDensityContrastDefinitionDynamicalTimescale
-     procedure :: virialVelocity           => virialDensityContrastDefinitionVirialVelocity
-     procedure :: virialVelocityGrowthRate => virialDensityContrastDefinitionVirialVelocityGrowthRate
-     procedure :: virialTemperature        => virialDensityContrastDefinitionVirialTemperature
-     procedure :: virialRadius             => virialDensityContrastDefinitionVirialRadius
-     procedure :: virialRadiusGrowthRate   => virialDensityContrastDefinitionVirialRadiusGrowthRate
-     procedure :: meanDensity              => virialDensityContrastDefinitionMeanDensity
-     procedure :: meanDensityGrowthRate    => virialDensityContrastDefinitionMeanDensityGrowthRate
-     procedure :: calculationReset         => virialDensityContrastDefinitionCalculationReset
-     procedure :: stateStore               => virialDensityContrastDefinitionStateStore
-     procedure :: stateRestore             => virialDensityContrastDefinitionStateRestore
+     final     ::                                        virialDensityContrastDefinitionDestructor
+     procedure :: dynamicalTimescale                  => virialDensityContrastDefinitionDynamicalTimescale
+     procedure :: virialVelocity                      => virialDensityContrastDefinitionVirialVelocity
+     procedure :: virialVelocityGrowthRate            => virialDensityContrastDefinitionVirialVelocityGrowthRate
+     procedure :: virialTemperature                   => virialDensityContrastDefinitionVirialTemperature
+     procedure :: virialRadius                        => virialDensityContrastDefinitionVirialRadius
+     procedure :: virialRadiusGradientLogarithmicMass => virialDensityContrastDefinitionVirialRadiusGradientLogMass
+     procedure :: virialRadiusGrowthRate              => virialDensityContrastDefinitionVirialRadiusGrowthRate
+     procedure :: meanDensity                         => virialDensityContrastDefinitionMeanDensity
+     procedure :: meanDensityGrowthRate               => virialDensityContrastDefinitionMeanDensityGrowthRate
+     procedure :: calculationReset                    => virialDensityContrastDefinitionCalculationReset
+     procedure :: stateStore                          => virialDensityContrastDefinitionStateStore
+     procedure :: stateRestore                        => virialDensityContrastDefinitionStateRestore
   end type darkMatterHaloScaleVirialDensityContrastDefinition
 
   interface darkMatterHaloScaleVirialDensityContrastDefinition
@@ -235,6 +236,18 @@ contains
     virialDensityContrastDefinitionVirialRadius=self%virialRadiusStored
     return
   end function virialDensityContrastDefinitionVirialRadius
+
+  double precision function virialDensityContrastDefinitionVirialRadiusGradientLogMass(self,thisNode)
+    !% Returns the logarithmic gradient of virial radius with halo mass at fixed epoch for {\normalfont \ttfamily thisNode}.
+    use Numerical_Constants_Math
+    implicit none
+    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)          :: self
+    type (treeNode                                          ), intent(inout), pointer :: thisNode
+
+    ! Halos at given epoch have fixed density, so radius always grows as the cube-root of mass.
+    virialDensityContrastDefinitionVirialRadiusGradientLogMass=1.0d0/3.0d0
+    return
+  end function virialDensityContrastDefinitionVirialRadiusGradientLogMass
 
   double precision function virialDensityContrastDefinitionVirialRadiusGrowthRate(self,thisNode)
     !% Returns the growth rate of the virial radius scale for {\normalfont \ttfamily thisNode}.
