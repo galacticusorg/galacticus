@@ -62,8 +62,7 @@ module Node_Component_Satellite_Orbiting
   !#     <name>timeOfMerging</name>
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>true</isVirtual>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
   !#     <classDefault>-1.0d0</classDefault>
   !#     <getFunction>Node_Component_Satellite_Orbiting_Time_Of_Merging</getFunction>
   !#   </property>
@@ -174,7 +173,7 @@ contains
     implicit none
     type            (treeNode                      ), pointer     , intent(inout) :: thisNode
     logical                                                       , intent(inout) :: interrupt
-    procedure       (Interrupt_Procedure_Template  ), pointer     , intent(inout) :: interruptProcedure
+    procedure       (interruptTask  ), pointer     , intent(inout) :: interruptProcedure
     class           (nodeComponentSatellite        ), pointer                     :: satelliteComponent
     class           (nodeComponentBasic            ), pointer                     :: basicComponent
     type            (treeNode                      ), pointer                     :: hostNode
