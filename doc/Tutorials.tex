@@ -281,6 +281,23 @@ If for some reason this is not possible or desired, the fly-by problem will norm
 \end{verbatim}
 In this case, nodes with missing hosts are simply treated as being isolated halos. This will avoid an error condition, but is not a physically correct way to handle such cases, so use with caution.
 
+\subsection{Using Particles to Track Unresolved Subhalos}
+
+In N-body simulations it is possible that a subhalo can become ``lost'' from the simulation (i.e. can no longer be identified by a halo finder due to resolution issues) before it has actually merged with the central galaxy or been completely tidally destroyed. In such cases it is useful to be able to assign a position to the subhalo at later times. A common approach to assigning a position (and velocity) is to use that of the most bound particle in the subhalo at the last time it was identified. \glc\ allows for particle tracking in this way through the addition of particle information to the merger tree file.
+
+To add particle tracking data to a merger tree file, follow these steps:
+\begin{enumerate}
+\item Identify all subhalos which are lost from the simulation prior to the final timestep;
+\item Determine the index of the most bound particle in each such subhalo in the last timestep in which it was identified;
+\item For each subhalo, extract the redshift, position, and velocity of that particle (which is usally trivial to do once its index is known) at each subsequent timestep in the simulation;
+\item Write these data (along with the particle index) to the {\normalfont \ttfamily particles} group in the merger tree file as described in \S\ref{sec:MergerTreeFormatDescription:Particles};
+\item Add two datasets to the {\normalfont \ttfamily forestHalos} group:
+  \begin{enumerate}
+  \item {\normalfont \ttfamily particleIndexStart} which should indicate the index in the datasets in the {\normalfont \ttfamily particles} group at which the data for each halo begins (or $-1$ if no particle data is included for the halo);
+  \item {\normalfont \ttfamily particleIndexCount} which should indicate the number of entries in the datasets in the {\normalfont \ttfamily particles} group for each halo (or $-0$ if no particle data is included for the halo).
+  \end{enumerate}
+\end{enumerate}
+
 \subsection{Analyzing the Output}
 
 \subsubsection{Positions and Velocities}
@@ -289,7 +306,7 @@ Components of the position of each node are output as {\normalfont \ttfamily pos
 
 \subsubsection{Subhalo Masses}
 
-The current mass of subhalos is available via the {\normalfont \ttfamily nodeBoundMass} otuput dataset and can be accessed in the same way as other output properties from \glc\ (see \S\ref{sec:nodeDataGroup} and \S\ref{sec:perlModuleDataExtraction}). For non-subhalos this property is equal to the usual {\normalfont \ttfamily nodeMass} property.
+The current mass of subhalos is available via the {\normalfont \ttfamily nodeBoundMass} output dataset and can be accessed in the same way as other output properties from \glc\ (see \S\ref{sec:nodeDataGroup} and \S\ref{sec:perlModuleDataExtraction}). For non-subhalos this property is equal to the usual {\normalfont \ttfamily nodeMass} property.
 
 \section{Generating Mock Catalogs with Lightcones from the Millennium Simulation}\index{lightcone}\index{Millennium Simulation}\index{mock catalog}
 
