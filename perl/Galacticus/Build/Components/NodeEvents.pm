@@ -56,7 +56,7 @@ sub Build_Node_Event_Class {
 	     variables  => [ "time" ]
 	 },
 	 {
-	     intrinsic  => "type",
+	     intrinsic  => "class",
 	     type       => "nodeEvent",
 	     attributes => [ "public", "pointer" ],
 	     variables  => [ "next" ]
@@ -74,6 +74,22 @@ sub Build_Node_Event_Class {
 	comment        => "Type for events attached to nodes.",
 	isPublic       => 1,
 	dataContent    => \@dataContent
+    };
+    # Add sub-classes.
+    my @emptyDataContent =();
+    $buildData->{'types'}->{'nodeEventBranchJump'} = {
+	name           => "nodeEventBranchJump",
+	extends        => "nodeEvent",
+	comment        => "Type for branch jump events attached to nodes.",
+	isPublic       => "true",
+	dataContent    => \@emptyDataContent
+    };
+    $buildData->{'types'}->{'nodeEventSubhaloPromotion'} = {
+	name           => "nodeEventSubhaloPromotion",
+	extends        => "nodeEvent",
+	comment        => "Type for subhalo promotion events attached to nodes.",
+	isPublic       => "true",
+	dataContent    => \@emptyDataContent
     };
 }
 

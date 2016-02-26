@@ -200,11 +200,12 @@ module Galacticus_Nodes
     return
   end subroutine Tree_Node_Time_Step_Set
   
-  function Tree_Node_Create_Event(self) result (newEvent)
+ subroutine Tree_Node_Attach_Event(self,newEvent)
     !% Create a new event in a tree node.
     implicit none
-    type (nodeEvent), pointer       :: newEvent, thisEvent
-    class(treeNode ), intent(inout) :: self
+    class(treeNode ), intent(inout)          :: self
+    class(nodeEvent), intent(inout), pointer :: newEvent
+    class(nodeEvent)               , pointer :: thisEvent
 
     allocate(newEvent)
     nullify(newEvent%next)
@@ -221,14 +222,14 @@ module Galacticus_Nodes
        self%event => newEvent
     end if
     return
-  end function Tree_Node_Create_Event
+  end subroutine Tree_Node_Attach_Event
 
   subroutine Tree_Node_Remove_Paired_Event(self,event)
     !% Removed a paired event from {\normalfont \ttfamily self}. Matching is done on the basis of event ID.
     implicit none
     class  (treeNode ), intent(inout) :: self
-    type   (nodeEvent), intent(in   ) :: event
-    type   (nodeEvent), pointer       :: lastEvent  , nextEvent, pairEvent
+    class  (nodeEvent), intent(in   ) :: event
+    class  (nodeEvent), pointer       :: lastEvent  , nextEvent, pairEvent
     logical                           :: pairMatched
 
     ! Locate the paired event in self and remove it.
