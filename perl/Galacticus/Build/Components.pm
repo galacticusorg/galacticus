@@ -4869,7 +4869,7 @@ sub Generate_Tree_Node_Destruction_Function {
 	     variables  => [ "self" ]
 	 },
 	 {
-	     intrinsic  => "type",
+	     intrinsic  => "class",
 	     type       => "nodeEvent",
 	     attributes => [ "pointer" ],
 	     variables  => [ "thisEvent", "pairEvent", "lastEvent", "nextEvent" ]
