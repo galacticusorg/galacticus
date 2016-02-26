@@ -1372,7 +1372,7 @@ contains
     class  (nodeData          )         , dimension(:), intent(inout), target :: nodes                                    
     type   (treeNodeList      )         , dimension(:), intent(inout)         :: nodeList                                 
     class  (nodeData          ), pointer                                      :: descendentNode          , progenitorNode 
-    type   (nodeEvent         ), pointer                                      :: newEvent                , pairEvent      
+    class  (nodeEvent         ), pointer                                      :: newEvent                , pairEvent      
     type   (treeNode          ), pointer                                      :: promotionNode           , thisNode       
     integer(c_size_t          )                                               :: iNode                                    
     logical                                                                   :: isolatedProgenitorExists, nodeIsMostMassive
@@ -1405,11 +1405,13 @@ contains
                    ! descends into it. Therefore, our subhalo must be promoted to become an isolated halo again.
                    thisNode       => nodeList(nodes(inode)  %isolatedNodeIndex)%node
                    promotionNode  => nodeList(descendentNode%isolatedNodeIndex)%node
-                   newEvent       => thisNode     %createEvent()
+                   allocate(nodeEventSubhaloPromotion ::  newEvent)
+                   allocate(nodeEventSubhaloPromotion :: pairEvent)
+                   call thisNode     %attachEvent( newEvent)
+                   call promotionNode%attachEvent(pairEvent)
                    newEvent %time =  descendentNode%nodeTime
                    newEvent %node => promotionNode
                    newEvent %task => Node_Subhalo_Promotion
-                   pairEvent      => promotionNode%createEvent()
                    pairEvent%time =  descendentNode%nodeTime
                    pairEvent%node => thisNode
                    pairEvent%task => null()
@@ -2545,13 +2547,15 @@ contains
     implicit none
     type            (treeNode ), intent(inout), pointer :: jumpToHost, thisNode  
     double precision           , intent(in   )          :: timeOfJump            
-    type            (nodeEvent)               , pointer :: newEvent  , pairEvent 
-    
-    newEvent       => thisNode%createEvent()
+    class           (nodeEvent)               , pointer :: newEvent  , pairEvent 
+
+    allocate(nodeEventBranchJump ::  newEvent)
+    allocate(nodeEventBranchJump :: pairEvent)
+    call thisNode  %attachEvent( newEvent)
+    call jumpToHost%attachEvent(pairEvent)
     newEvent %time =  timeOfJump
     newEvent %node => jumpToHost
     newEvent %task => Node_Branch_Jump
-    pairEvent      => jumpToHost%createEvent()
     pairEvent%time =  timeOfJump
     pairEvent%node => thisNode
     pairEvent%task => null()
