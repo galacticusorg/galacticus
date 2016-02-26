@@ -124,7 +124,7 @@ sub Components_Generate_Output {
 	    # Generate the treeNode object.
 	    \&Generate_Tree_Node_Object                              ,
 	    # Create the node event object.
-	    \&Generate_Node_Event_Object                             ,
+	    \&Generate_Node_Event_Objects                            ,
 	    # Create an initialization method.
 	    \&Generate_Initialization_Function                       ,
 	    # Generate a finalization method.
@@ -2032,11 +2032,11 @@ sub Generate_Tree_Node_Object {
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
-	     name        => "createEvent"                                                                                                     ,
-	     function    => "Tree_Node_Create_Event"                                                                                          ,
-	     description => "Create a {\\normalfont \\ttfamily nodeEvent} object in this node."                                               ,
-	     returnType  => "\\textcolor{red}{\\textless *type(nodeEvent)\\textgreater}"                                                      ,
-	     arguments   => ""
+	     name        => "attachEvent"                                                                                                     ,
+	     function    => "Tree_Node_Attach_Event"                                                                                          ,
+	     description => "Attach a {\\normalfont \\ttfamily nodeEvent} object to this node."                                               ,
+	     returnType  => "\\void"                                                      ,
+	     arguments   => "\\textcolor{red}{\\textless *class(nodeEvent)\\textgreater} newEvent\\arginout"
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
@@ -2044,7 +2044,7 @@ sub Generate_Tree_Node_Object {
 	     function    => "Tree_Node_Remove_Paired_Event"                                                                                   ,
 	     description => "Remove a paired {\\normalfont \\ttfamily nodeEvent} from this node."                                             ,
 	     returnType  => "\\void"                                                                                                          ,
-	     arguments   => "\\textcolor{red}{\\textless type(nodeEvent)\\textgreater} event\\argin"
+	     arguments   => "\\textcolor{red}{\\textless class(nodeEvent)\\textgreater} event\\argin"
 	 }
 	);
     # Add data content.
@@ -2067,7 +2067,7 @@ sub Generate_Tree_Node_Object {
 	     variables  => [ "isPhysicallyPlausible" ]
 	 },
 	 {
-	     intrinsic  => "type",
+	     intrinsic  => "class",
 	     type       => "nodeEvent",
 	     attributes => [ "public", "pointer" ],
 	     variables  => [ "event" ]
@@ -2103,8 +2103,8 @@ sub Generate_Tree_Node_Object {
 	 },"treeNode");
 }
 
-sub Generate_Node_Event_Object {
-    # Generate the nodeEvent object.
+sub Generate_Node_Event_Objects {
+    # Generate the nodeEvent objects.
     my $buildData = shift;
     # Add data content.
     my @dataContent =
@@ -2127,7 +2127,7 @@ sub Generate_Node_Event_Object {
 	     variables  => [ "time" ]
 	 },
 	 {
-	     intrinsic  => "type",
+	     intrinsic  => "class",
 	     type       => "nodeEvent",
 	     attributes => [ "public", "pointer" ],
 	     variables  => [ "next" ]
@@ -2139,14 +2139,31 @@ sub Generate_Node_Event_Object {
 	     variables  => [ "task" ]
 	 }
 	);
-    # Create the tree node class.
+    # Create the nodeEvent class.
     $buildData->{'types'}->{'nodeEvent'} = {
 	name           => "nodeEvent",
 	comment        => "Type for events attached to nodes.",
 	isPublic       => "true",
 	dataContent    => \@dataContent
     };
-    push(@{$buildData->{'typesOrder'}},"nodeEvent");
+    # Add sub-classes.
+    my @emptyDataContent =();
+    $buildData->{'types'}->{'nodeEventBranchJump'} = {
+	name           => "nodeEventBranchJump",
+	extends        => "nodeEvent",
+	comment        => "Type for branch jump events attached to nodes.",
+	isPublic       => "true",
+	dataContent    => \@emptyDataContent
+    };
+    $buildData->{'types'}->{'nodeEventSubhaloPromotion'} = {
+	name           => "nodeEventSubhaloPromotion",
+	extends        => "nodeEvent",
+	comment        => "Type for subhalo promotion events attached to nodes.",
+	isPublic       => "true",
+	dataContent    => \@emptyDataContent
+    };
+    # Push to list of types.
+    push(@{$buildData->{'typesOrder'}},"nodeEvent","nodeEventBranchJump","nodeEventSubhaloPromotion");    
 }
 
 sub Generate_Initialization_Function {
@@ -6255,7 +6272,7 @@ sub Generate_Tree_Node_Destruction_Function {
 	     variables  => [ "self" ]
 	 },
 	 {
-	     intrinsic  => "type",
+	     intrinsic  => "class",
 	     type       => "nodeEvent",
 	     attributes => [ "pointer" ],
 	     variables  => [ "thisEvent", "pairEvent", "lastEvent", "nextEvent" ]
