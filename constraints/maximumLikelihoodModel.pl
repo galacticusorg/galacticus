@@ -19,9 +19,10 @@ die("Usage: maximumLikelihoodModel.pl <configFile> [options...]")
 my $configFile = $ARGV[0];
 # Create a hash of named arguments.
 my %arguments = (
-    runModel  => "yes",
-    directory => "maximumLikelihoodModel"    ,
-    chain     => "all"
+    runModel   => "yes",
+    directory  => "maximumLikelihoodModel",
+    fixedTrees => "config",
+    chain      => "all"
     );
 &Options::Parse_Options(\@ARGV,\%arguments);
 
@@ -112,13 +113,26 @@ for my $newParameterName ( keys(%{$newParameters}) ) {
 # Apply any parameters from command line.
 foreach my $argument ( keys(%arguments) ) {
     if ( $argument =~ m/^parameter:(.*)/ ) {
-	my $parameter = $1;
-	$parameters->{$parameter}->{'value'} = $arguments{$argument};
+	my @parametersSet = split(":",$1);
+	my $parameter     = $parameters;
+	foreach my $parameterSet ( @parametersSet ) {
+	    if ( $parameterSet =~ m/([^\{]*)(\{{0,1}([^\}]*)\}{0,1})/ ) {
+		my $parameterName  = $1;
+		my $parameterValue = $3;
+		$parameter->{$parameterName}->{'value'} = $parameterValue
+		    if ( defined($2) );
+		$parameter = $parameter->{$parameterName};
+	    } else {
+		die("malformed parameter definition");
+	    }
+	}
+	$parameter->{'value'} = $arguments{$argument};
     }
 }
 
 # If fixed sets of trees are to be used, modify parameters to use them.
-if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood'}->{'useFixedTrees'} eq "yes" ) {
+my $useFixedTrees = $arguments{'fixedTrees'} eq "config" ? $config->{'likelihood'}->{'useFixedTrees'} : $arguments{'fixedTrees'};
+if ( $useFixedTrees eq "yes" ) {
     # Get a lock on the tree file.
     my $fixedTreeDirectory;
     if ( exists($config->{'likelihood'}->{'fixedTreesInScratch'}) && $config->{'likelihood'}->{'fixedTreesInScratch'} eq "yes" ) {
