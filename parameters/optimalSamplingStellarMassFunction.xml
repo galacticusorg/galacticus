@@ -8,15 +8,16 @@
     <OmegaDarkEnergy value="0.75"/>
     <OmegaBaryon value="0.045"/>
   </cosmologyParametersMethod><cosmologyFunctionsMethod value="matterLambda"/>
-  <criticalOverdensityMethod value="sphericalTopHat"/>
-  <haloMassFunctionMethod value="Tinker2008"/>
+  <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
+  <haloMassFunctionMethod value="tinker2008"/>
   <powerSpectrumPrimordialMethod value="powerLaw">
-    <index               value="1.000"/>
+    <index value="1.000"/>
     <wavenumberReference value="1.000"/>
-    <running             value="0.000"/>
+    <running value="0.000"/>
   </powerSpectrumPrimordialMethod>
-  <sigma_8 value="0.9"/>
-  <transferFunctionMethod value="eisensteinHu1999">
+  <cosmologicalMassVarianceMethod value="filteredPower">
+    <sigma_8 value="0.9"/>
+  </cosmologicalMassVarianceMethod><transferFunctionMethod value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.04"/>
     <neutrinoMassSummed value="0.0"/>
   </transferFunctionMethod>

@@ -27,7 +27,10 @@ subroutine Merger_Tree_Destroy(thisTree)
   select type (thisTree)
   type is (mergerTree)
      ! Destroy all nodes.
-     if (associated(thisTree%baseNode)) call thisTree%destroyBranch(thisTree%baseNode)
+     if (associated(thisTree%baseNode)) then
+        call thisTree%baseNode%destroyBranch()
+        deallocate(thisTree%baseNode)
+     end if
      ! Destroy the HDF5 group associated with this tree.
      call thisTree%hdf5Group%destroy()
      ! Destroy any events attached to this tree.
@@ -40,60 +43,6 @@ subroutine Merger_Tree_Destroy(thisTree)
   end select
   return
 end subroutine Merger_Tree_Destroy
-
-subroutine Merger_Tree_Destroy_Branch(thisTree,thisNode)
-  !% Destroy a branch of a tree which begins at {\normalfont \ttfamily thisNode}.
-  implicit none
-  class(mergerTree), intent(inout)          :: thisTree
-  type (treeNode  ), intent(inout), pointer :: thisNode
-  type (treeNode  )               , pointer :: destroyNode, nextNode
-
-  ! Descend to the tip of the branch.
-  nextNode => thisNode%walkBranchWithSatellites(thisNode)
-  ! Loop over all tree nodes.
-  do while (associated(nextNode))
-     ! Keep of a record of the current node, so that we can destroy it.
-     destroyNode => nextNode
-
-     ! Walk to the next node in the tree.
-     nextNode => destroyNode%walkBranchWithSatellites(thisNode)
-
-     ! If the node about to be destroyed is the primary progenitor of its parent we must move the child pointer of the parent to
-     ! point to the node's sibling. This is necessary as parent-child pointers are used to establish satellite status and so
-     ! will be utilized when walking the tree. Failure to do this can result in attempts to use dangling pointers.
-     if (associated(destroyNode%parent)) then
-        if (associated(destroyNode%parent%firstChild,destroyNode)) destroyNode%parent%firstChild => destroyNode%sibling
-     end if
-
-     ! Destroy the current node.
-     call destroyNode%destroy()
-     deallocate(destroyNode)
-  end do
-  ! Destroy the base node of the branch.
-  if (associated(thisNode%parent)) then
-     if (associated(thisNode%parent%firstChild,thisNode)) thisNode%parent%firstChild => thisNode%sibling
-  end if
-  call thisNode%destroy()
-  deallocate(thisNode)
-  return
-end subroutine Merger_Tree_Destroy_Branch
-
-subroutine Tree_Node_Create_Initialize
-  !% Initializes tree node create by calling all relevant initialization routines.
-  use Input_Parameters
-  implicit none
-
-  if (.not.treeNodeCreateInitialized) then
-
-     ! Initialize tree node methods.
-     call Galacticus_Nodes_Initialize()
-
-     ! Flag that tree node methods are now initialized.
-     treeNodeCreateInitialized=.true.
-
-  end if
-  return
-end subroutine Tree_Node_Create_Initialize
 
 function Merger_Tree_Node_Get(thisTree,nodeIndex)
   !% Return a pointer to a node in {\normalfont \ttfamily thisTree} given the index of the node.

@@ -520,8 +520,8 @@ contains
     implicit none
     integer  (kind=c_int                  )                       :: backgroundRadiationODEs
     real     (kind=c_double               )               , value :: time
-    real     (kind=c_double               ), intent(in   )        :: spectrum            (backgroundRadiationWavelengthCount)
-    real     (kind=c_double               ), intent(  out)        :: spectrumRateOfChange(backgroundRadiationWavelengthCount)
+    real     (kind=c_double               ), intent(in   )        :: spectrum            (*)
+    real     (kind=c_double               )                       :: spectrumRateOfChange(*)
     real     (kind=c_double               )                       :: spectralGradient    (backgroundRadiationWavelengthCount)
     real     (kind=c_double               )                       :: expansionFactor
     type     (c_ptr                       )               , value :: parameterPointer
@@ -530,33 +530,33 @@ contains
     expansionFactor=cosmologyFunctions_%expansionFactor(time)
     ! Add source terms, linearly interpolating between timesteps. Convert from emissivity units [L☉ Hz⁻¹ Mpc⁻³] to
     ! background units [photons m⁻³ Hz⁻¹].
-    spectrumRateOfChange                                &
-         & =(                                           &
-         &   +                     emissivity    (:,0)  &
-         &   +(emissivity    (:,1)-emissivity    (:,0)) &
-         &   *(time               -emissivityTime(  0)) &
-         &   /(emissivityTime(  1)-emissivityTime(  0)) &
-         &  )                                           &
-         & *backgroundRadiationWavelength               &
-         & *luminositySolar                             &
-         & *gigaYear                                    &
-         & /angstromsPerMeter                           &
-         & /plancksConstant                             &
-         & /speedLight                                  &
+    spectrumRateOfChange(1:backgroundRadiationWavelengthCount) &
+         & =(                                                  &
+         &   +                     emissivity    (:,0)         &
+         &   +(emissivity    (:,1)-emissivity    (:,0))        &
+         &   *(time               -emissivityTime(  0))        &
+         &   /(emissivityTime(  1)-emissivityTime(  0))        &
+         &  )                                                  &
+         & *backgroundRadiationWavelength                      &
+         & *luminositySolar                                    &
+         & *gigaYear                                           &
+         & /angstromsPerMeter                                  &
+         & /plancksConstant                                    &
+         & /speedLight                                         &
          & /megaParsec**3
     ! Add expansion dilution: -3 H(t)      n_nu
-    spectrumRateOfChange=spectrumRateOfChange-3.0d0*cosmologyFunctions_%expansionRate(expansionFactor)*spectrum
+    spectrumRateOfChange(1:backgroundRadiationWavelengthCount)=spectrumRateOfChange(1:backgroundRadiationWavelengthCount)-3.0d0*cosmologyFunctions_%expansionRate(expansionFactor)*spectrum(1:backgroundRadiationWavelengthCount)
     ! Add redshifting       : +  H(t) d(nu n_nu)/dnu
     spectralGradient(1                                   )=-spectrum(1)
     spectralGradient (2:backgroundRadiationWavelengthCount)                                                                                                                                                                                             &
          & =-                                               backgroundRadiationWavelength(2:backgroundRadiationWavelengthCount)**2                                                                                                                      &
          & *(spectrum(2:backgroundRadiationWavelengthCount)/backgroundRadiationWavelength(2:backgroundRadiationWavelengthCount)-spectrum(1:backgroundRadiationWavelengthCount-1)/backgroundRadiationWavelength(1:backgroundRadiationWavelengthCount-1)) &
          & /(                                               backgroundRadiationWavelength(2:backgroundRadiationWavelengthCount)-                                                 backgroundRadiationWavelength(1:backgroundRadiationWavelengthCount-1))
-    spectrumRateOfChange=spectrumRateOfChange+spectralGradient*cosmologyFunctions_%expansionRate(expansionFactor)
+    spectrumRateOfChange(1:backgroundRadiationWavelengthCount)=spectrumRateOfChange(1:backgroundRadiationWavelengthCount)+spectralGradient*cosmologyFunctions_%expansionRate(expansionFactor)
     ! Absorption.
-    where (spectrum > 0.0d0)
-       spectrumRateOfChange                                                        &
-            & =+spectrumRateOfChange                                               &
+    where (spectrum(1:backgroundRadiationWavelengthCount) > 0.0d0)
+       spectrumRateOfChange(1:backgroundRadiationWavelengthCount)                  &
+            & =+spectrumRateOfChange(1:backgroundRadiationWavelengthCount)         &
             &  -gigaYear                                                           &
             &  *massSolar                                                          &
             &  /megaParsec                                                     **3 &
@@ -580,7 +580,7 @@ contains
             &  *cosmologyParameters_       %densityCritical              (    )    &
             &  /cosmologyFunctions_        %expansionFactor              (time)**3 &
             &  /atomicMassUnit                                                     &
-            &  *spectrum
+            &  *spectrum(1:backgroundRadiationWavelengthCount)
     end where
     ! Return success.
     backgroundRadiationODEs=FGSL_Success

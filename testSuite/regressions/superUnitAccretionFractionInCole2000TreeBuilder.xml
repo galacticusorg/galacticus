@@ -12,8 +12,9 @@
   <majorMergerMassRatio value="0.3983"/>
   <adiabaticContractionGnedinOmega value="0.77"/>
   <coolingTimeMethod value="simple"/>
-  <sigma_8 value="0.807"/>
-  <bondiHoyleAccretionTemperatureSpheroid value="100"/>
+  <cosmologicalMassVarianceMethod value="filteredPower">
+    <sigma_8 value="0.807"/>
+  </cosmologicalMassVarianceMethod><bondiHoyleAccretionTemperatureSpheroid value="100"/>
   <timestepSimpleAbsolute value="1.0"/>
   <starFormationDiskMinimumTimescale value="0.001"/>
   <darkMatterProfileMethod value="NFW"/>
@@ -45,7 +46,7 @@
   <mergerTreeBuildTreesPerDecade value="5"/>
   <blackHoleHeatsHotHalo value="true"/>
   <hotHaloExcessHeatDrivesOutflow value="true"/>
-  <criticalOverdensityMethod value="sphericalTopHat"/>
+  <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
   <spheroidMassDistribution value="hernquist"/>
   <cosmologyFunctionsMethod value="matterLambda"/>
   <adafRadiativeEfficiency value="0.01"/>
@@ -73,13 +74,15 @@
   <satelliteMergingTimescalesMethod value="jiang2008"/>
   <stabilityThresholdGaseous value="0.7"/>
   <conditionalMassFunctionBehrooziBeta value="0.403618413165"/>
-  <treeNodeMethodDisk value="exponential"/>
+  <treeNodeMethodDisk value="standard"/>
+  <spheroidMassDistribution value="exponentialDisk"/>
   <linearGrowthMethod value="simple"/>
   <hotHaloRamPressureStrippingMethod value="Font2008"/>
   <mergerTreeMassResolutionMethod value="fixed">
     <massResolution value="5.0e9"/>
   </mergerTreeMassResolutionMethod>
-  <mergerTreeBuilderMethod value="cole2000"/>
+    <accretionLimit value="1.00059263316574"/>
+  </mergerTreeBuilderMethod>
   <mergerTreeBuildHaloMassMinimum value="2.0e10"/>
   <darkMatterProfileConcentrationMethod value="gao2008"/>
   <diskOutflowVelocity value="250.0"/>
@@ -90,8 +93,8 @@
   <hotHaloMassDistributionMethod value="betaProfile"/>
   <molecularFractionFastKMT09 value="true"/>
   <accretionDiskSwitchedScaleAdafRadiativeEfficiency value="true"/>
-  <hotHaloTemperatureMethod value="virial"/>
-  <virialOrbitsMethod value="Benson2005"/>
+  <hotHaloTemperatureProfileMethod value="virial"/>
+  <virialOrbitMethod value="benson2005"/>
   <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
   <nodeMergersMethod value="singleLevelHierarchy"/>
   <conditionalMassFunctionBehrooziDelta value="0.493563322826"/>
@@ -101,7 +104,7 @@
   <satelliteMergingMassMovementsMethod value="simple"/>
   <haloMassFunctionSamplingStellarMassFunctionErrorMassMinimum value="1.2589254e8"/>
   <mergingTimescaleMultiplier value="1.0"/>
-  <haloMassFunctionMethod value="Tinker2008"/>
+  <haloMassFunctionMethod value="tinker2008"/>
   <adafViscosityOption value="fit"/>
   <blackHoleWindEfficiencyScalesWithRadiativeEfficiency value="true"/>
   <adafAdiabaticIndex value="1.444"/>
@@ -171,4 +174,5 @@
   <modifiedPressSchechterFirstOrderAccuracy value="0.025"/>
   <accretionRateThinDiskMaximum value="0.30d0"/>
   <hotHaloOutflowReturnRate value="5.0"/>
+  <diskMassDistribution value="exponentialDisk"/>
 </parameters>

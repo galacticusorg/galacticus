@@ -18,7 +18,7 @@
 
 !% Contains a program which tests parameter input.
 
-!: work/build/tests.parameters.C.o
+!: $(BUILDPATH)/tests.parameters.C.o
 
 program Test_Parameters
   !% Test reading of input parameters.
@@ -30,7 +30,7 @@ program Test_Parameters
   use Input_Parameters2
   use Cosmology_Parameters
   implicit none
-  type   (hdf5Object              )               :: outputFile          , parametersGroup
+  type   (hdf5Object              )               :: outputFile
   type   (varying_string          )               :: parameterFile
   class  (cosmologyParametersClass), pointer      :: cosmologyParameters_
   type   (inputParameters         ), target       :: testParameters
@@ -47,9 +47,8 @@ program Test_Parameters
   call Code_Memory_Usage('tests.parameters.size')
   ! Open an output file.
   call outputFile%openFile("testSuite/outputs/testParameters.hdf5",overWrite=.true.)
-  parametersGroup=outputFile%openGroup('parameters')
   parameterFile  ='testSuite/parameters/testsParameters.xml'
-  testParameters=inputParameters(parameterFile,allowedParametersFile='tests.parameters.parameters.xml',outputParameters=parametersGroup)
+  testParameters=inputParameters(parameterFile,allowedParametersFile='tests.parameters.parameters.xml',outputParametersGroup=outputFile)
   call testParameters%markGlobal()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Parameter input")
@@ -73,6 +72,6 @@ program Test_Parameters
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
   ! Close down.
-  call parametersGroup%close()
-  call outputFile     %close()
+  call testParameters%destroy()
+  call outputFile     %close ()
 end program Test_Parameters

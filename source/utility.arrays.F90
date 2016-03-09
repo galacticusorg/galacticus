@@ -391,8 +391,8 @@ contains
     do i=1,size(a)
        if (any(b == a(i)) .and. count(a(1:i) == a(i)) == 1) c=c+1
     end do
+    allocate(Array_Intersection_Varying_String(c))
     if (c > 0) then
-       allocate(Array_Intersection_Varying_String(c))
        c=0
        do i=1,size(a)
           if (any(b == a(i)) .and. count(a(1:i) == a(i)) == 1) then

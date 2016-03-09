@@ -244,11 +244,11 @@ sub Components_Generate_Output {
     }
 
     # Create a Makefile to specify dependencies on these include files.
-    open(makeFile,">./work/build/Makefile_Component_Includes.tmp");
-    print makeFile "./work/build/objects.nodes.o:".join("",map {" ./work/build/".$_} @includeDependencies)
+    open(makeFile,">".$ENV{'BUILDPATH'}."/Makefile_Component_Includes.tmp");
+    print makeFile $ENV{'BUILDPATH'}."/objects.nodes.o:".join("",map {" ".$ENV{'BUILDPATH'}."/".$_} @includeDependencies)
 	if ( scalar(@includeDependencies) > 0 );
     close(makeFile);
-    &File_Changes::Update("./work/build/Makefile_Component_Includes" ,"./work/build/Makefile_Component_Includes.tmp" );
+    &File_Changes::Update($ENV{'BUILDPATH'}."/Makefile_Component_Includes" ,$ENV{'BUILDPATH'}."/Makefile_Component_Includes.tmp" );
 
 }
 
@@ -970,6 +970,7 @@ sub Generate_Node_Component_Type{
 	     name        => "enclosedMass"                                                                                         ,
 	     function    => "Node_Component_Enclosed_Mass_Null"                                                                    ,
 	     description => "Compute the mass enclosed within a radius."                                                           ,
+	     mappable    => "summation"                                                                                            ,
 	     returnType  => "\\doublezero"                                                                                         ,
 	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\enumWeightBy\\ [weightBy]\\argin, \\intzero\\ [weightIndex]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
 	 },
@@ -986,6 +987,7 @@ sub Generate_Node_Component_Type{
 	     name        => "surfaceDensity"                                                                                       ,
 	     function    => "Node_Component_Surface_Density_Null"                                                                  ,
 	     description => "Compute the surface density."                                                                         ,
+	     mappable    => "summation"                                                                                            ,
 	     returnType  => "\\doublezero"                                                                                         ,
 	     arguments   => "\\textcolor{red}{\\textless double(3)\\textgreater} positionCylindrical\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\enumWeightBy\\ [weightBy]\\argin, \\intzero\\ [weightIndex]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
 	 },
@@ -1002,6 +1004,7 @@ sub Generate_Node_Component_Type{
 	     name        => "rotationCurve"                                                                                        ,
 	     function    => "Node_Component_Rotation_Curve_Null"                                                                   ,
 	     description => "Compute the rotation curve."                                                                          ,
+	     mappable    => "summation"                                                                                            ,
 	     returnType  => "\\doublezero"                                                                                         ,
 	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
 	 },
@@ -1033,14 +1036,6 @@ sub Generate_Node_Component_Type{
 	dataContent    => \@dataContent
     };
     push(@{$buildData->{'typesOrder'}},'nodeComponent');
-
-
-    # Insert an interface for assignment.
-    if ( $workaround == 1 ) {
-	$buildData->{'content'} .= "  interface assignment(=)\n";
-	$buildData->{'content'} .= "    module procedure Node_Component_Assign\n";
-	$buildData->{'content'} .= "  end interface assignment(=)\n";
-    }
 
 }
 
@@ -1856,6 +1851,22 @@ sub Generate_Tree_Node_Object {
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
+	     name        => "timeStep"                                                                                                        ,
+	     function    => "Tree_Node_Time_Step"                                                                                             ,
+	     description => "Return the time-step last used by this node."                                                                    ,
+	     returnType  => "\\doublezero"                                                                                                    ,
+	     arguments   => ""
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "timeStepSet"                                                                                                     ,
+	     function    => "Tree_Node_Time_Step_Set"                                                                                         ,
+	     description => "Set the time-step used by this node."                                                                            ,
+	     returnType  => "\\void"                                                                                                          ,
+	     arguments   => "\\doublezero\ index\\argin"
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
 	     name        => "uniqueID"                                                                                                        ,
 	     function    => "Tree_Node_Unique_ID"                                                                                             ,
 	     description => "Return the unique identifier for this node."                                                                     ,
@@ -2032,6 +2043,14 @@ sub Generate_Tree_Node_Object {
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
+	     name        => "destroyBranch"                                                                                                   ,
+	     function    => "treeNodeDestroyBranch"                                                                                           ,
+	     description => "Destroy a branch of a merger tree rooted at this node."                                                          ,
+	     returnType  => "\\void"                                                                                                          ,
+	     arguments   => ""
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
 	     name        => "attachEvent"                                                                                                     ,
 	     function    => "Tree_Node_Attach_Event"                                                                                          ,
 	     description => "Attach a {\\normalfont \\ttfamily nodeEvent} object to this node."                                               ,
@@ -2054,6 +2073,10 @@ sub Generate_Tree_Node_Object {
 	     intrinsic  => "integer",
 	     type       => "kind=kind_int8",
 	     variables  => [ "indexValue", "uniqueIdValue" ]
+	 },
+	 {
+	     intrinsic  => "double precision",
+	     variables  => [ "timeStepValue" ]
 	 },
 	 {
 	     intrinsic  => "type",
@@ -2201,8 +2224,11 @@ sub Generate_Initialization_Function {
     }
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Check for already initialized.
-    $functionCode .= "   !\$omp critical (Galacticus_Nodes_Initialize)\n";
     $functionCode .= "   if (.not.moduleIsInitialized) then\n";
+    $functionCode .= "      !\$omp critical (Galacticus_Nodes_Initialize)\n";
+    $functionCode .= "      if (.not.moduleIsInitialized) then\n";
+    # Record of output conditions seen.
+    my %outputConditions;
     # Iterate over all component classes.
     $buildData->{'content'} .= "  ! Parameters controlling output.\n\n";
     foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
@@ -2216,27 +2242,27 @@ sub Generate_Initialization_Function {
 	die("No default method was found for ".$componentClass." class")
 	    unless ( defined($defaultMethod) );
 	# Insert a function call to get the parameter controlling the choice of implementation for this class.
-        $functionCode .= "    !@ <inputParameter>\n";
-        $functionCode .= "    !@   <name>treeNodeMethod".ucfirst($componentClass)."</name>\n";
-        $functionCode .= "    !@   <defaultValue>".$defaultMethod."</defaultValue>\n";
-        $functionCode .= "    !@   <attachedTo>module</attachedTo>\n";
-        $functionCode .= "    !@   <description>\n";
-        $functionCode .= "    !@    Specifies the implementation to be used for the ".$componentClass." component of nodes.\n";
-        $functionCode .= "    !@   </description>\n";
-        $functionCode .= "    !@   <type>string</type>\n";
-        $functionCode .= "    !@   <cardinality>1</cardinality>\n";
-        $functionCode .= "    !@ </inputParameter>\n";
-    	$functionCode .= "    call Get_Input_Parameter('treeNodeMethod".padComponentClass(ucfirst($componentClass)."'",[1,0]).",methodSelection,defaultValue='".padImplementation($defaultMethod."'",[1,0]).")\n";
+        $functionCode .= "       !@ <inputParameter>\n";
+        $functionCode .= "       !@   <name>treeNodeMethod".ucfirst($componentClass)."</name>\n";
+        $functionCode .= "       !@   <defaultValue>".$defaultMethod."</defaultValue>\n";
+        $functionCode .= "       !@   <attachedTo>module</attachedTo>\n";
+        $functionCode .= "       !@   <description>\n";
+        $functionCode .= "       !@    Specifies the implementation to be used for the ".$componentClass." component of nodes.\n";
+        $functionCode .= "       !@   </description>\n";
+        $functionCode .= "       !@   <type>string</type>\n";
+        $functionCode .= "       !@   <cardinality>1</cardinality>\n";
+        $functionCode .= "       !@ </inputParameter>\n";
+    	$functionCode .= "       call Get_Input_Parameter('treeNodeMethod".padComponentClass(ucfirst($componentClass)."'",[1,0]).",methodSelection,defaultValue='".padImplementation($defaultMethod."'",[1,0]).")\n";
     	foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClass}->{'members'}} ) {
     	    my $fullName  = ucfirst($componentClass).ucfirst($implementationName);
 	    my $component = $buildData->{'components'}->{$fullName};
-    	    $functionCode .= "    if (methodSelection == '".padImplementation($implementationName."'",[1,0]).") then\n";
-	    $functionCode .= "       allocate(default".padComponentClass(ucfirst($componentClass)."Component",[9,0]).",source=default".padFullyQualified($fullName."Component",[9,0]).")\n";
-	    $functionCode .= "       nodeComponent".padFullyQualified($fullName."IsActive",[8,0])."=.true.\n";
+    	    $functionCode .= "       if (methodSelection == '".padImplementation($implementationName."'",[1,0]).") then\n";
+	    $functionCode .= "          allocate(default".padComponentClass(ucfirst($componentClass)."Component",[9,0]).",source=default".padFullyQualified($fullName."Component",[9,0]).")\n";
+	    $functionCode .= "          nodeComponent".padFullyQualified($fullName."IsActive",[8,0])."=.true.\n";
 	    until ( $fullName eq "" ) {
 		if ( exists($buildData->{'components'}->{$fullName}->{'extends'}) ) {
 		    $fullName = ucfirst($buildData->{'components'}->{$fullName}->{'extends'}->{'class'}).ucfirst($buildData->{'components'}->{$fullName}->{'extends'}->{'name'});
-		    $functionCode .= "       nodeComponent".padFullyQualified($fullName."IsActive",[8,0])."=.true.\n";
+		    $functionCode .= "          nodeComponent".padFullyQualified($fullName."IsActive",[8,0])."=.true.\n";
 		} else {
 		    $fullName = "";
 		}
@@ -2250,39 +2276,43 @@ sub Generate_Initialization_Function {
 		    exists($property->{'output'}               )                       &&
 		    exists($property->{'output'}->{'condition'})                       &&
 		    $property->{'output'}->{'condition'} =~ m/\[\[([^\]]+)\]\]/
-		    ) 
-		{
+		    )
+		{		    
 		    my $parameterName = $1;
-		    $functionCode .= "    !@ <inputParameter>\n";
-		    $functionCode .= "    !@   <name>".$parameterName."</name>\n";
-		    $functionCode .= "    !@   <defaultValue>false</defaultValue>\n";
-		    $functionCode .= "    !@   <attachedTo>module</attachedTo>\n";
-		    $functionCode .= "    !@   <description>\n";
-		    $functionCode .= "    !@    Specifies whether the {\\normalfont \\ttfamily ".$propertyName."} method of the {\\normalfont \\ttfamily ".$implementationName."} implemention of the {\\normalfont \\ttfamily ".$componentClass."} component class should be output.\n";
-		    $functionCode .= "    !@   </description>\n";
-		    $functionCode .= "    !@   <type>string</type>\n";
-		    $functionCode .= "    !@   <cardinality>1</cardinality>\n";
-		    $functionCode .= "    !@ </inputParameter>\n";
-		    $functionCode .= "call Get_Input_Parameter('".$parameterName."',".$parameterName.",defaultValue=.false.)\n";
-		    $buildData->{'content'} .= "  logical :: ".$parameterName."\n";
+		    unless ( exists($outputConditions{$parameterName}) ) {
+			$functionCode .= "       !@ <inputParameter>\n";
+			$functionCode .= "       !@   <name>".$parameterName."</name>\n";
+			$functionCode .= "       !@   <defaultValue>false</defaultValue>\n";
+			$functionCode .= "       !@   <attachedTo>module</attachedTo>\n";
+			$functionCode .= "       !@   <description>\n";
+			$functionCode .= "       !@    Specifies whether the {\\normalfont \\ttfamily ".$propertyName."} method of the {\\normalfont \\ttfamily ".$implementationName."} implemention of the {\\normalfont \\ttfamily ".$componentClass."} component class should be output.\n";
+			$functionCode .= "       !@   </description>\n";
+			$functionCode .= "       !@   <type>string</type>\n";
+			$functionCode .= "       !@   <cardinality>1</cardinality>\n";
+			$functionCode .= "       !@ </inputParameter>\n";
+			$functionCode .= "       call Get_Input_Parameter('".$parameterName."',".$parameterName.",defaultValue=.false.)\n";
+			$buildData->{'content'} .= "  logical :: ".$parameterName."\n";
+			$outputConditions{$parameterName} = 1;
+		    }
 		}
 	    }
 
     	}
-    	$functionCode .= "    if (.not.allocated(default".padComponentClass(ucfirst($componentClass)."Component",[9,0]).")) then\n";
-    	$functionCode .= "       message='unrecognized method \"'//methodSelection//'\" for \"".$componentClass."\" component'\n";
-	$functionCode .= "       message=message//char(10)//'  available methods are:'\n";
+    	$functionCode .= "       if (.not.allocated(default".padComponentClass(ucfirst($componentClass)."Component",[9,0]).")) then\n";
+    	$functionCode .= "          message='unrecognized method \"'//methodSelection//'\" for \"".$componentClass."\" component'\n";
+	$functionCode .= "          message=message//char(10)//'  available methods are:'\n";
     	foreach my $implementationName ( sort(@{$buildData->{'componentClasses'}->{$componentClass}->{'members'}}) ) {
-	    $functionCode .= "       message=message//char(10)//'    ".$implementationName."'\n";
+	    $functionCode .= "          message=message//char(10)//'    ".$implementationName."'\n";
 	}
-    	$functionCode .= "       call Galacticus_Error_Report('Galacticus_Nodes_Initialize',message)\n";
-    	$functionCode .= "    end if\n";
+    	$functionCode .= "          call Galacticus_Error_Report('Galacticus_Nodes_Initialize',message)\n";
+    	$functionCode .= "       end if\n";
     }
     $buildData->{'content'} .= "\n";
-    $functionCode .= "      ! Record that the module is now initialized.\n";
-    $functionCode .= "      moduleIsInitialized=.true.\n";
+    $functionCode .= "         ! Record that the module is now initialized.\n";
+    $functionCode .= "         moduleIsInitialized=.true.\n";
+    $functionCode .= "       end if\n";
+    $functionCode .= "       !\$omp end critical (Galacticus_Nodes_Initialize)\n";
     $functionCode .= "    end if\n";
-    $functionCode .= "    !\$omp end critical (Galacticus_Nodes_Initialize)\n";
     $functionCode .= "    return\n";
     $functionCode .= "  end subroutine Galacticus_Nodes_Initialize\n";	
     # Insert into the function list.
@@ -2400,6 +2430,11 @@ sub Generate_Map_Functions {
 	     variables  => [ "reduction" ]
 	 },
 	 {
+	     intrinsic  => "integer",
+	     attributes => [ "intent(in   )", "optional" ],
+	     variables  => [ "optimizeFor" ]
+	 },
+	 {
 	     intrinsic  => "double precision",
 	     variables  => [ "componentValue" ]
 	 },
@@ -2408,10 +2443,72 @@ sub Generate_Map_Functions {
 	     variables  => [ "i" ]
 	 }
 	);
-    $functionCode  = "  double precision function mapComponentsDouble0(self,mapFunction,reduction)\n";
+    $functionCode  = "  double precision function mapComponentsDouble0(self,mapFunction,reduction,optimizeFor)\n";
     $functionCode .= "    !% Map a scalar double function over components with a specified {\\normalfont \\ttfamily reduction}.\n";
+    $functionCode .= "    use Galacticus_Error\n";
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+    # Scan through available node component methods and find ones which are mappable. Create optimized versions of this function
+    # for them.
+    my $optimizationLabel      = -1;
+    my $optimizationsGenerated = 0;
+    foreach my $boundFunction ( @{$buildData->{'types'}->{'nodeComponent'}->{'boundFunctions'}} ) {
+	if ( exists($boundFunction->{'mappable'}) ) {
+	    my @reductions = split(/:/,$boundFunction->{'mappable'});
+	    foreach my $reduction ( @reductions ) {
+		# Record that optimized versions were generated.
+		$optimizationsGenerated = 1;
+		# Insert test for optimized case.
+		++$optimizationLabel;
+		$buildData->{'content'} .= "   integer, public, parameter :: optimizeFor".ucfirst($boundFunction->{'name'}).ucfirst($reduction)."=".$optimizationLabel."\n";
+		$functionCode .= "   ";
+		$functionCode .= "else"
+		    unless ( $optimizationLabel == 0 );
+		$functionCode .= "if (present(optimizeFor).and.optimizeFor == optimizeFor".ucfirst($boundFunction->{'name'}).ucfirst($reduction).") then\n";
+		# Initialize reduction.
+		if ( $reduction eq "summation" ) {
+		    $functionCode .= "      if (reduction /= reductionSummation) call Galacticus_Error_Report('mapComponentsDouble0','reduction mismatch')\n";
+		    $functionCode .= "      mapComponentsDouble0=0.0d0\n";
+		} elsif ( $reduction eq "product" ) {
+		    $functionCode .= "      if (reduction /= reductionProduct  ) call Galacticus_Error_Report('mapComponentsDouble0','reduction mismatch')\n";
+		    $functionCode .= "      mapComponentsDouble0=1.0d0\n";
+		} else {
+		    die("Generate_Map_Functions(): unrecognized reduction");
+		}
+		# Iterate over available types.
+		foreach my $type ( keys(%{$buildData->{'types'}}) ) {
+		    if ( $type =~ m/^nodeComponent.+/  && grep {$_->{'name'} eq $boundFunction->{'name'}} @{$buildData->{'types'}->{$type}->{'boundFunctions'}} ) {
+			# Determine the class of this component.
+			my $baseClass = $type;
+			while ( exists($buildData->{'types'}->{$baseClass}->{'extends'}) && $buildData->{'types'}->{$baseClass}->{'extends'} ne "nodeComponent" ) {
+			    $baseClass = $buildData->{'types'}->{$baseClass}->{'extends'};
+			}
+			$baseClass =~ s/^nodeComponent//;
+			$baseClass = lc($baseClass);
+			# Construct code for this component.
+			$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($baseClass),[0,0]).")) then\n";
+			$functionCode .= "      select type (c => self%component".padComponentClass(ucfirst($baseClass),[0,0]).")\n";
+			$functionCode .= "      type is (".$type.")\n";
+			$functionCode .= "         do i=1,size(self%component".padComponentClass(ucfirst($baseClass),[0,0]).")\n";
+			$functionCode .= "            mapComponentsDouble0=mapComponentsDouble0";
+			if ( $reduction eq "summation" ) {
+			    $functionCode .= "+";
+			} elsif ( $reduction eq "product" ) {
+			    $functionCode .= "*";
+			}
+			$functionCode .= "mapFunction(self%component".padComponentClass(ucfirst($baseClass),[0,0])."(i))\n";
+			$functionCode .= "         end do\n";
+			$functionCode .= "      end select\n";
+			$functionCode .= "    end if\n";
+		    }
+		}
+	    }
+	}
+    }
+    $buildData->{'content'} .= "\n";
+    # Generate the generic, unoptimized function.
+    $functionCode .= "    else\n"
+	if ( $optimizationsGenerated == 1 );
     $functionCode .= "    select case (reduction)\n";
     $functionCode .= "    case (reductionSummation)\n";
     $functionCode .= "      mapComponentsDouble0=0.0d0\n";
@@ -2431,6 +2528,8 @@ sub Generate_Map_Functions {
 	$functionCode .= "      end do\n";
      	$functionCode .= "    end if\n";
     }
+    $functionCode .= "    end if\n"
+	if ( $optimizationsGenerated == 1 );
     $functionCode .= "    return\n";
     $functionCode .= "  end function mapComponentsDouble0\n\n";
     # Insert into the function list.
@@ -5336,12 +5435,12 @@ sub Generate_Node_Copy_Function {
     $functionCode .= "    skipFormationNodeActual=.false.\n";
     $functionCode .= "    if (present(skipFormationNode)) skipFormationNodeActual=skipFormationNode\n";
     $functionCode .= "    targetNode%".padComponentClass($_,[8,14])." =  self%".$_."\n"
-	foreach ( "uniqueIdValue", "indexValue" );
+	foreach ( "uniqueIdValue", "indexValue", "timeStepValue" );
     $functionCode .= "    targetNode%".padComponentClass($_,[8,14])." => self%".$_."\n"
 	foreach ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "event", "hostTree" );
     $functionCode .= "    if (.not.skipFormationNodeActual) targetNode%formationNode => self%formationNode\n";
     # Loop over all component classes
-    if ( $workaround == 1 ) {
+    if ( $workaround == 1 ) { # Workaround "Assignment to an allocatable polymorphic variable is not yet supported"
 	foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
 	    $functionCode .= "    if (allocated(targetNode%component".padComponentClass(ucfirst($componentClassName),[0,0]).")) deallocate(targetNode%component".padComponentClass(ucfirst($componentClassName),[0,0]).")\n";
 	    $functionCode .= "    allocate(targetNode%component".padComponentClass(ucfirst($componentClassName),[0,0])."(size(self%component".padComponentClass(ucfirst($componentClassName),[0,0]).")),source=self%component".padComponentClass(ucfirst($componentClassName),[0,0])."(1))\n";
@@ -6250,6 +6349,8 @@ sub Generate_Tree_Node_Creation_Function {
     $functionCode .= "    if (uniqueIDCount <= 0) call Galacticus_Error_Report('treeNodeInitialize','ran out of unique ID numbers')\n";
     $functionCode .= "    self%uniqueIdValue=uniqueIDCount\n";
     $functionCode .= "    !\$omp end critical(UniqueID_Assign)\n";
+    $functionCode .= "    ! Assign a timestep.\n";
+    $functionCode .= "    self%timeStepValue=-1.0d0\n";
     $functionCode .= "    return\n";
     $functionCode .= "  end subroutine treeNodeInitialize\n";	
     # Insert into the function list.
@@ -6431,14 +6532,23 @@ sub Generate_GSR_Availability_Functions {
 	    # Get the component.
 	    my $componentID = ucfirst($componentClassName).ucfirst($componentName);
 	    my $component   = $buildData->{'components'}->{$componentID};
-	    # Iterate over the properties of this implementation.
-	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
-		# Get the property.
-		my $property = $component->{'properties'}->{'property'}->{$propertyName};
-		# Record attributes.
-		$properties->{$propertyName}->{$componentName}->{'set' } = $property->{'attributes'}->{'isSettable' }; 
-		$properties->{$propertyName}->{$componentName}->{'get' } = $property->{'attributes'}->{'isGettable' }; 
-		$properties->{$propertyName}->{$componentName}->{'rate'} = $property->{'attributes'}->{'isEvolvable'}; 
+	    # Iterate over component and parents.
+	    while ( defined($component) ) {
+		# Iterate over the properties of this implementation.
+		foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+		    # Get the property.
+		    my $property = $component->{'properties'}->{'property'}->{$propertyName};
+		    # Record attributes.
+		    $properties->{$propertyName}->{$componentName}->{'set' } = $property->{'attributes'}->{'isSettable' }; 
+		    $properties->{$propertyName}->{$componentName}->{'get' } = $property->{'attributes'}->{'isGettable' }; 
+		    $properties->{$propertyName}->{$componentName}->{'rate'} = $property->{'attributes'}->{'isEvolvable'}; 
+		}
+		if ( exists($component->{'extends'}) ) {
+		    my $parentID = ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'});
+		    $component = $buildData->{'components'}->{$parentID};
+		} else {
+		    undef($component);
+		}
 	    }
 	}
 	# Iterate over properties, creating a function for each.
@@ -6655,13 +6765,12 @@ sub Generate_Component_Assignment_Function {
 	@{$buildData->{'code'}->{'functions'}},
 	$functionCode
 	);	
-    # Bind this function to the treeNode type.
+    # Bind this function to the nodeComponent type.
     push(
 	@{$buildData->{'types'}->{'nodeComponent'}->{'boundFunctions'}},
-	{type => "procedure", name => "assign"       , function => "Node_Component_Assign"},
-	{type => "generic"  , name => "assignment(=)", function => "assign"               }
-	)
-	unless ( $workaround == 1 );
+	{type => "procedure", name => "assign"       , function => "Node_Component_Assign", description => "Assign a {\\normalfont \\ttfamily nodeComponent} to another {\\normalfont \\ttfamily nodeComponent}.", returnType => "\\textcolor{red}{\\textless class(nodeComponent)\\textgreater}", arguments => "\\textcolor{red}{\\textless class(nodeComponent)\\textgreater} from\\argin"},
+	{type => "generic"  , name => "assignment(=)", function => "assign" }
+	);
 }
 
 sub Generate_Component_Class_Destruction_Functions {
@@ -6753,20 +6862,15 @@ sub Generate_Component_Class_Removal_Functions {
 	$functionCode .= "    else\n";
 	$functionCode .= "      ! Multiple instances, so remove the specified instance.\n";
 	$functionCode .= "      allocate(instancesTemporary(instanceCount-1),source=self%component".ucfirst($componentClassName)."(1))\n";
-	if ( $workaround == 1 ) {
-	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
-		$functionCode .= "      select type (from => self%component".ucfirst($componentClassName).")\n";
-		$functionCode .= "      type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
-		$functionCode .= "        select type (to => instancesTemporary)\n";
-		$functionCode .= "        type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
-		$functionCode .= "          if (instance >             1) to(       1:instance     -1)=from(         1:instance     -1)\n";
-		$functionCode .= "          if (instance < instanceCount) to(instance:instanceCount-1)=from(instance+1:instanceCount  )\n";
-		$functionCode .= "        end select\n";
-		$functionCode .= "      end select\n";
-	    }
-	} else {
-	    $functionCode .= "      if (instance >             1) instancesTemporary(       1:instance     -1)=self%component".ucfirst($componentClassName)."(         1:instance     -1)\n";
-	    $functionCode .= "      if (instance < instanceCount) instancesTemporary(instance:instanceCount-1)=self%component".ucfirst($componentClassName)."(instance+1:instanceCount  )\n";
+	foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+	    $functionCode .= "      select type (from => self%component".ucfirst($componentClassName).")\n";
+	    $functionCode .= "      type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
+	    $functionCode .= "        select type (to => instancesTemporary)\n";
+	    $functionCode .= "        type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
+	    $functionCode .= "          if (instance >             1) to(       1:instance     -1)=from(         1:instance     -1)\n";
+	    $functionCode .= "          if (instance < instanceCount) to(instance:instanceCount-1)=from(instance+1:instanceCount  )\n";
+	    $functionCode .= "        end select\n";
+	    $functionCode .= "      end select\n";
 	}
 	$functionCode .= "      deallocate(self%component".ucfirst($componentClassName).")\n";
 	$functionCode .= "      call Move_Alloc(instancesTemporary,self%component".ucfirst($componentClassName).")\n";
@@ -6855,28 +6959,23 @@ sub Generate_Component_Class_Move_Functions {
 	$functionCode .= "    else\n";
 	$functionCode .= "      ! Multiple instances, so remove the specified instance.\n";
 	$functionCode .= "      allocate(instancesTemporary(instanceCount+targetCount),source=self%component".ucfirst($componentClassName)."(1))\n";
-	if ( $workaround == 1 ) {
-	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
-		$functionCode .= "      select type (from => targetNode%component".ucfirst($componentClassName).")\n";
-		$functionCode .= "      type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
-		$functionCode .= "        select type (to => instancesTemporary)\n";
-		$functionCode .= "        type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
-		$functionCode .= "          to(1:targetCount)=from\n";
-		$functionCode .= "        end select\n";
-		$functionCode .= "      end select\n";
-	    }
-	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
-		$functionCode .= "      select type (from => self%component".ucfirst($componentClassName).")\n";
-		$functionCode .= "      type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
-		$functionCode .= "        select type (to => instancesTemporary)\n";
-		$functionCode .= "        type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
-		$functionCode .= "          to(targetCount+1:targetCount+instanceCount)=from\n";
-		$functionCode .= "        end select\n";
-		$functionCode .= "      end select\n";
-	    }
-	} else {
-	    $functionCode .= "      instancesTemporary(            1:targetCount              )=targetNode%component".ucfirst($componentClassName)."\n";
-	    $functionCode .= "      instancesTemporary(targetCount+1:targetCount+instanceCount)=self      %component".ucfirst($componentClassName)."\n";
+	foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+	    $functionCode .= "      select type (from => targetNode%component".ucfirst($componentClassName).")\n";
+	    $functionCode .= "      type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
+	    $functionCode .= "        select type (to => instancesTemporary)\n";
+	    $functionCode .= "        type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
+	    $functionCode .= "          to(1:targetCount)=from\n";
+	    $functionCode .= "        end select\n";
+	    $functionCode .= "      end select\n";
+	}
+	foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+	    $functionCode .= "      select type (from => self%component".ucfirst($componentClassName).")\n";
+	    $functionCode .= "      type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
+	    $functionCode .= "        select type (to => instancesTemporary)\n";
+	    $functionCode .= "        type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
+	    $functionCode .= "          to(targetCount+1:targetCount+instanceCount)=from\n";
+	    $functionCode .= "        end select\n";
+	    $functionCode .= "      end select\n";
 	}
 	$functionCode .= "      call targetNode%".$componentClassName."Destroy()\n";
 	$functionCode .= "      call self      %".$componentClassName."Destroy()\n";

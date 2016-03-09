@@ -95,7 +95,7 @@ contains
          &                                                                           parentEnclosedMass      , orbitalPeriod                  , &
          &                                                                           radius                  , speed                          , &
          &                                                                           timescaleShock          , heatingRateNormalized          , &
-         &                                                                           angularVelocity
+         &                                                                           angularVelocity         , radialTimescale
     type            (tensorRank2Dimension3Symmetric)                              :: tidalTensor             , tidalTensorPathIntegrated      , &
          &                                                                           positionTensor
 
@@ -106,11 +106,11 @@ contains
     position                  =  thisSatellite%position                 ()
     velocity                  =  thisSatellite%velocity                 ()
     tidalTensorPathIntegrated =  thisSatellite%tidalTensorPathIntegrated()
-    radius                    =  Vector_Magnitude                (         position                          )
-    speed                     =  Vector_Magnitude                (         velocity                          )
-    parentDensity             =  Galactic_Structure_Density      (hostNode,position,coordinateSystemCartesian)
-    parentEnclosedMass        =  Galactic_Structure_Enclosed_Mass(hostNode,radius                            )
-    positionTensor            =  Vector_Self_Outer_Product       (         position                          )
+    radius                    =  Vector_Magnitude                (         position                                            )
+    speed                     =  Vector_Magnitude                (         velocity                                            )
+    parentDensity             =  Galactic_Structure_Density      (hostNode,position,coordinateSystemCartesian                  )
+    parentEnclosedMass        =  Galactic_Structure_Enclosed_Mass(hostNode,radius                                              )
+    positionTensor            =  Vector_Outer_Product            (         position                          ,symmetrize=.true.)
     ! Find the gravitational tidal tensor.
     tidalTensor=                                                                                          &
          & -(gravitationalConstantGalacticus*parentEnclosedMass         /radius**3)*tensorIdentityR2D3Sym &
@@ -118,7 +118,12 @@ contains
          & -(gravitationalConstantGalacticus*parentDensity     *4.0d0*Pi/radius**2)*positionTensor
     ! Find the orbital period.
     angularVelocity=Vector_Magnitude(Vector_Product(position,velocity))/radius**2*kilo*gigaYear/megaParsec
-    orbitalPeriod  =2.0d0*Pi/angularVelocity
+    radialTimescale=  abs             (   Dot_Product(position,velocity)) &
+         &           /radius**2                                           &
+         &           *kilo                                                &
+         &           *gigaYear                                            &
+         &           /megaParsec
+    orbitalPeriod  =1.0d0/max(angularVelocity/2.0d0/Pi,radialTimescale)
     ! Find the shock timescale (i.e. crossing time in the radial direction).
     timescaleShock=megaParsec/kilo/gigaYear*radius/speed
     ! Compute the heating rate.

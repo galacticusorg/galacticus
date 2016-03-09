@@ -44,7 +44,7 @@ contains
     use Input_Parameters2
     implicit none
     type(coolingFunctionCMBCompton)                :: cmbComptonConstructorParameters
-    type(inputParameters          ), intent(in   ) :: parameters
+    type(inputParameters          ), intent(inout) :: parameters
   
     cmbComptonConstructorParameters=cmbComptonConstructorInternal()
     return
