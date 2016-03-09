@@ -29,19 +29,19 @@
      !% A dark matter halo scale contrast class using virial density contrasts.
      private
      ! Virial density contrast object.
-     class           (virialDensityContrastClass), pointer   :: virialDensityContrastDefinition => null()
+     class           (virialDensityContrastClass), pointer   :: virialDensityContrast_     => null()
      ! Record of unique ID of node which we last computed results for.
      integer         (kind=kind_int8            )            :: lastUniqueID
      ! Record of whether or not halo scales have already been computed for this node.
-     logical                                                 :: dynamicalTimescaleComputed               , virialRadiusComputed            , &
-          &                                                     virialTemperatureComputed                , virialVelocityComputed
+     logical                                                 :: dynamicalTimescaleComputed          , virialRadiusComputed            , &
+          &                                                     virialTemperatureComputed           , virialVelocityComputed
      ! Stored values of halo scales.
-     double precision                                        :: dynamicalTimescaleStored                 , virialRadiusStored              , &
-          &                                                     virialTemperatureStored                  , virialVelocityStored            , &
-          &                                                     timePrevious                             , densityGrowthRatePrevious       , &
+     double precision                                        :: dynamicalTimescaleStored            , virialRadiusStored              , &
+          &                                                     virialTemperatureStored             , virialVelocityStored            , &
+          &                                                     timePrevious                        , densityGrowthRatePrevious       , &
           &                                                     massPrevious
      ! Table for fast lookup of the mean density of halos.
-     double precision                                        :: meanDensityTimeMaximum                   , meanDensityTimeMinimum   =-1.0d0
+     double precision                                        :: meanDensityTimeMaximum              , meanDensityTimeMinimum   =-1.0d0
      type            (table1DLogarithmicLinear  )            :: meanDensityTable
      logical                                                 :: resetMeanDensityTable
    contains
@@ -62,51 +62,56 @@
 
   interface darkMatterHaloScaleVirialDensityContrastDefinition
      !% Constructors for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class.
-     module procedure virialDensityContrastDefinitionDefaultConstructor
-     module procedure virialDensityContrastDefinitionConstructor
+     module procedure virialDensityContrastDefinitionParameters
+     module procedure virialDensityContrastDefinitionInternal
   end interface darkMatterHaloScaleVirialDensityContrastDefinition
 
   integer, parameter :: virialDensityContrastDefinitionMeanDensityTablePointsPerDecade=100
 
 contains
 
-  function virialDensityContrastDefinitionDefaultConstructor()
+  function virialDensityContrastDefinitionParameters(parameters)
+    !% Constructor for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class which takes a parameter set as input.
+    use Input_Parameters2
+    implicit none
+    type (darkMatterHaloScaleVirialDensityContrastDefinition), target        :: virialDensityContrastDefinitionParameters
+    type (inputParameters                                   ), intent(inout) :: parameters
+    class(virialDensityContrastClass                        ), pointer       :: virialDensityContrast_
+    !# <inputParameterList label="allowedParameterNames" />
+
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)
+    virialDensityContrast_                    => virialDensityContrast                  (                      )
+    virialDensityContrastDefinitionParameters =  virialDensityContrastDefinitionInternal(virialDensityContrast_)
+    return
+  end function virialDensityContrastDefinitionParameters
+
+  function virialDensityContrastDefinitionInternal(virialDensityContrast_)
     !% Default constructor for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class.
     implicit none
-    type (darkMatterHaloScaleVirialDensityContrastDefinition), target  :: virialDensityContrastDefinitionDefaultConstructor
-    class(virialDensityContrastClass              ), pointer :: virialDensityContrast_
+    type (darkMatterHaloScaleVirialDensityContrastDefinition)               , target :: virialDensityContrastDefinitionInternal
+    class(virialDensityContrastClass                        ), intent(in   ), target :: virialDensityContrast_
 
-    virialDensityContrast_                            => virialDensityContrast                     (                      )
-    virialDensityContrastDefinitionDefaultConstructor =  virialDensityContrastDefinitionConstructor(virialDensityContrast_)
+    virialDensityContrastDefinitionInternal%virialDensityContrast_     => virialDensityContrast_
+    virialDensityContrastDefinitionInternal%lastUniqueID               =  -1_kind_int8
+    virialDensityContrastDefinitionInternal%dynamicalTimescaleComputed =  .false.
+    virialDensityContrastDefinitionInternal%virialRadiusComputed       =  .false.
+    virialDensityContrastDefinitionInternal%virialTemperatureComputed  =  .false.
+    virialDensityContrastDefinitionInternal%virialVelocityComputed     =  .false.
+    virialDensityContrastDefinitionInternal%meanDensityTimeMaximum     =  -1.0d0
+    virialDensityContrastDefinitionInternal%meanDensityTimeMinimum     =  -1.0d0
+    virialDensityContrastDefinitionInternal%resetMeanDensityTable      =  .false.
+    virialDensityContrastDefinitionInternal%timePrevious               =  -1.0d0
+    virialDensityContrastDefinitionInternal%massPrevious               =  -1.0d0
     return
-  end function virialDensityContrastDefinitionDefaultConstructor
-
-  function virialDensityContrastDefinitionConstructor(virialDensityContrastDefinition)
-    !% Default constructor for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class.
-    implicit none
-    type (darkMatterHaloScaleVirialDensityContrastDefinition)               , target :: virialDensityContrastDefinitionConstructor
-    class(virialDensityContrastClass                        ), intent(in   ), target :: virialDensityContrastDefinition
-
-    virialDensityContrastDefinitionConstructor%virialDensityContrastDefinition => virialDensityContrastDefinition
-    virialDensityContrastDefinitionConstructor%lastUniqueID                    =  -1_kind_int8
-    virialDensityContrastDefinitionConstructor%dynamicalTimescaleComputed      =  .false.
-    virialDensityContrastDefinitionConstructor%virialRadiusComputed            =  .false.
-    virialDensityContrastDefinitionConstructor%virialTemperatureComputed       =  .false.
-    virialDensityContrastDefinitionConstructor%virialVelocityComputed          =  .false.
-    virialDensityContrastDefinitionConstructor%meanDensityTimeMaximum          =  -1.0d0
-    virialDensityContrastDefinitionConstructor%meanDensityTimeMinimum          =  -1.0d0
-    virialDensityContrastDefinitionConstructor%resetMeanDensityTable           =  .false.
-    virialDensityContrastDefinitionConstructor%timePrevious                    =  -1.0d0
-    virialDensityContrastDefinitionConstructor%massPrevious                    =  -1.0d0
-    return
-  end function virialDensityContrastDefinitionConstructor
+  end function virialDensityContrastDefinitionInternal
 
   subroutine virialDensityContrastDefinitionDestructor(self)
     !% Destructir for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class.
     implicit none
     type (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
 
-    if (associated(self%virialDensityContrastDefinition).and.self%virialDensityContrastDefinition%isFinalizable()) deallocate(self%virialDensityContrastDefinition)
+    if (associated(self%virialDensityContrast_).and.self%virialDensityContrast_%isFinalizable()) deallocate(self%virialDensityContrast_)
     if (self%meanDensityTimeMinimum >= 0.0d0) call self%meanDensityTable%destroy()
     return
   end subroutine virialDensityContrastDefinitionDestructor
@@ -283,17 +288,14 @@ contains
     time=thisBasic%timeLastIsolated()
     if (time <= 0.0d0) time=thisBasic%time()
     ! For mass-dependent virial density contrasts we must always recompute the result.
-    if (self%virialDensityContrastDefinition%isMassDependent()) then
+    if (self%virialDensityContrast_%isMassDependent()) then
        ! Get default objects.
-       thisCosmologyParameters   => cosmologyParameters  ()
-       cosmologyFunctionsDefault => cosmologyFunctions   ()
-       virialDensityContrastDefinitionMeanDensity=&
-            &+self%virialDensityContrastDefinition%densityContrast(thisBasic%mass(),time)&
-            &*thisCosmologyParameters             %OmegaMatter    (                                           )     &
-                  &  *thisCosmologyParameters             %densityCritical(                                           )     &
-                  &  /cosmologyFunctionsDefault           %expansionFactor(                 time)**3
-
-
+       thisCosmologyParameters                    =>  cosmologyParameters  ()
+       cosmologyFunctionsDefault                  =>  cosmologyFunctions   ()
+       virialDensityContrastDefinitionMeanDensity =  +self                     %virialDensityContrast_%densityContrast(thisBasic%mass(),time)    &
+            &                                        *thisCosmologyParameters                         %OmegaMatter    (                     )    &
+            &                                        *thisCosmologyParameters                         %densityCritical(                     )    &
+            &                                        /cosmologyFunctionsDefault                       %expansionFactor(                 time)**3
     else
        ! For non-mass-dependent virial density contrasts we can tabulate as a function of time.
        ! Retabulate the mean density vs. time if necessary.
@@ -315,7 +317,7 @@ contains
           do i=1,meanDensityTablePoints
              call self%meanDensityTable%populate                                                                            &
                   & (                                                                                                       &
-                  &  +self%virialDensityContrastDefinition%densityContrast(thisBasic%mass(),self%meanDensityTable%x(i))     &
+                  &  +self%virialDensityContrast_%densityContrast(thisBasic%mass(),self%meanDensityTable%x(i))     &
                   &  *thisCosmologyParameters             %OmegaMatter    (                                           )     &
                   &  *thisCosmologyParameters             %densityCritical(                                           )     &
                   &  /cosmologyFunctionsDefault           %expansionFactor(                 self%meanDensityTable%x(i))**3, &
@@ -357,13 +359,13 @@ contains
           ! Get the expansion factor at this time.
           aExpansion=cosmologyFunctionsDefault%expansionFactor(time)
           ! Compute growth rate of its mean density based on mean cosmological density and overdensity of a collapsing halo.
-          self%densityGrowthRatePrevious=                                                                         &
-               & self%meanDensity(thisNode)                                                                       &
-               & *(                                                                                               &
-               &   +self%virialDensityContrastDefinition%densityContrastRateOfChange(thisBasic%mass(),time      ) &
-               &   /self%virialDensityContrastDefinition%densityContrast            (thisBasic%mass(),time      ) &
-               &   -3.0d0                                                                                         &
-               &   *cosmologyFunctionsDefault           %expansionRate              (aExpansion                 ) &
+          self%densityGrowthRatePrevious=                                                                &
+               & self%meanDensity(thisNode)                                                              &
+               & *(                                                                                      &
+               &   +self%virialDensityContrast_%densityContrastRateOfChange(thisBasic%mass(),time      ) &
+               &   /self%virialDensityContrast_%densityContrast            (thisBasic%mass(),time      ) &
+               &   -3.0d0                                                                                &
+               &   *cosmologyFunctionsDefault           %expansionRate     (aExpansion                 ) &
                &  )
        end if
        ! Return the stored value.
