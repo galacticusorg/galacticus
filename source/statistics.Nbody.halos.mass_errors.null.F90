@@ -27,6 +27,7 @@
     contains
      final     ::                    nullDestructor
      procedure :: errorFractional => nullErrorFractional
+     procedure :: errorZeroAlways => nullErrorZeroAlways
   end type nbodyHaloMassErrorNull
 
   interface nbodyHaloMassErrorNull
@@ -77,4 +78,13 @@ contains
     nullErrorFractional=0.0d0
     return
   end function nullErrorFractional
+  
+  logical function nullErrorZeroAlways(self)
+    !% Return true since errors are always zero in this model.
+    implicit none
+    class(nbodyHaloMassErrorNull), intent(inout)          :: self
+
+    nullErrorZeroAlways=.true.
+    return
+  end function nullErrorZeroAlways
   
