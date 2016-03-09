@@ -224,7 +224,7 @@ contains
           ! Find branching probability rate per unit deltaW.
           branchingProbabilityRate=Tree_Branching_Probability_Bound(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,boundUpper)
           ! Find accretion rate.
-          accretionFraction       =Tree_Subresolution_Fraction     (branchMassCurrent,branchDeltaCriticalCurrent,massResolution           )
+          accretionFraction       =Tree_Subresolution_Fraction     (branchMassCurrent,branchDeltaCriticalCurrent,massResolution           )          
           ! A negative accretion fraction indicates that the node is so close to the resolution limit that
           ! an accretion rate cannot be determined (given available numerical accuracy). In such cases we
           ! consider the node to have reached the end of its resolved evolution and so walk to the next node.
@@ -246,8 +246,8 @@ contains
              newNode1%parent     => thisNode
              branchIsDone        =  .true.
           else
-             ! Finding maximum allowed step in w. Limit based on branching rate only if we are using the original Cole et
-             ! al. (2000) algorithm.
+             ! Finding maximum allowed step in w. Limit based on branching rate only if we are
+             ! using the original Cole et al. (2000) algorithm.
              deltaW               =Tree_Maximum_Step(branchMassCurrent,branchDeltaCriticalCurrent,massResolution)
              snapAccretionFraction=.false.
              if (accretionFraction > 0.0d0) then
@@ -256,37 +256,28 @@ contains
                    deltaW               =deltaWAccretionLimit
                    snapAccretionFraction=.true.
                 end if
-                if (deltaW <= 0.0d0) then
-                   ! Terminate the branch with a final node.
-                   nodeIndex          =  nodeIndex+1
-                   newNode1           => treeNode      (nodeIndex,tree)
-                   newBasic1          => newNode1%basic(autoCreate=.true. )
-                   ! Compute new mass accounting for sub-resolution accretion.
-                   nodeMass1          = branchMassCurrent
-                   ! Compute the time corresponding to this event.
-                   time               = criticalOverdensity_%timeOfCollapse(criticalOverdensity=branchDeltaCriticalCurrent,mass=branchMassCurrent)
-                   ! Set properties of the new node.
-                   deltaCritical1     = criticalOverdensity_%value         (time               =time                      ,mass=nodeMass1        )
-                   call newBasic1%massSet(nodeMass1     )
-                   call newBasic1%timeSet(deltaCritical1)
-                   ! Create links from old to new node and vice-versa.
-                   thisNode%firstChild => newNode1
-                   newNode1%parent     => thisNode
-                   branchIsDone        =  .true.
-                   return
-                end if                
              end if
              if     (                                                                   &
                   &   branchingProbabilityRate > 0.0d0                                  &
                   &  .and.                                                              &
                   &   .not.self%branchIntervalStep                                      &
-                  & ) deltaW=min(deltaW,self%mergeProbability/branchingProbabilityRate)
+                  & ) then
+                if (self%mergeProbability/branchingProbabilityRate < deltaW) then
+                   ! Timestep is limited by branching rate. Reduce the timestep to the allowed
+                   ! size and unset the flag to snap the accretion fraction to its maximum
+                   ! allowed value (since we won't reach that value with this new, reduced
+                   ! timestep).
+                   deltaW               =self%mergeProbability/branchingProbabilityRate
+                   snapAccretionFraction=.false.
+                end if
+             end if
              ! Scale values to the determined timestep.
              if (.not.self%branchIntervalStep)                           &
                   & branchingProbability=branchingProbabilityRate*deltaW
              accretionFraction          =accretionFraction       *deltaW
-             ! Accretion fraction must be less than unity. Reduce timestep (and branching probability and accretion fraction) by
-             ! factors of two until this condition is satisfied.
+             ! Accretion fraction must be less than unity. Reduce timestep (and branching
+             ! probability and accretion fraction) by factors of two until this condition is
+             ! satisfied.
              do while (accretionFraction+accretionFractionCumulative >= 1.0d0)
                 if (.not.self%branchIntervalStep)                      &
                      & branchingProbability=branchingProbability*0.5d0
@@ -296,14 +287,13 @@ contains
              end do             
              ! Decide if a branching occurs.
              if (self%branchIntervalStep) then
-                ! In this case we draw intervals between branching events from a negative exponential distribution.
+                ! In this case we draw intervals between branching events from a negative
+                ! exponential distribution.
                 if (branchingProbabilityRate > 0.0d0) then
                    branchingIntervalScaleFree=0.0d0
                    do while (branchingIntervalScaleFree <= 0.0d0)
                       branchingIntervalScaleFree=self%branchingIntervalDistribution%sample(randomNumberGenerator=tree%randomNumberGenerator)
                    end do
-
-
                    branchingInterval=branchingIntervalScaleFree/branchingProbabilityRate
                    ! Based on the upper bound on the rate, check if branching occurs before the maximum allowed timestep.
                    if (branchingInterval < deltaW) then
@@ -317,8 +307,8 @@ contains
                          deltaW               =branchingInterval
                          snapAccretionFraction=.false.
                          ! Draw a random deviate and scale by the branching rate - this will be used to choose the branch mass.
-                       uniformRandom       =tree%randomNumberGenerator%sample()
-                       branchingProbability=uniformRandom*branchingProbabilityRate
+                         uniformRandom       =tree%randomNumberGenerator%sample()
+                         branchingProbability=uniformRandom*branchingProbabilityRate
                       end if
                    else
                       doBranch=.false.
@@ -327,8 +317,8 @@ contains
                    doBranch=.false.
                 end if
              else
-               ! In this case we're using the original Cole et al. (2000) algorithm.
-               if (branchingProbability > 0.0d0) then
+                ! In this case we're using the original Cole et al. (2000) algorithm.
+                if (branchingProbability > 0.0d0) then
                    uniformRandom=tree%randomNumberGenerator%sample()
                    doBranch=(uniformRandom <= branchingProbability)
                    if (doBranch) then
