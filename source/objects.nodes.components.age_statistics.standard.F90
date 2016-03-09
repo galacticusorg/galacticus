@@ -23,8 +23,8 @@ module Node_Component_Age_Statistics_Standard
   use Galacticus_Nodes
   implicit none
   private
-  public :: Node_Component_Age_Statistics_Standard_Scale_Set       , Node_Component_Age_Statistics_Standard_Rate_Compute, &
-       &    Node_Component_Age_Statistics_Standard_Satellite_Merger
+  public :: Node_Component_Age_Statistics_Standard_Scale_Set        , Node_Component_Age_Statistics_Standard_Rate_Compute, &
+       &    Node_Component_Age_Statistics_Standard_Satellite_Merging
 
   !# <component>
   !#  <class>ageStatistics</class>
@@ -140,10 +140,10 @@ contains
   end subroutine Node_Component_Age_Statistics_Standard_Rate_Compute
 
   !# <satelliteMergerTask>
-  !#  <unitName>Node_Component_Age_Statistics_Standard_Satellite_Merger</unitName>
+  !#  <unitName>Node_Component_Age_Statistics_Standard_Satellite_Merging</unitName>
   !#  <after>Satellite_Merging_Mass_Movement_Store</after>
   !# </satelliteMergerTask>
-  subroutine Node_Component_Age_Statistics_Standard_Satellite_Merger(thisNode)
+  subroutine Node_Component_Age_Statistics_Standard_Satellite_Merging(thisNode)
     !% Remove any age statistics quantities associated with {\normalfont \ttfamily thisNode} and add them to the merge target.
     use Satellite_Merging_Mass_Movements_Descriptors
     use Galacticus_Error
@@ -181,7 +181,7 @@ contains
                &                                                     )
        case (movesToSpheroid)
        case default
-          call Galacticus_Error_Report('Node_Component_Age_Statistics_Standard_Satellite_Merger','unrecognized movesTo descriptor')
+          call Galacticus_Error_Report('Node_Component_Age_Statistics_Standard_Satellite_Merging','unrecognized movesTo descriptor')
        end select
        ! Zero rates in the secondary,
        call thisAgeStatistics%    diskTimeWeightedIntegratedSFRSet(                                                          &
@@ -231,10 +231,10 @@ contains
        case (doesNotMove)
           ! Do nothing.
        case default
-          call Galacticus_Error_Report('Node_Component_Age_Statistics_Standard_Satellite_Merger','unrecognized movesTo descriptor')
+          call Galacticus_Error_Report('Node_Component_Age_Statistics_Standard_Satellite_Merging','unrecognized movesTo descriptor')
        end select       
     end select
     return
-  end subroutine Node_Component_Age_Statistics_Standard_Satellite_Merger
+  end subroutine Node_Component_Age_Statistics_Standard_Satellite_Merging
 
 end module Node_Component_Age_Statistics_Standard

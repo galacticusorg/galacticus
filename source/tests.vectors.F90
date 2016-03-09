@@ -22,10 +22,22 @@ program Test_Vectors
   !% Tests of vector functions.
   use Unit_Tests
   use Vectors
+  use Kind_Numbers
+  use ISO_Varying_String
+  use Galacticus_Display
   implicit none
+  double precision                , allocatable, dimension(:  ) :: vector1   , vector2
+  double precision                , allocatable, dimension(:,:) :: matrix12
+  type            (varying_string)                              :: message
+  character       (len= 2        )                              :: units
+  character       (len=24        )                              :: label
+  integer         (kind=kind_int8)                              :: countStart, countEnd , countRate
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Vectors")
+ 
+  ! Begin benchmarks.
+  call Galacticus_Display_Indent("Benchmarks:")
 
   ! Test vector magnitude functions.
   call Assert('vector magnitude',                                                                                                   &
@@ -42,6 +54,42 @@ program Test_Vectors
        &      Vector_Product([1.0d0,2.0d0,3.0d0],[1.0d0,2.0d0,3.0d0]), &
        &      [0.0d0,0.0d0,0.0d0]                                      &
        &     )
+
+  ! Test and benchmark vector outer products.
+  allocate(vector1(1000))
+  allocate(vector2(1000))
+  vector1=2.0d0
+  vector2=0.5d0
+  call System_Clock(countStart,countRate)
+  matrix12=Vector_Outer_Product(vector1,vector2)
+  call System_Clock(countEnd  ,countRate)
+  select case (countRate)
+  case (      1000)
+     units="ms"
+  case (   1000000)
+     units="μs"
+  case (1000000000)
+     units="ns"
+  end select
+  write (label,'(i20)') countEnd-countStart
+  message="Vector outer product         : "//trim(label)//" "//units
+  call Galacticus_Display_Message(message)
+  call Assert('vector outer product'           , &
+       &      all(abs(matrix12-1.0d0) < 1.0d-6), &
+       &      .true.                             &
+       &     )
+
+  ! Test self vector outer product.
+  matrix12=Vector_Outer_Product(vector1,symmetrize=.true.)
+  call Assert('vector outer product'           , &
+       &      all(abs(matrix12-4.0d0) < 1.0d-6), &
+       &      .true.                             &
+       &     )
+  ! Clean up.
+  deallocate(vector1,vector2,matrix12)
+
+  ! End benchmarks.
+  call Galacticus_Display_Unindent("done")
 
   ! End unit tests.
   call Unit_Tests_End_Group()

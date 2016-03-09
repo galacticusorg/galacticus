@@ -98,7 +98,7 @@ contains
     end if
     ! Call routines to supply the densities for all components.
     componentSurfaceDensityFunction => Component_Surface_Density
-    Galactic_Structure_Surface_Density=thisNode%mapDouble0(componentSurfaceDensityFunction,reductionSummation)
+    Galactic_Structure_Surface_Density=thisNode%mapDouble0(componentSurfaceDensityFunction,reductionSummation,optimizeFor=optimizeForSurfaceDensitySummation)
     !# <include directive="surfaceDensityTask" type="functionCall" functionType="function" returnParameter="componentDensity">
     !#  <functionArgs>thisNode,positionCylindricalShared,massTypeShared,componentTypeShared,weightByShared,weightIndexShared,haloLoadedShared</functionArgs>
     !#  <onReturn>Galactic_Structure_Surface_Density=Galactic_Structure_Surface_Density+componentDensity</onReturn>

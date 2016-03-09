@@ -48,6 +48,7 @@ contains
     use Input_Parameters
     use Galacticus_Error
     use Memory_Management
+    use Merger_Tree_State_Store
     !# <include directive="mergerTreeConstructMethod" type="moduleUse">
     include 'merger_trees.construct.modules.inc'
     !# </include>
@@ -92,6 +93,10 @@ contains
     ! reset this to true.
     thisTree%initializedUntil=0.0d0
 
+    ! Initialize a random number generator, and store a pointer to this tree for purposes of storing state to file.
+    call thisTree%randomNumberGenerator%initialize()
+    treeStateStore => thisTree
+    
     ! Call the routine to construct the merger tree.
     call Merger_Tree_Construct(thisTree,skipTree)
 

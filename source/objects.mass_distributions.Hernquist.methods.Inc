@@ -125,7 +125,7 @@ double precision function Mass_Distribution_Hernquist_Mass_Enc_By_Sphere(self,ra
   !% Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for Hernquist mass distributions.
   use Numerical_Constants_Math
   implicit none
-  class           (massDistributionHernquist), intent(in   ), target :: self
+  class           (massDistributionHernquist), intent(inout), target :: self
   double precision                           , intent(in   )         :: radius
   double precision                                                   :: fractionalRadius
 
@@ -139,7 +139,7 @@ double precision function Mass_Distribution_Hernquist_Potential(self,coordinates
   use Numerical_Constants_Physical
   use Coordinates
   implicit none
-  class(massDistributionHernquist), intent(in   ) :: self
+  class(massDistributionHernquist), intent(inout) :: self
   class(coordinate               ), intent(in   ) :: coordinates
   type (coordinateSpherical      )                :: position
 
@@ -155,7 +155,7 @@ end function Mass_Distribution_Hernquist_Potential
 double precision function Mass_Distribution_Hernquist_Half_Mass_Radius(self)
   !% Return the half-mass radius of a Hernquist mass distribution.
   implicit none
-  class           (massDistributionHernquist), intent(in   ) :: self
+  class           (massDistributionHernquist), intent(inout) :: self
   double precision                           , parameter     :: halfMassRadiusToScaleRadius=1.0d0/(sqrt(2.0d0)-1.0d0)
 
   Mass_Distribution_Hernquist_Half_Mass_Radius=halfMassRadiusToScaleRadius*self%scaleLength
