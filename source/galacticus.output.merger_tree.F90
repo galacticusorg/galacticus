@@ -104,7 +104,7 @@ contains
     integer                                                                     :: doubleProperty    , iProperty     , &
          &                                                                         integerProperty   , analysisCount
     integer         (c_size_t          )                                        :: iGroup
-    logical                                                                     :: nodePassesFilter
+    logical                                                                     :: nodePassesFilter  , finished
     type            (hdf5Object        )                                        :: toDataset
 
     ! Initialize if necessary.
@@ -188,7 +188,15 @@ contains
           ! Loop over all nodes in the tree.
           integerPropertiesWritten=0
           doublePropertiesWritten =0
-          do while (associated(thisNode))
+          finished                =.false.
+          do while (.not.finished)
+             thisNode => thisNode%walkTreeWithSatellites()
+             if (.not.associated(thisNode)) then
+                ! When a null pointer is returned, the full tree has been walked. We then have to
+                ! handle the base node as a special case.
+                thisNode => currentTree%baseNode
+                finished =  .true.
+             end if
              ! Accumulate galaxies if output is to be performed.
              if (mergerTreeOutput) then
                 ! Get the basic component.
@@ -232,7 +240,6 @@ contains
              !#  <functionArgs>currentTree,thisNode,iOutput,mergerTreeAnalyses</functionArgs>
              include 'galacticus.output.merger_tree.analysis.inc'
              !# </include>
-             thisNode => thisNode%walkTreeWithSatellites()
           end do
           ! Finished output.
           if (mergerTreeOutput) then
