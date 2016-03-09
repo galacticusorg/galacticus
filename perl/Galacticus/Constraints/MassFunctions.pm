@@ -264,23 +264,30 @@ sub Construct {
 	my $covarianceGalacticusMapped    ;
 	my $isBad                      = 0;
 	if ( exists($config->{'errorModel'}) && $config->{'errorModel'} eq "logNormal" ) {
-	    if ( any($config->{'y'}->($nonZeroObserved) <= 0.0) ) { 
+	    if ( any($yGalacticusLimited->($nonZeroObserved) <= 0.0) ) { 
 		$isBad = 1;
 	    } else {
-		$yGalacticusMapped          = log($yGalacticusLimited         ->($nonZeroObserved                 ));
-		$yDataMapped                = log($config              ->{'y'}->($nonZeroObserved                 ));
-		$covarianceFullMapped       =     $fullCovariance             ->($nonZeroObserved,$nonZeroObserved)
-		    *outer
+		# Currently we only map to log-normal errors for model points that are below the corresponding data point. This
+		# penalizes models which lie far below the data in such a way that the log-likelihood continues to get worse as
+		# the model falls to lower and lower values, while not allowing the model to deviate far above the data with only
+		# modest decrease in log-likelihood.
+		my $belowData = 
+		    which
 		    (
-	 	                              1.0/$config              ->{'y'}->($nonZeroObserved                 ),
-		                              1.0/$config              ->{'y'}->($nonZeroObserved                 )
+		     $yGalacticusLimited       ->($nonZeroObserved) 
+		     <
+		     $config            ->{'y'}->($nonZeroObserved)
 		    );
-		$covarianceGalacticusMapped =     $covarianceGalacticus       ->($nonZeroObserved,$nonZeroObserved)
-		    *outer
-		    (
-		                              1.0/$config              ->{'y'}->($nonZeroObserved                 ),
-		                              1.0/$config              ->{'y'}->($nonZeroObserved                 )
-		    );
+		$yGalacticusMapped                         =           $yGalacticusLimited       ->($nonZeroObserved                 )->copy() ;
+		$yDataMapped                               =           $config            ->{'y'}->($nonZeroObserved                 )->copy() ;
+		$covarianceFullMapped                      =           $fullCovariance           ->($nonZeroObserved,$nonZeroObserved)->copy() ;		
+		$covarianceGalacticusMapped                =           $covarianceGalacticus     ->($nonZeroObserved,$nonZeroObserved)->copy() ;		
+		my $covarianceTransform                    = pdl ones($yGalacticusMapped);
+		$covarianceTransform       ->($belowData) .= 1.0/$yDataMapped                    ->($belowData                       )         ;
+		$yGalacticusMapped         ->($belowData) .= log($yGalacticusMapped              ->($belowData                       )        );
+		$yDataMapped               ->($belowData) .= log($yDataMapped                    ->($belowData                       )        );
+		$covarianceFullMapped                     *= outer($covarianceTransform,$covarianceTransform);
+		$covarianceGalacticusMapped               *= outer($covarianceTransform,$covarianceTransform);
 	    }
 	} else {
 	    $yGalacticusMapped          =     $yGalacticusLimited         ->($nonZeroObserved                 );
