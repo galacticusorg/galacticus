@@ -33,7 +33,7 @@ module Merger_Trees_Dump
 contains
 
   subroutine Merger_Tree_Dump(treeIndex,baseNode,highlightNodes,backgroundColor,nodeColor,edgeColor,highlightColor,nodeStyle&
-       &,highlightStyle ,edgeStyle ,labelNodes,labelUnique,scaleNodesByLogMass,edgeLengthsToTimes,path)
+       &,highlightStyle ,edgeStyle ,labelNodes,labelUnique,scaleNodesByLogMass,edgeLengthsToTimes,timeRange,path)
     !% Dumps the tree structure to a file in a format suitable for processing with \href{http://www.graphviz.org/}{\normalfont \scshape dot}. Nodes
     !% are shown as circles if isolated or rectangles if satellites. Isolated nodes are connected to their descendent halo, while
     !% satellites are connected (by red lines) to their host halo. Optionally, a list of node indices to highlight can be
@@ -50,6 +50,7 @@ contains
          &                                                                                  nodeStyle
     logical                                           , intent(in   ), optional          :: edgeLengthsToTimes       , labelNodes          , &
          &                                                                                  scaleNodesByLogMass      , labelUnique
+    double precision                    , dimension(2), intent(in   ), optional          :: timeRange
     type            (varying_string    )              , intent(in   ), optional          :: path
     type            (treeNode          )                                       , pointer :: thisNode
     class           (nodeComponentBasic)                                       , pointer :: parentBasicComponent     , thisBasicComponent
@@ -156,6 +157,9 @@ contains
        nodeMassMaximum=log(nodeMassMaximum)
        timeMinimum    =log(timeMinimum)
        timeMaximum    =log(timeMaximum)
+    else
+       nodeMassMinimum=0.0d0
+       nodeMassMaximum=0.0d0
     end if
 
     ! Open an output file and write the GraphViz opening.
@@ -177,57 +181,73 @@ contains
     do while (associated(thisNode))
        ! Get the basic component.
        thisBasicComponent => thisNode%basic()
-       ! Write each node, setting the node shape to a box for subhalos and a circle for halos. Node label consists of the node
-       ! index plus the redshift, separated by a colon.
-       ! Determine node color.
-       if (present(highlightNodes)) then
-          if (any(highlightNodes == thisNode%index())) then
-             color=highlightColorActual
-             style=highlightStyleActual
+       ! Skip the node if it lies outside of the specified time range.
+       if     (                                             &
+            &   .not.present(timeRange)                     &
+            &  .or.                                         &
+            &   (                                           &
+            &     thisBasicComponent%time() >= timeRange(1) &
+            &    .and.                                      &
+            &     thisBasicComponent%time() <= timeRange(2) &
+            &   )                                           &
+            & ) then
+          ! Write each node, setting the node shape to a box for subhalos and a circle for halos. Node label consists of the node
+          ! index plus the redshift, separated by a colon.
+          ! Determine node color.
+          if (present(highlightNodes)) then
+             if     (                                                                           &
+                  &   (     labelUniqueActual .and. any(highlightNodes == thisNode%uniqueID())) &
+                  &  .or.                                                                       &
+                  &   (.not.labelUniqueActual .and. any(highlightNodes == thisNode%index   ())) &
+                  & ) then
+                color=highlightColorActual
+                style=highlightStyleActual
+             else
+                color=nodeColorActual
+                style=nodeStyleActual
+             end if
           else
              color=nodeColorActual
              style=nodeStyleActual
           end if
-       else
-          color=nodeColorActual
-          style=nodeStyleActual
-       end if
-       ! Create node labels.
-       if (labelUniqueActual) then
-          write (      label,'(i16.16)') thisNode       %uniqueID()
-       else
-          write (      label,'(i16.16)') thisNode       %index   ()
-       end if
-       ! Create node.
-       if (thisNode%isSatellite()) then
-          write (fileUnit,'(a,i16.16,a,a,a,a,a)') '"',thisNode%uniqueID(),'" [shape=box   , color=',trim(color),', style=',trim(style),'];'
-          ! Make a link to the hosting node.
-          write (fileUnit,'(a,i16.16,a,i16.16,a,a,a)') '"',thisNode%uniqueID(),'" -> "',thisNode%parent%uniqueID(),'" [color=red, style=',trim(edgeStyleActual),'];'
-       else
-          write (fileUnit,'(a,i16.16,a,a,a,a,a)') '"',thisNode%uniqueID(),'" [shape=circle, color=',trim(color),', style=',trim(style),'];'
-          ! Make a link to the descendent node.
-          if (associated(thisNode%parent)) then
-             write (fileUnit,'(a,i16.16,a,i16.16,a,a,a,a,$)') '"',thisNode%uniqueID(),'" -> "',thisNode%parent%uniqueID(),'" [color="',trim(edgeColorActual),'", style=',trim(edgeStyleActual)
-             if (edgeLengthsToTimesActual) then
-                parentBasicComponent => thisNode%parent%basic()
-                timeDifference=1000.0d0*log10(parentBasicComponent%time()/thisBasicComponent%time())/(timeMaximum-timeMinimum)
-                write (fileUnit,'(a,f10.6,$)') ', minlen=',timeDifference
-             end if
-             write (fileUnit,'(a)') '];'
+          ! Create node labels.
+          if (labelUniqueActual) then
+             write (      label,'(i16.16)') thisNode       %uniqueID()
+          else
+             write (      label,'(i16.16)') thisNode       %index   ()
           end if
-       end if
+          ! Create node.
+          if (thisNode%isSatellite()) then
+             write (fileUnit,'(a,i16.16,a,a,a,a,a)') '"',thisNode%uniqueID(),'" [shape=box   , color=',trim(color),', style=',trim(style),'];'
+             ! Make a link to the hosting node.
+             write (fileUnit,'(a,i16.16,a,i16.16,a,a,a)') '"',thisNode%uniqueID(),'" -> "',thisNode%parent%uniqueID(),'" [color=red, style=',trim(edgeStyleActual),'];'
+          else
+             write (fileUnit,'(a,i16.16,a,a,a,a,a)') '"',thisNode%uniqueID(),'" [shape=circle, color=',trim(color),', style=',trim(style),'];'
+             ! Make a link to the descendent node.
+             if (associated(thisNode%parent)) then
+                write (fileUnit,'(a,i16.16,a,i16.16,a,a,a,a,$)') '"',thisNode%uniqueID(),'" -> "',thisNode%parent%uniqueID(),'" [color="',trim(edgeColorActual),'", style=',trim(edgeStyleActual)
+                if (edgeLengthsToTimesActual) then
+                   parentBasicComponent => thisNode%parent%basic()
+                   timeDifference=1000.0d0*log10(parentBasicComponent%time()/thisBasicComponent%time())/(timeMaximum-timeMinimum)
+                   write (fileUnit,'(a,f10.6,$)') ', minlen=',timeDifference
+                end if
+                write (fileUnit,'(a)') '];'
+             end if
+          end if
 
-       ! Set size of node if requested.
-       if (scaleNodesByLogMassActual.and.nodeMassMaximum > nodeMassMinimum) then
-          nodeMass=10.0d0*(log(thisBasicComponent%mass())-nodeMassMinimum)/(nodeMassMaximum-nodeMassMinimum)+1.0d0
-          write (fileUnit,'(a,i16.16,a,f10.6,a)') '"',thisNode%uniqueID(),'" [width=',nodeMass,'];'
-       end if
+          ! Set size of node if requested.
+          if (scaleNodesByLogMassActual.and.nodeMassMaximum > nodeMassMinimum) then
+             nodeMass=10.0d0*(log(thisBasicComponent%mass())-nodeMassMinimum)/(nodeMassMaximum-nodeMassMinimum)+1.0d0
+             write (fileUnit,'(a,i16.16,a,f10.6,a)') '"',thisNode%uniqueID(),'" [width=',nodeMass,'];'
+          end if
 
-       ! Remove label if requested.
-       if (.not.labelNodesActual) then
-          write (fileUnit,'(a,i16.16,a)'    ) '"',thisNode%uniqueID(),'" [label=""];'
-       else
-          write (fileUnit,'(a,i16.16,a,a,a)') '"',thisNode%uniqueID(),'" [label="',label,'"];'
+          ! Remove label if requested.
+          if (.not.labelNodesActual) then
+             write (fileUnit,'(a,i16.16,a)'    ) '"',thisNode%uniqueID(),'" [label=""];'
+          else
+             write (fileUnit,'(a,i16.16,a,a,a)') '"',thisNode%uniqueID(),'" [label="',label,'"];'
+          end if
+
        end if
 
        ! Walk the tree, including satellite nodes.
