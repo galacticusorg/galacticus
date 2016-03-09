@@ -16,19 +16,16 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class implementing scales of dark matter halos.
+!% Contains a module which provides a class implementing scales of dark matter halo scales.
 
 module Dark_Matter_Halo_Scales
-  !% Provides a class implementing scales of dark matter halos.
-  use ISO_Varying_String
+  !% Provides a class implementing scales of dark matter halo scales.
   use Galacticus_Nodes
   use FGSL
-  !# <include directive="darkMatterHaloScale" type="functionModules" >
-  include 'darkMatterHaloScale.functionModules.inc'
-  !# </include>
   private
 
-  !# <include directive="darkMatterHaloScale" type="function" >
+  !# <functionClass>
+  !#  <name>darkMatterHaloScale</name>
   !#  <descriptiveName>Dark Matter Halo Scales</descriptiveName>
   !#  <description>Class providing dark matter halo scales.</description>
   !#  <default>virialDensityContrastDefinition</default>
@@ -89,7 +86,6 @@ module Dark_Matter_Halo_Scales
   !#   <pass>yes</pass>
   !#   <argument>type(treeNode), pointer, intent(inout) :: thisNode</argument>
   !#  </method>
-  include 'darkMatterHaloScale.type.inc'
-  !# </include>
+  !# </functionClass>
 
 end module Dark_Matter_Halo_Scales
