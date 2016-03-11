@@ -128,7 +128,8 @@ my @convergences =
      parameter => "mergerTreeBuilderMethod:accretionLimit",
      factor    => 1.259,
      steps     => 21,
-     ideal     => "smallest"
+     ideal     => "smallest",
+     maximum   => 1.0
  },
  {
      parameter => "modifiedPressSchechterFirstOrderAccuracy",
@@ -231,6 +232,14 @@ foreach my $convergence ( @convergences ) {
 	# Adjust the parameter.
 	$activeParameter->{'value'} *= $convergence->{'factor'}
 	   if ( $i > 0 );
+	# Check if parameter is in range.
+	next
+	    if 
+	    (
+	     exists($convergence->{'maximum'})
+	     &&
+	     $activeParameter->{'value'} >= $convergence->{'maximum'}
+	    );
 	# Create a directory for output.
 	(my $parameterSafe = $convergence->{'parameter'}) =~ s/://g;
 	my $modelDirectory = $workDirectory."/".$arguments{'directory'}."/".$parameterSafe."/".$i;
@@ -345,6 +354,14 @@ foreach my $constraint ( @constraints ) {
 	    # Adjust the parameter.
 	    $activeParameter->{'value'} *= $convergence->{'factor'}
 	       if ( $i > 0 );
+	    # Check if parameter is in range.
+	    next
+		if 
+		(
+		 exists($convergence->{'maximum'})
+		 &&
+		 $activeParameter->{'value'} >= $convergence->{'maximum'}
+		);
 	    # Locate the model directory.
 	    (my $parameterSafe = $convergence->{'parameter'}) =~ s/://g;
 	    my $modelDirectory = $workDirectory."/".$arguments{'directory'}."/".$parameterSafe."/".$i;
