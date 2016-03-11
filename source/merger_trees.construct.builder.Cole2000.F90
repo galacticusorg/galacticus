@@ -58,6 +58,7 @@
      procedure :: shouldAbort        => cole2000ShouldAbort
      procedure :: shouldFollowBranch => cole2000ShouldFollowBranch
      procedure :: timeEarliestSet    => cole2000TimeEarliestSet
+     procedure :: validateParameters => cole2000ValidateParameters
   end type mergerTreeBuilderCole2000
 
   interface mergerTreeBuilderCole2000
@@ -131,6 +132,8 @@ contains
     cole2000ConstructorParameters%timeEarliest=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum))
     ! Initialize state.
     cole2000ConstructorParameters%branchingIntervalDistributionInitialized=.false.
+    ! Validate parameters.
+    call cole2000ConstructorParameters%validateParameters()
     return
   end function cole2000ConstructorParameters
 
@@ -154,8 +157,20 @@ contains
     cole2000ConstructorInternal%mergerTreeMassResolution_ => mergerTreeMassResolution_
     ! Initialize state.
     cole2000ConstructorInternal%branchingIntervalDistributionInitialized=.false.
+    ! Validate parameters.
+    call cole2000ConstructorInternal%validateParameters()
     return
   end function cole2000ConstructorInternal
+
+  subroutine cole2000ValidateParameters(self)
+    !% Validate parameters for the {\normalfont \ttfamily Cole2000} merger tree builder class.
+    use Galacticus_Error
+    implicit none
+    class(mergerTreeBuilderCole2000), intent(inout) :: self
+
+    if (self%accretionLimit >= 1.0d0) call Galacticus_Error_Report('cole2000ValidateParameters','accretionLimit < 1 required')
+    return
+  end subroutine cole2000ValidateParameters
 
   subroutine cole2000Build(self,tree)
     !% Build a merger tree.

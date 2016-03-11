@@ -244,7 +244,7 @@ sub SubmitJobs {
     # Determine maximum number allowed in queue at once.
     my $jobMaximum = 10;
     $jobMaximum = $pbsConfig->{'jobMaximum'}
-       if ( exists($pbsConfig->{'jbMaximum'}) );
+       if ( exists($pbsConfig->{'jobMaximum'}) );
     $jobMaximum = $arguments{'pbsJobMaximum'}
        if ( exists($arguments{'pbsJobMaximum'}) );
     # Submit jobs and wait.
@@ -305,11 +305,18 @@ sub SubmitJobs {
 		    if ( exists($newJob->{'wallTime'}) );
 		print $scriptFile "#PBS -l mem=".$newJob->{'mem'}."\n"
 		    if ( exists($newJob->{'mem'}) );
+		print $scriptFile "#PBS -q ".$arguments{'queue'}."\n"
+		    if ( exists($arguments{'queue'}) );
 		print $scriptFile "#PBS -l nodes=1:ppn=".$ppn."\n";
 		print $scriptFile "#PBS -j oe\n";
 		print $scriptFile "#PBS -o ".$newJob->{'logFile'}."\n";
 		print $scriptFile "#PBS -V\n";
-		print $scriptFile "cd \$PBS_O_WORKDIR\n";
+		# Find the working directory - we support either PBS or SLURM environment variables here.
+		print $scriptFile "if [ ! -z \${PBS_O_WORKDIR+x} ]; then\n";
+		print $scriptFile " cd \$PBS_O_WORKDIR\n";
+		print $scriptFile "elif [ ! -z \${SLURM_SUBMIT_DIR+x} ]; then\n";
+		print $scriptFile " cd \$SLURM_SUBMIT_DIR\n";
+		print $scriptFile "fi\n";
 		print $scriptFile "export ".$_."\n"
 		    foreach ( &ExtraUtils::as_array($pbsConfig->{'environment'}) );
 		print $scriptFile "ulimit -t unlimited\n";
