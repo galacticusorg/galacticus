@@ -120,11 +120,12 @@ foreach my $model ( @models ) {
     $newParameters->{$_->{'name'}}->{'value'} = $_->{'value'}
         foreach ( @{$model->{'parameters'}} );
     # Adjust the number of trees to run if specified.
-    $newParameters->{'mergerTreeBuildTreesPerDecade'}->{'value'} = $arguments{'treesPerDecade'}
-        if ( exists($arguments{'treesPerDecade'}) );
+    if ( exists($arguments{'treesPerDecade'}) ) {
+	# Must also specify that trees are to be built in this case.
+	$newParameters->{'mergerTreeConstructMethod'    }->{'value'} = "build";
+	$newParameters->{'mergerTreeBuildTreesPerDecade'}->{'value'} = $arguments{'treesPerDecade'};
+    }
     # Set the fixed mass resolution.
-    $newParameters->{'mergerTreeBuildMassResolutionScaledMinimum'}->{'value'} =
-	$newParameters->{'mergerTreeBuildMassResolutionScaledMinimum'}->{'value'};
     $newParameters->{'mergerTreeBuildMassResolutionScaledMinimum'}->{'value'} =
 	$arguments{'massResolutionFixed'}
            if ( exists($arguments{'massResolutionFixed'}) );
@@ -132,7 +133,7 @@ foreach my $model ( @models ) {
     unless ( -e $galacticusFileName ) {
 	# Generate the parameter file.
 	my $parameterFileName = $modelDirectory."/parameters.xml";
-	&Parameters::Output($newParameters,$parameterFileName);
+	&Parameters::Output($newParameters,$parameterFileName);	
 	# Create a job for PBS.
 	my $command = "mpirun --bynode -np 1 Galacticus.exe ".$parameterFileName."\n";
 	foreach my $constraint ( @constraints ) {
