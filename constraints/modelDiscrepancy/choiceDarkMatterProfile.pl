@@ -136,7 +136,7 @@ foreach my $model ( @models ) {
     # Adjust the number of trees to run if specified.
     if ( exists($arguments{'treesPerDecade'}) ) {
 	# Must also specify that trees are to be built in this case.
-	$newParameters->{'mmergerTreeConstructMethod'   }->{'value'} = "build";
+	$newParameters->{'mergerTreeConstructMethod'    }->{'value'} = "build";
 	$newParameters->{'mergerTreeBuildTreesPerDecade'}->{'value'} = $arguments{'treesPerDecade'};
     }
     # Run the model.
