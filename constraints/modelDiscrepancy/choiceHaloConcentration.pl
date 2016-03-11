@@ -130,8 +130,11 @@ foreach my $model ( @models ) {
     $newParameters->{$_->{'name'}}->{'value'} = $_->{'value'}
         foreach ( @{$model->{'parameters'}} );
     # Adjust the number of trees to run if specified.
-    $newParameters->{'mergerTreeBuildTreesPerDecade'}->{'value'} = $arguments{'treesPerDecade'}
-        if ( exists($arguments{'treesPerDecade'}) );
+    if ( exists($arguments{'treesPerDecade'}) ) {
+	# Must also specify that trees are to be built in this case.
+	$newParameters->{'mergerTreeConstructMethod'    }->{'value'} = "build";
+	$newParameters->{'mergerTreeBuildTreesPerDecade'}->{'value'} = $arguments{'treesPerDecade'};
+    }
     # Run the model.
     unless ( -e $galacticusFileName ) {
 	# Generate the parameter file.
