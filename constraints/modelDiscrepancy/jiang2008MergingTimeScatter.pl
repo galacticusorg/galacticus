@@ -13,6 +13,7 @@ use Clone qw(clone);
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
+require List::ExtraUtils;
 require Galacticus::Constraints::Parameters;
 require Galacticus::Constraints::DiscrepancySystematics;
 require Galacticus::Launch::PBS;
@@ -55,6 +56,9 @@ $scratchDirectory    = $config->{'likelihood'}->{'scratchDirectory'} if ( exists
 # Create the work and scratch directories.
 system("mkdir -p ".$config->{'likelihood'}->{'workDirectory'});
 
+# Determine base parameters to use.
+my $baseParameters = exists($arguments{'baseParameters'}) ? $arguments{'baseParameters'} : $config->{'likelihood'}->{'baseParameters'};
+
 # Ensure that Galacticus is built.
 if ( $arguments{'make'} eq "yes" ) {
     system("make Galacticus.exe");
@@ -63,11 +67,16 @@ if ( $arguments{'make'} eq "yes" ) {
 }
 
 # Get a hash of the parameter values.
-(my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'likelihood'}->{'compilation'},$config->{'likelihood'}->{'baseParameters'});
+(my $constraintsRef, my $parameters) = 
+    &Parameters::Compilation
+    (
+     $config->{'likelihood'}->{'compilation'},
+     $baseParameters
+    );
 my @constraints = @{$constraintsRef};
 
 # Switch off thread locking.
-$parameters->{'parameter'}->{'treeEvolveThreadLock'}->{'value'} = "false";
+$parameters->{'treeEvolveThreadLock'}->{'value'} = "false";
 
 # Initialize a stack for PBS models.
 my @pbsStack;
@@ -118,17 +127,20 @@ foreach my $model ( @models ) {
 	}
 	);
     my $newParameters = clone($parameters);
-    $newParameters->{'parameter'}->{$_->{'name'}}->{'value'} = $_->{'value'}
+    $newParameters->{$_->{'name'}}->{'value'} = $_->{'value'}
         foreach ( @{$model->{'parameters'}} );
     # Adjust the number of trees to run if specified.
-    $newParameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'} = $arguments{'treesPerDecade'}
-        if ( exists($arguments{'treesPerDecade'}) );
+    if ( exists($arguments{'treesPerDecade'}) ) {
+	# Must also specify that trees are to be built in this case.
+	$newParameters->{'mergerTreeConstructMethod'    }->{'value'} = "build";
+	$newParameters->{'mergerTreeBuildTreesPerDecade'}->{'value'} = $arguments{'treesPerDecade'};
+    }
     # Run the model.
     unless ( -e $galacticusFileName ) {
 	# Generate the parameter file.
 	my $parameterFileName = $modelDirectory."/parameters.xml";
 	&Parameters::Output($newParameters,$parameterFileName);
-	# Create a batch script for PBS.
+	# Create PBS job.
 	my $command = "mpirun --bynode -np 1 Galacticus.exe ".$parameterFileName."\n";
 	foreach my $constraint ( @constraints ) {
 	    # Parse the definition file.
@@ -137,7 +149,6 @@ foreach my $model ( @models ) {
 	    my $analysisCode = $constraintDefinition->{'analysis'};
 	    $command .= $analysisCode." ".$galacticusFileName." --resultFile ".$modelDirectory."/".$constraintDefinition->{'label'}.".hdf5\n";
 	}
-	# Queue the calculation.
 	my %job =
 	    (
 	     launchFile => $modelDirectory."/launch.pbs",
@@ -153,7 +164,7 @@ foreach my $model ( @models ) {
 	push(
 	    @pbsStack,
 	    \%job
-	    );
+	    );   
     }
 }
 # Send jobs to PBS.
@@ -180,7 +191,16 @@ foreach my $constraint ( @constraints ) {
     foreach my $argument ( keys(%arguments) ) {
 	if ( $argument =~ m/^systematic(.*)/ ) {
 	    my $model = $1;
-	    if ( exists($DiscrepancySystematics::models{$model}) ) {
+	    if 
+		( 
+		  exists($DiscrepancySystematics::models{$model}) 
+		  && 
+		  $arguments{$argument} eq "yes"
+		  &&
+		  exists($constraintDefinition->{$argument})
+		  &&
+		  $constraintDefinition->{$argument} eq "yes"
+		) {
 		%{$systematicResults{$model}} =
 		    &{$DiscrepancySystematics::models{$model}}(
 		    \%arguments           ,
@@ -195,7 +215,7 @@ foreach my $constraint ( @constraints ) {
 	}
     }
     # Find the multiplicative discrepancy between these two models.
-    (my $nonZero, my $zero)            = which_both($defaultY > 0.0);
+    (my $nonZero, my $zero)                      = which_both($defaultY > 0.0);
     my $modelDiscrepancyMultiplicative = $recommendedY->copy();
     $modelDiscrepancyMultiplicative->($nonZero) /= $defaultY->($nonZero);
     $modelDiscrepancyMultiplicative->($zero   ) .= 1.0;
@@ -205,7 +225,6 @@ foreach my $constraint ( @constraints ) {
 	+$defaultCovariance    *outer($recommendedY/$defaultY**2,$recommendedY/$defaultY**2);
     # Output the model discrepancy to file.
     my $outputFile = new PDL::IO::HDF5(">".$workDirectory."/modelDiscrepancy/jiang2008MergingTimeScatter/discrepancy".ucfirst($constraintDefinition->{'label'}).".hdf5");
-    $outputFile->dataset('multiplicative'          )->set($modelDiscrepancyMultiplicative          );
     $outputFile->dataset('multiplicativeCovariance')->set($modelDiscrepancyCovarianceMultiplicative);
     $outputFile->attrSet(
 	description => "Model discrepancy for ".$constraintDefinition->{'name'}." due to use non-recommended scatter in halo merger times in the Jiang2008 implementation."
