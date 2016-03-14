@@ -105,8 +105,7 @@ contains
          &                                                                                      )
     double precision                            , parameter                     :: toleranceAbsolute=0.0d+0
     double precision                            , parameter                     :: toleranceRelative=1.0d-3
-    type            (rootFinder                ), save                          :: totalFinder                    , radialFinder
-    !$omp threadprivate(totalFinder,radialFinder)
+    type            (rootFinder                )                                :: totalFinder                    , radialFinder
     double precision                                                            :: velocityHost                   , radiusHost   , &
          &                                                                         massHost                       , massSatellite, &
          &                                                                         energyInternal                 , probabilityRadialNormalization, &
@@ -130,9 +129,6 @@ contains
     massHost     =Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%time()),radiusHost,velocityHost)
     massSatellite=Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%time())                        )
     deallocate(virialDensityContrast_)
-    ! Set basic properties of the orbit.
-    call jiang2014Orbit%massesSet(massSatellite,massHost)
-    call jiang2014Orbit%radiusSet(radiusHost            )
     ! Select parameters appropriate for this host-satellite pair.
     if      (massHost < 10.0d0**12.5d0) then
        i=1
@@ -148,6 +144,8 @@ contains
     else
        j=3
     end if
+    ! Build the distribution function for total velocity.
+    voightDistribution=distributionVoight(gamma(i,j),mu(i,j),sigma(i,j),limitLower=0.0d0,limitUpper=2.0d0)
     ! Configure finder objects.
     if (.not.totalFinder %isInitialized()) then
        call totalFinder %rootFunction(totalVelocityCDF )
@@ -174,9 +172,13 @@ contains
     ! Select an orbit.
     foundOrbit=.false.
     do while(.not.foundOrbit)
+       ! Reset the orbit so that we can begin constructing a new trial orbit.
+       call jiang2014Orbit%reset()
+       ! Set basic properties of the orbit.
+       call jiang2014Orbit%massesSet(massSatellite,massHost)
+       call jiang2014Orbit%radiusSet(radiusHost            )
        ! Solve for the total velocity.
        xTotal                        =Pseudo_Random_Get(self%pseudoSequenceObject,self%resetSequence)
-       voightDistribution            =distributionVoight(gamma(i,j),mu(i,j),sigma(i,j),limitLower=0.0d0,limitUpper=2.0d0)
        velocityTotalInternal         =totalFinder %find(rootGuess=1.0d0)
        ! Solve for the radial velocity.
        xRadial                       =0.0d0
