@@ -39,6 +39,13 @@ module Dark_Matter_Profiles_Concentration
   !#   <pass>yes</pass>
   !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
   !#  </method>
+  !#  <method name="concentrationMean" >
+  !#   <description>Returns the mean concentration parameter for a {\normalfont \ttfamily node} of the given mass.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
+  !#   <code>darkMatterProfileConcentrationConcentrationMean=self%concentration(node)</code>
+  !#  </method>
   !#  <method name="densityContrastDefinition" >
   !#   <description>Returns a {\normalfont \ttfamily virialDensityContrast} object describing the virial density contrast used to define this concentration.</description>
   !#   <type>class(virialDensityContrastClass)</type>
