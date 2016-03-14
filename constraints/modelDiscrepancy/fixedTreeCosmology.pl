@@ -377,6 +377,7 @@ for(my $i=0;$i<$arguments{'sampleCount'};++$i) {
 foreach my $constraint ( @constraints ) {
     # Parse the definition file.
     my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
+    print "Computing discrepancy for constraint: ".$constraintDefinition->{'label'}."\n";    
     # Initialize data.
     my $treeMass;
     my $treeMassFunction;

@@ -227,11 +227,14 @@ contains
          &                               *basic%mass()                                          &
          &                              )                                                       &
          &                        -massNormalization
-    redshift                     =cosmologyFunctions_%redshiftFromExpansionFactor(              &
-         &                        cosmologyFunctions_%expansionFactor             (             &
-         &                                                                         basic%time() &
-         &                                                                        )             &
-         &                                                                       )
+    redshift                     =max(                                                                &
+         &                            0.0d0                                                         , &
+         &                            cosmologyFunctions_ %redshiftFromExpansionFactor(               &
+         &                             cosmologyFunctions_%expansionFactor             (              &
+         &                                                                              basic%time()  &
+         &                                                                             )              &
+         &                                                                            )               &
+         &                           )
     parameterA                   =self%a1+(self%a2-self%a1)*exp(self%a3*redshift**self%a4)
     parameterB                   =self%b1+self%b2*redshift
     duttonMaccio2014Concentration=10.0d0**(parameterA+parameterB*logarithmHaloMass)
