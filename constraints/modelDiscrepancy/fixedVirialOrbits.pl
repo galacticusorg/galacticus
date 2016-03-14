@@ -169,6 +169,7 @@ foreach my $model ( @models ) {
 foreach my $constraint ( @constraints ) {
     # Parse the definition file.
     my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
+    print "Computing discrepancy for constraint: ".$constraintDefinition->{'label'}."\n";    
     # Locate the model results.
     my $variableOrbitsResultFileName = $workDirectory."/modelDiscrepancy/fixedVirialOrbits/variableOrbits/".$constraintDefinition->{'label'}.".hdf5";
     my $fixedOrbitsResultFileName    = $workDirectory."/modelDiscrepancy/fixedVirialOrbits/fixedOrbits/"   .$constraintDefinition->{'label'}.".hdf5";
@@ -213,7 +214,8 @@ foreach my $constraint ( @constraints ) {
     (my $nonZero, my $zero)            = which_both($fixedY > 0.0);
     my $modelDiscrepancyMultiplicative = $variableY->copy();
     $modelDiscrepancyMultiplicative->($nonZero) /= $fixedY->($nonZero);
-    $modelDiscrepancyMultiplicative->($zero   ) .= 1.0;
+    $modelDiscrepancyMultiplicative->($zero   ) .= 1.0
+	if ( nelem($zero) > 0 );
     # Compute the covariance.
     my $modelDiscrepancyCovarianceMultiplicative = 
 	 $variableCovariance*outer(       1.0/$fixedY   ,       1.0/$fixedY   )

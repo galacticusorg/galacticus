@@ -186,6 +186,7 @@ foreach my $model ( @models ) {
 foreach my $constraint ( @constraints ) {
     # Parse the definition file.
     my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
+    print "Computing discrepancy for constraint: ".$constraintDefinition->{'label'}."\n";    
     # Locate the model results.
     my $modifiedResultFileName = 
 	$workDirectory.
@@ -236,7 +237,8 @@ foreach my $constraint ( @constraints ) {
     (my $nonZero, my $zero)                      = which_both($modifiedY > 0.0);
     my $modelDiscrepancyMultiplicative           = $defaultY->copy();
     $modelDiscrepancyMultiplicative->($nonZero) /= $modifiedY->($nonZero);
-    $modelDiscrepancyMultiplicative->(   $zero) .= 1.0;
+    $modelDiscrepancyMultiplicative->(   $zero) .= 1.0
+	if ( nelem($zero) > 0 );
     # Compute the covariance.
     my $modelDiscrepancyCovarianceMultiplicative = 
 	 $defaultCovariance *outer(      1.0/$modifiedY   ,      1.0/$modifiedY   )

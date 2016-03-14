@@ -174,6 +174,7 @@ foreach my $model ( @models ) {
 foreach my $constraint ( @constraints ) {
     # Parse the definition file.
     my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
+    print "Computing discrepancy for constraint: ".$constraintDefinition->{'label'}."\n";    
     # Locate the model results.
     my $recommendedScatterResultFileName = $workDirectory."/modelDiscrepancy/jiang2008MergingTimeScatter/recommendedScatter/".$constraintDefinition->{'label'}.".hdf5";
     my $defaultScatterResultFileName     = $workDirectory."/modelDiscrepancy/jiang2008MergingTimeScatter/defaultScatter/"    .$constraintDefinition->{'label'}.".hdf5";
@@ -218,7 +219,8 @@ foreach my $constraint ( @constraints ) {
     (my $nonZero, my $zero)                      = which_both($defaultY > 0.0);
     my $modelDiscrepancyMultiplicative = $recommendedY->copy();
     $modelDiscrepancyMultiplicative->($nonZero) /= $defaultY->($nonZero);
-    $modelDiscrepancyMultiplicative->($zero   ) .= 1.0;
+    $modelDiscrepancyMultiplicative->($zero   ) .= 1.0
+	if ( nelem($zero) > 0 );
     # Compute the covariance.
     my $modelDiscrepancyCovarianceMultiplicative = 
 	 $recommendedCovariance*outer(          1.0/$defaultY   ,          1.0/$defaultY   )

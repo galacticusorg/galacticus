@@ -178,6 +178,7 @@ foreach my $model ( @models ) {
 foreach my $constraint ( @constraints ) {
     # Parse the definition file.
     my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
+    print "Computing discrepancy for constraint: ".$constraintDefinition->{'label'}."\n";    
     # Locate the model results.
     my $noninstantaneousRecyclingResultFileName = 
 	$workDirectory.
@@ -228,7 +229,8 @@ foreach my $constraint ( @constraints ) {
     (my $nonZero, my $zero)                      = which_both($instantY > 0.0);
     my $modelDiscrepancyMultiplicative           = $noninstantY->copy();
     $modelDiscrepancyMultiplicative->($nonZero) /= $instantY->($nonZero);
-    $modelDiscrepancyMultiplicative->(   $zero) .= 1.0;
+    $modelDiscrepancyMultiplicative->(   $zero) .= 1.0
+	if ( nelem($zero) > 0 );
     # Compute the covariance.
     my $modelDiscrepancyCovarianceMultiplicative = 
 	 $noninstantCovariance*outer(         1.0/$instantY   ,         1.0/$instantY   )
