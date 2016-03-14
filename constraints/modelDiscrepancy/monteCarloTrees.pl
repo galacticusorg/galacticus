@@ -714,6 +714,7 @@ foreach my $model ( @models ) {
 foreach my $constraint ( @constraints ) {
     # Parse the definition file.
     my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
+    print "Computing discrepancy for constraint: ".$constraintDefinition->{'label'}."\n";    
     # Iterate over Monte Carlo models.
     my $monteCarloMass;
     my $monteCarloMassFunction;

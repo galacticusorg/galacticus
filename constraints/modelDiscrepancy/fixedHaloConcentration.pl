@@ -99,8 +99,8 @@ my @models =
 		  value => "diemerKravtsov2014"
 	      },
 	      {
-		  name  => "darkMatterProfileConcentrationDiemerKravtsov2014Scatter",
-		  value => 0
+		  name  => "darkMatterProfileConcentrationMethod->scatter",
+		  value => 0.0
 	      }
 	     ]
      },
@@ -114,7 +114,7 @@ my @models =
 		  value => "diemerKravtsov2014"
 	      },
 	      {
-		  name  => "darkMatterProfileConcentrationDiemerKravtsov2014Scatter",
+		  name  => "darkMatterProfileConcentrationMethod->scatter",
 		  value => 0.16
 	      }
 	     ]
@@ -135,8 +135,15 @@ foreach my $model ( @models ) {
 	}
 	);
     my $newParameters = clone($parameters);
-    $newParameters->{$_->{'name'}}->{'value'} = $_->{'value'}
-        foreach ( @{$model->{'parameters'}} );
+    foreach my $parameter ( @{$model->{'parameters'}} ) {
+	my $thisParameter = $newParameters;
+	foreach ( split(/\-\>/,$parameter->{'name'}) ) {
+	    $thisParameter->{$_}->{'value'} = undef()
+		unless ( exists($thisParameter->{$_}) );
+	    $thisParameter = $thisParameter->{$_};
+	}
+	$thisParameter->{'value'} = $parameter->{'value'}
+    }
     # Adjust the number of trees to run if specified.
     if ( exists($arguments{'treesPerDecade'}) ) {
 	# Must also specify that trees are to be built in this case.
@@ -182,6 +189,7 @@ foreach my $model ( @models ) {
 foreach my $constraint ( @constraints ) {
     # Parse the definition file.
     my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
+    print "Computing discrepancy for constraint: ".$constraintDefinition->{'label'}."\n";    
     # Locate the model results.
     my $variableHaloConcentrationResultFileName = 
 	$workDirectory.
@@ -232,7 +240,8 @@ foreach my $constraint ( @constraints ) {
     (my $nonZero, my $zero)                      = which_both($fixedY > 0.0);
     my $modelDiscrepancyMultiplicative           = $variableY->copy();
     $modelDiscrepancyMultiplicative->($nonZero) /= $fixedY->($nonZero);
-    $modelDiscrepancyMultiplicative->(   $zero) .= 1.0;
+    $modelDiscrepancyMultiplicative->(   $zero) .= 1.0
+	if ( nelem($zero) > 0 );
     # Compute the covariance.
     my $modelDiscrepancyCovarianceMultiplicative = 
 	 $variableCovariance*outer(       1.0/$fixedY   ,       1.0/$fixedY   )
