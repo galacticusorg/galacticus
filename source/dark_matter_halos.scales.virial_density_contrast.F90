@@ -76,7 +76,7 @@ contains
     implicit none
     type (darkMatterHaloScaleVirialDensityContrastDefinition), target        :: virialDensityContrastDefinitionParameters
     type (inputParameters                                   ), intent(inout) :: parameters
-    class(virialDensityContrastClass                        ), pointer       :: virialDensityContrast_
+    class(virialDensityContrastClass                        ), pointer :: virialDensityContrast_
     !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.

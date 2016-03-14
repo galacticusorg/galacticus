@@ -158,6 +158,7 @@ foreach my $model ( @models ) {
 foreach my $constraint ( @constraints ) {
     # Parse the definition file.
     my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
+    print "Computing discrepancy for constraint: ".$constraintDefinition->{'label'}."\n";    
     # Locate the model results.
     my $noUpperLimitResultFileName = $workDirectory."/modelDiscrepancy/treeRedshiftUpperLimit/noUpperLimit/".$constraintDefinition->{'label'}.".hdf5";
     my $upperLimitResultFileName   = $workDirectory."/modelDiscrepancy/treeRedshiftUpperLimit/upperLimit/"  .$constraintDefinition->{'label'}.".hdf5";

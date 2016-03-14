@@ -61,6 +61,9 @@ $scratchDirectory    = $config->{'likelihood'}->{'scratchDirectory'}
 # Create the work and scratch directories.
 system("mkdir -p ".$config->{'likelihood'}->{'workDirectory'});
 
+# Determine base parameters to use.
+my $baseParameters = exists($arguments{'baseParameters'}) ? $arguments{'baseParameters'} : $config->{'likelihood'}->{'baseParameters'};
+
 # Ensure that Galacticus is built.
 if ( $arguments{'make'} eq "yes" ) {
     system("make Galacticus.exe");
@@ -78,7 +81,7 @@ if ( $arguments{'make'} eq "yes" ) {
 my @constraints = @{$constraintsRef};
 
 # Switch off thread locking.
-$parameters->{'parameter'}->{'treeEvolveThreadLock'}->{'value'} = "false";
+$parameters->{'treeEvolveThreadLock'}->{'value'} = "false";
 
 # Initialize a stack for PBS models.
 my @pbsStack;
@@ -128,11 +131,14 @@ foreach my $model ( @models ) {
 	}
 	);
     my $newParameters = clone($parameters);
-    $newParameters->{'parameter'}->{$_->{'name'}}->{'value'} = $_->{'value'}
+    $newParameters->{$_->{'name'}}->{'value'} = $_->{'value'}
         foreach ( @{$model->{'parameters'}} );
     # Adjust the number of trees to run if specified.
-    $newParameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'} = $arguments{'treesPerDecade'}
-        if ( exists($arguments{'treesPerDecade'}) );
+    if ( exists($arguments{'treesPerDecade'}) ) {
+	# Must also specify that trees are to be built in this case.
+	$newParameters->{'mergerTreeConstructMethod'    }->{'value'} = "build";
+	$newParameters->{'mergerTreeBuildTreesPerDecade'}->{'value'} = $arguments{'treesPerDecade'};
+    }
     # Run the model.
     unless ( -e $galacticusFileName ) {
 	# Generate the parameter file.
@@ -172,6 +178,7 @@ foreach my $model ( @models ) {
 foreach my $constraint ( @constraints ) {
     # Parse the definition file.
     my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
+    print "Computing discrepancy for constraint: ".$constraintDefinition->{'label'}."\n";    
     # Locate the model results.
     my $noninstantaneousRecyclingResultFileName = 
 	$workDirectory.
@@ -195,10 +202,19 @@ foreach my $constraint ( @constraints ) {
     foreach my $argument ( keys(%arguments) ) {
 	if ( $argument =~ m/^systematic(.*)/ ) {
 	    my $model = $1;
-	    if ( exists($DiscrepancySystematics::models{$model}) ) {
+	    if 
+		( 
+		  exists($DiscrepancySystematics::models{$model}) 
+		  && 
+		  $arguments{$argument} eq "yes"
+		  &&
+		  exists($constraintDefinition->{$argument})
+		  &&
+		  $constraintDefinition->{$argument} eq "yes"
+		) {
 		%{$systematicResults{$model}} =
 		    &{$DiscrepancySystematics::models{$model}}(
-		    \%arguments          ,
+		    \%arguments           ,
 		    $constraintDefinition,
 		    $instantX              ,
 		    $instantY              ,
@@ -213,7 +229,8 @@ foreach my $constraint ( @constraints ) {
     (my $nonZero, my $zero)                      = which_both($instantY > 0.0);
     my $modelDiscrepancyMultiplicative           = $noninstantY->copy();
     $modelDiscrepancyMultiplicative->($nonZero) /= $instantY->($nonZero);
-    $modelDiscrepancyMultiplicative->(   $zero) .= 1.0;
+    $modelDiscrepancyMultiplicative->(   $zero) .= 1.0
+	if ( nelem($zero) > 0 );
     # Compute the covariance.
     my $modelDiscrepancyCovarianceMultiplicative = 
 	 $noninstantCovariance*outer(         1.0/$instantY   ,         1.0/$instantY   )
@@ -230,7 +247,7 @@ foreach my $constraint ( @constraints ) {
     $outputFile->dataset('multiplicative'          )->set($modelDiscrepancyMultiplicative          );
     $outputFile->dataset('multiplicativeCovariance')->set($modelDiscrepancyCovarianceMultiplicative);
     $outputFile->attrSet(
-	description => "Model discrepancy for ".$constraintDefinition->{'name'}." due to use of instantaneous recycling approximation."
+	description => "Model discrepancy for ".$constraintDefinition->{'name'}." due to choice of halo concentration-mass relation."
 	);
     # Add results of systematics models.
     my $systematicGroup = $outputFile->group("systematicModels");
