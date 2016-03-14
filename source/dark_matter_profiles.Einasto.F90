@@ -1164,7 +1164,7 @@ contains
     implicit none
     class           (darkMatterProfileEinasto  ), intent(inout) :: self
     double precision                            , intent(in   ) :: alphaRequired                , concentrationRequired, wavenumberRequired
-    double precision                            , parameter     :: profileTruncateLevel  =2.5d-6
+    double precision                            , parameter     :: profileTruncateLevel  =6.0d-6
     integer                                                     :: iAlpha                       , iConcentration       , iWavenumber        , &
          &                                                         percentage                   , errorStatus
     logical                                                     :: makeTable
@@ -1256,7 +1256,7 @@ contains
                         &,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-2,maxIntervals=10000,errorStatus=errorStatus)
                    call Integrate_Done(integrandFunction,integrationWorkspace)
                    if (errorStatus /= errorStatusSuccess) then
-                      message="Integration of  Einasto profile Fourier transform failed at:"//char(10)
+                      message="Integration of Einasto profile Fourier transform failed at:"//char(10)
                       write (label,'(e12.6)') wavenumber
                       message=message//"   wavenumber: k="//trim(adjustl(label))//"Mpc"//char(10)
                       if (iWavenumber == 1) then
