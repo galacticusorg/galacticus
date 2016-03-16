@@ -505,7 +505,7 @@ contains
     double precision                                                         :: alpha                       , radiusScale, &
          &                                                                      radiusPeak
     type            (rootFinder                    )                         :: finder
-
+    
     ! Get the shape parameter for this halo.
     thisDarkMatterProfile => node                 %darkMatterProfile(autoCreate=.true.)
     alpha                 =  thisDarkMatterProfile%shape            (                 )
@@ -546,6 +546,9 @@ contains
            &        )                                                            &
            &       /alpha                                                        &
            &      )                                                              &
+           & /Gamma_Function                         (                           &
+           &                                          3.0d0              /alpha  &
+           &                                         )                           &
            & -Gamma_Function_Incomplete_Complementary(                           &
            &                                          3.0d0              /alpha, &
            &                                          2.0d0*radius**alpha/alpha  &
