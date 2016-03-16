@@ -54,14 +54,20 @@ sub MassFunctionMassShift {
     # Convert X to logarithmic units.
     my $Xlog                         = log10($X);
     # First find cumulative mass functions.
-    my $discrepantCumulative         = $discrepantY               ->(-1:0)->cumusumover()->(-1:0);
-    my $discrepantCumulativeVariance = $discrepantC->diagonal(0,1)->(-1:0)->cumusumover()->(-1:0);
-    my $trueCumulative               = $trueY                     ->(-1:0)->cumusumover()->(-1:0);
-    my $trueCumulativeVariance       = $trueC      ->diagonal(0,1)->(-1:0)->cumusumover()->(-1:0);
+    my $nonZero                      = which
+	(
+	 ($discrepantY > 0.0)
+	 &
+	 ($trueY       > 0.0)
+	);
+    my $discrepantCumulative         = $discrepantY               ->($nonZero)->(-1:0)->cumusumover()->(-1:0);
+    my $discrepantCumulativeVariance = $discrepantC->diagonal(0,1)->($nonZero)->(-1:0)->cumusumover()->(-1:0);
+    my $trueCumulative               = $trueY                     ->($nonZero)->(-1:0)->cumusumover()->(-1:0);
+    my $trueCumulativeVariance       = $trueC      ->diagonal(0,1)->($nonZero)->(-1:0)->cumusumover()->(-1:0);   
     # Find the errors in the x-values.
     my $deltaX                       = $Xlog->((1))-$Xlog->((0));
-    my $discrepantGradient           = ($discrepantY/$deltaX);
-    my $trueGradient                 = ($trueY      /$deltaX);
+    my $discrepantGradient           = ($discrepantY->($nonZero)/$deltaX);
+    my $trueGradient                 = ($trueY      ->($nonZero)/$deltaX);
     my $discrepantXVariance          = $discrepantCumulativeVariance/$discrepantGradient**2;
     my $trueXVariance                = $trueCumulativeVariance      /$trueGradient      **2;
     # Search for the best-fit parameters of the systematic model.
@@ -86,10 +92,10 @@ sub MassFunctionMassShift {
 	    $discrepantXShifted += $coefficient->(($i))*($Xlog-$zeroPoint)**$i;
 	}
 	# Interpolate these shifted x-values by matching abundances between discrepant and true models.
-	(my $discrepantXShiftedInterpolatedReversed, my $error) = interpolate($trueCumulative->(-1:0),$discrepantCumulative->(-1:0),$discrepantXShifted->(-1:0));
+	(my $discrepantXShiftedInterpolatedReversed, my $error) = interpolate($trueCumulative->(-1:0),$discrepantCumulative->(-1:0),$discrepantXShifted->($nonZero)->(-1:0));
 	my $discrepantXShiftedInterpolated = $discrepantXShiftedInterpolatedReversed->(-1:0);
 	# Compute a test statistic.
-	my $offset                                      = $discrepantXShiftedInterpolated-$Xlog;
+	my $offset                                      = $discrepantXShiftedInterpolated-$Xlog->($nonZero);
 	my $variance                                    = $discrepantXVariance+$trueXVariance;
 	my $testStatistic                               = sum($offset**2/$variance);
 	# Minimize the test statistic.
