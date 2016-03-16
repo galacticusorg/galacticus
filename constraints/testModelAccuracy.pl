@@ -269,8 +269,8 @@ foreach my $accuracy ( @accuracies ) {
     print $gnuPlot "set format x '\$10^{\%L}\$'\n";
     print $gnuPlot "set mytics 10\n";
     print $gnuPlot "set format y '\$10^{\%L}\$'\n";
-    print $gnuPlot "set xrange [1.0e+4:1.0e6]\n";
-    print $gnuPlot "set yrange [3.0e+1:3.5e2]\n";
+    print $gnuPlot "set xrange [1.0e+4:1.0e7]\n";
+    print $gnuPlot "set yrange [3.0e+1:5.0e2]\n";
     print $gnuPlot "set title 'Convergence with tree processing time'\n";
     print $gnuPlot "set xlabel 'Tree processing time [s]'\n";
     print $gnuPlot "set ylabel 'Convergence measured []'\n";
