@@ -80,11 +80,5 @@ double precision function distributionNegativeExponentialInverse(self,p)
           &                                  )            &
           &                                 /self%rate
   end if
-
-!! AJB HACK
-if (distributionNegativeExponentialInverse <= 0.0d0) then
-   write (0,*) "OUT OF RANGE NEG EXP ",p,distributionNegativeExponentialInverse
-end if
-
   return
 end function distributionNegativeExponentialInverse
