@@ -32,6 +32,7 @@
    contains
      final     ::                                diemerKravtsov2014Destructor
      procedure :: concentration               => diemerKravtsov2014Concentration
+     procedure :: concentrationMean           => diemerKravtsov2014ConcentrationMean
      procedure :: densityContrastDefinition   => diemerKravtsov2014DensityContrastDefinition
      procedure :: darkMatterProfileDefinition => diemerKravtsov2014DarkMatterProfileDefinition
      procedure :: stateStore                  => diemerKravtsov2014StateStore
@@ -167,8 +168,29 @@ contains
   double precision function diemerKravtsov2014Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
     !% using the \cite{diemer_universal_2014} algorithm.
-    use Numerical_Constants_Math
     use Gaussian_Random
+    implicit none
+    class(darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout)          :: self
+    type (treeNode                                        ), intent(inout), pointer :: node
+
+    ! Get the mean concentration.
+    diemerKravtsov2014Concentration=self%concentrationMean(node)
+    ! Add scatter if necessary.
+    if (self%scatter > 0.0d0)                                      &
+         &  diemerKravtsov2014Concentration                        &
+         & =diemerKravtsov2014Concentration                        &
+         & *10.0d0**Gaussian_Random_Get(                           &
+         &                              self%pseudoSequenceObject, &
+         &                              self%scatter             , &
+         &                              self%resetSequence         &
+         &                             )
+    return
+  end function diemerKravtsov2014Concentration
+
+  double precision function diemerKravtsov2014ConcentrationMean(self,node)
+    !% Return the mean concentration of the dark matter halo profile of {\normalfont \ttfamily node}
+    !% using the \cite{diemer_universal_2014} algorithm.
+    use Numerical_Constants_Math
     use Cosmological_Mass_Variance
     use Critical_Overdensities
     use Cosmology_Parameters
@@ -184,53 +206,39 @@ contains
          &                                                                                        wavenumber               , powerSpectrumSlope, &
          &                                                                                        concentrationMinimum     , peakHeightMinimum
     
-    cosmologyParameters_           => cosmologyParameters      ()
-    criticalOverdensity_           => criticalOverdensity      ()
-    cosmologicalMassVariance_      => cosmologicalMassVariance ()
-    basic                          => node               %basic()
-    radiusHaloLagrangian           =  +(                                                    &
-         &                              +3.0d0                                              &
-         &                              *basic%mass()                                       &
-         &                              /4.0d0                                              &
-         &                              /Pi                                                 &
-         &                              /cosmologyParameters_%densityCritical()             &
-         &                              /cosmologyParameters_%OmegaMatter    ()             &
-         &                             )**(1.0d0/3.0d0)
-    peakHeight                     =                                                        &
-         &                            +criticalOverdensity_     %value       (basic%time()) &
-         &                            /cosmologicalMassVariance_%rootVariance(basic%mass())
-    wavenumber                     =                                                        &
-         &                            +self%kappa                                           &
-         &                            *2.0d0                                                &
-         &                            *Pi                                                   &
-         &                            /radiusHaloLagrangian
-    powerSpectrumSlope             = +Power_Spectrum_Logarithmic_Derivative(wavenumber)
-    concentrationMinimum           =                                                        &
-         &                           +self%phi0                                             &
-         &                           +self%phi1                                             &
-         &                           *powerSpectrumSlope
-    peakHeightMinimum              =                                                        &
-         &                           +self%eta0                                             &
-         &                           +self%eta1                                             &
-         &                           *powerSpectrumSlope
-    diemerKravtsov2014Concentration=                                                        &
-         &                           +0.5d0                                                 &
-         &                           *concentrationMinimum                                  &
-         &                           *(                                                     &
-         &                             +(peakHeight/peakHeightMinimum)**(-self%alpha)       &
-         &                             +(peakHeight/peakHeightMinimum)**(+self%beta )       &
-         &                            )
-    ! Add scatter if necessary.
-    if (self%scatter > 0.0d0)                                      &
-         &  diemerKravtsov2014Concentration                        &
-         & =diemerKravtsov2014Concentration                        &
-         & *10.0d0**Gaussian_Random_Get(                           &
-         &                              self%pseudoSequenceObject, &
-         &                              self%scatter             , &
-         &                              self%resetSequence         &
-         &                             )
+    cosmologyParameters_                => cosmologyParameters      ()
+    criticalOverdensity_                => criticalOverdensity      ()
+    cosmologicalMassVariance_           => cosmologicalMassVariance ()
+    basic                               => node               %basic()
+    radiusHaloLagrangian                =  +(                                                   &
+         &                                   +3.0d0                                             &
+         &                                   *basic%mass()                                      &
+         &                                   /4.0d0                                             &
+         &                                   /Pi                                                &
+         &                                   /cosmologyParameters_%densityCritical()            &
+         &                                   /cosmologyParameters_%OmegaMatter    ()            &
+         &                                  )**(1.0d0/3.0d0)
+    peakHeight                          = +criticalOverdensity_     %value       (basic%time()) &
+         &                                /cosmologicalMassVariance_%rootVariance(basic%mass())
+    wavenumber                          = +self%kappa                                           &
+         &                                *2.0d0                                                &
+         &                                *Pi                                                   &
+         &                                /radiusHaloLagrangian
+    powerSpectrumSlope                  = +Power_Spectrum_Logarithmic_Derivative(wavenumber)
+    concentrationMinimum                = +self%phi0                                            &
+         &                                +self%phi1                                            &
+         &                                *powerSpectrumSlope
+    peakHeightMinimum                   = +self%eta0                                            &
+         &                                +self%eta1                                            &
+         &                                *powerSpectrumSlope
+    diemerKravtsov2014ConcentrationMean = +0.5d0                                                &
+         &                                *concentrationMinimum                                 &
+         &                                *(                                                    &
+         &                                  +(peakHeight/peakHeightMinimum)**(-self%alpha)      &
+         &                                  +(peakHeight/peakHeightMinimum)**(+self%beta )      &
+         &                                 )
     return
-  end function diemerKravtsov2014Concentration
+  end function diemerKravtsov2014ConcentrationMean
 
   function diemerKravtsov2014DensityContrastDefinition(self)
     !% Return a virial density contrast object defining that used in the definition of concentration in the

@@ -121,7 +121,11 @@ contains
            &                 /haloRadiusTrial                               **3 &
            &                 /cosmologyFunctions_%matterDensityEpochal(time)
       ! Find scale radius of the halo.
-      scaleRadius=Dark_Matter_Profile_Scale(workNode,darkMatterProfileConcentration_)
+      scaleRadius=Dark_Matter_Profile_Scale(                                                     &
+           &                                workNode                                           , &
+           &                                meanConcentration  =.true.                         , &
+           &                                concentrationMethod=darkMatterProfileConcentration_  &           
+           &                               )
       call workDarkMatterProfile%scaleSet(scaleRadius)
       if (workDarkMatterProfile%shapeIsSettable()) then
          darkMatterProfileShape_ => darkMatterProfileShape()
