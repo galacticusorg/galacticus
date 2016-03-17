@@ -174,6 +174,7 @@ foreach my $model ( @models ) {
 foreach my $constraint ( @constraints ) {
     # Parse the definition file.
     my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
+    print "Computing discrepancy for constraint: ".$constraintDefinition->{'label'}."\n";    
     # Locate the model results.
     my $variableResolutionResultFileName = $workDirectory."/modelDiscrepancy/variableTreeMassResolution/variableResolution/".$constraintDefinition->{'label'}.".hdf5";
     my $fixedResolutionResultFileName    = $workDirectory."/modelDiscrepancy/variableTreeMassResolution/fixedResolution/"   .$constraintDefinition->{'label'}.".hdf5";

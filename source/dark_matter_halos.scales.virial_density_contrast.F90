@@ -73,7 +73,7 @@ contains
     !% Default constructor for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class.
     implicit none
     type (darkMatterHaloScaleVirialDensityContrastDefinition), target  :: virialDensityContrastDefinitionDefaultConstructor
-    class(virialDensityContrastClass              ), pointer :: virialDensityContrast_
+    class(virialDensityContrastClass                        ), pointer :: virialDensityContrast_
 
     virialDensityContrast_                            => virialDensityContrast                     (                      )
     virialDensityContrastDefinitionDefaultConstructor =  virialDensityContrastDefinitionConstructor(virialDensityContrast_)
@@ -275,12 +275,10 @@ contains
        thisCosmologyParameters   => cosmologyParameters  ()
        cosmologyFunctionsDefault => cosmologyFunctions   ()
        virialDensityContrastDefinitionMeanDensity=&
-            &+self%virialDensityContrastDefinition%densityContrast(thisBasic%mass(),time)&
-            &*thisCosmologyParameters             %OmegaMatter    (                                           )     &
-                  &  *thisCosmologyParameters             %densityCritical(                                           )     &
-                  &  /cosmologyFunctionsDefault           %expansionFactor(                 time)**3
-
-
+            & +self%virialDensityContrastDefinition%densityContrast(thisBasic%mass(),time)    &
+            & *thisCosmologyParameters             %OmegaMatter    (                     )    &
+            & *thisCosmologyParameters             %densityCritical(                     )    &
+            & /cosmologyFunctionsDefault           %expansionFactor(                 time)**3
     else
        ! For non-mass-dependent virial density contrasts we can tabulate as a function of time.
        ! Retabulate the mean density vs. time if necessary.

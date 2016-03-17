@@ -505,7 +505,7 @@ contains
     double precision                                                         :: alpha                       , radiusScale, &
          &                                                                      radiusPeak
     type            (rootFinder                    )                         :: finder
-
+    
     ! Get the shape parameter for this halo.
     thisDarkMatterProfile => node                 %darkMatterProfile(autoCreate=.true.)
     alpha                 =  thisDarkMatterProfile%shape            (                 )
@@ -546,6 +546,9 @@ contains
            &        )                                                            &
            &       /alpha                                                        &
            &      )                                                              &
+           & /Gamma_Function                         (                           &
+           &                                          3.0d0              /alpha  &
+           &                                         )                           &
            & -Gamma_Function_Incomplete_Complementary(                           &
            &                                          3.0d0              /alpha, &
            &                                          2.0d0*radius**alpha/alpha  &
@@ -1160,12 +1163,13 @@ contains
     use Numerical_Ranges
     use Memory_Management
     use Galacticus_Display
+    use Galacticus_Error
     implicit none
     class           (darkMatterProfileEinasto  ), intent(inout) :: self
     double precision                            , intent(in   ) :: alphaRequired                , concentrationRequired, wavenumberRequired
-    double precision                            , parameter     :: profileTruncateLevel  =1.0d-6
+    double precision                            , parameter     :: profileTruncateLevel  =6.0d-6
     integer                                                     :: iAlpha                       , iConcentration       , iWavenumber        , &
-         &                                                         percentage
+         &                                                         percentage                   , errorStatus
     logical                                                     :: makeTable
     double precision                                            :: alpha                        , concentration        , radiusMaximum      , &
          &                                                         radiusMinimum                , wavenumber           , wavenumberParameter, &
@@ -1173,7 +1177,9 @@ contains
     type            (c_ptr                     )                :: parameterPointer
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
-
+    character       (len=12                    )                :: label
+    type            (varying_string            )                :: message
+    
     ! Assume table does not need remaking.
     makeTable=.false.
     ! Check for uninitialized table.
@@ -1250,8 +1256,20 @@ contains
                    concentrationParameter=concentration
                    self%fourierProfileTable(iWavenumber,iConcentration,iAlpha)=Integrate(radiusMinimum,radiusMaximum&
                         &,einastoFourierProfileIntegrand ,parameterPointer,integrandFunction,integrationWorkspace&
-                        &,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-2,maxIntervals=10000)
+                        &,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-2,maxIntervals=10000,errorStatus=errorStatus)
                    call Integrate_Done(integrandFunction,integrationWorkspace)
+                   if (errorStatus /= errorStatusSuccess) then
+                      message="Integration of Einasto profile Fourier transform failed at:"//char(10)
+                      write (label,'(e12.6)') wavenumber
+                      message=message//"   wavenumber: k="//trim(adjustl(label))//"Mpc"//char(10)
+                      if (iWavenumber == 1) then
+                         message=message//"   no previous tabulated point"
+                      else
+                         write (label,'(e12.6)') self%fourierProfileTable(iWavenumber-1,iConcentration,iAlpha)
+                         message=message//"   value at previous tabulated point was "//trim(adjustl(label))
+                      end if
+                      call Galacticus_Error_Report('einastoFourierProfileTableMake',message)
+                   end if
                 end if
              end do
           end do

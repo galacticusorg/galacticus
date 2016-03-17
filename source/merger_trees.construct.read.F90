@@ -1813,12 +1813,12 @@ contains
              ! The node mass is below the reliability threshold, or no scale information is available. Set the scale radius using
              ! the fallback concentration method.
              activeNode => nodeList(iIsolatedNode)%node
-             radiusScale=max(                                                                                                      &
-                  &          min(                                                                                                  &
-                  &              Dark_Matter_Profile_Scale(nodeList(iIsolatedNode)%node,fallbackConcentration)                   , &
-                  &              darkMatterHaloScale_%virialRadius(activeNode)/mergerTreeReadPresetScaleRadiiConcentrationMinimum  &
-                  &             )                                                                                                , &
-                  &              darkMatterHaloScale_%virialRadius(activeNode)/mergerTreeReadPresetScaleRadiiConcentrationMaximum  &
+             radiusScale=max(                                                                                                       &
+                  &          min(                                                                                                   &
+                  &              Dark_Matter_Profile_Scale(nodeList(iIsolatedNode)%node,concentrationMethod=fallbackConcentration), &
+                  &              darkMatterHaloScale_%virialRadius(activeNode)/mergerTreeReadPresetScaleRadiiConcentrationMinimum   &
+                  &             )                                                                                                 , &
+                  &              darkMatterHaloScale_%virialRadius(activeNode)/mergerTreeReadPresetScaleRadiiConcentrationMaximum   &
                   &         )
              call thisDarkMatterProfileComponent%scaleSet(radiusScale)
           end if
