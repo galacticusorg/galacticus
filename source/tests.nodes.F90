@@ -27,6 +27,7 @@ program Test_Nodes
   use ISO_Varying_String
   use Input_Parameters
   use Array_Utilities
+  use Memory_Management
   use Test_Nodes_Tasks
   implicit none
   type            (treeNode                     )                                     :: thisNode
