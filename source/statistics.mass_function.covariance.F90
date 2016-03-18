@@ -729,14 +729,17 @@ contains
     use Power_Spectra_Nonlinear
     use Numerical_Interpolation
     implicit none
-    real(c_double                  )        :: LSS_Integrand
-    real(c_double                  ), value :: timePrime
-    type(c_ptr                     ), value :: parameterPointer
-    type(fgsl_interp)                       :: interpolationObject
-    type(fgsl_interp_accel)                 :: interpolationAccelerator
-    logical                                 :: interpolationReset
-    double precision                        :: bias,powerSpectrum
+    real            (c_double                   )          :: LSS_Integrand
+    real            (c_double                   ), value   :: timePrime
+    type            (c_ptr                      ), value   :: parameterPointer
+    class           (powerSpectrumNonlinearClass), pointer :: powerSpectrumNonlinear_
+    type            (fgsl_interp                )          :: interpolationObject
+    type            (fgsl_interp_accel          )          :: interpolationAccelerator
+    logical                                                :: interpolationReset
+    double precision                                       :: bias                    , powerSpectrum
 
+    ! Get required objects.
+    powerSpectrumNonLinear_ => powerSpectrumNonLinear()
     ! Copy the time to module scope.
     time=timePrime
     ! Get the bias-mass function product for the I bin.
@@ -744,7 +747,7 @@ contains
     bias=Interpolate(timeTable,biasTable(:,lssBin),interpolationObject,interpolationAccelerator,time,reset=interpolationReset)
     call Interpolate_Done(interpolationObject,interpolationAccelerator,interpolationReset)
     ! Get the nonlinear power spectrum for the current wavenumber and time.
-    powerSpectrum=Power_Spectrum_Nonlinear(waveNumberGlobal,time)
+    powerSpectrum=powerSpectrumNonlinear_%value(waveNumberGlobal,time)
     ! Return the cross-correlation biased power spectrum multiplied by the volume element.
     LSS_Integrand=bias*sqrt(powerSpectrum)*cosmologyFunctions_%comovingVolumeElementTime(time)
     return

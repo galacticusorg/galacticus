@@ -2141,52 +2141,6 @@ Currently defined merger tree construction methods are:
  \item [{\normalfont \ttfamily fullySpecified}] Intended primarily for constructing test cases, this method allows the full state of the merger tree (and all components of nodes) to be specified via an XML document. See \S\ref{sec:TreeConstructFullySpecified} for details of how to use this method.
 \end{description}
 
-\subsubsection{Non-linear Matter Power Spectrum}\index{power spectrum!non-linear}
-
-Additional methods for the non-linear matter power spectrum can be added using the {\normalfont \ttfamily powerSpectrumNonlinearMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily Peacock-Dodds1996} method is described by a directive:
-\begin{verbatim}
-  !# <powerSpectrumNonlinearMethod>
-  !#  <unitName>Nonlinear_Power_Spectrum_Power_Law_Initialize</unitName>
-  !# </powerSpectrumNonlinearMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Power\_Spectrum\_Nonlinear\_PeacockDodds1996\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(powerSpectrumNonlinearMethod,Power_Spectrum_Nonlinear_Get)
-    implicit none
-    type     (varying_string  ),          intent(in   ) :: powerSpectrumNonlinearMethod
-    procedure(double precision), pointer, intent(inout) :: Power_Spectrum_Nonlinear_Get
-    
-    if (powerSpectrumNonlinearMethod == 'myMethod') then
-       Power_Spectrum_Nonlinear_Get => My_Get
-       .
-       .
-       .
-    end if
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily powerSpectrumNonlinearMethod} input parameter. The procedure pointer {\normalfont \ttfamily Power\_Spectrum\_Nonlinear\_Get} must be set to point to a subroutine which computes the non-linear matter power spectrum as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The non-linear matter power spectrum function must have the form:
-\begin{verbatim}
-   double precision function Nonlinear_Power_Spectrum(wavenumber,time)
-    implicit none
-    double precision, intent(in   ) :: wavenumber,time
-    .
-    .
-    .
-    return
-   end subroutine Nonlinear_Power_Spectrum
-\end{verbatim}
-The function must return the non-linear matter power spectrum, $P_{\mathrm nl}(k)$, at the requested {\normalfont \ttfamily wavenumber} (in units of Mpc$^{-1}$) and {\normalfont \ttfamily time} (in units of Gyr).
-
-Currently defined non-linear matter power spectrum methods are:
-\begin{description}
- \item [{\normalfont \ttfamily linear}] Simply returns the linear matter power spectrum. Intended primarily for testing purposes.
- \item [{\normalfont \ttfamily Peacock-Dodds1996}] Uses the fitting function of \cite{peacock_non-linear_1996} to compute the non-linear matter power spectrum.
- \item [{\normalfont \ttfamily CosmicEmu}] Utilizes the cosmic emulator (``CosmicEmu'') code of \cite{lawrence_coyote_2010} to compute the non-linear matter power spectrum.
-\end{description}
-
 \subsubsection{Chemical Reaction Rates}
 
 Additional methods for chemical species reaction rates can be added using the {\normalfont \ttfamily chemicalReactionRatesMethods} directive. Note that more than one method can be specified in which cases rates are cumulative over all selected methods. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily hydrogenNetwork} method is described by a directive:

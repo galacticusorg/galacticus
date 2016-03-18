@@ -152,7 +152,7 @@
   </parameter>
   <parameter>
     <name>powerSpectrumNonlinearMethod</name>
-    <value>Peacock-Dodds1996</value>
+    <value>peacockDodds1996</value>
   </parameter>
 
 </parameters>

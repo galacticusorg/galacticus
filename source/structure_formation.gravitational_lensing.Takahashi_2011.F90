@@ -702,13 +702,17 @@ contains
       use, intrinsic :: ISO_C_Binding
       use Power_Spectra_Nonlinear
       implicit none
-      real(c_double)        :: convergenceVariancePowerSpectrumIntegrand
-      real(c_double), value :: logWavenumber
-      type(c_ptr   ), value :: parameterPointer
-      real(c_double)        :: wavenumber
+      real (c_double                   )          :: convergenceVariancePowerSpectrumIntegrand
+      real (c_double                   ), value   :: logWavenumber
+      type (c_ptr                      ), value   :: parameterPointer      
+      class(powerSpectrumNonlinearClass), pointer :: powerSpectrumNonlinear_
+      real (c_double                   )          :: wavenumber
       
+      ! Get required objects.
+      powerSpectrumNonLinear_ => powerSpectrumNonLinear()
+      ! Compute integrand.
       wavenumber=exp(logWavenumber)
-      convergenceVariancePowerSpectrumIntegrand=wavenumber**2*Power_Spectrum_Nonlinear(wavenumber,timeLens)
+      convergenceVariancePowerSpectrumIntegrand=wavenumber**2*powerSpectrumNonLinear_%value(wavenumber,timeLens)
       return
     end function convergenceVariancePowerSpectrumIntegrand
 

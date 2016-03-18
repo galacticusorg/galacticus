@@ -16,31 +16,83 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the nonlinear power spectrum using the algorithm of \cite{peacock_non-linear_1996}.
+!% Contains a module which implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed using the
+!% algorithm of \cite{peacock_non-linear_1996}.
 
-module Power_Spectra_Nonlinear_PeacockDodds1996
-  !% Implements the nonlinear power spectrum using the algorithm of \cite{peacock_non-linear_1996}.
-  implicit none
-  private
-  public :: Power_Spectrum_Nonlinear_PeacockDodds1996_Initialize
+  use FGSL
+  use Cosmology_Functions
+  use Linear_Growth
+
+  !# <powerSpectrumNonlinear name="powerSpectrumNonlinearPeacockDodds1996">
+  !#  <description>Provides a nonlinear power spectrum class in which the power spectrum is computed using the algorithm of \cite{peacock_non-linear_1996}.</description>
+  !# </powerSpectrumNonlinear>
+  type, extends(powerSpectrumNonlinearClass) :: powerSpectrumNonlinearPeacockDodds1996
+     !% A linear transfer function class.
+     private
+     double precision                         , dimension(2) :: waveNumberPrevious , fNLPrevious        
+     double precision                                        :: timePrevious      
+     class           (cosmologyFunctionsClass), pointer      :: cosmologyFunctions_
+     class           (linearGrowthClass      ), pointer      :: linearGrowth_
+   contains
+     final     ::          peacockDodds1996Destructor
+     procedure :: value => peacockDodds1996Value
+  end type powerSpectrumNonlinearPeacockDodds1996
+
+  interface powerSpectrumNonlinearPeacockDodds1996
+     !% Constructors for the {\normalfont \ttfamily PeacockDodds1996} nonlinear power spectrum class.
+     module procedure peacockDodds1996ConstructorParameters
+     module procedure peacockDodds1996ConstructorInternal
+  end interface powerSpectrumNonlinearPeacockDodds1996
 
 contains
 
-  !# <powerSpectrumNonlinearMethod>
-  !#  <unitName>Power_Spectrum_Nonlinear_PeacockDodds1996_Initialize</unitName>
-  !# </powerSpectrumNonlinearMethod>
-  subroutine Power_Spectrum_Nonlinear_PeacockDodds1996_Initialize(powerSpectrumNonlinearMethod,Power_Spectrum_Nonlinear_Get)
-    !% Initializes the ``Peacock-Dodds1996'' nonlinear power spectrum module.
-    use ISO_Varying_String
+  function peacockDodds1996ConstructorParameters(parameters)
+    !% Constructor for the peacockDodds1996 nonlinear power spectrum class which takes a parameter set as input.
+    use Input_Parameters2
     implicit none
-    type     (varying_string  ), intent(in   )          :: powerSpectrumNonlinearMethod
-    procedure(Power_Spectrum_Nonlinear_PeacockDodds1996), intent(inout), pointer :: Power_Spectrum_Nonlinear_Get
+    type (powerSpectrumNonlinearPeacockDodds1996)                :: peacockDodds1996ConstructorParameters
+    type (inputParameters                       ), intent(inout) :: parameters
+    class(cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
+    class(linearGrowthClass                     ), pointer       :: linearGrowth_
+    !# <inputParameterList label="allowedParameterNames" />
 
-    if (powerSpectrumNonlinearMethod == 'Peacock-Dodds1996') Power_Spectrum_Nonlinear_Get => Power_Spectrum_Nonlinear_PeacockDodds1996
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)    
+    ! Construct required objects.
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !# <objectBuilder class="linearGrowth"       name="linearGrowth_"       source="parameters"/>
+    ! Call the internal constructor.
+    peacockDodds1996ConstructorParameters=peacockDodds1996ConstructorInternal(cosmologyFunctions_,linearGrowth_)
     return
-  end subroutine Power_Spectrum_Nonlinear_PeacockDodds1996_Initialize
+  end function peacockDodds1996ConstructorParameters
 
-  double precision function Power_Spectrum_Nonlinear_PeacockDodds1996(waveNumber,time)
+  function peacockDodds1996ConstructorInternal(cosmologyFunctions_,linearGrowth_)
+    !% Internal constructor for the {\normalfont \ttfamily PeacockDodds1996} nonlinear power spectrum class.
+    implicit none
+    type (powerSpectrumNonlinearPeacockDodds1996)                        :: peacockDodds1996ConstructorInternal
+    class(cosmologyFunctionsClass               ), intent(in   ), target :: cosmologyFunctions_
+    class(linearGrowthClass                     ), intent(in   ), target :: linearGrowth_
+
+    ! Initialize state.
+    peacockDodds1996ConstructorInternal%waveNumberPrevious=-1.0d0
+    peacockDodds1996ConstructorInternal%timePrevious      =-1.0d0
+    ! Store objects.
+    peacockDodds1996ConstructorInternal%cosmologyFunctions_ => cosmologyFunctions_
+    peacockDodds1996ConstructorInternal%linearGrowth_       => linearGrowth_
+    return
+  end function peacockDodds1996ConstructorInternal
+
+  subroutine peacockDodds1996Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily PeacockDodds1996} nonlinear power spectrum class.
+    implicit none
+    type(powerSpectrumNonlinearPeacockDodds1996), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !# <objectDestructor name="self%linearGrowth_"      />
+    return
+  end subroutine peacockDodds1996Destructor
+
+  double precision function peacockDodds1996Value(self,wavenumber,time)
     !% Return a nonlinear power spectrum equal using the algorithm of \cite{peacock_non-linear_1996}.
     use Numerical_Constants_Math
     use Power_Spectra
@@ -48,54 +100,47 @@ contains
     use Galacticus_Error
     use Linear_Growth
     implicit none
-    double precision                         , intent(in   )       :: time                            , waveNumber
-    integer                                  , parameter           :: iterationCountMaximum    =1000
-    double precision                         , parameter           :: tolerance                =1.0d-3
-    double precision                         , parameter           :: updateFraction           =0.5d+0
-    class           (cosmologyFunctionsClass), pointer             :: cosmologyFunctions_
-    class           (linearGrowthClass      ), pointer             :: linearGrowth_
-    double precision                         , dimension(2) , save :: waveNumberPrevious       =-1.0d0, fNLPrevious        
-    double precision                                        , save :: timePrevious             =-1.0d0
-    !$omp threadprivate(waveNumberPrevious,fNLPrevious,timePrevious)
-    logical                                                        :: converged
-    integer                                                        :: iterationCount                  , i
-    double precision                                               :: A                               , B                        , &
-         &                                                            V                               , alpha                    , &
-         &                                                            beta                            , fNL                      , &
-         &                                                            fNLLastIteration                , g                        , &
-         &                                                            n                               , waveNumberLinear         , &
-         &                                                            x                               , linearGrowthFactorSquared, &
-         &                                                            omegaMatter                     , omegaDarkEnergy          , &
-         &                                                            omegaMatterFourSevenths         , logRatioBest
-    
-    ! Get the default cosmology functions object.
-    cosmologyFunctions_ => cosmologyFunctions()
-    linearGrowth_       => linearGrowth      ()
+    class(powerSpectrumNonlinearPeacockDodds1996), intent(inout) :: self
+    double precision                             , intent(in   ) :: time                          , wavenumber
+    integer                                      , parameter     :: iterationCountMaximum  =1000
+    double precision                             , parameter     :: tolerance              =1.0d-3
+    double precision                             , parameter     :: updateFraction         =0.5d+0
+    logical                                                      :: converged
+    integer                                                      :: iterationCount                , i
+    double precision                                             :: A                             , B                        , &
+         &                                                          V                             , alpha                    , &
+         &                                                          beta                          , fNL                      , &
+         &                                                          fNLLastIteration              , g                        , &
+         &                                                          n                             , waveNumberLinear         , &
+         &                                                          x                             , linearGrowthFactorSquared, &
+         &                                                          omegaMatter                   , omegaDarkEnergy          , &
+         &                                                          omegaMatterFourSevenths       , logRatioBest
+
     ! Pre-compute quantities which depend only on time, and so will be constant throughout this calculation.
-    linearGrowthFactorSquared=linearGrowth_      %value                 (time)**2
-    omegaMatter              =cosmologyFunctions_%omegaMatterEpochal    (time)
-    omegaDarkEnergy          =cosmologyFunctions_%omegaDarkEnergyEpochal(time)
+    linearGrowthFactorSquared=self%linearGrowth_      %value                 (time)**2
+    omegaMatter              =self%cosmologyFunctions_%omegaMatterEpochal    (time)
+    omegaDarkEnergy          =self%cosmologyFunctions_%omegaDarkEnergyEpochal(time)
     omegaMatterFourSevenths  =omegaMatter                                           **(4.0d0/7.0d0)
     ! Determine if we can use a previous estimate of fNL as our starting guess.
     fNL         =-1.0d0
     logRatioBest=log(2.0d0)
-    if (time == timePrevious) then
+    if (time == self%timePrevious) then
        do i=1,2
-          if (waveNumberPrevious(i) > 0.0d0 .and. abs(log(waveNumber/waveNumberPrevious(i))) < logRatioBest) then
-             fNL         =fNLPrevious(i)
-             logRatioBest=abs(log(waveNumber/waveNumberPrevious(i)))
+          if (self%waveNumberPrevious(i) > 0.0d0 .and. abs(log(wavenumber/self%waveNumberPrevious(i))) < logRatioBest) then
+             fNL         =self%fNLPrevious(i)
+             logRatioBest=abs(log(wavenumber/self%waveNumberPrevious(i)))
           end if
        end do
     end if
     ! Make an initial guess that the nonlinear power spectrum equals the linear power spectrum.
-    if (fNL < 0.0d0) fNL=Power_Spectrum_Dimensionless(waveNumber)
+    if (fNL < 0.0d0) fNL=Power_Spectrum_Dimensionless(wavenumber)
     fNLLastIteration=fNL
     ! Iterate until a converged solution is found.
     converged     =.false.
     iterationCount=0
-    do while (.not.converged .and. iterationCount < iterationCountMaximum)
+    do while (.not.converged .and. iterationCount < iterationCountMaximum) 
        ! Find the corresponding linear wavenumber.
-       waveNumberLinear=waveNumber/(1.0d0+fNL)**(1.0d0/3.0d0)
+       waveNumberLinear=wavenumber/(1.0d0+fNL)**(1.0d0/3.0d0)
        ! Get the dimensionless linear power spectrum and its logarithmic slope.
        x=Power_Spectrum_Dimensionless         (      waveNumberLinear)*linearGrowthFactorSquared
        n=Power_Spectrum_Logarithmic_Derivative(0.5d0*waveNumberLinear)
@@ -137,16 +182,14 @@ contains
        fNLLastIteration=fNL
        iterationCount  =iterationCount+1
     end do
-    if (.not.converged) call Galacticus_Error_Report('Power_Spectrum_Nonlinear_PeacockDodds1996','nonlinear power spectrum calculation failed to converge')
+    if (.not.converged) call Galacticus_Error_Report('peacockDodds1996Value','nonlinear power spectrum calculation failed to converge')
     ! Store evaluations.
-    timePrevious         =time
-    waveNumberPrevious(1)=waveNumberPrevious(2)
-    fNLPrevious       (1)=fNLPrevious       (2)
-    waveNumberPrevious(2)=waveNumber
-    fNLPrevious       (2)=fNL
+    self%timePrevious         =time
+    self%waveNumberPrevious(1)=self%waveNumberPrevious(2)
+    self%fNLPrevious       (1)=self%fNLPrevious       (2)
+    self%waveNumberPrevious(2)=wavenumber
+    self%fNLPrevious       (2)=fNL
     ! Convert to a dimensionful power spectrum.
-    Power_Spectrum_Nonlinear_PeacockDodds1996=(2.0d0*Pi)**3*fNL/4.0d0/Pi/waveNumber**3
+    peacockDodds1996Value=(2.0d0*Pi)**3*fNL/4.0d0/Pi/wavenumber**3
     return
-  end function Power_Spectrum_Nonlinear_PeacockDodds1996
-
-end module Power_Spectra_Nonlinear_PeacockDodds1996
+  end function peacockDodds1996Value

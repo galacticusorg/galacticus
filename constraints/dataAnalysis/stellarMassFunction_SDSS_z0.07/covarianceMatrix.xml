@@ -48,6 +48,6 @@
   <powerSpectrumIndex value="0.961"/>
   <powerSpectrumReferenceWavenumber value="1.0"/>
   <powerSpectrumRunning value="0.0"/>
-  <powerSpectrumNonlinearMethod value="Peacock-Dodds1996"/>
+  <powerSpectrumNonlinearMethod value="peacockDodds1996"/>
 
 </parameters>
