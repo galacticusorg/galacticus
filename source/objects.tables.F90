@@ -715,7 +715,7 @@ contains
 
     tableActual=1
     if (present(table)) tableActual=table
-    Table_Generic_1D_Interpolate=Interpolate(self%xv,self%yv(:,tableActual),self%interpolator,self%accelerator,self%xEffective(x),extrapolationType=self%extrapolationType(1),reset=self%reset)
+    Table_Generic_1D_Interpolate=Interpolate(self%xv,self%yv(:,tableActual),self%interpolator,self%accelerator,self%xEffective(x),extrapolationType=self%extrapolationType(1),interpolationType=self%interpolationType,reset=self%reset)
     return
   end function Table_Generic_1D_Interpolate
 
