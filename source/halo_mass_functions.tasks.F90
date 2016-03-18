@@ -35,7 +35,8 @@ module Halo_Mass_Functions_Tasks
        &                                                       haloMassFunction_nu                   , haloMassFunction_sigma            , &
        &                                                       haloMassFunction_virialRadius         , haloMassFunction_virialTemperature, &
        &                                                       haloMassFunction_virialVelocity       , haloMassFunction_scaleRadius      , &
-       &                                                       haloMassFunction_velocityMaximum
+       &                                                       haloMassFunction_velocityMaximum      , haloMassFunction_nuFnu            , &
+       &                                                       haloMassFunction_alpha
 
   ! Arrays of output time data.
   double precision            , allocatable, dimension(:  ) :: outputCharacteristicMass              , outputCriticalOverdensities       , &
@@ -92,11 +93,13 @@ contains
     use Galacticus_Display
     use Galacticus_Calculations_Resets
     use ISO_Varying_String
+    use Cosmology_Parameters
     implicit none
     class           (nodeComponentBasic            ), pointer :: thisBasic
     class           (nodeComponentDarkMatterProfile), pointer :: thisDarkMatterProfile
     type            (treeNode                      ), pointer :: thisNode
     class           (cosmologyFunctionsClass       ), pointer :: cosmologyFunctions_
+    class           (cosmologyParametersClass      ), pointer :: cosmologyParameters_
     class           (darkMatterHaloScaleClass      ), pointer :: darkMatterHaloScale_
     class           (darkMatterProfileClass        ), pointer :: darkMatterProfile_
     class           (virialDensityContrastClass    ), pointer :: virialDensityContrast_
@@ -153,6 +156,7 @@ contains
        call Get_Input_Parameter('outputRedshifts',outputRedshifts                     )
     end if
     ! Get required objects.
+    cosmologyParameters_   => cosmologyParameters  ()
     cosmologyFunctions_    => cosmologyFunctions   ()
     virialDensityContrast_ => virialDensityContrast()
     darkMatterProfile_     => darkMatterProfile    ()
@@ -216,7 +220,9 @@ contains
     call Alloc_Array(haloMassFunction_massFraction     ,[haloMassFunctionsCount,outputCount])
     call Alloc_Array(haloMassFunction_bias             ,[haloMassFunctionsCount,outputCount])
     call Alloc_Array(haloMassFunction_sigma            ,[haloMassFunctionsCount,outputCount])
+    call Alloc_Array(haloMassFunction_alpha            ,[haloMassFunctionsCount,outputCount])
     call Alloc_Array(haloMassFunction_nu               ,[haloMassFunctionsCount,outputCount])
+    call Alloc_Array(haloMassFunction_nuFnu            ,[haloMassFunctionsCount,outputCount])
     call Alloc_Array(haloMassFunction_virialVelocity   ,[haloMassFunctionsCount,outputCount])
     call Alloc_Array(haloMassFunction_virialTemperature,[haloMassFunctionsCount,outputCount])
     call Alloc_Array(haloMassFunction_virialRadius     ,[haloMassFunctionsCount,outputCount])
@@ -237,27 +243,39 @@ contains
 
     ! Loop over all output times.
     do iOutput=1,outputCount
+
        ! Set the time in the node.
        call thisBasic%timeSet(outputTimes(iOutput))
 
        ! Build a range of halo masses.
        haloMassFunction_Mass(:,iOutput)=Make_Range(haloMassFunctionsMassMinimum,haloMassFunctionsMassMaximum,haloMassFunctionsCount,rangeTypeLogarithmic)
-
+       
        ! Loop over all halo masses.
        do iMass=1,haloMassFunctionsCount
+
           ! Reset calculations.
           call Galacticus_Calculations_Reset(thisNode)
           ! Set the mass in the node.
           call thisBasic            %massSet (haloMassFunction_Mass(iMass,iOutput))
           ! Set the node scale radius.
-          call thisDarkMatterProfile%scaleSet(Dark_Matter_Profile_Scale(thisNode))
+          call thisDarkMatterProfile%scaleSet(Dark_Matter_Profile_Scale(thisNode))          
           ! Compute halo properties.
           haloMassFunction_dndM             (iMass,iOutput)=haloMassFunction_%differential(outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput))
           haloMassFunction_dndlnM           (iMass,iOutput)=haloMassFunction_dndM(iMass,iOutput)*haloMassFunction_Mass(iMass,iOutput)
           haloMassFunction_cumulative       (iMass,iOutput)=haloMassFunction_%integrated  (outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity)
           haloMassFunction_massFraction     (iMass,iOutput)=haloMassFunction_%massFraction(outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity)
-          haloMassFunction_sigma            (iMass,iOutput)=cosmologicalMassVariance_%rootVariance(haloMassFunction_Mass(iMass,iOutput))
+          haloMassFunction_sigma            (iMass,iOutput)=cosmologicalMassVariance_%rootVariance                   (haloMassFunction_Mass(iMass,iOutput))
+          haloMassFunction_alpha            (iMass,iOutput)=cosmologicalMassVariance_%rootVarianceLogarithmicGradient(haloMassFunction_Mass(iMass,iOutput))
           haloMassFunction_nu               (iMass,iOutput)=outputCriticalOverdensities(iOutput)/haloMassFunction_sigma(iMass,iOutput)
+          haloMassFunction_nuFnu            (iMass,iOutput)=+haloMassFunction_Mass                                                              (iMass,iOutput)**2 &
+               &                                            *haloMassFunction_dndM                                                              (iMass,iOutput)    &
+               &                                            /cosmologyParameters_         %densityCritical                ()                                       &
+               &                                            /cosmologyParameters_         %OmegaMatter                    ()                                       &
+               &                                            /abs(                                                                                                  &
+               &                                                 cosmologicalMassVariance_%rootVarianceLogarithmicGradient(                                        &
+               &                                                                                                           haloMassFunction_Mass(iMass,iOutput)    &
+               &                                                                                                          )                                        &
+               &                                                )
           haloMassFunction_bias             (iMass,iOutput)=Dark_Matter_Halo_Bias                        (thisNode)
           haloMassFunction_virialVelocity   (iMass,iOutput)=darkMatterHaloScale_ %virialVelocity         (thisNode)
           haloMassFunction_virialTemperature(iMass,iOutput)=darkMatterHaloScale_ %virialTemperature      (thisNode)
@@ -273,10 +291,15 @@ contains
 
   subroutine Halo_Mass_Function_Output
     !% Outputs halo mass function data.
+    use Cosmology_Parameters
     use Numerical_Constants_Astronomical
     implicit none
-    type(hdf5Object) :: massFunctionGroup, outputsGroup, thisDataset
+    class(cosmologyParametersClass), pointer :: cosmologyParameters_
+    type (hdf5Object              )          :: massFunctionGroup   , outputsGroup, thisDataset
 
+    ! Get required objects.
+    cosmologyParameters_ => cosmologyParameters()
+    
     ! Open the group for output time information.
     outputsGroup=haloMassFunctionOutputFile%openGroup('Outputs','Group containing datasets relating to output times.')
 
@@ -302,6 +325,9 @@ contains
     massFunctionGroup=haloMassFunctionOutputFile%openGroup('haloMassFunctions','Group containing datasets relating to&
          & halo mass functions.')
 
+    ! Store other usual information.
+    call massFunctionGroup%writeAttribute(cosmologyParameters_%densityCritical(),'densityCritical')
+    
     ! Write the halo mass function data.
     call massFunctionGroup%writeDataset(haloMassFunction_Mass,'haloMass','The mass of the halo.',datasetReturned=thisDataset)
     call thisDataset%writeAttribute(massSolar,'unitsInSI')
@@ -340,8 +366,11 @@ contains
     call thisDataset%close()
     call massFunctionGroup%writeDataset(haloMassFunction_bias,'haloBias','The large scale linear bias of halos.')
     call massFunctionGroup%writeDataset(haloMassFunction_sigma,'haloSigma','The mass fluctuation on the scale of the halo.')
+    call massFunctionGroup%writeDataset(haloMassFunction_alpha,'haloAlpha','dlog(sigma)/dlog(m).')
     call massFunctionGroup%writeDataset(haloMassFunction_nu,'haloNu','The peak height of the halo.')
     call massFunctionGroup%writeDataset(haloMassFunction_massFraction,'haloMassFractionCumulative','The halo cumulative mass fraction.')
+    call massFunctionGroup%writeDataset(haloMassFunction_nuFnu,'haloMassFunctionNuFNu','The halo mass fraction function as a function of the nu parameter.')
+
 
     ! Close the datasets group.
     call massFunctionGroup%close()

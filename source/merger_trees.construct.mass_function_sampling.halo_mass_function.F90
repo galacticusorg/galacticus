@@ -40,7 +40,7 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string  ), intent(in   )          :: haloMassFunctionSamplingMethod
+    type     (varying_string                                      ), intent(in   )          :: haloMassFunctionSamplingMethod
     procedure(Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF), intent(inout), pointer :: Merger_Tree_Construct_Mass_Function_Sampling_Get
 
     if (haloMassFunctionSamplingMethod == 'haloMassFunction') then
