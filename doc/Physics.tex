@@ -192,17 +192,17 @@ where $\beta=${\normalfont \ttfamily [powerSpectrumWindowFunctionSharpKSpaceTopH
 
 The non-linear matter power spectrum method is selected via the {\normalfont \ttfamily powerSpectrumNonlinearMethod} parameter.
 
-\subsubsection{Linear}
+\subsubsection{Linear}\label{phys:powerSpectrumNonlinear:powerSpectrumNonlinearLinear}
 
 Selected via {\normalfont \ttfamily powerSpectrumNonlinearMethod}$=${\normalfont \ttfamily linear}, this method simply returns the linear matter power spectrum. It is intended primarily for testing purposes.
 
-\subsubsection{Peacock \& Dodds (1996)}
+\subsubsection{Peacock \& Dodds (1996)}\label{phys:powerSpectrumNonlinear:powerSpectrumNonlinearPeacockDodds1996}
 
-Selected via {\normalfont \ttfamily powerSpectrumNonlinearMethod}$=${\normalfont \ttfamily Peacock-Dodds1996}, this method usese the fitting function of \cite{peacock_non-linear_1996} to compute the non-linear matter power spectrum.
+Selected via {\normalfont \ttfamily powerSpectrumNonlinearMethod}$=${\normalfont \ttfamily peacockDodds1996}, this method usese the fitting function of \cite{peacock_non-linear_1996} to compute the non-linear matter power spectrum.
 
-\subsubsection{CosmicEmu}
+\subsubsection{CosmicEmu}\label{phys:powerSpectrumNonlinear:powerSpectrumNonlinearCosmicEmu}
 
-Selected via {\normalfont \ttfamily powerSpectrumNonlinearMethod}$=${\normalfont \ttfamily CosmicEmu}, this method usese the cosmic emulator (``CosmicEmu'') code of \cite{lawrence_coyote_2010} to evaluate the non-linear matter power spectrum. The CosmicEmu code will be downloaded, compiled and run as necessary if this option is utilized.
+Selected via {\normalfont \ttfamily powerSpectrumNonlinearMethod}$=${\normalfont \ttfamily cosmicEmu}, this method usese the cosmic emulator (``CosmicEmu'') code of \cite{lawrence_coyote_2010} to evaluate the non-linear matter power spectrum. The CosmicEmu code will be downloaded, compiled and run as necessary if this option is utilized.
 
 \subsection{Transfer Function}\label{sec:TransferFunction}\index{transfer function}
 

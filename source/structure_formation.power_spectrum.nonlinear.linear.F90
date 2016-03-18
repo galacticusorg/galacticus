@@ -16,41 +16,72 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the nonlinear power spectrum as the linear power spectrum (useful mostly for testing).
+!% Contains a module which implements a nonlinear power spectrum class in which the nonlinear power spectrum is just the linear
+!% power spectrum. Intended primarily for testing purposes.
 
-module Power_Spectra_Nonlinear_Linear
-  !% Implements the nonlinear power spectrum as the linear power spectrum (useful mostly for testing).
-  implicit none
-  private
-  public :: Power_Spectrum_Nonlinear_Linear_Initialize
+  use Linear_Growth
+
+  !# <powerSpectrumNonlinear name="powerSpectrumNonlinearLinear">
+  !#  <description>Provides a nonlinear power spectrum class in which the power spectrum equals the linear theory power spectrum. Intended primarily for testing purposes.</description>
+  !# </powerSpectrumNonlinear>
+  type, extends(powerSpectrumNonlinearClass) :: powerSpectrumNonlinearLinear
+     !% A linear transfer function class.
+     private
+     class(linearGrowthClass), pointer :: linearGrowth_
+   contains
+     final     ::          linearDestructor
+     procedure :: value => linearValue
+  end type powerSpectrumNonlinearLinear
+
+  interface powerSpectrumNonlinearLinear
+     !% Constructors for the linear nonlinear power spectrum class.
+     module procedure linearConstructorParameters
+     module procedure linearConstructorInternal
+  end interface powerSpectrumNonlinearLinear
 
 contains
 
-  !# <powerSpectrumNonlinearMethod>
-  !#  <unitName>Power_Spectrum_Nonlinear_Linear_Initialize</unitName>
-  !# </powerSpectrumNonlinearMethod>
-  subroutine Power_Spectrum_Nonlinear_Linear_Initialize(powerSpectrumNonlinearMethod,Power_Spectrum_Nonlinear_Get)
-    !% Initializes the ``lienar'' nonlinear power spectrum module.
-    use ISO_Varying_String
+  function linearConstructorParameters(parameters)
+    !% Constructor for the linear nonlinear power spectrum class which takes a parameter set as input.
+    use Input_Parameters2
     implicit none
-    type     (varying_string  ), intent(in   )          :: powerSpectrumNonlinearMethod
-    procedure(Power_Spectrum_Nonlinear_Linear), intent(inout), pointer :: Power_Spectrum_Nonlinear_Get
+    type(powerSpectrumNonlinearLinear)                :: linearConstructorParameters
+    type(inputParameters             ), intent(inout) :: parameters
+    !# <inputParameterList label="allowedParameterNames" />
 
-    if (powerSpectrumNonlinearMethod == 'linear') Power_Spectrum_Nonlinear_Get => Power_Spectrum_Nonlinear_Linear
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)    
+
+    !# <objectBuilder class="linearGrowth" name="linearConstructorParameters%linearGrowth_" source="parameters"/>
     return
-  end subroutine Power_Spectrum_Nonlinear_Linear_Initialize
+  end function linearConstructorParameters
 
-  double precision function Power_Spectrum_Nonlinear_Linear(waveNumber,time)
-    !% Return a nonlinear power spectrum equal to the linear power spectrum. (Useful mostly for testing.)
+  function linearConstructorInternal(linearGrowth_)
+    !% Internal constructor for the linear nonlinear power spectrum class.
+    implicit none
+    type (powerSpectrumNonlinearLinear)                        :: linearConstructorInternal
+    class(linearGrowthClass           ), intent(in   ), target :: linearGrowth_
+
+    linearConstructorInternal%linearGrowth_ => linearGrowth_
+    return
+  end function linearConstructorInternal
+
+  subroutine linearDestructor(self)
+    !% Destructor for the linear nonlinear power spectrum class.
+    implicit none
+    type(powerSpectrumNonlinearLinear), intent(inout) :: self
+
+    !# <objectDestructor name="self%linearGrowth_"/>
+    return
+  end subroutine linearDestructor
+
+  double precision function linearValue(self,wavenumber,time)
+    !% Return the nonlinear power spectrum at the given wavenumber.
     use Power_Spectra
-    use Linear_Growth
     implicit none
-    double precision                   , intent(in   ) :: time         , waveNumber
-    class           (linearGrowthClass), pointer       :: linearGrowth_
+    class           (powerSpectrumNonlinearLinear), intent(inout) :: self
+    double precision                              , intent(in   ) :: wavenumber, time
 
-    linearGrowth_ => linearGrowth()
-    Power_Spectrum_Nonlinear_Linear=Power_Spectrum(wavenumber)*linearGrowth_%value(time)**2
+    linearValue=Power_Spectrum(wavenumber)*self%linearGrowth_%value(time)**2
     return
-  end function Power_Spectrum_Nonlinear_Linear
-
-end module Power_Spectra_Nonlinear_Linear
+  end function linearValue
