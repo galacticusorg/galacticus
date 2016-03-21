@@ -20,6 +20,7 @@
 !% power spectrum. Intended primarily for testing purposes.
 
   use Linear_Growth
+  use Power_Spectra
 
   !# <powerSpectrumNonlinear name="powerSpectrumNonlinearLinear">
   !#  <description>Provides a nonlinear power spectrum class in which the power spectrum equals the linear theory power spectrum. Intended primarily for testing purposes.</description>
@@ -27,7 +28,8 @@
   type, extends(powerSpectrumNonlinearClass) :: powerSpectrumNonlinearLinear
      !% A linear transfer function class.
      private
-     class(linearGrowthClass), pointer :: linearGrowth_
+     class(linearGrowthClass ), pointer :: linearGrowth_
+     class(powerSpectrumClass), pointer :: powerSpectrum_
    contains
      final     ::          linearDestructor
      procedure :: value => linearValue
@@ -52,17 +54,20 @@ contains
     ! Check and read parameters.
     call parameters%checkParameters(allowedParameterNames)    
 
-    !# <objectBuilder class="linearGrowth" name="linearConstructorParameters%linearGrowth_" source="parameters"/>
+    !# <objectBuilder class="powerSpectrum" name="linearConstructorParameters%powerSpectrum_" source="parameters"/>
+    !# <objectBuilder class="linearGrowth"  name="linearConstructorParameters%linearGrowth_"  source="parameters"/>
     return
   end function linearConstructorParameters
 
-  function linearConstructorInternal(linearGrowth_)
+  function linearConstructorInternal(powerSpectrum_,linearGrowth_)
     !% Internal constructor for the linear nonlinear power spectrum class.
     implicit none
     type (powerSpectrumNonlinearLinear)                        :: linearConstructorInternal
+    class(powerSpectrumClass          ), intent(in   ), target :: powerSpectrum_
     class(linearGrowthClass           ), intent(in   ), target :: linearGrowth_
 
-    linearConstructorInternal%linearGrowth_ => linearGrowth_
+    linearConstructorInternal%powerSpectrum_ => powerSpectrum_
+    linearConstructorInternal%linearGrowth_  => linearGrowth_
     return
   end function linearConstructorInternal
 
@@ -71,17 +76,17 @@ contains
     implicit none
     type(powerSpectrumNonlinearLinear), intent(inout) :: self
 
-    !# <objectDestructor name="self%linearGrowth_"/>
+    !# <objectDestructor name="self%powerSpectrum_"/>
+    !# <objectDestructor name="self%linearGrowth_" />
     return
   end subroutine linearDestructor
 
   double precision function linearValue(self,wavenumber,time)
     !% Return the nonlinear power spectrum at the given wavenumber.
-    use Power_Spectra
     implicit none
     class           (powerSpectrumNonlinearLinear), intent(inout) :: self
     double precision                              , intent(in   ) :: wavenumber, time
 
-    linearValue=Power_Spectrum(wavenumber)*self%linearGrowth_%value(time)**2
+    linearValue=self%powerSpectrum_%power(wavenumber)*self%linearGrowth_%value(time)**2
     return
   end function linearValue

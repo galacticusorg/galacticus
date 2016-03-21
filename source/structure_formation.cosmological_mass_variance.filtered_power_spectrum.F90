@@ -51,6 +51,7 @@
      final     ::                                       filteredPowerDestructor
      procedure :: stateStore                         => filteredPowerStateStore
      procedure :: stateRestore                       => filteredPowerStateRestore
+     procedure :: descriptor                         => filteredPowerDescriptor
      procedure :: sigma8                             => filteredPowerSigma8
      procedure :: powerNormalization                 => filteredPowerPowerNormalization
      procedure :: rootVariance                       => filteredPowerRootVariance
@@ -445,3 +446,27 @@ contains
     call self%retabulate()
     return
   end subroutine filteredPowerStateRestore
+
+  subroutine filteredPowerDescriptor(self,descriptor)
+    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
+    use Input_Parameters2
+    use FoX_DOM
+    implicit none
+    class    (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
+    type     (inputParameters                      ), intent(inout) :: descriptor
+    type     (inputParameters                      )                :: subParameters
+    character(len=10                               )                :: parameterLabel
+
+    call descriptor%addParameter("cosmologicalMassVarianceMethod","filteredPower")
+    subParameters=descriptor%subparameters("cosmologicalMassVarianceMethod")
+    write (parameterLabel,'(f10.6)') self%sigma8Value
+    call subParameters%addParameter("sigma_8"        ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(f10.6)') self%toleranceTopHat
+    call subParameters%addParameter("toleranceTopHat",trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(f10.6)') self%tolerance
+    call subParameters%addParameter("tolerance"      ,trim(adjustl(parameterLabel)))
+    call self%cosmologyParameters_               %descriptor(subParameters)
+    call self%powerSpectrumPrimordialTransferred_%descriptor(subParameters)
+    call self%powerSpectrumWindowFunction_       %descriptor(subParameters)
+    return
+  end subroutine filteredPowerDescriptor
