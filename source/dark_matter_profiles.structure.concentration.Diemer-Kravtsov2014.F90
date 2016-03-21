@@ -202,6 +202,7 @@ contains
     class           (cosmologyParametersClass                        )               , pointer :: cosmologyParameters_
     class           (criticalOverdensityClass                        )               , pointer :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass                   )               , pointer :: cosmologicalMassVariance_
+    class           (powerSpectrumClass                              )               , pointer :: powerSpectrum_
     double precision                                                                           :: radiusHaloLagrangian     , peakHeight        , &
          &                                                                                        wavenumber               , powerSpectrumSlope, &
          &                                                                                        concentrationMinimum     , peakHeightMinimum
@@ -209,6 +210,7 @@ contains
     cosmologyParameters_                => cosmologyParameters      ()
     criticalOverdensity_                => criticalOverdensity      ()
     cosmologicalMassVariance_           => cosmologicalMassVariance ()
+    powerSpectrum_                      => powerSpectrum            ()
     basic                               => node               %basic()
     radiusHaloLagrangian                =  +(                                                   &
          &                                   +3.0d0                                             &
@@ -224,7 +226,7 @@ contains
          &                                *2.0d0                                                &
          &                                *Pi                                                   &
          &                                /radiusHaloLagrangian
-    powerSpectrumSlope                  = +Power_Spectrum_Logarithmic_Derivative(wavenumber)
+    powerSpectrumSlope                  = +powerSpectrum_%powerLogarithmicDerivative(wavenumber)
     concentrationMinimum                = +self%phi0                                            &
          &                                +self%phi1                                            &
          &                                *powerSpectrumSlope

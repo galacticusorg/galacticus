@@ -71,6 +71,7 @@ contains
        &                                                                                                                projectedCorrelationFunctionLineOfSightDepth
     logical                                              , intent(in   )                                             :: projectedCorrelationFunctionHalfIntegral
     double precision                                     , intent(  out), dimension(size(projectedSeparationBinned)) :: projectedCorrelationBinned
+    class           (powerSpectrumClass                 ), pointer                                                   :: powerSpectrum_
     class           (cosmologyFunctionsClass            ), pointer                                                   :: cosmologyFunctions_
     class           (surveyGeometryClass                ), pointer                                                   :: surveyGeometry_
     class           (darkMatterProfileConcentrationClass), pointer                                                   :: darkMatterProfileConcentration_
@@ -82,7 +83,7 @@ contains
     class           (haloMassFunctionClass              ), pointer                                                   :: haloMassFunction_
     procedure       (integrandWeight                    ), pointer                                                   :: integrandWeightFunction
     double precision                                     , allocatable  , dimension(                             : ) :: powerSpectrumOneHalo                              , powerSpectrumTwoHalo                              , &
-         &                                                                                                              wavenumber                                        , powerSpectrum                                     , &
+         &                                                                                                              wavenumber                                        , powerSpectrumTotal                                , &
          &                                                                                                              separation                                        , correlation                                       , &
          &                                                                                                              projectedCorrelation
     integer                                              , parameter                                                 :: wavenumberCountPerDecade                   =10
@@ -110,6 +111,7 @@ contains
     darkMatterHaloScale_            => darkMatterHaloScale           ()
     linearGrowth_                   => linearGrowth                  ()
     haloMassFunction_               => haloMassFunction              ()
+    powerSpectrum_                  => powerSpectrum                 ()
     ! Create worker node.
     thisNode              => treeNode                  (                 )
     thisBasic             => thisNode%basic            (autoCreate=.true.)
@@ -124,7 +126,7 @@ contains
     ! Generate wavenumber range.
     wavenumberCount=int(log10(wavenumberMaximum/wavenumberMinimum)*dble(wavenumberCountPerDecade))+1
     wavenumber     =Make_Range(wavenumberMinimum,wavenumberMaximum,wavenumberCount,rangeTypeLogarithmic)
-    call Alloc_Array(powerSpectrum       ,[wavenumberCount])
+    call Alloc_Array(powerSpectrumTotal  ,[wavenumberCount])
     call Alloc_Array(powerSpectrumOneHalo,[wavenumberCount])
     call Alloc_Array(powerSpectrumTwoHalo,[wavenumberCount])
     ! Initialize.
@@ -214,26 +216,26 @@ contains
        powerSpectrumOneHalo=powerSpectrumOneHalo/volume
        powerSpectrumTwoHalo=powerSpectrumTwoHalo/volume
        do iWavenumber=1,wavenumberCount
-          powerSpectrum(iWavenumber)=(                                                  &
-               &                      +powerSpectrumOneHalo(           iWavenumber )    &
-               &                      +Power_Spectrum      (wavenumber(iWavenumber))    &
-               &                      *powerSpectrumTwoHalo(           iWavenumber )**2 &
-               &                     )                                                  &
-               &                     /galaxyDensity                                 **2
+          powerSpectrumTotal(iWavenumber)=(                                                  &
+               &                           +powerSpectrumOneHalo(           iWavenumber )    &
+               &                           +powerSpectrum_%power(wavenumber(iWavenumber))    &
+               &                           *powerSpectrumTwoHalo(           iWavenumber )**2 &
+               &                          )                                                  &
+               &                          /galaxyDensity                                 **2
        end do
        ! Fourier transform to get the correlation function.
        call Alloc_Array(correlation,shape(wavenumber))
        call Alloc_Array(separation ,shape(wavenumber))
-       call FFTLog(                &
-            &      wavenumber    , &
-            &      separation    , &
-            &      +powerSpectrum  &
-            &      *wavenumber     &
-            &      * 4.0d0*Pi      &
-            &      /(2.0d0*Pi)**3, &
-            &      correlation   , &
-            &      fftLogSine    , &
-            &      fftLogForward   &
+       call FFTLog(                     &
+            &      wavenumber         , &
+            &      separation         , &
+            &      +powerSpectrumTotal  &
+            &      *wavenumber          &
+            &      * 4.0d0*Pi           &
+            &      /(2.0d0*Pi)**3     , &
+            &      correlation        , &
+            &      fftLogSine         , &
+            &      fftLogForward        &
             &     )
        correlation=correlation/separation
        ! Project the correlation function.
