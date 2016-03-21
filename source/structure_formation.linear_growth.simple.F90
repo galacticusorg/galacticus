@@ -48,6 +48,7 @@
      final     ::                                         simpleDestructor
      procedure :: stateStore                           => simpleStateStore
      procedure :: stateRestore                         => simpleStateRestore
+     procedure :: descriptor                           => simpleDescriptor
      procedure :: value                                => simpleValue
      procedure :: logarithmicDerivativeExpansionFactor => simpleLogarithmicDerivativeExpansionFactor
      procedure :: retabulate                           => simpleRetabulate
@@ -311,3 +312,19 @@ contains
     call self%retabulate(sqrt(self%tableTimeMinimum*self%tableTimeMaximum))
     return
   end subroutine simpleStateRestore
+
+  subroutine simpleDescriptor(self,descriptor)
+    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
+    use Input_Parameters2
+    use FoX_DOM
+    implicit none
+    class(linearGrowthSimple), intent(inout) :: self
+    type (inputParameters   ), intent(inout) :: descriptor
+    type (inputParameters   )                :: subParameters
+    
+    call descriptor%addParameter("linearGrowthMethod","simple")
+    subParameters=descriptor%subparameters("linearGrowthMethod")
+    call self%cosmologyParameters_%descriptor(subParameters)
+    call self%cosmologyFunctions_ %descriptor(subParameters)
+    return
+  end subroutine simpleDescriptor
