@@ -28,6 +28,7 @@
      class(cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
     contains
      final     ::                      topHatDestructor
+     procedure :: descriptor        => topHatDescriptor
      procedure :: value             => topHatValue
      procedure :: wavenumberMaximum => topHatWavenumberMaximum
   end type powerSpectrumWindowFunctionTopHat
@@ -125,3 +126,18 @@ contains
     topHatWavenumberMaximum=wavenumberLarge
     return
   end function topHatWavenumberMaximum
+
+  subroutine topHatDescriptor(self,descriptor)
+    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
+    use Input_Parameters2
+    use FoX_DOM
+    implicit none
+    class(powerSpectrumWindowFunctionTopHat), intent(inout) :: self
+    type (inputParameters                  ), intent(inout) :: descriptor
+    type (inputParameters                  )                :: subParameters
+
+    call descriptor%addParameter("powerSpectrumWindowFunctionMethod","topHat")
+    subParameters=descriptor%subparameters("powerSpectrumWindowFunctionMethod")
+    call self%cosmologyParameters_%descriptor(subParameters)
+    return
+  end subroutine topHatDescriptor
