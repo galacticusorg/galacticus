@@ -29,16 +29,20 @@ module Numerical_Ranges
 
 contains
 
-  recursive function Make_Range(rangeMinimum,rangeMaximum,rangeNumber,rangeType) result (rangeValues)
-    !% Builds a numerical range between {\normalfont \ttfamily rangeMinimum} and {\normalfont \ttfamily rangeMaximum} using {\normalfont \ttfamily rangeNumber} points and spacing as
-    !% specified by {\normalfont \ttfamily rangeType} (defaulting to linear spacing if no {\normalfont \ttfamily rangeType} is given).
+  recursive function Make_Range(rangeMinimum,rangeMaximum,rangeNumber,rangeType,rangeBinned) result (rangeValues)
+    !% Builds a numerical range between {\normalfont \ttfamily rangeMinimum} and {\normalfont
+    !% \ttfamily rangeMaximum} using {\normalfont \ttfamily rangeNumber} points and spacing as
+    !% specified by {\normalfont \ttfamily rangeType} (defaulting to linear spacing if no
+    !% {\normalfont \ttfamily rangeType} is given).
     use Galacticus_Error
     implicit none
-    double precision, intent(in   )           :: rangeMaximum             , rangeMinimum
+    double precision, intent(in   )           :: rangeMaximum                  , rangeMinimum
     integer         , intent(in   )           :: rangeNumber
     integer         , intent(in   ), optional :: rangeType
-    double precision                          :: rangeValues (rangeNumber)
-    integer                                   :: iRange                   , rangeTypeActual
+    logical         , intent(in   ), optional :: rangeBinned
+    double precision                          :: rangeValues      (rangeNumber)
+    integer                                   :: iRange                        , rangeTypeActual
+    logical                                   :: rangeBinnedActual
 
     ! Find what type of range is required.
     if (present(rangeType)) then
@@ -46,18 +50,32 @@ contains
     else
        rangeTypeActual=rangeTypeLinear
     end if
+    ! Determine if a binned range is required.
+    if (present(rangeBinned)) then
+       rangeBinnedActual=rangeBinned
+    else
+       rangeBinnedActual=.false.
+    end if
     ! Build the range.
     select case (rangeTypeActual)
     case (rangeTypeLinear)
-       ! Check that the rangeNumber is valid.
-       if (rangeNumber <= 1) call Galacticus_Error_Report('Make_Range','number of points in range must exceed 1')
-       ! Build a linear range.
-       forall(iRange=1:rangeNumber)
-          rangeValues(iRange)=rangeMinimum+(rangeMaximum-rangeMinimum)*dble(iRange-1)/dble(rangeNumber-1)
-       end forall
+       ! Determine if we are returning a regular range or bin centers.
+       if (rangeBinnedActual) then
+          ! Build a linear binned range returning bin centers.
+          forall(iRange=1:rangeNumber)
+             rangeValues(iRange)=rangeMinimum+(rangeMaximum-rangeMinimum)*(dble(iRange-1)+0.5d0)/dble(rangeNumber)
+          end forall
+       else
+          ! Check that the rangeNumber is valid.
+          if (rangeNumber <= 1) call Galacticus_Error_Report('Make_Range','number of points in range must exceed 1')
+          ! Build a linear range.
+          forall(iRange=1:rangeNumber)
+             rangeValues(iRange)=rangeMinimum+(rangeMaximum-rangeMinimum)*dble(iRange-1)/dble(rangeNumber-1)
+          end forall
+       end if
     case (rangeTypeLogarithmic)
        ! Call ourself with logged limits and then exponentiate the result.
-       rangeValues=exp(Make_Range(log(rangeMinimum),log(rangeMaximum),rangeNumber,rangeTypeLinear))
+       rangeValues=exp(Make_Range(log(rangeMinimum),log(rangeMaximum),rangeNumber,rangeTypeLinear,rangeBinnedActual))
     case default
        call Galacticus_Error_Report('Make_Range','range type is unrecognized')
     end select
