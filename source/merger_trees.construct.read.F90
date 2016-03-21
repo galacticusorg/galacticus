@@ -2461,7 +2461,7 @@ contains
                    ! Does this subhalo's descendent live in the host to which the subhalo's host descends.
                    if (.not.associated(descendentNode%host%descendent)) then
                       ! Host has no descendent, so this must be a branch jump.
-                      subhaloJumps=.true.                      
+                      subhaloJumps=.true.
                    else
                       ! In nested hierarchies we must find the isolated node which hosts our node and our node's host.
                       isolatedHostNode     => descendentNode     %descendent%host
@@ -2478,17 +2478,33 @@ contains
                          ! Check that is not simply a case of the subhalo skipping one or more timesteps before
                          ! reappearing in the expected host.
                          hostDescendent => isolatedHostHostNode
-                         do while (isolatedHostNode%nodeTime > hostDescendent%nodeTime)
-                            if (associated(hostDescendent%descendent)) then
-                               hostDescendent => hostDescendent%descendent%host
-                               ! In nested hierarchies, find the isolated host node.
-                               do while (associated(hostDescendent%host).and..not.associated(hostDescendent%host,hostDescendent))
-                                  hostDescendent => hostDescendent%host
-                               end do
-                            else
-                               exit
-                            end if
-                         end do
+                         if (isolatedHostNode%nodeTime > hostDescendent%nodeTime) then
+                            ! Handle cases where the subhalo skipped one or more timesteps.
+                            do while (isolatedHostNode%nodeTime > hostDescendent%nodeTime)
+                               if (associated(hostDescendent%descendent)) then
+                                  hostDescendent => hostDescendent%descendent%host
+                                  ! In nested hierarchies, find the isolated host node.
+                                  do while (associated(hostDescendent%host).and..not.associated(hostDescendent%host,hostDescendent))
+                                     hostDescendent => hostDescendent%host
+                                  end do
+                               else
+                                  exit
+                               end if
+                            end do
+                         else if (isolatedHostNode%nodeTime < hostDescendent%nodeTime) then
+                            ! Handle cases where the host skipped one or more timesteps.
+                            do while (isolatedHostNode%nodeTime < hostDescendent%nodeTime)
+                               if (associated(isolatedHostNode%descendent)) then
+                                  isolatedHostNode => isolatedHostNode%descendent%host
+                                  ! In nested hierarchies, find the isolated host node.
+                                  do while (associated(isolatedHostNode%host).and..not.associated(isolatedHostNode%host,isolatedHostNode))
+                                     isolatedHostNode => isolatedHostNode%host
+                                  end do
+                               else
+                                  exit
+                               end if
+                            end do
+                         end if
                          ! Subhalo reappeared in the expected host. This is not a branch jump.
                          if (isolatedHostNode%nodeIndex == hostDescendent%nodeIndex) subhaloJumps=.false.
                       end if
@@ -2740,6 +2756,8 @@ contains
                 newNode%sibling                         => nodes(iNode)%node
                 newNode%parent                          => nodes(iNode)%node%parent
                 newNode%firstChild                      => null()
+                newNode%mergeTarget                     => null()
+                newNode%siblingMergee                   => null()
                 nodes(iNode)%node%parent%firstChild     => newNode
                 newBasicComponent                       => newNode%basic()
                 call newBasicComponent%timeSet(newBasicComponent%time()*(1.0d0-1.0d-6))
