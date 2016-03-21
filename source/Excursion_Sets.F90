@@ -41,7 +41,7 @@ program Tests_Excursion_Sets
   integer                                                                              , parameter :: fileNameLengthMaximum    =1024
   double precision                                        , allocatable, dimension(:  )            :: barrier                         , firstCrossingProbability      , &
        &                                                                                              haloMass                        , haloMassFunctionDifferential  , &
-       &                                                                                              powerSpectrum                   , variance                      , &
+       &                                                                                              powerSpectrumValue                   , variance                      , &
        &                                                                                              wavenumber
   double precision                                        , allocatable, dimension(:,:)            :: firstCrossingRate
   integer                                                                                          :: iMass                       , jMass                          , &
@@ -50,6 +50,7 @@ program Tests_Excursion_Sets
   class           (cosmologyFunctionsClass      ), pointer                                         :: cosmologyFunctions_
   class           (cosmologicalMassVarianceClass), pointer                                         :: cosmologicalMassVariance_
   class           (haloMassFunctionClass        ), pointer                                         :: haloMassFunction_
+  class           (powerSpectrumClass           ), pointer                                         :: powerSpectrum_
   double precision                                                                                 :: time                            , varianceProgenitor
   character       (len=fileNameLengthMaximum    )                                                  :: fileCharacter
   type            (varying_string               )                                                  :: outputFileName                  , parameterFile
@@ -80,7 +81,8 @@ program Tests_Excursion_Sets
   cosmologyFunctions_       => cosmologyFunctions      ()
   cosmologicalMassVariance_ => cosmologicalMassVariance()
   haloMassFunction_         => haloMassFunction        ()
-  
+  powerSpectrum_            => powerSpectrum           ()
+
   ! Get the current time.
   time=cosmologyFunctions_%cosmicTime(1.0d0)
 
@@ -91,7 +93,7 @@ program Tests_Excursion_Sets
   call Alloc_Array(firstCrossingProbability    ,[massCount          ])
   call Alloc_Array(haloMassFunctionDifferential,[massCount          ])
   call Alloc_Array(wavenumber                  ,[massCount          ])
-  call Alloc_Array(powerSpectrum               ,[massCount          ])
+  call Alloc_Array(powerSpectrumValue          ,[massCount          ])
   call Alloc_Array(firstCrossingRate           ,[massCount,massCount])
 
   ! Create a grid of masses.
@@ -106,7 +108,7 @@ program Tests_Excursion_Sets
   ! Loop over masses.
   do iMass=1,massCount
      wavenumber                  (iMass)=(3.0d0*haloMass(iMass)/4.0d0/Pi/cosmologyParameters_%densityCritical()/cosmologyParameters_%OmegaMatter())**(-1.0d0/3.0d0)
-     powerSpectrum               (iMass)=Power_Spectrum                           (wavenumber(iMass)                     )
+     powerSpectrumValue          (iMass)=powerSpectrum_%power                     (wavenumber(iMass)                     )
      variance                    (iMass)=cosmologicalMassVariance_%rootVariance   (                       haloMass(iMass))**2
      barrier                     (iMass)=Excursion_Sets_Barrier                   (variance  (iMass),time                )
      firstCrossingProbability    (iMass)=Excursion_Sets_First_Crossing_Probability(variance  (iMass),time                )
@@ -123,7 +125,7 @@ program Tests_Excursion_Sets
   ! Write results to the output file.
   call outputFile%writeDataset(haloMass                    ,'haloMass'                ,'The mass of the halo [M☉]'                       )
   call outputFile%writeDataset(wavenumber                  ,'wavenumber'              ,'The wavenumber associated with this mass [Mpc⁻¹]')
-  call outputFile%writeDataset(powerSpectrum               ,'powerSpectrum'           ,'The power spectrum at this wavenumber [Mpc³]'    )
+  call outputFile%writeDataset(powerSpectrumValue          ,'powerSpectrum'           ,'The power spectrum at this wavenumber [Mpc³]'    )
   call outputFile%writeDataset(variance                    ,'variance'                ,'The variance on this mass scale'                 )
   call outputFile%writeDataset(barrier                     ,'barrier'                 ,'The excursion set barrier for this variance'     )
   call outputFile%writeDataset(firstCrossingProbability    ,'firstCrossingProbability','The first crossing probability'                  )

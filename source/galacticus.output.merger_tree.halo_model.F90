@@ -230,9 +230,10 @@ contains
     use Power_Spectra
     use Numerical_Constants_Astronomical
     implicit none
-    double precision            , allocatable, dimension(:) :: powerSpectrum
-    integer                                                 :: iWavenumber
-    type            (hdf5Object)                            :: haloModelDataset, haloModelGroup
+    double precision                    , allocatable, dimension(:) :: powerSpectrumValue
+    class           (powerSpectrumClass), pointer                   :: powerSpectrum_
+    integer                                                         :: iWavenumber
+    type            (hdf5Object)                                    :: haloModelDataset   , haloModelGroup
 
     ! Initialize the module.
     call Galacticus_Output_Halo_Model_Initialize
@@ -253,15 +254,16 @@ contains
        wavenumberCount=int(log10(haloModelWavenumberMaximum/haloModelWavenumberMinimum)*dble(haloModelWavenumberPointsPerDecade))+1
 
        ! Allocate arrays for power spectrum.
-       call Alloc_Array(wavenumber   ,[wavenumberCount])
-       call Alloc_Array(powerSpectrum,[wavenumberCount])
+       call Alloc_Array(wavenumber        ,[wavenumberCount])
+       call Alloc_Array(powerSpectrumValue,[wavenumberCount])
 
        ! Build a grid of wavenumbers.
        wavenumber=Make_Range(haloModelWavenumberMinimum,haloModelWavenumberMaximum,wavenumberCount,rangeType=rangeTypeLogarithmic)
 
        ! Compute power spectrum at each wavenumber.
+       powerSpectrum_ => powerSpectrum()
        do iWavenumber=1,wavenumberCount
-          powerSpectrum(iWavenumber)=Power_Spectrum(wavenumber(iWavenumber))
+          powerSpectrumValue(iWavenumber)=powerSpectrum_%power(wavenumber(iWavenumber))
        end do
 
        ! Store the power spectrum
@@ -285,13 +287,13 @@ contains
        !@   <label>???</label>
        !@   <outputType>haloModel</outputType>
        !@ </outputProperty>
-       call haloModelGroup%writeDataset(powerSpectrum,'powerSpectrum','Linear theory power spectrum [Mpc³].',datasetReturned=haloModelDataset)
+       call haloModelGroup%writeDataset(powerSpectrumValue,'powerSpectrum','Linear theory power spectrum [Mpc³].',datasetReturned=haloModelDataset)
        call haloModelDataset%writeAttribute(megaParsec**3   ,'unitsInSI')
        call haloModelDataset%close()
        !$omp end critical (HDF5_Access)
 
        ! Deallocate arrays.
-       call Dealloc_Array(powerSpectrum)
+       call Dealloc_Array(powerSpectrumValue)
 
        ! Close the halo model group.
        !$omp critical (HDF5_Access)
