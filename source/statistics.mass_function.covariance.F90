@@ -736,7 +736,7 @@ contains
     type            (fgsl_interp                )          :: interpolationObject
     type            (fgsl_interp_accel          )          :: interpolationAccelerator
     logical                                                :: interpolationReset
-    double precision                                       :: bias                    , powerSpectrum
+    double precision                                       :: bias                    , powerSpectrumValue
 
     ! Get required objects.
     powerSpectrumNonLinear_ => powerSpectrumNonLinear()
@@ -747,9 +747,9 @@ contains
     bias=Interpolate(timeTable,biasTable(:,lssBin),interpolationObject,interpolationAccelerator,time,reset=interpolationReset)
     call Interpolate_Done(interpolationObject,interpolationAccelerator,interpolationReset)
     ! Get the nonlinear power spectrum for the current wavenumber and time.
-    powerSpectrum=powerSpectrumNonlinear_%value(waveNumberGlobal,time)
+    powerSpectrumValue=powerSpectrumNonlinear_%value(waveNumberGlobal,time)
     ! Return the cross-correlation biased power spectrum multiplied by the volume element.
-    LSS_Integrand=bias*sqrt(powerSpectrum)*cosmologyFunctions_%comovingVolumeElementTime(time)
+    LSS_Integrand=bias*sqrt(powerSpectrumValue)*cosmologyFunctions_%comovingVolumeElementTime(time)
     return
   end function LSS_Integrand
 

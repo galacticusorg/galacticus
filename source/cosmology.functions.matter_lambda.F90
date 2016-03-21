@@ -80,6 +80,7 @@
      final     ::                                  matterLambdaDestructor
      procedure :: stateStore                    => matterLambdaStateStore
      procedure :: stateRestore                  => matterLambdaStateRestore
+     procedure :: descriptor                    => matterLambdaDescriptor
      procedure :: epochValidate                 => matterLambdaEpochValidate
      procedure :: cosmicTime                    => matterLambdaCosmicTime
      procedure :: expansionFactor               => matterLambdaExpansionFactor
@@ -1216,3 +1217,18 @@ double precision :: d
     self%resetInterpolationDistanceInverse=.true.
     return
   end subroutine matterLambdaStateRestore
+
+  subroutine matterLambdaDescriptor(self,descriptor)
+    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
+    use Input_Parameters2
+    use FoX_DOM
+    implicit none
+    class(cosmologyFunctionsMatterLambda), intent(inout) :: self
+    type (inputParameters               ), intent(inout) :: descriptor
+    type (inputParameters               )                :: subParameters
+
+    call descriptor%addParameter("cosmologyFunctionsMethod","matterLambda")
+    subParameters=descriptor%subparameters("cosmologyFunctionsMethod")
+    call self%cosmology%descriptor(subParameters)    
+    return
+  end subroutine matterLambdaDescriptor
