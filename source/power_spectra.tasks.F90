@@ -74,6 +74,7 @@ contains
     double precision                                         :: powerSpectraWavenumberMaximum, powerSpectraWavenumberMinimum
     class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_
     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+    class           (powerSpectrumClass           ), pointer :: powerSpectrum_
 
     ! Find the wavenumber range and increment size.
     !@ <inputParameter>
@@ -126,10 +127,11 @@ contains
     ! Get required objects.
     cosmologyParameters_      => cosmologyParameters     ()
     cosmologicalMassVariance_ => cosmologicalMassVariance()
+    powerSpectrum_            => powerSpectrum           ()
     ! Loop over all halo wavenumberes.
     do iWavenumber=1,powerSpectraCount
        ! Compute power spectrum.
-       powerSpectrum_Power        (iWavenumber)=Power_Spectrum(powerSpectrum_Wavenumber(iWavenumber))
+       powerSpectrum_Power        (iWavenumber)=powerSpectrum_%power(powerSpectrum_Wavenumber(iWavenumber))
        ! Compute corresponding mass scale.
        powerSpectrum_Mass         (iWavenumber)=4.0d0*Pi*cosmologyParameters_%OmegaMatter()*cosmologyParameters_%densityCritical()/3.0d0/powerSpectrum_Wavenumber(iWavenumber)**3
        ! Compute fluctuation on this mass scale.
