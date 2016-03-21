@@ -900,9 +900,10 @@ contains
     double precision                            , allocatable, dimension(:,:) :: powerSpectrumCovariance       , jacobian                            , &
          &                                                                       correlationCovariance         , covarianceTmp                       , &
          &                                                                       projectedCorrelationCovariance, binnedProjectedCorrelationCovariance, &
-         &                                                                       powerSpectrum                 , correlation                         , &
+         &                                                                       powerSpectrumValue            , correlation                         , &
          &                                                                       projectedCorrelation          , binnedProjectedCorrelation          , &
          &                                                                       oneTwoHaloCovariance
+    class           (powerSpectrumClass        ), pointer                     :: powerSpectrum_
     integer                                                                   :: i                             , k                                  , &
          &                                                                       j                             , wavenumberCount, m, n, massCount, indexDensity, indexOneHalo, indexTwoHalo
     type            (hdf5Object                )                              :: analysisGroup                 , correlationFunctionGroup           , &
@@ -915,6 +916,8 @@ contains
 
     ! Return immediately if this analysis is not active.
     if (.not.analysisActive) return
+    ! Get required objects.
+    powerSpectrum_ => powerSpectrum()
     ! Iterate over mass functions.
     do k=1,size(correlationFunctions)
        ! Copy upper to lower triangle of covariance matrix (we've accumulated only the upper triangle).
@@ -1043,9 +1046,11 @@ contains
        jacobian=0.0d0
        do n=1,massCount
           do i=1,wavenumberCount
-             jacobian((n-1)*(2*wavenumberCount)                +i,(n-1)*(2*wavenumberCount)                +i)=1.0d0
-             jacobian((n-1)*(2*wavenumberCount)+wavenumberCount+i,(n-1)*(2*wavenumberCount)+wavenumberCount+i)=2.0d0*correlationFunctions(k)%twoHaloTerm(i,n)*Power_Spectrum      (correlationFunctions(k)%wavenumber (i  )) &
-               &                                   *correlationFunctions(k)%linearGrowthFactor(n)**2
+             jacobian((n-1)*(2*wavenumberCount)                +i,(n-1)*(2*wavenumberCount)                +i)=+1.0d0
+             jacobian((n-1)*(2*wavenumberCount)+wavenumberCount+i,(n-1)*(2*wavenumberCount)+wavenumberCount+i)=+2.0d0&
+                  &                                                                                            *                     correlationFunctions(k)%twoHaloTerm       (i,n)     &
+                  &                                                                                            *powerSpectrum_%power(correlationFunctions(k)%wavenumber        (i  ))    &
+                  &                                                                                            *                     correlationFunctions(k)%linearGrowthFactor(  n) **2
           end do
        end do
        jacobianMatrix                        =jacobian
@@ -1053,14 +1058,14 @@ contains
        oneTwoHaloCovariance                  =jacobianMatrix*(covarianceMatrix*jacobianMatrix%transpose())
        do n=1,massCount
           do i=1,wavenumberCount
-             correlationFunctions(k)%twoHaloTerm(i,n)=                correlationFunctions(k)%twoHaloTerm(i,n)**2 &
-                  &                                   *Power_Spectrum(correlationFunctions(k)%wavenumber (i  ))   &
-                  &                                   *correlationFunctions(k)%linearGrowthFactor(n)**2
+             correlationFunctions(k)%twoHaloTerm(i,n)=                      correlationFunctions(k)%twoHaloTerm       (i,n) **2 &
+                  &                                   *powerSpectrum_%power(correlationFunctions(k)%wavenumber        (i  ))    &
+                  &                                   *                     correlationFunctions(k)%linearGrowthFactor(  n) **2
           end do
        end do
        call Dealloc_Array(jacobian)
        ! Construct the final power spectra.
-       call Alloc_Array(powerSpectrum          ,[          wavenumberCount,massCount                    ])
+       call Alloc_Array(powerSpectrumValue     ,[          wavenumberCount,massCount                    ])
        call Alloc_Array(powerSpectrumCovariance,[massCount*wavenumberCount,massCount*   wavenumberCount ])
        call Alloc_Array(jacobian               ,[massCount*wavenumberCount,massCount*(2*wavenumberCount)])
        jacobian=0.0d0
@@ -1074,19 +1079,19 @@ contains
        covarianceMatrix                      =oneTwoHaloCovariance
        powerSpectrumCovariance               =jacobianMatrix*(covarianceMatrix*jacobianMatrix%transpose())
        do n=1,massCount
-          powerSpectrum(:,n)=correlationFunctions(k)%oneHaloTerm(:,n)+correlationFunctions(k)%twoHaloTerm(:,n)
+          powerSpectrumValue(:,n)=correlationFunctions(k)%oneHaloTerm(:,n)+correlationFunctions(k)%twoHaloTerm(:,n)
        end do
        call Dealloc_Array(jacobian            )
        call Dealloc_Array(oneTwoHaloCovariance)
        ! Allocate correlation function and separation arrays.
-       call Alloc_Array(correlation,shape(powerSpectrum))
+       call Alloc_Array(correlation,shape(powerSpectrumValue))
        call Alloc_Array(separation ,[wavenumberCount])
        ! Fourier transform the power spectrum to get the correlation function.
        do n=1,massCount
           call FFTLog(                                    &
                &      correlationFunctions(k)%wavenumber, &
                &      separation                        , &
-               &      +powerSpectrum(:,n)                 &
+               &      +powerSpectrumValue(:,n)            &
                &      *correlationFunctions(k)%wavenumber &
                &      * 4.0d0*Pi                          &
                &      /(2.0d0*Pi)**3                    , &

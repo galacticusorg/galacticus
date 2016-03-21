@@ -115,7 +115,7 @@ contains
 
     call descriptor%addParameter("powerSpectrumPrimordialTransferredMethod","simple")
     subParameters=descriptor%subparameters("powerSpectrumPrimordialTransferredMethod")
-    call self%powerSpectrumPrimordial_%descriptor(subParameters)
     call self%transferFunction_       %descriptor(subParameters)
+    call self%powerSpectrumPrimordial_%descriptor(subParameters)
     return
   end subroutine simpleDescriptor
