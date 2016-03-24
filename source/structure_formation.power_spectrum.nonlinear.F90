@@ -25,7 +25,7 @@ module Power_Spectra_Nonlinear
   !#  <name>powerSpectrumNonlinear</name>
   !#  <descriptiveName>Nonlinear Power Spectrum</descriptiveName>
   !#  <description>Class providing non-linear power spectra.</description>
-  !#  <default>CosmicEmu</default>
+  !#  <default>cosmicEmu</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <stateful>yes</stateful>
   !#  <method name="value" >
