@@ -17,7 +17,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Contains a module which implements an augmenting operator on merger trees.
-  use Merger_Trees_Builders
+  use, intrinsic :: ISO_C_Binding
+  use               Merger_Trees_Builders
 
   !# <mergerTreeOperator name="mergerTreeOperatorAugment" defaultThreadPrivate="yes">
   !#  <description>Provides a merger tree operator which augments tree resolution by inserting high-resolution branches.</description>
@@ -26,7 +27,7 @@
      !% An augmenting merger tree operator class.
      private
      double precision                        , allocatable, dimension(   :) :: timeSnapshots
-     integer                                              , dimension(0:10) :: retryHistogram
+     integer         (c_size_t)                           , dimension(0:10) :: retryHistogram              , trialCount
      double precision                                                       :: massCutOff                  , timeEarliest             , &
           &                                                                    toleranceScale              , massCutOffScaleFactor    , &
           &                                                                    massOvershootScaleFactor
@@ -273,6 +274,7 @@ contains
        augmentConstructorInternal%timeEarliest=    cosmologyFunctions_       %cosmicTime   (expansionFactorDefault)
     end if
     augmentConstructorInternal%retryHistogram               =  0
+    augmentConstructorInternal%trialCount                   =  0
     augmentConstructorInternal%massCutOff                   =  massCutOff
     augmentConstructorInternal%performChecks                =  performChecks
     augmentConstructorInternal%toleranceScale               =  toleranceScale
@@ -324,7 +326,8 @@ contains
     double precision                                                          :: tolerance                     , treeBestWorstFit              , &
          &                                                                       massCutoffScale               , massOvershootScale
     logical                                                                   :: treeBestOverride              , treeNewHasNodeAboveResolution , &
-         &                                                                       treeBestHasNodeAboveResolution, newRescale
+         &                                                                       treeBestHasNodeAboveResolution, newRescale                    , &
+         &                                                                       nodeBranches
     
     ! Iterate over all linked trees in this forest.
     call Galacticus_Display_Indent('Augmenting merger tree',verbosityWorking)
@@ -373,6 +376,8 @@ contains
              massOvershootScale             =      1.0d0
              massCutoffAttemptsRemaining    =  self%massCutOffAttemptsMaximum
              massOvershootAttemptsRemaining =  self%massOvershootAttemptsMaximum
+             ! Determine if the node branches.
+             nodeBranches=associated(node%firstChild).and.associated(node%firstChild%sibling)
              ! Begin building trees from this node, searching for an acceptable tree.
              if (Galacticus_Verbosity_Level() >= verbosityWorking) then
                 message="Building tree from node: "
@@ -443,11 +448,16 @@ contains
                 end if                
              end do
              ! Accumulate the histrogram of rescalings.
-             !$omp critical (Augment_Statistics)
-             self        %retryHistogram(min(rescaleCount,ubound(self%retryHistogram)))= &
-                  & +self%retryHistogram(min(rescaleCount,ubound(self%retryHistogram)))  &
-                  & +1
-             !$omp end critical (Augment_Statistics)
+             if (nodeBranches) then
+                !$omp critical (Augment_Statistics)
+                self        %retryHistogram(min(rescaleCount,ubound(self%retryHistogram)))= &
+                     & +self%retryHistogram(min(rescaleCount,ubound(self%retryHistogram)))  &
+                     & +1
+                self        %trialCount    (min(rescaleCount,ubound(self%retryHistogram)))= &
+                     & +self%trialCount    (min(rescaleCount,ubound(self%retryHistogram)))  &
+                     & +max(1,1+retryCount)
+                !$omp end critical (Augment_Statistics)
+             end if
              ! Clean up the best tree if one exists.
              if (associated(treeBest%baseNode)) then
                 call treeBest%baseNode%destroyBranch()
@@ -1353,9 +1363,9 @@ contains
     use Galacticus_HDF5
     use Memory_Management
     implicit none
-    class  (mergerTreeOperatorAugment), intent(inout)               :: self
-    integer                           , allocatable  , dimension(:) :: retryHistogram
-    type   (hdf5Object               )                              :: augmentStatisticsGroup
+    class           (mergerTreeOperatorAugment), intent(inout)               :: self
+    integer         (c_size_t                 ), allocatable  , dimension(:) :: retryHistogram        , trialCount
+    type            (hdf5Object               )                              :: augmentStatisticsGroup
 
     ! Output the data.
     !$omp critical(HDF5_Access)
@@ -1364,14 +1374,19 @@ contains
        ! Our group does exist. Read existing histogram, add them to our own, then write back to file.
        augmentStatisticsGroup=galacticusOutputFile%openGroup('augmentStatistics','Statistics of merger tree augmentation.',objectsOverwritable=.true.,overwriteOverride=.true.)
        call Alloc_Array(retryHistogram,shape(self%retryHistogram))
+       call Alloc_Array(trialCount    ,shape(self%trialCount    ))
        call augmentStatisticsGroup%readDataset('retryHistogram',retryHistogram)
+       call augmentStatisticsGroup%readDataset('trialCount'    ,trialCount    )
        self%retryHistogram=self%retryHistogram+retryHistogram
+       self%trialCount    =self%trialCount    +trialCount
        call Dealloc_Array(retryHistogram)
+       call Dealloc_Array(trialCount    )
     else
        ! Our group does not already exist. Simply write the data.
        augmentStatisticsGroup=galacticusOutputFile%openGroup('augmentStatistics','Statistics of merger tree augmentation.',objectsOverwritable=.true.,overwriteOverride=.true.)
     end if
     call augmentStatisticsGroup%writeDataset(self%retryHistogram,"retryHistogram","Retry histogram []")
+    call augmentStatisticsGroup%writeDataset(self%trialCount    ,"trialCount"    ,"Trial counts []"   )
     call augmentStatisticsGroup%close       (                                                         )    
     !$omp end critical(HDF5_Access)
     return
