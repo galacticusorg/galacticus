@@ -489,7 +489,7 @@ contains
                    ! Assign the current node's parent a child that is the child of the current node.
                    node%parent%firstChild => node%firstChild
                 else
-                   ! Handle primary nodes with no children - simply make the parents main
+                   ! Handle primary nodes with no children - simply make the parent's main
                    ! progenitor the sibling of the current node.
                    node%parent%firstChild => node%sibling
                 end if
