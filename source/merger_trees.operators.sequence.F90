@@ -55,7 +55,8 @@ contains
     integer                                            :: i
 
     !$omp critical(mergerTreeOperatorSequenceInitialize)
-    operator_ => null()
+    sequenceConstructorParameters%operators => null()
+    operator_                               => null()
     do i=1,parameters%copiesCount('mergerTreeOperatorMethod',zeroIfNotPresent=.true.)
        if (associated(operator_)) then
           allocate(operator_%next)
