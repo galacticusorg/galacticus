@@ -97,6 +97,7 @@ contains
     use Galacticus_Output_Merger_Tree_Data
     use Vectors
     use Numerical_Ranges
+    use Numerical_Comparison
     implicit none
     type            (mergerTree                    ), intent(inout)                 :: thisTree
     type            (treeNode                      ), intent(inout), pointer        :: thisNode
@@ -107,7 +108,7 @@ contains
     class           (nodeComponentMergingStatistics)               , pointer        :: mergingStatistics
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctions_
     integer                                                                         :: currentAnalysis,activeAnalysisCount,haloMassBin,massBin,iError,i,k
-    double precision                                                                :: mass,massLogarithmic,redshift
+    double precision                                                                :: mass,massLogarithmic,redshift,outputTime
     type            (varying_string                )                                :: analysisHaloMassFunctionCovarianceModelText,message
     character       (len=32                        )                                :: redshiftLabel
     
@@ -260,8 +261,13 @@ contains
                    call Alloc_Array(massFunctions(currentAnalysis)%massFunctionCovariance      ,[analysisHaloMassFunctionsMassBinsCount,analysisHaloMassFunctionsMassBinsCount    ])
                    call Alloc_Array(massFunctions(currentAnalysis)%mainBranchHaloWeights       ,[analysisHaloMassFunctionsMassBinsCount,analysisHaloMassFunctionsHaloMassBinsCount])
                    call Alloc_Array(massFunctions(currentAnalysis)%mainBranchHaloWeightsSquared,[analysisHaloMassFunctionsMassBinsCount,analysisHaloMassFunctionsHaloMassBinsCount])
-                   ! Initialize arrays.
-                   massFunctions(currentAnalysis)%masses                      =Make_Range(analysisHaloMassFunctionsMassMinimum,analysisHaloMassFunctionsHaloMassMaximum,analysisHaloMassFunctionsMassBinsCount,rangeTypeLogarithmic)
+                   ! Initialize arrays.                                    
+                   massFunctions(currentAnalysis)%masses                      =Make_Range(                                                                                                               &
+                        &                                                                 analysisHaloMassFunctionsMassMinimum  *10.0**(+0.5d0/analysisHaloMassFunctionsMassIntervalLogarithmicInverse), &
+                        &                                                                 analysisHaloMassFunctionsMassMaximum  *10.0**(-0.5d0/analysisHaloMassFunctionsMassIntervalLogarithmicInverse), &
+                        &                                                                 analysisHaloMassFunctionsMassBinsCount                                                                       , &
+                        &                                                                 rangeTypeLogarithmic                                                                                           &
+                        &                                                                )
                    massFunctions(currentAnalysis)%massesLogarithmic           =log10(massFunctions(currentAnalysis)%masses)
                    massFunctions(currentAnalysis)%massFunction                =0.0d0
                    massFunctions(currentAnalysis)%massFunctionCovariance      =0.0d0
@@ -300,7 +306,10 @@ contains
                    end if
                    ! Find the index of the output corresponding to the requested redshift.
                    read (redshiftLabel,*) redshift
-                   massFunctions(currentAnalysis)%outputIndex=Galacticus_Output_Time_Index(cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),findClosest=.true.)
+                   outputTime=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift))
+                   massFunctions(currentAnalysis)%outputIndex=Galacticus_Output_Time_Index(outputTime,findClosest=.true.)
+                   if (Values_Differ(Galacticus_Output_Time(massFunctions(currentAnalysis)%outputIndex),outputTime,relTol=1.0d-3)) &
+                        & call Galacticus_Error_Report('Galacticus_Output_Analysis_Halo_Mass_Functions','no output available for requested analysis')
                 end if
              end do
           end if
@@ -335,12 +344,12 @@ contains
                &                                    ]                                         &
                &          )
        end if
-       ! Get the galactic mass.
+       ! Get the halo mass.
        thisBasic      =>       thisNode%basic()
        massLogarithmic=  log10(thisBasic%mass())
        ! Determine which bin this halo contributes to.
        massBin=floor((massLogarithmic-analysisHaloMassFunctionsMassMinimumLogarithmic)*analysisHaloMassFunctionsMassIntervalLogarithmicInverse)+1
-       if (massBin >= 1 .and. massBin <= analysisHaloMassFunctionsMassBinsCount) then
+       if (massBin >= 1 .and. massBin <= analysisHaloMassFunctionsMassBinsCount) then          
           !$omp critical (Galacticus_Output_Analysis_Halo_Mass_Functions_Accumulate)
           massFunctions        (i)%massFunction(massBin) &
                & =massFunctions(i)%massFunction(massBin) &
