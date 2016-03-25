@@ -42,15 +42,17 @@ contains
          &                                             lineNumberStop
     character       (len=1024      )                :: sqlQuery
     logical                                         :: traceParticles
-    double precision                                :: particleMass
+    double precision                                :: particleMass  , boxSize
 
     ! Process the nodes file.
-    ! Specify particle mass (in whatever mass units the trees use - in this case 1e10 Msun/h).
+    ! Specify particle mass (in whatever mass units the trees use - in this case 1e10 Msun/h), and box size (in Mpc/h).
     select case (generation)
     case (1)
        particleMass=8.60d-2
+       boxSize     =5.00d+2
     case (2)
        particleMass=6.89d-4
+       boxSize     =1.00d+2
     case default
        call Galacticus_Error_Report('Merger_Trees_Millennium_Process','unknown Millennium Simulation generation')
     end select
