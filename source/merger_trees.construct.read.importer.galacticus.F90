@@ -175,6 +175,14 @@ contains
     character       (len=14                       )                :: valueString
     double precision                                               :: localLittleH0, localOmegaMatter, localOmegaDE, localOmegaBaryon, localSigma8, cosmologicalParameter
 
+    ! Reset initialization status.
+    self%hasSubhalos       %isSet=.false.
+    self%massesAreInclusive%isSet=.false.
+    self%areSelfContained  %isSet=.false.
+    self%includesHubbleFlow%isSet=.false.
+    self%periodicPositions %isSet=.false.
+    self%length            %isSet=.false.
+    self%forestIndicesRead       =.false.
     ! Get the default cosmology.
     cosmologyParameters_      => cosmologyParameters     ()
     cosmologicalMassVariance_ => cosmologicalMassVariance()
