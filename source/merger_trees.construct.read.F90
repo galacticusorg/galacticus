@@ -31,7 +31,9 @@ module Merger_Tree_Read
   public :: Merger_Tree_Read_Initialize, Merger_Tree_Read_Close
 
   ! The name of the file from which to read merger trees and its internal object.
-  type            (varying_string                )                                                     :: mergerTreeReadFileName                                                                       
+  integer                                                                                              :: mergerTreeReadFileCount
+  integer                                                                                              :: mergerTreeReadFileCurrent
+  type            (varying_string                ), allocatable, dimension(:)                          :: mergerTreeReadFileName                                                                       
   class           (mergerTreeImporterClass       )                                           , pointer :: defaultImporter                                                                              
   logical                                                                                              :: importerOpen                             =.false.
   
@@ -48,7 +50,7 @@ module Merger_Tree_Read
   !$omp threadprivate(treeVolumeWeightCurrent)
 
   ! Flag indicating if the same tree should always be assigned to the same thread.
-  logical                                                                                         :: mergerTreeReadFixedThreadAssignment
+  logical                                                                                              :: mergerTreeReadFixedThreadAssignment
   
   ! Flag indicating whether branch jumps are allowed.
   logical                                                                                              :: mergerTreeReadAllowBranchJumps                                                               
@@ -193,11 +195,13 @@ contains
        !@   <name>mergerTreeReadFileName</name>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The name of the file from which merger tree data should be read when using the {\normalfont \ttfamily [mergerTreeConstructMethod]}$=${\normalfont \ttfamily read} tree construction method.
+       !@     The name of the file(s) from which merger tree data should be read when using the {\normalfont \ttfamily [mergerTreeConstructMethod]}$=${\normalfont \ttfamily read} tree construction method.
        !@   </description>
        !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
+       !@   <cardinality>1..</cardinality>
        !@ </inputParameter>
+       mergerTreeReadFileCount=Get_Input_Parameter_Array_Size('mergerTreeReadFileName')
+       allocate(mergerTreeReadFileName(mergerTreeReadFileCount))
        call Get_Input_Parameter('mergerTreeReadFileName',mergerTreeReadFileName)
        !@ <inputParameter>
        !@   <name>mergerTreeReadFixedThreadAssignment</name>
@@ -533,7 +537,8 @@ contains
 
        ! Open the file.
        defaultImporter => mergerTreeImporter()
-       call defaultImporter%open(mergerTreeReadFileName)
+       mergerTreeReadFileCurrent=1
+       call defaultImporter%open(mergerTreeReadFileName(mergerTreeReadFileCurrent))
        importerOpen=.true.
 
        ! Validate input parameters.
@@ -551,6 +556,9 @@ contains
           call Galacticus_Error_Report("Merger_Tree_Read_Initialize",message)
        end if
 
+       ! Fixed thread assignment currently not possible with multiple files.
+       if (mergerTreeReadFixedThreadAssignment .and. mergerTreeReadFileCount > 1) call Galacticus_Error_Report("Merger_Tree_Read_Initialize","fixed thread assignment is not possible with multiple tree files")
+       
        ! Warn if subhalo promotions are allowed, but branch jumps are not.
        if (mergerTreeReadAllowSubhaloPromotions.and..not.mergerTreeReadAllowBranchJumps) then
           message='WARNING: allowing subhalo promotions while not allowing branch jumps can lead to deadlocking of trees.'//char(10)
@@ -733,115 +741,144 @@ contains
     integer                                                                                              :: isolatedNodeCount 
     integer         (c_size_t                      )                                                     :: historyCountMaximum   , iNode            , &
          &                                                                                                  iOutput
-    logical                                                                                              :: haveTree              , processTree
+    logical                                                                                              :: haveTree              , processTree      , &
+         &                                                                                                  newTreeFileRequired
     type            (varying_string                )                                                     :: message
     integer                                                                                              :: nextTreeToReadActual
-    
-    !$omp critical(mergerTreeReadTree)
-    ! Increment the tree to read index.
-    !$ if (mergerTreeReadFixedThreadAssignment) then
-    !$    nextTreeToReadThread=nextTreeToReadThread+1
-    !$    nextTreeToReadActual=nextTreeToReadThread
-    !$ else
-    nextTreeToRead      =nextTreeToRead      +1
-    nextTreeToReadActual=nextTreeToRead
-    !$ end if
-    ! Keep incrementing the tree index until we find the first tree to process (if we haven't done so already). Also skip trees
-    ! that contain 1 or fewer nodes and these are unprocessable.
-    if (nextTreeToReadActual <= defaultImporter%treeCount()) then
-       do while (                                                                            &
-            &     (                                                                          &
-            &       mergerTreeReadBeginAt                           > 0                      &
-            &      .and.                                                                     &
-            &       defaultImporter%treeIndex(nextTreeToReadActual) /= mergerTreeReadBeginAt &
-            &     )                                                                          &
-            &    .or.                                                                        &
-            &       defaultImporter%nodeCount(nextTreeToReadActual) <= 1                     &
-            !$ &    .or.                                                                        &
-            !$ &     (                                                                          &
-            !$ &       mergerTreeReadFixedThreadAssignment                                      &
-            !$ &      .and.                                                                     &
-            !$ &       mod(nextTreeToReadActual,omp_get_num_threads()) /= omp_get_thread_num()  &
-            !$ &     )                                                                          &
-            &   )
-          nextTreeToReadActual=nextTreeToReadActual+1
-          ! If the end of the list has been reached, exit.
-          if (nextTreeToReadActual > defaultImporter%treeCount()) exit
-       end do
-       ! Record if we've now found the first merger tree to process.
-       if     (                                                                          &
-            &   mergerTreeReadBeginAt                           >  0                     &
-            &  .and.                                                                     &
-            &   defaultImporter%treeIndex(nextTreeToReadActual) == mergerTreeReadBeginAt &
-            & ) mergerTreeReadBeginAt=-1
-       !$ if (mergerTreeReadFixedThreadAssignment) then       
-       !$    nextTreeToReadThread=nextTreeToReadActual
+
+    ! Enter loop which suspends threads when a new tree file is needed.
+    newTreeFileRequired=.true.
+    treeFile : do while (newTreeFileRequired)
+       newTreeFileRequired=.false.
+       !$omp critical(mergerTreeReadTree)
+       ! Increment the tree to read index.
+       !$ if (mergerTreeReadFixedThreadAssignment) then
+       !$    nextTreeToReadThread=nextTreeToReadThread+1
+       !$    nextTreeToReadActual=nextTreeToReadThread
        !$ else
-       nextTreeToRead=nextTreeToReadActual
+       nextTreeToRead      =nextTreeToRead      +1
+       nextTreeToReadActual=nextTreeToRead
        !$ end if
-    end if
-
-    if (nextTreeToReadActual > defaultImporter%treeCount())  then
-       ! Flag that we do not have a tree.
-       haveTree=.false.
-    else
-       ! Flag that we do have a tree.
-       haveTree=.true.
-    end if
-
-    ! Continue only if we have a tree.
-    processTree=.false.
-    if (haveTree) then
-       ! Retrieve stored internal state if possible.
-       call Galacticus_State_Retrieve
-       ! Take a snapshot of the internal state and store it.
-       call Galacticus_State_Snapshot
-       message='Storing state for tree #'
-       message=message//nextTreeToReadActual
-       call Galacticus_State_Store(message)
-
-       ! If the tree is to be skipped, do not read it.
-       if (skipTree) then
-          ! Simply allocate a base node to indicate that the tree exists.
-          thisTree%baseNode => treeNode(hostTree=thisTree)
+       ! Move to the next tree file if necessary.
+       if (nextTreeToReadActual > defaultImporter%treeCount()) then
+          newTreeFileRequired=.true.
        else
-          ! Set tree properties.
-          ! treeIndex
-          thisTree%index=defaultImporter%treeIndex(nextTreeToReadActual)
-          ! volumeWeight
-          treeVolumeWeightCurrent=defaultImporter%treeWeight(nextTreeToReadActual)
-          thisTree%volumeWeight=treeVolumeWeightCurrent
-          ! Initialize no events.
-          thisTree%event => null()
-          ! Read data from the file.
-          call defaultImporter%import(                                                                                                                           &
-               &                      nextTreeToReadActual                                                                                                     , &
-               &                      nodes                                                                                                                    , &
-               &                      requireScaleRadii         = mergerTreeReadPresetScaleRadii                                                               , &
-               &                      requireParticleCounts     = mergerTreeReadPresetParticleCounts                                                           , &
-               &                      requireVelocityMaxima     = mergerTreeReadPresetVelocityMaxima                                                           , &
-               &                      requireVelocityDispersions= mergerTreeReadPresetVelocityDispersions                                                      , &
-               &                      requireAngularMomenta     =(mergerTreeReadPresetSpins              .and.defaultImporter%angularMomentaAvailable  ())     , &
-               &                      requireAngularMomenta3D   =                                                                                                &
-               &                                                 (                                                                                               &
-               &                                                    mergerTreeReadPresetSpins3D                                                                  &
-               &                                                   .or.                                                                                          &
-               &                                                    (                                                                                            &
-               &                                                      mergerTreeReadPresetSpins                                                                  &
-               &                                                     .and.                                                                                       &
-               &                                                      mergerTreeReadSubhaloAngularMomentaMethod == mergerTreeReadSubhaloAngularMomentaSummation  &
-               &                                                    )                                                                                            &
-               &                                                  )                                                                                              &
-               &                                                 .and.                                                                                           &
-               &                                                  defaultImporter%angularMomenta3DAvailable()                                                  , &
-               &                      requireSpin               =(mergerTreeReadPresetSpins              .and.defaultImporter%spinAvailable            ())     , &
-               &                      requireSpin3D             =(mergerTreeReadPresetSpins3D            .and.defaultImporter%spin3DAvailable          ())     , &
-               &                      requirePositions          =(mergerTreeReadPresetPositions          .or. mergerTreeReadPresetOrbits                 )       &
-               &                     )
-          processTree=.true.
+          ! Keep incrementing the tree index until we find the first tree to process (if we haven't done so already). Also skip trees
+          ! that contain 1 or fewer nodes and these are unprocessable.
+          if (nextTreeToReadActual <= defaultImporter%treeCount()) then
+             do while (                                                                            &
+                  &     (                                                                          &
+                  &       mergerTreeReadBeginAt                           > 0                      &
+                  &      .and.                                                                     &
+                  &       defaultImporter%treeIndex(nextTreeToReadActual) /= mergerTreeReadBeginAt &
+                  &     )                                                                          &
+                  &    .or.                                                                        &
+                  &       defaultImporter%nodeCount(nextTreeToReadActual) <= 1                     &
+                  !$ &    .or.                                                                        &
+                  !$ &     (                                                                          &
+                  !$ &       mergerTreeReadFixedThreadAssignment                                      &
+                  !$ &      .and.                                                                     &
+                  !$ &       mod(nextTreeToReadActual,omp_get_num_threads()) /= omp_get_thread_num()  &
+                  !$ &     )                                                                          &
+                  &   )
+                nextTreeToReadActual=nextTreeToReadActual+1
+                ! If the end of the list has been reached, exit.
+                if (nextTreeToReadActual > defaultImporter%treeCount()) then
+                   newTreeFileRequired=.true.                   
+                   exit
+                end if
+             end do
+             ! Record if we've now found the first merger tree to process.
+             if     (                                                                          &
+                  &   mergerTreeReadBeginAt                           >  0                     &
+                  &  .and.                                                                     &
+                  &   defaultImporter%treeIndex(nextTreeToReadActual) == mergerTreeReadBeginAt &
+                  & ) mergerTreeReadBeginAt=-1
+             !$ if (mergerTreeReadFixedThreadAssignment) then       
+             !$    nextTreeToReadThread=nextTreeToReadActual
+             !$ else
+             nextTreeToRead=nextTreeToReadActual
+             !$ end if
+          end if
        end if
-    end if
-    !$omp end critical(mergerTreeReadTree)
+       if (nextTreeToReadActual > defaultImporter%treeCount())  then
+          ! Flag that we do not have a tree.
+          haveTree=.false.
+       else
+          ! Flag that we do have a tree.
+          haveTree=.true.
+       end if
+       ! Continue only if we have a tree.
+       processTree=.false.
+       if (haveTree) then
+          ! Retrieve stored internal state if possible.
+          call Galacticus_State_Retrieve
+          ! Take a snapshot of the internal state and store it.
+          call Galacticus_State_Snapshot
+          message='Storing state for tree #'
+          message=message//nextTreeToReadActual
+          call Galacticus_State_Store(message)          
+          ! If the tree is to be skipped, do not read it.
+          if (skipTree) then
+             ! Simply allocate a base node to indicate that the tree exists.
+             thisTree%baseNode => treeNode(hostTree=thisTree)
+          else
+             ! Set tree properties.
+             ! treeIndex
+             thisTree%index=defaultImporter%treeIndex(nextTreeToReadActual)
+             ! volumeWeight
+             treeVolumeWeightCurrent=defaultImporter%treeWeight(nextTreeToReadActual)
+             thisTree%volumeWeight=treeVolumeWeightCurrent
+             ! Initialize no events.
+             thisTree%event => null()
+             ! Read data from the file.
+             call defaultImporter%import(                                                                                                                           &
+                  &                      nextTreeToReadActual                                                                                                     , &
+                  &                      nodes                                                                                                                    , &
+                  &                      requireScaleRadii         = mergerTreeReadPresetScaleRadii                                                               , &
+                  &                      requireParticleCounts     = mergerTreeReadPresetParticleCounts                                                           , &
+                  &                      requireVelocityMaxima     = mergerTreeReadPresetVelocityMaxima                                                           , &
+                  &                      requireVelocityDispersions= mergerTreeReadPresetVelocityDispersions                                                      , &
+                  &                      requireAngularMomenta     =(mergerTreeReadPresetSpins              .and.defaultImporter%angularMomentaAvailable  ())     , &
+                  &                      requireAngularMomenta3D   =                                                                                                &
+                  &                                                 (                                                                                               &
+                  &                                                    mergerTreeReadPresetSpins3D                                                                  &
+                  &                                                   .or.                                                                                          &
+                  &                                                    (                                                                                            &
+                  &                                                      mergerTreeReadPresetSpins                                                                  &
+                  &                                                     .and.                                                                                       &
+                  &                                                      mergerTreeReadSubhaloAngularMomentaMethod == mergerTreeReadSubhaloAngularMomentaSummation  &
+                  &                                                    )                                                                                            &
+                  &                                                  )                                                                                              &
+                  &                                                 .and.                                                                                           &
+                  &                                                  defaultImporter%angularMomenta3DAvailable()                                                  , &
+                  &                      requireSpin               =(mergerTreeReadPresetSpins              .and.defaultImporter%spinAvailable            ())     , &
+                  &                      requireSpin3D             =(mergerTreeReadPresetSpins3D            .and.defaultImporter%spin3DAvailable          ())     , &
+                  &                      requirePositions          =(mergerTreeReadPresetPositions          .or. mergerTreeReadPresetOrbits                 )       &
+                  &                     )
+             processTree=.true.
+          end if
+       end if
+       !$omp end critical(mergerTreeReadTree)
+       ! Handle the case where a new tree file is required.
+       if (newTreeFileRequired) then
+          ! Wait for all threads to reach this point.
+          newTreeFileRequired=.false.
+          processTree        =.false.
+          !$omp barrier
+          ! Have the master thread move to the next tree file.
+          !$omp master
+          mergerTreeReadFileCurrent=mergerTreeReadFileCurrent+1
+          if (mergerTreeReadFileCurrent <= mergerTreeReadFileCount) then
+             call defaultImporter%close(                                                 )
+             call defaultImporter%open (mergerTreeReadFileName(mergerTreeReadFileCurrent))
+             nextTreeToRead=0
+          end if
+          !$omp end master
+          !$omp barrier
+          if (mergerTreeReadFileCurrent <= mergerTreeReadFileCount) newTreeFileRequired=.true.
+       end if       
+    end do treeFile
 
     ! Continue if we have a tree to process.
     if (processTree) then
@@ -1573,7 +1610,7 @@ contains
                    currentTree%index            =  nodes   (iNode        )%nodeIndex
                 else
                    currentTree%index            =  thisTree               %index
-                end if
+                end if                
                 currentTree   %volumeWeight     =  treeVolumeWeightCurrent
                 currentTree   %initializedUntil =  0.0d0
                 currentTree   %event            => null()
@@ -3176,5 +3213,5 @@ contains
     call Galacticus_Display_Unindent("done")
     return
   end subroutine Timing_Report
-  
+
 end module Merger_Tree_Read
