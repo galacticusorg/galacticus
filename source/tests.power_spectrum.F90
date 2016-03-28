@@ -24,6 +24,7 @@ program Tests_Power_Spectrum
   use Input_Parameters2
   use ISO_Varying_String
   use Memory_Management
+  use Cosmological_Mass_Variance
   use Power_Spectra
   use Power_Spectra_Primordial
   use Power_Spectra_Primordial_Transferred
@@ -37,6 +38,8 @@ program Tests_Power_Spectrum
   type            (powerSpectrumPrimordialPowerLaw         ), target       :: powerSpectrumPrimordialPowerLaw_
   type            (powerSpectrumPrimordialTransferredSimple), target       :: powerSpectrumPrimordialTransferredSimple_
   type            (transferFunctionEisensteinHu1999        ), target       :: transferFunctionEisensteinHu1999_
+  class           (cosmologicalMassVarianceClass           ), pointer      :: cosmologicalMassVariance_
+  class           (powerSpectrumClass                      ), pointer      :: powerSpectrum_
   double precision                                          , dimension(5) :: powerComputed                                                   , &
        &                                                                      transferComputed                                                , &
        &                                                                      powerTransferredComputed                                        , &
@@ -69,7 +72,27 @@ program Tests_Power_Spectrum
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Power spectra")
   ! Get required objects.
-  cosmologyParameters_ => cosmologyParameters()
+  cosmologyParameters_      => cosmologyParameters     ()
+  cosmologicalMassVariance_ => cosmologicalMassVariance()
+  powerSpectrum_            => powerSpectrum           ()
+  ! Build primordial power spectrum, transfer function, and transferred power spectrum.
+  powerSpectrumPrimordialPowerLaw_         =                                                                   &
+       & powerSpectrumPrimordialPowerLaw         (                                                             &
+       &                                          index                   =1.000d0                           , &
+       &                                          running                 =0.000d0                           , &
+       &                                          wavenumberReference     =1.000d0                             &
+       &                                         )
+  transferFunctionEisensteinHu1999_        =                                                                   &
+       & transferFunctionEisensteinHu1999        (                                                             &
+       &                                          neutrinoNumberEffective =3.046d0                           , &
+       &                                          neutrinoMassSummed      =0.000d0                           , &
+       &                                          cosmologyParameters_    =cosmologyParameters_                &
+       &                                         )
+  powerSpectrumPrimordialTransferredSimple_=                                                                  &
+       & powerSpectrumPrimordialTransferredSimple(                                                            &
+       &                                          powerSpectrumPrimordial_=powerSpectrumPrimordialPowerLaw_ , &
+       &                                          transferFunction_       =transferFunctionEisensteinHu1999_  &
+       &                                         )
   ! Test that σ₈ is correctly recovered.
   mass   =+4.0d0                                                      &
        &  /3.0d0                                                      &
@@ -80,50 +103,32 @@ program Tests_Power_Spectrum
        &    +radiusNormalization                                      &
        &    /cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH) &
        &   )**3
-  call Assert('σ₈   consistency',Cosmological_Mass_Root_Variance(mass),sigma_8(),relTol=1.0d-6)
+  call Assert('σ₈   consistency',cosmologicalMassVariance_%rootVariance(mass),cosmologicalMassVariance_%sigma8(),relTol=1.0d-6)
   ! Test that σ(M) scales as expected.
-  ratio=Cosmological_Mass_Root_Variance(1.0d10)/Cosmological_Mass_Root_Variance(1.0d12)
+  ratio=cosmologicalMassVariance_%rootVariance(1.0d10)/cosmologicalMassVariance_%rootVariance(1.0d12)
   call Assert('σ(M) scaling',ratio,100.0d0**((-1.0d0+3.0d0)/6.0d0),relTol=1.0d-6)
   ! Test power spectrum normalization. For a power-law n=-1 power spectrum, the integral over k²
   ! P(k) W²(k)/2π² can be computed analytically and is equal to 9/8π². We can therefore express
   ! this integral as 2π P(k₈) 9/8π²R₈³ where R₈=(8/h)Mpc and k₈=2π/R₈.
-  sigma  =+sqrt(                                                                         &
-       &        +Power_Spectrum(                                                         &
-       &                        +2.0d0                                                   &
-       &                        *Pi                                                      &
-       &                        *cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH) &
-       &                        /radiusNormalization                                     &
-       &                       )                                                         &
-       &        *9.0d0                                                                   &
-       &        /4.0d0                                                                   &
-       &        /Pi                                                                      &
-       &        /              (                                                         &
-       &                        +radiusNormalization                                     &
-       &                        /cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH) &
-       &                       )**3                                                      &
+  sigma  =+sqrt(                                                                               &
+       &        +powerSpectrum_%power(                                                         &
+       &                              +2.0d0                                                   &
+       &                              *Pi                                                      &
+       &                              *cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH) &
+       &                              /radiusNormalization                                     &
+       &                             )                                                         &
+       &        *9.0d0                                                                         &
+       &        /4.0d0                                                                         &
+       &        /Pi                                                                            &
+       &        /                    (                                                         &
+       &                              +radiusNormalization                                     &
+       &                              /cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH) &
+       &                             )**3                                                      &
        &       )
-  call Assert('P(k) normalization',sigma,sigma_8(),relTol=1.0d-6)
+  call Assert('P(k) normalization',sigma,cosmologicalMassVariance_%sigma8(),relTol=1.0d-6)
   ! Test that power spectrum scales as expected.
-  ratio=Power_Spectrum(1.0d0)/Power_Spectrum(0.1d0)
+  ratio=powerSpectrum_%power(1.0d0)/powerSpectrum_%power(0.1d0)
   call Assert('P(k) scaling',ratio,0.1d0,relTol=1.0d-6)
-  ! Build primordial power spectrum, transfer function, and transferred power spectrum.
-  powerSpectrumPrimordialPowerLaw_         =                                                                 &
-       & powerSpectrumPrimordialPowerLaw         (                                                           &
-       &                                          index                   =1.000d0                         , &
-       &                                          running                 =0.000d0                         , &
-       &                                          wavenumberReference     =1.000d0                           &
-       &                                         )
-  transferFunctionEisensteinHu1999_        =                                                                 &
-       & transferFunctionEisensteinHu1999        (                                                           &
-       &                                          neutrinoNumberEffective =3.046d0                         , &
-       &                                          neutrinoMassSummed      =0.000d0                         , &
-       &                                          cosmologyParameters_    =cosmologyParameters_              &
-       &                                         )
-  powerSpectrumPrimordialTransferredSimple_=                                                                 &
-       & powerSpectrumPrimordialTransferredSimple(                                                           &
-       &                                          powerSpectrumPrimordial_=powerSpectrumPrimordialPowerLaw_, &
-       &                                          transferFunction_       =transferFunctionEisensteinHu1999_ &
-       &                                         )
   ! Do reproducibility tests.
   call Unit_Tests_Begin_Group("Reproducibility")
   do i=1,size(wavenumber)

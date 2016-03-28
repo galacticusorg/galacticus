@@ -23,6 +23,7 @@
 
 extern "C"
 {
+  void inputParametersFinalize       (void *selfParameters);
   void inputParametersSetGlobalC     (void *parameters);
   void inputParametersSubParameters  (void *selfParameters,int parameterNameLength, char *parameterName, void   **subParameters);
   void inputParametersValueNameDouble(void *selfParameters,int parameterNameLength, char *parameterName, double *parameterValue, double *defaultValue, int *errorStatus, bool *writeOutput);
@@ -39,6 +40,16 @@ inputParameters::inputParameters(void *parameters)
 {
   //% Constructor for C++ {\normalfont \ttfamily inputParameters} class.
   selfParameters = parameters;
+}
+
+inputParameters::~inputParameters()
+{
+  //% Destructor for C++ {\normalfont \ttfamily inputParameters} class. 
+  if ( &selfParameters != &globalParameters::parameters.selfParameters )
+    {
+      // Don't destruct the global parameters - this will be taken care of from the Fortran side.
+      inputParametersFinalize(selfParameters);
+    }
 }
 
 inputParameters inputParameters::subParameters(char parameterName[])
@@ -61,8 +72,14 @@ void inputParameters::value(char parameterName[], long   *parameterValue, long *
   inputParametersValueNameLong(selfParameters,strlen(parameterName),parameterName,parameterValue,defaultValue,errorStatus,writeOutput);
 }
 
+void inputParameters::setParameters(void *parameters)
+{
+  //% Set the parameters accessible via the C++ interface.
+  selfParameters=parameters;
+}
+
 void inputParametersSetGlobalC(void *parameters)
 {
   //% Set the global input parameters accessible via the C++ interface.
-  globalParameters::parameters=inputParameters(parameters);
+  globalParameters::parameters.setParameters(parameters);
 }

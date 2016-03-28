@@ -33,7 +33,7 @@
   <coolingTimeMethod value="simple"/>
   <coolingTimeSimpleDegreesOfFreedom value="3"/>
   <cosmologyFunctionsMethod value="matterLambda"/>
-  <criticalOverdensityMethod value="sphericalTopHat"/>
+  <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
   <darkMatterProfileConcentrationMethod value="gao2008"/>
   <darkMatterProfileMethod value="NFW"/>
   <darkMatterProfileMinimumConcentration value="4"/>
@@ -41,14 +41,14 @@
   <diskOutflowExponent value="2"/>
   <diskOutflowVelocity value="200"/>
   <galacticStructureRadiusSolverMethod value="adiabatic"/>
-  <haloMassFunctionMethod value="Tinker2008"/>
+  <haloMassFunctionMethod value="tinker2008"/>
   <haloSpinDistributionMethod value="bett2007">
     <alpha value="2.509"/>
     <lambda0 value="0.04326"/>
   </haloSpinDistributionMethod>
   <hotHaloMassDistributionMethod value="cored isothermal"/>
   <hotHaloOutflowReturnRate value="1.26027"/>
-  <hotHaloTemperatureMethod value="virial"/>
+  <hotHaloTemperatureProfileMethod value="virial"/>
   <imfSalpeterRecycledInstantaneous value="0.39"/>
   <imfSalpeterYieldInstantaneous value="0.02"/>
   <imfSelectionFixed value="Salpeter"/>
@@ -58,7 +58,7 @@
   <majorMergerMassRatio value="0.1"/>
   <mergerRemnantSizeOrbitalEnergy value="1"/>
   <mergerTreeBuilderMethod value="cole2000">
-    <accretionLimit value="0.1"/>
+    <accretionLimit   value="0.1"/>
     <mergeProbability value="0.1"/>
   </mergerTreeBuilderMethod>
   <mergerTreeMassResolutionMethod value="fixed">
@@ -66,7 +66,10 @@
   </mergerTreeMassResolutionMethod>
   <mergerTreeBuildHaloMassMaximum value="1e+12"/>
   <mergerTreeBuildHaloMassMinimum value="10000000000"/>
-  <mergerTreeBuilderMethod value="cole2000"/>
+  <mergerTreeBuilderMethod value="cole2000">
+  <accretionLimit value="0.1"/>
+    <mergeProbability value="0.1"/>
+  </mergerTreeBuilderMethod>
   <mergerTreeBuildTreesBaseRedshift value="0"/>
   <mergerTreeBuildTreesBeginAtTree value="1"/>
   <mergerTreeBuildTreesHaloMassDistribution value="uniform"/>
@@ -96,8 +99,9 @@
   <satelliteMergingMassMovementsMethod value="simple"/>
   <satelliteMergingTimescalesMethod value="jiang2008"/>
   <satelliteMergingRemnantSizeMethod value="Cole2000"/>
-  <sigma_8 value="0.807"/>
-  <spheroidEnergeticOutflowMassRate value="1"/>
+  <cosmologicalMassVarianceMethod value="filteredPower">
+    <sigma_8 value="0.807"/>
+  </cosmologicalMassVarianceMethod><spheroidEnergeticOutflowMassRate value="1"/>
   <spheroidMassToleranceAbsolute value="1e-06"/>
   <spheroidOutflowExponent value="2"/>
   <spheroidOutflowVelocity value="50"/>
@@ -128,7 +132,7 @@
   <treeNodeMethodBasic value="standard"/>
   <treeNodeMethodBlackHole value="standard"/>
   <treeNodeMethodDarkMatterProfile value="scale"/>
-  <treeNodeMethodDisk value="exponential"/>
+  <treeNodeMethodDisk value="standard"/>
   <treeNodeMethodHotHalo value="standard"/>
   <treeNodeMethodSatelliteOrbit value="simple"/>
   <treeNodeMethodSpheroid value="standard"/>
@@ -136,6 +140,8 @@
   <treeNodeMethodSpin value="random"/>
   <verbosityLevel value="1"/>
   <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
-  <virialOrbitsMethod value="Benson2005"/>
+  <virialOrbitMethod value="benson2005"/>
   <zeroCoolingRateAboveVelocity value="10000"/>
+
+  <diskMassDistribution value="exponentialDisk"/>
 </parameters>

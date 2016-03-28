@@ -36,7 +36,7 @@ module Galacticus_Display
   integer                                      :: verbosityLevel            =1
   integer          , parameter  , public       :: verbosityDebug            =5      , verbosityInfo   =4, &
        &                                          verbosityWarn             =3      , verbosityWorking=2, &
-       &                                          verbositySilent           =0
+       &                                          verbosityStandard         =1      , verbositySilent =0
 
   ! Progress bar state.
   logical                                      :: barVisible                =.false.

@@ -41,7 +41,7 @@ contains
     use Input_Parameters2
     implicit none
     type(accretionDiskSpectraHopkins2007)                :: hopkins2007ConstructorParameters
-    type(inputParameters                ), intent(in   ) :: parameters
+    type(inputParameters                ), intent(inout) :: parameters
 
     hopkins2007ConstructorParameters=hopkins2007ConstructorInternal()
     return

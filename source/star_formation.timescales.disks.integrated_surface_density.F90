@@ -31,6 +31,10 @@ module Star_Formation_Timescale_Disks_Integrated_SD
   ! Pointer to active node used in integral functions, plus variables needed by integral function.
   type(treeNode), pointer :: activeNode
   !$omp threadprivate(activeNode)
+
+  ! Tolerance parameter.
+  double precision :: starFormationTimescaleIntegratedSurfaceDensityTolerance
+  
 contains
 
   !# <starFormationTimescaleDisksMethod>
@@ -39,12 +43,26 @@ contains
   subroutine Star_Formation_Timescale_Disks_Integrated_SD_Initialize(starFormationTimescaleDisksMethod&
        &,Star_Formation_Timescale_Disk_Get)
     !% Initializes the ``integrated surface density'' disk star formation timescale module.
+    use Input_Parameters
     use ISO_Varying_String
     implicit none
     type     (varying_string                             ), intent(in   )          :: starFormationTimescaleDisksMethod
     procedure(Star_Formation_Timescale_Disk_Integrated_SD), intent(inout), pointer :: Star_Formation_Timescale_Disk_Get
 
-    if (starFormationTimescaleDisksMethod == 'integratedSurfaceDensity') Star_Formation_Timescale_Disk_Get => Star_Formation_Timescale_Disk_Integrated_SD
+    if (starFormationTimescaleDisksMethod == 'integratedSurfaceDensity') then
+       Star_Formation_Timescale_Disk_Get => Star_Formation_Timescale_Disk_Integrated_SD
+       !@ <inputParameter>
+       !@   <name>starFormationTimescaleIntegratedSurfaceDensityTolerance</name>
+       !@   <defaultValue>$10^{-3}$</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Relative tolerance to use when integrating star formation rate surface densities over the disk.
+       !@   </description>
+       !@   <type>float</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('starFormationTimescaleIntegratedSurfaceDensityTolerance',starFormationTimescaleIntegratedSurfaceDensityTolerance,defaultValue=1.0d-3)
+    end if
     return
   end subroutine Star_Formation_Timescale_Disks_Integrated_SD_Initialize
 
@@ -83,19 +101,19 @@ contains
        radiusOuter=diskScaleRadius*radiusOuterDimensionless
        ! Compute the star formation rate. A low order integration rule (FGSL_Integ_Gauss15) works well here.
        integrationReset=.true.
-       starFormationRate=+2.0d0                                                                       &
-            &            *Pi                                                                          &
-            &            *Integrate(                                                                  &
-            &                       radiusInner                                                     , &
-            &                       radiusOuter                                                     , &
-            &                       Star_Formation_Rate_Integrand_Surface_Density                   , &
-            &                       parameterPointer                                                , &
-            &                       integrandFunction                                               , &
-            &                       integrationWorkspace                                            , &
-            &                       reset                                        =integrationReset  , &
-            &                       toleranceAbsolute                            =0.0d+0            , &
-            &                       toleranceRelative                            =1.0d-3            , &
-            &                       integrationRule                              =FGSL_Integ_Gauss15  &
+       starFormationRate=+2.0d0                                                                                                            &
+            &            *Pi                                                                                                               &
+            &            *Integrate(                                                                                                       &
+            &                       radiusInner                                                                                          , &
+            &                       radiusOuter                                                                                          , &
+            &                       Star_Formation_Rate_Integrand_Surface_Density                                                        , &
+            &                       parameterPointer                                                                                     , &
+            &                       integrandFunction                                                                                    , &
+            &                       integrationWorkspace                                                                                 , &
+            &                       reset                                        =integrationReset                                       , &
+            &                       toleranceAbsolute                            =0.0d+0                                                 , &
+            &                       toleranceRelative                            =starFormationTimescaleIntegratedSurfaceDensityTolerance, &
+            &                       integrationRule                              =FGSL_Integ_Gauss15                                       &
             &                      )
        call Integrate_Done(integrandFunction,integrationWorkspace)
        ! Compute the star formation timescale.

@@ -20,7 +20,7 @@
 
   use Tables
   
-  !# <transferFunction name="transferFunctionFile">
+  !# <transferFunction name="transferFunctionFile" defaultThreadPrivate="yes">
   !#  <description>
   !# Provides a transfer function from a tabulation given in an XML file.The XML file format for transfer functions looks like:
   !# \begin{verbatim}
@@ -121,7 +121,7 @@ contains
     !% Constructor for the file transfer function class which takes a parameter set as input.
     implicit none
     type(transferFunctionFile)                :: fileConstructorParameters
-    type(inputParameters     ), intent(in   ) :: parameters
+    type(inputParameters     ), intent(inout) :: parameters
     type(varying_string      )                :: fileName
     !# <inputParameterList label="allowedParameterNames" />
 
@@ -171,7 +171,7 @@ contains
     character       (len=*                   ), intent(in   )             :: fileName
     type            (Node                    ), pointer                   :: doc                             , extrapolation              , &
          &                                                                   extrapolationElement            , formatElement              , &
-         &                                                                   thisParameter
+         &                                                                   thisParameter                   , parameters
     type            (NodeList                ), pointer                   :: wavenumberExtrapolationList
     double precision                          , allocatable, dimension(:) :: transfer                        , wavenumber                 , &
          &                                                                   transferLogarithmic             , wavenumberLogarithmic
@@ -194,8 +194,9 @@ contains
     call extractDataContent(formatElement,versionNumber)
     if (versionNumber /= fileFormatVersionCurrent) call Galacticus_Error_Report('fileReadFile','file has the incorrect version number')
     ! Check that parameters match if any are present.
+    parameters => XML_Get_First_Element_By_Tag_Name(doc,"parameters")
     !$omp end critical (FoX_DOM_Access)
-    transferFunctionCosmology=inputParameters(XML_Get_First_Element_By_Tag_Name(doc,"parameters"))
+    transferFunctionCosmology=inputParameters(parameters)
     cosmologyParametersFile => cosmologyParameters(transferFunctionCosmology)
     if (Values_Differ(cosmologyParametersFile%OmegaBaryon    (),cosmologyParameters_%OmegaBaryon    (),absTol=1.0d-3)) &
          & call Galacticus_Display_Message('OmegaBaryon from transfer function file does not match internal value'    )

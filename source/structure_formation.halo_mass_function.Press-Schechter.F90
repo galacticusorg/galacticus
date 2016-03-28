@@ -16,50 +16,82 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which generates a tabulated Press-Schechter halo mass function.
+!% Contains a module which implements a \cite{press_formation_1974} dark matter halo mass function class.
+  use Cosmological_Mass_Variance
 
-module Halo_Mass_Function_Press_Schechter
-  !% Implements generation of a tabulated power-law primordial power spectrum.
-  implicit none
-  private
-  public :: Halo_Mass_Function_Press_Schechter_Initialize
+  !# <haloMassFunction name="haloMassFunctionPressSchechter">
+  !#  <description>The halo mass function is computed from the function given by \cite{press_formation_1974}.</description>
+  !# </haloMassFunction>
+  type, extends(haloMassFunctionClass) :: haloMassFunctionPressSchechter
+     !% A halo mass function class using the model of \cite{press_formation_1974}.
+     private
+     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+    contains
+     final     ::                 pressSchechterDestructor
+     procedure :: differential => pressSchechterDifferential
+  end type haloMassFunctionPressSchechter
 
-  ! Parameters controlling the gridding of the power spectrum and default wavenumber range.
-  integer, parameter :: nPointsPerDecade=1000
+  interface haloMassFunctionPressSchechter
+     !% Constructors for the {\normalfont \ttfamily pressSchechter} halo mass function class.
+     module procedure pressSchechterConstructorParameters
+     module procedure pressSchechterConstructorInternal
+  end interface haloMassFunctionPressSchechter
 
 contains
 
-  !# <haloMassFunctionMethod>
-  !#  <unitName>Halo_Mass_Function_Press_Schechter_Initialize</unitName>
-  !# </haloMassFunctionMethod>
-  subroutine Halo_Mass_Function_Press_Schechter_Initialize(haloMassFunctionMethod,Halo_Mass_Function_Differential_Get)
-    !% Initializes the ``Press-Schechter mass functon'' module.
-    use ISO_Varying_String
+  function pressSchechterConstructorParameters(parameters)
+    !% Constructor for the {\normalfont \ttfamily pressSchechter} halo mass function class which takes a parameter set as input.
+    use Input_Parameters2
     implicit none
-    type     (varying_string  ), intent(in   )          :: haloMassFunctionMethod
-    procedure(Halo_Mass_Function_Differential_Press_Schechter), intent(inout), pointer :: Halo_Mass_Function_Differential_Get
+    type(haloMassFunctionPressSchechter)                :: pressSchechterConstructorParameters
+    type(inputParameters               ), intent(inout) :: parameters
+    !# <inputParameterList label="allowedParameterNames" />
+    
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <objectBuilder class="cosmologyParameters"      name="pressSchechterConstructorParameters%cosmologyParameters_"      source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="pressSchechterConstructorParameters%cosmologicalMassVariance_" source="parameters"/>
+   return
+  end function pressSchechterConstructorParameters
 
-    if (haloMassFunctionMethod == 'Press-Schechter') Halo_Mass_Function_Differential_Get => Halo_Mass_Function_Differential_Press_Schechter
+  function pressSchechterConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_)
+    !% Internal constructor for the {\normalfont \ttfamily pressSchechter} halo mass function class.
+    implicit none
+    type (haloMassFunctionPressSchechter)                        :: pressSchechterConstructorInternal
+    class(cosmologyParametersClass      ), target, intent(in   ) :: cosmologyParameters_    
+    class(cosmologicalMassVarianceClass ), target, intent(in   ) :: cosmologicalMassVariance_
+
+    pressSchechterConstructorInternal%cosmologyParameters_      => cosmologyParameters_
+    pressSchechterConstructorInternal%cosmologicalMassVariance_ => cosmologicalMassVariance_
     return
-  end subroutine Halo_Mass_Function_Press_Schechter_Initialize
+  end function pressSchechterConstructorInternal
 
- double precision function Halo_Mass_Function_Differential_Press_Schechter(time,mass)
-    !% Compute the Press-Schechter halo mass function.
-    use Power_Spectra
-    use Cosmology_Parameters
+  subroutine pressSchechterDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily pressSchechter} halo mass function class.
+    implicit none
+    type(haloMassFunctionPressSchechter), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyParameters_"      />
+    !# <objectDestructor name="self%cosmologicalMassVariance_" />
+    return
+  end subroutine pressSchechterDestructor
+
+  double precision function pressSchechterDifferential(self,time,mass)
+    !% Return the differential halo mass function at the given time and mass.
     use Excursion_Sets_First_Crossings
     implicit none
-    double precision                          , intent(in   ) :: mass                   , time
-    class           (cosmologyParametersClass), pointer       :: thisCosmologyParameters
-    double precision                                          :: alpha                  , variance
+    class           (haloMassFunctionPressSchechter), intent(inout) :: self
+    double precision                                , intent(in   ) :: time , mass    
+    double precision                                                :: alpha, variance
 
-    ! Get the default cosmology.
-    thisCosmologyParameters => cosmologyParameters()
-    alpha   =abs(Cosmological_Mass_Root_Variance_Logarithmic_Derivative(mass))
-    variance=Cosmological_Mass_Root_Variance(mass)**2
-    Halo_Mass_Function_Differential_Press_Schechter=2.0d0*(thisCosmologyParameters%OmegaMatter()*thisCosmologyParameters%densityCritical()/mass**2)*alpha*variance&
-         &*Excursion_Sets_First_Crossing_Probability(variance,time)
+    alpha                     =abs(self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass))
+    variance                  =    self%cosmologicalMassVariance_%rootVariance                   (mass) **2
+    pressSchechterDifferential=+2.0d0&
+         &                     *self%cosmologyParameters_%OmegaMatter    (             ) &
+         &                     *self%cosmologyParameters_%densityCritical(             ) &
+         &                     /mass**2                                                  &
+         &                     *alpha                                                    &
+         &                     *variance                                                 &
+         &                     *Excursion_Sets_First_Crossing_Probability(variance,time)
     return
-  end function Halo_Mass_Function_Differential_Press_Schechter
-
-end module Halo_Mass_Function_Press_Schechter
+  end function pressSchechterDifferential
