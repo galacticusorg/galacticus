@@ -109,7 +109,7 @@ contains
     use Input_Parameters2
     implicit none
     type(coolingFunctionMolecularHydrogenGalliPalla)                :: molecularHydrogenGalliPallaConstructorParameters
-    type(inputParameters                           ), intent(in   ) :: parameters
+    type(inputParameters                           ), intent(inout) :: parameters
   
     molecularHydrogenGalliPallaConstructorParameters=molecularHydrogenGalliPallaConstructorInternal()
     return

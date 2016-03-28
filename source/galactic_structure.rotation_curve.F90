@@ -70,7 +70,7 @@ contains
     componentRotationCurveFunction => Component_Rotation_Curve
     rotationCurveSquared=thisNode%mapDouble0(componentRotationCurveFunction,reductionSummation)
     !# <include directive="rotationCurveTask" type="functionCall" functionType="function" returnParameter="componentVelocity">
-    !#  <functionArgs>thisNode,radiusShared,massTypeShared,componentTypeShared,haloLoadedShared</functionArgs>
+    !#  <functionArgs>thisNode,radiusShared,componentTypeShared,massTypeShared,haloLoadedShared</functionArgs>
     !#  <onReturn>rotationCurveSquared=rotationCurveSquared+componentVelocity**2</onReturn>
     include 'galactic_structure.rotation_curve.tasks.inc'
     !# </include>

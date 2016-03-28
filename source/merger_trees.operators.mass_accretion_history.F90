@@ -49,7 +49,7 @@ contains
     !% parameter set as input.
     implicit none
     type(mergerTreeOperatorMassAccretionHistory)                :: massAccretionHistoryConstructorParameters
-    type(inputParameters                       ), intent(in   ) :: parameters
+    type(inputParameters                       ), intent(inout) :: parameters
     type(varying_string                        )                :: outputGroupName
     !# <inputParameterList label="allowedParameterNames" />
    

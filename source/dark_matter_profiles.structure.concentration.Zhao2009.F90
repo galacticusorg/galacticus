@@ -48,7 +48,7 @@ contains
     use Input_Parameters2
     implicit none
     type(darkMatterProfileConcentrationZhao2009)                :: zhao2009ConstructorParameters
-    type(inputParameters                       ), intent(in   ) :: parameters
+    type(inputParameters                       ), intent(inout) :: parameters
 
     return
   end function zhao2009ConstructorParameters
