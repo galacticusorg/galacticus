@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
-!!    Andrew Benson <abenson@obs.carnegiescience.edu>
+!!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -16,8 +16,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% {\normalfont \scshape Galacticus} is a semi-analytic model of galaxy formation written by Andrew Benson \href{mailto:abenson@obs.carnegiescience.edu}{{\tt
-!% <abenson@obs.carnegiescience.edu>}}.
+!% {\normalfont \scshape Galacticus} is a semi-analytic model of galaxy formation written by Andrew Benson \href{mailto:abenson@carnegiescience.edu}{{\tt
+!% <abenson@carnegiescience.edu>}}.
 
 program Galacticus
   !% The main {\normalfont \scshape Galacticus} program.
