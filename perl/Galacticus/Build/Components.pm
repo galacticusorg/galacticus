@@ -2578,6 +2578,9 @@ sub Generate_Node_Dump_Function {
     $functionCode .= "    message='Dumping node '\n";
     $functionCode .= "    message=message//self%index()\n";
     $functionCode .= "    call Galacticus_Display_Indent(message)\n";
+    $functionCode .= "    message='host tree: '\n";
+    $functionCode .= "    message=message//self%hostTree%index\n";
+    $functionCode .= "    call Galacticus_Display_Message(message)\n";
     $functionCode .= "    call Galacticus_Display_Indent('pointers')\n";
     foreach my $pointer ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "formationNode" ) {
 	$functionCode .= "   message='".(" " x (14-length($pointer))).$pointer.": '\n";

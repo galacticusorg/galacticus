@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
-!!    Andrew Benson <abenson@obs.carnegiescience.edu>
+!!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -151,8 +151,10 @@ contains
   function fixedOrbit(self,node,host,acceptUnboundOrbits)
     !% Return fixed orbital parameters for a satellite.
     use Galacticus_Error
+    use Galacticus_Display
     use Dark_Matter_Halo_Scales
     use Dark_Matter_Profile_Mass_Definitions
+    use ISO_Varying_String
     implicit none
     type            (keplerOrbit               )                         :: fixedOrbit
     class           (virialOrbitFixed          ), intent(inout)          :: self
@@ -163,6 +165,8 @@ contains
     class           (virialDensityContrastClass), pointer                :: virialDensityContrast_
     double precision                                                     :: velocityHost              , massHost          , &
          &                                                                  radiusHost                , massSatellite
+    type            (varying_string            )                         :: message
+    character       (len=12                    )                         :: label
 
     ! Reset the orbit.
     call fixedOrbit%reset()
@@ -176,18 +180,35 @@ contains
     massHost     =Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%time()),radiusHost,velocityHost)
     massSatellite=Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%time())                        )
     if (virialDensityContrast_%isFinalizable()) deallocate(virialDensityContrast_)
-    ! Set basic properties of the orbit.
-    call fixedOrbit%massesSet(massSatellite,massHost)
+    ! Set basic properties of the orbit - do not allow the satellite mass to exceed the host mass.
+    call fixedOrbit%massesSet(min(massSatellite,massHost),massHost)
     call fixedOrbit%radiusSet(radiusHost)
     call fixedOrbit%velocityRadialSet    (self%radialVelocity    *velocityHost)
     call fixedOrbit%velocityTangentialSet(self%tangentialVelocity*velocityHost)
     ! Propagate the orbit to the virial radius under the default density contrast definition.
     radiusHost=darkMatterHaloScale_%virialRadius(host)
     if (fixedOrbit%radiusApocenter() >= radiusHost .and. fixedOrbit%radiusPericenter() <= radiusHost) then
-       call fixedOrbit%propagate(radiusHost  ,infalling=.true.)
-       call fixedOrbit%massesSet(basic%mass(),hostBasic%mass())
+       call fixedOrbit%propagate(radiusHost,infalling=.true.)
+       call fixedOrbit%massesSet(min(basic%mass(),hostBasic%mass()),hostBasic%mass())
     else
-       call Galacticus_Error_Report('fixedOrbit','orbit does not reach halo radius')
+       call Galacticus_Verbosity_Level_Set(verbosityStandard)
+       call Galacticus_Display_Indent('Satellite node')
+       call node%dump()
+       call Galacticus_Display_Indent('Host node'     )
+       call host%dump()
+       call Galacticus_Display_Indent('Host node'     )
+       message="orbit does not reach halo radius"               //char(10)
+       write (label,'(e12.6)') massSatellite
+       message=message//"      satellite mass = "//label//" M☉" //char(10)
+       write (label,'(e12.6)') massHost
+       message=message//"           host mass = "//label//" M☉" //char(10)
+       write (label,'(e12.6)') radiusHost
+       message=message//"         host radius = "//label//" Mpc"//char(10)
+       write (label,'(e12.6)') fixedOrbit%radiusPericenter()
+       message=message//"    orbit pericenter = "//label//" Mpc"//char(10)
+       write (label,'(e12.6)') fixedOrbit%radiusApocenter()
+       message=message//"     orbit apocenter = "//label//" Mpc"
+       call Galacticus_Error_Report('fixedOrbit',message)
     end if
     return
   end function fixedOrbit
