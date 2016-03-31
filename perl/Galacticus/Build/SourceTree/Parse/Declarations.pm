@@ -13,7 +13,7 @@ if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
 }
 unshift(@INC, $galacticusPath."perl"); 
 use Data::Dumper;
-require Fortran::Utils;
+use Storable qw(dclone);require Fortran::Utils;
 require Galacticus::Build::SourceTree::Hooks;
 require Galacticus::Build::SourceTree;
 
@@ -54,7 +54,7 @@ sub Parse_Declarations {
 			$attributesText =~ s/^\s*,\s*//
 			    if  ( $attributesText );
 			my @attributes = &Fortran_Utils::Extract_Variables($attributesText,keepQualifiers => 1);
-			my @variables  = &Fortran_Utils::Extract_Variables($matches[$Fortran_Utils::intrinsicDeclarations{$_}->{'variables'}]);
+			my @variables  = &Fortran_Utils::Extract_Variables($matches[$Fortran_Utils::intrinsicDeclarations{$_}->{'variables'}],keepQualifiers => 1);
 			$declaration = {
 			    intrinsic  => $intrinsic  ,
 			    type       => $type       ,
@@ -133,6 +133,21 @@ sub Parse_Declarations {
     }    
 }
 
+sub BuildDeclarations {
+    # Build Fortran code from declarations list.
+    my $node =   shift() ;
+    $node->{'firstChild'}->{'content'} = "";
+    foreach ( @{$node->{'declarations'}} ) {
+	my $declarationCode  = "  ".$_->{'intrinsic'};
+	$declarationCode    .= "(".$_->{'type'}.")"
+	    if ( exists($_->{'type'}) && $_->{'type'} );
+	$declarationCode    .= ", ".join(", ",@{$_->{'attributes'}})
+	    if ( exists($_->{'attributes'}) && $_->{'attributes'} && scalar(@{$_->{'attributes'}}) > 0 );
+	$declarationCode    .= " :: ".join(", ",@{$_->{'variables'}})."\n";
+	$node->{'firstChild'}->{'content'} .= $declarationCode;
+    }
+}
+
 sub AddDeclarations {
     # Grab the node to add declarations to, and the new declarations to add.
     my $node         =   shift() ;
@@ -173,15 +188,50 @@ sub AddDeclarations {
     }
     # Add the declarations.
     push(@{$declarationsNode->{'declarations'}},@declarations);
-    foreach ( @declarations ) {
-	my $declarationCode  = "  ".$_->{'intrinsic'};
-	$declarationCode    .= "(".$_->{'type'}.")"
-	    if ( exists($_->{'type'}) && $_->{'type'} );
-	$declarationCode    .= ", ".join(", ",@{$_->{'attributes'}})
-	    if ( exists($_->{'attributes'}) && $_->{'attributes'} && scalar(@{$_->{'attributes'}}) > 0 );
-	$declarationCode    .= " :: ".join(", ",@{$_->{'variables'}})."\n";
-	$declarationsNode->{'firstChild'}->{'content'} .= $declarationCode;
+    &BuildDeclarations($declarationsNode);
+}
+
+sub AddAttributes {
+    # Grab the node to add declarations to, and the new declarations to add.
+    my $node         =   shift() ;
+    my $variableName =   shift() ;
+    my @attributes   = @{shift()};
+    # Locate the declarations node.
+    my $childNode  = $node->{'firstChild'};
+    my $declarationsFound;
+    my $declarationFound;
+    while ( $childNode ) {
+	if ( $childNode->{'type'} eq "declaration" ) {
+	    $declarationsFound = $childNode;
+	    # Locate the variable in the list of declarations.
+	    foreach my $declaration ( @{$childNode->{'declarations'}} ) {
+		if ( grep {$_ eq lc($variableName)} @{$declaration->{'variables'}} ) {
+		    $declarationFound = $declaration;
+		    last;
+		}
+	    }
+	}
+ 	$childNode = $childNode->{'sibling'};
     }
+    die('Galacticus::Build::SourceTree::Process::Declarations::AddAttributes: no declarations present'       )
+	unless ( $declarationsFound );
+    die('Galacticus::Build::SourceTree::Process::Declarations::AddAttributes: variable declaration not found')
+	unless ( $declarationFound  );
+    # Modify the attributes.
+    if ( scalar(@{$declarationFound->{'variables'}}) > 1 ) {
+	# Extract out other variables and push into their own declaration.
+	my $declarationCopy = dclone($declarationFound);
+	$declarationFound->{'variables'} = [ $variableName ];
+	@{$declarationCopy->{'variables'}} = map {$_ eq $variableName ? () : $_} @{$declarationCopy->{'variables'}};
+	push(@{$declarationFound->{'variables'}},$declarationCopy);
+    }
+    foreach my $attribute ( @attributes ) {
+	unless ( grep {$_ eq $attribute} @{$declarationFound->{'attributes'}} ) {
+	    push(@{$declarationFound->{'attributes'}},$attribute);
+	}
+    }
+    # Rebuild the declarations.
+    &BuildDeclarations($declarationsFound);
 }
 
 sub GetDeclaration {
@@ -198,7 +248,7 @@ sub GetDeclaration {
 	    # Locate the variable in the list of declarations.
 	    foreach my $declaration ( @{$childNode->{'declarations'}} ) {
 		if ( grep {$_ eq lc($variableName)} @{$declaration->{'variables'}} ) {
-		    $declarationFound = $declaration;
+		    $declarationFound = dclone($declaration);
 		    $declarationFound->{'variables'} = [ $variableName ];
 		    last;
 		}
@@ -206,7 +256,7 @@ sub GetDeclaration {
 	}
  	$childNode = $childNode->{'sibling'};
     }
-    die('Galacticus::Build::SourceTree::Process::Declarations::GetDeclaration: no declarations present'      )
+    die('Galacticus::Build::SourceTree::Process::Declarations::GetDeclaration: no declarations present'       )
 	unless ( $declarationsFound );
     die('Galacticus::Build::SourceTree::Process::Declarations::GetDeclaration: variable declaration not found')
 	unless ( $declarationFound  );

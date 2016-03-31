@@ -19,7 +19,7 @@
   !% Contains a module which implements an augmenting operator on merger trees.
   use Merger_Trees_Builders
 
-  !# <mergerTreeOperator name="mergerTreeOperatorAugment">
+  !# <mergerTreeOperator name="mergerTreeOperatorAugment" defaultThreadPrivate="yes">
   !#  <description>Provides a merger tree operator which augments tree resolution by inserting high-resolution branches.</description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorAugment
@@ -111,7 +111,7 @@ contains
     use Galacticus_Error
     implicit none
     type            (mergerTreeOperatorAugment)                              :: augmentConstructorParameters
-    type            (inputParameters          ), intent(in   )               :: parameters
+    type            (inputParameters          ), intent(inout)               :: parameters
     double precision                           , allocatable  , dimension(:) :: timeSnapshots
     class           (cosmologyFunctionsClass  ), pointer                     :: cosmologyFunctions_
     class           (mergerTreeBuilderClass   ), pointer                     :: mergerTreeBuilder_ 
@@ -446,7 +446,7 @@ contains
              !$omp end critical (Augment_Statistics)
              ! Clean up the best tree if one exists.
              if (associated(treeBest%baseNode)) then
-                call treeBest%destroyBranch(treeBest%baseNode)
+                call treeBest%baseNode%destroyBranch()
                 treeBest%baseNode => null() 
              end if             
              ! Move on to the next node.
@@ -641,7 +641,7 @@ contains
        !     forced.
        !
        ! Clean up the newly created tree, and replace it with the best tree.
-       if (associated(newTree%baseNode)) call newTree%destroyBranch(newTree%baseNode)
+       if (associated(newTree%baseNode)) call newTree%baseNode%destroyBranch()
        newTree%baseNode => treeBest%baseNode
        ! Reset the best tree.
        treeBestWorstFit  =  3.0d0
@@ -677,12 +677,12 @@ contains
        ! If the newly created tree was acceptable, use it.
        augmentBuildTreeFromNode=treeBuildSuccess
        ! Clean up any previously stored best tree.
-       if (associated(treeBest%baseNode)) call treeBest%destroyBranch(treeBest%baseNode)
+       if (associated(treeBest%baseNode)) call treeBest%baseNode%destroyBranch()
        treeBestWorstFit  =  3.0d0
        treeBest%baseNode => null()
     else
        ! The newly created tree was unacceptable, clean it up and return the failure code.
-       if (associated(newTree%baseNode)) call newTree%destroyBranch(newTree%baseNode)
+       if (associated(newTree%baseNode)) call newTree%baseNode%destroyBranch()
        augmentBuildTreeFromNode=treeAccepted
     end if
     ! Put any cloned progenitor back in.
@@ -960,7 +960,7 @@ contains
        if (treeCurrentWorstFit < treeBestWorstFit) then
           newTreeBest = .true.
           ! Current tree is better than the current best tree. Replace the best tree with the current tree.
-          if (associated(treeBest%baseNode)) call treeBest%destroyBranch(treeBest%baseNode)
+          if (associated(treeBest%baseNode)) call treeBest%baseNode%destroyBranch()
           treeBest                      %baseNode          => tree                         %baseNode
           tree                          %baseNode          => null()
           treeBest                      %baseNode%hostTree => treeBest
@@ -976,7 +976,7 @@ contains
     else
        ! Tree is not acceptable or better than the current best tree - destroy it.
        call self%nonOverlapReinsert(nodeNonOverlapFirst)
-       if (associated(tree%baseNode)) call tree%destroyBranch(tree%baseNode)
+       if (associated(tree%baseNode)) call tree%baseNode%destroyBranch()
     end if
     ! Return a suitable status code based on tree acceptance criteria.
     if (treeAccepted) then    

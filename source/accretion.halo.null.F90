@@ -26,6 +26,7 @@
      !% A halo accretion class that assumes no accretion.
      private
    contains
+     procedure :: branchHasBaryons       => nullBranchHasBaryons
      procedure :: accretionRate          => nullAccretionRate
      procedure :: accretedMass           => nullAccretedMass
      procedure :: failedAccretionRate    => nullFailedAccretionRate
@@ -51,6 +52,17 @@ contains
 
     return
   end function nullConstructor
+
+  logical function nullBranchHasBaryons(self,node)
+    !% Returns true if this branch can accrete any baryons.
+    use Galacticus_Nodes
+    implicit none
+    class(accretionHaloNull), intent(inout)          :: self
+    type (treeNode         ), intent(inout), pointer :: node
+
+   nullBranchHasBaryons=.false.
+    return
+  end function nullBranchHasBaryons
 
   double precision function nullAccretionRate(self,node,accretionMode)
     !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.

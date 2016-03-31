@@ -59,31 +59,39 @@ void flock_C(const char *name, struct lockDescriptor **ld, int lockIsShared) {
     abort();
   }
   if (fcntl((*ld)->fd, F_SETLKW, &(*ld)->fl) == -1) {
-    if (errno == EBADF) {
-      printf("flock_C(): bad file descriptor [EBADF]: %s\n",name);
-    } else if (errno == EINTR) {
-      printf("flock_C(): [EINTR]\n");
-    } else if (errno == EINVAL) {
+    if (errno == ENOSYS) {
+      /* File locking is not implemented on this system. Fail silently, returning a suitable error code in the lock descriptor */
+      (*ld)->fd = -1;
+    } else {    
+      if (errno == EBADF) {
+	printf("flock_C(): bad file descriptor [EBADF]: %s\n",name);
+      } else if (errno == EINTR) {
+	printf("flock_C(): [EINTR]\n");
+      } else if (errno == EINVAL) {
       printf("flock_C(): [EINVAL]\n");
-    } else if (errno == ENOLCK) {
-      printf("flock_C(): [ENOLCK]\n");
-    } else if (errno == EOVERFLOW) {
-      printf("flock_C(): [EOVERFLOW]\n");
-    } else if (errno == EDEADLK) {
-      printf("flock_C(): [EDEADLK]\n");
-    } else {
-      printf("flock_C(): unknown error [%d]\n",errno);
+      } else if (errno == ENOLCK) {
+	printf("flock_C(): [ENOLCK]\n");
+      } else if (errno == EOVERFLOW) {
+	printf("flock_C(): [EOVERFLOW]\n");
+      } else if (errno == EDEADLK) {
+	printf("flock_C(): [EDEADLK]\n");
+      } else {
+	printf("flock_C(): unknown error [%d]\n",errno);
+      }
+      abort();
     }
-    abort();
   }
 }
 
 void funlock_C(struct lockDescriptor **ld) {
   //% Fortran-callable wrapper around the fcntl() function to unlock a file.
-  (*ld)->fl.l_type  =F_UNLCK;
-  close((*ld)->fd);
-  fcntl((*ld)->fd, F_SETLK, &(*ld)->fl); /* set the region to unlocked */
-  free((*ld)->name);
-  free(*ld);
+  /* Skip unlock if the original lock failed due to locking not being available on the system */
+  if ( (*ld)->fd != -1 ) {
+    (*ld)->fl.l_type  =F_UNLCK;
+    close((*ld)->fd);
+    fcntl((*ld)->fd, F_SETLK, &(*ld)->fl); /* set the region to unlocked */
+    free((*ld)->name);
+    free(*ld);
+  }
   return;
 }
