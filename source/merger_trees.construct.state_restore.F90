@@ -67,72 +67,104 @@ contains
     return
   end subroutine Merger_Tree_State_Store_Initialize
 
-  subroutine Merger_Tree_State_Store(thisTree,storeFile)
+  subroutine Merger_Tree_State_Store(tree,storeFile)
     !% Store the complete internal state of a merger tree to file.
     use Galacticus_Nodes
     use Galacticus_State
     implicit none
-    type     (mergerTree    ), intent(in   )               :: thisTree
+    type     (mergerTree    ), intent(in   ), target       :: tree
     character(len=*         ), intent(in   )               :: storeFile
+    type     (mergerTree    ), pointer                     :: treeCurrent
     type     (treeNode      ), pointer                     :: currentNodeInTree, thisNode
     integer  (kind=kind_int8), allocatable  , dimension(:) :: nodeIndices
+    integer                  , allocatable  , dimension(:) :: nodeCountTree
     type     (varying_string), save                        :: storeFilePrevious
-    integer                                                :: fileUnit         , nodeCount
+    integer                                                :: fileUnit         , nodeCount, &
+         &                                                    treeCount        , iTree
 
     ! Take a snapshot of the internal state and store it.
-    call Galacticus_State_Snapshot
-    call Galacticus_State_Store
-
-    ! Count nodes in the tree.
-    nodeCount=0
-    thisNode          => thisTree%baseNode
-    currentNodeInTree => null()
-    do while (associated(thisNode))
-       nodeCount=nodeCount+1
-       call Merger_Tree_State_Walk_Tree(thisNode,currentNodeInTree)
-    end do
-
-    ! Allocate and populate an array of node indices in the order in which the tree will be traversed.
-    allocate(nodeIndices(nodeCount))
-    thisNode          => thisTree%baseNode
-    currentNodeInTree => null()
-    nodeCount=0
-    do while (associated(thisNode))
-       nodeCount=nodeCount+1
-       nodeIndices(nodeCount)=thisNode%uniqueID()
-       call Merger_Tree_State_Walk_Tree(thisNode,currentNodeInTree)
-     end do
+    call Galacticus_State_Snapshot()
+    call Galacticus_State_Store   ()
     ! Open an output file. (Append to the old file if the file name has not changed.)
     if (trim(storeFile) == storeFilePrevious) then
        open(newunit=fileUnit,file=trim(storeFile),status='old'    ,form='unformatted',access='append')
     else
        storeFilePrevious=trim(storeFile)
        open(newunit=fileUnit,file=trim(storeFile),status='unknown',form='unformatted'                )
-    end if
+    end if    
+    ! Count trees.
+    treeCount   =  0
+    treeCurrent => tree
+    do while (associated(treeCurrent))
+       treeCount   =  treeCount           +1
+       treeCurrent => treeCurrent%nextTree
+    end do
+    write (fileUnit) treeCount
+    ! Iterate over trees, counting nodes.
+    allocate(nodeCountTree(treeCount))
+    nodeCountTree =  0
+    iTree         =  0
+    treeCurrent   => tree
+    do while (associated(treeCurrent))
+       iTree             =  iTree               +1
+       thisNode          => treeCurrent%baseNode
+       currentNodeInTree => null()
+       do while (associated(thisNode))
+          nodeCountTree(iTree)=nodeCountTree(iTree)+1
+          call Merger_Tree_State_Walk_Tree(thisNode,currentNodeInTree)
+       end do
+       treeCurrent => treeCurrent%nextTree
+    end do
+    nodeCount=sum(nodeCountTree)
+    write (fileUnit) nodeCountTree
+    ! Allocate and populate an array of node indices in the order in which the tree will be traversed.
+    allocate(nodeIndices(nodeCount))
+    nodeCount   =  0
+    treeCurrent => tree
+    do while (associated(treeCurrent))
+       thisNode          => treeCurrent%baseNode
+       currentNodeInTree => null()
+       do while (associated(thisNode))
+          nodeCount=nodeCount+1
+          nodeIndices(nodeCount)=thisNode%uniqueID()
+          call Merger_Tree_State_Walk_Tree(thisNode,currentNodeInTree)
+       end do
+       treeCurrent => treeCurrent%nextTree
+    end do
     ! Write basic tree information.
-    write (fileUnit) thisTree%index,thisTree%volumeWeight,thisTree%initializedUntil,nodeCount,Node_Array_Position(thisTree%baseNode%uniqueID(),nodeIndices)
-    ! Start at the base of the tree.
-    thisNode          => thisTree%baseNode
-    currentNodeInTree => null()
-    ! Loop over all nodes.
-    do while (associated(thisNode))
-       ! Write all node information.
-       ! Indices.
-       write (fileUnit) thisNode%index(),thisNode%uniqueID()
-       ! Pointers to other nodes.
-       write (fileUnit)                                                            &
-            & Node_Array_Position(thisNode%parent        %uniqueID(),nodeIndices), &
-            & Node_Array_Position(thisNode%firstChild    %uniqueID(),nodeIndices), &
-            & Node_Array_Position(thisNode%sibling       %uniqueID(),nodeIndices), &
-            & Node_Array_Position(thisNode%firstSatellite%uniqueID(),nodeIndices), &
-            & Node_Array_Position(thisNode%mergeTarget   %uniqueID(),nodeIndices), &
-            & Node_Array_Position(thisNode%firstMergee   %uniqueID(),nodeIndices), &
-            & Node_Array_Position(thisNode%siblingMergee %uniqueID(),nodeIndices), &
-            & Node_Array_Position(thisNode%formationNode %uniqueID(),nodeIndices)
-       ! Store the node.
-       call thisNode%dumpRaw(fileUnit)
-       ! Move to the next node in the tree.
-       call Merger_Tree_State_Walk_Tree(thisNode,currentNodeInTree)
+    treeCurrent => tree
+    do while (associated(treeCurrent))
+       write (fileUnit) treeCurrent%index,treeCurrent%volumeWeight,treeCurrent%initializedUntil,Node_Array_Position(treeCurrent%baseNode%uniqueID(),nodeIndices)
+       treeCurrent => treeCurrent%nextTree
+    end do
+    ! Output nodes.
+    treeCurrent => tree
+    do while (associated(treeCurrent))
+       ! Start at the base of the tree.
+       thisNode          => treeCurrent%baseNode
+       currentNodeInTree => null()
+       ! Loop over all nodes.
+       do while (associated(thisNode))
+          ! Write all node information.
+          ! Indices.
+          write (fileUnit) thisNode%index(),thisNode%uniqueID()
+          ! Pointers to other nodes.
+          write (fileUnit)                                                            &
+               & Node_Array_Position(thisNode%parent        %uniqueID(),nodeIndices), &
+               & Node_Array_Position(thisNode%firstChild    %uniqueID(),nodeIndices), &
+               & Node_Array_Position(thisNode%sibling       %uniqueID(),nodeIndices), &
+               & Node_Array_Position(thisNode%firstSatellite%uniqueID(),nodeIndices), &
+               & Node_Array_Position(thisNode%mergeTarget   %uniqueID(),nodeIndices), &
+               & Node_Array_Position(thisNode%firstMergee   %uniqueID(),nodeIndices), &
+               & Node_Array_Position(thisNode%siblingMergee %uniqueID(),nodeIndices), &
+               & Node_Array_Position(thisNode%formationNode %uniqueID(),nodeIndices)
+          ! Store the node.
+          call thisNode%dumpRaw(fileUnit)
+          ! Move to the next node in the tree.
+          call Merger_Tree_State_Walk_Tree(thisNode,currentNodeInTree)
+       end do
+       ! Move to the next tree.
+       treeCurrent => treeCurrent%nextTree
     end do
     close(fileUnit)
     ! Destroy the temporary array of indices.
@@ -142,55 +174,88 @@ contains
 
   integer function Node_Array_Position(nodeIndex,nodeIndices)
     !% Returns the position of a node in the output list given its index.
+    use Galacticus_Error
+    use ISO_Varying_String
+    use String_Handling
     implicit none
     integer(kind=kind_int8)              , intent(in   ) :: nodeIndex
     integer(kind=kind_int8), dimension(:), intent(in   ) :: nodeIndices
+    type   (varying_string)                              :: message
 
     if (nodeIndex == -1) then
        Node_Array_Position=-1
     else
        Node_Array_Position=1
-       do while (nodeIndices(Node_Array_Position) /= nodeIndex)
+       do while (Node_Array_Position <= size(nodeIndices) .and. nodeIndices(Node_Array_Position) /= nodeIndex)
           Node_Array_Position=Node_Array_Position+1
        end do
+       if (nodeIndices(Node_Array_Position) /= nodeIndex) then
+          message="node ["
+          message=message//nodeIndex//"] could not be found in merger tree"
+          call Galacticus_Error_Report('Node_Array_Position',message)          
+       end if
     end if
     return
   end function Node_Array_Position
 
-  subroutine Merger_Tree_State_Restore(thisTree,skipTree)
+  subroutine Merger_Tree_State_Restore(tree,skipTree)
     !% Restores the state of a merger tree from file.
     use Galacticus_Nodes
     use Galacticus_State
     use Galacticus_Error
     use String_Handling
     implicit none
-    type   (mergerTree    ), intent(inout), target       :: thisTree
+    type   (mergerTree    ), intent(inout), target       :: tree
     logical                , intent(in   )               :: skipTree
+    type   (mergerTree    )               , pointer      :: treeCurrent        , treeNext
     type   (treeNodeList  ), allocatable  , dimension(:) :: nodes
+    integer                , allocatable  , dimension(:) :: nodeCountTree
     integer                                              :: fileStatus         , firstChildIndex   , firstMergeeIndex   , &
          &                                                  firstSatelliteIndex, formationNodeIndex, iNode              , &
          &                                                  mergeTargetIndex   , nodeArrayIndex    , nodeCount          , &
-         &                                                  parentIndex        , siblingIndex      , siblingMergeeIndex
+         &                                                  parentIndex        , siblingIndex      , siblingMergeeIndex , &
+         &                                                  treeCount          , iTree             , iNodeTree
     integer(kind=kind_int8)                              :: nodeIndex          , nodeUniqueID      , nodeUniqueIDMaximum
     type   (varying_string)                              :: message
 
     ! Retrieve stored internal state if possible.
-    call Galacticus_State_Retrieve
-
-    ! Read basic tree information.
-    read (treeDataUnit,iostat=fileStatus) thisTree%index,thisTree%volumeWeight,thisTree%initializedUntil,nodeCount,nodeArrayIndex
+    call Galacticus_State_Retrieve()
+    ! Read number of trees.
+    read (treeDataUnit,iostat=fileStatus) treeCount
     if (fileStatus < 0) then
        close(treeDataUnit)
        return
     end if
+    ! Create trees
+    if (treeCount > 1) then
+       treeCurrent => tree
+       do iTree=2,treeCount
+          allocate(treeCurrent%nextTree)
+          treeCurrent => treeCurrent%nextTree
+       end do
+    end if
+    ! Read number of nodes.
+    allocate(nodeCountTree(treeCount))
+    read (treeDataUnit) nodeCountTree
+    nodeCount=sum(nodeCountTree)
     ! Allocate a list of nodes.
     allocate(nodes(nodeCount))
-    ! Create nodes.
-    do iNode=1,nodeCount
-       nodes(iNode)%node => treeNode(hostTree=thisTree)
+    ! Iterate over trees.
+    treeCurrent => tree
+    iNode       =  0
+    do iTree=1,treeCount
+       ! Read basic tree information.
+       read (treeDataUnit,iostat=fileStatus) treeCurrent%index,treeCurrent%volumeWeight,treeCurrent%initializedUntil,nodeArrayIndex
+       ! Create nodes.
+       do iNodeTree=1,nodeCountTree(iTree)
+          iNode             =  iNode                         +1
+          nodes(iNode)%node => treeNode(hostTree=treeCurrent)
+       end do
+       ! Assign the tree base node.
+       if (.not.skipTree) treeCurrent%baseNode => nodes(nodeArrayIndex)%node
+       ! Move to the next tree.
+       treeCurrent => treeCurrent%nextTree
     end do
-    ! Assign the tree base node.
-    if (.not.skipTree) thisTree%baseNode => nodes(nodeArrayIndex)%node
     ! Loop over all nodes.
     nodeUniqueIDMaximum=-1
     do iNode=1,nodeCount
@@ -229,13 +294,18 @@ contains
           end if
        end if
     end do
-    ! If the tree is to be skipped, destroy it.
-    if (skipTree) then
-       call thisTree%destroy()
-       thisTree%baseNode => null()
-    end if
     ! Destroy the list of nodes.
     deallocate(nodes)
+    ! If the tree is to be skipped, destroy it.
+    if (skipTree) then
+       treeCurrent => tree
+       do iTree=1,treeCount
+          treeNext    => treeCurrent%nextTree
+          call treeCurrent%destroy()
+          treeCurrent%baseNode => null()
+          treeCurrent => treeNext
+       end do
+    end if
     return
   end subroutine Merger_Tree_State_Restore
 
