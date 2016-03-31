@@ -184,10 +184,13 @@ contains
     implicit none
     class           (mergerTreeBuilderCole2000), intent(inout)         :: self
     type            (mergerTree               ), intent(inout), target :: tree
-    type            (treeNode                 ), pointer               :: newNode1                  , newNode2                   , thisNode
+    type            (treeNode                 ), pointer               :: newNode1                  , newNode2                   , thisNode                  , &
+         &                                                                previousNode
     class           (criticalOverdensityClass ), pointer               :: criticalOverdensity_
     class           (nodeComponentBasic       ), pointer               :: newBasic1                 , newBasic2                  , thisBasic                 , &
          &                                                                parentBasic
+    double precision                           , parameter             :: toleranceResolutionParent=1.0d-3
+    double precision                           , parameter             :: toleranceResolutionSelf  =1.0d-6
     integer         (kind=kind_int8           )                        :: nodeIndex
     double precision                                                   :: accretionFraction         , baseNodeTime               , branchingProbability      , &
          &                                                                collapseTime              , deltaCritical              , deltaCritical1            , &
@@ -197,7 +200,9 @@ contains
          &                                                                branchDeltaCriticalCurrent, branchingInterval          , branchingIntervalScaleFree, &
          &                                                                branchingProbabilityRate  , deltaWAccretionLimit
     logical                                                            :: doBranch                  , branchIsDone               , snapAccretionFraction
-
+    type            (varying_string           )                        :: message
+    character       (len=20                   )                        :: label
+    
     ! Get default objects.
     criticalOverdensity_ => criticalOverdensity()
     ! Begin construction.
@@ -451,14 +456,50 @@ contains
     thisBasic => tree%baseNode%basic()
     call thisBasic%timeSet(baseNodeTime)
     ! Check for well-ordering in time.
-    thisNode => tree%baseNode
+    thisNode     => tree%baseNode
+    previousNode => thisNode
     do while (associated(thisNode))       
        if (associated(thisNode%parent)) then
           thisBasic   => thisNode       %basic()
           parentBasic => thisNode%parent%basic()
-          if (parentBasic%time() <= thisBasic%time()) call Galacticus_Error_Report('cole2000Build','branch is not well-ordered in time')
+          if (parentBasic%time() <= thisBasic%time()) then
+             if     (                                                                       &
+                  &   parentBasic%mass() < massResolution*(1.0d0+toleranceResolutionParent) &
+                  &  .and.                                                                  &
+                  &     thisBasic%mass() < massResolution*(1.0d0+toleranceResolutionSelf  ) &
+                  & ) then
+                ! Parent halo is very close to the resolution limit. Simply prune away the remainder of this branch.
+                call thisNode%destroyBranch()
+                deallocate(thisNode)
+                thisNode => previousNode
+             else
+                ! Parent halo is not close to the resolution limit - this is an error.
+                message="branch is not well-ordered in time"            //char(10)
+                write (label,'(e20.14)')                                   thisBasic%time()
+                message=message//" ->       node time = "//label//" Gyr"//char(10)
+                write (label,'(e20.14)')                                 parentBasic%time()
+                message=message//" ->     parent time = "//label//" Gyr"//char(10)
+                write (label,'(e20.14)')                                                           thisBasic%mass()
+                message=message//" ->       node mass = "//label//" M☉" //char(10)
+                write (label,'(e20.14)')                                                         parentBasic%mass()
+                message=message//" ->     parent mass = "//label//" M☉" //char(10)
+                write (label,'(e20.14)') criticalOverdensity_%value(time=  thisBasic%time(),mass=  thisBasic%mass())
+                message=message//" ->         node δc = "//label        //char(10)
+                write (label,'(e20.14)') criticalOverdensity_%value(time=parentBasic%time(),mass=parentBasic%mass())
+                message=message//" ->       parent δc = "//label        //char(10)
+                thisBasic => tree%baseNode%basic()
+                write (label,'(e20.14)')                                   thisBasic%time()
+                message=message//" ->       tree time = "//label//" Gyr"//char(10)
+                write (label,'(e20.14)')                                                           thisBasic%mass()
+                message=message//" ->       tree mass = "//label//" M☉" //char(10)
+                write (label,'(e20.14)') massResolution
+                message=message//" -> mass resolution = "//label//" M☉"
+                call Galacticus_Error_Report('cole2000Build',message)
+             end if
+          end if
        end if
-       thisNode => thisNode%walkTree()
+       previousNode => thisNode
+       thisNode     => thisNode%walkTree()
     end do
     return
   end subroutine cole2000Build
