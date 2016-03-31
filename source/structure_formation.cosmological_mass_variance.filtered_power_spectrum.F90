@@ -16,206 +16,457 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculation of $\sigma(M)$ via filtering of the power spectrum.
+  !% An implementation of cosmological density field mass variance computed using a filtered power spectrum.
 
-module Cosmological_Mass_Variance_Filtered_Power_Spectrum
-  !% Implements calculation of $\sigma(M)$ via filtering of the power spectrum.
-  implicit none
-  private
-  public :: Cosmological_Mass_Variance_Filtered_Power_Spectrum_Initialize, &
-       &    Cosmological_Mass_Variance_FPS_State_Store                   , &
-       &    Cosmological_Mass_Variance_FPS_State_Retrieve
+  !# <cosmologicalMassVariance name="cosmologicalMassVarianceFilteredPower" defaultThreadPrivate="yes">
+  !#  <description>Mass variance of cosmological density fields computed from a filtered power spectrum.</description>
+  !# </cosmologicalMassVariance>
+  use Tables
+  use Cosmology_Parameters
+  use Power_Spectra_Primordial_Transferred
+  use Power_Spectrum_Window_Functions
 
-  ! Initial ranges and tabulation scale for the mass variance.
-  double precision            :: sigmaTableMassMaximum     =1.0d15, sigmaTableMassMinimum=1.0d6
-  integer         , parameter :: sigmaTableNPointsPerDecade=10
+  type, extends(cosmologicalMassVarianceClass) :: cosmologicalMassVarianceFilteredPower
+     !% A cosmological mass variance class computing variance from a filtered power spectrum.
+     private
+     class           (cosmologyParametersClass               ), pointer :: cosmologyParameters_
+     class           (powerSpectrumPrimordialTransferredClass), pointer :: powerSpectrumPrimordialTransferred_
+     class           (powerSpectrumWindowFunctionClass       ), pointer :: powerSpectrumWindowFunction_
+     type            (powerSpectrumWindowFunctionTopHat      )          :: powerSpectrumWindowFunctionTopHat_
+     logical                                                            :: initialized
+     double precision                                                   :: tolerance                          , toleranceTopHat   , &
+          &                                                                sigma8Value                        , sigmaNormalization, &
+          &                                                                massMinimum                        , massMaximum
+     type            (table1DLogarithmicCSpline              )          :: rootVarianceTable
+   contains
+     !@ <objectMethods>
+     !@   <object>cosmologicalMassVarianceFilteredPower</object>
+     !@   <objectMethod>
+     !@     <method>retabulate</method>
+     !@     <type>void</type>
+     !@     <arguments>\doublezero\ time\argin</arguments>
+     !@     <description>Tabulate cosmological mass variance.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     final     ::                                       filteredPowerDestructor
+     procedure :: stateStore                         => filteredPowerStateStore
+     procedure :: stateRestore                       => filteredPowerStateRestore
+     procedure :: descriptor                         => filteredPowerDescriptor
+     procedure :: sigma8                             => filteredPowerSigma8
+     procedure :: powerNormalization                 => filteredPowerPowerNormalization
+     procedure :: rootVariance                       => filteredPowerRootVariance
+     procedure :: rootVarianceLogarithmicGradient    => filteredPowerRootVarianceLogarithmicGradient
+     procedure :: rootVarianceAndLogarithmicGradient => filteredPowerRootVarianceAndLogarithmicGradient
+     procedure :: mass                               => filteredPowerMass
+     procedure :: retabulate                         => filteredPowerRetabulate
+  end type cosmologicalMassVarianceFilteredPower
 
-  ! Smoothing mass scale used in computing variance.
-  double precision            :: smoothingMass
+  interface cosmologicalMassVarianceFilteredPower
+     !% Constructors for the {\normalfont \ttfamily filteredPower} cosmological mass variance class.
+     module procedure filteredPowerConstructorParameters
+     module procedure filteredPowerConstructorInternal
+  end interface cosmologicalMassVarianceFilteredPower
 
-  ! Integration tolerances.
-  double precision            :: massVarianceFilteredPowerSpectrumTopHatTolerance
-  double precision            :: massVarianceFilteredPowerSpectrumTolerance
+  ! Number of points per decade to use in tabulation of σ(M).
+  integer, parameter :: filteredPowerTablePointsPerDecade=10
 
 contains
 
-  !# <cosmologicalMassVarianceMethod>
-  !#  <unitName>Cosmological_Mass_Variance_Filtered_Power_Spectrum_Initialize</unitName>
-  !# </cosmologicalMassVarianceMethod>
-  subroutine Cosmological_Mass_Variance_Filtered_Power_Spectrum_Initialize(cosmologicalMassVarianceMethod&
-       &,Cosmological_Mass_Variance_Tabulate)
-    !% Initializes the $\sigma(M)$ calculation for the ``filtered power spectrum'' method.
-    use Input_Parameters
-    use ISO_Varying_String
+  function filteredPowerConstructorParameters(parameters)
+    !% Constructor for the {\normalfont \ttfamily filteredPower} cosmological mass variance class which takes a parameter set as input.
+    use Input_Parameters2
     implicit none
-    type     (varying_string                                             ), intent(in   )          :: cosmologicalMassVarianceMethod
-    procedure(Cosmological_Mass_Variance_Filtered_Power_Spectrum_Tabulate), intent(inout), pointer :: Cosmological_Mass_Variance_Tabulate
-
-    if (cosmologicalMassVarianceMethod == 'filteredPowerSpectrum') then
-       Cosmological_Mass_Variance_Tabulate => Cosmological_Mass_Variance_Filtered_Power_Spectrum_Tabulate
-       !@ <inputParameter>
-       !@   <name>massVarianceFilteredPowerSpectrumTopHatTolerance</name>
-       !@   <defaultValue>$10^{-6}$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The relative tolerance to use in integrating over the linear power spectrum using a top-hat (real space) window function to compute the cosmological mass variance.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('massVarianceFilteredPowerSpectrumTopHatTolerance',massVarianceFilteredPowerSpectrumTopHatTolerance,defaultValue=1.0d-6)
-       !@ <inputParameter>
-       !@   <name>massVarianceFilteredPowerSpectrumTolerance</name>
-       !@   <defaultValue>$4\times 10^{-6}$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The relative tolerance to use in integrating over the linear power spectrum to compute the cosmological mass variance.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('massVarianceFilteredPowerSpectrumTolerance',massVarianceFilteredPowerSpectrumTolerance,defaultValue=4.0d-6)
-    end if
-    return
-  end subroutine Cosmological_Mass_Variance_Filtered_Power_Spectrum_Initialize
-
-  subroutine Cosmological_Mass_Variance_Filtered_Power_Spectrum_Tabulate(mass,massNormalization,sigmaNormalization,sigmaTable)
-    !% Tabulate the virial density contrast for the \cite{kitayama_semianalytic_1996} fitting function module.
-    use Tables
-    double precision                      , intent(in   ) :: mass              , massNormalization
-    double precision                      , intent(inout) :: sigmaNormalization
-    class           (table1D), allocatable, intent(inout) :: sigmaTable
-    integer                                               :: iMass             , sigmaTableNPoints
-    double precision                                      :: sigma
-
-    ! Create the table object.
-    if (allocated(sigmaTable)) then
-       call sigmaTable%destroy()
-       deallocate(sigmaTable)
-    end if
-    allocate(table1DLogarithmicCSpline :: sigmaTable)
-    select type (sigmaTable)
-    type is (table1DLogarithmicCSpline)
-       ! Determine the normalization of the power spectrum.
-       sigmaNormalization=sigmaNormalization/Variance_Integral(massNormalization,useTopHat=.true.)
-       ! Find suitable range of masses to tabulate.
-       sigmaTableMassMinimum=min(sigmaTableMassMinimum,mass/10.0d0)
-       sigmaTableMassMaximum=max(sigmaTableMassMaximum,mass*10.0d0)
-       sigmaTableNPoints=int(log10(sigmaTableMassMaximum/sigmaTableMassMinimum)*dble(sigmaTableNPointsPerDecade))
-       ! Allocate table grid.
-       call sigmaTable%destroy()
-       call sigmaTable%create(sigmaTableMassMinimum,sigmaTableMassMaximum,sigmaTableNPoints)
-       ! Compute sigma(M) at each tabulated point.
-       do iMass=1,sigmaTableNPoints
-          sigma=Variance_Integral(sigmaTable%x(iMass),useTopHat=.false.)*sigmaNormalization
-          ! Enforce monotonicity.
-          if (iMass > 1) then
-             if (sigma > sigmaTable%y(iMass-1)) sigma=sigmaTable%y(iMass-1)
-          end if
-          call sigmaTable%populate(sigma,iMass,computeSpline=(iMass == sigmaTableNPoints))
-       end do
-    end select
-    return
-  end subroutine Cosmological_Mass_Variance_Filtered_Power_Spectrum_Tabulate
-
-  double precision function Variance_Integral(mass,useTopHat)
-    !% Compute the root-variance of mass in spheres enclosing the given {\normalfont \ttfamily mass} from the power spectrum.
-    use, intrinsic :: ISO_C_Binding
-    use Numerical_Constants_Math
-    use Numerical_Integration
-    use Cosmology_Parameters
-    use Power_Spectrum_Window_Functions
-    use Power_Spectra_Primordial_Transferred
-    implicit none
-    double precision                                         , intent(in   ) :: mass
-    logical                                                  , intent(in   ) :: useTopHat
+    type            (cosmologicalMassVarianceFilteredPower  )                :: filteredPowerConstructorParameters
+    type            (inputParameters                        ), intent(inout) :: parameters
     class           (cosmologyParametersClass               ), pointer       :: cosmologyParameters_
     class           (powerSpectrumPrimordialTransferredClass), pointer       :: powerSpectrumPrimordialTransferred_
-    double precision                                                         :: topHatRadius                       , wavenumberMaximum, &
-         &                                                                      wavenumberMinimum
-    type            (c_ptr                                  )                :: parameterPointer
-    type            (fgsl_function                          )                :: integrandFunction
-    type            (fgsl_integration_workspace             )                :: integrationWorkspace
+    class           (powerSpectrumWindowFunctionClass       ), pointer       :: powerSpectrumWindowFunction_
+    double precision                                                         :: sigma_8                            , tolerance, &
+         &                                                                      toleranceTopHat
+    !# <inputParameterList label="allowedParameterNames" />
 
-    ! Get required objects.
-    cosmologyParameters_                => cosmologyParameters               ()
-    powerSpectrumPrimordialTransferred_ => powerSpectrumPrimordialTransferred()
-    smoothingMass=mass
-    topHatRadius=((3.0d0/4.0d0/Pi)*mass/cosmologyParameters_%OmegaMatter()/cosmologyParameters_%densityCritical())**(1.0d0/3.0d0)
-    wavenumberMinimum=    0.0d0/topHatRadius
-    wavenumberMaximum=min(1.0d3/topHatRadius,Power_Spectrum_Window_Function_Wavenumber_Maximum(smoothingMass))
-    if (useTopHat) then
-       Variance_Integral=Integrate(wavenumberMinimum,wavenumberMaximum,Variance_Integrand_TopHat,parameterPointer&
-            &,integrandFunction ,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=massVarianceFilteredPowerSpectrumTopHatTolerance,integrationRule=FGSL_Integ_Gauss15)/2.0d0/Pi**2
-    else
-       Variance_Integral=Integrate(wavenumberMinimum,wavenumberMaximum,Variance_Integrand,parameterPointer&
-            &,integrandFunction ,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=massVarianceFilteredPowerSpectrumTolerance,integrationRule=FGSL_Integ_Gauss15)/2.0d0/Pi**2
-    end if
-    call Integrate_Done(integrandFunction,integrationWorkspace)
-    Variance_Integral=sqrt(Variance_Integral)
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>sigma_8</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.817d0</defaultValue>
+    !#   <defaultSource>(\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultSource>
+    !#   <description>The fractional mass fluctuation in the linear density field at the present day in spheres of radius 8~Mpc/h.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>toleranceTopHat</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>1.0d-6</defaultValue>
+    !#   <description>The relative tolerance to use in integrating over the linear power spectrum using a top-hat (real space) window function to compute the cosmological mass variance.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>tolerance</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>4.0d-6</defaultValue>
+    !#   <description>The relative tolerance to use in integrating over the linear power spectrum to compute the cosmological mass variance.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="cosmologyParameters"                name="cosmologyParameters_"                source="parameters"/>
+    !# <objectBuilder class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferred_" source="parameters"/>
+    !# <objectBuilder class="powerSpectrumWindowFunction"        name="powerSpectrumWindowFunction_"        source="parameters"/>    
+    ! Construct the instance.
+    filteredPowerConstructorParameters=filteredPowerConstructorInternal(sigma_8,tolerance,toleranceTopHat,cosmologyParameters_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_)
     return
+  end function filteredPowerConstructorParameters
 
-  contains
+  function filteredPowerConstructorInternal(sigma8,tolerance,toleranceTopHat,cosmologyParameters_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_)
+    !% Internal constructor for the {\normalfont \ttfamily filteredPower} linear growth class.
+    implicit none
+    type            (cosmologicalMassVarianceFilteredPower  )                        :: filteredPowerConstructorInternal
+    double precision                                         , intent(in   )         :: tolerance                          , toleranceTopHat, &
+         &                                                                              sigma8
+    class           (cosmologyParametersClass               ), intent(in   ), target :: cosmologyParameters_
+    class           (powerSpectrumPrimordialTransferredClass), intent(in   ), target :: powerSpectrumPrimordialTransferred_
+    class           (powerSpectrumWindowFunctionClass       ), intent(in   ), target :: powerSpectrumWindowFunction_
+
+    filteredPowerConstructorInternal%sigma8Value                         =  sigma8
+    filteredPowerConstructorInternal%tolerance                           =  tolerance
+    filteredPowerConstructorInternal%toleranceTopHat                     =  toleranceTopHat
+    filteredPowerConstructorInternal%cosmologyParameters_                => cosmologyParameters_
+    filteredPowerConstructorInternal%powerSpectrumPrimordialTransferred_ => powerSpectrumPrimordialTransferred_
+    filteredPowerConstructorInternal%powerSpectrumWindowFunction_        => powerSpectrumWindowFunction_
+    filteredPowerConstructorInternal%powerSpectrumWindowFunctionTopHat_  =  powerSpectrumWindowFunctionTopHat  (cosmologyParameters_)
+    filteredPowerConstructorInternal%initialized                         =  .false.
+    filteredPowerConstructorInternal%massMinimum                         =  1.0d06
+    filteredPowerConstructorInternal%massMaximum                         =  1.0d15
+    return
+  end function filteredPowerConstructorInternal
+
+  subroutine filteredPowerDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily filteredPower} linear growth class.
+    implicit none
+    type (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
     
-    function Variance_Integrand(wavenumber,parameterPointer) bind(c)
+    !# <objectDestructor name="self%cosmologyParameters_"               />
+    !# <objectDestructor name="self%powerSpectrumPrimordialTransferred_"/>
+    !# <objectDestructor name="self%powerSpectrumWindowFunction_"       />
+    if (self%initialized) call self%rootVarianceTable%destroy()
+    return
+  end subroutine filteredPowerDestructor
+
+  double precision function filteredPowerPowerNormalization(self)
+    !% Return the normalization of the power spectrum.
+    implicit none
+    class(cosmologicalMassVarianceFilteredPower), intent(inout) :: self
+
+    call self%retabulate()
+    filteredPowerPowerNormalization=self%sigmaNormalization**2
+    return
+  end function filteredPowerPowerNormalization
+  
+  double precision function filteredPowerSigma8(self)
+    !% Return the value of $\sigma_8$.
+    implicit none
+    class(cosmologicalMassVarianceFilteredPower), intent(inout) :: self
+
+    filteredPowerSigma8=self%sigma8Value
+    return
+  end function filteredPowerSigma8
+  
+  double precision function filteredPowerRootVariance(self,mass)
+    !% Return the root-variance of the cosmological density field in a spherical region containing the given {\normalfont
+    !% \ttfamily mass} on average.
+    implicit none
+    class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
+    double precision                                       , intent(in   ) :: mass
+
+    call self%retabulate(mass)
+    filteredPowerRootVariance=self%rootVarianceTable%interpolate(mass)
+    return
+  end function filteredPowerRootVariance
+  
+  double precision function filteredPowerRootVarianceLogarithmicGradient(self,mass)
+    !% Return the logairhtmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical
+    !% region containing the given {\normalfont \ttfamily mass} on average.
+    implicit none
+    class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
+    double precision                                       , intent(in   ) :: mass
+
+    call self%retabulate(mass)
+    filteredPowerRootVarianceLogarithmicGradient=+self%rootVarianceTable%interpolateGradient(mass) &
+         &                                       /self%rootVarianceTable%interpolate        (mass) &
+         &                                       *                                           mass
+    return
+  end function filteredPowerRootVarianceLogarithmicGradient
+  
+  subroutine filteredPowerRootVarianceAndLogarithmicGradient(self,mass,rootVariance,rootVarianceLogarithmicGradient)
+    !% Return the value and logairhtmic gradient with respect to mass of the root-variance of the cosmological density field in a
+    !% spherical region containing the given {\normalfont \ttfamily mass} on average.
+    implicit none
+    class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
+    double precision                                       , intent(in   ) :: mass
+    double precision                                       , intent(  out) :: rootVariance, rootVarianceLogarithmicGradient
+
+    call self%retabulate(mass)
+    rootVariance                   =+self%rootVarianceTable%interpolate        (mass)
+    rootVarianceLogarithmicGradient=+self%rootVarianceTable%interpolateGradient(mass) &
+         &                          /     rootVariance                                &
+         &                          *                                           mass
+    return
+  end subroutine filteredPowerRootVarianceAndLogarithmicGradient
+
+  double precision function filteredPowerMass(self,rootVariance)
+    !% Return the mass corrresponding to the given {\normalfont \ttfamily } root-variance of the cosmological density field.
+    implicit none
+    class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
+    double precision                                       , intent(in   ) :: rootVariance
+    double precision                                                       :: h
+    integer                                                                :: i
+    
+    ! If the requested root-variance is below the lowest value tabulated, attempt to tabulate to higher mass (lower
+    ! root-variance).
+    if (.not.self%initialized) call self%retabulate()
+    do while (rootVariance < self%rootVarianceTable%y(-1))
+       call self%retabulate(self%rootVarianceTable%x(-1)*2.0d0)
+    end do
+    ! If sigma exceeds the highest value tabulated, simply return the lowest tabulated mass.
+    if (rootVariance > self%rootVarianceTable%y(1)) then
+       filteredPowerMass=self%rootVarianceTable%x(1)
+    else
+       ! Find the largest mass corresponding to this sigma.
+       i=self%rootVarianceTable%size()
+       do while (i > 1 .and. self%rootVarianceTable%y(i-1) < rootVariance)
+          i=i-1
+       end do
+       h                =+(     rootVariance            -self%rootVarianceTable%y(i)) &
+            &            /(self%rootVarianceTable%y(i-1)-self%rootVarianceTable%y(i))
+       filteredPowerMass=exp(                                              &
+            &                +log(self%rootVarianceTable%x(i  ))*(1.0d0-h) &
+            &                +log(self%rootVarianceTable%x(i-1))*       h  &
+            &               )
+    end if
+    return
+  end function filteredPowerMass
+ 
+  subroutine filteredPowerRetabulate(self,mass)
+    !% Tabulate the cosmological mass variance.
+    use Numerical_Constants_Math
+    implicit none
+    class           (cosmologicalMassVarianceFilteredPower  ), intent(inout)           :: self
+    double precision                                         , intent(in   ), optional :: mass
+    ! Radius for σ(M) normalization in Mpc/h.
+    double precision                                         , parameter               :: radiusNormalization                =8.0d0
+    integer                                                                            :: i                                        , rootVarianceTableCount
+    double precision                                                                   :: sigma                                    , smoothingMass
+    logical                                                                            :: remakeTable
+    
+    ! Check if we need to recompute our table.
+    if (self%initialized) then
+       if (present(mass)) then
+          remakeTable=(                         &
+               &        mass < self%massMinimum &
+               &       .or.                     &
+               &        mass > self%massMaximum &
+               &      )
+       else
+          remakeTable=.false.
+       end if
+    else
+       remakeTable=.true.
+    end if
+    if (remakeTable) then
+       ! Compute the mass at which the mass variance is normalized.
+       smoothingMass=+(                                                               &
+            &          +4.0d0                                                         &
+            &          /3.0d0                                                         &
+            &          *Pi                                                            &
+            &         )                                                               &
+            &        *  self%cosmologyParameters_%OmegaMatter    (                  ) &
+            &        *  self%cosmologyParameters_%densityCritical(                  ) &
+            &        *(                                                               &
+            &          +radiusNormalization                                           &
+            &          /self%cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH) &
+            &         )**3
+       ! Determine the normalization of the power spectrum.
+       self%sigmaNormalization=+self%sigma8Value               &
+            &                  /rootVariance(useTopHat=.true.)
+       ! Find suitable range of masses to tabulate.
+       if (present(mass)) then
+          self%massMinimum=min(self%massMinimum,mass/10.0d0)
+          self%massMaximum=max(self%massMaximum,mass*10.0d0)
+       end if
+       rootVarianceTableCount=int(                                         &
+            &                     +log10(                                  &
+            &                            +self%massMaximum                 &
+            &                            /self%massMinimum                 &
+            &                           )                                  &
+            &                     *dble(filteredPowerTablePointsPerDecade) &
+            &                    )
+       ! Allocate table grid.
+       call self%rootVarianceTable%destroy(                                                        )
+       call self%rootVarianceTable%create (self%massMinimum,self%massMaximum,rootVarianceTableCount)
+       ! Compute sigma(M) at each tabulated point.
+       do i=1,rootVarianceTableCount
+          smoothingMass=+self        %rootVarianceTable%x(                i)
+          sigma        =+rootVariance                    (useTopHat=.false.) &
+               &        *self%sigmaNormalization
+          ! Enforce monotonicity.
+          if (i > 1) sigma=min(sigma,self%rootVarianceTable%y(i-1))
+          ! Store the value.
+          call self%rootVarianceTable%populate(sigma,i,computeSpline=(i == rootVarianceTableCount))
+       end do
+       ! Table is now initialized.
+       self%initialized=.true.
+    end if
+    return
+    
+  contains
+  
+    double precision function rootVariance(useTopHat)
+      !% Compute the root-variance of mass in spheres enclosing the given {\normalfont \ttfamily mass} from the power spectrum.
+      use, intrinsic :: ISO_C_Binding
+      use               Numerical_Constants_Math
+      use               Numerical_Integration
+      implicit none
+      logical                                     , intent(in   ) :: useTopHat
+      double precision                                            :: topHatRadius        , wavenumberMaximum, &
+           &                                                         wavenumberMinimum
+      type            (c_ptr                     )                :: parameterPointer
+      type            (fgsl_function             )                :: integrandFunction
+      type            (fgsl_integration_workspace)                :: integrationWorkspace
+      
+      topHatRadius     =(                                             &
+           &             +(                                           &
+           &               +3.0d0                                     &
+           &               /4.0d0                                     &
+           &               /Pi                                        &
+           &              )                                           &
+           &             *smoothingMass                               &
+           &             /self%cosmologyParameters_%OmegaMatter    () &
+           &             /self%cosmologyParameters_%densityCritical() &
+           &            )**(1.0d0/3.0d0)
+      wavenumberMinimum=    0.0d0/topHatRadius
+      wavenumberMaximum=min(1.0d3/topHatRadius,self%powerSpectrumWindowFunction_%wavenumberMaximum(smoothingMass))
+      if (useTopHat) then
+         rootVariance=+Integrate(                                              &
+              &                  wavenumberMinimum                           , &
+              &                  wavenumberMaximum                           , &
+              &                  varianceIntegrandTopHat                     , &
+              &                  parameterPointer                            , &
+              &                  integrandFunction                           , &
+              &                  integrationWorkspace                        , &
+              &                  toleranceAbsolute      =0.0d0               , &
+              &                  toleranceRelative      =self%toleranceTopHat, &
+              &                  integrationRule        =FGSL_Integ_Gauss15    &
+              &                 )                                              &
+              &       /2.0d0                                                   &
+              &       /Pi**2
+      else
+         rootVariance=+Integrate(                                              &
+              &                  wavenumberMinimum                           , &
+              &                  wavenumberMaximum                           , &
+              &                  varianceIntegrand                           , &
+              &                  parameterPointer                            , &
+              &                  integrandFunction                           , &
+              &                  integrationWorkspace                        , &
+              &                  toleranceAbsolute      =0.0d0               , &
+              &                  toleranceRelative      =self%tolerance      , &
+              &                  integrationRule        =FGSL_Integ_Gauss15    &
+              &                  )                                             &
+              &       /2.0d0                                                   &
+              &       /Pi**2
+      end if
+      call Integrate_Done(integrandFunction,integrationWorkspace)
+      rootVariance=sqrt(rootVariance)
+      return
+    end function rootVariance
+    
+    function varianceIntegrand(wavenumber,parameterPointer) bind(c)
       !% Integrand function used in compute the variance in (real space) top-hat spheres from the power spectrum.
       use, intrinsic :: ISO_C_Binding
-      use Power_Spectrum_Window_Functions
       implicit none
-      real(kind=c_double)        :: Variance_Integrand
+      real(kind=c_double)        :: varianceIntegrand
       real(kind=c_double), value :: wavenumber
-      type(c_ptr        ), value :: parameterPointer
+      type(     c_ptr   ), value :: parameterPointer
 
       ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and Pi are included
       ! elsewhere.
-      Variance_Integrand=powerSpectrumPrimordialTransferred_%power(wavenumber)*(Power_Spectrum_Window_Function(wavenumber,smoothingMass)*wavenumber)**2
+      varianceIntegrand=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber              ) &
+           &            *(                                                                          &
+           &              +self%powerSpectrumWindowFunction_       %value(wavenumber,smoothingMass) &
+           &              *                                               wavenumber                &
+           &             )**2
       return
-    end function Variance_Integrand
+    end function varianceIntegrand
     
-    function Variance_Integrand_TopHat(wavenumber,parameterPointer) bind(c)
+    function varianceIntegrandTopHat(wavenumber,parameterPointer) bind(c)
       !% Integrand function used in compute the variance in (real space) top-hat spheres from the power spectrum.
       use, intrinsic :: ISO_C_Binding
-      use Power_Spectrum_Window_Functions_Top_Hat
       implicit none
-      real(kind=c_double)        :: Variance_Integrand_TopHat
+      real(kind=c_double)        :: varianceIntegrandTopHat
       real(kind=c_double), value :: wavenumber
-      type(c_ptr        ), value :: parameterPointer
+      type(     c_ptr   ), value :: parameterPointer
       
       ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and Pi are included
       ! elsewhere.
-      Variance_Integrand_TopHat=powerSpectrumPrimordialTransferred_%power(wavenumber)*(Power_Spectrum_Window_Function_Top_Hat(wavenumber,smoothingMass)*wavenumber)**2
+      varianceIntegrandTopHat=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber              ) &
+           &                  *(                                                                          &
+           &                    +self%powerSpectrumWindowFunctionTopHat_ %value(wavenumber,smoothingMass) &
+           &                    *                                               wavenumber                &
+           &                   )**2
       return
-    end function Variance_Integrand_TopHat
-    
-  end function Variance_Integral
+    end function varianceIntegrandTopHat
 
-  !# <galacticusStateStoreTask>
-  !#  <unitName>Cosmological_Mass_Variance_FPS_State_Store</unitName>
-  !# </galacticusStateStoreTask>
-  subroutine Cosmological_Mass_Variance_FPS_State_Store(stateFile,fgslStateFile)
+  end subroutine filteredPowerRetabulate
+      
+  subroutine filteredPowerStateStore(self,stateFile,fgslStateFile)
     !% Write the tablulation state to file.
     use FGSL
     implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
+    class  (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
+    integer                                       , intent(in   ) :: stateFile
+    type   (fgsl_file                            ), intent(in   ) :: fgslStateFile
 
-    write (stateFile) sigmaTableMassMinimum,sigmaTableMassMaximum
+    write (stateFile) self%massMinimum,self%massMaximum
     return
-  end subroutine Cosmological_Mass_Variance_FPS_State_Store
+  end subroutine filteredPowerStateStore
 
-  !# <galacticusStateRetrieveTask>
-  !#  <unitName>Cosmological_Mass_Variance_FPS_State_Retrieve</unitName>
-  !# </galacticusStateRetrieveTask>
-  subroutine Cosmological_Mass_Variance_FPS_State_Retrieve(stateFile,fgslStateFile)
+  subroutine filteredPowerStateRestore(self,stateFile,fgslStateFile)
     !% Retrieve the tabulation state from the file.
     use FGSL
     implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
+    class  (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
+    integer                                       , intent(in   ) :: stateFile
+    type   (fgsl_file                            ), intent(in   ) :: fgslStateFile
 
     ! Read the minimum and maximum tabulated times.
-    read (stateFile) sigmaTableMassMinimum,sigmaTableMassMaximum
+    read (stateFile) self%massMinimum,self%massMaximum
+    self%initialized=.false.
+    call self%retabulate()
     return
-  end subroutine Cosmological_Mass_Variance_FPS_State_Retrieve
+  end subroutine filteredPowerStateRestore
 
-end module Cosmological_Mass_Variance_Filtered_Power_Spectrum
+  subroutine filteredPowerDescriptor(self,descriptor)
+    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
+    use Input_Parameters2
+    use FoX_DOM
+    implicit none
+    class    (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
+    type     (inputParameters                      ), intent(inout) :: descriptor
+    type     (inputParameters                      )                :: subParameters
+    character(len=10                               )                :: parameterLabel
+
+    call descriptor%addParameter("cosmologicalMassVarianceMethod","filteredPower")
+    subParameters=descriptor%subparameters("cosmologicalMassVarianceMethod")
+    write (parameterLabel,'(f10.6)') self%sigma8Value
+    call subParameters%addParameter("sigma_8"        ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(f10.6)') self%toleranceTopHat
+    call subParameters%addParameter("toleranceTopHat",trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(f10.6)') self%tolerance
+    call subParameters%addParameter("tolerance"      ,trim(adjustl(parameterLabel)))
+    call self%cosmologyParameters_               %descriptor(subParameters)
+    call self%powerSpectrumPrimordialTransferred_%descriptor(subParameters)
+    call self%powerSpectrumWindowFunction_       %descriptor(subParameters)
+    return
+  end subroutine filteredPowerDescriptor

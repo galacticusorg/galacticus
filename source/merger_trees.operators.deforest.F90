@@ -42,7 +42,7 @@ contains
     use Input_Parameters2
     implicit none
     type(mergerTreeOperatorDeforest)                :: deforestConstructorParameters
-    type(inputParameters           ), intent(in   ) :: parameters
+    type(inputParameters           ), intent(inout) :: parameters
     
     return
   end function deforestConstructorParameters
@@ -99,7 +99,7 @@ contains
           baseNode => currentTree%baseNode%firstChild
           do while (associated(baseNode))
              nodeNext => baseNode%sibling
-             call currentTree%destroyBranch(baseNode)
+             call baseNode%destroyBranch()
              baseNode => nodeNext
           end do
        end if

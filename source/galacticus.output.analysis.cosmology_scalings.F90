@@ -34,19 +34,19 @@ contains
     use Galacticus_Error
     implicit none
     double precision                         , intent(in   )           :: redshift
-    class           (cosmologyFunctionsClass), intent(inout)           :: cosmologyFunctionsModel, cosmologyFunctionsObserved
-    type            (varying_string         ), intent(in   ), optional :: cosmologyScalingMass   , cosmologyScalingMassFunction   , cosmologyScalingSize
-    double precision                         , intent(  out), optional :: cosmologyConversionMass, cosmologyConversionMassFunction, cosmologyConversionSize
-    double precision                                                   :: timeModel              , timeObserved
+    class           (cosmologyFunctionsClass), intent(inout)           :: cosmologyFunctionsModel       , cosmologyFunctionsObserved
+    type            (varying_string         ), intent(in   ), optional :: cosmologyScalingMass          , cosmologyScalingMassFunction   , cosmologyScalingSize
+    double precision                         , intent(  out), optional :: cosmologyConversionMass       , cosmologyConversionMassFunction, cosmologyConversionSize
+    double precision                         , parameter               :: redshiftTiny           =1.0d-6
+    double precision                                                   :: timeModel                     , timeObserved
 
     ! Check optional arguments for consistency.
     if (present(cosmologyScalingMass        ).neqv.present(cosmologyConversionMass        )) call Galacticus_Error_Report('Cosmology_Conversion_Factors','"cosmologyScalingMass" and "cosmologyConversionMass" must be either both present or both not-present'                )
     if (present(cosmologyScalingSize        ).neqv.present(cosmologyConversionSize        )) call Galacticus_Error_Report('Cosmology_Conversion_Factors','"cosmologyScalingSize" and "cosmologyConversionSize" must be either both present or both not-present'                )
     if (present(cosmologyScalingMassFunction).neqv.present(cosmologyConversionMassFunction)) call Galacticus_Error_Report('Cosmology_Conversion_Factors','"cosmologyScalingMassFunction" and "cosmologyConversionMassFunction" must be either both present or both not-present')
 
-    ! Test redshift.
-    if (redshift < 0.0d0) then
-    else if (redshift == 0.0d0) then
+    ! Test for zero or negative redshift (allow for some rounding error).
+    if (redshift <= redshiftTiny) then
        ! At zero redshifts the conversions are all identity conversions.
        if (present(cosmologyConversionSize        )) cosmologyConversionSize        =1.0d0
        if (present(cosmologyConversionMass        )) cosmologyConversionMass        =1.0d0

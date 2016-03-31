@@ -15,24 +15,25 @@
 //    You should have received a copy of the GNU General Public License
 //    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+
 //% Contains an implementation of the \cite{baugh_can_2005} star formation timescale rule for galactic disks.
+#include <string.h>
+#include <stdio.h>
+#include <math.h>
+  
+//: $(BUILDPATH)/objects.nodes.bindings.C.o
+#include <objects.nodes.bindings.C.h>
+  
+//: $(BUILDPATH)/cosmology.functions.o
+#include <cosmologyFunctions.h>
+  
+//: $(BUILDPATH)/utility.input_parameters.o
+#include <utility.input_parameters.h>
 
 namespace Star_Formation_Timescale_Disks_Baugh2005
 {
   
 //% Implements the \cite{baugh_can_2005} star formation timescale rule for galactic disks.
-#include <string.h>
-#include <math.h>
-#include <stdio.h>
-  
-//: ./work/build/objects.nodes.bindings.C.o
-#include <objects.nodes.bindings.C.h>
-  
-//: ./work/build/cosmology.functions.o
-#include <cosmologyFunctions.h>
-  
-//: ./work/build/utility.input_parameters.o
-#include <utility.input_parameters.h>
   
   // Define a type for our function.
   typedef double (func)(void *thisNode);

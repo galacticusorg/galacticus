@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Tree for tests of adiabatic contraction -->
+<!-- 2-September-2015                        -->
+<tree>
+  <!-- Initial node -->
+  <node>
+    <index>1</index>
+    <parent>2</parent>
+    <firstChild>-1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>13.46</time>
+      <mass>1.0e12</mass>
+    </basic>
+    <darkMatterProfile>
+      <scale>0.03</scale>
+    </darkMatterProfile>
+    <spheroid>
+      <massStellar>1.0e10</massStellar>
+      <massGas>0.0</massGas>
+      <angularMomentum>1.0e10</angularMomentum>
+    </spheroid>
+  </node>
+  <!-- Final anchor node -->
+  <node>
+    <index>2</index>
+    <parent>-1</parent>
+    <firstChild>1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>13.48</time>
+      <mass>1.0e12</mass>
+    </basic>
+    <darkMatterProfile>
+      <scale>0.03</scale>
+    </darkMatterProfile>
+    <spheroid>
+      <massStellar>0.0</massStellar>
+      <massGas>0.0</massGas>
+      <angularMomentum>0.0</angularMomentum>
+    </spheroid>
+  </node>
+</tree>

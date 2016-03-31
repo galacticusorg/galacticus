@@ -110,6 +110,7 @@ contains
        ! Assign an index to the node.
        call nodeArray(i)%node%indexSet(Node_Definition_Index(nodeDefinition,'index'))
     end do
+    !$omp end critical (FoX_DOM_Access)
     ! Initialize the tree root to null.
     thisTree%index    =  1
     thisTree%baseNode => null()
@@ -118,6 +119,7 @@ contains
     ! Iterate over nodes.
     do i=1,nodeCount
        ! Get the node definition.
+       !$omp critical (FoX_DOM_Access)
        nodeDefinition => item(nodes,i-1)
        ! Build parent pointers.
        indexValue=Node_Definition_Index(nodeDefinition,'parent'     )
@@ -128,6 +130,7 @@ contains
        ! Build sibling pointers.
        indexValue=Node_Definition_Index(nodeDefinition,'sibling'    )
        nodeArray(i)%node%sibling    => Node_Lookup(nodeArray,indexValue)
+       !$omp end critical (FoX_DOM_Access)
        ! Assign the tree root node if this node has no parent.
        if (.not.associated(nodeArray(i)%node%parent)) then
           if (associated(thisTree%baseNode)) call Galacticus_Error_Report('Merger_Tree_Construct_Fully_Specified','multiple trees are not supported')
@@ -139,6 +142,7 @@ contains
        if (Galacticus_Verbosity_Level() > verbosityInfo) call nodeArray(i)%node%dump()
     end do
     ! Finished - destroy the XML document.
+    !$omp critical (FoX_DOM_Access)
     call destroy(doc)
     !$omp end critical (FoX_DOM_Access)
     ! Finish writing report.

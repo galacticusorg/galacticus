@@ -30,7 +30,7 @@ program Optimal_Sampling_SMF
   use ISO_Varying_String
   use FGSL
   use Numerical_Integration
-  use Halo_Mass_Function
+  use Halo_Mass_Functions
   use Galacticus_Meta_Compute_Times
   use Cosmology_Functions
   use Merger_Trees_Mass_Function_Sampling
@@ -44,10 +44,11 @@ program Optimal_Sampling_SMF
   double precision                            , parameter                 :: stellarMassMinimum=1.0d8 , stellarMassMaximum=1.0d13
   double precision                            , parameter                 :: haloMassMinimum   =1.0d10, haloMassMaximum   =1.0d15
   double precision                            , parameter                 :: toleranceAbsolute =1.0d-16,  toleranceRelative =1.0d-3
-  double precision                            , allocatable, dimension(:) :: stellarMassTableMass,stellarMassTableMassFunction,haloMassTableMass,haloMassTableXi,treeTiming,haloMassFunction,samplingDensity
+  double precision                            , allocatable, dimension(:) :: stellarMassTableMass,stellarMassTableMassFunction,haloMassTableMass,haloMassTableXi,treeTiming,haloMassFunctionDifferential,samplingDensity
   integer                                                                 :: stellarMassTableCount,haloMassTableCount,iMass,iUnit
   double precision                                                        :: stellarMass,time,optimalSamplingLogarithmicBinWidth,haloMass
   class           (cosmologyFunctionsClass   ), pointer                   :: cosmologyFunctionsDefault
+  class           (haloMassFunctionClass     ), pointer                   :: haloMassFunction_
   type            (c_ptr                     )                            :: parameterPointer
   type            (fgsl_function             )                            :: integrandFunction
   type            (fgsl_integration_workspace)                            :: integrationWorkspace
@@ -92,19 +93,20 @@ program Optimal_Sampling_SMF
   haloMassTableCount   =int(log10(   haloMassMaximum/   haloMassMinimum)*dble(   haloMassPointsPerDecade)+1.0d0)
 
   ! Allocate arrays.
-  call Alloc_Array(stellarMassTableMass        ,[stellarMassTableCount])
-  call Alloc_Array(stellarMassTableMassFunction,[stellarMassTableCount])
-  call Alloc_Array(   haloMassTableMass        ,[   haloMassTableCount])
-  call Alloc_Array(   haloMassTableXi          ,[   haloMassTableCount])
-  call Alloc_Array(   haloMassFunction         ,[   haloMassTableCount])
-  call Alloc_Array(samplingDensity             ,[   haloMassTableCount])
-  call Alloc_Array(treeTiming                  ,[   haloMassTableCount])
+  call Alloc_Array(stellarMassTableMass           ,[stellarMassTableCount])
+  call Alloc_Array(stellarMassTableMassFunction   ,[stellarMassTableCount])
+  call Alloc_Array(   haloMassTableMass           ,[   haloMassTableCount])
+  call Alloc_Array(   haloMassTableXi             ,[   haloMassTableCount])
+  call Alloc_Array(   haloMassFunctionDifferential,[   haloMassTableCount])
+  call Alloc_Array(samplingDensity                ,[   haloMassTableCount])
+  call Alloc_Array(treeTiming                     ,[   haloMassTableCount])
 
   ! Create mass tabulations.
   stellarMassTableMass=Make_Range(stellarMassMinimum,stellarMassMaximum,stellarMassTableCount,rangeType=rangeTypeLogarithmic)
   haloMassTableMass   =Make_Range(   haloMassMinimum,   haloMassMaximum,   haloMassTableCount,rangeType=rangeTypeLogarithmic)
-  ! Get the default cosmology functions object.
+  ! Get required objects.
   cosmologyFunctionsDefault => cosmologyFunctions()
+  haloMassFunction_         => haloMassFunction  ()
   ! Get the cosmic time at the present day.
   time=cosmologyFunctionsDefault%cosmicTime(0.93457d0)
 
@@ -147,7 +149,7 @@ program Optimal_Sampling_SMF
       samplingDensity(iMass)=Merger_Tree_Construct_Mass_Function_Sampling(haloMass,time,haloMassMinimum,haloMassMaximum)
 
       ! Get the halo mass function.
-      haloMassFunction(iMass)=Halo_Mass_Function_Differential(time,haloMass)*haloMass
+      haloMassFunctionDifferential(iMass)=haloMassFunction_%differential(time,haloMass)*haloMass
 
       ! Get the tree processing time.
       treeTiming(iMass)=Galacticus_Time_Per_Tree(haloMass)
@@ -160,7 +162,7 @@ program Optimal_Sampling_SMF
   call thisDataset%writeAttribute(massSolar          ,'unitsInSI')
   call thisDataset%close()
   call outputFile%writeDataset(samplingDensity  ,'samplingDensity' ,'Halo mass sampling density')
-  call outputFile%writeDataset(haloMassFunction ,'haloMassFunction','Dark matter halo mass function',datasetReturned=thisDataset)
+  call outputFile%writeDataset(haloMassFunctionDifferential ,'haloMassFunction','Dark matter halo mass function',datasetReturned=thisDataset)
   call thisDataset%writeAttribute(1.0d0/megaParsec**3,'unitsInSI')
   call thisDataset%close()
   call outputFile%writeDataset(treeTiming       ,'treeTiming'      ,'Time to process tree'          ,datasetReturned=thisDataset)
@@ -179,20 +181,22 @@ contains
     !% The integrand (as a function of halo mass) giving the stellar mass function.
     use Conditional_Mass_Functions
     implicit none
-    real            (kind=c_double)            :: Stellar_Mass_Function_Integrand
-    real            (kind=c_double), value     :: mass
-    type            (c_ptr        ), value     :: parameterPointer
-    double precision               , parameter :: deltaLogMass=0.097d0
-    double precision                           :: conditionalStellarMassFunction
+    real            (kind=c_double               )            :: Stellar_Mass_Function_Integrand
+    real            (kind=c_double               ), value     :: mass
+    type            (c_ptr                       ), value     :: parameterPointer
+    class           (conditionalMassFunctionClass), pointer   :: conditionalMassFunction_
+    double precision                              , parameter :: deltaLogMass=0.097d0
+    double precision                                          :: conditionalStellarMassFunction
 
+    conditionalMassFunction_        => conditionalMassFunction()
     conditionalStellarMassFunction=                                                                                       &
          & (                                                                                                              &
-         &   Cumulative_Conditional_Mass_Function(mass,stellarMass*(10.0d0**(-0.5d0*optimalSamplingLogarithmicBinWidth))) &
-         &  -Cumulative_Conditional_Mass_Function(mass,stellarMass*(10.0d0**(+0.5d0*optimalSamplingLogarithmicBinWidth))) &
+         &   conditionalMassFunction_%massFunction(mass,stellarMass*(10.0d0**(-0.5d0*optimalSamplingLogarithmicBinWidth))) &
+         &  -conditionalMassFunction_%massFunction(mass,stellarMass*(10.0d0**(+0.5d0*optimalSamplingLogarithmicBinWidth))) &
          & )                                                                                                              &
          & /(10.0d0**(+0.5d0*optimalSamplingLogarithmicBinWidth)-10.0d0**(-0.5d0*optimalSamplingLogarithmicBinWidth))
 
-    Stellar_Mass_Function_Integrand=Halo_Mass_Function_Differential(time,mass)*conditionalStellarMassFunction
+    Stellar_Mass_Function_Integrand=haloMassFunction_%differential(time,mass)*conditionalStellarMassFunction
     return
   end function Stellar_Mass_Function_Integrand
 

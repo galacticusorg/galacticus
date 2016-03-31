@@ -71,7 +71,7 @@ contains
   !# <potentialTask>
   !#  <unitName>Node_Component_Black_Hole_Standard_Potential</unitName>
   !# </potentialTask>
-  double precision function Node_Component_Black_Hole_Standard_Potential(thisNode,radius,componentType,massType,haloLoaded)
+  double precision function Node_Component_Black_Hole_Standard_Potential(thisNode,radius,componentType,massType,haloLoaded,status)
     !% Compute the gravitational potential due to a black hole.
     use Galacticus_Nodes
     use Numerical_Constants_Physical
@@ -82,6 +82,7 @@ contains
     integer                                 , intent(in   )           :: componentType         , massType
     double precision                        , intent(in   )           :: radius
     logical                                 , intent(in   ), optional :: haloLoaded
+    integer                                 , intent(inout), optional :: status
     class           (nodeComponentBlackHole)               , pointer  :: thisBlackHoleComponent
     double precision                                                  :: componentMass
 

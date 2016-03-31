@@ -144,20 +144,25 @@ contains
     
     double precision function expansionFactorAtFormation(haloMass)
       !% Computes the expansion factor at formation using the simple model of \cite{bullock_profiles_2001}.
-      use Power_Spectra
-      use Critical_Overdensity
+      use Cosmological_Mass_Variance
+      use Critical_Overdensities
       implicit none
-      double precision, intent(in   ) :: haloMass
-      double precision, parameter     :: haloMassFraction   =0.015d0                            ! Wechsler et al. (2002;  Astrophysical Journal, 568:52-70).
-      double precision                :: formationTime              , haloMassCharacteristic, &
-           &                             sigmaCharacteristic
+      double precision                               , intent(in   ) :: haloMass
+      class           (criticalOverdensityClass     ), pointer       :: criticalOverdensity_
+      class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+      double precision                               , parameter     :: haloMassFraction         =0.015d0 ! Wechsler et al. (2002;  Astrophysical Journal, 568:52-70).
+      double precision                                               :: formationTime                    , haloMassCharacteristic, &
+           &                                                            sigmaCharacteristic
      
+      ! Get required objects.
+      criticalOverdensity_      => criticalOverdensity     ()
+      cosmologicalMassVariance_ => cosmologicalMassVariance()
       ! Compute the characteristic mass at formation time.
       haloMassCharacteristic=haloMassFraction*haloMass
       ! Compute the corresponding rms fluctuation in the density field (i.e. sigma(M)).
-      sigmaCharacteristic=Cosmological_Mass_Root_Variance(haloMassCharacteristic)
+      sigmaCharacteristic=cosmologicalMassVariance_%rootVariance(haloMassCharacteristic)
       ! Get the time at which this equals the critical overdensity for collapse.
-      formationTime=Time_of_Collapse(criticalOverdensity=sigmaCharacteristic,mass=haloMass)
+      formationTime=criticalOverdensity_%timeOfCollapse(criticalOverdensity=sigmaCharacteristic,mass=haloMass)
       ! Get the corresponding expansion factor.
       expansionFactorAtFormation=cosmologyFunctions_%expansionFactor(formationTime)
       return

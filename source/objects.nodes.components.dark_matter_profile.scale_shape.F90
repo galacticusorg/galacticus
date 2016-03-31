@@ -25,7 +25,7 @@ module Node_Component_Dark_Matter_Profile_Scale_Shape
   private
   public :: Node_Component_Dark_Matter_Profile_Scale_Shape_Rate_Compute, Node_Component_Dark_Matter_Profile_Scale_Shape_Tree_Initialize, &
        &    Node_Component_Dark_Matter_Profile_Scale_Shape_Promote     , Node_Component_Dark_Matter_Profile_Scale_Shape_Scale_Set      , &
-       &    Node_Component_Dark_Matter_Profile_Scale_Shape_Tree_Output
+       &    Node_Component_Dark_Matter_Profile_Scale_Shape_Tree_Output , Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize
 
   !# <component>
   !#  <class>darkMatterProfile</class>
@@ -40,8 +40,9 @@ module Node_Component_Dark_Matter_Profile_Scale_Shape
   !#     <name>shape</name>
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" isDeferred="get" />
   !#     <output unitsInSI="0.0d0" comment="Shape parameter of the dark matter profile."/>
+  !#     <classDefault>-1.0d0</classDefault>
   !#   </property>
   !#   <property>
   !#     <name>shapeGrowthRate</name>
@@ -58,8 +59,14 @@ module Node_Component_Dark_Matter_Profile_Scale_Shape
   ! Record of whether the module has been initialized.
   logical :: moduleInitialized                              =.false.
 
+  ! Queriable dark matter profile object.
+  type(nodeComponentDarkMatterProfileScaleShape) :: darkMatterProfile
+
 contains
 
+  !# <nodeComponentInitializationTask>
+  !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize</unitName>
+  !# </nodeComponentInitializationTask>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize()
     !% Initializes the ``scale'' implementation of the dark matter halo profile component.
     use Input_Parameters
@@ -80,12 +87,35 @@ contains
        !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeStructureOutputDarkMatterProfileShape',mergerTreeStructureOutputDarkMatterProfileShape,defaultValue=.false.)
+       ! Bind the shape get function.
+       call darkMatterProfile%shapeFunction(Node_Component_Dark_Matter_Profile_Scale_Shape_Shape)
        ! Record that the module is now initialize.
        moduleInitialized=.true.
     end if
     !$omp end critical (Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize)
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize
+
+  double precision function Node_Component_Dark_Matter_Profile_Scale_Shape_Shape(self)
+    !% Return the shape parameter in the dark matter halo profile.
+    use Dark_Matter_Profiles_Shape
+    implicit none
+    class(nodeComponentDarkMatterProfileScaleShape), intent(inout) :: self
+    type (treeNode                                ), pointer       :: selfNode
+    class(darkMatterProfileShapeClass             ), pointer       :: darkMatterProfileShape_
+    
+    ! Return the shape parameter, setting it if it has not yet been set.
+    if (self%shapeValue() < 0.0d0) then
+       ! Get the host halo.
+       selfNode                => self                  %host()
+       ! Get the shape object.
+       darkMatterProfileShape_ => darkMatterProfileShape     ()
+       ! Set the shape parameter of the halo.
+       call self%shapeSet(darkMatterProfileShape_%shape(selfNode))
+    end if
+    Node_Component_Dark_Matter_Profile_Scale_Shape_Shape=self%shapeValue()
+    return
+  end function Node_Component_Dark_Matter_Profile_Scale_Shape_Shape
 
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Shape_Rate_Compute</unitName>
@@ -108,25 +138,6 @@ contains
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Rate_Compute
 
-  subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize_Shape(thisNode)
-    !% Initialize the shape parameter of {\normalfont \ttfamily thisNode}.
-    use Dark_Matter_Profiles_Shape
-    implicit none
-    type (treeNode                      ), intent(inout), pointer :: thisNode
-    class(nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
-    class(darkMatterProfileShapeClass   )               , pointer :: darkMatterProfileShape_
-    
-    ! Ensure that the module is initialized.
-    call Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize()
-    ! Get the dark matter profile component.
-    thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
-    ! Get the shape object.
-    darkMatterProfileShape_        => darkMatterProfileShape    (                 )
-    ! Set the shape parameter of the halo.
-    call thisDarkMatterProfileComponent%shapeSet(darkMatterProfileShape_%shape(thisNode))
-    return
-  end subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize_Shape
-
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Shape_Tree_Initialize</unitName>
   !#  <sortName>darkMatterProfile</sortName>
@@ -142,13 +153,9 @@ contains
     ! Get the dark matter profile component.
     thisDarkMatterProfileComponent => thisNode%darkMatterProfile()
     if (defaultDarkMatterProfileComponent%scaleShapeIsActive()) then
-       ! Ensure that current node has its shape set.
-       call Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize_Shape(thisNode)
        ! Check if this node is the primary progenitor.
        if (thisNode%isPrimaryProgenitor()) then
           ! It is, so compute the shape parameter growth rate.
-          ! First ensure that parent node has scale radius set.
-          call Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize_Shape(thisNode%parent)
           ! Now compute the growth rate.
           thisBasicComponent   => thisNode       %basic()
           parentBasicComponent => thisNode%parent%basic()
