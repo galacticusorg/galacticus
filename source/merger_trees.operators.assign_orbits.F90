@@ -80,7 +80,7 @@ contains
     class  (virialOrbitClass               ), pointer               :: virialOrbit_
     type   (keplerOrbit                    )                        :: virialOrbitNode            , virialOrbitProgenitor
     logical                                                         :: satelliteProgenitorFound
-
+    
     ! Get required objects.
     satelliteMergingTimescales_ => satelliteMergingTimescales()
     virialOrbit_                => virialOrbit               ()
@@ -108,10 +108,10 @@ contains
                    if (virialOrbitProgenitor%isDefined()) then
                       ! A satellite exists in this progenitor.
                       satellite =  satelliteProgenitor
-                      basic     => node               %basic()
+                      basic     => node               %basic()                      
                       if (satellite%timeOfMerging() < basic%time()) call satellite%timeOfMergingSet(basic%time())
                       if (associated(nodeProgenitor%mergeTarget)) then
-                        mergee => nodeProgenitor%mergeTarget%firstMergee
+                         mergee => nodeProgenitor%mergeTarget%firstMergee
                          if (associated(mergee,nodeProgenitor)) then
                             nodeProgenitor%mergeTarget%firstMergee => node
                          else
@@ -123,6 +123,7 @@ contains
                          node          %siblingMergee => nodeProgenitor%siblingMergee
                          node          %mergeTarget   => nodeProgenitor%mergeTarget
                          nodeProgenitor%mergeTarget   => null()
+                         nodeProgenitor%siblingMergee => null()
                          ! The merge target must be reachable at the merge time. If it is not, find a progenitor of it which is
                          ! reachable at that time.
                          if (associated(node%mergeTarget%firstChild)) then
@@ -145,7 +146,32 @@ contains
                                else
                                   nodeProgenitor%firstMergee => node
                                end if
-                               node%mergeTarget => nodeProgenitor
+                               node%mergeTarget   => nodeProgenitor
+                               node%siblingMergee => null()
+                            end if
+                         end if
+                         ! The mergee must be a satellite by the time it is due to merge. If it is not (which implies it is merging with a
+                         ! halo in a different branch of the tree), reset it to be merging with the appropriate halo in its own branch of
+                         ! the tree.
+                         if (.not.node%isProgenitorOf(node%mergeTarget)) then
+                            nodeProgenitor  => node          %parent
+                            basicProgenitor => nodeProgenitor%basic ()
+                            if (basicProgenitor%time() > satellite%timeOfMerging()) then                               
+                               ! Adjust the time of merging.
+                               call satellite%timeOfMergingSet(basicProgenitor%time())
+                               ! Remove our mergee from its merge target.
+                               call node%removeFromMergee()
+                               if (associated(nodeProgenitor%firstMergee)) then
+                                  mergee => nodeProgenitor%firstMergee
+                                  do while (associated(mergee%siblingMergee))
+                                     mergee => mergee%siblingMergee
+                                  end do
+                                  mergee%siblingMergee => node
+                               else
+                                  nodeProgenitor%firstMergee => node
+                               end if
+                               node%mergeTarget   => nodeProgenitor
+                               node%siblingMergee => null()
                             end if
                          end if
                       end if
@@ -182,7 +208,32 @@ contains
                       else
                          nodeProgenitor%firstMergee => node
                       end if
-                      node%mergeTarget => nodeProgenitor
+                      node%mergeTarget   => nodeProgenitor
+                      node%siblingMergee => null()
+                   end if                   
+                end if
+                ! The mergee must be a satellite by the time it is due to merge. If it is not (which implies it is merging with a
+                ! halo in a different branch of the tree), reset it to be merging with the appropriate halo in its own branch of
+                ! the tree.
+                if (associated(node%mergeTarget).and..not.node%isProgenitorOf(node%mergeTarget)) then
+                   nodeProgenitor  => node          %parent
+                   basicProgenitor => nodeProgenitor%basic ()
+                   if (basicProgenitor%time() > satellite%timeOfMerging()) then
+                      ! Adjust the time of merging.
+                      call satellite%timeOfMergingSet(basicProgenitor%time())
+                      ! Remove our mergee from its merge target.
+                      call node%removeFromMergee()
+                      if (associated(nodeProgenitor%firstMergee)) then
+                         mergee => nodeProgenitor%firstMergee
+                         do while (associated(mergee%siblingMergee))
+                            mergee => mergee%siblingMergee
+                         end do
+                         mergee%siblingMergee => node
+                      else
+                         nodeProgenitor%firstMergee => node
+                      end if
+                      node%mergeTarget   => nodeProgenitor
+                      node%siblingMergee => null()
                    end if
                 end if
              end if

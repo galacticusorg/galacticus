@@ -31,7 +31,8 @@ contains
     use Galacticus_Nodes
     implicit none
     type(treeNode), pointer, intent(inout) :: node
-    type(treeNode), pointer                :: workNode, mergeeNode
+    type(treeNode), pointer                :: workNode  , mergeeNode, &
+         &                                    nextMergee
 
     ! Walk the branch to be pruned.
     workNode => node
@@ -44,7 +45,9 @@ contains
           do while (associated(mergeeNode))
              call mergeeNode%removeFromMergee()
              nullify(mergeeNode%mergeTarget)
-             mergeeNode => mergeeNode%siblingMergee
+             nextMergee => mergeeNode%siblingMergee
+             nullify(mergeeNode%siblingMergee)
+             mergeeNode => nextMergee
           end do
        end if
        workNode => workNode%walkBranchWithSatellites(node)
@@ -80,6 +83,8 @@ contains
           newNode%event          => null()
           newNode%firstSatellite => null()
           newNode%firstMergee    => null()
+          newNode%mergeTarget    => null()
+          newNode%siblingMergee  => null()
           newBasic               => newNode%basic()
           call newBasic%timeSet(newBasic%time()*(1.0d0-1.0d-6))
        end if
