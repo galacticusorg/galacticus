@@ -26,9 +26,9 @@
   type, extends(haloMassFunctionClass) :: haloMassFunctionShethTormen
      !% A halo mass function class using the fitting function of \cite{sheth_ellipsoidal_2001}.
      private
-     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
-     class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_
-     double precision                                         :: aValue                   , pValue, &
+     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
+     class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
+     double precision                                         :: aValue                             , pValue, &
           &                                                      normalizationValue
    contains
      !@ <objectMethods>
