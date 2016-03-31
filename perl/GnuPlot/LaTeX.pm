@@ -35,12 +35,12 @@ sub GnuPlot2PNG {
 	if ( $line =~ m/LTw/ ) {$line =~ s/white/black/};
 	if ( $line =~ m/LTb/ ) {$line =~ s/black/white/};
 	if ( $line =~ m/LTa/ ) {$line =~ s/black/white/};
-	if ( $line =~ m/\\begin{picture}/ ) {
+	if ( $line =~ m/\\begin\{picture\}/ ) {
 	    print oHndl "\\definecolor{myColor}{rgb}{".join(",",@rgbFractional)."}\n";
 	    print oHndl "\\colorbox{myColor}{\n";
 	}
 	print oHndl $line;
-	if ( $line =~ m/\\end{picture}/ ) {print oHndl "}\n"};
+	if ( $line =~ m/\\end\{picture\}/ ) {print oHndl "}\n"};
     }
     close(oHndl);
     close(iHndl);
