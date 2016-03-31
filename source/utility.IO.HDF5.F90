@@ -220,6 +220,12 @@ module IO_HDF5
      !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>flush</method>
+     !@     <description>Flush an HDF5 file to disk.</description>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>pathTo</method>
      !@     <description>Returns the path to a given object.</description>
      !@     <type>\textcolor{red}{\textless type(varying\_string)\textgreater}</type>
@@ -263,6 +269,7 @@ module IO_HDF5
      procedure :: openDataset                             =>IO_HDF5_Open_Dataset
      procedure :: openAttribute                           =>IO_HDF5_Open_Attribute
      procedure :: close                                   =>IO_HDF5_Close
+     procedure :: flush                                   =>IO_HDF5_Flush
      procedure :: IO_HDF5_Write_Attribute_Integer_Scalar
      procedure :: IO_HDF5_Write_Attribute_Integer_1D
      procedure :: IO_HDF5_Write_Attribute_Integer8_Scalar
@@ -694,6 +701,34 @@ contains
     thisObject%objectID=0
     return
   end subroutine IO_HDF5_Close
+
+  subroutine IO_HDF5_Flush(thisObject)
+    !% Flush an HDF5 file to disk.
+    use Galacticus_Display
+    use Galacticus_Error
+    implicit none
+    class  (hdf5Object    ), intent(inout) :: thisObject
+    type   (varying_string)                :: message
+    integer                                :: errorCode
+    
+    ! Check that this module is initialized.
+    call IO_HDF_Assert_Is_Initialized
+
+    ! Check that the object is open.
+    if (.not.thisObject%isOpenValue) then
+       message="Attempt to flush unopen HDF5 object '"//thisObject%objectName//"'"
+       call Galacticus_Display_Message(message)
+       return
+    end if
+
+    ! Flush to file.
+    call h5fflush_f(thisObject%objectID,H5F_Scope_Local_F,errorCode)
+    if (errorCode /= 0) then
+       message="unable to flush object '"//thisObject%objectName//"' to file"
+       call Galacticus_Error_Report('IO_HDF5_Flush',message)
+    end if
+    return
+  end subroutine IO_HDF5_Flush
 
   function IO_HDF5_Character_Types(stringLength)
     !% Return datatypes for character data of a given length. Types are for Fortran native and C native types.
