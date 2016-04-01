@@ -34,6 +34,7 @@ contains
   subroutine Galacticus_Output_Open_File
     !% Open the file for \glc\ output.
     use Input_Parameters
+    use Input_Parameters2
     !# <include directive="outputFileOpenTask" type="moduleUse">
     include 'galacticus.output.open.modules.inc'
     !# </include>
@@ -131,6 +132,7 @@ contains
             &                            )
        !$omp end critical(HDF5_Access)
        ! Get file name parameter again and write it to the output file.
+       call globalParameters%parametersGroupOpen(galacticusOutputFile)       
        call Get_Input_Parameter('galacticusOutputFileName'       ,galacticusOutputFileName       ,defaultValue='galacticus.hdf5'             )
        call Get_Input_Parameter('galacticusOutputScratchFileName',galacticusOutputScratchFileName,defaultValue=char(galacticusOutputFileName))
        call Get_Input_Parameter('hdf5SieveBufferSize'            ,sieveBufferSize                ,defaultValue=65536                         )

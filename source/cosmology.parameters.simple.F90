@@ -52,7 +52,7 @@ contains
     use Galacticus_Error
     implicit none
     type(cosmologyParametersSimple)                :: simpleConstructorParameters
-    type(inputParameters          ), intent(in   ) :: parameters
+    type(inputParameters          ), intent(inout) :: parameters
     !# <inputParameterList label="allowedParameterNames" />
 
     call parameters%checkParameters(allowedParameterNames)    
@@ -254,11 +254,9 @@ contains
     type     (inputParameters          ), intent(inout) :: descriptor
     character(len=10                   )                :: parameterLabel
     type     (inputParameters          )                :: subParameters
-    type     (node                     ), pointer       :: parameterNode
     
     call descriptor%addParameter("cosmologyParametersMethod","simple")
-    parameterNode => descriptor%node("cosmologyParametersMethod")
-    subParameters=inputParameters(parameterNode)
+    subParameters=descriptor%subparameters("cosmologyParametersMethod")
     write (parameterLabel,'(f10.6)') self%OmegaMatterValue
     call subParameters%addParameter("OmegaMatter"    ,trim(adjustl(parameterLabel)))
     write (parameterLabel,'(f10.6)') self%OmegaDarkEnergyValue

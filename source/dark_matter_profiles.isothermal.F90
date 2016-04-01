@@ -188,9 +188,9 @@ contains
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).
     use Galacticus_Nodes
-    use Dark_Matter_Profiles_Error_Codes
     use Dark_Matter_Halo_Scales
     use Galacticus_Error
+    use Galactic_Structure_Options
     implicit none
     class           (darkMatterProfileIsothermal), intent(inout)           :: self
     type            (treeNode                   ), intent(inout), pointer  :: node
@@ -202,11 +202,10 @@ contains
     radiusFractional      =  radius/self%scale%virialRadius(node)
     if (radiusFractional <= 0.0d0) then
        isothermalPotential=0.0d0
-       if (present(status)) status=darkMatterProfileErrorInfinite
+       if (present(status)) status=structureErrorCodeInfinite
     else
-       isothermalPotential=(-1.0d0+log(radiusFractional))&
-            &*self%scale%virialVelocity(node)**2
-       if (present(status)) status=darkMatterProfileSuccess
+       isothermalPotential=log(radiusFractional)*self%scale%virialVelocity(node)**2
+       if (present(status)) status=structureErrorCodeSuccess
     end if
     return
   end function isothermalPotential
