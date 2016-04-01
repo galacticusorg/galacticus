@@ -46,7 +46,7 @@ contains
     use Input_Parameters2
     implicit none
     type(mergerTreeOperatorMonotonizeMassGrowth)                :: monotonizeMassGrowthConstructorParameters
-    type(inputParameters                       ), intent(in   ) :: parameters
+    type(inputParameters                       ), intent(inout) :: parameters
         
     return
   end function monotonizeMassGrowthConstructorParameters

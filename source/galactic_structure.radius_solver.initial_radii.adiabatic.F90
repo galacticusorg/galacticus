@@ -24,10 +24,18 @@ module Galactic_Structure_Initial_Radii_Adiabatic
   !% \cite{gnedin_response_2004}.
   use Galacticus_Nodes
   use Galactic_Structure_Options
+  use Kind_Numbers
   implicit none
   private
-  public :: Galactic_Structure_Initial_Radii_Adiabatic_Initialize
+  public :: Galactic_Structure_Initial_Radii_Adiabatic_Initialize, Galactic_Structure_Initial_Radii_Adiabatic_Reset
 
+  ! Stored solutions for reuse.
+  integer         (kind=kind_int8)                                 :: uniqueIDPrevious   =-1_kind_int8
+  integer                         , parameter                      :: radiusPreviousCount=10
+  integer                                                          :: radiusPreviousIndex                             , radiusPreviousIndexMaximum
+  double precision                , dimension(radiusPreviousCount) :: radiusPrevious                                  , radiusInitialPrevious
+  !$omp threadprivate(uniqueIDPrevious,radiusPrevious,radiusInitialPrevious,radiusPreviousIndex,radiusPreviousIndexMaximum)
+    
   ! Parameters of the adiabatic contraction algorithm.
   double precision                      :: adiabaticContractionGnedinA                     , adiabaticContractionGnedinOmega
 
@@ -43,6 +51,7 @@ module Galactic_Structure_Initial_Radii_Adiabatic
        &                                   virialRadius
   type            (treeNode), pointer   :: activeNode
   !$omp threadprivate(radiusShared,baryonicFinalTerm,baryonicFinalTermDerivative,darkMatterFraction,initialMassFraction,radiusFinal,radiusFinalMean,virialRadius,radiusFinalMeanSelfDerivative,radiusInitialMeanSelfDerivative,radiusInitial,activeNode)
+  
 contains
 
   !# <galacticStructureRadiusSolverInitialRadiusMethod>
@@ -90,7 +99,6 @@ contains
   subroutine Galactic_Structure_Radii_Initial_Adiabatic_Compute_Factors(thisNode,radius,computeGradientFactors)
     !% Compute various factors needed when solving for the initial radius in the dark matter halo using the adiabatic contraction
     !% algorithm of \cite{gnedin_response_2004}.
-    use Dark_Matter_Halo_Scales
     use Cosmology_Parameters
     use Numerical_Constants_Physical
     !# <include directive="rotationCurveTask" name="radiusSolverRotationCurveTask" type="moduleUse">
@@ -116,15 +124,11 @@ contains
     procedure       (Component_Rotation_Curve         )               , pointer :: componentRotationCurve
     procedure       (Component_Rotation_Curve_Gradient)               , pointer :: componentRotationCurveGradient
     class           (cosmologyParametersClass         )               , pointer :: thisCosmologyParameters
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                                            :: baryonicMassSelfTotal                 , baryonicMassTotal          , &
          &                                                                         componentMass                         , componentVelocity          , &
          &                                                                         componentVelocitySquaredGradient      , rotationCurveSquared       , &
          &                                                                         rotationCurveSquaredGradient
 
-    ! Get the virial radius of the node.
-    darkMatterHaloScale_ => darkMatterHaloScale()
-    virialRadius=darkMatterHaloScale_%virialRadius(thisNode)
     ! Store the final radius and its orbit-averaged mean.
     radiusFinal    =                                     radius
     radiusFinalMean=Adiabatic_Solver_Mean_Orbital_Radius(radius)
@@ -132,7 +136,7 @@ contains
     ! Compute the baryonic contribution to the rotation curve.
     currentNode            => thisNode
     componentRotationCurve => Component_Rotation_Curve
-    rotationCurveSquared=currentNode%mapDouble0(componentRotationCurve,reductionSummation)
+    rotationCurveSquared   =  currentNode%mapDouble0(componentRotationCurve,reductionSummation,optimizeFor=optimizeForRotationCurveSummation)
     !# <include directive="rotationCurveTask" name="radiusSolverRotationCurveTask" type="functionCall" functionType="function" returnParameter="componentVelocity">
     !#  <exclude>Dark_Matter_Profile_Rotation_Curve_Task</exclude>
     !#  <functionArgs>currentNode,radiusFinalMean,componentType,massType,haloLoaded</functionArgs>
@@ -157,7 +161,7 @@ contains
     currentNode => thisNode
     do while (associated(currentNode))
        componentEnclosedMass => Component_Enclosed_Mass
-       baryonicMassTotal=baryonicMassTotal+currentNode%mapDouble0(componentEnclosedMass,reductionSummation)
+       baryonicMassTotal=baryonicMassTotal+currentNode%mapDouble0(componentEnclosedMass,reductionSummation,optimizeFor=optimizeForEnclosedMassSummation)
        !# <include directive="enclosedMassTask" name="radiusSolverEnclosedMassTask" type="functionCall" functionType="function" returnParameter="componentMass">
        !#  <exclude>Dark_Matter_Profile_Enclosed_Mass_Task</exclude>
        !#  <functionArgs>currentNode,virialRadius,componentType,massType,weightBy,weightIndex,haloLoaded</functionArgs>
@@ -191,7 +195,7 @@ contains
     thisBasic => thisNode%basic()
     darkMatterFraction =min((thisCosmologyParameters%OmegaMatter()-thisCosmologyParameters%OmegaBaryon())/thisCosmologyParameters%OmegaMatter()+(baryonicMassTotal-baryonicMassSelfTotal)/thisBasic%mass(),1.0d0)
     ! Compute the initial mass fraction.
-    initialMassFraction=min((thisCosmologyParameters%OmegaMatter()-thisCosmologyParameters%OmegaBaryon())/thisCosmologyParameters%OmegaMatter()+                   baryonicMassSelfTotal /thisBasic%mass(),1.0d0)
+    initialMassFraction=min((thisCosmologyParameters%OmegaMatter()-thisCosmologyParameters%OmegaBaryon())/thisCosmologyParameters%OmegaMatter()+ baryonicMassTotal                       /thisBasic%mass(),1.0d0)
     ! Store the current node.
     activeNode => thisNode
     return
@@ -200,37 +204,88 @@ contains
   double precision function Galactic_Structure_Radius_Initial_Adiabatic(thisNode,radius)
     !% Compute the initial radius in the dark matter halo using the adiabatic contraction algorithm of
     !% \cite{gnedin_response_2004}.
+    use Dark_Matter_Halo_Scales
     use Root_Finder
     implicit none
-    type            (treeNode  ), intent(inout), pointer :: thisNode
-    double precision            , intent(in   )          :: radius
-    double precision            , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
-    type            (rootFinder), save                   :: finder
+    type            (treeNode                ), intent(inout), pointer :: thisNode
+    double precision                          , intent(in   )          :: radius
+    double precision                          , parameter              :: toleranceAbsolute   =0.0d0, toleranceRelative=1.0d-3
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    type            (rootFinder              ), save                   :: finder
     !$omp threadprivate(finder)
-    ! Initialize our root finder.
-    if (.not.finder%isInitialized()) then
-       call finder%rangeExpand (                                                             &
-            &                   rangeExpandDownward=0.5d0                                  , &
-            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-            &                   rangeExpandType    =rangeExpandMultiplicative                &
-            &                  )
-       call finder%rootFunction(Galactic_Structure_Radius_Initial_Adiabatic_Solver)
-       call finder%tolerance   (toleranceAbsolute,toleranceRelative               )
+    integer                                                            :: i, j
+
+    ! Reset stored solutions if the node has changed.
+    if (thisNode%uniqueID() /= uniqueIDPrevious) call Galactic_Structure_Initial_Radii_Adiabatic_Reset(thisNode)
+    ! Check for a previously computed solution.
+    if (radiusPreviousIndexMaximum > 0 .and. any(radiusPrevious(1:radiusPreviousIndexMaximum) == radius)) then
+       do i=1,radiusPreviousIndexMaximum
+          if (radiusPrevious(i) == radius) then
+             Galactic_Structure_Radius_Initial_Adiabatic=radiusInitialPrevious(i)
+             exit
+          end if
+       end do
+    else
+       ! Get the virial radius of the node.
+       darkMatterHaloScale_ => darkMatterHaloScale              (        )
+       virialRadius         =  darkMatterHaloScale_%virialRadius(thisNode)
+       ! Return radius unchanged if larger than the virial radius.
+       if (radius >= virialRadius) then
+          Galactic_Structure_Radius_Initial_Adiabatic=radius
+       else
+          ! Compute the various factors needed by this calculation.
+          call Galactic_Structure_Radii_Initial_Adiabatic_Compute_Factors(thisNode,radius,computeGradientFactors=.false.)
+          if (Galactic_Structure_Radius_Initial_Adiabatic_Solver(virialRadius) < 0.0d0) then ! Check that solution is within bounds.
+             Galactic_Structure_Radius_Initial_Adiabatic=virialRadius
+          else
+             j=-1
+             if (radiusPreviousIndexMaximum > 0) then
+                ! No exact match exists, look for approximate matches.
+                do i=1,radiusPreviousIndexMaximum
+                   if (abs(radius-radiusPrevious(i))/radiusPrevious(i) < toleranceRelative) then
+                      j=i
+                      exit
+                   end if
+                end do
+             end if
+             ! Initialize our root finder.
+             if (.not.finder%isInitialized()) then
+                call finder%rootFunction(Galactic_Structure_Radius_Initial_Adiabatic_Solver)
+                call finder%tolerance   (toleranceAbsolute,toleranceRelative               )
+             end if
+             ! Find the solution for initial radius.
+             if (j == -1) then
+                ! No previous solution to use as an initial guess.
+                call finder%rangeExpand(                                                                  &
+                     &                  rangeExpandDownward          =0.5d0                             , &
+                     &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative     , &
+                     &                  rangeExpandType              =rangeExpandMultiplicative           &
+                     &                 )               
+               Galactic_Structure_Radius_Initial_Adiabatic=finder%find(rootRange=[radius,virialRadius])
+            else
+               ! Use previous solution as an initial guess.
+               call finder%rangeExpand(                                                                   &
+                    &                  rangeExpandDownward          =1.0d0/sqrt(1.0d0+toleranceRelative), &
+                    &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative      , &
+                    &                  rangeExpandUpward            =     sqrt(1.0d0+toleranceRelative) , &
+                    &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive      , &
+                    &                  rangeExpandType              =rangeExpandMultiplicative            &
+                    &                 )
+               Galactic_Structure_Radius_Initial_Adiabatic=finder%find(                                                                   &
+                    &                                                  rootRange=[                                                        &
+                    &                                                             radiusInitialPrevious(j)/sqrt(1.0d0+toleranceRelative), &
+                    &                                                             radiusInitialPrevious(j)*sqrt(1.0d0+toleranceRelative)  &
+                    &                                                            ]                                                        &
+                    &                                                 )
+            end if
+          end if
+       end if
+       ! Store this solution.       
+       radiusPreviousIndex                            =mod(radiusPreviousIndex         ,radiusPreviousCount)+1
+       radiusPreviousIndexMaximum                     =min(radiusPreviousIndexMaximum+1,radiusPreviousCount)
+       radiusPrevious            (radiusPreviousIndex)=radius
+       radiusInitialPrevious     (radiusPreviousIndex)=Galactic_Structure_Radius_Initial_Adiabatic
     end if
-    ! Compute the various factors needed by this calculation.
-    call Galactic_Structure_Radii_Initial_Adiabatic_Compute_Factors(thisNode,radius,computeGradientFactors=.false.)
-    ! Return radius unchanged if larger than the virial radius.
-    if (radius >= virialRadius) then
-       Galactic_Structure_Radius_Initial_Adiabatic=radius
-       return
-    end if
-    ! Check that solution is within bounds.
-    if (Galactic_Structure_Radius_Initial_Adiabatic_Solver(virialRadius) < 0.0d0) then
-       Galactic_Structure_Radius_Initial_Adiabatic=virialRadius
-       return
-    end if
-    ! Find the solution for initial radius.
-    Galactic_Structure_Radius_Initial_Adiabatic=finder%find(rootRange=[radius,virialRadius])
     return
   end function Galactic_Structure_Radius_Initial_Adiabatic
 
@@ -244,6 +299,7 @@ contains
     double precision            , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
     type            (rootFinder), save                   :: finder
     !$omp threadprivate(finder)
+    
     ! Initialize our root finder.
     if (.not.finder%isInitialized()) then
        call finder%rangeExpand (                                                             &
@@ -287,7 +343,7 @@ contains
     ! Find the initial mean orbital radius.
     radiusInitialMean    =Adiabatic_Solver_Mean_Orbital_Radius(           radiusInitial    )
     ! Get the mass of dark matter inside the initial radius.
-    darkMatterMassInitial=darkMatterProfile_%enclosedMass   (activeNode,radiusInitialMean)
+    darkMatterMassInitial=darkMatterProfile_%enclosedMass     (activeNode,radiusInitialMean)
     ! Compute the root function.
     Galactic_Structure_Radius_Initial_Adiabatic_Solver= &
          & darkMatterMassInitial                        &
@@ -295,7 +351,7 @@ contains
          &    initialMassFraction*radiusInitial         &
          &   -darkMatterFraction *radiusFinal           &
          &  )                                           &
-         & -baryonicFinalTerm
+         & -baryonicFinalTerm    
     return
   end function Galactic_Structure_Radius_Initial_Adiabatic_Solver
 
@@ -315,9 +371,9 @@ contains
     ! Find the initial mean orbital radius.
     radiusInitialMean       =Adiabatic_Solver_Mean_Orbital_Radius(           radiusInitial    )
     ! Get the mass of dark matter inside the initial radius.
-    darkMatterMassInitial   =darkMatterProfile_%enclosedMass   (activeNode,radiusInitialMean)
+    darkMatterMassInitial   =darkMatterProfile_%enclosedMass     (activeNode,radiusInitialMean)
     ! Get the mass of dark matter inside the initial radius.
-    darkMatterDensityInitial=darkMatterProfile_%density         (activeNode,radiusInitialMean)
+    darkMatterDensityInitial=darkMatterProfile_%density          (activeNode,radiusInitialMean)
     ! Compute the root function.
     Galactic_Structure_Radius_Initial_Derivative_Adiabatic_Solver= &
          & darkMatterMassInitial                                   &
@@ -411,5 +467,20 @@ contains
     end select
     return
   end function Component_Rotation_Curve_Gradient
+
+  !# <calculationResetTask>
+  !# <unitName>Galactic_Structure_Initial_Radii_Adiabatic_Reset</unitName>
+  !# </calculationResetTask>
+  subroutine Galactic_Structure_Initial_Radii_Adiabatic_Reset(thisNode)
+    !% Remove memory of stored computed values as we're about to begin computing derivatives anew.
+    implicit none
+    type(treeNode), intent(inout), pointer :: thisNode
+
+    uniqueIDPrevious          =thisNode%uniqueID()
+    radiusPreviousIndex       = 0
+    radiusPreviousIndexMaximum= 0
+    radiusPrevious            =-1.0d0
+    return
+  end subroutine Galactic_Structure_Initial_Radii_Adiabatic_Reset
 
 end module Galactic_Structure_Initial_Radii_Adiabatic

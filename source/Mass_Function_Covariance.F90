@@ -29,7 +29,7 @@ program Mass_Function_Covariance
   use Numerical_Constants_Astronomical
   implicit none
   integer                             , parameter                   :: fileNameLengthMaximum=1024
-  double precision                    , allocatable, dimension(:  ) :: mass,massFunction,massFunctionObserved
+  double precision                    , allocatable, dimension(:  ) :: mass,massFunction,massFunctionObserved, completenessObserved,numberObserved,massObserved,massWidthObserved
   double precision                    , allocatable, dimension(:,:) :: covariance,covariancePoisson,covarianceHalo,covarianceLSS&
        &,correlation
   logical                                                           :: massFunctionCovarianceIncludePoisson,massFunctionCovarianceIncludeHalo,massFunctionCovarianceIncludeLSS
@@ -38,7 +38,7 @@ program Mass_Function_Covariance
   type     (hdf5Object               )                              :: outputFile,thisDataset
   integer                                                           :: massFunctionCovarianceBinCount
   double precision                                                  :: massFunctionCovarianceRedshiftMinimum,massFunctionCovarianceRedshiftMaximum,&
-       &massFunctionCovarianceMassMinimum ,massFunctionCovarianceMassMaximum
+       &massFunctionCovarianceMassMinimum ,massFunctionCovarianceMassMaximum, completenessErrorObserved
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('Mass_Function_Covariance.size')
@@ -166,19 +166,25 @@ program Mass_Function_Covariance
   call Get_Input_Parameter('massFunctionCovarianceIncludeLSS',massFunctionCovarianceIncludeLSS,defaultValue=.true.)
 
   ! Read the observed mass function if available.
-  if (outputFile%hasDataset("massFunctionObserved")) call outputFile%readDataset("massFunctionObserved",massFunctionObserved)
+  completenessErrorObserved=0.0d0
+  if (outputFile%hasDataset  ("massFunctionObserved")) call outputFile%readDataset  ("massFunctionObserved",massFunctionObserved     )
+  if (outputFile%hasDataset  ("completenessObserved")) call outputFile%readDataset  ("completenessObserved",completenessObserved     )
+  if (outputFile%hasDataset  ("numberObserved"      )) call outputFile%readDataset  ("numberObserved"      ,numberObserved           )
+  if (outputFile%hasAttribute("completenessError"   )) call outputFile%readAttribute("completenessError"   ,completenessErrorObserved)
+  if (outputFile%hasDataset  ("massObserved"        )) call outputFile%readDataset  ("massObserved"        ,massObserved             )
+  if (outputFile%hasDataset  ("massWidthObserved"   )) call outputFile%readDataset  ("massWidthObserved"   ,massWidthObserved        )
 
   ! Compute the covariance matrix.
   call Mass_Function_Covariance_Matrix(massFunctionCovarianceRedshiftMinimum,massFunctionCovarianceRedshiftMaximum&
-       &,massFunctionCovarianceBinCount ,massFunctionCovarianceMassMinimum,massFunctionCovarianceMassMaximum,massFunctionObserved&
+       &,massFunctionCovarianceBinCount ,massFunctionCovarianceMassMinimum,massFunctionCovarianceMassMaximum,massObserved,massWidthObserved,massFunctionObserved,completenessObserved,numberObserved,completenessErrorObserved&
        & ,massFunctionCovarianceIncludePoisson ,massFunctionCovarianceIncludeHalo,massFunctionCovarianceIncludeLSS,mass &
        &,massFunction,covariance,covariancePoisson ,covarianceHalo,covarianceLSS,correlation)
 
   ! Write out the covariance matrix.
-  call outputFile %writeDataset  (mass               ,"mass"             ,"Mass; M [M☉]"                                         ,datasetReturned=thisDataset)
+  call outputFile %writeDataset  (mass               ,"mass"             ,"Mass; M [M☉]"                                    ,datasetReturned=thisDataset)
   call thisDataset%writeAttribute(massSolar          ,"unitsInSI"                                    )
   call thisDataset%close         (                                                                   )
-  call outputFile %writeDataset  (massFunction       ,"massFunction"     ,"Mass function; dn/dln(M) [Mpc⁻^]"                     ,datasetReturned=thisDataset)
+  call outputFile %writeDataset  (massFunction       ,"massFunction"     ,"Mass function; dn/dln(M) [Mpc⁻^]"                ,datasetReturned=thisDataset)
   call thisDataset%writeAttribute(1.0d0/megaParsec**3,"unitsInSI"                                    )
   call thisDataset%close         (                                                                   )
   call outputFile %writeDataset  (covariance         ,"covariance"       ,"Covariance of mass function; [Mpc⁻⁶]"            ,datasetReturned=thisDataset)
@@ -196,9 +202,8 @@ program Mass_Function_Covariance
   call outputFile %writeDataset  (correlation        ,"correlation"      ,"Correlation matrix for stellar mass function; []"                            )
   
   ! Close the parameter and output files.
-  call Close_Parameters_Group     ()
-  call outputFile%close           ()
   call Input_Parameters_File_Close()
-  
+  call outputFile%close           ()
+
   ! All done, finish.
 end program Mass_Function_Covariance
