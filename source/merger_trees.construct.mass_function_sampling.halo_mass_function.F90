@@ -24,7 +24,11 @@ module Merger_Trees_Mass_Function_Sampling_Halo_MF
   public :: Merger_Trees_Mass_Function_Sampling_Halo_MF_Initialize
 
   ! Limits on abundance.
-  double precision :: haloMassFunctionSamplingAbundanceMinimum, haloMassFunctionSamplingAbundanceMaximum
+  double precision            :: haloMassFunctionSamplingAbundanceMinimum       , haloMassFunctionSamplingAbundanceMaximum
+
+  ! Coefficients of power-law modification.
+  double precision            :: haloMassFunctionSamplingModifier1              , haloMassFunctionSamplingModifier2
+  double precision, parameter :: haloMassFunctionSamplingZeroPoint       =1.0d13
 
 contains
 
@@ -63,17 +67,50 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('haloMassFunctionSamplingAbundanceMaximum',haloMassFunctionSamplingAbundanceMaximum,defaultValue=-1.0d0)
+       !@ <inputParameter>
+       !@   <name>haloMassFunctionSamplingModifier1</name>
+       !@   <defaultValue>0</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Coefficient of the polynomial modifier applied to the halo mass function when sampling halo masses for tree construction
+       !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('haloMassFunctionSamplingModifier1',haloMassFunctionSamplingModifier1,defaultValue=0.0d0)
+       !@ <inputParameter>
+       !@   <name>haloMassFunctionSamplingModifier2</name>
+       !@   <defaultValue>0</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Coefficient of the polynomial modifier applied to the halo mass function when sampling halo masses for tree construction
+       !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('haloMassFunctionSamplingModifier2',haloMassFunctionSamplingModifier2,defaultValue=0.0d0)
     end if
     return
   end subroutine Merger_Trees_Mass_Function_Sampling_Halo_MF_Initialize
 
   double precision function Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF(mass,time,massMinimum,massMaximum)
     !% Computes the halo mass function sampling rate using a volume-limited sampling.
-    use Halo_Mass_Function
+    use Halo_Mass_Functions
     implicit none
-    double precision, intent(in   ) :: mass, massMaximum, massMinimum, time
+    double precision                       , intent(in   ) :: mass             , massMaximum, &
+         &                                                    massMinimum      , time
+    class           (haloMassFunctionClass), pointer       :: haloMassFunction_
 
-    Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF=mass*Halo_Mass_Function_Differential(time,mass)
+    ! Construct sampling rate.
+    haloMassFunction_ => haloMassFunction()
+    Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF=                                                                                              &
+         &                                               +                                    mass                                                     &
+         &                                               *haloMassFunction_%differential(time,mass)                                                    &
+         &                                               *10.0d0**(                                                                                    &
+         &                                                         +haloMassFunctionSamplingModifier1*log10(mass/haloMassFunctionSamplingZeroPoint)    &
+         &                                                         +haloMassFunctionSamplingModifier2*log10(mass/haloMassFunctionSamplingZeroPoint)**2 &
+         &                                                        )
+    ! Limit sampling rate.
     if (haloMassFunctionSamplingAbundanceMinimum > 0.0d0)             &
          & Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF       &
          & =max(                                                      &

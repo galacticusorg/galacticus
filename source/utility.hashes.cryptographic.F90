@@ -17,7 +17,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 ! Specify an explicit dependence on the utility.hashes.cryptographic.md5.o object file.
-!: ./work/build/utility.hashes.cryptographic.md5.o
+!: $(BUILDPATH)/utility.hashes.cryptographic.md5.o
 
 module Hashes_Cryptographic
   use, intrinsic :: ISO_C_Binding

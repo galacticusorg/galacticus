@@ -106,6 +106,7 @@ contains
     !$omp threadprivate(Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
     class           (nodeComponentBasic      )               , pointer :: thisBasicComponent
     class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
+    logical                                   , parameter              :: specificAngularMomentumRequired=.true.
     logical                                                            :: componentActive
     double precision                                                   :: specificAngularMomentum
 
@@ -222,7 +223,7 @@ contains
 
        ! Compute mass within that radius.
        haloMassInitial=darkMatterProfile_%enclosedMass(haloNode,radiusInitial)
-
+       
        ! Compute dark matter mass within final radius.
        darkMatterMassFinal=haloMassInitial*haloFraction
 
@@ -243,7 +244,7 @@ contains
        if (radius > 0.0d0) then
           radiusNew=sqrt(specificAngularMomentum/velocity*radius)
        else
-          radiusNew=specificAngularMomentum/velocity
+          radiusNew=     specificAngularMomentum/velocity
        endif
        ! Ensure that the radius history array is sufficiently sized.
        if (.not.allocated(radiusHistory)) then
@@ -292,6 +293,7 @@ contains
 
        ! Catch unphysical states.
        if (radius <= 0.0d0) then
+          call thisNode%dump()
           message='radius has reached zero for node '
           message=message//thisNode%index()//' - report follows:'//char(10)
           write (label,'(e12.6)') specificAngularMomentum
