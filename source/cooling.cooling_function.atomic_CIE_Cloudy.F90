@@ -79,7 +79,7 @@ contains
     use Input_Parameters2
     implicit none
     type(coolingFunctionAtomicCIECloudy)                :: atomicCIECloudyConstructorParameters
-    type(inputParameters               ), intent(in   ) :: parameters
+    type(inputParameters               ), intent(inout) :: parameters
 
     atomicCIECloudyConstructorParameters=atomicCIECloudyConstructorInternal()
     return

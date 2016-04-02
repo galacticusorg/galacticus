@@ -16,77 +16,128 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements top-hat window function for power spectrum variance computation.
+!% Contains a module which implements a top-hat power spectrum window function class.
+  use Cosmology_Parameters
 
-module Power_Spectrum_Window_Functions_Top_Hat
-  !% Implements top-hat window function for power spectrum variance computation.
-  implicit none
-  private
-  public :: Power_Spectrum_Window_Functions_Top_Hat_Initialize,Power_Spectrum_Window_Function_Top_Hat
+  !# <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionTopHat">
+  !#  <description>A top-hat in real space window function for filtering of power spectra.</description>
+  !# </powerSpectrumWindowFunction>
+  type, extends(powerSpectrumWindowFunctionClass) :: powerSpectrumWindowFunctionTopHat
+     !% A top-hat power spectrum window function class.
+     private
+     class(cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
+    contains
+     final     ::                      topHatDestructor
+     procedure :: descriptor        => topHatDescriptor
+     procedure :: value             => topHatValue
+     procedure :: wavenumberMaximum => topHatWavenumberMaximum
+  end type powerSpectrumWindowFunctionTopHat
+
+  interface powerSpectrumWindowFunctionTopHat
+     !% Constructors for the {\normalfont \ttfamily topHat} power spectrum window function class.
+     module procedure topHatConstructorParameters
+     module procedure topHatConstructorInternal
+  end interface powerSpectrumWindowFunctionTopHat
 
 contains
 
-  !# <powerSpectrumWindowFunctionMethod>
-  !#  <unitName>Power_Spectrum_Window_Functions_Top_Hat_Initialize</unitName>
-  !# </powerSpectrumWindowFunctionMethod>
-  subroutine Power_Spectrum_Window_Functions_Top_Hat_Initialize(powerSpectrumWindowFunctionMethod,Power_Spectrum_Window_Function_Get,Power_Spectrum_Window_Function_Wavenumber_Maximum_Get)
-    !% Initializes the ``topHat'' power spectrum variance window function module.
-    use ISO_Varying_String
+  function topHatConstructorParameters(parameters)
+    !% Constructor for the {\normalfont \ttfamily topHat} power spectrum window function class which takes a parameter set as input.
+    use Input_Parameters2
     implicit none
-    type     (varying_string                                           ), intent(in   )          :: powerSpectrumWindowFunctionMethod
-    procedure(Power_Spectrum_Window_Function_Top_Hat                   ), intent(inout), pointer :: Power_Spectrum_Window_Function_Get
-    procedure(Power_Spectrum_Window_Function_Wavenumber_Maximum_Top_Hat), intent(inout), pointer :: Power_Spectrum_Window_Function_Wavenumber_Maximum_Get
-
-    if (powerSpectrumWindowFunctionMethod == 'topHat') then
-       Power_Spectrum_Window_Function_Get                    => Power_Spectrum_Window_Function_Top_Hat
-       Power_Spectrum_Window_Function_Wavenumber_Maximum_Get => Power_Spectrum_Window_Function_Wavenumber_Maximum_Top_Hat
-    end if
+    type(powerSpectrumWindowFunctionTopHat)                :: topHatConstructorParameters
+    type(inputParameters                  ), intent(inout) :: parameters
+    !# <inputParameterList label="allowedParameterNames" />    
+    
+    ! Check parameters.
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <objectBuilder class="cosmologyParameters" name="topHatConstructorParameters%cosmologyParameters_" source="parameters"/>
     return
-  end subroutine Power_Spectrum_Window_Functions_Top_Hat_Initialize
+  end function topHatConstructorParameters
 
-  double precision function Power_Spectrum_Window_Function_Top_Hat(wavenumber,smoothingMass)
+  function topHatConstructorInternal(cosmologyParameters_)
+    !% Internal constructor for the {\normalfont \ttfamily topHat} power spectrum window function class.
+    implicit none
+    type (powerSpectrumWindowFunctionTopHat)                        :: topHatConstructorInternal
+    class(cosmologyParametersClass         ), target, intent(in   ) :: cosmologyParameters_    
+
+    topHatConstructorInternal%cosmologyParameters_ => cosmologyParameters_
+    return
+  end function topHatConstructorInternal
+
+  subroutine topHatDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily topHat} power spectrum window function class.
+    implicit none
+    type(powerSpectrumWindowFunctionTopHat), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyParameters_"/>
+    return
+  end subroutine topHatDestructor
+
+  double precision function topHatValue(self,wavenumber,smoothingMass)
     !% Top hat in real space window function Fourier transformed into $k$-space used in computing the variance of the power
     !% spectrum.
     use Numerical_Constants_Math
     use Cosmology_Parameters
     implicit none
-    double precision                          , intent(in   ) :: smoothingMass                 , wavenumber
-    double precision                          , parameter     :: xSeriesMaximum         =1.0d-3
-    class           (cosmologyParametersClass), pointer       :: thisCosmologyParameters
-    double precision                                          :: topHatRadius                  , x         , &
-         &                                                       xSquared
+    class           (powerSpectrumWindowFunctionTopHat), intent(inout) :: self
+    double precision                                   , intent(in   ) :: smoothingMass        , wavenumber
+    double precision                                   , parameter     :: xSeriesMaximum=1.0d-3
+    double precision                                                   :: topHatRadius         , x         , &
+         &                                                                xSquared
 
-    ! Get the default cosmology.
-    thisCosmologyParameters => cosmologyParameters()
-    topHatRadius=((3.0d0/4.0d0/Pi)*smoothingMass/thisCosmologyParameters%OmegaMatter()/thisCosmologyParameters%densityCritical())**(1.0d0/3.0d0)
-    x=wavenumber*topHatRadius
-    if      (x <= 0.0d0) then
-       Power_Spectrum_Window_Function_Top_Hat=0.0d0
+    topHatRadius=+(                                             &
+         &         +3.0d0                                       &
+         &         /4.0d0                                       &
+         &         /Pi                                          &
+         &         *smoothingMass                               &
+         &         /self%cosmologyParameters_%OmegaMatter    () &
+         &         /self%cosmologyParameters_%densityCritical() &
+         &        )**(1.0d0/3.0d0)
+    x           =+wavenumber                                    &
+         &       *topHatRadius
+    if      (x <= 0.0d0         ) then
+       topHatValue=+0.0d0
     else if (x <= xSeriesMaximum) then
        ! Use a series expansion of the window function for small x.
-       xSquared=x**2
-       Power_Spectrum_Window_Function_Top_Hat=1.0d0 &
-            & +xSquared*(-1.0d0/   10.0d0           &
-            & +xSquared*(+1.0d0/  280.0d0           &
-            & +xSquared*(-1.0d0/15120.0d0           &
-            &           )))
+       xSquared   =+x**2
+       topHatValue=+1.0d0                        &
+            &      +xSquared*(  -1.0d0/   10.0d0 &
+            &      +xSquared* ( +1.0d0/  280.0d0 &
+            &      +xSquared*  (-1.0d0/15120.0d0 &
+            &                  )                 &
+            &                 )                  &
+            &                )
     else
        ! For larger x, use the full expression.
-       Power_Spectrum_Window_Function_Top_Hat=3.0d0*(sin(x)-x*cos(x))/(x**3)
+       topHatValue=3.0d0*(sin(x)-x*cos(x))/(x**3)
     end if
     return
-  end function Power_Spectrum_Window_Function_Top_Hat
+  end function topHatValue
 
-  double precision function Power_Spectrum_Window_Function_Wavenumber_Maximum_Top_Hat(smoothingMass)
+  double precision function topHatWavenumberMaximum(self,smoothingMass)
     !% Maximum wavenumber for a top hat in real space window function Fourier transformed into $k$-space used in computing the
     !% variance of the power spectrum.
     implicit none
-    double precision, intent(in   ) :: smoothingMass
-    double precision, parameter     :: wavenumberLarge=1.0d30 !   Effective infinity.
+    class           (powerSpectrumWindowFunctionTopHat), intent(inout) :: self
+    double precision                                   , intent(in   ) :: smoothingMass
+    double precision                                   , parameter     :: wavenumberLarge=1.0d30 !   Effective infinity.
 
-    Power_Spectrum_Window_Function_Wavenumber_Maximum_Top_Hat=wavenumberLarge
+    topHatWavenumberMaximum=wavenumberLarge
     return
-  end function Power_Spectrum_Window_Function_Wavenumber_Maximum_Top_Hat
+  end function topHatWavenumberMaximum
 
-end module Power_Spectrum_Window_Functions_Top_Hat
+  subroutine topHatDescriptor(self,descriptor)
+    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
+    use Input_Parameters2
+    use FoX_DOM
+    implicit none
+    class(powerSpectrumWindowFunctionTopHat), intent(inout) :: self
+    type (inputParameters                  ), intent(inout) :: descriptor
+    type (inputParameters                  )                :: subParameters
 
+    call descriptor%addParameter("powerSpectrumWindowFunctionMethod","topHat")
+    subParameters=descriptor%subparameters("powerSpectrumWindowFunctionMethod")
+    call self%cosmologyParameters_%descriptor(subParameters)
+    return
+  end subroutine topHatDescriptor

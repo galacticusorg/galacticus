@@ -241,9 +241,14 @@ contains
     class           (coordinate), intent(in   ) :: coordinatesFrom
     double precision            , dimension(3)  :: x
 
-    ! Assign by transforming through cartesian coordinates.
-    x=coordinatesFrom%toCartesian()
-    call coordinatesTo%fromCartesian(x)
+    ! Handle special cases of conversion (this is done for optimization).
+    if (same_type_as(coordinatesTo,coordinatesFrom)) then
+       coordinatesTo%position=coordinatesFrom%position
+    else
+       ! Assign by transforming through cartesian coordinates.
+       x=coordinatesFrom%toCartesian()
+       call coordinatesTo%fromCartesian(x)
+    end if
     return
   end subroutine Coordinates_Assign
 

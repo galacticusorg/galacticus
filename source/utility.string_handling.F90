@@ -25,7 +25,7 @@ module String_Handling
   private
   public :: operator(//), char, String_Split_Words, String_Count_Words, String_Upper_Case, String_Lower_Case, String_Upper_Case_First,&
        & Convert_VarString_To_Char, String_C_to_Fortran, String_Subscript, String_Superscript, String_Levenshtein_Distance,&
-       & String_Join, String_Strip
+       & String_Join, String_Strip, String_Lower_Case_First
 
   interface operator(//)
      module procedure Concatenate_VarStr_Integer
@@ -262,6 +262,21 @@ contains
     if (iCharacter /= 0) stringOutput(1:1)=charactersUpperCase(iCharacter:iCharacter)
     return
   end function String_Upper_Case_First
+
+  function String_Lower_Case_First(stringInput) result (stringOutput)
+    !% Converts the first character of an input string to lower case.
+    character(len=*               ), intent(in   ) :: stringInput
+    character(len=len(stringInput))                :: stringOutput
+    integer                                        :: iCharacter
+
+    ! Transfer input string to output string.
+    stringOutput=stringInput
+    ! Find position of first character in string in list of upper case characters.
+    iCharacter=index(charactersUpperCase,stringOutput(1:1))
+    ! If a match is found, repace with the lower case equivalent.
+    if (iCharacter /= 0) stringOutput(1:1)=charactersLowerCase(iCharacter:iCharacter)
+    return
+  end function String_Lower_Case_First
 
   function Convert_VarString_To_Char(varStrings)
     !% Convert an array of varying strings into an array of characters.

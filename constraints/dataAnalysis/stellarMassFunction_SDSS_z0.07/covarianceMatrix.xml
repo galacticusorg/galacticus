@@ -7,7 +7,7 @@
   <massFunctionCovarianceFFTGridSize value="64"/>
 
   <!-- Options controlling survey geometry -->
-  <surveyGeometryMethod value="Li-White-2009-SDSS"/>
+  <surveyGeometryMethod value="liWhite2009SDSS"/>
 
   <!-- Options controlling the mass function -->
   <massFunctionCovarianceRedshiftMinimum value="0.0"/>
@@ -31,7 +31,7 @@
   <conditionalMassFunctionHaloMass value="all"/>
 
   <!-- Cosmological parameters and options -->
-  <cosmologyMethod value="matter-lambda"/>
+  <cosmologyMethod value="matterLambda"/>
   <cosmologyParametersMethod value="simple">
     <HubbleConstant value="70.2"/>
     <OmegaMatter value="0.2725"/>
@@ -48,6 +48,6 @@
   <powerSpectrumIndex value="0.961"/>
   <powerSpectrumReferenceWavenumber value="1.0"/>
   <powerSpectrumRunning value="0.0"/>
-  <powerSpectrumNonlinearMethod value="Peacock-Dodds1996"/>
+  <powerSpectrumNonlinearMethod value="peacockDodds1996"/>
 
 </parameters>

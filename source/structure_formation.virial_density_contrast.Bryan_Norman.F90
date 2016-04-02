@@ -29,6 +29,7 @@
    contains
      procedure :: densityContrast             => bryanNorman1998DensityContrast
      procedure :: densityContrastRateOfChange => bryanNorman1998DensityContrastRateOfChange
+     procedure :: turnAroundOverVirialRadii   => bryanNorman1998TurnAroundOverVirialRadii
   end type virialDensityContrastBryanNorman1998
 
   interface virialDensityContrastBryanNorman1998
@@ -63,12 +64,13 @@ contains
     return
   end function bryanNorman1998DefaultConstructor
 
-  double precision function bryanNorman1998DensityContrast(self,time,expansionFactor,collapsing)
+  double precision function bryanNorman1998DensityContrast(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, assuming the fitting function of \cite{bryan_statistical_1998}.
     use Cosmology_Functions
     use Numerical_Constants_Math
     implicit none
     class           (virialDensityContrastBryanNorman1998), intent(inout)           :: self
+    double precision                                      , intent(in   )           :: mass
     double precision                                      , intent(in   ), optional :: time               , expansionFactor
     logical                                               , intent(in   ), optional :: collapsing
     class           (cosmologyFunctionsClass             ), pointer                 :: cosmologyFunctions_
@@ -85,12 +87,13 @@ contains
     return
   end function bryanNorman1998DensityContrast
 
-  double precision function bryanNorman1998DensityContrastRateOfChange(self,time,expansionFactor,collapsing)
+  double precision function bryanNorman1998DensityContrastRateOfChange(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, assuming the fitting function of \cite{bryan_statistical_1998}.
     use Cosmology_Functions
     use Numerical_Constants_Math
     implicit none
     class           (virialDensityContrastBryanNorman1998), intent(inout)           :: self
+    double precision                                      , intent(in   )           :: mass
     double precision                                      , intent(in   ), optional :: time      , expansionFactor
     logical                                               , intent(in   ), optional :: collapsing
     class           (cosmologyFunctionsClass             ), pointer                 :: cosmologyFunctions_
@@ -120,3 +123,17 @@ contains
     end select
     return
   end function bryanNorman1998DensityContrastRateOfChange
+
+  double precision function bryanNorman1998TurnAroundOverVirialRadii(self,time,expansionFactor,collapsing)
+    !% Return the ratio of turnaround and virial radii at the given epoch, based spherical collapse in a matter plus cosmological
+    !% constant universe.
+    implicit none
+    class           (virialDensityContrastBryanNorman1998), intent(inout)           :: self
+    double precision                                      , intent(in   ), optional :: time      , expansionFactor
+    logical                                               , intent(in   ), optional :: collapsing
+
+    ! In simple cosmological constant dark energy universes, this ratio is always precisely 2 (e.g. Percival 2005;
+    ! http://adsabs.harvard.edu/abs/2005A%26A...443..819P)
+    bryanNorman1998TurnAroundOverVirialRadii=2.0d0
+    return
+  end function bryanNorman1998TurnAroundOverVirialRadii
