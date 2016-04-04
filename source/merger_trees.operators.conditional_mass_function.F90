@@ -972,7 +972,8 @@ contains
     call conditionalMassFunctionGroup%writeDataset  (self%formationRateFunctionError        ,"formationRateFunctionError"        ,"Formation rate function errors []"                                     )
     call conditionalMassFunctionGroup%writeDataset  (self%subhaloMassFunction               ,"subhaloMassFunction"               ,"Unevolved subhalo mass functions []"                                   )
     call conditionalMassFunctionGroup%writeDataset  (self%subhaloMassFunctionError          ,"subhaloMassFunctionError"          ,"Unevolved subhalo mass function errors []"                             )
-    call conditionalMassFunctionGroup%close         (                                                                                                                                                     )    
+    call conditionalMassFunctionGroup%close         (                                                                                                                                                     )
+    call galacticusOutputFile        %flush         (                                                                                                                                                     )
     !$omp end critical(HDF5_Access)
     return
 

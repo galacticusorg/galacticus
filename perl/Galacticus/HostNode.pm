@@ -37,15 +37,15 @@ sub Get_Host_Node_Mass {
     # Create a copy of the node mass data.
     my $hostNodeMass = $dataSets->{$nodeMassDataSet}->copy();
     
-    # Find parent node masses taking advantage of the fact that trees are store depth first.
+    # Find parent node masses taking advantage of the fact that trees are stored depth first.
     my $indexStart = 0;
     for(my $i=0;$i<nelem($dataSets->{$nodeMassDataSet});++$i) {
-	if ($dataSets->{"nodeIsIsolated"}->(($i)) == 1) {
-	    $hostNodeMass->($indexStart:$i) .= $dataSets->{$nodeMassDataSet}->(($i));
-	    $indexStart = $i+1;
-	}
+    	if ($dataSets->{"nodeIsIsolated"}->(($i)) == 1) {
+    	    $hostNodeMass->($indexStart:$i) .= $dataSets->{$nodeMassDataSet}->(($i));
+    	    $indexStart = $i+1;
+    	}
     }
-
+    
     # Transfer to the output data structure.
     $model->{'dataSets'}->{$dataSetName} = $hostNodeMass;
 }
