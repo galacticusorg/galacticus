@@ -209,6 +209,16 @@ our %colorPairSequences = (
     ]
     );
 
+# Dash pattern sequences.
+our @dashPatterns;
+push(@dashPatterns,pdl [ 20.0,  0.0 ]);
+push(@dashPatterns,pdl [ 20.0, 10.0 ]);
+push(@dashPatterns,pdl [ 10.0,  5.0 ]);
+push(@dashPatterns,pdl [ 10.0,  5.0, 5.0, 5.0 ]);
+push(@dashPatterns,pdl [ 20.0,  5.0, 2.0, 5.0 ]);
+push(@dashPatterns,pdl [ 20.0,  5.0, 2.0, 5.0, 2.0, 5.0 ]);
+
+
 sub Color_Gradient {
     my $f         =   shift() ;
     my @start     = @{shift()};
@@ -254,6 +264,7 @@ sub Prepare_Dataset {
     my %lineWeight;
     $lineWeight{'lower'} = "";
     $lineWeight{'upper'} = "";
+    my %lineWeightValue;
     if ( exists($options{'weight'}) ) {
 	if ( $versionMajor >= 5 ) {
 	    my $weightOuter = ${$options{'weight'}}[0]-2;
@@ -262,14 +273,37 @@ sub Prepare_Dataset {
 		if ( $weightInner < 1 );
 	    $weightOuter = $weightInner+1
 		if ( $weightOuter < $weightInner+1 );
-	    $lineWeight{'lower'} = " lw ".$weightOuter;
-	    $lineWeight{'upper'} = " lw ".$weightInner;
+	    $lineWeightValue{'lower'} =        $weightOuter;
+	    $lineWeightValue{'upper'} =        $weightInner;
+	    $lineWeight     {'lower'} = " lw ".$weightOuter;
+	    $lineWeight     {'upper'} = " lw ".$weightInner;
 	} else {
-	    $lineWeight{'lower'} = " lw ".${$options{'weight'}}[0];
-	    $lineWeight{'upper'} = " lw ".${$options{'weight'}}[1];
+	    $lineWeightValue{'lower'} =        ${$options{'weight'}}[0];
+	    $lineWeightValue{'upper'} =        ${$options{'weight'}}[1];
+	    $lineWeight     {'lower'} = " lw ".${$options{'weight'}}[0];
+	    $lineWeight     {'upper'} = " lw ".${$options{'weight'}}[1];
 	}
     }
     
+    # Create attribute for line type, assuming no specification if type option is not present.
+    my %lineType;
+    my $lineTypeCommand = $versionMajor >= 5 ? "dt" : "lt";
+    if ( exists($options{'linePattern'}) ) {
+	if ( UNIVERSAL::isa($options{'linePattern'},'PDL') ) {
+	    my $dashes; 
+	    $dashes->{$_} = $options{'linePattern'}*($lineWeightValue{'lower'}/$lineWeightValue{$_})**0.37
+	        foreach ( "lower", "upper" );
+	    $lineType{$_} = " ".$lineTypeCommand." (".join(",",$dashes->{$_}->list()).")"
+	        foreach ( "lower", "upper" );
+	} else {
+	    $lineType{$_} = " ".$lineTypeCommand." ".$options{'linePattern'}
+	        foreach ( "lower", "upper" );
+	}
+    } else {
+	$lineType{$_} = " ".$lineTypeCommand." 1"
+	    foreach ( "lower", "upper" );
+    }
+
     # Create attribute for line color, assuming no specification if color option is not present.
     my %lineColor;
     $lineColor{'lower'} = "";
@@ -283,14 +317,6 @@ sub Prepare_Dataset {
 	    $lineColor{'upper'} = " lc rgbcolor \"".${$options{'color'}}[1]."\"";
 	}
     }
-
-    # Create attribute for line type, assuming no specification if type option is not present.
-    my %lineType;
-    my $lineTypeCommand = $versionMajor >= 5 ? "dt" : "lt";
-    $lineType{'lower'} = " ".$lineTypeCommand." 1";
-    $lineType{'upper'} = " ".$lineTypeCommand." 1";
-    $lineType{'lower'} = " ".$lineTypeCommand." ".$options{'linePattern'} if ( exists($options{'linePattern'}) );
-    $lineType{'upper'} = " ".$lineTypeCommand." ".$options{'linePattern'} if ( exists($options{'linePattern'}) );
 
     # Create attribute for point type, assuming no specification if symbol option is not present.
     my %pointType;
@@ -353,17 +379,18 @@ sub Prepare_Dataset {
 	    # Check if we are asked to plot just a single level.
 	    if ( exists($phaseRules{$phase}->{'level'}) ) {
 		# Plot just a single level, no real data.
-		${$plot}->{$phase}->{'command'} .= ${$plot}->{$phase}->{'prefix'}." '-' with lines".$title
+		${$plot}->{$phase}->{'command'} .= ${$plot}->{$phase}->{'prefix'}." '-' with lines"
 		    .$lineType  {$phaseRules{$phase}->{'level'}}
 		.$lineColor {$phaseRules{$phase}->{'level'}}
-		.$lineWeight{$phaseRules{$phase}->{'level'}};
+		.$lineWeight{$phaseRules{$phase}->{'level'}}
+		.$title;
 		${$plot}->{$phase}->{'data'   } .= $dummyPoint;
 		${$plot}->{$phase}->{'data'   } .= $endPoint;
 		${$plot}->{$phase}->{'prefix'} = ",";
 	    } else {
 		# Plot the actual data.
 		foreach my $level ( 'lower', 'upper' ) {
-		    ${$plot}->{$phase}->{'data'} .= "plot '-' with lines notitle".$lineType{$level}.$lineColor{$level}.$lineWeight{$level}."\n";
+		    ${$plot}->{$phase}->{'data'} .= "plot '-' with lines".$lineType{$level}.$lineColor{$level}.$lineWeight{$level}." notitle\n";
 		    for(my $iPoint=0;$iPoint<nelem($x);++$iPoint) {
 			${$plot}->{$phase}->{'data'} .= $x->index($iPoint)." ".$y->index($iPoint)."\n";
 		    }
@@ -383,20 +410,20 @@ sub Prepare_Dataset {
 		my $level = "upper";
 		${$plot}->{$phase}->{'command'} .= ${$plot}->{$phase}->{'prefix'}." '-' with filledcurve "
 		    .$options{'filledCurve'}
-		.$title
 		.$lineType  {$level}
 		.$lineColor {$level}
 		.$lineWeight{$level}
 		." fill noborder";
 		${$plot}->{$phase}->{'command'} .= " fs transparent solid ".$options{'transparency'}
 		    if ( exists($options{'transparency'}) );
+		${$plot}->{$phase}->{'command'} .= $title;
 		${$plot}->{$phase}->{'data'   } .= $dummyPoint;
 		${$plot}->{$phase}->{'data'   } .= $endPoint;
 		${$plot}->{$phase}->{'prefix'} = ",";
 	    } else {
 		my $level = "upper";
 		${$plot}->{$phase}->{'data'} .= "set style fill solid 1.0 noborder\n";
-		${$plot}->{$phase}->{'data'} .= "plot '-' with filledcurve ".$options{'filledCurve'}." notitle".$lineType{$level}.$lineColor{$level}.$lineWeight{$level}." fill border";
+		${$plot}->{$phase}->{'data'} .= "plot '-' with filledcurve ".$options{'filledCurve'}."".$lineType{$level}.$lineColor{$level}.$lineWeight{$level}." fill border notitle";
 		${$plot}->{$phase}->{'data'} .= " fs transparent solid ".$options{'transparency'}
 		    if ( exists($options{'transparency'}) );
 		${$plot}->{$phase}->{'data'} .= "\n";
@@ -416,10 +443,11 @@ sub Prepare_Dataset {
 	    # Check if we are asked to plot just a single level.
 	    if ( exists($phaseRules{$phase}->{'level'}) ) {
 		# Plot just a single level, no real data.
-		${$plot}->{$phase}->{'command'} .= ${$plot}->{$phase}->{'prefix'}." '-' with boxes".$title
+		${$plot}->{$phase}->{'command'} .= ${$plot}->{$phase}->{'prefix'}." '-' with boxes"
 		    .$lineType  {$phaseRules{$phase}->{'level'}}
 		.$lineColor {$phaseRules{$phase}->{'level'}}
-		.$lineWeight{$phaseRules{$phase}->{'level'}};
+		.$lineWeight{$phaseRules{$phase}->{'level'}}
+		.$title;
 		${$plot}->{$phase}->{'data'   } .= $dummyPoint;
 		${$plot}->{$phase}->{'data'   } .= $endPoint;
 		${$plot}->{$phase}->{'prefix'} = ",";
@@ -466,7 +494,7 @@ sub Prepare_Dataset {
 				# Set the color for the boxes.
 				my $color = " lc rgbcolor \"#".sprintf("%2.2X%2.2X%2.2X",$red,$green,$blue)."\"";
 				# Plot the boxes.
-				${$plot}->{$phase}->{'data'} .= "plot '-' with boxes notitle".$lineType{$level}.$color.$lineWeight{$level}."\n";
+				${$plot}->{$phase}->{'data'} .= "plot '-' with boxes".$lineType{$level}.$color.$lineWeight{$level}." notitle\n";
 				for(my $iPoint=0;$iPoint<nelem($x);++$iPoint) {
 				    # Maximum height allowed on this step.
 				    my $yHeightMaximum = $maximumY*$fraction;
@@ -484,7 +512,7 @@ sub Prepare_Dataset {
 			    }
 			}
 		    } else {
-			${$plot}->{$phase}->{'data'} .= "plot '-' with boxes notitle".$lineType{$level}.$lineColor{$level}.$lineWeight{$level}."\n";
+			${$plot}->{$phase}->{'data'} .= "plot '-' with boxes".$lineType{$level}.$lineColor{$level}.$lineWeight{$level}." notitle\n";
 			for(my $iPoint=0;$iPoint<nelem($x);++$iPoint) {
 			    ${$plot}->{$phase}->{'data'} .= $x->index($iPoint)." ".$y->index($iPoint)."\n";
 			}
@@ -496,8 +524,8 @@ sub Prepare_Dataset {
 	    # Check if we are asked to plot just a single level.
 	    if ( exists($phaseRules{$phase}->{'level'}) ) {
 		# Plot just a single level, no real data.
-		${$plot}->{$phase}->{'command'} .= ${$plot}->{$phase}->{'prefix'}." '-'".$title
-		    .$pointType{$phaseRules{$phase}->{'level'}}.$pointSize{$phaseRules{$phase}->{'level'}}.$lineColor{$phaseRules{$phase}->{'level'}}.$lineWeight{$phaseRules{$phase}->{'level'}};
+		${$plot}->{$phase}->{'command'} .= ${$plot}->{$phase}->{'prefix'}." '-'"
+		    .$pointType{$phaseRules{$phase}->{'level'}}.$pointSize{$phaseRules{$phase}->{'level'}}.$lineColor{$phaseRules{$phase}->{'level'}}.$lineWeight{$phaseRules{$phase}->{'level'}}.$title;
 		${$plot}->{$phase}->{'data'   } .= $dummyPoint;
 		${$plot}->{$phase}->{'data'   } .= $endPoint;
 		${$plot}->{$phase}->{'prefix'} = ",";
@@ -602,7 +630,7 @@ sub Prepare_Dataset {
 		    # Output the point.
 		    foreach my $level ( 'lower', 'upper' ) {
 			${$plot}->{$phase}->{'data'} .= $arrows if ( $level eq "lower" );
-			${$plot}->{$phase}->{'data'} .= "plot '-' notitle".$errorCommand.$pointType{$level}.$pointSize{$level}.$lineColor{$level}.$lineWeight{$level}."\n";
+			${$plot}->{$phase}->{'data'} .= "plot '-'".$errorCommand.$pointType{$level}.$pointSize{$level}.$lineColor{$level}.$lineWeight{$level}." notitle\n";
 			${$plot}->{$phase}->{'data'} .= $x->index($iPoint)." ".$y->index($iPoint).$errors."\n";
 			${$plot}->{$phase}->{'data'} .= $endPoint;
 			${$plot}->{$phase}->{'data'} .= $clearArrows if ( $level eq "lower" );

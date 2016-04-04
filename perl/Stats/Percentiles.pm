@@ -25,7 +25,12 @@ sub BinnedPercentiles {
     my $yValues     = shift;
     my $weights     = shift;
     my $percentiles = shift;
+    my %options;
+    if ( $#_ >= 1 ) {(%options) = @_};
 
+    # Minimum number of points in a bin.
+    my $binCountMinimum = exists($options{'binCountMinimum'}) ? $options{'binCountMinimum'} : 2;
+    
     # Compute bin size.
     my $binWidth = ($binCenters->index(nelem($binCenters)-1)-$binCenters->index(0))/(nelem($binCenters)-1);
 
@@ -43,7 +48,7 @@ sub BinnedPercentiles {
 	my $weightsSelected = where($weights,($xValues >= $binMinimum->index($iBin)) & ($xValues < $binMaximum->index($iBin)) );
 
         # Only compute results for cases where we have more than one entry.
-	if ( nelem($yValuesSelected) > 1 ) {	
+	if ( nelem($yValuesSelected) >= $binCountMinimum ) {	
 
 	    # Sort the selected values.
 	    my $sortIndex = qsorti $yValuesSelected;
