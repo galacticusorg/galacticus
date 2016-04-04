@@ -53,6 +53,12 @@
      !@     <arguments>\textless type(mergerTree)\textgreater\ tree\argin, \textless type(treeNode)\textgreater\ node\argin</arguments>
      !@     <description>Return true if the branch should be followed.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>validateParameters</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Validate the parameters of an instance of this class, aborting if any are invalid.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: build              => cole2000Build
      procedure :: shouldAbort        => cole2000ShouldAbort
