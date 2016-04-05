@@ -35,8 +35,8 @@ if ( -e "galacticusConfig.xml" ) {
 # Identify e-mail options for this host.
 my $emailConfig;
 my $smtpPassword;
-if ( exists($config->{'email'}->{'host'}->{$ENV{'HOST'}}) ) {
-    $emailConfig = $config->{'email'}->{'host'}->{$ENV{'HOST'}};
+if ( exists($config->{'email'}->{'host'}->{$ENV{'HOSTNAME'}}) ) {
+    $emailConfig = $config->{'email'}->{'host'}->{$ENV{'HOSTNAME'}};
 } elsif ( exists($config->{'email'}->{'host'}->{'default'}) ) {
     $emailConfig = $config->{'email'}->{'host'}->{'default'};
 } else {
@@ -79,7 +79,7 @@ system("mkdir -p testSuite/outputs");
 
 # Write header to log file.
 print lHndl ":-> Running test suite:\n";
-print lHndl "    -> Host:\t".$ENV{'HOST'}."\n";
+print lHndl "    -> Host:\t".$ENV{'HOSTNAME'}."\n";
 print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
 
 # Stack to be used for PBS jobs.
