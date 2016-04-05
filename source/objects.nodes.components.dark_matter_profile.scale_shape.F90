@@ -150,11 +150,11 @@ contains
     class           (nodeComponentBasic            )               , pointer :: parentBasicComponent            , thisBasicComponent
     double precision                                                         :: deltaTime                       , shape
 
-    ! Get the dark matter profile component, creating it if necessary.
-    thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
-    ! Get the shape parameter - this will initialize the shape if necessary.
-    shape                          = thisDarkMatterProfileComponent%shape()
     if (defaultDarkMatterProfileComponent%scaleShapeIsActive()) then
+       ! Get the dark matter profile component, creating it if necessary.
+       thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+       ! Get the shape parameter - this will initialize the shape if necessary.
+       shape                          = thisDarkMatterProfileComponent%shape()
        ! Check if this node is the primary progenitor.
        if (thisNode%isPrimaryProgenitor()) then
           ! It is, so compute the shape parameter growth rate.
