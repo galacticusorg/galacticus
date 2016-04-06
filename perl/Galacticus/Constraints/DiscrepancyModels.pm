@@ -327,4 +327,66 @@ sub RunModels {
     }   
 }
 
+sub Apply_Discrepancies {
+    my $discrepancyFileName = shift();
+    my $discrepancyPath     = shift();
+    my $value               = shift();
+    my $error               = shift();
+    my $covariance          = shift();
+    # Get any options.
+    my %options;
+    (%options) = @_
+	if ( scalar(@_) > 0 );
+    # Scan the path for discrepancy files.
+    opendir(discrepDir,$discrepancyPath);
+    while ( my $discrepancy = readdir(discrepDir) ) {
+	my $discrepancyFileName = $discrepancyPath."/".$discrepancy."/".$discrepancyFileName;
+	if ( -e $discrepancyFileName ) {
+	    my $discrepancyFile = new PDL::IO::HDF5($discrepancyFileName);
+	    my @datasets = $discrepancyFile->datasets();
+	    foreach my $dataset ( @datasets ) {
+		if ( $dataset eq "multiplicative" ) {
+		    # Read the multiplicative discrepancy
+		    my $multiplier  = $discrepancyFile->dataset('multiplicative')->get();
+		    $value         *= $multiplier;
+		    $error         *= $multiplier;
+		    $covariance    .= $covariance*outer($multiplier,$multiplier);
+		}		    
+		if ( $dataset eq "multiplicativeCovariance" ) {
+		    # Adjust the model accordingly.
+		    my $covarianceMultiplier  = $discrepancyFile->dataset('multiplicativeCovariance')->get();
+		    if ( exists($options{'limitMultiplicativeCovariance'}) ) {
+			# First ensure that no diagonal terms in the covariance matrix exceed the allowed limit. If they do,
+			# truncate to that limit while preserving the correlation structure of the matrix.
+			my $variance     = $covarianceMultiplier->diagonal(0,1);
+			my $highVariance = which($variance > $options{'limitMultiplicativeCovariance'});
+			my $correlation  = $covarianceMultiplier/outer($variance->sqrt(),$variance->sqrt());
+			$variance->($highVariance) .= $options{'limitMultiplicativeCovariance'};
+			$covarianceMultiplier .= $correlation*outer($variance->sqrt(),$variance->sqrt());
+			# Check for any off-diagonal terms that exceed the limit and limit them.
+			my $low  = which($covarianceMultiplier->flat() < -$options{'limitMultiplicativeCovariance'});
+			my $high = which($covarianceMultiplier->flat() > +$options{'limitMultiplicativeCovariance'});
+			$covarianceMultiplier->flat()->($low ) .= -$options{'limitMultiplicativeCovariance'};
+			$covarianceMultiplier->flat()->($high) .= +$options{'limitMultiplicativeCovariance'};
+		    }
+		    $covariance              += $covarianceMultiplier*outer($value,$value);
+		}		    
+		if ( $dataset eq "additive" ) {
+		    # Read the additive discrepancy
+		    my $addition  = $discrepancyFile->dataset('additive')->get();
+		    # Adjust the model accordingly.
+		    $value       += $addition;
+		}
+		if ( $dataset eq "additiveCovariance" ) {
+		    # Read the covariance of the discrepancy.
+		    my $covariance  = $discrepancyFile->dataset('additiveCovariance')->get();
+		    # Adjust the model discrepancy covariance accordingly.
+		    $covariance    += $covariance;
+		}
+	    }
+	}
+    }
+}
+
+
 1;
