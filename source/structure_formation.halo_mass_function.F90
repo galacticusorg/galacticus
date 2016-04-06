@@ -30,8 +30,8 @@ module Halo_Mass_Functions
   !#  <default>tinker2008</default>
   !#  <stateful>no</stateful>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
-  !#  <data>double precision                                    :: time_               </data>
-  !#  <data>class           (cosmologyParametersClass), pointer :: cosmologyParameters_</data>
+  !#  <data>double precision                                    :: time_                         </data>
+  !#  <data>class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()</data>
   !#  <data>
   !#   <scope>module</scope>
   !#   <threadprivate>yes</threadprivate>
