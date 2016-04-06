@@ -53,6 +53,12 @@
      !@     <arguments>\textless type(mergerTree)\textgreater\ tree\argin, \textless type(treeNode)\textgreater\ node\argin</arguments>
      !@     <description>Return true if the branch should be followed.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>validateParameters</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Validate the parameters of an instance of this class, aborting if any are invalid.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: build              => cole2000Build
      procedure :: shouldAbort        => cole2000ShouldAbort
@@ -181,6 +187,8 @@ contains
     use Merger_Tree_Branching_Options
     use Pseudo_Random
     use Kind_Numbers
+    use ISO_Varying_String
+    use Numerical_Comparison
     implicit none
     class           (mergerTreeBuilderCole2000), intent(inout)         :: self
     type            (mergerTree               ), intent(inout), target :: tree
@@ -198,8 +206,9 @@ contains
          &                                                                nodeMass2                 , time                       , uniformRandom             , &
          &                                                                massResolution            , accretionFractionCumulative, branchMassCurrent         , &
          &                                                                branchDeltaCriticalCurrent, branchingInterval          , branchingIntervalScaleFree, &
-         &                                                                branchingProbabilityRate  , deltaWAccretionLimit
-    logical                                                            :: doBranch                  , branchIsDone               , snapAccretionFraction
+         &                                                                branchingProbabilityRate  , deltaWAccretionLimit       , deltaWEarliestTime
+    logical                                                            :: doBranch                  , branchIsDone               , snapAccretionFraction     , &
+         &                                                                snapEarliestTime
     type            (varying_string           )                        :: message
     character       (len=20                   )                        :: label
     
@@ -215,6 +224,7 @@ contains
        self%branchingIntervalDistributionInitialized=.true.
     end if
     ! Restart the random number sequence.
+    call tree%randomNumberGenerator%initialize()
     uniformRandom=tree%randomNumberGenerator%sample(ompThreadOffset=.false.,incrementSeed=int(tree%index))
     ! Get the mass resolution for this tree.
     massResolution=self%mergerTreeMassResolution_%resolution(tree)
@@ -222,7 +232,7 @@ contains
     baseNodeTime =thisBasic%time()
     deltaCritical=criticalOverdensity_%value(time=thisBasic%time(),mass=thisBasic%mass())
     call thisBasic%timeSet(deltaCritical)
-    ! Begin tree build loop.
+    ! Begin tree build loop.    
     do while (associated(thisNode))
        ! Get the basic component of the node.
        thisBasic => thisNode%basic()
@@ -232,55 +242,83 @@ contains
        branchDeltaCriticalCurrent =thisBasic%time()
        ! Evolve the branch until mass falls below the resolution limit, the earliest time is reached, or the branch ends.       
        branchIsDone=.false.
-       do while(                                                                                                                                &
-            &    branchMassCurrent                                                                                          > massResolution    &
-            &   .and.                                                                                                                           &
-            &    criticalOverdensity_%timeOfCollapse(criticalOverdensity=branchDeltaCriticalCurrent,mass=branchMassCurrent) > self%timeEarliest &
-            &   .and.                                                                                                                           &
-            &    self%shouldFollowBranch(tree,thisNode)                                                                                         &
-            &   .and.                                                                                                                           &
-            &    .not.branchIsDone                                                                                                              &
-            &  )
-          ! Find branching probability rate per unit deltaW.
-          branchingProbabilityRate=Tree_Branching_Probability_Bound(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,boundUpper)
-          ! Find accretion rate.
-          accretionFraction       =Tree_Subresolution_Fraction     (branchMassCurrent,branchDeltaCriticalCurrent,massResolution           )          
-          ! A negative accretion fraction indicates that the node is so close to the resolution limit that
-          ! an accretion rate cannot be determined (given available numerical accuracy). In such cases we
-          ! consider the node to have reached the end of its resolved evolution and so walk to the next node.
-          if (accretionFraction < 0.0d0) then
-             ! Terminate the branch with a final node.
-             nodeIndex          =  nodeIndex+1
-             newNode1           => treeNode      (nodeIndex,tree)
-             newBasic1          => newNode1%basic(autoCreate=.true. )
-             ! Compute new mass accounting for sub-resolution accretion.
-             nodeMass1          = massResolution
-             ! Compute the time corresponding to this event.
-             time               = criticalOverdensity_%timeOfCollapse(criticalOverdensity=branchDeltaCriticalCurrent,mass=branchMassCurrent)
-             ! Set properties of the new node.
-             deltaCritical1     = criticalOverdensity_%value         (time               =time                      ,mass=nodeMass1        )
-             call newBasic1%massSet(nodeMass1     )
-             call newBasic1%timeSet(deltaCritical1)
-             ! Create links from old to new node and vice-versa.
-             thisNode%firstChild => newNode1
-             newNode1%parent     => thisNode
-             branchIsDone        =  .true.
-          else
-             ! Finding maximum allowed step in w. Limit based on branching rate only if we are
-             ! using the original Cole et al. (2000) algorithm.
-             deltaW               =Tree_Maximum_Step(branchMassCurrent,branchDeltaCriticalCurrent,massResolution)
-             snapAccretionFraction=.false.
-             if (accretionFraction > 0.0d0) then
-                deltaWAccretionLimit=(self%accretionLimit-accretionFractionCumulative)/accretionFraction
-                if (deltaWAccretionLimit <= deltaW) then
-                   deltaW               =deltaWAccretionLimit
-                   snapAccretionFraction=.true.
-                end if
+       do while (.not.branchIsDone)
+          if     (                                                                                                                          &
+               &   branchMassCurrent                           <= massResolution                                                            &
+               &  .or.                                                                                                                      &
+               &   branchDeltaCriticalCurrent                  >= criticalOverdensity_%value(time=self%timeEarliest,mass=branchMassCurrent) &
+               &  .or.                                                                                                                      &
+               &   .not.self%shouldFollowBranch(tree,thisNode)                                                                              &
+               &) then
+             ! Branch should be terminated. If we have any accumulated accretion, terminate the branch with a final node.
+             if (accretionFractionCumulative > 0.0d0) then
+                nodeIndex      =  nodeIndex+1
+                newNode1       => treeNode(nodeIndex,tree)
+                newBasic1      => newNode1%basic(autoCreate=.true.)
+                ! Compute new mass accounting for sub-resolution accretion.
+                nodeMass1      =  thisBasic%mass()*(1.0d0-accretionFractionCumulative)
+                ! Compute the time corresponding to this new node.
+                time           =  criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical,mass=branchMassCurrent)
+                ! Set properties of the new node.
+                deltaCritical1 =  criticalOverdensity_%value         (time               =time         ,mass=nodeMass1        )
+                call newBasic1%massSet(nodeMass1     )
+                call newBasic1%timeSet(deltaCritical1)
+                ! Create links from old to new node and vice-versa.
+                thisNode%firstChild => newNode1
+                newNode1%parent     => thisNode
+                ! Move to the terminating node (necessary otherwise we would move to this terminating node next and continue to
+                ! grow a branch from it).
+                thisNode            => newNode1
              end if
-             if     (                                                                   &
-                  &   branchingProbabilityRate > 0.0d0                                  &
-                  &  .and.                                                              &
-                  &   .not.self%branchIntervalStep                                      &
+             ! Flag that the branch is done.
+             branchIsDone=.true.
+          else
+             ! Find branching probability rate per unit deltaW.
+             branchingProbabilityRate=Tree_Branching_Probability_Bound(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,boundUpper)
+             ! Find accretion rate.
+             accretionFraction       =Tree_Subresolution_Fraction     (branchMassCurrent,branchDeltaCriticalCurrent,massResolution           )
+             ! A negative accretion fraction indicates that the node is so close to the resolution limit that
+             ! an accretion rate cannot be determined (given available numerical accuracy). In such cases we
+             ! consider the node to have reached the end of its resolved evolution and so walk to the next node.
+             if (accretionFraction < 0.0d0) then
+                ! Terminate the branch with a final node.
+                nodeIndex          =  nodeIndex+1
+                newNode1           => treeNode      (nodeIndex,tree)
+                newBasic1          => newNode1%basic(autoCreate=.true. )
+                ! Compute new mass accounting for sub-resolution accretion.
+                nodeMass1          = massResolution
+                ! Compute the time corresponding to this event.
+                time               = criticalOverdensity_%timeOfCollapse(criticalOverdensity=branchDeltaCriticalCurrent,mass=branchMassCurrent)
+                ! Set properties of the new node.
+                deltaCritical1     = criticalOverdensity_%value         (time               =time                      ,mass=nodeMass1        )
+                call newBasic1%massSet(nodeMass1     )
+                call newBasic1%timeSet(deltaCritical1)
+                ! Create links from old to new node and vice-versa.
+                thisNode%firstChild => newNode1
+                newNode1%parent     => thisNode
+                ! Move to the terminating node (necessary otherwise we would move to this terminating node next and continue to
+                ! grow a branch from it), and flag that the branch is done.
+                thisNode            => newNode1
+                branchIsDone        =  .true.
+             else
+                ! Finding maximum allowed step in w. Limit based on branching rate only if we are using the original Cole et
+                ! al. (2000) algorithm.
+                deltaW               =Tree_Maximum_Step(branchMassCurrent,branchDeltaCriticalCurrent,massResolution)
+                snapAccretionFraction=.false.
+                if (accretionFraction > 0.0d0) then
+                   deltaWAccretionLimit=(self%accretionLimit-accretionFractionCumulative)/accretionFraction
+                   if (deltaWAccretionLimit <= deltaW) then
+                      deltaW               =deltaWAccretionLimit
+                      snapAccretionFraction=.true.
+                   end if
+                      ! Move to the terminating node (necessary otherwise we would move to this terminating node next and continue
+                      ! to grow a branch from it), and flag that the branch is done.
+                      thisNode            => newNode1
+                end if
+                if     (                                                                   &
+                     &   branchingProbabilityRate > 0.0d0                                  &
+                     &  .and.                                                              &
+                     &   .not.self%branchIntervalStep                                      &
                   & ) then
                 if (self%mergeProbability/branchingProbabilityRate < deltaW) then
                    ! Timestep is limited by branching rate. Reduce the timestep to the allowed
@@ -291,138 +329,166 @@ contains
                    snapAccretionFraction=.false.
                 end if
              end if
-             ! Scale values to the determined timestep.
-             if (.not.self%branchIntervalStep)                           &
-                  & branchingProbability=branchingProbabilityRate*deltaW
-             accretionFraction          =accretionFraction       *deltaW
+                ! Limit the timestep so that the maximum allowed time is not exceeded.
+                deltaWEarliestTime=+criticalOverdensity_%value(                        &
+                     &                                         time=self%timeEarliest, &
+                     &                                         mass=branchMassCurrent  &
+                     &                                        )                        &
+                     &             -branchDeltaCriticalCurrent
+                if (deltaWEarliestTime < deltaW) then
+                   deltaW               =deltaWEarliestTime
+                   snapEarliestTime     =.true.
+                   snapAccretionFraction=.false.
+                else
+                   snapEarliestTime     =.false.
+                end if
+                ! Scale values to the determined timestep.
+                if (.not.self%branchIntervalStep)                           &
+                     & branchingProbability=branchingProbabilityRate*deltaW
+                accretionFraction          =accretionFraction       *deltaW
              ! Accretion fraction must be less than unity. Reduce timestep (and branching
              ! probability and accretion fraction) by factors of two until this condition is
              ! satisfied.
-             do while (accretionFraction+accretionFractionCumulative >= 1.0d0)
-                if (.not.self%branchIntervalStep)                      &
-                     & branchingProbability=branchingProbability*0.5d0
-                accretionFraction          =accretionFraction   *0.5d0
-                deltaW                     =deltaW              *0.5d0
-                snapAccretionFraction      =.false.
-             end do             
-             ! Decide if a branching occurs.
-             if (self%branchIntervalStep) then
+                do while (accretionFraction+accretionFractionCumulative >= 1.0d0)
+                   if (.not.self%branchIntervalStep)                      &
+                        & branchingProbability=branchingProbability*0.5d0
+                   accretionFraction          =accretionFraction   *0.5d0
+                   deltaW                     =deltaW              *0.5d0
+                   snapAccretionFraction      =.false.
+                   snapEarliestTime           =.false.
+                end do
+                ! Decide if a branching occurs.
+                if (self%branchIntervalStep) then
                 ! In this case we draw intervals between branching events from a negative
                 ! exponential distribution.
-                if (branchingProbabilityRate > 0.0d0) then
-                   branchingIntervalScaleFree=0.0d0
-                   do while (branchingIntervalScaleFree <= 0.0d0)
-                      branchingIntervalScaleFree=self%branchingIntervalDistribution%sample(randomNumberGenerator=tree%randomNumberGenerator)
-                   end do
-                   branchingInterval=branchingIntervalScaleFree/branchingProbabilityRate
-                   ! Based on the upper bound on the rate, check if branching occurs before the maximum allowed timestep.
-                   if (branchingInterval < deltaW) then
-                      ! It does, so recheck using the actual branching rate.
-                      branchingProbabilityRate=Tree_Branching_Probability(branchMassCurrent,branchDeltaCriticalCurrent,massResolution)
-                      branchingInterval       =branchingIntervalScaleFree/branchingProbabilityRate
-                      doBranch                =(branchingInterval <= deltaW)
-                      if (doBranch) then
-                         ! Branching occured, adjust the accretion fraction, and timestep to their values at the branching event.
-                         accretionFraction    =accretionFraction*branchingInterval/deltaW
-                         deltaW               =branchingInterval
-                         snapAccretionFraction=.false.
-                         ! Draw a random deviate and scale by the branching rate - this will be used to choose the branch mass.
+                   if (branchingProbabilityRate > 0.0d0) then
+                      branchingIntervalScaleFree=0.0d0
+                      do while (branchingIntervalScaleFree <= 0.0d0)
+                         branchingIntervalScaleFree=self%branchingIntervalDistribution%sample(randomNumberGenerator=tree%randomNumberGenerator)
+                      end do
+                      branchingInterval=branchingIntervalScaleFree/branchingProbabilityRate
+                      ! Based on the upper bound on the rate, check if branching occurs before the maximum allowed timestep.
+                      if (branchingInterval < deltaW) then
+                         ! It does, so recheck using the actual branching rate.
+                         branchingProbabilityRate=Tree_Branching_Probability(branchMassCurrent,branchDeltaCriticalCurrent,massResolution)
+                         branchingInterval       =branchingIntervalScaleFree/branchingProbabilityRate
+                         doBranch                =(branchingInterval <= deltaW)
+                         if (doBranch) then
+                            ! Branching occured, adjust the accretion fraction, and timestep to their values at the branching event.
+                            accretionFraction    =accretionFraction*branchingInterval/deltaW
+                            deltaW               =branchingInterval
+                            snapAccretionFraction=.false.
+                            snapEarliestTime     =.false.
+                            ! Draw a random deviate and scale by the branching rate - this will be used to choose the branch mass.
                          uniformRandom       =tree%randomNumberGenerator%sample()
                          branchingProbability=uniformRandom*branchingProbabilityRate
+                         end if
+                      else
+                         doBranch=.false.
                       end if
                    else
                       doBranch=.false.
                    end if
                 else
-                   doBranch=.false.
-                end if
-             else
                 ! In this case we're using the original Cole et al. (2000) algorithm.
                 if (branchingProbability > 0.0d0) then
-                   uniformRandom=tree%randomNumberGenerator%sample()
-                   doBranch=(uniformRandom <= branchingProbability)
-                   if (doBranch) then
-                      branchingProbability=Tree_Branching_Probability_Bound(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,boundLower)*deltaW
-                      if (uniformRandom <= branchingProbability) then
-                         doBranch=.true.
-                      else
-                         branchingProbability=Tree_Branching_Probability(branchMassCurrent,branchDeltaCriticalCurrent,massResolution)*deltaW
-                         doBranch=(uniformRandom <= branchingProbability)
+                      uniformRandom=tree%randomNumberGenerator%sample()
+                      doBranch=(uniformRandom <= branchingProbability)
+                      if (doBranch) then
+                         branchingProbability=Tree_Branching_Probability_Bound(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,boundLower)*deltaW
+                         if (uniformRandom <= branchingProbability) then
+                            doBranch=.true.
+                         else
+                            branchingProbability=Tree_Branching_Probability(branchMassCurrent,branchDeltaCriticalCurrent,massResolution)*deltaW
+                            doBranch=(uniformRandom <= branchingProbability)
+                         end if
+                         ! First convert the realized probability back to a rate.               
+                         if (doBranch) branchingProbability=uniformRandom/deltaW
                       end if
-                      ! First convert the realized probability back to a rate.               
-                      if (doBranch) branchingProbability=uniformRandom/deltaW
+                   else
+                      doBranch=.false.
                    end if
-                else
-                   doBranch=.false.
                 end if
-             end if
-             ! Determine the critical overdensity for collapse for the new halo(s).             
-             deltaCritical                 =branchDeltaCriticalCurrent +deltaW
-             if (snapAccretionFraction) then
-                accretionFractionCumulative=self%accretionLimit
-             else
-                accretionFractionCumulative=accretionFractionCumulative+accretionFraction
-             end if
-             ! Create new nodes.
-             select case (doBranch)
-             case (.true.)
-                ! Branching occurs - create two progenitors.
-                nodeIndex     =  nodeIndex+1
-                newNode1      => treeNode(nodeIndex,tree)
-                newBasic1     => newNode1%basic(autoCreate=.true.)
-                ! Compute mass of one of the new nodes.
-                nodeMass1     =  Tree_Branch_Mass(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,branchingProbability,tree%randomNumberGenerator)
-                nodeMass2     =  thisBasic%mass()-nodeMass1
-                nodeMass1=nodeMass1*(1.0d0-accretionFractionCumulative)
-                nodeMass2=nodeMass2*(1.0d0-accretionFractionCumulative)            
-                ! Compute the time corresponding to this branching event.
-                time          =  criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical,mass=branchMassCurrent)
-                ! Set properties of first new node.
-                deltaCritical1=  criticalOverdensity_%value         (time               =time         ,mass=nodeMass1        )
-                call newBasic1%massSet(nodeMass1     )
-                call newBasic1%timeSet(deltaCritical1)
-                ! Create second progenitor.
-                nodeIndex=nodeIndex+1
-                newNode2  => treeNode(nodeIndex,tree)
-                newBasic2 => newNode2%basic(autoCreate=.true.)
-                ! Set properties of second new node.
-                deltaCritical2=criticalOverdensity_%value(time=time,mass=nodeMass2)
-                call newBasic2%massSet(nodeMass2     )
-                call newBasic2%timeSet(deltaCritical2)
-                ! Create links from old to new nodes and vice-versa. (Ensure that child node is the more massive progenitor.)
-                if (nodeMass2 > nodeMass1) then
-                   thisNode%firstChild => newNode2
-                   newNode2%sibling    => newNode1
+                ! Determine the critical overdensity for collapse for the new halo(s).
+                if (snapEarliestTime) then
+                   deltaCritical                 =+criticalOverdensity_%value(                        &
+                     &                                                        time=self%timeEarliest, &
+                     &                                                        mass=branchMassCurrent  &
+                     &                                                       )
                 else
-                   thisNode%firstChild => newNode1
-                   newNode1%sibling    => newNode2
+                   deltaCritical                 =+branchDeltaCriticalCurrent &
+                        &                         +deltaW
                 end if
-                newNode1%parent        => thisNode
-                newNode2%parent        => thisNode
-                branchIsDone           =  .true.
-             case (.false.)
-                ! No branching occurs - create one progenitor.
-                if (accretionFractionCumulative >= self%accretionLimit) then
-                   nodeIndex      =  nodeIndex+1
-                   newNode1       => treeNode(nodeIndex,tree)
-                   newBasic1      => newNode1%basic(autoCreate=.true.)
-                   ! Compute new mass accounting for sub-resolution accretion.
-                   nodeMass1      =  thisBasic%mass()*(1.0d0-accretionFractionCumulative)
-                   ! Compute the time corresponding to this new node.
-                   time           =  criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical,mass=branchMassCurrent)
-                   ! Set properties of the new node.
-                   deltaCritical1 =  criticalOverdensity_%value         (time               =time         ,mass=nodeMass1        )
+                if (snapAccretionFraction) then
+                   accretionFractionCumulative=self%accretionLimit
+                else
+                   accretionFractionCumulative=accretionFractionCumulative+accretionFraction
+                end if
+                ! Create new nodes.
+                select case (doBranch)
+                case (.true.)
+                   ! Branching occurs - create two progenitors.
+                   nodeIndex     =  nodeIndex+1
+                   newNode1      => treeNode(nodeIndex,tree)
+                   newBasic1     => newNode1%basic(autoCreate=.true.)
+                   ! Compute mass of one of the new nodes.
+                   nodeMass1     =  Tree_Branch_Mass(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,branchingProbability,tree%randomNumberGenerator)
+                   nodeMass2     =  thisBasic%mass()-nodeMass1
+                   nodeMass1=nodeMass1*(1.0d0-accretionFractionCumulative)
+                   nodeMass2=nodeMass2*(1.0d0-accretionFractionCumulative)
+                   ! Compute the time corresponding to this branching event.
+                   time          =  criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical,mass=branchMassCurrent)
+                   ! Set properties of first new node.
+                   deltaCritical1=  criticalOverdensity_%value         (time               =time         ,mass=nodeMass1        )
+                   ! If we are to snap halos to the earliest time, and the computed deltaCritical is sufficiently close to that time, snap it.
+                   if (snapEarliestTime.and.Values_Agree(deltaCritical1,deltaCritical,relTol=1.0d-6)) deltaCritical1=deltaCritical
                    call newBasic1%massSet(nodeMass1     )
                    call newBasic1%timeSet(deltaCritical1)
-                   ! Create links from old to new node and vice-versa.
-                   thisNode%firstChild => newNode1
-                   newNode1%parent     => thisNode
-                   branchIsDone=.true.
-                else
-                  branchMassCurrent         =thisBasic%mass()*(1.0d0-accretionFractionCumulative)
-                  branchDeltaCriticalCurrent=deltaCritical
-               end if
-             end select
+                   ! Create second progenitor.
+                   nodeIndex=nodeIndex+1
+                   newNode2  => treeNode(nodeIndex,tree)
+                   newBasic2 => newNode2%basic(autoCreate=.true.)
+                   ! Set properties of second new node.
+                   deltaCritical2=criticalOverdensity_%value(time=time,mass=nodeMass2)
+                   ! If we are to snap halos to the earliest time, and the computed deltaCritical is sufficiently close to that time, snap it.
+                   if (snapEarliestTime.and.Values_Agree(deltaCritical2,deltaCritical,relTol=1.0d-6)) deltaCritical2=deltaCritical
+                   call newBasic2%massSet(nodeMass2     )
+                   call newBasic2%timeSet(deltaCritical2)
+                   ! Create links from old to new nodes and vice-versa. (Ensure that child node is the more massive progenitor.)
+                   if (nodeMass2 > nodeMass1) then
+                      thisNode%firstChild => newNode2
+                      newNode2%sibling    => newNode1
+                   else
+                      thisNode%firstChild => newNode1
+                      newNode1%sibling    => newNode2
+                   end if
+                   newNode1%parent        => thisNode
+                   newNode2%parent        => thisNode
+                   branchIsDone           =  .true.
+                case (.false.)
+                   ! No branching occurs - create one progenitor.
+                   if (accretionFractionCumulative >= self%accretionLimit) then
+                      nodeIndex      =  nodeIndex+1
+                      newNode1       => treeNode(nodeIndex,tree)
+                      newBasic1      => newNode1%basic(autoCreate=.true.)
+                      ! Compute new mass accounting for sub-resolution accretion.
+                      nodeMass1      =  thisBasic%mass()*(1.0d0-accretionFractionCumulative)
+                      ! Compute the time corresponding to this new node.
+                      time           =  criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical,mass=branchMassCurrent)
+                      ! Set properties of the new node.
+                      deltaCritical1 =  criticalOverdensity_%value         (time               =time         ,mass=nodeMass1        )
+                      call newBasic1%massSet(nodeMass1     )
+                      call newBasic1%timeSet(deltaCritical1)
+                      ! Create links from old to new node and vice-versa.
+                      thisNode%firstChild => newNode1
+                      newNode1%parent     => thisNode
+                      branchIsDone=.true.
+                   else
+                      branchMassCurrent         =thisBasic%mass()*(1.0d0-accretionFractionCumulative)
+                      branchDeltaCriticalCurrent=deltaCritical
+                   end if
+                end select
+             end if
           end if
        end do
        ! Check if tree should be aborted.
@@ -464,7 +530,11 @@ contains
                 thisNode => previousNode
              else
                 ! Parent halo is not close to the resolution limit - this is an error.
-                message="branch is not well-ordered in time"            //char(10)
+                message="branch is not well-ordered in time:"           //char(10)
+                write (label,'(i20)'  ) thisNode       %index()
+                message=message//" ->      node index = "//label        //char(10)
+                write (label,'(i120)'  ) thisNode%parent%index()
+                message=message//" ->    parent index = "//label        //char(10)
                 write (label,'(e20.14)')                                   thisBasic%time()
                 message=message//" ->       node time = "//label//" Gyr"//char(10)
                 write (label,'(e20.14)')                                 parentBasic%time()
