@@ -16,6 +16,7 @@ use PDL::IO::HDF5;
 use Data::Dumper;
 require Galacticus::Options;
 require Galacticus::Constraints::Covariances;
+require Galacticus::Constraints::DiscrepancyModels;
 
 # Compute likelihood (and make a plot) for a Galacticus model given the projected correlation function data from Hearin et
 # al. (2013; http://adsabs.harvard.edu/abs/2013arXiv1310.6747H).
@@ -145,6 +146,16 @@ $data->{'model'}->{'combined'}->{'correlationFunction'          } =      $data->
 $data->{'model'}->{'combined'}->{'correlationFunctionCovariance'} =      $data->{'model'}->{'correlationFunctionCovariance'};
 $data->{'model'}->{'combined'}->{'correlationFunctionError'     } = sqrt($data->{'model'}->{'correlationFunctionCovariance'}->diagonal(0,1));
 
+# Apply discrepancies.
+&DiscrepancyModels::Apply_Discrepancies(
+    "discrepancySdssClusteringZ0.07.hdf5"                                ,
+    $arguments                           {'modelDiscrepancies'           },
+    $data     ->{'model'}->{'combined'}->{'correlationFunction'          },
+    $data     ->{'model'}->{'combined'}->{'correlationFunctionError'     },
+    $data     ->{'model'}->{'combined'}->{'correlationFunctionCovariance'}
+    )
+    if ( exists($arguments{'modelDiscrepancies'}) );
+
 # Output the results to file if requested.
 if ( exists($arguments{'resultFile'}) ) {
     my $resultsFile = new PDL::IO::HDF5(">".$arguments{'resultFile'});
@@ -162,6 +173,7 @@ if ( exists($arguments{'outputFile'}) ) {
     my $fullCovariance =
  	$data->{'model'   }->{'combined'}->{'correlationFunctionCovariance'}+
 	$data->{'observed'}->{'combined'}->{'correlationFunctionCovariance'};
+    
     # Compute the likelihood.
     my $constraint;
     my $offsets;

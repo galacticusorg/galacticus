@@ -19,6 +19,7 @@ use Data::Dumper;
 require Galacticus::Options;
 require Galacticus::HDF5;
 require Galacticus::Constraints::Covariances;
+require Galacticus::Constraints::DiscrepancyModels;
 require Stats::Histograms;
 require GnuPlot::PrettyPlots;
 require GnuPlot::LaTeX;
@@ -249,47 +250,6 @@ unless ( $gotModelSizeFunction == 1 ) {
 	= &Histograms::Histogram2D($radiusLogarithmicBins,$sizeData->{'massLogarithmic'},$model->{'dataSets'}->{'diskRadiusLogarithmic'},$model->{'dataSets'}->{'massLogarithmic'},$weight,%options);
 }
 
-# Apply any shifts due to model discrepancy.
-if ( exists($arguments{'modelDiscrepancies'}) ) {
-    # Locate the path which contains discrepancies.
-    my $discrepancyPath = $arguments{'modelDiscrepancies'};
-    # Scan the path for discrepancy files.
-    opendir(discrepDir,$discrepancyPath);
-    while ( my $discrepancy = readdir(discrepDir) ) {
-	my $discrepancyFileName = $discrepancyPath."/".$discrepancy."/discrepancyDiskGalaxySizes_SDSS_z0.07.hdf5";
-	if ( -e $discrepancyFileName ) {
-	    my $discrepancyFile = new PDL::IO::HDF5($discrepancyFileName);
-	    my @datasets = $discrepancyFile->datasets();
-	    foreach my $dataset ( @datasets ) {
-		if ( $dataset eq "multiplicative" ) {
-		    # Read the multiplicative discrepancy
-		    my $multiplier = $discrepancyFile->dataset('multiplicative')->get();
-		    # Adjust the model accordingly.		  
-		    $model->{'covariance'    } .= $model->{'covariance'}*outer($multiplier,$multiplier);
-		    $model->{'radiusFunction'} *= $multiplier;
-		}
-		if ( $dataset eq "multiplicativeCovariance" ) {
-		    # Adjust the model accordingly.
-		    my $covarianceMultiplier = $discrepancyFile->dataset('multiplicativeCovariance')->get();
-		    $model->{'covariance'} += $covarianceMultiplier*outer($model->{'radiusFunction'},$model->{'radiusFunction'});
-		}		    
-		if ( $dataset eq "additive" ) {
-		    # Read the additive discrepancy
-		    my $addition = $discrepancyFile->dataset('additive')->get();
-		    # Adjust the model accordingly.
-		    $model->{'radiusFunction'     } += $addition;
-		}
-		if ( $dataset eq "additiveCovariance" ) {
-		    # Read the covariance of the discrepancy.
-		    my $covariance = $discrepancyFile->dataset('additiveCovariance')->get();
-		    # Adjust the model discrepancy covariance accordingly.
-		    $model->{'covariance'} += $covariance;
-		}
-	    }
-	}
-    }
-}
-
 # Evaluate the model likelihood.
 if ( exists($arguments{'outputFile'}) ) {
     # Construct the full covariance matrix, which is the covariance matrix of the observations
@@ -316,10 +276,27 @@ if ( exists($arguments{'outputFile'}) ) {
     my $includeIndices              = which($exclude == 1.0);
     my $dataRadiusFunctionExcluded  = $dataRadiusFunction                     ->           ($includeIndices                )  ;
     my $modelRadiusFunctionExcluded = $modelRadiusFunction                    ->           ($includeIndices                )  ;
-    my $fullCovarianceExcluded      = $fullCovariance                         ->           ($includeIndices,$includeIndices)  ;
     my $modelCovarianceExcluded     = $model              ->    {'covariance'}->           ($includeIndices,$includeIndices)  ;
+    my $fullCovarianceExcluded      = $fullCovariance                         ->           ($includeIndices,$includeIndices)  ;
     my $shiftedIndices              = $exclude            ->flat(            )->cumusumover(                               )-1;
     my $upperLimitsExcluded         = $shiftedIndices                         ->           ($upperLimits                   )  ;
+    # Apply discrepancies.
+    if ( exists($arguments{'modelDiscrepancies'}) ) {
+	my $modelCovarianceExcludedOriginal = $modelCovarianceExcluded               ->copy();
+	my $modelErrorExcluded              = $modelCovarianceExcluded->diagonal(0,1)->copy();
+	# Limit multiplicative covariances which can be too large due to noise.
+	&DiscrepancyModels::Apply_Discrepancies(
+	    "discrepancyDiskGalaxySizeZ0.07.hdf5"             ,
+	    $arguments                  {'modelDiscrepancies'},
+	    $modelRadiusFunctionExcluded                      ,
+	    $modelErrorExcluded                               ,
+	    $modelCovarianceExcluded                          ,
+	    limitMultiplicativeCovariance => 1.0
+	    );
+	# Find the change in the model covariance matrix and add to the full covariance matrix.
+	my $modelCovarianceExcludedChange  = $modelCovarianceExcluded      -$modelCovarianceExcludedOriginal;
+	$fullCovarianceExcluded           += $modelCovarianceExcludedChange                                 ;
+    }
     # Compute the likelihood.
     my $constraint;
     my $logDeterminant;
