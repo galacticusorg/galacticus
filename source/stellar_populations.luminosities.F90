@@ -30,14 +30,14 @@ module Stellar_Population_Luminosities
 
   type luminosityTable
      !% Structure for holding tables of simple stellar population luminosities.
-     integer                                                            :: agesCount                         , metallicitiesCount
-     integer         (c_size_t)                                         :: isTabulatedMaximum
+     integer                                                            :: agesCount                          , metallicitiesCount
+     integer         (c_size_t)                                         :: isTabulatedMaximum         =0
      logical                            , allocatable, dimension(:)     :: isTabulated
-     double precision                   , allocatable, dimension(:)     :: age                               , metallicity
+     double precision                   , allocatable, dimension(:)     :: age                                , metallicity
      double precision                   , allocatable, dimension(:,:,:) :: luminosity
      ! Interpolation structures.
-     logical                                                            :: resetAge                   =.true., resetMetallicity                   =.true.
-     type            (fgsl_interp_accel)                                :: interpolationAcceleratorAge       , interpolationAcceleratorMetallicity
+     logical                                                            :: resetAge                   =.true. , resetMetallicity                   =.true.
+     type            (fgsl_interp_accel)                                :: interpolationAcceleratorAge        , interpolationAcceleratorMetallicity
     end type luminosityTable
 
   ! Array of simple stellar population luminosity tables.
@@ -171,11 +171,13 @@ contains
           call Move_Alloc(luminosityTables,luminosityTablesTemporary)
           allocate(luminosityTables(imfIndex))
           luminosityTables(1:size(luminosityTablesTemporary))=luminosityTablesTemporary
+          luminosityTables(size(luminosityTablesTemporary)+1:imfIndex)%isTabulatedMaximum=0
           deallocate(luminosityTablesTemporary)
           call Memory_Usage_Record(sizeof(luminosityTables(1)),blockCount=0)
        end if
     else
        allocate(luminosityTables(imfIndex))
+       luminosityTables%isTabulatedMaximum=0
        call Memory_Usage_Record(sizeof(luminosityTables))
     end if
 
