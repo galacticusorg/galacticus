@@ -136,7 +136,7 @@ sub Get_Dust_Attenuated_Luminosity {
 	my $filterData = $xml->XMLin($filterPath);
 	unless ( exists($filterData->{'effectiveWavelength'}) ) {
 	    # No effective wavelength data available for filter - run the script that computes it.
-	    system("scripts/filters/vega_offset_effective_lambda.pl");
+	    system($galacticusPath."scripts/filters/vega_offset_effective_lambda.pl");
 	    $filterData = $xml->XMLin($filterPath);
 	    die ("Get_Dust_Attenuated_Luminosity(): failed to compute effective wavelengths for filters") unless ( exists($filterData->{'effectiveWavelength'}) );
 	}
