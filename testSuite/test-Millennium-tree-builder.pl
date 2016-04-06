@@ -26,7 +26,7 @@ die("FAILED: failed to make IRATE-format merger tree file from Millennium databa
     unless ( $? == 0 );
 
 # Validate the IRATE format file.
-my $validator = which('iratevalidate');
+my $validator = &File::Which::which('iratevalidate');
 if ( $validator ) {
     system("cd ..; iratevalidate testSuite/outputs/millenniumTestTreesIRATE.hdf5");
     die("FAILED: IRATE-format file generated from Millennium database output did not validate")

@@ -1544,6 +1544,7 @@ contains
        call conditionalMassFunctionGroup%writeDataset  (     subhaloMassFunctionWeight          ,"subhaloMassFunctionWeight"          ,"Unevolved subhalo mass function weights []"     )
     end if
     call    conditionalMassFunctionGroup%close         (                                                                                                                                )    
+    call galacticusOutputFile        %flush         (                                                                                                                                                     )
     !$omp end critical(HDF5_Access)
     ! Deallocate weight arrays.
     call Dealloc_Array(conditionalMassFunctionWeight      )
