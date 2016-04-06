@@ -25,7 +25,7 @@ my $filtersDirectory;
 if ( scalar(@ARGV) > 0 ) {
     $filtersDirectory = $ARGV[0];
 } else {
-    $filtersDirectory = "./data/filters";
+    $filtersDirectory = $galacticusPath."data/filters";
 }
 # Get the Vega spectrum file.
 my $vegaSpectrumFile;
@@ -33,7 +33,7 @@ if ( scalar(@ARGV) == 2 ) {
     $vegaSpectrumFile = $ARGV[1];
 } else {
     # None given, so use the default.
-    $vegaSpectrumFile = "./data/stellarAstrophysics/vega/A0V_Castelli.xml";
+    $vegaSpectrumFile = $galacticusPath."data/stellarAstrophysics/vega/A0V_Castelli.xml";
     # Check that the file exists - if not, attempt to download data and create it.
     unless ( -e $vegaSpectrumFile ) {
 	print "Cannot find A0V_Castelli.xml file - will attempt to download data and create it....\n";
