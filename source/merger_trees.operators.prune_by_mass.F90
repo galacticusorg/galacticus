@@ -97,7 +97,8 @@ contains
     class  (mergerTreeOperatorPruneByMass), intent(inout)         :: self
     type   (mergerTree                   ), intent(inout), target :: tree
     type   (treeNode                     ), pointer               :: nodeNext     , nodePrevious, &
-         &                                                           node         , nodeNew
+         &                                                           node         , nodeNew     , &
+         &                                                           nodeWork
     class  (nodeComponentBasic           ), pointer               :: basic        , basicNew    , &
          &                                                           basicPrevious
     type   (mergerTree                   ), pointer               :: currentTree
@@ -116,17 +117,27 @@ contains
              ! Entire tree is below threshold. Destroy all but this base node. (Leaving just
              ! the base node makes the tree inert - i.e. it can not do anything.)
              call Merger_Tree_Prune_Clean_Branch (node)
-             node => node%firstChild
-             do while (associated(node))
-                nodeNext => node%sibling
-                call Merger_Tree_Prune_Clean_Branch(node)
-                call node%destroyBranch()
-                deallocate(node)
-                node => nodeNext
+             nodeWork => node%firstChild
+             do while (associated(nodeWork))
+                nodeNext => nodeWork%sibling
+                call Merger_Tree_Prune_Clean_Branch(nodeWork)
+                call nodeWork%destroyBranch()
+                deallocate(nodeWork)
+                nodeWork => nodeNext
              end do
+             nullify(node%firstChild)
+             nodeWork => node%firstSatellite
+             do while (associated(nodeWork))
+                nodeNext => nodeWork%sibling
+                call Merger_Tree_Prune_Clean_Branch(nodeWork)
+                call nodeWork%destroyBranch()
+                deallocate(nodeWork)
+                nodeWork => nodeNext
+             end do
+             nullify(node%firstSatellite)
           else
              ! Walk the tree, pruning branches.
-             do while (associated(node))               
+             do while (associated(node))
                 basic => node%basic()
                 ! Record the parent node to which we will return.
                 nodePrevious => node%parent
