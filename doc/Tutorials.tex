@@ -362,6 +362,13 @@ Setting {\normalfont \ttfamily [stellarPopulationPropertiesMethod]}$=${\normalfo
   <starFormationImfInstantaneousApproximationEffectiveAge value="13.8"/>
 \end{verbatim}
 
+\section{Computing Dust Attenuated Luminosities for All Galaxies}\label{sec:TutorialDustAttenuation}\index{dust!attenuation}
+
+As described in \S\ref{sec:DerivedProperties}, dust-attenuated luminosities can be computed for galaxies using the calculations of \cite{ferrara_atlas_1999} (among other methods). A script is provided which will automatically perform this calculation for all filters, in all galaxies, at all output redshifts in a \glc\ output file and store the results (along with the assumed galaxy inclinations) back to the \gls{hdf5} file. The script is used as follows:
+\begin{verbatim}
+./scripts/analysis/dustExtinguish.pl <galacticusFileName>
+\end{verbatim}
+
 \section{Computing Dust Attenuation and Emission Using Galacticus+Grasil}\label{sec:TutorialGrasil}\index{dust!emission}\index{dust!attenutation}\index{Grasil@{\normalfont \scshape Grasil}}
 
 \glc\ can interface with the \href{http://adlibitum.oat.ts.astro.it/silva/grasil/grasil.html}{\normalfont \scshape Grasil} code to compute the attenutation of starlight by dust, along with the re-emission of absorbed energy by that dust. To do this, it is necessary to store the entire star formation history of galaxies in a \glc\ model, as {\normalfont \scshape Grasil} uses this information to determine the attenuation of stellar populations as a function of their age.
