@@ -148,7 +148,13 @@ contains
        jiang2014J=3
     end if
     ! Build the distribution function for total velocity.
-    voightDistribution=distributionVoight(gamma(i,j),mu(i,j),sigma(i,j),limitLower=0.0d0,limitUpper=2.0d0)
+    jiang2014VoightDistribution   =distributionVoight(                                         &
+         &                                            gamma     (jiang2014I,jiang2014J)      , &
+         &                                            mu        (jiang2014I,jiang2014J)      , &
+         &                                            sigma     (jiang2014I,jiang2014J)      , &
+         &                                            limitLower                       =0.0d0, &
+         &                                            limitUpper                       =2.0d0  &
+         &                                           )
     ! Configure finder objects.
     if (.not.totalFinder %isInitialized()) then
        call totalFinder %rootFunction(jiang2014TotalVelocityCDF          )
@@ -185,13 +191,6 @@ contains
        call jiang2014Orbit%radiusSet(              radiusHostSelf)
        ! Solve for the total velocity.
        jiang2014XTotal               =Pseudo_Random_Get(self%pseudoSequenceObject,self%resetSequence)
-       jiang2014VoightDistribution   =distributionVoight(                                         &
-            &                                            gamma     (jiang2014I,jiang2014J)      , &
-            &                                            mu        (jiang2014I,jiang2014J)      , &
-            &                                            sigma     (jiang2014I,jiang2014J)      , &
-            &                                            limitLower                       =0.0d0, &
-            &                                            limitUpper                       =2.0d0  &
-            &                                           )
        jiang2014VelocityTotalInternal=totalFinder %find(rootGuess=1.0d0)
        ! Solve for the radial velocity.
        jiang2014XRadial                      =+0.0d0
