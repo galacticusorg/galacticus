@@ -17,16 +17,17 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Contains a module which implements an augmenting operator on merger trees.
-  use Merger_Trees_Builders
+  use, intrinsic :: ISO_C_Binding
+  use               Merger_Trees_Builders
 
-  !# <mergerTreeOperator name="mergerTreeOperatorAugment">
+  !# <mergerTreeOperator name="mergerTreeOperatorAugment" defaultThreadPrivate="yes">
   !#  <description>Provides a merger tree operator which augments tree resolution by inserting high-resolution branches.</description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorAugment
      !% An augmenting merger tree operator class.
      private
      double precision                        , allocatable, dimension(   :) :: timeSnapshots
-     integer                                              , dimension(0:10) :: retryHistogram
+     integer         (c_size_t)                           , dimension(0:10) :: retryHistogram              , trialCount
      double precision                                                       :: massCutOff                  , timeEarliest             , &
           &                                                                    toleranceScale              , massCutOffScaleFactor    , &
           &                                                                    massOvershootScaleFactor
@@ -85,6 +86,10 @@
      module procedure augmentConstructorInternal
   end interface mergerTreeOperatorAugment
 
+  ! A tree index counter used since the tree index is used in initializing the random number
+  ! sequence for each tree.
+  integer :: augmentNewTreeIndex=-1
+  
   !# <enumeration>
   !#  <name>treeStatistic</name>
   !#  <description>Enumeration of tasks to be performed during a tree walk.</description>
@@ -111,7 +116,7 @@ contains
     use Galacticus_Error
     implicit none
     type            (mergerTreeOperatorAugment)                              :: augmentConstructorParameters
-    type            (inputParameters          ), intent(in   )               :: parameters
+    type            (inputParameters          ), intent(inout)               :: parameters
     double precision                           , allocatable  , dimension(:) :: timeSnapshots
     class           (cosmologyFunctionsClass  ), pointer                     :: cosmologyFunctions_
     class           (mergerTreeBuilderClass   ), pointer                     :: mergerTreeBuilder_ 
@@ -269,6 +274,7 @@ contains
        augmentConstructorInternal%timeEarliest=    cosmologyFunctions_       %cosmicTime   (expansionFactorDefault)
     end if
     augmentConstructorInternal%retryHistogram               =  0
+    augmentConstructorInternal%trialCount                   =  0
     augmentConstructorInternal%massCutOff                   =  massCutOff
     augmentConstructorInternal%performChecks                =  performChecks
     augmentConstructorInternal%toleranceScale               =  toleranceScale
@@ -320,8 +326,9 @@ contains
     double precision                                                          :: tolerance                     , treeBestWorstFit              , &
          &                                                                       massCutoffScale               , massOvershootScale
     logical                                                                   :: treeBestOverride              , treeNewHasNodeAboveResolution , &
-         &                                                                       treeBestHasNodeAboveResolution, newRescale
-
+         &                                                                       treeBestHasNodeAboveResolution, newRescale                    , &
+         &                                                                       nodeBranches
+    
     ! Iterate over all linked trees in this forest.
     call Galacticus_Display_Indent('Augmenting merger tree',verbosityWorking)
     treeCurrent => tree
@@ -369,6 +376,8 @@ contains
              massOvershootScale             =      1.0d0
              massCutoffAttemptsRemaining    =  self%massCutOffAttemptsMaximum
              massOvershootAttemptsRemaining =  self%massOvershootAttemptsMaximum
+             ! Determine if the node branches.
+             nodeBranches=associated(node%firstChild).and.associated(node%firstChild%sibling)
              ! Begin building trees from this node, searching for an acceptable tree.
              if (Galacticus_Verbosity_Level() >= verbosityWorking) then
                 message="Building tree from node: "
@@ -401,7 +410,7 @@ contains
                 if (retryCount == self%retryMaximum) then
                    ! Rescale the tolerance to allow less accurate tree matches to be accepted in future.
                    retryCount  =0
-                   tolerance   =tolerance   *(1.0d0-self%toleranceScale)
+                   tolerance   =tolerance   *(1.0d0+self%toleranceScale)
                    ! Check for exhaustion of rescaling attempts.
                    rescaleCount=rescaleCount+1
                    if (rescaleCount > self%rescaleMaximum) call Galacticus_Display_Message('Node build attempts exhausted',verbosityWorking)
@@ -439,14 +448,20 @@ contains
                 end if                
              end do
              ! Accumulate the histrogram of rescalings.
-             !$omp critical (Augment_Statistics)
-             self        %retryHistogram(min(rescaleCount,ubound(self%retryHistogram)))= &
-                  & +self%retryHistogram(min(rescaleCount,ubound(self%retryHistogram)))  &
-                  & +1
-             !$omp end critical (Augment_Statistics)
+             if (nodeBranches) then
+                !$omp critical (Augment_Statistics)
+                self        %retryHistogram(min(rescaleCount,ubound(self%retryHistogram)))= &
+                     & +self%retryHistogram(min(rescaleCount,ubound(self%retryHistogram)))  &
+                     & +1
+                self        %trialCount    (min(rescaleCount,ubound(self%retryHistogram)))= &
+                     & +self%trialCount    (min(rescaleCount,ubound(self%retryHistogram)))  &
+                     & +max(1,1+retryCount)
+                !$omp end critical (Augment_Statistics)
+             end if
              ! Clean up the best tree if one exists.
              if (associated(treeBest%baseNode)) then
-                call treeBest%destroyBranch(treeBest%baseNode)
+                call treeBest%baseNode%destroyBranch()
+                deallocate(treeBest%baseNode)
                 treeBest%baseNode => null() 
              end if             
              ! Move on to the next node.
@@ -494,9 +509,20 @@ contains
     type            (mergerTreeOperatorPruneByTime)                         :: pruneByTime
     logical                                                                 :: treeBestOverride             , newTreeBest
     type            (varying_string               )                         :: message
-    character       (len=8                        )                         :: label
+    character       (len=16                       )                         :: label
     logical                                                                 :: primaryProgenitorIsClone
     
+    ! Record the primary progenitor of the node, and determine if it is a clone.
+    primaryProgenitorNode    => node%firstChild
+    primaryProgenitorIsClone =  .false.
+    if (associated(primaryProgenitorNode)) then
+       ! Detect if the primary progenitor is a clone.
+       basic                    => node                 %basic()
+       childBasic               => primaryProgenitorNode%basic()
+       primaryProgenitorIsClone =  Values_Agree(basic%time(),childBasic%time(),relTol=1.0d-5)       
+       ! Remove cloned primary progenitor from the tree.
+       if (primaryProgenitorIsClone) node%firstChild => primaryProgenitorNode%sibling
+    end if
     ! Find the earliest time to which the tree should be built.
     basic => node%basic()
     if (extendingEndNode) then
@@ -527,17 +553,6 @@ contains
        end if
     else
        timeEarliest=timeEarliestIn
-    end if
-    ! Record the primary progenitor of the node, and determine if it is a clone.
-    primaryProgenitorNode    => node%firstChild
-    primaryProgenitorIsClone =  .false.
-    if (associated(primaryProgenitorNode)) then
-       ! Detect if the primary progenitor is a clone.
-       basic                    => node                 %basic()
-       childBasic               => primaryProgenitorNode%basic()
-       primaryProgenitorIsClone =  Values_Agree(basic%time(),childBasic%time(),relTol=1.0d-5)       
-       ! Remove cloned primary progenitor from the tree.
-       if (primaryProgenitorIsClone) node%firstChild => primaryProgenitorNode%sibling
     end if
     ! Check that all children exists at the same time, and accumulate mass in children.
     massInChildren=0.0d0
@@ -571,15 +586,18 @@ contains
        end do
     end if
     ! Create a new base node, matched to the current node, build a tree from it, and truncate that tree to the desired earliest time.
-    pruneByTime      =  mergerTreeOperatorPruneByTime(              &
-         &                                            timeEarliest, &
-         &                                                 0.0d0  , &
-         &                                            huge(0.0d0)   &
-         &                                           )
-    baseNode         => treeNode                     (node%index(),newTree            )
-    baseBasic        => baseNode%basic               (             autoCreate  =.true.)
-    basic            => node    %basic               (                                )   
-    newTree%baseNode => baseNode
+    pruneByTime         =  mergerTreeOperatorPruneByTime(              &
+         &                                               timeEarliest, &
+         &                                                    0.0d0  , &
+         &                                               huge(0.0d0)   &
+         &                                              )
+    baseNode            => treeNode                     (node%index(),newTree            )
+    baseBasic           => baseNode%basic               (             autoCreate  =.true.)
+    basic               => node    %basic               (                                )   
+    newTree%baseNode    => baseNode
+    !$omp atomic
+    augmentNewTreeIndex =  augmentNewTreeIndex+1
+    newTree%index       =  augmentNewTreeIndex
     ! Determine the mass to use for the base mass of the new tree. This will be the mass of the node in the original tree if this
     ! exceeds the scale mass of the child nodes, otherwise, set to the scaled mass of the child nodes.
     newTreeBaseMass=max(basic%mass(),massInChildren)
@@ -589,8 +607,14 @@ contains
     call self       %mergerTreeBuilder_%build          (newTree               )
     call pruneByTime%operate                           (newTree               )
     ! Assert that the new tree has some branches.
-    if (.not.(extendingEndNode.or.associated(newTree%baseNode%firstChild))) &
-         & call Galacticus_Error_Report('augmentBuildTreeFromNode','proposed tree has no branches - check cut off mass settings')
+    if (.not.(extendingEndNode.or.associated(newTree%baseNode%firstChild))) then
+       message="proposed tree has no branches - check cut off mass settings"//char(10)
+       write (label,'(e16.8)') newTreeBaseMass
+       message=message//"   tree root mass = "//trim(label)//char(10)
+       write (label,'(e16.8)') self%massCutOff
+       message=message//"     cut off mass = "//trim(label)
+       call Galacticus_Error_Report('augmentBuildTreeFromNode',message)
+    end if
     ! Sort children of our node by mass, and gather statistics on number of children and number of end-nodes in the new tree.
     call self%sortChildren(node)
     nodeChildCount=augmentChildCount    (node                             )
@@ -641,7 +665,10 @@ contains
        !     forced.
        !
        ! Clean up the newly created tree, and replace it with the best tree.
-       if (associated(newTree%baseNode)) call newTree%destroyBranch(newTree%baseNode)
+       if (associated(newTree%baseNode)) then
+          call newTree%baseNode%destroyBranch()
+          deallocate(newTree%baseNode)
+       end if
        newTree%baseNode => treeBest%baseNode
        ! Reset the best tree.
        treeBestWorstFit  =  3.0d0
@@ -669,7 +696,7 @@ contains
             &  ==                                               &
             &   treeBuildSuccess                                &
             & ) then
-         augmentBuildTreeFromNode=treeBuildSuccess
+          augmentBuildTreeFromNode=treeBuildSuccess
        else 
           augmentBuildTreeFromNode=treeBuildFailureStructure
        end if
@@ -677,12 +704,18 @@ contains
        ! If the newly created tree was acceptable, use it.
        augmentBuildTreeFromNode=treeBuildSuccess
        ! Clean up any previously stored best tree.
-       if (associated(treeBest%baseNode)) call treeBest%destroyBranch(treeBest%baseNode)
+       if (associated(treeBest%baseNode)) then
+          call treeBest%baseNode%destroyBranch()
+          deallocate(treeBest%baseNode)
+       end if
        treeBestWorstFit  =  3.0d0
        treeBest%baseNode => null()
     else
        ! The newly created tree was unacceptable, clean it up and return the failure code.
-       if (associated(newTree%baseNode)) call newTree%destroyBranch(newTree%baseNode)
+       if (associated(newTree%baseNode)) then
+          call newTree%baseNode%destroyBranch()
+          deallocate(newTree%baseNode)
+       end if
        augmentBuildTreeFromNode=treeAccepted
     end if
     ! Put any cloned progenitor back in.
@@ -700,9 +733,9 @@ contains
                 childNode => childNode%sibling
              end do
              ! Modify links to make our non-overlap node the primary progenitor.
-             childNode            %sibling           => primaryProgenitorNode%sibling
-             primaryProgenitorNode%sibling           => node                 %firstChild
-             node%firstChild => primaryProgenitorNode 
+             childNode            %sibling    => primaryProgenitorNode%sibling
+             primaryProgenitorNode%sibling    => node                 %firstChild
+             node                 %firstChild => primaryProgenitorNode 
           end if
        end if       
     end if    
@@ -719,7 +752,8 @@ contains
     type            (treeNode                 ), intent(inout)            , pointer :: node                         , primaryProgenitorNode
     type            (treeNode                 )                           , pointer :: nodeCurrent                  , nodePrevious                  , &
          &                                                                             nodeNonOverlap               , nodeNonOverlapFirst           , &
-         &                                                                             nodeOriginal                 , nodePrimaryOriginal
+         &                                                                             nodeOriginal                 , nodePrimaryOriginal           , &
+         &                                                                             nodeSatellite
     class           (nodeComponentBasic       )                           , pointer :: basicCurrent                 , basicSort                     , &
          &                                                                             basicNonOverlap              , basicNew                      , &
          &                                                                             basicOriginal
@@ -920,7 +954,23 @@ contains
                    end if
                    nodeCurrent => nodeCurrent%parent
                 end do
+                ! If the clone primary progenitor contained any satellites, shift them to the parent node.
+                if (associated(node%firstSatellite)) then
+                   nodeSatellite => node%firstSatellite
+                   do while (associated(nodeSatellite%sibling))
+                      nodeSatellite => nodeSatellite%sibling
+                   end do
+                   nodeSatellite%sibling        => primaryProgenitorNode%firstSatellite
+                else
+                   node         %firstSatellite => primaryProgenitorNode%firstSatellite
+                end if
+                nodeSatellite => primaryProgenitorNode%firstSatellite
+                do while (associated(nodeSatellite))
+                   nodeSatellite%parent => node
+                   nodeSatellite        => nodeSatellite%sibling
+                end do
              else
+                ! Reinstate the cloned progenitor.
                 primaryProgenitorNode%sibling    => node                 %firstChild
                 node                 %firstChild => primaryProgenitorNode
              end if
@@ -945,9 +995,6 @@ contains
              end do
           end if
        end if
-       
-
-
     else if (                                                      &
          &         nodeChildCount                <= endNodesSorted &
          &   .and.                                                 &
@@ -960,7 +1007,10 @@ contains
        if (treeCurrentWorstFit < treeBestWorstFit) then
           newTreeBest = .true.
           ! Current tree is better than the current best tree. Replace the best tree with the current tree.
-          if (associated(treeBest%baseNode)) call treeBest%destroyBranch(treeBest%baseNode)
+          if (associated(treeBest%baseNode)) then
+             call treeBest%baseNode%destroyBranch()
+             deallocate(treeBest%baseNode)
+          end if
           treeBest                      %baseNode          => tree                         %baseNode
           tree                          %baseNode          => null()
           treeBest                      %baseNode%hostTree => treeBest
@@ -976,7 +1026,10 @@ contains
     else
        ! Tree is not acceptable or better than the current best tree - destroy it.
        call self%nonOverlapReinsert(nodeNonOverlapFirst)
-       if (associated(tree%baseNode)) call tree%destroyBranch(tree%baseNode)
+       if (associated(tree%baseNode)) then
+          call tree%baseNode%destroyBranch()
+          deallocate(tree%baseNode)
+       end if
     end if
     ! Return a suitable status code based on tree acceptance criteria.
     if (treeAccepted) then    
@@ -1266,7 +1319,7 @@ contains
     basicOriginal         => nodeOriginal%basic()
     thisFit               =  +2.0d0                                     &
          &                   *abs(basicNew%mass()-basicOriginal%mass()) &
-         &                   /abs(basicNew%mass()+basicOriginal%mass())
+         &                   /abs(basicNew%mass()+basicOriginal%mass())          
     augmentNodeComparison =  thisFit < tolerance
     treeCurrentWorstFit   =  max(treeCurrentWorstFit,thisFit)
     return
@@ -1310,9 +1363,9 @@ contains
     use Galacticus_HDF5
     use Memory_Management
     implicit none
-    class  (mergerTreeOperatorAugment), intent(inout)               :: self
-    integer                           , allocatable  , dimension(:) :: retryHistogram
-    type   (hdf5Object               )                              :: augmentStatisticsGroup
+    class           (mergerTreeOperatorAugment), intent(inout)               :: self
+    integer         (c_size_t                 ), allocatable  , dimension(:) :: retryHistogram        , trialCount
+    type            (hdf5Object               )                              :: augmentStatisticsGroup
 
     ! Output the data.
     !$omp critical(HDF5_Access)
@@ -1321,14 +1374,19 @@ contains
        ! Our group does exist. Read existing histogram, add them to our own, then write back to file.
        augmentStatisticsGroup=galacticusOutputFile%openGroup('augmentStatistics','Statistics of merger tree augmentation.',objectsOverwritable=.true.,overwriteOverride=.true.)
        call Alloc_Array(retryHistogram,shape(self%retryHistogram))
+       call Alloc_Array(trialCount    ,shape(self%trialCount    ))
        call augmentStatisticsGroup%readDataset('retryHistogram',retryHistogram)
+       call augmentStatisticsGroup%readDataset('trialCount'    ,trialCount    )
        self%retryHistogram=self%retryHistogram+retryHistogram
+       self%trialCount    =self%trialCount    +trialCount
        call Dealloc_Array(retryHistogram)
+       call Dealloc_Array(trialCount    )
     else
        ! Our group does not already exist. Simply write the data.
        augmentStatisticsGroup=galacticusOutputFile%openGroup('augmentStatistics','Statistics of merger tree augmentation.',objectsOverwritable=.true.,overwriteOverride=.true.)
     end if
     call augmentStatisticsGroup%writeDataset(self%retryHistogram,"retryHistogram","Retry histogram []")
+    call augmentStatisticsGroup%writeDataset(self%trialCount    ,"trialCount"    ,"Trial counts []"   )
     call augmentStatisticsGroup%close       (                                                         )    
     !$omp end critical(HDF5_Access)
     return

@@ -21,7 +21,8 @@
 module Merger_Trees_Pruning_Utilities
   implicit none
   private
-  public :: Merger_Tree_Prune_Clean_Branch, Merger_Tree_Prune_Unlink_Parent
+  public :: Merger_Tree_Prune_Clean_Branch , Merger_Tree_Prune_Unlink_Parent, &
+       &    Merger_Tree_Prune_Uniqueify_IDs
 
 contains
 
@@ -30,7 +31,8 @@ contains
     use Galacticus_Nodes
     implicit none
     type(treeNode), pointer, intent(inout) :: node
-    type(treeNode), pointer                :: workNode, mergeeNode
+    type(treeNode), pointer                :: workNode  , mergeeNode, &
+         &                                    nextMergee
 
     ! Walk the branch to be pruned.
     workNode => node
@@ -43,7 +45,9 @@ contains
           do while (associated(mergeeNode))
              call mergeeNode%removeFromMergee()
              nullify(mergeeNode%mergeTarget)
-             mergeeNode => mergeeNode%siblingMergee
+             nextMergee => mergeeNode%siblingMergee
+             nullify(mergeeNode%siblingMergee)
+             mergeeNode => nextMergee
           end do
        end if
        workNode => workNode%walkBranchWithSatellites(node)
@@ -72,7 +76,6 @@ contains
           ! to-be-pruned branch being misidentified as the primary progenitor.
           allocate(newNode)
           call parentNode%copyNodeTo(newNode)
-          call newNode%uniqueIDSet()
           newNode%sibling        => node%sibling
           newNode%parent         => parentNode
           parentNode%firstChild  => newNode
@@ -80,6 +83,8 @@ contains
           newNode%event          => null()
           newNode%firstSatellite => null()
           newNode%firstMergee    => null()
+          newNode%mergeTarget    => null()
+          newNode%siblingMergee  => null()
           newBasic               => newNode%basic()
           call newBasic%timeSet(newBasic%time()*(1.0d0-1.0d-6))
        end if
@@ -93,5 +98,28 @@ contains
     end if
     return
   end subroutine Merger_Tree_Prune_Unlink_Parent
+
+  subroutine Merger_Tree_Prune_Uniqueify_IDs(tree)
+    !% Ensure that nodes cloned during tree pruning have unique IDs.
+    use Galacticus_Nodes
+    implicit none
+    type(mergerTree), target , intent(in   ) :: tree
+    type(treeNode  ), pointer                :: node
+    type(mergerTree), pointer                :: currentTree
+
+    ! Iterate over trees.
+    currentTree => tree
+    do while (associated(currentTree))
+       ! Iterate over nodes.
+       node => currentTree%baseNode
+       do while (associated(node))
+          if (node%uniqueID() == node%parent%uniqueID()) call node%uniqueIDSet()
+          node => node%walkTree()
+       end do
+       ! Move to the next tree.
+       currentTree => currentTree%nextTree
+    end do
+    return
+  end subroutine Merger_Tree_Prune_Uniqueify_IDs
   
 end module Merger_Trees_Pruning_Utilities

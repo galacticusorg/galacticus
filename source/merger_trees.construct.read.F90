@@ -31,13 +31,17 @@ module Merger_Tree_Read
   public :: Merger_Tree_Read_Initialize, Merger_Tree_Read_Close
 
   ! The name of the file from which to read merger trees and its internal object.
-  type            (varying_string                )                                                     :: mergerTreeReadFileName                                                                       
+  integer                                                                                              :: mergerTreeReadFileCount
+  integer                                                                                              :: mergerTreeReadFileCurrent
+  type            (varying_string                ), allocatable, dimension(:)                          :: mergerTreeReadFileName                                                                       
   class           (mergerTreeImporterClass       )                                           , pointer :: defaultImporter                                                                              
   logical                                                                                              :: importerOpen                             =.false.
   
   ! Index of the next merger tree to read.
-  integer                                                                                              :: nextTreeToRead                           =0                                                  
-  
+  integer                                                                                              :: nextTreeToRead                           =0
+  integer                                                                                              :: nextTreeToReadThread                     =0
+  !$omp threadprivate(nextTreeToReadThread)
+    
   ! Index of the first tree to process.
   integer         (kind=kind_int8                )                                                     :: mergerTreeReadBeginAt                                                                        
   
@@ -45,6 +49,9 @@ module Merger_Tree_Read
   double precision                                                                                     :: treeVolumeWeightCurrent                                                                      
   !$omp threadprivate(treeVolumeWeightCurrent)
 
+  ! Flag indicating if the same tree should always be assigned to the same thread.
+  logical                                                                                              :: mergerTreeReadFixedThreadAssignment
+  
   ! Flag indicating whether branch jumps are allowed.
   logical                                                                                              :: mergerTreeReadAllowBranchJumps                                                               
   
@@ -177,6 +184,7 @@ contains
     procedure(Merger_Tree_Read_Do     ), intent(inout), pointer :: Merger_Tree_Construct     
     integer  (c_size_t                )                         :: iOutput                   
     type     (varying_string          )                         :: message                  ,  mergerTreeReadSubhaloAngularMomentaMethodText
+    type     (inputParameters         )                         :: subParameters
     
     ! Check if our method is to be used.
     if (mergerTreeConstructMethod == 'read') then
@@ -187,12 +195,25 @@ contains
        !@   <name>mergerTreeReadFileName</name>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The name of the file from which merger tree data should be read when using the {\normalfont \ttfamily [mergerTreeConstructMethod]}$=${\normalfont \ttfamily read} tree construction method.
+       !@     The name of the file(s) from which merger tree data should be read when using the {\normalfont \ttfamily [mergerTreeConstructMethod]}$=${\normalfont \ttfamily read} tree construction method.
        !@   </description>
        !@   <type>string</type>
+       !@   <cardinality>1..</cardinality>
+       !@ </inputParameter>
+       mergerTreeReadFileCount=Get_Input_Parameter_Array_Size('mergerTreeReadFileName')
+       allocate(mergerTreeReadFileName(mergerTreeReadFileCount))
+       call Get_Input_Parameter('mergerTreeReadFileName',mergerTreeReadFileName)
+       !@ <inputParameter>
+       !@   <name>mergerTreeReadFixedThreadAssignment</name>
+       !@   <defaultValue>true</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     If true, assignment of trees to OpenMP threads will be done deterministically. Otherwise, assignment is on a first-come-first-served basis.
+       !@   </description>
+       !@   <type>boolean</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadFileName',mergerTreeReadFileName)
+       call Get_Input_Parameter('mergerTreeReadFixedThreadAssignment',mergerTreeReadFixedThreadAssignment,defaultValue=.false.)
        !@ <inputParameter>
        !@   <name>mergerTreeReadPresetMergerTimes</name>
        !@   <attachedTo>module</attachedTo>
@@ -501,9 +522,10 @@ contains
 
        ! Get fallback concentration method.
        if (globalParameters%isPresent('mergerTreeReadConcentrationFallbackMethod')) then
-          fallbackConcentration => darkMatterProfileConcentration(globalParameters%subParameters('mergerTreeReadConcentrationFallbackMethod'))
+          subParameters=globalParameters%subParameters('mergerTreeReadConcentrationFallbackMethod')
+          fallbackConcentration => darkMatterProfileConcentration(subParameters)
        else
-          fallbackConcentration => darkMatterProfileConcentration(                                                                           )
+          fallbackConcentration => darkMatterProfileConcentration(             )
        end if
               
        ! Get array of output times.
@@ -515,7 +537,8 @@ contains
 
        ! Open the file.
        defaultImporter => mergerTreeImporter()
-       call defaultImporter%open(mergerTreeReadFileName)
+       mergerTreeReadFileCurrent=1
+       call defaultImporter%open(mergerTreeReadFileName(mergerTreeReadFileCurrent))
        importerOpen=.true.
 
        ! Validate input parameters.
@@ -533,6 +556,9 @@ contains
           call Galacticus_Error_Report("Merger_Tree_Read_Initialize",message)
        end if
 
+       ! Fixed thread assignment currently not possible with multiple files.
+       if (mergerTreeReadFixedThreadAssignment .and. mergerTreeReadFileCount > 1) call Galacticus_Error_Report("Merger_Tree_Read_Initialize","fixed thread assignment is not possible with multiple tree files")
+       
        ! Warn if subhalo promotions are allowed, but branch jumps are not.
        if (mergerTreeReadAllowSubhaloPromotions.and..not.mergerTreeReadAllowBranchJumps) then
           message='WARNING: allowing subhalo promotions while not allowing branch jumps can lead to deadlocking of trees.'//char(10)
@@ -700,6 +726,7 @@ contains
     use Array_Utilities
     use Numerical_Comparison
     use Vectors
+    !$ use OMP_Lib
     implicit none
     type            (mergerTree                    )                             , intent(inout), target :: thisTree                               
     logical                                                                      , intent(in   )         :: skipTree                               
@@ -714,94 +741,148 @@ contains
     integer                                                                                              :: isolatedNodeCount 
     integer         (c_size_t                      )                                                     :: historyCountMaximum   , iNode            , &
          &                                                                                                  iOutput
-    logical                                                                                              :: haveTree              , processTree
+    logical                                                                                              :: haveTree              , processTree      , &
+         &                                                                                                  newTreeFileRequired
     type            (varying_string                )                                                     :: message
+    integer                                                                                              :: nextTreeToReadActual
 
-    !$omp critical(mergerTreeReadTree)
-    ! Increment the tree to read index.
-    nextTreeToRead=nextTreeToRead+1
-    ! Keep incrementing the tree index until we find the first tree to process (if we haven't done so already). Also skip trees
-    ! that contain 1 or fewer nodes and these are unprocessable.
-    if (nextTreeToRead <= defaultImporter%treeCount()) then
-       do while (                                                                      &
-            &     (                                                                    &
-            &       mergerTreeReadBeginAt                     > 0                      &
-            &      .and.                                                               &
-            &       defaultImporter%treeIndex(nextTreeToRead) /= mergerTreeReadBeginAt &
-            &     )                                                                    &
-            &    .or.                                                                  &
-            &       defaultImporter%nodeCount(nextTreeToRead) <= 1                     &
-            &   )
-          nextTreeToRead=nextTreeToRead+1
-          ! If the end of the list has been reached, exit.
-          if (nextTreeToRead > defaultImporter%treeCount()) exit
-       end do
-    end if
-
-    ! Flag that we've now found the first merger tree to process.
-    mergerTreeReadBeginAt=-1
-
-    if (nextTreeToRead > defaultImporter%treeCount())  then
-       ! Flag that we do not have a tree.
-       haveTree=.false.
-    else
-       ! Flag that we do have a tree.
-       haveTree=.true.
-    end if
-
-    ! Continue only if we have a tree.
-    processTree=.false.
-    if (haveTree) then
-       ! Retrieve stored internal state if possible.
-       call Galacticus_State_Retrieve
-       ! Take a snapshot of the internal state and store it.
-       call Galacticus_State_Snapshot
-       message='Storing state for tree #'
-       message=message//nextTreeToRead
-       call Galacticus_State_Store(message)
-
-       ! If the tree is to be skipped, do not read it.
-       if (skipTree) then
-          ! Simply allocate a base node to indicate that the tree exists.
-          thisTree%baseNode => treeNode(hostTree=thisTree)
+    ! Enter loop which suspends threads when a new tree file is needed.
+    newTreeFileRequired=.true.
+    treeFile : do while (newTreeFileRequired)
+       newTreeFileRequired=.false.
+       !$omp critical(mergerTreeReadTree)
+       ! Increment the tree to read index.
+       !$ if (mergerTreeReadFixedThreadAssignment) then
+       !$    nextTreeToReadThread=nextTreeToReadThread+1
+       !$    nextTreeToReadActual=nextTreeToReadThread
+       !$ else
+       nextTreeToRead      =nextTreeToRead      +1
+       nextTreeToReadActual=nextTreeToRead
+       !$ end if
+       ! Move to the next tree file if necessary.
+       if (nextTreeToReadActual > defaultImporter%treeCount()) then
+          newTreeFileRequired=.true.
        else
-          ! Set tree properties.
-          ! treeIndex
-          thisTree%index=defaultImporter%treeIndex(nextTreeToRead)
-          ! volumeWeight
-          treeVolumeWeightCurrent=defaultImporter%treeWeight(nextTreeToRead)
-          thisTree%volumeWeight=treeVolumeWeightCurrent
-          ! Initialize no events.
-          thisTree%event => null()
-          ! Read data from the file.
-          call defaultImporter%import(                                                                                                                           &
-               &                      nextTreeToRead                                                                                                           , &
-               &                      nodes                                                                                                                    , &
-               &                      requireScaleRadii         = mergerTreeReadPresetScaleRadii                                                               , &
-               &                      requireParticleCounts     = mergerTreeReadPresetParticleCounts                                                           , &
-               &                      requireVelocityMaxima     = mergerTreeReadPresetVelocityMaxima                                                           , &
-               &                      requireVelocityDispersions= mergerTreeReadPresetVelocityDispersions                                                      , &
-               &                      requireAngularMomenta     =(mergerTreeReadPresetSpins              .and.defaultImporter%angularMomentaAvailable  ())     , &
-               &                      requireAngularMomenta3D   =                                                                                                &
-               &                                                 (                                                                                               &
-               &                                                    mergerTreeReadPresetSpins3D                                                                  &
-               &                                                   .or.                                                                                          &
-               &                                                    (                                                                                            &
-               &                                                      mergerTreeReadPresetSpins                                                                  &
-               &                                                     .and.                                                                                       &
-               &                                                      mergerTreeReadSubhaloAngularMomentaMethod == mergerTreeReadSubhaloAngularMomentaSummation  &
-               &                                                    )                                                                                            &
-               &                                                  )                                                                                              &
-               &                                                 .and.                                                                                           &
-               &                                                  defaultImporter%angularMomenta3DAvailable()                                                  , &
-               &                      requireSpin               =(mergerTreeReadPresetSpins              .and.defaultImporter%spinAvailable            ())     , &
-               &                      requireSpin3D             =(mergerTreeReadPresetSpins3D            .and.defaultImporter%spin3DAvailable          ())     , &
-               &                      requirePositions          =(mergerTreeReadPresetPositions          .or. mergerTreeReadPresetOrbits                 )       &
-               &                     )
-          processTree=.true.
+          ! Keep incrementing the tree index until we find the first tree to process (if we haven't done so already). Also skip trees
+          ! that contain 1 or fewer nodes and these are unprocessable.
+          if (nextTreeToReadActual <= defaultImporter%treeCount()) then
+             do while (                                                                            &
+                  &     (                                                                          &
+                  &       mergerTreeReadBeginAt                           > 0                      &
+                  &      .and.                                                                     &
+                  &       defaultImporter%treeIndex(nextTreeToReadActual) /= mergerTreeReadBeginAt &
+                  &     )                                                                          &
+                  &    .or.                                                                        &
+                  &       defaultImporter%nodeCount(nextTreeToReadActual) <= 1                     &
+                  !$ &    .or.                                                                        &
+                  !$ &     (                                                                          &
+                  !$ &       mergerTreeReadFixedThreadAssignment                                      &
+                  !$ &      .and.                                                                     &
+                  !$ &       mod(nextTreeToReadActual,omp_get_num_threads()) /= omp_get_thread_num()  &
+                  !$ &     )                                                                          &
+                  &   )
+                nextTreeToReadActual=nextTreeToReadActual+1
+                ! If the end of the list has been reached, exit.
+                if (nextTreeToReadActual > defaultImporter%treeCount()) then
+                   newTreeFileRequired=.true.                   
+                   exit
+                end if
+             end do
+             ! Record if we've now found the first merger tree to process.
+             if     (                                                                          &
+                  &   mergerTreeReadBeginAt                           >  0                     &
+                  &  .and.                                                                     &
+                  &   defaultImporter%treeIndex(nextTreeToReadActual) == mergerTreeReadBeginAt &
+                  & ) mergerTreeReadBeginAt=-1
+             !$ if (mergerTreeReadFixedThreadAssignment) then       
+             !$    nextTreeToReadThread=nextTreeToReadActual
+             !$ else
+             nextTreeToRead=nextTreeToReadActual
+             !$ end if
+          end if
        end if
-    end if
-    !$omp end critical(mergerTreeReadTree)
+       if (nextTreeToReadActual > defaultImporter%treeCount())  then
+          ! Flag that we do not have a tree.
+          haveTree=.false.
+       else
+          ! Flag that we do have a tree.
+          haveTree=.true.
+       end if
+       ! Continue only if we have a tree.
+       processTree=.false.
+       if (haveTree) then
+          ! Retrieve stored internal state if possible.
+          call Galacticus_State_Retrieve
+          ! Take a snapshot of the internal state and store it.
+          call Galacticus_State_Snapshot
+          message='Storing state for tree #'
+          message=message//nextTreeToReadActual
+          call Galacticus_State_Store(message)          
+          ! If the tree is to be skipped, do not read it.
+          if (skipTree) then
+             ! Simply allocate a base node to indicate that the tree exists.
+             thisTree%baseNode => treeNode(hostTree=thisTree)
+          else
+             ! Set tree properties.
+             ! treeIndex
+             thisTree%index=defaultImporter%treeIndex(nextTreeToReadActual)
+             ! volumeWeight
+             treeVolumeWeightCurrent=defaultImporter%treeWeight(nextTreeToReadActual)
+             thisTree%volumeWeight=treeVolumeWeightCurrent
+             ! Initialize no events.
+             thisTree%event => null()
+             ! Read data from the file.
+             call defaultImporter%import(                                                                                                                           &
+                  &                      nextTreeToReadActual                                                                                                     , &
+                  &                      nodes                                                                                                                    , &
+                  &                      requireScaleRadii         = mergerTreeReadPresetScaleRadii                                                               , &
+                  &                      requireParticleCounts     = mergerTreeReadPresetParticleCounts                                                           , &
+                  &                      requireVelocityMaxima     = mergerTreeReadPresetVelocityMaxima                                                           , &
+                  &                      requireVelocityDispersions= mergerTreeReadPresetVelocityDispersions                                                      , &
+                  &                      requireAngularMomenta     =(mergerTreeReadPresetSpins              .and.defaultImporter%angularMomentaAvailable  ())     , &
+                  &                      requireAngularMomenta3D   =                                                                                                &
+                  &                                                 (                                                                                               &
+                  &                                                    mergerTreeReadPresetSpins3D                                                                  &
+                  &                                                   .or.                                                                                          &
+                  &                                                    (                                                                                            &
+                  &                                                      mergerTreeReadPresetSpins                                                                  &
+                  &                                                     .and.                                                                                       &
+                  &                                                      mergerTreeReadSubhaloAngularMomentaMethod == mergerTreeReadSubhaloAngularMomentaSummation  &
+                  &                                                    )                                                                                            &
+                  &                                                  )                                                                                              &
+                  &                                                 .and.                                                                                           &
+                  &                                                  defaultImporter%angularMomenta3DAvailable()                                                  , &
+                  &                      requireSpin               =(mergerTreeReadPresetSpins              .and.defaultImporter%spinAvailable            ())     , &
+                  &                      requireSpin3D             =(mergerTreeReadPresetSpins3D            .and.defaultImporter%spin3DAvailable          ())     , &
+                  &                      requirePositions          =(mergerTreeReadPresetPositions          .or. mergerTreeReadPresetOrbits                 )       &
+                  &                     )
+             processTree=.true.
+          end if
+       end if
+       !$omp end critical(mergerTreeReadTree)
+       ! Handle the case where a new tree file is required.
+       if (newTreeFileRequired) then
+          ! Assume we can exit by default.
+          newTreeFileRequired=.false.
+          processTree        =.false.
+          ! Are there any more files to process?
+          if (mergerTreeReadFileCurrent < mergerTreeReadFileCount) then
+             ! Wait for all threads to reach this point.
+             !$omp barrier
+             ! Have the master thread move to the next tree file.
+             !$omp master
+             mergerTreeReadFileCurrent=mergerTreeReadFileCurrent+1
+             if (mergerTreeReadFileCurrent <= mergerTreeReadFileCount) then
+                call defaultImporter%close(                                                 )
+                call defaultImporter%open (mergerTreeReadFileName(mergerTreeReadFileCurrent))
+                nextTreeToRead=0
+             end if
+             !$omp end master
+             !$omp barrier
+             if (mergerTreeReadFileCurrent <= mergerTreeReadFileCount) newTreeFileRequired=.true.
+          end if
+       end if       
+    end do treeFile
 
     ! Continue if we have a tree to process.
     if (processTree) then
@@ -1086,14 +1167,25 @@ contains
        call Scan_for_Branch_Jumps(nodes,thisNodeList)
        
        ! Allocate arrays for history building.
-       if (historyCountMaximum > 0) then
-          if (allocated(position)) call Dealloc_Array(position)
-          if (allocated(velocity)) call Dealloc_Array(velocity)
-          call Alloc_Array(historyTime,[int(historyCountMaximum)])
-          if (mergerTreeReadPresetSubhaloIndices                             ) call Alloc_Array(historyIndex,[  int(historyCountMaximum)])
-          if (mergerTreeReadPresetSubhaloMasses                              ) call Alloc_Array(historyMass ,[  int(historyCountMaximum)])
-          if (mergerTreeReadPresetPositions    .or.mergerTreeReadPresetOrbits) call Alloc_Array(position    ,[3,int(historyCountMaximum)])
-          if (mergerTreeReadPresetPositions    .or.mergerTreeReadPresetOrbits) call Alloc_Array(velocity    ,[3,int(historyCountMaximum)])
+       if (allocated(position)) call Dealloc_Array(position)
+       if (allocated(velocity)) call Dealloc_Array(velocity)
+       call Alloc_Array(historyTime,[int(historyCountMaximum)])
+       if (mergerTreeReadPresetSubhaloIndices                             ) then
+          call Alloc_Array(historyIndex,[  int(historyCountMaximum)])
+       else
+          call Alloc_Array(historyIndex,[                        0 ])
+       end if
+       if (mergerTreeReadPresetSubhaloMasses                              ) then
+          call Alloc_Array(historyMass ,[  int(historyCountMaximum)])
+       else
+          call Alloc_Array(historyMass ,[                        0 ])
+       end if
+       if (mergerTreeReadPresetPositions    .or.mergerTreeReadPresetOrbits) then
+          call Alloc_Array(position    ,[3,int(historyCountMaximum)])
+          call Alloc_Array(velocity    ,[3,int(historyCountMaximum)])
+       else
+          call Alloc_Array(position    ,[0,                      0 ])
+          call Alloc_Array(velocity    ,[0,                      0 ])
        end if
        
        ! Build subhalo mass histories if required.
@@ -1348,7 +1440,7 @@ contains
                    nodeIsMostMassive=.false.
                 end if
              end do
-             if (.not.isolatedProgenitorExists) then
+             if (.not.progenitors%exist() .or. .not.isolatedProgenitorExists) then
                 if (nodeIsMostMassive) then
                    ! Node is isolated, has no isolated node that descends into it, and our subhalo is the most massive subhalo which
                    ! descends into it. Therefore, our subhalo must be promoted to become an isolated halo again.
@@ -1485,17 +1577,17 @@ contains
     use String_Handling
     use Galacticus_Error
     implicit none
-    type     (mergerTree        )                       , intent(inout) , target::                    thisTree 
-    class    (nodeData          )         , dimension(:), intent(inout) ::      nodes                          
-    type     (treeNodeList      )         , dimension(:), intent(inout) ::      nodeList                       
-    class    (nodeComponentBasic), pointer                              ::      nodeBasicComponent             
-    type     (mergerTree        ), pointer                              ::      currentTree                    
-    class    (nodeData          ), pointer                              ::      parentNode                     
-    integer                                                             ::      iNode                          
-    integer  (c_size_t          )                                       ::      iIsolatedNode                  
-    type     (varying_string    )                                       ::      message                        
-    character(len=12            )                                       ::      label                          
-    logical                                                             ::      assignLastIsolatedTime         
+    type     (mergerTree        )                       , intent(inout) , target :: thisTree
+    type     (nodeData          )         , dimension(:), intent(inout)          ::      nodes
+    type     (treeNodeList      )         , dimension(:), intent(inout)          ::      nodeList
+    class    (nodeComponentBasic), pointer                                       ::      nodeBasicComponent
+    type     (mergerTree        ), pointer                                       ::      currentTree
+    type     (nodeData          ), pointer                                       ::      parentNode
+    integer                                                                      ::      iNode
+    integer  (c_size_t          )                                                ::      iIsolatedNode                  
+    type     (varying_string    )                                                ::      message
+    character(len=12            )                                                ::      label
+    logical                                                                      ::      assignLastIsolatedTime
     
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node (or an initial satellite).
@@ -1522,7 +1614,7 @@ contains
                    currentTree%index            =  nodes   (iNode        )%nodeIndex
                 else
                    currentTree%index            =  thisTree               %index
-                end if
+                end if                
                 currentTree   %volumeWeight     =  treeVolumeWeightCurrent
                 currentTree   %initializedUntil =  0.0d0
                 currentTree   %event            => null()
@@ -1762,12 +1854,12 @@ contains
              ! The node mass is below the reliability threshold, or no scale information is available. Set the scale radius using
              ! the fallback concentration method.
              activeNode => nodeList(iIsolatedNode)%node
-             radiusScale=max(                                                                                                      &
-                  &          min(                                                                                                  &
-                  &              Dark_Matter_Profile_Scale(nodeList(iIsolatedNode)%node,fallbackConcentration)                   , &
-                  &              darkMatterHaloScale_%virialRadius(activeNode)/mergerTreeReadPresetScaleRadiiConcentrationMinimum  &
-                  &             )                                                                                                , &
-                  &              darkMatterHaloScale_%virialRadius(activeNode)/mergerTreeReadPresetScaleRadiiConcentrationMaximum  &
+             radiusScale=max(                                                                                                       &
+                  &          min(                                                                                                   &
+                  &              Dark_Matter_Profile_Scale(nodeList(iIsolatedNode)%node,concentrationMethod=fallbackConcentration), &
+                  &              darkMatterHaloScale_%virialRadius(activeNode)/mergerTreeReadPresetScaleRadiiConcentrationMinimum   &
+                  &             )                                                                                                 , &
+                  &              darkMatterHaloScale_%virialRadius(activeNode)/mergerTreeReadPresetScaleRadiiConcentrationMaximum   &
                   &         )
              call thisDarkMatterProfileComponent%scaleSet(radiusScale)
           end if
@@ -2008,7 +2100,8 @@ contains
     class           (nodeComponentPosition          ), pointer                                        :: childPositionComponent             , hostPositionComponent       , & 
          &                                                                                               satellitePositionComponent         , thisPositionComponent           
     class           (nodeComponentSatellite         ), pointer                                        :: satelliteSatelliteComponent        , thisSatelliteComponent          
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    class           (darkMatterHaloScaleClass       ), pointer                                        :: darkMatterHaloScale_
+    class           (virialOrbitClass               ), pointer                                        :: virialOrbit_
     type            (keplerOrbit                    )                                                 :: thisOrbit                                                            
     integer                                                                                           :: iNode                              , thispass
     integer         (c_size_t                       )                                                 :: historyCount                       , iIsolatedNode                   
@@ -2182,6 +2275,7 @@ contains
     darkMatterHaloScale_ => darkMatterHaloScale()
     ! Set orbits.
     if (mergerTreeReadPresetOrbits) then
+       virialOrbit_ => virialOrbit()
        iIsolatedNode=0
        do iNode=1,size(nodes)
          if (nodes(iNode)%primaryIsolatedNodeIndex /= nodeIsUnreachable) then
@@ -2220,7 +2314,7 @@ contains
                    if (mergerTreeReadPresetOrbitsSetAll) then
                       ! The satellite and host have zero separation, so no orbit can be
                       ! computed. Since all orbits must be set, choose an orbit at random.
-                      thisOrbit=Virial_Orbital_Parameters(satelliteNode,hostNode,acceptUnboundOrbits)
+                      thisOrbit=virialOrbit_%orbit(satelliteNode,hostNode,acceptUnboundOrbits)
                       call satelliteSatelliteComponent%virialOrbitSet(thisOrbit)
                    else
                       message='merging halos ['
@@ -2251,7 +2345,7 @@ contains
                       if (satelliteSatelliteComponent%velocityIsSettable()) call satelliteSatelliteComponent%velocitySet(relativeVelocity)
                    else if (mergerTreeReadPresetOrbitsSetAll) then
                       ! The given orbit does not cross the virial radius. Since all orbits must be set, choose an orbit at random.
-                      thisOrbit=Virial_Orbital_Parameters(satelliteNode,hostNode,acceptUnboundOrbits)
+                      thisOrbit=virialOrbit_%orbit(satelliteNode,hostNode,acceptUnboundOrbits)
                       call satelliteSatelliteComponent%virialOrbitSet(thisOrbit)
                    else if (mergerTreeReadPresetOrbitsAssertAllSet) then
                       message='virial orbit could not be set for node '
@@ -2408,7 +2502,7 @@ contains
                    ! Does this subhalo's descendent live in the host to which the subhalo's host descends.
                    if (.not.associated(descendentNode%host%descendent)) then
                       ! Host has no descendent, so this must be a branch jump.
-                      subhaloJumps=.true.                      
+                      subhaloJumps=.true.
                    else
                       ! In nested hierarchies we must find the isolated node which hosts our node and our node's host.
                       isolatedHostNode     => descendentNode     %descendent%host
@@ -2425,17 +2519,33 @@ contains
                          ! Check that is not simply a case of the subhalo skipping one or more timesteps before
                          ! reappearing in the expected host.
                          hostDescendent => isolatedHostHostNode
-                         do while (isolatedHostNode%nodeTime > hostDescendent%nodeTime)
-                            if (associated(hostDescendent%descendent)) then
-                               hostDescendent => hostDescendent%descendent%host
-                               ! In nested hierarchies, find the isolated host node.
-                               do while (associated(hostDescendent%host).and..not.associated(hostDescendent%host,hostDescendent))
-                                  hostDescendent => hostDescendent%host
-                               end do
-                            else
-                               exit
-                            end if
-                         end do
+                         if (isolatedHostNode%nodeTime > hostDescendent%nodeTime) then
+                            ! Handle cases where the subhalo skipped one or more timesteps.
+                            do while (isolatedHostNode%nodeTime > hostDescendent%nodeTime)
+                               if (associated(hostDescendent%descendent)) then
+                                  hostDescendent => hostDescendent%descendent%host
+                                  ! In nested hierarchies, find the isolated host node.
+                                  do while (associated(hostDescendent%host).and..not.associated(hostDescendent%host,hostDescendent))
+                                     hostDescendent => hostDescendent%host
+                                  end do
+                               else
+                                  exit
+                               end if
+                            end do
+                         else if (isolatedHostNode%nodeTime < hostDescendent%nodeTime) then
+                            ! Handle cases where the host skipped one or more timesteps.
+                            do while (isolatedHostNode%nodeTime < hostDescendent%nodeTime)
+                               if (associated(isolatedHostNode%descendent)) then
+                                  isolatedHostNode => isolatedHostNode%descendent%host
+                                  ! In nested hierarchies, find the isolated host node.
+                                  do while (associated(isolatedHostNode%host).and..not.associated(isolatedHostNode%host,isolatedHostNode))
+                                     isolatedHostNode => isolatedHostNode%host
+                                  end do
+                               else
+                                  exit
+                               end if
+                            end do
+                         end if
                          ! Subhalo reappeared in the expected host. This is not a branch jump.
                          if (isolatedHostNode%nodeIndex == hostDescendent%nodeIndex) subhaloJumps=.false.
                       end if
@@ -2687,6 +2797,8 @@ contains
                 newNode%sibling                         => nodes(iNode)%node
                 newNode%parent                          => nodes(iNode)%node%parent
                 newNode%firstChild                      => null()
+                newNode%mergeTarget                     => null()
+                newNode%siblingMergee                   => null()
                 nodes(iNode)%node%parent%firstChild     => newNode
                 newBasicComponent                       => newNode%basic()
                 call newBasicComponent%timeSet(newBasicComponent%time()*(1.0d0-1.0d-6))
@@ -2799,14 +2911,14 @@ contains
              style='solid'
           end if
           if (nodes(iNode)%isSubhalo) then
-             write (fileUnit,'(a,i16.16,a,i16.16,a,f5.2,a,a,a,a,a,f5.2,a)') '"',nodes(iNode)%nodeIndex,'" [shape=box   , label="',nodes(iNode)%nodeIndex,':',nodes(iNode)%nodeTime,'", color=',trim(color),', style=',trim(style),', z=',nodes(iNode)%nodeTime,'];'
+             write (fileUnit,'(a,i20.20,a,i20.20,a,f5.2,a,a,a,a,a,f5.2,a)') '"',nodes(iNode)%nodeIndex,'" [shape=box   , label="',nodes(iNode)%nodeIndex,':',nodes(iNode)%nodeTime,'", color=',trim(color),', style=',trim(style),', z=',nodes(iNode)%nodeTime,'];'
              ! If a host node is given, add a link to it as a red line.
-             if (associated(nodes(iNode)%host)) write (fileUnit,'(a,i16.16,a,i16.16,a)') '"',nodes(iNode)%nodeIndex,'" -> "',nodes(iNode)%host%nodeIndex,'" [color=red];'
+             if (associated(nodes(iNode)%host)) write (fileUnit,'(a,i20.20,a,i20.20,a)') '"',nodes(iNode)%nodeIndex,'" -> "',nodes(iNode)%host%nodeIndex,'" [color=red];'
           else
-             write (fileUnit,'(a,i16.16,a,i16.16,a,f5.2,a,a,a,a,a,f5.2,a)') '"',nodes(iNode)%nodeIndex,'" [shape=circle, label="',nodes(iNode)%nodeIndex,':',nodes(iNode)%nodeTime,'", color=',trim(color),', style=',trim(style),', z=',nodes(iNode)%nodeTime,'];'
+             write (fileUnit,'(a,i20.20,a,i20.20,a,f5.2,a,a,a,a,a,f5.2,a)') '"',nodes(iNode)%nodeIndex,'" [shape=circle, label="',nodes(iNode)%nodeIndex,':',nodes(iNode)%nodeTime,'", color=',trim(color),', style=',trim(style),', z=',nodes(iNode)%nodeTime,'];'
           endif
           ! Make a link to the descendent node using a black line.
-          if (associated(nodes(iNode)%descendent)) write (fileUnit,'(a,i16.16,a,i16.16,a)') '"',nodes(iNode)%nodeIndex,'" -> "',nodes(iNode)%descendent%nodeIndex,'" ;'
+          if (associated(nodes(iNode)%descendent)) write (fileUnit,'(a,i20.20,a,i20.20,a)') '"',nodes(iNode)%nodeIndex,'" -> "',nodes(iNode)%descendent%nodeIndex,'" ;'
        end if
     end do
 
@@ -3123,5 +3235,5 @@ contains
     call Galacticus_Display_Unindent("done")
     return
   end subroutine Timing_Report
-  
+
 end module Merger_Tree_Read

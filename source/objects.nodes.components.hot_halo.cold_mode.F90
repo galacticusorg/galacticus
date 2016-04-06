@@ -29,7 +29,7 @@ module Node_Component_Hot_Halo_Cold_Mode
   private
   public :: Node_Component_Hot_Halo_Cold_Mode_Initialize       , Node_Component_Hot_Halo_Cold_Mode_Rate_Compute       , &
        &    Node_Component_Hot_Halo_Cold_Mode_Scale_Set        , Node_Component_Hot_Halo_Cold_Mode_Tree_Initialize    , &
-       &    Node_Component_Hot_Halo_Cold_Mode_Node_Merger      , Node_Component_Hot_Halo_Cold_Mode_Satellite_Merger   , &
+       &    Node_Component_Hot_Halo_Cold_Mode_Node_Merger      , Node_Component_Hot_Halo_Cold_Mode_Satellite_Merging  , &
        &    Node_Component_Hot_Halo_Cold_Mode_Promote          , Node_Component_Hot_Halo_Cold_Mode_Formation          , &
        &    Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize
 
@@ -435,10 +435,24 @@ contains
     class           (nodeComponentHotHalo)               , pointer :: thisHotHalo
     class           (nodeComponentBasic  )               , pointer :: thisBasic
     class           (accretionHaloClass  )               , pointer :: accretionHalo_
+    class           (nodeEvent           )               , pointer :: event
     double precision                                               :: angularMomentum   , coldModeMass
 
     ! If the node has a child or the standard hot halo is not active, then return immediately.
     if (associated(thisNode%firstChild).or..not.defaultHotHaloComponent%coldModeIsActive()) return
+    ! Search for a subhalo promotion events associated with this node.
+    event => thisNode%event
+    do while (associated(event))
+       ! Check if this event:
+       !  a) is a subhalo promotion event;
+       !  b) has no associated task (which means this is the node being promoted to, not the node being promoted itself).
+       ! Do not assign any mass to such nodes, as they should receive gas from the node which is promoted to them.
+       select type (event)
+       type is (nodeEventSubhaloPromotion)
+          if (.not.associated(event%task)) return
+       end select
+       event => event%next
+    end do
     ! Get required objects.
     accretionHalo_ => accretionHalo()
     ! Get the hot halo component.
@@ -556,9 +570,9 @@ contains
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Node_Merger
 
   !# <satelliteMergerTask>
-  !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Satellite_Merger</unitName>
+  !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Satellite_Merging</unitName>
   !# </satelliteMergerTask>
-  subroutine Node_Component_Hot_Halo_Cold_Mode_Satellite_Merger(thisNode)
+  subroutine Node_Component_Hot_Halo_Cold_Mode_Satellite_Merging(thisNode)
     !% Remove any cold mode gas associated with {\normalfont \ttfamily thisNode} before it merges with its host halo.
     use Abundances_Structure
     use Dark_Matter_Halo_Scales
@@ -610,7 +624,7 @@ contains
             &                                 )
     end select
     return
-  end subroutine Node_Component_Hot_Halo_Cold_Mode_Satellite_Merger
+  end subroutine Node_Component_Hot_Halo_Cold_Mode_Satellite_Merging
 
   !# <nodePromotionTask>
   !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Promote</unitName>

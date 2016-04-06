@@ -31,7 +31,7 @@ module Dark_Matter_Profile_Scales
 
 contains
 
-  double precision function Dark_Matter_Profile_Scale(node,concentrationMethod)
+  double precision function Dark_Matter_Profile_Scale(node,meanConcentration,concentrationMethod)
     !% Compute the scale radius of the dark matter profile of {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     use Dark_Matter_Profiles
@@ -46,7 +46,8 @@ contains
     use Input_Parameters
     implicit none    
     type            (treeNode                                          ), pointer, intent(inout)           :: node
-    class           (darkMatterProfileConcentrationClass               ), target , intent(inout), optional :: concentrationMethod          
+    class           (darkMatterProfileConcentrationClass               ), target , intent(inout), optional :: concentrationMethod
+    logical                                                                      , intent(in   ), optional :: meanConcentration
     class           (darkMatterProfileConcentrationClass               ), pointer                          :: darkMatterProfileConcentrationDefinition
     class           (virialDensityContrastClass                        ), pointer                          :: virialDensityContrastDefinition         , virialDensityContrast_
     class           (darkMatterProfileClass                            ), pointer                          :: darkMatterProfileDefinition             , darkMatterProfile_
@@ -59,7 +60,8 @@ contains
     type            (rootFinder                                        ), save                             :: finder
     !$omp threadprivate(finder)
     type            (darkMatterHaloScaleVirialDensityContrastDefinition)                                   :: darkMatterHaloScaleDefinition
-    double precision                                                                                       :: mass                                    , massDefinition
+    double precision                                                                                       :: mass                                    , massDefinition        , &
+         &                                                                                                    concentration                           , concentrationOriginal
 
     ! Initialize as necessary.
     if (.not.moduleInitialized) then
@@ -91,6 +93,12 @@ contains
     else
        darkMatterProfileConcentrationDefinition => darkMatterProfileConcentration()
     end if
+    ! Find the original concentration.
+    if (present(meanConcentration).and.meanConcentration) then
+       concentrationOriginal=darkMatterProfileConcentrationDefinition%concentrationMean(node)
+    else
+       concentrationOriginal=darkMatterProfileConcentrationDefinition%concentration    (node)
+    end if
     ! Determine if concentration must be corrected.
     if (darkMatterProfileScaleCorrectForConcentrationDefinition) then
        ! Get objects for the concentration definition.
@@ -111,7 +119,7 @@ contains
        call workBasic%timeSet            (basic%time())
        call workBasic%timeLastIsolatedSet(basic%time())
        call finder   %tolerance          (                                               &
-            &                             toleranceRelative  =1.0d-6                     &
+            &                             toleranceRelative  =1.0d-3                     &
             &                            )
        call finder   %rangeExpand        (                                               &
             &                             rangeExpandUpward  =2.0d0                    , &
@@ -125,14 +133,27 @@ contains
        call workBasic%massSet(massDefinition)
        call Galacticus_Calculations_Reset                 (workNode)
        call darkMatterProfileDefinition  %calculationReset(workNode)
-       Dark_Matter_Profile_Scale=+darkMatterHaloScaleDefinition           %virialRadius (workNode) &
-            &                    /darkMatterProfileConcentrationDefinition%concentration(workNode)
+       ! Find the concentration.
+       if (present(meanConcentration).and.meanConcentration) then
+          ! We are simply using the mean concentration-mass relation here.
+          concentration=+darkMatterProfileConcentrationDefinition%concentrationMean(workNode)
+       else
+          ! In this case we need to allow for possible scatter in the concentration mass relation. Therefore, we take the original
+          ! concentration (which may include some scatter away from the mean relation) and scale it by the ratio of the mean
+          ! concentrations for the corrected and original nodes.
+          concentration=+concentrationOriginal                                                &
+               &        *darkMatterProfileConcentrationDefinition%concentrationMean(workNode) &
+               &        /darkMatterProfileConcentrationDefinition%concentrationMean(    node)
+       end if
+       Dark_Matter_Profile_Scale=+darkMatterHaloScaleDefinition%virialRadius(workNode) &
+            &                    /concentration
        call workNode%destroy()
        deallocate(workNode                   )
-       deallocate(darkMatterProfileDefinition)
+       ! Destroy objects as necessary.
+       if (darkMatterProfileDefinition%isFinalizable()) deallocate(darkMatterProfileDefinition)
     else
-       Dark_Matter_Profile_Scale= darkMatterHaloScale_                    %virialRadius (node) &
-            &                    /darkMatterProfileConcentrationDefinition%concentration(node)
+        Dark_Matter_Profile_Scale=+darkMatterHaloScale_%virialRadius(node) &
+            &                    /concentrationOriginal
     end if
     ! Nullify the concentration definition so that it isn't automatically finalized.
     darkMatterProfileConcentrationDefinition => null()
@@ -145,28 +166,36 @@ contains
       double precision            , intent(in   ) :: massDefinitionTrial
       type            (rootFinder), save          :: radiusFinder
       !$omp threadprivate(radiusFinder)
-      double precision                            :: radiusOuterDefinition, concentrationDefinition  , &
-           &                                         radiusCore           , massOuterDefinition      , &
-           &                                         radiusOuter          , massOuter
+      double precision                            :: radiusOuterDefinition, concentrationDefinition, &
+           &                                         radiusCore           , massOuter              , &
+           &                                         radiusOuter
       
       ! Set the mass of the worker node.
       call workBasic%massSet(massDefinitionTrial)
       call Galacticus_Calculations_Reset                 (workNode)
       call darkMatterProfileDefinition  %calculationReset(workNode)
       ! Get outer radius for this trial definition mass.
-      radiusOuterDefinition  =darkMatterHaloScaleDefinition           %virialRadius (workNode                      )
-      ! Get mass normalization.
-      massOuterDefinition    =darkMatterProfileDefinition             %enclosedMass (workNode,radiusOuterDefinition)
+      radiusOuterDefinition  =darkMatterHaloScaleDefinition           %virialRadius (workNode)
       ! Get concentration for this a trial definition mass.
-      concentrationDefinition=darkMatterProfileConcentrationDefinition%concentration(workNode                      )
-      ! Get core radius.
+      if (present(meanConcentration).and.meanConcentration) then
+         ! We are simply using the mean concentration-mass relation here.
+         concentrationDefinition=darkMatterProfileConcentrationDefinition%concentrationMean(workNode)
+      else
+         ! In this case we need to allow for possible scatter in the concentration mass relation. Therefore, we take the original
+         ! concentration (which may include some scatter away from the mean relation) and scale it by the ratio of the mean
+         ! concentrations for the corrected and original nodes.
+         concentrationDefinition=+concentrationOriginal                                                &
+               &                 *darkMatterProfileConcentrationDefinition%concentrationMean(workNode) &
+               &                 /darkMatterProfileConcentrationDefinition%concentrationMean(    node)
+      end if
+      ! Get core radius.      
       radiusCore             =radiusOuterDefinition/concentrationDefinition
       call workDarkMatterProfile%scaleSet(radiusCore)
       call Galacticus_Calculations_Reset                 (workNode)
       call darkMatterProfileDefinition  %calculationReset(workNode)
       ! Solve for radius which encloses required non-alt density contrast.
       call radiusFinder%tolerance   (                                                 &
-           &                         toleranceRelative  =1.0d-6                       &
+           &                         toleranceRelative  =1.0d-3                       &
            &                        )
       call radiusFinder%rangeExpand (                                                 &
            &                         rangeExpandUpward  =2.0d0                      , &
@@ -192,14 +221,13 @@ contains
       double precision                :: massTrial  , densityContrastTrial
       
       massTrial                  = darkMatterProfileDefinition%enclosedMass(workNode,radiusTrial)
-      densityContrastTrial       =+3.0d0                                  &
-           &                      *massTrial                              &
-           &                      /4.0d0                                  &
-           &                      /Pi                                     &
-           &                      /cosmologyParameters_%OmegaMatter    () &
-           &                      /cosmologyParameters_%densityCritical() &
+      densityContrastTrial       =+3.0d0                                                      &
+           &                      *massTrial                                                  &
+           &                      /4.0d0                                                      &
+           &                      /Pi                                                         &
+           &                      /cosmologyFunctions_%matterDensityEpochal(workBasic%time()) &
            &                      /radiusTrial**3
-      densityContrastRootFunction=+densityContrastTrial-virialDensityContrast_%densityContrast(workBasic%time())
+      densityContrastRootFunction=+densityContrastTrial-virialDensityContrast_%densityContrast(workBasic%mass(),workBasic%time())
       return
     end function densityContrastRootFunction
 

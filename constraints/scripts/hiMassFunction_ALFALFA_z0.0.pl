@@ -15,6 +15,7 @@ use PDL::IO::HDF5;
 use Data::Dumper;
 require Galacticus::Options;
 require Galacticus::Constraints::MassFunctions;
+require Galacticus::StellarMass;
 
 # Compute likelihood (and make a plot) for a Galacticus model given the HI mass function data from Martin et al. (2010;
 # http://adsabs.harvard.edu/abs/2010ApJ...723.1359M),
@@ -28,14 +29,17 @@ $massFunctionConfig->{'self'          } = $0;
 $massFunctionConfig->{'galacticusFile'} = $ARGV[0];
 # Create a hash of named arguments.
 my $iArg = -1;
-my %arguments;
+my %arguments =
+    (
+     quiet => 0
+    );
 &Options::Parse_Options(\@ARGV,\%arguments);
 
 # Specify the properties of this mass function.
 my $entry                                    = 0;
 $massFunctionConfig->{'redshift'           } = pdl 0.000;
 $massFunctionConfig->{'analysisLabel'      } = "alfalfaHiMassFunctionZ0.00";
-$massFunctionConfig->{'discrepancyFileName'} = "discrepancy".ucfirst($massFunctionConfig->{'analysisLabel'}).".hdf5";
+$massFunctionConfig->{'discrepancyFileName'} = "discrepancyHiMassFunctionZ0.00.hdf5";
 $massFunctionConfig->{'massType'           } = "massColdGas";
 $massFunctionConfig->{'massMap'            } = \&ALFALFA_Mass_Map;
 $massFunctionConfig->{'massErrorRandomDex' } = \&ALFALFA_Mass_Error_Model;
@@ -53,6 +57,7 @@ $massFunctionConfig ->{'yIsPer'                      }  = "ln";
 $massFunctionConfig ->{'xScaling'                    }  = "linear";
 $massFunctionConfig ->{'yScaling'                    }  = "linear";
 $massFunctionConfig ->{'covariance'                  }  = $observations->dataset('covariance'          )->get    (                  );
+$massFunctionConfig ->{'errorModel'                  }  = "logNormal"                                                                ;
 ($massFunctionConfig->{'observationLabel'            }) = $observations                                 ->attrGet('label'           );
 ($massFunctionConfig->{'hubbleConstantObserved'      }) = $observations->group  ('Parameters'          )->attrGet('H_0'             );
 ($massFunctionConfig->{'omegaMatterObserved'         }) = $observations->group  ('Parameters'          )->attrGet('Omega_Matter'    );
@@ -71,14 +76,14 @@ sub ALFALFA_Mass_Error_Model {
     my $galacticus      = shift;
     # Use a simple model fit to Fig. 19 of Haynes et al. (2011).
     # See constraints/dataAnalysis/hiMassFunction_ALFALFA_z0.00/alfalfaHIMassErrorModel.pl for details.
-    my $a                                  = pdl 0.100;
-    my $b                                  = pdl 5.885;
-    my $c                                  = pdl 0.505;
+    my $a                                  = pdl $galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00ErrorA'}->{'value'};
+    my $b                                  = pdl $galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00ErrorB'}->{'value'};
+    my $c                                  = pdl $galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00ErrorC'}->{'value'};
     my $logarithmicMassLimited             = $logarithmicMass->copy();
     my $lowMasses                          = which($logarithmicMassLimited < 6.0);
     $logarithmicMassLimited->($lowMasses) .= 6.0;
     my $errorObserved                      = $a+exp(-($logarithmicMassLimited-$b)/$c);
-    my $errorModel                         = $galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00ConversionError'};
+    my $errorModel                         = $galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionScatter'}->{'value'};
     my $error                              = sqrt($errorObserved**2+$errorModel**2);
     return $error;
 }
@@ -88,10 +93,32 @@ sub ALFALFA_Mass_Map {
     my $config                                  = shift;
     my $galacticus                              = shift;
     my $hydrogenFractionByMassPrimordial        = pdl 0.778;
-    my $molecularRatio                          =
-	$galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionMu'}
-       +$galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionKappa'}
-       *log10($galacticus->{'dataSets'}->{$config->{'massType'}}/1.0e9);
+    my $megaParsec = pdl 3.086e22;
+    my $massSolar = pdl 1.99e30;
+    &HDF5::Get_Dataset($galacticus,['diskRadius','massStellar','nodeIndex']);
+    # Compute central molecular ratio.
+    my $molecularRatioCentral = 
+	(
+	 $massSolar  **2
+	 /$megaParsec**4
+	 *$galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionK'}->{'value'}
+	 *$galacticus->{'dataSets'  }->{$config->{'massType'}                         }                       
+	 *(
+	     +$galacticus->{'dataSets'  }->{$config->{'massType'}                              }
+	     +$galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionfSigma'}->{'value'}
+	     *$galacticus->{'dataSets'  }->{'massStellar'                                      }
+	 )
+	 /$galacticus->{'dataSets'}->{'diskRadius'}**4
+	)**$galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionBeta'}->{'value'};
+    # Compute net molecular ratio.
+    my $molecularRatio = 
+	1.0
+	/(
+	    +                        $galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionA1'    }->{'value'}
+	    /$molecularRatioCentral**$galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionAlpha1'}->{'value'}
+	    +                        $galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionA2'    }->{'value'}
+            /$molecularRatioCentral**$galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionAlpha2'}->{'value'}
+	);
     my $negativeMolecularRatio                  = which($molecularRatio < 0.0);
     $molecularRatio->($negativeMolecularRatio) .= 0.0;
     my $logarithmicMass                         = log10($hydrogenFractionByMassPrimordial*$galacticus->{'dataSets'}->{$config->{'massType'}}/(1.0+$molecularRatio));
