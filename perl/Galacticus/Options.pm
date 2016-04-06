@@ -19,11 +19,11 @@ sub Config {
     my $section          = shift();
     my $xml              = new XML::Simple;
     my $configSection;
-    if ( -e $galacticusPath."galacticusConfig" ) {
-	my $galacticusConfig = $xml->XMLin($galacticusPath."galacticusConfig", KeyAttr => 0);   
-	foreach ( keys(%{$galacticusConfig->{$section}->{'host'}}) ) {
-	    if ( $_ eq $ENV{'HOSTNAME'} || $_ eq "default" ) {
-		$configSection = $galacticusConfig->{$section}->{'host'};
+    if ( -e $galacticusPath."galacticusConfig.xml" ) {
+	my $galacticusConfig = $xml->XMLin($galacticusPath."galacticusConfig.xml", KeyAttr => 0);   
+	foreach ( &ExtraUtils::as_array($galacticusConfig->{$section}->{'host'}) ) {
+	    if ( $_->{'name'} eq $ENV{'HOSTNAME'} || $_->{'name'} eq "default" ) {
+		$configSection = $_;
 		last;
 	    }
 	}

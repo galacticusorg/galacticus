@@ -44,7 +44,7 @@ contains
     !% Default constructor for the {\normalfont \ttfamily correa2015} dark matter halo profile concentration class.
     implicit none
     type(darkMatterProfileConcentrationCorrea2015)                :: correa2015ConstructorParameters
-    type(inputParameters                         ), intent(in   ) :: parameters
+    type(inputParameters                         ), intent(inout) :: parameters
     !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.

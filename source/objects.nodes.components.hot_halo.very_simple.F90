@@ -23,10 +23,10 @@ module Node_Component_Hot_Halo_Very_Simple
   use Galacticus_Nodes
   implicit none
   private
-  public :: Node_Component_Hot_Halo_Very_Simple_Reset           , Node_Component_Hot_Halo_Very_Simple_Rate_Compute   , &
-       &    Node_Component_Hot_Halo_Very_Simple_Scale_Set       , Node_Component_Hot_Halo_Very_Simple_Tree_Initialize, &
-       &    Node_Component_Hot_Halo_Very_Simple_Satellite_Merger, Node_Component_Hot_Halo_Very_Simple_Promote        , &
-       &    Node_Component_Hot_Halo_Very_Simple_Post_Evolve     , Node_Component_Hot_Halo_Very_Simple_Node_Merger
+  public :: Node_Component_Hot_Halo_Very_Simple_Reset            , Node_Component_Hot_Halo_Very_Simple_Rate_Compute   , &
+       &    Node_Component_Hot_Halo_Very_Simple_Scale_Set        , Node_Component_Hot_Halo_Very_Simple_Tree_Initialize, &
+       &    Node_Component_Hot_Halo_Very_Simple_Satellite_Merging, Node_Component_Hot_Halo_Very_Simple_Promote        , &
+       &    Node_Component_Hot_Halo_Very_Simple_Post_Evolve      , Node_Component_Hot_Halo_Very_Simple_Node_Merger
 
   !# <component>
   !#  <class>hotHalo</class>
@@ -41,6 +41,20 @@ module Node_Component_Hot_Halo_Very_Simple
   !#     <output unitsInSI="massSolar" comment="Mass of gas in the hot halo."/>
   !#   </property>
   !#   <property>
+  !#     <name>abundances</name>
+  !#     <type>abundances</type>
+  !#     <rank>0</rank>
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+  !#     <output unitsInSI="massSolar" comment="Mass of metals in the hot halo."/>
+  !#   </property>
+  !#   <property>
+  !#     <name>unaccretedMass</name>
+  !#     <type>double</type>
+  !#     <rank>0</rank>
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
+  !#     <output unitsInSI="massSolar" comment="Mass of gas that failed to accrete into the hot halo."/>
+  !#   </property>
+  !#   <property>
   !#     <name>outflowingMass</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
   !#     <type>double</type>
@@ -48,9 +62,23 @@ module Node_Component_Hot_Halo_Very_Simple
   !#     <isVirtual>true</isVirtual>
   !#   </property>
   !#   <property>
+  !#     <name>outflowingAbundances</name>
+  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
+  !#     <type>abundances</type>
+  !#     <rank>0</rank>
+  !#     <isVirtual>true</isVirtual>
+  !#   </property>
+  !#   <property>
   !#     <name>hotHaloCoolingMass</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" />
   !#     <type>double</type>
+  !#     <rank>0</rank>
+  !#     <isVirtual>true</isVirtual>
+  !#   </property>
+  !#   <property>
+  !#     <name>hotHaloCoolingAbundances</name>
+  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" />
+  !#     <type>abundances</type>
   !#     <rank>0</rank>
   !#     <isVirtual>true</isVirtual>
   !#   </property>
@@ -83,10 +111,11 @@ contains
     if (.not.moduleInitialized) then
 
        ! Bind outflowing material pipes to the functions that will handle input of outflowing material to the hot halo.
-       call hotHaloComponent%outflowingMassRateFunction(Node_Component_Hot_Halo_Very_Simple_Outflowing_Mass_Rate)
+       call hotHaloComponent%      outflowingMassRateFunction(Node_Component_Hot_Halo_Very_Simple_Outflowing_Mass_Rate      )
+       call hotHaloComponent%outflowingAbundancesRateFunction(Node_Component_Hot_Halo_Very_Simple_Outflowing_Abundances_Rate)
 
        ! Bind outer radius function.
-       call hotHaloComponent%       outerRadiusFunction(Node_Component_Hot_Halo_Very_Simple_Outer_Radius        )
+       call hotHaloComponent%             outerRadiusFunction(Node_Component_Hot_Halo_Very_Simple_Outer_Radius              )
 
        ! Record that the module is now initialized.
        moduleInitialized=.true.
@@ -110,13 +139,15 @@ contains
 
   subroutine Node_Component_Hot_Halo_Very_Simple_Push_To_Cooling_Pipes(thisNode,massRate,interrupt,interruptProcedure)
     !% Push mass through the cooling pipes at the given rate.
+    use Abundances_Structure
     implicit none
     type            (treeNode            ), intent(inout), pointer :: thisNode
     double precision                      , intent(in   )          :: massRate
     logical                               , intent(inout)          :: interrupt
     procedure       (                    ), intent(inout), pointer :: interruptProcedure
     class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
-
+    type            (abundances          )                         :: abundancesCoolingRate
+    
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()
     select type (thisHotHaloComponent)
@@ -124,10 +155,18 @@ contains
        ! Ignore zero rates.
        if (massRate /= 0.0d0 .and. thisHotHaloComponent%mass() > 0.0d0) then
           ! Remove mass from the hot component.
-          call    thisHotHaloComponent%massRate       (-massRate                             )
+          abundancesCoolingRate=+massRate                          &
+               &                *thisHotHaloComponent%abundances() &
+               &                /thisHotHaloComponent%mass      ()
+          call    thisHotHaloComponent%massRate                    (-massRate                                          )
+          call    thisHotHaloComponent%abundancesRate              (-abundancesCoolingRate                             )
           ! Pipe the mass rate to whatever component claimed it.
-          if (thisHotHaloComponent%hotHaloCoolingMassRateIsAttached()) then
-             call thisHotHaloComponent%hotHaloCoolingMassRate(+massRate,interrupt,interruptProcedure)
+          if (thisHotHaloComponent%hotHaloCoolingMassRateIsAttached      ()) then
+             call thisHotHaloComponent%hotHaloCoolingMassRate      (+massRate             ,interrupt,interruptProcedure)
+             if (interrupt) return
+          end if
+          if (thisHotHaloComponent%hotHaloCoolingAbundancesRateIsAttached()) then
+             call thisHotHaloComponent%hotHaloCoolingAbundancesRate(+abundancesCoolingRate,interrupt,interruptProcedure)
              if (interrupt) return
           end if
        end if
@@ -138,22 +177,36 @@ contains
   subroutine Node_Component_Hot_Halo_Very_Simple_Outflowing_Mass_Rate(self,rate,interrupt,interruptProcedure)
     !% Accept outflowing gas from a galaxy and deposit it into very simple hot halo.
     implicit none
-    class           (nodeComponentHotHalo          ), intent(inout)                    :: self
-    double precision                                , intent(in   )                    :: rate
-    logical                                         , intent(inout), optional          :: interrupt
-    procedure       (                              ), intent(inout), optional, pointer :: interruptProcedure
+    class           (nodeComponentHotHalo), intent(inout)                    :: self
+    double precision                      , intent(in   )                    :: rate
+    logical                               , intent(inout), optional          :: interrupt
+    procedure       (                    ), intent(inout), optional, pointer :: interruptProcedure
 
     ! Funnel the outflow gas into the hot halo.
     call self%massRate(rate)
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Outflowing_Mass_Rate
   
+  subroutine Node_Component_Hot_Halo_Very_Simple_Outflowing_Abundances_Rate(self,rate,interrupt,interruptProcedure)
+    !% Accept outflowing gas abundances from a galaxy and deposit them into very simple hot halo.
+    use Abundances_Structure
+    implicit none
+    class    (nodeComponentHotHalo), intent(inout)                    :: self
+    type     (abundances          ), intent(in   )                    :: rate
+    logical                        , intent(inout), optional          :: interrupt
+    procedure(                    ), intent(inout), optional, pointer :: interruptProcedure
+
+    ! Funnel the outflow gas abundances into the hot halo.
+    call self%abundancesRate(rate)
+    return
+  end subroutine Node_Component_Hot_Halo_Very_Simple_Outflowing_Abundances_Rate
+  
   double precision function Node_Component_Hot_Halo_Very_Simple_Outer_Radius(self)
     !% Return the outer radius of the hot halo. Assumes a simple model in which this always equals the virial radius.
     use Dark_Matter_Halo_Scales
     implicit none
     class(nodeComponentHotHaloVerySimple), intent(inout) :: self
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    class(darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_
 
     darkMatterHaloScale_ => darkMatterHaloScale()
     Node_Component_Hot_Halo_Very_Simple_Outer_Radius=darkMatterHaloScale_%virialRadius(self%hostNode)
@@ -165,18 +218,31 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Hot_Halo_Very_Simple_Rate_Compute(thisNode,interrupt,interruptProcedure)
     !% Compute the very simple hot halo component mass rate of change.
+    use Accretion_Halos
     implicit none
-    type     (treeNode            ), intent(inout), pointer :: thisNode
-    logical                        , intent(inout)          :: interrupt
-    procedure(                    ), intent(inout), pointer :: interruptProcedure
-    class    (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
-
+    type            (treeNode            ), intent(inout), pointer :: thisNode
+    logical                               , intent(inout)          :: interrupt
+    procedure       (                    ), intent(inout), pointer :: interruptProcedure
+    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
+    class           (accretionHaloClass  )               , pointer :: accretionHalo_
+    double precision                                               :: massAccretionRate   , failedMassAccretionRate
+    
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()
     select type (thisHotHaloComponent)
     class is (nodeComponentHotHaloVerySimple)
+       ! Get required objects.
+       accretionHalo_ => accretionHalo()
+       ! Find the rate of gas mass accretion onto the halo.
+       massAccretionRate      =accretionHalo_%accretionRate      (thisNode,accretionModeTotal)
+       failedMassAccretionRate=accretionHalo_%failedAccretionRate(thisNode,accretionModeTotal)
+       ! Apply accretion rates.
+       if (      massAccretionRate > 0.0d0 .or. thisHotHaloComponent%mass() > 0.0d0) &
+            & call thisHotHaloComponent%          massRate(      massAccretionRate,interrupt,interruptProcedure)
+       if (failedMassAccretionRate > 0.0d0 .or. thisHotHaloComponent%mass() > 0.0d0) &
+            & call thisHotHaloComponent%unaccretedMassRate(failedMassAccretionRate,interrupt,interruptProcedure)
        ! Next compute the cooling rate in this halo.
-       call Node_Component_Hot_Halo_Very_Simple_Cooling_Rate         (thisNode                                               )
+       call Node_Component_Hot_Halo_Very_Simple_Cooling_Rate         (thisNode                                         )
        ! Pipe the cooling rate to which ever component claimed it.
        call Node_Component_Hot_Halo_Very_Simple_Push_To_Cooling_Pipes(thisNode,coolingRate,interrupt,interruptProcedure)
     end select
@@ -188,6 +254,7 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Hot_Halo_Very_Simple_Scale_Set(thisNode)
     !% Set scales for properties of {\normalfont \ttfamily thisNode}.
+    use Abundances_Structure
     implicit none
     type            (treeNode            ), intent(inout), pointer :: thisNode
     double precision                      , parameter              :: scaleMassRelative   =1.0d-2
@@ -203,66 +270,66 @@ contains
        ! The the basic component.
        thisBasicComponent => thisNode%basic()
        ! Get virial properties.
-       massVirial    =thisBasicComponent%mass()
+       massVirial=thisBasicComponent%mass()
        ! Set the scale.
-       call thisHotHaloComponent%massScale(massVirial*scaleMassRelative)
+       call thisHotHaloComponent%          massScale(               massVirial*scaleMassRelative)
+       call thisHotHaloComponent%unaccretedMassScale(               massVirial*scaleMassRelative)
+       call thisHotHaloComponent%    abundancesScale(unitAbundances*massVirial*scaleMassRelative)
     end select
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Scale_Set
 
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Hot_Halo_Very_Simple_Tree_Initialize</unitName>
+  !#  <after>darkMatterProfile</after>
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Hot_Halo_Very_Simple_Tree_Initialize(thisNode)
     !% Initialize the contents of the very simple hot halo component.
     use Cosmology_Parameters
+    use Accretion_Halos
+    use Abundances_Structure
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: thisNode
-    type            (treeNode                )               , pointer :: childNode
-    class           (nodeComponentHotHalo    )               , pointer :: currentHotHaloComponent, thisHotHaloComponent
-    class           (nodeComponentBasic      )               , pointer :: childBasicComponent    , currentBasicComponent
-    class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
-    double precision                                                   :: hotHaloMass
+    type            (treeNode            ), intent(inout), pointer :: thisNode
+    type            (treeNode            )               , pointer :: childNode
+    class           (nodeComponentHotHalo)               , pointer :: currentHotHaloComponent, thisHotHaloComponent
+    class           (nodeComponentBasic  )               , pointer :: childBasicComponent    , currentBasicComponent
+    class           (accretionHaloClass  )               , pointer :: accretionHalo_
+    double precision                                               :: hotHaloMass            , failedHotHaloMass
 
     ! If the very simple hot halo is not active, then return immediately.
-    if (.not.defaultHotHaloComponent%verySimpleIsActive()) return
+    if (associated(thisNode%firstChild).or..not.defaultHotHaloComponent%verySimpleIsActive()) return
 
     ! Ensure that this module has been initialized.
     call Node_Component_Hot_Halo_Very_Simple_Initialize()
 
-    ! Get the default cosmology.
-    thisCosmologyParameters => cosmologyParameters()
     ! Get the hot halo component.
     currentHotHaloComponent => thisNode%hotHalo()
     ! Ensure that it is of unspecified class.
     select type (currentHotHaloComponent)
     type is (nodeComponentHotHalo)
-       ! Get the basic component.
-       currentBasicComponent => thisNode%basic()
-       ! Get the mass of hot gas.
-       hotHaloMass=currentBasicComponent%mass()
-       childNode => thisNode%firstChild
-       do while (associated(childNode))
-          childBasicComponent => childNode%basic()
-          hotHaloMass=hotHaloMass-childBasicComponent%mass()
-          childNode => childNode%sibling
-       end do
-       hotHaloMass=hotHaloMass*thisCosmologyParameters%OmegaBaryon()/thisCosmologyParameters%OmegaMatter()
-       ! If this is non-zero, then create a hot halo component and add this mass to it.
-       if (hotHaloMass > 0.0d0) then
+       ! Get required objects.
+       accretionHalo_ => accretionHalo()
+       ! Get the mass of hot gas accreted and the mass that failed to accrete.
+       hotHaloMass      =accretionHalo_%accretedMass      (thisNode,accretionModeTotal)
+       failedHotHaloMass=accretionHalo_%failedAccretedMass(thisNode,accretionModeTotal)
+       ! If either is non-zero, then create a hot halo component and add these masses to it.
+       if (hotHaloMass > 0.0d0 .or. failedHotHaloMass > 0.0d0) then
           call Node_Component_Hot_Halo_Very_Simple_Create(thisNode)
           thisHotHaloComponent => thisNode%hotHalo()
-          call thisHotHaloComponent%massSet(hotHaloMass)
+          call thisHotHaloComponent%          massSet(      hotHaloMass)
+          call thisHotHaloComponent%unaccretedMassSet(failedHotHaloMass)
+          call thisHotHaloComponent%    abundancesSet(   zeroAbundances)
        end if
     end select
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Tree_Initialize
-
+  
   !# <satelliteMergerTask>
-  !#  <unitName>Node_Component_Hot_Halo_Very_Simple_Satellite_Merger</unitName>
+  !#  <unitName>Node_Component_Hot_Halo_Very_Simple_Satellite_Merging</unitName>
   !# </satelliteMergerTask>
-  subroutine Node_Component_Hot_Halo_Very_Simple_Satellite_Merger(thisNode)
+  subroutine Node_Component_Hot_Halo_Very_Simple_Satellite_Merging(thisNode)
     !% Remove any hot halo associated with {\normalfont \ttfamily thisNode} before it merges with its host halo.
+    use Abundances_Structure
     implicit none
     type (treeNode            ), intent(inout), pointer :: thisNode
     type (treeNode            )               , pointer :: hostNode
@@ -283,12 +350,19 @@ contains
             &                                                 hostHotHaloComponent%mass                    () &
             &                                                +thisHotHaloComponent%mass                    () &
             &                                               )
+       call hostHotHaloComponent%              abundancesSet(                                                 &
+            &                                                 hostHotHaloComponent%abundances              () &
+            &                                                +thisHotHaloComponent%abundances              () &
+            &                                               )
        call thisHotHaloComponent%                    massSet(                                                 &
             &                                                 0.0d0                                           &
             &                                               )
+       call thisHotHaloComponent%              abundancesSet(                                                 &
+            &                                                 zeroAbundances                                  &
+            &                                               )
     end select
     return
-  end subroutine Node_Component_Hot_Halo_Very_Simple_Satellite_Merger
+  end subroutine Node_Component_Hot_Halo_Very_Simple_Satellite_Merging
 
   !# <nodePromotionTask>
   !#  <unitName>Node_Component_Hot_Halo_Very_Simple_Promote</unitName>
@@ -313,10 +387,18 @@ contains
        ! promotion.
        select type (parentHotHaloComponent)
        class is (nodeComponentHotHaloVerySimple)
-          call thisHotHaloComponent%massSet(                               &
-               &                               thisHotHaloComponent%mass() &
-               &                            +parentHotHaloComponent%mass() &
-               &                           )
+          call thisHotHaloComponent%unaccretedMassSet(                                         &
+               &                                      +thisHotHaloComponent  %unaccretedMass() &
+               &                                      +parentHotHaloComponent%unaccretedMass() &
+               &                                     )
+          call thisHotHaloComponent%          massSet(                                         &
+               &                                      +thisHotHaloComponent  %          mass() &
+               &                                      +parentHotHaloComponent%          mass() &
+               &                                     )
+          call thisHotHaloComponent%    abundancesSet(                                         &
+               &                                      +thisHotHaloComponent  %    abundances() &
+               &                                      +parentHotHaloComponent%    abundances() &
+               &                                     )
        end select
     end select
     return
@@ -327,6 +409,7 @@ contains
   !# </postEvolveTask>
   subroutine Node_Component_Hot_Halo_Very_Simple_Post_Evolve(thisNode)
     !% Do processing of the node required after evolution.
+    use Abundances_Structure
     implicit none
     type (treeNode            ), intent(inout), pointer :: thisNode
     type (treeNode            )               , pointer :: parentNode
@@ -344,8 +427,10 @@ contains
              parentNode => parentNode%parent
           end do
           parentHotHaloComponent => parentNode%hotHalo()
-          call parentHotHaloComponent%massSet(parentHotHaloComponent%mass()+thisHotHaloComponent%mass())
-          call   thisHotHaloComponent%massSet(                                                    0.0d0)
+          call parentHotHaloComponent%      massSet(parentHotHaloComponent%mass      ()+thisHotHaloComponent%mass      ())
+          call parentHotHaloComponent%abundancesSet(parentHotHaloComponent%abundances()+thisHotHaloComponent%abundances())
+          call   thisHotHaloComponent%      massSet(                                                                0.0d0)
+          call   thisHotHaloComponent%abundancesSet(                                                       zeroAbundances)
        end if
     end select
     return
@@ -356,6 +441,7 @@ contains
   !# </nodeMergerTask>
   subroutine Node_Component_Hot_Halo_Very_Simple_Node_Merger(thisNode)
     !% Starve {\normalfont \ttfamily thisNode} by transferring its hot halo to its parent.
+    use Abundances_Structure
     implicit none
     type (treeNode            ), intent(inout), pointer :: thisNode
     type (treeNode            )               , pointer :: parentNode
@@ -368,10 +454,15 @@ contains
        ! Find the parent node and its hot halo component.
        parentNode => thisNode%parent
        parentHotHaloComponent => parentNode%hotHalo()
+       ! Any gas that failed to be accreted by this halo is always transferred to the parent.
+       call parentHotHaloComponent%unaccretedMassSet(parentHotHaloComponent%unaccretedMass()+thisHotHaloComponent%unaccretedMass())
+       call   thisHotHaloComponent%unaccretedMassSet(                                                                        0.0d0)
        ! Move the hot halo to the parent. We leave the hot halo in place even if it is starved, since outflows will accumulate
        ! to this hot halo (and will be moved to the parent at the end of the evolution timestep).
-       call parentHotHaloComponent%massSet(parentHotHaloComponent%mass()+thisHotHaloComponent%mass())
-       call   thisHotHaloComponent%massSet(                                                    0.0d0)
+       call parentHotHaloComponent%          massSet(parentHotHaloComponent%          mass()+thisHotHaloComponent%          mass())
+       call parentHotHaloComponent%    abundancesSet(parentHotHaloComponent%    abundances()+thisHotHaloComponent%    abundances())
+       call   thisHotHaloComponent%          massSet(                                                                        0.0d0)
+       call   thisHotHaloComponent%    abundancesSet(                                                               zeroAbundances)
     end select
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Node_Merger
