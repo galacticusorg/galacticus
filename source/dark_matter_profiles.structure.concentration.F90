@@ -23,6 +23,7 @@ module Dark_Matter_Profiles_Concentration
   use Galacticus_Nodes
   use Virial_Density_Contrast
   use Dark_Matter_Profiles
+  use               FGSL
   private
 
   !# <functionClass>
@@ -31,12 +32,19 @@ module Dark_Matter_Profiles_Concentration
   !#  <description>Object providing dark matter profile concentrations.</description>
   !#  <default>gao2008</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
-  !#  <stateful>no</stateful>
+  !#  <stateful>yes</stateful>
   !#  <method name="concentration" >
   !#   <description>Returns the concentration parameter for the given {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
+  !#  </method>
+  !#  <method name="concentrationMean" >
+  !#   <description>Returns the mean concentration parameter for a {\normalfont \ttfamily node} of the given mass.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
+  !#   <code>darkMatterProfileConcentrationConcentrationMean=self%concentration(node)</code>
   !#  </method>
   !#  <method name="densityContrastDefinition" >
   !#   <description>Returns a {\normalfont \ttfamily virialDensityContrast} object describing the virial density contrast used to define this concentration.</description>

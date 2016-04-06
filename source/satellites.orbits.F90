@@ -21,26 +21,40 @@
 module Satellite_Orbits
   !% Implements calculations related to satellite orbits.
   use Galacticus_Nodes
+  use Kind_Numbers
   implicit none
   private
   public :: Satellite_Orbit_Equivalent_Circular_Orbit_Radius, Satellite_Orbit_Extremum_Phase_Space_Coordinates
 
   ! Orbital energy and angular momentum - used for finding radius of equivalent circular orbit.
-  double precision                              :: orbitalAngularMomentumInternal   , orbitalEnergyInternal
+  double precision                                    :: orbitalAngularMomentumInternal   , orbitalEnergyInternal
   !$omp threadprivate(orbitalEnergyInternal,orbitalAngularMomentumInternal)
   ! Node used in root finding calculations.
-  type            (treeNode), pointer           :: activeNode
+  type            (treeNode      ), pointer           :: activeNode
   !$omp threadprivate(activeNode)
 
   ! Enumeratation used to indicate type of extremum.
-  integer                   , parameter, public :: extremumPericenter            =-1
-  integer                   , parameter, public :: extremumApocenter             =+1
+  integer                         , parameter, public :: extremumPericenter            =-1
+  integer                         , parameter, public :: extremumApocenter             =+1
 
   ! Error codes.
-  integer, parameter, public :: errorCodeSuccess          =0
-  integer, parameter, public :: errorCodeOrbitUnbound     =1
-  integer, parameter, public :: errorCodeNoEquivalentOrbit=2
+  integer                         , parameter, public :: errorCodeSuccess              =0
+  integer                         , parameter, public :: errorCodeOrbitUnbound         =1
+  integer                         , parameter, public :: errorCodeNoEquivalentOrbit    =2
 
+  ! Record of unique ID of node which we last computed results for.
+  integer         (kind=kind_int8)                    :: lastUniqueID                  =-1
+  logical                                             :: pericenterCalculated          =.false.
+  logical                                             :: apocenterCalculated           =.false.
+  double precision                                    :: timePrevious
+  double precision                                    :: orbitalEnergyPrevious
+  double precision                                    :: orbitalAngularMomentumPrevious
+  double precision                                    :: pericenterRadius
+  double precision                                    :: pericenterVelocity
+  double precision                                    :: apocenterRadius
+  double precision                                    :: apocenterVelocity
+  !$omp threadprivate(lastUniqueID,pericenterCalculated,apocenterCalculated,timePrevious,orbitalEnergyPrevious,orbitalAngularMomentumPrevious,pericenterRadius,pericenterVelocity,apocenterRadius,apocenterVelocity)
+  
 contains
 
   double precision function Satellite_Orbit_Equivalent_Circular_Orbit_Radius(hostNode,thisOrbit,errorCode)
@@ -95,9 +109,10 @@ contains
 
   double precision function Equivalent_Circular_Orbit_Solver(radius)
     !% Root function used in finding equivalent circular orbits.
-    use Dark_Matter_Profiles
-    use Dark_Matter_Profiles_Error_Codes
+    use Galactic_Structure_Options
+    use Galactic_Structure_Potentials
     use Galacticus_Error
+    use Dark_Matter_Profiles
     implicit none
     double precision                        , intent(in   ) :: radius
     double precision                        , parameter     :: potentialInfinite=1.0d30
@@ -105,13 +120,13 @@ contains
     double precision                                        :: potential
     integer                                                 :: status
 
-    ! Get required objects.
-    darkMatterProfile_ => darkMatterProfile()
-    potential=darkMatterProfile_%potential(activeNode,radius,status)
+    ! Get potential.
+    potential=Galactic_Structure_Potential(activeNode,radius,status=status)
     select case (status)
-    case (darkMatterProfileSuccess)
+    case (structureErrorCodeSuccess )
+       darkMatterProfile_ => darkMatterProfile()
        Equivalent_Circular_Orbit_Solver=potential+0.5d0*darkMatterProfile_%circularVelocity(activeNode,radius)**2-orbitalEnergyInternal
-    case (darkMatterProfileErrorInfinite)
+    case (structureErrorCodeInfinite)
        ! The gravitational potential is negative infinity at this radius (most likely zero radius). Since all we care about in
        ! this root-finding function is the sign of the function, return a large negative value.
        Equivalent_Circular_Orbit_Solver=-potentialInfinite
@@ -125,63 +140,86 @@ contains
     !% Solves for the pericentric radius and velocity of {\normalfont \ttfamily thisOrbit} in {\normalfont \ttfamily hostNode}.
     use Root_Finder
     use Kepler_Orbits
-    use Dark_Matter_Profiles
-    use Dark_Matter_Profiles_Error_Codes
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Physical
     use Galacticus_Error
+    use Galactic_Structure_Options
+    use Galactic_Structure_Potentials
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: hostNode
-    type            (keplerOrbit           ), intent(inout)          :: thisOrbit
-    integer                                 , intent(in   )          :: extremumType
-    double precision                        , intent(  out)          :: radius                 , velocity
-    class           (darkMatterProfileClass)               , pointer :: darkMatterProfile_
-    double precision                        , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
-    type            (rootFinder            ), save                   :: finder
+    type            (treeNode         ), intent(inout), pointer :: hostNode
+    type            (keplerOrbit      ), intent(inout)          :: thisOrbit
+    integer                            , intent(in   )          :: extremumType
+    double precision                   , intent(  out)          :: radius                 , velocity
+    class          (nodeComponentBasic), pointer                :: hostBasic
+    double precision                   , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
+    type            (rootFinder       ), save                   :: finder
     !$omp threadprivate(finder)
-    type            (keplerOrbit           )                         :: currentOrbit
-    integer                                                          :: status
-    double precision                                                 :: potential
+    type            (keplerOrbit      )                         :: currentOrbit
+    integer                                                     :: status
+    double precision                                            :: potential
 
-    ! Get required objects.
-    darkMatterProfile_ => darkMatterProfile()
+
+    
     ! Convert the orbit to the potential of the current halo in which the satellite finds itself.
     currentOrbit=Satellite_Orbit_Convert_To_Current_Potential(thisOrbit,hostNode)
     ! Extract the orbital energy and angular momentum.
-    orbitalEnergyInternal         =  currentOrbit%energy         ()
-    orbitalAngularMomentumInternal=  currentOrbit%angularMomentum()
-    ! Set a pointer to the host node.
-    activeNode                    => hostNode
-    ! Catch orbits which are close to being circular.
-    if      (   Extremum_Solver(currentOrbit%radius()) == 0.0d0             ) then
-       ! Orbit is at extremum.
-       radius=currentOrbit%radius()
-    else if (                                                                      &
-         &    (                                                                    &
-         &      extremumType                           == extremumPericenter       &
-         &     .and.                                                               &
-         &      Extremum_Solver(currentOrbit%radius()) >  0.0d0                    &
-         &    )                                                                    &
-         &   .or.                                                                  &
-         &    (                                                                    &
-         &      extremumType                           == extremumApocenter        &
-         &     .and.                                                               &
-         &      Extremum_Solver(currentOrbit%radius()) <  0.0d0                    &
-         &    )                                                                    &
-         &  ) then
-       ! No solution exists, assume a circular orbit.
-       radius=currentOrbit%radius()
-    else if (                                                                      &
-         &      extremumType                           == extremumPericenter       &
-         &   .and.                                                                 &
-         &      orbitalAngularMomentumInternal         <= 0.0d0                    &
-         &  ) then
-       ! Orbit is radial, so pericenter is zero.
-       radius=0.0d0
-    else
-       if (.not.finder%isInitialized()) then
-          call finder%rootFunction(Extremum_Solver                    )
-          call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+    orbitalEnergyInternal         =currentOrbit%energy         ()
+    orbitalAngularMomentumInternal=currentOrbit%angularMomentum()
+    ! Check if node or orbit differs from previous one for which we performed calculations.
+    hostBasic => hostNode%basic()
+    if     (                                                                  &
+         &   hostNode %uniqueID()            /= lastUniqueID                  &
+         &  .or.                                                              &
+         &   hostBasic%time    ()            /= timePrevious                  &
+         &  .or.                                                              &
+         &   orbitalEnergyInternal          /= orbitalEnergyPrevious          &
+         &  .or.                                                              &
+         &   orbitalAngularMomentumInternal /= orbitalAngularMomentumPrevious &
+         & ) call Satellite_Orbit_Reset(hostNode) 
+    ! Determine if we need to compute the extremum properties.
+    if     (                                                                      &
+         &   (extremumType == extremumPericenter .and. .not.pericenterCalculated) &
+         &  .or.                                                                  &
+         &   (extremumType == extremumApocenter  .and. .not. apocenterCalculated) &
+         & ) then
+       ! Set a pointer to the host node.
+       activeNode                    => hostNode
+       ! Record previous orbital properties.
+       lastUniqueID                  =hostNode %uniqueID()
+       timePrevious                  =hostBasic%time    ()
+       orbitalEnergyPrevious         =orbitalEnergyInternal
+       orbitalAngularMomentumPrevious=orbitalAngularMomentumInternal
+       ! Catch orbits which are close to being circular.
+       if      (   Extremum_Solver(currentOrbit%radius()) == 0.0d0             ) then
+          ! Orbit is at extremum.
+          radius=currentOrbit%radius()
+       else if (                                                                      &
+            &    (                                                                    &
+            &      extremumType                           == extremumPericenter       &
+            &     .and.                                                               &
+            &      Extremum_Solver(currentOrbit%radius()) >  0.0d0                    &
+            &    )                                                                    &
+            &   .or.                                                                  &
+            &    (                                                                    &
+            &      extremumType                           == extremumApocenter        &
+            &     .and.                                                               &
+            &      Extremum_Solver(currentOrbit%radius()) <  0.0d0                    &
+            &    )                                                                    &
+            &  ) then
+          ! No solution exists, assume a circular orbit.
+          radius=currentOrbit%radius()
+       else if (                                                                      &
+            &      extremumType                           == extremumPericenter       &
+            &   .and.                                                                 &
+            &      orbitalAngularMomentumInternal         <= 0.0d0                    &
+            &  ) then
+          ! Orbit is radial, so pericenter is zero.
+          radius=0.0d0
+       else
+          if (.not.finder%isInitialized()) then
+             call finder%rootFunction(Extremum_Solver                    )
+             call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+          end if
           select case (extremumType)
           case (extremumPericenter)
              call finder%rangeExpand (                                                             &
@@ -196,25 +234,47 @@ contains
                   &                   rangeExpandType              =rangeExpandMultiplicative      &
                   &                  )
           end select
+          radius=finder%find(rootGuess=currentOrbit%radius())
        end if
-       radius=finder%find(rootGuess=currentOrbit%radius())
-    end if
-    ! Get the orbital velocity at this radius.
-    if (orbitalAngularMomentumInternal > 0.0d0) then
-       ! Orbit is non-radial - use angular momentum to find velocity.
-       velocity=orbitalAngularMomentumInternal/radius
+       ! Get the orbital velocity at this radius.
+       if (orbitalAngularMomentumInternal > 0.0d0) then
+          ! Orbit is non-radial - use angular momentum to find velocity.
+          velocity=orbitalAngularMomentumInternal/radius
+       else
+          ! Orbit is radial - use energy to find velocity.
+          potential=Galactic_Structure_Potential(activeNode,radius,status=status)    
+          select case (status)
+          case (structureErrorCodeSuccess )
+             velocity=sqrt(2.0d0*(orbitalEnergyInternal-potential))
+          case (structureErrorCodeInfinite)
+             ! The gravitational potential is negative infinity at this radius (most likely zero
+             ! radius). Velocity is formally infinite. Return speed of light as a suitably fast
+             ! value.
+             velocity=speedLight/kilo
+          case default
+             call Galacticus_Error_Report('Satellite_Orbit_Extremum_Phase_Space_Coordinates','dark matter potential evaluation failed')
+          end select
+       end if
+       ! Store values and record that they are computed.
+       select case (extremumType)
+       case (extremumPericenter)
+          pericenterRadius    =radius
+          pericenterVelocity  =velocity
+          pericenterCalculated=.true.
+       case (extremumApocenter )
+          apocenterRadius     =radius
+          apocenterVelocity   =velocity
+          apocenterCalculated =.true.
+       end select
     else
-       ! Orbit is radial - use energy to find velocity.
-       potential=darkMatterProfile_%potential(activeNode,radius,status)
-       select case (status)
-       case (darkMatterProfileSuccess)
-          velocity=sqrt(2.0d0*(orbitalEnergyInternal-potential))
-       case (darkMatterProfileErrorInfinite)
-          ! The gravitational potential is negative infinity at this radius (most likely zero radius). Velocity is formally
-          ! infinite. Return speed of light as a suitably fast value.
-          velocity=speedLight/kilo
-       case default
-          call Galacticus_Error_Report('Satellite_Orbit_Extremum_Phase_Space_Coordinates','dark matter potential evaluation failed')
+       ! Use the previously computed values.
+       select case (extremumType)
+       case (extremumPericenter)
+          radius  =pericenterRadius
+          velocity=pericenterVelocity
+       case (extremumApocenter )
+          radius  = apocenterRadius
+          velocity= apocenterVelocity
        end select
     end if
     return
@@ -222,13 +282,13 @@ contains
 
   double precision function Extremum_Solver(radius)
     !% Root function used in finding orbital extremum radius.
-    use Dark_Matter_Profiles
+    use Galactic_Structure_Potentials
     implicit none
-    double precision                        , intent(in   ) :: radius
-    class           (darkMatterProfileClass), pointer       :: darkMatterProfile_
-
-    darkMatterProfile_ => darkMatterProfile()
-    Extremum_Solver=darkMatterProfile_%potential(activeNode,radius)+0.5d0*(orbitalAngularMomentumInternal/radius)**2-orbitalEnergyInternal
+    double precision, intent(in   ) :: radius
+    double precision                :: potential
+    
+    potential=Galactic_Structure_Potential(activeNode,radius)
+    Extremum_Solver=potential+0.5d0*(orbitalAngularMomentumInternal/radius)**2-orbitalEnergyInternal
     return
   end function Extremum_Solver
 
@@ -256,9 +316,20 @@ contains
     velocityVirialOriginal=                                                     thisOrbit%velocityScale()
     potentialHost         =Galactic_Structure_Potential(currentHost,radiusVirialOriginal)
     ! Create a new orbit with an adjusted energy.
-    Satellite_Orbit_Convert_To_Current_Potential=thisOrbit
+    Satellite_Orbit_Convert_To_Current_Potential=thisOrbit    
     call Satellite_Orbit_Convert_To_Current_Potential%energySet(thisOrbit%energy()+velocityVirialOriginal**2+potentialHost)
     return
   end function Satellite_Orbit_Convert_To_Current_Potential
+
+  subroutine Satellite_Orbit_Reset(node)
+    !% Reset the satellite orbit calculations.
+    implicit none
+    type(treeNode), intent(inout), pointer :: node
+    
+    pericenterCalculated=.false.
+    apocenterCalculated =.false.
+    lastUniqueID        =node%uniqueID()
+    return
+  end subroutine Satellite_Orbit_Reset
 
 end module Satellite_Orbits

@@ -230,9 +230,10 @@ contains
     use Power_Spectra
     use Numerical_Constants_Astronomical
     implicit none
-    double precision            , allocatable, dimension(:) :: powerSpectrum
-    integer                                                 :: iWavenumber
-    type            (hdf5Object)                            :: haloModelDataset, haloModelGroup
+    double precision                    , allocatable, dimension(:) :: powerSpectrumValue
+    class           (powerSpectrumClass), pointer                   :: powerSpectrum_
+    integer                                                         :: iWavenumber
+    type            (hdf5Object)                                    :: haloModelDataset   , haloModelGroup
 
     ! Initialize the module.
     call Galacticus_Output_Halo_Model_Initialize
@@ -253,15 +254,16 @@ contains
        wavenumberCount=int(log10(haloModelWavenumberMaximum/haloModelWavenumberMinimum)*dble(haloModelWavenumberPointsPerDecade))+1
 
        ! Allocate arrays for power spectrum.
-       call Alloc_Array(wavenumber   ,[wavenumberCount])
-       call Alloc_Array(powerSpectrum,[wavenumberCount])
+       call Alloc_Array(wavenumber        ,[wavenumberCount])
+       call Alloc_Array(powerSpectrumValue,[wavenumberCount])
 
        ! Build a grid of wavenumbers.
        wavenumber=Make_Range(haloModelWavenumberMinimum,haloModelWavenumberMaximum,wavenumberCount,rangeType=rangeTypeLogarithmic)
 
        ! Compute power spectrum at each wavenumber.
+       powerSpectrum_ => powerSpectrum()
        do iWavenumber=1,wavenumberCount
-          powerSpectrum(iWavenumber)=Power_Spectrum(wavenumber(iWavenumber))
+          powerSpectrumValue(iWavenumber)=powerSpectrum_%power(wavenumber(iWavenumber))
        end do
 
        ! Store the power spectrum
@@ -285,13 +287,13 @@ contains
        !@   <label>???</label>
        !@   <outputType>haloModel</outputType>
        !@ </outputProperty>
-       call haloModelGroup%writeDataset(powerSpectrum,'powerSpectrum','Linear theory power spectrum [Mpc³].',datasetReturned=haloModelDataset)
+       call haloModelGroup%writeDataset(powerSpectrumValue,'powerSpectrum','Linear theory power spectrum [Mpc³].',datasetReturned=haloModelDataset)
        call haloModelDataset%writeAttribute(megaParsec**3   ,'unitsInSI')
        call haloModelDataset%close()
        !$omp end critical (HDF5_Access)
 
        ! Deallocate arrays.
-       call Dealloc_Array(powerSpectrum)
+       call Dealloc_Array(powerSpectrumValue)
 
        ! Close the halo model group.
        !$omp critical (HDF5_Access)
@@ -309,17 +311,19 @@ contains
     !% Output the linear theory power spectrum to the main output file.
     use Linear_Growth
     use IO_HDF5
-    type            (hdf5Object), intent(inout) :: outputGroup
-    double precision            , intent(in   ) :: time
-    double precision                            :: growthFactor, growthFactorDerivative
+    type            (hdf5Object       ), intent(inout) :: outputGroup
+    double precision                   , intent(in   ) :: time
+    class           (linearGrowthClass), pointer       :: linearGrowth_
+    double precision                                   :: growthFactor, growthFactorDerivative
 
     ! Initialize the module.
     call Galacticus_Output_Halo_Model_Initialize
 
     ! Store growth factor if we are outputting halo model data.
     if (outputHaloModelData) then
-       growthFactor          =Linear_Growth_Factor                       (time)
-       growthFactorDerivative=Linear_Growth_Factor_Logarithmic_Derivative(time)
+       linearGrowth_         => linearGrowth                                      (    )
+       growthFactor          =  linearGrowth_%value                               (time)
+       growthFactorDerivative=  linearGrowth_%logarithmicDerivativeExpansionFactor(time)
        !$omp critical (HDF5_Access)
        call outputGroup%writeAttribute(growthFactor          ,'linearGrowthFactor'             )
        call outputGroup%writeAttribute(growthFactorDerivative,'linearGrowthFactorLogDerivative')

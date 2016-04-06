@@ -41,7 +41,8 @@
   <treeNodeMethodBasic value="standard"/>
   <treeNodeMethodBlackHole value="standard"/>
   <treeNodeMethodDarkMatterProfile value="scale"/>
-  <treeNodeMethodDisk value="exponential"/>
+  <treeNodeMethodDisk value="standard"/>
+  <diskMassDistribution value="exponentialDisk"/>
   <treeNodeMethodHotHalo value="standard"/>
   <treeNodeMethodPosition value="preset"/>
   <treeNodeMethodSatellite value="preset"/>

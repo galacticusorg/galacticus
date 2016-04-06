@@ -32,11 +32,9 @@ module Galacticus_Nodes
   use Histories
   use Numerical_Constants_Astronomical
   use IO_HDF5
+  use Pseudo_Random
   private
   public :: Galacticus_Nodes_Initialize, Galacticus_Nodes_Finalize, Galacticus_Nodes_Unique_ID_Set, Interrupt_Procedure_Template
-  !# <workaround type="gfortran">
-  public :: assignment(=)
-  !# </workaround>
 
   type, public :: treeNodeList
      !% Type to give a list of treeNodes.
@@ -62,7 +60,7 @@ module Galacticus_Nodes
 
   ! Event ID counter.
   integer         (kind=kind_int8)                                  :: eventID           =0
-
+  
   ! Define a constructor for treeNodes.
   interface treeNode
      module procedure Tree_Node_Constructor
@@ -95,7 +93,7 @@ module Galacticus_Nodes
     integer                                                  :: allocErr
 
     ! Initialize tree node methods if necessary.
-    call Tree_Node_Create_Initialize
+    call Galacticus_Nodes_Initialize()
 
     ! Allocate the object.
     allocate(Tree_Node_Constructor,stat=allocErr)
@@ -183,7 +181,26 @@ module Galacticus_Nodes
     return
   end subroutine Tree_Node_Unique_ID_Set
 
-  subroutine Tree_Node_Attach_Event(self,newEvent)
+  double precision function Tree_Node_Time_Step(self)
+    !% Returns the time-step last used by a {\normalfont \ttfamily treeNode}.
+    implicit none
+    class(treeNode), intent(in   ) :: self
+
+    Tree_Node_Time_Step=self%timeStepValue
+    return
+  end function Tree_Node_Time_Step
+
+  subroutine Tree_Node_Time_Step_Set(self,timeStep)
+    !% Sets the time-step used by a {\normalfont \ttfamily treeNode}.
+    implicit none
+    class           (treeNode      ), intent(inout) :: self
+    double precision                , intent(in   ) :: timeStep
+
+    self%timeStepValue=timeStep
+    return
+  end subroutine Tree_Node_Time_Step_Set
+  
+ subroutine Tree_Node_Attach_Event(self,newEvent)
     !% Create a new event in a tree node.
     implicit none
     class(treeNode ), intent(inout)          :: self
@@ -760,6 +777,37 @@ module Galacticus_Nodes
     return
   end function Merger_Tree_Walk_Descend_to_Progenitors
 
+  subroutine treeNodeDestroyBranch(self)
+    !% Destroy the tree branch rooted at this given node.
+    implicit none
+    class(treeNode), intent(inout), target  :: self
+    type (treeNode)               , pointer :: nodeDestroy, nodeNext, &
+         &                                     branchTip
+    
+    ! Descend to the tip of the branch.
+    branchTip => self
+    nodeNext  => branchTip%walkBranchWithSatellites(branchTip)
+    ! Loop over all tree nodes.
+    do while (associated(nodeNext))
+       ! Keep of a record of the current node, so that we can destroy it.
+       nodeDestroy => nodeNext
+       ! Walk to the next node in the tree.
+       nodeNext => nodeDestroy%walkBranchWithSatellites(branchTip)
+       ! If the node about to be destroyed is the primary progenitor of its parent we must move the child pointer of the parent to
+       ! point to the node's sibling. This is necessary as parent-child pointers are used to establish satellite status and so
+       ! will be utilized when walking the tree. Failure to do this can result in attempts to use dangling pointers.
+       if (associated(nodeDestroy%parent).and.associated(nodeDestroy%parent%firstChild,nodeDestroy)) &
+            & nodeDestroy%parent%firstChild => nodeDestroy%sibling
+       ! Destroy the current node.
+       call nodeDestroy%destroy()
+       deallocate(nodeDestroy)
+    end do
+    ! Destroy the base node of the branch.
+    if (associated(self%parent).and.associated(self%parent%firstChild,self)) self%parent%firstChild => self%sibling
+    call self%destroy()
+    return
+  end subroutine treeNodeDestroyBranch
+
   !
   ! Functions for nodeComponent class.
   function Node_Component_Generic_Type(self)
@@ -814,6 +862,15 @@ module Galacticus_Nodes
 
     return
   end subroutine Node_Component_Dump_Raw_Null
+
+  subroutine Node_Component_Read_Raw_Null(self,fileHandle)
+    !% Read a generic tree node component in binary.
+    implicit none
+    class  (nodeComponent), intent(inout) :: self
+    integer               , intent(in   ) :: fileHandle
+
+    return
+  end subroutine Node_Component_Read_Raw_Null
 
   subroutine Node_Component_Output_Count_Null(self,integerPropertyCount,doublePropertyCount,time,instance)
     !% Dump a generic tree node component.
@@ -882,15 +939,6 @@ module Galacticus_Nodes
 
     return
   end subroutine Node_Component_Serialize_Null
-
-  subroutine Node_Component_Read_Raw_Null(self,fileHandle)
-    !% Read a generic tree node component from raw file.
-    implicit none
-    class  (nodeComponent), intent(inout) :: self
-    integer               , intent(in   ) :: fileHandle
-    
-    return
-  end subroutine Node_Component_Read_Raw_Null
 
   subroutine Node_Component_Deserialize_Null(self,array)
     !% Deserialize a generic tree node component.
@@ -965,13 +1013,14 @@ module Galacticus_Nodes
     return
   end function Node_Component_Surface_Density_Null
 
-  double precision function Node_Component_Potential_Null(self,radius,componentType,massType,haloLoaded)
+  double precision function Node_Component_Potential_Null(self,radius,componentType,massType,haloLoaded,status)
     !% A null implementation of the gravitational potential in a component. Always returns zero.
     implicit none
     class           (nodeComponent), intent(inout)           :: self
     integer                        , intent(in   )           :: componentType, massType
     double precision               , intent(in   )           :: radius
     logical                        , intent(in   ), optional :: haloLoaded
+    integer                        , intent(inout), optional :: status
 
     Node_Component_Potential_Null=0.0d0
     return

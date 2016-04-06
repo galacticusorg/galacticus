@@ -19,7 +19,7 @@
 !% Contains a module which implements semaphores.
 
 ! Specify an explicit dependence on the semaphores.o object file.
-!: ./work/build/semaphores.o
+!: $(BUILDPATH)/semaphores.o
 
 module Semaphores
   !% Implements semaphores.
@@ -71,7 +71,7 @@ module Semaphores
      type(semaphoreList), pointer :: next => null()
   end type semaphoreList
 
-  type(semaphoreList), pointer :: semaphoreListHead => null()
+  type(semaphoreList), target :: semaphoreListHead
 
   interface
      function Semaphore_Open_C(name,initialValue) bind(c,name='Semaphore_Open_C')

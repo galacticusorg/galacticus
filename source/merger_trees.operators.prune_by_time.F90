@@ -44,7 +44,7 @@ contains
     use Cosmology_Functions
     implicit none
     type (mergerTreeOperatorPruneByTime)                :: pruneByTimeConstructorParameters
-    type (inputParameters              ), intent(in   ) :: parameters
+    type (inputParameters              ), intent(inout) :: parameters
     class(cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
     !# <inputParameterList label="allowedParameterNames" />
         
@@ -199,7 +199,8 @@ contains
                    ! Clean the branch.
                    call Merger_Tree_Prune_Clean_Branch(node)
                    ! Destroy the branch.
-                   call currentTree%destroyBranch(node)
+                   call node%destroyBranch()
+                   deallocate(node)
                 end if
              end if
           end if

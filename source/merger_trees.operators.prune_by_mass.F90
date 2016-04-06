@@ -44,7 +44,7 @@ contains
     use Input_Parameters2
     implicit none
     type(mergerTreeOperatorPruneByMass)                :: pruneByMassConstructorParameters
-    type(inputParameters              ), intent(in   ) :: parameters
+    type(inputParameters              ), intent(inout) :: parameters
     !# <inputParameterList label="allowedParameterNames" />
     
     call parameters%checkParameters(allowedParameterNames)
@@ -97,7 +97,8 @@ contains
     class  (mergerTreeOperatorPruneByMass), intent(inout)         :: self
     type   (mergerTree                   ), intent(inout), target :: tree
     type   (treeNode                     ), pointer               :: nodeNext     , nodePrevious, &
-         &                                                           node         , nodeNew
+         &                                                           node         , nodeNew     , &
+         &                                                           nodeWork
     class  (nodeComponentBasic           ), pointer               :: basic        , basicNew    , &
          &                                                           basicPrevious
     type   (mergerTree                   ), pointer               :: currentTree
@@ -115,28 +116,41 @@ contains
           if (basic%mass() < self%massThreshold) then
              ! Entire tree is below threshold. Destroy all but this base node. (Leaving just
              ! the base node makes the tree inert - i.e. it can not do anything.)
-             node => node%firstChild
-             do while (associated(node))
-                nodeNext => node%sibling
-                call Merger_Tree_Prune_Clean_Branch(node)
-                call currentTree%destroyBranch(node)
-                node => nodeNext
+             call Merger_Tree_Prune_Clean_Branch (node)
+             nodeWork => node%firstChild
+             do while (associated(nodeWork))
+                nodeNext => nodeWork%sibling
+                call Merger_Tree_Prune_Clean_Branch(nodeWork)
+                call nodeWork%destroyBranch()
+                deallocate(nodeWork)
+                nodeWork => nodeNext
              end do
+             nullify(node%firstChild)
+             nodeWork => node%firstSatellite
+             do while (associated(nodeWork))
+                nodeNext => nodeWork%sibling
+                call Merger_Tree_Prune_Clean_Branch(nodeWork)
+                call nodeWork%destroyBranch()
+                deallocate(nodeWork)
+                nodeWork => nodeNext
+             end do
+             nullify(node%firstSatellite)
           else
              ! Walk the tree, pruning branches.
-             do while (associated(node))               
+             do while (associated(node))
                 basic => node%basic()
                 ! Record the parent node to which we will return.
                 nodePrevious => node%parent
                 if (basic%mass() < self%massThreshold) then
-                   didPruning=.true.                   
+                   didPruning=.true.
                    ! Decouple from other nodes.
                    basicPrevious => nodePrevious%basic()
                    call Merger_Tree_Prune_Unlink_Parent(node,nodePrevious,basicPrevious%mass() < self%massThreshold,self%preservePrimaryProgenitor)
                    ! Clean the branch.
-                   call Merger_Tree_Prune_Clean_Branch (node                                                       )
+                   call Merger_Tree_Prune_Clean_Branch (node)
                    ! Destroy the branch.
-                   call currentTree%destroyBranch(node)
+                   call node%destroyBranch()
+                   deallocate(node)
                    ! Return to parent node.
                    node => nodePrevious
                 end if
@@ -147,5 +161,7 @@ contains
        ! Move to the next tree.
        currentTree => currentTree%nextTree
     end do
+    ! Uniqueify nodes.
+    call Merger_Tree_Prune_Uniqueify_IDs(tree)
     return
   end subroutine pruneByMassOperate

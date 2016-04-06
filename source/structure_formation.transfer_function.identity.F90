@@ -44,7 +44,7 @@ contains
     use Input_Parameters2
     implicit none
     type(transferFunctionIdentity)                :: identityConstructorParameters
-    type(inputParameters         ), intent(in   ) :: parameters
+    type(inputParameters         ), intent(inout) :: parameters
     
     return
   end function identityConstructorParameters
