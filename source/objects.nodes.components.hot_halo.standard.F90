@@ -94,24 +94,21 @@ module Node_Component_Hot_Halo_Standard
   !#   </property>
   !#   <property>
   !#     <name>outflowingMass</name>
-  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
+  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" isVirtual="true" />
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>true</isVirtual>
   !#   </property>
   !#   <property>
   !#     <name>outflowingAngularMomentum</name>
-  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
+  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" isVirtual="true" />
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>true</isVirtual>
   !#   </property>
   !#   <property>
   !#     <name>outflowingAbundances</name>
-  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
+  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" isVirtual="true" />
   !#     <type>abundances</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>true</isVirtual>
   !#   </property>
   !#   <property>
   !#     <name>unaccretedMass</name>
@@ -141,38 +138,33 @@ module Node_Component_Hot_Halo_Standard
   !#   </property>
   !#   <property>
   !#     <name>hotHaloCoolingMass</name>
-  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" />
+  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" isVirtual="true" />
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>true</isVirtual>
   !#   </property>
   !#   <property>
   !#     <name>hotHaloCoolingAngularMomentum</name>
-  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" />
+  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" isVirtual="true" />
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>true</isVirtual>
   !#   </property>
   !#   <property>
   !#     <name>hotHaloCoolingAbundances</name>
-  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" />
+  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" isVirtual="true" />
   !#     <type>abundances</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>true</isVirtual>
   !#   </property>
   !#   <property>
   !#     <name>massSink</name>
-  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
+  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" isVirtual="true" />
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>true</isVirtual>
   !#   </property>
   !#   <property>
   !#     <name>heatSource</name>
-  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
+  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" isVirtual="true" />
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>true</isVirtual>
   !#   </property>
   !#  </properties>
   !#  <bindings>
@@ -182,7 +174,7 @@ module Node_Component_Hot_Halo_Standard
   !#      <type>void</type>
   !#      <self pass="true" intent="inout" />
   !#      <argument>logical, intent(inout) :: interrupt</argument>
-  !#      <argument>procedure(Interrupt_Procedure_Template), intent(inout), pointer :: interruptProcedure</argument>
+  !#      <argument>procedure(interruptTask), intent(inout), pointer :: interruptProcedure</argument>
   !#     </interface>
   !#    </binding>
   !#    <binding method="outerRadiusGrowthRate" bindsTo="component" isDeferred="true" >
@@ -606,7 +598,7 @@ contains
     type            (treeNode                    ), intent(inout), pointer :: thisNode
     double precision                              , intent(in   )          :: gasMassRate
     logical                                       , intent(inout)          :: interrupt          
-    procedure       (Interrupt_Procedure_Template), intent(inout), pointer :: interruptProcedure 
+    procedure       (interruptTask), intent(inout), pointer :: interruptProcedure 
     class           (nodeComponentHotHalo        )               , pointer :: thisHotHaloComponent
     double precision                                                       :: gasMass
 
@@ -638,7 +630,7 @@ contains
     class           (nodeComponentHotHalo        ), intent(inout)                    :: thisHotHaloComponent
     double precision                              , intent(in   )                    :: rate
     logical                                       , intent(inout), optional          :: interrupt
-    procedure       (Interrupt_Procedure_Template), intent(inout), optional, pointer :: interruptProcedure
+    procedure       (interruptTask), intent(inout), optional, pointer :: interruptProcedure
     type            (treeNode                    )                         , pointer :: thisNode
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                                                 :: excessMassHeatingRate, inputMassHeatingRate, massHeatingRate
@@ -693,7 +685,7 @@ contains
     type            (treeNode                    ), intent(inout)          , pointer :: thisNode
     double precision                              , intent(in   )                    :: massRate
     logical                                       , intent(inout), optional          :: interrupt
-    procedure       (Interrupt_Procedure_Template), intent(inout), optional, pointer :: interruptProcedure
+    procedure       (interruptTask), intent(inout), optional, pointer :: interruptProcedure
     type            (treeNode                    )                         , pointer :: coolingFromNode
     class           (nodeComponentHotHalo        )                         , pointer :: coolingFromHotHaloComponent, thisHotHaloComponent
     type            (abundances                  ), save                             :: abundancesCoolingRate
@@ -833,7 +825,7 @@ contains
     class           (nodeComponentHotHalo                                    ), intent(inout)                    :: self
     double precision                                                          , intent(in   )                    :: rate
     logical                                                                   , intent(inout), optional          :: interrupt
-    procedure       (Interrupt_Procedure_Template                            ), intent(inout), optional, pointer :: interruptProcedure
+    procedure       (interruptTask                            ), intent(inout), optional, pointer :: interruptProcedure
     type            (treeNode                                                )                         , pointer :: selfNode
     double precision                                                                                             :: strippedOutflowFraction
     
@@ -860,7 +852,7 @@ contains
     class           (nodeComponentHotHalo                                    ), intent(inout)                    :: self
     double precision                                                          , intent(in   )                    :: rate
     logical                                                                   , intent(inout), optional          :: interrupt
-    procedure       (Interrupt_Procedure_Template                            ), intent(inout), optional, pointer :: interruptProcedure
+    procedure       (interruptTask                            ), intent(inout), optional, pointer :: interruptProcedure
     type            (treeNode                                                )                         , pointer :: selfNode
     double precision                                                                                             :: strippedOutflowFraction
 
@@ -885,7 +877,7 @@ contains
     class           (nodeComponentHotHalo                                    ), intent(inout)                    :: self
     type            (abundances                                              ), intent(in   )                    :: rate
     logical                                                                   , intent(inout), optional          :: interrupt
-    procedure       (Interrupt_Procedure_Template                            ), intent(inout), optional, pointer :: interruptProcedure
+    procedure       (interruptTask                            ), intent(inout), optional, pointer :: interruptProcedure
     type            (treeNode                                                )                         , pointer :: selfNode
     double precision                                                                                             :: strippedOutflowFraction
 
@@ -946,7 +938,7 @@ contains
     implicit none
     type            (treeNode                    )           , intent(inout), pointer :: thisNode
     logical                                                  , intent(inout)          :: interrupt
-    procedure       (Interrupt_Procedure_Template)           , intent(inout), pointer :: interruptProcedure
+    procedure       (interruptTask)           , intent(inout), pointer :: interruptProcedure
     class           (nodeComponentHotHalo        )                          , pointer :: thisHotHaloComponent
     class           (nodeComponentBasic          )                          , pointer :: thisBasicComponent
     class           (hotHaloMassDistributionClass)                          , pointer :: defaultHotHaloMassDistribution
@@ -1116,7 +1108,7 @@ contains
     implicit none
     class           (nodeComponentHotHaloStandard), intent(inout)          :: self
     logical                                       , intent(inout)          :: interrupt
-    procedure       (Interrupt_Procedure_Template), intent(inout), pointer :: interruptProcedure
+    procedure       (interruptTask), intent(inout), pointer :: interruptProcedure
     type            (treeNode                    )               , pointer :: selfNode
     class           (nodeComponentBasic          )               , pointer :: selfBasic
     class           (darkMatterHaloScaleClass    )               , pointer :: darkMatterHaloScale_
@@ -1216,7 +1208,7 @@ contains
     class           (nodeComponentHotHalo        ), intent(inout)                    :: self
     double precision                              , intent(in   )                    :: setValue
     logical                                       , intent(inout), optional          :: interrupt          
-    procedure       (Interrupt_Procedure_Template), intent(inout), optional, pointer :: interruptProcedure 
+    procedure       (interruptTask), intent(inout), optional, pointer :: interruptProcedure 
 
     select type (self)
     class is (nodeComponentHotHaloStandard)
@@ -1235,7 +1227,7 @@ contains
     class           (nodeComponentHotHaloStandard), intent(inout)                    :: self
     double precision                              , intent(in   )                    :: gasMassRate
     logical                                       , intent(inout), optional          :: interrupt          
-    procedure       (Interrupt_Procedure_Template), intent(inout), optional, pointer :: interruptProcedure 
+    procedure       (interruptTask), intent(inout), optional, pointer :: interruptProcedure 
     double precision                                                                 :: gasMass
     
     ! Exit immediately for zero rate.

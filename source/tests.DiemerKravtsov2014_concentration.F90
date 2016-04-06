@@ -44,7 +44,7 @@ program Test_DiemerKravtsov2014_Concentration
        &                                                                         redshift                       , nu                  , &
        &                                                                         differenceFractionalMaximum
   integer                                                                     :: iMass                          , ioStatus            , &
-       &                                                                         referenceUnit
+       &                                                                         referenceUnit                  , i
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.DiemerKravtsov2014_concentration.size')
@@ -57,10 +57,10 @@ program Test_DiemerKravtsov2014_Concentration
 
   ! Get the data file if we don't have it.
   if (.not.File_Exists(Galacticus_Input_Path()//"testSuite/data/diemerKravtsov2014Concentration.txt")) then
-     call System_Command_Do(                                                                                                     &
-          &                 "wget http://www.benediktdiemer.com/wp-content/uploads/2014/07/Concentration_WMAP7_median.txt -O "// &
-          &                 Galacticus_Input_Path()                                                                           // &
-          &                 "testSuite/data/diemerKravtsov2014Concentration.txt"                                                 &
+     call System_Command_Do(                                                                           &
+          &                 "wget http://www.benediktdiemer.com/wp-content/uploads/cM_WMAP7.txt -O "// &
+          &                 Galacticus_Input_Path()                                                 // &
+          &                 "testSuite/data/diemerKravtsov2014Concentration.txt"                       &
           &                )
      if (.not.File_Exists(Galacticus_Input_Path()//"testSuite/data/diemerKravtsov2014Concentration.txt")) &
           & call Galacticus_Error_Report('Test_DiemerKravtsov2014_Concentration','unable to retrieve reference dataset')
@@ -85,9 +85,9 @@ program Test_DiemerKravtsov2014_Concentration
   ! Read the reference file.
   differenceFractionalMaximum=0.0d0
   open(newUnit=referenceUnit,file=char(Galacticus_Input_Path()//"testSuite/data/diemerKravtsov2014Concentration.txt"),status='old',form='formatted',iostat=ioStatus)
-  read (referenceUnit,*,ioStat=ioStatus) ! Skip header.
-  read (referenceUnit,*,ioStat=ioStatus)
-  read (referenceUnit,*,ioStat=ioStatus)
+  do i=1,7
+     read (referenceUnit,*,ioStat=ioStatus) ! Skip header.
+  end do
   do while (ioStatus == 0)
      read (referenceUnit,*,ioStat=ioStatus) redshift,nu,mass,concentration
      if (ioStatus /= 0) exit
