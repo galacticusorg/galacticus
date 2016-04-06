@@ -862,21 +862,25 @@ contains
        !$omp end critical(mergerTreeReadTree)
        ! Handle the case where a new tree file is required.
        if (newTreeFileRequired) then
-          ! Wait for all threads to reach this point.
+          ! Assume we can exit by default.
           newTreeFileRequired=.false.
           processTree        =.false.
-          !$omp barrier
-          ! Have the master thread move to the next tree file.
-          !$omp master
-          mergerTreeReadFileCurrent=mergerTreeReadFileCurrent+1
-          if (mergerTreeReadFileCurrent <= mergerTreeReadFileCount) then
-             call defaultImporter%close(                                                 )
-             call defaultImporter%open (mergerTreeReadFileName(mergerTreeReadFileCurrent))
-             nextTreeToRead=0
+          ! Are there any more files to process?
+          if (mergerTreeReadFileCurrent < mergerTreeReadFileCount) then
+             ! Wait for all threads to reach this point.
+             !$omp barrier
+             ! Have the master thread move to the next tree file.
+             !$omp master
+             mergerTreeReadFileCurrent=mergerTreeReadFileCurrent+1
+             if (mergerTreeReadFileCurrent <= mergerTreeReadFileCount) then
+                call defaultImporter%close(                                                 )
+                call defaultImporter%open (mergerTreeReadFileName(mergerTreeReadFileCurrent))
+                nextTreeToRead=0
+             end if
+             !$omp end master
+             !$omp barrier
+             if (mergerTreeReadFileCurrent <= mergerTreeReadFileCount) newTreeFileRequired=.true.
           end if
-          !$omp end master
-          !$omp barrier
-          if (mergerTreeReadFileCurrent <= mergerTreeReadFileCount) newTreeFileRequired=.true.
        end if       
     end do treeFile
 
