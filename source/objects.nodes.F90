@@ -60,7 +60,7 @@ module Galacticus_Nodes
 
   ! Event ID counter.
   integer         (kind=kind_int8)                                  :: eventID           =0
-
+  
   ! Define a constructor for treeNodes.
   interface treeNode
      module procedure Tree_Node_Constructor
