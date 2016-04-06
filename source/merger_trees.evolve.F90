@@ -777,7 +777,7 @@ contains
           color="black"
           style="solid"
        end if
-       write (treeUnit,'(a,i16.16,a,a,a,a,a,i16.16,a,i16.16,a,f13.10,a,a,a)') '"',thisNode%node%uniqueID(),'" [shape=circle, color=',trim(color),', style=',trim(style),' label="',thisNode%node%index(),'\ntree: ',thisNode%treeIndex,'\ntime: ',thisBasicComponent%time(),'\n',char(thisNode%lockType),'"];'
+       write (treeUnit,'(a,i16.16,a,a,a,a,a,i16.16,a,i16.16,a,i16.16,a,f13.10,a,a,a)') '"',thisNode%node%uniqueID(),'" [shape=circle, color=',trim(color),', style=',trim(style),' label="',thisNode%node%uniqueid(),':',thisNode%node%index(),'\ntree: ',thisNode%treeIndex,'\ntime: ',thisBasicComponent%time(),'\n',char(thisNode%lockType),'"];'
        if (associated(thisNode%lockNode)) write (treeUnit,'(a,i16.16,a,i16.16,a)') '"',thisNode%node%uniqueID(),'" -> "',thisNode%lockNode%uniqueID(),'"' ;
        thisNode => thisNode%next
     end do

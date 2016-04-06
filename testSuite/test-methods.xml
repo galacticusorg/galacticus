@@ -908,4 +908,100 @@
     <treeNodeMethodDynamicsStatistics value="bars"/>
   </parameters>
 
+  <parameters>
+    <accretionHaloMethod value="null" />
+    <darkMatterProfileMethod value="isothermal"/>
+    <hotHaloMassDistributionMethod value="null"/>
+    <satelliteMergingRemnantSizeMethod value="null"/>
+    <mergerTreeBuildHaloMassMaximum value="6.0e12" />
+    <mergerTreeBuildHaloMassMinimum value="2.0e12" />
+    <mergerTreeBuildTreesHaloMassDistribution value="uniform" />
+    <mergerTreeBuildTreesPerDecade value="200" />
+    <mergerTreeBuilderMethod value="cole2000">
+      <accretionLimit value="0.1" />
+      <branchIntervalStep value="false" />
+      <mergeProbability value="0.1" />
+    </mergerTreeBuilderMethod>
+    <mergerTreeConstructMethod value="build" />
+    <mergerTreeMassResolutionMethod value="fixed">
+      <massResolution value="1.0e10" />
+    </mergerTreeMassResolutionMethod>
+    <mergerTreeOperatorMethod value="sequence">
+      <mergerTreeOperatorMethod value="selectWithinRange">
+	<baseMassMaximum value="1.0e16" />
+	<baseMassMinimum value="1.0e7" />
+      </mergerTreeOperatorMethod>
+      <mergerTreeOperatorMethod value="regridTimes">
+	<expansionFactorEnd value="1.0" />
+	<expansionFactorStart value="0.047" />
+	<regridCount value="60" />
+	<snapshotRedshifts value="19.915688 18.243723 16.724525 15.343073 14.085914 12.940780
+				  11.896569 10.943864 10.073462  9.277915  8.549912  7.883204
+				  7.272188  6.711586  6.196833  5.723864  5.288833  4.888449
+				  4.519556  4.179469  3.865683  3.575905  3.308098  3.060419
+				  2.831182  2.618862  2.422044  2.239486  2.070027  1.912633
+				  1.766336  1.630271  1.503636  1.385718  1.275846  1.173417
+				  1.077875  0.988708  0.905463  0.827699  0.755036  0.687109
+				  0.623590  0.564177  0.508591  0.456577  0.407899  0.362340
+				  0.319703  0.279802  0.242469  0.207549  0.174898  0.144383
+				  0.115883  0.089288  0.064493  0.041403  0.019933  0.000000" />
+	<snapshotSpacing value="list" />
+      </mergerTreeOperatorMethod>
+      <mergerTreeOperatorMethod value="pruneByMass">
+	<massThreshold value="7.08e10" />
+	<preservePrimaryProgenitor value="true" />
+      </mergerTreeOperatorMethod>
+      <mergerTreeOperatorMethod value="augment">
+	<attemptsMaximum value="10000" />
+	<massCutOff value="7.08e10" />
+	<massCutOffAttemptsMaximum value="50" />
+	<massCutOffScaleFactor value="0.0" />
+	<mergerTreeBuilderMethod value="cole2000">
+          <accretionLimit value="0.1" />
+          <branchIntervalStep value="true" />
+          <mergeProbability value="0.1" />
+          <mergerTreeMassResolutionMethod value="fixed">
+            <massResolution value="2.5e9" />
+          </mergerTreeMassResolutionMethod>
+          <randomSeedsFixed value="false" />
+	</mergerTreeBuilderMethod>
+	<rescaleMaximum value="20" />
+	<retryMaximum value="50" />
+	<snapshotRedshifts value="19.915688 18.243723 16.724525 15.343073 14.085914 12.940780
+				  11.896569 10.943864 10.073462  9.277915  8.549912  7.883204
+				  7.272188  6.711586  6.196833  5.723864  5.288833  4.888449
+				  4.519556  4.179469  3.865683  3.575905  3.308098  3.060419
+				  2.831182  2.618862  2.422044  2.239486  2.070027  1.912633
+				  1.766336  1.630271  1.503636  1.385718  1.275846  1.173417
+				  1.077875  0.988708  0.905463  0.827699  0.755036  0.687109
+				  0.623590  0.564177  0.508591  0.456577  0.407899  0.362340
+				  0.319703  0.279802  0.242469  0.207549  0.174898  0.144383
+				  0.115883  0.089288  0.064493  0.041403  0.019933  0.000000" />
+	<toleranceScale value="0.15" />
+      </mergerTreeOperatorMethod>
+      <mergerTreeOperatorMethod value="conditionalMF">
+	<massRatioCount value="25" />
+	<massRatioMaximum value="2.0" />
+	<massRatioMinimum value="2.0e-6" />
+	<outputGroupName value="treeStatisticsAfterInsertion" />
+	<parentMassCount value="20" />
+	<parentMassMaximum value="1.0e15" />
+	<parentMassMinimum value="2.36e10" />
+	<parentRedshifts value="0.0 0.0" />
+	<primaryProgenitorDepth value="4" />
+	<progenitorRedshifts value="0.508591 1.077875" />
+      </mergerTreeOperatorMethod>
+    </mergerTreeOperatorMethod>
+    <treeNodeMethodBasic value="standard" />
+    <treeNodeMethodBlackHole value="null" />
+    <treeNodeMethodDarkMatterProfile value="null" />
+    <treeNodeMethodDisk value="null" />
+    <treeNodeMethodHotHalo value="null" />
+    <treeNodeMethodPosition value="null" />
+    <treeNodeMethodSatellite value="standard" />
+    <treeNodeMethodSpheroid value="null" />
+    <treeNodeMethodSpin value="null" />
+    <verbosityLevel value="1" />
+  </parameters>
+
 </parameterGrid>

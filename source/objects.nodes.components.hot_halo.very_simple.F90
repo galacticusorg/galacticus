@@ -242,10 +242,24 @@ contains
     class           (nodeComponentHotHalo)               , pointer :: currentHotHaloComponent, thisHotHaloComponent
     class           (nodeComponentBasic  )               , pointer :: childBasicComponent    , currentBasicComponent
     class           (accretionHaloClass  )               , pointer :: accretionHalo_
+    class           (nodeEvent           )               , pointer :: event
     double precision                                               :: hotHaloMass            , failedHotHaloMass
 
     ! If the very simple hot halo is not active, then return immediately.
     if (associated(thisNode%firstChild).or..not.defaultHotHaloComponent%verySimpleIsActive()) return
+    ! Search for a subhalo promotion events associated with this node.
+    event => thisNode%event
+    do while (associated(event))
+       ! Check if this event:
+       !  a) is a subhalo promotion event;
+       !  b) has no associated task (which means this is the node being promoted to, not the node being promoted itself).
+       ! Do not assign any mass to such nodes, as they should receive gas from the node which is promoted to them.
+       select type (event)
+       type is (nodeEventSubhaloPromotion)
+          if (.not.associated(event%task)) return
+       end select
+       event => event%next
+    end do
 
     ! Ensure that this module has been initialized.
     call Node_Component_Hot_Halo_Very_Simple_Initialize()
