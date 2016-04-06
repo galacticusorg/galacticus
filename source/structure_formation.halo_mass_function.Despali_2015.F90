@@ -26,7 +26,7 @@
   type, extends(haloMassFunctionShethTormen) :: haloMassFunctionDespali2015
      !% A halo mass function class using the fitting function of \cite{despali_universality_2015}.
      private
-     class(virialDensityContrastClass                        ), pointer :: virialDensityContrast_
+     class(virialDensityContrastClass                        ), pointer :: virialDensityContrast_   => null()
      type (virialDensityContrastSphericalCollapseMatterLambda)          :: referenceDensityContrast
     contains
      !@ <objectMethods>
@@ -93,9 +93,7 @@ contains
     implicit none
     type(haloMassFunctionDespali2015), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"      />
-    !# <objectDestructor name="self%cosmologicalMassVariance_" />
-    !# <objectDestructor name="self%criticalOverdensity_"      />
+    !# <objectDestructor name="self%virialDensityContrast_"/>
     return
   end subroutine despali2015Destructor
 
