@@ -182,6 +182,7 @@ contains
     use Numerical_Interpolation
     use Table_Labels
     use FGSL
+    use Galacticus_Error
     implicit none
     class           (criticalOverdensityBarkana2001WDM), intent(inout)           :: self
     double precision                                   , intent(in   ), optional :: time                       , expansionFactor
@@ -191,6 +192,8 @@ contains
     double precision                                                             :: exponentialFit             , massScaleFree   , &
          &                                                                          powerLawFit                , smoothTransition
 
+    ! Validate.
+    if (.not.present(mass)) call Galacticus_Error_Report('barkana2001WDMValue','mass is required for this critical overdensity class')
     ! Determine the scale-free mass.
     massScaleFree=log(mass/self%jeansMass)
     ! Compute the mass scaling via a fitting function or interpolation in tabulated results.
@@ -276,6 +279,7 @@ contains
     use Numerical_Interpolation
     use Table_Labels
     use FGSL
+    use Galacticus_Error
     implicit none
     class           (criticalOverdensityBarkana2001WDM), intent(inout)           :: self
     double precision                                   , intent(in   ), optional :: time                    , expansionFactor
@@ -286,6 +290,8 @@ contains
          &                                                                          powerLawFitGradient     , smoothTransition      , &
          &                                                                          smoothTransitionGradient
 
+    ! Validate.
+    if (.not.present(mass)) call Galacticus_Error_Report('barkana2001WDMGradientMass','mass is required for this critical overdensity class')
     ! Determine the scale-free mass.
     massScaleFree=log(mass/self%jeansMass)
     ! Compute the mass scaling via a fitting function or interpolation in tabulated results.
