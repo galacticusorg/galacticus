@@ -143,9 +143,9 @@ contains
          &                              -self%cosmologicalMassVariance_%rootVariance(mass                           )**2 &
          &                             )                                                                                 &
          &                           )                                                                                   &
-         &                      +self%criticalOverdensity_%value(time)
+         &                      +self%criticalOverdensity_%value(time=time,mass=mass)
     ! Compute the corresponding epoch of collapse.
-    timeCollapse=self%criticalOverdensity_%timeOfCollapse(collapseCriticalOverdensity)
+    timeCollapse=self%criticalOverdensity_%timeOfCollapse(collapseCriticalOverdensity,mass)
     ! Compute time of collapse in the reference model, assuming same redshift of collapse in both models.
     timeCollapseReference=self%referenceCosmologyFunctions%cosmicTime(self%cosmologyFunctions_%expansionFactor(timeCollapse))
     ! Find the mass of a halo collapsing at the same time in the reference model.
@@ -181,9 +181,10 @@ contains
          &                              -self%referenceCosmologicalMassVariance%rootVariance(massReference                           )**2 &
          &                             )                                                                                                  &
          &                           )                                                                                                    &
-         &                      +self%referenceCriticalOverdensity%value(time                 )                                           &
-         &                      -self%referenceCriticalOverdensity%value(timeCollapseReference)
+         &                      +self%referenceCriticalOverdensity%value(time=time                 ,mass=massReference)                   &
+         &                      -self%referenceCriticalOverdensity%value(time=timeCollapseReference,mass=massReference)
       return
     end function referenceCollapseMassRoot
     
   end function schneider2015Concentration
+
