@@ -72,7 +72,7 @@ contains
          &                                                                                     parentNode                                , thisNode
     double precision                               , parameter                         ::      timeTolerance                      =1.0d-5
     double precision                               , parameter                         ::      largeTime                          =1.0d10
-    procedure       (Interrupt_Procedure_Template )           , pointer                ::      interruptProcedure
+    procedure       (interruptTask )           , pointer                ::      interruptProcedure
     procedure       (End_Of_Timestep_Task_Template)           , pointer                ::      End_Of_Timestep_Task
     integer                                        , parameter                         ::      verbosityLevel                     =3
     class           (nodeComponentBasic           )           , pointer                ::      baseNodeBasicComponent                    , parentBasicComponent, &
