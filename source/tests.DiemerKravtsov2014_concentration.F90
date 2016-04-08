@@ -57,10 +57,10 @@ program Test_DiemerKravtsov2014_Concentration
 
   ! Get the data file if we don't have it.
   if (.not.File_Exists(Galacticus_Input_Path()//"testSuite/data/diemerKravtsov2014Concentration.txt")) then
-     call System_Command_Do(                                                                                                     &
-          &                 "wget http://www.benediktdiemer.com/wp-content/uploads/2014/07/Concentration_WMAP7_median.txt -O "// &
-          &                 Galacticus_Input_Path()                                                                           // &
-          &                 "testSuite/data/diemerKravtsov2014Concentration.txt"                                                 &
+     call System_Command_Do(                                                                           &
+          &                 "wget http://www.benediktdiemer.com/wp-content/uploads/cM_WMAP7.txt -O "// &
+          &                 Galacticus_Input_Path()                                                 // &
+          &                 "testSuite/data/diemerKravtsov2014Concentration.txt"                       &
           &                )
      if (.not.File_Exists(Galacticus_Input_Path()//"testSuite/data/diemerKravtsov2014Concentration.txt")) &
           & call Galacticus_Error_Report('Test_DiemerKravtsov2014_Concentration','unable to retrieve reference dataset')

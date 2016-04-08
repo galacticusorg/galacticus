@@ -71,8 +71,6 @@
   <mergerTreeMassResolutionMethod value="fixed">
     <massResolution value="5.0e10"/>
   </mergerTreeMassResolutionMethod>
-    <accretionLimit value="0.1"/>
-  </mergerTreeBuilderMethod>
   <mergerTreeBuildTreesBeginAtTree value="1"/>
   <mergerTreeBuildHaloMassMinimum value="1.0e12"/>
   <darkMatterProfileConcentrationMethod value="gao2008"/>

@@ -148,11 +148,13 @@ contains
     type            (treeNode                      ), intent(inout), pointer :: thisNode
     class           (nodeComponentDarkMatterProfile)               , pointer :: parentDarkMatterProfileComponent, thisDarkMatterProfileComponent
     class           (nodeComponentBasic            )               , pointer :: parentBasicComponent            , thisBasicComponent
-    double precision                                                         :: deltaTime
+    double precision                                                         :: deltaTime                       , shape
 
-    ! Get the dark matter profile component.
-    thisDarkMatterProfileComponent => thisNode%darkMatterProfile()
     if (defaultDarkMatterProfileComponent%scaleShapeIsActive()) then
+       ! Get the dark matter profile component, creating it if necessary.
+       thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+       ! Get the shape parameter - this will initialize the shape if necessary.
+       shape                          = thisDarkMatterProfileComponent%shape()
        ! Check if this node is the primary progenitor.
        if (thisNode%isPrimaryProgenitor()) then
           ! It is, so compute the shape parameter growth rate.
@@ -161,7 +163,7 @@ contains
           parentBasicComponent => thisNode%parent%basic()
           deltaTime=parentBasicComponent%time()-thisBasicComponent%time()
           if (deltaTime > 0.0d0) then
-             parentDarkMatterProfileComponent => thisNode%parent%darkMatterProfile()
+             parentDarkMatterProfileComponent => thisNode%parent%darkMatterProfile(autoCreate=.true.)
              call thisDarkMatterProfileComponent%shapeGrowthRateSet(                                           &
                   &                                                 (                                          &
                   &                                                   parentDarkMatterProfileComponent%shape() &
