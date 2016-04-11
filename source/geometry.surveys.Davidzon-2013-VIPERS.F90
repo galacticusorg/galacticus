@@ -148,15 +148,12 @@ contains
 
   double precision function davidzon2013VIPERSDistanceMaximum(self,mass,field)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Cosmology_Functions
-    use Cosmology_Functions_Options
     use Galacticus_Error
     implicit none
     class           (surveyGeometryDavidzon2013VIPERS), intent(inout)           :: self
     double precision                                  , intent(in   )           :: mass
     integer                                           , intent(in   ), optional :: field
-    class           (cosmologyFunctionsClass         ), pointer                 :: cosmologyFunctions_
-    double precision                                                            :: redshift           , logarithmicMass
+    double precision                                                            :: logarithmicMass
     
     ! Find the limiting distance for this mass. (See
     ! constraints/dataAnalysis/stellarMassFunctions_VIPERS_z0_1/massDistanceRelation.pl for details.)
