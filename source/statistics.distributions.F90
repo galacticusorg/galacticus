@@ -127,12 +127,11 @@ contains
     implicit none
     class           (distribution), pointer                :: newDistribution
     type            (node        ), pointer, intent(in   ) :: definition
-    type            (node        ), pointer                :: typeElement
     double precision                                       :: distributionMinimum         , distributionMaximum      , &
          &                                                    distributionMean            , distributionVariance     , &
          &                                                    distributionScale           , distributionMedian       , &
          &                                                    distributionDegreesOfFreedom, distributionShape        , &
-         &                                                    distributionRate            , distributionWidth
+         &                                                    distributionRate
     logical                                                :: distributionMinimumExists   , distributionMaximumExists
 
     select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"type"))))

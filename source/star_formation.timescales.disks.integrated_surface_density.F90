@@ -80,7 +80,7 @@ contains
     double precision                                                     :: diskScaleRadius               , gasMass                        , &
          &                                                                  radiusInner                   , radiusOuter                    , &
          &                                                                  starFormationRate
-    type            (c_ptr                     )                         :: parameterPointer
+   type            (c_ptr                     )                         :: parameterPointer
     type            (fgsl_function             )                         :: integrandFunction
     type            (fgsl_integration_workspace)                         :: integrationWorkspace
     logical                                                              :: integrationReset
