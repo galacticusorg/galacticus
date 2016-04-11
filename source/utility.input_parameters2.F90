@@ -384,8 +384,9 @@ contains
          &                                                               versionElement
     type     (nodeList       ), pointer                               :: allowedParameterList
     type     (varying_string ), dimension(:), allocatable             :: allowedParameterNamesCombined, allowedParameterNamesTmp
-    integer                                                           :: i                            , errorStatus             , &
-         &                                                               allowedParameterFromFileCount, allowedParameterCount
+    integer                                                           :: allowedParameterFromFileCount, allowedParameterCount   , &
+         &                                                               errorStatus                  , i
+         &                                                               
     character(len=  10       )                                        :: versionLabel
     type     (varying_string )                                        :: message
 
@@ -803,7 +804,7 @@ contains
     logical                   , intent(in   ), optional :: requireValue
     integer                   , intent(in   ), optional :: copyInstance
     type     (node           ), pointer                 :: thisNode
-    integer                                             :: i                  , skipInstances
+    integer                                             :: skipInstances
     !# <optionalArgument name="requireValue" defaultsTo=".true." />
     !# <optionalArgument name="copyInstance" defaultsTo="1"      />
 
