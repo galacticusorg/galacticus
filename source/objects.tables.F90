@@ -1274,8 +1274,7 @@ contains
     double precision                      , intent(in   )           :: x
     integer                               , intent(in   ), optional :: table
     integer                                                         :: i         , tableActual
-    double precision                                                :: a         , b          , c, d, dx, &
-         &                                                             xEffective
+    double precision                                                :: xEffective, dx
 
     ! Determine which table to use.
     tableActual=1
@@ -1309,8 +1308,7 @@ contains
     double precision                      , intent(in   )           :: x
     integer                               , intent(in   ), optional :: table
     integer                                                         :: i         , tableActual
-    double precision                                                :: a         , b          , c, d, dx, &
-         &                                                             xEffective
+    double precision                                                :: xEffective, b          , dx
 
     ! Determine which table to use.
     tableActual=1
@@ -1980,9 +1978,9 @@ contains
     implicit none
     type            (table1DLinearMonotoneCSpline), intent(inout)               :: self
     integer                                       , intent(in   )               :: table
-    double precision                              , allocatable  , dimension(:) :: dx   , dy   , m
+    double precision                              , allocatable  , dimension(:) :: dx   , dy    , m
     integer                                                                     :: i
-    double precision                                                            :: h    , dxSum, factor
+    double precision                                                            :: dxSum, factor
 
     ! Reset all previously stored values.
     self% tablePrevious=-1

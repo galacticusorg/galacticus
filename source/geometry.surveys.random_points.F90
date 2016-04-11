@@ -82,7 +82,6 @@ contains
     use Numerical_Constants_Math
     use Memory_Management
     use Galacticus_Display
-    use ISO_Varying_String
     use String_Handling
     use Galacticus_Error
     implicit none
@@ -94,9 +93,8 @@ contains
     double precision                            ,                dimension(3                            ) :: origin                  , position1              , &
          &                                                                                                   position2
     type            (fgsl_rng                  ), save                                                    :: pseudoSequenceObject
-    type            (varying_string)                                                                      :: message
     logical                                     , save                                                    :: reset=.true.
-    integer                                                                                               :: i                       , j
+    integer                                                                                               :: i
     double precision                                                                                      :: comovingDistanceMaximum1, comovingDistanceMaximum2, &
          &                                                                                                   comovingDistanceMinimum1, comovingDistanceMinimum2, &
          &                                                                                                   distance1               , distance2
