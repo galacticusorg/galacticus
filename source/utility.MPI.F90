@@ -359,9 +359,9 @@ contains
     implicit none
     class  (mpiObject), intent(in   )           :: self
     integer           , intent(in   ), optional :: rank
+#ifdef USEMPI
     integer                                     :: rankActual
     
-#ifdef USEMPI
     rankActual=self%rank()
     if (present(rank)) rankActual=rank
     mpiGetNodeAffinity=self%nodeAffinities(rankActual)
@@ -641,8 +641,9 @@ contains
     class  (mpiObject), intent(in   )                                    :: self
     integer           , intent(in   ), dimension( :          )           :: array
     logical           , intent(in   ), dimension(0:          ), optional :: mask
-    integer                          , dimension(size(array))            :: mpiSumArrayInt, maskedArray
+    integer                          , dimension(size(array))            :: mpiSumArrayInt
 #ifdef USEMPI
+    integer                          , dimension(size(array))            :: maskedArray
     integer                                                              :: iError        , activeCount
 
     ! Sum the array over all processes.
@@ -683,8 +684,9 @@ contains
     class           (mpiObject), intent(in   )                                    :: self
     double precision           , intent(in   ), dimension( :          )           :: array
     logical                    , intent(in   ), dimension(0:          ), optional :: mask
-    double precision                          , dimension(size(array))            :: mpiSumArrayDouble, maskedArray
+    double precision                          , dimension(size(array))            :: mpiSumArrayDouble
 #ifdef USEMPI
+    double precision                          , dimension(size(array))            :: maskedArray
     integer                                                                       :: iError           , activeCount
 
     ! Sum the array over all processes.
@@ -725,8 +727,9 @@ contains
     class           (mpiObject), intent(in   )                                    :: self
     double precision           , intent(in   ), dimension( :          )           :: array
     logical                    , intent(in   ), dimension(0:          ), optional :: mask
-    double precision                          , dimension(size(array) )           :: mpiAverageArray, maskedArray
+    double precision                          , dimension(size(array) )           :: mpiAverageArray
 #ifdef USEMPI
+    double precision                          , dimension(size(array) )           :: maskedArray
     integer                                                                       :: iError         , activeCount
 
     ! Sum the array over all processes.
@@ -817,8 +820,9 @@ contains
     class           (mpiObject), intent(in   )                                    :: self
     double precision           , intent(in   ), dimension( :          )           :: array
     logical                    , intent(in   ), dimension(0:          ), optional :: mask
-    double precision                          , dimension(size(array) )           :: mpiMaxvalArray, maskedArray
+    double precision                          , dimension(size(array) )           :: mpiMaxvalArray
 #ifdef USEMPI
+    double precision                          , dimension(size(array) )           :: maskedArray
     integer                                                                       :: iError
 
     ! Find the maximum over all processes.
@@ -883,8 +887,9 @@ contains
     class           (mpiObject), intent(in   )                                    :: self
     double precision           , intent(in   ), dimension( :          )           :: array
     logical                    , intent(in   ), dimension(0:          ), optional :: mask
-    double precision                          , dimension(size(array) )           :: mpiMinvalArray, maskedArray
+    double precision                          , dimension(size(array) )           :: mpiMinvalArray
 #ifdef USEMPI
+    double precision                          , dimension(size(array) )           :: maskedArray
     integer                                                                       :: iError
 
     ! Find the minimum over all processes.

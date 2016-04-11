@@ -195,9 +195,12 @@ contains
     use MPI
 #endif
     implicit none
-    integer            :: error   , mpiRank
+    integer            :: error
+#ifdef USEMPI
+    integer            :: mpiRank
     character(len=128) :: hostName
     logical            :: flag
+#endif
 
     write (0,*) 'Galacticus was interrupted - will try to flush data before exiting.'
     !$ if (omp_in_parallel()) then
@@ -236,9 +239,12 @@ contains
     use MPI
 #endif
     implicit none
-    integer            :: error   , mpiRank
+    integer            :: error
+#ifdef USEMPI
+    integer            :: mpiRank
     character(len=128) :: hostName
     logical            :: flag
+#endif
     
     write (0,*) 'Galacticus experienced a segfault - will try to flush data before exiting.'
     !$ if (omp_in_parallel()) then
@@ -277,9 +283,12 @@ contains
     use MPI
 #endif
     implicit none
-    integer            :: error   , mpiRank
+    integer            :: error
+#ifdef USEMPI
+    integer            :: mpiRank
     character(len=128) :: hostName
     logical            :: flag
+#endif
 
     write (0,*) 'Galacticus experienced a floating point exception - will try to flush data before exiting.'
     !$ if (omp_in_parallel()) then
@@ -337,10 +346,13 @@ contains
     type     (c_ptr                         ), value :: file       , reason
     integer  (kind=c_int                    ), value :: errorNumber, line
     character(kind=FGSL_Char,len=FGSL_StrMax)        :: message
-    integer                                          :: error     , mpiRank
+    integer                                          :: error
+#ifdef USEMPI
+    integer                                          :: mpiRank
     character(len=128                       )        :: hostName
     logical                                          :: flag
-
+#endif
+    
     if (abortOnErrorGSL) then
        message=FGSL_StrError(errorNumber)
        write (0,*) 'Galacticus experienced an error in the GSL library - will try to flush data before exiting.'

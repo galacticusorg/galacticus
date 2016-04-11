@@ -10314,8 +10314,6 @@ contains
     integer  (kind=HSIZE_T  )                           , intent(in   ), optional :: readBegin      , readCount
     integer  (kind=HSIZE_T  )                                                     :: readBeginActual, readCountActual, &
          &                                                                           fieldCount     , recordCount
-    integer  (kind=SIZE_T   ), allocatable, dimension(:)                          :: fieldSizes     , fieldOffsets
-    character(len=200       ), allocatable, dimension(:)                          :: fieldNames
     integer  (kind=SIZE_T   )                                                     :: recordTypeSize
     integer                                                                       :: errorCode
     logical                                                                       :: readSubsection
@@ -10397,8 +10395,6 @@ contains
     integer  (kind=HSIZE_T  )                           , intent(in   ), optional :: readBegin      , readCount
     integer  (kind=HSIZE_T  )                                                     :: readBeginActual, readCountActual, &
          &                                                                           fieldCount     , recordCount
-    integer  (kind=SIZE_T   ), allocatable, dimension(:)                          :: fieldSizes     , fieldOffsets
-    character(len=200       ), allocatable, dimension(:)                          :: fieldNames
     integer  (kind=SIZE_T   )                                                     :: recordTypeSize
     integer                                                                       :: errorCode
     logical                                                                       :: readSubsection
@@ -10560,8 +10556,6 @@ contains
     integer  (kind=HSIZE_T         )                           , intent(in   ), optional :: readBegin      , readCount
     integer  (kind=HSIZE_T         )                                                     :: readBeginActual, readCountActual, &
          &                                                                                  fieldCount     , recordCount
-    integer  (kind=SIZE_T          ), allocatable, dimension(:)                          :: fieldSizes     , fieldOffsets
-    character(len=200              ), allocatable, dimension(:)                          :: fieldNames
     integer  (kind=SIZE_T          )                                                     :: recordTypeSize
     integer                                                                              :: errorCode     , i
     logical                                                                              :: readSubsection
