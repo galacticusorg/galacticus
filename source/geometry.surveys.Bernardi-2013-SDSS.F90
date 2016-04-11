@@ -67,18 +67,15 @@ contains
 
   double precision function bernardi2013SDSSDistanceMaximum(self,mass,field)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Cosmology_Functions
-    use Cosmology_Functions_Options
     use Galacticus_Error
     implicit none
     class           (surveyGeometryBernardi2013SDSS), intent(inout)           :: self
     double precision                                , intent(in   )           :: mass
     integer                                         , intent(in   ), optional :: field
-    class           (cosmologyFunctionsClass       ), pointer                 :: cosmologyFunctions_
-    double precision                                                          :: redshift           , logarithmicMass
+    double precision                                                          :: logarithmicMass
     
 
-    ! Find the limiting redshift for this mass completeness limits from Moustakas et al. (2013; Table 2). (See
+    ! Find the limiting distance for this mass completeness limits. (See
     ! constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/massDistanceRelation.pl for details.)
     logarithmicMass=min(log10(mass),12.5d0)
     bernardi2013SDSSDistanceMaximum                                                         &
