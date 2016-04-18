@@ -81,14 +81,14 @@ C
      :     HYPER2,GAM5,GAM6,GAM7,Z1
       DIMENSION A(IP),B(IQ)                                               
       COMMON/CONSTS/ZERO,HALF,ONE,TWO,TEN,EPS
-	COMMON/IO/NOUT
+      COMMON/IO/NOUT
       DOUBLE PRECISION ZERO,HALF,ONE,TWO,TEN,EPS
       DOUBLE PRECISION DNUM,PRECIS,ARGI,ARGR,DIFF
       !$omp threadprivate(/CONSTS/,/IO/)
       
-	NOUT=6
-      IF (Z .EQ. CMPLX(ZERO,ZERO)) THEN
-         PFQ = CMPLX(ONE,ZERO)
+      NOUT=6
+      IF (Z .EQ. DCMPLX(ZERO,ZERO)) THEN
+         PFQ = DCMPLX(ONE,ZERO)
          RETURN
       END IF
       IF ((LNPFQ .NE. 0) .AND. (LNPFQ .NE. 1)) THEN 
@@ -261,7 +261,7 @@ C     ****************************************************************
       DOUBLE PRECISION DUM1,DUM2,RR10,RI10,LOG2
       DOUBLE PRECISION WK1,WK2,WK3,WK4,WK5,WK6
       COMMON/CONSTS/ZERO,HALF,ONE,TWO,TEN,EPS
-	COMMON/IO/NOUT
+      COMMON/IO/NOUT
       DOUBLE PRECISION ZERO,HALF,ONE,TWO,TEN,EPS
       !$omp threadprivate(/CONSTS/,/IO/)
   
@@ -391,16 +391,16 @@ C     ****************************************************************
 *     
 *     Now, estimate the exponent of where the pFq series will terminate.
 *     
-      TEMP1=CMPLX(ONE,ZERO)
+      TEMP1=DCMPLX(ONE,ZERO)
       CREAL=ONE
       DO 90 I1=1,IP
-         TEMP1=TEMP1*CMPLX(AR(I1),AI(I1))/SIGFIG
+         TEMP1=TEMP1*DCMPLX(AR(I1),AI(I1))/SIGFIG
  90   CONTINUE
       DO 100 I1=1,IQ
-         TEMP1=TEMP1/(CMPLX(CR(I1),CI(I1))/SIGFIG)
+         TEMP1=TEMP1/(DCMPLX(CR(I1),CI(I1))/SIGFIG)
          CREAL=CREAL*CR(I1)
  100  CONTINUE
-      TEMP1=TEMP1*CMPLX(XR,XI)
+      TEMP1=TEMP1*DCMPLX(XR,XI)
 *     
 *     Triple it to make sure.
 *     
@@ -663,11 +663,11 @@ C     ****************************************************************
       COMMON/CONSTS/ZERO,HALF,ONE,TWO,TEN,EPS
       !$omp threadprivate(/CONSTS/)
       DOUBLE PRECISION ZERO,HALF,ONE,TWO,TEN,EPS
-      
+
       DO 10 I=0,L+1                                                    
          Z(I)=ZERO                                                      
  10   CONTINUE                                                          
-      EDIFF=ANINT(A(L+1)-B(L+1))                                        
+      EDIFF=INT(DNINT(A(L+1)-B(L+1)))
       IF (ABS(A(1)) .LT. HALF .OR. EDIFF .LE. -L) GOTO 20
       IF (ABS(B(1)) .LT. HALF .OR. EDIFF .GE. L) GOTO 40               
       GOTO 60                                                         
@@ -1052,11 +1052,12 @@ C     *                                                              *
 C     ****************************************************************  
       
       SUBROUTINE ARYDIV(AR,AI,BR,BI,C,L,LNPFQ,RMAX,IBIT)                 
-      
+      implicit none      
       INTEGER L,IBIT,REXP,IR10,II10,LNPFQ,ITNMAX
       COMPLEX*16 C,CDUM                                                 
       DOUBLE PRECISION AR,AI,BR,BI,PHI,N1,N2,N3,E1,E2,E3,RR10,RI10,X
       DOUBLE PRECISION AE,BE,X1,X2,DUM1,DUM2,CE,RMAX,TENMAX
+      DOUBLE PRECISION DNUM
       DIMENSION AR(-1:*),AI(-1:*),BR(-1:*),BI(-1:*)             
       DIMENSION AE(2,2),BE(2,2),CE(2,2)                                 
       COMMON/CONSTS/ZERO,HALF,ONE,TWO,TEN,EPS
@@ -1328,7 +1329,7 @@ C     ****************************************************************
       COMPLEX*16 CN                                                     
       DIMENSION CAE(2,2)                                                
       COMMON/CONSTS/ZERO,HALF,ONE,TWO,TEN,EPS
-	COMMON/IO/NOUT
+      COMMON/IO/NOUT
       DOUBLE PRECISION ZERO,HALF,ONE,TWO,TEN,EPS
       !$omp threadprivate(/CONSTS/,/IO/)
 *     
@@ -1439,7 +1440,7 @@ C     ****************************************************************
       COMPLEX*16 A,B,Z,FACTOR
       INTEGER IP,IQ,J,IPREMAX
       COMMON/CONSTS/ZERO,HALF,ONE,TWO,TEN,EPS
-	COMMON/IO/NOUT
+      COMMON/IO/NOUT
       DOUBLE PRECISION ZERO,HALF,ONE,TWO,TEN,EPS
       DOUBLE PRECISION EXPON,XL,XTERM,XMAX
       DIMENSION A(IP),B(IQ)
@@ -1521,7 +1522,7 @@ C     ****************************************************************
       DOUBLE PRECISION ZERO,HALF,ONE,TWO,TEN,EPS
       DOUBLE PRECISION TENTH
       COMMON/CONSTS/ZERO,HALF,ONE,TWO,TEN,EPS
-	COMMON/IO/NOUT
+      COMMON/IO/NOUT
       !$omp threadprivate(/CONSTS/,/IO/)
       DIMENSION FN(7),FD(7)
 *     

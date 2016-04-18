@@ -92,7 +92,8 @@ contains
     double precision                       , intent(in   )          :: energyInputRate               , starFormationRate
     class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
     double precision                                                :: outflowRateToStarFormationRate, spheroidVelocity
-
+    !GCC$ attributes unused :: starFormationRate
+    
     ! Get spheroid circular velocity.
     thisSpheroidComponent => thisNode%spheroid()
     spheroidVelocity=thisSpheroidComponent%velocity()

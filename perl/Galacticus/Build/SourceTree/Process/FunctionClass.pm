@@ -118,7 +118,8 @@ sub Process_FunctionClass {
 		    pass        => "yes",
 		    modules     => "FGSL",
 		    argument    => [ "integer, intent(in   ) :: stateFile", "type(fgsl_file), intent(in   ) :: fgslStateFile" ],
-		    code        => ""
+		    # <workaround type="gfortran" PR="41209" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=41209"/>
+		    code        => join("",map {"if (sizeof(".$_.")<0.and.sizeof(".$_.")>0) then\nend if\n"} ('self', 'stateFile', 'fgslStateFile') )
 		};
  		$methods{'stateRestore'} =
 		{
@@ -127,7 +128,7 @@ sub Process_FunctionClass {
 		    pass        => "yes",
 		    modules     => "FGSL",
 		    argument    => [ "integer, intent(in   ) :: stateFile", "type(fgsl_file), intent(in   ) :: fgslStateFile" ],
-		    code        => ""
+		    code        => join("",map {"if (sizeof(".$_.")<0.and.sizeof(".$_.")>0) then\nend if\n"} ('self', 'stateFile', 'fgslStateFile') )
 		};
   		$methods{'stateSnapshot'} =
 		{
@@ -135,7 +136,7 @@ sub Process_FunctionClass {
 		    type        => "void",
 		    pass        => "yes",
 		    argument    => [ ],
-		    code        => ""
+		    code        => join("",map {"if (sizeof(".$_.")<0.and.sizeof(".$_.")>0) then\nend if\n"} ('self') )
 		};
 	    }
 	    # If the function requires calculation reset, add method to do so.
@@ -146,7 +147,7 @@ sub Process_FunctionClass {
 		    type        => "void",
 		    pass        => "yes",
 		    argument    => [ "type(treeNode), intent(inout), pointer :: thisNode" ],
-		    code        => ""
+		    code        => join("",map {"if (sizeof(".$_.")<0.and.sizeof(".$_.")>0) then\nend if\n"} ('self','thisNode') )
 		};
 	    }
 	    # Add "isFinalizable" method.
@@ -191,7 +192,9 @@ sub Process_FunctionClass {
 		     content    => ""     ,
 		     firstChild => undef(),
 		     sibling    => undef(),
-		     parent     => undef()
+		     parent     => undef(),
+		     source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
+		     line       => 1
 		 }
 		];
 	    my $postContains =
@@ -201,7 +204,9 @@ sub Process_FunctionClass {
 		     content    => ""     ,
 		     firstChild => undef(),
 		     sibling    => undef(),
-		     parent     => undef()
+		     parent     => undef(),
+		     source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
+		     line       => 1
 		 }
 		];
 
@@ -464,7 +469,6 @@ sub Process_FunctionClass {
 	    $postContains->[0]->{'content'} .= "      implicit none\n";
 	    $postContains->[0]->{'content'} .= "      type(inputParameters) :: subParameters\n";
 	    $postContains->[0]->{'content'} .= "      type(varying_string ) :: message\n\n";
-	    $postContains->[0]->{'content'} .= "      type(hdf5Object     ) :: parentOutputParameters, subParametersOutputGroup\n\n";
 	    $postContains->[0]->{'content'} .= "      !\$omp critical (".$directive->{'name'}."Initialization)\n";
 	    $postContains->[0]->{'content'} .= "      if (.not.moduleInitialized) then\n";
 	    $postContains->[0]->{'content'} .= "         !@ <inputParameter>\n";
@@ -656,6 +660,26 @@ sub Process_FunctionClass {
 		    $postContains->[0]->{'content'} .= $code."\n";
 		} else {
 		    $postContains->[0]->{'content'} .= "      call Galacticus_Error_Report('".$methodName."Null','this is a null method - initialize the ".$directive->{'name'}." object before use')\n";
+		    if ( $category eq "function" ) {
+			# Avoid warnings about unset function values.
+			$postContains->[0]->{'content'} .= "      ".$directive->{'name'}.ucfirst($methodName).$extension."=";
+			my $setValue;
+			if ( $method->{'type'} =~ m/^class/ ) {
+			    $setValue = "> null()";
+			} elsif ( $method->{'type'} =~ m/^type\s*\(\s*(.*)\s*\)/ ) {
+			    $setValue = $2."()";
+			} elsif ( $method->{'type'} =~ m/^integer/ ) {
+			    $setValue = "0";
+			} elsif ( $method->{'type'} =~ m/^double\s+precision/ ) {
+			    $setValue = "0.0d0";
+			}
+			die("Process_FunctionClass(): do not know how to set '".$method->{'type'}."'")
+			    unless ( defined($setValue) );
+			$postContains->[0]->{'content'} .= $setValue."\n";
+		    }
+		    $postContains->[0]->{'content'} .= "      return\n";
+		    # <workaround type="gfortran" PR="41209" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=41209"/>
+		    $postContains->[0]->{'content'} .= join("",map {"if (sizeof(".$_.")<0.and.sizeof(".$_.")>0) then\nend if\n"} split(/,/,$argumentList eq "" ? "self" : "self,".$argumentList));
 		}
 		$postContains->[0]->{'content'} .= "   end ".$category." ".$directive->{'name'}.ucfirst($methodName).$extension."\n\n";
 	    }
@@ -725,7 +749,7 @@ sub Process_FunctionClass {
 			    }
 			}
 		    }
-		    $postContains->[0]->{'content'} .= "  double precision function ".$methodName."_C(";
+		    $postContains->[0]->{'content'} .= "  real(c_double) function ".$methodName."_C(";
 		    $postContains->[0]->{'content'} .= "wrapperC".$separator
 			if ( $methodsCBound{$methodName}->{'pass'} eq "yes" );
 		    $postContains->[0]->{'content'} .= $argumentList.") bind(c,name='".$methodName."_C')\n";
@@ -734,6 +758,7 @@ sub Process_FunctionClass {
 		    $postContains->[0]->{'content'} .= "     type(c_ptr), intent(in   ), value :: wrapperC\n";
 		    foreach my $argument( @arguments ) {
 			(my $argumentInteroperable = $argument) =~ s/(\s*::)/, value$1/;
+			$argumentInteroperable =~ s/^\s*double\s+precision/real(c_double)/;
 			$postContains->[0]->{'content'} .= "     ".$argumentInteroperable."\n"
 		    }
 		    $postContains->[0]->{'content'} .= "     type(".$directive->{'name'}."Wrapper), pointer :: wrapper\n";

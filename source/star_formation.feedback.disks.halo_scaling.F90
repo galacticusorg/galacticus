@@ -111,7 +111,8 @@ contains
     double precision                          , save                   :: expansionFactorPrevious    =-1.0d0, expansionFactorFactorPrevious=-1.0d0
     !$omp threadprivate(expansionFactorPrevious,expansionFactorFactorPrevious)
     double precision                                                   :: expansionFactor                    , virialVelocity
-
+    !GCC$ attributes unused :: starFormationRate
+    
     ! Get the default cosmology functions object.
     cosmologyFunctionsDefault => cosmologyFunctions ()
     darkMatterHaloScale_      => darkMatterHaloScale()

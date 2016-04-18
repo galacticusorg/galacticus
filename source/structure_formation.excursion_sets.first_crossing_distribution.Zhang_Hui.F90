@@ -159,7 +159,9 @@ contains
     use Galacticus_Error
     implicit none
     double precision, intent(in   ) :: time, variance, varianceProgenitor
+    !GCC$ attributes unused :: time, variance, varianceProgenitor
 
+    Excursion_Sets_First_Crossing_Rate_Zhang_Hui=0.0d0
     call Galacticus_Error_Report('Excursion_Sets_First_Crossing_Rate_Zhang_Hui','barrier crossing rates are not implemented for this method [too slow]')
     return
   end function Excursion_Sets_First_Crossing_Rate_Zhang_Hui
@@ -169,7 +171,9 @@ contains
     use Galacticus_Error
     implicit none
     double precision, intent(in   ) :: time, variance
+    !GCC$ attributes unused :: time, variance
 
+    Excursion_Sets_Non_Crossing_Rate_Zhang_Hui=0.0d0
     call Galacticus_Error_Report('Excursion_Sets_Non_Crossing_Rate_Zhang_Hui','barrier non-crossing rates are not implemented for this method [too slow]')
     return
   end function Excursion_Sets_Non_Crossing_Rate_Zhang_Hui

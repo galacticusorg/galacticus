@@ -42,9 +42,6 @@
      module procedure duttonMaccio2014ConstructorInternalDefined
   end interface darkMatterProfileConcentrationDuttonMaccio2014
   
-  ! Parameters for user-defined fit.
-  double precision                 :: duttonMaccio2014A1, duttonMaccio2014A2, duttonMaccio2014A3, duttonMaccio2014A4, &
-       &                              duttonMaccio2014B1, duttonMaccio2014B2
   ! Density contrast methods.
   !# <enumeration>
   !#  <name>duttonMaccio2014DensityContrastMethod</name>

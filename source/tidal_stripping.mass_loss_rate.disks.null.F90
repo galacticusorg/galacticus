@@ -47,7 +47,8 @@ contains
     use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
-
+    !GCC$ attributes unused :: thisNode
+    
     Tidal_Stripping_Mass_Loss_Rate_Disk_Null=0.0d0
     return
   end function Tidal_Stripping_Mass_Loss_Rate_Disk_Null

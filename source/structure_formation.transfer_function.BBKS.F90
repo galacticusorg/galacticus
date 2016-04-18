@@ -198,6 +198,7 @@ contains
     use Galacticus_Error
     implicit none
     class(transferFunctionBBKS), intent(inout) :: self
+    !GCC$ attributes unused :: self
 
     call Galacticus_Error_Report('bbksHalfModeMass','not supported by this implementation')
     return

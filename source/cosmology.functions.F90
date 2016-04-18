@@ -213,6 +213,7 @@ module Cosmology_Functions
   !#   else if (present(expansionFactor)) then
   !#      cosmologyFunctionsEpochTime=self%cosmicTime(expansionFactor,collapsingPhase)
   !#   else
+  !#      cosmologyFunctionsEpochTime=-1.0d0
   !#      call Galacticus_Error_Report('cosmologyFunctionsEpochTime','either "time" or "expansionFactor" must be given')
   !#   end if
   !#   </code>

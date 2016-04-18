@@ -425,7 +425,7 @@ contains
     interrupt=.false.
     interruptProcedure => null()
 
-    ! Call component routines to indicate that derivative calculation is commencing.
+    ! Call component routinrm build.les to indicate that derivative calculation is commencing.
     call Galacticus_Calculations_Reset(thisNode)
 
     ! Call routines to perform any pre-derivative calculations.
@@ -455,7 +455,6 @@ contains
     real     (kind=c_double     ), intent(in)                         :: time
     real     (kind=c_double     ), intent(in), dimension(nProperties) :: y
     real     (kind=c_double     )            , dimension(nProperties) :: dydt
-    class    (nodeComponentBasic), pointer                            :: basic
     type     (varying_string    )                                     :: message
     type     (c_ptr             )                                     :: parameterPointer
     integer                                                           :: i               , lengthMaximum
@@ -528,7 +527,7 @@ contains
   end subroutine Tree_Node_Evolve_Error_Analyzer
 #endif
 
-  subroutine Tree_Node_Promote(thisTree,thisNode)
+  subroutine Tree_Node_Promote(thisNode)
     !% Transfer the properties of {\normalfont \ttfamily thisNode} to its parent node, then destroy it.
     use String_Handling
     use Galacticus_Display
@@ -536,7 +535,6 @@ contains
     include 'objects.tree_node.promote.modules.inc'
     !# </include>
     implicit none
-    class(mergerTree    ), intent(inout)          :: thisTree
     type (treeNode      ), intent(inout), pointer :: thisNode
     type (treeNode      )               , pointer :: parentNode, satelliteNode, &
          &                                           mergeeNode
@@ -617,7 +615,7 @@ contains
     return
   end subroutine Tree_Node_Promote
 
-  subroutine Events_Node_Merger(thisTree,thisNode)
+  subroutine Events_Node_Merger(thisNode)
     !% Handles instances where {\normalfont \ttfamily thisNode} is about to merge with its parent node.
     use Input_Parameters
     use Galacticus_Error
@@ -630,7 +628,6 @@ contains
     include 'events.node_mergers.process.modules.inc'
     !# </include>
     implicit none
-    class(mergerTree    ), intent(in   )          :: thisTree
     type (treeNode      ), intent(inout), pointer :: thisNode
     type (varying_string)                         :: message
 

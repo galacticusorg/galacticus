@@ -107,10 +107,11 @@ contains
        separatorActual=charactersWhiteSpace
     end if
 
-    words=""
-    inWord=.false.
-    iWord=0
-    inBracket=0
+    words          =""
+    inWord         =.false.
+    iWord          = 0
+    inBracket      = 0
+    iCharacterStart=-1
     do iCharacter=1,len_trim(inputString)
        if (present(bracketing)) then
           if (inputString(iCharacter:iCharacter) == bracketing(1:1)) inBracket=inBracket+1

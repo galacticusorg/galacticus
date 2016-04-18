@@ -100,7 +100,8 @@ contains
     double precision                       , intent(in   ) :: mass             , massMaximum, &
          &                                                    massMinimum      , time
     class           (haloMassFunctionClass), pointer       :: haloMassFunction_
-
+    !GCC$ attributes unused :: massMinimum, massMaximum
+    
     ! Construct sampling rate.
     haloMassFunction_ => haloMassFunction()
     Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF=                                                                                              &

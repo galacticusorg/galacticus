@@ -33,7 +33,7 @@ logical function convergenceNeverIsConverged(self,simulationState,logLikelihood)
   class           (convergenceNever), intent(inout)           :: self
   class           (state           ), intent(in   ), optional :: simulationState
   double precision                  , intent(in   ), optional :: logLikelihood
-
+  
   convergenceNeverIsConverged=.false.
   return
 end function convergenceNeverIsConverged
@@ -42,7 +42,7 @@ integer function convergenceNeverConvergedAtStep(self)
   !% Return the step at which the simulation converged.
   implicit none
   class(convergenceNever), intent(inout) :: self
-
+  
   convergenceNeverConvergedAtStep=-1
   return
 end function convergenceNeverConvergedAtStep
@@ -51,7 +51,7 @@ subroutine convergenceNeverReset(self)
   !% Reset the convergence object.
   implicit none
   class(convergenceNever), intent(inout) :: self
-
+  
   return
 end subroutine convergenceNeverReset
 
@@ -60,7 +60,7 @@ subroutine convergenceNeverLogReport(self,fileUnit)
   implicit none
   class  (convergenceNever), intent(inout) :: self
   integer                  , intent(in   ) :: fileUnit
-
+  
   write (fileUnit,*) 'Convergence: unconverged'
   return
 end subroutine convergenceNeverLogReport
@@ -70,7 +70,7 @@ logical function convergenceNeverChainIsOutlier(self,chainIndex)
   implicit none
   class  (convergenceNever), intent(inout) :: self
   integer                  , intent(in   ) :: chainIndex
-
+  
   convergenceNeverChainIsOutlier=.false.
   return
 end function convergenceNeverChainIsOutlier

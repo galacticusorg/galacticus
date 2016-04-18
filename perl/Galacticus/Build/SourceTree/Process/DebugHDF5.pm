@@ -1,6 +1,6 @@
 # Contains a Perl module which implements debugging tools for the HDF5 interface.
 
-package InputParameters;
+package DebugHDF5;
 use strict;
 use warnings;
 use utf8;

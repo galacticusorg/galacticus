@@ -110,7 +110,8 @@ contains
     use Numerical_Interpolation
     implicit none
     type(chemicalStateAtomicCIECloudy), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     ! Nothing to do.
     return
   end subroutine atomicCIECloudyDestructor
@@ -252,7 +253,8 @@ contains
     implicit none
     class(chemicalStateAtomicCIECloudy), intent(inout) :: self
     type (inputParameters             ), intent(inout) :: descriptor
-
+    !GCC$ attributes unused :: self
+    
     call descriptor%addParameter("chemicalStateMethod","atomicCIECloudy")
     return
   end subroutine atomicCIECloudyDescriptor
