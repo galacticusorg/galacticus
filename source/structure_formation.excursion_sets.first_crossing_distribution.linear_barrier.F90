@@ -92,7 +92,8 @@ contains
     !% therefore zero.
     implicit none
     double precision, intent(in   ) :: time, variance
-
+    !GCC$ attributes unused :: time, variance
+    
     Excursion_Sets_Non_Crossing_Rate_Linear=0.0d0
     return
   end function Excursion_Sets_Non_Crossing_Rate_Linear

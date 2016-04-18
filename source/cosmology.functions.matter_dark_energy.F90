@@ -199,7 +199,8 @@ contains
     double precision                                    , intent(in   ), optional :: expansionFactor      , time
     logical                                             , intent(in   ), optional :: collapsingPhase
     double precision                                                              :: expansionFactorActual
-
+    !GCC$ attributes unused :: collapsingPhase
+    
     ! Determine the actual expansion factor to use.
     if (present(time)) then
        if (present(expansionFactor)) then
@@ -674,7 +675,8 @@ contains
     real   (kind=c_double), dimension(1), intent(in   ) :: a
     real   (kind=c_double), dimension(1)                :: dadt
     type   (c_ptr        )              , value         :: parameterPointer
-
+    !GCC$ attributes unused :: t
+    
     if (a(1) <= 0.0d0) then
        dadt(1)=0.0d0
     else
@@ -689,7 +691,9 @@ contains
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout) :: self
     double precision                                    , intent(in   ) :: comovingDistance
+    !GCC$ attributes unused :: self, comovingDistance
 
+    matterDarkEnergyTimeAtDistanceComoving=0.0d0
     call Galacticus_Error_Report('matterDarkEnergyTimeAtDistanceComoving','functionality not implemented')
     return
   end function matterDarkEnergyTimeAtDistanceComoving
@@ -700,7 +704,9 @@ contains
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout) :: self
     double precision                                    , intent(in   ) :: time
+    !GCC$ attributes unused :: self, time
 
+    matterDarkEnergyDistanceComoving=0.0d0
     call Galacticus_Error_Report('matterDarkEnergyDistanceComoving','functionality not implemented')
     return
    end function matterDarkEnergyDistanceComoving
@@ -712,7 +718,9 @@ contains
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
     integer                                             , intent(in   )           :: output
     double precision                                    , intent(in   ), optional :: distanceModulus, redshift
+    !GCC$ attributes unused :: self, output, distanceModulus, redshift
 
+    matterDarkEnergyDistanceComovingConvert=0.0d0
     call Galacticus_Error_Report('matterDarkEnergyDistanceComovingConvert','functionality not implemented')
     return
   end function matterDarkEnergyDistanceComovingConvert

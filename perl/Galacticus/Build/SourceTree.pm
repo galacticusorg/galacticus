@@ -29,6 +29,7 @@ require Galacticus::Build::SourceTree::Process::SourceDigest;
 require Galacticus::Build::SourceTree::Process::SourceIntrospection;
 require Galacticus::Build::SourceTree::Process::ObjectBuilder;
 require Galacticus::Build::SourceTree::Process::DebugHDF5;
+require Galacticus::Build::SourceTree::Process::GCCAttributes;
 
 sub ParseFile {
     # Grab the file name.
@@ -44,7 +45,9 @@ sub ParseFile {
 	content    => $code        ,
 	parent     => undef()      ,
 	firstChild => undef()      ,
-	sibling    => undef()
+	sibling    => undef()      ,
+	source     => $fileName    ,
+	line       => 0
     };
     &BuildTree($tree);
     return $tree;
@@ -93,7 +96,7 @@ sub Parse_Unit {
     my $unit = shift();
     # Process any content unless this is a code block.
     if ( exists($unit->{'content'}) && $unit->{'type'} ne "code" ) {
-	my @children = &Build_Children($unit->{'content'});
+	my @children = &Build_Children($unit->{'content'},$unit->{'source'},$unit->{'line'});
 	$unit->{'firstChild'} = $children[0];
 	for(my $i=0;$i<scalar(@children);++$i) {
 	    $children[$i]->{'parent'  } = $unit;
@@ -107,11 +110,14 @@ sub Parse_Unit {
 
 sub Build_Children {
     # Grab the code passed to us.
-    my $codeText = shift();
+    my $codeText   = shift();
+    my $source     = shift();
+    my $lineNumber = shift();
     # Initialize an empty array of children.
     my @children = ();
     # Initialize current raw code buffer.
     my $rawCode;
+    my $rawLineNumber = $lineNumber+1;
     # Initialize custom openers;
     my %unitOpeners = %Fortran_Utils::unitOpeners;
     $unitOpeners{'contains'} = { unitName => -1, regEx => qr/^\s*contains\s*$/ };
@@ -122,12 +128,14 @@ sub Build_Children {
 	# Get a line.
 	my ($rawLine, $processedLine, $bufferedComments);
 	&Fortran_Utils::Get_Fortran_Line($code,$rawLine,$processedLine,$bufferedComments);
+	$lineNumber += $rawLine =~ tr/\n//;
 	# Check for unit opening.
 	my $unitFound;	
 	foreach my $unitType ( keys(%unitOpeners) ) {
 	    if ( my @matches = ( $processedLine =~ $unitOpeners{$unitType}->{'regEx'} ) ) {
-		# A match is found, extract the name of the unit.
-	     	my $unitName    = $matches[$unitOpeners{$unitType}->{'unitName'}]
+		# A match is found, extract the name of the unit, store current line number.
+		my $lineNumberOpener = $lineNumber;
+	     	my $unitName         = $matches[$unitOpeners{$unitType}->{'unitName'}]
 		    if ( $unitOpeners{$unitType}->{'unitName'} >= 0 );
 		$unitFound      = 1;
 		# Store the unit opener.
@@ -138,15 +146,18 @@ sub Build_Children {
 		push(
 		    @children,
 		    {
-			type       => "code"  ,
-			content    => $rawCode,
-			parent     => undef() ,
-			firstChild => undef() ,
-			sibling    => undef()
+			type       => "code"        ,
+			content    => $rawCode      ,
+			parent     => undef()       ,
+			firstChild => undef()       ,
+			sibling    => undef()       ,
+			source     => $source       ,
+			line       => $rawLineNumber
 		    }
 		    )
 		    if ( $rawCode );
 		undef($rawCode);
+		$rawLineNumber = $lineNumber+1;
 		# Read ahead until the matching unit closer is found, storing the unit code.
 		my $closerRegExp;
 		if ( $unitType eq "contains" ) {
@@ -161,6 +172,7 @@ sub Build_Children {
 			$processedLine = "";
 		    } else {
 			&Fortran_Utils::Get_Fortran_Line($code,$rawLine, $processedLine, $bufferedComments);
+			$lineNumber += $rawLine =~ tr/\n//;
 		    }
 		    if ( ( $unitType eq "contains" && eof($code) ) || ( my @matches = ( $processedLine =~ $closerRegExp ) ) ) {
 			my $closeUnitName = $matches[$Fortran_Utils::unitClosers{$unitType}->{'unitName'}]
@@ -175,11 +187,13 @@ sub Build_Children {
 			    # Create a new node.
 			    my $newNode = 
 			    {
-				type       => $unitType   ,
-				opener     => $opener     ,
-				parent     => undef()     ,
-				firstChild => undef()     ,
-				sibling    => undef()
+				type       => $unitType        ,
+				opener     => $opener          ,
+				parent     => undef()          ,
+				firstChild => undef()          ,
+				sibling    => undef()          ,
+				source     => $source          ,
+				line       => $lineNumberOpener
 			    };
 			    $newNode->{'content'} = $unitRawCode
 				if ( $unitRawCode );
@@ -192,6 +206,7 @@ sub Build_Children {
 				@children,
 				$newNode
 				);
+			    $rawLineNumber = $lineNumber+1;
 			    last;			    
 			}
 		    }
@@ -215,11 +230,13 @@ sub Build_Children {
     push(
 	@children,
 	{
-     	    type       => "code"  ,
-     	    content    => $rawCode,
-     	    parent     => undef() ,
-     	    firstChild => undef() ,
-	    sibling    => undef()
+     	    type       => "code"        ,
+     	    content    => $rawCode      ,
+     	    parent     => undef()       ,
+     	    firstChild => undef()       ,
+	    sibling    => undef()       ,
+	    source     => $source       ,
+	    line       => $rawLineNumber
     	}
      	)
 	if ( $rawCode );
@@ -326,6 +343,8 @@ sub Serialize {
     my $serialization;
     my $currentNode = $node;
     while ( $currentNode ) {
+	$serialization .= "!--> ".$currentNode->{'line'}." \"".$currentNode->{'source'}."\"\n"
+	    if ( exists($currentNode->{'source'}) && exists($currentNode->{'line'}) );
 	if ( $currentNode->{'type'} eq "code" ) {
 	    $serialization .= $currentNode->{'content'}
 	} else {

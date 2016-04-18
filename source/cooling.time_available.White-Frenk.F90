@@ -99,7 +99,8 @@ contains
     use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
-
+    !GCC$ attributes unused :: thisNode
+    
     ! Simply return unit rate.
     Cooling_Time_Available_Increase_Rate_WF=1.0d0
     return

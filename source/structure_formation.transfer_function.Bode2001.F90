@@ -49,6 +49,7 @@ contains
   function bode2001ConstructorParameters(parameters)
     !% Constructor for the ``{\normalfont \ttfamily bode2001}'' transfer function class which takes a parameter set as input.
     use Input_Parameters2
+    use Galacticus_Error
     implicit none
     type            (transferFunctionBode2001)                :: bode2001ConstructorParameters
     type            (inputParameters         ), intent(inout) :: parameters
@@ -57,7 +58,10 @@ contains
     double precision                                          :: scaleCutOff                  , epsilon, &
          &                                                       eta                          , nu
     !# <inputParameterList label="allowedParameterNames" />
-    
+
+    ! Validate parameters.
+    if (.not.parameters%isPresent('transferFunctionMethod')) call Galacticus_Error_Report("bode2001ConstructorParameters","an explicit 'transferFunctionMethod' must be given"//{introspection:location})
+    ! Read parameters.
     !# <inputParameter>
     !#   <name>scaleCutOff</name>
     !#   <source>parameters</source>

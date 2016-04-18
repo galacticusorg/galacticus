@@ -285,6 +285,7 @@ contains
     integer                                                      :: historyCount
     integer         (c_size_t          )                         :: iHistory
     double precision                                             :: timeNode
+    !GCC$ attributes unused :: fuelAbundances
 
     ! Get the current time for this node.
     thisBasicComponent => thisNode%basic()
@@ -385,7 +386,8 @@ contains
     double precision            , parameter                   :: stellarMassMinimum=1.0d0
     double precision            , allocatable  , dimension(:) :: timeSteps
     integer                                                   :: i
-
+    !GCC$ attributes unused :: stellarAbundances
+    
     ! Return immediately if the history does not exist.
     if (.not.thisHistory%exists()) return
 

@@ -27,7 +27,7 @@ module Numerical_Interpolation
   implicit none
   private
   public :: Interpolate, Interpolate_Derivative, Interpolate_Locate, Interpolate_Done, Interpolate_Linear_Generate_Factors,&
-       & Interpolate_Linear_Do, Interpolate_Linear_Generate_Gradient_Factors
+       & Interpolate_Linear_Do
 
 contains
 
@@ -58,20 +58,6 @@ contains
     Interpolate_Linear_Generate_Factors(1)=1.0d0-Interpolate_Linear_Generate_Factors(0)
     return
   end function Interpolate_Linear_Generate_Factors
-
-  function Interpolate_Linear_Generate_Gradient_Factors(xArray,iInterpolate,x)
-    !% Return interpolating factors for linear interpolation in the array {\normalfont \ttfamily xArray()} given the index in the array which
-    !% brackets value {\normalfont \ttfamily x}.
-    implicit none
-    double precision, dimension(0:1)                :: Interpolate_Linear_Generate_Gradient_Factors
-    integer                         , intent(in   ) :: iInterpolate
-    double precision, dimension(:)  , intent(in   ) :: xArray
-    double precision                , intent(in   ) :: x
-
-    Interpolate_Linear_Generate_Gradient_Factors(0)=-1.0d0/(xArray(iInterpolate+1)-xArray(iInterpolate))
-    Interpolate_Linear_Generate_Gradient_Factors(1)=-Interpolate_Linear_Generate_Gradient_Factors(0)
-    return
-  end function Interpolate_Linear_Generate_Gradient_Factors
 
   double precision function Interpolate(xArray,yArray,interpolationObject,interpolationAccelerator,x,interpolationType&
        &,extrapolationType,reset)

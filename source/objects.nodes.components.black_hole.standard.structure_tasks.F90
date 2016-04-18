@@ -85,6 +85,7 @@ contains
     integer                                 , intent(inout), optional :: status
     class           (nodeComponentBlackHole)               , pointer  :: thisBlackHoleComponent
     double precision                                                  :: componentMass
+    !GCC$ attributes unused :: status
 
     Node_Component_Black_Hole_Standard_Potential=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeBlackHole)) return

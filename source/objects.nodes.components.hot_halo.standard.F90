@@ -192,8 +192,7 @@ module Node_Component_Hot_Halo_Standard
   integer                                                   :: abundancesCount                                 , chemicalsCount
 
   ! Configuration variables.
-  logical                                                   :: hotHaloExcessHeatDrivesOutflow                  , hotHaloNodeMergerLimitBaryonFraction        , &
-       &                                                       hotHaloAngularMomentumAlwaysGrows               , hotHaloOutflowReturnOnFormation
+  logical                                                   :: hotHaloExcessHeatDrivesOutflow                  , hotHaloAngularMomentumAlwaysGrows
   double precision                                          :: hotHaloExpulsionRateMaximum                     , hotHaloOutflowStrippingEfficiency
 
   ! Quantities stored to avoid repeated computation.
@@ -828,7 +827,8 @@ contains
     procedure       (interruptTask                            ), intent(inout), optional, pointer :: interruptProcedure
     type            (treeNode                                                )                         , pointer :: selfNode
     double precision                                                                                             :: strippedOutflowFraction
-    
+    !GCC$ attributes unused :: interrupt
+
     select type (self)
     class is (nodeComponentHotHaloStandard)
        ! Get the host node.
@@ -855,7 +855,8 @@ contains
     procedure       (interruptTask                            ), intent(inout), optional, pointer :: interruptProcedure
     type            (treeNode                                                )                         , pointer :: selfNode
     double precision                                                                                             :: strippedOutflowFraction
-
+    !GCC$ attributes unused :: interrupt
+    
     select type (self)
     class is (nodeComponentHotHaloStandard)
        ! Get the host node.
@@ -880,7 +881,8 @@ contains
     procedure       (interruptTask                            ), intent(inout), optional, pointer :: interruptProcedure
     type            (treeNode                                                )                         , pointer :: selfNode
     double precision                                                                                             :: strippedOutflowFraction
-
+    !GCC$ attributes unused :: interrupt
+    
     select type (self)
     class is (nodeComponentHotHaloStandard)
        ! Get the host node.

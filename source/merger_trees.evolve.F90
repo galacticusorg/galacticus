@@ -323,7 +323,7 @@ contains
                                ! event. Also record that the tree is not deadlocked, as we are changing the tree state.
                                if (.not.thisNode%isSatellite()) then
                                   deadlockStatus=deadlockStatusIsNotDeadlocked
-                                  call Events_Node_Merger(currentTree,thisNode)
+                                  call Events_Node_Merger(thisNode)
                                end if
                             case (.true.)
                                ! This is the major progenitor, so promote the node to its parent providing that the node has no
@@ -331,7 +331,7 @@ contains
                                ! parent halo. Also record that the tree is not deadlocked, as we are changing the tree state.
                                if (.not.associated(thisNode%sibling)) then
                                   deadlockStatus=deadlockStatusIsNotDeadlocked
-                                  call Tree_Node_Promote(currentTree,thisNode)
+                                  call Tree_Node_Promote(thisNode)
                                end if
                             end select
                          end if
@@ -797,7 +797,8 @@ contains
     class           (nodeComponentBasic)               , pointer :: thisBasicComponent
     double precision                                             :: nodeTime
     logical                                                      :: taskDone
-
+    !GCC$ attributes unused :: thisTree
+    
     ! Get the current time.
     thisBasicComponent => thisNode          %basic()
     nodeTime           =  thisBasicComponent%time ()

@@ -101,7 +101,7 @@ $(BUILDPATH)/%.o : $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUIL
 	do \
 	 if [ -f $$mod ] ; then mv $$mod $$mod~; fi \
 	done
-	$(FCCOMPILER) -c $(BUILDPATH)/$*.p.F90 -o $(BUILDPATH)/$*.o $(FCFLAGS)
+	$(FCCOMPILER) -c $(BUILDPATH)/$*.p.F90 -o $(BUILDPATH)/$*.o $(FCFLAGS) 2>&1 | ./scripts/build/postprocess.pl $(BUILDPATH)/$*.p.F90
 	@mlist=`cat $(BUILDPATH)/$*.m` ; \
 	for mod in $$mlist ; \
 	do \
@@ -149,11 +149,12 @@ $(BUILDPATH)/Bivar/bivar.o : ./source/Bivar/bivar.F90 Makefile
 $(BUILDPATH)/pFq/pfq.new.o : ./source/pFq/pfq.new.f Makefile
 	$(FCCOMPILER) -c $< -o $(BUILDPATH)/pFq/pfq.new.o $(FCFLAGS)
 
-# Rule for running *.Inc files through the preprocessor.
+# Rule for running *.Inc files through the preprocessor. We strip out single quote characters in comment lines to avoid spurious
+# complaints from the preprocessor.
 $(BUILDPATH)/%.Inc : ./source/%.Inc
 	cp -f ./source/$*.Inc $(BUILDPATH)/$*.Inc
 $(BUILDPATH)/%.inc : $(BUILDPATH)/%.Inc Makefile
-	$(PREPROCESSOR) -nostdinc -C $< -o $(BUILDPATH)/$*.tmp
+	perl -MRegexp::Common -ne '$$l=$$_;if ( $$l =~ m/($$RE{comment}{Fortran})/ ) {($$m = $$1) =~ s/'\''//g; $$l =~ s/$$RE{comment}{Fortran}/$$m/}; print $$l' $< | $(PREPROCESSOR) -nostdinc -C -o $(BUILDPATH)/$*.tmp
 	mv -f $(BUILDPATH)/$*.tmp $(BUILDPATH)/$*.inc
 
 # Dependency files (*.d) are created as empty files by default. Normally this rule is overruled by a specific set of rules in the
@@ -321,7 +322,7 @@ source/FFTlog/fftlog.f:
 	 echo "end subroutine fhti" >> source/FFTlog/fftlog.f; \
 	 touch source/FFTlog/cdgamma.f; \
 	 touch source/FFTlog/drfftb.f; \
-	 touch source/FFTlog/drfftf.f; \ 
+	 touch source/FFTlog/drfftf.f; \
 	 touch source/FFTlog/drffti.f; \
 	fi
 

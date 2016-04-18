@@ -74,6 +74,7 @@ contains
 
   subroutine Assert_Real_Scalar(testName,value1,value2,compare,absTol,relTol)
     !% Assess and record an assertion about real arguments.
+    use Galacticus_Error
     use Numerical_Comparison
     implicit none
     character(len=*       ), intent(in   )           :: testName
@@ -105,6 +106,9 @@ contains
        passed=(value1 <= value2)
     case (compareGreaterThanOrEqual)
        passed=(value1 >= value2)
+    case default
+       passed=.false.
+       call Galacticus_Error_Report('Assert_Real_Scalar','unknown comparison')
     end select
 
     ! Get an object to store the results in.
@@ -119,6 +123,7 @@ contains
 
   subroutine Assert_Double_Scalar(testName,value1,value2,compare,absTol,relTol)
     !% Assess and record an assertion about double precision arguments.
+    use Galacticus_Error
     use Numerical_Comparison
     implicit none
     character       (len=*       ), intent(in   )           :: testName
@@ -150,6 +155,9 @@ contains
        passed=(value1 <= value2)
     case (compareGreaterThanOrEqual)
        passed=(value1 >= value2)
+    case default
+       passed=.false.
+       call Galacticus_Error_Report('Assert_Double_Scalar','unknown comparison')
     end select
 
     ! Get an object to store the results in.
@@ -164,6 +172,7 @@ contains
 
   subroutine Assert_Integer_Scalar(testName,value1,value2,compare)
     !% Assess and record an assertion about integer arguments.
+    use Galacticus_Error
     implicit none
     character(len=*       ), intent(in   )           :: testName
     integer                , intent(in   )           :: value1       , value2
@@ -193,6 +202,9 @@ contains
        passed=(value1 <= value2)
     case (compareGreaterThanOrEqual)
        passed=(value1 >= value2)
+    case default
+       passed=.false.
+       call Galacticus_Error_Report('Assert_Integer_Scalar','unknown comparison')
     end select
 
     ! Get an object to store the results in.
@@ -207,6 +219,7 @@ contains
 
   subroutine Assert_Integer8_Scalar(testName,value1,value2,compare)
     !% Assess and record an assertion about integer arguments.
+    use Galacticus_Error
     use Kind_Numbers
     implicit none
     character(len=*         ), intent(in   )           :: testName
@@ -237,6 +250,9 @@ contains
        passed=(value1 <= value2)
     case (compareGreaterThanOrEqual)
        passed=(value1 >= value2)
+    case default
+       passed=.false.
+       call Galacticus_Error_Report('Assert_Integer8_Scalar','unknown comparison')
     end select
 
     ! Get an object to store the results in.
@@ -251,6 +267,7 @@ contains
 
   subroutine Assert_Character_Scalar(testName,value1,value2,compare)
     !% Assess and record an assertion about character arguments.
+    use Galacticus_Error
     implicit none
     character(len=*       ), intent(in   )           :: testName
     character(len=*       ), intent(in   )           :: value1       , value2
@@ -280,6 +297,9 @@ contains
        passed=(value1 <= value2)
     case (compareGreaterThanOrEqual)
        passed=(value1 >= value2)
+    case default
+       passed=.false.
+       call Galacticus_Error_Report('Assert_Character_Scalar','unknown comparison')
     end select
 
     ! Get an object to store the results in.
@@ -294,6 +314,7 @@ contains
 
   subroutine Assert_VarString_Scalar(testName,value1,value2,compare)
     !% Assess and record an assertion about character arguments.
+    use Galacticus_Error
     implicit none
     character(len=*         ), intent(in   )           :: testName
     type     (varying_string), intent(in   )           :: value1       , value2
@@ -323,6 +344,9 @@ contains
        passed=(value1 <= value2)
     case (compareGreaterThanOrEqual)
        passed=(value1 >= value2)
+    case default
+       passed=.false.
+       call Galacticus_Error_Report('Assert_VarString_Scalar','unknown comparison')
     end select
 
     ! Get an object to store the results in.
@@ -337,6 +361,7 @@ contains
 
   subroutine Assert_Real_1D_Array(testName,value1,value2,compare,absTol,relTol)
     !% Assess and record an assertion about real arguments.
+    use Galacticus_Error
     use Numerical_Comparison
     implicit none
     character(len=*       )              , intent(in   )           :: testName
@@ -374,6 +399,9 @@ contains
        passed=all(value1 <= value2)
     case (compareGreaterThanOrEqual)
        passed=all(value1 >= value2)
+    case default
+       passed=.false.
+       call Galacticus_Error_Report('Assert_Real_1D_Array','unknown comparison')
     end select
 
     ! Get an object to store the results in.
@@ -388,6 +416,7 @@ contains
 
   subroutine Assert_Double_1D_Array(testName,value1,value2,compare,absTol,relTol)
     !% Assess and record an assertion about double precision arguments.
+    use Galacticus_Error
     use Numerical_Comparison
     implicit none
     character       (len=*       )              , intent(in   )           :: testName
@@ -425,6 +454,9 @@ contains
        passed=all(value1 <= value2)
     case (compareGreaterThanOrEqual)
        passed=all(value1 >= value2)
+    case default
+       passed=.false.
+       call Galacticus_Error_Report('Assert_Double_1D_Array','unknown comparison')
     end select
 
     ! Get an object to store the results in.
@@ -483,6 +515,7 @@ contains
           end if
        end do
     case default
+       passed=.false.
        call Galacticus_Error_Report('Assert_Double_Complex_1D_Array','comparison not supported for complex values')
     end select
     ! Get an object to store the results in.
@@ -495,6 +528,7 @@ contains
    
   subroutine Assert_Double_2D_Array(testName,value1,value2,compare,absTol,relTol)
     !% Assess and record an assertion about double precision arguments.
+    use Galacticus_Error
     use Numerical_Comparison
     implicit none
     character       (len=*       )                , intent(in   )           :: testName
@@ -534,6 +568,9 @@ contains
        passed=all(value1 <= value2)
     case (compareGreaterThanOrEqual)
        passed=all(value1 >= value2)
+    case default
+       passed=.false.
+       call Galacticus_Error_Report('Assert_Double_2D_Array','unknown comparison')
     end select
 
     ! Get an object to store the results in.
@@ -548,6 +585,7 @@ contains
 
   subroutine Assert_Double_3D_Array(testName,value1,value2,compare,absTol,relTol)
     !% Assess and record an assertion about double precision arguments.
+    use Galacticus_Error
     use Numerical_Comparison
     implicit none
     character       (len=*       )                  , intent(in   )           :: testName
@@ -589,6 +627,9 @@ contains
        passed=all(value1 <= value2)
     case (compareGreaterThanOrEqual)
        passed=all(value1 >= value2)
+    case default
+       passed=.false.
+       call Galacticus_Error_Report('Assert_Double_3D_Array','unknown comparison')
     end select
 
     ! Get an object to store the results in.
@@ -603,6 +644,7 @@ contains
 
   subroutine Assert_Double_4D_Array(testName,value1,value2,compare,absTol,relTol)
     !% Assess and record an assertion about double precision arguments.
+    use Galacticus_Error
     use Numerical_Comparison
     implicit none
     character       (len=*       )                    , intent(in   )           :: testName
@@ -647,6 +689,9 @@ contains
        passed=all(value1 <= value2)
     case (compareGreaterThanOrEqual)
        passed=all(value1 >= value2)
+    case default
+       passed=.false.
+       call Galacticus_Error_Report('Assert_Double_4D_Array','unknown comparison')
     end select
 
     ! Get an object to store the results in.
@@ -661,6 +706,7 @@ contains
 
   subroutine Assert_Double_5D_Array(testName,value1,value2,compare,absTol,relTol)
     !% Assess and record an assertion about double precision arguments.
+    use Galacticus_Error
     use Numerical_Comparison
     implicit none
     character       (len=*       )                      , intent(in   )           :: testName
@@ -707,6 +753,9 @@ contains
        passed=all(value1 <= value2)
     case (compareGreaterThanOrEqual)
        passed=all(value1 >= value2)
+    case default
+       passed=.false.
+       call Galacticus_Error_Report('Assert_Double_5D_Array','unknown comparison')
     end select
 
     ! Get an object to store the results in.
@@ -721,6 +770,7 @@ contains
 
   subroutine Assert_Integer_1D_Array(testName,value1,value2,compare)
     !% Assess and record an assertion about integer arguments.
+    use Galacticus_Error
     implicit none
     character(len=*       )              , intent(in   )           :: testName
     integer                , dimension(:), intent(in   )           :: value1       , value2
@@ -750,6 +800,9 @@ contains
        passed=all(value1 <= value2)
     case (compareGreaterThanOrEqual)
        passed=all(value1 >= value2)
+    case default
+       passed=.false.
+       call Galacticus_Error_Report('Assert_Integer_1D_Array','unknown comparison')
     end select
 
     ! Get an object to store the results in.
@@ -764,6 +817,7 @@ contains
 
   subroutine Assert_Logical_1D_Array(testName,value1,value2,compare)
     !% Assess and record an assertion about integer arguments.
+    use Galacticus_Error
     implicit none
     character(len=*       )              , intent(in   )           :: testName
     logical                , dimension(:), intent(in   )           :: value1       , value2
@@ -785,6 +839,9 @@ contains
        passed=all(value1 .eqv.  value2)
     case (compareNotEqual)
        passed=all(value1 .neqv. value2)
+    case default
+       passed=.false.
+       call Galacticus_Error_Report('Assert_Logical_1D_Array','assertions about logical variables can be equality or non-equality only')
     end select
 
     ! Get an object to store the results in.
@@ -801,6 +858,7 @@ contains
   subroutine Assert_Integer8_1D_Array(testName,value1,value2,compare)
     !% Assess and record an assertion about integer arguments.
     use Kind_Numbers
+    use Galacticus_Error
     implicit none
     character(len=*         )              , intent(in   )           :: testName
     integer  (kind=kind_int8), dimension(:), intent(in   )           :: value1       , value2
@@ -830,6 +888,9 @@ contains
        passed=all(value1 <= value2)
     case (compareGreaterThanOrEqual)
        passed=all(value1 >= value2)
+    case default
+       passed=.false.
+       call Galacticus_Error_Report('Assert_Integer8_1D_Array','unknown comparison')
     end select
 
     ! Get an object to store the results in.
@@ -867,6 +928,7 @@ contains
     case (compareNotEqual          )
        passed=value1 .neqv. value2
     case default
+       passed=.false.
        call Galacticus_Error_Report('Assert_Logical_Scalar','assertions about logical variables can be equality or non-equality only')
     end select
 
@@ -882,6 +944,7 @@ contains
 
   subroutine Assert_Character_1D_Array(testName,value1,value2,compare)
     !% Assess and record an assertion about character arguments.
+    use Galacticus_Error
     implicit none
     character(len=*       )              , intent(in   )           :: testName
     character(len=*       ), dimension(:), intent(in   )           :: value1       , value2
@@ -911,8 +974,11 @@ contains
        passed=all(value1 <= value2)
     case (compareGreaterThanOrEqual)
        passed=all(value1 >= value2)
+    case default
+       passed=.false.
+       call Galacticus_Error_Report('Assert_Character_1D_Array','unknown comparison')
     end select
-
+    
     ! Get an object to store the results in.
     thisResult => Get_New_Assert_Result()
 
@@ -925,6 +991,7 @@ contains
 
   subroutine Assert_VarString_1D_Array(testName,value1,value2,compare)
     !% Assess and record an assertion about character arguments.
+    use Galacticus_Error
     implicit none
     character(len=*         )              , intent(in   )           :: testName
     type     (varying_string), dimension(:), intent(in   )           :: value1       , value2
@@ -954,6 +1021,9 @@ contains
        passed=all(value1 <= value2)
     case (compareGreaterThanOrEqual)
        passed=all(value1 >= value2)
+    case default
+       passed=.false.
+       call Galacticus_Error_Report('Assert_VarString_1D_Array','unknown comparison')
     end select
 
     ! Get an object to store the results in.

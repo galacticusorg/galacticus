@@ -136,7 +136,8 @@ contains
     use, intrinsic :: ISO_C_Binding
     type   (c_ptr     ), value :: file       , reason
     integer(kind=c_int), value :: errorNumber, line
-
+    !GCC$ attributes unused :: reason, file, line
+    
     errorStatusGlobal=errorNumber
     return
   end subroutine Integration_GSL_Error_Handler
