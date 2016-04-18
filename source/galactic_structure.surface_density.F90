@@ -38,9 +38,6 @@ contains
     !% been computed.
     use Galacticus_Error
     use Coordinate_Systems
-    !# <include directive="surfaceDensityTask" type="moduleUse">
-    include 'galactic_structure.surface_density.tasks.modules.inc'
-    !# </include>
     implicit none
     type            (treeNode                 ), intent(inout)          , pointer :: thisNode
     integer                                    , intent(in   ), optional          :: componentType                     , coordinateSystem, &
@@ -99,11 +96,6 @@ contains
     ! Call routines to supply the densities for all components.
     componentSurfaceDensityFunction => Component_Surface_Density
     Galactic_Structure_Surface_Density=thisNode%mapDouble0(componentSurfaceDensityFunction,reductionSummation,optimizeFor=optimizeForSurfaceDensitySummation)
-    !# <include directive="surfaceDensityTask" type="functionCall" functionType="function" returnParameter="componentDensity">
-    !#  <functionArgs>thisNode,positionCylindricalShared,massTypeShared,componentTypeShared,weightByShared,weightIndexShared,haloLoadedShared</functionArgs>
-    !#  <onReturn>Galactic_Structure_Surface_Density=Galactic_Structure_Surface_Density+componentDensity</onReturn>
-    include 'galactic_structure.surface_density.tasks.inc'
-    !# </include>
     return
   end function Galactic_Structure_Surface_Density
 

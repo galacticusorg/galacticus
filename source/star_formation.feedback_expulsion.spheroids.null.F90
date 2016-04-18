@@ -48,7 +48,8 @@ contains
     implicit none
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: energyInputRate, starFormationRate
-
+    !GCC$ attributes unused :: thisNode, energyInputRate, starFormationRate
+    
     ! Return a zero outflow rate.
     Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate_Null=0.0d0
     return

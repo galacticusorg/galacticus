@@ -19,6 +19,7 @@
 
 #include <regex.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 regex_t * Regular_Expression_Construct_C(const char *pattern) {
   //% Fortran-callable wrapper around the GNU C Library {\tt regcomp} regular expression compiling function.

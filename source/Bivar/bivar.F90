@@ -465,7 +465,7 @@ subroutine idcldp ( ndp, xd, yd, ncp, ipc )
 !
 !  Search for the closest noncollinear point.
 !
-   40   nclpt = 0
+        nclpt = 0
 
         do 43  ip3 = 1,ndp0
 
@@ -519,391 +519,392 @@ subroutine idcldp ( ndp, xd, yd, ncp, ipc )
  2091 format(1x/' ***   all collinear data points.')
  2092 format('   ndp  = ',i5,5x,'ncp  = ',i5/ &
          ' error detected in routine   idcldp'/)
-   end subroutine idcldp
-      subroutine idgrid ( xd, yd, nt, ipt, nl, ipl, nxi, nyi, xi, yi, ngp, igp )
+    end subroutine idcldp
+    ! Function is not used.
+!       subroutine idgrid ( xd, yd, nt, ipt, nl, ipl, nxi, nyi, xi, yi, ngp, igp )
 
-!*****************************************************************************80
-!
-!! IDGRID organizes grid points for surface fitting.
-!
-!  Discussion:
-!
-!    This subroutine organizes grid points for surface fitting by
-!    sorting them in ascending order of triangle numbers and of the
-!    border line segment number.
-!
-!  Modified:
-!
-!    24 August 2007
-!
-!  Author:
-!
-!    Hiroshi Akima
-!
-!  References:
-!
-!    Hiroshi Akima,  
-!    Algorithm 526:
-!    A Method of Bivariate Interpolation and Smooth Surface Fitting
-!    for Values Given at Irregularly Distributed Points,
-!    ACM Transactions on Mathematical Software, 
-!    Volume 4, Number 2, June 1978, pages 160-164.
-!
-!    Hiroshi Akima,  
-!    On Estimating Partial Derivatives for Bivariate Interpolation
-!    of Scattered Data,
-!    Rocky Mountain Journal of Mathematics,
-!    Volume 14, Number 1, Winter 1984, pages 41-51.
-!
-!  Parameters:
-!
-!    Input, real ( kind = 8 ) XD(NDP), Y(NDP), the X and Y coordinates 
-!    of the data points.
-!
-!    Input, integer ( kind = 4 ) NT, the number of triangles.
-!
-!    Input, integer ( kind = 4 ) IPT(3*NT), the indices of the triangle vertexes.
-!
-!    Input, integer ( kind = 4 ) NL, the number of border line segments.
-!
-!    Input, integer ( kind = 4 ) IPL(3*NL), containing the point numbers of the end points 
-!    of the border line segments and their respective triangle numbers,
-!
-!    Input, integer ( kind = 4 ) NXI, NYI, the number of grid points in the X and Y
-!    coordinates.
-!
-!    Input, real ( kind = 8 ) XI(NXI), YI(NYI), the coordinates of the 
-!    grid points.
-!
-!    Output, integer ( kind = 4 ) NGP(2*(NT+2*NL)) where the
-!    number of grid points that belong to each of the
-!    triangles or of the border line segments are to be stored.
-!
-!    Output, integer ( kind = 4 ) IGP(NXI*NYI), where the grid point numbers are to be 
-!    stored in ascending order of the triangle number and the border line
-!    segment number.
-!
-  implicit none
+! !*****************************************************************************80
+! !
+! !! IDGRID organizes grid points for surface fitting.
+! !
+! !  Discussion:
+! !
+! !    This subroutine organizes grid points for surface fitting by
+! !    sorting them in ascending order of triangle numbers and of the
+! !    border line segment number.
+! !
+! !  Modified:
+! !
+! !    24 August 2007
+! !
+! !  Author:
+! !
+! !    Hiroshi Akima
+! !
+! !  References:
+! !
+! !    Hiroshi Akima,  
+! !    Algorithm 526:
+! !    A Method of Bivariate Interpolation and Smooth Surface Fitting
+! !    for Values Given at Irregularly Distributed Points,
+! !    ACM Transactions on Mathematical Software, 
+! !    Volume 4, Number 2, June 1978, pages 160-164.
+! !
+! !    Hiroshi Akima,  
+! !    On Estimating Partial Derivatives for Bivariate Interpolation
+! !    of Scattered Data,
+! !    Rocky Mountain Journal of Mathematics,
+! !    Volume 14, Number 1, Winter 1984, pages 41-51.
+! !
+! !  Parameters:
+! !
+! !    Input, real ( kind = 8 ) XD(NDP), Y(NDP), the X and Y coordinates 
+! !    of the data points.
+! !
+! !    Input, integer ( kind = 4 ) NT, the number of triangles.
+! !
+! !    Input, integer ( kind = 4 ) IPT(3*NT), the indices of the triangle vertexes.
+! !
+! !    Input, integer ( kind = 4 ) NL, the number of border line segments.
+! !
+! !    Input, integer ( kind = 4 ) IPL(3*NL), containing the point numbers of the end points 
+! !    of the border line segments and their respective triangle numbers,
+! !
+! !    Input, integer ( kind = 4 ) NXI, NYI, the number of grid points in the X and Y
+! !    coordinates.
+! !
+! !    Input, real ( kind = 8 ) XI(NXI), YI(NYI), the coordinates of the 
+! !    grid points.
+! !
+! !    Output, integer ( kind = 4 ) NGP(2*(NT+2*NL)) where the
+! !    number of grid points that belong to each of the
+! !    triangles or of the border line segments are to be stored.
+! !
+! !    Output, integer ( kind = 4 ) IGP(NXI*NYI), where the grid point numbers are to be 
+! !    stored in ascending order of the triangle number and the border line
+! !    segment number.
+! !
+!   implicit none
 
-  integer ( kind = 4 ) nl
-  integer ( kind = 4 ) nt
-  integer ( kind = 4 ) nxi
-  integer ( kind = 4 ) nyi
+!   integer ( kind = 4 ) nl
+!   integer ( kind = 4 ) nt
+!   integer ( kind = 4 ) nxi
+!   integer ( kind = 4 ) nyi
 
-  integer ( kind = 4 ) igp(nxi*nyi)
-  integer ( kind = 4 ) il0
-  integer ( kind = 4 ) il0t3
-  integer ( kind = 4 ) ilp1
-  integer ( kind = 4 ) ilp1t3
-  integer ( kind = 4 ) insd
-  integer ( kind = 4 ) ip1
-  integer ( kind = 4 ) ip2
-  integer ( kind = 4 ) ip3
-  integer ( kind = 4 ) ipl(3*nl)
-  integer ( kind = 4 ) ipt(3*nt)
-  integer ( kind = 4 ) it0
-  integer ( kind = 4 ) it0t3
-  integer ( kind = 4 ) ixi
-  integer ( kind = 4 ) iximx
-  integer ( kind = 4 ) iximn
-  integer ( kind = 4 ) iyi
-  integer ( kind = 4 ) izi
-  integer ( kind = 4 ) jigp0
-  integer ( kind = 4 ) jigp1
-  integer ( kind = 4 ) jigp1i
-  integer ( kind = 4 ) jngp0
-  integer ( kind = 4 ) jngp1
-  integer ( kind = 4 ) l
-  integer ( kind = 4 ) ngp(2*nt+4*nl)
-  integer ( kind = 4 ) ngp0
-  integer ( kind = 4 ) ngp1
-  integer ( kind = 4 ) nl0
-  integer ( kind = 4 ) nt0
-  integer ( kind = 4 ) nxi0
-  integer ( kind = 4 ) nxinyi
-  integer ( kind = 4 ) nyi0
-  real ( kind = 8 ) side
-  real ( kind = 8 ) spdt
-  real ( kind = 8 ) u1
-  real ( kind = 8 ) u2
-  real ( kind = 8 ) u3
-  real ( kind = 8 ) v1
-  real ( kind = 8 ) v2
-  real ( kind = 8 ) v3
-  real ( kind = 8 ) x1
-  real ( kind = 8 ) x2
-  real ( kind = 8 ) x3
-  real ( kind = 8 ) xd(*)
-  real ( kind = 8 ) xi(nxi)
-  real ( kind = 8 ) xii
-  real ( kind = 8 ) ximn
-  real ( kind = 8 ) ximx
-  real ( kind = 8 ) xmn
-  real ( kind = 8 ) xmx
-  real ( kind = 8 ) y1
-  real ( kind = 8 ) y2
-  real ( kind = 8 ) y3
-  real ( kind = 8 ) yd(*)
-  real ( kind = 8 ) yi(nyi)
-  real ( kind = 8 ) yii
-  real ( kind = 8 ) yimn
-  real ( kind = 8 ) yimx
-  real ( kind = 8 ) ymn
-  real ( kind = 8 ) ymx
-!
-!  Statement functions.
-!
-      side(u1,v1,u2,v2,u3,v3) = (u1-u3)*(v2-v3) - (v1-v3)*(u2-u3)
-      spdt(u1,v1,u2,v2,u3,v3) = (u1-u2)*(u3-u2) + (v1-v2)*(v3-v2)
-!
-!  Preliminary processing.
-!
-      nt0 = nt
-      nl0 = nl
-      nxi0 = nxi
-      nyi0 = nyi
-      nxinyi = nxi0*nyi0
-      ximn = min (xi(1),xi(nxi0))
-      ximx = max (xi(1),xi(nxi0))
-      yimn = min (yi(1),yi(nyi0))
-      yimx = max (yi(1),yi(nyi0))
-!
-!  Determine grid points inside the data area.
-!
-      jngp0 = 0
-      jngp1 = 2*(nt0+2*nl0) + 1
-      jigp0 = 0
-      jigp1 = nxinyi + 1
+!   integer ( kind = 4 ) igp(nxi*nyi)
+!   integer ( kind = 4 ) il0
+!   integer ( kind = 4 ) il0t3
+!   integer ( kind = 4 ) ilp1
+!   integer ( kind = 4 ) ilp1t3
+!   integer ( kind = 4 ) insd
+!   integer ( kind = 4 ) ip1
+!   integer ( kind = 4 ) ip2
+!   integer ( kind = 4 ) ip3
+!   integer ( kind = 4 ) ipl(3*nl)
+!   integer ( kind = 4 ) ipt(3*nt)
+!   integer ( kind = 4 ) it0
+!   integer ( kind = 4 ) it0t3
+!   integer ( kind = 4 ) ixi
+!   integer ( kind = 4 ) iximx
+!   integer ( kind = 4 ) iximn
+!   integer ( kind = 4 ) iyi
+!   integer ( kind = 4 ) izi
+!   integer ( kind = 4 ) jigp0
+!   integer ( kind = 4 ) jigp1
+!   integer ( kind = 4 ) jigp1i
+!   integer ( kind = 4 ) jngp0
+!   integer ( kind = 4 ) jngp1
+!   integer ( kind = 4 ) l
+!   integer ( kind = 4 ) ngp(2*nt+4*nl)
+!   integer ( kind = 4 ) ngp0
+!   integer ( kind = 4 ) ngp1
+!   integer ( kind = 4 ) nl0
+!   integer ( kind = 4 ) nt0
+!   integer ( kind = 4 ) nxi0
+!   integer ( kind = 4 ) nxinyi
+!   integer ( kind = 4 ) nyi0
+!   real ( kind = 8 ) side
+!   real ( kind = 8 ) spdt
+!   real ( kind = 8 ) u1
+!   real ( kind = 8 ) u2
+!   real ( kind = 8 ) u3
+!   real ( kind = 8 ) v1
+!   real ( kind = 8 ) v2
+!   real ( kind = 8 ) v3
+!   real ( kind = 8 ) x1
+!   real ( kind = 8 ) x2
+!   real ( kind = 8 ) x3
+!   real ( kind = 8 ) xd(*)
+!   real ( kind = 8 ) xi(nxi)
+!   real ( kind = 8 ) xii
+!   real ( kind = 8 ) ximn
+!   real ( kind = 8 ) ximx
+!   real ( kind = 8 ) xmn
+!   real ( kind = 8 ) xmx
+!   real ( kind = 8 ) y1
+!   real ( kind = 8 ) y2
+!   real ( kind = 8 ) y3
+!   real ( kind = 8 ) yd(*)
+!   real ( kind = 8 ) yi(nyi)
+!   real ( kind = 8 ) yii
+!   real ( kind = 8 ) yimn
+!   real ( kind = 8 ) yimx
+!   real ( kind = 8 ) ymn
+!   real ( kind = 8 ) ymx
+! !
+! !  Statement functions.
+! !
+!       side(u1,v1,u2,v2,u3,v3) = (u1-u3)*(v2-v3) - (v1-v3)*(u2-u3)
+!       spdt(u1,v1,u2,v2,u3,v3) = (u1-u2)*(u3-u2) + (v1-v2)*(v3-v2)
+! !
+! !  Preliminary processing.
+! !
+!       nt0 = nt
+!       nl0 = nl
+!       nxi0 = nxi
+!       nyi0 = nyi
+!       nxinyi = nxi0*nyi0
+!       ximn = min (xi(1),xi(nxi0))
+!       ximx = max (xi(1),xi(nxi0))
+!       yimn = min (yi(1),yi(nyi0))
+!       yimx = max (yi(1),yi(nyi0))
+! !
+! !  Determine grid points inside the data area.
+! !
+!       jngp0 = 0
+!       jngp1 = 2*(nt0+2*nl0) + 1
+!       jigp0 = 0
+!       jigp1 = nxinyi + 1
 
-      do 160 it0 = 1,nt0
+!       do 160 it0 = 1,nt0
 
-        ngp0 = 0
-        ngp1 = 0
-        it0t3 = it0*3
-        ip1 = ipt(it0t3-2)
-        ip2 = ipt(it0t3-1)
-        ip3 = ipt(it0t3)
-        x1 = xd(ip1)
-        y1 = yd(ip1)
-        x2 = xd(ip2)
-        y2 = yd(ip2)
-        x3 = xd(ip3)
-        y3 = yd(ip3)
-        xmn = min (x1,x2,x3)
-        xmx = max (x1,x2,x3)
-        ymn = min (y1,y2,y3)
-        ymx = max (y1,y2,y3)
-        insd = 0
+!         ngp0 = 0
+!         ngp1 = 0
+!         it0t3 = it0*3
+!         ip1 = ipt(it0t3-2)
+!         ip2 = ipt(it0t3-1)
+!         ip3 = ipt(it0t3)
+!         x1 = xd(ip1)
+!         y1 = yd(ip1)
+!         x2 = xd(ip2)
+!         y2 = yd(ip2)
+!         x3 = xd(ip3)
+!         y3 = yd(ip3)
+!         xmn = min (x1,x2,x3)
+!         xmx = max (x1,x2,x3)
+!         ymn = min (y1,y2,y3)
+!         ymx = max (y1,y2,y3)
+!         insd = 0
 
-        do 20 ixi = 1,nxi0
-          if (xi(ixi)>=xmn .and. xi(ixi)<=xmx) go to 10
-          if (insd==0) go to 20
-          iximx = ixi - 1
-          go to 30
-   10     if (insd==1) go to 20
-          insd = 1
-          iximn = ixi
-   20   continue
+!         do 20 ixi = 1,nxi0
+!           if (xi(ixi)>=xmn .and. xi(ixi)<=xmx) go to 10
+!           if (insd==0) go to 20
+!           iximx = ixi - 1
+!           go to 30
+!    10     if (insd==1) go to 20
+!           insd = 1
+!           iximn = ixi
+!    20   continue
 
-        if (insd==0) go to 150
-        iximx = nxi0
+!         if (insd==0) go to 150
+!         iximx = nxi0
 
-   30   do 140 iyi = 1,nyi0
+!    30   do 140 iyi = 1,nyi0
 
-          yii = yi(iyi)
-          if (yii<ymn .or. yii>ymx) go to 140
+!           yii = yi(iyi)
+!           if (yii<ymn .or. yii>ymx) go to 140
 
-          do 130 ixi = iximn,iximx
+!           do 130 ixi = iximn,iximx
 
-            xii = xi(ixi)
-            l = 0
-            if (side(x1,y1,x2,y2,xii,yii)) 130, 40, 50
-   40       l = 1
-   50       if (side(x2,y2,x3,y3,xii,yii)) 130, 60, 70
-   60       l = 1
-   70       if (side(x3,y3,x1,y1,xii,yii)) 130, 80, 90
-   80       l = 1
-   90       izi = nxi0*(iyi-1) + ixi
-            if (l==1) go to 100
-            ngp0 = ngp0 + 1
-            jigp0 = jigp0 + 1
-            igp(jigp0) = izi
-            go to 130
+!             xii = xi(ixi)
+!             l = 0
+!             if (side(x1,y1,x2,y2,xii,yii)) 130, 40, 50
+!    40       l = 1
+!    50       if (side(x2,y2,x3,y3,xii,yii)) 130, 60, 70
+!    60       l = 1
+!    70       if (side(x3,y3,x1,y1,xii,yii)) 130, 80, 90
+!    80       l = 1
+!    90       izi = nxi0*(iyi-1) + ixi
+!             if (l==1) go to 100
+!             ngp0 = ngp0 + 1
+!             jigp0 = jigp0 + 1
+!             igp(jigp0) = izi
+!             go to 130
 
-  100       continue
+!   100       continue
 
-            do jigp1i = jigp1,nxinyi
-              if (izi==igp(jigp1i)) go to 130
-            end do
+!             do jigp1i = jigp1,nxinyi
+!               if (izi==igp(jigp1i)) go to 130
+!             end do
 
-  120       ngp1 = ngp1 + 1
-            jigp1 = jigp1 - 1
-            igp(jigp1) = izi
-  130     continue
-  140   continue
-  150   jngp0 = jngp0 + 1
-        ngp(jngp0) = ngp0
-        jngp1 = jngp1 - 1
-        ngp(jngp1) = ngp1
+!             ngp1 = ngp1 + 1
+!             jigp1 = jigp1 - 1
+!             igp(jigp1) = izi
+!   130     continue
+!   140   continue
+!   150   jngp0 = jngp0 + 1
+!         ngp(jngp0) = ngp0
+!         jngp1 = jngp1 - 1
+!         ngp(jngp1) = ngp1
 
-  160 continue
-!
-!  Determine grid points outside the data area.
-!  in semi-infinite rectangular area.
-!
-      do 450 il0 = 1,nl0
+!   160 continue
+! !
+! !  Determine grid points outside the data area.
+! !  in semi-infinite rectangular area.
+! !
+!       do 450 il0 = 1,nl0
 
-        ngp0 = 0
-        ngp1 = 0
-        il0t3 = il0*3
-        ip1 = ipl(il0t3-2)
-        ip2 = ipl(il0t3-1)
-        x1 = xd(ip1)
-        y1 = yd(ip1)
-        x2 = xd(ip2)
-        y2 = yd(ip2)
-        xmn = ximn
-        xmx = ximx
-        ymn = yimn
-        ymx = yimx
+!         ngp0 = 0
+!         ngp1 = 0
+!         il0t3 = il0*3
+!         ip1 = ipl(il0t3-2)
+!         ip2 = ipl(il0t3-1)
+!         x1 = xd(ip1)
+!         y1 = yd(ip1)
+!         x2 = xd(ip2)
+!         y2 = yd(ip2)
+!         xmn = ximn
+!         xmx = ximx
+!         ymn = yimn
+!         ymx = yimx
 
-        if (y2>=y1) xmn = min (x1,x2)
-        if (y2<=y1) xmx = max (x1,x2)
-        if (x2<=x1) ymn = min (y1,y2)
-        if (x2>=x1) ymx = max (y1,y2)
-        insd = 0
+!         if (y2>=y1) xmn = min (x1,x2)
+!         if (y2<=y1) xmx = max (x1,x2)
+!         if (x2<=x1) ymn = min (y1,y2)
+!         if (x2>=x1) ymx = max (y1,y2)
+!         insd = 0
 
-        do 180 ixi = 1,nxi0
+!         do 180 ixi = 1,nxi0
 
-          if (xi(ixi)>=xmn .and. xi(ixi)<=xmx) go to 170
-          if (insd==0) go to 180
-          iximx = ixi - 1
-          go to 190
-  170     continue
+!           if (xi(ixi)>=xmn .and. xi(ixi)<=xmx) go to 170
+!           if (insd==0) go to 180
+!           iximx = ixi - 1
+!           go to 190
+!   170     continue
 
-          if ( insd /= 1 ) then
-            insd = 1
-            iximn = ixi
-          end if
+!           if ( insd /= 1 ) then
+!             insd = 1
+!             iximn = ixi
+!           end if
 
-  180   continue
+!   180   continue
 
-        if (insd==0) go to 310
-        iximx = nxi0
+!         if (insd==0) go to 310
+!         iximx = nxi0
 
-  190   do 300 iyi = 1,nyi0
+!   190   do 300 iyi = 1,nyi0
 
-          yii = yi(iyi)
-          if (yii<ymn .or. yii>ymx) go to 300
+!           yii = yi(iyi)
+!           if (yii<ymn .or. yii>ymx) go to 300
 
-          do 290 ixi = iximn,iximx
+!           do 290 ixi = iximn,iximx
 
-            xii = xi(ixi)
-            l = 0
-            if (side(x1,y1,x2,y2,xii,yii)) 210, 200, 290
-  200       l = 1
-  210       if (spdt(x2,y2,x1,y1,xii,yii)) 290, 220, 230
-  220       l = 1
-  230       if (spdt(x1,y1,x2,y2,xii,yii)) 290, 240, 250
-  240       l = 1
-  250       izi = nxi0*(iyi-1) + ixi
-            if (l==1) go to 260
-            ngp0 = ngp0 + 1
-            jigp0 = jigp0 + 1
-            igp(jigp0) = izi
-            go to 290
-  260       continue
+!             xii = xi(ixi)
+!             l = 0
+!             if (side(x1,y1,x2,y2,xii,yii)) 210, 200, 290
+!   200       l = 1
+!   210       if (spdt(x2,y2,x1,y1,xii,yii)) 290, 220, 230
+!   220       l = 1
+!   230       if (spdt(x1,y1,x2,y2,xii,yii)) 290, 240, 250
+!   240       l = 1
+!   250       izi = nxi0*(iyi-1) + ixi
+!             if (l==1) go to 260
+!             ngp0 = ngp0 + 1
+!             jigp0 = jigp0 + 1
+!             igp(jigp0) = izi
+!             go to 290
+!   260       continue
 
-            do jigp1i = jigp1,nxinyi
-              if (izi==igp(jigp1i)) go to 290
-            end do
+!             do jigp1i = jigp1,nxinyi
+!               if (izi==igp(jigp1i)) go to 290
+!             end do
 
-            ngp1 = ngp1 + 1
-            jigp1 = jigp1 - 1
-            igp(jigp1) = izi
+!             ngp1 = ngp1 + 1
+!             jigp1 = jigp1 - 1
+!             igp(jigp1) = izi
 
-  290     continue
+!   290     continue
 
-  300   continue
+!   300   continue
 
-  310   jngp0 = jngp0 + 1
-        ngp(jngp0) = ngp0
-        jngp1 = jngp1 - 1
-        ngp(jngp1) = ngp1
-!
-!  In semi-infinite triangular area.
-!
-        ngp0 = 0
-        ngp1 = 0
-        ilp1 = mod(il0,nl0) + 1
-        ilp1t3 = ilp1*3
-        ip3 = ipl(ilp1t3-1)
-        x3 = xd(ip3)
-        y3 = yd(ip3)
-        xmn = ximn
-        xmx = ximx
-        ymn = yimn
-        ymx = yimx
-        if (y3>=y2 .and. y2>=y1) xmn = x2
-        if (y3<=y2 .and. y2<=y1) xmx = x2
-        if (x3<=x2 .and. x2<=x1) ymn = y2
-        if (x3>=x2 .and. x2>=x1) ymx = y2
-        insd = 0
+!   310   jngp0 = jngp0 + 1
+!         ngp(jngp0) = ngp0
+!         jngp1 = jngp1 - 1
+!         ngp(jngp1) = ngp1
+! !
+! !  In semi-infinite triangular area.
+! !
+!         ngp0 = 0
+!         ngp1 = 0
+!         ilp1 = mod(il0,nl0) + 1
+!         ilp1t3 = ilp1*3
+!         ip3 = ipl(ilp1t3-1)
+!         x3 = xd(ip3)
+!         y3 = yd(ip3)
+!         xmn = ximn
+!         xmx = ximx
+!         ymn = yimn
+!         ymx = yimx
+!         if (y3>=y2 .and. y2>=y1) xmn = x2
+!         if (y3<=y2 .and. y2<=y1) xmx = x2
+!         if (x3<=x2 .and. x2<=x1) ymn = y2
+!         if (x3>=x2 .and. x2>=x1) ymx = y2
+!         insd = 0
 
-        do 330 ixi = 1,nxi0
+!         do 330 ixi = 1,nxi0
 
-          if (xi(ixi)>=xmn .and. xi(ixi)<=xmx) go to 320
-          if (insd==0) go to 330
-          iximx = ixi - 1
-          go to 340
-  320     continue
+!           if (xi(ixi)>=xmn .and. xi(ixi)<=xmx) go to 320
+!           if (insd==0) go to 330
+!           iximx = ixi - 1
+!           go to 340
+!   320     continue
 
-          if ( insd /= 1 ) then
-            insd = 1
-            iximn = ixi
-          end if
+!           if ( insd /= 1 ) then
+!             insd = 1
+!             iximn = ixi
+!           end if
 
-  330   continue
+!   330   continue
 
-        if (insd==0) go to 440
+!         if (insd==0) go to 440
 
-        iximx = nxi0
-  340   do 430 iyi = 1,nyi0
-          yii = yi(iyi)
-          if (yii<ymn .or. yii>ymx) go to 430
-          do 420 ixi = iximn,iximx
-            xii = xi(ixi)
-            l = 0
-            if (spdt(x1,y1,x2,y2,xii,yii)) 360, 350, 420
-  350       l = 1
-  360       if (spdt(x3,y3,x2,y2,xii,yii)) 380, 370, 420
-  370       l = 1
-  380       izi = nxi0*(iyi-1) + ixi
-            if (l==1) go to 390
-            ngp0 = ngp0 + 1
-            jigp0 = jigp0 + 1
-            igp(jigp0) = izi
-            go to 420
-  390       continue
-            do jigp1i = jigp1,nxinyi
-              if (izi==igp(jigp1i)) go to 420
-            end do
-            ngp1 = ngp1 + 1
-            jigp1 = jigp1 - 1
-            igp(jigp1) = izi
-  420     continue
+!         iximx = nxi0
+!   340   do 430 iyi = 1,nyi0
+!           yii = yi(iyi)
+!           if (yii<ymn .or. yii>ymx) go to 430
+!           do 420 ixi = iximn,iximx
+!             xii = xi(ixi)
+!             l = 0
+!             if (spdt(x1,y1,x2,y2,xii,yii)) 360, 350, 420
+!   350       l = 1
+!   360       if (spdt(x3,y3,x2,y2,xii,yii)) 380, 370, 420
+!   370       l = 1
+!   380       izi = nxi0*(iyi-1) + ixi
+!             if (l==1) go to 390
+!             ngp0 = ngp0 + 1
+!             jigp0 = jigp0 + 1
+!             igp(jigp0) = izi
+!             go to 420
+!   390       continue
+!             do jigp1i = jigp1,nxinyi
+!               if (izi==igp(jigp1i)) go to 420
+!             end do
+!             ngp1 = ngp1 + 1
+!             jigp1 = jigp1 - 1
+!             igp(jigp1) = izi
+!   420     continue
 
-  430   continue
+!   430   continue
 
-  440   jngp0 = jngp0 + 1
-        ngp(jngp0) = ngp0
-        jngp1 = jngp1 - 1
-        ngp(jngp1) = ngp1
+!   440   jngp0 = jngp0 + 1
+!         ngp(jngp0) = ngp0
+!         jngp1 = jngp1 - 1
+!         ngp(jngp1) = ngp1
 
-  450 continue
+!   450 continue
 
-      return
-   end subroutine idgrid
+!       return
+!    end subroutine idgrid
       subroutine idlctn ( ndp, xd, yd, nt, ipt, nl, ipl, xii, yii, iti, &
         iwk, wk)
 
@@ -1056,6 +1057,12 @@ use omp_lib
       ntl = nt0 + nl0
       x0 = xii
       y0 = yii
+
+!
+! Initialize saved triangle to impossible value.
+!
+      itipv=0
+
 !
 !  Processing for a new set of data points.
 !
@@ -1425,7 +1432,7 @@ use omp_lib
 !
 !  Estimation of ZXX, ZXY, and ZYY.
 !
-   30 continue
+      continue
 
       do ip0 = 1,ndp0
 
@@ -1682,7 +1689,7 @@ use omp_lib
 !
 !  Load coordinate and partial derivative values at the vertices.
 !
-   21 jipt = 3*(it0-1)
+      jipt = 3*(it0-1)
       jpd = 0
 
       do i = 1,3
@@ -1706,7 +1713,7 @@ use omp_lib
 !  transformation from the XY system to the UV system
 !  and vice versa.
 !
-   24 x0 = x(1)
+      x0 = x(1)
       y0 = y(1)
       a = x(2)-x0
       b = x(3)-x0
@@ -1723,7 +1730,7 @@ use omp_lib
 !  Convert the partial derivatives at the vertexes of the
 !  triangle for the UV coordinate system.
 !
-   25 aa = a*a
+      aa = a*a
       act2 = 2.0D+00 *a*c
       cc = c*c
       ab = a*b
@@ -1744,7 +1751,7 @@ use omp_lib
 !
 !  Calculate the coefficients of the polynomial.
 !
-   27 p00 = z(1)
+      p00 = z(1)
       p10 = zu(1)
       p01 = zv(1)
       p20 = 0.5D+00*zuu(1)
@@ -1806,7 +1813,7 @@ use omp_lib
 !
 !  Evaluate the polynomial.
 !
-   31 p0 = p00+v*(p01+v*(p02+v*(p03+v*(p04+v*p05))))
+      p0 = p00+v*(p01+v*(p02+v*(p03+v*(p04+v*p05))))
       p1 = p10+v*(p11+v*(p12+v*(p13+v*p14)))
       p2 = p20+v*(p21+v*(p22+v*p23))
       p3 = p30+v*(p31+v*p32)
@@ -1822,7 +1829,7 @@ use omp_lib
 !  Load coordinate and partial derivative values at the end
 !  points of the border line segment.
 !
-   41 jipl = 3*(il1-1)
+      jipl = 3*(il1-1)
       jpd = 0
 
       do i = 1,2
@@ -1846,7 +1853,7 @@ use omp_lib
 !  transformation from the XY system to the UV system
 !  and vice versa.
 !
-   44 x0 = x(1)
+      x0 = x(1)
       y0 = y(1)
       a = y(2)-y(1)
       b = x(2)-x(1)
@@ -1863,7 +1870,7 @@ use omp_lib
 !  Convert the partial derivatives at the end points of the
 !  border line segment for the UV coordinate system.
 !
-   45 aa = a*a
+      aa = a*a
       act2 = 2.0D+00*a*c
       cc = c*c
       ab = a*b
@@ -1884,7 +1891,7 @@ use omp_lib
 !
 !  Calculate the coefficients of the polynomial.
 !
-   47 p00 = z(1)
+      p00 = z(1)
       p10 = zu(1)
       p01 = zv(1)
       p20 = 0.5D+00*zuu(1)
@@ -1916,7 +1923,7 @@ use omp_lib
 !
 !  Evaluate the polynomial.
 !
-   51 continue
+      continue
 
       p0 = p00+v*(p01+v*(p02+v*(p03+v*(p04+v*p05))))
       p1 = p10+v*(p11+v*(p12+v*p13))
@@ -1936,7 +1943,7 @@ use omp_lib
 !  Load coordinate and partial derivative values at the vertex
 !  of the triangle.
 !
-   61 jipl = 3*il2-2
+      jipl = 3*il2-2
       idp = ipl(jipl)
       x(1) = xd(idp)
       y(1) = yd(idp)
@@ -1973,302 +1980,303 @@ use omp_lib
 
       return
     end subroutine idptip
-      subroutine idsfft ( md, ncp, ndp, xd, yd, zd, nxi, nyi, xi, yi, zi, iwk, wk )
+! Function is not used.
+!     subroutine idsfft ( md, ncp, ndp, xd, yd, zd, nxi, nyi, xi, yi, zi, iwk, wk )
 
-!*****************************************************************************80
-!
-!! IDSFFT fits a smooth surface Z(X,Y) given irregular (X,Y,Z) data.
-!
-!  Discussion:
-!
-!    This subroutine performs smooth surface fitting when the projections
-!    of the data points in the XY plane are irregularly
-!    distributed in the plane.
-!
-!    The very first call to this subroutine and the call with a new
-!    NCP value, a new NDP value, or new contents of the XD and
-!    YD arrays must be made with MD = 1.  The call with MD = 2 must be
-!    preceded by another call with the same NCP and NDP values and
-!    with the same contents of the XD and YD arrays.  The call with
-!    MD = 3 must be preceded by another call with the same NCP, NDP,
-!    NXI, and NYI values and with the same contents of the XD, YD,
-!    XI, and YI arrays.  Between the call with MD = 2 or MD = 3 and its
-!    preceding call, the IWK and WK arrays must not be disturbed.
-!    Use of a value between 3 and 5 (inclusive) for NCP is recommended
-!    unless there is evidence that dictate otherwise.
-!
-!  Modified:
-!
-!    24 August 2007
-!
-!  Author:
-!
-!    Hiroshi Akima
-!
-!  References:
-!
-!    Hiroshi Akima,  
-!    Algorithm 526:
-!    A Method of Bivariate Interpolation and Smooth Surface Fitting
-!    for Values Given at Irregularly Distributed Points,
-!    ACM Transactions on Mathematical Software, 
-!    Volume 4, Number 2, June 1978, pages 160-164.
-!
-!    Hiroshi Akima,  
-!    On Estimating Partial Derivatives for Bivariate Interpolation
-!    of Scattered Data,
-!    Rocky Mountain Journal of Mathematics,
-!    Volume 14, Number 1, Winter 1984, pages 41-51.
-!
-!  Parameters:
-!
-!    Input, integer ( kind = 4 ) MD, mode of computation (must be 1, 2, or 3,
-!    else an error return will occur).
-!    * 1, if this is the first call to this routine, or if the value of 
-!    NDP has been changed from the previous call, or if the contents of 
-!    the XD or YD arrays have been changed from the previous call.
-!    * 2, if the values of NDP and the XD, YD arrays are unchanged from 
-!    the previous call, but new values for XI, YI are being used.  If 
-!    MD = 2 and NDP has been changed since the previous call to IDSFFT, 
-!    an error return occurs.
-!    * 3, if the values of NDP, NXI, NYI, XD, YD, XI, YI are unchanged 
-!    from the previous call, i.e. if the only change on input to idsfft 
-!    is in the ZD array.  If MD = 3 and NDP, nxi or nyi has been changed 
-!    since the previous call to IDSFFT, an error return occurs.
-!    Between the call with MD = 2 or MD = 3 and the preceding call, the 
-!    IWK and WK work arrays should not be disturbed.
-!
-!    Input, integer ( kind = 4 ) NCP, the number of data points used to estimate partial
-!    derivatives.  2 <= NCP < NDP.  A value between 3 and 5 is recommended.
-!
-!    Input, integer ( kind = 4 ) NDP, the number of data points.  NDP must be at least 4.
-!
-!    Input, real ( kind = 8 ) XD(NDP), Y(NDP), Z(NDP), the X, Y and Z
-!    coordinates of the data points.
-!
-!    Input, integer ( kind = 4 ) NXI, NYI, the number of output grid points in the
-!    X and Y directions.  NXI and NYI must each be at least 1.
-!
-!    Input, real ( kind = 8 ) XI(NXI), YI(NYI), the X and Y coordinates 
-!    of the grid points.
-!
-!    Output, real ( kind = 8 ) ZI(NXI,NYI), contains the interpolated Z 
-!    values at the grid points.
-!
-!    Workspace, integer IWK(max(31,27+NCP)*NDP+NXI*NYI).
-!
-!    Workspace, real ( kind = 8 ) WK(5*NDP).
-!
-  implicit none
+! !*****************************************************************************80
+! !
+! !! IDSFFT fits a smooth surface Z(X,Y) given irregular (X,Y,Z) data.
+! !
+! !  Discussion:
+! !
+! !    This subroutine performs smooth surface fitting when the projections
+! !    of the data points in the XY plane are irregularly
+! !    distributed in the plane.
+! !
+! !    The very first call to this subroutine and the call with a new
+! !    NCP value, a new NDP value, or new contents of the XD and
+! !    YD arrays must be made with MD = 1.  The call with MD = 2 must be
+! !    preceded by another call with the same NCP and NDP values and
+! !    with the same contents of the XD and YD arrays.  The call with
+! !    MD = 3 must be preceded by another call with the same NCP, NDP,
+! !    NXI, and NYI values and with the same contents of the XD, YD,
+! !    XI, and YI arrays.  Between the call with MD = 2 or MD = 3 and its
+! !    preceding call, the IWK and WK arrays must not be disturbed.
+! !    Use of a value between 3 and 5 (inclusive) for NCP is recommended
+! !    unless there is evidence that dictate otherwise.
+! !
+! !  Modified:
+! !
+! !    24 August 2007
+! !
+! !  Author:
+! !
+! !    Hiroshi Akima
+! !
+! !  References:
+! !
+! !    Hiroshi Akima,  
+! !    Algorithm 526:
+! !    A Method of Bivariate Interpolation and Smooth Surface Fitting
+! !    for Values Given at Irregularly Distributed Points,
+! !    ACM Transactions on Mathematical Software, 
+! !    Volume 4, Number 2, June 1978, pages 160-164.
+! !
+! !    Hiroshi Akima,  
+! !    On Estimating Partial Derivatives for Bivariate Interpolation
+! !    of Scattered Data,
+! !    Rocky Mountain Journal of Mathematics,
+! !    Volume 14, Number 1, Winter 1984, pages 41-51.
+! !
+! !  Parameters:
+! !
+! !    Input, integer ( kind = 4 ) MD, mode of computation (must be 1, 2, or 3,
+! !    else an error return will occur).
+! !    * 1, if this is the first call to this routine, or if the value of 
+! !    NDP has been changed from the previous call, or if the contents of 
+! !    the XD or YD arrays have been changed from the previous call.
+! !    * 2, if the values of NDP and the XD, YD arrays are unchanged from 
+! !    the previous call, but new values for XI, YI are being used.  If 
+! !    MD = 2 and NDP has been changed since the previous call to IDSFFT, 
+! !    an error return occurs.
+! !    * 3, if the values of NDP, NXI, NYI, XD, YD, XI, YI are unchanged 
+! !    from the previous call, i.e. if the only change on input to idsfft 
+! !    is in the ZD array.  If MD = 3 and NDP, nxi or nyi has been changed 
+! !    since the previous call to IDSFFT, an error return occurs.
+! !    Between the call with MD = 2 or MD = 3 and the preceding call, the 
+! !    IWK and WK work arrays should not be disturbed.
+! !
+! !    Input, integer ( kind = 4 ) NCP, the number of data points used to estimate partial
+! !    derivatives.  2 <= NCP < NDP.  A value between 3 and 5 is recommended.
+! !
+! !    Input, integer ( kind = 4 ) NDP, the number of data points.  NDP must be at least 4.
+! !
+! !    Input, real ( kind = 8 ) XD(NDP), Y(NDP), Z(NDP), the X, Y and Z
+! !    coordinates of the data points.
+! !
+! !    Input, integer ( kind = 4 ) NXI, NYI, the number of output grid points in the
+! !    X and Y directions.  NXI and NYI must each be at least 1.
+! !
+! !    Input, real ( kind = 8 ) XI(NXI), YI(NYI), the X and Y coordinates 
+! !    of the grid points.
+! !
+! !    Output, real ( kind = 8 ) ZI(NXI,NYI), contains the interpolated Z 
+! !    values at the grid points.
+! !
+! !    Workspace, integer IWK(max(31,27+NCP)*NDP+NXI*NYI).
+! !
+! !    Workspace, real ( kind = 8 ) WK(5*NDP).
+! !
+!   implicit none
 
-  integer ( kind = 4 ) ncp
-  integer ( kind = 4 ) ndp
-  integer ( kind = 4 ) nxi
-  integer ( kind = 4 ) nyi
+!   integer ( kind = 4 ) ncp
+!   integer ( kind = 4 ) ndp
+!   integer ( kind = 4 ) nxi
+!   integer ( kind = 4 ) nyi
 
-  integer ( kind = 4 ) il1
-  integer ( kind = 4 ) il2
-  integer ( kind = 4 ) iti
-  integer ( kind = 4 ) iwk(max(31,27+ncp)*ndp+nxi*nyi)
-  integer ( kind = 4 ) ixi
-  integer ( kind = 4 ) iyi
-  integer ( kind = 4 ) izi
-  integer ( kind = 4 ) jig0mx
-  integer ( kind = 4 ) jig0mn
-  integer ( kind = 4 ) jig1mx
-  integer ( kind = 4 ) jig1mn
-  integer ( kind = 4 ) jigp
-  integer ( kind = 4 ) jngp
-  integer ( kind = 4 ) jwigp
-  integer ( kind = 4 ) jwigp0
-  integer ( kind = 4 ) jwipc
-  integer ( kind = 4 ) jwipl
-  integer ( kind = 4 ) jwipt
-  integer ( kind = 4 ) jwiwl
-  integer ( kind = 4 ) jwiwp
-  integer ( kind = 4 ) jwngp
-  integer ( kind = 4 ) jwngp0
-  integer ( kind = 4 ) md
-  integer ( kind = 4 ) md0
-  integer ( kind = 4 ) ncp0
-  integer ( kind = 4 ) ncppv
-  integer ( kind = 4 ) ndp0
-  integer ( kind = 4 ) ndppv
-  integer ( kind = 4 ) ngp0
-  integer ( kind = 4 ) ngp1
-  integer ( kind = 4 ) nl
-  integer ( kind = 4 ) nngp
-  integer ( kind = 4 ) nt
-  integer ( kind = 4 ) nxi0
-  integer ( kind = 4 ) nxipv
-  integer ( kind = 4 ) nyi0
-  integer ( kind = 4 ) nyipv
-  real ( kind = 8 ) wk(5*ndp)
-  real ( kind = 8 ) xd(ndp)
-  real ( kind = 8 ) xi(nxi)
-  real ( kind = 8 ) yd(ndp)
-  real ( kind = 8 ) yi(nyi)
-  real ( kind = 8 ) zd(ndp)
-  real ( kind = 8 ) zi(nxi*nyi)
-!
-!  Setting of some input parameters to local variables, for MD = 1, 2, 3.
-!
-  md0 = md
-  ncp0 = ncp
-  ndp0 = ndp
-  nxi0 = nxi
-  nyi0 = nyi
-!
-!  Error check, for MD = 1, 2, 3.
-!
-      if(md0<1.or.md0>3)           go to 90
-      if(ncp0<2.or.ncp0>=ndp0)      go to 90
-      if(ndp0<4)                      go to 90
-      if(nxi0<1.or.nyi0<1)         go to 90
+!   integer ( kind = 4 ) il1
+!   integer ( kind = 4 ) il2
+!   integer ( kind = 4 ) iti
+!   integer ( kind = 4 ) iwk(max(31,27+ncp)*ndp+nxi*nyi)
+!   integer ( kind = 4 ) ixi
+!   integer ( kind = 4 ) iyi
+!   integer ( kind = 4 ) izi
+!   integer ( kind = 4 ) jig0mx
+!   integer ( kind = 4 ) jig0mn
+!   integer ( kind = 4 ) jig1mx
+!   integer ( kind = 4 ) jig1mn
+!   integer ( kind = 4 ) jigp
+!   integer ( kind = 4 ) jngp
+!   integer ( kind = 4 ) jwigp
+!   integer ( kind = 4 ) jwigp0
+!   integer ( kind = 4 ) jwipc
+!   integer ( kind = 4 ) jwipl
+!   integer ( kind = 4 ) jwipt
+!   integer ( kind = 4 ) jwiwl
+!   integer ( kind = 4 ) jwiwp
+!   integer ( kind = 4 ) jwngp
+!   integer ( kind = 4 ) jwngp0
+!   integer ( kind = 4 ) md
+!   integer ( kind = 4 ) md0
+!   integer ( kind = 4 ) ncp0
+!   integer ( kind = 4 ) ncppv
+!   integer ( kind = 4 ) ndp0
+!   integer ( kind = 4 ) ndppv
+!   integer ( kind = 4 ) ngp0
+!   integer ( kind = 4 ) ngp1
+!   integer ( kind = 4 ) nl
+!   integer ( kind = 4 ) nngp
+!   integer ( kind = 4 ) nt
+!   integer ( kind = 4 ) nxi0
+!   integer ( kind = 4 ) nxipv
+!   integer ( kind = 4 ) nyi0
+!   integer ( kind = 4 ) nyipv
+!   real ( kind = 8 ) wk(5*ndp)
+!   real ( kind = 8 ) xd(ndp)
+!   real ( kind = 8 ) xi(nxi)
+!   real ( kind = 8 ) yd(ndp)
+!   real ( kind = 8 ) yi(nyi)
+!   real ( kind = 8 ) zd(ndp)
+!   real ( kind = 8 ) zi(nxi*nyi)
+! !
+! !  Setting of some input parameters to local variables, for MD = 1, 2, 3.
+! !
+!   md0 = md
+!   ncp0 = ncp
+!   ndp0 = ndp
+!   nxi0 = nxi
+!   nyi0 = nyi
+! !
+! !  Error check, for MD = 1, 2, 3.
+! !
+!       if(md0<1.or.md0>3)           go to 90
+!       if(ncp0<2.or.ncp0>=ndp0)      go to 90
+!       if(ndp0<4)                      go to 90
+!       if(nxi0<1.or.nyi0<1)         go to 90
 
-      if(md0>=2)        go to 21
-      iwk(1) = ncp0
-      iwk(2) = ndp0
-      go to 22
+!       if(md0>=2)        go to 21
+!       iwk(1) = ncp0
+!       iwk(2) = ndp0
+!       go to 22
 
-   21 ncppv = iwk(1)
-      ndppv = iwk(2)
-      if(ncp0/=ncppv)   go to 90
-      if(ndp0/=ndppv)   go to 90
+!    21 ncppv = iwk(1)
+!       ndppv = iwk(2)
+!       if(ncp0/=ncppv)   go to 90
+!       if(ndp0/=ndppv)   go to 90
 
-   22 continue
+!    22 continue
 
-      if(md0>=3)        go to 23
-      iwk(3) = nxi0
-      iwk(4) = nyi0
-      go to 30
-   23 nxipv = iwk(3)
-      nyipv = iwk(4)
-      if(nxi0/=nxipv)   go to 90
-      if(nyi0/=nyipv)   go to 90
-!
-!  Allocation of storage areas in the IWK array, for MD = 1,2,3.
-!
-   30 jwipt = 16
-      jwiwl = 6*ndp0+1
-      jwngp0 = jwiwl-1
-      jwipl = 24*ndp0+1
-      jwiwp = 30*ndp0+1
-      jwipc = 27*ndp0+1
-      jwigp0 = max ( 31, 27 + ncp0 ) * ndp0
-!
-!  Triangulate the XY plane, for MD = 1.
-!
-   40 continue
+!       if(md0>=3)        go to 23
+!       iwk(3) = nxi0
+!       iwk(4) = nyi0
+!       go to 30
+!    23 nxipv = iwk(3)
+!       nyipv = iwk(4)
+!       if(nxi0/=nxipv)   go to 90
+!       if(nyi0/=nyipv)   go to 90
+! !
+! !  Allocation of storage areas in the IWK array, for MD = 1,2,3.
+! !
+!    30 jwipt = 16
+!       jwiwl = 6*ndp0+1
+!       jwngp0 = jwiwl-1
+!       jwipl = 24*ndp0+1
+!       jwiwp = 30*ndp0+1
+!       jwipc = 27*ndp0+1
+!       jwigp0 = max ( 31, 27 + ncp0 ) * ndp0
+! !
+! !  Triangulate the XY plane, for MD = 1.
+! !
+!       continue
 
-      if ( md0 == 1 ) then
+!       if ( md0 == 1 ) then
 
-        call idtang(ndp0,xd,yd,nt,iwk(jwipt),nl,iwk(jwipl), &
-          iwk(jwiwl),iwk(jwiwp),wk)
+!         call idtang(ndp0,xd,yd,nt,iwk(jwipt),nl,iwk(jwipl), &
+!           iwk(jwiwl),iwk(jwiwp),wk)
 
-        iwk(5) = nt
-        iwk(6) = nl
+!         iwk(5) = nt
+!         iwk(6) = nl
 
-        if ( nt == 0 ) then
-          return
-        end if
+!         if ( nt == 0 ) then
+!           return
+!         end if
 
-      end if
-!
-!  Determine NCP points closest to each data point, for MD = 1.
-!
-      if ( md0 == 1 ) then
+!       end if
+! !
+! !  Determine NCP points closest to each data point, for MD = 1.
+! !
+!       if ( md0 == 1 ) then
 
-        call idcldp(ndp0,xd,yd,ncp0,iwk(jwipc))
+!         call idcldp(ndp0,xd,yd,ncp0,iwk(jwipc))
 
-        if ( iwk(jwipc) == 0 ) then
-          return
-        end if
+!         if ( iwk(jwipc) == 0 ) then
+!           return
+!         end if
 
-      end if
-!
-!  Sort output grid points in ascending order of the triangle
-!  number and the border line segment number, for md = 1,2.
-!
-      if ( md0 /= 3 ) then
-        call idgrid(xd,yd,nt,iwk(jwipt),nl,iwk(jwipl),nxi0,nyi0, &
-          xi,yi,iwk(jwngp0+1),iwk(jwigp0+1))
-      end if
-!
-!  Estimate partial derivatives at all data points,
-!  for md = 1,2,3.
-! 
-      call idpdrv(ndp0,xd,yd,zd,ncp0,iwk(jwipc),wk)
-!
-!  Interpolate the ZI values, for md = 1,2,3.
-!
-   80 itpv = 0
-      jig0mx = 0
-      jig1mn = nxi0*nyi0+1
-      nngp = nt+2*nl
+!       end if
+! !
+! !  Sort output grid points in ascending order of the triangle
+! !  number and the border line segment number, for md = 1,2.
+! !
+!       if ( md0 /= 3 ) then
+!         call idgrid(xd,yd,nt,iwk(jwipt),nl,iwk(jwipl),nxi0,nyi0, &
+!           xi,yi,iwk(jwngp0+1),iwk(jwigp0+1))
+!       end if
+! !
+! !  Estimate partial derivatives at all data points,
+! !  for md = 1,2,3.
+! ! 
+!       call idpdrv(ndp0,xd,yd,zd,ncp0,iwk(jwipc),wk)
+! !
+! !  Interpolate the ZI values, for md = 1,2,3.
+! !
+!       itpv = 0
+!       jig0mx = 0
+!       jig1mn = nxi0*nyi0+1
+!       nngp = nt+2*nl
 
-      do jngp = 1,nngp
+!       do jngp = 1,nngp
 
-        iti = jngp
+!         iti = jngp
 
-        if ( nt < jngp ) then
-          il1 = (jngp-nt+1)/2
-          il2 = (jngp-nt+2)/2
-          if(il2>nl)     il2 = 1
-          iti = il1*(nt+nl)+il2
-        end if
+!         if ( nt < jngp ) then
+!           il1 = (jngp-nt+1)/2
+!           il2 = (jngp-nt+2)/2
+!           if(il2>nl)     il2 = 1
+!           iti = il1*(nt+nl)+il2
+!         end if
 
-        jwngp = jwngp0+jngp
-        ngp0 = iwk(jwngp)
+!         jwngp = jwngp0+jngp
+!         ngp0 = iwk(jwngp)
 
-        if ( 0 < ngp0 ) then
-          jig0mn = jig0mx+1
-          jig0mx = jig0mx+ngp0
+!         if ( 0 < ngp0 ) then
+!           jig0mn = jig0mx+1
+!           jig0mx = jig0mx+ngp0
 
-          do jigp = jig0mn,jig0mx
+!           do jigp = jig0mn,jig0mx
 
-            jwigp = jwigp0+jigp
-            izi = iwk(jwigp)
-            iyi = (izi-1)/nxi0+1
-            ixi = izi-nxi0*(iyi-1)
+!             jwigp = jwigp0+jigp
+!             izi = iwk(jwigp)
+!             iyi = (izi-1)/nxi0+1
+!             ixi = izi-nxi0*(iyi-1)
 
-            call idptip(xd,yd,zd,nt,iwk(jwipt),nl,iwk(jwipl),wk, &
-              iti,xi(ixi),yi(iyi),zi(izi))
+!             call idptip(xd,yd,zd,nt,iwk(jwipt),nl,iwk(jwipl),wk, &
+!               iti,xi(ixi),yi(iyi),zi(izi))
 
-          end do
+!           end do
 
-        end if
+!         end if
 
-        jwngp = jwngp0+2*nngp+1-jngp
-        ngp1 = iwk(jwngp)
+!         jwngp = jwngp0+2*nngp+1-jngp
+!         ngp1 = iwk(jwngp)
 
-        if ( 0 < ngp1 ) then
-          jig1mx = jig1mn-1
-          jig1mn = jig1mn-ngp1
+!         if ( 0 < ngp1 ) then
+!           jig1mx = jig1mn-1
+!           jig1mn = jig1mn-ngp1
 
-          do jigp = jig1mn,jig1mx
+!           do jigp = jig1mn,jig1mx
 
-            jwigp = jwigp0+jigp
-            izi = iwk(jwigp)
-            iyi = (izi-1)/nxi0+1
-            ixi = izi-nxi0*(iyi-1)
-            call idptip(xd,yd,zd,nt,iwk(jwipt),nl,iwk(jwipl),wk, &
-              iti,xi(ixi),yi(iyi),zi(izi))
-          end do
+!             jwigp = jwigp0+jigp
+!             izi = iwk(jwigp)
+!             iyi = (izi-1)/nxi0+1
+!             ixi = izi-nxi0*(iyi-1)
+!             call idptip(xd,yd,zd,nt,iwk(jwipt),nl,iwk(jwipl),wk, &
+!               iti,xi(ixi),yi(iyi),zi(izi))
+!           end do
 
-        end if
+!         end if
 
-      end do
+!       end do
 
-      return
+!       return
 
-   90 write ( *, 2090 ) md0,ncp0,ndp0,nxi0,nyi0
-      return
- 2090 format(1x/' ***   improper input parameter value(s).'/ &
-         '   md  = ',i4,10x,'ncp  = ',i6,10x,'ndp  = ',i6, &
-         10x,'nxi  = ',i6,10x,'nyi  = ',i6/ &
-         ' error detected in routine   idsfft'/)
-    end subroutine idsfft
+!    90 write ( *, 2090 ) md0,ncp0,ndp0,nxi0,nyi0
+!       return
+!  2090 format(1x/' ***   improper input parameter value(s).'/ &
+!          '   md  = ',i4,10x,'ncp  = ',i6,10x,'ndp  = ',i6, &
+!          10x,'nxi  = ',i6,10x,'nyi  = ',i6/ &
+!          ' error detected in routine   idsfft'/)
+!     end subroutine idsfft
       subroutine idtang ( ndp, xd, yd, nt, ipt, nl, ipl, iwl, iwp, wk )
 
 !*****************************************************************************80
@@ -2441,13 +2449,13 @@ use omp_lib
 !
 !  Preliminary processing.
 !
-   10 ndp0 = ndp
+      ndp0 = ndp
       ndpm1 = ndp0-1
       if(ndp0<4)       go to 90
 !
 !  Determine the closest pair of data points and their midpoint.
 !
-   20 dsqmn = dsqf(xd(1),yd(1),xd(2),yd(2))
+      dsqmn = dsqf(xd(1),yd(1),xd(2),yd(2))
       ipmn1 = 1
       ipmn2 = 2
 
@@ -2480,7 +2488,7 @@ use omp_lib
 !  distance from the midpoint and store the sorted data point
 !  numbers in the IWP array.
 !
-   30 jp1 = 2
+      jp1 = 2
 
       do ip1 = 1,ndp0
         if ( ip1 /= ipmn1 .and. ip1 /= ipmn2 ) then
@@ -2512,7 +2520,7 @@ use omp_lib
 !  If necessary, modify the ordering in such a way that the
 !  first three data points are not collinear.
 !
-   35 ar = dsq12*ratio
+      ar = dsq12*ratio
       x1 = xd(ipmn1)
       y1 = yd(ipmn1)
       dx21 = xd(ipmn2)-x1
@@ -2577,7 +2585,7 @@ use omp_lib
 !
 !  Add the remaining (NDP-3) data points, one by one.
 !
-   50 continue
+      continue
 
       do 79  jp1 = 4,ndp0
 
@@ -2725,7 +2733,7 @@ use omp_lib
 !
 !  Improve triangulation.
 !
-   70   ntt3p3 = ntt3+3
+        ntt3p3 = ntt3+3
 
         do 78  irep = 1,nrep
 
@@ -2834,7 +2842,7 @@ use omp_lib
 !  Rearrange the IPT array so that the vertexes of each triangle
 !  are listed counter-clockwise.
 !
-   80 do itt3 = 3,ntt3,3
+      do itt3 = 3,ntt3,3
 
         ip1 = ipt(itt3-2)
         ip2 = ipt(itt3-1)

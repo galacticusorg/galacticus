@@ -104,6 +104,7 @@ contains
     !% Destructor for the ``power-law'' primordial power spectrum class.
     implicit none
     type(powerSpectrumPrimordialPowerLaw), intent(inout) :: self
+    !GCC$ attributes unused :: self
 
     ! Nothing to do.
     return

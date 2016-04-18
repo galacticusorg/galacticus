@@ -131,6 +131,7 @@ contains
        ! this root-finding function is the sign of the function, return a large negative value.
        Equivalent_Circular_Orbit_Solver=-potentialInfinite
     case default
+       Equivalent_Circular_Orbit_Solver=0.0d0
        call Galacticus_Error_Report('Equivalent_Circular_Orbit_Solver','dark matter potential evaluation failed')
     end select
     return

@@ -294,6 +294,7 @@ contains
     use Galacticus_Error
     implicit none
     class(transferFunctionFile), intent(inout) :: self
+    !GCC$ attributes unused :: self
     
     call Galacticus_Error_Report('fileHalfModeMass','not supported by this implementation')
     return

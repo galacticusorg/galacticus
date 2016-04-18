@@ -420,6 +420,7 @@ contains
     class  (massDistribution), intent(inout) :: self
     integer                  , intent(in   ) :: stateFile
     type   (fgsl_file       ), intent(in   ) :: fgslStateFile
+    !GCC$ attributes unused :: self, stateFile, fgslStateFile
 
     return
   end subroutine Mass_Distribution_State_Store_Null
@@ -431,6 +432,7 @@ contains
     class  (massDistribution), intent(inout) :: self
     integer                  , intent(in   ) :: stateFile
     type   (fgsl_file       ), intent(in   ) :: fgslStateFile
+    !GCC$ attributes unused :: self, stateFile, fgslStateFile
 
     return
   end subroutine Mass_Distribution_State_Restore_Null
