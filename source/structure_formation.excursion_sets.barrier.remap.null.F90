@@ -66,7 +66,8 @@ contains
     double precision, intent(in   ) :: time            , variance
     logical         , intent(in   ) :: ratesCalculation
     integer         , intent(in   ) :: iRemap
-
+    !GCC$ attributes unused :: barrier, variance, time, ratesCalculation, iRemap
+    
     return
   end subroutine Excursion_Sets_Barrier_Remap_Null
 
@@ -80,6 +81,7 @@ contains
     double precision, intent(in   ) :: barrier         , time, variance
     logical         , intent(in   ) :: ratesCalculation
     integer         , intent(in   ) :: iRemap
+    !GCC$ attributes unused :: barrier, barrierGradient, variance, time, ratesCalculation, iRemap
 
     return
   end subroutine Excursion_Sets_Barrier_Gradient_Remap_Null

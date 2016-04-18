@@ -159,7 +159,8 @@ contains
     class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
     class           (darkMatterHaloScaleClass      )               , pointer :: darkMatterHaloScale_
     double precision                                                         :: concentration                 , growthRate
-
+    !GCC$ attributes unused :: interrupt
+    
     ! Get the dark matter profile component.
     thisDarkMatterProfileComponent => thisNode%darkMatterProfile()
     ! Ensure that it is of the scale class.

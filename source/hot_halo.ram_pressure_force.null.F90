@@ -45,7 +45,8 @@ contains
     use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
-
+    !GCC$ attributes unused :: thisNode
+    
     Hot_Halo_Ram_Pressure_Force_Null_Get=0.0d0
     return
   end function Hot_Halo_Ram_Pressure_Force_Null_Get

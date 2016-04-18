@@ -48,7 +48,8 @@ contains
     class           (darkMatterProfileClass  )               , pointer  :: darkMatterProfile_
     double precision                                                    :: darkMatterFraction     , radiusInitial
     logical                                                             :: haloLoadedActual
-       
+    !GCC$ attributes unused :: weightIndex
+
     Dark_Matter_Profile_Enclosed_Mass_Task=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDarkHalo)) return
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeDark         )) return
@@ -132,7 +133,8 @@ contains
     logical                                                             :: haloLoadedActual
     double precision                                                    :: darkMatterFraction        , radiusInitial, &
          &                                                                 radiusJacobian
-
+    !GCC$ attributes unused :: weightIndex
+    
     ! Return zero if the component and mass type is not matched.
     Dark_Matter_Profile_Density_Task=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDarkHalo)) return

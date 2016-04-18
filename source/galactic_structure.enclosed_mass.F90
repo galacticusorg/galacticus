@@ -156,8 +156,6 @@ contains
     class           (nodeComponentBasic      )               , pointer  :: basic
     type            (rootFinder              ), save                    :: finder
     !$omp threadprivate(finder)
-    type            (varying_string          )                          :: message
-    character       (len=11                  )                          :: densityLabel
 
     ! Set default options.
     call Galactic_Structure_Enclosed_Mass_Defaults(componentType,massType,weightBy,weightIndex,haloLoaded)

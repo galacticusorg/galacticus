@@ -1752,7 +1752,6 @@ contains
          &                                                                                                 useFallbackScaleMethod
     type            (rootFinder                         )           , save                              :: finder                                                     
     !$omp threadprivate(finder)
-    logical                                                         , save                              :: functionInitialized           =.false.
     type            (varying_string                     )                                               :: message
     character       (len=16                             )                                               :: label
 

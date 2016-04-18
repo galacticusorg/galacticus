@@ -45,6 +45,7 @@ contains
     use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
+    !GCC$ attributes unused :: thisNode
 
     Cooling_Rate_Zero=0.0d0
     return

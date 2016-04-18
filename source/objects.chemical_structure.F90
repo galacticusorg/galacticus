@@ -256,7 +256,7 @@ contains
     integer                         :: iChemical
 
     ! Initialize the database.
-    call Chemical_Structure_Initialize
+    call Chemical_Structure_Initialize()
 
     ! Scan through chemicals searching for that requested.
     do iChemical=1,size(chemicals)
@@ -265,6 +265,7 @@ contains
           return
        end if
     end do
+    Chemical_Database_Get_Index=-1
     call Galacticus_Error_Report('Chemical_Database_Get_Index','chemical was not found in database')
     return
   end function Chemical_Database_Get_Index

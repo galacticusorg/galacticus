@@ -38,7 +38,6 @@ contains
     procedure(Bar_Instability_Timescale_Null), intent(inout), pointer :: Bar_Instability_Timescale_Get
 
     if (barInstabilityMethod == 'null') Bar_Instability_Timescale_Get => Bar_Instability_Timescale_Null
-
     return
   end subroutine Galactic_Dynamics_Bar_Instabilities_Null_Initialize
 
@@ -47,7 +46,8 @@ contains
     implicit none
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(  out)          :: barInstabilityExternalDrivingSpecificTorque, barInstabilityTimeScale
-
+    !GCC$ attributes unused :: thisNode, barInstabilityExternalDrivingSpecificTorque, barInstabilityTimeScale
+    
     ! Assume infinite timescale (i.e. no instability).
     barInstabilityTimeScale                    =-1.0d0
     ! Also assume no torque.
