@@ -427,7 +427,8 @@ contains
     class  (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
     integer                                       , intent(in   ) :: stateFile
     type   (fgsl_file                            ), intent(in   ) :: fgslStateFile
-
+    !GCC$ attributes unused :: fgslStateFile
+    
     write (stateFile) self%massMinimum,self%massMaximum
     return
   end subroutine filteredPowerStateStore
@@ -439,6 +440,7 @@ contains
     class  (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
     integer                                       , intent(in   ) :: stateFile
     type   (fgsl_file                            ), intent(in   ) :: fgslStateFile
+    !GCC$ attributes unused :: fgslStateFile
 
     ! Read the minimum and maximum tabulated times.
     read (stateFile) self%massMinimum,self%massMaximum

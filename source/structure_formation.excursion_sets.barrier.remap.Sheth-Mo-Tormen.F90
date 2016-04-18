@@ -80,6 +80,7 @@ contains
     double precision, intent(in   ) :: time            , variance
     logical         , intent(in   ) :: ratesCalculation
     integer         , intent(in   ) :: iRemap
+    !GCC$ attributes unused :: time
 
     if ((ratesCalculation.and.iRemap == methodRatesPosition).or.(.not.ratesCalculation.and.iRemap == methodPosition)) barrier=sqrt(smtFitParameterA)*barrier*(1.0d0+smtFitParameterB*(variance/smtFitParameterA/barrier**2)**smtFitParameterC)
     return
@@ -95,6 +96,7 @@ contains
     double precision, intent(in   ) :: barrier         , time, variance
     logical         , intent(in   ) :: ratesCalculation
     integer         , intent(in   ) :: iRemap
+    !GCC$ attributes unused :: time
 
     if ((ratesCalculation.and.iRemap == methodRatesPosition).or.(.not.ratesCalculation.and.iRemap == methodPosition)) then
        if (variance <= 0.0d0) then

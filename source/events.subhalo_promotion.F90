@@ -41,7 +41,6 @@ contains
     type   (treeNode                      )               , pointer :: promotionNode
     class  (nodeComponentBasic            )               , pointer :: parentBasic
     class  (nodeComponentMergingStatistics)               , pointer :: mergingStatistics
-    type   (mergerTree                    )                         :: thisTree
     type   (varying_string                )                         :: message
     
     ! Find the node to promote to.
@@ -69,7 +68,7 @@ contains
        call mergingStatistics%massWhenFirstIsolatedSet(parentBasic%mass())
     end if
     ! Promote the halo.
-    call Tree_Node_Promote(thisTree,thisNode)
+    call Tree_Node_Promote(thisNode)
     ! Since we changed the tree, record that the tree is not deadlocked.
     deadlockStatus=deadlockStatusIsNotDeadlocked
     ! Record that the task was performed.

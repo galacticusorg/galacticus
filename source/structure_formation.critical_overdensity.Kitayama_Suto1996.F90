@@ -94,6 +94,7 @@ contains
     logical                                              , intent(in   ), optional :: collapsing
     double precision                                     , intent(in   ), optional :: mass
     double precision                                                               :: time_
+    !GCC$ attributes unused :: mass
     
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
     if (time_ /= self%timePrevious)                                                                       &
@@ -109,10 +110,11 @@ contains
     use Numerical_Constants_Math
     implicit none
     class           (criticalOverdensityKitayamaSuto1996), intent(inout)           :: self
-    double precision                                     , intent(in   ), optional :: time               , expansionFactor
+    double precision                                     , intent(in   ), optional :: time      , expansionFactor
     logical                                              , intent(in   ), optional :: collapsing
     double precision                                     , intent(in   ), optional :: mass
-    double precision                                                               :: time_              , expansionFactor_
+    double precision                                                               :: time_     , expansionFactor_
+    !GCC$ attributes unused :: mass
     
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_,expansionFactorOut=expansionFactor_)
     kitayamaSuto1996GradientTime=+(3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)                                                                 &
@@ -135,6 +137,7 @@ contains
     double precision                                     , intent(in   ), optional :: time      , expansionFactor
     logical                                              , intent(in   ), optional :: collapsing
     double precision                                     , intent(in   ), optional :: mass
+    !GCC$ attributes unused :: self, time, expansionFactor, collapsing, mass
 
     kitayamaSuto1996GradientMass=0.0d0
     return

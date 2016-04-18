@@ -857,6 +857,7 @@ contains
          &                                                       electronChemicalIndex
     double precision                                          :: logNaturalTemperatureElectronVolts        , rate                               , &
          &                                                       rateCoefficient                           , temperatureElectronVolts
+    !GCC$ attributes unused :: radiation
 
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (hydrogenNetworkFast) return
@@ -929,6 +930,7 @@ contains
     integer                             , save                :: atomicHydrogenAnionChemicalIndex        , atomicHydrogenCationChemicalIndex        , &
          &                                                       atomicHydrogenChemicalIndex
     double precision                                          :: rate                                    , rateCoefficient
+    !GCC$ attributes unused :: radiation
 
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (hydrogenNetworkFast) return
@@ -994,7 +996,8 @@ contains
          &                                                       chemicalHydrogenCationChemicalIndex        , electronChemicalIndex
     double precision                                          :: rate                                       , rateCoefficient                          , &
          &                                                       temperatureElectronVolts
-
+    !GCC$ attributes unused :: radiation
+    
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (hydrogenNetworkFast) return
 
@@ -1060,6 +1063,7 @@ contains
     integer                             , save                :: atomicHydrogenChemicalIndex        , chemicalHydrogenCationChemicalIndex        , &
          &                                                       electronChemicalIndex
     double precision                                          :: rate                               , rateCoefficient
+    !GCC$ attributes unused :: radiation
 
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (hydrogenNetworkFast) return
@@ -1116,6 +1120,7 @@ contains
     integer                             , save                :: atomicHydrogenAnionChemicalIndex           , atomicHydrogenChemicalIndex          , &
          &                                                       chemicalHydrogenCationChemicalIndex        , chemicalHydrogenChemicalIndex
     double precision                                          :: rate                                       , rateCoefficient
+    !GCC$ attributes unused :: radiation
 
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (hydrogenNetworkFast) return
@@ -1125,9 +1130,9 @@ contains
     if (.not.reactionInitialized) then
        ! Find the chemicals in this reaction.
        chemicalHydrogenCationChemicalIndex=Chemicals_Index("ChemicalHydrogenCation")
-       atomicHydrogenAnionChemicalIndex    =Chemicals_Index("AtomicHydrogenAnion"    )
+       atomicHydrogenAnionChemicalIndex   =Chemicals_Index("AtomicHydrogenAnion"   )
        chemicalHydrogenChemicalIndex      =Chemicals_Index("ChemicalHydrogen"      )
-       atomicHydrogenChemicalIndex         =Chemicals_Index("AtomicHydrogen"         )
+       atomicHydrogenChemicalIndex        =Chemicals_Index("AtomicHydrogen"        )
        ! This reaction is active if both species were found.
        reactionActive=chemicalHydrogenCationChemicalIndex > 0 .and. atomicHydrogenAnionChemicalIndex > 0 .and.&
             & chemicalHydrogenChemicalIndex > 0 .and. atomicHydrogenChemicalIndex > 0
@@ -1181,6 +1186,7 @@ contains
     integer                             , save                           :: atomicHydrogenAnionChemicalIndex                                                                                , atomicHydrogenChemicalIndex        , &
          &                                                                  electronChemicalIndex
     double precision                                                     :: rate                                                                                                            , rateCoefficient
+    !GCC$ attributes unused :: temperature
 
     ! Check if this reaction needs initializing.
     !$omp critical(Chemical_Hydrogen_Rate_Hminus_Gamma_to_H_Electron)
@@ -1269,6 +1275,7 @@ contains
     integer                             , save                           :: atomicHydrogenCationChemicalIndex                                                                                   , atomicHydrogenChemicalIndex        , &
          &                                                                  chemicalHydrogenCationChemicalIndex
     double precision                                                     :: rate                                                                                                                , rateCoefficient
+    !GCC$ attributes unused :: temperature
 
     ! Check if this reaction needs initializing.
     !$omp critical(Chemical_Hydrogen_Rate_H2plus_Gamma_to_H_Hplus)
@@ -1362,6 +1369,7 @@ contains
     ! Corresponding median wavelength of the Lyman band in chemical hydrogen (in Angstroms).
     double precision                    , parameter                      :: wavelengthLymanBand        =angstromsPerMeter*plancksConstant*speedLight/(energyLymanBand*electronVolt)
     double precision                                                     :: rate                                                                                                   , rateCoefficient
+    !GCC$ attributes unused :: temperature
 
     ! Check if this reaction needs initializing.
     !$omp critical(Chemical_Hydrogen_Rate_H2_Gamma_to_H2star_to_2H)
@@ -1414,6 +1422,7 @@ contains
     integer                                        , save                :: chemicalHydrogenCationChemicalIndex                                                                                 , chemicalHydrogenChemicalIndex        , &
          &                                                                  electronChemicalIndex
     double precision                                                     :: rate                                                                                                                , rateCoefficient
+    !GCC$ attributes unused :: temperature
 
     ! Check if this reaction needs initializing.
     !$omp critical(Chemical_Hydrogen_Rate_H2_Gamma_to_H2plus_Electron)
@@ -1504,6 +1513,7 @@ contains
     integer                                        , save                :: atomicHydrogenCationChemicalIndex                                                                                 , chemicalHydrogenCationChemicalIndex        , &
          &                                                                  electronChemicalIndex
     double precision                                                     :: rate                                                                                                              , rateCoefficient
+    !GCC$ attributes unused :: temperature
 
     ! Check if this reaction needs initializing.
     !$omp critical(Chemical_Hydrogen_Rate_H2plus_Gamma_to_2Hplus_Electron)
@@ -1591,6 +1601,7 @@ contains
     double precision                    , parameter                      :: crossSectionWavelengthHigh =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyLow
     integer                                        , save                :: atomicHydrogenChemicalIndex                                                                                 , chemicalHydrogenChemicalIndex
     double precision                                                     :: rate                                                                                                        , rateCoefficient
+    !GCC$ attributes unused :: temperature
 
     ! Check if this reaction needs initializing.
     !$omp critical(Chemical_Hydrogen_Rate_H2_Gamma_to_2H)
@@ -1695,7 +1706,8 @@ contains
     integer                                        , save                :: atomicHydrogenCationChemicalIndex                                                                                , atomicHydrogenChemicalIndex        , &
          &                                                                  electronChemicalIndex
     double precision                                                     :: rate                                                                                                             , rateCoefficient
-
+    !GCC$ attributes unused :: temperature
+    
     ! Check if this reaction needs initializing.
     !$omp critical(Chemical_Hydrogen_Rate_H_Gamma_to_H_Electron)
     if (.not.reactionInitialized) then

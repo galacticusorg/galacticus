@@ -155,6 +155,7 @@ contains
     ! Check each polygon in turn, in order of decreasing solid angle (since, at least for randomly distributed points, we're most
     ! likely to find the point in a polygon with larger solid angle). Exit immediately if the point is found to like within a
     ! polygon.
+    windowPointIncluded=.false.
     do i=self%polygonCount,1,-1
        windowPointIncluded=self%polygons(self%solidAngleIndex(i))%pointIncluded(point)
        if (windowPointIncluded) exit

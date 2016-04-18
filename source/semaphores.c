@@ -22,6 +22,7 @@
 #include <semaphore.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 sem_t * Semaphore_Open_C(const char *name, int initialValue) {
   //% Fortran-callable wrapper around the Linux semaphore open function.

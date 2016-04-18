@@ -103,6 +103,7 @@ contains
     logical                                   , intent(in   ), optional :: collapsing
     double precision                          , intent(in   ), optional :: mass
     double precision                                                    :: time_
+    !GCC$ attributes unused :: mass
     
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
     fixedValue=+self%criticalOverdensity              &
@@ -118,6 +119,7 @@ contains
     logical                                   , intent(in   ), optional :: collapsing
     double precision                          , intent(in   ), optional :: mass
     double precision                                                    :: time_              , expansionFactor_
+    !GCC$ attributes unused :: mass
     
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_,expansionFactorOut=expansionFactor_)
     fixedGradientTime=-self%criticalOverdensity                                                        &
@@ -131,9 +133,10 @@ contains
     !% Return the gradient with respect to mass of critical overdensity at the given time and mass.
     implicit none
     class           (criticalOverdensityFixed), intent(inout)           :: self
-    double precision                          , intent(in   ), optional :: time               , expansionFactor
+    double precision                          , intent(in   ), optional :: time      , expansionFactor
     logical                                   , intent(in   ), optional :: collapsing
     double precision                          , intent(in   ), optional :: mass
+    !GCC$ attributes unused :: self, time, expansionFactor, collapsing, mass
 
     fixedGradientMass=0.0d0
     return

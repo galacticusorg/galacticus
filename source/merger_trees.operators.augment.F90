@@ -311,8 +311,8 @@ contains
     implicit none
     class           (mergerTreeOperatorAugment), intent(inout)                :: self
     type            (mergerTree               ), intent(inout ), target       :: tree
-    type            (treeNode                 ), pointer                      :: node,childNode
-    class           (nodeComponentBasic       ), pointer                      :: basic,baseBasic
+    type            (treeNode                 ), pointer                      :: node
+    class           (nodeComponentBasic       ), pointer                      :: basic
     type            (mergerTree               ), pointer                      :: treeCurrent
     type            (treeNodeList             ), allocatable   , dimension(:) :: anchorNodes
     double precision                           , allocatable   , dimension(:) :: anchorTimes

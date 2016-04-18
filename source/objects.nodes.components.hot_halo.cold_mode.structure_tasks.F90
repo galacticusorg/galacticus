@@ -49,7 +49,8 @@ contains
     logical                               , intent(in   ), optional :: haloLoaded
     class           (nodeComponentHotHalo)               , pointer  :: thisHotHalo
     double precision                                                :: radiusOuter  , radiusCore
-
+    !GCC$ attributes unused :: haloLoaded
+    
     ! Return zero mass if the requested mass type or component is not matched.
     Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task=0.0d0
     if (.not.defaultHotHaloComponent%coldModeIsActive()                                                                     ) return
@@ -150,6 +151,7 @@ contains
     class           (nodeComponentHotHalo)               , pointer  :: thisHotHalo
     type            (coordinateSpherical )                          :: position
     double precision                                                :: radiusOuter         , radiusCore
+    !GCC$ attributes unused :: haloLoaded
 
     Node_Component_Hot_Halo_Cold_Mode_Density_Task=0.0d0
     if (.not.defaultHotHaloComponent%coldModeIsActive()                                                                     ) return
