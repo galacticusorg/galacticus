@@ -80,6 +80,7 @@ contains
     implicit none
     type(coolingFunctionAtomicCIECloudy)                :: atomicCIECloudyConstructorParameters
     type(inputParameters               ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
 
     atomicCIECloudyConstructorParameters=atomicCIECloudyConstructorInternal()
     return
@@ -106,6 +107,7 @@ contains
     use Numerical_Interpolation
     implicit none
     type(coolingFunctionAtomicCIECloudy), intent(inout) :: self
+    !GCC$ attributes unused :: self
 
     ! Nothing to do.
     return
@@ -236,7 +238,8 @@ contains
     implicit none
     class(coolingFunctionAtomicCIECloudy), intent(inout) :: self
     type (inputParameters               ), intent(inout) :: descriptor
- 
+    !GCC$ attributes unused :: self
+    
     call descriptor%addParameter("coolingFunctionMethod","atomicCIECloudy")
     return
   end subroutine atomicCIECloudyDescriptor

@@ -64,6 +64,7 @@ contains
     use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
+    !GCC$ attributes unused :: thisNode
 
     ! Return the timescale.
     Star_Formation_Timescale_Disk_Fixed=starFormationTimescaleDisksFixedTimescale

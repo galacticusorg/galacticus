@@ -71,7 +71,8 @@ contains
     type            (treeNode            ), intent(inout), pointer :: thisNode
     double precision                      , intent(in   )          :: radius
     class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
-
+    !GCC$ attributes unused :: radius
+    
     ! Compute mean specific angular momentum from the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()
     Cooling_Specific_Angular_Momentum_Mean= thisHotHaloComponent%angularMomentum() &

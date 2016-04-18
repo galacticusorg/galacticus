@@ -38,7 +38,8 @@ contains
     logical                                              , intent(in   )          :: componentMatched
     type            (treeNode)                           , intent(inout), pointer :: thisNode
     double precision          , allocatable, dimension(:), intent(inout)          :: radiationProperties
-
+    !GCC$ attributes unused :: componentMatched, thisNode, radiationProperties
+    
     return
   end subroutine Radiation_Set_Null
 
@@ -52,6 +53,7 @@ contains
     logical                                    , intent(in   ) :: componentMatched
     double precision                           , intent(in   ) :: time
     double precision, allocatable, dimension(:), intent(inout) :: radiationProperties
+    !GCC$ attributes unused :: componentMatched, time, radiationProperties
 
     return
   end subroutine Radiation_Set_Time_Null
@@ -67,6 +69,7 @@ contains
     double precision, allocatable, dimension(:), intent(in   )           :: radiationProperties
     double precision                           , intent(inout)           :: radiationTemperature
     integer                      , dimension(:), intent(in   ), optional :: radiationType
+    !GCC$ attributes unused :: ourType, requestedType, radiationProperties, radiationTemperature, radiationType
 
     return
   end subroutine Radiation_Temperature_Null
@@ -83,6 +86,7 @@ contains
     double precision, allocatable, dimension(:), intent(in   )           :: radiationProperties
     double precision                           , intent(inout)           :: radiationFlux
     integer                      , dimension(:), intent(in   ), optional :: radiationType
+    !GCC$ attributes unused :: ourType, requestedType, radiationProperties, wavelength, radiationFlux, radiationType
 
     return
   end subroutine Radiation_Flux_Null

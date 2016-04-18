@@ -75,7 +75,7 @@ module Regular_Expressions
   end interface
 
   interface
-     integer function Regular_Expression_Match_C(r,string) bind(c,name='Regular_Expression_Match_C')
+     integer(c_int) function Regular_Expression_Match_C(r,string) bind(c,name='Regular_Expression_Match_C')
        !% Template for a C function that checks for a match with a regular expression.
        import
        type     (c_ptr ), value :: r

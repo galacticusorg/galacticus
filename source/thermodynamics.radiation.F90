@@ -41,11 +41,11 @@ contains
     double precision                          :: exponentialArgument
     integer                                   :: radianceTypeActual
 
+    ! Assume zero emission by default.
+    Blackbody_Emission=0.0d0
+
     ! Return zero emission for non-positive temperatures.
-    if (temperature <= 0.0d0) then
-       Blackbody_Emission=0.0d0
-       return
-    end if
+    if (temperature <= 0.0d0) return
 
     ! Determine what type of radiance to use.
     if (present(radianceType)) then

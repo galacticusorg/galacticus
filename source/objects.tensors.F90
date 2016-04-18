@@ -229,7 +229,8 @@ contains
     use Memory_Management
     implicit none
     class(tensorRank2Dimension3Symmetric), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     return
   end subroutine Tensor_R2_D3_Sym_Destroy
 

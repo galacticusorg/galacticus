@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <crypt.h>
+#include <string.h>
 
 /* Return the md5 of the input text */
 void md5(int textLength, char *text, char *hash)

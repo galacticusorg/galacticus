@@ -218,7 +218,8 @@ contains
     implicit none
     class           (coordinate)              , intent(  out) :: self
     double precision            , dimension(3), intent(in   ) :: x
-
+    !GCC$ attributes unused :: self, x
+    
     call Galacticus_Error_Report('Coordinates_Null_To','no transformation from cartesian coordinates defined')
     return
   end subroutine Coordinates_Null_From
@@ -229,7 +230,9 @@ contains
     implicit none
     class           (coordinate), intent(in   ) :: self
     double precision            , dimension(3)  :: Coordinates_Null_To
+    !GCC$ attributes unused :: self
 
+    Coordinates_Null_To=0.0d0
     call Galacticus_Error_Report('Coordinates_Null_To','no transformation to cartesian coordinates defined')
     return
   end function Coordinates_Null_To

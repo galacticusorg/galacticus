@@ -17,7 +17,6 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which does root finding.
-
 module Root_Finder
   !% Implements root finding.
   use, intrinsic :: ISO_C_Binding
@@ -234,6 +233,7 @@ contains
        xLow =rootGuess
        xHigh=rootGuess
     else
+       Root_Finder_Find=0.0d0
        call Galacticus_Error_Report('Root_Finder_Find','either "rootGuess" or "rootRange" must be specified')
     end if
     ! Expand the range as necessary.
@@ -380,6 +380,7 @@ contains
                 status=errorStatusOutOfRange
                 return
              else
+                Root_Finder_Find=0.0d0
                 call Galacticus_Error_Report('Root_Finder_Find',message)
              end if
           end if
@@ -388,6 +389,7 @@ contains
     end if
     ! Find the root.
     if (statusActual /= FGSL_Success) then
+       Root_Finder_Find=0.0d0
        if (present(status)) then
           status=statusActual
           return
@@ -415,6 +417,7 @@ contains
        if (statusActual == FGSL_Success) exit
     end do
     if (statusActual /= FGSL_Success) then
+       Root_Finder_Find=0.0d0
        if (present(status)) then 
           status=statusActual
           return
@@ -555,7 +558,7 @@ contains
     return
   end function Root_Finder_Wrapper_Function
 
-  double precision function Root_Finder_Wrapper_Function_Derivative(x,parameterPointer) bind(c)
+  real(c_double) function Root_Finder_Wrapper_Function_Derivative(x,parameterPointer) bind(c)
     !% Wrapper function callable by {\normalfont \ttfamily FGSL} used in root finding.
     implicit none
     real(kind=c_double), value :: x
