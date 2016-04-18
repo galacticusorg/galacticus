@@ -126,7 +126,8 @@ contains
     integer                                 , intent(inout), optional :: status
     class           (nodeComponentBlackHole)               , pointer  :: thisBlackHoleComponent
     double precision                                                  :: componentMass
-
+    !GCC$ attributes unused :: status
+    
     ! Set to zero by default.
     Node_Component_Black_Hole_Simple_Potential=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeBlackHole)) return

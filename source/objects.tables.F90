@@ -1423,7 +1423,9 @@ contains
     double precision                      , intent(in   )                               :: x0, x1
     procedure       (integrandTemplate   ), intent(in   )           , pointer, optional :: integrand
     double precision                      , dimension(size(self%xv))                    :: Table_Linear_CSpline_Integration_Weights
+    !GCC$ attributes unused :: self, x0, x1
 
+    Table_Linear_CSpline_Integration_Weights=0.0d0
     call Galacticus_Error_Report('Table_Linear_CSpline_Integration_Weights','integration weights not supported')
     return
   end function Table_Linear_CSpline_Integration_Weights

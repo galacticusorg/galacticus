@@ -58,6 +58,7 @@ contains
     type            (treeNode), intent(inout), pointer :: thisNode
     type            (history ), intent(inout)          :: thisHistory
     double precision          , intent(in   )          :: timeBegin
+    !GCC$ attributes unused :: thisNode, thisHistory, timeBegin
 
     ! Do nothing.
     return
@@ -73,6 +74,7 @@ contains
     type            (history   ), intent(inout)          :: thisHistory
     type            (abundances), intent(in   )          :: fuelAbundances
     double precision            , intent(in   )          :: starFormationRate
+    !GCC$ attributes unused :: thisNode, thisHistory, fuelAbundances, starFormationRate
 
     ! Ensure the history does not exist.
     call thisHistory%destroy()
@@ -92,7 +94,8 @@ contains
     integer  (c_size_t      ), intent(in   )          :: iOutput
     integer  (kind=kind_int8), intent(in   )          :: treeIndex
     character(len=*         ), intent(in   )          :: componentLabel
-
+    !GCC$ attributes unused :: thisNode, nodePassesFilter, thisHistory, iOutput, treeIndex, componentLabel
+    
     ! Do nothing.
     return
   end subroutine Star_Formation_History_Output_Null
@@ -105,7 +108,8 @@ contains
     double precision            , intent(in   ) :: stellarMass
     type            (abundances), intent(in   ) :: stellarAbundances
     type            (history   ), intent(inout) :: thisHistory
-
+    !GCC$ attributes unused :: thisHistory, stellarMass, stellarAbundances
+    
     ! Do nothing.
     return
   end subroutine Star_Formation_History_Scales_Null

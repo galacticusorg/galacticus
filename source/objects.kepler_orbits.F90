@@ -310,7 +310,8 @@ contains
     !% Destroy an orbit.
     implicit none
     class(keplerOrbit), intent(inout) :: thisOrbit
-
+    !GCC$ attributes unused :: thisOrbit
+    
     ! Nothing to do.
     return
   end subroutine Kepler_Orbits_Destroy
@@ -326,7 +327,8 @@ contains
          &                                                             integerProperty
     integer         (kind=kind_int8), dimension(:,:), intent(inout) :: integerBuffer
     double precision                , dimension(:,:), intent(inout) :: doubleBuffer
-
+    !GCC$ attributes unused :: integerBufferCount, integerProperty, integerBuffer, time
+    
     if (self%isDefined()) then
        doubleBuffer(doubleBufferCount,doubleProperty+1)=self%energy         ()
        doubleBuffer(doubleBufferCount,doubleProperty+2)=self%angularMomentum()
@@ -345,7 +347,8 @@ contains
     class           (keplerOrbit), intent(in   ) :: self
     integer                      , intent(inout) :: doublePropertyCount, integerPropertyCount
     double precision             , intent(in   ) :: time
-
+    !GCC$ attributes unused :: self, integerPropertyCount, time
+    
     doublePropertyCount=doublePropertyCount+4
     return
   end subroutine Kepler_Orbits_Output_Count
@@ -363,7 +366,8 @@ contains
     double precision             , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     character       (len=*      )              , intent(in   ) :: comment                , prefix
     double precision                           , intent(in   ) :: unitsInSI
-
+    !GCC$ attributes unused :: self, time, integerProperty, integerPropertyComments, integerPropertyNames, integerPropertyUnitsSI, unitsInSI
+    
     doubleProperty=doubleProperty+1
     doublePropertyNames   (doubleProperty)=trim(prefix)//'SpecificEnergy'
     doublePropertyComments(doubleProperty)=trim(comment)//' [specific energy]'
@@ -549,20 +553,17 @@ contains
     implicit none
     class(keplerOrbit), intent(inout) :: thisOrbit
 
-    select type(thisOrbit)
-    type is (keplerOrbit)
-       ! Simply specify that no properties have been set as yet.
-       thisOrbit%massesIsSet            =.false.
-       thisOrbit%radiusIsSet            =.false.
-       thisOrbit%radiusPericenterIsSet  =.false.
-       thisOrbit%radiusApocenterIsSet   =.false.
-       thisOrbit%velocityRadialIsSet    =.false.
-       thisOrbit%velocityTangentialIsSet=.false.
-       thisOrbit%angularMomentumIsSet   =.false.
-       thisOrbit%energyIsSet            =.false.
-       thisOrbit%eccentricityIsSet      =.false.
-       thisOrbit%semimajorAxisIsSet     =.false.
-    end select
+    ! Simply specify that no properties have been set as yet.
+    thisOrbit%massesIsSet            =.false.
+    thisOrbit%radiusIsSet            =.false.
+    thisOrbit%radiusPericenterIsSet  =.false.
+    thisOrbit%radiusApocenterIsSet   =.false.
+    thisOrbit%velocityRadialIsSet    =.false.
+    thisOrbit%velocityTangentialIsSet=.false.
+    thisOrbit%angularMomentumIsSet   =.false.
+    thisOrbit%energyIsSet            =.false.
+    thisOrbit%eccentricityIsSet      =.false.
+    thisOrbit%semimajorAxisIsSet     =.false.
     return
   end subroutine Kepler_Orbits_Reset
 
@@ -572,13 +573,10 @@ contains
     class           (keplerOrbit), intent(inout) :: thisOrbit
     double precision             , intent(in   ) :: hostMass , satelliteMass
 
-    select type(thisOrbit)
-    type is (keplerOrbit)
-       ! Set the mass factor and flag that is set.
-       thisOrbit%specificReducedMassValue=1.0d0/(1.0d0+satelliteMass/hostMass)
-       thisOrbit%hostMassValue           =hostMass
-       thisOrbit%massesIsSet             =.true.
-    end select
+    ! Set the mass factor and flag that is set.
+    thisOrbit%specificReducedMassValue=1.0d0/(1.0d0+satelliteMass/hostMass)
+    thisOrbit%hostMassValue           =hostMass
+    thisOrbit%massesIsSet             =.true.
     return
   end subroutine Kepler_Orbits_Masses_Set
 
@@ -588,12 +586,9 @@ contains
     class           (keplerOrbit), intent(inout) :: thisOrbit
     double precision             , intent(in   ) :: radius
 
-    select type(thisOrbit)
-    type is (keplerOrbit)
-       ! Set the radius and flag that is set.
-       thisOrbit%radiusValue=radius
-       thisOrbit%radiusIsSet=.true.
-    end select
+    ! Set the radius and flag that is set.
+    thisOrbit%radiusValue=radius
+    thisOrbit%radiusIsSet=.true.
     return
   end subroutine Kepler_Orbits_Radius_Set
 
@@ -603,12 +598,9 @@ contains
     class           (keplerOrbit), intent(inout) :: thisOrbit
     double precision             , intent(in   ) :: radius
 
-    select type(thisOrbit)
-    type is (keplerOrbit)
-       ! Set the pericenter radius and flag that is set.
-       thisOrbit%radiusPericenterValue=radius
-       thisOrbit%radiusPericenterIsSet=.true.
-    end select
+    ! Set the pericenter radius and flag that is set.
+    thisOrbit%radiusPericenterValue=radius
+    thisOrbit%radiusPericenterIsSet=.true.
     return
   end subroutine Kepler_Orbits_Pericenter_Radius_Set
 
@@ -618,12 +610,9 @@ contains
     class           (keplerOrbit), intent(inout) :: thisOrbit
     double precision             , intent(in   ) :: radius
 
-    select type(thisOrbit)
-    type is (keplerOrbit)
-       ! Set the apocenter radius and flag that is set.
-       thisOrbit%radiusApocenterValue=radius
-       thisOrbit%radiusApocenterIsSet=.true.
-    end select
+    ! Set the apocenter radius and flag that is set.
+    thisOrbit%radiusApocenterValue=radius
+    thisOrbit%radiusApocenterIsSet=.true.
     return
   end subroutine Kepler_Orbits_Apocenter_Radius_Set
 
@@ -633,12 +622,9 @@ contains
     class           (keplerOrbit), intent(inout) :: thisOrbit
     double precision             , intent(in   ) :: velocityRadial
 
-    select type(thisOrbit)
-    type is (keplerOrbit)
-       ! Set the radial velocity and flag that is set.
-       thisOrbit%velocityRadialValue=velocityRadial
-       thisOrbit%velocityRadialIsSet=.true.
-    end select
+    ! Set the radial velocity and flag that is set.
+    thisOrbit%velocityRadialValue=velocityRadial
+    thisOrbit%velocityRadialIsSet=.true.
     return
   end subroutine Kepler_Orbits_Velocity_Radial_Set
 
@@ -648,12 +634,9 @@ contains
     class           (keplerOrbit), intent(inout) :: thisOrbit
     double precision             , intent(in   ) :: velocityTangential
 
-    select type(thisOrbit)
-    type is (keplerOrbit)
-       ! Set the tangential velocity and flag that is set.
-       thisOrbit%velocityTangentialValue=velocityTangential
-       thisOrbit%velocityTangentialIsSet=.true.
-    end select
+    ! Set the tangential velocity and flag that is set.
+    thisOrbit%velocityTangentialValue=velocityTangential
+    thisOrbit%velocityTangentialIsSet=.true.
     return
   end subroutine Kepler_Orbits_Velocity_Tangential_Set
 
@@ -663,12 +646,9 @@ contains
     class           (keplerOrbit), intent(inout) :: thisOrbit
     double precision             , intent(in   ) :: energy
 
-    select type(thisOrbit)
-    type is (keplerOrbit)
-       ! Set the tangential velocity and flag that is set.
-       thisOrbit%energyValue=energy
-       thisOrbit%energyIsSet=.true.
-    end select
+    ! Set the tangential velocity and flag that is set.
+    thisOrbit%energyValue=energy
+    thisOrbit%energyIsSet=.true.
     return
   end subroutine Kepler_Orbits_Energy_Set
 
@@ -678,12 +658,9 @@ contains
     class           (keplerOrbit), intent(inout) :: thisOrbit
     double precision             , intent(in   ) :: eccentricity
 
-    select type(thisOrbit)
-    type is (keplerOrbit)
-       ! Set the tangential velocity and flag that is set.
-       thisOrbit%eccentricityValue=eccentricity
-       thisOrbit%eccentricityIsSet=.true.
-    end select
+    ! Set the tangential velocity and flag that is set.
+    thisOrbit%eccentricityValue=eccentricity
+    thisOrbit%eccentricityIsSet=.true.
     return
   end subroutine Kepler_Orbits_Eccentricity_Set
 
@@ -693,12 +670,9 @@ contains
     class           (keplerOrbit), intent(inout) :: thisOrbit
     double precision             , intent(in   ) :: angularMomentum
 
-    select type(thisOrbit)
-    type is (keplerOrbit)
-       ! Set the tangential velocity and flag that is set.
-       thisOrbit%angularMomentumValue=angularMomentum
-       thisOrbit%angularMomentumIsSet=.true.
-    end select
+    ! Set the tangential velocity and flag that is set.
+    thisOrbit%angularMomentumValue=angularMomentum
+    thisOrbit%angularMomentumIsSet=.true.
     return
   end subroutine Kepler_Orbits_Angular_Momentum_Set
 
@@ -708,12 +682,9 @@ contains
     class           (keplerOrbit), intent(inout) :: thisOrbit
     double precision             , intent(in   ) :: semiMajorAxis
 
-    select type(thisOrbit)
-    type is (keplerOrbit)
-       ! Set the tangential velocity and flag that is set.
-       thisOrbit%semiMajorAxisValue=semiMajorAxis
-       thisOrbit%semiMajorAxisIsSet=.true.
-    end select
+    ! Set the tangential velocity and flag that is set.
+    thisOrbit%semiMajorAxisValue=semiMajorAxis
+    thisOrbit%semiMajorAxisIsSet=.true.
     return
   end subroutine Kepler_Orbits_Semi_Major_Axis_Set
 
@@ -723,12 +694,9 @@ contains
     implicit none
     class(keplerOrbit), intent(inout) :: thisOrbit
 
-    select type(thisOrbit)
-    type is (keplerOrbit)
-       if (.not.thisOrbit%massesIsSet) call Galacticus_Error_Report('Kepler_Orbits_Specific_Reduced_Mass', &
-            & 'mass factor has not been set for this orbit')
-       Kepler_Orbits_Specific_Reduced_Mass=thisOrbit%specificReducedMassValue
-    end select
+    if (.not.thisOrbit%massesIsSet) call Galacticus_Error_Report('Kepler_Orbits_Specific_Reduced_Mass', &
+         & 'mass factor has not been set for this orbit')
+    Kepler_Orbits_Specific_Reduced_Mass=thisOrbit%specificReducedMassValue
     return
   end function Kepler_Orbits_Specific_Reduced_Mass
 
@@ -738,12 +706,9 @@ contains
     implicit none
     class(keplerOrbit), intent(inout) :: thisOrbit
 
-    select type(thisOrbit)
-    type is (keplerOrbit)
-       if (.not.thisOrbit%massesIsSet) call Galacticus_Error_Report('Kepler_Orbits_Host_Mass', &
-            & 'host mass has not been set for this orbit')
-       Kepler_Orbits_Host_Mass=thisOrbit%hostMassValue
-    end select
+    if (.not.thisOrbit%massesIsSet) call Galacticus_Error_Report('Kepler_Orbits_Host_Mass', &
+         & 'host mass has not been set for this orbit')
+    Kepler_Orbits_Host_Mass=thisOrbit%hostMassValue
     return
   end function Kepler_Orbits_Host_Mass
 
@@ -753,12 +718,9 @@ contains
     implicit none
     class(keplerOrbit), intent(inout) :: thisOrbit
 
-    select type(thisOrbit)
-    type is (keplerOrbit)
-       if (.not.thisOrbit%radiusIsSet) call Galacticus_Error_Report('Kepler_Orbits_Radius', &
-            & 'radius has not been set for this orbit')
-       Kepler_Orbits_Radius=thisOrbit%radiusValue
-    end select
+    if (.not.thisOrbit%radiusIsSet) call Galacticus_Error_Report('Kepler_Orbits_Radius', &
+         & 'radius has not been set for this orbit')
+    Kepler_Orbits_Radius=thisOrbit%radiusValue
     return
   end function Kepler_Orbits_Radius
 
@@ -767,17 +729,14 @@ contains
     implicit none
     class(keplerOrbit), intent(inout) :: thisOrbit
 
-    select type(thisOrbit)
-    type is (keplerOrbit)
-       if (.not.thisOrbit%radiusPericenterIsSet) then
-          ! Assert that the orbit is defined.
-          call thisOrbit%assertIsDefined()
-          ! Compute the pericenter radius.
-          thisOrbit%radiusPericenterValue=thisOrbit%semiMajorAxis()*(1.0d0-thisOrbit%eccentricity())
-          thisOrbit%radiusPericenterIsSet=.true.
-       end if
-       Kepler_Orbits_Pericenter_Radius=thisOrbit%radiusPericenterValue
-    end select
+    if (.not.thisOrbit%radiusPericenterIsSet) then
+       ! Assert that the orbit is defined.
+       call thisOrbit%assertIsDefined()
+       ! Compute the pericenter radius.
+       thisOrbit%radiusPericenterValue=thisOrbit%semiMajorAxis()*(1.0d0-thisOrbit%eccentricity())
+       thisOrbit%radiusPericenterIsSet=.true.
+    end if
+    Kepler_Orbits_Pericenter_Radius=thisOrbit%radiusPericenterValue
     return
   end function Kepler_Orbits_Pericenter_Radius
 
@@ -786,21 +745,18 @@ contains
     implicit none
     class(keplerOrbit), intent(inout) :: thisOrbit
 
-    select type(thisOrbit)
-    type is (keplerOrbit)
-       if (.not.thisOrbit%radiusApocenterIsSet) then
-          ! Assert that the orbit is defined.
-          call thisOrbit%assertIsDefined()
-          ! Compute the pericenter radius.
-          if (thisOrbit%isBound()) then
-             thisOrbit%radiusApocenterValue=thisOrbit%semiMajorAxis()*(1.0d0+thisOrbit%eccentricity())
-          else
-             thisOrbit%radiusApocenterValue=radiusEffectiveInfinity
-          end if
-          thisOrbit%radiusApocenterIsSet=.true.
+    if (.not.thisOrbit%radiusApocenterIsSet) then
+       ! Assert that the orbit is defined.
+       call thisOrbit%assertIsDefined()
+       ! Compute the pericenter radius.
+       if (thisOrbit%isBound()) then
+          thisOrbit%radiusApocenterValue=thisOrbit%semiMajorAxis()*(1.0d0+thisOrbit%eccentricity())
+       else
+          thisOrbit%radiusApocenterValue=radiusEffectiveInfinity
        end if
-       Kepler_Orbits_Apocenter_Radius=thisOrbit%radiusApocenterValue
-    end select
+       thisOrbit%radiusApocenterIsSet=.true.
+    end if
+    Kepler_Orbits_Apocenter_Radius=thisOrbit%radiusApocenterValue
     return
   end function Kepler_Orbits_Apocenter_Radius
 
@@ -810,24 +766,21 @@ contains
     implicit none
     class(keplerOrbit), intent(inout) :: thisOrbit
 
-    select type(thisOrbit)
-    type is (keplerOrbit)
-       if (.not.thisOrbit%velocityRadialIsSet) then
-          ! Assert that the orbit is defined.
-          call thisOrbit%assertIsDefined()
-          ! Compute from eccentricity, radius and periapsis if possible.
-          if (thisOrbit%eccentricityIsSet.and.thisOrbit%radiusIsSet.and.thisOrbit%radiusPericenterIsSet) then
-             thisOrbit%velocityRadialValue=thisOrbit%velocityScale()*sqrt((2.0d0*(1.0d0-thisOrbit%radius()&
-                  &/thisOrbit%radiusPericenter())+(1.0d0+thisOrbit%eccentricity())*(thisOrbit%radius()/thisOrbit%radiusPericenter()&
-                  &-thisOrbit%radiusPericenter()/thisOrbit%radius()))/thisOrbit%specificReducedMass())
-             thisOrbit%velocityRadialIsSet=.true.
-          end if
-          ! If we were not able to compute the radial velocity, exit.
-          if (.not.thisOrbit%velocityRadialIsSet) call Galacticus_Error_Report('Kepler_Orbits_Velocity_Radial','radial velocity&
-               & has not been set for this orbit and can not be computed')
+    if (.not.thisOrbit%velocityRadialIsSet) then
+       ! Assert that the orbit is defined.
+       call thisOrbit%assertIsDefined()
+       ! Compute from eccentricity, radius and periapsis if possible.
+       if (thisOrbit%eccentricityIsSet.and.thisOrbit%radiusIsSet.and.thisOrbit%radiusPericenterIsSet) then
+          thisOrbit%velocityRadialValue=thisOrbit%velocityScale()*sqrt((2.0d0*(1.0d0-thisOrbit%radius()&
+               &/thisOrbit%radiusPericenter())+(1.0d0+thisOrbit%eccentricity())*(thisOrbit%radius()/thisOrbit%radiusPericenter()&
+               &-thisOrbit%radiusPericenter()/thisOrbit%radius()))/thisOrbit%specificReducedMass())
+          thisOrbit%velocityRadialIsSet=.true.
        end if
-       Kepler_Orbits_Velocity_Radial=thisOrbit%velocityRadialValue
-    end select
+       ! If we were not able to compute the radial velocity, exit.
+       if (.not.thisOrbit%velocityRadialIsSet) call Galacticus_Error_Report('Kepler_Orbits_Velocity_Radial','radial velocity&
+            & has not been set for this orbit and can not be computed')
+    end if
+    Kepler_Orbits_Velocity_Radial=thisOrbit%velocityRadialValue
     return
   end function Kepler_Orbits_Velocity_Radial
 
@@ -837,28 +790,25 @@ contains
     implicit none
     class(keplerOrbit), intent(inout) :: thisOrbit
 
-    select type(thisOrbit)
-    type is (keplerOrbit)
-       if (.not.thisOrbit%velocityTangentialIsSet) then
-          ! Assert that the orbit is defined.
-          call thisOrbit%assertIsDefined()
-          ! Compute from angular momentum and radius if possible.
-          if (thisOrbit%angularMomentumIsSet.and.thisOrbit%radiusIsSet) then
-             thisOrbit%velocityTangentialValue=thisOrbit%angularMomentum()/thisOrbit%radius()/thisOrbit%specificReducedMass()
-             thisOrbit%velocityTangentialIsSet=.true.
-          end if
-          ! Compute from eccentricity, radius and periapsis if possible.
-          if (thisOrbit%eccentricityIsSet.and.thisOrbit%radiusIsSet.and.thisOrbit%radiusPericenterIsSet) then
-             thisOrbit%velocityTangentialValue=thisOrbit%velocityScale()*sqrt((1.0d0+thisOrbit%eccentricity())&
-                  &*thisOrbit%radiusPericenter() /thisOrbit%radius() /thisOrbit%specificReducedMass())
-             thisOrbit%velocityTangentialIsSet=.true.
-          end if
-          ! If we were not able to compute the tangential velocity, exit.
-          if (.not.thisOrbit%velocityTangentialIsSet) call Galacticus_Error_Report('Kepler_Orbits_Velocity_Tangential','tangential velocity&
-               & has not been set for this orbit and can not be computed')
+    if (.not.thisOrbit%velocityTangentialIsSet) then
+       ! Assert that the orbit is defined.
+       call thisOrbit%assertIsDefined()
+       ! Compute from angular momentum and radius if possible.
+       if (thisOrbit%angularMomentumIsSet.and.thisOrbit%radiusIsSet) then
+          thisOrbit%velocityTangentialValue=thisOrbit%angularMomentum()/thisOrbit%radius()/thisOrbit%specificReducedMass()
+          thisOrbit%velocityTangentialIsSet=.true.
        end if
-       Kepler_Orbits_Velocity_Tangential=thisOrbit%velocityTangentialValue
-    end select
+       ! Compute from eccentricity, radius and periapsis if possible.
+       if (thisOrbit%eccentricityIsSet.and.thisOrbit%radiusIsSet.and.thisOrbit%radiusPericenterIsSet) then
+          thisOrbit%velocityTangentialValue=thisOrbit%velocityScale()*sqrt((1.0d0+thisOrbit%eccentricity())&
+               &*thisOrbit%radiusPericenter() /thisOrbit%radius() /thisOrbit%specificReducedMass())
+          thisOrbit%velocityTangentialIsSet=.true.
+       end if
+       ! If we were not able to compute the tangential velocity, exit.
+       if (.not.thisOrbit%velocityTangentialIsSet) call Galacticus_Error_Report('Kepler_Orbits_Velocity_Tangential','tangential velocity&
+            & has not been set for this orbit and can not be computed')
+    end if
+    Kepler_Orbits_Velocity_Tangential=thisOrbit%velocityTangentialValue
     return
   end function Kepler_Orbits_Velocity_Tangential
 
@@ -868,20 +818,16 @@ contains
     implicit none
     class(keplerOrbit), intent(inout) :: thisOrbit
 
-    select type(thisOrbit)
-    type is (keplerOrbit)
-       ! Check if energy is set.
-       if (.not.thisOrbit%energyIsSet) then
-          ! Assert that the orbit is defined.
-          call thisOrbit%assertIsDefined()
-          ! Compute the energy.
-          thisOrbit%energyValue=-gravitationalConstantGalacticus*thisOrbit%hostMass()/thisOrbit%radius()+0.5d0&
-               &*(thisOrbit%velocityRadial()**2+thisOrbit%velocityTangential()**2)*thisOrbit%specificReducedMass()
-          thisOrbit%energyIsSet=.true.
-       end if
-
-       Kepler_Orbits_Energy=thisOrbit%energyValue
-    end select
+    ! Check if energy is set.
+    if (.not.thisOrbit%energyIsSet) then
+       ! Assert that the orbit is defined.
+       call thisOrbit%assertIsDefined()
+       ! Compute the energy.
+       thisOrbit%energyValue=-gravitationalConstantGalacticus*thisOrbit%hostMass()/thisOrbit%radius()+0.5d0&
+            &*(thisOrbit%velocityRadial()**2+thisOrbit%velocityTangential()**2)*thisOrbit%specificReducedMass()
+       thisOrbit%energyIsSet=.true.
+    end if
+    Kepler_Orbits_Energy=thisOrbit%energyValue
     return
   end function Kepler_Orbits_Energy
 
@@ -890,15 +836,11 @@ contains
     implicit none
     class(keplerOrbit), intent(inout) :: thisOrbit
 
-    select type(thisOrbit)
-    type is (keplerOrbit)
-       if (.not.thisOrbit%angularMomentumIsSet) then
-          thisOrbit%angularMomentumValue=thisOrbit%radius()*thisOrbit%velocityTangential()*thisOrbit%specificReducedMass()
-          thisOrbit%angularMomentumIsSet=.true.
-       end if
-
-       Kepler_Orbits_Angular_Momentum=thisOrbit%angularMomentumValue
-    end select
+    if (.not.thisOrbit%angularMomentumIsSet) then
+       thisOrbit%angularMomentumValue=thisOrbit%radius()*thisOrbit%velocityTangential()*thisOrbit%specificReducedMass()
+       thisOrbit%angularMomentumIsSet=.true.
+    end if   
+    Kepler_Orbits_Angular_Momentum=thisOrbit%angularMomentumValue
     return
   end function Kepler_Orbits_Angular_Momentum
 
@@ -908,18 +850,14 @@ contains
     class           (keplerOrbit), intent(inout) :: thisOrbit
     double precision                             :: velocityRadial, velocityTangential
 
-    select type(thisOrbit)
-    type is (keplerOrbit)
-       if (.not.thisOrbit%eccentricityIsSet) then
-          velocityTangential         =thisOrbit%velocityTangential()/thisOrbit%velocityScale()
-          velocityRadial             =thisOrbit%velocityRadial    ()/thisOrbit%velocityScale()
-          thisOrbit%eccentricityValue=sqrt(1.0d0+2.0d0*thisOrbit%energy()*thisOrbit%angularMomentum()**2/thisOrbit%radius()**2&
-               &/thisOrbit%velocityScale()**4/thisOrbit%specificReducedMass())
-          thisOrbit%eccentricityIsSet=.true.
-       end if
-
-       Kepler_Orbits_Eccentricity=thisOrbit%eccentricityValue
-    end select
+    if (.not.thisOrbit%eccentricityIsSet) then
+       velocityTangential         =thisOrbit%velocityTangential()/thisOrbit%velocityScale()
+       velocityRadial             =thisOrbit%velocityRadial    ()/thisOrbit%velocityScale()
+       thisOrbit%eccentricityValue=sqrt(1.0d0+2.0d0*thisOrbit%energy()*thisOrbit%angularMomentum()**2/thisOrbit%radius()**2&
+            &/thisOrbit%velocityScale()**4/thisOrbit%specificReducedMass())
+       thisOrbit%eccentricityIsSet=.true.
+    end if    
+    Kepler_Orbits_Eccentricity=thisOrbit%eccentricityValue
     return
   end function Kepler_Orbits_Eccentricity
 
@@ -929,18 +867,14 @@ contains
     class           (keplerOrbit), intent(inout) :: thisOrbit
     double precision                             :: velocityRadial, velocityTangential
 
-    select type(thisOrbit)
-    type is (keplerOrbit)
-       if (.not.thisOrbit%semiMajorAxisIsSet) then
-          velocityTangential          =thisOrbit%velocityTangential()/thisOrbit%velocityScale()
-          velocityRadial              =thisOrbit%velocityRadial    ()/thisOrbit%velocityScale()
-          thisOrbit%semiMajorAxisValue=thisOrbit%radius()/thisOrbit%specificReducedMass()/(2.0d0/thisOrbit%specificReducedMass()&
-               &-velocityRadial**2-velocityTangential**2)
-          thisOrbit%semiMajorAxisIsSet=.true.
-       end if
-
-       Kepler_Orbits_Semi_Major_Axis=thisOrbit%semiMajorAxisValue
-    end select
+    if (.not.thisOrbit%semiMajorAxisIsSet) then
+       velocityTangential          =thisOrbit%velocityTangential()/thisOrbit%velocityScale()
+       velocityRadial              =thisOrbit%velocityRadial    ()/thisOrbit%velocityScale()
+       thisOrbit%semiMajorAxisValue=thisOrbit%radius()/thisOrbit%specificReducedMass()/(2.0d0/thisOrbit%specificReducedMass()&
+            &-velocityRadial**2-velocityTangential**2)
+       thisOrbit%semiMajorAxisIsSet=.true.
+    end if
+    Kepler_Orbits_Semi_Major_Axis=thisOrbit%semiMajorAxisValue
     return
   end function Kepler_Orbits_Semi_Major_Axis
 
@@ -952,27 +886,24 @@ contains
     class  (keplerOrbit), intent(in   ) :: thisOrbit
     integer                             :: orbitalParameterCount
 
-    select type(thisOrbit)
-    type is (keplerOrbit)
-       ! Assume orbit is not defined by default.
-       Kepler_Orbits_Is_Defined=.false.
-       ! Ensure that masses are set.
-       if (thisOrbit%massesIsSet) then
-          ! Count how many parameters are set.
-          orbitalParameterCount=0
-          if (thisOrbit%radiusIsSet            ) orbitalParameterCount=orbitalParameterCount+1
-          if (thisOrbit%radiusPericenterIsSet  ) orbitalParameterCount=orbitalParameterCount+1
-          if (thisOrbit%radiusApocenterIsSet   ) orbitalParameterCount=orbitalParameterCount+1
-          if (thisOrbit%energyIsSet            ) orbitalParameterCount=orbitalParameterCount+1
-          if (thisOrbit%angularMomentumIsSet   ) orbitalParameterCount=orbitalParameterCount+1
-          if (thisOrbit%velocityRadialIsSet    ) orbitalParameterCount=orbitalParameterCount+1
-          if (thisOrbit%velocityTangentialIsSet) orbitalParameterCount=orbitalParameterCount+1
-          if (thisOrbit%eccentricityIsSet      ) orbitalParameterCount=orbitalParameterCount+1
-          if (thisOrbit%semiMajorAxisIsSet     ) orbitalParameterCount=orbitalParameterCount+1
-          ! Orbit is defined if at least 3 parameters are set.
-          Kepler_Orbits_Is_Defined=(orbitalParameterCount >= 3)
-       end if
-    end select
+    ! Assume orbit is not defined by default.
+    Kepler_Orbits_Is_Defined=.false.
+    ! Ensure that masses are set.
+    if (thisOrbit%massesIsSet) then
+       ! Count how many parameters are set.
+       orbitalParameterCount=0
+       if (thisOrbit%radiusIsSet            ) orbitalParameterCount=orbitalParameterCount+1
+       if (thisOrbit%radiusPericenterIsSet  ) orbitalParameterCount=orbitalParameterCount+1
+       if (thisOrbit%radiusApocenterIsSet   ) orbitalParameterCount=orbitalParameterCount+1
+       if (thisOrbit%energyIsSet            ) orbitalParameterCount=orbitalParameterCount+1
+       if (thisOrbit%angularMomentumIsSet   ) orbitalParameterCount=orbitalParameterCount+1
+       if (thisOrbit%velocityRadialIsSet    ) orbitalParameterCount=orbitalParameterCount+1
+       if (thisOrbit%velocityTangentialIsSet) orbitalParameterCount=orbitalParameterCount+1
+       if (thisOrbit%eccentricityIsSet      ) orbitalParameterCount=orbitalParameterCount+1
+       if (thisOrbit%semiMajorAxisIsSet     ) orbitalParameterCount=orbitalParameterCount+1
+       ! Orbit is defined if at least 3 parameters are set.
+       Kepler_Orbits_Is_Defined=(orbitalParameterCount >= 3)
+    end if
     return
   end function Kepler_Orbits_Is_Defined
 
@@ -982,25 +913,19 @@ contains
     implicit none
     class(keplerOrbit), intent(in   ) :: thisOrbit
 
-    select type(thisOrbit)
-    type is (keplerOrbit)
-       if (.not.thisOrbit%isDefined()) call Galacticus_Error_Report('Kepler_Orbits_Assert_Is_Defined','orbit is not defined')
-    end select
+    if (.not.thisOrbit%isDefined()) call Galacticus_Error_Report('Kepler_Orbits_Assert_Is_Defined','orbit is not defined')
     return
   end subroutine Kepler_Orbits_Assert_Is_Defined
 
   logical function Kepler_Orbits_Is_Bound(thisOrbit)
     !% Returns true if the orbit is bound.
     implicit none
-    class(keplerOrbit), intent(in   ) :: thisOrbit
+    class(keplerOrbit), intent(inout) :: thisOrbit
 
-    select type(thisOrbit)
-    type is (keplerOrbit)
-       ! Assert that the orbit is defined.
-       call thisOrbit%assertIsDefined()
-       ! Test if the energy is negative (indicating a bound orbit).
-       Kepler_Orbits_Is_Bound=(thisOrbit%energy() < 0.0d0)
-    end select
+    ! Assert that the orbit is defined.
+    call thisOrbit%assertIsDefined()
+    ! Test if the energy is negative (indicating a bound orbit).
+    Kepler_Orbits_Is_Bound=(thisOrbit%energy() < 0.0d0)
     return
   end function Kepler_Orbits_Is_Bound
 
@@ -1009,16 +934,13 @@ contains
     use Galacticus_Error
     use Numerical_Constants_Physical
     implicit none
-    class(keplerOrbit), intent(in   ) :: thisOrbit
+    class(keplerOrbit), intent(inout) :: thisOrbit
 
-    select type(thisOrbit)
-    type is (keplerOrbit)
-       ! Check that masses and radius have been specified.
-       if (.not.(thisOrbit%radiusIsSet.and.thisOrbit%massesIsSet)) call Galacticus_Error_Report('Kepler_Orbits_Velocity_Scale','orbit&
-            & masses and radius must be specified')
-       ! Compute the velocity scale.
-       Kepler_Orbits_Velocity_Scale=sqrt(gravitationalConstantGalacticus*thisOrbit%hostMass()/thisOrbit%radius())
-    end select
+    ! Check that masses and radius have been specified.
+    if (.not.(thisOrbit%radiusIsSet.and.thisOrbit%massesIsSet)) call Galacticus_Error_Report('Kepler_Orbits_Velocity_Scale','orbit&
+         & masses and radius must be specified')
+    ! Compute the velocity scale.
+    Kepler_Orbits_Velocity_Scale=sqrt(gravitationalConstantGalacticus*thisOrbit%hostMass()/thisOrbit%radius())
     return
   end function Kepler_Orbits_Velocity_Scale
 
@@ -1033,32 +955,29 @@ contains
     double precision                                       :: angularMomentum      , energy, newVelocityRadial, &
          &                                                    newVelocityTangential
 
-    select type(thisOrbit)
-    type is (keplerOrbit)
-       ! Assert that the orbit is defined.
-       call thisOrbit%assertIsDefined()
-       ! Check that the radius is within the allowed range.
-       if     (                                                                                                               &
-            &    newRadius < thisOrbit%radiusPericenter()                                                                     &
-            &  .or.                                                                                                           &
-            &   (newRadius > thisOrbit%radiusApocenter () .and. thisOrbit%radiusApocenter() > 0.0d0)                          &
-            & ) call Galacticus_Error_Report('Kepler_Orbits_Propagate','radius lies outside of allowed range for this orbit')
-       ! Get the energy and angular momentum
-       energy         =thisOrbit%energy         ()
-       angularMomentum=thisOrbit%angularMomentum()
-       ! Compute velocity components.
-       newVelocityTangential=angularMomentum/newRadius
-       newVelocityRadial    =sqrt(2.0d0*(energy+gravitationalConstantGalacticus*thisOrbit%hostMass()/newRadius)/thisOrbit%specificReducedMass()-newVelocityTangential**2)
-       ! Move to the infalling phase of the orbit if requested.
-       if (present(infalling)) then
-          if (infalling) newVelocityRadial=-newVelocityRadial
-       end if
-       ! Set new values for the state vector.
-       call thisOrbit%radiusSet            (newRadius            )
-       call thisOrbit%velocityTangentialSet(newVelocityTangential)
-       call thisOrbit%velocityRadialSet    (newVelocityRadial    )
-    end select
+    ! Assert that the orbit is defined.
+    call thisOrbit%assertIsDefined()
+    ! Check that the radius is within the allowed range.
+    if     (                                                                                                               &
+         &    newRadius < thisOrbit%radiusPericenter()                                                                     &
+         &  .or.                                                                                                           &
+         &   (newRadius > thisOrbit%radiusApocenter () .and. thisOrbit%radiusApocenter() > 0.0d0)                          &
+         & ) call Galacticus_Error_Report('Kepler_Orbits_Propagate','radius lies outside of allowed range for this orbit')
+    ! Get the energy and angular momentum
+    energy         =thisOrbit%energy         ()
+    angularMomentum=thisOrbit%angularMomentum()
+    ! Compute velocity components.
+    newVelocityTangential=angularMomentum/newRadius
+    newVelocityRadial    =sqrt(2.0d0*(energy+gravitationalConstantGalacticus*thisOrbit%hostMass()/newRadius)/thisOrbit%specificReducedMass()-newVelocityTangential**2)
+    ! Move to the infalling phase of the orbit if requested.
+    if (present(infalling)) then
+       if (infalling) newVelocityRadial=-newVelocityRadial
+    end if
+    ! Set new values for the state vector.
+    call thisOrbit%radiusSet            (newRadius            )
+    call thisOrbit%velocityTangentialSet(newVelocityTangential)
+    call thisOrbit%velocityRadialSet    (newVelocityRadial    )
     return
   end subroutine Kepler_Orbits_Propagate
-
+  
 end module Kepler_Orbits

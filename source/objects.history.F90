@@ -1227,7 +1227,8 @@ contains
     implicit none
     integer           , intent(in   ) :: stateFile
     type   (fgsl_file), intent(in   ) :: fgslStateFile
-
+    !GCC$ attributes unused :: fgslStateFile
+    
     write (stateFile) historyStorageEarliestTime,historyStorageLatestTime
     return
   end subroutine Histories_State_Store
@@ -1241,6 +1242,7 @@ contains
     implicit none
     integer           , intent(in   ) :: stateFile
     type   (fgsl_file), intent(in   ) :: fgslStateFile
+    !GCC$ attributes unused :: fgslStateFile
 
     read (stateFile) historyStorageEarliestTime,historyStorageLatestTime
     return

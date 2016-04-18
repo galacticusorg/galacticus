@@ -45,6 +45,7 @@ contains
     implicit none
     type(transferFunctionIdentity)                :: identityConstructorParameters
     type(inputParameters         ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
     
     return
   end function identityConstructorParameters
@@ -61,6 +62,7 @@ contains
     !% Destructor for the identity transfer function class.
     implicit none
     type(transferFunctionIdentity), intent(inout) :: self
+    !GCC$ attributes unused :: self
 
     ! Nothing to do.
     return
@@ -71,6 +73,7 @@ contains
     implicit none
     class           (transferFunctionIdentity), intent(inout) :: self
     double precision                          , intent(in   ) :: wavenumber
+    !GCC$ attributes unused :: self, wavenumber
 
     identityValue=1.0d0
     return
@@ -81,6 +84,7 @@ contains
     implicit none
     class           (transferFunctionIdentity), intent(inout) :: self
     double precision                          , intent(in   ) :: wavenumber
+    !GCC$ attributes unused :: self, wavenumber
 
     identityLogarithmicDerivative=0.0d0
     return
@@ -92,6 +96,7 @@ contains
     use Galacticus_Error
     implicit none
     class(transferFunctionIdentity), intent(inout) :: self
+    !GCC$ attributes unused :: self
 
     call Galacticus_Error_Report('identityHalfModeMass','not supported by this implementation')
     return

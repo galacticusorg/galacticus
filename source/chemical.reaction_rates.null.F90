@@ -34,7 +34,8 @@ contains
     use ISO_Varying_String
     implicit none
     type(varying_string), intent(in   ) :: chemicalReactionRatesMethods(:)
-
+    !GCC$ attributes unused :: chemicalReactionRatesMethods
+    
     return
   end subroutine Chemical_Reaction_Rates_Null_Initialize
 
@@ -50,7 +51,8 @@ contains
     double precision                    , intent(in   ) :: temperature
     type            (radiationStructure), intent(in   ) :: radiation
     type            (chemicalAbundances), intent(inout) :: chemicalRates
-
+    !GCC$ attributes unused :: chemicalDensity, temperature, radiation, chemicalRates
+    
     return
   end subroutine Chemical_Reaction_Rates_Null_Compute
 

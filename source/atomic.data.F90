@@ -314,6 +314,7 @@ contains
     end if
 
     ! Element was not found, report an error.
+    Atom_Lookup=-1
     call Galacticus_Error_Report('Atom_Lookup','could not find this element')
     return
   end function Atom_Lookup
@@ -349,6 +350,7 @@ contains
     end if
 
     ! Abundance pattern was not found, report an error.
+    Abundance_Pattern_Lookup=-1
     call Galacticus_Error_Report('Abundance_Pattern_Lookup','could not find this abundance pattern')
     return
   end function Abundance_Pattern_Lookup

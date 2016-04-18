@@ -90,7 +90,8 @@ contains
     double precision                                              :: fuelMetallicity              , fuelMetalsRateOfChange   , &
          &                                                           recycledFractionInstantaneous, stellarMetalsRateOfChange, &
          &                                                           time                         , yieldInstantaneous
-
+    !GCC$ attributes unused :: thisHistory
+    
     ! Get the instantaneous recycling rate for the IMF.
     recycledFractionInstantaneous=IMF_Recycled_Fraction_Instantaneous(starFormationRate,fuelAbundances,component)
 
@@ -134,6 +135,7 @@ contains
     double precision            , intent(in   ) :: stellarMass
     type            (abundances), intent(in   ) :: stellarAbundances
     type            (history   ), intent(inout) :: thisHistory
+    !GCC$ attributes unused :: thisHistory, stellarMass, stellarAbundances
 
     ! No history is used in this case, so simply return.
     return
@@ -147,7 +149,8 @@ contains
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
     type(history ), intent(inout)          :: thisHistory
-
+    !GCC$ attributes unused :: thisNode, thisHistory
+    
     return
   end subroutine Stellar_Population_Properties_History_Create_Instantaneous
 

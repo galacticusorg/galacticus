@@ -131,7 +131,8 @@ contains
     !% Destructor for the simple cosmological parameters class.
     implicit none
     type(cosmologyParametersSimple), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     ! Nothing to do.
     return
   end subroutine simpleDestructor
@@ -225,6 +226,7 @@ contains
        simpleHubbleConstant=+self%HubbleConstantValue         &
             &                    /HubbleConstantNormalization
     case default
+       simpleHubbleConstant=0.0d0
        call Galacticus_Error_Report('cosmologyParametersSimple:simpleHubbleConstant','unknown units for Hubble parameter')
     end select
     return

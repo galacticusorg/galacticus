@@ -250,7 +250,8 @@ contains
     double precision                         , intent(in   ), optional :: wavenumber
     double precision                                                   :: time_
     !# <optionalArgument name="normalize" defaultsTo="normalizePresentDay" />
-    
+    !GCC$ attributes unused :: component, wavenumber
+
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
     ! Remake the table if necessary.
@@ -275,6 +276,7 @@ contains
     integer                                  , intent(in   ), optional :: component 
     double precision                         , intent(in   ), optional :: wavenumber 
     double precision                                                   :: time_              , expansionFactor_
+    !GCC$ attributes unused :: component, wavenumber
     
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_,expansionFactorOut=expansionFactor_)
@@ -294,6 +296,7 @@ contains
     class  (linearGrowthSimple), intent(inout) :: self
     integer                    , intent(in   ) :: stateFile
     type   (fgsl_file         ), intent(in   ) :: fgslStateFile
+    !GCC$ attributes unused :: fgslStateFile
     
     write (stateFile) self%tableTimeMinimum,self%tableTimeMaximum
     return
@@ -306,6 +309,7 @@ contains
     class  (linearGrowthSimple), intent(inout) :: self
     integer                    , intent(in   ) :: stateFile
     type   (fgsl_file         ), intent(in   ) :: fgslStateFile
+    !GCC$ attributes unused :: fgslStateFile
 
     read (stateFile) self%tableTimeMinimum,self%tableTimeMaximum
     self%tableInitialized=.false.
