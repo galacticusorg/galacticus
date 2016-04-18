@@ -139,8 +139,8 @@ subroutine stateSimpleRestore(self,stateVector,first)
   ! Increment state count.
   self%stepCount=self%stepCount+1
   ! Increment the accepted count.
+  i=mod(self%stepCount,size(self%accepted))+1
   if (first.or.any(stateVector /= self%current)) then
-     i=mod(self%stepCount,size(self%accepted))+1
      self%accepted(i)=1
   else
      self%accepted(i)=0

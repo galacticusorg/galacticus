@@ -73,7 +73,8 @@ contains
     implicit none
     class(accretionDiskSpectraHopkins2007), intent(inout) :: self
     type (inputParameters                ), intent(inout) :: descriptor
-
+    !GCC$ attributes unused :: self
+    
     call descriptor%addParameter("accretionDiskSpectraMethod","hopkins2007")
     return
   end subroutine hopkins2007Descriptor

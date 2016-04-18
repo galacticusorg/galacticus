@@ -384,6 +384,7 @@ contains
     case (unitsPhysical)
        radiusDimensionless=radius/Black_Hole_Gravitational_Radius(thisBlackHole)
     case default
+       radiusDimensionless=0.0d0
        call Galacticus_Error_Report('Black_Hole_Metric_D_Factor_Spin','unrecognized units')
     end select
 
@@ -430,6 +431,7 @@ contains
     case (unitsPhysical)
        Black_Hole_Horizon_Radius_Node=radiusDimensionless*Black_Hole_Gravitational_Radius(thisBlackHole)
     case default
+       Black_Hole_Horizon_Radius_Node=0.0d0
        call Galacticus_Error_Report('Black_Hole_Horizon_Radius_Node','unrecognized units')
     end select
     return
@@ -475,6 +477,7 @@ contains
     case (unitsPhysical)
        Black_Hole_Static_Radius_Node=radiusDimensionless*Black_Hole_Gravitational_Radius(thisBlackHole)
     case default
+       Black_Hole_Static_Radius_Node=0.0d0
        call Galacticus_Error_Report('Black_Hole_Static_Radius_Node','unrecognized units')
     end select
     return

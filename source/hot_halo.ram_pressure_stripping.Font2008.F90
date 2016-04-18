@@ -82,11 +82,11 @@ contains
     !$omp threadprivate(finder)
     double precision                                     :: virialRadius
 
+    ! Get the virial radius of the satellite.
+    darkMatterHaloScale_ => darkMatterHaloScale              (        )
+    virialRadius         =  darkMatterHaloScale_%virialRadius(thisNode)
     ! Test whether thisNode is a satellite.
     if (thisNode%isSatellite()) then
-       ! Get the virial radius of the satellite.
-       darkMatterHaloScale_ => darkMatterHaloScale              (        )
-       virialRadius         =  darkMatterHaloScale_%virialRadius(thisNode)
        ! Set a pointer to the satellite node.
        satelliteNode => thisNode
        ! Get the ram pressure force due to the hot halo.

@@ -404,7 +404,8 @@ contains
     real   (kind=c_double), dimension(1), intent(in   ) :: t
     real   (kind=c_double), dimension(1)                :: dtda
     type   (c_ptr        )              , value         :: parameterPointer
-
+    !GCC$ attributes unused :: t
+    
     dtda(1)=1.0d0/a/matterLambdaSelfGlobal%expansionRate(a)
     matterLambdaCollapseODEs=FGSL_Success
     return
@@ -574,6 +575,7 @@ contains
          &  /expansionFactorActual**3
     return
   end function matterLambdaOmegaMatterEpochal
+
   double precision function matterLambdaMatterDensityEpochal(self,time,expansionFactor,collapsingPhase)
     !% Return the matter density at expansion factor {\normalfont \ttfamily expansionFactor}.
     use Galacticus_Error
@@ -582,9 +584,12 @@ contains
     double precision                                , intent(in   ), optional :: expansionFactor      , time
     logical                                         , intent(in   ), optional :: collapsingPhase
     double precision                                                          :: expansionFactorActual
+    !GCC$ attributes unused :: collapsingPhase
+    
     ! Determine the actual expansion factor to use.
     if (present(time)) then
        if (present(expansionFactor)) then
+          expansionFactorActual=-1.0d0
           call Galacticus_Error_Report('matterLambdaMatterDensityEpochal','only one of time or expansion factor can be specified')
        else
           expansionFactorActual=self%expansionFactor(time)
@@ -593,6 +598,7 @@ contains
        if (present(expansionFactor)) then
           expansionFactorActual=expansionFactor
        else
+          expansionFactorActual=-1.0d0
           call Galacticus_Error_Report('matterLambdaMatterDensityEpochal','either a time or expansion factor must be specified')
        end if
     end if
@@ -911,7 +917,8 @@ contains
     real   (kind=c_double), dimension(1), intent(in   ) :: a
     real   (kind=c_double), dimension(1)                :: dadt
     type   (c_ptr        )              , value         :: parameterPointer
-
+    !GCC$ attributes unused :: t
+    
     dadt(1)=a(1)*matterLambdaSelfGlobal%expansionRate(a(1))
     matterLambdaAgeTableODEs=FGSL_Success
   end function matterLambdaAgeTableODEs
@@ -1032,6 +1039,7 @@ contains
     if (.not.self%distanceTableInitialized) call self%distanceTabulate(self%cosmicTime(1.0d0))
     ! Convert to comoving distance from whatever was supplied.
     gotComovingDistance=.false.
+    comovingDistance   =-1.0d0
     if (present(distanceModulus)) then
        luminosityDistance=10.0d0**((distanceModulus-25.0d0)/5.0d0)
        do while (luminosityDistance > -self%distanceTableLuminosityDistanceNegated(1))
@@ -1059,6 +1067,7 @@ contains
     case (distanceTypeComoving)
        matterLambdaDistanceComovingConvert=comovingDistance
     case default
+       matterLambdaDistanceComovingConvert=-1.0d0
        call Galacticus_Error_Report('matterLambdaComovingDistanceConvert','unrecognized output option')
     end select
     return
@@ -1080,9 +1089,6 @@ contains
     type            (c_ptr                         )                        :: parameterPointer
     type            (fgsl_function                 )                        :: integrandFunction
     type            (fgsl_integration_workspace    )                        :: integrationWorkspace
-
-
-double precision :: d
     
     ! Find minimum and maximum times to tabulate.
     self%distanceTableTimeMinimum=min(self%distanceTableTimeMinimum,0.5d0*time)
@@ -1156,7 +1162,8 @@ double precision :: d
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: expansionFactor, time
-
+    !GCC$ attributes unused :: self, time, expansionFactor
+    
     matterLambdaEquationOfStateDarkEnergy=-1.0d0
     return
   end function matterLambdaEquationOfStateDarkEnergy
@@ -1166,6 +1173,7 @@ double precision :: d
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: expansionFactor, time
+    !GCC$ attributes unused :: self, time, expansionFactor
 
     matterLambdaExponentDarkEnergy=0.0d0
     return
@@ -1177,6 +1185,7 @@ double precision :: d
     class  (cosmologyFunctionsMatterLambda), intent(inout) :: self
     integer                                , intent(in   ) :: stateFile
     type   (fgsl_file                     ), intent(in   ) :: fgslStateFile
+    !GCC$ attributes unused :: fgslStateFile
 
     ! Store the full tables, as they are hysteretic and cannot be reconstructed precisely without
     ! knowing the path by which they were originally constructed.
@@ -1194,7 +1203,8 @@ double precision :: d
     class  (cosmologyFunctionsMatterLambda), intent(inout) :: self
     integer                                , intent(in   ) :: stateFile
     type   (fgsl_file                     ), intent(in   ) :: fgslStateFile
-
+    !GCC$ attributes unused :: fgslStateFile
+    
     ! Read the tabulations.
     read (stateFile) self%ageTableNumberPoints,self%ageTableTimeMinimum,self%ageTableTimeMaximum
     if (allocated(self%ageTableTime           )) call Dealloc_Array(self%ageTableTime           )

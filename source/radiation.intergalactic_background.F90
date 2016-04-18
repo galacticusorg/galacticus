@@ -149,7 +149,8 @@ contains
     double precision, allocatable, dimension(:), intent(in   )           :: radiationProperties
     double precision                           , intent(inout)           :: radiationTemperature
     integer                      , dimension(:), intent(in   ), optional :: radiationType
-
+    !GCC$ attributes unused :: requestedType, ourType, radiationProperties, radiationTemperature, radiationType
+    
     ! Leave temperature undefined.
     return
   end subroutine Radiation_Temperature_Intergalactic_Background

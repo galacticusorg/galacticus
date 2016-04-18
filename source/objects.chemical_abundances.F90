@@ -336,6 +336,7 @@ contains
     ! Ensure module is initialized.
     call Chemical_Abundances_Initialize()
     ! Detect if all chemical abundances are zero.
+    Chemicals_Abundances_Is_Zero=all(self%chemicalValue == 0.0d0)
     return
   end function Chemicals_Abundances_Is_Zero
 
@@ -485,7 +486,8 @@ contains
     implicit none
     class(chemicalAbundances), intent(inout) :: self
     type (node              ), pointer       :: chemicalsDefinition
-
+    !GCC$ attributes unused :: self, chemicalsDefinition
+    
     call Galacticus_Error_Report('Chemicals_Builder','building of chemicalAbundances objects is not yet supported')
     return
   end subroutine Chemicals_Builder

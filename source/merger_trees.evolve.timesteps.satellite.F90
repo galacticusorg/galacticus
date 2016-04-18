@@ -164,7 +164,8 @@ contains
     type   (treeNode      ), intent(inout), pointer :: thisNode
     integer                , intent(inout)          :: deadlockStatus
     type   (varying_string)                         :: message
-
+    !GCC$ attributes unused :: thisTree
+    
     ! Report if necessary.
     if (Galacticus_Verbosity_Level() >= verbosityInfo) then
        message='Satellite node ['

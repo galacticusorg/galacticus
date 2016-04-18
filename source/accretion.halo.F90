@@ -152,7 +152,8 @@ module Accretion_Halos
     character       (len=*               ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
          &                                                                          integerPropertyComments, integerPropertyNames
     double precision                      , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-
+    !GCC$ attributes unused :: thisNode, time, integerProperty, integerPropertyComments, integerPropertyNames, integerPropertyUnitsSI, doublePropertyUnitsSI
+    
     ! Initialize the module.
     call Accretion_Halos_Output_Initialize()
 
@@ -185,7 +186,8 @@ module Accretion_Halos
     double precision                      , intent(in   )          :: time
     integer                               , intent(inout)          :: doublePropertyCount  , integerPropertyCount
     integer                               , parameter              :: propertyCount      =1
-
+    !GCC$ attributes unused :: thisNode,time, integerPropertyCount
+    
     ! Initialize the module.
     call Accretion_Halos_Output_Initialize()
 
@@ -210,7 +212,8 @@ module Accretion_Halos
     double precision                    , intent(inout)          :: doubleBuffer     (:,:)
     class           (accretionHaloClass)               , pointer :: accretionHalo_
     double precision                                             :: accretionRateHot      ,accretionRateTotal
-
+    !GCC$ attributes unused :: time, integerBufferCount, integerProperty, integerBuffer
+    
     ! Initialize the module.
     call Accretion_Halos_Output_Initialize()
     if (outputHaloAccretionMode) then

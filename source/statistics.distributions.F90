@@ -309,6 +309,7 @@ contains
     use Galacticus_Error
     class           (distribution1D), intent(in   ) :: self
     double precision                , intent(in   ) :: p
+    !GCC$ attributes unused :: self, p
 
     call Galacticus_Error_Report('distribution1DInverse', &
          &                       'not implemented'        &
@@ -320,6 +321,7 @@ contains
     !% Null implementation of distribution minimum value.
     use Galacticus_Error
     class(distribution1D), intent(in   ) :: self
+    !GCC$ attributes unused :: self
 
     call Galacticus_Error_Report('distribution1DMinimum', &
          &                       'not implemented'        &
@@ -331,7 +333,8 @@ contains
     !% Null implementation of distribution maximum value.
     use Galacticus_Error
     class(distribution1D), intent(in   ) :: self
-
+    !GCC$ attributes unused :: self
+    
     call Galacticus_Error_Report('distribution1DMaximum', &
          &                       'not implemented'        &
          &                      )

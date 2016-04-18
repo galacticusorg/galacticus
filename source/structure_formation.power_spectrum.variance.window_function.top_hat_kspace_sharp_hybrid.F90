@@ -211,7 +211,8 @@ contains
     class           (powerSpectrumWindowFunctionTopHatSharpKHybrid), intent(inout) :: self
     double precision                                               , intent(in   ) :: smoothingMass
     double precision                                               , parameter     :: wavenumberLarge=1.0d30 !    Effective infinity.
-
+    !GCC$ attributes unused :: self, smoothingMass
+    
     topHatSharpKHybridWavenumberMaximum=wavenumberLarge
     return
   end function topHatSharpKHybridWavenumberMaximum

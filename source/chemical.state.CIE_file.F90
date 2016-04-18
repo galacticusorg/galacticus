@@ -259,7 +259,8 @@ contains
     integer         (c_size_t            )                :: iMetallicity         , iTemperature
     double precision                                      :: hMetallicity         , hTemperature  , &
          &                                                   metallicityUse       , temperatureUse
-
+    !GCC$ attributes unused :: radiation
+    
     ! Handle out of range temperatures.
     temperatureUse=temperature
     if (temperatureUse < self%temperatureMinimum) then
@@ -334,6 +335,7 @@ contains
     integer         (c_size_t            )                :: iMetallicity         , iTemperature
     double precision                                      :: hMetallicity         , hTemperature  , &
          &                                                   metallicityUse       , temperatureUse
+    !GCC$ attributes unused :: radiation
 
     ! Handle out of range temperatures.
     temperatureUse=temperature
@@ -424,6 +426,7 @@ contains
     double precision                      , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances          ), intent(in   ) :: gasAbundances
     type            (radiationStructure  ), intent(in   ) :: radiation
+    !GCC$ attributes unused :: self, numberDensityHydrogen, temperature, gasAbundances, radiation
 
     ! Electron density always scales as total density under CIE conditions.
     cieFileElectronDensityDensityLogSlope=1.0d0
@@ -447,6 +450,7 @@ contains
     integer         (c_size_t          )                  :: iMetallicity         , iTemperature
     double precision                                      :: hMetallicity         , hTemperature  , &
          &                                                   metallicityUse       , temperatureUse
+    !GCC$ attributes unused :: radiation
 
     ! Handle out of range temperatures.
     temperatureUse=temperature

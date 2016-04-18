@@ -78,9 +78,11 @@ sub Process_Enumerations {
 		# Create a new node.
 		my $newNode =
 		{
-		    type       => "block"         ,
+		    type       => "block"        ,
 		    content    => $encodeFunction,
-		    firstChild => undef(),
+		    firstChild => undef()        ,
+		    source     => "Galacticus::Build::SourceTree::Process::Enumerations::Process_Enumerations",
+		    line       => 1
 		};
 		&SourceTree::BuildTree($newNode);
 		# Insert into the module.
@@ -124,6 +126,7 @@ sub Process_Enumerations {
 			$function .= "        ".$encodeFunctionName."=".++$i."\n";
 		    }
 		    $function .= "      case default\n";
+		    $function .= "      ".$encodeFunctionName."=-1\n";
 		    $function .= "      call Galacticus_Error_Report('".$encodeFunctionName."','unrecognized enumeration member ['//trim(name)//']')\n";
 		    $function .= "      end select\n";
 		}
@@ -171,7 +174,9 @@ sub Process_Enumerations {
 		{
 		    type       => "block"  ,
 		    content    => $function,
-		    firstChild => undef()
+		    firstChild => undef()  ,
+		    source     => "Galacticus::Build::SourceTree::Process::Enumerations::Process_Enumerations",
+		    line       => 1
 		};
 		&SourceTree::BuildTree($newNode);
 		# Insert into the module.

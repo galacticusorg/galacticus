@@ -47,7 +47,8 @@ contains
     use Galacticus_Nodes
     implicit none
     type (treeNode), intent(inout), pointer :: thisNode
-
+    !GCC$ attributes unused :: thisNode
+    
     Satellites_Tidal_Field_Null_Get=0.0d0
     return
   end function Satellites_Tidal_Field_Null_Get

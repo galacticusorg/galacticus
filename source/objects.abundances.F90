@@ -621,6 +621,7 @@ contains
           call Galacticus_Error_Report('Abundances_Names','index out of range')
        end if
     case default
+       Abundances_Names=""
        call Galacticus_Error_Report('Abundances_Names','index out of range')
     end select
     return
@@ -642,9 +643,11 @@ contains
        if (index <= elementsCount+1) then
           Abundances_Atomic_Index=elementsIndices(index-1)
        else
+          Abundances_Atomic_Index=-1
           call Galacticus_Error_Report('Abundances_Atomic_Index','index out of range')
        end if
     case default
+       Abundances_Atomic_Index=-1
        call Galacticus_Error_Report('Abundances_Atomic_Index','index out of range')
     end select
     return
@@ -712,34 +715,30 @@ contains
     ! Ensure module is initialized.
     call Abundances_Initialize
 
-    select type (self)
-    type is (abundances)
-       Abundances_Get_Metallicity=self%metallicityValue
-
-       if (present(metallicityType)) then
-          metallicityTypeActual=metallicityType
+    Abundances_Get_Metallicity=self%metallicityValue
+    
+    if (present(metallicityType)) then
+       metallicityTypeActual=metallicityType
+    else
+       metallicityTypeActual=metallicityTypeLinearByMass
+    end if
+    
+    select case (metallicityTypeActual)
+    case (metallicityTypeLinearByMass)
+       ! Do nothing, this is what we compute by default.
+    case (metallicityTypeLogarithmicByMassSolar)
+       ! Convert to a logarithmic metallicity by mass relative to Solar.
+       if (Abundances_Get_Metallicity > 0.0d0) then
+          Abundances_Get_Metallicity=log10(Abundances_Get_Metallicity/metallicitySolar)
        else
-          metallicityTypeActual=metallicityTypeLinearByMass
+          Abundances_Get_Metallicity=logMetallicityZero
        end if
-
-       select case (metallicityTypeActual)
-       case (metallicityTypeLinearByMass)
-          ! Do nothing, this is what we compute by default.
-       case (metallicityTypeLogarithmicByMassSolar)
-          ! Convert to a logarithmic metallicity by mass relative to Solar.
-          if (Abundances_Get_Metallicity > 0.0d0) then
-             Abundances_Get_Metallicity=log10(Abundances_Get_Metallicity/metallicitySolar)
-          else
-             Abundances_Get_Metallicity=logMetallicityZero
-          end if
-       case (metallicityTypeLinearByMassSolar)
-          ! Convert to metallicity by mass relative to Solar.
-          Abundances_Get_Metallicity=Abundances_Get_Metallicity/metallicitySolar
-       case default
-          call Galacticus_Error_Report('Abundances_Get_Metallicity','metallicity type not supported')
-       end select
+    case (metallicityTypeLinearByMassSolar)
+       ! Convert to metallicity by mass relative to Solar.
+       Abundances_Get_Metallicity=Abundances_Get_Metallicity/metallicitySolar
+    case default
+       call Galacticus_Error_Report('Abundances_Get_Metallicity','metallicity type not supported')
     end select
-
     return
   end function Abundances_Get_Metallicity
 
@@ -880,11 +879,8 @@ contains
     ! Ensure module is initialized.
     call Abundances_Initialize
 
-    select type (self)
-    type is (abundances)
     Abundances_Hydrogen_Mass_Fraction=max((self%metallicityValue/metallicitySolar)*(hydrogenByMassSolar&
          &-hydrogenByMassPrimordial)+hydrogenByMassPrimordial,massFractionMinimum)
-    end select
     return
   end function Abundances_Hydrogen_Mass_Fraction
 
@@ -896,11 +892,8 @@ contains
     ! Ensure module is initialized.
     call Abundances_Initialize
 
-    select type (self)
-    type is (abundances)
     Abundances_Helium_Mass_Fraction=(self%metallicityValue/metallicitySolar)*(heliumByMassSolar-heliumByMassPrimordial)&
          &+heliumByMassPrimordial
-    end select
     return
   end function Abundances_Helium_Mass_Fraction
 
@@ -913,12 +906,9 @@ contains
     ! Ensure module is initialized.
     call Abundances_Initialize
 
-    select type (self)
-    type is (abundances)
-       numberHydrogen=Abundances_Hydrogen_Mass_Fraction(self)/atomicMassHydrogen
-       numberHelium  =Abundances_Helium_Mass_Fraction  (self)/atomicMassHelium
-       Abundances_Hydrogen_Number_Fraction=numberHydrogen/(numberHydrogen+numberHelium)
-    end select
+    numberHydrogen=Abundances_Hydrogen_Mass_Fraction(self)/atomicMassHydrogen
+    numberHelium  =Abundances_Helium_Mass_Fraction  (self)/atomicMassHelium
+    Abundances_Hydrogen_Number_Fraction=numberHydrogen/(numberHydrogen+numberHelium)
     return
   end function Abundances_Hydrogen_Number_Fraction
 
@@ -931,12 +921,9 @@ contains
     ! Ensure module is initialized.
     call Abundances_Initialize
 
-    select type (self)
-    type is (abundances)
-       numberHydrogen=Abundances_Hydrogen_Mass_Fraction(self)/atomicMassHydrogen
-       numberHelium  =Abundances_Helium_Mass_Fraction  (self)/atomicMassHelium
-       Abundances_Helium_Number_Fraction=numberHelium/(numberHydrogen+numberHelium)
-    end select
+    numberHydrogen=Abundances_Hydrogen_Mass_Fraction(self)/atomicMassHydrogen
+    numberHelium  =Abundances_Helium_Mass_Fraction  (self)/atomicMassHelium
+    Abundances_Helium_Number_Fraction=numberHelium/(numberHydrogen+numberHelium)
     return
   end function Abundances_Helium_Number_Fraction
 
@@ -950,7 +937,8 @@ contains
          &                                                             integerProperty
     integer         (kind=kind_int8), dimension(:,:), intent(inout) :: integerBuffer
     double precision                , dimension(:,:), intent(inout) :: doubleBuffer
-
+    !GCC$ attributes unused :: time, integerBufferCount, integerProperty, integerBuffer
+    
     doubleProperty=doubleProperty+1
     doubleBuffer(doubleBufferCount,doubleProperty)=self%metallicityValue
     if (elementsCount > 0) then
@@ -966,7 +954,8 @@ contains
     class           (abundances), intent(in   ) :: self
     integer                     , intent(inout) :: doublePropertyCount, integerPropertyCount
     double precision            , intent(in   ) :: time
-
+    !GCC$ attributes unused :: self, integerPropertyCount, time
+    
     doublePropertyCount=doublePropertyCount+propertyCount
     return
   end subroutine Abundances_Output_Count
@@ -984,7 +973,8 @@ contains
     character       (len=*            )              , intent(in   ) :: comment                , prefix
     double precision                                 , intent(in   ) :: unitsInSI
     integer                                                          :: iElement
-
+    !GCC$ attributes unused :: self, time, integerProperty, integerPropertyComments, integerPropertyNames, integerPropertyUnitsSI
+    
     doubleProperty=doubleProperty+1
     doublePropertyNames   (doubleProperty)=trim(prefix)//'Metals'
     doublePropertyComments(doubleProperty)=trim(comment)//' [Metals]'

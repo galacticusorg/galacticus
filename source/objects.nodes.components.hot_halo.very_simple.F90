@@ -110,7 +110,8 @@ contains
     !% Remove memory of stored computed values as we're about to begin computing derivatives anew.
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
-
+    !GCC$ attributes unused :: thisNode
+    
     gotCoolingRate=.false.
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Reset
@@ -149,7 +150,8 @@ contains
     double precision                      , intent(in   )                    :: rate
     logical                               , intent(inout), optional          :: interrupt
     procedure       (                    ), intent(inout), optional, pointer :: interruptProcedure
-
+    !GCC$ attributes unused :: interrupt
+    
     ! Funnel the outflow gas into the hot halo.
     call self%massRate(rate)
     return
@@ -241,9 +243,7 @@ contains
     use Accretion_Halos
     implicit none
     type            (treeNode            ), intent(inout), pointer :: thisNode
-    type            (treeNode            )               , pointer :: childNode
     class           (nodeComponentHotHalo)               , pointer :: currentHotHaloComponent, thisHotHaloComponent
-    class           (nodeComponentBasic  )               , pointer :: childBasicComponent    , currentBasicComponent
     class           (accretionHaloClass  )               , pointer :: accretionHalo_
     class           (nodeEvent           )               , pointer :: event
     double precision                                               :: hotHaloMass            , failedHotHaloMass
