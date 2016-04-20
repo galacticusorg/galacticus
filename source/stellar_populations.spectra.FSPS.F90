@@ -85,6 +85,7 @@ contains
     !% Destructor for the file stellar spectra class.
     implicit none
     type(stellarPopulationSpectraFSPS), intent(inout) :: self
+    !GCC$ attributes unused :: self
 
     ! Nothing to do.
     return
@@ -158,6 +159,7 @@ contains
     implicit none
     class(stellarPopulationSpectraFSPS), intent(inout) :: self
     type (inputParameters             ), intent(inout) :: descriptor
+    !GCC$ attributes unused :: self
     
     call descriptor%addParameter("stellarPopulationSpectraMethod","fsps")
     return

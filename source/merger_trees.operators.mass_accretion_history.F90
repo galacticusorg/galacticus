@@ -85,7 +85,8 @@ contains
     !% Destructor for the mass accretion history merger tree operator function class.
     implicit none
     type(mergerTreeOperatorMassAccretionHistory), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     ! Nothing to do.
     return
   end subroutine massAccretionHistoryDestructor

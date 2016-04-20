@@ -41,6 +41,7 @@ contains
     implicit none
     type(darkMatterHaloMassAccretionHistoryZhao2009), target :: zhao2009Constructor
     
+    zhao2009Constructor=darkMatterHaloMassAccretionHistoryZhao2009()
     return
   end function zhao2009Constructor
   

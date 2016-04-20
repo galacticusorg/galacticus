@@ -42,7 +42,8 @@ contains
     implicit none
     type(accretionDiskSpectraHopkins2007)                :: hopkins2007ConstructorParameters
     type(inputParameters                ), intent(inout) :: parameters
-
+    !GCC$ attributes unused :: parameters
+    
     hopkins2007ConstructorParameters=hopkins2007ConstructorInternal()
     return
   end function hopkins2007ConstructorParameters

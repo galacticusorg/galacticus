@@ -80,6 +80,7 @@ contains
     !% Return a linear barrier for excursion set calculations at the given {\normalfont \ttfamily variance}.
     implicit none
     double precision, intent(in   ) :: time, variance
+    !GCC$ attributes unused :: time
 
     Excursion_Sets_Barrier_Linear=excursionSetBarrierConstantCoefficient+excursionSetBarrierLinearCoefficient*variance
     return
@@ -89,7 +90,8 @@ contains
     !% Return the gradient of a linear barrier for excursion set calculations at the given {\normalfont \ttfamily variance}.
     implicit none
     double precision, intent(in   ) :: time, variance
-
+    !GCC$ attributes unused :: variance, time
+    
     Excursion_Sets_Barrier_Gradient_Linear=excursionSetBarrierLinearCoefficient
     return
   end function Excursion_Sets_Barrier_Gradient_Linear

@@ -36,7 +36,8 @@ contains
     implicit none
     integer           , intent(in   ) :: stateFile
     type   (fgsl_file), intent(in   ) :: fgslStateFile
-
+    !GCC$ attributes unused :: fgslStateFile
+    
     write (stateFile) mergerTreeQueuePosition
     return
   end subroutine Merger_Tree_Read_State_Store
@@ -50,6 +51,7 @@ contains
     implicit none
     integer           , intent(in   ) :: stateFile
     type   (fgsl_file), intent(in   ) :: fgslStateFile
+    !GCC$ attributes unused :: fgslStateFile
 
     read (stateFile) mergerTreeQueuePosition
     return

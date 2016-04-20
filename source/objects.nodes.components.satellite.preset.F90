@@ -99,9 +99,7 @@ contains
     !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, we simply copy any preset satellite orbit
     !% from the parent.
     implicit none
-    type (treeNode              ), intent(inout), pointer :: thisNode
-    type (treeNode              )               , pointer :: parentNode
-    class(nodeComponentSatellite)               , pointer :: parentSatelliteComponent, thisSatelliteComponent
+    type (treeNode), intent(inout), pointer :: thisNode
 
     ! Return immediately if the preset satellite implementation is not active.
     if (.not.defaultSatelliteComponent%presetIsActive()) return

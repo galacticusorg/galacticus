@@ -47,7 +47,8 @@ contains
     use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
-
+    !GCC$ attributes unused :: thisNode
+    
     Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Null=0.0d0
     return
   end function Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Null

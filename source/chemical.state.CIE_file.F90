@@ -335,7 +335,7 @@ contains
     integer         (c_size_t            )                :: iMetallicity         , iTemperature
     double precision                                      :: hMetallicity         , hTemperature  , &
          &                                                   metallicityUse       , temperatureUse
-    !GCC$ attributes unused :: radiation
+    !GCC$ attributes unused :: radiation, numberDensityHydrogen
 
     ! Handle out of range temperatures.
     temperatureUse=temperature

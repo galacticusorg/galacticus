@@ -96,13 +96,11 @@ contains
     class           (stellarPopulationSpectraClass), pointer                                                      :: stellarPopulationSpectra_
     integer         (c_size_t                     )                                                               :: iAge                                        , iLuminosity                , &
          &                                                                                                           iMetallicity                                , jLuminosity
-    integer                                                                                                       :: loopCountMaximum                            , jAge                       , &
-         &                                                                                                           jMetallicity                                , loopCount                  , &
+    integer                                                                                                       :: loopCountMaximum                            , loopCount                  , &
          &                                                                                                           errorStatus                                 , luminosityIndexMaximum
     logical                                                                                                       :: computeTable                                , calculateLuminosity        , &
          &                                                                                                           stellarLuminositiesUniqueLabelConstructed
-    double precision                                                                                              :: ageLast                                     , metallicity                , &
-         &                                                                                                           normalization                               , toleranceRelative
+    double precision                                                                                              :: toleranceRelative                           , normalization
     type            (c_ptr                        )                                                               :: parameterPointer
     type            (fgsl_function                )                                                               :: integrandFunction
     type            (fgsl_integration_workspace   )                                                               :: integrationWorkspace
@@ -544,17 +542,16 @@ contains
     use Memory_Management
     use Numerical_Interpolation
     implicit none
-    integer                                                                                        , intent(in   ) :: filterIndex                  (:), imfIndex                   , &
-         &                                                                                                            luminosityIndex              (:), postprocessingChainIndex(:)
-    double precision                                                                               , intent(in   ) :: redshift                     (:)
-    type            (abundances                )                                                   , intent(in   ) :: abundancesStellar
-    double precision                            , allocatable, dimension(:                        ), intent(  out) :: ages
-    double precision                            , allocatable, dimension(:  ,:                    ), intent(  out) :: luminosities
-    double precision                                         , dimension(    size(luminosityIndex))                :: Stellar_Population_Luminosity
-    double precision                                         , dimension(0:1                      )                :: hMetallicity
-    integer         (c_size_t                  )                                                                   :: iLuminosity                     , iMetallicity               , &
-         &                                                                                                            jMetallicity
-    double precision                                                                                               :: metallicity
+    integer                                                                    , intent(in   ) :: filterIndex      (:), imfIndex                   , &
+         &                                                                                        luminosityIndex  (:), postprocessingChainIndex(:)
+    double precision                                                           , intent(in   ) :: redshift         (:)
+    type            (abundances                )                               , intent(in   ) :: abundancesStellar
+    double precision                            , allocatable, dimension(:    ), intent(  out) :: ages
+    double precision                            , allocatable, dimension(:  ,:), intent(  out) :: luminosities
+    double precision                                         , dimension(0:1  )                :: hMetallicity
+    integer         (c_size_t                  )                                               :: iLuminosity         , iMetallicity               , &
+         &                                                                                        jMetallicity
+    double precision                                                                           :: metallicity
 
     ! Tabulate the luminosities.
     call Stellar_Population_Luminosity_Tabulate(luminosityIndex,filterIndex,postprocessingChainIndex,imfIndex,redshift)

@@ -379,8 +379,7 @@ contains
     integer                                         , intent(  out), optional :: status
     class           (nodeComponentDarkMatterProfile)               , pointer  :: thisDarkMatterProfileComponent
     double precision                                , parameter               :: radiusSmall                   =1.0d-10
-    double precision                                                          :: radiusOverScaleRadius                 , radiusTerm, &
-         &                                                                       virialRadiusOverScaleRadius
+    double precision                                                          :: radiusOverScaleRadius                 , virialRadiusOverScaleRadius
 
     if (present(status)) status=structureErrorCodeSuccess
     thisDarkMatterProfileComponent   => node%darkMatterProfile(autoCreate=.true.)

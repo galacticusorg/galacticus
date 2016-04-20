@@ -1165,13 +1165,13 @@ contains
     implicit none
     class           (integratorVectorizedCompositeTrapezoidal1D), intent(inout)                        :: self
     double precision                                            , intent(in   )                        :: a,b
-    integer         (c_int                                     )                                       :: s
     integer                                                                                            :: iteration        , n
     logical                                                                                            :: converged
     double precision                                                                                   :: cumulant         , integrand, &
-         &                                                                                                integrandPrevious, step     , &
-         &                                                                                                summand
+         &                                                                                                integrandPrevious, step
 #ifdef YEPPP
+    integer         (c_int                                     )                                       :: s
+    double precision                                                                                   :: summand
     double precision                                            , dimension(2**self%iterationsMaximum) :: functionValues
 #endif
 

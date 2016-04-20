@@ -78,7 +78,8 @@ contains
     character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames    , &
          &                                                              integerPropertyComments, integerPropertyNames
     double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-
+    !GCC$ attributes unused :: doubleProperty, doublePropertyNames, doublePropertyComments, doublePropertyUnitsSI, thisNode, time
+    
     ! Ensure the module is initialized.
     call Galacticus_Output_Most_Massive_Progenitor_Initialize()
 
@@ -110,7 +111,8 @@ contains
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: time
     integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
-
+    !GCC$ attributes unused :: thisNode, time, doublePropertyCount
+    
     ! Ensure the module is initialized.
     call Galacticus_Output_Most_Massive_Progenitor_Initialize()
 
@@ -140,7 +142,8 @@ contains
     type            (treeNode          )                     , pointer :: currentNode
     class           (nodeComponentBasic)                     , pointer :: currentBasicComponent
     double precision                                                   :: mostMassiveProgenitorMass
-
+    !GCC$ attributes unused :: doubleBufferCount, doubleProperty, doubleBuffer
+    
     ! Ensure the module is initialized.
     call Galacticus_Output_Most_Massive_Progenitor_Initialize()
 

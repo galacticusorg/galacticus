@@ -86,7 +86,8 @@ contains
     !% Destructor for the ``summation'' cooling function class.
     implicit none
     type(coolingFunctionSummation), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     ! Nothing to do.
     return
   end subroutine summationDestructor
@@ -173,7 +174,6 @@ contains
   double precision function summationCoolingFunctionTemperatureLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the logarithmic gradient with respect to temperature of the cooling function due to Compton scattering off of
     !% \gls{cmb} photons.
-    use Chemical_States
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Radiation_Structure
@@ -183,7 +183,6 @@ contains
     type            (abundances              ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances      ), intent(in   ) :: chemicalDensities
     type            (radiationStructure      ), intent(in   ) :: radiation
-    class           (chemicalStateClass      ), pointer       :: chemicalState_
     type            (coolantList             ), pointer       :: coolant
     double precision                                          :: coolingFunction        , coolingFunctionCumulative, &
          &                                                       coolingFunctionGradient

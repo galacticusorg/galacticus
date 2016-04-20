@@ -86,7 +86,8 @@ contains
     double precision            , intent(in   ) :: starFormationRate
     type            (abundances), intent(in   ) :: fuelAbundances
     integer                     , intent(in   ) :: component
-
+    !GCC$ attributes unused :: starFormationRate, fuelAbundances
+    
     ! Select between disk and spheroid IMFs.
     select case (component)
     case (componentTypeDisk)

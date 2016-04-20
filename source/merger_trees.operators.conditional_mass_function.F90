@@ -506,7 +506,8 @@ contains
     !% Destructor for the merger tree operator function class.
     implicit none
     type(mergerTreeOperatorConditionalMF), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     ! Nothing to do.
     return
   end subroutine conditionalMFDestructor
@@ -886,7 +887,7 @@ contains
     use Memory_Management
     implicit none
     class           (mergerTreeOperatorConditionalMF), intent(inout)                     :: self
-    type            (hdf5Object                     )                                    :: conditionalMassFunctionGroup , massDataset, dataset
+    type            (hdf5Object                     )                                    :: conditionalMassFunctionGroup , massDataset
     double precision                                 , allocatable  , dimension(:,:,:  ) :: conditionalMassFunction      , conditionalMassFunctionError
     double precision                                 , allocatable  , dimension(:,:,:  ) :: subhaloMassFunction          , subhaloMassFunctionError
     double precision                                 , allocatable  , dimension(:,:,:,:) :: primaryProgenitorMassFunction, primaryProgenitorMassFunctionError

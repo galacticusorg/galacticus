@@ -333,11 +333,10 @@ contains
     type            (fgsl_function                    )                              :: integrandFunction
     type            (fgsl_integration_workspace       )                              :: integrationWorkspace
     type            (c_ptr                            )                              :: parameterPointer
-    double precision                                                                 :: distanceComovingSource                    , timeLens             , &
-         &                                                                              convergencePdfMoment0                     , convergencePdfMoment1, &
-         &                                                                              convergencePdfMoment2                     , convergenceMinimum   , &
-         &                                                                              convergenceMaximum                        , convergence          , &
-         &                                                                              magnificationPdfMoment0
+    double precision                                                                 :: distanceComovingSource                    , timeLens               , &
+         &                                                                              convergencePdfMoment0                     , convergencePdfMoment1  , &
+         &                                                                              convergencePdfMoment2                     , convergenceMinimum     , &
+         &                                                                              convergenceMaximum                        , magnificationPdfMoment0
     type            (hdf5Object                       )                              :: parametersFile
 
     ! Construct tabulation of convergence distribution function parameters if necessary.
@@ -596,7 +595,7 @@ contains
       real            (c_double)        :: emptyBeamConvergenceIntegrand
       real            (c_double), value :: redshiftLens
       type            (c_ptr   ), value :: parameterPointer
-      double precision                  :: time                         , distanceComovingLens
+      double precision                  :: distanceComovingLens
 
       ! Find cosmic time at this redshift.
       timeLens            =cosmologyFunctions_ %cosmicTime                 (              &

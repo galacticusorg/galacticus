@@ -43,7 +43,9 @@ contains
     implicit none
     type(mergerTreeOperatorNull)                :: nullConstructorParameters
     type(inputParameters       ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
     
+    nullConstructorParameters=mergerTreeOperatorNull()
     return
   end function nullConstructorParameters
 
@@ -52,6 +54,7 @@ contains
     implicit none
     type(mergerTreeOperatorNull) :: nullConstructorInternal
 
+    nullConstructorInternal=mergerTreeOperatorNull()
     return
   end function nullConstructorInternal
 
@@ -59,7 +62,8 @@ contains
     !% Destructor for the merger tree operator function class.
     implicit none
     type(mergerTreeOperatorNull), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     ! Nothing to do.
     return
   end subroutine nullDestructor
@@ -69,6 +73,7 @@ contains
     implicit none
     class(mergerTreeOperatorNull), intent(inout)         :: self
     type (mergerTree            ), intent(inout), target :: tree
+    !GCC$ attributes unused :: self, tree
 
     ! Nothing to do.
     return

@@ -77,13 +77,11 @@ subroutine simulatorParticleSwarmSimulate(self)
        &                                                                                   stateBestGlobal                , stateVectorInteractive
   double precision                        , dimension(:,:)                , allocatable :: stateVectors
   double precision                        , dimension(:  )                , allocatable :: logPosteriorsAll               , logLikelihoodVariancesAll 
-  double precision                        , dimension(1,1)                              :: pseudoScalar
   real                                                                                  :: timePreEvaluate                , timePostEvaluate                 , &
        &                                                                                   timeEvaluate                   , timeEvaluatePrevious
   double precision                                                                      :: timeEvaluateInitial            , logPosterior                     , &
        &                                                                                   logPosteriorBestPersonal       , logPosteriorBestGlobal           , &
        &                                                                                   logLikelihoodVariance          , logLikelihoodVarianceBestPersonal, &
-       &                                                                                   combinedVariance               , probabilityNewBest               , &
        &                                                                                   logLikelihoodVarianceBestGlobal, logLikelihood
   type            (pseudoRandom          )                                              :: randomNumberGenerator
   type            (varying_string        )                                              :: logFileName                    , message                     , &

@@ -47,7 +47,6 @@ contains
     double precision                           , intent(in   )                    :: position                       (3)
     procedure       (Component_Surface_Density)                         , pointer :: componentSurfaceDensityFunction
     integer                                                                       :: coordinateSystemActual
-    double precision                                                              :: componentDensity
 
     ! Determine position in cylindrical coordinate system to use.
     if (present(coordinateSystem)) then

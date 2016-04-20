@@ -130,7 +130,8 @@ contains
     !% distribution class.
     implicit none
     type(haloSpinDistributionBett2007), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     ! Nothing to do.
     return
   end subroutine bett2007Destructor

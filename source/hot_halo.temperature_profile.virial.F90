@@ -52,7 +52,6 @@ contains
     type            (treeNode                       ), intent(inout), pointer :: node
     double precision                                 , intent(in   )          :: radius
     class           (darkMatterHaloScaleClass       )               , pointer :: darkMatterHaloScale_ 
-    double precision                                                          :: temperature
     
     darkMatterHaloScale_ => darkMatterHaloScale                   (    )
     virialTemperature    =  darkMatterHaloScale_%virialTemperature(node)
@@ -66,7 +65,7 @@ contains
     class           (hotHaloTemperatureProfileVirial), intent(inout)          :: self
     type            (treeNode                       ), intent(inout), pointer :: node
     double precision                                 , intent(in   )          :: radius
-    
+
     virialTemperatureLogSlope=0.0d0
     return
   end function virialTemperatureLogSlope

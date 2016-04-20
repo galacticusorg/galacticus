@@ -34,7 +34,6 @@ function likelihoodSEDFitConstructor(definition)
   type     (nodeList               ), pointer                :: photometry
   character(len=128                )                         :: filterName                 , systemName
   integer                                                    :: i
-  double precision                                           :: redshift
 
   ! Find the photometry for the galaxy to fit.
   photometry => getElementsByTagName(definition,"photometry")
@@ -143,18 +142,18 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
   class           (cosmologyFunctionsClass           ), pointer                       :: cosmologyFunctions_
   class           (stellarSpectraDustAttenuationClass), allocatable                   :: dust
   integer         (c_size_t                          )                                :: i
-  integer                                                                             :: iMagnitude                          , imfIndex               , &
+  integer                                                                             :: iMagnitude                          , imfIndex                     , &
        &                                                                                 burstIndexOffset
-  double precision                                                                    :: mass                                , timeScale              , &
-       &                                                                                 starFormationRateNormalization      , magnitude              , &
-       &                                                                                 luminosity                          , metallicity            , &
-       &                                                                                 redshift                            , timeObserved           , &
-       &                                                                                 vBandAttenuation                    , opticalDepthBirthClouds, &
-       &                                                                                 timeStart                           , Rv                     , &
-       &                                                                                 toleranceRelative                   , termLinear             , &
-       &                                                                                 termConstant                        , newLuminosity          , &
-       &                                                                                 agePrevious                         , ageNow                 , &
-       &                                                                                 ageNext                             , recycledFractionInstantaneous  
+  double precision                                                                    :: mass                                , timeScale                    , &
+       &                                                                                 starFormationRateNormalization      , magnitude                    , &
+       &                                                                                 luminosity                          , metallicity                  , &
+       &                                                                                 redshift                            , timeObserved                 , &
+       &                                                                                 vBandAttenuation                    , opticalDepthBirthClouds      , &
+       &                                                                                 timeStart                           , Rv                           , &
+       &                                                                                 toleranceRelative                   , termLinear                   , &
+       &                                                                                 termConstant                        , recycledFractionInstantaneous, &
+       &                                                                                 agePrevious                         , ageNow                       , &
+       &                                                                                 ageNext
   type            (abundances                )                                        :: abundancesStars
   type            (fgsl_function             )                                        :: integrandFunction
   type            (fgsl_integration_workspace)                                        :: integrationWorkspace

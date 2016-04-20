@@ -47,6 +47,7 @@ contains
     type(inputParameters         ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
     
+    identityConstructorParameters=transferFunctionIdentity()
     return
   end function identityConstructorParameters
 
@@ -55,6 +56,7 @@ contains
     implicit none
     type(transferFunctionIdentity) :: identityConstructorInternal
 
+    identityConstructorInternal=transferFunctionIdentity()
     return
   end function identityConstructorInternal
 
@@ -98,6 +100,7 @@ contains
     class(transferFunctionIdentity), intent(inout) :: self
     !GCC$ attributes unused :: self
 
+    identityHalfModeMass=0.0d0
     call Galacticus_Error_Report('identityHalfModeMass','not supported by this implementation')
     return
   end function identityHalfModeMass

@@ -40,7 +40,6 @@ function simulatorStochasticDifferentialEvolutionConstructor(parameterPriors,ran
   double precision                                          , intent(in   )                       :: temperatureScale
   character       (len=*                                   ), intent(in   )                       :: logFileRoot                    , interactionRoot
   logical                                                   , intent(in   )                       :: sampleOutliers
-  integer                                                                                         :: i
 
   simulatorStochasticDifferentialEvolutionConstructor%parameterCount              =  size(parameterPriors)
   simulatorStochasticDifferentialEvolutionConstructor%parameterPriors             => parameterPriors

@@ -237,8 +237,9 @@ contains
     else
        timeNow       =timeBegin
     end if
-    timeCount       =0
-    gotFirstTimeStep=.false.
+    timeCount       =  0
+    gotFirstTimeStep= .false.
+    thisTimeStep    => null()
     do while (timeNow < timeEnd)
        ! Get the time of the next output
        timeNext=Galacticus_Next_Output_Time(timeNow)
@@ -483,7 +484,8 @@ contains
     double precision            , parameter                   :: stellarMassMinimum=1.0d0
     double precision            , allocatable  , dimension(:) :: timeSteps
     integer                                                   :: iMetallicity
-
+    !GCC$ attributes unused :: stellarAbundances
+    
     ! Return immediately if the history does not exist.
     if (.not.thisHistory%exists()) return
 

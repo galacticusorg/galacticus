@@ -85,7 +85,8 @@ contains
     !% Destructor for the merger tree operator function class.
     implicit none
     type(mergerTreeOperatorPruneByMass), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     ! Nothing to do.
     return
   end subroutine pruneByMassDestructor
@@ -97,10 +98,8 @@ contains
     class  (mergerTreeOperatorPruneByMass), intent(inout)         :: self
     type   (mergerTree                   ), intent(inout), target :: tree
     type   (treeNode                     ), pointer               :: nodeNext     , nodePrevious, &
-         &                                                           node         , nodeNew     , &
-         &                                                           nodeWork
-    class  (nodeComponentBasic           ), pointer               :: basic        , basicNew    , &
-         &                                                           basicPrevious
+         &                                                           node         , nodeWork
+    class  (nodeComponentBasic           ), pointer               :: basic        , basicPrevious
     type   (mergerTree                   ), pointer               :: currentTree
     logical                                                       :: didPruning
 

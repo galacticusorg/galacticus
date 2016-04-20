@@ -106,9 +106,9 @@ contains
     class           (nodeComponentBasic            )               , pointer        :: thisBasic
     class           (nodeComponentMergingStatistics)               , pointer        :: mergingStatistics
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctions_
-    integer                                                                         :: currentAnalysis,activeAnalysisCount,haloMassBin,massBin,iError,i,k
-    double precision                                                                :: mass,massLogarithmic,redshift
-    type            (varying_string                )                                :: analysisHaloMassFunctionCovarianceModelText,message
+    integer                                                                         :: currentAnalysis,activeAnalysisCount,haloMassBin,massBin,i,k
+    double precision                                                                :: massLogarithmic,redshift
+    type            (varying_string                )                                :: analysisHaloMassFunctionCovarianceModelText
     character       (len=32                        )                                :: redshiftLabel
     
     ! Initialize the module if necessary.

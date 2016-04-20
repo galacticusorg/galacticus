@@ -1535,6 +1535,7 @@ contains
     use String_Handling
     use Memory_Management
     use File_Utilities
+    use Galacticus_Error
     implicit none
     integer  (kind=size_t  )                            , intent(in   ) :: hdfChunkSize
     integer                                             , intent(in   ) :: hdfCompressionLevel
@@ -1756,6 +1757,9 @@ contains
              attributeGroup => treeBuilderGroup
           case (metaDataTypeProvenance )
              attributeGroup => provenanceGroup
+          case default
+             attributeGroup => null()
+             call Galacticus_Error_Report('Merger_Tree_Data_Structure_Export_Galacticus','unknown meta-data group')
           end select
 
           ! Determine what data type to write.

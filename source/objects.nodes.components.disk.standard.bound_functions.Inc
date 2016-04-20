@@ -42,7 +42,7 @@ double precision function Node_Component_Disk_Standard_Half_Mass_Radius(self)
   use Node_Component_Disk_Standard_Data
   implicit none
   class(nodeComponentDiskStandard), intent(inout) :: self
-double precision::a,b
+
   ! Check that the mass distribution is cylindrical.
   select type (diskMassDistribution)
   class is (massDistributionCylindrical)

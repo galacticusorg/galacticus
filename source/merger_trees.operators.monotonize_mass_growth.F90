@@ -47,7 +47,9 @@ contains
     implicit none
     type(mergerTreeOperatorMonotonizeMassGrowth)                :: monotonizeMassGrowthConstructorParameters
     type(inputParameters                       ), intent(inout) :: parameters
-        
+    !GCC$ attributes unused :: parameters
+
+    monotonizeMassGrowthConstructorParameters=mergerTreeOperatorMonotonizeMassGrowth()
     return
   end function monotonizeMassGrowthConstructorParameters
 
@@ -56,6 +58,7 @@ contains
     implicit none
     type(mergerTreeOperatorMonotonizeMassGrowth) :: monotonizeMassGrowthConstructorInternal
 
+    monotonizeMassGrowthConstructorInternal=mergerTreeOperatorMonotonizeMassGrowth()
     return
   end function monotonizeMassGrowthConstructorInternal
 
@@ -63,7 +66,8 @@ contains
     !% Destructor for the mass growth monotonizing merger tree operator function class.
     implicit none
     type(mergerTreeOperatorMonotonizeMassGrowth), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     ! Nothing to do.
     return
   end subroutine monotonizeMassGrowthDestructor
@@ -78,6 +82,7 @@ contains
     type            (mergerTree                            ), pointer               :: treeCurrent
     logical                                                                         :: didModifyTree
     double precision                                                                :: massProgenitor
+    !GCC$ attributes unused :: self
 
     ! Iterate over trees.
     treeCurrent => tree

@@ -71,6 +71,7 @@ contains
     double precision            , intent(in   ) :: starFormationRate
     type            (abundances), intent(in   ) :: fuelAbundances
     integer                     , intent(in   ) :: component
+    !GCC$ attributes unused :: component, starFormationRate, fuelAbundances
 
     IMF_Select_Fixed=imfSelectedIndex
     return

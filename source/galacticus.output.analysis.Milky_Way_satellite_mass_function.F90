@@ -108,7 +108,7 @@ contains
     double precision                          , parameter                     :: massMaximum              =1.0d15
     integer                                   , parameter                     :: massFunctionBinsPerDecade=10
     double precision                                                          :: mass                            , timeNow     , &
-         &                                                                       massEnclosed                    , radiusVirial
+         &                                                                       radiusVirial
     integer         (c_size_t                )                                :: k
     integer                                                                   :: j                               , i
     character       (len=64                  )                                :: parameterName
@@ -304,11 +304,6 @@ contains
        ! Skip non-active analyses.
        if (analysisActive(i)) then
           ! Check if host halo mass agrees with Milky Way halo mass.
-
-
-write (0,*) hostBasic%mass(),analysisLGSatelliteHaloMass(i)
-
-
           if (Values_Differ(hostBasic%mass(),analysisLGSatelliteHaloMass(i),relTol=1.0d-3)) cycle
           ! Proceed for satellite galaxies.
           if (.not.treeActive(i)) then

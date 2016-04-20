@@ -43,7 +43,9 @@ contains
     implicit none
     type(mergerTreeOperatorDeforest)                :: deforestConstructorParameters
     type(inputParameters           ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
     
+    deforestConstructorParameters=mergerTreeOperatorDeforest()
     return
   end function deforestConstructorParameters
 
@@ -51,7 +53,8 @@ contains
     !% Internal constructor for the deforestation merger tree operator class.
     implicit none
     type(mergerTreeOperatorDeforest) :: deforestConstructorInternal
-    
+
+    deforestConstructorInternal=mergerTreeOperatorDeforest()
     return
   end function deforestConstructorInternal
 
@@ -59,7 +62,8 @@ contains
     !% Destructor for the deforestation merger tree operator function class.
     implicit none
     type(mergerTreeOperatorDeforest), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     ! Nothing to do.
     return
   end subroutine deforestDestructor
@@ -74,6 +78,7 @@ contains
     class           (nodeComponentBasic        ), pointer               :: basic
     double precision                                                    :: massRootMaximum
     integer                                                             :: treeIndex      , massRootMaximumIndex
+    !GCC$ attributes unused :: self
 
     ! Iterate over trees to find the most massive.
     currentTree     => tree

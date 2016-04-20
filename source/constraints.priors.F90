@@ -155,6 +155,7 @@ contains
     !% Return the logarithm of the density of the prior at the given {\normalfont \ttfamily simulationState}.
     use Constraints_Constants
     use Constraints_State
+    use Galacticus_Error
     implicit none
     class           (prior), intent(in   )             :: self
     class           (state), intent(in   )             :: simulationState
@@ -171,30 +172,41 @@ contains
        else
           priorLogDensity=log(density)
        end  if
+    class default
+       priorLogDensity=0.0d0
+       call Galacticus_Error_Report('priorInvert','no known log-density for this prior')
     end select
     return
   end function priorLogDensity
 
   double precision function priorMinimum(self)
     !% Return the minimum possible value of the prior.
+    use Galacticus_Error
     implicit none
-    class           (prior), intent(in   )             :: self
+    class(prior), intent(in   ) :: self
 
     select type (priorDistribution => self%priorDistribution)
     class is (distribution1D)
        priorMinimum=priorDistribution%minimum()
+    class default
+       priorMinimum=0.0d0
+       call Galacticus_Error_Report('priorMinimum','no known minimum for this prior')
     end select
     return
   end function priorMinimum
 
   double precision function priorMaximum(self)
     !% Return the maximum possible value of the prior.
+    use Galacticus_Error
     implicit none
-    class           (prior), intent(in   )             :: self
-
+    class(prior), intent(in   ) :: self
+    
     select type (priorDistribution => self%priorDistribution)
     class is (distribution1D)
        priorMaximum=priorDistribution%maximum()
+    class default
+       priorMaximum=0.0d0
+       call Galacticus_Error_Report('priorMaximum','no known maximum for this prior')
     end select
     return
   end function priorMaximum
@@ -232,6 +244,7 @@ contains
     class is (distribution1D)
        priorInvert=priorDistribution%inverse(p)
     class default
+       priorInvert=0.0d0
        call Galacticus_Error_Report('priorInvert','unable to invert prior')
     end select
     return

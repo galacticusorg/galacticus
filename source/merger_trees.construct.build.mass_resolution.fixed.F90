@@ -74,7 +74,8 @@ contains
     implicit none
     class(mergerTreeMassResolutionFixed), intent(inout) :: self
     type (mergerTree                   ), intent(in   ) :: tree
-
+    !GCC$ attributes unused :: tree
+    
     fixedResolution=self%massResolution
     return
   end function fixedResolution

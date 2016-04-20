@@ -38,13 +38,13 @@ program Test_DiemerKravtsov2014_Concentration
   class           (cosmologyFunctionsClass                         ), pointer :: cosmologyFunctions_
   class           (cosmologyParametersClass                        ), pointer :: cosmologyParameters_
   type            (darkMatterProfileConcentrationDiemerKravtsov2014)          :: darkMatterProfileConcentration_
-  type            (varying_string                                  )          :: message                        , parameterFile
+  type            (varying_string                                  )          :: parameterFile
   double precision                                                            :: ourConcentration               , differenceFractional, &
        &                                                                         concentration                  , mass                , &
        &                                                                         redshift                       , nu                  , &
        &                                                                         differenceFractionalMaximum
-  integer                                                                     :: iMass                          , ioStatus            , &
-       &                                                                         referenceUnit
+  integer                                                                     :: referenceUnit                  , ioStatus
+       &                                                                         
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.DiemerKravtsov2014_concentration.size')

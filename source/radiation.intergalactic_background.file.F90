@@ -111,6 +111,9 @@ contains
        spectraTimesCount=getLength(spectraList)
        call Alloc_Array(spectra     ,[spectraWavelengthsCount,spectraTimesCount])
        call Alloc_Array(spectraTimes,[                        spectraTimesCount])
+       ! Check if the times are monotonically ordered.
+       if (.not.Array_Is_Monotonic(spectraTimes)) call Galacticus_Error_Report('Radiation_Initialize_File','spectra must be monotonically ordered in time')
+       timesIncreasing=Array_Is_Monotonic(spectraTimes,direction=directionIncreasing)
        ! Read spectra into arrays.
        do iSpectrum=1,spectraTimesCount
           ! Determine where to store this spectrum, depending on whether the times were stored in increasing or decreasing order.
@@ -130,9 +133,6 @@ contains
           ! Convert redshift to a time.
           spectraTimes(iSpectrum)=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(spectraTimes(iSpectrum)))
        end do     
-       ! Check if the times are monotonically ordered.
-       if (.not.Array_Is_Monotonic(spectraTimes)) call Galacticus_Error_Report('Radiation_Initialize_File','spectra must be monotonically ordered in time')
-       timesIncreasing=Array_Is_Monotonic(spectraTimes,direction=directionIncreasing)
        ! Reverse times if necessary.
        if (.not.timesIncreasing) spectraTimes=Array_Reverse(spectraTimes)
        ! Destroy the document.

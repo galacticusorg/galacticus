@@ -41,8 +41,7 @@ function likelihoodPosteriorPriorConstructor(wrappedLikelihoodDefinition,chainBa
   type            (varying_string          )                                        :: chainFileName
   character       (len=4                   )                                        :: label
   logical                                                                           :: converged
-  double precision                                                                  :: time                      , likelihood           , &
-       &                                                                               logPriorNormalization
+  double precision                                                                  :: time                      , likelihood
 
   ! Store wrapped likelihood, neighbor count, tolerance, and allocate workspace.
   likelihoodPosteriorPriorConstructor%wrappedLikelihoodFunction => likelihoodNew(wrappedLikelihoodDefinition,configFileName)

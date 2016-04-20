@@ -199,6 +199,7 @@ contains
     ! Initialize the IMF subsystem.
     call Star_Formation_IMF_Initialize()
     ! Search for the name.
+    IMF_Index=-1
     do i=1,imfAvailableCount
        if (imfName == imfNames(i)) then
           IMF_Index=i

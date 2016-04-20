@@ -218,7 +218,7 @@ contains
     class  (hotHaloMassDistributionCoreRadiusGrowing), intent(inout) :: self
     integer                                          , intent(in   ) :: stateFile
     type   (fgsl_file                               ), intent(in   ) :: fgslStateFile
-
+    
     write (stateFile) self%coreRadiusMinimum,self%coreRadiusMaximum
     return
   end subroutine growingStateStore

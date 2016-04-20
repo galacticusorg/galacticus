@@ -435,7 +435,9 @@ contains
     use Galacticus_Error
     implicit none
     class(transferFunctionEisensteinHu1999), intent(inout) :: self
+    !GCC$ attributes unused :: self
 
+    eisensteinHu1999HalfModeMass=0.0d0
     call Galacticus_Error_Report('eisensteinHu1999HalfModeMass','not supported by this implementation')
     return
   end function eisensteinHu1999HalfModeMass
