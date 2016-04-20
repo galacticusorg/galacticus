@@ -50,6 +50,7 @@ close($file);
 
 # Do the remapping.
 my $buffer;
+my $status = 0;
 while ( my $line = <STDIN> ) {
     if ( $line =~ m/^([a-zA-Z0-9_\.\/]+\.p\.F90):(\d+):(\d+):\s*$/ ) {
 	my $fileName     = $1;
@@ -79,7 +80,9 @@ while ( my $line = <STDIN> ) {
     my $printBuffer = 0;
     $printBuffer = 1
 	if ( $line =~ m/^(Error|Warning):/ );
-   if ( $haveColor ) {
+    $status = 1
+	if ( $line =~ m/^Error:/ );
+    if ( $haveColor ) {
     	if ( $line =~ m/^Warning:\s/ ) {
     	    my $warning = colored(['bright_magenta bold'],"Warning: ");
     	    $line =~ s/^Warning:\s/$warning/;
@@ -107,4 +110,4 @@ while ( my $line = <STDIN> ) {
 print $buffer
     if ( $buffer );
 
-exit;
+exit $status;
