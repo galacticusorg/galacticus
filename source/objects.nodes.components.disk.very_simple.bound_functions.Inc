@@ -25,9 +25,17 @@ subroutine Node_Component_Disk_Very_Simple_Attach_Pipe(self)
   class(nodeComponentDiskVerySimple), intent(in   ) :: self
   type (nodeComponentHotHalo       )                :: hotHalo
 
-  if (hotHalo%hotHaloCoolingMassRateIsAttached           ()) &
-       call Galacticus_Error_Report('Node_Component_Disk_Very_Simple_Attach_Pipes','expected to find unclaimed hot halo mass cooling pipe'            )
-  call hotHalo%hotHaloCoolingMassRateFunction(DiskVerySimpleMassGasRateGeneric)
+  if     (                                                                                                &
+       &   hotHalo%      hotHaloCoolingMassRateIsAttached()                                               &
+       &  .or.                                                                                            &
+       &   hotHalo%hotHaloCoolingAbundancesRateIsAttached()                                               &
+       & )                                                                                                &
+       & call Galacticus_Error_Report(                                                                    &
+       &                              'Node_Component_Disk_Very_Simple_Attach_Pipes'                    , &
+       &                              'expected to find unclaimed hot halo mass/abundances cooling pipe'  &
+       &                             )
+  call hotHalo%      hotHaloCoolingMassRateFunction(      DiskVerySimpleMassGasRateGeneric)
+  call hotHalo%hotHaloCoolingAbundancesRateFunction(DiskVerySimpleAbundancesGasRateGeneric)
   return
 end subroutine Node_Component_Disk_Very_Simple_Attach_Pipe
 
