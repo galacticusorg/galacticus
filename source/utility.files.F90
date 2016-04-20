@@ -145,7 +145,7 @@ contains
     character(len=*         ), intent(in   )           :: fileName
     type     (lockDescriptor), intent(  out)           :: lock
     logical                  , intent(in   ), optional :: lockIsShared
-    integer  (c_int)                                   :: lockIsShared_
+    integer  (c_int         )                          :: lockIsShared_
 
     lockIsShared_=0
     if (present(lockIsShared).and.lockIsShared) lockIsShared_=1
@@ -159,12 +159,14 @@ contains
     use Galacticus_Error
     implicit none
     type   (lockDescriptor), intent(inout) :: lock
-    integer                                :: fileUnit
+    integer                                :: fileUnit, errorStatus
 
     call funlock_C(lock%lockDescriptorC)
-    open(newUnit=fileUnit,file=char(lock%fileName),status='unknown')
-    if (fsync(fnum(fileUnit)) /= 0) call Galacticus_Error_Report('File_Unlock','error syncing file at unlock')
-    close(fileUnit)
+    open(newUnit=fileUnit,file=char(lock%fileName),status='unknown',iostat=errorStatus)
+    if (errorStatus == 0) then
+       if (fsync(fnum(fileUnit)) /= 0) call Galacticus_Error_Report('File_Unlock','error syncing file at unlock')
+       close(fileUnit)
+    end if
     return
   end subroutine File_Unlock
 
