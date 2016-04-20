@@ -32,7 +32,6 @@
   interface mergerTreeOperatorAssignOrbits
      !% Constructors for the orbit assigning merger tree operator class.
      module procedure assignOrbitsConstructorParameters
-     module procedure assignOrbitsConstructorInternal
   end interface mergerTreeOperatorAssignOrbits
 
 contains
@@ -48,15 +47,6 @@ contains
     assignOrbitsConstructorParameters=mergerTreeOperatorAssignOrbits()
     return
   end function assignOrbitsConstructorParameters
-
-  function assignOrbitsConstructorInternal()
-    !% Internal constructor for the orbit assigning merger tree operator class.
-    implicit none
-    type(mergerTreeOperatorAssignOrbits) :: assignOrbitsConstructorInternal
-
-    assignOrbitsConstructorInternal=mergerTreeOperatorAssignOrbits()
-    return
-  end function assignOrbitsConstructorInternal
 
   elemental subroutine assignOrbitsDestructor(self)
     !% Destructor for the merger tree operator function class.

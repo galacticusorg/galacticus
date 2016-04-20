@@ -32,7 +32,6 @@
   interface mergerTreeOperatorDeforest
      !% Constructors for the deforestation merger tree operator class.
      module procedure deforestConstructorParameters
-     module procedure deforestConstructorInternal
   end interface mergerTreeOperatorDeforest
 
 contains
@@ -48,15 +47,6 @@ contains
     deforestConstructorParameters=mergerTreeOperatorDeforest()
     return
   end function deforestConstructorParameters
-
-  function deforestConstructorInternal()
-    !% Internal constructor for the deforestation merger tree operator class.
-    implicit none
-    type(mergerTreeOperatorDeforest) :: deforestConstructorInternal
-
-    deforestConstructorInternal=mergerTreeOperatorDeforest()
-    return
-  end function deforestConstructorInternal
 
   elemental subroutine deforestDestructor(self)
     !% Destructor for the deforestation merger tree operator function class.
