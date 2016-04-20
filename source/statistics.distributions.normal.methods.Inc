@@ -54,6 +54,7 @@ double precision function distributionNormalMinimum(self)
   if (self%limitLowerExists) then
      distributionNormalMinimum=self%limitLower
   else
+     distributionNormalMinimum=0.0d0
      call Galacticus_Error_Report('distributionNormalMinimum','no minimum exists')
   end if
   return
@@ -68,6 +69,7 @@ double precision function distributionNormalMaximum(self)
   if (self%limitUpperExists) then
      distributionNormalMaximum=self%limitUpper
   else
+     distributionNormalMaximum=0.0d0
      call Galacticus_Error_Report('distributionNormalMaximum','no maximum exists')
   end if
   return

@@ -163,8 +163,9 @@ contains
     else
        timeNow       =timeBegin
     end if
-    timeCount       =0
-    gotFirstTimeStep=.false.
+    timeCount        =  0
+    gotFirstTimeStep =  .false.
+    thisTimeStep     => null()
     do while (timeNow < timeEnd)
        ! Get the time of the next output
        timeNext=Galacticus_Next_Output_Time(timeNow)

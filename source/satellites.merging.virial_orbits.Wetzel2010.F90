@@ -137,10 +137,9 @@ contains
          &                                                                  circularity                    , eccentricityInternal                                , &
          &                                                                  expansionFactor                , g1                                                  , &
          &                                                                  massCharacteristic             , pericentricRadius                                   , &
-         &                                                                  probabilityTotal               , radialScale                                         , &
+         &                                                                  probabilityTotal               , massSatellite                                       , &
          &                                                                  timeNode                       , velocityHost                                        , &
-         &                                                                  radiusHost                     , massHost                                            , &
-         &                                                                  massSatellite
+         &                                                                  radiusHost                     , massHost
     logical                                                              :: foundOrbit
 
     ! Reset the orbit.

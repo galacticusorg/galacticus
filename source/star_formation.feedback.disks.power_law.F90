@@ -88,7 +88,8 @@ contains
     class           (nodeComponentDisk)               , pointer :: thisDiskComponent
     double precision                   , intent(in   )          :: energyInputRate  , starFormationRate
     double precision                                            :: diskVelocity     , outflowRateToStarFormationRate
-
+    !GCC$ attributes unused :: starFormationRate
+    
     ! Get the disk.
     thisDiskComponent => thisNode%disk()
 

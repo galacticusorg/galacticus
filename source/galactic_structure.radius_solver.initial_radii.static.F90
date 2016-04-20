@@ -51,6 +51,7 @@ contains
     implicit none
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: radius
+    !GCC$ attributes unused :: thisNode, radius
 
     Galactic_Structure_Radius_Initial_Static=radius
     return
@@ -61,7 +62,8 @@ contains
     implicit none
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: radius
-
+    !GCC$ attributes unused :: thisNode, radius
+    
     Galactic_Structure_Radius_Initial_Derivative_Static=1.0d0
     return
   end function Galactic_Structure_Radius_Initial_Derivative_Static

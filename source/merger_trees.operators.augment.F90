@@ -504,8 +504,7 @@ contains
          &                                                                     massInChildren               , newTreeBaseMass
     integer         (c_size_t                     )                         :: timeIndex
     integer                                                                 :: endNodeCount                 , nodeChildCount                , &
-         &                                                                     i                            , treeAccepted                  , &
-         &                                                                     status
+         &                                                                     status                       , treeAccepted
     type            (mergerTreeOperatorPruneByTime)                         :: pruneByTime
     logical                                                                 :: treeBestOverride             , newTreeBest
     type            (varying_string               )                         :: message
@@ -752,11 +751,8 @@ contains
     type            (treeNode                 ), intent(inout)            , pointer :: node                         , primaryProgenitorNode
     type            (treeNode                 )                           , pointer :: nodeCurrent                  , nodePrevious                  , &
          &                                                                             nodeNonOverlap               , nodeNonOverlapFirst           , &
-         &                                                                             nodeOriginal                 , nodePrimaryOriginal           , &
          &                                                                             nodeSatellite
-    class           (nodeComponentBasic       )                           , pointer :: basicCurrent                 , basicSort                     , &
-         &                                                                             basicNonOverlap              , basicNew                      , &
-         &                                                                             basicOriginal
+    class           (nodeComponentBasic       )                           , pointer :: basicCurrent                 , basicSort
     type            (mergerTree               ), intent(inout)            , target  :: tree                         , treeBest
     logical                                    , intent(inout)                      :: treeNewHasNodeAboveResolution, treeBestHasNodeAboveResolution, &
          &                                                                             newTreeBest                  
@@ -768,10 +764,10 @@ contains
     integer                                    , intent(inout)                      :: nodeChildCount
     type            (treeNodeList             ), dimension(nodeChildCount)          :: endNodes
     integer                                                                         :: i                            , j                             , &
-         &                                                                             endNodesSorted               , iNode
+         &                                                                             endNodesSorted
     logical                                                                         :: treeAccepted                 , nodeMassesAgree               , &
          &                                                                             nodeCurrentBelowAll
-    double precision                                                                :: treeCurrentWorstFit          , massDiscrepancy
+    double precision                                                                :: treeCurrentWorstFit
     type            (varying_string           )                                     :: message
     character       (len=12                   )                                     :: label
     
@@ -902,10 +898,8 @@ contains
          &   nodeMassesAgree                      &
          & ) then
        call self%extendNonOverlapNodes(                     &
-            &                          tree               , &
             &                          nodeNonOverlapFirst, &
             &                          tolerance          , &
-            &                          timeEarliest       , &
             &                          treeBest           , &
             &                          massCutoffScale    , &
             &                          massOvershootScale   &
@@ -1263,17 +1257,17 @@ contains
     return
   end subroutine augmentNonOverlapReinsert
 
-  subroutine augmentExtendNonOverlapNodes(self,tree,nodeNonOverlapFirst,tolerance,timeEarliest,treeBest,massCutoffScale,massOvershootScale)
+  subroutine augmentExtendNonOverlapNodes(self,nodeNonOverlapFirst,tolerance,treeBest,massCutoffScale,massOvershootScale)
     !% Extend any non-overlap nodes in an accepted tree by growing a new tree from each such node.
     use Galacticus_Error
     use Galacticus_Nodes
     implicit none
     class           (mergerTreeOperatorAugment), intent(inout)          :: self
-    type            (mergerTree               ), intent(inout), target  :: tree                   , treeBest
+    type            (mergerTree               ), intent(inout), target  :: treeBest
     type            (treeNode                 )               , pointer :: nodeNonOverlapFirst
-    double precision                           , intent(in   )          :: tolerance              , timeEarliest
+    double precision                           , intent(in   )          :: tolerance
     double precision                           , intent(inout)          :: massCutoffScale        , massOvershootScale
-    type            (treeNode                 )               , pointer :: nodeCurrent            , nodeNonOverlap
+    type            (treeNode                 )               , pointer :: nodeCurrent
     double precision                                                    :: falseWorstFit
     logical                                                             :: falseNewNodeAboveCutoff, falseBestTreeNodeAboveCutoff, &
          &                                                                 falseNewRescale

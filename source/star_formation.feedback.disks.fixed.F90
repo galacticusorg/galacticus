@@ -67,6 +67,7 @@ contains
     implicit none
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: energyInputRate, starFormationRate
+    !GCC$ attributes unused :: thisNode, starFormationRate
 
     Star_Formation_Feedback_Disk_Outflow_Rate_Fixed=diskOutflowFraction*energyInputRate/feedbackEnergyInputAtInfinityCanonical
     return

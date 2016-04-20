@@ -81,6 +81,7 @@ contains
     !% distribution class.
     implicit none
     type(haloSpinDistributionDeltaFunction), intent(inout) :: self
+    !GCC$ attributes unused :: self
 
     ! Nothing to do.
     return
@@ -92,7 +93,8 @@ contains
     implicit none
     class(haloSpinDistributionDeltaFunction), intent(inout)          :: self
     type (treeNode                         ), intent(inout), pointer :: node
-
+    !GCC$ attributes unused :: node
+    
     deltaFunctionSample=self%spin
     return
   end function deltaFunctionSample

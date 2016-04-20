@@ -41,6 +41,7 @@ contains
     implicit none
     type(darkMatterHaloMassAccretionHistoryCorrea2015), target :: correa2015Constructor
     
+    correa2015Constructor=darkMatterHaloMassAccretionHistoryCorrea2015()
     return
   end function correa2015Constructor
   

@@ -354,7 +354,6 @@ contains
        varianceTableRateQuad    =varianceTableRate
        allocate(varianceTableRateBaseQuad (0:varianceTableCountRateBase))
        varianceTableRateBaseQuad=varianceTableRateBase
-       allocate(firstCrossingTableRateQuad(0:varianceTableCountRate    ))
        ! The time table is logarithmically distributed in time.
        timeTableRate=Make_Range(timeMinimumRate,timeMaximumRate,timeTableCountRate,rangeType=rangeTypeLogarithmic)
        ! Loop through the table and solve for the first crossing distribution.
@@ -373,6 +372,7 @@ contains
        loopCount=0
        !$omp parallel do private(iTime,timeProgenitor,iVariance,varianceTableStepRate,i,j,sigma1f,crossingFraction,effectiveBarrierInitial,firstCrossingTableRateQuad)
        do iTime=1,timeTableCountRate
+          if (.not.allocated(firstCrossingTableRateQuad)) allocate(firstCrossingTableRateQuad(0:varianceTableCountRate))
           ! Compute a suitable progenitor time.
           timeProgenitor=timeTableRate(iTime)*(1.0d0-excursionSetFirstCrossingFarahiFractionalTimeStep)
 
@@ -483,7 +483,7 @@ contains
        ! Deallocate work arrays.
        deallocate(varianceTableRateBaseQuad )
        deallocate(varianceTableRateQuad     )
-       deallocate(firstCrossingTableRateQuad)
+       if (allocated(firstCrossingTableRateQuad)) deallocate(firstCrossingTableRateQuad)
        call Galacticus_Display_Counter_Clear(       verbosityWorking)
        call Galacticus_Display_Unindent     ("done",verbosityWorking)
        ! Reset the interpolators.

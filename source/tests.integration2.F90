@@ -36,7 +36,7 @@ program Test_Integration2
   double precision                                                         :: timeMean                       , error
   integer         (kind=kind_int8            )                             :: countStart                     , countEnd                , &
        &                                                                      countRate
-  character       (len =   2                 )                             :: units
+  character       (len =   3                 )                             :: units
   character       (len = 128                 )                             :: label                          , formatter               , &
        &                                                                      status
   character       (len =1024                 )                             :: message
@@ -44,7 +44,6 @@ program Test_Integration2
   integer                                                                  :: i                              , trial                   , &
        &                                                                      integrationRule                , iFunction               , &
        &                                                                      descriptionLengthMaximum
-  integer         (c_int                     )                             :: yepppStatus
   type            (c_ptr                     )                             :: parameterPointer
   type            (fgsl_function             )                             :: integrandFunction
   type            (fgsl_integration_workspace)                             :: integrationWorkspace
@@ -55,7 +54,10 @@ program Test_Integration2
   integer         (kind=kind_int8            ), dimension(integratorCount) :: time
   integer         (kind=kind_int8            ), dimension(              2) :: timeGSL
   integer                                     , parameter                  :: trialCount              =10
-  
+#ifdef YEPPP
+  integer         (c_int                     )                             :: yepppStatus
+#endif
+
   ! Initialize the YEPPP library.
 #ifdef YEPPP
   yepppStatus=yepLibrary_Init()

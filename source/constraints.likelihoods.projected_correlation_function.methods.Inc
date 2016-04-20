@@ -32,9 +32,7 @@ function likelihoodProjectedCorrelationFunctionConstructor(haloMassMinimum,haloM
        &                                                                                   lineOfSightDepth
   logical                                                 , intent(in   )               :: halfIntegral
   character       (len=*                 )                , intent(in   )               :: projectedCorrelationFunctionFileName
-  double precision                                        , allocatable  , dimension(:) :: separationBinWidth
   type            (hdf5Object            )                                              :: projectedCorrelationFunctionFile
-  integer                                                                               :: i,j
 
   likelihoodProjectedCorrelationFunctionConstructor% haloMassMinimum= haloMassMinimum
   likelihoodProjectedCorrelationFunctionConstructor% haloMassMaximum= haloMassMaximum

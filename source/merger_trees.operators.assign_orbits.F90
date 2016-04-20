@@ -43,7 +43,9 @@ contains
     implicit none
     type(mergerTreeOperatorAssignOrbits)                :: assignOrbitsConstructorParameters
     type(inputParameters               ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
 
+    assignOrbitsConstructorParameters=mergerTreeOperatorAssignOrbits()
     return
   end function assignOrbitsConstructorParameters
 
@@ -51,7 +53,8 @@ contains
     !% Internal constructor for the orbit assigning merger tree operator class.
     implicit none
     type(mergerTreeOperatorAssignOrbits) :: assignOrbitsConstructorInternal
-    
+
+    assignOrbitsConstructorInternal=mergerTreeOperatorAssignOrbits()
     return
   end function assignOrbitsConstructorInternal
 
@@ -59,6 +62,7 @@ contains
     !% Destructor for the merger tree operator function class.
     implicit none
     type(mergerTreeOperatorAssignOrbits), intent(inout) :: self
+    !GCC$ attributes unused :: self
 
     ! Nothing to do.
     return
@@ -80,6 +84,7 @@ contains
     class  (virialOrbitClass               ), pointer               :: virialOrbit_
     type   (keplerOrbit                    )                        :: virialOrbitNode            , virialOrbitProgenitor
     logical                                                         :: satelliteProgenitorFound
+    !GCC$ attributes unused :: self
     
     ! Get required objects.
     satelliteMergingTimescales_ => satelliteMergingTimescales()

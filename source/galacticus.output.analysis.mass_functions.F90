@@ -707,11 +707,10 @@ contains
     double precision                                , allocatable  , dimension(:  ) :: randomError, randomErrorWeight
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
     double precision                                , parameter                     :: massBufferFactor              =100.0d+0 ! Multiplicative buffer size in mass to add below/above observed masses.
-    type            (hdf5Object                    )                                :: dataFile,massDataset,parameters
     integer         (c_size_t                      )                                :: jOutput
     integer                                                                         :: currentAnalysis,activeAnalysisCount,haloMassBin,iError
-    double precision                                                                :: dataHubbleParameter,mass,massLogarithmic,dataOmegaMatter,dataOmegaDarkEnergy,distanceMinimum,distanceMaximum,timeMinimum, &
-         &                                                                             timeMaximum,galaxySize,surfaceBrightnessModelSlope,surfaceBrightnessModelOffset,surfaceBrightnessModelScatter
+    double precision                                                                :: mass,massLogarithmic,distanceMinimum,distanceMaximum,timeMinimum, &
+         &                                                                             timeMaximum,surfaceBrightnessModelSlope,surfaceBrightnessModelOffset,surfaceBrightnessModelScatter
     type            (varying_string                )                                :: parameterName,analysisMassFunctionCovarianceModelText,cosmologyScalingMass,cosmologyScalingMassFunction,message
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )               , pointer        :: cosmologyParametersObserved
@@ -1680,6 +1679,7 @@ contains
     double precision          , parameter              :: exponentialArgumentMaximum                      =100.0d0
     double precision                                   :: massLogarithmic                                         , &
          &                                                exponentialArgument
+    !GCC$ attributes unused :: thisNode
     
     if (.not.sdssStellarMassFunctionHighMassInitialized) then
        !$omp critical(Map_Mass_SDSS_Stellar_Mass_Function_Z0_07_Initialize)

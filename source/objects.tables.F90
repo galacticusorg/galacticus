@@ -1308,7 +1308,7 @@ contains
     double precision                      , intent(in   )           :: x
     integer                               , intent(in   ), optional :: table
     integer                                                         :: i         , tableActual
-    double precision                                                :: xEffective, b          , dx
+    double precision                                                :: xEffective, dx
 
     ! Determine which table to use.
     tableActual=1

@@ -92,8 +92,10 @@ contains
     logical          , intent(in   ), optional :: ompThreadOffset     , mpiRankOffset
     integer          , intent(in   ), optional :: incrementSeed
     logical                                    :: resetActual
+#ifdef USEMPI
     integer                                    :: mpiRank             , iError
-
+#endif
+    
     ! Determine if we need to reset.
     if (present(reset)) then
        resetActual=reset
@@ -130,8 +132,8 @@ contains
           if (present(mpiRankOffset).and.mpiRankOffset) then
 #ifdef USEMPI
              call MPI_Comm_Rank(MPI_Comm_World,mpiRank,iError)
-#endif
              randomSeedC=randomSeedC+mpiRank
+#endif
           end if
           if (present(incrementSeed)) randomSeedC=randomSeedC+incrementSeed
        end if

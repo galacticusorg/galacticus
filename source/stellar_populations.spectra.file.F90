@@ -187,7 +187,8 @@ contains
     !% Destructor for the file stellar spectra class.
     implicit none
     type(stellarPopulationSpectraFile), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     ! Nothing to do.
     return
   end subroutine fileDestructor
@@ -366,13 +367,10 @@ contains
 
   subroutine fileImfInitialize(self,imfIndex)
     !% Ensure that data is loaded for the requested IMF.
-    use Galacticus_Input_Paths
     implicit none
     class  (stellarPopulationSpectraFile), intent(inout) :: self
     integer                              , intent(in   ) :: imfIndex
     logical                                              :: readFile
-    type   (varying_string              )                :: defaultFile  , imfName                         , &
-         &                                                  parameterName, stellarPopulationSpectraFileName
 
     ! Decide if we need to read the file.
     readFile=.not.allocated(self%imfLookup)

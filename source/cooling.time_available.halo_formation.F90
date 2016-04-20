@@ -81,7 +81,8 @@ contains
     !% of 1.
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
-
+    !GCC$ attributes unused :: thisNode
+    
     ! Simply return unit rate.
     Cooling_Time_Available_Increase_Rate_Halo_Formation=1.0d0
     return

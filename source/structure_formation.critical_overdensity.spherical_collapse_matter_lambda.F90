@@ -135,9 +135,9 @@ contains
     double precision                                                  , intent(in   ), optional :: time               , expansionFactor, &
          &                                                                                         mass
     logical                                                           , intent(in   ), optional :: collapsing
-    logical                                                                                     :: collapsingActual
     double precision                                                                            :: time_
-
+    !GCC$ attributes unused :: mass
+    
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
     ! Remake the table if necessary.
@@ -155,8 +155,8 @@ contains
     double precision                                                  , intent(in   ), optional :: time               , expansionFactor, &
          &                                                                                         mass
     logical                                                           , intent(in   ), optional :: collapsing
-    logical                                                                                     :: collapsingActual
     double precision                                                                            :: time_
+    !GCC$ attributes unused :: mass
 
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
@@ -176,7 +176,8 @@ contains
     double precision                                                  , intent(in   ), optional :: time      , expansionFactor
     logical                                                           , intent(in   ), optional :: collapsing
     double precision                                                  , intent(in   ), optional :: mass
-
+    !GCC$ attributes unused :: self, time, expansionFactor, collapsing, mass
+    
     sphericalCollapseMatterLambdaGradientMass=0.0d0
     return
   end function sphericalCollapseMatterLambdaGradientMass
@@ -188,7 +189,8 @@ contains
     class  (criticalOverdensitySphericalCollapseMatterLambda), intent(inout) :: self
     integer                                                  , intent(in   ) :: stateFile
     type   (fgsl_file                                       ), intent(in   ) :: fgslStateFile
-    
+    !GCC$ attributes unused :: fgslStateFile
+
     write (stateFile) self%tableTimeMinimum,self%tableTimeMaximum
     return
   end subroutine sphericalCollapseMatterLambdaStateStore
@@ -200,7 +202,8 @@ contains
     class  (criticalOverdensitySphericalCollapseMatterLambda), intent(inout) :: self
     integer                                                  , intent(in   ) :: stateFile
     type   (fgsl_file                                       ), intent(in   ) :: fgslStateFile
-
+    !GCC$ attributes unused :: fgslStateFile
+    
     read (stateFile) self%tableTimeMinimum,self%tableTimeMaximum
     self%tableInitialized=.false.
     call self%retabulate(sqrt(self%tableTimeMinimum*self%tableTimeMaximum))

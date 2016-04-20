@@ -44,7 +44,8 @@ contains
     !% Returns a null (multiplicative) modifier for merger tree branching rates.
     implicit none
     double precision, intent(in   ) :: childSigma, parentDelta, parentSigma
-
+    !GCC$ attributes unused :: childSigma, parentDelta, parentSigma
+    
     Merger_Tree_Branching_Modifier_Null=1.0d0
     return
   end function Merger_Tree_Branching_Modifier_Null

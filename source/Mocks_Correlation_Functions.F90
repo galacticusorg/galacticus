@@ -50,21 +50,18 @@ program Mocks_Correlation_Functions
   type            (varying_string         )                              :: parameterFileName                       , galaxyCatalogFileName                         , &
        &                                                                    correlationFunctionFileName             , message                                       , &
        &                                                                    mockCorrelationFunctionRandomSampleCount
-  type            (hdf5Object             )                              :: galaxyCatalogFile                       , snapshotGroup                                 , &
-       &                                                                    galaxyCatalogGroup                      , simulationGroup                               , &
-       &                                                                    correlationFunctionFile                 , thisDataset
+  type            (hdf5Object             )                              :: thisDataset                             , correlationFunctionFile
   type            (irate                  )                              :: galaxyFile
-  double precision                                                       :: simulationBoxSize                       , separationMinimum                             , &
-       &                                                                    separationMaximum                       , mockCorrelationFunctionRadialSeparationMaximum, &
+  double precision                                                       :: simulationBoxSize                       , mockCorrelationFunctionRadialSeparationMaximum, &
        &                                                                    mockCorrelationFunctionMassMinimum      , mockCorrelationFunctionMassMaximum            , &
        &                                                                    mockCorrelationFunctionSeparationMinimum, mockCorrelationFunctionSeparationMaximum      , &
        &                                                                    redshift                                , time                                          , &
        &                                                                    mockCorrelationFunctionBufferWidth      , mockCorrelationFunctionRotationAngle          , &
        &                                                                    mockCorrelationFunctionRandomSampleCountValue
-  integer                                                                :: separationCount                         , randomPointCount                              , &
+  integer                                                                :: mockCorrelationFunctionSeparationCount  , randomPointCount                              , &
        &                                                                    i                                       , j                                             , &
-       &                                                                    replications                            , mockCorrelationFunctionSeparationCount        , &
-       &                                                                    mockCorrelationFunctionRandomSampleCountType, replicatedGalaxyCount
+       &                                                                    mockCorrelationFunctionRandomSampleCountType, replicatedGalaxyCount                     , &
+       &                                                                    replications
   type            (pseudoRandom  )                                       :: randomSequence
   character       (len=128       )                                       :: label
   logical                                                                :: mockCorrelationFunctionHalfIntegral

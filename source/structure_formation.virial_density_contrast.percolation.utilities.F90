@@ -54,9 +54,7 @@ contains
     type            (treeNode                           ), pointer                :: workNode
     class           (nodeComponentBasic                 ), pointer                :: workBasic
     class           (nodeComponentDarkMatterProfile     ), pointer                :: workDarkMatterProfile
-    double precision                                                              :: boundingDensity                , radiusHalo, &
-         &                                                                           timeActual
-    logical                                                                       :: collapsingActual
+    double precision                                                              :: boundingDensity                , radiusHalo
     type            (rootFinder                         )                         :: finder
 
     ! Get required objects.

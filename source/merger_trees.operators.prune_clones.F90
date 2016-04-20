@@ -43,7 +43,9 @@ contains
     implicit none
     type(mergerTreeOperatorPruneClones)                :: pruneClonesConstructorParameters
     type(inputParameters              ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
 
+    pruneClonesConstructorParameters=mergerTreeOperatorPruneClones()
     return
   end function pruneClonesConstructorParameters
 
@@ -52,6 +54,7 @@ contains
     implicit none
     type(mergerTreeOperatorPruneClones) :: pruneClonesConstructorInternal
 
+    pruneClonesConstructorInternal=mergerTreeOperatorPruneClones()
     return
   end function pruneClonesConstructorInternal
 
@@ -59,7 +62,8 @@ contains
     !% Destructor for the merger tree operator function class.
     implicit none
     type(mergerTreeOperatorPruneClones), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     ! Nothing to do.
     return
   end subroutine pruneClonesDestructor
@@ -74,6 +78,7 @@ contains
     type (treeNode                     ), pointer               :: node       , nodePrevious
     class(nodeComponentBasic           ), pointer               :: basic      , basicPrevious
     type (mergerTree                   ), pointer               :: currentTree
+    !GCC$ attributes unused :: self
 
     ! Iterate over trees.
     currentTree => tree

@@ -79,7 +79,8 @@ contains
     implicit none
     type(chemicalStateAtomicCIECloudy)                :: atomicCIECloudyConstructorParameters
     type(inputParameters             ), intent(inout) :: parameters
-
+    !GCC$ attributes unused :: parameters
+    
     atomicCIECloudyConstructorParameters=atomicCIECloudyConstructorInternal()
     return
   end function atomicCIECloudyConstructorParameters

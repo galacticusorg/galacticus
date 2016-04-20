@@ -65,10 +65,6 @@ program Halo_Model_Mock
        &                                                                           iAxis
   type            (varying_string                )                              :: parameterFileName         , haloCatalogFileName      , & 
        &                                                                           galaxyCatalogFileName     , message
-  type            (hdf5Object                    )                              :: haloCatalogFile           , snapshotGroup            , &
-       &                                                                           haloCatalogGroup          , galaxyCatalogFile        , &
-       &                                                                           inputGroup                , outputGroup              , &
-       &                                                                           thisDataset               , simulationGroup
   type            (irate                         )                              :: haloFile                  , galaxyFile
   double precision                                                              :: haloModelMockMassMinimum  , haloModelMockMassMaximum , &
        &                                                                           probabilityCentral        , xCentral                 , &

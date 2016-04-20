@@ -410,8 +410,7 @@ contains
     logical                                 , save          :: resetSequence            =.true.
     !$omp threadprivate(pseudoSequenceObject,resetSequence)
     double precision                                        :: orbitalRadius                   , orbitalVelocityRadial    , &
-         &                                                     orbitalVelocityTangential       , orbitalVelocityPhi       , &
-         &                                                     orbitalVelocityTheta            , velocityPhi              , &
+         &                                                     orbitalVelocityTangential       , velocityPhi              , &
          &                                                     orbitalPositionPhi              , orbitalPositionTheta
     type            (keplerOrbit           )                :: virialOrbit
 

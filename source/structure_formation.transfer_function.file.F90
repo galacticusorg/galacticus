@@ -171,7 +171,7 @@ contains
     character       (len=*                   ), intent(in   )             :: fileName
     type            (Node                    ), pointer                   :: doc                             , extrapolation              , &
          &                                                                   extrapolationElement            , formatElement              , &
-         &                                                                   thisParameter                   , parameters
+         &                                                                   parameters
     type            (NodeList                ), pointer                   :: wavenumberExtrapolationList
     double precision                          , allocatable, dimension(:) :: transfer                        , wavenumber                 , &
          &                                                                   transferLogarithmic             , wavenumberLogarithmic
@@ -296,6 +296,7 @@ contains
     class(transferFunctionFile), intent(inout) :: self
     !GCC$ attributes unused :: self
     
+    fileHalfModeMass=0.0d0
     call Galacticus_Error_Report('fileHalfModeMass','not supported by this implementation')
     return
   end function fileHalfModeMass

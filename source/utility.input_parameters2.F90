@@ -386,7 +386,6 @@ contains
     type     (varying_string ), dimension(:), allocatable             :: allowedParameterNamesCombined, allowedParameterNamesTmp
     integer                                                           :: allowedParameterFromFileCount, allowedParameterCount   , &
          &                                                               errorStatus                  , i
-         &                                                               
     character(len=  10       )                                        :: versionLabel
     type     (varying_string )                                        :: message
 
@@ -403,6 +402,7 @@ contains
     if (present(outputParametersGroup)) inputParametersConstructorNode%outputParameters=outputParametersGroup%openGroup('Parameters')
     ! Parse allowed parameters file if available.
     allowedParameterFromFileCount=0
+    allowedParameterCount        =0
     if (present(allowedParametersFile)) then
        ! Check if the file exists.
        if (File_Exists(char(Galacticus_Input_Path())//BUILDPATH//'/'//allowedParametersFile)) then
@@ -413,7 +413,7 @@ contains
           ! Extract allowed parameter names to array.
           allowedParameterList => getElementsByTagname(allowedParameterDoc,"parameter")
           allowedParameterFromFileCount=getLength(allowedParameterList)
-          allocate(allowedParameterNamesCombined(allowedParameterFromFileCount+allowedParameterCount))
+          allocate(allowedParameterNamesCombined(allowedParameterFromFileCount))
           do i=0,allowedParameterFromFileCount-1
              thisNode => item(allowedParameterList,i)
              allowedParameterNamesCombined(i+1)=getTextContent(thisNode)
@@ -427,6 +427,7 @@ contains
     end if
     ! Add in parameter names explicitly listed.
     if (present(allowedParameterNames)) then
+       allowedParameterCount=size(allowedParameterNames)
        if (allocated(allowedParameterNamesCombined)) then
           call Move_Alloc(allowedParameterNamesCombined,allowedParameterNamesTmp)
           allocate(allowedParameterNamesCombined(size(allowedParameterNamesTmp)+size(allowedParameterNames)))
@@ -623,15 +624,13 @@ contains
     type     (regEx          ), save                                  :: thisRegEx
     !$omp threadprivate(thisRegEx)
     logical                                                           :: warningsFound                , parameterMatched
-    integer                                                           :: i                            , j                   , &
-         &                                                               allowedParametersCount       , errorStatus         , &
+    integer                                                           :: allowedParametersCount       , errorStatus         , &
          &                                                               distance                     , distanceMinimum     , &
-         &                                                               allowedParameterFromFileCount, nodeCount
+         &                                                               j
     character(len=1024       )                                        :: parameterValue
     character(len=1024       )                                        :: unknownName                  , allowedParameterName, &
          &                                                               parameterNameGuess
 
-    
     ! Return if there are no parameters to check.
     ! Validate parameters.
     warningsFound=.false.
@@ -695,7 +694,7 @@ contains
                 end select
                 !$omp end critical (FoX_DOM_Access)
              end if
-             if (allowedParametersCount+allowedParameterFromFileCount > 0 .and. .not.parameterMatched) then
+             if (allowedParametersCount > 0 .and. .not.parameterMatched) then
                 !$ if (omp_in_parallel()) then
                 !$    write (0,'(i2,a2,$)') omp_get_thread_num(),": "
                 !$ else
@@ -705,7 +704,7 @@ contains
                 unknownName    =getNodeName(thisNode)
                 !$omp end critical (FoX_DOM_Access)
                 distanceMinimum=-1
-                do j=1,allowedParametersCount+allowedParameterFromFileCount
+                do j=1,allowedParametersCount
                    allowedParameterName=allowedParameterNames(j)
                    if (allowedParameterName(1:6) == "regEx:") cycle
                    distance=String_Levenshtein_Distance(trim(unknownName),trim(allowedParameterName))
@@ -789,7 +788,8 @@ contains
     implicit none
     class    (inputParameters), intent(in   ) :: self
     character(len=*          ), intent(in   ) :: parameterName
-
+    !GCC$ attributes unused :: self
+    
     if (trim(parameterName) == "value") call Galacticus_Error_Report('inputParametersValidateName','"value" is not a valid parameter name')
     return
   end subroutine inputParametersValidateName
@@ -838,7 +838,6 @@ contains
     logical                   , intent(in   ), optional :: requireValue
     type     (node           ), pointer                 :: thisNode
     type     (inputParameter ), pointer                 :: currentParameter
-    integer                                             :: i
     !# <optionalArgument name="requireValue" defaultsTo=".true." />
 
     call self%validateName(parameterName)
@@ -869,7 +868,6 @@ contains
     logical                   , intent(in   ), optional :: zeroIfNotPresent
     type     (node           ), pointer                 :: thisNode
     type     (inputParameter ), pointer                 :: currentParameter
-    integer                                             :: i
     !# <optionalArgument name="zeroIfNotPresent" defaultsTo=".false." />
     
     call self%validateName(parameterName)
@@ -889,6 +887,7 @@ contains
     else if (zeroIfNotPresent_) then
        inputParametersCopiesCount=0
     else
+       inputParametersCopiesCount=0
        call Galacticus_Error_Report('inputParametersCopiesCount','parameter ['//parameterName//'] is not present')  
     end if
     return
@@ -911,6 +910,7 @@ contains
        if (zeroIfNotPresent_) then
           inputParametersCount=0
        else
+          inputParametersCount=0
           call Galacticus_Error_Report('inputParametersCount','parameter ['//parameterName//'] is not present')
        end if
     end if
@@ -1120,6 +1120,7 @@ contains
     implicit none
     type(inputParameterList) :: inputParameterListConstructor
 
+    inputParameterListConstructor=inputParameterList()
     return
   end function inputParameterListConstructor
 
@@ -1186,7 +1187,7 @@ contains
     logical                 , intent(in   ), optional :: hashed 
     type   (node           ), pointer                 :: thisNode
     type   (inputParameter ), pointer                 :: currentParameter
-    integer                                           :: i                               , errorStatus
+    integer                                           :: errorStatus
     type   (varying_string )                          :: parameterValue
     logical                                           :: firstParameter
     type   (inputParameters)                          :: subParameters

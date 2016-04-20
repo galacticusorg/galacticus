@@ -102,7 +102,8 @@ contains
     !% Destructor for the export merger tree operator function class.
     implicit none
     type(mergerTreeOperatorExport), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     ! Nothing to do.
     return
   end subroutine exportDestructor

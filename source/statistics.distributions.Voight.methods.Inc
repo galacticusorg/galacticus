@@ -28,13 +28,15 @@ function distributionVoightConstructor(gamma,mu,sigma,limitLower,limitUpper)
   double precision                    , intent(in   ), optional :: limitLower                   , limitUpper
   double precision                                              :: cdfLower                     , cdfUpper
 
-  distributionVoightConstructor%gamma=gamma
-  distributionVoightConstructor%mu   =mu
-  distributionVoightConstructor%sigma=sigma
+  distributionVoightConstructor%gamma           =gamma
+  distributionVoightConstructor%mu              =mu
+  distributionVoightConstructor%sigma           =sigma
   distributionVoightConstructor%limitLowerExists=.false.
   distributionVoightConstructor%limitUpperExists=.false.
   distributionVoightConstructor%cdfAtLowerLimit =0.0d0
   distributionVoightConstructor%cdfAtUpperLimit =1.0d0
+  cdfLower                                      =0.0d0
+  cdfUpper                                      =0.0d0
   if (present(limitLower)) cdfLower=distributionVoightConstructor%cumulative(limitLower)
   if (present(limitUpper)) cdfUpper=distributionVoightConstructor%cumulative(limitUpper)
   distributionVoightConstructor%limitLowerExists=present(limitLower)

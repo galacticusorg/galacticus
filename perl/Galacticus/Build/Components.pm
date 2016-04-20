@@ -3216,10 +3216,6 @@ sub Generate_Node_ODE_Initialization_Functions {
 	     type       => "treeNode",
 	     attributes => [ "intent(inout)" ],
 	     variables  => [ "self" ]
-	 },
-	 {
-	     intrinsic  => "integer",
-	     variables  => [ "i" ]
 	 }
 	);
     my $functionCode;
@@ -6025,10 +6021,6 @@ sub Generate_GSR_Functions {
 			    type       => "Interrupt_Procedure_Template",
 			    attributes => [ "optional", "intent(inout)", "pointer" ],
 			    variables  => [ "interruptProcedure" ]
-			},
-			{
-			    intrinsic  => "integer",
-			    variables  => [ "count" ]
 			}
 			);
 		    push(@dataContent,$currentDefinition)
@@ -6037,23 +6029,39 @@ sub Generate_GSR_Functions {
 		    $functionCode  = "  subroutine ".$componentID.ucfirst($propertyName)."Rate".ucfirst($rateSuffix)."(self,setValue,interrupt,interruptProcedure)\n";
 		    $functionCode .= "    !% Accumulate to the {\\normalfont \\ttfamily ".$propertyName."} property rate of change of the {\\normalfont \\ttfamily ".$componentID."} component implementation.\n";
 		    $functionCode .= "    implicit none\n";
-		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+		    my $rateSetCode;
 		    if ( $linkedData->{'type'} eq "double" ) {
 			if ( $linkedData->{'rank'} == 0 ) {
-			    $functionCode .= "    nodeRates(".&offsetName($componentID,$propertyName).")=nodeRates(".&offsetName($componentID,$propertyName).")+setValue\n";
+			    $rateSetCode .= "    nodeRates(".&offsetName($componentID,$propertyName).")=nodeRates(".&offsetName($componentID,$propertyName).")+setValue\n";
 			} else {
-			    $functionCode .= "    count=size(setValue)\n";
-			    $functionCode .= "    nodeRates(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1)=nodeRates(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1)+setValue\n";
+			    push(
+				@dataContent,
+				{
+				    intrinsic  => "integer",
+				    variables  => [ "count" ]
+				}				
+				);
+			    $rateSetCode .= "    count=size(setValue)\n";
+			    $rateSetCode .= "    nodeRates(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1)=nodeRates(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1)+setValue\n";
 			}
 		    } else {
-			$functionCode .= "    count=self%".$propertyName."Data%serializeCount()\n";
-			$functionCode .= "    if (count > 0) then\n";
-			$functionCode .= "       current=self%".$propertyName."Data\n";
-			$functionCode .= "       call current%deserialize(nodeRates(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1))\n";
-			$functionCode .= "       call current%increment(setValue)\n";
-			$functionCode .= "       call current%serialize(nodeRates(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1))\n";
-			$functionCode .= "    end if\n";
+			push(
+			    @dataContent,
+			    {
+				intrinsic  => "integer",
+				variables  => [ "count" ]
+			    }				
+			    );
+			$rateSetCode .= "    count=self%".$propertyName."Data%serializeCount()\n";
+			$rateSetCode .= "    if (count > 0) then\n";
+			$rateSetCode .= "       current=self%".$propertyName."Data\n";
+			$rateSetCode .= "       call current%deserialize(nodeRates(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1))\n";
+			$rateSetCode .= "       call current%increment(setValue)\n";
+			$rateSetCode .= "       call current%serialize(nodeRates(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1))\n";
+			$rateSetCode .= "    end if\n";
 		    }
+		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+		    $functionCode .= $rateSetCode;
 		    $functionCode .= "    return\n";
 		    $functionCode .= "  end subroutine ".$componentID.ucfirst($propertyName)."Rate".$rateSuffix."\n\n";
 		    # Insert into the function list.
@@ -6259,27 +6267,32 @@ sub Generate_GSR_Functions {
 			    type       => "nodeComponent".ucfirst($componentID),
 			    attributes => [ "intent(inout)" ],
 			    variables  => [ "self" ]
-			},
-			{
-			    intrinsic  => "integer",
-			    variables  => [ "count" ]
 			}
 			);
 		    # Generate a function to set the "scale".
 		    $functionCode  = "  subroutine ".$componentID.ucfirst($propertyName)."Scale(self,setValue)\n";
 		    $functionCode .= "    !% Set the {\\normalfont \\ttfamily ".$propertyName."} property scale of the {\\normalfont \\ttfamily ".$componentID."} component implementation.\n";
 		    $functionCode .= "    implicit none\n";
-		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+		    my $scaleSetCode;
 		    if ( $linkedData->{'type'} eq "double" ) {
 			if ( $linkedData->{'rank'} == 0 ) {
-			    $functionCode .= "    nodeScales(".&offsetName($componentID,$propertyName).")=setValue\n";
+			    $scaleSetCode .= "    nodeScales(".&offsetName($componentID,$propertyName).")=setValue\n";
 			} else {
-			    $functionCode .= "    nodeScales(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+size(setValue))=setValue\n";
+			    $scaleSetCode .= "    nodeScales(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+size(setValue))=setValue\n";
 			}
 		    } else {
-			$functionCode .= "    count=setValue%serializeCount()\n";
-			$functionCode .= "    if (count > 0) call setValue%serialize(nodeScales(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1))\n";
+			push(
+			    @dataContent,
+			    {
+				intrinsic  => "integer",
+				variables  => [ "count" ]
+			    }
+			    );
+			$scaleSetCode .= "    count=setValue%serializeCount()\n";
+			$scaleSetCode .= "    if (count > 0) call setValue%serialize(nodeScales(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1))\n";
 		    }
+		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+		    $functionCode .= $scaleSetCode;
 		    $functionCode .= "    return\n";
 		    $functionCode .= "  end subroutine ".$componentID.ucfirst($propertyName)."Scale\n\n";
 		    # Insert into the function list.
