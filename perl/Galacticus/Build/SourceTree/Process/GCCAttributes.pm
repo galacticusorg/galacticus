@@ -32,20 +32,22 @@ sub Process_GCCAttributes {
 	    open(my $content,"<",\$node->{'content'});
 	    while ( my $line = <$content> ) {
 		if ( $line =~ m /^\s*!GCC\$\s+attributes\s+unused\s*::\s*(.*)/ ) {
-		    # <workaround type="gfortran" PR="41209" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=41209"/>
-		    # This is an unused variable attribute. To avoid compiler warnings we test the size of the unused variables and do nothing as a result.
+		    # <workaround type="gfortran" PR="41209" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=41209"/>		    
+		    # This is an unused variable attribute. To avoid compiler warnings we test the location (or sizeof for pure
+		    # functions where loc() can't be used) of the unused variables and do nothing as a result.
 		    # Check that we are in a function or subroutine.
+		    (my $variableList = $1) =~ s/\s//g;
 		    my $parent = $node->{'parent'};
 		    die("Process_GCCAttributes(): 'unused' attribute is relevant only in a function or subroutine")
 			unless ( $parent->{'type'} eq "function" || $parent->{'type'} eq "subroutine" );
+		    my $functionToUse = $parent->{'opener'} =~ m/^\s*(elemental|pure)\s/ ? "sizeof" : "loc";
 		    # Find the final node in the function.
 		    my $finalNode = $parent->{'firstChild'};
 		    while ( exists($finalNode->{'sibling'}) && ref($finalNode->{'sibling'}) ) {
 			$finalNode = $finalNode->{'sibling'};
 		    }
 		    # Generate a new node.
-		    (my $variableList = $1) =~ s/\s//g;
-		    my $newCode = join("",map {"if (sizeof(".$_.")<0.and.sizeof(".$_.")>0) then\nend if\n"} split(/,/,$variableList));
+		    my $newCode = join("",map {"if (".$functionToUse."(".$_.")<0.and.".$functionToUse."(".$_.")>0) then\nend if\n"} split(/,/,$variableList));
 		    my $newNode =
 		    {
 			type       => "code"  ,
