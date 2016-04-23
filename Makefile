@@ -154,7 +154,7 @@ $(BUILDPATH)/pFq/pfq.new.o : ./source/pFq/pfq.new.f Makefile
 $(BUILDPATH)/%.Inc : ./source/%.Inc
 	cp -f ./source/$*.Inc $(BUILDPATH)/$*.Inc
 $(BUILDPATH)/%.inc : $(BUILDPATH)/%.Inc Makefile
-	perl -MRegexp::Common -ne '$$l=$$_;if ( $$l =~ m/($$RE{comment}{Fortran})/ ) {($$m = $$1) =~ s/'\''//g; $$l =~ s/$$RE{comment}{Fortran}/$$m/}; print $$l' $< | $(PREPROCESSOR) -nostdinc -C -o $(BUILDPATH)/$*.tmp
+	perl -MRegexp::Common -ne '$$l=$$_;if ( $$l =~ m/($$RE{comment}{Fortran})/ ) {($$m = $$1) =~ s/(?<!\\)'\''//g; $$l =~ s/$$RE{comment}{Fortran}/$$m/}; print $$l' $< | $(PREPROCESSOR) -nostdinc -C -o $(BUILDPATH)/$*.tmp
 	mv -f $(BUILDPATH)/$*.tmp $(BUILDPATH)/$*.inc
 
 # Dependency files (*.d) are created as empty files by default. Normally this rule is overruled by a specific set of rules in the
