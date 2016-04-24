@@ -19,7 +19,7 @@ require Galacticus::HDF5;
 require Galacticus::Inclination;
 
 %HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-    "^(disk|spheroid)LuminositiesStellar:.*:dustCRAPAtlas(\\[faceOn\\])?\$" => \&DustAttenuation::Get_Dust_Attenuated_Luminosity
+    "^(disk|spheroid)LuminositiesStellar:.*:dustAtlas(\\[faceOn\\])?\$" => \&DustAttenuation::Get_Dust_Attenuated_Luminosity
     );
 
 # Flag indicating whether dust data is loaded yet.
@@ -53,19 +53,19 @@ sub Get_Dust_Attenuated_Luminosity {
 
     # Check parameters.
     &HDF5::Get_Parameters($dataSet);    
-    # die ("Get_Dust_Attenuated_Luminosity(): routine assumes exponential disks and Hernquist or Sersic spheroids")
-    # 	unless
-    # 	(
-    # 	 $dataSet ->{'parameters'}->{"diskMassDistribution"    }->{'value'} eq "exponentialDisk"
-    # 	 &&
-    # 	 (
-    # 	  $dataSet->{'parameters'}->{"spheroidMassDistribution"}->{'value'} eq "hernquist"       ||
-    # 	  $dataSet->{'parameters'}->{"spheroidMassDistribution"}->{'value'} eq "sersic" 
-    # 	 )
-    # 	);
+    die ("Get_Dust_Attenuated_Luminosity(): routine assumes exponential disks and Hernquist or Sersic spheroids")
+    	unless
+    	(
+    	 $dataSet ->{'parameters'}->{"diskMassDistribution"    }->{'value'} eq "exponentialDisk"
+    	 &&
+    	 (
+    	  $dataSet->{'parameters'}->{"spheroidMassDistribution"}->{'value'} eq "hernquist"       ||
+    	  $dataSet->{'parameters'}->{"spheroidMassDistribution"}->{'value'} eq "sersic" 
+    	 )
+    	);
 
     # Get the name of the unattenuated luminosity dataset.
-    (my $luminosityDataSet = $dataSetName) =~ s/:dustCRAPAtlas(\[faceOn\])?//;
+    (my $luminosityDataSet = $dataSetName) =~ s/:dustAtlas(\[faceOn\])?//;
 
     # List of properties to read.
     my @propertyList = ("diskAbundancesGasMetals","diskRadius","spheroidRadius",$luminosityDataSet);
