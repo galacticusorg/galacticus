@@ -56,11 +56,18 @@ sub Get_Dust_Attenuated_Luminosity {
     die ("Get_Dust_Attenuated_Luminosity(): routine assumes exponential disks and Hernquist or Sersic spheroids")
     	unless
     	(
-    	 $dataSet ->{'parameters'}->{"diskMassDistribution"    }->{'value'} eq "exponentialDisk"
-    	 &&
+	 (
+	  ! exists($dataSet ->{'parameters'}->{"diskMassDistribution"    })
+	  ||
+	           $dataSet ->{'parameters'}->{"diskMassDistribution"    }->{'value'} eq "exponentialDisk"
+    	 )
+	 &&
     	 (
-    	  $dataSet->{'parameters'}->{"spheroidMassDistribution"}->{'value'} eq "hernquist"       ||
-    	  $dataSet->{'parameters'}->{"spheroidMassDistribution"}->{'value'} eq "sersic" 
+	  ! exists($dataSet->{'parameters'}->{"spheroidMassDistribution"})
+	  ||
+	           $dataSet->{'parameters'}->{"spheroidMassDistribution"}->{'value'} eq "hernquist"
+	  ||
+	           $dataSet->{'parameters'}->{"spheroidMassDistribution"}->{'value'} eq "sersic" 
     	 )
     	);
 
