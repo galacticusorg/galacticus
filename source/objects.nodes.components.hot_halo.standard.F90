@@ -520,7 +520,7 @@ contains
     ! Process hot gas for satellites.
     if (thisNode%isSatellite()) then
        if (starveSatellites.or.starveSatellitesOutflowed) then
-          thisHotHaloComponent => thisNode%hotHalo()
+          thisHotHaloComponent => thisNode%hotHalo(autoCreate=.true.)
           select type (thisHotHaloComponent)
           class is (nodeComponentHotHaloStandard)
              ! Transfer any outflowed gas to the hot halo of the parent node.
@@ -528,9 +528,9 @@ contains
              do while (parentNode%isSatellite())
                 parentNode => parentNode%parent
              end do
-             parentHotHaloComponent => parentNode%hotHalo ()
-             parentSpinComponent    => parentNode%spin    ()
-             darkMatterHaloScale_   => darkMatterHaloScale()
+             parentHotHaloComponent => parentNode%hotHalo (autoCreate=.true.)
+             parentSpinComponent    => parentNode%spin    (                 )
+             darkMatterHaloScale_   => darkMatterHaloScale(                 )
              call parentHotHaloComponent%outflowedAngularMomentumSet(                                                   &
                   &                                                   parentHotHaloComponent%outflowedAngularMomentum() &
                   &                                                  +  thisHotHaloComponent%outflowedMass           () &
@@ -568,9 +568,9 @@ contains
                 parentNode => parentNode%parent
              end do
              call Node_Component_Hot_Halo_Standard_Create(parentNode)
-             parentHotHaloComponent => parentNode%hotHalo ()
-             parentSpinComponent    => parentNode%spin    ()
-             darkMatterHaloScale_   => darkMatterHaloScale()
+             parentHotHaloComponent => parentNode%hotHalo (autoCreate=.true.)
+             parentSpinComponent    => parentNode%spin    (                 )
+             darkMatterHaloScale_   => darkMatterHaloScale(                 )
              call parentHotHaloComponent%outflowedAngularMomentumSet(                                                   &
                   &                                                   parentHotHaloComponent%outflowedAngularMomentum() &
                   &                                                  +  thisHotHaloComponent%strippedMass            () &
@@ -1402,8 +1402,8 @@ contains
        ! Find the parent node and its hot halo and spin components.
        parentNode             => thisNode  %parent
        call Node_Component_Hot_Halo_Standard_Create(parentNode)
-       parentHotHaloComponent => parentNode%hotHalo()
-       parentSpinComponent    => parentNode%spin   ()
+       parentHotHaloComponent => parentNode%hotHalo(autoCreate=.true.)
+       parentSpinComponent    => parentNode%spin   (                 )
 
        ! Any gas that failed to be accreted by this halo is always transferred to the parent.
        call parentHotHaloComponent%unaccretedMassSet(                                         &
@@ -1534,10 +1534,10 @@ contains
     class is (nodeComponentHotHaloStandard)
 
        ! Find the node to merge with.
-       hostNode             => thisNode%mergesWith()
-       hostHotHaloComponent => hostNode%hotHalo   ()
-       hostSpinComponent    => hostNode%spin      ()
-       darkMatterHaloScale_ => darkMatterHaloScale()
+       hostNode             => thisNode%mergesWith(                 )
+       hostHotHaloComponent => hostNode%hotHalo   (autoCreate=.true.)
+       hostSpinComponent    => hostNode%spin      (                 )
+       darkMatterHaloScale_ => darkMatterHaloScale(                 )
              
        ! Move the hot halo to the host.
        call hostHotHaloComponent%                    massSet(                                                 &
@@ -1625,7 +1625,7 @@ contains
     class is (nodeComponentHotHaloStandard)
        ! Get the parent node of this node and its hot halo component.
        parentNode             => thisNode  %parent
-       parentHotHaloComponent => parentNode%hotHalo()
+       parentHotHaloComponent => parentNode%hotHalo(autoCreate=.true.)
        ! Update the outer radius to match the virial radius of the parent halo.
        darkMatterHaloScale_ => darkMatterHaloScale()       
        call thisHotHaloComponent%outerRadiusSet(                                              &

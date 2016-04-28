@@ -198,8 +198,8 @@ contains
     select type (hotHalo)
     class is (nodeComponentHotHaloVerySimpleDelayed)
        ! Find the node to merge with.
-       hostNode    => node    %mergesWith()
-       hostHotHalo => hostNode%hotHalo   ()
+       hostNode    => node    %mergesWith(                 )
+       hostHotHalo => hostNode%hotHalo   (autoCreate=.true.)
        ! Move the hot halo to the host.
        call hostHotHalo%outflowedMassSet(                             &
             &                            +hostHotHalo%outflowedMass() &
@@ -230,7 +230,7 @@ contains
     class is (nodeComponentHotHaloVerySimpleDelayed)
        ! Get the parent node of this node.
        parentNode    => node      %parent
-       parentHotHalo => parentNode%hotHalo()
+       parentHotHalo => parentNode%hotHalo(autoCreate=.true.)
        ! If the parent node has a hot halo component, then add it to that of this node, and perform other changes needed prior to
        ! promotion.
        select type (parentHotHalo)
@@ -265,7 +265,7 @@ contains
           do while (parentNode%isSatellite())
              parentNode => parentNode%parent
           end do
-          parentHotHalo => parentNode%hotHalo()
+          parentHotHalo => parentNode%hotHalo(autoCreate=.true.)
           call parentHotHalo%outflowedMassSet(parentHotHalo%outflowedMass()+hotHalo%outflowedMass())
           call       hotHalo%outflowedMassSet(                                                0.0d0)
        end if
@@ -289,7 +289,7 @@ contains
     class is (nodeComponentHotHaloVerySimpleDelayed)
        ! Find the parent node and its hot halo component.
        parentNode    => node      %parent
-       parentHotHalo => parentNode%hotHalo()
+       parentHotHalo => parentNode%hotHalo(autoCreate=.true.)
        ! Move the hot halo to the parent. We leave the hot halo in place even if it is starved, since outflows will accumulate
        ! to this hot halo (and will be moved to the parent at the end of the evolution timestep).
        call parentHotHalo%outflowedMassSet(parentHotHalo%outflowedMass()+hotHalo%outflowedMass())

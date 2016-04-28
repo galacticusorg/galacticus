@@ -37,7 +37,7 @@ module Node_Component_Hot_Halo_Very_Simple
   !#     <name>mass</name>
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of gas in the hot halo."/>
   !#   </property>
   !#   <property>
@@ -197,6 +197,7 @@ contains
             & call thisHotHaloComponent%          massRate(      massAccretionRate,interrupt,interruptProcedure)
        if (failedMassAccretionRate > 0.0d0 .or. thisHotHaloComponent%mass() > 0.0d0) &
             & call thisHotHaloComponent%unaccretedMassRate(failedMassAccretionRate,interrupt,interruptProcedure)
+
        ! Next compute the cooling rate in this halo.
        call Node_Component_Hot_Halo_Very_Simple_Cooling_Rate         (thisNode                                         )
        ! Pipe the cooling rate to which ever component claimed it.
@@ -247,7 +248,7 @@ contains
     class           (accretionHaloClass  )               , pointer :: accretionHalo_
     class           (nodeEvent           )               , pointer :: event
     double precision                                               :: hotHaloMass            , failedHotHaloMass
-
+    
     ! If the very simple hot halo is not active, then return immediately.
     if (associated(thisNode%firstChild).or..not.defaultHotHaloComponent%verySimpleIsActive()) return
     ! Search for a subhalo promotion events associated with this node.
@@ -276,7 +277,7 @@ contains
        accretionHalo_ => accretionHalo()
        ! Get the mass of hot gas accreted and the mass that failed to accrete.
        hotHaloMass      =accretionHalo_%accretedMass      (thisNode,accretionModeTotal)
-       failedHotHaloMass=accretionHalo_%failedAccretedMass(thisNode,accretionModeTotal)
+       failedHotHaloMass=accretionHalo_%failedAccretedMass(thisNode,accretionModeTotal)       
        ! If either is non-zero, then create a hot halo component and add these masses to it.
        if (hotHaloMass > 0.0d0 .or. failedHotHaloMass > 0.0d0) then
           call Node_Component_Hot_Halo_Very_Simple_Create(thisNode)
@@ -305,8 +306,8 @@ contains
     class is (nodeComponentHotHaloVerySimple)
 
        ! Find the node to merge with.
-       hostNode             => thisNode%mergesWith()
-       hostHotHaloComponent => hostNode%hotHalo   ()
+       hostNode             => thisNode%mergesWith(                 )
+       hostHotHaloComponent => hostNode%hotHalo   (autoCreate=.true.)
 
        ! Move the hot halo to the host.
        call hostHotHaloComponent%                    massSet(                                                 &
@@ -338,7 +339,7 @@ contains
     class is (nodeComponentHotHaloVerySimple)
        ! Get the parent node of this node.
        parentNode             => thisNode  %parent
-       parentHotHaloComponent => parentNode%hotHalo()
+       parentHotHaloComponent => parentNode%hotHalo(autoCreate=.true.)
        ! If the parent node has a hot halo component, then add it to that of this node, and perform other changes needed prior to
        ! promotion.
        select type (parentHotHaloComponent)
@@ -377,7 +378,7 @@ contains
           do while (parentNode%isSatellite())
              parentNode => parentNode%parent
           end do
-          parentHotHaloComponent => parentNode%hotHalo()
+          parentHotHaloComponent => parentNode%hotHalo(autoCreate=.true.)
           call parentHotHaloComponent%massSet(parentHotHaloComponent%mass()+thisHotHaloComponent%mass())
           call   thisHotHaloComponent%massSet(                                                    0.0d0)
        end if
@@ -401,7 +402,7 @@ contains
     class is (nodeComponentHotHaloVerySimple)
        ! Find the parent node and its hot halo component.
        parentNode => thisNode%parent
-       parentHotHaloComponent => parentNode%hotHalo()
+       parentHotHaloComponent => parentNode%hotHalo(autoCreate=.true.)
        ! Any gas that failed to be accreted by this halo is always transferred to the parent.
        call parentHotHaloComponent%unaccretedMassSet(parentHotHaloComponent%unaccretedMass()+thisHotHaloComponent%unaccretedMass())
        call   thisHotHaloComponent%unaccretedMassSet(                                                                        0.0d0)

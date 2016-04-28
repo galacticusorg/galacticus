@@ -594,9 +594,9 @@ contains
        ! Get required objects.
        darkMatterHaloScale_ => darkMatterHaloScale()
        ! Find the node with which to merge.
-       hostNode    => thisNode%mergesWith()
-       hostHotHalo => hostNode%hotHalo   ()
-       hostSpin    => hostNode%spin      ()
+       hostNode    => thisNode%mergesWith(                 )
+       hostHotHalo => hostNode%hotHalo   (autoCreate=.true.)
+       hostSpin    => hostNode%spin      (                 )
        ! Move the cold mode to the host.
        call hostHotHalo%               massSet(                                               &
             &                                   hostHotHalo%mass                   (        ) &
@@ -646,7 +646,7 @@ contains
     class is (nodeComponentHotHaloColdMode)
        ! Get the parent node of this node and its hot halo component.
        parentNode    => thisNode  %parent
-       parentHotHalo => parentNode%hotHalo()
+       parentHotHalo => parentNode%hotHalo(autoCreate=.true.)
        ! If the parent node has a hot halo component, then add its cold mode to that of this node,
        ! and perform other changes needed prior to promotion.
        select type (parentHotHalo)
