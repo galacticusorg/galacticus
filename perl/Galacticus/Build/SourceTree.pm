@@ -53,6 +53,27 @@ sub ParseFile {
     return $tree;
 }
 
+sub ParseCode {
+    # Grab the source to parse.
+    my $code     = shift();
+    my $fileName = shift();
+    # Initialize root object.
+    (my $fileRootName = $fileName) =~ s/^.*\/([^\/]+)$/$1/;
+    my $tree =
+    {
+	type       => "file"       ,
+	name       => $fileRootName,
+	content    => $code        ,
+	parent     => undef()      ,
+	firstChild => undef()      ,
+	sibling    => undef()      ,
+	source     => $fileName    ,
+	line       => 0
+    };
+    &BuildTree($tree);
+    return $tree;
+}
+
 sub BuildTree {
     # Get the root of the tree;
     my $tree = shift();
