@@ -152,7 +152,7 @@ $(BUILDPATH)/pFq/pfq.new.o : ./source/pFq/pfq.new.f Makefile
 # Rule for running *.Inc files through the preprocessor. We strip out single quote characters in comment lines to avoid spurious
 # complaints from the preprocessor.
 $(BUILDPATH)/%.Inc : ./source/%.Inc
-	cp -f ./source/$*.Inc $(BUILDPATH)/$*.Inc
+	scripts/build/preprocess.pl ./source/$*.Inc $(BUILDPATH)/$*.Inc
 $(BUILDPATH)/%.inc : $(BUILDPATH)/%.Inc Makefile
 	perl -MRegexp::Common -ne '$$l=$$_;if ( $$l =~ m/($$RE{comment}{Fortran})/ ) {($$m = $$1) =~ s/(?<!\\)'\''//g; $$l =~ s/$$RE{comment}{Fortran}/$$m/}; print $$l' $< | $(PREPROCESSOR) -nostdinc -C -o $(BUILDPATH)/$*.tmp
 	mv -f $(BUILDPATH)/$*.tmp $(BUILDPATH)/$*.inc
@@ -269,7 +269,7 @@ mfiles := $(patsubst source/%.F90,$(BUILDPATH)/%.m,$(wildcard source/*.F90))
 $(BUILDPATH)/utility.input_parameters.unique_labels.inc:
 	@touch $(BUILDPATH)/utility.input_parameters.unique_labels.inc
 $(BUILDPATH)/utility.input_parameters.unique_labels.visibilities.inc: $(dfiles) $(mfiles)
-	scripts/build/Make_Unique_Label_Functions.pl `pwd`
+	./scripts/build/Make_Unique_Label_Functions.pl `pwd`
 
 # Rules for changeset creation.
 Galacticus.exe: $(BUILDPATH)/galacticus.hg.patch $(BUILDPATH)/galacticus.hg.bundle
