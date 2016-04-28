@@ -128,7 +128,7 @@ foreach my $parameter ( @treeConstructParameters ) {
     }
     $thisParameter->{'value'} = $parameter->{'value'}
 }
-# Remove any analyses/
+# Remove any analyses.
 delete($newParameters->{'mergerTreeAnalyses'})
     if ( exists($newParameters->{'mergerTreeAnalyses'}) );
 # Set output file name.
