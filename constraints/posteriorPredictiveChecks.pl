@@ -14,6 +14,7 @@ use PDL;
 use PDL::NiceSlice;
 use PDL::LinearAlgebra;
 use PDL::MatrixOps;
+use PDL::IO::HDF5;
 use Data::Dumper;
 use UNIVERSAL;
 require Galacticus::Constraints::Parameters;
@@ -50,12 +51,12 @@ while ( $iArg < $#ARGV ) {
 my $config = &Parameters::Parse_Config($configFile);
 
 # Validate the config file.
-die("posteriorPredictiveChecks.pl: workDirectory must be specified in config file" ) unless ( exists($config->{'workDirectory' }) );
-die("posteriorPredictiveChecks.pl: compilation must be specified in config file"   ) unless ( exists($config->{'compilation'   }) );
-die("posteriorPredictiveChecks.pl: baseParameters must be specified in config file") unless ( exists($config->{'baseParameters'}) );
+die("posteriorPredictiveChecks.pl: workDirectory must be specified in config file" ) unless ( exists($config->{'likelihood'}->{'workDirectory' }) );
+die("posteriorPredictiveChecks.pl: compilation must be specified in config file"   ) unless ( exists($config->{'likelihood'}->{'compilation'   }) );
+die("posteriorPredictiveChecks.pl: baseParameters must be specified in config file") unless ( exists($config->{'likelihood'}->{'baseParameters'}) );
 
 # Determine the work directory.
-my $workDirectory  = $config->{'workDirectory'};
+my $workDirectory  = $config->{'likelihood'}->{'workDirectory'};
 $arguments{'sampleDirectory'} = $workDirectory."/posteriorSample"
     unless ( exists($arguments{'sampleDirectory'}) );
 
@@ -64,13 +65,10 @@ my $compilationFile;
 if ( exists($arguments{'compilationOverride'}) ) {
     $compilationFile = $arguments{'compilationOverride'};
 } else {
-    $compilationFile = $config->{'compilation'};
+    $compilationFile = $config->{'likelihood'}->{'compilation'};
 }
-(my $constraintsRef, my $parameters) = &Parameters::Compilation($compilationFile,$config->{'baseParameters'});
+(my $constraintsRef, my $parameters) = &Parameters::Compilation($compilationFile,$config->{'likelihood'}->{'baseParameters'});
 my @constraints = @{$constraintsRef};
-
-# Set a random number seed.
-$parameters->{'randomSeed'}->{'value'} = int(rand(10000))+1;
 
 # Generate a sample of models.
 my $sampleCount = &Parameters::Sample_Models($config,\%arguments);
@@ -91,12 +89,12 @@ foreach my $constraint ( @constraints ) {
 	# Specify output directory.
 	my $modelDirectory = $arguments{'sampleDirectory'}."/".$i."/";
 	# Parse the results file.
-	my $resultFile         = $modelDirectory."/".$constraintDefinition->{'label'}.".xml";
-	my $results            = $xml->XMLin($resultFile);
-	my $y                  = pdl @{$results->{'y'             }};
-	$dataY                 = pdl @{$results->{'yData'         }};
-	my $dataCovarianceFlat = pdl @{$results->{'covarianceData'}};
-	my $covarianceFlat     = pdl @{$results->{'covariance'    }};
+	my $resultFile         = $modelDirectory."/".$constraintDefinition->{'label'}.".hdf5";
+	my $results            = new PDL::IO::HDF5($resultFile);
+	my $y                  = $results->dataset('y'             )->get();
+	$dataY                 = $results->dataset('yData'         )->get();
+	my $dataCovarianceFlat = $results->dataset('covarianceData')->get();
+	my $covarianceFlat     = $results->dataset('covariance'    )->get();
 	my $dataSize           = nelem($y);
 	my $covariance         = reshape($covarianceFlat    ,$dataSize,$dataSize);
 	$dataCovariance        = reshape($dataCovarianceFlat,$dataSize,$dataSize);
@@ -108,7 +106,7 @@ foreach my $constraint ( @constraints ) {
     my $meanY      = pdl zeroes(nelem($modelY[0]));
     my $covariance = pdl zeroes(nelem($modelY[0]),nelem($modelY[0]));
     for (my $i=0;$i<$sampleCount;++$i) {
-	$meanY      += $modelY[$i];
+	$meanY    += $modelY[$i];
     }
     $meanY /= scalar(@modelY);
     for (my $i=0;$i<$sampleCount;++$i) {
@@ -116,7 +114,16 @@ foreach my $constraint ( @constraints ) {
 	$covariance += outer($offset,$offset);
     }
     $covariance           /= $sampleCount-1;
-    (my $inverseCovariance, my $logCovarianceDeterminant) = &Covariances::SVDInvert($covariance);
+
+
+    my $inverseCovariance;
+    my $logCovarianceDeterminant;
+    if ( nelem($covariance) > 1 ) {
+	($inverseCovariance, $logCovarianceDeterminant) = &Covariances::SVDInvert($covariance);
+    } else {
+	$inverseCovariance        = minv($covariance);
+	$logCovarianceDeterminant = det($covariance);
+    }
     # Compute the test statistic.
     my $testStatistic = pdl [];
     for (my $i=0;$i<$sampleCount;++$i) {
@@ -187,7 +194,7 @@ foreach my $constraint ( @constraints ) {
     my $xMaximum = maximum($xAll);
     print $gnuPlot "set xrange [".$xMinimum.":".$xMaximum."]\n";
     print $gnuPlot "set yrange [-0.05:1.05]\n";
-    print $gnuPlot "set title 'Posterior predictive check test statistic for ".$constraint->{'name'}."'\n";
+    print $gnuPlot "set title 'Posterior predictive check test statistic for ".$constraintDefinition->{'name'}."'\n";
     print $gnuPlot "set xlabel '\$\\mathcal{T}\$ []'\n";
     print $gnuPlot "set ylabel 'Cumulative probability []'\n";
     print $gnuPlot "set arrow from first ".$testStatisticData.", 0.0 to first ".$testStatisticData.", 0.4 ls 1 lw 5 filled lc rgbcolor \"#3CB371\"\n";
