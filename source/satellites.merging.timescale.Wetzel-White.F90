@@ -32,28 +32,14 @@
      procedure :: timeUntilMerging => wetzelWhite2010TimeUntilMerging
   end type satelliteMergingTimescalesWetzelWhite2010
 
-  interface satelliteMergingTimescalesWetzelWhite2010
-     !% Constructors for the \cite{wetzel_what_2010} merging timescale class.
-     module procedure wetzelWhite2010DefaultConstructor
-  end interface satelliteMergingTimescalesWetzelWhite2010
-
 contains
-
-  function wetzelWhite2010DefaultConstructor()
-    !% Default constructor for the \cite{wetzel_what_2010} merging timescale class.
-    use Galacticus_Display
-    use Input_Parameters
-    implicit none
-    type(satelliteMergingTimescalesWetzelWhite2010) :: wetzelWhite2010DefaultConstructor
-
-    return
-  end function wetzelWhite2010DefaultConstructor
 
   elemental subroutine wetzelWhite2010Destructor(self)
     !% Default constructor for the \cite{wetzel_what_2010} merging timescale class.
     implicit none
     type(satelliteMergingTimescalesWetzelWhite2010), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     ! Nothing to do.
     return
   end subroutine wetzelWhite2010Destructor
@@ -73,7 +59,8 @@ contains
     class           (cosmologyFunctionsClass                  )               , pointer :: cosmologyFunctionsDefault
     double precision                                           , parameter              :: timeScaleNormalization   =0.2d0      !   C_dyn from Wetzel & White (2010).
     double precision                                                                    :: massRatio
-
+    !GCC$ attributes unused :: self
+    
     ! Get the default cosmology functions object.
     cosmologyFunctionsDefault => cosmologyFunctions()
     ! Find the host node.

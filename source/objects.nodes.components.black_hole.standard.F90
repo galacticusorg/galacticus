@@ -490,6 +490,7 @@ contains
        ! Loop over black holes, testing for triple black hole interactions. Find the three closest black holes then check if a
        ! three body interaction occurs using the radial condition derived in Hoffman and Loeb (2007).
        binaryRadiusFound=.false.
+       binaryRadius     =huge(1.0d0)
        if (tripleBlackHoleInteraction) then
           if (instanceCount >= 3 .and. centralBlackHoleComponent%mass() > 0.0d0) then
              do iInstance=2,instanceCount
@@ -1049,6 +1050,7 @@ contains
     character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
          &                                                              integerPropertyComments, integerPropertyNames
     double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+    !GCC$ attributes unused :: time
 
     if (Node_Component_Black_Hole_Standard_Matches(thisNode)) then
        !@ <outputPropertyGroup>
@@ -1125,6 +1127,7 @@ contains
     double precision          , intent(in   )          :: time
     integer                   , intent(inout)          :: doublePropertyCount  , integerPropertyCount
     integer                   , parameter              :: extraPropertyCount =3
+    !GCC$ attributes unused :: time
 
     if (Node_Component_Black_Hole_Standard_Matches(thisNode)) then
        integerPropertyCount=integerPropertyCount+1
@@ -1151,7 +1154,8 @@ contains
     double precision                        , intent(inout)          :: doubleBuffer          (:,:)
     class           (nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent
     double precision                                                 :: accretionRateHotHalo       , accretionRateSpheroid, restMassAccretionRate
-
+    !GCC$ attributes unused :: time
+    
     if (Node_Component_Black_Hole_Standard_Matches(thisNode)) then
        ! Store the properties.
        if (blackHoleOutputAccretion) then

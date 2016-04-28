@@ -49,6 +49,7 @@ subroutine universeRemoveEvent(self,event)
   type   (universeEvent), pointer       :: lastEvent, nextEvent, thisEvent
   
   ! Destroy the event.
+  lastEvent => null()
   thisEvent => self%event
   do while (associated(thisEvent))
      ! Match the event.

@@ -30,27 +30,16 @@
      procedure :: completeness => completeCompleteness
   end type massFunctionIncompletenessComplete
 
-  interface massFunctionIncompletenessComplete
-     !% Constructors for the ``complete'' incompleteness class.
-     module procedure completeDefaultConstructor
-  end interface massFunctionIncompletenessComplete
-
 contains
-
-  function completeDefaultConstructor()
-    !% Default constructor for the ``complete'' incompleteness class.
-    implicit none
-    type(massFunctionIncompletenessComplete) :: completeDefaultConstructor
-
-   return
-  end function completeDefaultConstructor
 
   subroutine completeDestructor(self)
     !% Destructor for the ``complete'' incompleteness class.
      use Gaussian_Random
      implicit none
      type(massFunctionIncompletenessComplete), intent(inout) :: self
-    return
+     !GCC$ attributes unused :: self
+
+     return
   end subroutine completeDestructor
 
   double precision function completeCompleteness(self,mass)
@@ -58,6 +47,7 @@ contains
     implicit none
     class           (massFunctionIncompletenessComplete), intent(inout) :: self
     double precision                                    , intent(in   ) :: mass
+    !GCC$ attributes unused :: self, mass
 
     completeCompleteness=1.0d0
     return
