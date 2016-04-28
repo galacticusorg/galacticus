@@ -68,7 +68,7 @@ $xScale = $arguments{'xScale'}
     if ( exists($arguments{'xScale'}) );
 my $xLabel = "x";
 $xLabel = $arguments{'xLabel'}
-    if ( exists($arguments{'xLabel'}) );
+if ( exists($arguments{'xLabel'}) );
 my $yScale = "linear";
 $yScale = $arguments{'yScale'}
     if ( exists($arguments{'yScale'}) );
@@ -130,19 +130,19 @@ foreach my $parameter ( @{$config->{'parameters'}->{'parameter'}} ) {
 }
 
 # Find which columns to plot.
-my $xColumn = 5;
-my $yColumn = 6;
+my $xColumn = 6;
+my $yColumn = 7;
 my $dimensions = 1;
 if ( exists($arguments{'xProperty'}) ) {
     for(my $i=0;$i<scalar(@properties);++$i) {
-	$xColumn = $i+5
+	$xColumn = $i+6
 	    if ( $properties[$i] eq $arguments{'xProperty'} );
     } 
- }
+}
 if ( exists($arguments{'yProperty'}) ) {
     $dimensions = 2;
     for(my $i=0;$i<scalar(@properties);++$i) {
-	$yColumn = $i+5
+	$yColumn = $i+6
 	    if ( $properties[$i] eq $arguments{'yProperty'} );
     } 
 }
@@ -156,7 +156,7 @@ if ( exists($arguments{'range'}) ) {
 }
 
 # Extract only converged entries and entries within a given range if necessary.
-my $kdeFileName = $workDirectory."/tmp.kde";
+my $kdeFileName = $plotFile.".tmp.kde";
 my @outlierChains;
 @outlierChains = split(/,/,$arguments{'outliers'})
     if ( exists($arguments{'outliers'}) );
@@ -180,7 +180,7 @@ for(my $iChain=0; -e $fileRoot."_".sprintf("%4.4d",$iChain).".log";++$iChain) {
 	my @columns = split(/\s+/,$lineCopy);
 	my $include = 1;
 	$include = 0
-	    if ( $columns[3] eq "F" );
+	    if ( $columns[3] eq "F" && ( ! exists($arguments{'useUnconverged'}) || $arguments{'useUnconverged'} eq "no" ) );
 	if ( exists($arguments{'range'}) ) {
 	    foreach my $range ( @{$arguments{'range'}} ) {
 		$include = 0
@@ -209,16 +209,15 @@ $command .= " ".$yColumn
     if ( $dimensions == 2 );
 $command .= " --ngood=".$arguments{'ngood'}
     if ( exists($arguments{'ngood'}) );
-$command .= " --ngrid=".$nGrid." --output=".$workDirectory."/kde.txt";
+$command .= " --ngrid=".$nGrid." --output=".$plotFile.".kde";
 system($command);
-unlink($kdeFileName)
-    if ( exists($arguments{'range'}) );
+unlink($kdeFileName);
 
 # Read the file.
 my $x = pdl [];
 my $y = pdl [];
 my $p = pdl [];
-open(iHndl,$workDirectory."/kde.txt");
+open(iHndl,$plotFile.".kde");
 while ( my $line = <iHndl> ) {
     chomp($line);
     my @columns = split(/\s+/,$line);
@@ -258,7 +257,7 @@ my $pMax = 1.02*$p->max();
 my $pMaxShort = $pMax*0.9;
 
 # Remove temporary file.
-unlink($workDirectory."/kde.txt");
+unlink($plotFile.".kde");
 
 # Plot the posterior.
 # Make plot of redshift evolution.
@@ -358,7 +357,7 @@ if ( $dimensions == 1 ) {
 } else {
     # Generate confidence contours.
     open(ppHndl,"|gnuplot");
-    print ppHndl "set table 'contour.dat'\n";
+    print ppHndl "set table '".$plotFile.".contour.dat'\n";
     print ppHndl "unset surface\n";
     print ppHndl "set contour base; set cntrparam levels discrete ".join(",",$levels->list())."\n";
     print ppHndl "splot '-'\n";
@@ -374,14 +373,14 @@ if ( $dimensions == 1 ) {
     print ppHndl "e\n";
     print ppHndl "unset table\n";
     close(ppHndl);
-    system("awk \"NF<2{printf\\\"\\n\\\"}{print}\" <contour.dat >contour1.dat");
+    system("awk \"NF<2{printf\\\"\\n\\\"}{print}\" <".$plotFile.".contour.dat >".$plotFile.".contour1.dat");
     print $gnuPlot "set pm3d map\n";
     print $gnuPlot "set pm3d explicit\n";
     print $gnuPlot "set pm3d corners2color c1\n";
     print $gnuPlot "set palette rgbformulae 21,22,23 negative\n";
     print $gnuPlot "set log cb\n"
 	if ( $zScale eq "log" );
-    print $gnuPlot "splot '-' with pm3d notitle, 'contour1.dat' with line lt -1 lc rgbcolor \"#FF44FF\" notitle\n";
+    print $gnuPlot "splot '-' with pm3d notitle, '".$plotFile.".contour1.dat' with line lt -1 lc rgbcolor \"#FF44FF\" notitle\n";
     $k = -1;
     for(my $i=0;$i<$nGrid;++$i) {
 	for(my $j=0;$j<$nGrid;++$j) {
@@ -413,7 +412,7 @@ if ( $dimensions == 1 ) {
     }
 }
 close($gnuPlot);
-unlink("contour.dat","contour1.dat");
+unlink($plotFile.".contour.dat",$plotFile.".contour1.dat");
 &LaTeX::GnuPlot2PDF($plotFileEPS, margin => -1);
 
 exit;

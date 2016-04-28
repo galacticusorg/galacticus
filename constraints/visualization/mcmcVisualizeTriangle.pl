@@ -11,6 +11,7 @@ use strict;
 use warnings;
 use Data::Dumper;
 use XML::Simple;
+require Galacticus::Launch::PBS;
 
 # Visualize the posterior distribution from MCMC chains using a triangle arrangement.
 # Andrew Benson (12-June-2012)
@@ -92,6 +93,8 @@ my $ngrid = 50;
 $ngrid = $arguments{'ngrid'}
     if ( exists( $arguments{'ngrid'}) );
 my $options = " --title none --ngood ".$ngood." --ngrid ".$ngrid;
+$options .= " --useUnconverged ".$arguments{'useUnconverged'}
+   if ( exists($arguments{'useUnconverged'}) );
 
 # Open the config file and parse the available parameter names.
 my $xml    = new XML::Simple;
@@ -124,6 +127,7 @@ if ( exists($arguments{'range'}) ) {
 }
 
 # Loop over parameters.
+my @pbsStack;
 my $standardWidth;
 my $standardHeight;
 for(my $i=0;$i<scalar(@properties);++$i) {
@@ -137,8 +141,22 @@ for(my $i=0;$i<scalar(@properties);++$i) {
 	    $command .= " --range ".$range;
 	}
     }
-    system($command)
-	unless ( -e $outputFileName."_".$i.".pdf" );
+    # Create PBS job.
+    unless ( -e $outputFileName."_".$i.".pdf" ) {	
+	my %job =
+	    (
+	     launchFile => $outputFileName."_".$i.".pbs",
+	     label      => "triangle",
+	     logFile    => $outputFileName."_".$i.".log",
+	     command    => $command,
+	     ppn        => 1
+	    );
+	foreach ( 'walltime', 'memory' ) {
+	    $job{$_} = $arguments{$_}
+	    if ( exists($arguments{$_}) );
+	}
+	push(@pbsStack,\%job);
+    }
     if ( $i < scalar(@properties)-1 ) { 
 	for(my $j=$i+1;$j<scalar(@properties);++$j) {
 	    my $command = "constraints/visualization/mcmcVisualize.pl ".$fileRoot." ".$configFileName." --workDirectory ".$workDirectory." --yProperty '".$properties[$i]->{'name'}."' --yScale ".$properties[$i]->{'scaling'}." --xProperty '".$properties[$j]->{'name'}."' --xScale ".$properties[$j]->{'scaling'}." --textSize ".$textSize." --labelStyle ".$labelStyle." --output ".$outputFileName."_".$i."_".$j.".pdf --data ".$outputFileName."_".$i."_".$j.".xml ".$options;
@@ -151,21 +169,37 @@ for(my $i=0;$i<scalar(@properties);++$i) {
 	    } else {
 		$command .= " --labels none --colorbox 0";
 	    }
-	    system($command)
-		unless ( -e $outputFileName."_".$i."_".$j.".pdf" );
-	    if ( $i == 0 && $j == 1 ) {
-		open(iHndl,"pdfinfo ".$outputFileName."_".$i."_".$j.".pdf|");
-		while ( my $line = <iHndl> ) {
-		    if ( $line =~ m/Page size:\s*(\d+)\s*x\s*(\d+)\s*pts/ ) {
-			$standardWidth  = $1;
-			$standardHeight = $2;
-		    }		    
+	    # Create PBS job.
+	    unless ( -e $outputFileName."_".$i."_".$j.".pdf" ) {
+	    	my %job =
+		    (
+		     launchFile => $outputFileName."_".$i.".pbs",
+		     label      => "triangle",
+		     logFile    => $outputFileName."_".$i.".log",
+		     command    => $command,
+		     ppn        => 1
+		    );
+		foreach ( 'walltime', 'memory' ) {
+		    $job{$_} = $arguments{$_}
+		    if ( exists($arguments{$_}) );
 		}
-		close(iHndl);
+		push(@pbsStack,\%job);
 	    }
 	}
     }
 }
+# Send jobs to PBS.
+&PBS::SubmitJobs(\%arguments,@pbsStack);
+
+# Get output size.
+open(iHndl,"pdfinfo ".$outputFileName."_0_1.pdf|");
+while ( my $line = <iHndl> ) {
+    if ( $line =~ m/Page size:\s*(\d+)\s*x\s*(\d+)\s*pts/ ) {
+	$standardWidth  = $1;
+	$standardHeight = $2;
+    }		    
+}
+close(iHndl);
 
 # Open output file.
 open(oHndl,">".$outputFileName.".tex");
@@ -173,6 +207,9 @@ print oHndl "\\renewcommand{\\arraystretch}{0}\n";
 print oHndl "\\begin{tabular}{".("l\@{}" x scalar(@properties))."}\n";
 
 # Loop over parameters.
+my $outputDirectoryName = `dirname  $outputFileName`;
+my $outputBaseName      = `basename $outputFileName`;
+print oHdl "\\newcommand{triangledir}{".$outputDirectoryName."}";
 for(my $i=0;$i<scalar(@properties);++$i) {
     print oHndl ("&" x $i);
     my $width;
@@ -193,7 +230,7 @@ for(my $i=0;$i<scalar(@properties);++$i) {
     print oHndl "\\vspace{-".$shiftVertical."pt}";
     if ( $i < scalar(@properties)-1 ) { 
 	for(my $j=$i+1;$j<scalar(@properties);++$j) {
-	    print oHndl "&\\raisebox{".$shiftVertical."pt}{\\includegraphics[scale=".$scale."]{".$outputFileName."_".$i."_".$j.".pdf}}";
+	    print oHndl "&\\raisebox{".$shiftVertical."pt}{\\includegraphics[scale=".$scale."]{\triangledir/".$outputBaseName."_".$i."_".$j.".pdf}}";
 	}
     }
     print oHndl "\\\\\n";
