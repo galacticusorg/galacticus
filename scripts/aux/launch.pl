@@ -308,7 +308,7 @@ sub Create_Parameter_Hashes {
 	    my $nodeArray = pop(@stack);
 	    # Iterate over nodes.
 	    foreach my $node ( @{$nodeArray} ) {
-		if ( $node->{'values'}->[0]->{'value'} ) {
+		if ( exists($node->{'values'}->[0]->{'value'}) ) {
 		    my $value = $node->{'values'}->[0]->{'value'};
 		    $value =~ s/^\s*//;
 		    $value =~ s/\s*$//;
