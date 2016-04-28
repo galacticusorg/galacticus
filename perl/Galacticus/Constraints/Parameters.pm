@@ -22,6 +22,7 @@ use Clone qw(clone);
 use List::Util;
 use Storable;
 require List::ExtraUtils;
+require Galacticus::Launch::PBS;
 
 sub Parse_Config {
     # Get the config file name.
@@ -294,8 +295,8 @@ sub Convert_Parameters_To_Galacticus {
 
 sub Sample_Models {
     # Generate a sample of models from the posterior distribution.
-    my $config    = shift;
-    my %arguments = %{$_[0]};
+    my $config    =   shift() ;
+    my %arguments = %{shift()};
     # Find the work directory.
     my $workDirectory = $config->{'likelihood'}->{'workDirectory'};
     # Get a hash of the parameter values.
@@ -307,43 +308,53 @@ sub Sample_Models {
     }
     (my $constraintsRef, my $parameters) = &Parameters::Compilation($compilationFile,$config->{'likelihood'}->{'baseParameters'});
     my @constraints = @{$constraintsRef};
-    # Parse the statefile to find all parameter values sampled by the chains.
-    my @chainParameters;
-    open(iHndl,$workDirectory."/mcmc/galacticus.statelog");
-    while ( my $line = <iHndl> ) {
-	unless ( $line =~ m/^\"/ ) {
-	    $line =~ s/^\s*//;
-	    $line =~ s/\s*$//;
-	    my @columns = split(/\s+/,$line);
-	    push(@{$chainParameters[++$#chainParameters]},@columns[5..$#columns]);
-	}
+    # Determine number of chains.
+    my $logFileRoot = $config->{'simulation'}->{'logFileRoot'};
+    my $chainCount  = 0;
+    while () {
+	++$chainCount;
+	my $chainFileName = sprintf("%s_%4.4i.log",$logFileRoot,$chainCount);
+	last
+	unless ( -e $chainFileName );
     }
-    close(iHndl);   
-    # Select viable parameter sets.
+    print "Found ".$chainCount." chains\n";
+    # Build a list of outlier chains.
     my @outlierChains = split(/,/,$arguments{'outliers'});
-    my @chainParametersViable;
-    my $chainCount = 0;
-    die('this code needs reimplementing to figure out the number of chains used');
-    for(my $i=0;$i<scalar(@chainParameters);++$i) {
-	my $accept = 1;
-	$accept = 0
-	    if ( $arguments{'sampleFrom'} > 0 && $i < scalar(@chainParameters)-$arguments{'sampleFrom'} );
-	my $chainNumber = $i % $chainCount;
-	foreach ( @outlierChains ) {
-	    $accept = 0
-		if ( $chainNumber == $_ );
+    print scalar(@outlierChains) > 0 ? "Outlier chains are: ".join(", ",@outlierChains)."\n" : "No outlier chains\n";
+    # Parse the chains to find all parameter values sampled by the chains.
+    my @chainParameters;
+    for(my $i=0;$i<$chainCount;++$i) {
+	# Skip outlier chains.
+	next
+	    if ( grep {$_ eq $i} @outlierChains );
+	# Parse the chain file.
+	my $chainFileName = sprintf("%s_%4.4i.log",$logFileRoot,$i);
+	my $step = 0;
+	open(iHndl,$chainFileName);
+	while ( my $line = <iHndl> ) {
+	    unless ( $line =~ m/^\"/ ) {
+		++$step;
+		my @columns = split(" ",$line);
+		my $accept = 1;
+		# Skip unconverged states unless explicitly allowed.
+		$accept = 0
+		    if ( $columns[3] eq "F" && ( ! exists($arguments{'useUnconverged'}) || $arguments{'useUnconverged'} eq "no" ) );
+		# Skip chains before the given start point.
+		$accept = 0
+		    if ( exists($arguments{'sampleFrom'}) && $step < $arguments{'sampleFrom'} );
+		push(@{$chainParameters[++$#chainParameters]},@columns[6..$#columns])
+		    if ( $accept );
+	    }
 	}
-	push(@{$chainParametersViable[++$#chainParametersViable]},@{$chainParameters[$i]})
-	    if ( $accept == 1 );
     }
+    close(iHndl);
+    print "Found ".scalar(@chainParameters)." chain states\n";
     # Sample parameters.
-    $arguments{'sampleCount'} = scalar(@chainParametersViable)
+    $arguments{'sampleCount'} = scalar(@chainParameters)
 	if ( $arguments{'sampleCount'} < 0 );
-    my $sampleIndex = pdl long(scalar(@chainParametersViable)*random($arguments{'sampleCount'}));
+    my $sampleIndex = pdl long(scalar(@chainParameters)*random($arguments{'sampleCount'}));
     # Run model for each sample.
-    my $sampleDirectory = $workDirectory."/posteriorSampleModels/";
-    $sampleDirectory = $arguments{'sampleDirectory'}."/"
-       if ( exists($arguments{'sampleDirectory'}) );
+    my $sampleDirectory = exists($arguments{'sampleDirectory'}) ? $arguments{'sampleDirectory'}."/" : $workDirectory."/posteriorSampleModels/";
     my @pbsStack;
     for (my $i=0;$i<nelem($sampleIndex);++$i) {
 	# Create an output directory.
@@ -353,44 +364,48 @@ sub Sample_Models {
 	# Check if the model has already been run.
 	unless ( -e $galacticusFileName ) {
 	    # Convert these values into a parameter array.
-	    my $j = $sampleIndex->(($i))->sclr();
+	    my $j             = $sampleIndex->(($i))->sclr();
 	    my $currentConfig = clone($config);
-	    my $newParameters = &Convert_Parameters_To_Galacticus($currentConfig,@{$chainParametersViable[$j]});    
+	    my $newParameters = &Convert_Parameters_To_Galacticus($currentConfig,@{$chainParameters[$j]});    
 	    # Increment the random number seed.
 	    $parameters->{'randomSeed'}->{'value'} += $config->{'likelihood'}->{'threads'};
 	    # Clone parameters.
 	    my $currentParameters = clone($parameters);
 	    # Apply to parameters.
-	    $currentParameters->{$_}->{'value'} = $newParameters->{$_}
-	       foreach ( keys(%{$newParameters}) );    
-	    # Apply any parameter overrides from the command line.
-	    foreach ( keys(%arguments) ) {
-		if ( $_ =~ m/^parameterOverride:(.+)/ ) {
-		    my $parameterName = $1;
-		    $currentParameters->{$parameterName}->{'value'} = $arguments{$_};
+	    for my $newParameterName ( keys(%{$newParameters}) ) {
+		my $parameter = $currentParameters;
+		foreach ( split(/\-\>/,$newParameterName) ) {
+		    $parameter->{$_}->{'value'} = undef()
+			unless ( exists($parameter->{$_}) );
+		    $parameter = $parameter->{$_};
+		}
+		$parameter->{'value'} = $newParameters->{$newParameterName};
+	    }
+	    # Apply any parameters from command line.
+	    foreach my $argument ( keys(%arguments) ) {
+		if ( $argument =~ m/^parameterOverride:(.*)/ ) {
+		    my @parametersSet = split(":",$1);
+		    my $parameter     = $currentParameters;
+		    foreach my $parameterSet ( @parametersSet ) {
+			if ( $parameterSet =~ m/([^\{]*)(\{{0,1}([^\}]*)\}{0,1})/ ) {
+			    my $parameterName  = $1;
+			    my $parameterValue = $3;
+			    $parameter->{$parameterName}->{'value'} = $parameterValue
+				if ( defined($2) );
+			    $parameter = $parameter->{$parameterName};
+			} else {
+			    die("malformed parameter definition");
+			}
+		    }
+		    $parameter->{'value'} = $arguments{$argument};
 		}
 	    }
 	    # Specify the output file name.
 	    $currentParameters->{'galacticusOutputFileName'}->{'value'} = $galacticusFileName;
 	    # Write the modified parameters to file.
 	    &Output($currentParameters,$modelDirectory."parameters.xml");
-	    # Create a batch script for PBS.
-	    my $batchScriptFileName = $modelDirectory."/launch.pbs";
-	    open(oHndl,">".$batchScriptFileName);
-	    print oHndl "#!/bin/bash\n";
-	    print oHndl "#PBS -N ".$config->{'likelihood'}->{'name'}."_ppc".$i."\n";
-	    print oHndl "#PBS -l walltime=".$config->{'likelihood'}->{'walltimeLimit'}."\n"
-		if ( exists($config->{'likelihood'}->{'walltimeLimit'}) );
-	    print oHndl "#PBS -l mem=".$config->{'likelihood'}->{'memoryLimit'}."\n"
-		if ( exists($config->{'likelihood'}->{'memoryLimit'}) );
-	    my $threads = 1;
-	    $threads = $config->{'likelihood'}->{'threads'}
-	    if ( exists($config->{'likelihood'}->{'threads'}) );
-	    print oHndl "#PBS -l nodes=1:ppn=".$threads."\n";
-	    print oHndl "#PBS -j oe\n";
-	    print oHndl "#PBS -o ".$modelDirectory."/launch.log\n";
-	    print oHndl "#PBS -V\n";
-	    print oHndl "cd \$PBS_O_WORKDIR\n";
+	    # Construct the tasks to perform.
+	    my $command;
 	    if ( exists($config->{'likelihood'}->{'environment'}) ) {
 		my @environment;
 		if ( UNIVERSAL::isa($config->{'likelihood'}->{'environment'},"ARRAY") ) {
@@ -399,13 +414,13 @@ sub Sample_Models {
 		    push(@environment,  $config->{'likelihood'}->{'environment'} );
 		}
 		foreach ( @environment ) {
-		    print oHndl "export ".$_."\n";
+		    $command .= "export ".$_."\n";
 		}
 	    }
-	    print oHndl "ulimit -t unlimited\n";
-	    print oHndl "ulimit -c unlimited\n";
-	    print oHndl "export OMP_NUM_THREADS=".$config->{'likelihood'}->{'threads'}."\n";
-	    print oHndl "mpirun --bynode -np 1 Galacticus.exe ".$modelDirectory."parameters.xml\n";
+	    $command .= "ulimit -t unlimited\n";
+	    $command .= "ulimit -c unlimited\n";
+	    $command .= "export OMP_NUM_THREADS=".$config->{'likelihood'}->{'threads'}."\n";
+	    $command .= "mpirun --bynode -np 1 Galacticus.exe ".$modelDirectory."parameters.xml\n";
 	    foreach my $constraint ( @constraints ) {
 		# Parse the definition file.
 		my $xml = new XML::Simple;
@@ -413,67 +428,107 @@ sub Sample_Models {
 		# Insert code to run the analysis code.
 		my $analysisCode = $constraintDefinition->{'analysis'};
 		(my $plotLabel = $constraintDefinition->{'label'}) =~ s/\./_/g;
-		print oHndl $analysisCode." ".$galacticusFileName." --resultFile ".$modelDirectory."/".$constraintDefinition->{'label'}.".xml --plotFile ".$modelDirectory."/".$plotLabel.".pdf --outputFile ".$modelDirectory."/".$constraintDefinition->{'label'}."Likelihood.xml --modelDiscrepancies ".$workDirectory."/modelDiscrepancy\n";
+		$command .= $analysisCode." ".$galacticusFileName." --resultFile ".$modelDirectory."/".$constraintDefinition->{'label'}.".hdf5 --plotFile ".$modelDirectory."/".$plotLabel.".pdf --outputFile ".$modelDirectory."/".$constraintDefinition->{'label'}."Likelihood.xml --modelDiscrepancies ".$workDirectory."/modelDiscrepancy\n";
 	    }
-	    close(oHndl);
-	    # Queue the calculation.
-	    push(
-		@pbsStack,
-		$batchScriptFileName
+	    # Create a PBS job.
+	    my %job =
+		(
+		 launchFile => $modelDirectory."/launch.pbs",
+		 label      => $config->{'likelihood'}->{'name'}."_ppc".$i,
+		 logFile    => $modelDirectory."/launch.log",
+		 command    => $command
 		);
+	    foreach ( 'ppn', 'walltime', 'memory' ) {
+		$job{$_} = $arguments{$_}
+		if ( exists($arguments{$_}) );
+	    }
+	    # Queue the calculation.
+	    push(@pbsStack,\%job);
 	}
-    }
+    }    
     # Send jobs to PBS.
-    my $jobMaximum = 10;
-    $jobMaximum = $arguments{'pbsJobMaximum'}
-        if ( exists($arguments{'pbsJobMaximum'}) );
-    &PBS_Submit($jobMaximum,@pbsStack)
-	if ( scalar(@pbsStack) > 0 );
+    &PBS::SubmitJobs(\%arguments,@pbsStack)
+     	if ( scalar(@pbsStack) > 0 );
     # Return the number of models sampled.
     return nelem($sampleIndex);
 }
 
-sub PBS_Submit {
-    # Submit jobs to PBS and wait for them to finish.
-    my $jobMaximum = shift;
-    my @pbsStack   = @_;
-    my %pbsJobs;
-    # Submit jobs and wait.
-    print "Waiting for PBS jobs to finish...\n";
-    while ( scalar(keys %pbsJobs) > 0 || scalar(@pbsStack) > 0 ) {
-	# Find all PBS jobs that are running.
-	my %runningPBSJobs;
-	undef(%runningPBSJobs);
-	open(pHndl,"qstat -f|");
-	while ( my $line = <pHndl> ) {
-	    if ( $line =~ m/^Job\sId:\s+(\S+)/ ) {$runningPBSJobs{$1} = 1};
-	}
-	close(pHndl);
-	foreach my $jobID ( keys(%pbsJobs) ) {
-	    unless ( exists($runningPBSJobs{$jobID}) ) {
-		print "PBS job ".$jobID." has finished.\n";
-		# Remove the job ID from the list of active PBS jobs.
-		delete($pbsJobs{$jobID});
+sub Maximum_Likelihood_Parameters {
+    my $config    =   shift() ;
+    my %arguments = %{shift()};
+    # Get a hash of the parameter values.
+    (my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'likelihood'}->{'compilation'},$config->{'likelihood'}->{'baseParameters'});
+   # Determine the MCMC directory.
+    my $logFileRoot = $config->{'simulation'}->{'logFileRoot'};
+    (my $mcmcDirectory  = $logFileRoot) =~ s/\/[^\/]+$//;    
+    # Determine number of chains.
+    my $chainCount = 0;
+    while () {
+	++$chainCount;
+	my $chainFileName = sprintf("%s_%4.4i.log",$logFileRoot,$chainCount);
+	last
+	    unless ( -e $chainFileName );
+    }
+    # Parse the chains to find the maximum likelihood model.
+    my $maximumLikelihood = -1e30;
+    my @maximumLikelihoodParameters;
+    for(my $i=0;$i<$chainCount;++$i) {
+	next
+	    unless
+	    (
+	     $arguments{'chain'} eq "all"
+	     ||
+	     $arguments{'chain'} == $i
+	    );
+	open(iHndl,sprintf("%s_%4.4i.log",$logFileRoot,$i));
+	while ( my $line = <iHndl> ) {
+	unless ( $line =~ m/^\"/ ) {
+	    $line =~ s/^\s*//;
+	    $line =~ s/\s*$//;
+	    my @columns = split(/\s+/,$line);
+	    if ( $columns[4] > $maximumLikelihood ) {
+		$maximumLikelihood           = $columns[4];
+		@maximumLikelihoodParameters = @columns[6..$#columns];
 	    }
 	}
-	# If fewer than the maximum number of jobs are in the queue, pop one off the stack.
-	if ( scalar(@pbsStack) > 0 && scalar(keys %pbsJobs) < $jobMaximum ) {
-	    my $batchScript = pop(@pbsStack);
-	    # Submit the PBS job.
-	    open(pHndl,"qsub ".$batchScript."|");
-	    my $jobID = "";
-	    while ( my $line = <pHndl> ) {
-	    	if ( $line =~ m/^(\d+\S+)/ ) {$jobID = $1};
+	}
+	close(iHndl);
+    }
+    # Convert these values into a parameter array.
+    my $newParameters = &Parameters::Convert_Parameters_To_Galacticus($config,@maximumLikelihoodParameters);
+    # Apply to parameters.
+    for my $newParameterName ( keys(%{$newParameters}) ) {
+	my $parameter = $parameters;
+	foreach ( split(/\-\>/,$newParameterName) ) {
+	    $parameter->{$_}->{'value'} = undef()
+		unless ( exists($parameter->{$_}) );
+	    $parameter = $parameter->{$_};
+	}
+	$parameter->{'value'} = $newParameters->{$newParameterName};
+    }
+    return $parameters;
+}
+
+sub Apply_Command_Line_Parameters {
+    my $parameters =   shift() ;
+    my %arguments  = %{shift()};
+    # Apply any parameters from command line.
+    foreach my $argument ( keys(%arguments) ) {
+	if ( $argument =~ m/^parameter:(.*)/ ) {
+	    my @parametersSet = split(":",$1);
+	    my $parameter     = $parameters;
+	    foreach my $parameterSet ( @parametersSet ) {
+		if ( $parameterSet =~ m/([^\{]*)(\{{0,1}([^\}]*)\}{0,1})/ ) {
+		    my $parameterName  = $1;
+		    my $parameterValue = $3;
+		    $parameter->{$parameterName}->{'value'} = $parameterValue
+			if ( defined($2) );
+		    $parameter = $parameter->{$parameterName};
+		} else {
+		    die("malformed parameter definition");
+		}
 	    }
-	    close(pHndl);	    
-	    # Add the job number to the active job hash.
-	    unless ( $jobID eq "" ) {
-	    	$pbsJobs{$jobID} = 1;
-	    }
-	    sleep 1;
-	} else {
-	    # Wait.
-	    sleep 5;
+	    $parameter->{'value'} = $arguments{$argument};
 	}
     }
 }
