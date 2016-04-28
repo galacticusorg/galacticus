@@ -239,9 +239,18 @@ sub Construct {
     if ( exists($arguments{'outputFile'}) ) {
 	my $constraint;
 	$constraint->{'label'} = $config->{'analysisLabel'};
+	# Find zero elements in the observed mass function.
+	my $nonZeroObserved = which($config->{'y'} > 1.0e-30);
+	# Scale the errors on the model mass functions to what they would be if we had a perfect match to the data. This prevents
+	# high likelihoods for cases where the model vastly exceeds the data (in which case its covariance will also be far too
+	# large).
+	my $zeroModel                              = which($yGalacticus <= 1.0e-30);
+	my $modelCovarianceScale                   = pdl ones($yGalacticus);
+	$modelCovarianceScale->($nonZeroObserved) .= $yGalacticus->($nonZeroObserved)/$config->{'y'}->($nonZeroObserved);
+	$modelCovarianceScale->($zeroModel      ) .= 1.0;
 	# Construct the full covariance matrix, which is the covariance matrix of the observations
-	# plus that of the model.
-	my $fullCovariance        = $config->{'covariance'}+$covarianceGalacticus;
+	# plus that of the model (scaled).
+	my $fullCovariance        = $config->{'covariance'}+$covarianceGalacticus/outer($modelCovarianceScale,$modelCovarianceScale);
 	# If the range of masses over which to constrain is limited, set the model mass function outside of that range equal to
 	# the observed mass function.
 	my $yGalacticusLimited = $yGalacticus->copy();
@@ -255,8 +264,6 @@ sub Construct {
 	    $yGalacticusLimited->($noConstraint) .= $config->{'y'}->($noConstraint)
 		if ( nelem($noConstraint) > 0 );
 	}
-	# Handle zero elements in the observed mass function.
-	my $nonZeroObserved = which($config->{'y'} > 1.0e-30);
 	# If log-normal errors are requested, map y-values and covariances to logarithmic values.
 	my $yGalacticusMapped             ;
 	my $yDataMapped                   ;
