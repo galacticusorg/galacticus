@@ -34,7 +34,6 @@
   interface transferFunctionIdentity
      !% Constructors for the identity transfer function class.
      module procedure identityConstructorParameters
-     module procedure identityConstructorInternal
   end interface transferFunctionIdentity
 
 contains
@@ -50,15 +49,6 @@ contains
     identityConstructorParameters=transferFunctionIdentity()
     return
   end function identityConstructorParameters
-
-  function identityConstructorInternal()
-    !% Internal constructor for the identity transfer function class.
-    implicit none
-    type(transferFunctionIdentity) :: identityConstructorInternal
-
-    identityConstructorInternal=transferFunctionIdentity()
-    return
-  end function identityConstructorInternal
 
   elemental subroutine identityDestructor(self)
     !% Destructor for the identity transfer function class.

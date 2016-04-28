@@ -29,21 +29,7 @@
      procedure :: shape => gao2008Shape
   end type darkMatterProfileShapeGao2008
 
-  interface darkMatterProfileShapeGao2008
-     !% Constructors for the {\normalfont \ttfamily gao2008} dark matter halo profile shape parameter class.
-     module procedure gao2008DefaultConstructor
-  end interface darkMatterProfileShapeGao2008
-
 contains
-
-  function gao2008DefaultConstructor()
-    !% Default constructor for the {\normalfont \ttfamily gao2008} dark matter halo profile shape parameter class.
-    use Input_Parameters
-    implicit none
-    type(darkMatterProfileShapeGao2008), target :: gao2008DefaultConstructor
-
-    return
-  end function gao2008DefaultConstructor
   
   double precision function gao2008Shape(self,node)
     !% Return the Einasto profile shape parameter of the dark matter halo profile of {\normalfont \ttfamily node} using the
@@ -63,6 +49,7 @@ contains
     class           (cosmologicalMassVarianceClass)               , pointer :: cosmologicalMassVariance_
     class           (nodeComponentBasic           )               , pointer :: basic
     double precision                                                        :: nu
+    !GCC$ attributes unused :: self
     
     ! Get default objects.
     criticalOverdensity_      => criticalOverdensity     ()

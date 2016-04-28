@@ -32,7 +32,6 @@
   interface mergerTreeOperatorPruneClones
      !% Constructors for the clone pruning merger tree operator class.
      module procedure pruneClonesConstructorParameters
-     module procedure pruneClonesConstructorInternal
   end interface mergerTreeOperatorPruneClones
 
 contains
@@ -48,15 +47,6 @@ contains
     pruneClonesConstructorParameters=mergerTreeOperatorPruneClones()
     return
   end function pruneClonesConstructorParameters
-
-  function pruneClonesConstructorInternal()
-    !% Internal constructor for the clone pruning merger tree operator class.
-    implicit none
-    type(mergerTreeOperatorPruneClones) :: pruneClonesConstructorInternal
-
-    pruneClonesConstructorInternal=mergerTreeOperatorPruneClones()
-    return
-  end function pruneClonesConstructorInternal
 
   elemental subroutine pruneClonesDestructor(self)
     !% Destructor for the merger tree operator function class.

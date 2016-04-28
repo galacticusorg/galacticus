@@ -144,7 +144,9 @@ contains
      use Gaussian_Random
      implicit none
      type(massFunctionIncompletenessSurfaceBrightness), intent(inout) :: self
-    return
+     !GCC$ attributes unused :: self     
+     
+     return
   end subroutine surfaceBrightnessDestructor
 
   double precision function surfaceBrightnessSurfaceBrightnessness(self,mass)

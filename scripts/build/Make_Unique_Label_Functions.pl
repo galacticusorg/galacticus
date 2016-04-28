@@ -9,6 +9,7 @@ if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
 unshift(@INC,$galacticusPath."perl"); 
 use strict;
 use warnings;
+no warnings 'once';
 use XML::Simple;
 use Data::Dumper;
 use File::Slurp;
@@ -45,7 +46,7 @@ require File::Match;
 #
 # 4) Additionally, when appending parameters from a file, also append an MD5 digest of the file (with included files included
 #    inline, comments and leading/trailing whitespace stripped) if the appropriate option is selected in the function
-#    call. Include in this digest and XML or HDF5 file in the data/ directory that the file accesses. Also append an MD5 digest of
+#    call. Include in this digest any XML or HDF5 file in the data/ directory that the file accesses. Also append an MD5 digest of
 #    any other files explicitly requested in the "uniqueLabel" directive.
 #
 # Andrew Benson (10-April-2012)
@@ -75,7 +76,7 @@ my $methodFiles;
 my $cFlags = $ENV{'GALACTICUS_CFLAGS'};
 open(my $make,$galacticusPath."Makefile");
 while ( my $line = <$make> ) {
-    if ( $line =~ m/CFLAGS\s*\+??=\s*(.*)$/ ) {
+    if ( $line =~ m/^\s*CFLAGS\s*\+??=\s*(.*)$/ ) {
 	$cFlags .= " ".$1;
     }
 }
@@ -85,6 +86,7 @@ my @includeDirectories;
 while ( $cFlags =~ m/\-I(\S+)/ ) {
     my $path = $1;
     $path =~ s/^\.\//$galacticusPath/;
+    $path =~ s/\$\((.*)\)/$1/;
     push(@includeDirectories,$path);
     $cFlags =~ s/\-I(\S+)//;
 }

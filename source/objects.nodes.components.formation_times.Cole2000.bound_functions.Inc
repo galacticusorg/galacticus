@@ -35,6 +35,9 @@ double precision function FormationTimeCole2000FormationTime(self)
   select type (formationTimeComponent)
   class is (nodeComponentFormationTimeCole2000)
      FormationTimeCole2000FormationTime=  formationTimeComponent%formationTimeData
+  class default
+     FormationTimeCole2000FormationTime=0.0d0
+     call Galacticus_Error_Report('FormationTimeCole2000FormationTime','incorrect class')
   end select
   return
 end function FormationTimeCole2000FormationTime
