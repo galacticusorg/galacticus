@@ -23,6 +23,7 @@ require Galacticus::Build::Function;
 require Galacticus::Build::FunctionCall;
 require Galacticus::Build::BindingsC;
 require Galacticus::Build::FunctionGlobal;
+require Galacticus::Build::SourceTree;
 
 # Scans source code for "!#" directives and generates an include file.
 # Andrew Benson (18-November-2011)
@@ -206,9 +207,20 @@ foreach my $hook ( keys(%Hooks::moduleHooks) ) {
 die("Build_Include_File.pl: failed to find a function to generate ".$buildData->{'type'}." action")
     if ( $foundMatch == 0 );
 
-# Output the generated content.
-open(includeFile,">".$buildData->{'fileName'});
-print includeFile $buildData->{'content'};
-close(includeFile);
+# Parse Fortran files, simply output other files.
+if ( $buildData->{'fileName'} =~ m/\.Inc$/ ) {
+    # Parse the file to build a tree.
+    my $tree = &SourceTree::ParseCode($buildData->{'content'},$buildData->{'fileName'});
+    # Process the tree.
+    &SourceTree::ProcessTree($tree);
+    # Serialize back to source code.
+    open(my $outputFile,">",$buildData->{'fileName'});
+    print $outputFile &SourceTree::Serialize($tree);
+    close($outputFile);
+} else {
+    open(my $outputFile,">",$buildData->{'fileName'});
+    print $outputFile $buildData->{'content'};
+    close($outputFile);
+}
 
 exit;
