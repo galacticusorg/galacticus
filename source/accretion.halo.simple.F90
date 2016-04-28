@@ -350,7 +350,7 @@ contains
        simpleFailedAccretionRate=(thisCosmologyParameters%OmegaBaryon()/thisCosmologyParameters%OmegaMatter())*self%accretionRateTotal(node)*failedFraction
        unaccretedMass=thisHotHaloComponent%unaccretedMass()
        growthRate=self%accretionRateTotal(node)/self%massTotal(node)
-       simpleFailedAccretionRate=-unaccretedMass*growthRate*(1.0d0-failedFraction)
+       simpleFailedAccretionRate=simpleFailedAccretionRate-unaccretedMass*growthRate*(1.0d0-failedFraction)
     end if
     ! If accretion is allowed only on new growth, check for new growth and shut off accretion if growth is not new.
     if (self%accreteNewGrowthOnly) then
