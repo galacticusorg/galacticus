@@ -18,14 +18,6 @@
 
 !% Defines methods for the ``never'' convergence class.
 
-function convergenceNeverConstructor()
-  !% Constructor for ``never'' convergence class.
-  implicit none
-  type(convergenceNever) :: convergenceNeverConstructor
-
-  return
-end function convergenceNeverConstructor
-
 logical function convergenceNeverIsConverged(self,simulationState,logLikelihood)
   !% Return whether the simulation is converged.
   use Constraints_State
@@ -33,7 +25,8 @@ logical function convergenceNeverIsConverged(self,simulationState,logLikelihood)
   class           (convergenceNever), intent(inout)           :: self
   class           (state           ), intent(in   ), optional :: simulationState
   double precision                  , intent(in   ), optional :: logLikelihood
-  
+  !GCC$ attributes unused :: self, simulationState, logLikelihood
+
   convergenceNeverIsConverged=.false.
   return
 end function convergenceNeverIsConverged
@@ -42,6 +35,7 @@ integer function convergenceNeverConvergedAtStep(self)
   !% Return the step at which the simulation converged.
   implicit none
   class(convergenceNever), intent(inout) :: self
+  !GCC$ attributes unused :: self
   
   convergenceNeverConvergedAtStep=-1
   return
@@ -51,7 +45,8 @@ subroutine convergenceNeverReset(self)
   !% Reset the convergence object.
   implicit none
   class(convergenceNever), intent(inout) :: self
-  
+  !GCC$ attributes unused :: self
+
   return
 end subroutine convergenceNeverReset
 
@@ -60,7 +55,8 @@ subroutine convergenceNeverLogReport(self,fileUnit)
   implicit none
   class  (convergenceNever), intent(inout) :: self
   integer                  , intent(in   ) :: fileUnit
-  
+  !GCC$ attributes unused :: self
+
   write (fileUnit,*) 'Convergence: unconverged'
   return
 end subroutine convergenceNeverLogReport
@@ -70,6 +66,7 @@ logical function convergenceNeverChainIsOutlier(self,chainIndex)
   implicit none
   class  (convergenceNever), intent(inout) :: self
   integer                  , intent(in   ) :: chainIndex
+  !GCC$ attributes unused :: self, chainIndex
   
   convergenceNeverChainIsOutlier=.false.
   return

@@ -110,13 +110,15 @@ module Galacticus_Nodes
     implicit none
     class(treeNode      ), intent(in   ) :: self
     type (varying_string)                :: Tree_Node_Type
-
+    !GCC$ attributes unused :: self
+    
     Tree_Node_Type="treeNode"
     return
   end function Tree_Node_Type
 
   function Tree_Node_Index(self)
     !% Returns the index of a {\normalfont \ttfamily treeNode}.
+    use Galacticus_Error
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
     type   (treeNode      ), pointer               :: workNode
@@ -125,6 +127,9 @@ module Galacticus_Nodes
     select type (self)
     type is (treeNode)
        workNode => self
+    class default
+       workNode => null()
+       call Galacticus_Error_Report('Tree_Node_Index','treeNode of unknown class')
     end select
     if (associated(workNode)) then
        Tree_Node_Index=workNode%indexValue
@@ -146,6 +151,7 @@ module Galacticus_Nodes
 
   function Tree_Node_Unique_ID(self)
     !% Returns the unique ID of a {\normalfont \ttfamily treeNode}.
+    use Galacticus_Error
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
     type   (treeNode      ), pointer               :: workNode
@@ -154,6 +160,9 @@ module Galacticus_Nodes
     select type (self)
     type is (treeNode)
        workNode => self
+    class default
+       workNode => null()
+       call Galacticus_Error_Report('Tree_Node_Unique_ID','treeNode of unknown class')
     end select
     if (associated(workNode)) then
        Tree_Node_Unique_ID=workNode%uniqueIdValue
@@ -261,6 +270,7 @@ module Galacticus_Nodes
 
   logical function Tree_Node_Is_Primary_Progenitor(self)
     !% Returns true if {\normalfont \ttfamily self} is the primary progenitor of its parent node.
+    use Galacticus_Error
     implicit none
     class(treeNode), intent(inout) :: self
 
@@ -271,12 +281,16 @@ module Galacticus_Nodes
        else
           Tree_Node_Is_Primary_Progenitor=.false.
        end if
+    class default
+       Tree_Node_Is_Primary_Progenitor=.false.
+       call Galacticus_Error_Report('Tree_Node_Is_Primary_Progenitor','treeNode is of unknown class')
     end select
     return
   end function Tree_Node_Is_Primary_Progenitor
 
   logical function Tree_Node_Is_Primary_Progenitor_Of_Index(self,targetNodeIndex)
     !% Return true if {\normalfont \ttfamily self} is a progenitor of the node with index {\normalfont \ttfamily targetNodeIndex}.
+    use Galacticus_Error
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
     integer(kind=kind_int8), intent(in   )         :: targetNodeIndex
@@ -286,6 +300,9 @@ module Galacticus_Nodes
     select type (self)
     type is (treeNode)
        workNode => self
+    class default
+       workNode => null()
+       call Galacticus_Error_Report('Tree_Node_Is_Primary_Progenitor_Of_Index','treeNode of unknown class - this should not happen')
     end select
     do while (associated(workNode))
        if (workNode%index() == targetNodeIndex) then
@@ -300,6 +317,7 @@ module Galacticus_Nodes
 
   logical function Tree_Node_Is_Primary_Progenitor_Of_Node(self,targetNode)
     !% Return true if {\normalfont \ttfamily self} is a progenitor of {\normalfont \ttfamily targetNode}.
+    use Galacticus_Error
     implicit none
     class(treeNode), intent(in   ), target  :: self
     type (treeNode), intent(in   ), pointer :: targetNode
@@ -309,6 +327,9 @@ module Galacticus_Nodes
     select type (self)
     type is (treeNode)
        workNode => self
+    class default
+       workNode => null()
+       call Galacticus_Error_Report('Tree_Node_Is_Primary_Progenitor_Of_Node','treeNode of unknown class - this should not happen')
     end select
     do while (associated(workNode))
        if (associated(workNode,targetNode)) then
@@ -323,6 +344,7 @@ module Galacticus_Nodes
 
   logical function Tree_Node_Is_Progenitor_Of_Index(self,targetNodeIndex)
     !% Return true if {\normalfont \ttfamily self} is a progenitor of the node with index {\normalfont \ttfamily targetNodeIndex}.
+    use Galacticus_Error
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
     integer(kind=kind_int8), intent(in   )         :: targetNodeIndex
@@ -332,6 +354,9 @@ module Galacticus_Nodes
     select type (self)
     type is (treeNode)
        workNode => self
+    class default
+       workNode => null()
+       call Galacticus_Error_Report('Tree_Node_Is_Progenitor_Of_Index','treeNode of unknown class')
     end select
     do while (associated(workNode))
        if (workNode%index() == targetNodeIndex) then
@@ -345,6 +370,7 @@ module Galacticus_Nodes
 
   logical function Tree_Node_Is_Progenitor_Of_Node(self,targetNode)
     !% Return true if {\normalfont \ttfamily self} is a progenitor of {\normalfont \ttfamily targetNode}.
+    use Galacticus_Error
     implicit none
     class(treeNode), intent(in   ), target  :: self
     type (treeNode), intent(in   ), pointer :: targetNode
@@ -354,6 +380,9 @@ module Galacticus_Nodes
     select type (self)
     type is (treeNode)
        workNode => self
+    class default
+       workNode => null()
+       call Galacticus_Error_Report('Tree_Node_Is_Progenitor_Of_Node','treeNode of unknown class - this should not happen')
     end select
     do while (associated(workNode))
        if (associated(workNode,targetNode)) then
@@ -367,6 +396,7 @@ module Galacticus_Nodes
 
   logical function Tree_Node_Is_On_Main_Branch(self)
     !% Returns true if {\normalfont \ttfamily self} is on the main branch.
+    use Galacticus_Error
     implicit none
     class(treeNode), intent(inout), target :: self
     type (treeNode), pointer               :: workNode
@@ -375,6 +405,9 @@ module Galacticus_Nodes
     select type (self)
     type is (treeNode)
        workNode => self
+    class default
+       workNode => null()
+       call Galacticus_Error_Report('Tree_Node_Is_On_Main_Branch','treeNode of unknown class - this should not happen')
     end select
     do while (associated(workNode%parent))
        if (.not.workNode%isPrimaryProgenitor()) return
@@ -386,6 +419,7 @@ module Galacticus_Nodes
 
   logical function Tree_Node_Is_Satellite(self)
     !% Returns true if {\normalfont \ttfamily self} is a satellite.
+    use Galacticus_Error
     implicit none
     class(treeNode), intent(in   ), target :: self
     type (treeNode), pointer               :: childNode, parentNode, selfActual
@@ -393,6 +427,9 @@ module Galacticus_Nodes
     select type (self)
     type is (treeNode)
        selfActual => self
+    class default
+       selfActual => null()
+       call Galacticus_Error_Report('Tree_Node_Is_Satellite','treeNode of unknown class - this should not happen')
     end select
     parentNode => selfActual%parent
     select case (associated(parentNode))
@@ -428,6 +465,7 @@ module Galacticus_Nodes
 
   function Tree_Node_Get_Earliest_Progenitor(self) result (progenitorNode)
     !% Returns a pointer to the earliest progenitor of {\normalfont \ttfamily self}.
+    use Galacticus_Error
     implicit none
     type (treeNode), pointer       :: progenitorNode
     class(treeNode), intent(inout) :: self
@@ -438,6 +476,9 @@ module Galacticus_Nodes
        do while (associated(progenitorNode%firstChild))
           progenitorNode => progenitorNode%firstChild
        end do
+    class default
+       progenitorNode => null()
+       call Galacticus_Error_Report('Tree_Node_Get_Earliest_Progenitor','treeNode of unknown class - this should not happen')
     end select
     return
   end function Tree_Node_Get_Earliest_Progenitor
@@ -462,6 +503,7 @@ module Galacticus_Nodes
   subroutine Tree_Node_Remove_From_Host(self)
     !% Remove {\normalfont \ttfamily self} from the linked list of its host node's satellites.
     use Galacticus_Display
+    use Galacticus_Error
     use String_Handling
     implicit none
     class(treeNode      ), intent(in   ), target :: self
@@ -471,6 +513,9 @@ module Galacticus_Nodes
     select type (self)
     type is (treeNode)
        selfActual => self
+    class default
+       selfActual => null()
+       call Galacticus_Error_Report('Tree_Node_Remove_From_Host','treeNode of unknown class')
     end select
 
     ! Remove from the parent node satellite list.
@@ -500,6 +545,7 @@ module Galacticus_Nodes
   subroutine Tree_Node_Remove_from_Mergee(self)
     !% Remove {\normalfont \ttfamily self} from the linked list of its host node's satellites.
     use Galacticus_Display
+    use Galacticus_Error
     use String_Handling
     implicit none
     class(treeNode      ), intent(in   ), target :: self
@@ -509,6 +555,9 @@ module Galacticus_Nodes
     select type (self)
     type is (treeNode)
        selfActual => self
+    class default
+       selfActual => null()
+       call Galacticus_Error_Report('Tree_Node_Remove_from_Mergee','treeNode of unknown class')
     end select
 
     ! Remove from the mergee list of any merge target.
@@ -815,6 +864,7 @@ module Galacticus_Nodes
     implicit none
     class(nodeComponent ), intent(in   ) :: self
     type (varying_string)                :: Node_Component_Generic_Type
+    !GCC$ attributes unused :: self
 
     Node_Component_Generic_Type="nodeComponent"
     return
@@ -824,7 +874,8 @@ module Galacticus_Nodes
     !% Destroy a generic tree node component.
     implicit none
     class(nodeComponent), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     ! Do nothing.
     return
   end subroutine Node_Component_Generic_Destroy
@@ -833,7 +884,8 @@ module Galacticus_Nodes
     !% Initialize a generic tree node component for an ODE solver step.
     implicit none
     class(nodeComponent), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     return
   end subroutine Node_Component_ODE_Step_Initialize_Null
 
@@ -841,6 +893,7 @@ module Galacticus_Nodes
     !% Dump a generic tree node component.
     implicit none
     class(nodeComponent), intent(in   ) :: self
+    !GCC$ attributes unused :: self
 
     return
   end subroutine Node_Component_Dump_Null
@@ -850,6 +903,7 @@ module Galacticus_Nodes
     implicit none
     class  (nodeComponent), intent(inout) :: self
     integer               , intent(in   ) :: fileHandle
+    !GCC$ attributes unused :: self, fileHandle
 
     return
   end subroutine Node_Component_Dump_XML_Null
@@ -859,6 +913,7 @@ module Galacticus_Nodes
     implicit none
     class  (nodeComponent), intent(in   ) :: self
     integer               , intent(in   ) :: fileHandle
+    !GCC$ attributes unused :: self, fileHandle
 
     return
   end subroutine Node_Component_Dump_Raw_Null
@@ -868,6 +923,7 @@ module Galacticus_Nodes
     implicit none
     class  (nodeComponent), intent(inout) :: self
     integer               , intent(in   ) :: fileHandle
+    !GCC$ attributes unused :: self, fileHandle
 
     return
   end subroutine Node_Component_Read_Raw_Null
@@ -879,6 +935,7 @@ module Galacticus_Nodes
     integer                        , intent(inout) :: doublePropertyCount, integerPropertyCount
     double precision               , intent(in   ) :: time
     integer                        , intent(in   ) :: instance
+    !GCC$ attributes unused :: self, integerPropertyCount, doublePropertyCount, time, instance
 
     return
   end subroutine Node_Component_Output_Count_Null
@@ -894,7 +951,8 @@ module Galacticus_Nodes
          &                                                           integerPropertyComments, integerPropertyNames
     double precision                , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     integer                                       , intent(in   ) :: instance
-
+    !GCC$ attributes unused :: self, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI, doubleProperty, doublePropertyNames, doublePropertyComments, doublePropertyUnitsSI, time, instance
+    
     return
   end subroutine Node_Component_Output_Names_Null
 
@@ -909,6 +967,7 @@ module Galacticus_Nodes
     integer         (kind=kind_int8   ), intent(inout) :: integerBuffer    (:,:)
     double precision                   , intent(inout) :: doubleBuffer     (:,:)
     integer                            , intent(in   ) :: instance
+    !GCC$ attributes unused :: self, integerProperty, integerBufferCount, integerBuffer, doubleProperty, doubleBufferCount, doubleBuffer, time, instance
 
     return
   end subroutine Node_Component_Output_Null
@@ -917,7 +976,8 @@ module Galacticus_Nodes
     !% Return the serialization count of a generic tree node component.
     implicit none
     class(nodeComponent), intent(in   ) :: self
-
+    !GCC$ attributes unused :: self
+    
     Node_Component_Serialize_Count_Zero=0
     return
   end function Node_Component_Serialize_Count_Zero
@@ -927,7 +987,8 @@ module Galacticus_Nodes
     implicit none
     class  (nodeComponent), intent(in   ) :: self
     integer               , intent(inout) :: count
-
+    !GCC$ attributes unused :: self, count
+    
     return
   end subroutine Node_Component_Serialization_Offsets
 
@@ -936,7 +997,8 @@ module Galacticus_Nodes
     implicit none
     class           (nodeComponent)              , intent(in   ) :: self
     double precision               , dimension(:), intent(  out) :: array
-
+    !GCC$ attributes unused :: self, array
+    
     return
   end subroutine Node_Component_Serialize_Null
 
@@ -945,7 +1007,8 @@ module Galacticus_Nodes
     implicit none
     class           (nodeComponent)              , intent(inout) :: self
     double precision               , dimension(:), intent(in   ) :: array
-
+    !GCC$ attributes unused :: self, array
+    
     return
   end subroutine Node_Component_Deserialize_Null
 
@@ -963,15 +1026,18 @@ module Galacticus_Nodes
     !% A null {\normalfont \ttfamily void} function for rank 0 {\normalfont \ttfamily nodeComponent} arrays.
     implicit none
     class(nodeComponent), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     return
   end subroutine Node_Component_Null_Void0_InOut
 
   double precision function Node_Component_Null_Double0_InOut(self)
-    !% A null {\normalfont \ttfamily double} function for rank 0 {\normalfont \ttfamily nodeComponent} arrays..
+    !% A null {\normalfont \ttfamily double} function for rank 0 {\normalfont \ttfamily nodeComponent} arrays.
     implicit none
     class(nodeComponent), intent(inout) :: self
+    !GCC$ attributes unused :: self
 
+    Node_Component_Null_Double0_InOut=0.0d0
     return
   end function Node_Component_Null_Double0_InOut
 
@@ -982,7 +1048,8 @@ module Galacticus_Nodes
     integer                        , intent(in   )           :: componentType, massType, weightBy, weightIndex
     double precision               , intent(in   )           :: radius
     logical                        , intent(in   ), optional :: haloLoaded
-
+    !GCC$ attributes unused :: self, radius, componentType, massType, weightBy, weightIndex, haloLoaded
+    
     Node_Component_Enclosed_Mass_Null=0.0d0
     return
   end function Node_Component_Enclosed_Mass_Null
@@ -995,7 +1062,8 @@ module Galacticus_Nodes
          &                                                                    weightIndex
     double precision               , dimension(3), intent(in   )           :: positionSpherical
     logical                                      , intent(in   ), optional :: haloLoaded
-
+    !GCC$ attributes unused :: self, positionSpherical, componentType, massType, weightBy, weightIndex, haloLoaded
+    
     Node_Component_Density_Null=0.0d0
     return
   end function Node_Component_Density_Null
@@ -1008,7 +1076,8 @@ module Galacticus_Nodes
          &                                                                    weightBy           , weightIndex
     double precision               , dimension(3), intent(in   )           :: positionCylindrical
     logical                                      , intent(in   ), optional :: haloLoaded
-
+    !GCC$ attributes unused :: self, positionCylindrical, componentType, massType, weightBy, weightIndex, haloLoaded
+    
     Node_Component_Surface_Density_Null=0.0d0
     return
   end function Node_Component_Surface_Density_Null
@@ -1021,7 +1090,8 @@ module Galacticus_Nodes
     double precision               , intent(in   )           :: radius
     logical                        , intent(in   ), optional :: haloLoaded
     integer                        , intent(inout), optional :: status
-
+    !GCC$ attributes unused :: self, radius, componentType, massType, haloLoaded, status
+    
     Node_Component_Potential_Null=0.0d0
     return
   end function Node_Component_Potential_Null
@@ -1033,7 +1103,8 @@ module Galacticus_Nodes
     integer                        , intent(in   )           :: componentType, massType
     double precision               , intent(in   )           :: radius
     logical                        , intent(in   ), optional :: haloLoaded
-
+    !GCC$ attributes unused :: self, radius, componentType, massType, haloLoaded
+    
     Node_Component_Rotation_Curve_Null=0.0d0
     return
   end function Node_Component_Rotation_Curve_Null
@@ -1045,7 +1116,8 @@ module Galacticus_Nodes
     integer                        , intent(in   )           :: componentType, massType
     double precision               , intent(in   )           :: radius
     logical                        , intent(in   ), optional :: haloLoaded
-
+    !GCC$ attributes unused :: self, radius, componentType, massType, haloLoaded
+    
     Node_Component_Rotation_Curve_Gradient_Null=0.0d0
     return
   end function Node_Component_Rotation_Curve_Gradient_Null

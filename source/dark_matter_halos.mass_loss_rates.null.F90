@@ -45,7 +45,8 @@ contains
     use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
-
+    !GCC$ attributes unused :: thisNode
+    
     Dark_Matter_Halos_Mass_Loss_Rate_Null=0.0d0
     return
   end function Dark_Matter_Halos_Mass_Loss_Rate_Null

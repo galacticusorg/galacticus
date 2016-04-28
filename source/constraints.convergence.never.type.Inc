@@ -26,8 +26,3 @@
      procedure :: logReport       => convergenceNeverLogReport
      procedure :: chainIsOutlier  => convergenceNeverChainIsOutlier
   end type convergenceNever
-  
-  interface convergenceNever
-     !% Constructors for the ``never'' convergence class.
-     module procedure convergenceNeverConstructor
-  end interface convergenceNever

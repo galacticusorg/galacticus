@@ -32,7 +32,6 @@
   interface mergerTreeOperatorNull
      !% Constructors for the null merger tree operator class.
      module procedure nullConstructorParameters
-     module procedure nullConstructorInternal
   end interface mergerTreeOperatorNull
 
 contains
@@ -48,15 +47,6 @@ contains
     nullConstructorParameters=mergerTreeOperatorNull()
     return
   end function nullConstructorParameters
-
-  function nullConstructorInternal()
-    !% Internal constructor for the null merger tree operator class.
-    implicit none
-    type(mergerTreeOperatorNull) :: nullConstructorInternal
-
-    nullConstructorInternal=mergerTreeOperatorNull()
-    return
-  end function nullConstructorInternal
 
   elemental subroutine nullDestructor(self)
     !% Destructor for the merger tree operator function class.

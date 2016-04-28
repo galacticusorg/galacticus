@@ -14,6 +14,7 @@ unshift(@INC,$galacticusPath."perl");
 use PDL;
 use PDL::NiceSlice;
 use XML::Simple;
+use Data::Dumper;
 require Galacticus::HDF5;
 require Galacticus::Inclination;
 
@@ -51,17 +52,24 @@ sub Get_Dust_Attenuated_Luminosity {
     my $dataSetName = $_[0];
 
     # Check parameters.
-    &HDF5::Get_Parameters($dataSet);
+    &HDF5::Get_Parameters($dataSet);    
     die ("Get_Dust_Attenuated_Luminosity(): routine assumes exponential disks and Hernquist or Sersic spheroids")
-	unless
-	(
-	 $dataSet ->{'parameters'}->{"diskMassDistribution"    }->{'value'} eq "exponentialDisk"
-	 &&
+    	unless
+    	(
 	 (
-	  $dataSet->{'parameters'}->{"spheroidMassDistribution"}->{'value'} eq "hernquist"       ||
-	  $dataSet->{'parameters'}->{"spheroidMassDistribution"}->{'value'} eq "sersic" 
-	 )
-	);
+	  ! exists($dataSet ->{'parameters'}->{"diskMassDistribution"    })
+	  ||
+	           $dataSet ->{'parameters'}->{"diskMassDistribution"    }->{'value'} eq "exponentialDisk"
+    	 )
+	 &&
+    	 (
+	  ! exists($dataSet->{'parameters'}->{"spheroidMassDistribution"})
+	  ||
+	           $dataSet->{'parameters'}->{"spheroidMassDistribution"}->{'value'} eq "hernquist"
+	  ||
+	           $dataSet->{'parameters'}->{"spheroidMassDistribution"}->{'value'} eq "sersic" 
+    	 )
+    	);
 
     # Get the name of the unattenuated luminosity dataset.
     (my $luminosityDataSet = $dataSetName) =~ s/:dustAtlas(\[faceOn\])?//;
@@ -145,13 +153,12 @@ sub Get_Dust_Attenuated_Luminosity {
 	} else {
 	    $effectiveWavelength{$filterLabel} = pdl $filterData->{'effectiveWavelength'}/(1.0+$redshift);
 	}
-	($wavelengthIndex{$filterLabel}, my $error) = interpolate($effectiveWavelength{$filterLabel},$wavelengths,$wavelengthIndices);
+	($wavelengthIndex{$filterLabel}, my $error) = interpolate($effectiveWavelength{$filterLabel},$wavelengths,$wavelengthIndices);    
     }
-
     # Get interpolations of inclinations.
     my $galacticusInclination;
     if ( $faceOn == 1 ) {
-	$galacticusInclination = zeroes(nelem($dataSets->{"diskScaleLength"}));
+	$galacticusInclination = zeroes(nelem($dataSets->{"diskRadius"}));
     } else {
 	$galacticusInclination = $dataSets->{"inclination"};
     }
@@ -163,17 +170,17 @@ sub Get_Dust_Attenuated_Luminosity {
     } else {
 	die("Get_Dust_Attenuated_Luminosity(): unknown component");
     }
-
+    
     # Get interpolations of bulge sizes.
     my $sizeIndex;
     if ( $component eq "spheroid" ) {
 	# Compute size as spheroid (assumed to be Hernquist profile) half-mass radius in units of disk scale length.
 	my $sizes;
-	if ( $dataSet->{'parameters'}->{"spheroidMassDistribution"}->{'value'} eq "Hernquist" ) {
-	    $sizes = (1.0+sqrt(2.0))*$dataSets->{"spheroidScaleLength"}/$dataSets->{"diskScaleLength"};
+	if ( $dataSet->{'parameters'}->{"spheroidMassDistribution"}->{'value'} eq "hernquist" ) {
+	    $sizes = (1.0+sqrt(2.0))*$dataSets->{"spheroidRadius"}/$dataSets->{"diskRadius"};
 	}
-	if ( $dataSet->{'parameters'}->{"spheroidMassDistribution"}->{'value'} eq "Sersic" ) {
-	    $sizes =                 $dataSets->{"spheroidScaleLength"}/$dataSets->{"diskScaleLength"};
+	if ( $dataSet->{'parameters'}->{"spheroidMassDistribution"}->{'value'} eq "sersic" ) {
+	    $sizes =                 $dataSets->{"spheroidRadius"}/$dataSets->{"diskRadius"};
 	}
 	my $sizesLimited;
 	if ( $extrapolateInSize == 1 ) {
@@ -201,14 +208,15 @@ sub Get_Dust_Attenuated_Luminosity {
     my $opticalDepthNormalization = (1.0/$opticalDepthToMagnitudes)*($AV_to_EBV/$NH_to_EBV)*($hydrogenMassFractionSolar/$atomicMass)*($solarMass/($parsec*$hecto)**2)/$localISMMetallicity;
 
     # Central surface density in M_Solar/pc^2.
-    my $gasMetalMass                   = pdl $dataSets->{"diskGasMetals"};
-    my $diskScaleLength                = pdl $dataSets->{"diskScaleLength"};
+    my $gasMetalMass                   = pdl $dataSets->{"diskAbundancesGasMetals"};
+    my $diskScaleLength                = pdl $dataSets->{"diskRadius"             };
     my $noDisks                        = which($diskScaleLength <= 0.0);
     my $gasMetalsSurfaceDensityCentral = $gasMetalMass/(2.0*$Pi*($mega*$diskScaleLength)**2);
     $gasMetalsSurfaceDensityCentral->index($noDisks) .= 0.0;
 
     # Compute central optical depths.
     my $opticalDepthCentral            = $opticalDepthNormalization*$gasMetalsSurfaceDensityCentral;
+
     my $opticalDepthIndex;
     if ( $component      eq "disk"     ) {
 	my $opticalDepthCentralLimited;

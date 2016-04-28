@@ -69,8 +69,8 @@
   ! Initialization state.
   logical                     :: percolationInitialized                            =.false.
 
-  ! Default value of the linking length and density ratio parameters.
-  double precision            :: virialDensityContrastPercolationLinkingLength             , virialDensityContrastPercolationDensityRatio
+  ! Default value of the linking length parameter.
+  double precision            :: virialDensityContrastPercolationLinkingLength
 
   ! Granularity parameters for tabulations.
   integer         , parameter :: percolationDensityContrastTableTimePointsPerDecade=5
