@@ -81,7 +81,8 @@ contains
     implicit none
     class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
     double precision                        , intent(in   ) :: massAccretionRate
-
+    !GCC$ attributes unused :: thisBlackHole, massAccretionRate
+    
     Accretion_Disk_Radiative_Efficiency_Eddington=accretionDiskRadiativeEfficiencyEddington
     return
   end function Accretion_Disk_Radiative_Efficiency_Eddington
@@ -133,7 +134,8 @@ contains
     implicit none
     class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
     double precision                        , intent(in   ) :: massAccretionRate
-
+    !GCC$ attributes unused :: thisBlackHole, massAccretionRate
+    
     Black_Hole_Spin_Up_Rate_Eddington=0.0d0
     return
   end function Black_Hole_Spin_Up_Rate_Eddington

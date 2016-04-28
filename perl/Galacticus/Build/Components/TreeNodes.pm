@@ -264,11 +264,11 @@ sub Build_Tree_Node_Class {
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
-	     name        => "createEvent"                                                                                                     ,
-	     function    => "Tree_Node_Create_Event"                                                                                          ,
-	     description => "Create a {\\normalfont \\ttfamily nodeEvent} object in this node."                                               ,
-	     returnType  => "\\textcolor{red}{\\textless *type(nodeEvent)\\textgreater}"                                                      ,
-	     arguments   => ""
+	     name        => "attachEvent"                                                                                                     ,
+	     function    => "Tree_Node_Attach_Event"                                                                                          ,
+	     description => "Attach a {\\normalfont \\ttfamily nodeEvent} object in this node."                                               ,
+	     returnType  => "\\void"                                                      ,
+	     arguments   => "\\textcolor{red}{\\textless *class(nodeEvent)\\textgreater} newEvent\\arginout"
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,

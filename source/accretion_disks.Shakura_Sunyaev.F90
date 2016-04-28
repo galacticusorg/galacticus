@@ -55,7 +55,8 @@ contains
     implicit none
     class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
     double precision                        , intent(in   ) :: massAccretionRate
-
+    !GCC$ attributes unused :: massAccretionRate
+    
     Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev=1.0d0-Black_Hole_ISCO_Specific_Energy(thisBlackHole,units=unitsGravitational,orbit=orbitPrograde)
     return
   end function Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev
@@ -100,6 +101,8 @@ contains
           Accretion_Disk_Jet_Power_Shakura_Sunyaev=powerNormalizationSchwarzchild*(blackHoleMassDimensionless**0.9d0) &
                &*(accretionRateDimensionless**1.2d0)*exp(3.785d0*blackHoleSpin)/(alphaViscosityNormalized**0.1d0)
        end if
+    else
+       Accretion_Disk_Jet_Power_Shakura_Sunyaev=0.0d0
     end if
     return
   end function Accretion_Disk_Jet_Power_Shakura_Sunyaev

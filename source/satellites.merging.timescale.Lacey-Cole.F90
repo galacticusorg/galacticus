@@ -40,28 +40,14 @@
      procedure :: timeUntilMergingMassDependence => laceyCole1993TimeUntilMergingMassDependence
   end type satelliteMergingTimescalesLaceyCole1993
 
-  interface satelliteMergingTimescalesLaceyCole1993
-     !% Constructors for the \cite{lacey_merger_1993} merging timescale class.
-     module procedure laceyCole1993DefaultConstructor
-  end interface satelliteMergingTimescalesLaceyCole1993
-
 contains
-
-  function laceyCole1993DefaultConstructor()
-    !% Default constructor for the \cite{lacey_merger_1993} merging timescale class.
-    use Galacticus_Display
-    use Input_Parameters
-    implicit none
-    type(satelliteMergingTimescalesLaceyCole1993) :: laceyCole1993DefaultConstructor
-
-    return
-  end function laceyCole1993DefaultConstructor
 
   elemental subroutine laceyCole1993Destructor(self)
     !% Default constructor for the \cite{lacey_merger_1993} merging timescale class.
     implicit none
     type(satelliteMergingTimescalesLaceyCole1993), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     ! Nothing to do.
     return
   end subroutine laceyCole1993Destructor
@@ -76,7 +62,7 @@ contains
     type            (treeNode                               ), intent(inout), pointer :: thisNode
     type            (keplerOrbit                            ), intent(inout)          :: thisOrbit
     type            (treeNode                               )               , pointer :: hostNode
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    class           (darkMatterHaloScaleClass               )               , pointer :: darkMatterHaloScale_
     double precision                                                                  :: equivalentCircularOrbitRadius, orbitalCircularity, &
          &                                                                               radialScale                  , velocityScale
 
@@ -108,10 +94,11 @@ contains
     type            (treeNode                               ), intent(inout), pointer :: thisNode
     type            (treeNode                               )               , pointer :: hostNode
     class           (nodeComponentBasic                     )               , pointer :: hostBasic                 , thisBasic
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    class           (darkMatterHaloScaleClass               )               , pointer :: darkMatterHaloScale_
     double precision                                         , parameter              :: inverseTwoB1=1.169335453d0            !  1/2/B(1).
     double precision                                                                  :: massRatio
-
+    !GCC$ attributes unused :: self
+    
     ! Find the host node.
     hostNode => thisNode%parent
     ! Compute mass ratio.

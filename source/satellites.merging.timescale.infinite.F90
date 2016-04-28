@@ -32,28 +32,14 @@
      procedure :: timeUntilMerging => infiniteTimeUntilMerging
   end type satelliteMergingTimescalesInfinite
 
-  interface satelliteMergingTimescalesInfinite
-     !% Constructors for the infinite merging timescale class.
-     module procedure infiniteDefaultConstructor
-  end interface satelliteMergingTimescalesInfinite
-
 contains
-
-  function infiniteDefaultConstructor()
-    !% Default constructor for the infinite merging timescale class.
-    use Galacticus_Display
-    use Input_Parameters
-    implicit none
-    type(satelliteMergingTimescalesInfinite) :: infiniteDefaultConstructor
-
-    return
-  end function infiniteDefaultConstructor
 
   elemental subroutine infiniteDestructor(self)
     !% Default constructor for the infinite merging timescale class.
     implicit none
     type(satelliteMergingTimescalesInfinite), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     ! Nothing to do.
     return
   end subroutine infiniteDestructor
@@ -67,7 +53,8 @@ contains
     type            (treeNode                          ), intent(inout), pointer :: thisNode
     type            (keplerOrbit                       ), intent(inout)          :: thisOrbit
     double precision                                    , parameter              :: timeInfinite=1.0d30 ! Effective infinite time.
-
+    !GCC$ attributes unused :: self, thisNode, thisOrbit
+    
     infiniteTimeUntilMerging=timeInfinite
     return
   end function infiniteTimeUntilMerging

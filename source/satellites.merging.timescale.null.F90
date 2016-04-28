@@ -30,28 +30,14 @@
      procedure :: timeUntilMerging => nullTimeUntilMerging
   end type satelliteMergingTimescalesNull
 
-  interface satelliteMergingTimescalesNull
-     !% Constructors for the null merging timescale class.
-     module procedure nullDefaultConstructor
-  end interface satelliteMergingTimescalesNull
-
 contains
-
-  function nullDefaultConstructor()
-    !% Default constructor for the null merging timescale class.
-    use Galacticus_Display
-    use Input_Parameters
-    implicit none
-    type(satelliteMergingTimescalesNull) :: nullDefaultConstructor
-
-    return
-  end function nullDefaultConstructor
 
   elemental subroutine nullDestructor(self)
     !% Default constructor for the nul merging timescale class.
     implicit none
     type(satelliteMergingTimescalesNull), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     ! Nothing to do.
     return
   end subroutine nullDestructor
@@ -64,7 +50,8 @@ contains
     class(satelliteMergingTimescalesNull), intent(inout)          :: self
     type (treeNode                      ), intent(inout), pointer :: thisNode
     type (keplerOrbit                   ), intent(inout)          :: thisOrbit
-
+    !GCC$ attributes unused :: self, thisNode, thisOrbit
+    
     nullTimeUntilMerging=0.0d0
     return
   end function nullTimeUntilMerging
