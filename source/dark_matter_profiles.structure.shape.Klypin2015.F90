@@ -103,7 +103,7 @@ contains
        klypin2015Constructor%sample=klypin2015SampleRelaxed
     case default
        call Galacticus_Error_Report('klypin2015DefaultConstructor','unrecognized sample')
-   end select
+    end select
     return
   end function klypin2015Constructor
   
@@ -111,6 +111,7 @@ contains
     !% Return the Einasto profile shape parameter of the dark matter halo profile of {\normalfont \ttfamily node} using the
     !% \cite{klypin_multidark_2014} algorithm.
     use Galacticus_Nodes
+    use Galacticus_Error
     use Cosmological_Mass_Variance
     use Critical_Overdensities
     implicit none
@@ -134,6 +135,9 @@ contains
        klypin2015Shape=0.115d0+0.0165d0*nu**2
     case (klypin2015SampleRelaxed)
        klypin2015Shape=0.115d0+0.0140d0*nu**2
+    case default
+       klypin2015Shape=0.0d0
+       call Galacticus_Error_Report('klypin2015Shape','unknown sample')
     end select
     return
   end function klypin2015Shape

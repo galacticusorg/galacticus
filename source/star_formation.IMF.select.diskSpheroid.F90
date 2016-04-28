@@ -95,6 +95,7 @@ contains
     case (componentTypeSpheroid)
        IMF_Select_Disk_Spheroid=imfSelectedSpheroidIndex
     case default
+       IMF_Select_Disk_Spheroid=0
        call Galacticus_Error_Report('IMF_Select_Disk_Spheroid','only disk and spheroid components are allowed')
     end select
     return

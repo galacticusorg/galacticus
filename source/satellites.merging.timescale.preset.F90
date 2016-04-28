@@ -30,28 +30,14 @@
      procedure :: timeUntilMerging => presetTimeUntilMerging
   end type satelliteMergingTimescalesPreset
 
-  interface satelliteMergingTimescalesPreset
-     !% Constructors for the preset merging timescale class.
-     module procedure presetDefaultConstructor
-  end interface satelliteMergingTimescalesPreset
-
 contains
-
-  function presetDefaultConstructor()
-    !% Default constructor for the preset merging timescale class.
-    use Galacticus_Display
-    use Input_Parameters
-    implicit none
-    type(satelliteMergingTimescalesPreset) :: presetDefaultConstructor
-
-    return
-  end function presetDefaultConstructor
 
   elemental subroutine presetDestructor(self)
     !% Default constructor for the preset merging timescale class.
     implicit none
     type(satelliteMergingTimescalesPreset), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     ! Nothing to do.
     return
   end subroutine presetDestructor
@@ -65,7 +51,8 @@ contains
     type (treeNode                        ), intent(inout), pointer :: thisNode
     type (keplerOrbit                     ), intent(inout)          :: thisOrbit
     class(nodeComponentSatellite          )               , pointer :: thisSatellite
-
+    !GCC$ attributes unused :: self, thisOrbit
+    
     ! Simply return the current time until merging as, by definition, this has been preset if this method is being used.
     thisSatellite          => thisNode     %satellite()
     presetTimeUntilMerging =  thisSatellite%mergeTime()

@@ -242,6 +242,7 @@ contains
     !% Computes the radiative efficiency for an ADAF.
     use Accretion_Disks_Shakura_Sunyaev
     use Galacticus_Nodes
+    use Galacticus_Error
     implicit none
     class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
     double precision                        , intent(in   ) :: massAccretionRate
@@ -254,6 +255,9 @@ contains
        Accretion_Disk_Radiative_Efficiency_ADAF=adafRadiativeEfficiency
     case (adafRadiativeEfficiencyTypeThinDisk)
        Accretion_Disk_Radiative_Efficiency_ADAF=Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev(thisBlackHole,massAccretionRate)
+    case default
+       Accretion_Disk_Radiative_Efficiency_ADAF=0.0d0
+       call Galacticus_Error_Report('Accretion_Disk_Radiative_Efficiency_ADAF','unknown radiative efficiency type')
     end select
     return
   end function Accretion_Disk_Radiative_Efficiency_ADAF
@@ -263,6 +267,7 @@ contains
     use Numerical_Constants_Physical
     use Black_Hole_Fundamentals
     use Table_Labels
+    use Galacticus_Error
     implicit none
     double precision, parameter :: blackHoleSpinParameterMaximum=1.0d0, blackHoleSpinParameterMinimum=1.0d-6
     integer                     :: iSpin
@@ -298,6 +303,9 @@ contains
                 adafEnergyValue=1.0d0
              case (adafEnergyIsco)
                 adafEnergyValue=Black_Hole_ISCO_Specific_Energy(blackHoleSpin,orbitPrograde)
+             case default
+                adafEnergyValue=0.0d0
+                call Galacticus_Error_Report('Accretion_Disk_ADAF_Tabulate','unknown energy type')
              end select
              ! Compute jet launch radii.
              radiusIsco  =Black_Hole_ISCO_Radius  (blackHoleSpin)

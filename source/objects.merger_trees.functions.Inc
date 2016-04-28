@@ -99,6 +99,7 @@ subroutine Merger_Tree_Remove_Event(self,event)
   type   (treeEvent ), pointer       :: lastEvent, nextEvent, thisEvent
   
   ! Destroy the event.
+  lastEvent => null()
   thisEvent => self%event
   do while (associated(thisEvent))
      ! Match the event.

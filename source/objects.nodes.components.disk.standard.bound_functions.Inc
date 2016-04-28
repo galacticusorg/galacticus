@@ -39,6 +39,7 @@ end subroutine Node_Component_Disk_Standard_Attach_Pipes
 
 double precision function Node_Component_Disk_Standard_Half_Mass_Radius(self)
   !% Return the half-mass radius of the standard disk.
+  use Galacticus_Error
   use Node_Component_Disk_Standard_Data
   implicit none
   class(nodeComponentDiskStandard), intent(inout) :: self
@@ -47,6 +48,9 @@ double precision function Node_Component_Disk_Standard_Half_Mass_Radius(self)
   select type (diskMassDistribution)
   class is (massDistributionCylindrical)
      Node_Component_Disk_Standard_Half_Mass_Radius=self%radius()*diskMassDistribution%halfMassRadius()
+  class default
+     Node_Component_Disk_Standard_Half_Mass_Radius=0.0d0
+     call Galacticus_Error_Report('Node_Component_Disk_Standard_Half_Mass_Radius','mass distribution should be cylindrical')   
   end select
   return
 end function Node_Component_Disk_Standard_Half_Mass_Radius

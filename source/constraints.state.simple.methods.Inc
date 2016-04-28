@@ -62,7 +62,8 @@ subroutine stateSimpleUpdate(self,stateNew,logState,isConverged,outlierMask)
   logical                      , intent(in   )                         :: isConverged
   logical                      , intent(in   ), dimension(:), optional :: outlierMask
   integer                                                              :: i
-
+  !GCC$ attributes unused :: isConverged, outlierMask
+  
   if (logState) then
      i=mod(self%stepCount,size(self%accepted))+1
      if (any(stateNew /= self%current)) then
@@ -82,7 +83,8 @@ function stateSimpleMean(self)
   implicit none
   class           (stateSimple), intent(in   )                  :: self
   double precision             , dimension(self%parameterCount) :: stateSimpleMean
-  
+
+  stateSimpleMean=0.0d0
   call Galacticus_Error_Report('stateSimpleMean','the "simple" state class does not store history')
   return
 end function stateSimpleMean
@@ -94,6 +96,7 @@ function stateSimpleVariance(self)
   class           (stateSimple), intent(in   )                  :: self
   double precision             , dimension(self%parameterCount) :: stateSimpleVariance
 
+  stateSimpleVariance=0.0d0
   call Galacticus_Error_Report('stateSimpleVariance','the "simple" state class does not store history')
   return
 end function stateSimpleVariance

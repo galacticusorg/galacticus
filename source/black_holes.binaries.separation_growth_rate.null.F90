@@ -47,7 +47,8 @@ contains
     use Galacticus_Nodes
     implicit none
     class(nodeComponentBlackHole), intent(inout) :: thisBlackHoleComponent
-
+    !GCC$ attributes unused :: thisBlackHoleComponent
+    
     Black_Hole_Binary_Separation_Growth_Rate_Null=0.0d0
     return
   end function Black_Hole_Binary_Separation_Growth_Rate_Null
