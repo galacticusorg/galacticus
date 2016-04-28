@@ -30,28 +30,14 @@
      procedure :: timeUntilMerging => boylanKolchin2008TimeUntilMerging
   end type satelliteMergingTimescalesBoylanKolchin2008
 
-  interface satelliteMergingTimescalesBoylanKolchin2008
-     !% Constructors for the \cite{boylan-kolchin_dynamical_2008} merging timescale class.
-     module procedure boylanKolchin2008DefaultConstructor
-  end interface satelliteMergingTimescalesBoylanKolchin2008
-
 contains
-
-  function boylanKolchin2008DefaultConstructor()
-    !% Default constructor for the \cite{boylan-kolchin_dynamical_2008} merging timescale class.
-    use Galacticus_Display
-    use Input_Parameters
-    implicit none
-    type(satelliteMergingTimescalesBoylanKolchin2008) :: boylanKolchin2008DefaultConstructor
-
-    return
-  end function boylanKolchin2008DefaultConstructor
 
   elemental subroutine boylanKolchin2008Destructor(self)
     !% Default constructor for the \cite{boylan-kolchin_dynamical_2008} merging timescale class.
     implicit none
     type(satelliteMergingTimescalesBoylanKolchin2008), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     ! Nothing to do.
     return
   end subroutine boylanKolchin2008Destructor
@@ -82,7 +68,8 @@ contains
          &                                                                                              orbitalCircularity                   , radialScale             , &
          &                                                                                              velocityScale                        , expArgument
     integer                                                                                          :: errorCode
-
+    !GCC$ attributes unused :: self
+    
     ! Get required objects.
     darkMatterProfile_   => darkMatterProfile  ()
     darkMatterHaloScale_ => darkMatterHaloScale()
@@ -96,10 +83,12 @@ contains
     ! Check error codes.
     select case (errorCode)
     case (errorCodeOrbitUnbound     )
+       orbitalCircularity               =1.0d0
        boylanKolchin2008TimeUntilMerging=timeInfinite
        return
     case (errorCodeNoEquivalentOrbit)
        ! Circularity is not defined. Assume instantaneous merging.
+       orbitalCircularity               =1.0d0
        boylanKolchin2008TimeUntilMerging=0.0d0
        return
     case (errorCodeSuccess          )
@@ -109,6 +98,7 @@ contains
             & /equivalentCircularOrbitRadius                                                 &
             & /darkMatterProfile_%circularVelocity(hostNode,equivalentCircularOrbitRadius)
     case default
+       orbitalCircularity=0.0d0
        call Galacticus_Error_Report('boylanKolchin2008TimeUntilMerging','unrecognized error code')
     end select
     ! Compute mass ratio (mass in host [not including satellite] divided by mass in satellite).

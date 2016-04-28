@@ -558,9 +558,10 @@ contains
     return
   end function Root_Finder_Wrapper_Function
 
-  real(c_double) function Root_Finder_Wrapper_Function_Derivative(x,parameterPointer) bind(c)
+  function Root_Finder_Wrapper_Function_Derivative(x,parameterPointer) bind(c)
     !% Wrapper function callable by {\normalfont \ttfamily FGSL} used in root finding.
     implicit none
+    real(kind=c_double)        :: Root_Finder_Wrapper_Function_Derivative
     real(kind=c_double), value :: x
     type(c_ptr        ), value :: parameterPointer
 

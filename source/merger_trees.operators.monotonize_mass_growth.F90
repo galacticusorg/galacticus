@@ -35,7 +35,6 @@
   interface mergerTreeOperatorMonotonizeMassGrowth
      !% Constructors for the mass growth monotonizing merger tree operator class.
      module procedure monotonizeMassGrowthConstructorParameters
-     module procedure monotonizeMassGrowthConstructorInternal
   end interface mergerTreeOperatorMonotonizeMassGrowth
 
 contains
@@ -52,15 +51,6 @@ contains
     monotonizeMassGrowthConstructorParameters=mergerTreeOperatorMonotonizeMassGrowth()
     return
   end function monotonizeMassGrowthConstructorParameters
-
-  function monotonizeMassGrowthConstructorInternal()
-    !% Internal constructor for the mass growth monotonizing merger tree operator class.
-    implicit none
-    type(mergerTreeOperatorMonotonizeMassGrowth) :: monotonizeMassGrowthConstructorInternal
-
-    monotonizeMassGrowthConstructorInternal=mergerTreeOperatorMonotonizeMassGrowth()
-    return
-  end function monotonizeMassGrowthConstructorInternal
 
   elemental subroutine monotonizeMassGrowthDestructor(self)
     !% Destructor for the mass growth monotonizing merger tree operator function class.

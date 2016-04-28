@@ -77,14 +77,14 @@ sub Build_Node_Event_Class {
     };
     # Add sub-classes.
     my @emptyDataContent =();
-    $buildData->{'types'}->{'nodeEventBranchJump'} = {
+    $build->{'types'}->{'nodeEventBranchJump'} = {
 	name           => "nodeEventBranchJump",
 	extends        => "nodeEvent",
 	comment        => "Type for branch jump events attached to nodes.",
 	isPublic       => "true",
 	dataContent    => \@emptyDataContent
     };
-    $buildData->{'types'}->{'nodeEventSubhaloPromotion'} = {
+    $build->{'types'}->{'nodeEventSubhaloPromotion'} = {
 	name           => "nodeEventSubhaloPromotion",
 	extends        => "nodeEvent",
 	comment        => "Type for subhalo promotion events attached to nodes.",

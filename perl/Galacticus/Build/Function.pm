@@ -147,7 +147,7 @@ sub Functions_Generate_Output {
 		pass        => "yes",
 		modules     => "FGSL",
 		argument    => [ "integer, intent(in   ) :: stateFile", "type(fgsl_file), intent(in   ) :: fgslStateFile" ],
-		code        => ""
+		code        => "!GCC\$ attributes unused :: self, stateFile, fgslStateFile\n"
 	    },
 	    {
 		name        => "stateRestore",
@@ -156,7 +156,7 @@ sub Functions_Generate_Output {
 		pass        => "yes",
 		modules     => "FGSL",
 		argument    => [ "integer, intent(in   ) :: stateFile", "type(fgsl_file), intent(in   ) :: fgslStateFile" ],
-		code        => ""
+		code        => "!GCC\$ attributes unused :: self, stateFile, fgslStateFile\n"
 	    },
 	    {
 		name        => "stateSnapshot",
@@ -164,7 +164,7 @@ sub Functions_Generate_Output {
 		type        => "void",
 		pass        => "yes",
 		argument    => [ ],
-		code        => ""
+		code        => "!GCC\$ attributes unused :: self\n"
 	    }
 	    )
     }
@@ -179,7 +179,7 @@ sub Functions_Generate_Output {
 		type        => "void",
 		pass        => "yes",
 		argument    => [ "type(treeNode), intent(inout), pointer :: thisNode" ],
-		code        => ""
+		code        => "!GCC\$ attributes unused :: self, thisNode\n"
 	    },
 	    )
     }
@@ -355,7 +355,7 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= "   interface ".$directive."\n";
     $buildData->{'content'} .= "    module procedure ".$directive."ConstructorDefault\n";
     $buildData->{'content'} .= "    module procedure ".$directive."ConstructorNamed\n";
-    $buildData->{'content'} .= "   end interface\n";
+    $buildData->{'content'} .= "   end interface ".$directive."\n";
 
     # Scan implementation code to determine dependencies.
     my %dependencies;
@@ -686,6 +686,19 @@ sub Functions_Generate_Output {
 	    $code =~ s/\n/\n      /g;
 	    $buildData->{'content'} .= $code."\n";
 	} else {
+	    $buildData->{'content'} .= "      !GCC\$ attributes unused :: self";
+	    $buildData->{'content'} .= ",".$argumentList
+		unless ( $argumentList eq "" );
+	    $buildData->{'content'} .= "\n";
+	    if ( $category eq "function" ) {
+		if ( $method->{'type'} =~ m/^class/ ) {
+		    $buildData->{'content'} .= "      ".$directive.ucfirst($method->{'name'}).$extension." => null()\n";
+		} else {
+		    if ( $type eq "double precision " ) {
+			$buildData->{'content'} .= "      ".$directive.ucfirst($method->{'name'}).$extension."=0.0d0\n";	
+		    }
+		}
+	    }
 	    $buildData->{'content'} .= "      call Galacticus_Error_Report('".$method->{'name'}."Null','this is a null method - initialize the ".$directive." object before use')\n";
 	}
 	$buildData->{'content'} .= "      return\n";

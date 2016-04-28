@@ -29,20 +29,7 @@
      procedure :: apply => identityApply
   end type spectraPostprocessorIdentity
 
-  interface spectraPostprocessorIdentity
-     !% Constructors for the identity spectrum postprocessor class.
-     module procedure identityDefaultConstructor
-  end interface spectraPostprocessorIdentity
-
 contains
-
-  function identityDefaultConstructor()
-    !% Default constructor for the identity spectrum postprocessor class.
-    implicit none
-    type(spectraPostprocessorIdentity), target :: identityDefaultConstructor
-
-    return
-  end function identityDefaultConstructor
 
   subroutine identityApply(self,wavelength,age,redshift,modifier)
     !% Perform an identity postprocessing on a spectrum.
@@ -50,7 +37,8 @@ contains
     class           (spectraPostprocessorIdentity), intent(inout) :: self
     double precision                              , intent(in   ) :: age     , redshift, wavelength
     double precision                              , intent(inout) :: modifier
-
+    !GCC$ attributes unused :: self, age, redshift, wavelength
+    
     modifier=modifier
     return
   end subroutine identityApply

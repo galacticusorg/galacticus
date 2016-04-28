@@ -47,7 +47,8 @@ contains
     !% Returns a zero recoil velocity for black hole binary mergers.
     implicit none
     double precision, intent(in   ) :: massBlackHole1, massBlackHole2, spinBlackHole1, spinBlackHole2
-
+    !GCC$ attributes unused :: massBlackHole1, massBlackHole2, spinBlackHole1, spinBlackHole2
+    
     Black_Hole_Binary_Recoil_Velocity_Null=0.0d0
     return
   end function Black_Hole_Binary_Recoil_Velocity_Null

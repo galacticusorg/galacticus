@@ -78,6 +78,7 @@ subroutine stateCorrelationUpdate(self,stateNew,logState,isConverged,outlierMask
   ! Return if not logging states.
   if (.not.logState) return
   ! Determine if we should compute the correlation length.
+  storedStateCountMaximum=size(self%states,dim=2)
   if (any(self%correlationLengths == -1)) then
      stepComputeInterval=storedStateCountMaximum
   else
@@ -85,7 +86,6 @@ subroutine stateCorrelationUpdate(self,stateNew,logState,isConverged,outlierMask
   end if
   ! Store full state.
   self%storedStateCount=self%storedStateCount+1
-  storedStateCountMaximum=size(self%states,dim=2)
   if (self%storedStateCount > storedStateCountMaximum) then
      self%storedStateCount=storedStateCountMaximum
      self%states(:,1:storedStateCountMaximum-1)=self%states(:,2:storedStateCountMaximum)

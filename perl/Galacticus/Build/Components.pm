@@ -54,7 +54,7 @@ $SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
 my $debugging                           = 0;
 
 # Switch to control gfortran workarounds.
-my $workaround                          = 1;
+my $workaround                         = 1;
 
 # Adjectives for attributes.
 my %attributeAdjective =
@@ -653,6 +653,8 @@ sub Generate_Deferred_Binding_Functions {
 		    $functionCode .= "          call Galacticus_Error_Report('".$componentFunctionName."','deferred function has not been assigned')\n";
 		}
 		$functionCode .= "       end if\n";
+		$functionCode .= "    class default\n";
+		$functionCode .= "       call Galacticus_Error_Report('".$componentFunctionName."','incorrect class - this should not happen')\n";
 		$functionCode .= "    end select\n";
 		$functionCode .= "    return\n";
 		$functionCode .= "  end ".$endType." ".$componentFunctionName."\n";
@@ -860,19 +862,6 @@ sub Generate_Initialization_Function {
 	     variables  => [ "methodSelection", "message" ]
 	 }
 	);
-    foreach my $componentClass ( @{$build->{'componentClassList'}} ) {
-    	foreach my $implementationName ( @{$build->{'componentClasses'}->{$componentClass}->{'members'}} ) {
-	    my $fullName = ucfirst($componentClass).ucfirst($implementationName);
-	    push(
-		@dataContent,
-		{
-		    intrinsic  => "type",
-		    type       => "nodeComponent".$fullName,
-		    variables  => [ "default".$fullName."Component" ]
-		}
-		);
-    	}
-    }
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Check for already initialized.
     $functionCode .= "   if (.not.moduleIsInitialized) then\n";
@@ -908,7 +897,7 @@ sub Generate_Initialization_Function {
     	    my $fullName  = ucfirst($componentClass).ucfirst($implementationName);
 	    my $component = $build->{'components'}->{$fullName};
     	    $functionCode .= "       if (methodSelection == '".&Utils::padImplementation($implementationName."'",[1,0]).") then\n";
-	    $functionCode .= "          allocate(default".&Utils::padClass(ucfirst($componentClass)."Component",[9,0]).",source=default".&Utils::padFullyQualified($fullName."Component",[9,0]).")\n";
+	    $functionCode .= "          allocate(nodeComponent".&Utils::padFullyQualified($fullName,[0,0])." :: default".&Utils::padClass(ucfirst($componentClass)."Component",[9,0]).")\n";
 	    $functionCode .= "          nodeComponent".&Utils::padFullyQualified($fullName."IsActive",[8,0])."=.true.\n";
 	    until ( $fullName eq "" ) {
 		if ( exists($build->{'components'}->{$fullName}->{'extends'}) ) {
@@ -1165,6 +1154,9 @@ sub Generate_Map_Functions {
     $functionCode .= "      mapComponentsDouble0=0.0d0\n";
     $functionCode .= "    case (reductionProduct  )\n";
     $functionCode .= "      mapComponentsDouble0=1.0d0\n";
+    $functionCode .= "    case default\n";
+    $functionCode .= "      mapComponentsDouble0=1.0d0\n";
+    $functionCode .= "      call Galacticus_Error_Report('mapComponentsDouble0','unknown reduction')\n";
     $functionCode .= "    end select\n";
     foreach ( @{$build->{'componentClassList'}} ) {	    
      	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
@@ -1840,6 +1832,7 @@ sub Generate_Node_Serialization_Functions {
 	$functionCode .= "    !% Serialize ".$content."s to array.\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= "    !GCC\$ attributes unused :: self\n";
 	$functionCode .= "    array(1:nodeSerializationCount)=node".ucfirst($content)."s(1:nodeSerializationCount)\n";
 	$functionCode .= "    return\n";
 	$functionCode .= "  end subroutine SerializeToArray".ucfirst($content)."s\n\n";
@@ -1874,6 +1867,7 @@ sub Generate_Node_ODE_Initialization_Functions {
     $functionCode .= "    !% Initialize the rates in components of tree node {\\normalfont \\ttfamily self} in preparation for an ODE solver step.\n";
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= "    !GCC\$ attributes unused :: self\n";
     $functionCode .= "    nodeRates=0.0d0\n";
     $functionCode .= "    return\n";
     $functionCode .= "  end subroutine Tree_Node_ODE_Step_Rates_Initialize\n\n";
@@ -1892,6 +1886,7 @@ sub Generate_Node_ODE_Initialization_Functions {
     $functionCode .= "    !% Initialize the scales in components of tree node {\\normalfont \\ttfamily self} in preparation for an ODE solver step.\n";
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= "    !GCC\$ attributes unused :: self\n";
     $functionCode .= "    nodeScales=1.0d0\n";
     $functionCode .= "    return\n";
     $functionCode .= "  end subroutine Tree_Node_ODE_Step_Scales_Initialize\n\n";
@@ -1976,6 +1971,8 @@ sub Generate_Implementation_Dump_Functions {
 	$functionCode .= "    use String_Handling\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= "    !GCC\$ attributes unused :: self\n"
+	    if ( $component->{'name'} eq "null" );
 	unless ( $component->{'name'} eq "null" ) {
 	    # Dump the parent type if necessary.
 	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%dump()\n"
@@ -2063,51 +2060,63 @@ sub Generate_Implementation_Dump_Functions {
 	$functionCode .= "    !% Dump the contents of a ".$component->{'name'}." implementation of the ".$component->{'class'}." component to XML.\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	my $selfUsed = 0;
+	my $fileUsed = 0;
+	my $functionBody = "";
 	unless ( $component->{'name'} eq "null" ) {
+	    $fileUsed = 1;
 	    # Dump the parent type if necessary.
-	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%dumpXML(fileHandle)\n"
-		if ( exists($component->{'extends'}) );
-	    $functionCode .= "    write (fileHandle,'(a)') '  <".$component->{'class'}." type=\"".$component->{'name'}."\">'\n";
-	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+	    if ( exists($component->{'extends'}) ) {
+		$functionBody .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%dumpXML(fileHandle)\n";
+		$selfUsed = 1;
+	    }
+	    $functionBody .= "    write (fileHandle,'(a)') '  <".$component->{'class'}." type=\"".$component->{'name'}."\">'\n";
+            foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property has any linked data in this component.
 		if ( exists($property->{'linkedData'}) ) {
+		    $selfUsed = 1;
 		    my $linkedDataName = $property->{'linkedData'};
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    if ( $linkedData->{'rank'} == 0 ) {
 			if (&Utils::isIntrinsic($linkedData->{'type'})) {
 			    (my $typeFormat = $formatLabel{$linkedData->{'type'}}) =~ s/^\'\((.*)\)\'$/$1/g;
-			    $functionCode .= "    write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".&Utils::padLinkedData($linkedDataName,[0,0]).",'</".$propertyName.">'\n";
+				$functionBody .= "    write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".&Utils::padLinkedData($linkedDataName,[0,0]).",'</".$propertyName.">'\n";
 			}
 			else {
-			    $functionCode .= "    write (fileHandle,'(a)') '   <".$propertyName.">'\n";
-			    $functionCode .= "    write (fileHandle,'(a)') '   </".$propertyName.">'\n";
+			    $functionBody .= "    write (fileHandle,'(a)') '   <".$propertyName.">'\n";
+			    $functionBody .= "    write (fileHandle,'(a)') '   </".$propertyName.">'\n";
 			}
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
 			if (&Utils::isIntrinsic($linkedData->{'type'})) {
 			    (my $typeFormat = $formatLabel{$linkedData->{'type'}}) =~ s/^\'\((.*)\)\'$/$1/g;
-			    $functionCode .= "    do i=1,size(self%".$linkedDataName.")\n";
-			    $functionCode .= "       write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".$linkedDataName."(i),'</".$propertyName.">'\n";
-			    $functionCode .= "    end do\n";
+			    $functionBody .= "    do i=1,size(self%".$linkedDataName.")\n";
+			    $functionBody .= "       write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".$linkedDataName."(i),'</".$propertyName.">'\n";
+			    $functionBody .= "    end do\n";
 			}
 			else {
-			    $functionCode .= "    do i=1,size(self%".$linkedDataName.")\n";
-			    $functionCode .= "       write (fileHandle,'(a)') '   <".$propertyName.">'\n";
-			    $functionCode .= "       write (fileHandle,'(a)') '   </".$propertyName.">'\n";
-			    $functionCode .= "    end do\n";
+			    $functionBody .= "    do i=1,size(self%".$linkedDataName.")\n";
+			    $functionBody .= "       write (fileHandle,'(a)') '   <".$propertyName.">'\n";
+			    $functionBody .= "       write (fileHandle,'(a)') '   </".$propertyName.">'\n";
+			    $functionBody .= "    end do\n";
 			}			
 		    }
 		} elsif ( $property->{'attributes'}->{'isVirtual'} && $property->{'rank'} == 0 ) {
 		    if (&Utils::isIntrinsic($property->{'type'})) {
 			(my $typeFormat = $formatLabel{$property->{'type'}}) =~ s/^\'\((.*)\)\'$/$1/g;
-			$functionCode .= "    write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".&Utils::padImplementationPropertyName($propertyName,[0,0])."(),'</".$propertyName.">'\n";
+			$functionBody .= "    write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".&Utils::padImplementationPropertyName($propertyName,[0,0])."(),'</".$propertyName.">'\n";
 		    }
 		}
 	    }
-	    $functionCode .= "    write (fileHandle,'(a)') '  </".$component->{'class'}.">'\n";
+	    $functionBody .= "    write (fileHandle,'(a)') '  </".$component->{'class'}.">'\n";
 	}
-	$functionCode .= "    return\n";
-	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Dump_XML\n";
+	$functionBody .= "    return\n";
+	$functionBody .= "  end subroutine Node_Component_".ucfirst($componentID)."_Dump_XML\n";
+	$functionCode .= "  !GCC\$ attributes unused :: self\n"
+	    unless ( $selfUsed );
+	$functionCode .= "  !GCC\$ attributes unused :: fileHandle\n"
+	    unless ( $fileUsed );
+	$functionCode .= $functionBody;
 	# Insert into the function list.
 	push(
 	    @{$build->{'code'}->{'functions'}},
@@ -2160,42 +2169,56 @@ sub Generate_Implementation_Dump_Functions {
 	$functionCode .= "    !% Dump the contents of a ".$component->{'name'}." implementation of the ".$component->{'class'}." component in binary.\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionBody = "";
+	$selfUsed     = 0;
+	$fileUsed     = 0;	
 	unless ( $component->{'name'} eq "null" ) {
 	    # Dump the parent type if necessary.
-	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%dumpRaw(fileHandle)\n"
-		if ( exists($component->{'extends'}) );
+	    if ( exists($component->{'extends'}) ) {
+		$functionBody .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%dumpRaw(fileHandle)\n";
+		$selfUsed = 1;
+		$fileUsed = 1;
+	    }
 	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property has any linked data in this component.
 		if ( exists($property->{'linkedData'}) ) {
+		    $selfUsed = 1;
+		    $fileUsed = 1;
 		    my $linkedDataName = $property->{'linkedData'};
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    if ( $linkedData->{'rank'} == 0 ) {
 			if (&Utils::isIntrinsic($linkedData->{'type'})) {
 			    $functionCode .= "    write (fileHandle) self%".&Utils::padLinkedData($linkedDataName,[0,0])."\n";
+			    $functionBody .= "    write (fileHandle) self%".&Utils::padLinkedData($linkedDataName,[0,0])."\n";
 			}
 			else {
-			    $functionCode .= "    call self%".&Utils::padLinkedData($linkedDataName,[0,0])."%dumpRaw(fileHandle)\n";
+			    $functionBody .= "    call self%".&Utils::padLinkedData($linkedDataName,[0,0])."%dumpRaw(fileHandle)\n";
 			}
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
-			$functionCode .= "    write (fileHandle) allocated(self%".$linkedDataName.")\n";
-			$functionCode .= "    if (allocated(self%".$linkedDataName.")) then\n";
-			$functionCode .= "       write (fileHandle) size(self%".$linkedDataName.")\n";
+			$functionBody .= "    write (fileHandle) allocated(self%".$linkedDataName.")\n";
+			$functionBody .= "    if (allocated(self%".$linkedDataName.")) then\n";
+			$functionBody .= "       write (fileHandle) size(self%".$linkedDataName.")\n";
 			if (&Utils::isIntrinsic($linkedData->{'type'})) {
-			    $functionCode .= "      write (fileHandle) self%".$linkedDataName."\n";
+			    $functionBody .= "      write (fileHandle) self%".$linkedDataName."\n";
 			}
 			else {
-			    $functionCode .= "       do i=1,size(self%".$linkedDataName.")\n";
-			    $functionCode .= "          call self%".$linkedDataName."(i)%dumpRaw(fileHandle)\n";
-			    $functionCode .= "       end do\n";
+			    $functionBody .= "       do i=1,size(self%".$linkedDataName.")\n";
+			    $functionBody .= "          call self%".$linkedDataName."(i)%dumpRaw(fileHandle)\n";
+			    $functionBody .= "       end do\n";
 			}
-			$functionCode .= "    end if\n";
+			$functionBody .= "    end if\n";
 		    }
 		}
 	    }
 	}
-	$functionCode .= "    return\n";
-	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Dump_Raw\n";
+	$functionBody .= "    return\n";
+	$functionBody .= "  end subroutine Node_Component_".ucfirst($componentID)."_Dump_Raw\n";
+	$functionCode .= "  !GCC\$ attributes unused :: self\n"
+	    unless ( $selfUsed );
+	$functionCode .= "  !GCC\$ attributes unused :: fileHandle\n"
+	    unless ( $fileUsed );
+	$functionCode .= $functionBody;
 	# Insert into the function list.
 	push(
 	    @{$build->{'code'}->{'functions'}},
@@ -2266,43 +2289,56 @@ sub Generate_Implementation_Dump_Functions {
 	$functionCode .= "    use Memory_Management\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$selfUsed     = 0;
+	$fileUsed     = 0;
+	$functionBody = "";
 	unless ( $component->{'name'} eq "null" ) {
 	    # Dump the parent type if necessary.
-	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%readRaw(fileHandle)\n"
-		if ( exists($component->{'extends'}) );
-	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+	    if ( exists($component->{'extends'}) ) {
+		$functionBody .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%readRaw(fileHandle)\n";
+		$selfUsed = 1;
+		$fileUsed = 1;
+	    }
+            foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property has any linked data in this component.
 		if ( exists($property->{'linkedData'}) ) {
+		    $selfUsed = 1;
+		    $fileUsed = 1;
 		    my $linkedDataName = $property->{'linkedData'};
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    if ( $linkedData->{'rank'} == 0 ) {
 			if (&Utils::isIntrinsic($linkedData->{'type'})) {
-			    $functionCode .= "    read (fileHandle) self%".&Utils::padLinkedData($linkedDataName,[0,0])."\n";
+			    $functionBody .= "    read (fileHandle) self%".&Utils::padLinkedData($linkedDataName,[0,0])."\n";
 			} else {
-			    $functionCode .= "    call self%".&Utils::padLinkedData($linkedDataName,[0,0])."%readRaw(fileHandle)\n";
+			    $functionBody .= "    call self%".&Utils::padLinkedData($linkedDataName,[0,0])."%readRaw(fileHandle)\n";
 			}
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
-			$functionCode .= "    read (fileHandle) isAllocated\n";
-			$functionCode .= "    if (isAllocated) then\n";
-			$functionCode .= "       read (fileHandle) arraySize\n";
+			$functionBody .= "    read (fileHandle) isAllocated\n";
+			$functionBody .= "    if (isAllocated) then\n";
+			$functionBody .= "       read (fileHandle) arraySize\n";
 			if (&Utils::isIntrinsic($linkedData->{'type'})) {
-			    $functionCode .= "      call Alloc_Array(self%".$linkedDataName.",[arraySize])\n";
-			    $functionCode .= "      read (fileHandle) self%".$linkedDataName."\n";
+			    $functionBody .= "      call Alloc_Array(self%".$linkedDataName.",[arraySize])\n";
+			    $functionBody .= "      read (fileHandle) self%".$linkedDataName."\n";
 			}
 			else {
-			    $functionCode .= "       allocate(self%".$linkedDataName."(arraySize))\n";
-			    $functionCode .= "       do i=1,arraySize)\n";
-			    $functionCode .= "          call self%".$linkedDataName."(i)%readRaw(fileHandle)\n";
-			    $functionCode .= "       end do\n";
+			    $functionBody .= "       allocate(self%".$linkedDataName."(arraySize))\n";
+			    $functionBody .= "       do i=1,arraySize)\n";
+			    $functionBody .= "          call self%".$linkedDataName."(i)%readRaw(fileHandle)\n";
+			    $functionBody .= "       end do\n";
 			}
-			$functionCode .= "    end if\n";
+			$functionBody .= "    end if\n";
 		    }
 		}
 	    }
 	}
-	$functionCode .= "    return\n";
-	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Read_Raw\n";
+	$functionBody .= "    return\n";
+	$functionBody .= "  end subroutine Node_Component_".ucfirst($componentID)."_Read_Raw\n";
+	$functionCode .= "  !GCC\$ attributes unused :: self\n"
+	    unless ( $selfUsed );
+	$functionCode .= "  !GCC\$ attributes unused :: fileHandle\n"
+	    unless ( $fileUsed );
+	$functionCode .= $functionBody;
 	# Insert into the function list.
 	push(
 	    @{$build->{'code'}->{'functions'}},
@@ -2391,6 +2427,8 @@ sub Generate_Implementation_Initializor_Functions {
 	    )
 	    foreach ( &ExtraUtils::sortedKeys(\%requiredComponents) );
 	# Generate initializor function.
+	my $selfUsed     = 0;
+	my $functionBody = "";
 	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Initializor(self)\n";
 	$functionCode .= "    !% Initialize a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
 	$functionCode .= "    use Memory_Management\n";
@@ -2408,18 +2446,24 @@ sub Generate_Implementation_Initializor_Functions {
 	    $functionCode .= "    use ".$_."\n";
 	}
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";	
 	unless ( $component->{'name'} eq "null" ) {
 	    # Initialize the parent type if necessary.
-	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%initialize()\n"
-		if ( exists($component->{'extends'}) );
+	    if ( exists($component->{'extends'}) ) {
+		$functionBody .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%initialize()\n";
+		$selfUsed = 1;
+	    }
 	}
 	foreach my $requiredComponent ( &ExtraUtils::sortedKeys(\%requiredComponents) ) {
-	    $functionCode .= "     self".$requiredComponent."Component => self%hostNode%".lc($requiredComponent)."()\n";
+	    $functionBody .= "     self".$requiredComponent."Component => self%hostNode%".lc($requiredComponent)."()\n";
+	    $selfUsed = 1;
 	}
-	$functionCode .= $initializeCode;
-	$functionCode .= "    return\n";
-	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Initializor\n";
+	$functionBody .= $initializeCode;
+	$functionBody .= "    return\n";
+	$functionBody .= "  end subroutine Node_Component_".ucfirst($componentID)."_Initializor\n";
+	$functionCode .= "  !GCC\$ attributes unused :: self\n"
+	    unless ( $selfUsed );
+	$functionCode .= $functionBody;
 	# Insert into the function list.
 	push(
 	    @{$build->{'code'}->{'functions'}},
@@ -2502,6 +2546,8 @@ sub Generate_Implementation_Builder_Functions {
 	$functionCode .= "    use Memory_Management\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= "    !GCC\$ attributes unused :: self, componentDefinition\n"
+	    if ( $component->{'name'} eq "null" );
 	unless ( $component->{'name'} eq "null" ) {
 	    # Initialize the component.
 	    $functionCode .= "    call self%initialize()\n";
@@ -2696,10 +2742,23 @@ sub Generate_Implementation_Output_Functions {
 	    foreach ( &ExtraUtils::sortedKeys(\%modulesRequired) );
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	my %typeUsed =
+	    (
+	     integer => 0,
+	     double  => 0
+	    );
+	my $extraUsed    = 0;
+	my $instanceUsed = 0;
+	my $functionBody = "";
 	unless ( $component->{'name'} eq "null" ) {
 	    # Act on the parent type if necessary.
-	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%outputCount(integerPropertyCount,doublePropertyCount,time,instance)\n"
-		if ( exists($component->{'extends'}) );
+	    if ( exists($component->{'extends'}) ) {
+		$functionBody .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%outputCount(integerPropertyCount,doublePropertyCount,time,instance)\n";
+		$extraUsed               = 1;
+		$instanceUsed            = 1;
+		$typeUsed    {'integer'} = 1;
+		$typeUsed    {'double' } = 1;
+	    }
 	    # Check that this instance is to be output.
 	    my $checkAdded = 0;
 	    if (
@@ -2707,8 +2766,9 @@ sub Generate_Implementation_Output_Functions {
 		exists($component->{'output'}->{'instances'})           &&
 		$component->{'output'}->{'instances'} eq "first"
 		) {
-		$functionCode .= "    if (instance == 1) then\n";
-		$checkAdded = 1;
+		$functionBody .= "    if (instance == 1) then\n";
+		$checkAdded   = 1;
+		$instanceUsed = 1;
 	    }
 	    # Initialize counts.
 	    my %typeCount =
@@ -2718,9 +2778,9 @@ sub Generate_Implementation_Output_Functions {
 		);
 	    my %typeMap =
 		(
-		 double => "double" ,
-		 integer         => "integer",
-		 longInteger     => "integer"
+		 double      => "double" ,
+		 integer     => "integer",
+		 longInteger => "integer"
 		);
 	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
@@ -2768,25 +2828,30 @@ sub Generate_Implementation_Output_Functions {
 			    if ( exists($property->{'output'}->{'condition'}) ) {
 				my $condition = $property->{'output'}->{'condition'};
 				$condition =~ s/\[\[([^\]]+)\]\]/$1/g;
-				$functionCode .= "    if (".$condition.") ".$typeMap{$type}."PropertyCount=".$typeMap{$type}."PropertyCount+".$count."\n";
+				$functionBody .= "    if (".$condition.") ".$typeMap{$type}."PropertyCount=".$typeMap{$type}."PropertyCount+".$count."\n";
+				$typeUsed{$typeMap{$type}} = 1;
 			    } elsif ( $count =~ m/^\d/ ) {
 				$typeCount{$typeMap{$type}} += $count;
+				$typeUsed{$typeMap{$type}} = 1;
 			    } else {
-				$functionCode .= "    ".$typeMap{$type}."PropertyCount=".$typeMap{$type}."PropertyCount+".$count."\n";
+				$functionBody .= "    ".$typeMap{$type}."PropertyCount=".$typeMap{$type}."PropertyCount+".$count."\n";
+				$typeUsed{$typeMap{$type}} = 1;
 			    }
 			} elsif ( $rank == 1 ) {
 			    if ( exists($property->{'output'}->{'condition'}) ) {
 				my $condition = $property->{'output'}->{'condition'};
 				$condition =~ s/\[\[([^\]]+)\]\]/$1/g;
 				$condition =~ s/\{i\}/i/g;
-				$functionCode .= "    do i=1,".$count."\n";
-				$functionCode .= "    if (".$condition.") ".$typeMap{$type}."PropertyCount=".$typeMap{$type}."PropertyCount+1\n";
-				$functionCode .= "    end do\n";
+				$functionBody .= "    do i=1,".$count."\n";
+				$functionBody .= "    if (".$condition.") ".$typeMap{$type}."PropertyCount=".$typeMap{$type}."PropertyCount+1\n";
+				$functionBody .= "    end do\n";
+				$typeUsed{$typeMap{$type}} = 1;
 			    } else {
 				if ( $count =~ m/^\d/ ) {
 				    $typeCount{$typeMap{$type}} += $count;
 				} else {
-				    $functionCode .= "    ".$typeMap{$type}."PropertyCount=".$typeMap{$type}."PropertyCount+".$count."\n";
+				    $functionBody .= "    ".$typeMap{$type}."PropertyCount=".$typeMap{$type}."PropertyCount+".$count."\n";
+				    $typeUsed{$typeMap{$type}} = 1;
 				}  
 			    }
 			}
@@ -2795,24 +2860,36 @@ sub Generate_Implementation_Output_Functions {
 			if ( exists($property->{'output'}->{'condition'}) ) {
 			    my $condition = $property->{'output'}->{'condition'};
 			    $condition =~ s/\[\[([^\]]+)\]\]/$1/g;
-			    $functionCode .= "    if (".$condition.") then\n";
+			    $functionBody .= "    if (".$condition.") then\n";
 			}
-			$functionCode .= "    output".ucfirst($type)."=self%".$propertyName."()\n";
-			$functionCode .= "    call output".ucfirst($type)."%outputCount(integerPropertyCount,doublePropertyCount,time)\n";
-			$functionCode .= "    end if\n"
+			$functionBody .= "    output".ucfirst($type)."=self%".$propertyName."()\n";
+			$functionBody .= "    call output".ucfirst($type)."%outputCount(integerPropertyCount,doublePropertyCount,time)\n";
+			$functionBody .= "    end if\n"
 			    if ( exists($property->{'output'}->{'condition'}) );
+			$typeUsed    {'integer'} = 1;
+			$typeUsed    {'double' } = 1;
+			$extraUsed               = 1;
 		    }
 		}
 	    }
-	    $functionCode .= "    doublePropertyCount =doublePropertyCount +".$typeCount{'double' }."\n"
+	    $functionBody .= "    doublePropertyCount =doublePropertyCount +".$typeCount{'double' }."\n"
 		unless ( $typeCount{'double' } == 0 );
-	    $functionCode .= "    integerPropertyCount=integerPropertyCount+".$typeCount{'integer'}."\n"
+	    $functionBody .= "    integerPropertyCount=integerPropertyCount+".$typeCount{'integer'}."\n"
 		unless ( $typeCount{'integer'} == 0 );
-	    $functionCode .= "    end if\n"
+	    $functionBody .= "    end if\n"
 		if ( $checkAdded == 1 );
 	}
-	$functionCode .= "    return\n";
-	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Output_Count\n";
+	$functionBody .= "    return\n";
+	$functionBody .= "  end subroutine Node_Component_".ucfirst($componentID)."_Output_Count\n";
+	foreach my $type ( keys(%typeUsed) ) {
+	    $functionCode .= "  !GCC\$ attributes unused :: ".$type."PropertyCount\n"
+		unless ( $typeUsed{$type} );
+	}	
+	$functionCode .= "  !GCC\$ attributes unused :: self, time\n"
+		unless ( $extraUsed );
+	$functionCode .= "  !GCC\$ attributes unused :: instance\n"
+		unless ( $instanceUsed );
+	$functionCode .= $functionBody;
 	# Insert into the function list.
 	push(
 	    @{$build->{'code'}->{'functions'}},
@@ -2866,12 +2943,21 @@ sub Generate_Implementation_Output_Functions {
 	$functionCode .= "    use ".$_."\n"
 	    foreach ( &ExtraUtils::sortedKeys(\%modulesRequired) );
 	$functionCode .= "    implicit none\n";
-	my $functionBody;
+	$functionBody = "";
 	my $nameCounterAdded = 0;
+	$typeUsed {'integer'} = 0;
+	$typeUsed {'double' } = 0;
+	$extraUsed            = 0;
+	$instanceUsed         = 0;
 	unless ( $component->{'name'} eq "null" ) {
 	    # Act on the parent type if necessary.
-	    $functionBody .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance)\n"
-		if ( exists($component->{'extends'}) );
+	    if ( exists($component->{'extends'}) ) {
+		$functionBody .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance)\n";
+		$extraUsed               = 1;
+		$instanceUsed            = 1;
+		$typeUsed    {'integer'} = 1;
+		$typeUsed    {'double' } = 1;
+	    }
 	    # Check that this instance is to be output.
 	    my $checkAdded = 0;
 	    if (
@@ -2880,13 +2966,14 @@ sub Generate_Implementation_Output_Functions {
 		$component->{'output'}->{'instances'} eq "first"
 		) {
 		$functionBody .= "    if (instance == 1) then\n";
-		$checkAdded = 1;
+		$checkAdded   = 1;
+		$instanceUsed = 1;
 	    }
 	    my %typeMap =
 		(
-		 double => "double" ,
-		 integer         => "integer",
-		 longInteger     => "integer"
+		 double      => "double" ,
+		 integer     => "integer",
+		 longInteger => "integer"
 		);
 	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
@@ -2895,14 +2982,12 @@ sub Generate_Implementation_Output_Functions {
 		    # Define rank, type and value.
 		    my $rank;
 		    my $type;
-		    my $object;
 		    # Check if this property has any linked data in this component.
 		    if ( exists($property->{'linkedData'}) ) {
 			my $linkedDataName = $property->{'linkedData'};
 			my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 			$rank   = $linkedData->{'rank'};
 			$type   = $linkedData->{'type'};
-			$object = "self%".$linkedDataName;
 		    } elsif ( $property->{'attributes'}->{'isVirtual'} && $property->{'attributes'}->{'isGettable'} ) {
 			$rank = $property->{'rank'};
 			$type = $property->{'type'};
@@ -2911,6 +2996,7 @@ sub Generate_Implementation_Output_Functions {
 		    }		   
 		    # Increment the counters.
 		    if (&Utils::isOutputIntrinsic($type)) {
+			$typeUsed{$typeMap{$type}} = 1;
 			if ( $rank == 0 ) {
 			    if ( exists($property->{'output'}->{'condition'}) ) {
 				my $condition = $property->{'output'}->{'condition'};
@@ -2993,6 +3079,9 @@ sub Generate_Implementation_Output_Functions {
 			$functionBody .= "    call output".ucfirst($type)."%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,'".$component->{'class'}.ucfirst($propertyName)."','".$property->{'output'}->{'comment'}."',".$unitsInSI.")\n";
 			$functionBody .= "    end if\n"
 			    if ( exists($property->{'output'}->{'condition'}) );
+			$typeUsed{'integer'} = 1;
+			$typeUsed{'double' } = 1;
+			$extraUsed           = 1;
 		    }
 		}
 	    }
@@ -3002,6 +3091,14 @@ sub Generate_Implementation_Output_Functions {
 	$functionBody .= "    return\n";
 	$functionBody .= "  end subroutine Node_Component_".ucfirst($componentID)."_Output_Names\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	foreach my $type ( keys(%typeUsed) ) {
+	    $functionCode .= "  !GCC\$ attributes unused :: ".join(", ",map {$type.$_} ('Property','PropertyNames','PropertyComments','PropertyUnitsSI'))."\n"
+		unless ( $typeUsed{$type} );
+	}	
+	$functionCode .= "  !GCC\$ attributes unused :: self, time\n"
+		unless ( $extraUsed );
+	$functionCode .= "  !GCC\$ attributes unused :: instance\n"
+		unless ( $instanceUsed );
 	$functionCode .= $functionBody;
 	# Insert into the function list.
 	push(
@@ -3049,16 +3146,24 @@ sub Generate_Implementation_Name_From_Index_Functions {
 	     }
 	    );
 	# Generate the function.
+	my $selfUsed  = 0;
+	my $countUsed = 0;
   	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Name_From_Index(self,count,name)\n";
 	$functionCode .= "    !% Return the name of the property of given index for a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
 	$functionCode .= "    use ISO_Varying_String\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	my $functionBody = "";
 	# If this component is an extension, first call on the extended type.
 	if ( exists($build->{'components'}->{$componentID}->{'extends'}) ) {
 	    my $extends = $build->{'components'}->{$componentID}->{'extends'};
-	    $functionCode .= "    call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%nameFromIndex(count,name)\n";
-	    $functionCode .= "    if (count <= 0) return\n";
+	    $functionBody .= "    call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%nameFromIndex(count,name)\n";
+	    $functionBody .= "    if (count <= 0) then\n";
+	    $functionBody .= "       name='?'\n";	    
+	    $functionBody .= "       return\n";	    
+	    $functionBody .= "    end if\n";
+	    $selfUsed  = 1;
+	    $countUsed = 1;
 	}
 	# Iterate over properties.
 	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
@@ -3069,25 +3174,34 @@ sub Generate_Implementation_Name_From_Index_Functions {
 		my $linkedDataName = $property->{'linkedData'};
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		if ( $linkedData->{'isEvolvable'} ) {
+		    $countUsed = 1;
 		    if ( $linkedData->{'rank'} == 0 ) {
 			if ( $linkedData->{'type'} eq "double" ) {
-			    $functionCode .= "    count=count-1\n";
+			    $functionBody .= "    count=count-1\n";
 			}
 			else {
-			    $functionCode .= "    count=count-self%".&Utils::padLinkedData($linkedDataName,[0,0])."%serializeCount()\n";
+			    $functionBody .= "    count=count-self%".&Utils::padLinkedData($linkedDataName,[0,0])."%serializeCount()\n";
+			    $selfUsed  = 1;
 			}
 		    } else {
-			$functionCode .= "    if (allocated(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")) count=count-size(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")\n";
+			$functionBody .= "    if (allocated(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")) count=count-size(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")\n";
+			$selfUsed  = 1;
 		    }
-		    $functionCode .= "    if (count <= 0) then\n";
-		    $functionCode .= "      name='".$component->{'class'}.":".$component->{'name'}.":".$propertyName."'\n";
-		    $functionCode .= "      return\n";
-		    $functionCode .= "    end if\n";
+		    $functionBody .= "    if (count <= 0) then\n";
+		    $functionBody .= "      name='".$component->{'class'}.":".$component->{'name'}.":".$propertyName."'\n";
+		    $functionBody .= "      return\n";
+		    $functionBody .= "    end if\n";
 		}
 	    }
 	}
-	$functionCode .= "    return\n";
-	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Name_From_Index\n\n";
+	$functionBody .= "    name='?'\n";
+	$functionBody .= "    return\n";
+	$functionBody .= "  end subroutine Node_Component_".ucfirst($componentID)."_Name_From_Index\n\n";
+	$functionCode .= "   !GCC\$ attributes unused :: self\n"
+	    unless ( $selfUsed  );
+	$functionCode .= "   !GCC\$ attributes unused :: count\n"
+	    unless ( $countUsed );
+	$functionCode .= $functionBody;
 	# Insert into the function list.
 	push(
 	    @{$build->{'code'}->{'functions'}},
@@ -3126,6 +3240,8 @@ sub Generate_Implementation_Name_From_Index_Functions {
     $functionCode .= "    use ISO_Varying_String\n";
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= "    !GCC\$ attributes unused :: self, count\n";
+    $functionCode .= "    name='?'\n";
     $functionCode .= "    return\n";
     $functionCode .= "  end subroutine Node_Component_Name_From_Index\n\n";
     # Insert into the function list.
@@ -3166,13 +3282,16 @@ sub Generate_Implementation_Serialization_Functions {
 	$functionCode .= "    !% Return a count of the serialization of a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	my $functionBody = "";
+	my $selfUsed = 0;
 	# If this component is an extension, get the count of the extended type.
-	$functionCode .= "    Node_Component_".ucfirst($componentID)."_Count=";
+	$functionBody .= "    Node_Component_".ucfirst($componentID)."_Count=";
 	if ( exists($build->{'components'}->{$componentID}->{'extends'}) ) {
 	    my $extends = $build->{'components'}->{$componentID}->{'extends'};
-	    $functionCode .= "self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serializeCount()\n";
+	    $functionBody .= "self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serializeCount()\n";
+	    $selfUsed = 1;
 	} else {
-	    $functionCode .= "0\n";
+	    $functionBody .= "0\n";
 	}
 	# Initialize a count of scalar properties.
 	my $scalarPropertyCount = 0;
@@ -3190,19 +3309,24 @@ sub Generate_Implementation_Serialization_Functions {
 			    ++$scalarPropertyCount;
 			}
 			else {
-			    $functionCode .= "    Node_Component_".ucfirst($componentID)."_Count=Node_Component_".ucfirst($componentID)."_Count+self%".&Utils::padLinkedData($linkedDataName,[0,0])."%serializeCount()\n";
+			    $functionBody .= "    Node_Component_".ucfirst($componentID)."_Count=Node_Component_".ucfirst($componentID)."_Count+self%".&Utils::padLinkedData($linkedDataName,[0,0])."%serializeCount()\n";
+			    $selfUsed = 1;
 			}
 		    } else {
-			$functionCode .= "    if (allocated(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")) Node_Component_".ucfirst($componentID)."_Count=Node_Component_".ucfirst($componentID)."_Count+size(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")\n";
+			$functionBody .= "    if (allocated(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")) Node_Component_".ucfirst($componentID)."_Count=Node_Component_".ucfirst($componentID)."_Count+size(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")\n";
+			$selfUsed = 1;
 		    }
 		}
 	    }
 	}
 	# Insert the final count of scalar properties.
-	$functionCode .= "    Node_Component_".ucfirst($componentID)."_Count=Node_Component_".ucfirst($componentID)."_Count+".$scalarPropertyCount."\n"
+	$functionBody .= "    Node_Component_".ucfirst($componentID)."_Count=Node_Component_".ucfirst($componentID)."_Count+".$scalarPropertyCount."\n"
 	    if ($scalarPropertyCount > 0);
-	$functionCode .= "    return\n";
-	$functionCode .= "  end function Node_Component_".ucfirst($componentID)."_Count\n\n";
+	$functionBody .= "    return\n";
+	$functionBody .= "  end function Node_Component_".ucfirst($componentID)."_Count\n\n";
+	$functionCode .= "   !GCC\$ attributes unused :: self\n"
+	    unless ( $selfUsed  );		    
+	$functionCode .= $functionBody;
 	# Insert into the function list.
 	push(
 	    @{$build->{'code'}->{'functions'}},
@@ -3234,6 +3358,8 @@ sub Generate_Implementation_Serialization_Functions {
 	$functionCode .= "    implicit none\n";
 	my $serializationCode;
 	my $needCount = 0;
+	my $arrayUsed = 0;
+	$selfUsed     = 0;
 	# If this component is an extension, call serialization on the extended type.
 	if ( exists($build->{'components'}->{$componentID}->{'extends'}) ) {
 	    my $extends = $build->{'components'}->{$componentID}->{'extends'};
@@ -3243,6 +3369,8 @@ sub Generate_Implementation_Serialization_Functions {
 	    $serializationCode .= "  offset=offset+count\n";
 	    $serializationCode .= " end if\n";
 	    $needCount = 1;
+	    $arrayUsed = 1;
+	    $selfUsed  = 1;
 	}
 	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
@@ -3251,6 +3379,8 @@ sub Generate_Implementation_Serialization_Functions {
 		my $linkedDataName = $property->{'linkedData'};
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		if ( $linkedData->{'isEvolvable'} ) {
+		    $arrayUsed = 1;
+		    $selfUsed  = 1;
 		    if ( $linkedData->{'rank'} == 0 ) {
 			if ( $linkedData->{'type'} eq "double" ) {
 			    $serializationCode .= "    write (0,*) 'DEBUG -> Node_Component_".ucfirst($componentID)."_Serialize_Values -> ".$linkedDataName."',offset,size(array)\n"
@@ -3293,6 +3423,10 @@ sub Generate_Implementation_Serialization_Functions {
 	    $serializationCode = "    offset=1\n".$serializationCode;
 	}
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= "   !GCC\$ attributes unused :: array\n"
+	    unless ( $arrayUsed );		    
+	$functionCode .= "   !GCC\$ attributes unused :: self\n"
+	    unless ( $selfUsed  );		    
 	$functionCode .= $serializationCode
 	    if ( defined($serializationCode) );
 	$functionCode .= "    return\n";
@@ -3327,6 +3461,8 @@ sub Generate_Implementation_Serialization_Functions {
 	$functionCode .= "    !% Serialize values of a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
 	$functionCode .= "    implicit none\n";
 	my $deserializationCode;
+	$selfUsed  = 0;
+	$arrayUsed = 0;
 	$needCount = 0;
 	# If this component is an extension, call deserialization on the extended type.
 	if ( exists($build->{'components'}->{$componentID}->{'extends'}) ) {
@@ -3337,6 +3473,8 @@ sub Generate_Implementation_Serialization_Functions {
 	    $deserializationCode .= "  offset=offset+count\n";
 	    $deserializationCode .= " end if\n";
 	    $needCount = 1;
+	    $arrayUsed = 1;
+	    $selfUsed  = 1;
 	}
 	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
@@ -3346,6 +3484,8 @@ sub Generate_Implementation_Serialization_Functions {
 		my $linkedDataName = $property->{'linkedData'};
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		if ( $linkedData->{'isEvolvable'} ) {
+		    $arrayUsed = 1;
+		    $selfUsed  = 1;
 		    if ( $linkedData->{'rank'} == 0 ) {
 			if ( $linkedData->{'type'} eq  "double" ) {
 			    $deserializationCode .= "    self%".&Utils::padLinkedData($linkedDataName,[0,0])."=array(offset)\n";
@@ -3382,6 +3522,10 @@ sub Generate_Implementation_Serialization_Functions {
 	    $deserializationCode = "    offset=1\n".$deserializationCode;
 	}
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= "   !GCC\$ attributes unused :: array\n"
+	    unless ( $arrayUsed );		    
+	$functionCode .= "   !GCC\$ attributes unused :: self\n"
+	    unless ( $selfUsed  );		    
 	$functionCode .= $deserializationCode
 	    if ( defined($deserializationCode) );
 	$functionCode .= "    return\n";
@@ -3550,12 +3694,15 @@ sub Generate_Implementation_Offset_Functions {
 	$functionCode .= "    !% Return a count of the serialization of a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	my $functionBody = "";
 	# If this component is an extension, compute offsets of the extended type.
 	if ( exists($build->{'components'}->{$componentID}->{'extends'}) ) {
 	    my $extends = $build->{'components'}->{$componentID}->{'extends'};
-	    $functionCode .= "call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serializationOffsets(count)\n";
+	    $functionBody .= "call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serializationOffsets(count)\n";
 	}
 	# Iterate over properties.
+	my $countUsed = 0;
+	my $selfUsed  =0;
 	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
    	    # Check if this property has any linked data in this component.
@@ -3564,23 +3711,31 @@ sub Generate_Implementation_Offset_Functions {
 		my $linkedDataName = $property->{'linkedData'};
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		if ( $linkedData->{'isEvolvable'} ) {
+		    $countUsed = 1;
 		    my $offsetName = &offsetName($componentID,$propertyName);
-		    $functionCode .= "    ".$offsetName."=count+1\n";
+		    $functionBody .= "    ".$offsetName."=count+1\n";
 		    if ( $linkedData->{'rank'} == 0 ) {
 			if ( $linkedData->{'type'} eq "double" ) {
-			    $functionCode .= "    count=count+1\n";
+			    $functionBody .= "    count=count+1\n";
 			}
 			else {
-			    $functionCode .= "    count=count+self%".&Utils::padLinkedData($linkedDataName,[0,0])."%serializeCount()\n";
+			    $selfUsed = 1;
+			    $functionBody .= "    count=count+self%".&Utils::padLinkedData($linkedDataName,[0,0])."%serializeCount()\n";
 			}
 		    } else {
-			$functionCode .= "    if (allocated(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")) count=count+size(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")\n";
+			$selfUsed = 1;
+			$functionBody .= "    if (allocated(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")) count=count+size(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")\n";
 		    }
 		}
 	    }
 	}
-	$functionCode .= "    return\n";
-	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Offsets\n\n";
+	$functionBody .= "    return\n";
+	$functionBody .= "  end subroutine Node_Component_".ucfirst($componentID)."_Offsets\n\n";
+	$functionCode .= "   !GCC\$ attributes unused :: count\n"
+	    unless ( $countUsed );		    
+	$functionCode .= "   !GCC\$ attributes unused :: self\n"
+	    unless ( $selfUsed  );		    
+	$functionCode .= $functionBody;	    
 	# Insert into the function list.
 	push(
 	    @{$build->{'code'}->{'functions'}},
@@ -3630,6 +3785,9 @@ sub Generate_Component_Count_Functions {
 	$functionCode .= "     else\n";
 	$functionCode .= "        ".$componentClassName."CountLinked=0\n";
 	$functionCode .= "     end if\n";
+	$functionCode .= "    class default\n";
+	$functionCode .= "     ".$componentClassName."CountLinked=0\n";
+	$functionCode .= "     call Galacticus_Error_Report('".$componentClassName."CountLinked\','treeNode of unknown class')\n";
     	$functionCode .= "    end select\n";
     	$functionCode .= "    return\n";
     	$functionCode .= "  end function ".$componentClassName."CountLinked\n";
@@ -3741,43 +3899,57 @@ sub Generate_Component_Get_Functions {
 	     }
 	    );
 	# Generate function to create component via an interrupt.
-   	$functionCode  = "  subroutine ".$componentClassName."CreateByInterrupt(self)\n";
-	$functionCode .= "    !% Create the {\\normalfont \\ttfamily ".$componentClassName."} component of {\\normalfont \\ttfamily self} via an interrupt.\n";
-    	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	$functionCode .= "    ".$componentClassName." => self%".$componentClassName."(autoCreate=.true.)\n";
-	# Loop over instances of this class, and call custom create routines if necessary.
-	my $foundCreateFunctions = 0;
+	my $createIfNeeded = 0;
+	# Iterate over component implementations.
+	foreach my $implementationName ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+	    my $implementationID = ucfirst($componentClassName).ucfirst($implementationName);
+	    my $component = $build->{'components'}->{$implementationID};
+	    # Iterate over properties.
+	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+		my $property = $component->{'properties'}->{'property'}->{$propertyName};
+		$createIfNeeded = 1
+		    if ( $property->{'attributes'}->{'createIfNeeded'} );
+	    }
+	}
+	if ( $createIfNeeded ) {
+	    $functionCode  = "  subroutine ".$componentClassName."CreateByInterrupt(self)\n";
+	    $functionCode .= "    !% Create the {\\normalfont \\ttfamily ".$componentClassName."} component of {\\normalfont \\ttfamily self} via an interrupt.\n";
+	    $functionCode .= "    implicit none\n";
+	    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	    $functionCode .= "    ".$componentClassName." => self%".$componentClassName."(autoCreate=.true.)\n";
+	    # Loop over instances of this class, and call custom create routines if necessary.
+	    my $foundCreateFunctions = 0;
     	foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
-	    my $componentID = ucfirst($componentClassName).ucfirst($componentName);
+		my $componentID = ucfirst($componentClassName).ucfirst($componentName);
 	    my $component = $build->{'components'}->{$componentID};
-	    if ( exists($component->{'createFunction'}) ) {
-		if ( $foundCreateFunctions == 0 ) {
-		    $functionCode .= "    select type (".$componentClassName.")\n";
-		    $foundCreateFunctions = 1;
-		}
+		if ( exists($component->{'createFunction'}) ) {
+		    if ( $foundCreateFunctions == 0 ) {
+			$functionCode .= "    select type (".$componentClassName.")\n";
+			$foundCreateFunctions = 1;
+		    }
 		$functionCode .= "    type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentID),[0,0]).")\n";
-		my $createFunction = $component->{'createFunction'};
-		$createFunction = $component->{'createFunction'}->{'content'}
-		if ( exists($component->{'createFunction'}->{'content'}) );
-		$createFunction = $componentID."CreateFunction"
-		    if (
+		    my $createFunction = $component->{'createFunction'};
+		    $createFunction = $component->{'createFunction'}->{'content'}
+		    if ( exists($component->{'createFunction'}->{'content'}) );
+		    $createFunction = $componentID."CreateFunction"
+			if (
 			exists($component->{'createFunction'}->{'isDeferred'})
 			&&
 			$component->{'createFunction'}->{'isDeferred'}
-		    );
-		$functionCode .= "       call ".$createFunction."(".$componentClassName.")\n";
+			);
+		    $functionCode .= "       call ".$createFunction."(".$componentClassName.")\n";
+		}
 	    }
-	}
-	$functionCode .= "    end select\n"
-	    unless ( $foundCreateFunctions == 0 );
-    	$functionCode .= "    return\n";
-    	$functionCode .= "  end subroutine ".$componentClassName."CreateByInterrupt\n";
-	# Insert into the function list.
-	push(
+	    $functionCode .= "    end select\n"
+		unless ( $foundCreateFunctions == 0 );
+	    $functionCode .= "    return\n";
+	    $functionCode .= "  end subroutine ".$componentClassName."CreateByInterrupt\n";
+	    # Insert into the function list.
+	    push(
 	    @{$build->{'code'}->{'functions'}},
-	    $functionCode
-	    );
+		$functionCode
+		);
+	}
 	# If any create function is deferred, create a function to set it at runt time.
     	foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 	    my $componentID = ucfirst($componentClassName).ucfirst($componentName);
@@ -4498,22 +4670,28 @@ sub Generate_GSR_Functions {
 			}
 			);
 		    # Generate the "count" function code.
+		    my $selfUsed   = 0;
 		    $functionCode  = "  integer function ".$componentID.ucfirst($propertyName)."Count(self)\n";
 		    $functionCode .= "    !% Return a count of the number of scalar properties in the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".lcfirst($componentID)."} component implementation.\n";
 		    $functionCode .= "    implicit none\n";
 		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+		    my $functionBody = "";
 		    if ( $linkedData->{'rank'} ==  0 ) {
-			$functionCode .= "    ".$componentID.$propertyName."Count=1\n";
+			$functionBody .= "    ".$componentID.$propertyName."Count=1\n";
 		    }
 		    elsif ( $linkedData->{'rank'} == 1 ) {
-			$functionCode .= "    if (allocated(self%".$linkedDataName.")) then\n";
-			$functionCode .= "    ".$componentID.$propertyName."Count=size(self%".$linkedDataName.")\n";
-			$functionCode .= "    else\n";
-			$functionCode .= "    ".$componentID.$propertyName."Count=0\n";
-			$functionCode .= "    end if\n";
+			$selfUsed      = 1;
+			$functionBody .= "    if (allocated(self%".$linkedDataName.")) then\n";
+			$functionBody .= "    ".$componentID.$propertyName."Count=size(self%".$linkedDataName.")\n";
+			$functionBody .= "    else\n";
+			$functionBody .= "    ".$componentID.$propertyName."Count=0\n";
+			$functionBody .= "    end if\n";
 		    }
-		    $functionCode .= "    return\n";
-		    $functionCode .= "  end function ".$componentID.ucfirst($propertyName)."Count\n\n";
+		    $functionBody .= "    return\n";
+		    $functionBody .= "  end function ".$componentID.ucfirst($propertyName)."Count\n\n";
+		    $functionCode .= "   !GCC\$ attributes unused :: self\n"
+			unless ( $selfUsed );
+		    $functionCode .= $functionBody;
 		    # Insert into the function list.
 		    push(
 			@{$build->{'code'}->{'functions'}},
@@ -4593,9 +4771,10 @@ sub Generate_GSR_Functions {
 			$rateSetCode .= "    end if\n";
 		    }
 		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+		    $functionCode .= "   !GCC\$ attributes unused :: self, interrupt, interruptProcedure\n";
 		    $functionCode .= $rateSetCode;
 		    $functionCode .= "    return\n";
-		    $functionCode .= "  end subroutine ".$componentID.ucfirst($propertyName)."Rate".$rateSuffix."\n\n";
+		    $functionCode .= "  end subroutine ".$componentID.ucfirst($propertyName)."Rate".ucfirst($rateSuffix)."\n\n";
 		    # Insert into the function list.
 		    push(
 			@{$build->{'code'}->{'functions'}},
@@ -4727,6 +4906,7 @@ sub Generate_GSR_Functions {
 			    $functionCode .= "    use Galacticus_Error\n";
 			    $functionCode .= "    implicit none\n";
 			    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+			    $functionCode .= "    !GCC\$ attributes unused :: self\n";
 			    $functionCode .= "    ! No specific component exists, so we must interrupt and create one unless the rate is zero.\n";
 			    if ( $linkedData->{'rank'} == 0 ) {
 				if    ( $linkedData->{'type'} eq"double" ) {
@@ -4788,6 +4968,7 @@ sub Generate_GSR_Functions {
 			$scaleSetCode .= "    if (count > 0) call setValue%serialize(nodeScales(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1))\n";
 		    }
 		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+		    $functionCode .= "    !GCC\$ attributes unused :: self\n";
 		    $functionCode .= $scaleSetCode;
 		    $functionCode .= "    return\n";
 		    $functionCode .= "  end subroutine ".$componentID.ucfirst($propertyName)."Scale\n\n";
@@ -5057,7 +5238,7 @@ sub Generate_GSR_Availability_Functions {
 		}
 		if ( exists($component->{'extends'}) ) {
 		    my $parentID = ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'});
-		    $component = $buildData->{'components'}->{$parentID};
+		    $component = $build->{'components'}->{$parentID};
 		} else {
 		    undef($component);
 		}
@@ -5155,6 +5336,7 @@ sub Generate_Type_Name_Functions {
 	$functionCode .= "     !% Returns the type for the ".$_." component.\n";
 	$functionCode .= "     implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= "     !GCC\$ attributes unused :: self\n";
 	$functionCode .= "     ".&Utils::padClass("Node_Component_".ucfirst($_)."_Type",[20,0])."='nodeComponent:".$_."'\n";
 	$functionCode .= "     return\n";
 	$functionCode .= "  end function Node_Component_".ucfirst($_)."_Type\n\n";
@@ -5193,6 +5375,7 @@ sub Generate_Type_Name_Functions {
 	$functionCode .= "    !% Returns the type for the ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= "    !GCC\$ attributes unused :: self\n";
 	$functionCode .= "    ".&Utils::padImplementationPropertyName("Node_Component_".ucfirst($componentName)."_Type",[20,0])."='nodeComponent:".$component->{'class'}.":".$component->{'name'}."'\n";
 	$functionCode .= "    return\n";
 	$functionCode .= "  end function Node_Component_".ucfirst($componentName)."_Type\n\n";
@@ -5307,7 +5490,8 @@ sub Generate_Component_Class_Destruction_Functions {
 	$functionCode  = "  subroutine Node_Component_".ucfirst($componentClassName)."_Destroy(self)\n";
 	$functionCode .= "    !% Destroys a ".$componentClassName." component.\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent);
+	$functionCode .= "    !GCC\$ attributes unused :: self\n\n";
 	$functionCode .= "    ! Do nothing.\n";
 	$functionCode .= "    return\n";
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Destroy\n\n";
@@ -5536,6 +5720,7 @@ sub Generate_Component_Class_Dump_Functions {
 	$functionCode .= "    use ISO_Varying_String\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= "    !GCC\$ attributes unused :: self\n";
 	$functionCode .= "    call Galacticus_Display_Indent('".$componentClassName.": ".(" " x ($Utils::fullyQualifiedNameLengthMax-length($componentClassName)))."generic')\n";
 	$functionCode .= "    call Galacticus_Display_Unindent('done')\n";
 	$functionCode .= "    return\n";
@@ -5576,6 +5761,7 @@ sub Generate_Component_Class_Initializor_Functions {
 	$functionCode .= "    use Galacticus_Error\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= "    !GCC\$ attributes unused :: self\n";
 	$functionCode .= "    call Galacticus_Error_Report('Node_Component_".ucfirst($componentClassName)."_Initializor','can not initialize a generic component')\n";
 	$functionCode .= "    return\n";
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Initializor\n";
@@ -5622,6 +5808,7 @@ sub Generate_Component_Class_Builder_Functions {
 	$functionCode .= "    use Galacticus_Error\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= "    !GCC\$ attributes unused :: self, componentDefinition\n";
 	$functionCode .= "    call Galacticus_Error_Report('Node_Component_".ucfirst($componentClassName)."_Builder','can not build a generic component')\n";
 	$functionCode .= "    return\n";
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Builder\n";
@@ -5887,31 +6074,43 @@ sub Generate_Component_Class_Output_Functions {
 	    }
 	}
 	$functionCode  = "  subroutine Node_Component_".ucfirst($componentClassName)."_Output(self,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time,instance)\n";
-	$functionCode .= "    !% Output ptoperties for a ".$componentClassName." component.\n";
+	$functionCode .= "    !% Output properties for a ".$componentClassName." component.\n";
 	$functionCode .= "    use ".$_."\n" 
 	    foreach ( &ExtraUtils::sortedKeys(\%modulesRequired) );
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+	my $functionBody = "";
+	my $selfUsed     = 0;
+	my $instanceUsed = 0;
+	my $timeUsed     = 0;
+	my %typeUsed     =
+	    (
+	     integer => 0,
+	     double  => 0
+	    );
+        foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 	    # Get the component.
 	    my $componentID  = ucfirst($componentClassName).ucfirst($componentName);
 	    my $component    = $build->{'components'}->{$componentID};
 	    my $activeCheck  = "    if (default".ucfirst($componentClassName)."Component%".$componentName."IsActive()";
-	    $activeCheck .= ".and.instance == 1"
-		if (
-		    exists($component->{'output'}               )           &&
-		    exists($component->{'output'}->{'instances'})           &&
-		    $component->{'output'}->{'instances'} eq "first"
-		);
+	    if (
+		exists($component->{'output'}               )           &&
+		exists($component->{'output'}->{'instances'})           &&
+		$component->{'output'}->{'instances'} eq "first"
+		) {
+		$activeCheck .= ".and.instance == 1";
+		$instanceUsed = 1;
+	    }
 	    $activeCheck .= ") then\n";
 	    my $outputsFound = 0;
 	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property is to be output.
 		if ( exists($property->{'output'}) ) {
+		    $selfUsed = 1;
 		    # Add conditional statement if necessary.
 		    if ( $outputsFound == 0 ) {
-			$functionCode .= $activeCheck;
+			$functionBody .= $activeCheck;
 			$outputsFound  = 1;
 		    }
 		    # Define rank, type and value.
@@ -5952,15 +6151,16 @@ sub Generate_Component_Class_Output_Functions {
 		    }
 		    # Increment the counters.
 		    if (&Utils::isOutputIntrinsic($type)) {
+			$typeUsed{$typeMap{$type}} = 1;
 			if ( $rank == 0 ) {
 			    if ( exists($property->{'output'}->{'condition'}) ) {
 				my $condition = $property->{'output'}->{'condition'};
 				$condition =~ s/\[\[([^\]]+)\]\]/$1/g;
-				$functionCode .= "    if (".$condition.") then\n";
+				$functionBody .= "    if (".$condition.") then\n";
 			    }
-			    $functionCode .= "       ".$typeMap{$type}."Property=".$typeMap{$type}."Property+1\n";
-			    $functionCode .= "       ".$typeMap{$type}."Buffer(".$typeMap{$type}."BufferCount,".$typeMap{$type}."Property)=self%".$propertyName."()\n";
-			    $functionCode .= "    end if\n"
+			    $functionBody .= "       ".$typeMap{$type}."Property=".$typeMap{$type}."Property+1\n";
+			    $functionBody .= "       ".$typeMap{$type}."Buffer(".$typeMap{$type}."BufferCount,".$typeMap{$type}."Property)=self%".$propertyName."()\n";
+			    $functionBody .= "    end if\n"
 				if ( exists($property->{'output'}->{'condition'}) );
 			} else {
 			    if ( exists($property->{'output'}->{'condition'}) ) {
@@ -5969,17 +6169,17 @@ sub Generate_Component_Class_Output_Functions {
 				my $condition = $property->{'output'}->{'condition'};
 				$condition =~ s/\[\[([^\]]+)\]\]/$1/g;
 				$condition =~ s/\{i\}/i/g;
-				$functionCode .= "    outputRank1".ucfirst($typeMap{$type})."=self%".$propertyName."()\n";
-				$functionCode .= "    do i=1,".$property->{'output'}->{'count'}."\n";
-				$functionCode .= "      if (".$condition.") then\n";
-				$functionCode .= "        ".$typeMap{$type}."Property=".$typeMap{$type}."Property+1\n";
-				$functionCode .= "        ".$typeMap{$type}."Buffer(".$typeMap{$type}."BufferCount,".$typeMap{$type}."Property)=outputRank1".ucfirst($typeMap{$type})."(i)\n";
-				$functionCode .= "      end if\n";
-				$functionCode .= "    end do\n";
-				$functionCode .= "    deallocate(outputRank1".ucfirst($typeMap{$type}).")\n";
+				$functionBody .= "    outputRank1".ucfirst($typeMap{$type})."=self%".$propertyName."()\n";
+				$functionBody .= "    do i=1,".$property->{'output'}->{'count'}."\n";
+				$functionBody .= "      if (".$condition.") then\n";
+				$functionBody .= "        ".$typeMap{$type}."Property=".$typeMap{$type}."Property+1\n";
+				$functionBody .= "        ".$typeMap{$type}."Buffer(".$typeMap{$type}."BufferCount,".$typeMap{$type}."Property)=outputRank1".ucfirst($typeMap{$type})."(i)\n";
+				$functionBody .= "      end if\n";
+				$functionBody .= "    end do\n";
+				$functionBody .= "    deallocate(outputRank1".ucfirst($typeMap{$type}).")\n";
 			    } else {
-				$functionCode .= "       ".$typeMap{$type}."Buffer(".$typeMap{$type}."BufferCount,".$typeMap{$type}."Property+1:".$typeMap{$type}."Property+".$count.")=reshape(self%".$propertyName."(),[".$count."])\n";
-				$functionCode .= "       ".$typeMap{$type}."Property=".$typeMap{$type}."Property+".$count."\n";
+				$functionBody .= "       ".$typeMap{$type}."Buffer(".$typeMap{$type}."BufferCount,".$typeMap{$type}."Property+1:".$typeMap{$type}."Property+".$count.")=reshape(self%".$propertyName."(),[".$count."])\n";
+				$functionBody .= "       ".$typeMap{$type}."Property=".$typeMap{$type}."Property+".$count."\n";
 			    }
 			}
 		    }
@@ -5987,21 +6187,35 @@ sub Generate_Component_Class_Output_Functions {
 			if ( exists($property->{'output'}->{'condition'}) ) {
 			    my $condition = $property->{'output'}->{'condition'};
 			    $condition =~ s/\[\[([^\]]+)\]\]/$1/g;
-			    $functionCode .= "    if (".$condition.") then\n";
+			    $functionBody .= "    if (".$condition.") then\n";
 			}
-			$functionCode .= "      output".ucfirst($type)."=self%".$propertyName."()\n";
-			$functionCode .= "      call output".ucfirst($type)."%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time)\n";
-			$functionCode .= "      call self%".$propertyName."Set(output".ucfirst($type).")\n";
-			$functionCode .= "    end if\n"
-			    if ( exists($property->{'output'}->{'condition'}) );			 
+			$functionBody .= "      output".ucfirst($type)."=self%".$propertyName."()\n";
+			$functionBody .= "      call output".ucfirst($type)."%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time)\n";
+			$functionBody .= "      call self%".$propertyName."Set(output".ucfirst($type).")\n";
+			$functionBody .= "    end if\n"
+			    if ( exists($property->{'output'}->{'condition'}) );
+			$timeUsed            = 1;
+			$typeUsed{'integer'} = 1;
+			$typeUsed{'double' } = 1;
 		    }
 		}
 	    }
-	    $functionCode .= "    end if\n"
+	    $functionBody .= "    end if\n"
 		if ( $outputsFound == 1 );
 	}
-	$functionCode .= "    return\n";
-	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Output\n";
+	$functionBody .= "    return\n";
+	$functionBody .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Output\n";
+	$functionCode .= "    !GCC\$ attributes unused :: self\n"
+	    unless ( $selfUsed );
+	$functionCode .= "    !GCC\$ attributes unused :: instance\n"
+	    unless ( $instanceUsed );
+	$functionCode .= "    !GCC\$ attributes unused :: time\n"
+	    unless ( $timeUsed );
+	foreach my $type ( keys(%typeUsed) ) {
+	    $functionCode .= "    !GCC\$ attributes unused :: ".join(", ",map {$type.$_} ("Property", "BufferCount", "Buffer"))."\n"
+		unless ( $typeUsed{$type} );
+	}
+	$functionCode .= $functionBody;
 	# Insert into the function list.
 	push(
 	    @{$build->{'code'}->{'functions'}},
@@ -6066,6 +6280,8 @@ sub Generate_Component_Implementation_Destruction_Functions {
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	# Iterate over properties.
+	my $selfUsed     = 0;
+	my $functionBody = "";
 	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
    	    # Check if this property has any linked data in this component.
@@ -6086,15 +6302,20 @@ sub Generate_Component_Implementation_Destruction_Functions {
 		    # Nothing to do in this case.
 		}
 		else {
-		    $functionCode .= "    call self%".&Utils::padLinkedData($linkedDataName,[0,0])."%destroy()\n";
+		    $functionBody .= "    call self%".&Utils::padLinkedData($linkedDataName,[0,0])."%destroy()\n";
+		    $selfUsed = 1;
 		}
 		if ( $linkedData->{'rank'} > 0 ) {
 		    $functionCode .= "    if (allocated(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")) call Dealloc_Array(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")\n";
+		    $selfUsed = 1;
 		}
 	    }
 	}
-	$functionCode .= "    return\n";
-	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Destroy\n\n";
+	$functionBody .= "    return\n";
+	$functionBody .= "  end subroutine Node_Component_".ucfirst($componentID)."_Destroy\n\n";
+	$functionCode .= "    !GCC\$ attributes unused :: self\n"
+	    unless ( $selfUsed );
+	$functionCode .= $functionBody;
 	# Insert into the function list.
 	push(
 	    @{$build->{'code'}->{'functions'}},
@@ -6121,6 +6342,7 @@ sub Generate_Null_Binding_Functions {
 	    my $nullFunction = $componentClass->{$nullFunctionName};
 	    # Construct a datatype for this null function.
 	    (my $dataDefinition, my $label) = &DataTypes::dataObjectDefinition($nullFunction,matchOnly => 1);
+	    my $labelRaw = $label;
 	    # Build a label describing the intrinsic type of the data.
 	    my $intrinsicType = $dataDefinition->{'intrinsic'};
 	    $intrinsicType .= $dataDefinition->{'type'}
@@ -6152,13 +6374,16 @@ sub Generate_Null_Binding_Functions {
 	    $functionCode .= "    !% A null set function for rank ".$nullFunction->{'rank'}." ".latex_encode(lc($intrinsicType))."s.\n";
 	    $functionCode .= "    implicit none\n";
 	    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	    $functionCode .= "   !GCC\$ attributes unused :: ".join(", ",@{$_->{'variables'}})."\n"
+		foreach ( @dataContent );
 	    $functionCode .= "    return\n";
 	    $functionCode .= "  end subroutine ".$componentClassName."NullBindingSet".$label.$intent."\n";
 	    # Insert into the function list.
 	    push(
 		@{$build->{'code'}->{'functions'}},
 		$functionCode
-		);
+		)
+		unless ( $intent eq "in" );
 	    # Build code for the null rate function.
 	    @dataContent =
 		(
@@ -6185,13 +6410,16 @@ sub Generate_Null_Binding_Functions {
 	    $functionCode .= "    !% A null rate function for rank ".$nullFunction->{'rank'}." ".latex_encode(lc($intrinsicType))."s.\n";
 	    $functionCode .= "    implicit none\n";
 	    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	    $functionCode .= "   !GCC\$ attributes unused :: ".join(", ",@{$_->{'variables'}})."\n"
+		foreach ( @dataContent );
 	    $functionCode .= "    return\n";
 	    $functionCode .= "  end subroutine ".$componentClassName."NullBindingRate".$label.$intent."\n";
 	    # Insert into the function list.
 	    push(
 		@{$build->{'code'}->{'functions'}},
 		$functionCode
-		);
+		)
+		unless ( $intent eq "in" );
 	    # Build code for the null get function.
 	    pop(@{$dataDefinition->{'attributes'}});
 	    push(@{$dataDefinition->{'attributes'}},"allocatable")
@@ -6205,15 +6433,35 @@ sub Generate_Null_Binding_Functions {
 		     type       => $selfType,
 		     attributes => [ "intent(".$intent.")" ],
 		     variables  => [ "self" ]
-		 },
-		 
+		 }		 
 		);
-	    $functionCode  = "  function ".$componentClassName."NullBinding".$label.$intent."(self)\n";
+	    my $functionName = $componentClassName."NullBinding".$label.$intent;
+	    $functionCode  = "  function ".$functionName."(self)\n";
 	    $functionCode .= "    !% A null get function for rank ".$nullFunction->{'rank'}." ".latex_encode(lc($intrinsicType))."s.\n";
 	    $functionCode .= "    implicit none\n";
 	    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	    $functionCode .= "   !GCC\$ attributes unused :: self\n";
+	    if ( $nullFunction->{'rank'} == 0 ) {
+		if    ( $labelRaw eq "Double" ) {
+		    $functionCode .= "    ".$functionName."=0.0d0\n";
+		}
+		elsif ( $labelRaw eq "Integer"     ) {
+		    $functionCode .= "    ".$functionName."=0\n";
+		}
+		elsif ( $labelRaw eq "LongInteger" ) {
+		    $functionCode .= "    ".$functionName."=0_kind_int8\n";
+		}
+		elsif ( $labelRaw eq "Logical"     ) {
+		    $functionCode .= "    ".$functionName."=.false.\n";
+		}
+		else {
+		    $functionCode .= "     call ".$functionName."%reset()\n";
+		}
+	    } else {
+		$functionCode .= "    ".$functionName."=null".$labelRaw.$nullFunction->{'rank'}."d\n";
+	    }
 	    $functionCode .= "    return\n";
-	    $functionCode .= "  end function ".$componentClassName."NullBinding".$label.$intent."\n\n";
+	    $functionCode .= "  end function ".$functionName."\n\n";
 	    # Insert into the function list.
 	    push(
 		@{$build->{'code'}->{'functions'}},
@@ -6350,6 +6598,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 			foreach ( &ExtraUtils::sortedKeys(\%requiredComponents) );
 		    # Insert data content.
 		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+		    $functionCode .= "   !GCC\$ attributes unused :: self\n";
 		    # Insert code to set required default.
 		    $functionCode .= $defaultLines;
 		    # Insert code to return zero values by default.
