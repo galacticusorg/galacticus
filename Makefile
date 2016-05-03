@@ -245,7 +245,7 @@ $(BUILDPATH)/utility.memory_management.postcontain.inc:
 
 # Rules for version routines.
 $(BUILDPATH)/galacticus.output.version.revision.inc: $(wildcard .hg/branch)
-	@if [ -f .hg/branch ] ; then hg tip | awk 'BEGIN {FS=":";r=-1;h=""} {if ((NR == 1 && NF == 3 ) || $$1 == "changeset") {r=$$2;h=$$3}} END {print "integer, parameter :: hgRevision="r"\ncharacter(len=12), parameter :: hgHash=\""h"\""}' > $(BUILDPATH)/galacticus.output.version.revision.inc; else printf 'integer, parameter :: hgRevision=-1\ncharacter(len=12), parameter :: hgHash=""\n' > $(BUILDPATH)/galacticus.output.version.revision.inc; fi
+	@if [ -f .hg/branch ] ; then hg tip | awk 'BEGIN {FS=":";r=-1;h=""} {if ((NR == 1 && NF == 3 ) || $$1 == "parent") {r=$$2;h=$$3}} END {print "integer, parameter :: hgRevision="r"\ncharacter(len=12), parameter :: hgHash=\""h"\""}' > $(BUILDPATH)/galacticus.output.version.revision.inc; else printf 'integer, parameter :: hgRevision=-1\ncharacter(len=12), parameter :: hgHash=""\n' > $(BUILDPATH)/galacticus.output.version.revision.inc; fi
 
 # Rules for build information routines.
 $(BUILDPATH)/galacticus.output.build.environment.inc:
