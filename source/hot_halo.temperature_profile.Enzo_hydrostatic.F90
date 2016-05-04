@@ -29,23 +29,10 @@
      procedure :: temperatureLogSlope => enzoHydrostaticTemperatureLogSlope
   end type hotHaloTemperatureProfileEnzoHydrostatic
 
-  interface hotHaloTemperatureProfileEnzoHydrostatic
-     !% Constructors for the {\normalfont \ttfamily enzoHydrostatic} hot halo temperature profile class.
-     module procedure enzoHydrostaticDefaultConstructor
-  end interface hotHaloTemperatureProfileEnzoHydrostatic
-
   double precision, parameter :: enzoHydrostaticTemperatureMinimum=1.0d2
   
 contains
 
-  function enzoHydrostaticDefaultConstructor()
-    !% Default constructor for the {\normalfont \ttfamily enzoHydrostatic} hot halo temperature profile class.
-    implicit none
-    type(hotHaloTemperatureProfileEnzoHydrostatic) :: enzoHydrostaticDefaultConstructor
-
-    return
-  end function enzoHydrostaticDefaultConstructor
-  
   double precision function enzoHydrostaticTemperature(self,node,radius)
     !% Return the density in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
     use Numerical_Constants_Physical
@@ -59,7 +46,8 @@ contains
     double precision                                          , intent(in   )          :: radius
     class           (darkMatterProfileClass                  )               , pointer :: darkMatterProfile_
     double precision                                                                   :: enclosedMass
-
+    !GCC$ attributes unused :: self
+    
     if (radius == 0.0d0) then
        enzoHydrostaticTemperature=enzoHydrostaticTemperatureMinimum
     else
@@ -95,7 +83,8 @@ contains
     double precision                                          , intent(in   )          :: radius
     class           (darkMatterProfileClass                  )               , pointer :: darkMatterProfile_
     double precision                                                                   :: enclosedMass, density
-
+    !GCC$ attributes unused :: self
+    
     if (self%temperature(node,radius) <= enzoHydrostaticTemperatureMinimum) then
        enzoHydrostaticTemperatureLogSlope=0.0d0
     else

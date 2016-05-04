@@ -22,8 +22,3 @@
    contains
      procedure :: stop => stoppingCriterionNeverStop
   end type stoppingCriterionNever
-  
-  interface stoppingCriterionNever
-     !% Constructors for the ``never'' stoppingCriterion class.
-     module procedure stoppingCriterionNeverConstructor
-  end interface stoppingCriterionNever

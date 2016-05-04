@@ -107,6 +107,7 @@ contains
     double precision                                       , intent(in   ), optional :: time                          , expansionFactor
     logical                                                , intent(in   ), optional :: collapsing
     double precision                                                                 :: boundingSurfaceDensityContrast
+    !GCC$ attributes unused :: mass, time, expansionFactor, collapsing
 
     boundingSurfaceDensityContrast =3.0d0/2.0d0/Pi/self%linkingLength**3
     friendsOfFriendsDensityContrast=self%densityRatio*boundingSurfaceDensityContrast
@@ -121,6 +122,7 @@ contains
     double precision                                       , intent(in   )           :: mass
     double precision                                       , intent(in   ), optional :: time      , expansionFactor
     logical                                                , intent(in   ), optional :: collapsing
+    !GCC$ attributes unused :: self, mass, time, expansionFactor, collapsing
 
     friendsOfFriendsDensityContrastRateOfChange=0.0d0
     return

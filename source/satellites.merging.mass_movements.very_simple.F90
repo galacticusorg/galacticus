@@ -48,13 +48,13 @@ contains
     type   (treeNode), intent(inout), pointer :: thisNode
     integer          , intent(  out)          :: gasMovesTo   , hostGasMovesTo, hostStarsMoveTo, starsMoveTo
     logical          , intent(  out)          :: mergerIsMajor
-
+    !GCC$ attributes unused :: thisNode
+    
     mergerIsMajor  =.false.
     gasMovesTo     =movesToDisk
     starsMoveTo    =movesToDisk
     hostGasMovesTo =doesNotMove
     hostStarsMoveTo=doesNotMove
-
     return
   end subroutine Satellite_Merging_Mass_Movement_Very_Simple
 

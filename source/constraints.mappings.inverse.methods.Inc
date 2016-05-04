@@ -18,14 +18,6 @@
 
 !% Defines methods for a inverse mapping.
 
-function mappingInverseConstructor()
-  !% Constructor for inverse mapping class.
-  implicit none
-  type(mappingInverse) :: mappingInverseConstructor
-
-  return
-end function mappingInverseConstructor
-
 subroutine mappingInverseMapPrior(self,thisPrior)
   !% Map a prior through a inverse mapping.
   use Galacticus_Error
@@ -33,7 +25,8 @@ subroutine mappingInverseMapPrior(self,thisPrior)
   implicit none
   class(mappingInverse), intent(in   ) :: self
   class(prior         ), intent(inout) :: thisPrior
-
+  !GCC$ attributes unused :: self
+  
   select type (thisDistribution => thisPrior%priorDistribution)
   type is (distributionUniform)
      ! Simply map the upper and lower limits of this uniform distribution.
@@ -59,6 +52,7 @@ double precision function mappingInverseMap(self,x)
   implicit none
   class           (mappingInverse), intent(in   ) :: self
   double precision                , intent(in   ) :: x
+  !GCC$ attributes unused :: self
   
   mappingInverseMap=1.0d0/x
   return
@@ -69,7 +63,8 @@ double precision function mappingInverseUnmap(self,x)
   implicit none
   class           (mappingInverse), intent(in   ) :: self
   double precision                , intent(in   ) :: x
-  
+  !GCC$ attributes unused :: self
+
   mappingInverseUnmap=1.0d0/x
   return
 end function mappingInverseUnmap

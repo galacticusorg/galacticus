@@ -577,7 +577,8 @@ contains
     implicit none
     class(mergerTreeBuilderCole2000), intent(inout) :: self
     type (mergerTree               ), intent(in   ) :: tree
-
+    !GCC$ attributes unused :: self, tree
+    
     cole2000ShouldAbort=.false.
     return
   end function cole2000ShouldAbort
@@ -589,6 +590,7 @@ contains
     class(mergerTreeBuilderCole2000), intent(inout)          :: self
     type (mergerTree               ), intent(in   )          :: tree
     type (treeNode                 ), intent(inout), pointer :: node
+    !GCC$ attributes unused :: self, tree, node
 
     cole2000ShouldFollowBranch=.true.
     return

@@ -59,7 +59,7 @@ contains
     class           (cosmologyFunctionsClass                  )               , pointer :: cosmologyFunctionsDefault
     double precision                                           , parameter              :: timeScaleNormalization   =0.2d0      !   C_dyn from Wetzel & White (2010).
     double precision                                                                    :: massRatio
-    !GCC$ attributes unused :: self
+    !GCC$ attributes unused :: self, thisOrbit
     
     ! Get the default cosmology functions object.
     cosmologyFunctionsDefault => cosmologyFunctions()

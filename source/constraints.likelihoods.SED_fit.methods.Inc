@@ -112,6 +112,7 @@ end function likelihoodSEDFitConstructor
 double precision function likelihoodSEDFitEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance)
   !% Return the log-likelihood for the SED fitting likelihood function.
   use, intrinsic :: ISO_C_Binding
+  use Galacticus_Error
   use FGSL
   use Constraints_Constants
   use Constraints_State
@@ -159,7 +160,8 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
   type            (fgsl_integration_workspace)                                        :: integrationWorkspace
   type            (c_ptr                     )                                        :: parameterPointer
   logical                                                                             :: integrationReset                    , useRapidEvaluation
-
+  !GCC$ attributes unused :: simulationConvergence, timeEvaluate
+  
   ! There is no variance in our likelihood estimate.
   if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0
   ! Do not evaluate if the proposed prior is impossible.
@@ -259,6 +261,9 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
              &                                           )
      end select
      burstIndexOffset=6
+  case default
+     burstIndexOffset=-1
+     call Galacticus_Error_Report('likelihoodSEDFitEvaluate','unknown dust type')
   end select
   ! Extract bursts.
   do i=1,self%burstCount
@@ -362,7 +367,9 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
              &                                        vBandAttenuation     &
              &                                       )                     &
              &                     )
-      end do
+     end do
+  else
+     allocate(weights(0))
   end if
   ! Iterate over bands.
   likelihoodSEDFitEvaluate      =0.0d0
@@ -496,6 +503,7 @@ subroutine likelihoodSEDFitFunctionChanged(self)
   !% Respond to possible changes in the likelihood function.
   implicit none
   class(likelihoodSEDFit), intent(inout) :: self
+  !GCC$ attributes unused :: self
   
   return
 end subroutine likelihoodSEDFitFunctionChanged

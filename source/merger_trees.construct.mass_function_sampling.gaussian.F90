@@ -72,8 +72,9 @@ contains
     !% Computes the halo mass function sampling rate using a Gaussian distribution.
     implicit none
     double precision, intent(in   ) :: mass, massMaximum, massMinimum, time
-
-     if (mass <= massMinimum .or. mass > massMaximum) then
+    !GCC$ attributes unused :: time
+    
+    if (mass <= massMinimum .or. mass > massMaximum) then
        Merger_Tree_Construct_Mass_Function_Sampling_Gaussian=0.0d0
     else
        Merger_Tree_Construct_Mass_Function_Sampling_Gaussian=exp(-0.5d0*((mass-mergerTreeBuildTreesHaloMassGaussianMean)&

@@ -101,9 +101,6 @@ contains
           call Alloc_Array(haloMassSampleModifierFixedMassHalosMass  ,[fixedHalosCount])
           call Alloc_Array(haloMassSampleModifierFixedMassHalosCount ,[fixedHalosCount])
           call Alloc_Array(haloMassSampleModifierFixedMassHalosRadius,[fixedHalosCount])
-          haloMassSampleModifierFixedMassHalosMass  = 1.0d12
-          haloMassSampleModifierFixedMassHalosCount = 1
-          haloMassSampleModifierFixedMassHalosRadius=-1.0d0
           !@ <inputParameter>
           !@   <name>haloMassSampleModifierFixedMassHalosMass</name>
           !@   <defaultValue>$10^{12}M_\odot$</defaultValue>
@@ -114,7 +111,7 @@ contains
           !@   <type>float</type>
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
-          call Get_Input_Parameter('haloMassSampleModifierFixedMassHalosMass',haloMassSampleModifierFixedMassHalosMass,defaultValue=haloMassSampleModifierFixedMassHalosMass)
+          call Get_Input_Parameter('haloMassSampleModifierFixedMassHalosMass',haloMassSampleModifierFixedMassHalosMass,defaultValue=spread(1.0d12,1,fixedHalosCount))
           !@ <inputParameter>
           !@   <name>haloMassSampleModifierFixedMassHalosCount</name>
           !@   <defaultValue>1</defaultValue>
@@ -125,7 +122,7 @@ contains
           !@   <type>float</type>
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
-          call Get_Input_Parameter('haloMassSampleModifierFixedMassHalosCount',haloMassSampleModifierFixedMassHalosCount,defaultValue=haloMassSampleModifierFixedMassHalosCount)
+          call Get_Input_Parameter('haloMassSampleModifierFixedMassHalosCount',haloMassSampleModifierFixedMassHalosCount,defaultValue=spread(1,1,fixedHalosCount))
           !@ <inputParameter>
           !@   <name>haloMassSampleModifierFixedMassHalosRadius</name>
           !@   <defaultValue>1</defaultValue>
@@ -136,7 +133,7 @@ contains
           !@   <type>float</type>
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
-          call Get_Input_Parameter('haloMassSampleModifierFixedMassHalosRadius',haloMassSampleModifierFixedMassHalosRadius,defaultValue=haloMassSampleModifierFixedMassHalosRadius)
+          call Get_Input_Parameter('haloMassSampleModifierFixedMassHalosRadius',haloMassSampleModifierFixedMassHalosRadius,defaultValue=spread(-1.0d0,1,fixedHalosCount))
           !@ <inputParameter>
           !@   <name>haloMassSampleModifierFixedMassHalosOverwrite</name>
           !@   <defaultValue>true</defaultValue>

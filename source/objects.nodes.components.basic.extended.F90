@@ -275,7 +275,8 @@ contains
     logical                      , intent(inout)          :: interrupt
     procedure(                  ), intent(inout), pointer :: interruptProcedure
     class    (nodeComponentBasic)               , pointer :: basic
-
+    !GCC$ attributes unused :: interrupt, interruptProcedure
+    
     ! Get the basic component.
     basic => node%basic()
     ! Ensure that it is of the standard class.

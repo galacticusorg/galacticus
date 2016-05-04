@@ -28,11 +28,6 @@
    contains
      procedure :: total => vanHoof2014Total
   end type gauntFactorVanHoof2014
-
-  interface gauntFactorVanHoof2014
-     !% Constructors for the {\normalfont \ttfamily vanHoof2014} dark matter halo profile concentration class.
-     module procedure vanHoof2014DefaultConstructor
-  end interface gauntFactorVanHoof2014
   
   ! Arrays to hold coefficients of the fitting function.
   double precision, dimension(0:4,2) :: vanHoof2014FitA=reshape(                       &
@@ -67,15 +62,6 @@
        &                                                       )
 
 contains
-
-  function vanHoof2014DefaultConstructor()
-    !% Default constructor for the {\normalfont \ttfamily vanHoof2014} dark matter halo profile concentration class.
-    use Input_Parameters
-    implicit none
-    type(gauntFactorVanHoof2014), target :: vanHoof2014DefaultConstructor
-
-    return
-  end function vanHoof2014DefaultConstructor
   
   double precision function vanHoof2014Total(self,atomicNumber,electronNumber,temperature)
     !% Compute thermally averaged Gaunt factors for thermal electron distributions using the tabulations and fits of
@@ -92,7 +78,8 @@ contains
     double precision                        , intent(in   ) :: temperature                     
     double precision                                        :: gammaSquared, g
     integer                                                 :: i
-  
+    !GCC$ attributes unused :: self
+    
     ! Return zero for unphysical temperatures
     if (temperature <= 0.0d0) then
        vanHoof2014Total=0.0d0

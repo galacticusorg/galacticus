@@ -18,14 +18,6 @@
 
 !% Defines methods for the ``adaptive'' differential evolution random jump class.
 
-function deRandomJumpAdaptiveConstructor()
-  !% Constructor for the ``adaptive'' differential evolution random jump class.
-  implicit none
-  type(deRandomJumpAdaptive) :: deRandomJumpAdaptiveConstructor
-
-  return
-end function deRandomJumpAdaptiveConstructor
-
 function deRandomJumpAdaptiveSample(self,randomDistributions,simulationState)
   !% Sample from the random jump distribution.
   use Galacticus_Error
@@ -37,7 +29,8 @@ function deRandomJumpAdaptiveSample(self,randomDistributions,simulationState)
   double precision                      , dimension(size(randomDistributions))                :: deRandomJumpAdaptiveSample
   double precision                      , dimension(:)                        , allocatable   :: parameterRange
   integer                                                                                     :: i
-
+  !GCC$ attributes unused :: self
+  
   ! Find the current range of each parameter.
   parameterRange=mpiSelf%maxval(simulationState%get())-mpiSelf%minval(simulationState%get())
   deRandomJumpAdaptiveSample=0.0d0

@@ -244,6 +244,18 @@ The elements of this colon-separated specifier determine the radius at which the
  \item [{\normalfont \ttfamily loading?}] option should be either {\normalfont \ttfamily loaded} or {\normalfont \ttfamily unloaded}, and specifies whether the effect of baryonic loading (i.e. adiabatic contraction) should be included in the calculation of the rotation curve.
 \end{description}
 
+\section{Satellite Mergers}\index{satellite!mergers!outputting}\index{mergers!satellite!outputting}
+
+Setting {\normalfont \ttfamily [outputSatelliteMergers]} to {\normalfont \ttfamily true} will cause data to be output for each satellite merger event. Data is stored to datasets in the {\normalfont \ttfamily satelliteMergers} group. Datasets output are:
+\begin{description}
+\item{\normalfont \ttfamily [indexHost]} the index of the host halo in the merger;
+\item{\normalfont \ttfamily [indexSatellite]} the index of the satellite halo in the merger;
+\item{\normalfont \ttfamily [indexTree]} the index of the merger tree in which the merger occurred;
+\item{\normalfont \ttfamily [massHost]} the mass of the host halo;
+\item{\normalfont \ttfamily [massSatellite]} the mass of the satellite halo;
+\item{\normalfont \ttfamily [time]} the time at which the merger occurred.
+\end{description}
+
 \section{Satellite Orbital Pericenter}\index{satellite!orbit!outputting}\index{orbits!satellite!outputting}
 
 Setting {\normalfont \ttfamily [outputSatellitePericenterData]} to {\normalfont \ttfamily true} will cause the pericentric values of the radius and velocity of each satellite node's orbit to be output as {\normalfont \ttfamily satellitePericenterRadius} and {\normalfont \ttfamily satellitePericenterVelocity} respectively.

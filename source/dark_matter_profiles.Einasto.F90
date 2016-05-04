@@ -1580,6 +1580,7 @@ contains
     class  (darkMatterProfileEinasto), intent(inout) :: self
     integer                          , intent(in   ) :: stateFile
     type   (fgsl_file               ), intent(in   ) :: fgslStateFile
+    !GCC$ attributes unused :: fgslStateFile
 
     write (stateFile) self%angularMomentumTableRadiusMinimum,self%angularMomentumTableRadiusMaximum,self%angularMomentumTableAlphaMinimum &
          &,self%angularMomentumTableAlphaMaximum,self%energyTableConcentrationMinimum,self%energyTableConcentrationMaximum &
@@ -1597,6 +1598,7 @@ contains
     class  (darkMatterProfileEinasto), intent(inout) :: self
     integer                          , intent(in   ) :: stateFile
     type   (fgsl_file               ), intent(in   ) :: fgslStateFile
+    !GCC$ attributes unused :: fgslStateFile
 
     ! Read the minimum and maximum tabulated times.
     read (stateFile) self%angularMomentumTableRadiusMinimum,self%angularMomentumTableRadiusMaximum,self%angularMomentumTableAlphaMinimum &

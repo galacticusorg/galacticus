@@ -113,7 +113,8 @@ contains
     procedure       (Structure_Set_Template), intent(in   ), pointer :: Radius_Set             , Velocity_Set
     class           (darkMatterProfileClass)               , pointer :: darkMatterProfile_
     double precision                                                 :: radius                 , velocity
-
+    !GCC$ attributes unused :: Radius_Get, Velocity_Get
+    
     ! Return immediately if the specific angular momentum is zero.
     if (specificAngularMomentum <= 0.0d0) return
 

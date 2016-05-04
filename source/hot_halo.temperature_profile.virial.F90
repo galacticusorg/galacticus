@@ -29,21 +29,8 @@
      procedure :: temperatureLogSlope => virialTemperatureLogSlope
   end type hotHaloTemperatureProfileVirial
 
-  interface hotHaloTemperatureProfileVirial
-     !% Constructors for the {\normalfont \ttfamily virial} hot halo temperature profile class.
-     module procedure virialDefaultConstructor
-  end interface hotHaloTemperatureProfileVirial
-  
 contains
 
-  function virialDefaultConstructor()
-    !% Default constructor for the {\normalfont \ttfamily virial} hot halo temperature profile class.
-    implicit none
-    type(hotHaloTemperatureProfileVirial) :: virialDefaultConstructor
-
-    return
-  end function virialDefaultConstructor
-  
   double precision function virialTemperature(self,node,radius)
     !% Return the density in a {\normalfont \ttfamily virial} hot halo mass distribution.
     use Dark_Matter_Halo_Scales
@@ -52,6 +39,7 @@ contains
     type            (treeNode                       ), intent(inout), pointer :: node
     double precision                                 , intent(in   )          :: radius
     class           (darkMatterHaloScaleClass       )               , pointer :: darkMatterHaloScale_ 
+    !GCC$ attributes unused :: self, radius
     
     darkMatterHaloScale_ => darkMatterHaloScale                   (    )
     virialTemperature    =  darkMatterHaloScale_%virialTemperature(node)
@@ -65,7 +53,8 @@ contains
     class           (hotHaloTemperatureProfileVirial), intent(inout)          :: self
     type            (treeNode                       ), intent(inout), pointer :: node
     double precision                                 , intent(in   )          :: radius
-
+    !GCC$ attributes unused :: self, node, radius
+    
     virialTemperatureLogSlope=0.0d0
     return
   end function virialTemperatureLogSlope

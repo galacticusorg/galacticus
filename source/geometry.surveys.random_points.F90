@@ -57,7 +57,7 @@ contains
     !% Return true to indicate that survey window function is available.
     implicit none
     class(surveyGeometryRandomPoints), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
     randomPointsWindowFunctionAvailable=.true.
     return
   end function randomPointsWindowFunctionAvailable
@@ -66,6 +66,7 @@ contains
     !% Return false to indicate that survey angular power is not available.
     implicit none
     class(surveyGeometryRandomPoints), intent(inout) :: self
+    !GCC$ attributes unused :: self
 
     randomPointsAngularPowerAvailable=.false.
     return
@@ -172,7 +173,9 @@ contains
     implicit none
     class  (surveyGeometryRandomPoints), intent(inout) :: self
     integer                            , intent(in   ) :: i   , j, l
+    !GCC$ attributes unused :: self, i, j, l
 
+    randomPointsAngularPower=0.0d0
     call Galacticus_Error_Report('randomPointsAngularPower','angular power is not available')
     return
   end function randomPointsAngularPower
@@ -184,7 +187,9 @@ contains
     class           (surveyGeometryRandomPoints), intent(inout)               :: self
     double precision                            , intent(in   ), dimension(3) :: point
     double precision                            , intent(in   )               :: mass
-    
+    !GCC$ attributes unused :: self, point, mass
+
+    randomPointIncluded=.false.
     call Galacticus_Error_Report('randomPointIncluded','point inclusion is not supported for window functions defined by random points')
     return
   end function randomPointIncluded

@@ -29,11 +29,6 @@
      procedure :: modify => triaxialityModify
   end type haloModelPowerSpectrumModifierTriaxiality
   
-  interface haloModelPowerSpectrumModifierTriaxiality
-     !% Constructor for the triaxiality halo model power spectra modifier class.
-     module procedure triaxialityConstructor
-  end interface haloModelPowerSpectrumModifierTriaxiality
-
   ! Tabulated results read from figures in Smith et al. (2005).
   double precision, parameter                  :: triaxialityWavenumberMinimum=1.0d-2
   double precision, parameter                  :: triaxialityWavenumberMaximum=1.0d+2
@@ -74,15 +69,6 @@
 
 contains
 
-  function triaxialityConstructor()
-    !% Default constructor for the triaxiality halo model power spectra modifier class.
-    use Input_Parameters
-    implicit none
-    type(haloModelPowerSpectrumModifierTriaxiality) :: triaxialityConstructor
-
-    return
-  end function triaxialityConstructor
-  
   subroutine triaxialityModify(self,wavenumber,term,powerSpectrum,powerSpectrumCovariance,mass)
     !% Applies a triaxiality modification to a halo model power spectrum based on the results of \cite{smith_triaxial_2005}.
     use Cosmology_Parameters
@@ -100,7 +86,8 @@ contains
     double precision                                           , parameter                               :: covarianceFraction     =0.4d0
     double precision                                           , allocatable  , dimension(:  )           :: covariance
     integer                                                                                              :: i                            , tableIndex
-
+    !GCC$ attributes unused :: self
+    
     ! Mass is required.
     if (.not.present(mass)) call Galacticus_Error_Report('triaxialityModify','mass is required')
     ! Initialize tables if necessary.

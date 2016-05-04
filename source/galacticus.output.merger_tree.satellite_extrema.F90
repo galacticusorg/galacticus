@@ -96,7 +96,8 @@ contains
     character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
          &                                                              integerPropertyComments, integerPropertyNames
     double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-
+    !GCC$ attributes unused :: thisNode, time, integerProperty, integerPropertyComments, integerPropertyNames, integerPropertyUnitsSI
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Satellite_Extremum_Initialize
 
@@ -168,7 +169,8 @@ contains
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: time
     integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
-
+    !GCC$ attributes unused :: thisNode, integerPropertyCount, time
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Satellite_Extremum_Initialize
 
@@ -199,7 +201,8 @@ contains
     class           (nodeComponentSatellite)               , pointer :: thisSatelliteComponent
     type            (keplerOrbit           )                         :: thisOrbit
     double precision                                                 :: orbitalRadius              , orbitalVelocity
-
+    !GCC$ attributes unused :: time, integerBufferCount, integerProperty, integerBuffer
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Satellite_Extremum_Initialize
 

@@ -113,7 +113,8 @@ contains
     logical                                   ,          intent(inout) :: interrupt
     procedure(                               ), pointer, intent(inout) :: interruptProcedure
     class    (nodeComponentMassFlowStatistics), pointer                :: massFlowStatisticsComponent
-
+    !GCC$ attributes unused :: interrupt, interruptProcedure
+    
     ! Get the massFlowStatistics component.
     massFlowStatisticsComponent => thisNode%massFlowStatistics()
     ! Ensure that it is of the standard class.
@@ -162,7 +163,8 @@ contains
     integer         (kind=c_size_t                  ), intent(in   )               :: iOutput
     logical                                          , intent(in   )               :: nodePassesFilter
     class           (nodeComponentMassFlowStatistics),                pointer      :: massFlowStatisticsComponent
-
+    !GCC$ attributes unused :: iOutput, nodePassesFilter, treeIndex
+    
     ! Return immediately if we are not to reset mass flow statistics at output time.
     if (.not.massFlowStatisticsResetOnOutput) return
 

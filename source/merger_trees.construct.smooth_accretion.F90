@@ -115,7 +115,8 @@ contains
     integer         (kind=kind_int8                         )                                 :: nodeIndex
     double precision                                                                          :: expansionFactorBase                , mergerTreeBaseTime, &
          &                                                                                       nodeMass                           , nodeTime
-
+    !GCC$ attributes unused :: skipTree
+    
     ! Build the merger tree.
     !$omp critical (Merger_Tree_Build_Do)
     if (.not.treeWasBuilt) then

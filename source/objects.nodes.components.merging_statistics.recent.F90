@@ -273,7 +273,8 @@ contains
     character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
          &                                                              integerPropertyComments, integerPropertyNames
     double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-
+    !GCC$ attributes unused :: time, doubleProperty, doublePropertyComments, doublePropertyNames, doublePropertyUnitsSI
+    
     if (Node_Component_Merging_Statistics_Recent_Matches(thisNode)) then
        !@ <outputPropertyGroup>
        !@   <name>mergingStatistics</name>
@@ -307,7 +308,8 @@ contains
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: time
     integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
-
+    !GCC$ attributes unused :: doublePropertyCount, time
+    
     if (Node_Component_Merging_Statistics_Recent_Matches(thisNode)) integerPropertyCount=integerPropertyCount+1
     return
   end subroutine Node_Component_Merging_Statistics_Recent_Output_Count
@@ -330,7 +332,7 @@ contains
     double precision                                , intent(inout)                   :: doubleBuffer         (:,:)
     class           (nodeComponentMergingStatistics)                        , pointer :: thisMergingStatistics
     integer                                         , dimension(outputCount)          :: mergerIncrement
-
+    !GCC$ attributes unused :: doubleBufferCount, doubleProperty, doubleBuffer
 
     if (Node_Component_Merging_Statistics_Recent_Matches(thisNode)) then
        ! Store the properties.

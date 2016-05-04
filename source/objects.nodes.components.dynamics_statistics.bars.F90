@@ -71,6 +71,7 @@ contains
     use Evolve_To_Time_Reports
     use ISO_Varying_String
     use Dark_Matter_Halo_Scales
+    use Galacticus_Error
     implicit none
     type            (treeNode                                      ), intent(inout)             , pointer :: thisNode
     procedure       (Node_Component_Dynamics_Statistics_Bars_Record), intent(inout)             , pointer :: End_Of_Timestep_Task
@@ -129,6 +130,9 @@ contains
             &     -thisBasic%time()                                 , &
             &     0.0d0                                               &
             &    )
+    class default
+       ourTimestep=0.0d0
+       call Galacticus_Error_Report('Node_Component_Dynamics_Statistics_Bars_Timestep','unknown class')
     end select
     ! Check if our timestep is the limiting factor.
     if (ourTimeStep <= timeStep) then
@@ -161,7 +165,8 @@ contains
     double precision                                                          :: barInstabilityTimescale, barInstabilityExternalDrivingSpecificTorque, &
          &                                                                       adiabaticRatio         , velocityPericenter                         , &
          &                                                                       radiusPericenter
-
+    !GCC$ attributes unused :: thisTree, deadlockStatus
+    
     ! Get components.
     thisBasic              => thisNode%basic             (                 )
     thisDynamicsStatistics => thisNode%dynamicsStatistics(autoCreate=.true.)
@@ -209,7 +214,8 @@ contains
     type            (hdf5Object                     )                              :: outputs                  , output              , &
          &                                                                            dynamics                 , tree                , &
          &                                                                            thisDataset
-
+    !GCC$ attributes unused :: nodePassesFilter
+    
     ! Output the history data if and only if any has been collated.
     if (dynamicsStatisticsBarsInitialized) then
        ! Get the dynamics statistics component.

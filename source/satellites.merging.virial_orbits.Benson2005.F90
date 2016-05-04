@@ -148,6 +148,7 @@ contains
     class  (virialDensityContrastClass), allocatable  , target, save :: densityContrastDefinition
     logical                                                   , save :: densityContrastDefinitionInitialized=.false.
     !$omp threadprivate(densityContrastDefinition,densityContrastDefinitionInitialized)
+    !GCC$ attributes unused :: self
     
     if (.not.densityContrastDefinitionInitialized) then
        allocate(virialDensityContrastSphericalCollapseMatterLambda :: densityContrastDefinition)
@@ -179,7 +180,7 @@ contains
     class  (virialOrbitBenson2005), intent(inout) :: self
     integer                       , intent(in   ) :: stateFile
     type   (fgsl_file            ), intent(in   ) :: fgslStateFile
-
+    
     write (stateFile) self%resetSequenceSnapshot
     if (.not.self%resetSequenceSnapshot) call Pseudo_Random_Store(self%clonedPseudoSequenceObject,fgslStateFile)
     return

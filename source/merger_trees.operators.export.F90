@@ -218,6 +218,8 @@ contains
              node => node%walkTree()
           end do
           call Sort_Do(snapshotTime(1:snapshotCount))
+       else
+          snapshotCount=0
        end if
        ! Get the default cosmology functions object.
        cosmologyFunctions_ => cosmologyFunctions()

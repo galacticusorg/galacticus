@@ -68,13 +68,14 @@ contains
     !% Solve for the equilibrium radius of the given component.
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode
-    double precision                        , intent(in   )          :: specificAngularMomentum
-    procedure       (Structure_Get_Template), intent(in   ), pointer :: Radius_Get             , Velocity_Get
-    procedure       (Structure_Set_Template), intent(in   ), pointer :: Radius_Set             , Velocity_Set
+    type            (treeNode                ), intent(inout), pointer :: thisNode
+    double precision                          , intent(in   )          :: specificAngularMomentum
+    procedure       (Structure_Get_Template  ), intent(in   ), pointer :: Radius_Get             , Velocity_Get
+    procedure       (Structure_Set_Template  ), intent(in   ), pointer :: Radius_Set             , Velocity_Set
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                                                 :: radius                 , velocity
-
+    double precision                                                   :: radius                 , velocity
+    !GCC$ attributes unused :: Radius_Get, Velocity_Get
+    
     ! Return immediately if the specific angular momentum is zero.
     if (specificAngularMomentum <= 0.0d0) return
 

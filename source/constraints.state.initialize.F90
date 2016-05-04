@@ -78,7 +78,8 @@ contains
     type   (varying_string  )                             :: logFileRoot
     integer                                               :: stateInitializorTrialCount
     logical                                               :: stateInitializorRestore
-
+    !GCC$ attributes unused :: configFileName
+    
     select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"type"))))
     case ("priorRandom"  )
        allocate(stateInitializorPriorRandom :: newStateInitializor)

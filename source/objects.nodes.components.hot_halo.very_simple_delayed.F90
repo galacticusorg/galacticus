@@ -102,7 +102,8 @@ contains
     double precision                      , intent(in   )                    :: rate
     logical                               , intent(inout), optional          :: interrupt
     procedure       (                    ), intent(inout), optional, pointer :: interruptProcedure
-
+    !GCC$ attributes unused :: interrupt, interruptProcedure
+    
     ! Funnel the outflowing gas into the outflowed reservoir.
     call self%outflowedMassRate(rate)
     return
@@ -138,7 +139,8 @@ contains
     type            (abundances                        ), save                   :: abundancesReturnRate
     !$omp threadprivate(abundancesReturnRate)
     double precision                                                             :: outflowReturnRate
-
+    !GCC$ attributes unused :: interrupt, interruptProcedure
+    
     ! Don't reincorporate gas for satellites - we don't want it to be able to re-infall back onto the satellite.
     if (node%isSatellite()) return
     ! Get the hot halo component.

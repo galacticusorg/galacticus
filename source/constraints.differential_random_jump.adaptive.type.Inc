@@ -22,8 +22,3 @@
    contains
      procedure :: sample => deRandomJumpAdaptiveSample
   end type deRandomJumpAdaptive
-  
-  interface deRandomJumpAdaptive
-     !% Constructors for the ``adaptive'' random jump class.
-     module procedure deRandomJumpAdaptiveConstructor
-  end interface deRandomJumpAdaptive

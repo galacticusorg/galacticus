@@ -35,9 +35,11 @@ contains
     real   (kind=c_double), dimension(1), intent(in   ) :: y
     real   (kind=c_double), dimension(1)                :: dydx
     type   (c_ptr        )              , value         :: parameterPointer
-
+    !GCC$ attributes unused :: y
+    
     dydx(1)=sin(x)
     ODE_Set_1=FGSL_Success
+    return
   end function ODE_Set_1
 
   function ODE_Set_2(x,y,dydx,parameterPointer) bind(c)
@@ -47,10 +49,12 @@ contains
     real   (kind=c_double), dimension(2), intent(in   ) :: y
     real   (kind=c_double), dimension(2)                :: dydx
     type   (c_ptr        )              , value         :: parameterPointer
-
-    dydx(1)=y(2)
+    !GCC$ attributes unused :: x
+    
+    dydx(1)=       y(2)
     dydx(2)=-1.0d0*y(1)
     ODE_Set_2=FGSL_Success
+    return
   end function ODE_Set_2
 
 end module Test_ODE_Solver_Functions

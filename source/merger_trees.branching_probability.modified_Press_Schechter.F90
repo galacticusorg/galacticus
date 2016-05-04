@@ -228,7 +228,8 @@ contains
          &                                                            massFractionResolutionPowerEta, halfPowerEta   , &
          &                                                            halfMassV
     logical                                                        :: reject
-
+    !GCC$ attributes unused :: deltaCritical, probability
+    
     ! Get parent and half-mass sigmas and alphas.
     cosmologicalMassVariance_ => cosmologicalMassVariance()
     parentSigmaSquared=cosmologicalMassVariance_%rootVariance(haloMass)**2
@@ -342,6 +343,7 @@ contains
     type            (rootFinder                   ), save          :: finder
     !$omp threadprivate(finder)
     double precision                                               :: logMassMinimum             , logMassMaximum
+    !GCC$ attributes unused :: randomNumberGenerator
     
     ! Get required objects.
     cosmologicalMassVariance_ => cosmologicalMassVariance()
@@ -472,7 +474,8 @@ contains
     class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
     double precision                               , parameter     :: largeStep                =1.0d10           !   Effectively infinitely large step in w(=delta_crit).
     double precision                                               :: parentHalfMassSigma
-
+    !GCC$ attributes unused :: deltaCritical
+    
     ! Get sigma and delta_critical for the parent halo.
     if (haloMass>2.0d0*massResolution) then
        cosmologicalMassVariance_ => cosmologicalMassVariance()
@@ -738,7 +741,8 @@ contains
                         &                                                /massResolution
                 end if
              case default
-                call Galacticus_Error_Report('Modified_Press_Schechter_Branching_Probability_Bound','unknown bound type')
+                Modified_Press_Schechter_Branching_Probability_Bound=-1.0d0
+               call Galacticus_Error_Report('Modified_Press_Schechter_Branching_Probability_Bound','unknown bound type')
              end select
              if (statusUpper == FGSL_Success .and. statusLower == FGSL_Success) exit
           end do
@@ -1027,6 +1031,7 @@ contains
     implicit none
     integer           , intent(in   ) :: stateFile
     type   (fgsl_file), intent(in   ) :: fgslStateFile
+    !GCC$ attributes unused :: fgslStateFile
 
     write (stateFile) subresolutionHypergeometricInitialized,upperBoundHypergeometricInitialized
     if (subresolutionHypergeometricInitialized) write (stateFile) subresolutionHypergeometric%x(1),subresolutionHypergeometric%x(-1)
@@ -1045,6 +1050,7 @@ contains
     type            (fgsl_file), intent(in   ) :: fgslStateFile
     double precision                           :: xMinimum     , xMaximum, &
          &                                        xResolution
+    !GCC$ attributes unused :: fgslStateFile
 
     read (stateFile) subresolutionHypergeometricInitialized,upperBoundHypergeometricInitialized
     if (subresolutionHypergeometricInitialized) then

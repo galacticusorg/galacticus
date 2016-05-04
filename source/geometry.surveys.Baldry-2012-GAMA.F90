@@ -68,7 +68,8 @@ contains
     !% Return the number of fields in this sample.
     implicit none
     class(surveyGeometryBaldry2012GAMA), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     baldry2012GAMAFieldCount=baldry2012GAMAFields
     return
   end function baldry2012GAMAFieldCount
@@ -82,9 +83,8 @@ contains
     integer                                       , intent(in   ), optional :: field
     double precision                                                        :: logarithmicMass
     
-   ! Validate field.
+    ! Validate field.
     if (.not.present(field)) call Galacticus_Error_Report('baldry2012GAMADistanceMaximum','field must be specified')
-    if (field < 1 .or. field > 3) call Galacticus_Error_Report('baldry2012GAMADistanceMaximum','1 ≤ field ≤ 3 required')
     ! Compute the limiting distance.
     logarithmicMass=log10(mass)
     select case (field)
@@ -100,6 +100,9 @@ contains
             &           -0.361147071716369d0                  &
             &           +0.318557607893101d0*logarithmicMass  &
             &          )
+    case default
+       baldry2012GAMADistanceMaximum=0.0d0
+       call Galacticus_Error_Report('baldry2012GAMADistanceMaximum','1 ≤ field ≤ 3 required')
     end select
     baldry2012GAMADistanceMaximum=min(baldry2012GAMADistanceMaximum,self%distanceMaximumSurvey)
     return
@@ -134,7 +137,8 @@ contains
     !% Return the maximum degree for which angular power is computed for the \cite{bernardi_massive_2013} survey.
     implicit none
     class(surveyGeometryBaldry2012GAMA), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     baldry2012GAMAAngularPowerMaximumDegree=baldry2012GAMAAngularPowerMaximumL
     return
   end function baldry2012GAMAAngularPowerMaximumDegree

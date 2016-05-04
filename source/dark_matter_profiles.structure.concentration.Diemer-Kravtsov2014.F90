@@ -30,7 +30,6 @@
      type            (fgsl_rng) :: clonedPseudoSequenceObject, pseudoSequenceObject
      logical                    :: resetSequence             , resetSequenceSnapshot
    contains
-     final     ::                                diemerKravtsov2014Destructor
      procedure :: concentration               => diemerKravtsov2014Concentration
      procedure :: concentrationMean           => diemerKravtsov2014ConcentrationMean
      procedure :: densityContrastDefinition   => diemerKravtsov2014DensityContrastDefinition
@@ -154,16 +153,6 @@ contains
     diemerKravtsov2014ConstructorInternal%resetSequence=.true.
     return
   end function diemerKravtsov2014ConstructorInternal
-  
-  subroutine diemerKravtsov2014Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily diemerKravtsov2014} dark matter halo profile
-    !% concentration class.
-    implicit none
-    type(darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout) :: self
-
-    ! Nothing to do.
-    return
-  end subroutine diemerKravtsov2014Destructor
 
   double precision function diemerKravtsov2014Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
@@ -251,6 +240,7 @@ contains
     class  (virialDensityContrastClass                      ), allocatable  , target, save :: densityContrastDefinition
     logical                                                                         , save :: densityContrastDefinitionInitialized=.false.
     !$omp threadprivate(densityContrastDefinition,densityContrastDefinitionInitialized)
+    !GCC$ attributes unused :: self
     
     if (.not.densityContrastDefinitionInitialized) then
        allocate(virialDensityContrastFixed :: densityContrastDefinition)

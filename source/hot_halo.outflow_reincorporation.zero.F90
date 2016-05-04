@@ -28,21 +28,8 @@
      procedure :: rate => zeroRate
   end type hotHaloOutflowReincorporationZero
 
-  interface hotHaloOutflowReincorporationZero
-     !% Constructors for the {\normalfont \ttfamily zero} hot halo outflow reincorporation class.
-     module procedure zeroDefaultConstructor
-  end interface hotHaloOutflowReincorporationZero
-
 contains
 
-  function zeroDefaultConstructor()
-    !% Default constructor for the zero hot halo outflow reincorporation class.
-    implicit none
-    type(hotHaloOutflowReincorporationZero) :: zeroDefaultConstructor
-
-    return
-  end function zeroDefaultConstructor
-  
   double precision function zeroRate(self,node)
     !% Return the rate of mass reincorporation for outflowed gas in the hot halo.
     use Cosmology_Functions
@@ -50,7 +37,8 @@ contains
     implicit none
     class(hotHaloOutflowReincorporationZero), intent(inout)          :: self
     type (treeNode                         ), intent(inout), pointer :: node
-
+    !GCC$ attributes unused :: self, node
+    
     zeroRate=0.0d0
     return
   end function zeroRate

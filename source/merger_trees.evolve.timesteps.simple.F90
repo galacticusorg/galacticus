@@ -54,7 +54,8 @@ contains
     class           (cosmologyFunctionsClass)                         , pointer :: cosmologyFunctionsDefault
     double precision                                                            :: expansionFactor          , expansionTimescale, &
          &                                                                         ourTimeStep              , time
-
+    !GCC$ attributes unused :: End_Of_Timestep_Task
+    
     if (.not.timestepSimpleInitialized) then
        !$omp critical (timestepSimpleInitialize)
        if (.not.timestepSimpleInitialized) then
@@ -93,7 +94,7 @@ contains
     ! Get current cosmic time.
     thisBasicComponent => thisNode%basic()
     time=thisBasicComponent%time()
-
+    
     ! Find current expansion timescale.
     expansionFactor=cosmologyFunctionsDefault%expansionFactor(time)
     expansionTimescale=1.0d0/cosmologyFunctionsDefault%expansionRate(expansionFactor)

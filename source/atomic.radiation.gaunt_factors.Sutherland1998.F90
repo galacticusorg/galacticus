@@ -28,11 +28,6 @@
    contains
      procedure :: total => sutherland1998Total
   end type gauntFactorSutherland1998
-
-  interface gauntFactorSutherland1998
-     !% Constructors for the {\normalfont \ttfamily sutherland1998} dark matter halo profile concentration class.
-     module procedure sutherland1998DefaultConstructor
-  end interface gauntFactorSutherland1998
   
   ! Arrays to hold coefficients of the fitting function.
   integer         , parameter                                 :: sutherland1998CoefficientCount       =  41
@@ -103,15 +98,6 @@
        &                                                                                             ]
 
 contains
-
-  function sutherland1998DefaultConstructor()
-    !% Default constructor for the {\normalfont \ttfamily sutherland1998} dark matter halo profile concentration class.
-    use Input_Parameters
-    implicit none
-    type(gauntFactorSutherland1998), target :: sutherland1998DefaultConstructor
-
-    return
-  end function sutherland1998DefaultConstructor
   
   double precision function sutherland1998Total(self,atomicNumber,electronNumber,temperature)
     !% Compute thermally averaged Gaunt factors for thermal electron distributions using the tabulations and fits of
@@ -128,7 +114,8 @@ contains
     double precision                           , intent(in   ) :: temperature                     
     integer         (c_size_t                 )                :: iTable
     double precision                                           :: energyScaleOffset, energyScaleLogarithmic
-  
+    !GCC$ attributes unused :: self
+    
     ! Return zero for unphysical temperatures
     if (temperature <= 0.0d0) then
        sutherland1998Total=0.0d0

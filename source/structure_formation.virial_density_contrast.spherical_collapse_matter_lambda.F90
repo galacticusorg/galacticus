@@ -112,7 +112,8 @@ contains
     class           (cosmologyFunctionsClass                           ), pointer                 :: cosmologyFunctions_
     logical                                                                                       :: collapsingActual
     double precision                                                                              :: timeActual
-
+    !GCC$ attributes unused :: mass
+    
     ! Determine which type of input we have.
     if (present(time)) then
        if (present(expansionFactor)) then
@@ -153,6 +154,7 @@ contains
     class           (cosmologyFunctionsClass                           ), pointer                 :: cosmologyFunctions_
     logical                                                                                       :: collapsingActual
     double precision                                                                              :: timeActual
+    !GCC$ attributes unused :: mass
 
     ! Determine which type of input we have.
     if (present(time)) then
@@ -189,7 +191,8 @@ contains
     class           (virialDensityContrastSphericalCollapseMatterLambda), intent(inout)           :: self
     double precision                                                    , intent(in   ), optional :: time      , expansionFactor
     logical                                                             , intent(in   ), optional :: collapsing
-
+    !GCC$ attributes unused :: self, time, expansionFactor, collapsing
+    
     ! In simple cosmological constant dark energy universes, this ratio is always precisely 2 (e.g. Percival 2005;
     ! http://adsabs.harvard.edu/abs/2005A%26A...443..819P)
     sphericalCollapseMatterLambdaTurnAroundOverVirialRadii=2.0d0
@@ -203,6 +206,7 @@ contains
     class  (virialDensityContrastSphericalCollapseMatterLambda), intent(inout) :: self
     integer                                                    , intent(in   ) :: stateFile
     type   (fgsl_file                                         ), intent(in   ) :: fgslStateFile
+    !GCC$ attributes unused :: fgslStateFile
     
     write (stateFile) self%tableTimeMinimum,self%tableTimeMaximum
     return
@@ -215,6 +219,7 @@ contains
     class  (virialDensityContrastSphericalCollapseMatterLambda), intent(inout) :: self
     integer                                                    , intent(in   ) :: stateFile
     type   (fgsl_file                                         ), intent(in   ) :: fgslStateFile
+    !GCC$ attributes unused :: fgslStateFile
 
     read (stateFile) self%tableTimeMinimum,self%tableTimeMaximum
     self%tableInitialized=.false.

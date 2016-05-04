@@ -294,7 +294,8 @@ logical function simulatorDifferentialEvolutionLogging(self)
   !% Specifies whether or not the current state should be logged to file during differential evolution.
   implicit none
   class(simulatorDifferentialEvolution), intent(inout) :: self
-
+  !GCC$ attributes unused :: self
+  
   simulatorDifferentialEvolutionLogging=.true.
   return
 end function simulatorDifferentialEvolutionLogging
@@ -380,9 +381,9 @@ subroutine simulatorDifferentialEvolutionPosterior(self,simulationState,logLikel
                  exit
               end if
            end do
-           if (processToProcess(timesevaluateorder(i)) >= 0) exit
+           if (processToProcess(timesEvaluateOrder(i)) >= 0) exit
         end do
-        if (processToProcess(timesevaluateorder(i)) < 0) call Galacticus_Error_Report('simulatorDifferentialEvolutionPosterior','failed to assign task to process')
+        if (processToProcess(timesEvaluateOrder(i)) < 0) call Galacticus_Error_Report('simulatorDifferentialEvolutionPosterior','failed to assign task to process')
      end do
      ! Report.
      if (mpiSelf%isMaster() .and. mod(self%simulationState%count(),self%reportCount) == 0) then
@@ -495,7 +496,8 @@ logical function simulatorDifferentialEvolutionAcceptProposal(self,logPosterior,
        &                                                             logLikelihoodVariance, logLikelihoodVarianceProposed
   type            (pseudoRandom                  ), intent(inout) :: randomNumberGenerator
   double precision                                                :: x
-
+  !GCC$ attributes unused :: self, logLikelihoodVariance, logLikelihoodVarianceProposed
+  
   ! Decide whether to take step.
   x=randomNumberGenerator%sample(mpiRankOffset=.true.)
   simulatorDifferentialEvolutionAcceptProposal=                           &
@@ -509,6 +511,7 @@ double precision function simulatorDifferentialEvolutionTemperature(self)
   !% Return the temperature.
   implicit none
   class(simulatorDifferentialEvolution), intent(inout) :: self
+  !GCC$ attributes unused :: self
 
   simulatorDifferentialEvolutionTemperature=1.0d0
   return

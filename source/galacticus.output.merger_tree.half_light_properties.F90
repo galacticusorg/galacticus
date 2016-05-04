@@ -87,7 +87,8 @@ contains
          &                                                              integerPropertyComments, integerPropertyNames
     double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     integer                                                          :: iLuminosity
-
+    !GCC$ attributes unused :: thisNode, integerProperty, integerPropertyComments, integerPropertyNames, integerPropertyUnitsSI
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Half_Light_Initialize
 
@@ -136,7 +137,8 @@ contains
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: time
     integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
-
+    !GCC$ attributes unused :: thisNode, integerPropertyCount
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Half_Light_Initialize
 
@@ -165,7 +167,8 @@ contains
     double precision                , intent(inout)          :: doubleBuffer     (:,:)
     integer                                                  :: iLuminosity
     double precision                                         :: halfLightRadius       , massEnclosed
-
+    !GCC$ attributes unused :: integerProperty, integerBufferCount, integerBuffer
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Half_Light_Initialize
 

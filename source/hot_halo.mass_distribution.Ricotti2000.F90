@@ -95,7 +95,7 @@ contains
     type            (treeNode                              ), intent(inout), pointer :: node
     class           (nodeComponentHotHalo                  )               , pointer :: hotHalo
     class           (nodeComponentDarkMatterProfile        )               , pointer :: darkMatterProfile
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    class           (darkMatterHaloScaleClass              )               , pointer :: darkMatterHaloScale_
     double precision                                        , parameter              :: virialToGasTemperatureRatio=1.0d0
     double precision                                                                 :: mass                             , radiusOuter  , &
          &                                                                              radiusScale                      , radiusVirial , &

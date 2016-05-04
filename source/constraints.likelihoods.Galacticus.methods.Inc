@@ -66,7 +66,8 @@ double precision function likelihoodGalacticusEvaluate(self,simulationState,para
        &                                                                 timingFileUnit       , status
   logical                                                             :: storeModel
   real                                                                :: timeSystem           , timeUser
-
+  !GCC$ attributes unused :: logPriorCurrent, logLikelihoodCurrent
+  
   ! If prior probability is impossible, then no need to waste time evaluating the likelihood.
   if (logPriorProposed <= logImpossible) then
      likelihoodGalacticusEvaluate=logImpossible
@@ -150,6 +151,7 @@ subroutine likelihoodGalacticusFunctionChanged(self)
   !% Respond to possible changes in the likelihood function.
   implicit none
   class(likelihoodGalacticus), intent(inout) :: self
+  !GCC$ attributes unused :: self
   
   return
 end subroutine likelihoodGalacticusFunctionChanged
@@ -166,7 +168,8 @@ logical function likelihoodGalacticusWillEvaluate(self,simulationState,parameter
   class           (convergence         ), intent(inout)               :: simulationConvergence
   double precision                      , intent(in   )               :: temperature                      , logLikelihoodCurrent, &
        &                                                                 logPriorCurrent                  , logPriorProposed
-
+  !GCC$ attributes unused :: self, simulationState, parameterMappings, simulationConvergence, temperature, logLikelihoodCurrent, logPriorCurrent
+  
   ! Likelihood will not be evaluated if the proposed prior is impossible.
   likelihoodGalacticusWillEvaluate=(logPriorProposed > logImpossible)
   return

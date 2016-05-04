@@ -25,7 +25,6 @@
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{munoz-cuartas_redshift_2011}.
      private
    contains
-     final     ::                                munozCuartas2011Destructor
      procedure :: concentration               => munozCuartas2011Concentration
      procedure :: densityContrastDefinition   => munozCuartas2011DensityContrastDefinition
      procedure :: darkMatterProfileDefinition => munozCuartas2011DarkMatterProfileDefinition
@@ -34,7 +33,6 @@
   interface darkMatterProfileConcentrationMunozCuartas2011
      !% Constructors for the {\normalfont \ttfamily munozCuartas2011} dark matter halo profile concentration class.
      module procedure munozCuartas2011ConstructorParameters
-     module procedure munozCuartas2011ConstructorInternal
   end interface darkMatterProfileConcentrationMunozCuartas2011
 
 contains
@@ -45,27 +43,11 @@ contains
     implicit none
     type(darkMatterProfileConcentrationMunozCuartas2011)                :: munozCuartas2011ConstructorParameters
     type(inputParameters                               ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
 
+    munozCuartas2011ConstructorParameters=darkMatterProfileConcentrationMunozCuartas2011()
     return
   end function munozCuartas2011ConstructorParameters
-
-  function munozCuartas2011ConstructorInternal()
-    !% Default constructor for the {\normalfont \ttfamily munozCuartas2011} dark matter halo profile concentration class.
-    use Input_Parameters2
-    implicit none
-    type(darkMatterProfileConcentrationMunozCuartas2011) :: munozCuartas2011ConstructorInternal
-
-    return
-  end function munozCuartas2011ConstructorInternal
-
-  subroutine munozCuartas2011Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily munozCuartas2011} dark matter halo profile concentration class.
-    implicit none
-    type(darkMatterProfileConcentrationMunozCuartas2011), intent(inout) :: self
-
-    ! Nothing to do.
-    return
-  end subroutine munozCuartas2011Destructor
 
   double precision function munozCuartas2011Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
@@ -84,7 +66,8 @@ contains
     double precision                                                                         :: a                                           , b                             , &
          &                                                                                      concentrationLogarithmic                    , haloMassLogarithmic           , &
          &                                                                                      redshift
-
+    !GCC$ attributes unused :: self
+    
     ! Get required objects.
     cosmologyParameters_ => cosmologyParameters()
     cosmologyFunctions_  => cosmologyFunctions ()
@@ -105,7 +88,8 @@ contains
     implicit none
     class(virialDensityContrastClass                    ), pointer       :: munozCuartas2011DensityContrastDefinition
     class(darkMatterProfileConcentrationMunozCuartas2011), intent(inout) :: self
-    
+    !GCC$ attributes unused :: self
+
     allocate(virialDensityContrastBryanNorman1998 :: munozCuartas2011DensityContrastDefinition)
     select type (munozCuartas2011DensityContrastDefinition)
     type is (virialDensityContrastBryanNorman1998)

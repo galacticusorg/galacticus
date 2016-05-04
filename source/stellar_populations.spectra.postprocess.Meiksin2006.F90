@@ -29,20 +29,7 @@
      procedure :: apply => meiksin2006Apply
   end type spectraPostprocessorMeiksin2006
 
-  interface spectraPostprocessorMeiksin2006
-     !% Constructors for the {\normalfont \ttfamily meiksin2006} spectrum postprocessor class.
-     module procedure meiksin2006DefaultConstructor
-  end interface spectraPostprocessorMeiksin2006
-
 contains
-
-  function meiksin2006DefaultConstructor()
-    !% Default constructor for the {\normalfont \ttfamily meiksin2006} spectrum postprocessor class.
-    implicit none
-    type(spectraPostprocessorMeiksin2006), target :: meiksin2006DefaultConstructor
-    
-    return
-  end function meiksin2006DefaultConstructor
 
   subroutine meiksin2006Apply(self,wavelength,age,redshift,modifier)
     !% Suppress the Lyman continuum in a spectrum.
@@ -63,7 +50,8 @@ contains
     double precision                                                 :: nFactorial                             , opticalDepth       , &
          &                                                              seriesSolutionTermA                    , seriesSolutionTermB, &
          &                                                              wavelengthObservedLymanContinuum
-
+    !GCC$ attributes unused :: self, age
+    
     ! Check if this is a zero redshift case.
     if (redshift <= 0.0d0) then
        ! It is, so return no attenuation modification.

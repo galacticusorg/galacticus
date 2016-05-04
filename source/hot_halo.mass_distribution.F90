@@ -82,6 +82,7 @@ module Hot_Halo_Mass_Distributions
     double precision                              , intent(in   )           :: radius
     logical                                       , intent(in   ), optional :: haloLoaded
     class           (hotHaloMassDistributionClass)               , pointer  :: hotHalo
+    !GCC$ attributes unused :: haloLoaded, weightIndex
 
     ! Return zero mass if the requested mass type or component is not matched.
     Hot_Halo_Mass_Distribution_Enclosed_Mass_Task=0.0d0
@@ -164,7 +165,8 @@ module Hot_Halo_Mass_Distributions
     double precision                              , intent(in   )           :: positionSpherical(3)
     class           (hotHaloMassDistributionClass)               , pointer  :: hotHalo
     logical                                       , intent(in   ), optional :: haloLoaded
-
+    !GCC$ attributes unused :: haloLoaded, weightIndex
+    
     Hot_Halo_Mass_Distribution_Density_Task=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeHotHalo                                 )) return
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeBaryonic     .or. massType == massTypeGaseous)) return

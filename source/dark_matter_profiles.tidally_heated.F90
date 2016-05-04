@@ -295,19 +295,20 @@ contains
     else
        ! Check if unimplemented features are fatal.
        if (self%unimplementedFatal) then
+          tidallyHeatedRadialMoment=0.0d0
           call Galacticus_Error_Report('tidallyHeatedRadialMoment','radial moment in tidally heated dark matter profiles is not supported')
        else
-       ! Issue a warning and then fall through to the unheated profile.
-       if (.not.tidallyHeatedRadialMomentWarned) then
-          !$omp critical(tidallyHeatedDarkMatterProfileRadialMomentWarn)
+          ! Issue a warning and then fall through to the unheated profile.
           if (.not.tidallyHeatedRadialMomentWarned) then
-             call Galacticus_Display_Message('WARNING: radial moment in tidally heated dark matter profiles is not supported - using unheated profile',verbosity=verbosityWarn)
-             tidallyHeatedRadialMomentWarned=.true.
+             !$omp critical(tidallyHeatedDarkMatterProfileRadialMomentWarn)
+             if (.not.tidallyHeatedRadialMomentWarned) then
+                call Galacticus_Display_Message('WARNING: radial moment in tidally heated dark matter profiles is not supported - using unheated profile',verbosity=verbosityWarn)
+                tidallyHeatedRadialMomentWarned=.true.
+             end if
+             !$omp end critical(tidallyHeatedDarkMatterProfileRadialMomentWarn)
           end if
-          !$omp end critical(tidallyHeatedDarkMatterProfileRadialMomentWarn)
+          tidallyHeatedRadialMoment=self%unheatedProfile%radialMoment(node,moment,radiusMinimum,radiusMaximum)
        end if
-       tidallyHeatedRadialMoment=self%unheatedProfile%radialMoment(node,moment,radiusMinimum,radiusMaximum)
-    end if
     end if
     return 
   end function tidallyHeatedRadialMoment
@@ -486,19 +487,20 @@ contains
     else
        ! Check if unimplemented features are fatal.
        if (self%unimplementedFatal) then
+          tidallyHeatedCircularVelocityMaximum=0.0d0
           call Galacticus_Error_Report('tidallyHeatedCircularVelocityMaximum','circular velocity maximum in tidally heated dark matter profiles is not supported')
        else
-       ! Issue a warning and then fall through to the unheated profile.
-       if (.not.tidallyHeatedCircularVelocityMaximumWarned) then
-          !$omp critical(tidallyHeatedDarkMatterProfileCircularVelocityMaximumWarn)
+          ! Issue a warning and then fall through to the unheated profile.
           if (.not.tidallyHeatedCircularVelocityMaximumWarned) then
-             call Galacticus_Display_Message('WARNING: circular velocity maximum in tidally heated dark matter profiles is not supported - using unheated profile',verbosity=verbosityWarn)
-             tidallyHeatedCircularVelocityMaximumWarned=.true.
+             !$omp critical(tidallyHeatedDarkMatterProfileCircularVelocityMaximumWarn)
+             if (.not.tidallyHeatedCircularVelocityMaximumWarned) then
+                call Galacticus_Display_Message('WARNING: circular velocity maximum in tidally heated dark matter profiles is not supported - using unheated profile',verbosity=verbosityWarn)
+                tidallyHeatedCircularVelocityMaximumWarned=.true.
+             end if
+             !$omp end critical(tidallyHeatedDarkMatterProfileCircularVelocityMaximumWarn)
           end if
-          !$omp end critical(tidallyHeatedDarkMatterProfileCircularVelocityMaximumWarn)
+          tidallyHeatedCircularVelocityMaximum=self%unheatedProfile%circularVelocityMaximum(node)
        end if
-       tidallyHeatedCircularVelocityMaximum=self%unheatedProfile%circularVelocityMaximum(node)
-    end if
     end if
     return
   end function tidallyHeatedCircularVelocityMaximum
@@ -573,19 +575,20 @@ contains
     else
        ! Check if unimplemented features are fatal.
        if (self%unimplementedFatal) then
+          tidallyHeatedRotationNormalization=0.0d0
           call Galacticus_Error_Report('tidallyHeatedRotationNormalization','rotation normalization in tidally heated dark matter profiles is not supported')
        else
-       ! Issue a warning and then fall through to the unheated profile.
-       if (.not.tidallyHeatedRotationNormalizationWarned) then
-          !$omp critical(tidallyHeatedDarkMatterProfileRotationNormalizationWarn)
+          ! Issue a warning and then fall through to the unheated profile.
           if (.not.tidallyHeatedRotationNormalizationWarned) then
-             call Galacticus_Display_Message('WARNING: rotation normalization in tidally heated dark matter profiles is not supported - using unheated profile',verbosity=verbosityWarn)
-             tidallyHeatedRotationNormalizationWarned=.true.
+             !$omp critical(tidallyHeatedDarkMatterProfileRotationNormalizationWarn)
+             if (.not.tidallyHeatedRotationNormalizationWarned) then
+                call Galacticus_Display_Message('WARNING: rotation normalization in tidally heated dark matter profiles is not supported - using unheated profile',verbosity=verbosityWarn)
+                tidallyHeatedRotationNormalizationWarned=.true.
+             end if
+             !$omp end critical(tidallyHeatedDarkMatterProfileRotationNormalizationWarn)
           end if
-          !$omp end critical(tidallyHeatedDarkMatterProfileRotationNormalizationWarn)
+          tidallyHeatedRotationNormalization=self%unheatedProfile%rotationNormalization(node)
        end if
-       tidallyHeatedRotationNormalization=self%unheatedProfile%rotationNormalization(node)
-    end if
     end if
     return
   end function tidallyHeatedRotationNormalization
@@ -606,19 +609,20 @@ contains
     else
        ! Check if unimplemented features are fatal.
        if (self%unimplementedFatal) then
+          tidallyHeatedEnergy=0.0d0
           call Galacticus_Error_Report('tidallyHeatedEnergy','energy in tidally heated dark matter profiles is not supported')
        else
-       ! Issue a warning and then fall through to the unheated profile.
-       if (.not.tidallyHeatedEnergyWarned) then
-          !$omp critical(tidallyHeatedDarkMatterProfileEnergyWarn)
+          ! Issue a warning and then fall through to the unheated profile.
           if (.not.tidallyHeatedEnergyWarned) then
-             call Galacticus_Display_Message('WARNING: energy in tidally heated dark matter profiles is not supported - using unheated profile',verbosity=verbosityWarn)
-             tidallyHeatedEnergyWarned=.true.
+             !$omp critical(tidallyHeatedDarkMatterProfileEnergyWarn)
+             if (.not.tidallyHeatedEnergyWarned) then
+                call Galacticus_Display_Message('WARNING: energy in tidally heated dark matter profiles is not supported - using unheated profile',verbosity=verbosityWarn)
+                tidallyHeatedEnergyWarned=.true.
+             end if
+             !$omp end critical(tidallyHeatedDarkMatterProfileEnergyWarn)
           end if
-          !$omp end critical(tidallyHeatedDarkMatterProfileEnergyWarn)
+          tidallyHeatedEnergy=self%unheatedProfile%energy(node)
        end if
-       tidallyHeatedEnergy=self%unheatedProfile%energy(node)
-    end if
     end if
     return
   end function tidallyHeatedEnergy
@@ -639,19 +643,20 @@ contains
     else
        ! Check if unimplemented features are fatal.
        if (self%unimplementedFatal) then
+          tidallyHeatedEnergyGrowthRate=0.0d0
           call Galacticus_Error_Report('tidallyHeatedEnergyGrowthRate','energy growth rate in tidally heated dark matter profiles is not supported')
        else
-       ! Issue a warning and then fall through to the unheated profile.
-       if (.not.tidallyHeatedEnergyGrowthRateWarned) then
-          !$omp critical(tidallyHeatedDarkMatterProfileEnergyGrowthRateWarn)
+          ! Issue a warning and then fall through to the unheated profile.
           if (.not.tidallyHeatedEnergyGrowthRateWarned) then
-             call Galacticus_Display_Message('WARNING: energyGrowthRate in tidally heated dark matter profiles is not supported - using unheated profile',verbosity=verbosityWarn)
-             tidallyHeatedEnergyGrowthRateWarned=.true.
+             !$omp critical(tidallyHeatedDarkMatterProfileEnergyGrowthRateWarn)
+             if (.not.tidallyHeatedEnergyGrowthRateWarned) then
+                call Galacticus_Display_Message('WARNING: energyGrowthRate in tidally heated dark matter profiles is not supported - using unheated profile',verbosity=verbosityWarn)
+                tidallyHeatedEnergyGrowthRateWarned=.true.
+             end if
+             !$omp end critical(tidallyHeatedDarkMatterProfileEnergyGrowthRateWarn)
           end if
-          !$omp end critical(tidallyHeatedDarkMatterProfileEnergyGrowthRateWarn)
+          tidallyHeatedEnergyGrowthRate=self%unheatedProfile%energyGrowthRate(node)
        end if
-       tidallyHeatedEnergyGrowthRate=self%unheatedProfile%energyGrowthRate(node)
-    end if
     end if
     return
   end function tidallyHeatedEnergyGrowthRate
@@ -674,19 +679,20 @@ contains
     else
        ! Check if unimplemented features are fatal.
        if (self%unimplementedFatal) then
+          tidallyHeatedKSpace=0.0d0
           call Galacticus_Error_Report('tidallyHeatedKSpace','Fourier profile in tidally heated dark matter profiles is not supported')
        else
-       ! Issue a warning and then fall through to the unheated profile.
-       if (.not.tidallyHeatedKSpaceWarned) then
-          !$omp critical(tidallyHeatedDarkMatterProfileKSpaceWarn)
+          ! Issue a warning and then fall through to the unheated profile.
           if (.not.tidallyHeatedKSpaceWarned) then
-             call Galacticus_Display_Message('WARNING: Fourier profile in tidally heated dark matter profiles is not supported - using unheated profile',verbosity=verbosityWarn)
-             tidallyHeatedKSpaceWarned=.true.
+             !$omp critical(tidallyHeatedDarkMatterProfileKSpaceWarn)
+             if (.not.tidallyHeatedKSpaceWarned) then
+                call Galacticus_Display_Message('WARNING: Fourier profile in tidally heated dark matter profiles is not supported - using unheated profile',verbosity=verbosityWarn)
+                tidallyHeatedKSpaceWarned=.true.
+             end if
+             !$omp end critical(tidallyHeatedDarkMatterProfileKSpaceWarn)
           end if
-          !$omp end critical(tidallyHeatedDarkMatterProfileKSpaceWarn)
+          tidallyHeatedKSpace=self%unheatedProfile%kSpace(node,waveNumber)
        end if
-       tidallyHeatedKSpace=self%unheatedProfile%kSpace(node,waveNumber)
-    end if
     end if
     return
   end function tidallyHeatedKSpace
@@ -709,19 +715,20 @@ contains
     else
        ! Check if unimplemented features are fatal.
        if (self%unimplementedFatal) then
+          tidallyHeatedFreefallRadius=0.0d0
           call Galacticus_Error_Report('tidallyHeatedFreefallRadius','freefall radius in tidally heated dark matter profiles is not supported')
        else
-       ! Issue a warning and then fall through to the unheated profile.
-       if (.not.tidallyHeatedFreefallRadiusWarned) then
-          !$omp critical(tidallyHeatedDarkMatterProfileFreefallRadiusWarn)
+          ! Issue a warning and then fall through to the unheated profile.
           if (.not.tidallyHeatedFreefallRadiusWarned) then
-             call Galacticus_Display_Message('WARNING: freefallRadius in tidally heated dark matter profiles is not supported - using unheated profile',verbosity=verbosityWarn)
-             tidallyHeatedFreefallRadiusWarned=.true.
+             !$omp critical(tidallyHeatedDarkMatterProfileFreefallRadiusWarn)
+             if (.not.tidallyHeatedFreefallRadiusWarned) then
+                call Galacticus_Display_Message('WARNING: freefallRadius in tidally heated dark matter profiles is not supported - using unheated profile',verbosity=verbosityWarn)
+                tidallyHeatedFreefallRadiusWarned=.true.
+             end if
+             !$omp end critical(tidallyHeatedDarkMatterProfileFreefallRadiusWarn)
           end if
-          !$omp end critical(tidallyHeatedDarkMatterProfileFreefallRadiusWarn)
+          tidallyHeatedFreefallRadius=self%unheatedProfile%freefallRadius(node,time)
        end if
-       tidallyHeatedFreefallRadius=self%unheatedProfile%freefallRadius(node,time)
-    end if
     end if
     return
   end function tidallyHeatedFreefallRadius

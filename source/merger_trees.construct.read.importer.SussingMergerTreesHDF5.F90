@@ -384,7 +384,9 @@ contains
     call Alloc_Array(nodeSelfIndices        ,[nodeCountTrees])
     call Alloc_Array(nodeIndexRanks         ,[nodeCountTrees])
     call Alloc_Array(nodeDescendentLocations,[nodeCountTrees])
+    call Alloc_Array(nodeTreeIndices        ,[nodeCountTrees])
     nodeSelfIndices=self%nodes%nodeIndex
+    nodeTreeIndices=-1
     nodeIndexRanks =Sort_Index_Do(nodeSelfIndices)
     nodeIncomplete =.false.
     ! Read descendent information.

@@ -144,7 +144,8 @@ contains
     !% Return the number of fields in this sample.
     implicit none
     class(surveyGeometryTomczak2014ZFOURGE), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     tomczak2014ZFOURGEFieldCount=tomczak2014ZFOURGEFields
     return
   end function tomczak2014ZFOURGEFieldCount
@@ -153,9 +154,10 @@ contains
     !% Compute the minimum distance at which a galaxy is included.
     implicit none
     class           (surveyGeometryTomczak2014ZFOURGE), intent(inout)           :: self
-    double precision                                   , intent(in   )           :: mass
-    integer                                            , intent(in   ), optional :: field
-
+    double precision                                  , intent(in   )           :: mass
+    integer                                           , intent(in   ), optional :: field
+    !GCC$ attributes unused :: mass, field
+    
     tomczak2014ZFOURGEDistanceMinimum=self%binDistanceMinimum
     return
   end function tomczak2014ZFOURGEDistanceMinimum
@@ -224,7 +226,8 @@ contains
     implicit none
     class(surveyGeometryTomczak2014ZFOURGE), intent(inout) :: self
     type (varying_string                  )                :: tomczak2014ZFOURGEMangleDirectory
-
+    !GCC$ attributes unused :: self
+    
     tomczak2014ZFOURGEMangleDirectory=Galacticus_Input_Path()//"constraints/dataAnalysis/stellarMassFunctions_ZFOURGE_z0.2_2.5/"
     return
   end function tomczak2014ZFOURGEMangleDirectory
@@ -250,7 +253,8 @@ contains
     !% Return the maximum degree for which angular power is computed for the \cite{tomczak_galaxy_2014} survey.
     implicit none
     class(surveyGeometryTomczak2014ZFOURGE), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     tomczak2014ZFOURGEAngularPowerMaximumDegree=tomczak2014AngularPowerMaximumL
     return
   end function tomczak2014ZFOURGEAngularPowerMaximumDegree

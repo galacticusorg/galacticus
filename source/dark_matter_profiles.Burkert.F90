@@ -171,7 +171,7 @@ contains
     !% Generic constructor for the {\normalfont \ttfamily burkert} dark matter halo profile class.
     use Galacticus_Error
     implicit none
-    type (darkMatterProfileBurkert    ), target :: burkertConstructor
+    type (darkMatterProfileBurkert), target :: burkertConstructor
     class(darkMatterHaloScaleClass), target :: scale
  
     burkertConstructor%concentrationPrevious       =  -1.0d+0
@@ -242,10 +242,10 @@ contains
     !% Tabulate properties of the Burkert halo profile which must be computed numerically.
     implicit none
     class           (darkMatterProfileBurkert), intent(inout)           :: self
-    double precision                      , intent(in   ), optional :: concentration
-    integer                                                         :: iConcentration
-    logical                                                         :: retabulate
-    double precision                                                :: tableConcentration
+    double precision                          , intent(in   ), optional :: concentration
+    integer                                                             :: iConcentration
+    logical                                                             :: retabulate
+    double precision                                                    :: tableConcentration
 
     retabulate=.not.self%burkertTableInitialized
     if (present(concentration)) then
@@ -1036,9 +1036,10 @@ contains
     !% Write the tablulation state to file.
     implicit none
     class  (darkMatterProfileBurkert), intent(inout) :: self
-    integer                      , intent(in   ) :: stateFile
-    type   (fgsl_file           ), intent(in   ) :: fgslStateFile
-
+    integer                          , intent(in   ) :: stateFile
+    type   (fgsl_file               ), intent(in   ) :: fgslStateFile
+    !GCC$ attributes unused :: fgslStateFile
+    
     write (stateFile) self%concentrationMinimum,self%concentrationMaximum,self%radiusMinimum,self%radiusMaximum,self%freefallRadiusMinimum,self%freefallRadiusMaximum
     return
   end subroutine burkertStateStore
@@ -1047,8 +1048,9 @@ contains
     !% Retrieve the tabulation state from the file.
     implicit none
     class  (darkMatterProfileBurkert), intent(inout) :: self
-    integer                      , intent(in   ) :: stateFile
-    type   (fgsl_file           ), intent(in   ) :: fgslStateFile
+    integer                          , intent(in   ) :: stateFile
+    type   (fgsl_file               ), intent(in   ) :: fgslStateFile
+    !GCC$ attributes unused :: fgslStateFile
 
     ! Read the minimum and maximum tabulated times.
     read (stateFile) self%concentrationMinimum,self%concentrationMaximum,self%radiusMinimum,self%radiusMaximum,self%freefallRadiusMinimum,self%freefallRadiusMaximum

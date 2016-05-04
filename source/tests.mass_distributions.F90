@@ -20,6 +20,7 @@
 
 program Test_Mass_Distributions
   !% Tests mass distributions.
+  use Galacticus_Error
   use Unit_Tests
   use Memory_Management
   use Mass_Distributions
@@ -71,6 +72,9 @@ program Test_Mass_Distributions
   type is (massDistributionSersic)
      call myMassDistribution%initialize(index=4.0d0,isDimensionless=.true.)
      radiusInProjection=myMassDistribution%halfMassRadiusProjected()
+  class default
+     radiusInProjection=0.0d0
+     call Galacticus_Error_Report('Test_Mass_Distributions','unknown mass distribution')
   end select
   select type (myMassDistribution)
   class is (massDistributionSpherical)

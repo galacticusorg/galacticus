@@ -33,7 +33,6 @@
      type            (varying_string)                                        :: fileName
      logical                                                                 :: alwaysIsolatedHalosOnly
    contains
-     final     ::             outputRootMassesDestructor
      procedure :: operate  => outputRootMassesOperate
      procedure :: finalize => outputRootMassesFinalize
   end type mergerTreeOperatorOutputRootMasses
@@ -115,15 +114,6 @@ contains
     !$omp end critical (HDF5_Access)
     return
   end function outputRootMassesConstructorInternal
-
-  elemental subroutine outputRootMassesDestructor(self)
-    !% Destructor for the merger tree operator function class.
-    implicit none
-    type(mergerTreeOperatorOutputRootMasses), intent(inout) :: self
-
-    ! Nothing to do.
-    return
-  end subroutine outputRootMassesDestructor
   
   subroutine outputRootMassesOperate(self,tree)
     !% Compute conditional mass function on {\normalfont \ttfamily tree}.

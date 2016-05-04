@@ -60,7 +60,8 @@ contains
     !% Return the number of fields in this sample.
     implicit none
     class(surveyGeometryBernardi2013SDSS), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     bernardi2013SDSSFieldCount=1
     return
   end function bernardi2013SDSSFieldCount
@@ -73,7 +74,7 @@ contains
     double precision                                , intent(in   )           :: mass
     integer                                         , intent(in   ), optional :: field
     double precision                                                          :: logarithmicMass
-    
+    !GCC$ attributes unused :: self, field
 
     ! Find the limiting distance for this mass completeness limits. (See
     ! constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/massDistanceRelation.pl for details.)
@@ -99,6 +100,7 @@ contains
     !% Return the maximum degree for which angular power is computed for the \cite{bernardi_massive_2013} survey.
     implicit none
     class(surveyGeometryBernardi2013SDSS), intent(inout) :: self
+    !GCC$ attributes unused :: self
 
     bernardi2013SDSSAngularPowerMaximumDegree=bernardi2013SDSSAngularPowerMaximumL
     return
@@ -109,6 +111,7 @@ contains
     implicit none
     class(surveyGeometryBernardi2013SDSS), intent(inout) :: self
     type (varying_string                )                :: bernardi2013SDSSMangleDirectory
+    !GCC$ attributes unused :: self
 
     bernardi2013SDSSMangleDirectory=Galacticus_Input_Path()//"constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/"
     return
@@ -126,7 +129,6 @@ contains
          &      ]
     return
   end subroutine bernardi2013SDSSMangleFiles
-
 
   logical function bernardi2013SDSSPointIncluded(self,point,mass)
     !% Return true if a point is included in the survey geometry.
