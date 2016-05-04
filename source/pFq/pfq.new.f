@@ -266,6 +266,7 @@ C     ****************************************************************
       !$omp threadprivate(/CONSTS/,/IO/)
   
       zero=0.0d0
+      CREAL=0.0d0
       LOG2=LOG10(TWO)
       IBIT=INT(BITS())                                                       
       RMAX=TWO**(IBIT/2)                                               
@@ -1021,7 +1022,7 @@ C     ****************************************************************
       INTEGER L,I                                                       
       DOUBLE PRECISION AR,AI,BR,BI,CR,CI,D1,D2,CR2,RMAX,WK1,WK2,WK6
       DIMENSION AR(-1:*),AI(-1:*),CR(-1:*),CI(-1:*),WK1(-1:*),WK2(-1:*)
-      DIMENSION CR2(-1:*),D1(-1:*),D2(-1:*)                       
+      DIMENSION CR2(-1:*),D1(-1:*),D2(-1:*),WK6(-1:*)
       
       CALL ARMULT(AR,BR,D1,WK6,L,RMAX)                                      
       CALL ARMULT(AI,BI,D2,WK6,L,RMAX)                                      
@@ -1520,7 +1521,7 @@ C     ****************************************************************
       COMPLEX*16 CGAMMA,ARG
 *     
       DOUBLE PRECISION ZERO,HALF,ONE,TWO,TEN,EPS
-      DOUBLE PRECISION TENTH
+      DOUBLE PRECISION TENTH,PRECIS
       COMMON/CONSTS/ZERO,HALF,ONE,TWO,TEN,EPS
       COMMON/IO/NOUT
       !$omp threadprivate(/CONSTS/,/IO/)
@@ -1545,6 +1546,12 @@ C     ****************************************************************
       DATA FIRST/.TRUE./
 *     
       DATA TENTH/0.1D 00/
+*
+      DATA PRECIS/0.0D0/
+*
+      DATA PI/0.0D0/
+*
+      DATA EXPMAX/0.0D0/
 *     
       ARGR = DBLE(ARG)
       ARGI = DIMAG(ARG)
