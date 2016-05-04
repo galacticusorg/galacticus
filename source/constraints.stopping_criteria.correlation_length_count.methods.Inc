@@ -45,6 +45,7 @@ logical function stoppingCriterionCorrelationLengthCountStop(self,simulationStat
           &  >                                                        &
           &   self%stopAfterCount
   class default
+     stoppingCriterionCorrelationLengthCountStop=.false.
      call Galacticus_Error_Report('stoppingCriterionCorrelationLengthCountStop','state object does not support correlation length count')
   end select
   return

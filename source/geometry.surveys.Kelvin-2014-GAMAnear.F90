@@ -67,7 +67,8 @@ contains
     class           (surveyGeometryKelvin2014GAMAnear), intent(inout)           :: self
     double precision                                  , intent(in   )           :: mass
     integer                                           , intent(in   ), optional :: field
-
+    !GCC$ attributes unused :: mass, field
+    
     kelvin2014GAMAnearDistanceMinimum=self%distanceMinimumSurvey
     return
   end function kelvin2014GAMAnearDistanceMinimum

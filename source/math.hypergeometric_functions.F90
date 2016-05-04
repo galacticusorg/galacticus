@@ -100,6 +100,7 @@ contains
           if (present(error)) error=gslResult%err/(1.0d0-x)**a(2)
        end if
     else
+       Hypergeometric_2F1=0.0d0
        call Galacticus_Error_Report('Hypergeometric_2F1','function cannot be evaluated for x>1')
     end if
     if (present(status)) then

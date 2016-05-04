@@ -27,7 +27,6 @@
      !% \cite{zhao_accurate_2009}.
      private
    contains
-     final     ::                                zhao2009Destructor
      procedure :: concentration               => zhao2009Concentration
      procedure :: densityContrastDefinition   => zhao2009DensityContrastDefinition
      procedure :: darkMatterProfileDefinition => zhao2009DarkMatterProfileDefinition
@@ -37,7 +36,6 @@
      !% Constructors for the {\normalfont \ttfamily zhao2009} dark matter halo profile
      !% concentration class.
      module procedure zhao2009ConstructorParameters
-     module procedure zhao2009ConstructorInternal
   end interface darkMatterProfileConcentrationZhao2009
 
 contains
@@ -49,27 +47,11 @@ contains
     implicit none
     type(darkMatterProfileConcentrationZhao2009)                :: zhao2009ConstructorParameters
     type(inputParameters                       ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
 
+    zhao2009ConstructorParameters=darkMatterProfileConcentrationZhao2009()
     return
   end function zhao2009ConstructorParameters
-
-  function zhao2009ConstructorInternal()
-    !% Internal constructor for the {\normalfont \ttfamily zhao2009} dark matter halo profile
-    !% concentration class.
-    implicit none
-    type(darkMatterProfileConcentrationZhao2009) :: zhao2009ConstructorInternal
-
-    return
-  end function zhao2009ConstructorInternal
-
-  subroutine zhao2009Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily zhao2009} dark matter halo profile concentration class.
-    implicit none
-    type(darkMatterProfileConcentrationZhao2009), intent(inout) :: self
-
-    ! Nothing to do.
-    return
-  end subroutine zhao2009Destructor
 
   double precision function zhao2009Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
@@ -82,7 +64,8 @@ contains
     double precision                                        , parameter              :: concentrationMinimum =4.00d0
     double precision                                        , parameter              :: formationMassFraction=0.04d0
     double precision                                                                 :: timeFormation               , timeNode
-
+    !GCC$ attributes unused :: self
+    
     ! Get the basic component.
     basic => node%basic()
     ! Compute the concentration.
@@ -99,6 +82,7 @@ contains
     implicit none
     class(virialDensityContrastClass            ), pointer       :: zhao2009DensityContrastDefinition
     class(darkMatterProfileConcentrationZhao2009), intent(inout) :: self
+    !GCC$ attributes unused :: self
     
     allocate(virialDensityContrastBryanNorman1998 :: zhao2009DensityContrastDefinition)
     select type (zhao2009DensityContrastDefinition)

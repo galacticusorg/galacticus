@@ -34,7 +34,8 @@ double precision function deProposalSizeFixedGamma(self,simulationState,simulati
   class(deProposalSizeFixed), intent(inout) :: self
   class(state              ), intent(in   ) :: simulationState
   class(convergence        ), intent(inout) :: simulationConvergence
-
+  !GCC$ attributes unused :: simulationState, simulationConvergence
+  
   deProposalSizeFixedGamma=self%gammaValue
   return
 end function deProposalSizeFixedGamma

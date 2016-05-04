@@ -431,7 +431,8 @@ contains
     procedure       (Interrupt_Procedure_Template), intent(inout), optional, pointer :: interruptProcedure
     double precision                              , intent(in   )                    :: rate
     double precision                                                                 :: gasMass           , stellarMass
-
+    !GCC$ attributes unused :: interrupt, interruptProcedure
+    
     ! Trap cases where an attempt is made to add gas via this sink function.
     if (rate > 0.0d0) call Galacticus_Error_Report(                                                        &
          &                                         'Node_Component_Spheroid_Standard_Mass_Gas_Sink_Rate', &
@@ -468,7 +469,8 @@ contains
     double precision                                                                  :: angularMomentumOutflowRate, gasMass         , &
          &                                                                               massOutflowRate           , spheroidVelocity, &
          &                                                                               stellarMass
-
+    !GCC$ attributes unused :: interrupt, interruptProcedure
+    
     ! Trap cases where an attempt is made to remove energy via this input function.
     if (rate < 0.0d0) call Galacticus_Error_Report(                                                                &
          &                                         'Node_Component_Spheroid_Standard_Energy_Gas_Input_Rate'      , &
@@ -541,7 +543,8 @@ contains
     type            (history              )                         :: historyTransferRate       , stellarHistoryRate
     type            (stellarLuminosities  ), save                   :: luminositiesStellarRates
     !$omp threadprivate(luminositiesStellarRates)
-
+    !GCC$ attributes unused :: interrupt, interruptProcedure
+    
     ! Get the disk and check that it is of our class.
     thisSpheroid => thisNode%spheroid()
     select type (thisSpheroid)

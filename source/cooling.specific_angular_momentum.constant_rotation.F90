@@ -50,6 +50,7 @@ contains
     !% Initializes the ``constant rotation'' specific angular momentum of cooling gas module.
     use ISO_Varying_String
     use Input_Parameters
+    use Galacticus_Error
     implicit none
     type     (varying_string                                     ), intent(in   )          :: coolingSpecificAngularMomentumMethod
     procedure(Cooling_Specific_Angular_Momentum_Constant_Rotation), intent(inout), pointer :: Cooling_Specific_Angular_Momentum_Get
@@ -73,8 +74,10 @@ contains
        select case (char(inputOption))
        case ("darkMatter")
           meanSpecificAngularMomentumFrom=profileDarkMatter
-       case ("hotGas")
+       case ("hotGas"    )
           meanSpecificAngularMomentumFrom=profileHotGas
+       case default
+          call Galacticus_Error_Report('Cooling_Specific_AM_Constant_Rotation_Initialize','[coolingMeanAngularMomentumFrom] must be either "darkMatter" or "hotGas"')
        end select
 
        !@ <inputParameter>
@@ -92,10 +95,12 @@ contains
        select case (char(inputOption))
        case ("darkMatter")
           rotationNormalizationFrom=profileDarkMatter
-       case ("hotGas")
+       case ("hotGas"    )
           rotationNormalizationFrom=profileHotGas
+       case default
+          call Galacticus_Error_Report('Cooling_Specific_AM_Constant_Rotation_Initialize','[coolingRotationVelocityFrom] must be either "darkMatter" or "hotGas"')
        end select
-
+       
        !@ <inputParameter>
        !@   <name>coolingAngularMomentumUseInteriorMean</name>
        !@   <defaultValue>false</defaultValue>
@@ -128,6 +133,7 @@ contains
 
   double precision function Cooling_Specific_Angular_Momentum_Constant_Rotation(thisNode,radius)
     !% Return the specific angular momentum of cooling gas in the constant rotation model.
+    use Galacticus_Error
     use Galacticus_Nodes
     use Dark_Matter_Profiles
     use Hot_Halo_Mass_Distributions
@@ -168,6 +174,9 @@ contains
           thisHotHaloComponent => thisNode%hotHalo()
           meanSpecificAngularMomentum= thisHotHaloComponent%angularMomentum() &
                &                      /thisHotHaloComponent%mass           ()
+       case default
+          meanSpecificAngularMomentum=0.0d0
+          call Galacticus_Error_Report('Cooling_Specific_Angular_Momentum_Constant_Rotation','unknown profile type')
        end select
 
        ! Compute the rotation normalization.
@@ -176,6 +185,9 @@ contains
           rotationNormalization=darkMatterProfile_%rotationNormalization(thisNode)
        case (profileHotGas    )
           rotationNormalization=defaultHotHaloMassDistribution%rotationNormalization(thisNode)
+       case default
+          rotationNormalization=0.0d0
+          call Galacticus_Error_Report('Cooling_Specific_Angular_Momentum_Constant_Rotation','unknown profile type')
        end select
 
        ! Compute the specific angular momentum of the cooling gas.

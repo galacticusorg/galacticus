@@ -835,7 +835,7 @@ contains
     procedure       (Interrupt_Procedure_Template                            ), intent(inout), optional, pointer :: interruptProcedure
     type            (treeNode                                                )                         , pointer :: selfNode
     double precision                                                                                             :: strippedOutflowFraction
-    !GCC$ attributes unused :: interrupt
+    !GCC$ attributes unused :: interrupt, interruptProcedure
 
     select type (self)
     class is (nodeComponentHotHaloStandard)
@@ -863,7 +863,7 @@ contains
     procedure       (Interrupt_Procedure_Template                            ), intent(inout), optional, pointer :: interruptProcedure
     type            (treeNode                                                )                         , pointer :: selfNode
     double precision                                                                                             :: strippedOutflowFraction
-    !GCC$ attributes unused :: interrupt
+    !GCC$ attributes unused :: interrupt, interruptProcedure
     
     select type (self)
     class is (nodeComponentHotHaloStandard)
@@ -889,7 +889,7 @@ contains
     procedure       (Interrupt_Procedure_Template                            ), intent(inout), optional, pointer :: interruptProcedure
     type            (treeNode                                                )                         , pointer :: selfNode
     double precision                                                                                             :: strippedOutflowFraction
-    !GCC$ attributes unused :: interrupt
+    !GCC$ attributes unused :: interrupt, interruptProcedure
     
     select type (self)
     class is (nodeComponentHotHaloStandard)

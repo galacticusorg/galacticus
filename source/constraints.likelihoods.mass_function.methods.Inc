@@ -149,7 +149,8 @@ double precision function likelihoodMassFunctionEvaluate(self,simulationState,pa
        &                                                                                        distanceMaximum                 , time                              , &
        &                                                                                        massFunction                    , normalization
   logical                                                                                    :: integrationReset                , integrationResetNormalization
-
+  !GCC$ attributes unused :: logLikelihoodCurrent, logPriorCurrent, simulationConvergence, temperature, timeEvaluate
+  
   ! There is no variance in our likelihood estimate.
   if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0
   ! Do not evaluate if the proposed prior is impossible.
@@ -394,6 +395,7 @@ subroutine likelihoodMassFunctionFunctionChanged(self)
   !% Respond to possible changes in the likelihood function.
   implicit none
   class(likelihoodMassFunction), intent(inout) :: self
+  !GCC$ attributes unused :: self
   
   return
 end subroutine likelihoodMassFunctionFunctionChanged

@@ -1073,6 +1073,7 @@ contains
     class  (darkMatterProfileNFW), intent(inout) :: self
     integer                      , intent(in   ) :: stateFile
     type   (fgsl_file           ), intent(in   ) :: fgslStateFile
+    !GCC$ attributes unused :: fgslStateFile
 
     write (stateFile) self%concentrationMinimum,self%concentrationMaximum,self%radiusMinimum,self%radiusMaximum,self%freefallRadiusMinimum,self%freefallRadiusMaximum
     return
@@ -1084,6 +1085,7 @@ contains
     class  (darkMatterProfileNFW), intent(inout) :: self
     integer                      , intent(in   ) :: stateFile
     type   (fgsl_file           ), intent(in   ) :: fgslStateFile
+    !GCC$ attributes unused :: fgslStateFile
 
     ! Read the minimum and maximum tabulated times.
     read (stateFile) self%concentrationMinimum,self%concentrationMaximum,self%radiusMinimum,self%radiusMaximum,self%freefallRadiusMinimum,self%freefallRadiusMaximum

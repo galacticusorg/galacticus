@@ -86,7 +86,8 @@ contains
     !% Return false to indicate that survey window function is not available.
     implicit none
     class(surveyGeometryMangle), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     mangleWindowFunctionAvailable=.false.
     return
   end function mangleWindowFunctionAvailable
@@ -95,7 +96,8 @@ contains
     !% Return true to indicate that survey angular power is available.
     implicit none
     class(surveyGeometryMangle), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     mangleAngularPowerAvailable=.true.
     return
   end function mangleAngularPowerAvailable
@@ -163,7 +165,8 @@ contains
     integer                               , intent(in   )                                           :: gridCount
     double precision                      , intent(  out)                                           :: boxLength
     complex         (c_double_complex    ), intent(  out), dimension(gridCount,gridCount,gridCount) :: windowFunction1,windowFunction2
-
+    !GCC$ attributes unused :: self, mass1, mass2, gridCount, boxLength, windowFunction1, windowFunction2
+    
     call Galacticus_Error_Report('mangleWindowFunctions','window function construction is not supported')
     return
   end subroutine mangleWindowFunctions

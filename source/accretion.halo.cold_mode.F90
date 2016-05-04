@@ -348,6 +348,7 @@ contains
 
   double precision function coldModeColdModeFraction(self,node,accretionMode)
     !% Computes the fraction of accretion occuring in the specified mode.
+    use Galacticus_Error
     use Galacticus_Nodes
     use Cosmology_Parameters
     use Dark_Matter_Halo_Scales
@@ -477,6 +478,9 @@ contains
           coldModeColdModeFraction=1.0d0-coldFraction
        case (accretionModeCold)
           coldModeColdModeFraction=     +coldFraction
+       case default
+          coldModeColdModeFraction=1.0d0
+          call Galacticus_Error_Report('coldModeColdModeFraction','unknown accretion mode - this should not happen')
        end select
     end select
     return

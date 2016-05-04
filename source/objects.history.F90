@@ -448,6 +448,7 @@ contains
     implicit none
     class(history), intent(inout) :: self
     type (node   ), pointer       :: historyDefinition
+    !GCC$ attributes unused :: self, historyDefinition
 
     call Galacticus_Error_Report('History_Builder','building of history objects is not yet supported')
     return
@@ -460,7 +461,8 @@ contains
     implicit none
     class(longIntegerHistory), intent(inout) :: self
     type (node              ), pointer       :: historyDefinition
-
+    !GCC$ attributes unused :: self, historyDefinition
+    
     call Galacticus_Error_Report('History_Long_Integer_Builder','building of history objects is not yet supported')
     return
   end subroutine History_Long_Integer_Builder
@@ -1144,6 +1146,7 @@ contains
         case (rangeTypeLogarithmic)
            timeDelta=log(timeEnd/timeBegin)/dble(timeCount-1)
         case default
+           timeDelta=0.0d0
            if (thisHistory%rangeType == rangeTypeUndefined) then
               message='undefined range type: '//char(10)
            else
@@ -1161,6 +1164,9 @@ contains
            case (rangeTypeLogarithmic)
               addCountStart =int(log(timeBegin/timeRangeActual(1))/timeDelta)+1
               timeBegin=timeBegin*exp(-dble(addCountStart)*timeDelta)
+           case default
+              addCountStart=0              
+              call Galacticus_Error_Report('History_Extend','unknown range type')
            end select
            timeBeginIndex=timeBeginIndex+addCountStart
            timeEndIndex  =timeEndIndex  +addCountStart
@@ -1175,11 +1181,15 @@ contains
            case (rangeTypeLogarithmic)
               addCountEnd =int(log(timeRangeActual(2)/timeEnd)/timeDelta)+1
               timeEnd  =timeEnd  *exp(+dble(addCountEnd)*timeDelta)
+           case default
+              addCountEnd=0
+              call Galacticus_Error_Report('History_Extend','unknown range type')
            end select
         else
            addCountEnd=0
         end if
         addCount=addCountStart+addCountEnd
+        allocate(newTimes(0))
         useRange=.true.
      else
         newTimesAtStart=count(times < thisHistory%time(1                     ))

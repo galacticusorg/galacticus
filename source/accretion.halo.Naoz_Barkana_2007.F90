@@ -85,6 +85,7 @@ contains
     implicit none
     class(accretionHaloNaozBarkana2007), intent(inout)          :: self
     type (treeNode                    ), intent(inout), pointer :: node
+    !GCC$ attributes unused :: self, node
     
     naozBarkana2007BranchHasBaryons=.true.
     return
@@ -103,13 +104,15 @@ contains
     class           (intergalacticMediumStateClass)               , pointer :: igmState_
     class           (cosmologyParametersClass     )               , pointer :: cosmologyParameters_
     double precision                                                        :: massFiltering       , accretionFraction
-
+    !GCC$ attributes unused :: self
+    
     igmState_ => intergalacticMediumState()
     select type (igmState_)
     class is (intergalacticMediumStateInternal)
        basic         => node     %basic        (            )
        massFiltering =  igmState_%filteringMass(basic%time())
     class default
+       massFiltering = 0.0d0
        call Galacticus_Error_Report('naozBarkana2007FailedFraction','requires [intergalacticMediumStateMethod]=internal')
     end select
     cosmologyParameters_ => cosmologyParameters()

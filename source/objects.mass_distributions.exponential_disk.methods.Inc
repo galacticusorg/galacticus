@@ -81,7 +81,8 @@ subroutine Mass_Distribution_Exponential_Disk_Build_Tables(self)
   class           (massDistributionExponentialDisk), intent(inout) :: self
   integer                                                          :: i   , potentialPointsCount
   double precision                                                 :: x
-
+  !GCC$ attributes unused :: self
+  
   ! Build table if necessary.
   if (.not.exponentialDiskPotentialInitialized) then
      ! Determine how many points to tabulate.
@@ -497,6 +498,7 @@ subroutine Mass_Distribution_Exponential_Disk_State_Store(self,stateFile,fgslSta
   class  (massDistributionExponentialDisk), intent(inout) :: self
   integer                                 , intent(in   ) :: stateFile
   type   (fgsl_file                      ), intent(in   ) :: fgslStateFile
+  !GCC$ attributes unused :: fgslStateFile
   
   write (stateFile) self%scaleLengthFactor                     , self%scaleLengthFactorSet                  , &
        &            self%rotationCurveHalfRadiusMinimum        , self%rotationCurveHalfRadiusMaximum        , &
@@ -511,6 +513,7 @@ subroutine Mass_Distribution_Exponential_Disk_State_Restore(self,stateFile,fgslS
   class  (massDistributionExponentialDisk), intent(inout) :: self
   integer                                 , intent(in   ) :: stateFile
   type   (fgsl_file                      ), intent(in   ) :: fgslStateFile
+  !GCC$ attributes unused :: fgslStateFile
   
   read (stateFile) self%scaleLengthFactor                     , self%scaleLengthFactorSet                  , &
        &           self%rotationCurveHalfRadiusMinimum        , self%rotationCurveHalfRadiusMaximum        , &

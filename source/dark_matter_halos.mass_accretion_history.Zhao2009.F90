@@ -29,21 +29,7 @@
      procedure :: time => zhao2009Time
   end type darkMatterHaloMassAccretionHistoryZhao2009
   
-  interface darkMatterHaloMassAccretionHistoryZhao2009
-     !% Constructors for the {\normalfont \ttfamily zhao2009} dark matter halo mass accretion history class.
-     module procedure zhao2009Constructor
-  end interface darkMatterHaloMassAccretionHistoryZhao2009
-  
 contains
-
-  function zhao2009Constructor()
-    !% Generic constructor for the {\normalfont \ttfamily zhao2009} dark matter halo mass accretion history class.
-    implicit none
-    type(darkMatterHaloMassAccretionHistoryZhao2009), target :: zhao2009Constructor
-    
-    zhao2009Constructor=darkMatterHaloMassAccretionHistoryZhao2009()
-    return
-  end function zhao2009Constructor
   
   double precision function zhao2009Time(self,node,mass)
     !% Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily
@@ -74,6 +60,7 @@ contains
     type            (fgsl_odeiv_evolve                         )                         :: odeEvolver
     type            (fgsl_odeiv_system                         )                         :: odeSystem
     logical                                                                              :: odeReset                      =.true.
+    !GCC$ attributes unused :: self
     
     ! Get required objects.
     criticalOverdensity_      => criticalOverdensity     ()

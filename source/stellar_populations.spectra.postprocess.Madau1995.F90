@@ -29,20 +29,7 @@
      procedure :: apply => madau1995Apply
   end type spectraPostprocessorMadau1995
 
-  interface spectraPostprocessorMadau1995
-     !% Constructors for the {\normalfont \ttfamily madau1995} spectrum postprocessor class.
-     module procedure madau1995DefaultConstructor
-  end interface spectraPostprocessorMadau1995
-
 contains
-
-  function madau1995DefaultConstructor()
-    !% Default constructor for the {\normalfont \ttfamily madau1995} spectrum postprocessor class.
-    implicit none
-    type(spectraPostprocessorMadau1995), target :: madau1995DefaultConstructor
-    
-    return
-  end function madau1995DefaultConstructor
 
   subroutine madau1995Apply(self,wavelength,age,redshift,modifier)
     !% Suppress the Lyman continuum in a spectrum.
@@ -57,6 +44,7 @@ contains
     integer                                                                  :: iLine
     double precision                                                         :: continuumFactor                                                                                                               , emissionFactor                  , &
          &                                                                      opticalDepth                                                                                                                  , wavelengthObservedLymanContinuum
+    !GCC$ attributes unused :: self, age
     
     ! Check if this is a zero redshift case.
     if (redshift <= 0.0d0) then

@@ -157,8 +157,9 @@ contains
        baryonicFinalTermDerivative=rotationCurveSquaredGradient*Adiabatic_Solver_Mean_Orbital_Radius_Derivative(radiusFinal)*radiusFinalMean*radiusFinal/gravitationalConstantGalacticus
     end if
     ! Compute the initial baryonic contribution from this halo, and any satellites.
-    baryonicMassTotal=0.0d0
-    currentNode => thisNode
+    baryonicMassTotal     =  0.0d0
+    baryonicMassSelfTotal =  0.0d0
+    currentNode           => thisNode
     do while (associated(currentNode))
        componentEnclosedMass => Component_Enclosed_Mass
        baryonicMassTotal=baryonicMassTotal+currentNode%mapDouble0(componentEnclosedMass,reductionSummation,optimizeFor=optimizeForEnclosedMassSummation)
@@ -219,6 +220,7 @@ contains
     if (thisNode%uniqueID() /= uniqueIDPrevious) call Galactic_Structure_Initial_Radii_Adiabatic_Reset(thisNode)
     ! Check for a previously computed solution.
     if (radiusPreviousIndexMaximum > 0 .and. any(radiusPrevious(1:radiusPreviousIndexMaximum) == radius)) then
+       Galactic_Structure_Radius_Initial_Adiabatic=0.0d0
        do i=1,radiusPreviousIndexMaximum
           if (radiusPrevious(i) == radius) then
              Galactic_Structure_Radius_Initial_Adiabatic=radiusInitialPrevious(i)
@@ -261,8 +263,8 @@ contains
                      &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative     , &
                      &                  rangeExpandType              =rangeExpandMultiplicative           &
                      &                 )               
-               Galactic_Structure_Radius_Initial_Adiabatic=finder%find(rootRange=[radius,virialRadius])
-            else
+                Galactic_Structure_Radius_Initial_Adiabatic=finder%find(rootRange=[radius,virialRadius])
+             else
                ! Use previous solution as an initial guess.
                call finder%rangeExpand(                                                                   &
                     &                  rangeExpandDownward          =1.0d0/sqrt(1.0d0+toleranceRelative), &

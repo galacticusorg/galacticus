@@ -102,7 +102,8 @@ contains
          &                                                              integerPropertyComments, integerPropertyNames
     double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     integer                                                          :: iRadius
-
+    !GCC$ attributes unused :: thisNode, time, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Mass_Profile_Initialize
 
@@ -128,7 +129,8 @@ contains
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: time
     integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
-
+    !GCC$ attributes unused :: thisNode, time, integerPropertyCount
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Mass_Profile_Initialize
 
@@ -156,7 +158,8 @@ contains
     double precision                , intent(inout)          :: doubleBuffer     (:,:)
     integer                                                  :: iRadius
     double precision                                         :: massEnclosed
-
+    !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Mass_Profile_Initialize
 

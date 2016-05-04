@@ -167,7 +167,8 @@ contains
          &                                                                  radiusHost                , massSatellite
     type            (varying_string            )                         :: message
     character       (len=12                    )                         :: label
-
+    !GCC$ attributes unused :: acceptUnboundOrbits
+    
     ! Reset the orbit.
     call fixedOrbit%reset()
     ! Get required objects.

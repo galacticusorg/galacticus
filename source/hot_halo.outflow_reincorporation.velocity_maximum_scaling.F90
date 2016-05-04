@@ -127,8 +127,8 @@ contains
     !% Default constructor for the velocityMaximumScaling hot halo outflow reincorporation class.
     implicit none
     type            (hotHaloOutflowReincorporationVelocityMaximumScaling)                :: velocityMaximumScalingConstructor
-    double precision                                                     , intent(in   ) :: timeScale       , velocityExponent, &
-         &                                                                                  redshiftExponent, timeScaleMinimum
+    double precision                                                     , intent(in   ) :: timeScale                        , velocityExponent, &
+         &                                                                                  redshiftExponent                 , timeScaleMinimum
     
     ! Initialize.
     call velocityMaximumScalingInitalize()

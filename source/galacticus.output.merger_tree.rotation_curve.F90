@@ -255,7 +255,8 @@ contains
          &                                                              integerPropertyComments, integerPropertyNames
     double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     integer                                                          :: i
-
+    !GCC$ attributes unused :: thisNode, time, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Rotation_Curve_Initialize
 
@@ -290,7 +291,8 @@ contains
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: time
     integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
-
+    !GCC$ attributes unused :: thisNode, time, integerPropertyCount
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Rotation_Curve_Initialize
 
@@ -322,16 +324,18 @@ contains
     class           (nodeComponentDisk             )               , pointer :: thisDisk
     class           (nodeComponentSpheroid         )               , pointer :: thisSpheroid
     class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfile
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    class           (darkMatterHaloScaleClass      )               , pointer :: darkMatterHaloScale_
     integer                                                                  :: i
     double precision                                                         :: radius                    , radiusVirial
-
+    !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Rotation_Curve_Initialize
     ! Store property data if we are outputting rotation curve data.
     if (outputRotationCurveData) then
        ! Compute required quantities.
        darkMatterHaloScale_ => darkMatterHaloScale()
+       radiusVirial         =  0.0d0
        if (         virialRadiusIsNeeded) radiusVirial          =  darkMatterHaloScale_%virialRadius(thisNode                    )
        if (                 diskIsNeeded) thisDisk              =>                                thisNode%disk             ()
        if (             spheroidIsNeeded) thisSpheroid          =>                                thisNode%spheroid         ()

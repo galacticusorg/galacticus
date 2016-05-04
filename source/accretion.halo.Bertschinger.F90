@@ -127,7 +127,8 @@ contains
     class(accretionHaloBertschinger), intent(inout)          :: self
     type (treeNode                 ), intent(inout), pointer :: node
     class(darkMatterProfileClass   )               , pointer :: darkMatterProfile_
-
+    !GCC$ attributes unused :: self
+    
     darkMatterProfile_        => darkMatterProfile                         (    )
     bertschingerVelocityScale =  darkMatterProfile_%circularVelocityMaximum(node)
     return
@@ -140,7 +141,8 @@ contains
     class(accretionHaloBertschinger), intent(inout)          :: self
     type (treeNode                 ), intent(inout), pointer :: node
     class(nodeComponentBasic       )               , pointer :: basic
-
+    !GCC$ attributes unused :: self
+    
     basic                          => node %basic                    ()
     bertschingerAccretionRateTotal =  basic%accretionRateBertschinger()
     return
@@ -154,6 +156,7 @@ contains
     type (treeNode                 ), intent(inout), pointer :: node
     class(nodeComponentBasic       )               , pointer :: basic
 
+    !GCC$ attributes unused :: self
     basic                 => node %basic           ()
     bertschingerMassTotal =  basic%massBertschinger()
     return

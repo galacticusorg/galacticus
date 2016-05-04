@@ -80,7 +80,8 @@ contains
     double precision                                               , parameter                         :: orbitalFactorDistributionMean =-0.14d0                         !   Cole et al. (2000).
     double precision                                                                                   :: log10OrbitalFactor                          , randomDeviate, &
          &                                                                                                orbitalFactor
-
+    !GCC$ attributes unused :: thisOrbit
+    
     ! Find the host node.
     hostNode => thisNode%parent
     ! Compute the orbital factor - selected at random from a lognormal distribution.

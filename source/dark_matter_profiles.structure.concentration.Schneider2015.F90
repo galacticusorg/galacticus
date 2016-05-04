@@ -36,7 +36,8 @@
      type            (rootFinder                         )          :: finder
      double precision                                               :: massFractionFormation
   contains
-     procedure :: concentration => schneider2015Concentration
+    final     ::                  schneider2015Destructor
+    procedure :: concentration => schneider2015Concentration
   end type darkMatterProfileConcentrationSchneider2015
 
   interface darkMatterProfileConcentrationSchneider2015

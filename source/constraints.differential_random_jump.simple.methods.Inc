@@ -18,14 +18,6 @@
 
 !% Defines methods for the ``simple'' differential evolution random jump class.
 
-function deRandomJumpSimpleConstructor()
-  !% Constructor for the ``simple'' differential evolution random jump class.
-  implicit none
-  type(deRandomJumpSimple) :: deRandomJumpSimpleConstructor
-
-  return
-end function deRandomJumpSimpleConstructor
-
 function deRandomJumpSimpleSample(self,randomDistributions,simulationState)
   !% Sample from the random jump distribution.
   use Galacticus_Error
@@ -35,13 +27,15 @@ function deRandomJumpSimpleSample(self,randomDistributions,simulationState)
   class           (state             )                                      , intent(in   ) :: simulationState
   double precision                    , dimension(size(randomDistributions))                :: deRandomJumpSimpleSample
   integer                                                                                   :: i
-
+  !GCC$ attributes unused :: self, simulationState
+  
   deRandomJumpSimpleSample=0.0d0
   do i=1,size(randomDistributions)
      select type (d => randomDistributions(i)%thisDistribution)
      class is (distribution1D)
         deRandomJumpSimpleSample(i)=deRandomJumpSimpleSample(i)+d%sample()
      class default
+        deRandomJumpSimpleSample(i)=0.0d0
         call Galacticus_Error_Report('deRandomJumpSimpleSample','only 1D distributions are supported')
      end select
   end do

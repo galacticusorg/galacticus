@@ -23,8 +23,3 @@
    contains
      procedure :: initialize => stateInitializorPriorRandomInitialize
   end type stateInitializorPriorRandom
-  
-  interface stateInitializorPriorRandom
-     !% Constructors for the prior random state initializor class.
-     module procedure stateInitializorPriorRandomConstructor
-  end interface stateInitializorPriorRandom

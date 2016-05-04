@@ -545,7 +545,7 @@ subroutine likelihoodGaussianRegressionVariogramModelD(x, parameters, df) bind(c
    where(abs(ddf) < 1.0d-30)
       ddf=1.0d-30
    end where
- end subroutine  likelihoodGaussianRegressionVariogramModelD
+ end subroutine likelihoodGaussianRegressionVariogramModelD
  
  subroutine likelihoodGaussianRegressionVariogramModelFD(x, parameters, f, df) bind(c)
    use, intrinsic :: ISO_C_Binding
@@ -707,7 +707,8 @@ logical function likelihoodGaussianRegressionWillEvaluate(self,simulationState,p
   double precision                                , intent(in   )               :: temperature                      , logLikelihoodCurrent, &
        &                                                                           logPriorCurrent                  , logPriorProposed
   double precision                                                              :: likelihoodEmulated               , likelihoodEmulatedError
-
+  !GCC$ attributes unused :: parameterMappings
+  
   likelihoodGaussianRegressionWillEvaluate=.true.
   if (self%initialized.and..not.self%regressionMatrixIsSingular) then
      if (mod(self%evaluationCount,self%reportCount) == 0 .and. self%evaluationCount > 0 .and. Galacticus_Verbosity_Level() >= verbosityInfo) then

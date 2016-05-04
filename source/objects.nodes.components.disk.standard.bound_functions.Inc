@@ -68,7 +68,8 @@ double precision function Node_Component_Disk_Standard_Enclosed_Mass(self,radius
   double precision                                                     :: diskRadius      , fractionalRadius
   type            (stellarLuminosities      ), save                    :: luminositiesDisk
   !$omp threadprivate(luminositiesDisk)
-
+  !GCC$ attributes unused :: haloLoaded
+  
   ! Return immediately if disk component is not requested.
   Node_Component_Disk_Standard_Enclosed_Mass=0.0d0
   if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk)) return
@@ -121,7 +122,8 @@ double precision function Node_Component_Disk_Standard_Density(self,positionSphe
   type            (stellarLuminosities      ), save                    :: luminositiesDisk
   !$omp threadprivate(luminositiesDisk)
   type            (coordinateSpherical      )                           :: position
-
+  !GCC$ attributes unused :: haloLoaded
+  
   ! Return immediately if disk component is not requested.
   Node_Component_Disk_Standard_Density=0.0d0
   if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk)) return
@@ -170,6 +172,7 @@ double precision function Node_Component_Disk_Standard_Potential(self,radius,com
   integer                                    , intent(inout), optional :: status
   double precision                                                     :: componentMass
   type            (coordinateCylindrical    )                          :: position
+  !GCC$ attributes unused :: status
 
   ! Return immediately if disk component is not requested.
   Node_Component_Disk_Standard_Potential=0.0d0

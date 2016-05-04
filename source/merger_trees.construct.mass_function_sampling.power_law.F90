@@ -62,7 +62,8 @@ contains
     !% Computes the halo mass function sampling rate using a power-law distribution.
     implicit none
     double precision, intent(in   ) :: mass, massMaximum, massMinimum, time
-
+    !GCC$ attributes unused :: time
+    
     ! Sampling rate is simply a power-law in the logarithm of halo mass.
     if (mass <= massMinimum .or. mass > massMaximum) then
        Merger_Tree_Construct_Mass_Function_Sampling_Power_Law=0.0d0

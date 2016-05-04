@@ -28,22 +28,8 @@
    contains
      procedure :: time => correa2015Time
   end type darkMatterHaloMassAccretionHistoryCorrea2015
-  
-  interface darkMatterHaloMassAccretionHistoryCorrea2015
-     !% Constructors for the {\normalfont \ttfamily correa2015} dark matter halo mass accretion history class.
-     module procedure correa2015Constructor
-  end interface darkMatterHaloMassAccretionHistoryCorrea2015
-  
-contains
-
-  function correa2015Constructor()
-    !% Generic constructor for the {\normalfont \ttfamily correa2015} dark matter halo mass accretion history class.
-    implicit none
-    type(darkMatterHaloMassAccretionHistoryCorrea2015), target :: correa2015Constructor
     
-    correa2015Constructor=darkMatterHaloMassAccretionHistoryCorrea2015()
-    return
-  end function correa2015Constructor
+contains
   
   double precision function correa2015Time(self,node,mass)
     !% Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily
@@ -65,7 +51,8 @@ contains
          &                                                                                    baseExpansionFactor        , baseMass, &
          &                                                                                    redshift                   , aTilde  , &
          &                                                                                    bTilde
-
+    !GCC$ attributes unused :: self
+    
     ! Get properties of the base node.
     baseBasicComponent => node%basic()
     baseMass=baseBasicComponent%mass()

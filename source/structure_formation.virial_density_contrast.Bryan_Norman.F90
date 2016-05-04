@@ -66,6 +66,7 @@ contains
 
   double precision function bryanNorman1998DensityContrast(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, assuming the fitting function of \cite{bryan_statistical_1998}.
+    use Galacticus_Error
     use Cosmology_Functions
     use Numerical_Constants_Math
     implicit none
@@ -75,7 +76,8 @@ contains
     logical                                               , intent(in   ), optional :: collapsing
     class           (cosmologyFunctionsClass             ), pointer                 :: cosmologyFunctions_
     double precision                                                                :: x
-
+    !GCC$ attributes unused :: mass
+    
     cosmologyFunctions_ => cosmologyFunctions()
     x=cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)-1.0d0
     select case (self%fitType)
@@ -83,12 +85,16 @@ contains
        bryanNorman1998DensityContrast=(18.0d0*Pi**2+60.0d0*x-32.0d0*x**2)/cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)
     case (bryanNorman1998FitTypeFlatUniverse)
        bryanNorman1998DensityContrast=(18.0d0*Pi**2+82.0d0*x-39.0d0*x**2)/cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)
+    case default
+       bryanNorman1998DensityContrast=0.0d0
+       call Galacticus_Error_Report('bryanNorman1998DensityContrast','invalid fit type')
     end select
     return
   end function bryanNorman1998DensityContrast
 
   double precision function bryanNorman1998DensityContrastRateOfChange(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, assuming the fitting function of \cite{bryan_statistical_1998}.
+    use Galacticus_Error
     use Cosmology_Functions
     use Numerical_Constants_Math
     implicit none
@@ -98,6 +104,7 @@ contains
     logical                                               , intent(in   ), optional :: collapsing
     class           (cosmologyFunctionsClass             ), pointer                 :: cosmologyFunctions_
     double precision                                                                :: x
+    !GCC$ attributes unused :: mass
 
     cosmologyFunctions_ => cosmologyFunctions()
     x=cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)-1.0d0
@@ -112,7 +119,7 @@ contains
             & * cosmologyFunctions_%omegaMatterRateOfChange(time,expansionFactor,collapsing) &
             & / cosmologyFunctions_%omegaMatterEpochal     (time,expansionFactor,collapsing)
     case (bryanNorman1998FitTypeFlatUniverse)
-     bryanNorman1998DensityContrastRateOfChange=                                             &
+       bryanNorman1998DensityContrastRateOfChange=                                           &
             & (                                                                              &
             &  +(            +82.0d0  -78.0d0*x   )                                          &
             &  -(18.0d0*Pi**2+82.0d0*x-39.0d0*x**2)                                          &
@@ -120,6 +127,9 @@ contains
             & )                                                                              &
             & * cosmologyFunctions_%omegaMatterRateOfChange(time,expansionFactor,collapsing) &
             & / cosmologyFunctions_%omegaMatterEpochal     (time,expansionFactor,collapsing)
+    case default
+       bryanNorman1998DensityContrastRateOfChange=0.0d0
+       call Galacticus_Error_Report('bryanNorman1998DensityContrast','invalid fit type')
     end select
     return
   end function bryanNorman1998DensityContrastRateOfChange
@@ -131,6 +141,7 @@ contains
     class           (virialDensityContrastBryanNorman1998), intent(inout)           :: self
     double precision                                      , intent(in   ), optional :: time      , expansionFactor
     logical                                               , intent(in   ), optional :: collapsing
+    !GCC$ attributes unused :: self, time, expansionFactor, collapsing
 
     ! In simple cosmological constant dark energy universes, this ratio is always precisely 2 (e.g. Percival 2005;
     ! http://adsabs.harvard.edu/abs/2005A%26A...443..819P)

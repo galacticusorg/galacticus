@@ -79,7 +79,8 @@ contains
     character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
          &                                                              integerPropertyComments, integerPropertyNames
     double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-
+    !GCC$ attributes unused :: node, time, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Velocity_Maximum_Initialize()
     ! Return property names if we are outputting velocityMaximum data.
@@ -111,7 +112,8 @@ contains
     type            (treeNode), intent(inout), pointer :: node
     double precision          , intent(in   )          :: time
     integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
-
+    !GCC$ attributes unused :: node, integerPropertyCount, time
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Velocity_Maximum_Initialize()
     ! Increment property count if we are outputting velocityMaximum data.
@@ -137,7 +139,8 @@ contains
     integer         (kind=kind_int8        ), intent(inout), dimension(:,:) :: integerBuffer    
     double precision                        , intent(inout), dimension(:,:) :: doubleBuffer     
     class           (darkMatterProfileClass)               , pointer        :: darkMatterProfile_
-
+    !GCC$ attributes unused :: time, integerProperty, integerBuffer, integerBufferCount
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Velocity_Maximum_Initialize()
     ! Store property data if we are outputting velocity maximum data.

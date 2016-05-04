@@ -151,7 +151,8 @@ contains
     class           (surveyGeometryMoustakas2013PRIMUS), intent(inout)           :: self
     double precision                                   , intent(in   )           :: mass
     integer                                            , intent(in   ), optional :: field
-
+    !GCC$ attributes unused :: mass, field
+    
     moustakas2013PRIMUSDistanceMinimum=self%binDistanceMinimum
     return
   end function moustakas2013PRIMUSDistanceMinimum
@@ -244,7 +245,8 @@ contains
     implicit none
     class(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
     type (varying_string                   )                :: moustakas2013PRIMUSMangleDirectory
-
+    !GCC$ attributes unused :: self
+    
     moustakas2013PRIMUSMangleDirectory=Galacticus_Input_Path()//"constraints/dataAnalysis/stellarMassFunctions_PRIMUS_z0_1/"
     return
   end function moustakas2013PRIMUSMangleDirectory

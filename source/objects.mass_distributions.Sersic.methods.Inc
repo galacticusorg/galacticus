@@ -27,7 +27,8 @@ subroutine Mass_Distribution_Sersic_Initialize(self,index,halfMassRadius,density
   double precision                        , intent(in   )           :: index
   double precision                        , intent(in   ), optional :: densityNormalization, halfMassRadius, mass
   logical                                 , intent(in   ), optional :: isDimensionless
-
+  !GCC$ attributes unused :: densityNormalization
+  
   ! Determine if profile is dimensionless.
   if      (present(isDimensionless     )) then
      self%dimensionless=isDimensionless
@@ -411,6 +412,7 @@ subroutine Sersic_Profile_Tabulate_State_Store(stateFile,fgslStateFile)
   implicit none
   integer           , intent(in   ) :: stateFile
   type   (fgsl_file), intent(in   ) :: fgslStateFile
+  !GCC$ attributes unused :: fgslStateFile
 
   write (stateFile) sersicTableRadiusMinimum,sersicTableRadiusMaximum,sersicTable3dHalfMassRadius
   return
@@ -425,6 +427,7 @@ subroutine Sersic_Profile_Tabulate_State_Retrieve(stateFile,fgslStateFile)
   implicit none
   integer           , intent(in   ) :: stateFile
   type   (fgsl_file), intent(in   ) :: fgslStateFile
+  !GCC$ attributes unused :: fgslStateFile
 
   read (stateFile) sersicTableRadiusMinimum,sersicTableRadiusMaximum,sersicTable3dHalfMassRadius
   sersicTableInitialized=.false.

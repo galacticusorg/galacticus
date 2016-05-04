@@ -397,6 +397,9 @@ contains
                         & abs(atan2(lightconePosition(2),lightconePosition(1))) < 0.5d0*lightconeFieldOfViewLength &
                         &  .and.                                                                                   &
                         & abs(atan2(lightconePosition(3),lightconePosition(1))) < 0.5d0*lightconeFieldOfViewLength
+                case default
+                   galaxyIsInFieldOfView=.false.
+                   call Galacticus_Error_Report('Galacticus_Merger_Tree_Output_Filter_Lightcone','unknown geomtry')
                 end select
 
                 ! Test if galaxy lies within appropriate radial range.
@@ -463,7 +466,8 @@ contains
     character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
          &                                                              integerPropertyComments, integerPropertyNames
     double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-
+    !GCC$ attributes unused :: thisNode, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI, time
+    
     if (lightconeFilterActive) then
        !@ <outputPropertyGroup>
        !@   <name>lightconePosition</name>
@@ -592,7 +596,8 @@ contains
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: time
     integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
-
+    !GCC$ attributes unused :: thisNode, time, integerPropertyCount
+    
     if (lightconeFilterActive) doublePropertyCount=doublePropertyCount+lightconePropertyCount
     return
   end subroutine Galacticus_Output_Tree_Lightcone_Property_Count
@@ -613,7 +618,8 @@ contains
          &                                                      integerProperty
     integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
     double precision                , intent(inout)          :: doubleBuffer     (:,:)
-
+    !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer, thisNode
+    
    if (lightconeFilterActive) then
        doubleBuffer(doubleBufferCount,doubleProperty+1:doubleProperty+3)=lightconePosition
        doubleProperty=doubleProperty+3

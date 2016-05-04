@@ -90,6 +90,7 @@ contains
     call wetzel2010Constructor%pericentricRadiusTable%destroy()
     call wetzel2010Constructor%pericentricRadiusTable%create(wetzel2010PericentricRadiusMinimum,wetzel2010PericentricRadiusMaximum,wetzel2010Constructor%pericentricRadiusCount)
     ! For each radius, compute the cumulative probability.
+    probabilityCumulativeNormalization=0.0d0
     do iRadius=wetzel2010Constructor%pericentricRadiusCount,1,-1
        x      =wetzel2010Constructor%pericentricRadiusTable%x(iRadius)
        xGamma2=x**wetzel2010PericenterGamma2
@@ -141,7 +142,8 @@ contains
          &                                                                  timeNode                       , velocityHost                                        , &
          &                                                                  radiusHost                     , massHost
     logical                                                              :: foundOrbit
-
+    !GCC$ attributes unused :: acceptUnboundOrbits
+    
     ! Reset the orbit.
     call wetzel2010Orbit%reset()
     ! Get required objects.
@@ -215,6 +217,7 @@ contains
     implicit none
     class(virialDensityContrastClass), pointer       :: wetzel2010DensityContrastDefinition
     class(virialOrbitWetzel2010     ), intent(inout) :: self
+    !GCC$ attributes unused :: self
     
     allocate(virialDensityContrastFriendsOfFriends :: wetzel2010DensityContrastDefinition)
     select type (wetzel2010DensityContrastDefinition)

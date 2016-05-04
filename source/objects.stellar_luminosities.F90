@@ -658,6 +658,7 @@ contains
        if (index > 0 .and. index <= size(self%luminosityValue)) then
           Stellar_Luminosities_Luminosity=self%luminosityValue(index)
        else
+          Stellar_Luminosities_Luminosity=0.0d0
           call Galacticus_Error_Report('Stellar_Luminosities_Luminosity','index out of range')
        end if
     else
@@ -939,6 +940,7 @@ contains
     double precision                     , dimension(:,:), intent(inout) :: doubleBuffer
     double precision                     , dimension(:  ), allocatable   :: luminosityTmp
     integer                                                              :: i                , luminosityRemainingCount
+    !GCC$ attributes unused :: integerProperty, integerBufferCount, integerBuffer
     
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
@@ -973,7 +975,8 @@ contains
     class           (stellarLuminosities), intent(in   ) :: self
     integer                              , intent(inout) :: doublePropertyCount, integerPropertyCount
     double precision                     , intent(in   ) :: time
-
+    !GCC$ attributes unused :: self, integerPropertyCount
+    
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
     doublePropertyCount=doublePropertyCount+Stellar_Luminosities_Output_Count_Get(time)
@@ -1008,7 +1011,8 @@ contains
     character       (len=*              )              , intent(in   ) :: comment                , prefix
     double precision                                   , intent(in   ) :: unitsInSI
     integer                                                            :: i
-
+    !GCC$ attributes unused :: self, integerProperty, integerPropertyComments, integerPropertyNames, integerPropertyUnitsSI, 
+    
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
     if (luminosityCount > 0) then
@@ -1050,6 +1054,7 @@ contains
     case (luminosityOutputOptionPresent)
        Stellar_Luminosities_Is_Output=(abs(luminosityCosmicTime(luminosityIndex)-time) <= time*       timeTolerance )
     case default
+       Stellar_Luminosities_Is_Output=.false.
        call Galacticus_Error_Report('Stellar_Luminosities_Is_Output','unknown luminosity output option')
     end select
     return
@@ -1098,6 +1103,7 @@ contains
     type   (varying_string), intent(in   ) :: name
     integer                                :: i
 
+    Stellar_Luminosities_Index=-1
     do i=1,luminosityCount
        if (name == luminosityName(i)) then
           Stellar_Luminosities_Index=i
