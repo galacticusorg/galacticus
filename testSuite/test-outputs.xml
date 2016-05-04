@@ -331,4 +331,12 @@
     <mergerTreeStructureOutputVirialQuantities value="true"/>
   </parameters>
   
+  <!-- Satellite merger events -->
+  <parameters>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <outputSatelliteMergers value="true"/>
+    <outputSatelliteMergersMainBranchOnly value="true"/>
+  </parameters>
+  
 </parameterGrid>
