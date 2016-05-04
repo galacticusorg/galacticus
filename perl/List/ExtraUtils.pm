@@ -44,4 +44,24 @@ sub as_array {
     return @array;
 }
 
+sub hashList {
+    # Return a list containing all elements of the given hash.
+    my $hashRef = shift();
+    my %options;
+    (%options) = @_
+	if ( scalar(@_) > 0 );
+    my @list    = map {
+	$hashRef->{$_}->{$options{'keyAs'}} = $_ if ( exists($options{'keyAs'}) );
+	$hashRef->{$_}
+    } sort(keys(%{$hashRef}));
+}
+
+sub sortedKeys {
+    # Return a sorted list of hash keys.
+    my $hashRef = shift();
+    return ()
+	unless ( $hashRef );	
+    return sort(keys(%{$hashRef}));
+}
+
 1;
