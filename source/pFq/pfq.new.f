@@ -264,13 +264,14 @@ C     ****************************************************************
       COMMON/IO/NOUT
       DOUBLE PRECISION ZERO,HALF,ONE,TWO,TEN,EPS
       !$omp threadprivate(/CONSTS/,/IO/)
-  
+
       zero=0.0d0
       CREAL=0.0d0
       LOG2=LOG10(TWO)
       IBIT=INT(BITS())                                                       
       RMAX=TWO**(IBIT/2)                                               
-      SIGFIG=TWO**(IBIT/4)                                             
+      SIGFIG=TWO**(IBIT/4)
+      TEMP1=DCMPLX(0.0D0,0.0D0)
 *     
       DO 10 I1=1,IP                                                      
          AR2(I1)=DBLE(A(I1))*SIGFIG                                   
