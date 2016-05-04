@@ -380,7 +380,7 @@ sub Prepare_Dataset {
 	    if ( exists($phaseRules{$phase}->{'level'}) ) {
 		# Plot just a single level, no real data.
 		${$plot}->{$phase}->{'command'} .= ${$plot}->{$phase}->{'prefix'}." '-' with lines"
-		    .$lineType  {$phaseRules{$phase}->{'level'}}
+	        .$lineType  {$phaseRules{$phase}->{'level'}}
 		.$lineColor {$phaseRules{$phase}->{'level'}}
 		.$lineWeight{$phaseRules{$phase}->{'level'}}
 		.$title;
@@ -390,7 +390,12 @@ sub Prepare_Dataset {
 	    } else {
 		# Plot the actual data.
 		foreach my $level ( 'lower', 'upper' ) {
-		    ${$plot}->{$phase}->{'data'} .= "plot '-' with lines".$lineType{$level}.$lineColor{$level}.$lineWeight{$level}." notitle\n";
+		    # If transparency is requested, adjust line color.
+		    my $currentLineColor = $lineColor{$level};
+		    if ( exists($options{'transparency'}) && $currentLineColor =~ m/rgbcolor "\#(.*)"/ ) {
+			$currentLineColor = " lc rgbcolor \"#".sprintf("%2X",int(255*$options{'transparency'})).$1."\"";
+		    }
+		    ${$plot}->{$phase}->{'data'} .= "plot '-' with lines".$lineType{$level}.$currentLineColor.$lineWeight{$level}." notitle\n";
 		    for(my $iPoint=0;$iPoint<nelem($x);++$iPoint) {
 			${$plot}->{$phase}->{'data'} .= $x->index($iPoint)." ".$y->index($iPoint)."\n";
 		    }
