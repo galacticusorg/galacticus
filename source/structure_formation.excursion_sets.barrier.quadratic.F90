@@ -94,6 +94,7 @@ contains
     !% Return a quadratic barrier for excursion set calculations at the given {\normalfont \ttfamily variance}.
     implicit none
     double precision, intent(in   ) :: time, variance
+    !GCC$ attributes unused :: time
 
     Excursion_Sets_Barrier_Quadratic=excursionSetBarrierConstantCoefficient+excursionSetBarrierLinearCoefficient*variance&
          &+excursionSetBarrierQuadraticCoefficient*variance**2
@@ -104,7 +105,8 @@ contains
     !% Return the gradient of a quadratic barrier for excursion set calculations at the given {\normalfont \ttfamily variance}.
     implicit none
     double precision, intent(in   ) :: time, variance
-
+    !GCC$ attributes unused :: time
+    
     Excursion_Sets_Barrier_Gradient_Quadratic=excursionSetBarrierLinearCoefficient+2.0d0*excursionSetBarrierQuadraticCoefficient&
          &*variance
     return

@@ -18,14 +18,6 @@
 
 !% Defines methods for a logarithmic mapping.
 
-function mappingLogarithmicConstructor()
-  !% Constructor for logarithmic mapping class.
-  implicit none
-  type(mappingLogarithmic) :: mappingLogarithmicConstructor
-
-  return
-end function mappingLogarithmicConstructor
-
 subroutine mappingLogarithmicMapPrior(self,thisPrior)
   !% Map a prior through a logarithmic mapping (i.e. do nothing).
   use Galacticus_Error
@@ -33,7 +25,8 @@ subroutine mappingLogarithmicMapPrior(self,thisPrior)
   implicit none
   class(mappingLogarithmic), intent(in   ) :: self
   class(prior             ), intent(inout) :: thisPrior
-
+  !GCC$ attributes unused :: self
+  
   select type (thisDistribution => thisPrior%priorDistribution)
   type is (distributionUniform)
      ! Simply map the upper and lower limits of this uniform distribution.
@@ -59,6 +52,7 @@ double precision function mappingLogarithmicMap(self,x)
   implicit none
   class           (mappingLogarithmic), intent(in   ) :: self
   double precision                    , intent(in   ) :: x
+  !GCC$ attributes unused :: self
   
   mappingLogarithmicMap=log(x)
   return
@@ -69,6 +63,7 @@ double precision function mappingLogarithmicUnmap(self,x)
   implicit none
   class           (mappingLogarithmic), intent(in   ) :: self
   double precision                    , intent(in   ) :: x
+  !GCC$ attributes unused :: self
   
   mappingLogarithmicUnmap=exp(x)
   return

@@ -44,7 +44,8 @@ contains
     character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
          &                                                              integerPropertyComments, integerPropertyNames
     double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-
+    !GCC$ attributes unused :: thisNode, doubleProperty, doublePropertyNames, doublePropertyComments, doublePropertyUnitsSI, time
+    
     integerProperty=integerProperty+1
     !@ <outputProperty>
     !@   <name>nodeIndex</name>
@@ -118,7 +119,8 @@ contains
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: time
     integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
-
+    !GCC$ attributes unused :: thisNode, time, doublePropertyCount
+    
     integerPropertyCount=integerPropertyCount+linkPropertyCount
     return
   end subroutine Galacticus_Output_Tree_Links_Property_Count
@@ -138,7 +140,8 @@ contains
          &                                                      integerProperty
     integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
     double precision                , intent(inout)          :: doubleBuffer     (:,:)
-
+    !GCC$ attributes unused :: doubleBufferCount, doubleProperty, doubleBuffer, time
+    
     integerProperty=integerProperty+1
     integerBuffer(integerBufferCount,integerProperty)=thisNode               %index()
     integerProperty=integerProperty+1

@@ -70,7 +70,8 @@ contains
     double precision                                                           :: logarithmicMass                                       , lineWidth                                , &
          &                                                                        integratedFluxLimit
     class    (cosmologyParametersClass              ), pointer                 :: cosmologyParameters_
-
+    !GCC$ attributes unused :: self
+    
     ! Validate field.
     if (present(field).and.field /= 1) call Galacticus_Error_Report('martin2010ALFALFADistanceMaximum','field = 1 required')
     ! Get the logarithm of the mass.
@@ -99,6 +100,7 @@ contains
     class           (surveyGeometryMartin2010ALFALFA), intent(inout)           :: self
     integer                                          , intent(in   ), optional :: field
     double precision                                 , parameter               :: solidAngleSurvey=0.79415674617213461d0 ! Computed from survey bounds in Martin et al. (2010; ApJ; 723; 1359)
+    !GCC$ attributes unused :: self
     
     ! Validate field.
     if (present(field).and.field /= 1) call Galacticus_Error_Report('martin2010ALFALFASolidAngle','field = 1 required')

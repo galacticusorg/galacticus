@@ -2210,6 +2210,7 @@ sub Generate_Initialization_Function {
 	     type       => "varying_string",
 	     variables  => [ "methodSelection", "message" ]
 	 }
+	);
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Check for already initialized.
     $functionCode .= "   if (.not.moduleIsInitialized) then\n";

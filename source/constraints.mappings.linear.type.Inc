@@ -24,8 +24,3 @@
      procedure :: map      => mappingLinearMap
      procedure :: unmap    => mappingLinearUnmap
   end type mappingLinear
-
-  interface mappingLinear
-     !% Constructors for the linear mapping object.
-     module procedure mappingLinearConstructor
-  end interface mappingLinear

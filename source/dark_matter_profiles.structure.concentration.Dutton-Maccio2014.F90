@@ -29,7 +29,6 @@
           &              b1                   , b2
      integer          :: densityContrastMethod, densityProfileMethod
    contains
-     final     ::                                duttonMaccio2014Destructor
      procedure :: concentration               => duttonMaccio2014Concentration
      procedure :: densityContrastDefinition   => duttonMaccio2014DensityContrastDefinition
      procedure :: darkMatterProfileDefinition => duttonMaccio2014DarkMatterProfileDefinition
@@ -190,15 +189,6 @@ contains
     duttonMaccio2014ConstructorInternalDefined%b2=b2
     return
   end function duttonMaccio2014ConstructorInternalDefined
-
-  subroutine duttonMaccio2014Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.
-    implicit none
-    type(darkMatterProfileConcentrationDuttonMaccio2014), intent(inout) :: self
-
-    ! Nothing to do.
-    return
-  end subroutine duttonMaccio2014Destructor
 
   double precision function duttonMaccio2014Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{dutton_cold_2014}

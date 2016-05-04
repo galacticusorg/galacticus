@@ -27,10 +27,14 @@ In order to choose sensible settings for the various parameters that control mer
    <OmegaDarkEnergy value="0.75"  />
    <OmegaBaryon     value="0.0455"/>
   </cosmologyParametersMethod>
-  <sigma_8                          value="0.9"/>
-  <powerSpectrumIndex               value="1.0"/>
-  <powerSpectrumReferenceWavenumber value="1"  />
-  <powerSpectrumRunning             value="0"  />
+  <cosmologicalMassVarianceMethod value="filteredPower">
+    <sigma_8 value="0.900"/>
+  </cosmologicalMassVarianceMethod>
+  <powerSpectrumPrimordialMethod value="powerLaw">
+    <index               value="1.000"/>
+    <wavenumberReference value="1.000"/>
+    <running              value="0.000"/>
+  </powerSpectrumPrimordialMethod>
 \end{verbatim}
 
 {\bf Existance at Final Time:} Normally, \glc\ assumes that all merger trees will exist (i.e. have at least one node present) at the final output time. This may not be true of trees extracted from an N-body simulation---in this case \glc\ can be informed of this fact by setting:

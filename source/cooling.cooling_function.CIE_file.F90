@@ -242,7 +242,8 @@ contains
     integer         (c_size_t              )                :: iMetallicity         , iTemperature
     double precision                                        :: hMetallicity         , hTemperature  , &
          &                                                     metallicityUse       , temperatureUse
-
+    !GCC$ attributes unused :: chemicalDensities, radiation
+    
     ! Handle out of range temperatures.
     temperatureUse=temperature
     if (temperatureUse < self%temperatureMinimum) then
@@ -321,7 +322,7 @@ contains
     integer         (c_size_t              )                :: iMetallicity         , iTemperature
     double precision                                        :: hMetallicity         , hTemperature  , &
          &                                                     metallicityUse       , temperatureUse
-
+    
     ! Get the cooling function.
     coolingFunction=self%coolingFunction(numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     ! Handle out of range temperatures.
@@ -415,7 +416,8 @@ contains
     type            (abundances            ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances    ), intent(in   ) :: chemicalDensities
     type            (radiationStructure    ), intent(in   ) :: radiation
-
+    !GCC$ attributes unused :: self, numberDensityHydrogen, temperature, gasAbundances, chemicalDensities, radiation
+    
     ! Logarithmic slope is always 2 for a CIE cooling function.
     cieFileCoolingFunctionDensityLogSlope=2.0d0
     return
@@ -505,7 +507,7 @@ contains
           temperaturesReference=self%temperatures
        else
           ! Check that temperature grids are aligned.
-          if (any(Values_Differ(self%temperatures,temperaturesReference,relTol=1.0d-6))) &
+          if (allocated(temperaturesReference).and.any(Values_Differ(self%temperatures,temperaturesReference,relTol=1.0d-6))) &
                & call Galacticus_Error_Report('cieFileReadFile','temperature grids mismatch')
        end if
     end do

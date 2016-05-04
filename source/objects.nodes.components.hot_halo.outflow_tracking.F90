@@ -75,7 +75,8 @@ contains
     class           (darkMatterHaloScaleClass    )                          , pointer :: darkMatterHaloScale_
     double precision                                                                  :: massReturnRate
     type            (abundances                  )                                    :: abundancesReturnRate
-
+    !GCC$ attributes unused :: interrupt, interruptProcedure
+    
     ! Get the hot halo component.
     thisHotHalo => thisNode%hotHalo()
     ! Act only if this hot halo is of our class.

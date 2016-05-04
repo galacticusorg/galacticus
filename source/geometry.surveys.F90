@@ -37,7 +37,10 @@ module Geometry_Surveys
   !#   <description>Returns the number of distinct fields included in the survey.</description>
   !#   <type>integer</type>
   !#   <pass>yes</pass>
-  !#   <code>surveyGeometryFieldCount=1</code>
+  !#   <code>
+  !#    !GCC$ attributes unused :: self
+  !#    surveyGeometryFieldCount=1
+  !#   </code>
   !#  </method>
   !#  <method name="distanceMinimum" >
   !#   <description>Returns the minimum distance (in Mpc) at which a galaxy of the specified {\normalfont \ttfamily mass} (in $M_\odot$) would be included in the survey.</description>
@@ -45,7 +48,10 @@ module Geometry_Surveys
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   )           :: mass</argument>
   !#   <argument>integer         , intent(in   ), optional :: field</argument>
-  !#   <code>surveyGeometryDistanceMinimum=0.0d0</code>
+  !#   <code>
+  !#    !GCC$ attributes unused :: self, mass, field
+  !#    surveyGeometryDistanceMinimum=0.0d0
+  !#   </code>
   !#  </method>
   !#  <method name="distanceMaximum" >
   !#   <description>Returns the maximum distance (in Mpc) at which a galaxy of the specified {\normalfont \ttfamily mass} (in $M_\odot$) could be detected.</description>
@@ -97,7 +103,10 @@ module Geometry_Surveys
   !#   <description>Return the maximum degree, $\ell_{\mathrm max}$, for which the angular power is available.</description>
   !#   <type>integer</type>
   !#   <pass>yes</pass>
-  !#   <code>surveyGeometryAngularPowerMaximumDegree=-1</code>
+  !#   <code>
+  !#    !GCC$ attributes unused :: self
+  !#    surveyGeometryAngularPowerMaximumDegree=-1
+  !#   </code>
   !#  </method>
   !#  <method name="pointIncluded" >
   !#   <description>Return true if the given Cartesian point lies within the survey bounds for the given mass limit.</description>

@@ -140,7 +140,8 @@ double precision function likelihoodHaloMassFunctionEvaluate(self,simulationStat
   type            (haloMassFunctionShethTormen  )                              :: haloMassFunction_
   type            (vector                       )                              :: difference
   integer                                                                      :: i
-
+  !GCC$ attributes unused :: simulationConvergence, temperature, timeEvaluate, logLikelihoodCurrent, logPriorCurrent
+  
   ! There is no variance in our likelihood estimate.
   if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0
   ! Do not evaluate if the proposed prior is impossible.
@@ -192,6 +193,7 @@ subroutine likelihoodHaloMassFunctionFunctionChanged(self)
   !% Respond to possible changes in the likelihood function.
   implicit none
   class(likelihoodHaloMassFunction), intent(inout) :: self
+  !GCC$ attributes unused :: self
   
   return
 end subroutine likelihoodHaloMassFunctionFunctionChanged

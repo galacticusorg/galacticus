@@ -71,6 +71,7 @@ function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,rando
   simulatorTemperedDifferentialEvolutionConstructor%temperingStep                   =  0
   simulatorTemperedDifferentialEvolutionConstructor%temperingLevelMonotonic         =  0
   simulatorTemperedDifferentialEvolutionConstructor%logFlushCount                   =  logFlushCount
+  simulatorTemperedDifferentialEvolutionConstructor%reportCount                     =  reportCount
   allocate(simulatorTemperedDifferentialEvolutionConstructor%temperatures(temperingLevelCount))
   allocate(stateSimple :: simulatorTemperedDifferentialEvolutionConstructor%temperedStates(temperingLevelCount))
   do i=1,temperingLevelCount
@@ -237,7 +238,8 @@ logical function simulatorTemperedDifferentialEvolutionAcceptProposal(self,logPo
        &                                                                     logLikelihoodVariance, logLikelihoodVarianceProposed
   type            (pseudoRandom                          ), intent(inout) :: randomNumberGenerator
   double precision                                                        :: x
-
+  !GCC$ attributes unused :: logLikelihoodVariance, logLikelihoodVarianceProposed
+  
   ! Decide whether to take step.
   x=randomNumberGenerator%sample(mpiRankOffset=.true.)
   simulatorTemperedDifferentialEvolutionAcceptProposal=      &

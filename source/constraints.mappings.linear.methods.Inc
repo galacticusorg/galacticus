@@ -18,20 +18,13 @@
 
 !% Defines methods for a linear mapping.
 
-function mappingLinearConstructor()
-  !% Constructor for linear mapping class.
-  implicit none
-  type(mappingLinear) :: mappingLinearConstructor
-
-  return
-end function mappingLinearConstructor
-
 subroutine mappingLinearMapPrior(self,thisPrior)
   !% Map a prior through a linear mapping (i.e. do nothing).
   implicit none
   class(mappingLinear), intent(in   ) :: self
   class(prior        ), intent(inout) :: thisPrior
-
+  !GCC$ attributes unused :: self, thisPrior
+  
   return
 end subroutine mappingLinearMapPrior
 
@@ -40,6 +33,7 @@ double precision function mappingLinearMap(self,x)
   implicit none
   class           (mappingLinear), intent(in   ) :: self
   double precision               , intent(in   ) :: x
+  !GCC$ attributes unused :: self
   
   mappingLinearMap=x
   return
@@ -50,7 +44,8 @@ double precision function mappingLinearUnmap(self,x)
   implicit none
   class           (mappingLinear), intent(in   ) :: self
   double precision               , intent(in   ) :: x
-  
+  !GCC$ attributes unused :: self
+
   mappingLinearUnmap=x
   return
 end function mappingLinearUnmap

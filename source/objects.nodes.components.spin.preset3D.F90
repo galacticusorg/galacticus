@@ -100,7 +100,8 @@ contains
     logical                     , intent(inout)          :: interrupt
     procedure(                 ), intent(inout), pointer :: interruptProcedure
     class    (nodeComponentSpin)               , pointer :: thisSpinComponent
-
+    !GCC$ attributes unused :: interrupt, interruptProcedure
+    
     ! Get the spin component.
     thisSpinComponent => thisNode%spin()
     ! Ensure that it is of the preset class.

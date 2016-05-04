@@ -188,7 +188,8 @@ contains
     integer                             , save                :: atomicHydrogenCationChemicalIndex        , atomicHydrogenChemicalIndex        , &
          &                                                       electronChemicalIndex
     double precision                                          :: rate                                     , rateCoefficient
-
+    !GCC$ attributes unused :: radiation
+    
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
        !$omp critical(Chemical_Hydrogen_Rate_H_Electron_to_Hplus_2Electron_Init)
@@ -240,6 +241,7 @@ contains
     integer                             , save                :: atomicHydrogenCationChemicalIndex        , atomicHydrogenChemicalIndex        , &
          &                                                       electronChemicalIndex
     double precision                                          :: rate                                     , rateCoefficient
+    !GCC$ attributes unused :: radiation
 
     ! Check if this reaction needs initializing.
     !$omp critical(Chemical_Hydrogen_Rate_Hplus_Electron_to_H_Photon_Init)
@@ -289,6 +291,7 @@ contains
     integer                             , save                :: atomicHydrogenAnionChemicalIndex        , atomicHydrogenChemicalIndex        , &
          &                                                       electronChemicalIndex
     double precision                                          :: rate                                    , rateCoefficient
+    !GCC$ attributes unused :: radiation
 
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (hydrogenNetworkFast) return
@@ -374,6 +377,7 @@ contains
     integer                             , save                :: atomicHydrogenAnionChemicalIndex        , atomicHydrogenChemicalIndex        , &
          &                                                       chemicalHydrogenChemicalIndex           , electronChemicalIndex
     double precision                                          :: rate                                    , rateCoefficient
+    !GCC$ attributes unused :: radiation
 
     ! Check if this reaction needs initializing.
     !$omp critical(Chemical_Hydrogen_Rate_H_Hminus_to_H2_Electron_Init)
@@ -468,6 +472,7 @@ contains
          &                                                       chemicalHydrogenCationChemicalIndex
     double precision                                          :: rate                                       , rateCoefficient                    , &
          &                                                       temperatureElectronVolts
+    !GCC$ attributes unused :: radiation
 
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (hydrogenNetworkFast) return
@@ -529,6 +534,7 @@ contains
          &                                                            chemicalHydrogenCationChemicalIndex        , chemicalHydrogenChemicalIndex
     double precision                    , parameter                :: rateCoefficient                    =6.4d-10
     double precision                                               :: rate
+    !GCC$ attributes unused :: radiation, temperature
 
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (hydrogenNetworkFast) return
@@ -587,6 +593,7 @@ contains
          &                                                       chemicalHydrogenCationChemicalIndex        , chemicalHydrogenChemicalIndex
     double precision                                          :: logNaturalTemperatureElectronVolts         , rate                                 , &
          &                                                       rateCoefficient                            , temperatureElectronVolts
+    !GCC$ attributes unused :: radiation
 
     ! Check if this reaction needs initializing.
     !$omp critical(Chemical_Hydrogen_Rate_H_Electron_to_Hminus_Photon_Init)
@@ -660,6 +667,7 @@ contains
     integer                             , save                :: atomicHydrogenChemicalIndex        , chemicalHydrogenChemicalIndex        , &
          &                                                       electronChemicalIndex
     double precision                                          :: rate                               , rateCoefficient
+    !GCC$ attributes unused :: radiation
 
     ! Check if this reaction needs initializing.
     !$omp critical(Chemical_Hydrogen_Rate_H_Electron_to_Hminus_Photon_Init)
@@ -713,6 +721,7 @@ contains
     integer                             , save                :: atomicHydrogenChemicalIndex        , chemicalHydrogenChemicalIndex
     double precision                                          :: log10Temperature                   , rate                                 , &
          &                                                       rateCoefficient                    , temperatureElectronVolts
+    !GCC$ attributes unused :: radiation
 
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (hydrogenNetworkFast) return
@@ -773,6 +782,7 @@ contains
     integer                             , save                :: atomicHydrogenAnionChemicalIndex        , atomicHydrogenChemicalIndex        , &
          &                                                       electronChemicalIndex
     double precision                                          :: rate                                    , rateCoefficient
+    !GCC$ attributes unused :: radiation
 
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (hydrogenNetworkFast) return

@@ -151,7 +151,8 @@ contains
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
     type            (c_ptr                     )                :: parameterPointer
-
+    !GCC$ attributes unused :: massMinimum, massMaximum
+    
     ! Get the halo mass function, defined per logarithmic interval in halo mass.
     haloMassFunction_            => haloMassFunction()
     haloMassFunctionDifferential =  mass*haloMassFunction_%differential(time,mass)

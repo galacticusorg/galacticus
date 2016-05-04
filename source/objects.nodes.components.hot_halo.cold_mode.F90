@@ -145,6 +145,7 @@ contains
 
   subroutine Node_Component_Hot_Halo_Cold_Mode_Push_To_Cooling_Pipes(thisNode,massRate,interrupt,interruptProcedure)
     !% Push mass through the cooling pipes (along with appropriate amounts of metals and angular momentum) at the given rate.
+    use Galacticus_Error
     use Cooling_Infall_Radii
     use Cooling_Specific_Angular_Momenta
     use Abundances_Structure
@@ -179,6 +180,9 @@ contains
              coolingFromNode => thisNode
           case (formationNode)
              coolingFromNode => thisNode%formationNode
+          case default
+             coolingFromNode => null()
+             call Galacticus_Error_Report('Node_Component_Hot_Halo_Cold_Mode_Push_To_Cooling_Pipes','unknown cooling node')
           end select
           ! Compute the infall rate of angular momentum.
           angularMomentumCoolingRate=massRate*thisHotHalo%angularMomentumCold()/thisHotHalo%massCold()
@@ -333,6 +337,7 @@ contains
        ! Get the hosting node.
        selfNode => self%hostNode
        ! Next tasks occur only for systems in which outflowed gas is being recycled.
+       massReturnRate=0.0d0
        if (.not.starveSatellites.or..not.selfNode%isSatellite()) then
           outflowedMass            =self%outflowedMass()
           massReturnRate           =hotHaloOutflowReturnRate*outflowedMass                  /darkMatterHaloScale_%dynamicalTimescale(selfNode)

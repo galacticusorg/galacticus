@@ -82,7 +82,8 @@ double precision function Node_Component_Black_Hole_Standard_Enclosed_Mass(self,
   integer                                         , intent(in   )           :: componentType, massType, weightBy, weightIndex
   double precision                                , intent(in   )           :: radius
   logical                                         , intent(in   ), optional :: haloLoaded
-
+  !GCC$ attributes unused :: haloLoaded, weightIndex
+  
   ! Set zero enclosed mass by default.
   Node_Component_Black_Hole_Standard_Enclosed_Mass=0.0d0
   ! Return if mass is not to be counted, or if radius is negative.

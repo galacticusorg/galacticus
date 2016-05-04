@@ -71,9 +71,10 @@ contains
     !GCC$ attributes unused :: self
 
     ! Iterate over trees to find the most massive.
-    currentTree     => tree
-    massRootMaximum =  0.0d0
-    treeIndex       =  0
+    currentTree          => tree
+    massRootMaximum      =  0.0d0
+    treeIndex            =  0
+    massRootMaximumIndex =  -1
     do while (associated(currentTree))
        treeIndex=treeIndex+1
        basic => currentTree%baseNode%basic()

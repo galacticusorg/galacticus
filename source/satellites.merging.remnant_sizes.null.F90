@@ -45,7 +45,8 @@ contains
     use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
-
+    !GCC$ attributes unused :: thisNode
+    
     ! Do nothing.
     return
   end subroutine Satellite_Merging_Remnant_Size_Null

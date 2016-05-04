@@ -121,6 +121,7 @@ contains
     class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout)           :: self
     double precision                                   , intent(in   )           :: mass
     integer                                            , intent(in   ), optional :: field
+    !GCC$ attributes unused :: mass, field
     
     caputi2011UKIDSSUDSDistanceMinimum=self%binDistanceMinimum
     return
@@ -189,6 +190,7 @@ contains
     class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout)           :: self
     integer                                            , intent(in   ), optional :: field
     double precision                                   , parameter               :: solidAngleSurvey=1.59233703487973d-4
+    !GCC$ attributes unused :: self
     
     ! Validate field.
     if (present(field).and.field /= 1) call Galacticus_Error_Report('caputi2011UKIDSSUDSSolidAngle','field = 1 required')

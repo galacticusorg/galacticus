@@ -342,7 +342,8 @@ contains
     class           (convergence), intent(inout)               :: simulationConvergence
     double precision             , intent(in   )               :: temperature          , logLikelihoodCurrent, &
          &                                                        logPriorCurrent      , logPriorProposed
-
+    !GCC$ attributes unused :: self, simulationState, parameterMappings, simulationConvergence, temperature, logLikelihoodCurrent, logPriorCurrent, logPriorProposed
+    
     likelihoodWillEvaluate=.true.
     return
   end function likelihoodWillEvaluate

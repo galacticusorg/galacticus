@@ -55,7 +55,8 @@ contains
          &                                                                        vBandAttenuation
     double precision                                           , parameter     :: Rv=4.05d0                          ! Eqn. (5) of Calzetti et al.
     double precision                                                           :: wavelengthMicrons, kappa
-
+    !GCC$ attributes unused :: self, age
+    
     ! Eqn. (4) of Calzetti et al.
     wavelengthMicrons=wavelength/angstromsPerMicron
     if      (wavelengthMicrons > 0.12d0 .and. wavelengthMicrons <= 0.63d0) then

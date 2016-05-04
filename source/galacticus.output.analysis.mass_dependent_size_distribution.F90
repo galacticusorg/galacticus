@@ -138,7 +138,7 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Sz_Dstrbtins
           &                                                                     massRandomCoefficients
      double precision                                                           massRandomMinimum
      ! The number of bins.
-     integer                                                                 :: massesCount               , radiiCount
+     integer         (c_size_t              )                                :: massesCount               , radiiCount
      ! Arrays for the masses, radii and size function.
      double precision                        , allocatable, dimension(:    ) :: masses                    , massesLogarithmic       , &
           &                                                                     massesLogarithmicMinimum  , massesLogarithmicMaximum, &
@@ -169,18 +169,15 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Sz_Dstrbtins
   !$omp threadprivate(thisGalaxy)
 
   ! Options controlling binning in halo mass.
-  integer                     :: analysisSizeFunctionCovarianceModel
-  integer         , parameter :: analysisSizeFunctionCovarianceModelPoisson =1
-  integer         , parameter :: analysisSizeFunctionCovarianceModelBinomial=2
-  integer                     :: analysisSizeFunctionsHaloMassBinsCount                 , analysisSizeFunctionsHaloMassBinsPerDecade
-  double precision            :: analysisSizeFunctionsHaloMassMinimum                   , analysisSizeFunctionsHaloMassMaximum           , &
-       &                         analysisSizeFunctionsHaloMassIntervalLogarithmicInverse, analysisSizeFunctionsHaloMassMinimumLogarithmic
+  integer                               :: analysisSizeFunctionCovarianceModel
+  integer                   , parameter :: analysisSizeFunctionCovarianceModelPoisson =1
+  integer                   , parameter :: analysisSizeFunctionCovarianceModelBinomial=2
+  integer         (c_size_t)            :: analysisSizeFunctionsHaloMassBinsCount                 , analysisSizeFunctionsHaloMassBinsPerDecade
+  double precision                      :: analysisSizeFunctionsHaloMassMinimum                   , analysisSizeFunctionsHaloMassMaximum           , &
+       &                                   analysisSizeFunctionsHaloMassIntervalLogarithmicInverse, analysisSizeFunctionsHaloMassMinimumLogarithmic
   
   ! Table of half-light radius vs. inclination.
   type   (table1DLinearLinear) :: inclinationTable
-  type   (fgsl_rng           ) :: randomSequenceObject
-  logical                      :: resetRandomSequence =.true.
-  !$omp threadprivate(resetRandomSequence,randomSequenceObject)
 
 contains
 
@@ -269,7 +266,7 @@ contains
           !@   <cardinality>0..1</cardinality>
           !@   <group>output</group>
           !@ </inputParameter>
-          call Get_Input_Parameter('analysisSizeFunctionsHaloMassBinsPerDecade',analysisSizeFunctionsHaloMassBinsPerDecade,defaultValue=10)
+          call Get_Input_Parameter('analysisSizeFunctionsHaloMassBinsPerDecade',analysisSizeFunctionsHaloMassBinsPerDecade,defaultValue=10_c_size_t)
           !@ <inputParameter>
           !@   <name>analysisSizeFunctionsHaloMassMinimum</name>
           !@   <defaultValue>$10^8M_\odot$</defaultValue>
@@ -643,6 +640,7 @@ contains
                   &                            inclinationAngleCount                                                    , &
                   &                            extrapolationType            =[extrapolationTypeFix,extrapolationTypeFix]  &
                   &                           )
+             halfLightRadiusFaceOn=-1.0d0
              do i=1,inclinationAngleCount
                 inclinationAngle=inclinationTable%x(i)
                 halfLightRadius =finder%find(rootGuess=1.0d0)
@@ -929,7 +927,8 @@ contains
     double precision          , intent(in   )          :: radius
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , parameter              :: diskScaleLengthToPetrosianR50=1.667632104d0
-
+    !GCC$ attributes unused :: thisNode
+    
     Map_Radius_SDSS_Size_Function_Z0_07=radius*diskScaleLengthToPetrosianR50*kilo
     return
   end function Map_Radius_SDSS_Size_Function_Z0_07

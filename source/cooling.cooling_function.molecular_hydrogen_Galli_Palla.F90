@@ -35,7 +35,8 @@
     double precision  :: coolingFunctionLowDensityLimit                      , coolingFunctionRotationalTemperaturePart            , &
          &               coolingFunctionVibrationalTemperaturePart           , temperatureCommonPrevious                           , &
          &               temperatureHH2PlusPrevious                          , coolingFunctionAtomicHydrogenMolecularHydrogenCation, &
-         &               temperatureH2PlusElectronPrevious                   , coolingFunctionElectronMolecularHydrogenCation
+         &               temperatureH2PlusElectronPrevious                   , coolingFunctionElectronMolecularHydrogenCation      , &
+         &               coolingFunctionRotationalTemperatureGradient        , coolingFunctionVibrationalTemperatureGradient
    contains
      !@ <objectMethods>
      !@   <object>coolingFunctionMolecularHydrogenGalliPalla</object>
@@ -64,7 +65,6 @@
      !@     <description>Compute common factors.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                                       molecularHydrogenGalliPallaDestructor
      procedure :: coolingFunction                    => molecularHydrogenGalliPallaCoolingFunction
      procedure :: coolingFunctionTemperatureLogSlope => molecularHydrogenGalliPallaCoolingFunctionTemperatureLogSlope
      procedure :: coolingFunctionDensityLogSlope     => molecularHydrogenGalliPallaCoolingFunctionDensityLogSlope
@@ -110,7 +110,8 @@ contains
     implicit none
     type(coolingFunctionMolecularHydrogenGalliPalla)                :: molecularHydrogenGalliPallaConstructorParameters
     type(inputParameters                           ), intent(inout) :: parameters
-  
+    !GCC$ attributes unused :: parameters
+    
     molecularHydrogenGalliPallaConstructorParameters=molecularHydrogenGalliPallaConstructorInternal()
     return
   end function molecularHydrogenGalliPallaConstructorParameters
@@ -136,15 +137,6 @@ contains
     return
   end function molecularHydrogenGalliPallaConstructorInternal
   
-  subroutine molecularHydrogenGalliPallaDestructor(self)
-    !% Destructor for the ``molecular hydrogen (Galli \& Palla)'' cooling function class.
-    implicit none
-    type(coolingFunctionMolecularHydrogenGalliPalla), intent(inout) :: self
-
-    ! Nothing to do.
-    return
-  end subroutine molecularHydrogenGalliPallaDestructor
-
   double precision function molecularHydrogenGalliPallaCoolingFunction(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the cooling function due to molecular hydrogen using the cooling function of \cite{galli_chemistry_1998} (which
     !% refers to the local thermodynamic equilibrium cooling function of \cite{hollenbach_molecule_1979}). Cooling functions
@@ -159,7 +151,8 @@ contains
     type            (abundances                                ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances                        ), intent(in   ) :: chemicalDensities
     type            (radiationStructure                        ), intent(in   ) :: radiation
-
+    !GCC$ attributes unused :: radiation, gasAbundances
+    
     ! Check if the hydrogen density is positive.
     if (numberDensityHydrogen > 0.0d0) then
        molecularHydrogenGalliPallaCoolingFunction=+self%coolingFunctionH_H2           (numberDensityHydrogen,temperature,chemicalDensities) & ! H   - H₂ cooling function.
@@ -187,6 +180,7 @@ contains
     double precision                                                            :: coolingFunction               , coolingFunctionLocalThermodynamicEquilibrium  , &
          &                                                                         coolingFunctionLowDensityLimit, numberDensityCriticalOverNumberDensityHydrogen, &
          &                                                                         coolingFunctionCumulative
+    !GCC$ attributes unused :: radiation, gasAbundances
 
     ! Check if the hydrogen density is positive.
     if (numberDensityHydrogen > 0.0d0) then
@@ -258,11 +252,11 @@ contains
     type            (radiationStructure                        ), intent(in   ) :: radiation
     double precision                                                            :: coolingFunction                                                , coolingFunctionLocalThermodynamicEquilibrium   , &
          &                                                                         coolingFunctionLocalThermodynamicEquilibriumTemperatureGradient, coolingFunctionLowDensityLimit                 , &
-         &                                                                         coolingFunctionLowDensityLimitTemperatureGradient              , coolingFunctionRotationalTemperatureGradient   , &
-         &                                                                         coolingFunctionVibrationalTemperatureGradient                  , logarithmic10Temperature                       , &
+         &                                                                         coolingFunctionLowDensityLimitTemperatureGradient              , logarithmic10Temperature                       , &
          &                                                                         numberDensityCriticalOverNumberDensityHydrogen                 , temperatureThousand                            , &
          &                                                                         coolingFunctionCumulative
-
+    !GCC$ attributes unused :: gasAbundances, radiation
+    
     ! Check if the hydrogen density is positive.
     if (numberDensityHydrogen > 0.0d0) then
        coolingFunctionCumulative=0.0d0
@@ -297,7 +291,7 @@ contains
              ! Get the temperature gradient of the LTE cooling function.
              temperatureThousand                          =+temperature & ! Convert to units of 1,000K.
                   &                                        *milli
-             coolingFunctionRotationalTemperatureGradient =                                          &
+             self%coolingFunctionRotationalTemperatureGradient =                                     &
                   & +(                                                                               &
                   &   +  molecularHydrogenGalliPallaRotationalLambda1                                &
                   &   *  temperatureThousand**(molecularHydrogenGalliPallaRotationalExponent1-1.0d0) &
@@ -337,7 +331,7 @@ contains
                   &      -molecularHydrogenGalliPallaRotationalTemperature2                          &
                   &      /temperatureThousand                                                        &
                   &     )
-             coolingFunctionVibrationalTemperatureGradient=                                          &
+             self%coolingFunctionVibrationalTemperatureGradient=                                     &
                   & +(                                                                               &
                   &   +molecularHydrogenGalliPallaVibrationalLambda1                                 &
                   &   *molecularHydrogenGalliPallaVibrationalTemperature1                            &
@@ -360,8 +354,8 @@ contains
           coolingFunctionLocalThermodynamicEquilibriumTemperatureGradient=            &
                & +milli                                                               &
                & *(                                                                   &
-               &   +coolingFunctionRotationalTemperatureGradient                      &
-               &   +coolingFunctionVibrationalTemperatureGradient                     &
+               &   +self%coolingFunctionRotationalTemperatureGradient                 &
+               &   +self%coolingFunctionVibrationalTemperatureGradient                &
                &  )                                                                   &
                & /numberDensityHydrogen
           ! Get the temperature gradient of the cooling function.

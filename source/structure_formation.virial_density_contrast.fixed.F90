@@ -128,6 +128,7 @@ contains
     double precision                            , intent(in   ), optional :: time               , expansionFactor
     logical                                     , intent(in   ), optional :: collapsing
     class           (cosmologyFunctionsClass   ), pointer                 :: cosmologyFunctions_
+    !GCC$ attributes unused :: mass
 
     ! Set the density contrast.
     fixedDensityContrast=self%densityContrastValue
@@ -157,6 +158,7 @@ contains
     logical                                     , intent(in   ), optional :: collapsing
     class           (cosmologyFunctionsClass   ), pointer                 :: cosmologyFunctions_
     double precision                                                      :: epochTime
+    !GCC$ attributes unused :: mass
 
     ! Zero rate of change for fixed density contrast.
     fixedDensityContrastRateOfChange=0.0d0

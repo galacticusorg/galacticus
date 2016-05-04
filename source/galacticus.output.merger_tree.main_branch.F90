@@ -82,7 +82,8 @@ contains
     character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
          &                                                              integerPropertyComments, integerPropertyNames
     double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-
+    !GCC$ attributes unused :: thisNode, time, doubleProperty, doublePropertyNames, doublePropertyComments, doublePropertyUnitsSI
+    
     ! Ensure the module is initialized.
     call Galacticus_Output_Tree_Main_Branch_Initalize
 
@@ -114,7 +115,8 @@ contains
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: time
     integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
-
+    !GCC$ attributes unused :: thisNode, time, doublePropertyCount
+    
     ! Ensure the module is initialized.
     call Galacticus_Output_Tree_Main_Branch_Initalize
 
@@ -138,7 +140,8 @@ contains
          &                                                      integerProperty
     integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
     double precision                , intent(inout)          :: doubleBuffer     (:,:)
-
+    !GCC$ attributes unused :: time, doubleProperty, doubleBufferCount, doubleBuffer
+    
     ! Ensure the module is initialized.
     call Galacticus_Output_Tree_Main_Branch_Initalize
 

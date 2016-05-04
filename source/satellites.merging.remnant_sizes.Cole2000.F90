@@ -84,7 +84,7 @@ contains
          &                                                      satelliteDarkMatterMass          , satelliteMass            , &
          &                                                      satelliteRadius                  , satelliteSpheroidMass    , &
          &                                                      satelliteSpheroidMassTotal
-    character       (len= 2        )                         :: joinString
+    character       (len= 3        )                         :: joinString
     character       (len=40        )                         :: dataString
     type            (varying_string)                         :: message
     logical                                                  :: errorCondition

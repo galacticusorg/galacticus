@@ -41,7 +41,7 @@ sub Process_GCCAttributes {
 		    die("Process_GCCAttributes(): 'unused' attribute is relevant only in a function or subroutine")
 			unless ( $parent->{'type'} eq "function" || $parent->{'type'} eq "subroutine" );
 		    my $functionToUse = $parent->{'opener'} =~ m/^\s*(elemental|pure)\s/ ? "sizeof" : "loc";
-		    # Find the final node in the function.
+		    # Find the final node in the function, or a contains node.
 		    my $finalNode = $parent->{'firstChild'};
 		    while ( exists($finalNode->{'sibling'}) && ref($finalNode->{'sibling'}) ) {
 			$finalNode = $finalNode->{'sibling'};
@@ -54,8 +54,12 @@ sub Process_GCCAttributes {
 			content    => $newCode,
 			firstChild => undef()
 		    };
-		    # Insert at the end of the function.
-		    &SourceTree::InsertAfterNode($finalNode,[$newNode]);
+		    # Insert at the end of the function, or before any "contains".
+		    if ( $finalNode->{'type'} eq "contains" ) {
+			&SourceTree::InsertBeforeNode($finalNode,[$newNode]);
+		    } else {
+			&SourceTree::InsertAfterNode ($finalNode,[$newNode]);
+		    }
 		    # Neutralize the directive.
 		    $line =~ s/^\s*!GCC\$/!GCC/;
 		}

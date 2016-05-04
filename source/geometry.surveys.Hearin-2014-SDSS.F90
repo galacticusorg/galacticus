@@ -73,7 +73,8 @@ contains
     class           (surveyGeometryHearin2014SDSS), intent(inout)           :: self
     double precision                              , intent(in   )           :: mass
     integer                                       , intent(in   ), optional :: field
-
+    !GCC$ attributes unused :: mass, field
+    
     hearin2014SDSSDistanceMinimum=self%distanceMinimumLimit
     return
   end function hearin2014SDSSDistanceMinimum
@@ -84,7 +85,8 @@ contains
     class           (surveyGeometryHearin2014SDSS), intent(inout)           :: self
     double precision                              , intent(in   )           :: mass
     integer                                       , intent(in   ), optional :: field
-
+    !GCC$ attributes unused :: field
+    
     if (mass /= self%massPrevious)                                                                           &
          & self%distanceMaximumPrevious=min(                                                                 &
          &                                  self%surveyGeometryBernardi2013SDSS%distanceMaximum(mass,field), &

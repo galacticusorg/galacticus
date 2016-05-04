@@ -49,7 +49,8 @@ double precision function likelihoodMultivariateNormalEvaluate(self,simulationSt
   double precision                              , allocatable  , dimension(:) :: stateArray
   integer                                                                     :: i
   type            (vector                      )                              :: stateVector    , difference
-
+  !GCC$ attributes unused :: timeEvaluate, temperature, simulationConvergence, logPriorProposed, logPriorCurrent, logLikelihoodCurrent
+  
   ! There is no variance in our likelihood estimate.
   if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0
   ! Evaluate the likelihood.

@@ -218,6 +218,7 @@ contains
     class  (hotHaloMassDistributionCoreRadiusGrowing), intent(inout) :: self
     integer                                          , intent(in   ) :: stateFile
     type   (fgsl_file                               ), intent(in   ) :: fgslStateFile
+    !GCC$ attributes unused :: fgslStateFile
     
     write (stateFile) self%coreRadiusMinimum,self%coreRadiusMaximum
     return
@@ -230,6 +231,7 @@ contains
     class  (hotHaloMassDistributionCoreRadiusGrowing), intent(inout) :: self
     integer                                          , intent(in   ) :: stateFile
     type   (fgsl_file                               ), intent(in   ) :: fgslStateFile
+    !GCC$ attributes unused :: fgslStateFile
 
     ! Read the minimum and maximum tabulated times.
     read (stateFile) self%coreRadiusMinimum,self%coreRadiusMaximum

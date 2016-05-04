@@ -305,6 +305,11 @@ contains
             &                  )       
        ! Extract values.
        call thisNode%deserializeValues(propertyValues)
+
+
+       !! AJB HACK
+       if (thisnode%isprimaryprogenitorof(1304507560_kind_int8)) call thisnode%dump()
+       
        ! Ensure that the maximum time has not been exceed (can happen due to rounding errors).
        if (basicComponent%time() > endTime) call basicComponent%timeSet(endTime)
        ! Flag interruption if one occurred.

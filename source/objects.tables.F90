@@ -1078,7 +1078,8 @@ contains
     integer                                       , intent(in   ), optional :: table
     logical                                       , intent(in   ), optional :: precise
     integer                                                                 :: i           , tableActual
-
+    !GCC$ attributes unused :: precise
+    
     tableActual=1
     if (present(table)) tableActual=table
     if (.not.Array_Is_Monotonic(self%yv(:,tableActual))) call Galacticus_Error_Report('Table_Logarithmic_1D_Reverse','reversed table would not be monotonic')

@@ -24,8 +24,3 @@
      procedure :: map      => mappingInverseMap
      procedure :: unmap    => mappingInverseUnmap
   end type mappingInverse
-
-  interface mappingInverse
-     !% Constructors for the inverse mapping object.
-     module procedure mappingInverseConstructor
-  end interface mappingInverse

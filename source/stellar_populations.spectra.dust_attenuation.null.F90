@@ -29,20 +29,7 @@
      procedure :: attenuation => nullAttenuation
   end type stellarSpectraDustAttenuationNull
 
-  interface stellarSpectraDustAttenuationNull
-     !% Constructors for the ``null'' stellar spectra dust attenuation class.
-     module procedure nullDefaultConstructor
-  end interface stellarSpectraDustAttenuationNull
-
 contains
-
-  function nullDefaultConstructor()
-    !% Default constructor for the ``null'' stellar spectra dust attenuatio class.
-    implicit none
-    type(stellarSpectraDustAttenuationNull) :: nullDefaultConstructor
-
-    return
-  end function nullDefaultConstructor
 
   double precision function nullAttenuation(self,wavelength,age,vBandAttenuation)
     !% Return a null attenuation.
@@ -50,7 +37,8 @@ contains
     class           (stellarSpectraDustAttenuationNull), intent(inout) :: self
     double precision                                   , intent(in   ) :: wavelength      , age, &
          &                                                                vBandAttenuation
-
+    !GCC$ attributes unused :: self, wavelength, age, vBandAttenuation
+    
     nullAttenuation=0.0d0
     return
   end function nullAttenuation

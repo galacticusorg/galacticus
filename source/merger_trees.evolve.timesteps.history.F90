@@ -191,7 +191,8 @@ contains
     integer         (c_size_t             )                         :: timeIndex
     double precision                                                :: diskStarFormationRate    , hotGasMass, &
          &                                                             spheroidStarFormationRate, time
-
+    !GCC$ attributes unused :: deadlockStatus
+    
     ! Get components.
     thisBasicComponent    => thisNode%basic   ()
     thisDiskComponent     => thisNode%disk    ()

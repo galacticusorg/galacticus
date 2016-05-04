@@ -132,7 +132,8 @@ contains
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     class           (darkMatterProfileClass  )               , pointer :: darkMatterProfile_
     double precision                                                   :: radius                 , velocity
-
+    !GCC$ attributes unused :: Radius_Get, Velocity_Get, specificAngularMomentum
+    
     ! Find the radius of the component, assuming radius is a fixed fraction of radius times spin parameter.
     thisSpinComponent    => thisNode%spin      ()
     select case (galacticStructureRadiiFixedRadius)

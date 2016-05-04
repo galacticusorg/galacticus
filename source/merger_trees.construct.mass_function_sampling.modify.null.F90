@@ -29,22 +29,7 @@
      procedure :: modify => nullModify
   end type massFunctionSamplingModifierNull
 
-  interface massFunctionSamplingModifierNull
-     !% Constructors for the null halo mass sample modifier class.
-     module procedure nullDefaultConstructor
-  end interface massFunctionSamplingModifierNull
-
 contains
-
-  function nullDefaultConstructor()
-    !% Default constructor for the null halo mass sample modifier class.
-    use Galacticus_Display
-    use Input_Parameters
-    implicit none
-    type(massFunctionSamplingModifierNull) :: nullDefaultConstructor
-
-    return
-  end function nullDefaultConstructor
 
   subroutine nullModify(self,treeHaloMass,treeBaseTime)
     !% Perform no modification of a halo mass sample.
@@ -52,6 +37,7 @@ contains
     class           (massFunctionSamplingModifierNull)                           , intent(inout) :: self
     double precision                                  , allocatable, dimension(:), intent(inout) :: treeHaloMass
     double precision                                                             , intent(in   ) :: treeBaseTime
+    !GCC$ attributes unused :: self, treeHaloMass, treeBaseTime
     
     return
   end subroutine nullModify

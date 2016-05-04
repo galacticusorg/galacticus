@@ -48,7 +48,8 @@ contains
     implicit none
     double precision          , dimension(3)                :: Satellite_Dynamical_Friction_Acceleration_Null
     type            (treeNode), pointer     , intent(inout) :: thisNode
-
+    !GCC$ attributes unused :: thisNode
+    
     Satellite_Dynamical_Friction_Acceleration_Null=[0.0d0,0.0d0,0.0d0]
     return
   end function Satellite_Dynamical_Friction_Acceleration_Null

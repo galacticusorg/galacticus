@@ -25,7 +25,6 @@
      !% A cooling function class which implements cooling due to Compton scattering off of \gls{cmb} photons.
      private
    contains
-     final     ::                                       cmbComptonDestructor
      procedure :: coolingFunction                    => cmbComptonCoolingFunction
      procedure :: coolingFunctionTemperatureLogSlope => cmbComptonCoolingFunctionTemperatureLogSlope
      procedure :: coolingFunctionDensityLogSlope     => cmbComptonCoolingFunctionDensityLogSlope
@@ -34,7 +33,6 @@
   interface coolingFunctionCMBCompton
      !% Constructors for the ``CMB Compton'' cooling function class.
      module procedure cmbComptonConstructorParameters
-     module procedure cmbComptonConstructorInternal
   end interface coolingFunctionCMBCompton
 
 contains
@@ -45,28 +43,12 @@ contains
     implicit none
     type(coolingFunctionCMBCompton)                :: cmbComptonConstructorParameters
     type(inputParameters          ), intent(inout) :: parameters
-  
-    cmbComptonConstructorParameters=cmbComptonConstructorInternal()
+    !GCC$ attributes unused :: parameters
+    
+    cmbComptonConstructorParameters=coolingFunctionCMBCompton()
     return
   end function cmbComptonConstructorParameters
   
-  function cmbComptonConstructorInternal()
-    !% Internal constructor for the ``CMB Compton'' cooling function class.
-    implicit none
-    type(coolingFunctionCMBCompton) :: cmbComptonConstructorInternal
-    
-    return
-  end function cmbComptonConstructorInternal
-  
-  subroutine cmbComptonDestructor(self)
-    !% Destructor for the ``CMB Compton'' cooling function class.
-    implicit none
-    type(coolingFunctionCMBCompton), intent(inout) :: self
-
-    ! Nothing to do.
-    return
-  end subroutine cmbComptonDestructor
-
   double precision function cmbComptonCoolingFunction(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the cooling function due to Compton scattering off of \gls{cmb} photons.
     use Chemical_States
@@ -89,7 +71,8 @@ contains
          &                                                                                 /electronMass                      &
          &                                                                                 /speedLight                        &
          &                                                                                 /ergs
-
+    !GCC$ attributes unused :: self, chemicalDensities
+    
     ! Get required objects.
     chemicalState_ => chemicalState()
     ! Compute the Compton cooling rate.
@@ -126,7 +109,8 @@ contains
     type            (chemicalAbundances       ), intent(in   ) :: chemicalDensities
     type            (radiationStructure       ), intent(in   ) :: radiation
     class           (chemicalStateClass       ), pointer       :: chemicalState_
-
+    !GCC$ attributes unused :: self, chemicalDensities
+    
     ! Get required objects.
     chemicalState_ => chemicalState()
     ! Slope depends only on the behavior of electron density with density.
@@ -153,7 +137,8 @@ contains
     type            (chemicalAbundances       ), intent(in   ) :: chemicalDensities
     type            (radiationStructure       ), intent(in   ) :: radiation
     class           (chemicalStateClass       ), pointer       :: chemicalState_
-
+    !GCC$ attributes unused :: self, chemicalDensities
+    
     ! Get required objects.
     chemicalState_ => chemicalState()
     ! Compute the logarithmic slope.

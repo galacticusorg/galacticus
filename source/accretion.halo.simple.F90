@@ -392,7 +392,8 @@ contains
     class (accretionHaloSimple), intent(inout)          :: self
     type  (treeNode           ), intent(inout), pointer :: node
     integer                    , intent(in   )          :: accretionMode
-
+    !GCC$ attributes unused :: self, node, accretionMode
+    
     ! Assume zero metallicity.
     simpleAccretionRateMetals=zeroAbundances
     return
@@ -406,7 +407,8 @@ contains
     class  (accretionHaloSimple), intent(inout)          :: self
     type   (treeNode           ), intent(inout), pointer :: node
     integer                     , intent(in   )          :: accretionMode
-    
+    !GCC$ attributes unused :: self, node, accretionMode
+
     ! Assume zero metallicity.
     simpleAccretedMassMetals=zeroAbundances
     return
@@ -518,6 +520,7 @@ contains
     class(accretionHaloSimple     ), intent(inout)          :: self
     type (treeNode                ), intent(inout), pointer :: node
     class(darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    !GCC$ attributes unused :: self
 
     darkMatterHaloScale_ => darkMatterHaloScale                (    )
     simpleVelocityScale  =  darkMatterHaloScale_%virialVelocity(node)
@@ -531,6 +534,7 @@ contains
     class(accretionHaloSimple     ), intent(inout)          :: self
     type (treeNode                ), intent(inout), pointer :: node
     class(nodeComponentBasic      )               , pointer :: basic
+    !GCC$ attributes unused :: self
 
     basic                    => node %basic        ()
     simpleAccretionRateTotal =  basic%accretionRate()
@@ -544,6 +548,7 @@ contains
     class(accretionHaloSimple     ), intent(inout)          :: self
     type (treeNode                ), intent(inout), pointer :: node
     class(nodeComponentBasic      )               , pointer :: basic
+    !GCC$ attributes unused :: self
 
     basic           => node %basic()
     simpleMassTotal =  basic%mass ()
