@@ -25,7 +25,6 @@
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{gao_redshift_2008}.
      private
    contains
-     final     ::                                gao2008Destructor
      procedure :: concentration               => gao2008Concentration
      procedure :: densityContrastDefinition   => gao2008DensityContrastDefinition
      procedure :: darkMatterProfileDefinition => gao2008DarkMatterProfileDefinition
@@ -34,7 +33,6 @@
   interface darkMatterProfileConcentrationGao2008
      !% Constructors for the {\normalfont \ttfamily gao2008} dark matter halo profile concentration class.
      module procedure gao2008ConstructorParameters
-     module procedure gao2008ConstructorInternal
   end interface darkMatterProfileConcentrationGao2008
 
 contains
@@ -46,27 +44,11 @@ contains
     implicit none
     type(darkMatterProfileConcentrationGao2008)                :: gao2008ConstructorParameters
     type(inputParameters                      ), intent(inout) :: parameters
-
+    !GCC$ attributes unused :: parameters
+    
+    gao2008ConstructorParameters=darkMatterProfileConcentrationGao2008()
     return
   end function gao2008ConstructorParameters
-
-  function gao2008ConstructorInternal()
-    !% Internal constructor for the {\normalfont \ttfamily gao2008} dark matter halo profile concentration class.
-    use Input_Parameters2
-    implicit none
-    type(darkMatterProfileConcentrationGao2008) :: gao2008ConstructorInternal
-
-    return
-  end function gao2008ConstructorInternal
-
-  subroutine gao2008Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily gao2008} dark matter halo profile concentration class.
-    implicit none
-    type(darkMatterProfileConcentrationGao2008), intent(inout) :: self
-
-    ! Nothing to do.
-    return
-  end subroutine gao2008Destructor
 
   double precision function gao2008Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{gao_redshift_2008}
@@ -80,7 +62,8 @@ contains
     double precision                                       , parameter              :: littleHubbleConstantGao2008=0.73d0
     double precision                                                                :: logarithmExpansionFactor          , logarithmHaloMass, &
          &                                                                             parameterA                        , parameterB
-
+    !GCC$ attributes unused :: self
+    
     ! Get the default cosmology functions object.
     cosmologyFunctions_ => cosmologyFunctions()
     ! Get the basic component.
@@ -100,7 +83,8 @@ contains
     implicit none
     class(virialDensityContrastClass           ), pointer       :: gao2008DensityContrastDefinition
     class(darkMatterProfileConcentrationGao2008), intent(inout) :: self
-    
+    !GCC$ attributes unused :: self
+
     allocate(virialDensityContrastFixed :: gao2008DensityContrastDefinition)
     select type (gao2008DensityContrastDefinition)
     type is (virialDensityContrastFixed)

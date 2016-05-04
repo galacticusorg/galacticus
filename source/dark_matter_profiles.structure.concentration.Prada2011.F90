@@ -26,7 +26,6 @@
      private
      double precision :: A, B, C, D, C0, C1, X0, X1, inverseSigma0, inverseSigma1, alpha, beta
    contains
-     final     ::                                prada2011Destructor
      procedure :: concentration               => prada2011Concentration
      procedure :: densityContrastDefinition   => prada2011DensityContrastDefinition
      procedure :: darkMatterProfileDefinition => prada2011DarkMatterProfileDefinition
@@ -200,15 +199,6 @@ contains
     return
   end function prada2011ConstructorInternal
   
-  subroutine prada2011Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily prada2011} dark matter halo profile concentration class.
-    implicit none
-    type(darkMatterProfileConcentrationPrada2011), intent(inout) :: self
-
-    ! Nothing to do.
-    return
-  end subroutine prada2011Destructor
-
   double precision function prada2011Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{prada_halo_2011} algorithm.
     use Cosmological_Mass_Variance
@@ -293,6 +283,7 @@ contains
     implicit none
     class(virialDensityContrastClass             ), pointer       :: prada2011DensityContrastDefinition
     class(darkMatterProfileConcentrationPrada2011), intent(inout) :: self
+    !GCC$ attributes unused :: self
     
     allocate(virialDensityContrastFixed :: prada2011DensityContrastDefinition)
     select type (prada2011DensityContrastDefinition)

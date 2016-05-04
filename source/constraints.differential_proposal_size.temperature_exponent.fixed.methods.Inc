@@ -36,7 +36,8 @@ double precision function dePropSizeTempExpFixedExponent(self,temperedStates,tem
   class           (state                 ), intent(in   ), dimension(:) :: temperedStates
   double precision                        , intent(in   ), dimension(:) :: temperatures
   class           (convergence           ), intent(inout)               :: simulationConvergence
-
+  !GCC$ attributes unused :: temperedStates, temperatures, simulationState, simulationConvergence
+  
   dePropSizeTempExpFixedExponent=self%exponentValue
   return
 end function dePropSizeTempExpFixedExponent

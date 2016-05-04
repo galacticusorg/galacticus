@@ -106,6 +106,7 @@ sub FunctionGlobal_Pointers_Generate_Output {
 	foreach ( &ExtraUtils::as_array($buildData->{'functionGlobals'}->{$_}->{'arguments'}) ) {
 	    $buildData->{'content'} .= "  ".$_."\n";
 	}
+	$buildData->{'content'} .= "  !GCC\$ attributes unused :: ".join(",",@names)."\n";
 	$buildData->{'content'} .= "  call Galacticus_Error_Report('".$buildData->{'functionGlobals'}->{$_}->{'name'}."_Null','global functions have not been initialized')\n";
 	$buildData->{'content'} .= " end ".$closer." ".$buildData->{'functionGlobals'}->{$_}->{'name'}."_Null\n";
 

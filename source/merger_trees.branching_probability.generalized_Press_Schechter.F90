@@ -167,7 +167,8 @@ contains
     character       (len=26                       )                :: label
     type            (rootFinder                   ), save          :: finder
     !$omp threadprivate(finder)
-
+    !GCC$ attributes unused :: randomNumberGenerator
+    
     ! Get required objects.
     cosmologicalMassVariance_ => cosmologicalMassVariance()
     ! Ensure excursion set calculations have sufficient range in sigma.
@@ -247,7 +248,8 @@ contains
     !% deltaCritical} should be allowed to take.
     implicit none
     double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
-
+    !GCC$ attributes unused :: deltaCritical, haloMass, massResolution
+    
     Generalized_Press_Schechter_Branching_Maximum_Step=generalizedPressSchechterDeltaStepMaximum
     return
   end function Generalized_Press_Schechter_Branching_Maximum_Step
@@ -258,6 +260,7 @@ contains
     implicit none
     double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
     integer         , intent(in   ) :: bound
+    !GCC$ attributes unused :: bound
     
     Generalized_Press_Schechter_Branching_Probability_Bound=Generalized_Press_Schechter_Branching_Probability(haloMass,deltaCritical,massResolution)
     return

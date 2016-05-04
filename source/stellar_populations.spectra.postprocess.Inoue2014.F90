@@ -29,11 +29,6 @@
      procedure :: apply => inoue2014Apply
   end type spectraPostprocessorInoue2014
 
-  interface spectraPostprocessorInoue2014
-     !% Constructors for the {\normalfont \ttfamily inoue2014} spectrum postprocessor class.
-     module procedure inoue2014DefaultConstructor
-  end interface spectraPostprocessorInoue2014
-
   ! Fitting function coefficients.
   double precision, dimension(3,2:40) :: inoue2014aLAF=                                                &
        &                                               reshape(                                        &
@@ -128,14 +123,6 @@
 
 contains
 
-  function inoue2014DefaultConstructor()
-    !% Default constructor for the {\normalfont \ttfamily inoue2014} spectrum postprocessor class.
-    implicit none
-    type(spectraPostprocessorInoue2014), target :: inoue2014DefaultConstructor
-    
-    return
-  end function inoue2014DefaultConstructor
-
   subroutine inoue2014Apply(self,wavelength,age,redshift,modifier)
     !% Suppress the Lyman continuum in a spectrum.
     use Numerical_Constants_Atomic
@@ -150,7 +137,8 @@ contains
     integer                                                        :: i
     double precision                                               :: opticalDepth             , wavelengthObservedLymanContinuum, &
          &                                                            wavelengthLymanLine      , wavelengthScaled
-
+    !GCC$ attributes unused :: self, age
+    
     ! Return if this is a zero redshift case.
     if (redshift <= 0.0d0) return
        ! Initialize optical depth to zero.

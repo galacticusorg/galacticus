@@ -30,20 +30,7 @@
      procedure :: densityContrastRateOfChange => kitayamaSuto1996DensityContrastRateOfChange
   end type virialDensityContrastKitayamaSuto1996
 
-  interface virialDensityContrastKitayamaSuto1996
-     !% Constructors for the {\normalfont \ttfamily kitayamaSuto1996} dark matter halo virial density contrast class.
-     module procedure kitayamaSuto1996DefaultConstructor
-  end interface virialDensityContrastKitayamaSuto1996
-
 contains
-
-  function kitayamaSuto1996DefaultConstructor()
-    !% Default constructor for the {\normalfont \ttfamily kitayamaSuto1996} dark matter halo virial density contrast class.
-    implicit none
-    type (virialDensityContrastKitayamaSuto1996), target  :: kitayamaSuto1996DefaultConstructor
-
-    return
-  end function kitayamaSuto1996DefaultConstructor
 
   double precision function kitayamaSuto1996DensityContrast(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, assuming the fitting function of \cite{kitayama_semianalytic_1996}.
@@ -56,7 +43,8 @@ contains
     logical                                                , intent(in   ), optional :: collapsing
     class           (cosmologyFunctionsClass              ), pointer                 :: cosmologyFunctions_
     double precision                                                                 :: omegaf
-
+    !GCC$ attributes unused :: self, mass
+    
     cosmologyFunctions_ => cosmologyFunctions()
     omegaf=max(0.0d0,1.0d0/cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)-1.0d0)
     kitayamaSuto1996DensityContrast=18.0d0*Pi**2*(1.0d0+0.4093d0*omegaf**0.9052d0)
@@ -74,6 +62,7 @@ contains
     logical                                                , intent(in   ), optional :: collapsing
     class           (cosmologyFunctionsClass              ), pointer                 :: cosmologyFunctions_
     double precision                                                                 :: omegaf
+    !GCC$ attributes unused :: self, mass
 
     cosmologyFunctions_ => cosmologyFunctions()
     omegaf=max(0.0d0,1.0d0/cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)-1.0d0)

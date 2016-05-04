@@ -39,7 +39,6 @@
      !@     <description>Initialize the $\beta$-profile density hot halo mass distribution for the given {\normalfont \ttfamily node}.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                          betaProfileDestructor
      procedure :: initialize            => betaProfileInitialize
      procedure :: density               => betaProfileDensity
      procedure :: densityLogSlope       => betaProfileDensityLogSlope
@@ -116,15 +115,6 @@ contains
     return
   end function betaProfileConstructor
   
-  elemental subroutine betaProfileDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily betaProfile} hot halo mass distribution class.
-    implicit none
-    type(hotHaloMassDistributionBetaProfile), intent(inout) :: self
-
-    ! Nothing to do.
-    return
-  end subroutine betaProfileDestructor
-
   subroutine betaProfileInitialize(self,node)
     !% Initialize the $\beta$-profile hot halo density profile for the given {\normalfont \ttfamily node}.
     use Hot_Halo_Mass_Distributions_Core_Radii

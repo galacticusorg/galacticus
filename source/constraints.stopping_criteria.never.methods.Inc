@@ -18,21 +18,14 @@
 
 !% Defines methods for the ``never'' stoppingCriterion class.
 
-function stoppingCriterionNeverConstructor()
-  !% Constructor for ``never'' stoppingCriterion class.
-  implicit none
-  type(stoppingCriterionNever) :: stoppingCriterionNeverConstructor
-
-  return
-end function stoppingCriterionNeverConstructor
-
 logical function stoppingCriterionNeverStop(self,simulationState,simulationConvergence)
   !% Return a Boolean indicating if the simulation should stop.
   implicit none
   class(stoppingCriterionNever), intent(in   ) :: self
   class(state                 ), intent(inout) :: simulationState
   class(convergence           ), intent(inout) :: simulationConvergence
-
+  !GCC$ attributes unused :: self, simulationState, simulationConvergence
+  
   stoppingCriterionNeverStop=.false.
   return
 end function stoppingCriterionNeverStop

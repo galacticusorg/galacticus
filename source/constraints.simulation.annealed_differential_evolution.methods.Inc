@@ -41,7 +41,7 @@ function simulatorAnnealedDifferentialEvolutionConstructor(parameterPriors,rando
   character       (len=*                                 ), intent(in   )                       :: logFileRoot                    , interactionRoot
   logical                                                 , intent(in   )                       :: sampleOutliers
   integer                                                                                       :: i
-
+  
   simulatorAnnealedDifferentialEvolutionConstructor%parameterCount              =  size(parameterPriors)
   simulatorAnnealedDifferentialEvolutionConstructor%parameterPriors             => parameterPriors
   simulatorAnnealedDifferentialEvolutionConstructor%randomDistributions         => randomDistributions
@@ -64,6 +64,7 @@ function simulatorAnnealedDifferentialEvolutionConstructor(parameterPriors,rando
   simulatorAnnealedDifferentialEvolutionConstructor%temperatureLevelCurrent     =  temperatureLevelCount
   simulatorAnnealedDifferentialEvolutionConstructor%sampleOutliers              =  sampleOutliers
   simulatorAnnealedDifferentialEvolutionConstructor%logFlushCount               =  logFlushCount
+  simulatorAnnealedDifferentialEvolutionConstructor%reportCount                 =  reportCount
   allocate(simulatorAnnealedDifferentialEvolutionConstructor%temperatures(temperatureLevelCount))
   if (temperatureLevelCount == 1) then
      simulatorAnnealedDifferentialEvolutionConstructor%temperatures(1)=1.0d0
@@ -140,7 +141,8 @@ logical function simulatorAnnealedDifferentialEvolutionAcceptProposal(self,logPo
        &                                                                     logLikelihoodVariance, logLikelihoodVarianceProposed
   type            (pseudoRandom                          ), intent(inout) :: randomNumberGenerator
   double precision                                                        :: x
-
+  !GCC$ attributes unused :: logLikelihoodVariance, logLikelihoodVarianceProposed
+  
   ! Decide whether to take step.
   x=randomNumberGenerator%sample(mpiRankOffset=.true.)
   simulatorAnnealedDifferentialEvolutionAcceptProposal=      &

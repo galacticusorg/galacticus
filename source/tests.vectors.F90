@@ -29,7 +29,7 @@ program Test_Vectors
   double precision                , allocatable, dimension(:  ) :: vector1   , vector2
   double precision                , allocatable, dimension(:,:) :: matrix12
   type            (varying_string)                              :: message
-  character       (len= 2        )                              :: units
+  character       (len= 3        )                              :: units
   character       (len=24        )                              :: label
   integer         (kind=kind_int8)                              :: countStart, countEnd , countRate
 
@@ -72,7 +72,7 @@ program Test_Vectors
      units="ns"
   end select
   write (label,'(i20)') countEnd-countStart
-  message="Vector outer product         : "//trim(label)//" "//units
+  message="Vector outer product         : "//trim(label)//" "//trim(units)
   call Galacticus_Display_Message(message)
   call Assert('vector outer product'           , &
        &      all(abs(matrix12-1.0d0) < 1.0d-6), &

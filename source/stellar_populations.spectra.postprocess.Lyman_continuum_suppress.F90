@@ -29,20 +29,7 @@
      procedure :: apply => lycSuppressApply
   end type spectraPostprocessorLycSuppress
 
-  interface spectraPostprocessorLycSuppress
-     !% Constructors for the {\normalfont \ttfamily lycSuppress} spectrum postprocessor class.
-     module procedure lycSuppressDefaultConstructor
-  end interface spectraPostprocessorLycSuppress
-
 contains
-
-  function lycSuppressDefaultConstructor()
-    !% Default constructor for the {\normalfont \ttfamily lycSuppress} spectrum postprocessor class.
-    implicit none
-    type(spectraPostprocessorLycSuppress), target :: lycSuppressDefaultConstructor
-    
-    return
-  end function lycSuppressDefaultConstructor
 
   subroutine lycSuppressApply(self,wavelength,age,redshift,modifier)
     !% Suppress the Lyman continuum in a spectrum.
@@ -51,7 +38,8 @@ contains
     class           (spectraPostprocessorLycSuppress), intent(inout) :: self
     double precision                                 , intent(in   ) :: age     , redshift, wavelength
     double precision                                 , intent(inout) :: modifier
-
+    !GCC$ attributes unused :: self, age, redshift
+    
     if (wavelength < lymanSeriesLimitWavelengthHydrogen) modifier=0.0d0
     return
   end subroutine lycSuppressApply

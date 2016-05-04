@@ -102,7 +102,8 @@ contains
     character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
          &                                                              integerPropertyComments, integerPropertyNames
     double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-
+    !GCC$ attributes unused :: thisNode, time, doubleProperty, doublePropertyNames, doublePropertyComments, doublePropertyUnitsSI
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Satellite_Status_Initialize
 
@@ -135,7 +136,8 @@ contains
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: time
     integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
-
+    !GCC$ attributes unused :: thisNode, time, doublePropertyCount
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Satellite_Status_Initialize
 
@@ -165,6 +167,7 @@ contains
     class           (nodeComponentSatellite)               , pointer :: thisSatellite
     type            (history               )                         :: boundMassHistory
     integer         (kind=kind_int8        )                         :: status
+    !GCC$ attributes unused :: time, doubleBufferCount, doubleProperty, doubleBuffer
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Satellite_Status_Initialize

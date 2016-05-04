@@ -26,7 +26,6 @@
      private
      double precision :: A
    contains
-     final     ::                                correa2015Destructor
      procedure :: concentration               => correa2015Concentration
      procedure :: densityContrastDefinition   => correa2015DensityContrastDefinition
      procedure :: darkMatterProfileDefinition => correa2015DarkMatterProfileDefinition
@@ -72,16 +71,6 @@ contains
     return
   end function correa2015ConstructorInternal
   
-  subroutine correa2015Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily correa2015} dark matter halo profile concentration
-    !% class.
-    implicit none
-    type(darkMatterProfileConcentrationCorrea2015), intent(inout) :: self
-
-    ! Nothing to do.
-    return
-  end subroutine correa2015Destructor
-
   double precision function correa2015Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
     !% \cite{correa_accretion_2015} algorithm.
@@ -191,6 +180,7 @@ contains
     implicit none
     class(virialDensityContrastClass              ), pointer       :: correa2015DensityContrastDefinition
     class(darkMatterProfileConcentrationCorrea2015), intent(inout) :: self
+    !GCC$ attributes unused :: self
     
     allocate(virialDensityContrastFixed :: correa2015DensityContrastDefinition)
     select type (correa2015DensityContrastDefinition)

@@ -152,7 +152,8 @@ contains
     character       (len=*               ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
          &                                                                          integerPropertyComments, integerPropertyNames
     double precision                      , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-
+    !GCC$ attributes unused :: thisNode, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI, time
+    
     ! Initialize the module.
     call Cooling_Rate_Output_Initialize()
 
@@ -185,7 +186,8 @@ contains
     double precision                      , intent(in   )          :: time
     integer                               , intent(inout)          :: doublePropertyCount  , integerPropertyCount
     integer                               , parameter              :: propertyCount      =1
-
+    !GCC$ attributes unused :: thisNode, integerPropertyCount, time
+    
     ! Initialize the module.
     call Cooling_Rate_Output_Initialize()
 
@@ -208,7 +210,8 @@ contains
          &                                                      integerProperty
     integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
     double precision                , intent(inout)          :: doubleBuffer     (:,:)
-
+    !GCC$ attributes unused :: integerProperty, integerBufferCount, integerBuffer, time
+    
     ! Initialize the module.
     call Cooling_Rate_Output_Initialize()
 

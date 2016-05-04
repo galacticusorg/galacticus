@@ -206,6 +206,7 @@
               atomicMass            =atomicMassHelium
            end select
            do ionizationState=1,atomicNumber+1
+              ionicFraction=0.0d0
               select case (atomicNumber)
               case (1)
                  select case (ionizationState)

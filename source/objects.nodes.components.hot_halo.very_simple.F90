@@ -150,7 +150,7 @@ contains
     double precision                      , intent(in   )                    :: rate
     logical                               , intent(inout), optional          :: interrupt
     procedure       (                    ), intent(inout), optional, pointer :: interruptProcedure
-    !GCC$ attributes unused :: interrupt
+    !GCC$ attributes unused :: interrupt, interruptProcedure
     
     ! Funnel the outflow gas into the hot halo.
     call self%massRate(rate)

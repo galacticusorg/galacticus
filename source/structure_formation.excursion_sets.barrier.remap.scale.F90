@@ -95,7 +95,8 @@ contains
     double precision, intent(in   ) :: time            , variance
     logical         , intent(in   ) :: ratesCalculation
     integer         , intent(in   ) :: iRemap
-
+    !GCC$ attributes unused :: time, variance
+    
     if ((ratesCalculation.and.iRemap == methodRatesPosition).or.(.not.ratesCalculation.and.iRemap == methodPosition)) barrier=barrier*excursionSetBarrierRemapScalingFactor
     return
   end subroutine Excursion_Sets_Barrier_Remap_Scale

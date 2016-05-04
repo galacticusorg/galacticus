@@ -25,7 +25,6 @@
      !% A null implementation of the hot halo mass distribution class.
      private
    contains
-     final     ::                          nullDestructor
      procedure :: density               => nullDensity
      procedure :: densityLogSlope       => nullDensityLogSlope
      procedure :: enclosedMass          => nullEnclosedMass
@@ -33,28 +32,7 @@
      procedure :: rotationNormalization => nullRotationNormalization
   end type hotHaloMassDistributionNull
 
-  interface hotHaloMassDistributionNull
-     !% Constructors for the null hot halo mass distribution class.
-     module procedure nullDefaultConstructor
-  end interface hotHaloMassDistributionNull
-
 contains
-
-  function nullDefaultConstructor()
-    !% Default constructor for the null hot halo mass distribution class.
-    implicit none
-    type(hotHaloMassDistributionNull) :: nullDefaultConstructor
-    return
-  end function nullDefaultConstructor
-
-  elemental subroutine nullDestructor(self)
-    !% Destructor for the null hot halo mass distribution class.
-    implicit none
-    type(hotHaloMassDistributionNull), intent(inout) :: self
-
-    ! Nothing to do.
-    return
-  end subroutine nullDestructor
 
   double precision function nullDensity(self,node,radius)
     !% Return the density in a null hot halo mass distribution.
@@ -62,7 +40,8 @@ contains
     class           (hotHaloMassDistributionNull), intent(inout)          :: self
     type            (treeNode                   ), intent(inout), pointer :: node
     double precision                             , intent(in   )          :: radius
-
+    !GCC$ attributes unused :: self, node, radius
+    
     nullDensity=0.0d0
     return
   end function nullDensity
@@ -73,7 +52,8 @@ contains
     class           (hotHaloMassDistributionNull), intent(inout)          :: self
     type            (treeNode                   ), intent(inout), pointer :: node
     double precision                             , intent(in   )          :: radius
-    
+    !GCC$ attributes unused :: self, node, radius
+
     nullDensityLogSlope=0.0d0
     return
   end function nullDensityLogSlope
@@ -84,6 +64,7 @@ contains
     class           (hotHaloMassDistributionNull), intent(inout)          :: self
     type            (treeNode                   ), intent(inout), pointer :: node
     double precision                             , intent(in   )          :: radius
+    !GCC$ attributes unused :: self, node, radius
 
     nullEnclosedMass=0.0d0
     return
@@ -95,6 +76,7 @@ contains
     class           (hotHaloMassDistributionNull), intent(inout)          :: self
     type            (treeNode                   ), intent(inout), pointer :: node
     double precision                             , intent(in   )          :: moment, radius
+    !GCC$ attributes unused :: self, node, radius, moment
 
     nullRadialMoment=0.0d0
     return
@@ -105,6 +87,7 @@ contains
     implicit none
     class(hotHaloMassDistributionNull), intent(inout)          :: self
     type (treeNode                   ), intent(inout), pointer :: node
+    !GCC$ attributes unused :: self, node
 
     nullRotationNormalization=0.0d0
   return

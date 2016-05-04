@@ -35,7 +35,9 @@ module Merger_Tree_Operators
   !#   <description>Finalize a merger tree operator.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <code>! Nothing to do.</code>
+  !#   <code>
+  !#    ! Nothing to do.
+  !#   </code>
   !#  </method>
   !# </functionClass>
 

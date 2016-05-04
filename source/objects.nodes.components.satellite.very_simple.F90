@@ -126,7 +126,8 @@ contains
     logical                                 , intent(inout)          :: interrupt
     procedure       (                      ), intent(inout), pointer :: interruptProcedure
     class           (nodeComponentSatellite)               , pointer :: satelliteComponent
-
+    !GCC$ attributes unused :: interrupt, interruptProcedure
+    
     ! Get the satellite component.
     satelliteComponent => thisNode%satellite()
     ! Ensure that it is of the standard class.

@@ -20,6 +20,7 @@
 
 module Galacticus_Output_Analyses_Correlation_Functions
   !% Performs analysis to compute a variety of correlation functions.
+  use, intrinsic :: ISO_C_Binding
   use Galacticus_Nodes
   use Galactic_Structure_Options
   use Geometry_Surveys
@@ -140,7 +141,8 @@ module Galacticus_Output_Analyses_Correlation_Functions
   type :: correlationFunctionWork
      double precision                , allocatable, dimension(:,:) :: satelliteProbability
      double precision                , allocatable, dimension(  :) :: centralProbability  , fourierProfile
-     integer                                                       :: satelliteCount      , outputNumber
+     integer                                                       :: satelliteCount
+     integer         (c_size_t      )                              :: outputNumber
      double precision                                              :: haloBias            , haloWeight    , &
           &                                                           haloTime            , haloMass      , &
           &                                                           hostMass
@@ -387,6 +389,7 @@ contains
                          call Alloc_Array(correlationFunctions(currentAnalysis)%termCovariance       ,[massCount*(2*wavenumberCount+1),massCount*(2*wavenumberCount+1)                 ])
                          correlationFunctions(currentAnalysis)%wavenumber=Make_Range(wavenumberMinimum,wavenumberMaximum,wavenumberCount,rangeTypeLogarithmic)
                       case default
+                         massCount=0
                          call Galacticus_Error_Report('Galacticus_Output_Analysis_Correlation_Functions','unknown size function')
                       end select
                       ! Get cosmological conversion factors.
@@ -528,14 +531,14 @@ contains
        end do
        if (massLogarithmic < correlationFunctions(i)%descriptor%massLogarithmicMinimum) cycle
        ! Accumulate the node.
-       call Accumulate_Node(correlationFunctions(i),thisHalo(i),thisTree,thisNode,nodeStatus,mass,massLogarithmic,iOutput)
+       call Accumulate_Node(correlationFunctions(i),thisHalo(i),thisTree,thisNode,mass,massLogarithmic,iOutput)
        ! Accumulate halo if this is the last node in the tree.
        if (nodeStatus == nodeStatusLast) call Accumulate_Halo(correlationFunctions(i),thisHalo(i))
     end do
     return
   end subroutine Galacticus_Output_Analysis_Correlation_Functions
 
-  subroutine Accumulate_Node(thisCorrelationFunction,thisHalo,thisTree,thisNode,nodeStatus,mass,massLogarithmic,iOutput)
+  subroutine Accumulate_Node(thisCorrelationFunction,thisHalo,thisTree,thisNode,mass,massLogarithmic,iOutput)
     !% Accumulate a single galaxy to the population of the current halo. Since galaxy masses
     !% have random errors, each galaxy added is assigned an inclusion probability, which will be
     !% taken into account when evaluating the one- and two-halo terms from this halo in the halo
@@ -551,7 +554,6 @@ contains
     type            (correlationFunctionWork), intent(inout)                 :: thisHalo
     type            (mergerTree             ), intent(in   )                 :: thisTree
     type            (treeNode               ), intent(inout), pointer        :: thisNode
-    integer                                  , intent(in   )                 :: nodeStatus
     double precision                         , intent(in   )                 :: mass                     , massLogarithmic
     integer         (c_size_t               ), intent(in   )                 :: iOutput
     type            (treeNode               )               , pointer        :: hostNode

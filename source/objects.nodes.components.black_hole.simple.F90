@@ -359,7 +359,8 @@ contains
     character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
          &                                                              integerPropertyComments, integerPropertyNames
     double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-
+    !GCC$ attributes unused :: time, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI
+    
     ! Ensure that the black hole component is of the simple class.
     if (Node_Component_Black_Hole_Simple_Matches(thisNode)) then
        !@ <outputPropertyGroup>
@@ -396,7 +397,8 @@ contains
     double precision          , intent(in   )          :: time
     integer                   , intent(inout)          :: doublePropertyCount  , integerPropertyCount
     integer                   , parameter              :: extraPropertyCount =1
-
+    !GCC$ attributes unused :: time, integerPropertyCount
+    
     ! Ensure that the black hole component is of the simple class.
     if (Node_Component_Black_Hole_Simple_Matches(thisNode)) then
        if (blackHoleOutputAccretion) doublePropertyCount=doublePropertyCount+extraPropertyCount
@@ -422,7 +424,8 @@ contains
     class           (nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent
     class           (nodeComponentSpheroid )               , pointer :: thisSpheroidComponent
     double precision                                                 :: restMassAccretionRate
-
+    !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer
+    
     ! Ensure that the black hole component is of the simple class.
     if (Node_Component_Black_Hole_Simple_Matches(thisNode)) then
        ! Get the black hole component.

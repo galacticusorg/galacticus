@@ -254,7 +254,8 @@ contains
          &                                                              integerPropertyComments, integerPropertyNames
     double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     integer                                                          :: i
-
+    !GCC$ attributes unused :: node, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI, time
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Projected_Density_Initialize
 
@@ -289,7 +290,8 @@ contains
     type            (treeNode), intent(inout), pointer :: node
     double precision          , intent(in   )          :: time
     integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
-
+    !GCC$ attributes unused :: node, time, integerPropertyCount
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Projected_Density_Initialize
 
@@ -330,13 +332,15 @@ contains
     type            (c_ptr                         )                         :: parameterPointer
     type            (fgsl_function                 )                         :: integrandFunction
     type            (fgsl_integration_workspace    )                         :: integrationWorkspace
-
+    !GCC$ attributes unused :: node, time, integerProperty, integerBufferCount, integerBuffer
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Projected_Density_Initialize()
     ! Store property data if we are outputting projected density data.
     if (outputProjectedDensityData) then
        ! Compute required quantities.
        darkMatterHaloScale_ => darkMatterHaloScale()
+       radiusVirial         = 0.0d0
        if (         virialRadiusIsNeeded) radiusVirial      =  darkMatterHaloScale_%virialRadius(node                    )
        if (                 diskIsNeeded) disk              =>                                   node%disk             ()
        if (             spheroidIsNeeded) spheroid          =>                                   node%spheroid         ()

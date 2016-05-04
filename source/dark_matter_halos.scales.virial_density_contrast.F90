@@ -362,9 +362,10 @@ contains
     use FGSL
     implicit none
     class  (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
-    integer                                          , intent(in   ) :: stateFile
-    type   (fgsl_file                               ), intent(in   ) :: fgslStateFile
-
+    integer                                                    , intent(in   ) :: stateFile
+    type   (fgsl_file                                         ), intent(in   ) :: fgslStateFile
+    !GCC$ attributes unused :: fgslStateFile
+    
     write (stateFile) self%meanDensityTimeMinimum,self%meanDensityTimeMaximum
     return
   end subroutine virialDensityContrastDefinitionStateStore
@@ -376,6 +377,7 @@ contains
     class  (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
     integer                                                    , intent(in   ) :: stateFile
     type   (fgsl_file                                         ), intent(in   ) :: fgslStateFile
+    !GCC$ attributes unused :: fgslStateFile
 
     read (stateFile) self%meanDensityTimeMinimum,self%meanDensityTimeMaximum
     ! Ensure that interpolation objects will get reset.

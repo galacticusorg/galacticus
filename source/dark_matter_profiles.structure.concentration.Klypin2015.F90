@@ -615,6 +615,7 @@ contains
   double precision function klypin2015Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
     !% \cite{klypin_multidark_2014} algorithm.
+    use Galacticus_Error
     use Cosmological_Mass_Variance
     use Cosmology_Parameters
     use Cosmology_Functions
@@ -682,6 +683,9 @@ contains
             &                      /a0      &
             &                     )**2      &
             &                   )
+    case default
+       klypin2015Concentration=0.0d0
+       call Galacticus_Error_Report('klypin2015Concentration','unknown fit type')
     end select
     return
   end function klypin2015Concentration

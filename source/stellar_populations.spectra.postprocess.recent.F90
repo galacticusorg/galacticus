@@ -82,7 +82,8 @@ contains
     class           (spectraPostprocessorRecent), intent(inout) :: self
     double precision                            , intent(in   ) :: age     , redshift, wavelength
     double precision                            , intent(inout) :: modifier
-
+    !GCC$ attributes unused :: redshift, wavelength
+    
     if (age > self%timeLimit) modifier=0.0d0
     return
   end subroutine recentApply

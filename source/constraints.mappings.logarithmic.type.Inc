@@ -24,8 +24,3 @@
      procedure :: map      => mappingLogarithmicMap
      procedure :: unmap    => mappingLogarithmicUnmap
   end type mappingLogarithmic
-
-  interface mappingLogarithmic
-     !% Constructors for the logarithmic mapping object.
-     module procedure mappingLogarithmicConstructor
-  end interface mappingLogarithmic

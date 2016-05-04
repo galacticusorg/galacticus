@@ -303,7 +303,8 @@ contains
          &                                                              integerPropertyComments, integerPropertyNames
     double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     integer                                                          :: i
-
+    !GCC$ attributes unused :: thisNode, time, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Velocity_Dispersion_Initialize
 
@@ -337,7 +338,8 @@ contains
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: time
     integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
-
+    !GCC$ attributes unused :: thisNode, integerPropertyCount, time
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Velocity_Dispersion_Initialize
 
@@ -383,13 +385,15 @@ contains
          &                                                                      radiusZero                       , velocityDensityIntegrand, &
          &                                                                      numerator                        , denominator             , &
          &                                                                      massDisk                         , massSpheroid
-
+    !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Velocity_Dispersion_Initialize
     ! Store property data if we are outputting velocity dispersion data.
     if (outputVelocityDispersionData) then
        ! Compute required quantities.
        darkMatterHaloScale_ => darkMatterHaloScale()
+       radiusVirial         =  0.0d0
        if (         virialRadiusIsNeeded) radiusVirial          =  darkMatterHaloScale_%virialRadius(thisNode                    )
        if (                 diskIsNeeded) thisDisk              =>                                   thisNode%disk             ()
        if (             spheroidIsNeeded) thisSpheroid          =>                                   thisNode%spheroid         ()

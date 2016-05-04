@@ -60,7 +60,8 @@ contains
     logical                                         , intent(inout)          :: interrupt
     procedure       (                              ), intent(inout), pointer :: interruptProcedure
     class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
-
+    !GCC$ attributes unused :: interrupt, interruptProcedure
+    
     ! Get the dark matter profile component.
     darkMatterProfile => thisNode%darkMatterProfile()
     ! Ensure that it is of the scale class.

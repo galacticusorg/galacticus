@@ -18,14 +18,6 @@
 
 !% Defines methods for a prior random state initializor.
 
-function stateInitializorPriorRandomConstructor()
-  !% Constructor for the prior random state initializor class.
-  implicit none
-  type(stateInitializorPriorRandom) :: stateInitializorPriorRandomConstructor
-
-  return
-end function stateInitializorPriorRandomConstructor
-
 subroutine stateInitializorPriorRandomInitialize(self,simulationState,parameterPriors,parameterMappings,timeEvaluatePrevious)
   !% Initialize simulation state by drawing at random from the parameter priors.
   implicit none
@@ -34,6 +26,7 @@ subroutine stateInitializorPriorRandomInitialize(self,simulationState,parameterP
   type            (prior                      ), intent(inout), dimension(:) :: parameterPriors
   type            (mappingList                ), intent(in   ), dimension(:) :: parameterMappings
   double precision                             , intent(  out)               :: timeEvaluatePrevious
+  !GCC$ attributes unused ::  self, parameterMappings
   
   ! No knowledge of evaluation time.
   timeEvaluatePrevious=-1.0d0

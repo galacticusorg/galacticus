@@ -381,6 +381,7 @@ contains
     !% Close a {\normalfont \ttfamily sussing} format merger tree file.
     implicit none
     class(mergerTreeImporterSussing), intent(inout) :: self
+    !GCC$ attributes unused :: self
     
     return
   end subroutine sussingClose
@@ -390,6 +391,7 @@ contains
     use Numerical_Constants_Boolean
     implicit none
     class(mergerTreeImporterSussing), intent(inout) :: self
+    !GCC$ attributes unused :: self
 
     sussingTreesHaveSubhalos=booleanTrue
     return
@@ -400,6 +402,7 @@ contains
     use Galacticus_Error
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
+    !GCC$ attributes unused :: self
 
     sussingMassesIncludeSubhalos=.true.
     return
@@ -410,6 +413,7 @@ contains
     use Galacticus_Error
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
+    !GCC$ attributes unused :: self
 
     sussingAngularMomentaIncludeSubhalos=.true.
     return
@@ -420,6 +424,7 @@ contains
     use Numerical_Constants_Boolean
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
+    !GCC$ attributes unused :: self
 
     sussingTreesAreSelfContained=booleanTrue
     return
@@ -430,6 +435,7 @@ contains
     use Numerical_Constants_Boolean
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
+    !GCC$ attributes unused :: self
 
     sussingVelocitiesIncludeHubbleFlow=booleanFalse
     return
@@ -440,6 +446,7 @@ contains
     use Numerical_Constants_Boolean
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
+    !GCC$ attributes unused :: self
 
     sussingPositionsArePeriodic=booleanTrue
     return
@@ -902,6 +909,7 @@ contains
     class  (mergerTreeImporterSussing), intent(inout) :: self
     integer                           , intent(in   ) :: i
     class  (cosmologyFunctionsClass  ), pointer       :: cosmologyFunctions_
+    !GCC$ attributes unused :: i
 
     ! Compute the inverse of the cube volume.
     cosmologyFunctions_ => cosmologyFunctions()
@@ -913,8 +921,9 @@ contains
     !% Return true if positions and/or velocities are available.
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
-    logical                              , intent(in   ) :: positions, velocities
-
+    logical                           , intent(in   ) :: positions, velocities
+    !GCC$ attributes unused :: self, positions, velocities
+    
     sussingPositionsAvailable=.true.
     return
   end function sussingPositionsAvailable
@@ -933,7 +942,8 @@ contains
     !% Return true if particle counts are available.
     implicit none
     class(mergerTreeImporterSussing), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     sussingParticleCountAvailable=.false.
     return
   end function sussingParticleCountAvailable
@@ -942,6 +952,7 @@ contains
     !% Return true if halo rotation curve velocity maxima are available.
     implicit none
     class(mergerTreeImporterSussing), intent(inout) :: self
+    !GCC$ attributes unused :: self
 
     sussingVelocityMaximumAvailable=.true.
     return
@@ -951,6 +962,7 @@ contains
     !% Return true if halo velocity dispersions are available.
     implicit none
     class(mergerTreeImporterSussing), intent(inout) :: self
+    !GCC$ attributes unused :: self
 
     sussingVelocityDispersionAvailable=.true.
     return
@@ -960,6 +972,7 @@ contains
     !% Return true if angular momenta are available.
     implicit none
     class(mergerTreeImporterSussing), intent(inout) :: self
+    !GCC$ attributes unused :: self
     
     sussingAngularMomentaAvailable=.false.
     return
@@ -969,6 +982,7 @@ contains
     !% Return true if angular momenta vectors are available.
     implicit none
     class(mergerTreeImporterSussing), intent(inout) :: self
+    !GCC$ attributes unused :: self
 
     sussingAngularMomenta3DAvailable=.false.
     return
@@ -1002,6 +1016,7 @@ contains
     class           (nodeData                 ), intent(in   )                 :: node
     double precision                           , intent(  out), dimension(:  ) :: time
     double precision                           , intent(  out), dimension(:,:) :: position, velocity
+    !GCC$ attributes unused :: self, node, time, position, velocity
 
     call Galacticus_Error_Report('sussingSubhaloTrace','subhalo traces are not available')
     return
@@ -1013,7 +1028,8 @@ contains
     integer(c_size_t                 )                :: sussingSubhaloTraceCount
     class  (mergerTreeImporterSussing), intent(inout) :: self
     class  (nodeData                 ), intent(in   ) :: node
-
+    !GCC$ attributes unused :: self, node
+    
     ! No particle data is available.
     sussingSubhaloTraceCount=0
     return
@@ -1032,17 +1048,18 @@ contains
          &                                                                                     requireVelocityDispersions, requireSpin         , &
          &                                                                                     requireSpin3D
     integer         (c_size_t                 )                                             :: j
-
+    !GCC$ attributes unused :: requireAngularMomenta, requireAngularMomenta3D, requireScaleRadii, requirePositions, requireParticleCounts, requireVelocityMaxima, requireVelocityDispersions, requireSpin, requireSpin3D
+    
     ! Decide if this tree should be included.
     if (self%randomSequence%sample() <= self%treeSampleRate) then
        ! Allocate the nodes array.
        allocate(nodeData :: nodes(self%treeSizes(i)))
-    !# <workaround type="gfortran" PR="65889" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=65889">
-    select type (nodes)
-    type is (nodeData)
-       call Memory_Usage_Record(sizeof(nodes))
-    end select
-    !# </workaround>
+       !# <workaround type="gfortran" PR="65889" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=65889">
+       select type (nodes)
+       type is (nodeData)
+          call Memory_Usage_Record(sizeof(nodes))
+       end select
+       !# </workaround>
        ! Copy data to nodes.
        select type (nodes)
        type is (nodeData)
@@ -1116,15 +1133,19 @@ contains
   
   logical function sussingValueIsBad(self,x)
     !% Determine if a value in a ``Sussing'' merger tree file is bad
+    use Galacticus_Error
     implicit none
     class           (mergerTreeImporterSussing), intent(inout) :: self
     double precision                           , intent(in   ) :: x
-  
+
     select case (self%badTest)
     case (sussingBadValueLessThan   )
        sussingValueIsBad=(x < self%badValue)
     case (sussingBadValueGreaterThan)
        sussingValueIsBad=(x > self%badValue)
+    case default
+       sussingValueIsBad=.false.
+       call Galacticus_Error_Report('sussingValueIsBad','unknown badness test')
     end select
     return
   end function sussingValueIsBad

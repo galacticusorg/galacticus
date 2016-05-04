@@ -37,21 +37,7 @@
      procedure :: accretedMassChemicals  => nullAccretedMassChemicals
   end type accretionHaloNull
 
-  interface accretionHaloNull
-     !% Constructors for the {\normalfont \ttfamily null} halo accretion class.
-     module procedure nullConstructor
-  end interface accretionHaloNull
-
 contains
-
-  function nullConstructor()
-    !% Default constructor for the {\normalfont \ttfamily null} halo accretion class.
-    use Input_Parameters
-    implicit none
-    type (accretionHaloNull), target  :: nullConstructor
-
-    return
-  end function nullConstructor
 
   logical function nullBranchHasBaryons(self,node)
     !% Returns true if this branch can accrete any baryons.
@@ -71,7 +57,8 @@ contains
     class  (accretionHaloNull), intent(inout)          :: self
     type   (treeNode         ), intent(inout), pointer :: node
     integer                   , intent(in   )          :: accretionMode
-
+    !GCC$ attributes unused :: self, node, accretionMode
+    
     nullAccretionRate=0.0d0
     return
   end function nullAccretionRate
@@ -83,6 +70,7 @@ contains
     class  (accretionHaloNull), intent(inout)          :: self
     type   (treeNode         ), intent(inout), pointer :: node
     integer                   , intent(in   )          :: accretionMode
+    !GCC$ attributes unused :: self, node, accretionMode
 
     nullAccretedMass=0.0d0
     return
@@ -95,6 +83,7 @@ contains
     class  (accretionHaloNull), intent(inout)          :: self
     type   (treeNode         ), intent(inout), pointer :: node
     integer                   , intent(in   )          :: accretionMode
+    !GCC$ attributes unused :: self, node, accretionMode
 
     nullFailedAccretionRate=0.0d0
     return
@@ -107,6 +96,7 @@ contains
     class  (accretionHaloNull), intent(inout)          :: self
     type   (treeNode         ), intent(inout), pointer :: node
     integer                   , intent(in   )          :: accretionMode
+    !GCC$ attributes unused :: self, node, accretionMode
 
     nullFailedAccretedMass=0.0d0
     return
@@ -120,6 +110,7 @@ contains
     class  (accretionHaloNull), intent(inout)          :: self
     type   (treeNode         ), intent(inout), pointer :: node
     integer                   , intent(in   )          :: accretionMode
+    !GCC$ attributes unused :: self, node, accretionMode
 
     nullAccretionRateMetals=zeroAbundances
     return
@@ -133,6 +124,7 @@ contains
     class  (accretionHaloNull), intent(inout)          :: self
     type   (treeNode         ), intent(inout), pointer :: node
     integer                   , intent(in   )          :: accretionMode
+    !GCC$ attributes unused :: self, node, accretionMode
 
     nullAccretedMassMetals=zeroAbundances
     return
@@ -147,6 +139,7 @@ contains
     class  (accretionHaloNull ), intent(inout)          :: self
     type   (treeNode          ), intent(inout), pointer :: node
     integer                    , intent(in   )          :: accretionMode
+    !GCC$ attributes unused :: self, node, accretionMode
 
     nullAccretionRateChemicals=zeroChemicals
     return
@@ -161,6 +154,7 @@ contains
     class  (accretionHaloNull ), intent(inout)          :: self
     type   (treeNode          ), intent(inout), pointer :: node
     integer                    , intent(in   )          :: accretionMode
+    !GCC$ attributes unused :: self, node, accretionMode
 
     nullAccretedMassChemicals=zeroChemicals
     return

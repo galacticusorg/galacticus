@@ -153,7 +153,8 @@ contains
          &                                                              integerPropertyComments, integerPropertyNames
     double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     integer                                                          :: iDensity
-
+    !GCC$ attributes unused :: thisNode, time, integerProperty, integerPropertyComments, integerPropertyNames, integerPropertyUnitsSI
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Density_Contrast_Initialize
 
@@ -183,7 +184,8 @@ contains
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: time
     integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
-
+    !GCC$ attributes unused :: thisNode, time, integerPropertyCount
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Density_Contrast_Initialize
 
@@ -205,19 +207,20 @@ contains
     use Kind_Numbers
     use Root_Finder
     implicit none
-    double precision                , intent(in   )          :: time
-    type            (treeNode      ), intent(inout), pointer :: thisNode
-    integer                         , intent(inout)          :: doubleBufferCount            , doubleProperty          , &
-         &                                                      integerBufferCount           , integerProperty
-    integer         (kind=kind_int8), intent(inout)          :: integerBuffer     (:,:)
-    double precision                , intent(inout)          :: doubleBuffer      (:,:)
+    double precision                          , intent(in   )          :: time
+    type            (treeNode                ), intent(inout), pointer :: thisNode
+    integer                                   , intent(inout)          :: doubleBufferCount            , doubleProperty          , &
+         &                                                                integerBufferCount           , integerProperty
+    integer         (kind=kind_int8          ), intent(inout)          :: integerBuffer     (:,:)
+    double precision                          , intent(inout)          :: doubleBuffer      (:,:)
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                , parameter              :: toleranceAbsolute      =0.0d0, toleranceRelative=1.0d-3
-    type            (rootFinder    ), save                   :: finder
+    double precision                          , parameter              :: toleranceAbsolute      =0.0d0, toleranceRelative=1.0d-3
+    type            (rootFinder              ), save                   :: finder
     !$omp threadprivate(finder)
-    integer                                                  :: iDensity
-    double precision                                         :: enclosedMass                 , radius
-
+    integer                                                            :: iDensity
+    double precision                                                   :: enclosedMass                 , radius
+    !GCC$ attributes unused :: time, integerBufferCount, integerProperty, integerBuffer
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Density_Contrast_Initialize
     ! Store property data if we are outputting density contrast data.

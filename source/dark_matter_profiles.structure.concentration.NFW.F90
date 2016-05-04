@@ -26,7 +26,6 @@
      private
      double precision :: f, C
    contains
-     final     ::                                nfw1996Destructor
      procedure :: concentration               => nfw1996Concentration
      procedure :: densityContrastDefinition   => nfw1996DensityContrastDefinition
      procedure :: darkMatterProfileDefinition => nfw1996DarkMatterProfileDefinition
@@ -88,16 +87,6 @@ contains
     nfw1996ConstructorInternal%C=C
     return
   end function nfw1996ConstructorInternal
-
-  subroutine nfw1996Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily nfw1996} dark matter halo profile concentration
-    !% class.
-    implicit none
-    type(darkMatterProfileConcentrationNFW1996), intent(inout) :: self
-
-    ! Nothing to do.
-    return
-  end subroutine nfw1996Destructor
 
   double precision function nfw1996Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
@@ -175,6 +164,7 @@ contains
     implicit none
     class(virialDensityContrastClass           ), pointer       :: nfw1996DensityContrastDefinition
     class(darkMatterProfileConcentrationNfw1996), intent(inout) :: self
+    !GCC$ attributes unused :: self
     
     allocate(virialDensityContrastFixed :: nfw1996DensityContrastDefinition)
     select type (nfw1996DensityContrastDefinition)

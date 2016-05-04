@@ -130,7 +130,8 @@ contains
     !% Return the number of fields in this sample.
     implicit none
     class(surveyGeometryDavidzon2013VIPERS), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     davidzon2013VIPERSFieldCount=davidzon2013VIPERSFields
     return
   end function davidzon2013VIPERSFieldCount
@@ -139,9 +140,10 @@ contains
     !% Compute the minimum distance at which a galaxy is included.
     implicit none
     class           (surveyGeometryDavidzon2013VIPERS), intent(inout)           :: self
-    double precision                                   , intent(in   )           :: mass
-    integer                                            , intent(in   ), optional :: field
-
+    double precision                                  , intent(in   )           :: mass
+    integer                                           , intent(in   ), optional :: field
+    !GCC$ attributes unused :: mass, field
+    
     davidzon2013VIPERSDistanceMinimum=self%binDistanceMinimum
     return
   end function davidzon2013VIPERSDistanceMinimum
@@ -154,6 +156,7 @@ contains
     double precision                                  , intent(in   )           :: mass
     integer                                           , intent(in   ), optional :: field
     double precision                                                            :: logarithmicMass
+    !GCC$ attributes unused :: field
     
     ! Find the limiting distance for this mass. (See
     ! constraints/dataAnalysis/stellarMassFunctions_VIPERS_z0_1/massDistanceRelation.pl for details.)
@@ -165,6 +168,8 @@ contains
        davidzon2013VIPERSDistanceMaximum=3.14840402683405d0+logarithmicMass*(0.0268494389098537d0)
     case (2)
        davidzon2013VIPERSDistanceMaximum=3.20688538211015d0+logarithmicMass*(0.0273132827274515d0)
+    case default
+       call Galacticus_Error_Report('davidzon2013VIPERSDistanceMaximum','invalid redshift bin')
     end select
     ! Limit the maximum distance.
     davidzon2013VIPERSDistanceMaximum=min(10.0d0**davidzon2013VIPERSDistanceMaximum,self%binDistanceMaximum)
@@ -198,7 +203,8 @@ contains
     implicit none
     class(surveyGeometryDavidzon2013VIPERS), intent(inout) :: self
     type (varying_string                  )                :: davidzon2013VIPERSMangleDirectory
-
+    !GCC$ attributes unused :: self
+    
     davidzon2013VIPERSMangleDirectory=Galacticus_Input_Path()//"constraints/dataAnalysis/stellarMassFunctions_VIPERS_z0_1/"
     return
   end function davidzon2013VIPERSMangleDirectory
@@ -222,7 +228,8 @@ contains
     !% Return the maximum degree for which angular power is computed for the \cite{davidzon_vimos_2013} survey.
     implicit none
     class(surveyGeometryDavidzon2013VIPERS), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     davidzon2013VIPERSAngularPowerMaximumDegree=davidzon2013AngularPowerMaximumL
     return
   end function davidzon2013VIPERSAngularPowerMaximumDegree

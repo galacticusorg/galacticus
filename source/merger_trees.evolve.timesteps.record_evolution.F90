@@ -189,7 +189,8 @@ contains
     class           (nodeComponentBasic)               , pointer :: thisBasicComponent
     integer         (c_size_t          )                         :: timeIndex
     double precision                                             :: time
-
+    !GCC$ attributes unused :: deadlockStatus, thisTree
+    
     ! Get current cosmic time.
     thisBasicComponent => thisNode%basic()
     time=thisBasicComponent%time()

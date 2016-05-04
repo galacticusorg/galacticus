@@ -89,7 +89,8 @@ contains
     character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
          &                                                              integerPropertyComments, integerPropertyNames
     double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-
+    !GCC$ attributes unused :: thisNode, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI, time
+    
     call Galacticus_Output_Redshifts_Initalize()
     if (timeLastIsolatedIsAvailable) then
        doubleProperty=doubleProperty+1
@@ -118,7 +119,8 @@ contains
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: time
     integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
-
+    !GCC$ attributes unused :: thisNode, time, integerPropertyCount
+    
     call Galacticus_Output_Redshifts_Initalize()
     doublePropertyCount=doublePropertyCount+redshiftPropertyCount
     return
@@ -142,7 +144,8 @@ contains
     double precision                         , intent(inout)          :: doubleBuffer            (:,:)
     class           (nodeComponentBasic     )               , pointer :: thisBasic
     class           (cosmologyFunctionsClass)               , pointer :: cosmologyFunctionsDefault
-
+    !GCC$ attributes unused :: integerProperty, integerBufferCount, integerBuffer, time
+    
     call Galacticus_Output_Redshifts_Initalize()
     if (timeLastIsolatedIsAvailable) then
        cosmologyFunctionsDefault => cosmologyFunctions      ()

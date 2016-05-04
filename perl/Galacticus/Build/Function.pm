@@ -166,7 +166,7 @@ sub Functions_Generate_Output {
 		argument    => [ ],
 		code        => "!GCC\$ attributes unused :: self\n"
 	    }
-	    )
+	    );
     }
 
     # If the function requires calculation reset, add method to do so.
@@ -696,6 +696,10 @@ sub Functions_Generate_Output {
 		} else {
 		    if ( $type eq "double precision " ) {
 			$buildData->{'content'} .= "      ".$directive.ucfirst($method->{'name'}).$extension."=0.0d0\n";	
+		    } elsif ( $type eq "logical " ) {
+			$buildData->{'content'} .= "      ".$directive.ucfirst($method->{'name'}).$extension."=.false.\n";	
+		    } elsif ( $type =~ m/^integer/ ) {
+			$buildData->{'content'} .= "      ".$directive.ucfirst($method->{'name'}).$extension."=0\n";	
 		    }
 		}
 	    }

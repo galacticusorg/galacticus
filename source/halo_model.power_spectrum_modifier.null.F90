@@ -29,22 +29,8 @@
      procedure :: modify => nullModify
   end type haloModelPowerSpectrumModifierNull
   
-  interface haloModelPowerSpectrumModifierNull
-     !% Constructor for the null halo model power spectra modifier class.
-     module procedure nullConstructor
-  end interface haloModelPowerSpectrumModifierNull
-
 contains
 
-  function nullConstructor()
-    !% Default constructor for the null halo model power spectra modifier class.
-    use Input_Parameters
-    implicit none
-    type(haloModelPowerSpectrumModifierNull) :: nullConstructor
-
-    return
-  end function nullConstructor
-  
   subroutine nullModify(self,wavenumber,term,powerSpectrum,powerSpectrumCovariance,mass)
     !% Applies a null modification to a halo model power spectrum.
     implicit none
@@ -54,6 +40,7 @@ contains
     double precision                                    , intent(inout), dimension(:  )           :: powerSpectrum
     double precision                                    , intent(inout), dimension(:,:), optional :: powerSpectrumCovariance
     double precision                                    , intent(in   )                , optional :: mass
+    !GCC$ attributes unused :: self, wavenumber, term, powerSpectrum, mass
     
     ! Do nothing, except to set covariance to zero.
     if (present(powerSpectrumCovariance)) powerSpectrumCovariance=0.0d0

@@ -102,7 +102,7 @@ contains
          &                                                      remnantSpheroidGasMass                      , remnantSpheroidMass, &
          &                                                      satelliteMass                               , satelliteRadius    , &
          &                                                      satelliteSpheroidMass                       , velocityVirial
-    character       (len= 2        )                         :: joinString
+    character       (len= 3        )                         :: joinString
     character       (len=70        )                         :: dataString
     type            (varying_string)                         :: message
     logical                                                  :: errorCondition

@@ -95,7 +95,8 @@ contains
     character(len=*   ), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
          &,doublePropertyComments
     double precision   , intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
-
+    !GCC$ attributes unused :: thisNode, time, doubleProperty, doublePropertyNames, doublePropertyComments, doublePropertyUnitsSI
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Final_Descendents_Initialize()
 
@@ -128,7 +129,8 @@ contains
     type   (treeNode              ), intent(inout), pointer :: thisNode
     double precision               , intent(in   )          :: time
     integer                        , intent(inout)          :: integerPropertyCount,doublePropertyCount
-
+    !GCC$ attributes unused :: thisNode, time, doublePropertyCount
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Final_Descendents_Initialize()
 
@@ -156,7 +158,8 @@ contains
     double precision                        , intent(inout)          :: doubleBuffer (:,:)
     type            (treeNode              ),                pointer :: descendentNode
     class           (nodeComponentSatellite),                pointer :: thisSatelliteComponent
-
+    !GCC$ attributes unused :: doubleProperty, doubleBufferCount, doubleBuffer, time
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Final_Descendents_Initialize()
 

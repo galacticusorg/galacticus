@@ -113,7 +113,8 @@ contains
     integer                                                                   :: j                               , i
     character       (len=64                  )                                :: parameterName
     type            (rootFinder              )                                :: finder
-
+    !GCC$ attributes unused :: thisTree
+    
     ! Initialize the module if necessary.
     if (.not.moduleInitialized) then
        !$omp critical(Galacticus_Output_Analysis_LG_Satellite_MF_Initialize)

@@ -138,7 +138,8 @@ contains
     integer(kind=kind_int8          ), intent(in   )          :: treeIndex
     logical                          , intent(in   )          :: nodePassesFilter
     class  (nodeComponentInterOutput)               , pointer :: thisInterOutput
-
+    !GCC$ attributes unused :: iOutput, nodePassesFilter, treeIndex
+    
     ! Get the interoutput component and check it is of our class.
     thisInterOutput => thisNode%interOutput()
     select type (thisInterOutput)

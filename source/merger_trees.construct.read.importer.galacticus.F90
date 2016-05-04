@@ -892,11 +892,13 @@ contains
     integer(c_size_t                    )                :: galacticusSubhaloTraceCount
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
     class  (nodeData                    ), intent(in   ) :: node
+    !GCC$ attributes unused :: self
     
     select type (node)
     type is (nodeDataGalacticus)
        galacticusSubhaloTraceCount=node%particleIndexCount
     class default
+       galacticusSubhaloTraceCount=0
        call Galacticus_Error_Report('galacticusSubhaloTraceCount','node should be of type nodeDataGalacticus')
     end select
     return

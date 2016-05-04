@@ -75,8 +75,9 @@ contains
        radialBinCount              =int(dble(radialBinsPerDecade)*log10(radialSeparationMaximum/radialMinimum))+1
        radialLogarithmicStepInverse=1.0d0/(log(radialSeparationMaximum/radialMinimum)/dble(radialBinCount-1))
        radialLogarithmicMinimum    =       log(                        radialMinimum)-0.5d0/radialLogarithmicStepInverse
-   else 
-       radialBinCount=1
+    else
+       radialMinimum =-1.0d0
+       radialBinCount= 1
     end if
     ! Allocate arrays.
     if (allocated(separation )) call Dealloc_Array(separation )

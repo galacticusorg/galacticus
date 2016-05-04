@@ -48,7 +48,7 @@
      !@   <objectMethod>
      !@     <method>acceptTree</method>
      !@     <type>\intzero</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout,\textcolor{red}{\textless type(mergerTree)\textgreater} tree\arginout,\intzero nodeChildCount\arginout,\logicalzero extendingEndNode\argin,\doublezero tolerance\argin,\doublezero timeEarliest\argin,\textcolor{red}{\textless type(mergerTree)\textgreater} treeBest\arginout,\doublezero treeBestWorstFit\arginout,\logicalzero treeBestOverride\argin,\doublezero massCutoffScale\arginout,\logicalzero treeNewHasNodeAboveResolution\arginout,\logicalzero treeBestHasNodeAboveResolution\arginout,\textcolor{red}{\textless type(mergerTree)\textgreater} newTreeBest\arginout</arguments>
+     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout,\textcolor{red}{\textless type(mergerTree)\textgreater} tree\arginout,\intzero nodeChildCount\arginout,\logicalzero extendingEndNode\argin,\doublezero tolerance\argin,\textcolor{red}{\textless type(mergerTree)\textgreater} treeBest\arginout,\doublezero treeBestWorstFit\arginout,\logicalzero treeBestOverride\argin,\doublezero massCutoffScale\arginout,\logicalzero treeNewHasNodeAboveResolution\arginout,\logicalzero treeBestHasNodeAboveResolution\arginout,\textcolor{red}{\textless type(mergerTree)\textgreater} newTreeBest\arginout</arguments>
      !@     <description>Determine if a newly built tree is an acceptable match.</description>
      !@   </objectMethod>
      !@   <objectMethod>
@@ -625,7 +625,6 @@ contains
          &                         nodeChildCount                , &
          &                         extendingEndNode              , &
          &                         tolerance                     , &
-         &                         timeEarliest                  , &
          &                         treeBest                      , &
          &                         treeBestWorstFit              , &
          &                         treeBestOverride              , &
@@ -680,7 +679,6 @@ contains
             &                   nodeChildCount                , &
             &                   extendingEndnode              , &
             &                   tolerance                     , &
-            &                   timeEarliest                  , &
             &                   treeBest                      , &
             &                   treeBestWorstFit              , &
             &                   treeBestOverride              , &
@@ -741,7 +739,7 @@ contains
     return
   end function augmentBuildTreeFromNode
 
-  recursive integer function augmentAcceptTree(self,node,tree,nodeChildCount,extendingEndNode,tolerance,timeEarliest,treeBest,treeBestWorstFit,treeBestOverride,massCutoffScale,massOvershootScale,treeNewHasNodeAboveResolution,treeBestHasNodeAboveResolution,newTreeBest,primaryProgenitorNode,primaryProgenitorIsClone)
+  recursive integer function augmentAcceptTree(self,node,tree,nodeChildCount,extendingEndNode,tolerance,treeBest,treeBestWorstFit,treeBestOverride,massCutoffScale,massOvershootScale,treeNewHasNodeAboveResolution,treeBestHasNodeAboveResolution,newTreeBest,primaryProgenitorNode,primaryProgenitorIsClone)
     !% Determine whether a trial tree is an acceptable match to the original tree structure.
     use Galacticus_Nodes
     use Galacticus_Display
@@ -760,7 +758,7 @@ contains
          &                                                                             primaryProgenitorIsClone
     double precision                           , intent(inout)                      :: treeBestWorstFit             , massCutoffScale               , &
          &                                                                             massOvershootScale
-    double precision                           , intent(in   )                      :: tolerance                    , timeEarliest
+    double precision                           , intent(in   )                      :: tolerance
     integer                                    , intent(inout)                      :: nodeChildCount
     type            (treeNodeList             ), dimension(nodeChildCount)          :: endNodes
     integer                                                                         :: i                            , j                             , &
@@ -1345,6 +1343,7 @@ contains
     case (treeStatisticEndNodeCount)
        augmentTreeStatistics=endNodeCount
     case default
+       augmentTreeStatistics=0
        call Galacticus_Error_Report('augmentTreeStatistics','unknown task requested')
     end select
     return

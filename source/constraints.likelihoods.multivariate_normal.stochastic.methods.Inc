@@ -60,7 +60,7 @@ double precision function likelihoodMultivariateNormalStochasticEvaluate(self,si
        &                                                                                   realizationCount
   double precision                                                                      :: temperatureEffective , likelihoodEffective    , &
        &                                                                                   logDeterminant
-
+  !GCC$ attributes unused :: self, logLikelihoodCurrent
 
   ! Report zero variance, as this class is designed specifically for testing for unaccounted-for randomness in the likelihood
   ! estimate.

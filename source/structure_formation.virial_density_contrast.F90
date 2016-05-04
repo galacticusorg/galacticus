@@ -57,7 +57,11 @@ module Virial_Density_Contrast
   !#   <modules>Galacticus_Error</modules>
   !#   <argument>double precision, intent(in   ), optional :: time      , expansionFactor</argument>
   !#   <argument>logical         , intent(in   ), optional :: collapsing</argument>
-  !#   <code>call Galacticus_Error_Report('turnAroundOverVirialRadii','ratio is undefined for this density contrast class')</code>
+  !#   <code>
+  !#    !GCC$ attributes unused :: self, time, expansionFactor, collapsing
+  !#    virialDensityContrastTurnaroundOverVirialRadii=0.0d0
+  !#    call Galacticus_Error_Report('turnAroundOverVirialRadii','ratio is undefined for this density contrast class')
+  !#   </code>
   !#  </method>
   !#  <method name="isMassDependent" >
   !#   <description>Returns true if the virial density contrast is mass-dependent.</description>

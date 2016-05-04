@@ -250,7 +250,7 @@ contains
     implicit none
     class(virialDensityContrastClass), pointer       :: jiang2014DensityContrastDefinition
     class(virialOrbitJiang2014      ), intent(inout) :: self
-    
+    !GCC$ attributes unused :: self
     allocate(virialDensityContrastFixed :: jiang2014DensityContrastDefinition)
     select type (jiang2014DensityContrastDefinition)
     type is (virialDensityContrastFixed)
