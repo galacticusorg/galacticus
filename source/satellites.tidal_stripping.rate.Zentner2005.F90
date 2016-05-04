@@ -150,7 +150,7 @@ contains
             &      )**(1.0d0/3.0d0)
        ! Find the tidal radius in the dark matter profile.
        if (.not.finder%isInitialized()) then
-          call finder%rootFunction(Tidal_Radius_Heated_Halo_Solver)
+          call finder%rootFunction(Tidal_Radius_Solver)
           call finder%tolerance   (toleranceAbsolute,toleranceRelative)
           call finder%rangeExpand (                                                             &
                &                   rangeExpandUpward            =2.0d0                        , &
@@ -163,7 +163,7 @@ contains
        tidalPullGlobal =  angularVelocity**2-tidalTensor
        activeNode      => thisNode
        ! Check for complete stripping.
-       if (Tidal_Radius_Heated_Halo_Solver(tidalRadiusTinyFraction*tidalRadius) > 0.0d0) then
+       if (Tidal_Radius_Solver(tidalRadiusTinyFraction*tidalRadius) > 0.0d0) then
           tidalRadius=0.0d0
        else
           tidalRadius=finder%find(rootGuess=tidalRadius)
@@ -180,7 +180,7 @@ contains
     return
   end function Satellite_Tidal_Stripping_Rate_Zentner2005
 
-  double precision function Tidal_Radius_Heated_Halo_Solver(radius)
+  double precision function Tidal_Radius_Solver(radius)
     !% Root function used to find the tidal radius within a subhalo.
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
@@ -193,19 +193,18 @@ contains
     double precision                                        :: enclosedMass
 
     ! Get the satellite component.
-    satelliteComponent             => activeNode%satellite()
-    enclosedMass                   =  Galactic_Structure_Enclosed_Mass(activeNode,radius)
-    Tidal_Radius_Heated_Halo_Solver=+tidalPullGlobal                    &
-         &                          -gravitationalConstantGalacticus    &
-         &                          *enclosedMass                       &
-         &                          /radius                         **3 &
-         &                          /radius                         **3 &
-         &                          *(                                  &
-         &                            +kilo                             &
-         &                            *gigaYear                         &
-         &                            /megaParsec                       &
-         &                           )                              **2
+    satelliteComponent => activeNode%satellite()
+    enclosedMass       =  Galactic_Structure_Enclosed_Mass(activeNode,radius)
+    Tidal_Radius_Solver=+tidalPullGlobal                    &
+         &              -gravitationalConstantGalacticus    &
+         &              *enclosedMass                       &
+         &              /radius                         **3 &
+         &              *(                                  &
+         &                +kilo                             &
+         &                *gigaYear                         &
+         &                /megaParsec                       &
+         &               )                              **2
     return
-  end function Tidal_Radius_Heated_Halo_Solver
+  end function Tidal_Radius_Solver
 
 end module Tidal_Stripping_Rate_Zentner2005
