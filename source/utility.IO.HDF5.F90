@@ -4361,6 +4361,7 @@ contains
     call datasetObject%assertDatasetType(H5T_NATIVE_INTEGERS,1)
 
     ! Get the dimensions of the array to be read.
+    storedDatasetID=0
     if (isReference) then
        ! This is a reference, so get the extent of the referenced region.
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
@@ -4598,6 +4599,7 @@ contains
     end if
 
     ! Check if the dataset is a reference.
+    storedDatasetID=0
     if (datasetObject%isReference()) then
        ! Mark as a reference.
        isReference=.true.
@@ -5107,6 +5109,7 @@ contains
     call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8AS,1)
 
     ! Get the dimensions of the array to be read.
+    storedDatasetID=0
     if (isReference) then
        ! This is a reference, so get the extent of the referenced region.
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
@@ -5348,6 +5351,7 @@ contains
     end if
 
     ! Check if the dataset is a reference.
+    storedDatasetID=0
     if (datasetObject%isReference()) then
        ! Mark as a reference.
        isReference=.true.
@@ -5795,6 +5799,7 @@ contains
     end if
 
     ! Check if the dataset is a reference.
+    storedDatasetID=0
     if (datasetObject%isReference()) then
        ! Mark as a reference.
        isReference=.true.
@@ -6088,6 +6093,7 @@ contains
     end if
 
     ! Check if the dataset is a reference.
+    storedDatasetID=0
     if (datasetObject%isReference()) then
        ! Mark as a reference.
        isReference=.true.
@@ -6550,6 +6556,7 @@ contains
     end if
 
     ! Check if the dataset is a reference.
+    storedDatasetID=0
     if (datasetObject%isReference()) then
        ! Mark as a reference.
        isReference=.true.
@@ -6837,6 +6844,7 @@ contains
     end if
 
     ! Check if the dataset is a reference.
+    storedDatasetID=0
     if (datasetObject%isReference()) then
        ! Mark as a reference.
        isReference=.true.
@@ -7299,6 +7307,7 @@ contains
     end if
 
     ! Check if the dataset is a reference.
+    storedDatasetID=0
     if (datasetObject%isReference()) then
        ! Mark as a reference.
        isReference=.true.
@@ -7586,6 +7595,7 @@ contains
     end if
 
     ! Check if the dataset is a reference.
+    storedDatasetID=0
     if (datasetObject%isReference()) then
        ! Mark as a reference.
        isReference=.true.
@@ -8048,6 +8058,7 @@ contains
     end if
 
     ! Check if the dataset is a reference.
+    storedDatasetID=0
     if (datasetObject%isReference()) then
        ! Mark as a reference.
        isReference=.true.
@@ -8335,6 +8346,7 @@ contains
     end if
 
     ! Check if the dataset is a reference.
+    storedDatasetID=0
     if (datasetObject%isReference()) then
        ! Mark as a reference.
        isReference=.true.
@@ -8797,6 +8809,7 @@ contains
     end if
 
     ! Check if the dataset is a reference.
+    storedDatasetID=0
     if (datasetObject%isReference()) then
        ! Mark as a reference.
        isReference=.true.
@@ -9083,6 +9096,7 @@ contains
     end if
 
     ! Check if the dataset is a reference.
+    storedDatasetID=0
     if (datasetObject%isReference()) then
        ! Mark as a reference.
        isReference=.true.
@@ -9572,6 +9586,7 @@ contains
     end if
 
     ! Check if the dataset is a reference.
+    storedDatasetID=0
     if (datasetObject%isReference()) then
        ! Mark as a reference.
        isReference=.true.
@@ -9874,6 +9889,7 @@ contains
     end if
 
     ! Check if the dataset is a reference.
+    storedDatasetID=0
     if (datasetObject%isReference()) then
        ! Mark as a reference.
        isReference=.true.

@@ -573,6 +573,9 @@ sub Generate_Deferred_Binding_Functions {
 			$functionCode .= "       ".$classFunctionName."=".$classFunctionName."Deferred(".join(",",@selfishArguments).")\n";
 		    }
 		    $functionCode .= "    else\n";
+		    if ( $type eq "double precision" ) {
+			$functionCode .= "       ".$classFunctionName."=0.0d0\n";
+		    }
 		    $functionCode .= "       call Galacticus_Error_Report('".$classFunctionName."','deferred function has not been assigned')\n";
 		    $functionCode .= "    end if\n";
 		    $functionCode .= "    return\n";
@@ -650,10 +653,16 @@ sub Generate_Deferred_Binding_Functions {
 			$functionCode .= "          ".$componentFunctionName."=self%".$parentType."%".$binding->{'method'}."(".join(",",@selflessArguments).")\n";
 		    }
 		} else {
+		    if ( $type eq "double precision" ) {
+			$functionCode .= "       ".$classFunctionName."=0.0d0\n";
+		    }
 		    $functionCode .= "          call Galacticus_Error_Report('".$componentFunctionName."','deferred function has not been assigned')\n";
 		}
 		$functionCode .= "       end if\n";
 		$functionCode .= "    class default\n";
+		if ( $type eq "double precision" ) {
+		    $functionCode .= "       ".$classFunctionName."=0.0d0\n";
+		}
 		$functionCode .= "       call Galacticus_Error_Report('".$componentFunctionName."','incorrect class - this should not happen')\n";
 		$functionCode .= "    end select\n";
 		$functionCode .= "    return\n";

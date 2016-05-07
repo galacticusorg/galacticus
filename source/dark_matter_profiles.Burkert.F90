@@ -279,9 +279,9 @@ contains
     !% Tabulates the specific angular momentum vs. radius in an Burkert profile for rapid inversion.
     implicit none
     class           (darkMatterProfileBurkert), intent(inout)           :: self
-    double precision                      , intent(in   ), optional :: specificAngularMomentum
-    integer                                                         :: iRadius
-    logical                                                         :: retabulate
+    double precision                          , intent(in   ), optional :: specificAngularMomentum
+    integer                                                             :: iRadius
+    logical                                                             :: retabulate
 
     retabulate=.not.self%burkertInverseTableInitialized
     ! If the table has not yet been made, compute and store the specific angular momenta corresponding to the minimum and maximum
@@ -323,8 +323,8 @@ contains
   end subroutine burkertInverseAngularMomentum
 
   double precision function burkertDensity(self,node,radius)
-    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
-    !% in units of Mpc).
+    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    !% {\normalfont \ttfamily radius} (given in units of Mpc).
     use Dark_Matter_Halo_Scales
     implicit none
     class           (darkMatterProfileBurkert      ), intent(inout)          :: self
@@ -609,7 +609,8 @@ contains
     implicit none
     class           (darkMatterProfileBurkert), intent(inout) :: self
     double precision                          , intent(in   ) :: concentration
-
+    !GCC$ attributes unused :: self
+    
     burkertAngularMomentumScaleFree=+(                                    &
          &                            +2.0d0*atan(      concentration   ) &
          &                            +2.0d0*log (1.0d0+concentration   ) &
@@ -629,7 +630,7 @@ contains
     !% {\normalfont \ttfamily radius} (in units of the scale radius) in an Burkert profile.
     implicit none
     class           (darkMatterProfileBurkert), intent(inout) :: self
-    double precision                      , intent(in   ) :: radius
+    double precision                          , intent(in   ) :: radius
 
     burkertSpecificAngularMomentumScaleFree=sqrt(radius*self%enclosedMassScaleFree(radius,1.0d0))
     return
@@ -682,7 +683,8 @@ contains
     implicit none
     class           (darkMatterProfileBurkert), intent(inout) :: self
     double precision                          , intent(in   ) :: concentration, radius
-
+    !GCC$ attributes unused :: self
+    
     burkertDensityScaleFree=+1.0d0                                &
          &                  /(1.0d0+radius   )                    &
          &                  /(1.0d0+radius**2)                    &
@@ -978,14 +980,15 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     implicit none
-    class           (darkMatterProfileBurkert      ), intent(inout) :: self
+    class           (darkMatterProfileBurkert  ), intent(inout) :: self
     double precision                            , intent(in   ) :: radius
     double precision                            , parameter     :: radiusSmall         =4.0d-6
     type            (c_ptr                     )                :: parameterPointer
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
     double precision                                            :: radiusEnd                  , radiusStart
-
+    !GCC$ attributes unused :: self
+    
     if (radius > radiusSmall) then
        ! Use the full solution.
        radiusStart=radius

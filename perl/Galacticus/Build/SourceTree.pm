@@ -30,6 +30,7 @@ require Galacticus::Build::SourceTree::Process::SourceIntrospection;
 require Galacticus::Build::SourceTree::Process::ObjectBuilder;
 require Galacticus::Build::SourceTree::Process::DebugHDF5;
 require Galacticus::Build::SourceTree::Process::GCCAttributes;
+require Galacticus::Build::SourceTree::Process::HDF5FCInterop;
 
 sub ParseFile {
     # Grab the file name.

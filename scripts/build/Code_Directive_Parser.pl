@@ -205,7 +205,7 @@ foreach my $directive ( keys(%includeDirectives) ) {
 	$extraDependencies .= " ".join(" ",keys(%{$otherDirectives->{$name}->{'dependency'}}))
 	    if ( exists($otherDirectives->{$name}->{'dependency'}) );
     }
-    print makefileHndl $fileName.": ".$ENV{'BUILDPATH'}."/".$directive.".xml".$extraDependencies."\n";
+    print makefileHndl $fileName.": ".$ENV{'BUILDPATH'}."/".$directive.".xml".$extraDependencies." \$(BUILDPATH)/hdf5FCInterop.dat\n";
     print makefileHndl "\t./scripts/build/Build_Include_File.pl ".$sourcedir." ".$ENV{'BUILDPATH'}."/".$directive.".xml\n";
     print makefileHndl "\n";
     open(xmlHndl,">".$ENV{'BUILDPATH'}."/".$directive.".xml.tmp");

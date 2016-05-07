@@ -99,9 +99,11 @@ double precision function Mass_Distribution_Hernquist_Density_Radial_Moment(self
   if (moment <= 0.0d0 .or. moment >= 3.0d0) then
      ! Handle cases where the moment is infinite.
      if (present(isInfinite)) then
+        Mass_Distribution_Hernquist_Density_Radial_Moment=0.0d0
         isInfinite=.true.
         return
      else
+        Mass_Distribution_Hernquist_Density_Radial_Moment=0.0d0
         call Galacticus_Error_Report('Mass_Distribution_Hernquist_Density_Radial_Moment','requested radial density moment is infinite')
      end if
   else if (                                              &

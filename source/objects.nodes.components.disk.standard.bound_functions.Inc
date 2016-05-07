@@ -24,7 +24,8 @@ subroutine Node_Component_Disk_Standard_Attach_Pipes(self)
   implicit none
   class(nodeComponentDiskStandard), intent(in   ) :: self
   type (nodeComponentHotHalo     )                :: hotHalo
-
+  !GCC$ attributes unused :: self
+  
   if (hotHalo%hotHaloCoolingMassRateIsAttached           ()) &
        call Galacticus_Error_Report('Node_Component_Disk_Standard_Attach_Pipes','expected to find unclaimed hot halo mass cooling pipe'            )
   if (hotHalo%hotHaloCoolingAngularMomentumRateIsAttached()) &
@@ -291,7 +292,8 @@ double precision function Node_Component_Disk_Standard_Surface_Density(self,posi
   type            (stellarLuminosities      ), save                    :: luminositiesDisk
   !$omp threadprivate(luminositiesDisk)
   type            (coordinateCylindrical    )                          :: position
-
+  !GCC$ attributes unused :: haloLoaded
+  
   ! Return immediately if disk component is not requested.
   Node_Component_Disk_Standard_Surface_Density=0.0d0
   if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk)) return
