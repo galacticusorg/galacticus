@@ -471,8 +471,9 @@ double precision function Mass_Distribution_Exponential_Disk_Srfc_Dnsty_Rdl_Mmnt
   double precision                                                           :: integralLow  , integralHigh
 
   ! All moments n>-1 are finite.
-  if (present(isInfinite)) isInfinite=(moment > -1.0d0)
+  if (present(isInfinite)) isInfinite=(moment <= -1.0d0)
   if (moment <= -1.0d0) then
+     Mass_Distribution_Exponential_Disk_Srfc_Dnsty_Rdl_Mmnt=0.0d0
      if (present(isInfinite)) return
      call Galacticus_Error_Report('Mass_Distribution_Exponential_Disk_Surface_Density_Radial_Moment','moment is infinite')
   end if

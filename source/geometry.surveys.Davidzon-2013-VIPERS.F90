@@ -169,6 +169,7 @@ contains
     case (2)
        davidzon2013VIPERSDistanceMaximum=3.20688538211015d0+logarithmicMass*(0.0273132827274515d0)
     case default
+       davidzon2013VIPERSDistanceMaximum=0.0d0
        call Galacticus_Error_Report('davidzon2013VIPERSDistanceMaximum','invalid redshift bin')
     end select
     ! Limit the maximum distance.

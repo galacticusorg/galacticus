@@ -249,7 +249,7 @@ c = 0.0
 GO TO 150
 
 140 rtx = SQRT(x)
-sum = derfc1(0,rtx)
+sum = nswc_derfc1(0,rtx)
 t = EXP(-x) / (rtpi*rtx)
 n = 0
 c = -0.5
@@ -292,7 +292,7 @@ RETURN
 
 180 IF (ABS(s) <= 2.0*e .AND. a*e*e > 3.28D-3) GO TO 320
 c = EXP(-y)
-w = 0.5 * derfc1(1,SQRT(y))
+w = 0.5 * nswc_derfc1(1,SQRT(y))
 u = 1.0 / a
 z = SQRT(z+z)
 IF (l < 1.0) z = -z
@@ -384,11 +384,11 @@ qans = 0.0
 RETURN
 
 290 IF (x < 0.25) THEN
-  ans = derf(SQRT(x))
+  ans = nswc_derf(SQRT(x))
   qans = 0.5 + (0.5-ans)
   RETURN
 END IF
-qans = derfc1(0,SQRT(x))
+qans = nswc_derfc1(0,SQRT(x))
 ans = 0.5 + (0.5-qans)
 RETURN
 
@@ -486,6 +486,7 @@ IF (a > 0.0) THEN
 
   ierr = 0
   xmin = xmin / e
+  b = 0._dp
   IF ((p/e) > xmin) THEN
     IF ((q/e) <= xmin) GO TO 160
     IF (a == 1.0) GO TO 100
@@ -496,13 +497,14 @@ IF (a > 0.0) THEN
     iop = 1
     IF (e > 1.D-10) iop = 2
     xn = x0
+    s=0._dp
     IF (x0 <= 0.0) THEN
 
 !        SELECTION OF THE INITIAL APPROXIMATION XN OF X
 !                       WHEN A < 1
 
       IF (a > 1.0) GO TO 30
-      g = dgamma(a+1.0)
+      g = nswc_dgamma(a+1.0)
       qg = q * g
       IF (qg == 0.0) GO TO 160
       b = qg / a
@@ -741,7 +743,7 @@ END SUBROUTINE gaminv
 
 
 
-FUNCTION derf(x) RESULT(fn_val)
+FUNCTION nswc_derf(x) RESULT(fn_val)
 !-----------------------------------------------------------------------
 !        REAL (dp) EVALUATION OF THE ERROR FUNCTION
 !-----------------------------------------------------------------------
@@ -791,7 +793,7 @@ END IF
 !                     ABS(X) > 1
 
 IF (ax < 8.5_dp) THEN
-  fn_val = 0.5_dp + (0.5_dp - EXP(-x*x)*derfc0(ax))
+  fn_val = 0.5_dp + (0.5_dp - EXP(-x*x)*nswc_derfc0(ax))
   IF (x < 0._dp) fn_val = -fn_val
   RETURN
 END IF
@@ -800,17 +802,17 @@ END IF
 
 fn_val = SIGN(1._dp,x)
 RETURN
-END FUNCTION derf
+END FUNCTION nswc_derf
 
 
 
-FUNCTION derfc1(ind, x) RESULT(fn_val)
+FUNCTION nswc_derfc1(ind, x) RESULT(fn_val)
 !--------------------------------------------------------------------
 
 !      EVALUATION OF THE COMPLEMENTARY ERROR FUNCTION
 
-!       DERFC1(IND,X) = ERFC(X)           IF IND = 0
-!       DERFC1(IND,X) = EXP(X*X)*ERFC(X)  OTHERWISE
+!       NSWC_DERFC1(IND,X) = ERFC(X)           IF IND = 0
+!       NSWC_DERFC1(IND,X) = EXP(X*X)*ERFC(X)  OTHERWISE
 
 !--------------------------------------------------------------------
 INTEGER, INTENT(IN)    :: ind
@@ -863,24 +865,24 @@ END IF
 IF (x <= 0._dp) THEN
   IF (x < -8.3_dp) GO TO 20
   IF (ind /= 0) THEN
-    fn_val = 2._dp * EXP(x*x) - derfc0(ax)
+    fn_val = 2._dp * EXP(x*x) - nswc_derfc0(ax)
     RETURN
   END IF
-  fn_val = 2._dp - EXP(-x*x) * derfc0(ax)
+  fn_val = 2._dp - EXP(-x*x) * nswc_derfc0(ax)
   RETURN
 END IF
 
 !                       X > 1
 
 IF (ind /= 0) THEN
-  fn_val = derfc0(x)
+  fn_val = nswc_derfc0(x)
   RETURN
 END IF
 fn_val = 0._dp
 IF (x > 100._dp) RETURN
 t = x * x
 IF (t > -dxparg(1)) RETURN
-fn_val = EXP(-t) * derfc0(x)
+fn_val = EXP(-t) * nswc_derfc0(x)
 RETURN
 
 !             LIMIT VALUE FOR LARGE NEGATIVE X
@@ -888,10 +890,10 @@ RETURN
 20 fn_val = 2._dp
 IF (ind /= 0) fn_val = 2._dp * EXP(x*x)
 RETURN
-END FUNCTION derfc1
+END FUNCTION nswc_derfc1
 
 
-FUNCTION derfc0(x) RESULT(fn_val)
+FUNCTION nswc_derfc0(x) RESULT(fn_val)
 !-----------------------------------------------------------------------
 REAL (dp), INTENT(IN)  :: x
 REAL (dp)              :: fn_val
@@ -1025,7 +1027,7 @@ z = (((((((((((s11*t + s10)*t + s9)*t + s8)*t + s7)*t + s6)*t + s5)*t +  &
     s4)*t + s3)*t + s2)*t + s1)*t - 0.5_dp) * t + 1._dp
 fn_val = rpinv * (z/x)
 RETURN
-END FUNCTION derfc0
+END FUNCTION nswc_derfc0
 
 
 
@@ -1345,7 +1347,7 @@ END FUNCTION dsin1
 
 
 
-FUNCTION dgamma(a) RESULT(fn_val)
+FUNCTION nswc_dgamma(a) RESULT(fn_val)
 !--------------------------------------------------------------------
 
 !             EVALUATION OF THE GAMMA FUNCTION FOR
@@ -1353,7 +1355,7 @@ FUNCTION dgamma(a) RESULT(fn_val)
 
 !                        -----------
 
-!  DGAMMA(A) IS ASSIGNED THE VALUE 0 WHEN THE GAMMA FUNCTION CANNOT
+!  NSWC_DGAMMA(A) IS ASSIGNED THE VALUE 0 WHEN THE GAMMA FUNCTION CANNOT
 !  BE COMPUTED.
 
 !--------------------------------------------------------------------
@@ -1376,7 +1378,7 @@ fn_val = 0._dp
 x = a
 IF (ABS(a) <= 20._dp) THEN
 !-----------------------------------------------------------------------
-!             EVALUATION OF DGAMMA(A) FOR ABS(A) <= 20
+!             EVALUATION OF NSWC_DGAMMA(A) FOR ABS(A) <= 20
 !-----------------------------------------------------------------------
   t = 1._dp
   n = int(x)
@@ -1423,7 +1425,7 @@ IF (ABS(a) <= 20._dp) THEN
     RETURN
   END IF
 
-!     COMPUTE DGAMMA(1 + X) FOR 0 <= X < 1
+!     COMPUTE NSWC_DGAMMA(1 + X) FOR 0 <= X < 1
 
   60 fn_val = 1._dp / (1._dp + dgam1(x))
 
@@ -1437,9 +1439,10 @@ IF (ABS(a) <= 20._dp) THEN
   RETURN
 END IF
 !-----------------------------------------------------------------------
-!           EVALUATION OF DGAMMA(A) FOR ABS(A) > 20
+!           EVALUATION OF NSWC_DGAMMA(A) FOR ABS(A) > 20
 !-----------------------------------------------------------------------
 IF (ABS(a) >= 1.d3) RETURN
+s=0._dp
 IF (a <= 0._dp) THEN
   s = dsin1(a) / pi
   IF (s == 0._dp) RETURN
@@ -1458,7 +1461,7 @@ fn_val = EXP(w)
 IF (a < 0._dp) fn_val = (1._dp/(fn_val*s)) / x
 
 RETURN
-END FUNCTION dgamma
+END FUNCTION nswc_dgamma
 
 
 
@@ -1708,7 +1711,7 @@ IF (a <= 20._dp) THEN
     fn_val = (a*EXP(t)) * (1._dp + dgam1(a))
     RETURN
   END IF
-  fn_val = EXP(t) / dgamma(a)
+  fn_val = EXP(t) / nswc_dgamma(a)
   RETURN
 END IF
 
@@ -1761,7 +1764,7 @@ IF (t > 0._dp) THEN
 
     u = ABS(d+d)
     v = t + t
-    w = derfi(u,v)
+    w = nswc_derfi(u,v)
     IF (w < 0._dp) GO TO 10
 
     ierr = 0
@@ -1781,7 +1784,7 @@ END SUBROUTINE dpni
 
 
 
-FUNCTION derfi(p, q) RESULT(fn_val)
+FUNCTION nswc_derfi(p, q) RESULT(fn_val)
 !-----------------------------------------------------------------------
 REAL (dp), INTENT(IN)  :: p, q
 REAL (dp)              :: fn_val
@@ -1791,9 +1794,9 @@ REAL (dp)              :: fn_val
 
 !                      ----------------
 
-!  FOR 0 <= P <= 1,  W = DERFI(P,Q) WHERE ERF(W) = P. IT
+!  FOR 0 <= P <= 1,  W = NSWC_DERFI(P,Q) WHERE ERF(W) = P. IT
 !  IS ASSUMED THAT Q = 1 - P. IF P < 0, Q <= 0, OR P + Q
-!  IS NOT 1, THEN DERFI(P,Q) IS SET TO A NEGATIVE VALUE.
+!  IS NOT 1, THEN NSWC_DERFI(P,Q) IS SET TO A NEGATIVE VALUE.
 
 !--------------------------------------------------------------------
 !  REFERENCE. MATHEMATICS OF COMPUTATION,OCT.1976,PP.827-830.
@@ -1858,7 +1861,7 @@ IF (p >= 0._dp .AND. q > 0._dp) THEN
     IF (eps > 1.d-19) RETURN
 
     x = fn_val
-    f = derf(x) - p
+    f = nswc_derf(x) - p
     fn_val = x - r * EXP(x*x) * f
     RETURN
   END IF
@@ -1880,7 +1883,7 @@ IF (p >= 0._dp .AND. q > 0._dp) THEN
     IF (eps > 1.d-19) RETURN
 
     x = fn_val
-    t = derfc1(1,x) - EXP(x*x) * q
+    t = nswc_derfc1(1,x) - EXP(x*x) * q
     fn_val = x + r * t
     RETURN
   END IF
@@ -1908,7 +1911,7 @@ IF (p >= 0._dp .AND. q > 0._dp) THEN
   IF (eps > 5.d-20) RETURN
 
   x = fn_val
-  t = derfc1(1,x)
+  t = nswc_derfc1(1,x)
   f = (LOG(t)-lnq) - x * x
   fn_val = x + r * t * f
   RETURN
@@ -1920,6 +1923,6 @@ fn_val = -1._dp
 RETURN
 10 fn_val = -2._dp
 RETURN
-END FUNCTION derfi
+END FUNCTION nswc_derfi
 
 END MODULE Incomplete_Gamma

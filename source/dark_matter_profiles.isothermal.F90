@@ -120,7 +120,8 @@ contains
     class           (darkMatterProfileIsothermal), intent(inout)          :: self
     type            (treeNode                   ), intent(inout), pointer :: node
     double precision                             , intent(in   )          :: radius
-
+    !GCC$ attributes unused :: self, node, radius
+    
     isothermalDensityLogSlope=-2.0d0
     return
   end function isothermalDensityLogSlope
@@ -219,7 +220,8 @@ contains
     class           (darkMatterProfileIsothermal), intent(inout)          :: self
     type            (treeNode                   ), intent(inout), pointer :: node
     double precision                             , intent(in   )          :: radius
-
+    !GCC$ attributes unused :: radius
+    
     isothermalCircularVelocity=self%scale%virialVelocity(node)
     return
   end function isothermalCircularVelocity
@@ -351,7 +353,8 @@ contains
     class           (darkMatterProfileIsothermal), intent(inout)          :: self
     type            (treeNode                   ), intent(inout), pointer :: node
     double precision                             , intent(in   )          :: time
-
+    !GCC$ attributes unused :: time
+    
     isothermalFreefallRadiusIncreaseRate=sqrt(2.0d0/Pi)*self%scale%virialVelocity(node)&
          &/Mpc_per_km_per_s_To_Gyr
     return

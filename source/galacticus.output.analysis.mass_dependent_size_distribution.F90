@@ -217,11 +217,11 @@ contains
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )               , pointer        :: cosmologyParametersObserved
-    integer         (c_size_t                      )                                :: k,jOutput
+    integer         (c_size_t                      )                                :: j,k,jOutput
     integer                                         , parameter                     :: inclinationAngleCount  =100
     integer                                         , parameter                     :: sampleStepCount        =100
     double precision                                , parameter                     :: inclinationAngleEpsilon=1.0d-3
-    integer                                                                         :: i,j,l,currentAnalysis,activeAnalysisCount,haloMassBin,iDistribution,jDistribution,sampleStep
+    integer                                                                         :: i,l,currentAnalysis,activeAnalysisCount,haloMassBin,iDistribution,jDistribution,sampleStep
     double precision                                                                :: dataHubbleParameter ,mass,massLogarithmic&
          &,massRandomError,radiusLogarithmic,radius,sizeRandomError,dataOmegaDarkEnergy,dataOmegaMatter,sersicIndexMaximum,redshift,timeMinimum,timeMaximum,distanceMinimum,distanceMaximum,xIntegrate,inclinationAngle,halfLightRadius,halfLightRadiusFaceOn,radiusLogarithmicFaceOn
     type            (varying_string                )                                :: parameterName&
@@ -839,11 +839,17 @@ contains
   !# </hdfPreCloseTask>
   subroutine Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Output
     !% Outputs SDSS $z\approx 0.07$ stellar mass function to file.
-    use Galacticus_HDF5
-    use Vectors
-    implicit none
-    integer                      :: k,m,mi,ri,mj,rj,ci,cj
-    type            (hdf5Object) :: analysisGroup,sizeFunctionGroup,thisDataset
+    use, intrinsic :: ISO_C_Binding
+    use               Galacticus_HDF5
+    use               Vectors
+    implicit none    
+    integer                      :: k
+    integer         (c_size_t  ) :: ci                , cj               , &
+         &                          ri                , rj               , &
+         &                          mi                , mj               , &
+         &                          m
+    type            (hdf5Object) :: analysisGroup     , sizeFunctionGroup, &
+         &                          thisDataset
     double precision             :: haloWeightBinTotal
 
     ! Return immediately if this analysis is not active.

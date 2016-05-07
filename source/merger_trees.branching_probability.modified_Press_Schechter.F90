@@ -585,6 +585,7 @@ contains
           ! Compute relevant sigmas and alphas.
           call cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(0.5d0*parentHaloMass,halfParentSigma,halfParentAlpha)
           ! Iterative over available bounds.
+          Modified_Press_Schechter_Branching_Probability_Bound=0.0d0
           do iBound=1,2
              ! Determine if CDM assumptions can be used. Do this only is these have been explicitly allowed, if this is our first
              ! pass through the bounds evaluation, and if both alphas are sufficiently large. (This last condition is required
@@ -659,6 +660,7 @@ contains
                          end if
                          cycle
                       else
+                         Modified_Press_Schechter_Branching_Probability_Bound=0.0d0
                          call Galacticus_Error_Report('Modified_Press_Schechter_Branching_Probability_Bound','hypergeometric function evaluation failed')
                       end if
                    end if
@@ -688,6 +690,7 @@ contains
                          end if
                          cycle
                       else
+                         Modified_Press_Schechter_Branching_Probability_Bound=0.0d0
                          call Galacticus_Error_Report('Modified_Press_Schechter_Branching_Probability_Bound','hypergeometric function evaluation failed')
                       end if
                    end if
@@ -742,7 +745,7 @@ contains
                 end if
              case default
                 Modified_Press_Schechter_Branching_Probability_Bound=-1.0d0
-               call Galacticus_Error_Report('Modified_Press_Schechter_Branching_Probability_Bound','unknown bound type')
+                call Galacticus_Error_Report('Modified_Press_Schechter_Branching_Probability_Bound','unknown bound type')
              end select
              if (statusUpper == FGSL_Success .and. statusLower == FGSL_Success) exit
           end do

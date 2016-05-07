@@ -396,6 +396,7 @@ contains
     use Numerical_Integration
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Physical
+    use Galactic_Structure_Options
     implicit none
     class           (darkMatterProfileTidallyHeated), intent(inout)           :: self
     type            (treeNode                      ), intent(inout), pointer  :: node
@@ -408,7 +409,8 @@ contains
     type            (fgsl_function                 )                          :: integrandFunction
     type            (fgsl_integration_workspace    )                          :: integrationWorkspace
     double precision                                                          :: radiusMaximum
-    
+
+    if (present(status)) status=structureErrorCodeSuccess   
     satellite => node%satellite()
     if (satellite%tidalHeatingNormalized() <= 0.0d0) then
        ! No tidal heating has occurred - fall through to the unheated profile.
@@ -751,19 +753,20 @@ contains
     else
        ! Check if unimplemented features are fatal.
        if (self%unimplementedFatal) then
+          tidallyHeatedFreefallRadiusIncreaseRate=0.0d0
           call Galacticus_Error_Report('tidallyHeatedFreefallRadiusIncreaseRate','freefall radius increase rate in tidally heated dark matter profiles is not supported')
        else
-       ! Issue a warning and then fall through to the unheated profile.
-       if (.not.tidallyHeatedFreefallRadiusIncreaseRateWarned) then
-          !$omp critical(tidallyHeatedDarkMatterProfileFreefallRadiusIncreaseRateWarn)
+          ! Issue a warning and then fall through to the unheated profile.
           if (.not.tidallyHeatedFreefallRadiusIncreaseRateWarned) then
-             call Galacticus_Display_Message('WARNING: freefall radius increase rate in tidally heated dark matter profiles is not supported - using unheated profile',verbosity=verbosityWarn)
-             tidallyHeatedFreefallRadiusIncreaseRateWarned=.true.
+             !$omp critical(tidallyHeatedDarkMatterProfileFreefallRadiusIncreaseRateWarn)
+             if (.not.tidallyHeatedFreefallRadiusIncreaseRateWarned) then
+                call Galacticus_Display_Message('WARNING: freefall radius increase rate in tidally heated dark matter profiles is not supported - using unheated profile',verbosity=verbosityWarn)
+                tidallyHeatedFreefallRadiusIncreaseRateWarned=.true.
+             end if
+             !$omp end critical(tidallyHeatedDarkMatterProfileFreefallRadiusIncreaseRateWarn)
           end if
-          !$omp end critical(tidallyHeatedDarkMatterProfileFreefallRadiusIncreaseRateWarn)
+          tidallyHeatedFreefallRadiusIncreaseRate=self%unheatedProfile%freefallRadiusIncreaseRate(node,time)
        end if
-       tidallyHeatedFreefallRadiusIncreaseRate=self%unheatedProfile%freefallRadiusIncreaseRate(node,time)
-    end if
     end if
     return
   end function tidallyHeatedFreefallRadiusIncreaseRate

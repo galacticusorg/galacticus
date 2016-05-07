@@ -669,6 +669,7 @@ contains
     self%gotHydrogenCation=(XML_Array_Length(doc,"hiiDensity") > 0)
     if (self%gotHydrogenCation) call Alloc_Array(self%densityHydrogenCation,[self%temperatureCount,self%metallicityCount])
     ! Extract data from the chemical states and populate metallicity and temperature arrays.
+    allocate(temperaturesReference(0))
     do iChemicalState=0,self%metallicityCount-1
        ! Get required chemical state.
        thisChemicalState  => item(chemicalStateList,iChemicalState)
@@ -693,6 +694,7 @@ contains
        if (self%gotHydrogenCation) call XML_Array_Read_Static(thisHydrogenCationDensity,"datum",self%densityHydrogenCation(:,iChemicalState+1))
        if (iChemicalState == 0) then
           ! Copy the temperatures so we can check subsequent temperature reads for consistency.
+          deallocate(temperaturesReference)
           temperaturesReference=self%temperatures
        else
           ! Check that temperature grids are aligned.

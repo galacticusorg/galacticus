@@ -91,7 +91,6 @@ contains
          &                                                                        localOmegaBaryon        , fileOmegaBaryon      , &
          &                                                                        fileOmegaCDM            , fileLittleH0         , &
          &                                                                        fileOmegaDE             , fileSigma8
-         &                                                                        
     
     ! Get the default cosmology.
     cosmologyParameters_ => cosmologyParameters()

@@ -256,29 +256,37 @@ contains
     !% \cite{diemer_universal_2014} algorithm.
     use Dark_Matter_Halo_Scales
     implicit none
-    class(darkMatterProfileClass                            ), pointer       :: duttonMaccio2014DarkMatterProfileDefinition
-    class(darkMatterProfileConcentrationDuttonMaccio2014    ), intent(inout) :: self
-    class(darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition
+    class  (darkMatterProfileClass                            ), pointer                     :: duttonMaccio2014DarkMatterProfileDefinition
+    class  (darkMatterProfileConcentrationDuttonMaccio2014    ), intent(inout)               :: self
+    class  (darkMatterHaloScaleVirialDensityContrastDefinition), pointer                     :: darkMatterHaloScaleDefinition
+    class  (darkMatterProfileClass                            ), allocatable  , target, save :: densityProfileDefinition
+    logical                                                                           , save :: densityProfileDefinitionInitialized=.false.
+    !$omp threadprivate(densityProfileDefinition,densityProfileDefinitionInitialized)
 
-    allocate(darkMatterHaloScaleVirialDensityContrastDefinition :: darkMatterHaloScaleDefinition)
-    select type (darkMatterHaloScaleDefinition)
-    type is (darkMatterHaloScaleVirialDensityContrastDefinition)
-       select case (self%densityProfileMethod)
-       case (duttonMaccio2014DensityProfileMethodNFW    )
-          allocate(darkMatterProfileNFW     :: duttonMaccio2014DarkMatterProfileDefinition)
-          select type (duttonMaccio2014DarkMatterProfileDefinition)
-          type is (darkMatterProfileNFW    )
-             darkMatterHaloScaleDefinition              =darkMatterHaloScaleVirialDensityContrastDefinition(self%densityContrastDefinition())
-             duttonMaccio2014DarkMatterProfileDefinition=darkMatterProfileNFW                              (darkMatterHaloScaleDefinition   )
+    if (.not.densityProfileDefinitionInitialized) then
+       allocate(darkMatterHaloScaleVirialDensityContrastDefinition :: darkMatterHaloScaleDefinition)
+       select type (darkMatterHaloScaleDefinition)
+       type is (darkMatterHaloScaleVirialDensityContrastDefinition)
+          select case (self%densityProfileMethod)
+          case (duttonMaccio2014DensityProfileMethodNFW    )
+             allocate(darkMatterProfileNFW     :: densityProfileDefinition)
+             select type (densityProfileDefinition)
+             type is (darkMatterProfileNFW    )
+                darkMatterHaloScaleDefinition=darkMatterHaloScaleVirialDensityContrastDefinition(self%densityContrastDefinition())
+                densityProfileDefinition     =darkMatterProfileNFW                              (darkMatterHaloScaleDefinition   )
+             end select
+          case (duttonMaccio2014DensityProfileMethodEinasto)
+             allocate(darkMatterProfileEinasto :: densityProfileDefinition)
+             select type (densityProfileDefinition)
+             type is (darkMatterProfileEinasto)
+                darkMatterHaloScaleDefinition=darkMatterHaloScaleVirialDensityContrastDefinition(self%densityContrastDefinition())
+                densityProfileDefinition     =darkMatterProfileEinasto                          (darkMatterHaloScaleDefinition   )
+             end select
           end select
-       case (duttonMaccio2014DensityProfileMethodEinasto)
-          allocate(darkMatterProfileEinasto :: duttonMaccio2014DarkMatterProfileDefinition)
-          select type (duttonMaccio2014DarkMatterProfileDefinition)
-          type is (darkMatterProfileEinasto)
-             darkMatterHaloScaleDefinition              =darkMatterHaloScaleVirialDensityContrastDefinition(self%densityContrastDefinition())
-             duttonMaccio2014DarkMatterProfileDefinition=darkMatterProfileEinasto                          (darkMatterHaloScaleDefinition   )
-          end select
+          call densityProfileDefinition%makeIndestructible()
        end select
-    end select
+       densityProfileDefinitionInitialized=.true.       
+    end if
+    duttonMaccio2014DarkMatterProfileDefinition => densityProfileDefinition
     return
   end function duttonMaccio2014DarkMatterProfileDefinition
