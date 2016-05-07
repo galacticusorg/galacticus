@@ -302,10 +302,12 @@ end function simulatorDifferentialEvolutionLogging
 
 subroutine simulatorDifferentialEvolutionPosterior(self,simulationState,logLikelihoodCurrent,logPriorCurrent,logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious)
   !% Return the log of the posterior for the current state.
-  use MPI_Utilities
-  use Sort
-  use Galacticus_Error
-  use Galacticus_Display
+  use, intrinsic :: ISO_C_Binding
+  use               MPI_Utilities
+  use               Sort
+  use               Galacticus_Error
+  use               Galacticus_Display
+  use               Kind_Numbers
   implicit none
   class           (simulatorDifferentialEvolution), intent(inout)               :: self
   class           (state                         ), intent(inout)               :: simulationState
@@ -317,8 +319,8 @@ subroutine simulatorDifferentialEvolutionPosterior(self,simulationState,logLikel
   double precision                                , dimension(:  ), allocatable :: timesEvaluate         , nodeWork                , &
        &                                                                           stateVectorSelf       , timesEvaluateActual
   double precision                                , dimension(:,:), allocatable :: stateVectorWork
-  integer                                         , dimension(:  ), allocatable :: processToProcess      , processFromProcess      , &
-       &                                                                           timesEvaluateOrder    , nodeWorkOrder
+  integer                                         , dimension(:  ), allocatable :: processToProcess      , processFromProcess
+  integer         (c_size_t                      ), dimension(:  ), allocatable :: timesEvaluateOrder    , nodeWorkOrder
   integer                                         , dimension(1  )              :: chainIndexSelf
   integer                                         , dimension(1,1)              :: chainIndexWork
   double precision                                , dimension(1,1)              :: logLikelihoodSelf     , logLikelihoodCurrentWork, &
@@ -376,7 +378,7 @@ subroutine simulatorDifferentialEvolutionPosterior(self,simulationState,logLikel
            do processTrial=0,mpiSelf%count()-1
               if (mpiSelf%nodeAffinity(processTrial) == nodeWorkOrder(nodeTrial) .and. .not.any(processToProcess == processTrial)) then
                  processToProcess  (timesEvaluateOrder(i))=processTrial
-                 processFromProcess(processTrial)=timesEvaluateOrder(i)
+                 processFromProcess(processTrial)=int(timesEvaluateOrder(i),kind_int4)
                  nodeWork(nodeWorkOrder(nodeTrial))=nodeWork(nodeWorkOrder(nodeTrial))+timesEvaluate(timesEvaluateOrder(i))
                  exit
               end if

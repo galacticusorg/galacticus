@@ -68,6 +68,7 @@ subroutine likelihoodMultivariateNormalFunctionChanged(self)
   !% Respond to possible changes in the likelihood function.
   implicit none
   class(likelihoodMultivariateNormal), intent(inout) :: self
+  !GCC$ attributes unused :: self
   
   return
 end subroutine likelihoodMultivariateNormalFunctionChanged

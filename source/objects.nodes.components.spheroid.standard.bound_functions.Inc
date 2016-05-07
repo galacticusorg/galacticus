@@ -48,7 +48,8 @@ double precision function Node_Component_Spheroid_Standard_Enclosed_Mass(self,ra
   logical                                        , intent(in   ), optional :: haloLoaded
   double precision                                                         :: fractionalRadius, spheroidRadius
   type            (stellarLuminosities          )                          :: luminositiesSpheroid
-
+  !GCC$ attributes unused :: haloLoaded
+  
   ! Return if the spheroid component is not selected.
   Node_Component_Spheroid_Standard_Enclosed_Mass=0.0d0
   if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
@@ -93,7 +94,8 @@ double precision function Node_Component_Spheroid_Standard_Rotation_Curve(self,r
   double precision                               , intent(in   )           :: radius
   logical                                        , intent(in   ), optional :: haloLoaded
   double precision                                                         :: componentMass
-
+  !GCC$ attributes unused :: haloLoaded
+  
   ! Set to zero by default.
   Node_Component_Spheroid_Standard_Rotation_Curve=0.0d0
 
@@ -154,6 +156,7 @@ double precision function Node_Component_Spheroid_Standard_Density(self,position
   logical                                        , intent(in   ), optional :: haloLoaded
   type            (coordinateSpherical          )                          :: position
   type            (stellarLuminosities          )                          :: luminositiesSpheroid
+  !GCC$ attributes unused :: haloLoaded
 
   Node_Component_Spheroid_Standard_Density=0.0d0
   if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
@@ -206,7 +209,8 @@ double precision function Node_Component_Spheroid_Standard_Potential(self,radius
   integer                                        , intent(inout), optional :: status
   double precision                                                         :: componentMass
   type            (coordinateSpherical          )                          :: position
-
+  !GCC$ attributes unused :: status
+  
   ! Set to zero by default.
   Node_Component_Spheroid_Standard_Potential=0.0d0
 
@@ -215,8 +219,8 @@ double precision function Node_Component_Spheroid_Standard_Potential(self,radius
 
   ! Get the spheroid component and check that it is of the standard class.
   select type (self)
-     class is (nodeComponentSpheroidStandard)
-        ! Compute if a spheroid is present.
+  class is (nodeComponentSpheroidStandard)
+     ! Compute if a spheroid is present.
      componentMass=self%enclosedMass(radiusLarge,componentType,massType,weightByMass&
           &,weightIndexNull,haloLoaded)
      if (componentMass > 0.0d0 .and. self%radius() > 0.0d0) then

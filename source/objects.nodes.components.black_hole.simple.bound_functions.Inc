@@ -25,7 +25,8 @@ double precision function Node_Component_Black_Hole_Simple_Seed_Mass(self)
   class           (nodeComponentBlackHoleSimple), intent(inout) :: self
   logical                                       , save          :: functionInitialized=.false.
   double precision                              , save          :: blackHoleSeedMass
-
+  !GCC$ attributes unused :: self
+  
   if (.not.functionInitialized) then
      !$omp critical (Node_Component_Black_Hole_Simple_Seed_Mass)
      if (.not.functionInitialized) then
@@ -60,7 +61,8 @@ double precision function Node_Component_Black_Hole_Simple_Enclosed_Mass(self,ra
   integer                                       , intent(in   )           :: componentType, massType, weightBy, weightIndex
   double precision                              , intent(in   )           :: radius
   logical                                       , intent(in   ), optional :: haloLoaded
-
+  !GCC$ attributes unused :: weightIndex, haloLoaded
+  
   ! Set zero enclosed mass by default.
   Node_Component_Black_Hole_Simple_Enclosed_Mass=0.0d0
   ! Return the black hole mass only if massType and componentType are of black hole type.

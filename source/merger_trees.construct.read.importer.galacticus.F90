@@ -549,11 +549,15 @@ contains
        self%length      %isSet=.true.
        self%lengthStatus%isSet=.true.
     end if
-    if (self%lengthStatus%value == booleanTrue) galacticusCubeLength=importerUnitConvert(self%length%value,time,self%lengthUnit,megaParsec)
+    if (self%lengthStatus%value == booleanTrue) then
+       galacticusCubeLength=importerUnitConvert(self%length%value,time,self%lengthUnit,megaParsec)
+    else
+       galacticusCubeLength=0.0d0
+    end if
     if (present(status)) then
        status=self%lengthStatus%value
     else
-    if (self%lengthStatus%value == booleanFalse) call Galacticus_Error_Report('galacticusCubeLength','the boxSize attribute of the simulation group is required')
+       if (self%lengthStatus%value == booleanFalse) call Galacticus_Error_Report('galacticusCubeLength','the boxSize attribute of the simulation group is required')
     end if
     return
   end function galacticusCubeLength

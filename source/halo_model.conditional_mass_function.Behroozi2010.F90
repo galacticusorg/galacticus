@@ -281,6 +281,7 @@ contains
   double precision function behroozi2010MassFunction(self,massHalo,mass,galaxyType)
     !% Compute the cumulative conditional mass function, $\langle N(M_\star|M_{\mathrm halo}) \rangle \equiv
     !% \phi(M_\star|M_{\mathrm halo})$ using the fitting formula of \cite{behroozi_comprehensive_2010}.
+    use Galacticus_Error
     implicit none
     class           (conditionalMassFunctionBehroozi2010), intent(inout)           :: self
     double precision                                     , intent(in   )           :: massHalo        , mass
@@ -305,6 +306,9 @@ contains
        behroozi2010MassFunction=numberCentrals
     case (haloModelGalaxyTypeSatellite)
        behroozi2010MassFunction=               numberSatellites
+    case default
+       behroozi2010MassFunction=0.0d0
+       call Galacticus_Error_Report('behroozi2010MassFunction','unknown galaxy type')
     end select
     return
   end function behroozi2010MassFunction
@@ -315,10 +319,10 @@ contains
     !% satellite galaxies is Poisson distributed, while the number of central galaxies follows a Bernoulli distribution, and that
     !% the numbers of satellites and centrals are uncorrelated.
     implicit none
-    class           (conditionalMassFunctionBehroozi2010), intent(inout)           :: self
-    double precision                                     , intent(in   )           :: massHalo        , massHigh     , massLow
-    double precision                                                               :: numberCentrals  , numberCentralsHigh  , numberCentralsLow  , &
-         &                                                                            numberSatellites, numberSatellitesHigh, numberSatellitesLow
+    class           (conditionalMassFunctionBehroozi2010), intent(inout) :: self
+    double precision                                     , intent(in   ) :: massHalo        , massHigh            , massLow
+    double precision                                                     :: numberCentrals  , numberCentralsHigh  , numberCentralsLow  , &
+         &                                                                  numberSatellites, numberSatellitesHigh, numberSatellitesLow
 
     ! Get the number of satellites and centrals.
     call self%compute(massHalo,massLow ,numberCentralsLow ,numberSatellitesLow )
