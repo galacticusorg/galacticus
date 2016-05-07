@@ -140,7 +140,8 @@ contains
     !% Return the number of fields in this sample.
     implicit none
     class(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     moustakas2013PRIMUSFieldCount=moustakas2013PRIMUSFields
     return
   end function moustakas2013PRIMUSFieldCount
@@ -272,7 +273,8 @@ contains
     !% Return the maximum degree for which angular power is computed for the \cite{moustakas_primus:_2013} survey.
     implicit none
     class(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     moustakas2013PRIMUSAngularPowerMaximumDegree=moustaskas2013AngularPowerMaximumL
     return
   end function moustakas2013PRIMUSAngularPowerMaximumDegree

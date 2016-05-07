@@ -28,28 +28,27 @@ module ODE_Solver
 contains
 
   subroutine ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,x0,x1,yCount,y,odeFunction,parameterPointer&
-       &,toleranceAbsolute,toleranceRelative,Error_Analyzer,yScale,reset)
+       &,toleranceAbsolute,toleranceRelative,yScale,reset)
     !% Interface to the GNU Scientific Library ODEIV differential equation solvers.
     use Galacticus_Error
     use, intrinsic :: ISO_C_Binding
     implicit none
-    double precision                    , intent(in   )                    :: toleranceAbsolute              , toleranceRelative              , x1
-    type            (c_ptr             ), intent(in   )                    :: parameterPointer
-    integer                             , intent(in   )                    :: yCount
-    double precision                    , intent(inout)                    :: x0                             , y                (yCount)
-    double precision                    , intent(in   ), optional          :: yScale           (yCount)
-    type            (fgsl_odeiv_step   ), intent(inout)                    :: odeStepper
-    type            (fgsl_odeiv_control), intent(inout)                    :: odeController
-    type            (fgsl_odeiv_evolve ), intent(inout)                    :: odeEvolver
-    type            (fgsl_odeiv_system ), intent(inout)                    :: odeSystem
-    logical                             , intent(inout), optional          :: reset
-    procedure       (                  )               , optional, pointer :: Error_Analyzer
-    integer         (kind=4            ), external                         :: odeFunction
-    double precision                    , parameter                        :: dydtScaleUniform         =0.0d0, yScaleUniform            =1.0d0
-    integer                                                                :: status
-    integer         (kind=c_size_t     )                                   :: odeNumber
-    double precision                                                       :: h                              , x                              , x1Internal
-    logical                                                                :: forwardEvolve                  , resetActual
+    double precision                    , intent(in   )           :: toleranceAbsolute              , toleranceRelative              , x1
+    type            (c_ptr             ), intent(in   )           :: parameterPointer
+    integer                             , intent(in   )           :: yCount
+    double precision                    , intent(inout)           :: x0                             , y                (yCount)
+    double precision                    , intent(in   ), optional :: yScale           (yCount)
+    type            (fgsl_odeiv_step   ), intent(inout)           :: odeStepper
+    type            (fgsl_odeiv_control), intent(inout)           :: odeController
+    type            (fgsl_odeiv_evolve ), intent(inout)           :: odeEvolver
+    type            (fgsl_odeiv_system ), intent(inout)           :: odeSystem
+    logical                             , intent(inout), optional :: reset
+    integer         (kind=4            ), external                :: odeFunction
+    double precision                    , parameter               :: dydtScaleUniform         =0.0d0, yScaleUniform            =1.0d0
+    integer                                                       :: status
+    integer         (kind=c_size_t     )                          :: odeNumber
+    double precision                                              :: h                              , x                              , x1Internal
+    logical                                                       :: forwardEvolve                  , resetActual
 
     ! Number of ODEs to solve.
     odeNumber=yCount

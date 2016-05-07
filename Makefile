@@ -93,7 +93,7 @@ CPPCOMPILER_VERSION = `$(CPPCOMPILER) -v 2>&1`
 # module - this will lead to circular dependency problems as Make becomes confused about how to
 # build the module file.
 vpath %.F90 source
-$(BUILDPATH)/%.p.F90 : source/%.F90
+$(BUILDPATH)/%.p.F90 : source/%.F90 $(BUILDPATH)/hdf5FCInterop.dat
 	scripts/build/preprocess.pl source/$*.F90 $(BUILDPATH)/$*.p.F90
 $(BUILDPATH)/%.o : $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
 	@mlist=`cat $(BUILDPATH)/$*.m` ; \
@@ -126,6 +126,12 @@ $(BUILDPATH)/%.o : $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUIL
 	 fi \
 	done
 
+# Rules for building HDF5 C interoperability types data file.
+$(BUILDPATH)/hdf5FCInterop.dat : $(BUILDPATH)/hdf5FCInterop.exe
+	$(BUILDPATH)/hdf5FCInterop.exe > $(BUILDPATH)/hdf5FCInterop.dat
+$(BUILDPATH)/hdf5FCInterop.exe : source/hdf5FCInterop.F90
+	$(FCCOMPILER) source/hdf5FCInterop.F90 -o $(BUILDPATH)/hdf5FCInterop.exe $(FCFLAGS)
+
 # Object (*.o) files are built by compiling C (*.c) source files.
 vpath %.c source
 $(BUILDPATH)/%.o : %.c $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
@@ -151,10 +157,10 @@ $(BUILDPATH)/pFq/pfq.new.o : ./source/pFq/pfq.new.f Makefile
 
 # Rule for running *.Inc files through the preprocessor. We strip out single quote characters in comment lines to avoid spurious
 # complaints from the preprocessor.
-$(BUILDPATH)/%.Inc : ./source/%.Inc
+$(BUILDPATH)/%.Inc : ./source/%.Inc $(BUILDPATH)/hdf5FCInterop.dat
 	scripts/build/preprocess.pl ./source/$*.Inc $(BUILDPATH)/$*.Inc
 $(BUILDPATH)/%.inc : $(BUILDPATH)/%.Inc Makefile
-	perl -MRegexp::Common -ne '$$l=$$_;if ( $$l =~ m/($$RE{comment}{Fortran})/ ) {($$m = $$1) =~ s/(?<!\\)'\''//g; $$l =~ s/$$RE{comment}{Fortran}/$$m/}; print $$l' $< | $(PREPROCESSOR) -nostdinc -C -o $(BUILDPATH)/$*.tmp
+	perl -MRegexp::Common -ne '$$l=$$_;$$l =~ s/($$RE{comment}{Fortran}{-keep})/\/\*$$4\*\/$$5/; print $$l' $< | cpp -nostdinc -C | perl -MRegexp::Common -ne '$$l=$$_;$$l =~ s/($$RE{comment}{C}{-keep})/!$$4/; print $$l' > $(BUILDPATH)/$*.tmp
 	mv -f $(BUILDPATH)/$*.tmp $(BUILDPATH)/$*.inc
 
 # Dependency files (*.d) are created as empty files by default. Normally this rule is overruled by a specific set of rules in the
@@ -324,5 +330,11 @@ source/FFTlog/fftlog.f:
 	 touch source/FFTlog/drfftb.f; \
 	 touch source/FFTlog/drfftf.f; \
 	 touch source/FFTlog/drffti.f; \
+	else
+	 cd source/FFTlog
+	 patch < ../drfftb.f.patch
+	 patch < ../drfftf.f.patch
+	 patch < ../drffti.f.patch
+	 cd -
 	fi
 

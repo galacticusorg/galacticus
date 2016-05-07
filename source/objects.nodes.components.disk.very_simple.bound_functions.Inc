@@ -24,7 +24,8 @@ subroutine Node_Component_Disk_Very_Simple_Attach_Pipe(self)
   implicit none
   class(nodeComponentDiskVerySimple), intent(in   ) :: self
   type (nodeComponentHotHalo       )                :: hotHalo
-
+  !GCC$ attributes unused :: self
+  
   if (hotHalo%hotHaloCoolingMassRateIsAttached()) &
        & call Galacticus_Error_Report('Node_Component_Disk_Very_Simple_Attach_Pipes','expected to find unclaimed hot halo mass cooling pipe')
   call hotHalo%hotHaloCoolingMassRateFunction(DiskVerySimpleMassGasRateGeneric)
@@ -40,7 +41,8 @@ double precision function Node_Component_Disk_Very_Simple_Enclosed_Mass(self,rad
   integer                                      , intent(in   )           :: componentType, massType, weightBy, weightIndex
   double precision                             , intent(in   )           :: radius
   logical                                      , intent(in   ), optional :: haloLoaded
-
+  !GCC$ attributes unused :: haloLoaded, weightIndex
+  
   ! Return zero mass if the mass and component types do not match.
   Node_Component_Disk_Very_Simple_Enclosed_Mass=0.0d0
   if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk)) return

@@ -247,10 +247,10 @@ contains
     integer                                , intent(in   )          :: accretionMode
     double precision                                                :: massAccretionRate
 
-    ! Return immediately if no chemicals are being tracked.
-    if (simpleChemicalsCount == 0) return
     ! Ensure that chemicals are reset to zero.
     call coldModeAccretionRateChemicals%reset()
+    ! Return immediately if no chemicals are being tracked.
+    if (simpleChemicalsCount == 0) return
     ! Get the total mass accretion rate onto the halo.
     massAccretionRate=self%accretionRate(node,accretionMode)
     ! Get the mass accretion rates.
@@ -269,10 +269,10 @@ contains
     integer                                , intent(in   )          :: accretionMode
     double precision                                                :: massAccreted
 
-    ! Return immediately if no chemicals are being tracked.
-    if (simpleChemicalsCount == 0) return
     ! Ensure that chemicals are reset to zero.
     call coldModeAccretedMassChemicals%reset()
+    ! Return if no chemicals are being tracked.
+    if (simpleChemicalsCount == 0) return
     ! Total mass of material accreted.
     massAccreted=self%accretedMass(node,accretionMode)
     ! Get the masses of chemicals accreted.
@@ -482,6 +482,9 @@ contains
           coldModeColdModeFraction=1.0d0
           call Galacticus_Error_Report('coldModeColdModeFraction','unknown accretion mode - this should not happen')
        end select
+    case default
+       coldModeColdModeFraction=1.0d0
+       call Galacticus_Error_Report('coldModeColdModeFraction','unknown accretion mode - this should not happen')  
     end select
     return
   end function coldModeColdModeFraction

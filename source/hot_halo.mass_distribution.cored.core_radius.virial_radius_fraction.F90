@@ -29,7 +29,6 @@
      private
      double precision :: coreRadiusOverVirialRadius
    contains
-     final     ::           virialFractionDestructor
      procedure :: radius => virialFractionRadius
   end type hotHaloMassDistributionCoreRadiusVirialFraction
 
@@ -80,15 +79,6 @@ contains
     virialFractionConstructor%coreRadiusOverVirialRadius=coreRadiusOverVirialRadius
    return
   end function virialFractionConstructor
-
-  elemental subroutine virialFractionDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily virialFraction} hot halo mass distribution class.
-    implicit none
-    type(hotHaloMassDistributionCoreRadiusVirialFraction), intent(inout) :: self
-
-    ! Nothing to do.
-    return
-  end subroutine virialFractionDestructor
 
   double precision function virialFractionRadius(self,node)
     !% Return the core radius of the hot halo mass distribution.

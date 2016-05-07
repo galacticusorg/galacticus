@@ -66,27 +66,22 @@ sub FunctionGlobal_Establish_Generate_Output {
 sub FunctionGlobal_Pointers_Generate_Output {
     # Generate output for a "functionGlobalPointers" directive.
     my $buildData = shift;
-
     # Assert that we have a file name.
     die("Galacticus::Build::FunctionGlobal::FunctionGlobal_Pointers_Parse_Directive: no fileName present"      )
 	unless ( exists($buildData->{'fileName'}) );
-
     # Generate a timestamp.
     my $dt = DateTime->now->set_time_zone('local');
     (my $tz = $dt->format_cldr("ZZZ")) =~ s/(\d{2})(\d{2})/$1:$2/;
     my $now = $dt->ymd."T".$dt->hms.".".$dt->format_cldr("SSS").$tz;
-
     # Add a header.
     $buildData->{'content'}  = "! Generated automatically by Galacticus::Build::FunctionGlobal\n";
     $buildData->{'content'} .= "!  From: ".$buildData->{'fileName'}."\n";
     $buildData->{'content'} .= "!  Time: ".$now."\n";
-
     # Output pointer definitions.
     foreach ( keys(%{$buildData->{'functionGlobals'}}) ) {
 	$buildData->{'content'} .= "procedure(".$buildData->{'functionGlobals'}->{$_}->{'name'}."_Null), pointer :: ".$buildData->{'functionGlobals'}->{$_}->{'name'}."_ => ".$buildData->{'functionGlobals'}->{$_}->{'name'}."_Null\n";
     }
     $buildData->{'content'} .= "\ncontains\n\n";
-
     # Output pointer definitions.
     foreach ( keys(%{$buildData->{'functionGlobals'}}) ) {
 	my $opener = "subroutine";
@@ -107,15 +102,12 @@ sub FunctionGlobal_Pointers_Generate_Output {
 	    $buildData->{'content'} .= "  ".$_."\n";
 	}
 	$buildData->{'content'} .= "  !GCC\$ attributes unused :: ".join(",",@names)."\n";
+	if ( $buildData->{'functionGlobals'}->{$_}->{'type'} eq "double precision" ) {
+	    $buildData->{'content'} .= "  ".$buildData->{'functionGlobals'}->{$_}->{'name'}."_Null=0.0d0\n";
+	}
 	$buildData->{'content'} .= "  call Galacticus_Error_Report('".$buildData->{'functionGlobals'}->{$_}->{'name'}."_Null','global functions have not been initialized')\n";
 	$buildData->{'content'} .= " end ".$closer." ".$buildData->{'functionGlobals'}->{$_}->{'name'}."_Null\n";
-
     }
-
-
-
-
-
 }
 
 1;
