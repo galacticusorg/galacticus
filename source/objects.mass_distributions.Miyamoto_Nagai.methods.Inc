@@ -379,6 +379,7 @@ double precision function Mass_Distribution_Miyamoto_Nagai_Srfc_Dnsty_Rdl_Mmnt(s
        &  .or.                                                                 &
        &   (moment >=  2.0d0 .and. .not.present(radiusMaximum      )         ) &
        & ) then
+     Mass_Distribution_Miyamoto_Nagai_Srfc_Dnsty_Rdl_Mmnt=0.0d0
      if (present(isInfinite)) then
         isInfinite=.true.
         return

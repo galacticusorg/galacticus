@@ -44,7 +44,6 @@ program Test_DiemerKravtsov2014_Concentration
        &                                                                         redshift                       , nu                  , &
        &                                                                         differenceFractionalMaximum
   integer                                                                     :: referenceUnit                  , ioStatus
-       &                                                                         
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.DiemerKravtsov2014_concentration.size')

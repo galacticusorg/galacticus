@@ -118,8 +118,8 @@ contains
     ! Set up origin.
     origin=([0.5d0,0.5d0,0.0d0]/dble(gridCount)+[0.5d0,0.5d0,0.5d0])*dble(boxLength)
     ! Populate the cube with the survey selection function.
-    selectionFunction1=cmplx(0.0d0,0.0d0)
-    selectionFunction2=cmplx(0.0d0,0.0d0)
+    selectionFunction1=dcmplx(0.0d0,0.0d0)
+    selectionFunction2=dcmplx(0.0d0,0.0d0)
     ! Loop over randoms.
     do i=1,size(self%randomPhi)
        ! Choose random distances.

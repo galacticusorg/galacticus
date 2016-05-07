@@ -373,7 +373,8 @@ contains
     class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
     double precision                                                         :: alpha                         , radiusOverScaleRadius      , &
          &                                                                      scaleRadius
-
+    !GCC$ attributes unused :: self
+    
     ! Get components.
     thisBasicComponent             => node%basic            (                 )
     thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
@@ -1039,7 +1040,8 @@ contains
     implicit none
     class           (darkMatterProfileEinasto), intent(inout) :: self
     double precision                          , intent(in   ) :: alpha, concentration, radius
-
+    !GCC$ attributes unused :: self
+    
     if (radius >= concentration) then
        einastoEnclosedMassScaleFree=1.0d0
     else
@@ -1059,7 +1061,8 @@ contains
     class           (darkMatterProfileEinasto), intent(inout) :: self
     double precision                          , intent(in   ) :: alpha               , concentration, radius
     double precision                                          :: densityNormalization
-
+    !GCC$ attributes unused :: self
+    
     densityNormalization= (alpha/4.0d0/Pi)                                                                      &
          &               *    ((2.0d0/alpha)                   **(3.0d0/alpha)                                ) &
          &               *exp(-2.0d0/alpha                                                                   ) &
@@ -1076,7 +1079,8 @@ contains
     implicit none
     class           (darkMatterProfileEinasto), intent(inout) :: self
     double precision                          , intent(in   ) :: alpha, concentration, radius
-
+    !GCC$ attributes unused :: self
+    
     if (radius <= 0.0d0) then
        einastoPotentialScaleFree=                                                                    &
             & -((2.0d0/alpha)**(1.0d0/alpha))                                                        &

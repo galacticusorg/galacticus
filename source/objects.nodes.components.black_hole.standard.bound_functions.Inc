@@ -25,7 +25,8 @@ double precision function Node_Component_Black_Hole_Standard_Seed_Mass(self)
   class           (nodeComponentBlackHoleStandard), intent(inout) :: self
   logical                                         , save          :: functionInitialized=.false.
   double precision                                , save          :: blackHoleSeedMass
-
+  !GCC$ attributes unused :: self
+  
   if (.not.functionInitialized) then
      !$omp critical (Node_Component_Black_Hole_Standard_Seed_Mass)
      if (.not.functionInitialized) then
@@ -57,7 +58,8 @@ double precision function Node_Component_Black_Hole_Standard_Seed_Spin(self)
   use Input_Parameters
   implicit none
   class(nodeComponentBlackHoleStandard), intent(inout) :: self
-
+  !GCC$ attributes unused :: Self
+  
   Node_Component_Black_Hole_Standard_Seed_Spin=1.0d-3
   return
 end function Node_Component_Black_Hole_Standard_Seed_Spin

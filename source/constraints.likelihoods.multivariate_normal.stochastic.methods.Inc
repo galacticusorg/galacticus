@@ -60,7 +60,7 @@ double precision function likelihoodMultivariateNormalStochasticEvaluate(self,si
        &                                                                                   realizationCount
   double precision                                                                      :: temperatureEffective , likelihoodEffective    , &
        &                                                                                   logDeterminant
-  !GCC$ attributes unused :: self, logLikelihoodCurrent
+  !GCC$ attributes unused :: self, logLikelihoodCurrent, logPriorCurrent, logPriorProposed, simulationConvergence, timeEvaluate
 
   ! Report zero variance, as this class is designed specifically for testing for unaccounted-for randomness in the likelihood
   ! estimate.
@@ -128,6 +128,7 @@ subroutine likelihoodMultivariateNormalStochasticFunctionChanged(self)
   !% Respond to possible changes in the likelihood function.
   implicit none
   class(likelihoodMultivariateNormalStochastic), intent(inout) :: self
+  !GCC$ attributes unused :: self
   
   return
 end subroutine likelihoodMultivariateNormalStochasticFunctionChanged

@@ -506,6 +506,8 @@ function likelihoodGaussianRegressionVariogramModelF(x, parameters) bind(c)
   real(c_double) :: likelihoodGaussianRegressionVariogramModelF
   type(FGSL_vector) :: vec
   integer(FGSL_int) :: status
+  !GCC$ attributes unused :: parameters
+  
   call FGSL_obj_c_ptr(vec, x)
   status = FGSL_vector_align(xx, vec)
   
@@ -519,6 +521,7 @@ function likelihoodGaussianRegressionVariogramModelF(x, parameters) bind(c)
      end where
      likelihoodGaussianRegressionVariogramModelF=sum((xx(1)+xx(2)*(1.5d0*separationsLimited/xx(3)-0.5d0*(separationsLimited/xx(3))**3)-semiVariancesNormalized)**2)
   end if
+  return
 end function likelihoodGaussianRegressionVariogramModelF
 
 subroutine likelihoodGaussianRegressionVariogramModelD(x, parameters, df) bind(c)
@@ -528,6 +531,7 @@ subroutine likelihoodGaussianRegressionVariogramModelD(x, parameters, df) bind(c
   type(FGSL_vector) :: vec, grad
   real(c_double), pointer, dimension(:) :: xx,ddf
   integer(FGSL_int) :: status  
+  !GCC$ attributes unused :: parameters
   
    call FGSL_obj_c_ptr(vec, x)
    call FGSL_obj_c_ptr(grad, df)

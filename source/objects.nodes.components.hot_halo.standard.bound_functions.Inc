@@ -25,6 +25,7 @@ subroutine Node_Component_Hot_Halo_Standard_Mass_Removal_Rate(self,massRemovalRa
   implicit none
   class          (nodeComponentHotHaloStandard), intent(inout) :: self
   double precision                             , intent(in   ) :: massRemovalRate
+  !GCC$ attributes unused :: self, massRemovalRate
   
   return
 end subroutine Node_Component_Hot_Halo_Standard_Mass_Removal_Rate

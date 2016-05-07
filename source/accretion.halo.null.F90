@@ -45,8 +45,9 @@ contains
     implicit none
     class(accretionHaloNull), intent(inout)          :: self
     type (treeNode         ), intent(inout), pointer :: node
-
-   nullBranchHasBaryons=.false.
+    !GCC$ attributes unused :: self, node
+    
+    nullBranchHasBaryons=.false.
     return
   end function nullBranchHasBaryons
 

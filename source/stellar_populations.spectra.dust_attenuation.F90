@@ -41,13 +41,19 @@ module Stellar_Spectra_Dust_Attenuations
   !#   <description>Return true if the attenuation may depend on the age of the stellar population.</description>
   !#   <type>logical</type>
   !#   <pass>yes</pass>
-  !#   <code>stellarSpectraDustAttenuationIsAgeDependent=.false.</code>
+  !#   <code>
+  !#    !GCC$ attributes unused :: self
+  !#    stellarSpectraDustAttenuationIsAgeDependent=.false.
+  !#   </code>
   !#  </method>
   !#  <method name="isSeparable" >
   !#   <description>Return true if the attenuation is separable into a product of functions of wavelength, age, and V-band attenuation.</description>
   !#   <type>logical</type>
   !#   <pass>yes</pass>
-  !#   <code>stellarSpectraDustAttenuationIsSeparable=.true.</code>
+  !#   <code>
+  !#    !GCC$ attributes unused :: self
+  !#    stellarSpectraDustAttenuationIsSeparable=.true.
+  !#   </code>
   !#  </method>
   include 'stellarSpectraDustAttenuation.type.inc'
   !# </include>
