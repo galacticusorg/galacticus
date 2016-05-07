@@ -427,18 +427,14 @@ contains
     integer                              , intent(in   )          :: accretionMode
     double precision                                              :: massAccretionRate
 
-    ! Return immediately if no chemicals are being tracked.
-    if (simpleChemicalsCount == 0) return
-
     ! Ensure that chemicals are reset to zero.
     call simpleAccretionRateChemicals%reset()
-
+    ! Return immediately if no chemicals are being tracked.
+    if (simpleChemicalsCount == 0) return
     ! Get the total mass accretion rate onto the halo.
     massAccretionRate=simpleAccretionRate(self,node,accretionMode)
-
     ! Get the mass accretion rates.
     simpleAccretionRateChemicals=simpleChemicalMasses(self,node,massAccretionRate)
-
     return
   end function simpleAccretionRateChemicals
 
@@ -453,18 +449,15 @@ contains
     integer                              , intent(in   )          :: accretionMode
     double precision                                              :: massAccreted
 
-    ! Return immediately if no chemicals are being tracked.
-    if (simpleChemicalsCount == 0) return
 
     ! Ensure that chemicals are reset to zero.
     call simpleAccretedMassChemicals%reset()
-
+    ! Return if no chemicals are being tracked.
+    if (simpleChemicalsCount == 0) return
     ! Total mass of material accreted.
     massAccreted=simpleAccretedMass(self,node,accretionMode)
-
     ! Get the masses of chemicals accreted.
     simpleAccretedMassChemicals=simpleChemicalMasses(self,node,massAccreted)
-
     return
   end function simpleAccretedMassChemicals
 

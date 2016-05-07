@@ -67,7 +67,10 @@ module Virial_Density_Contrast
   !#   <description>Returns true if the virial density contrast is mass-dependent.</description>
   !#   <type>logical</type>
   !#   <pass>yes</pass>
-  !#   <code>virialDensityContrastIsMassDependent=.false.</code>
+  !#   <code>
+  !#    !GCC$ attributes unused :: self
+  !#    virialDensityContrastIsMassDependent=.false.
+  !#   </code>
   !#  </method>
   include 'virialDensityContrast.type.inc'
   !# </include>

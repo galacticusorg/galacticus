@@ -474,6 +474,7 @@ contains
     call Alloc_Array(self%temperatures        ,[self%temperatureCount                      ])
     call Alloc_Array(self%coolingFunctionTable,[self%temperatureCount,self%metallicityCount])
     ! Extract data from the cooling functions and populate metallicity and temperature arrays.
+    allocate(temperaturesReference(0))
     do iCoolingFunction=0,self%metallicityCount-1
        ! Get required cooling function.
        thisCoolingFunction => item(coolingFunctionList,iCoolingFunction)
@@ -504,10 +505,11 @@ contains
             &                         )
        if (iCoolingFunction == 0) then
           ! Make a copy of the temperatures to use as a reference for future temperature reads.
+          deallocate(temperaturesReference)
           temperaturesReference=self%temperatures
        else
           ! Check that temperature grids are aligned.
-          if (allocated(temperaturesReference).and.any(Values_Differ(self%temperatures,temperaturesReference,relTol=1.0d-6))) &
+          if (any(Values_Differ(self%temperatures,temperaturesReference,relTol=1.0d-6))) &
                & call Galacticus_Error_Report('cieFileReadFile','temperature grids mismatch')
        end if
     end do

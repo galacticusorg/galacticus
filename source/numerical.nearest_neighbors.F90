@@ -69,29 +69,30 @@ module Nearest_Neighbors
     subroutine nearestNeighborsSearchC(ANN,point,neighborCount,tolerance,neighborIndex,neighborDistance) bind(c,name='nearestNeighborsSearchC')
        !% Template for a C function that searches for nearest neighbors.
       import
-      type            (c_ptr), value       , intent(in   ) :: ANN
-      double precision       , dimension(*), intent(in   ) :: point
-      integer                , value       , intent(in   ) :: neighborCount
-      double precision       , value       , intent(in   ) :: tolerance
-      integer                , dimension(*), intent(  out) :: neighborIndex
-      double precision       , dimension(*), intent(  out) :: neighborDistance
+      type   (c_ptr   ), value       , intent(in   ) :: ANN
+      real   (c_double), dimension(*), intent(in   ) :: point
+      integer(c_int   ), value       , intent(in   ) :: neighborCount
+      real   (c_double), value       , intent(in   ) :: tolerance
+      integer(c_int   ), dimension(*), intent(  out) :: neighborIndex
+      real   (c_double), dimension(*), intent(  out) :: neighborDistance
     end subroutine nearestNeighborsSearchC
   end interface
 
   interface
-     integer function nearestNeighborsSearchFixedRadiusC(ANN,point,radiusSquared,neighborCount,neighborIndex,neighborDistance,tolerance) bind(c,name='nearestNeighborsSearchFixedRadiusC')
+     function nearestNeighborsSearchFixedRadiusC(ANN,point,radiusSquared,neighborCount,neighborIndex,neighborDistance,tolerance) bind(c,name='nearestNeighborsSearchFixedRadiusC')
        !% Template for a C function that searches for nearest neighbors.
-      import
-      type            (c_ptr), value       , intent(in   ) :: ANN
-      double precision       , dimension(*), intent(in   ) :: point
-      double precision       , value       , intent(in   ) :: radiusSquared
-      integer                , value       , intent(in   ) :: neighborCount
-      integer                , dimension(*), intent(  out) :: neighborIndex
-      double precision       , dimension(*), intent(  out) :: neighborDistance
-      double precision       , value       , intent(in   ) :: tolerance
-    end function nearestNeighborsSearchFixedRadiusC
+       import
+       integer(c_int   )                              :: nearestNeighborsSearchFixedRadiusC
+       type   (c_ptr   ), value       , intent(in   ) :: ANN
+       real   (c_double), dimension(*), intent(in   ) :: point
+       real   (c_double), value       , intent(in   ) :: radiusSquared
+       integer(c_int   ), value       , intent(in   ) :: neighborCount
+       integer(c_int   ), dimension(*), intent(  out) :: neighborIndex
+       real   (c_double), dimension(*), intent(  out) :: neighborDistance
+       real   (c_double), value       , intent(in   ) :: tolerance
+     end function nearestNeighborsSearchFixedRadiusC
   end interface
-
+  
   interface
      subroutine nearestNeighborsDestructorC(ANN) bind(c,name='nearestNeighborsDestructorC')
        !% Template for a C function that destroys an {\normalfont \ttfamily ANNkd\_tree}.

@@ -113,7 +113,8 @@ contains
     implicit none
     class(surveyGeometryBaldry2012GAMA), intent(inout) :: self
     type (varying_string              )                :: baldry2012GAMAMangleDirectory
-
+    !GCC$ attributes unused :: self
+    
     baldry2012GAMAMangleDirectory=Galacticus_Input_Path()//"constraints/dataAnalysis/stellarMassFunction_GAMA_z0.03/"
     return
   end function baldry2012GAMAMangleDirectory

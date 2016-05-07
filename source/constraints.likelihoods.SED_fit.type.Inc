@@ -28,7 +28,6 @@
           &                                         redshift                , burstFraction           , &
           &                                         age                     , wavelengthEffective     , &
           &                                         burstTimeStart          , burstTimescale
-          &                                         
      double precision             , dimension(1) :: massToLightRatio
    contains
      procedure :: evaluate        => likelihoodSEDFitEvaluate

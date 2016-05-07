@@ -94,6 +94,7 @@ SELECT CASE(i)
   CASE(10)
     fn_val = MAXEXPONENT(1.0D0)
   CASE DEFAULT
+    fn_val = 0.0D0
     RETURN
 END SELECT
 
@@ -131,7 +132,10 @@ SELECT CASE (i)
   CASE (2)
     fn_val = TINY(one)
   CASE (3)
-    fn_val = HUGE(one)
+     fn_val = HUGE(one)
+  CASE DEFAULT
+     fn_val = 0.0d0
+     stop 'unknown constant requested'
 END SELECT
 
 RETURN
@@ -168,7 +172,10 @@ SELECT CASE (i)
   CASE (2)
     fn_val = TINY(one)
   CASE (3)
-    fn_val = HUGE(one)
+     fn_val = HUGE(one)
+  CASE DEFAULT
+     fn_val = 0.0d0
+     stop 'unknown constant requested'
 END SELECT
 
 RETURN

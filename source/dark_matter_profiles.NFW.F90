@@ -358,7 +358,8 @@ contains
     class           (nodeComponentBasic            )               , pointer :: thisBasicComponent
     class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
     double precision                                                         :: radiusOverScaleRadius         , scaleRadius
-
+    !GCC$ attributes unused :: self
+    
     thisBasicComponent             => node%basic            (                 )
     thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
     scaleRadius                    =  thisDarkMatterProfileComponent%scale()
@@ -698,7 +699,8 @@ contains
     implicit none
     class           (darkMatterProfileNFW), intent(inout) :: self
     double precision                      , intent(in   ) :: radius
-
+    !GCC$ attributes unused :: self
+    
     nfwSpecificAngularMomentumScaleFree=sqrt(radius*self%enclosedMassScaleFree(radius,1.0d0))
     return
   end function nfwSpecificAngularMomentumScaleFree
@@ -744,7 +746,8 @@ contains
     implicit none
     class           (darkMatterProfileNFW), intent(inout) :: self
     double precision                      , intent(in   ) :: concentration, radius
-
+    !GCC$ attributes unused :: self
+    
     nfwDensityScaleFree=1.0d0/(log(1.0d0+concentration)-concentration/(1.0d0+concentration))/radius/(1.0d0+radius)**2/4.0d0/Pi
     return
   end function nfwDensityScaleFree
@@ -1020,7 +1023,8 @@ contains
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
     double precision                                            :: radiusEnd                  , radiusStart
-
+    !GCC$ attributes unused :: self
+    
     if (radius > radiusSmall) then
        ! Use the full solution.
        radiusStart=radius

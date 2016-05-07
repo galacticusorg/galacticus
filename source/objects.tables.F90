@@ -1445,6 +1445,7 @@ contains
        case (extrapolationTypeFix        )
           Table1D_Find_Effective_X=self%x(+1)
        case default
+          Table1D_Find_Effective_X=0.0d0
           call Galacticus_Error_Report('Table_1D_Find_Effective_X','x is below range')
        end select
     else if (x > self%x(-1)) then
@@ -1454,6 +1455,7 @@ contains
        case (extrapolationTypeFix        )
           Table1D_Find_Effective_X=self%x(-1)
        case default
+          Table1D_Find_Effective_X=0.0d0
           call Galacticus_Error_Report('Table_1D_Find_Effective_X','x is above range')
        end select       
     else
@@ -1517,7 +1519,9 @@ contains
     double precision                                     , intent(in   )                               :: x0, x1
     procedure       (integrandTemplate                  ), intent(in   )           , pointer, optional :: integrand
     double precision                                     , dimension(size(self%xv))                    :: Table_NonUniform_Linear_Logarithmic_Integration_Weights
+    !GCC$ attributes unused :: self, x0, x1, integrand
 
+    Table_NonUniform_Linear_Logarithmic_Integration_Weights=0.0d0
     call Galacticus_Error_Report('Table_NonUniform_Linear_Logarithmic_Integration_Weights','integrand is not linear in y')
     return    
   end function Table_NonUniform_Linear_Logarithmic_Integration_Weights
@@ -1733,6 +1737,7 @@ contains
     case (2)
        Table_2DLogLogLin_Size=self%yCount
     case default
+       Table_2DLogLogLin_Size=0
        call Galacticus_Error_Report('Table_2DLogLogLin_Size','1 ≤ dim ≤ 2 is required')
     end select
     return
@@ -2099,7 +2104,9 @@ contains
     double precision                              , intent(in   )                               :: x0, x1
     procedure       (integrandTemplate           ), intent(in   )           , pointer, optional :: integrand
     double precision                              , dimension(size(self%xv))                    :: Table_Linear_Monotone_CSpline_Integration_Weights
+    !GCC$ attributes unused :: self, x0, x1, integrand
 
+    Table_Linear_Monotone_CSpline_Integration_Weights=0.0d0
     call Galacticus_Error_Report('Table_Linear_Monotone_CSpline_Integration_Weights','integration weights not supported')
     return
   end function Table_Linear_Monotone_CSpline_Integration_Weights
