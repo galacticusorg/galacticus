@@ -84,9 +84,9 @@ program Test_DiemerKravtsov2014_Concentration
   ! Read the reference file.
   differenceFractionalMaximum=0.0d0
   open(newUnit=referenceUnit,file=char(Galacticus_Input_Path()//"testSuite/data/diemerKravtsov2014Concentration.txt"),status='old',form='formatted',iostat=ioStatus)
-  read (referenceUnit,*,ioStat=ioStatus) ! Skip header.
-  read (referenceUnit,*,ioStat=ioStatus)
-  read (referenceUnit,*,ioStat=ioStatus)
+  do i=1,7
+     read (referenceUnit,*,ioStat=ioStatus) ! Skip header.
+  end do
   do while (ioStatus == 0)
      read (referenceUnit,*,ioStat=ioStatus) redshift,nu,mass,concentration
      if (ioStatus /= 0) exit
