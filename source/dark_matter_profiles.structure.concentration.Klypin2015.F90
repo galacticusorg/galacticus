@@ -101,7 +101,7 @@ contains
     !# <inputParameter>
     !#   <name>sample</name>
     !#   <source>parameters</source>
-    !#   <defaultValue>var_str('planck200Crit')</defaultValue>
+    !#   <defaultValue>var_str('planck200CritRelaxedMass')</defaultValue>
     !#   <description>The sample to use for the halo concentration algorithm of \cite{klypin_multidark_2014}.</description>
     !#   <type>string</type>
     !#   <cardinality>1</cardinality>
@@ -626,6 +626,7 @@ contains
     class           (cosmologyParametersClass                )               , pointer :: cosmologyParameters_
     class           (cosmologyFunctionsClass                 )               , pointer :: cosmologyFunctions_
     class           (cosmologicalMassVarianceClass           )               , pointer :: cosmologicalMassVariance_
+    double precision                                          , parameter              :: massReference            =1.0d12
     double precision                                                                   :: massLittleH         , concentration0, &
          &                                                                                mass0               , gamma         , &
          &                                                                                redshift            , a0            , &
@@ -649,15 +650,15 @@ contains
     case (klypin2015FittingFunctionEqn24)
        ! Evaluate fitting function parameters.
        concentration0=self%fitParameters%interpolate(redshift,table=1)
-       mass0         =self%fitParameters%interpolate(redshift,table=2)
-       gamma         =self%fitParameters%interpolate(redshift,table=3)
+       gamma         =self%fitParameters%interpolate(redshift,table=2)
+       mass0         =self%fitParameters%interpolate(redshift,table=3)*massReference
        ! Evaluate the concentration.
-       klypin2015Concentration=+concentration0                &
-            &                  *(                             &
-            &                    +1.0d0                       &
-            &                    +(massLittleH/mass0 )**0.4d0 &
-            &                  )                              &
-            &                  /  (massLittleH/1.0d12)**gamma
+       klypin2015Concentration=+concentration0                       &
+            &                  *(                                    &
+            &                    +1.0d0                              &
+            &                    +(massLittleH/mass0        )**0.4d0 &
+            &                  )                                     &
+            &                  /  (massLittleH/massReference)**gamma
     case (klypin2015FittingFunctionEqn25)
        ! Find sigma.
        cosmologicalMassVariance_ => cosmologicalMassVariance()
