@@ -38,7 +38,6 @@ contains
   double precision function Galactic_Structure_Velocity_Dispersion(thisNode,radius,radiusOuter,componentType,massType,haloLoaded)
     !% Returns the velocity dispersion of the specified {\normalfont \ttfamily componentType} in {\normalfont \ttfamily thisNode} at the given {\normalfont \ttfamily radius}.
     use FGSL
-    use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     use Galactic_Structure_Options
     use Galactic_Structure_Densities
@@ -49,7 +48,6 @@ contains
     logical                                     , intent(in   ), optional :: haloLoaded
     double precision                                                      :: componentDensity    , densityVelocityVariance, &
          &                                                                   massTotal
-    type            (c_ptr                     )                          :: parameterPointer
     type            (fgsl_function             )                          :: integrandFunction
     type            (fgsl_integration_workspace)                          :: integrationWorkspace
 
@@ -66,7 +64,7 @@ contains
        return
     end if
     ! Integrate the Jeans equation.
-    densityVelocityVariance=Integrate(radius,radiusOuter,Velocity_Dispersion_Integrand,parameterPointer&
+    densityVelocityVariance=IntegrateTMP(radius,radiusOuter,Velocity_Dispersion_Integrand&
          &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     ! Get the density at this radius.
@@ -80,16 +78,13 @@ contains
     return
   end function Galactic_Structure_Velocity_Dispersion
 
-  function Velocity_Dispersion_Integrand(radius,parameterPointer) bind(c)
+  double precision function Velocity_Dispersion_Integrand(radius)
     !% Integrand function used for finding velocity dispersions using Jeans equation.
-    use, intrinsic :: ISO_C_Binding
     use Numerical_Constants_Physical
     use Galactic_Structure_Densities
     use Galactic_Structure_Enclosed_Masses
     implicit none
-    real(kind=c_double)        :: Velocity_Dispersion_Integrand
-    real(kind=c_double), value :: radius
-    type(c_ptr        ), value :: parameterPointer
+    double precision, intent(in   ) :: radius
 
     if (radius == 0.0d0) then
        Velocity_Dispersion_Integrand=0.0d0

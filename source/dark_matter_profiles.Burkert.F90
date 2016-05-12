@@ -700,13 +700,11 @@ contains
   double precision function burkertProfileEnergy(self,concentration)
     !% Computes the total energy of an Burkert profile halo of given {\normalfont \ttfamily concentration} using the methods of
     !% \citeauthor{cole_hierarchical_2000}~(\citeyear{cole_hierarchical_2000}; their Appendix~A).
-    use, intrinsic :: ISO_C_Binding
     use Numerical_Constants_Math
     use Numerical_Integration
     implicit none
-    class           (darkMatterProfileBurkert      ), intent(inout) :: self
+    class           (darkMatterProfileBurkert  ), intent(inout) :: self
     double precision                            , intent(in   ) :: concentration
-    type            (c_ptr                     )                :: parameterPointer
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
     double precision                                            :: jeansEquationIntegral  , kineticEnergy         , &
@@ -718,23 +716,23 @@ contains
     radiusMinimum    =0.0d0
     radiusMaximum    =concentration
     concentrationParameter=concentration
-    potentialEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,burkertPotentialEnergyIntegrand&
-         &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+    potentialEnergyIntegral=IntegrateTMP(radiusMinimum,radiusMaximum,burkertPotentialEnergyIntegrand&
+         &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     potentialEnergy=-0.5d0*(1.0d0/concentration+potentialEnergyIntegral)
     ! Compute the velocity dispersion at the virial radius.
     radiusMinimum=concentration
     radiusMaximum=100.0d0*concentration
     concentrationParameter=concentration
-    jeansEquationIntegral=Integrate(radiusMinimum,radiusMaximum,burkertJeansEquationIntegrand&
-         &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+    jeansEquationIntegral=IntegrateTMP(radiusMinimum,radiusMaximum,burkertJeansEquationIntegrand&
+         &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     ! Compute the kinetic energy.
     radiusMinimum=0.0d0
     radiusMaximum=concentration
     concentrationParameter=concentration
-    kineticEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,burkertKineticEnergyIntegrand&
-         &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+    kineticEnergyIntegral=IntegrateTMP(radiusMinimum,radiusMaximum,burkertKineticEnergyIntegrand&
+         &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     kineticEnergy=2.0d0*Pi*(jeansEquationIntegral*concentration**3+kineticEnergyIntegral)
     ! Compute the total energy.
@@ -743,38 +741,29 @@ contains
 
   contains
     
-    function burkertPotentialEnergyIntegrand(radius,parameterPointer) bind(c)
+    double precision function burkertPotentialEnergyIntegrand(radius)
       !% Integrand for Burkert profile potential energy.
-      use, intrinsic :: ISO_C_Binding
       implicit none
-      real(kind=c_double)        :: burkertPotentialEnergyIntegrand
-      real(kind=c_double), value :: radius
-      type(c_ptr        ), value :: parameterPointer
+      double precision, intent(in   ) :: radius
       
       burkertPotentialEnergyIntegrand=(self%enclosedMassScaleFree(radius,concentrationParameter)/radius)**2
       return
     end function burkertPotentialEnergyIntegrand
     
-    function burkertKineticEnergyIntegrand(radius,parameterPointer) bind(c)
+    double precision function burkertKineticEnergyIntegrand(radius)
       !% Integrand for Burkert profile kinetic energy.
-      use, intrinsic :: ISO_C_Binding
       implicit none
-      real(kind=c_double)        :: burkertKineticEnergyIntegrand
-      real(kind=c_double), value :: radius
-      type(c_ptr        ), value :: parameterPointer
+      double precision, intent(in   ) :: radius
       
       burkertKineticEnergyIntegrand=self%EnclosedMassScaleFree(radius,concentrationParameter)*self%densityScaleFree(radius&
            &,concentrationParameter)*radius
       return
     end function burkertKineticEnergyIntegrand
     
-    function burkertJeansEquationIntegrand(radius,parameterPointer) bind(c)
+    double precision function burkertJeansEquationIntegrand(radius)
       !% Integrand for Burkert profile Jeans equation.
-      use, intrinsic :: ISO_C_Binding
       implicit none
-      real(kind=c_double)        :: burkertJeansEquationIntegrand
-      real(kind=c_double), value :: radius
-      type(c_ptr        ), value :: parameterPointer
+      double precision, intent(in   ) :: radius
       
       burkertJeansEquationIntegrand=self%enclosedMassScaleFree(radius,concentrationParameter)*self%densityScaleFree(radius &
            &,concentrationParameter)/radius**2
@@ -977,13 +966,11 @@ contains
 
   double precision function burkertFreefallTimeScaleFree(self,radius)
     !% Compute the freefall time in a scale-free Burkert halo.
-    use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     implicit none
     class           (darkMatterProfileBurkert  ), intent(inout) :: self
     double precision                            , intent(in   ) :: radius
     double precision                            , parameter     :: radiusSmall         =4.0d-6
-    type            (c_ptr                     )                :: parameterPointer
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
     double precision                                            :: radiusEnd                  , radiusStart
@@ -993,7 +980,7 @@ contains
        ! Use the full solution.
        radiusStart=radius
        radiusEnd  =0.0d0
-       burkertFreefallTimeScaleFree=Integrate(radiusEnd,radiusStart,burkertFreefallTimeScaleFreeIntegrand,parameterPointer&
+       burkertFreefallTimeScaleFree=IntegrateTMP(radiusEnd,radiusStart,burkertFreefallTimeScaleFreeIntegrand&
             &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
        call Integrate_Done(integrandFunction,integrationWorkspace)
     else
@@ -1005,16 +992,13 @@ contains
 
   contains
     
-    function burkertFreefallTimeScaleFreeIntegrand(radius,parameterPointer) bind(c)
+    double precision function burkertFreefallTimeScaleFreeIntegrand(radius)
       !% Integrand function used for finding the free-fall time in Burkert halos.
-      use, intrinsic :: ISO_C_Binding
       implicit none
-      real(kind=c_double)                   :: burkertFreefallTimeScaleFreeIntegrand
-      real(kind=c_double)           , value :: radius
-      type(c_ptr        )           , value :: parameterPointer
-      real(kind=c_double), parameter        :: radiusSmall                       =1.0d-6
-      real(kind=c_double), parameter        :: radiusSmallFraction               =1.0d-3
-      real(kind=c_double)                   :: x
+      double precision, intent(in   ) :: radius
+      double precision, parameter     :: radiusSmall        =1.0d-6
+      double precision, parameter     :: radiusSmallFraction=1.0d-3
+      double precision                :: x
       
       if (radius < radiusSmall) then
          ! Use a series approximation for small radii.

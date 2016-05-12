@@ -44,7 +44,6 @@ program Test_Integration2
   integer                                                                  :: i                              , trial                   , &
        &                                                                      integrationRule                , iFunction               , &
        &                                                                      descriptionLengthMaximum
-  type            (c_ptr                     )                             :: parameterPointer
   type            (fgsl_function             )                             :: integrandFunction
   type            (fgsl_integration_workspace)                             :: integrationWorkspace
   integer                                     , parameter                  :: integratorCount         = 10
@@ -197,11 +196,10 @@ program Test_Integration2
               integrationRule=FGSL_Integ_Gauss61
            end select
            call System_Clock(countStart,countRate)
-           integralGSL(i)=Integrate(                                                      &
+           integralGSL(i)=IntegrateTMP(                                                      &
                 &                   testFunctions(iFunction)%rangeLow                   , &
                 &                   testFunctions(iFunction)%rangeHigh                  , &
-                &                   testFunctions(iFunction)%gsl                        , &
-                &                   parameterPointer                                    , &
+                &                   testFunctions(iFunction)%scalar                     , &
                 &                   integrandFunction                                   , &
                 &                   integrationWorkspace                                , &
                 &                   toleranceAbsolute                 =toleranceAbsolute, &

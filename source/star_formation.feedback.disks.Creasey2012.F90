@@ -98,10 +98,9 @@ contains
     !% $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate, $\beta_0=${\tt
     !% [starFormationFeedbackDisksCreasy2012Beta0]}, $\mu=${\normalfont \ttfamily [starFormationFeedbackDisksCreasy2012Mu]}, and $\nu=${\tt
     !% [starFormationFeedbackDisksCreasy2012Nu]}.
-    use               Numerical_Constants_Math
-    use               Stellar_Feedback
-    use               Numerical_Integration
-    use, intrinsic :: ISO_C_Binding
+    use Numerical_Constants_Math
+    use Stellar_Feedback
+    use Numerical_Integration
     implicit none
     type            (treeNode                  ), intent(inout), pointer :: thisNode
     class           (nodeComponentDisk         )               , pointer :: thisDiskComponent
@@ -110,7 +109,6 @@ contains
     double precision                                                     :: diskScaleRadius               , gasMass                        , &
          &                                                                  radiusInner                   , radiusOuter                    , &
          &                                                                  stellarMass
-    type            (c_ptr                     )                         :: parameterPointer
     type            (fgsl_function             )                         :: integrandFunction
     type            (fgsl_integration_workspace)                         :: integrationWorkspace
 
@@ -133,11 +131,10 @@ contains
     Star_Formation_Feedback_Disk_Outflow_Rate_Creasey2012=                             &
          &  2.0d0*Pi                                                                   &
          & *starFormationFeedbackDisksCreasy2012Beta0                                  &
-         & *Integrate(                                                                 &
+         & *IntegrateTMP(                                                                 &
          &            radiusInner                                                    , &
          &            radiusOuter                                                    , &
          &            Star_Formation_Feedback_Disk_Outflow_Rate_Creasey2012_Integrand, &
-         &            parameterPointer                                               , &
          &            integrandFunction                                              , &
          &            integrationWorkspace                                           , &
          &            toleranceAbsolute=0.0d0                                        , &
@@ -150,19 +147,16 @@ contains
     return
   end function Star_Formation_Feedback_Disk_Outflow_Rate_Creasey2012
 
-  function Star_Formation_Feedback_Disk_Outflow_Rate_Creasey2012_Integrand(radius,parameterPointer) bind(c)
+  double precision function Star_Formation_Feedback_Disk_Outflow_Rate_Creasey2012_Integrand(radius)
     !% Integrand function for the ``Creasey et al. (2012)'' supernovae feedback calculation.
-    use               Galactic_Structure_Surface_Densities
-    use               Galactic_Structure_Options
-    use               Star_Formation_Rate_Surface_Density_Disks
-    use               Numerical_Constants_Prefixes
-    use, intrinsic :: ISO_C_Binding
+    use Galactic_Structure_Surface_Densities
+    use Galactic_Structure_Options
+    use Star_Formation_Rate_Surface_Density_Disks
+    use Numerical_Constants_Prefixes
     implicit none
-    real            (kind=c_double)        :: Star_Formation_Feedback_Disk_Outflow_Rate_Creasey2012_Integrand
-    real            (kind=c_double), value :: radius
-    type            (c_ptr        ), value :: parameterPointer
-    double precision                       :: gasFraction                                                    , starFormationRateSurfaceDensity, &
-         &                                    surfaceDensityGas                                              , surfaceDensityStar
+    double precision, intent(in   ) :: radius
+    double precision                :: gasFraction      , starFormationRateSurfaceDensity, &
+         &                             surfaceDensityGas, surfaceDensityStar
 
     ! Get gas surface density.
     surfaceDensityGas=Galactic_Structure_Surface_Density(activeNode,[radius,0.0d0,0.0d0],coordinateSystem&

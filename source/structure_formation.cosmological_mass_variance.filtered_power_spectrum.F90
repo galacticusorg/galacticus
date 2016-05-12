@@ -332,7 +332,6 @@ contains
       logical                                     , intent(in   ) :: useTopHat
       double precision                                            :: topHatRadius        , wavenumberMaximum, &
            &                                                         wavenumberMinimum
-      type            (c_ptr                     )                :: parameterPointer
       type            (fgsl_function             )                :: integrandFunction
       type            (fgsl_integration_workspace)                :: integrationWorkspace
       
@@ -349,11 +348,10 @@ contains
       wavenumberMinimum=    0.0d0/topHatRadius
       wavenumberMaximum=min(1.0d3/topHatRadius,self%powerSpectrumWindowFunction_%wavenumberMaximum(smoothingMass))
       if (useTopHat) then
-         rootVariance=+Integrate(                                              &
+         rootVariance=+IntegrateTMP(                                              &
               &                  wavenumberMinimum                           , &
               &                  wavenumberMaximum                           , &
               &                  varianceIntegrandTopHat                     , &
-              &                  parameterPointer                            , &
               &                  integrandFunction                           , &
               &                  integrationWorkspace                        , &
               &                  toleranceAbsolute      =0.0d0               , &
@@ -363,11 +361,10 @@ contains
               &       /2.0d0                                                   &
               &       /Pi**2
       else
-         rootVariance=+Integrate(                                              &
+         rootVariance=+IntegrateTMP(                                              &
               &                  wavenumberMinimum                           , &
               &                  wavenumberMaximum                           , &
               &                  varianceIntegrand                           , &
-              &                  parameterPointer                            , &
               &                  integrandFunction                           , &
               &                  integrationWorkspace                        , &
               &                  toleranceAbsolute      =0.0d0               , &
@@ -382,13 +379,10 @@ contains
       return
     end function rootVariance
     
-    function varianceIntegrand(wavenumber,parameterPointer) bind(c)
+    double precision function varianceIntegrand(wavenumber)
       !% Integrand function used in compute the variance in (real space) top-hat spheres from the power spectrum.
-      use, intrinsic :: ISO_C_Binding
       implicit none
-      real(kind=c_double)        :: varianceIntegrand
-      real(kind=c_double), value :: wavenumber
-      type(     c_ptr   ), value :: parameterPointer
+      double precision, intent(in   ) :: wavenumber
 
       ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and Pi are included
       ! elsewhere.
@@ -400,13 +394,10 @@ contains
       return
     end function varianceIntegrand
     
-    function varianceIntegrandTopHat(wavenumber,parameterPointer) bind(c)
+    double precision function varianceIntegrandTopHat(wavenumber)
       !% Integrand function used in compute the variance in (real space) top-hat spheres from the power spectrum.
-      use, intrinsic :: ISO_C_Binding
       implicit none
-      real(kind=c_double)        :: varianceIntegrandTopHat
-      real(kind=c_double), value :: wavenumber
-      type(     c_ptr   ), value :: parameterPointer
+      double precision, intent(in   ) :: wavenumber
       
       ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and Pi are included
       ! elsewhere.
