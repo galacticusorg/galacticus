@@ -80,8 +80,10 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Math
     use Error_Functions
+    use COsmology_Parameters
     use Galactic_Structure_Densities
     use Galactic_Structure_Enclosed_Masses
+    use Galactic_Structure_Rotation_Curves
     use Galactic_Structure_Options
     use Vectors
     use Tensors
@@ -90,15 +92,19 @@ contains
     class           (nodeComponentSatellite        ), pointer                     :: thisSatellite
     type            (treeNode                      ), pointer     , intent(inout) :: thisNode
     type            (treeNode                      ), pointer                     :: hostNode
-    double precision                                , dimension(3)                :: position                , velocity
-    double precision                                                              :: satelliteMass           , parentDensity                  , &
-         &                                                                           parentEnclosedMass      , orbitalPeriod                  , &
-         &                                                                           radius                  , speed                          , &
-         &                                                                           timescaleShock          , heatingRateNormalized          , &
-         &                                                                           angularVelocity         , radialTimescale
-    type            (tensorRank2Dimension3Symmetric)                              :: tidalTensor             , tidalTensorPathIntegrated      , &
+    class           (cosmologyParametersClass      ), pointer                     :: cosmologyParameters_
+    class           (darkMatterHaloScaleClass      ), pointer                     :: darkMatterHaloScale_
+    class           (nodeComponentBasic            ), pointer                     :: basic
+    double precision                                , dimension(3)                :: position                 , velocity
+    double precision                                                              :: satelliteMass            , parentDensity            , &
+         &                                                                           parentEnclosedMass       , velocityCircularSatellite, &
+         &                                                                           radius                   , speed                    , &
+         &                                                                           timescaleShock           , heatingRateNormalized    , &
+         &                                                                           orbitalFrequencySatellite, radiusHalfMassSatellite  , &
+         &                                                                           satelliteHalfMass        , darkMatterFraction
+    type            (tensorRank2Dimension3Symmetric)                              :: tidalTensor              , tidalTensorPathIntegrated, &
          &                                                                           positionTensor
-
+    
     ! Construct required properties of satellite and host.
     hostNode                  => thisNode     %mergesWith               ()
     thisSatellite             => thisNode     %satellite                ()
@@ -111,19 +117,51 @@ contains
     parentDensity             =  Galactic_Structure_Density      (hostNode,position,coordinateSystemCartesian                  )
     parentEnclosedMass        =  Galactic_Structure_Enclosed_Mass(hostNode,radius                                              )
     positionTensor            =  Vector_Outer_Product            (         position                          ,symmetrize=.true.)
+    ! Find the universal dark matter fraction.
+    cosmologyParameters_      => cosmologyParameters()    
+    darkMatterFraction        =  +(                                    &
+         &                         +cosmologyParameters_%OmegaMatter() &
+         &                         -cosmologyParameters_%OmegaBaryon() &
+         &                        )                                    &
+         &                       /  cosmologyParameters_%OmegaMatter()
     ! Find the gravitational tidal tensor.
     tidalTensor=                                                                                          &
          & -(gravitationalConstantGalacticus*parentEnclosedMass         /radius**3)*tensorIdentityR2D3Sym &
          & +(gravitationalConstantGalacticus*parentEnclosedMass*3.0d0   /radius**5)*positionTensor        &
          & -(gravitationalConstantGalacticus*parentDensity     *4.0d0*Pi/radius**2)*positionTensor
-    ! Find the orbital period.
-    angularVelocity=Vector_Magnitude(Vector_Product(position,velocity))/radius**2*kilo*gigaYear/megaParsec
-    radialTimescale=  abs             (   Dot_Product(position,velocity)) &
-         &           /radius**2                                           &
-         &           *kilo                                                &
-         &           *gigaYear                                            &
-         &           /megaParsec
-    orbitalPeriod  =1.0d0/max(angularVelocity/2.0d0/Pi,radialTimescale)
+    ! Find the orbital frequency at the half mass radius of the satellite.
+    basic             => thisNode%basic()
+    satelliteHalfMass =  0.50d0*darkMatterFraction*min(satelliteMass,basic%mass())    
+    radiusHalfMassSatellite  =Galactic_Structure_Radius_Enclosing_Mass(                                           &
+         &                                                             thisNode                                 , &
+         &                                                             mass                   =satelliteHalfMass, &
+         &                                                             componentType          =componentTypeAll , &
+         &                                                             massType               =massTypeDark     , &
+         &                                                             haloLoaded             =.true.             &
+         &                                                            )
+    velocityCircularSatellite=Galactic_Structure_Rotation_Curve       (                                           &
+         &                                                             thisNode                                 , &
+         &                                                             radiusHalfMassSatellite                  , &
+         &                                                             componentType          =componentTypeAll , &
+         &                                                             massType               =massTypeDark     , &
+         &                                                             haloLoaded             =.true.             &
+         &                                                            )
+    if (radiusHalfMassSatellite > 0.0d0) then
+       ! Compute the orbital frequency.
+       orbitalFrequencySatellite =  +velocityCircularSatellite &
+            &                       /radiusHalfMassSatellite   &
+            &                       *gigaYear                  &
+            &                       *kilo                      &
+            &                       /megaParsec
+    else
+       ! No well-defined half mass radius exists in the satellite. Use the virial orbital frequency instead.
+       darkMatterHaloScale_      =>  darkMatterHaloScale                (        )
+       orbitalFrequencySatellite =  +darkMatterHaloScale_%virialVelocity(thisNode) &
+            &                       /darkMatterHaloScale_%virialRadius  (thisNode) &
+            &                       *gigaYear                                      &
+            &                       *kilo                                          &
+            &                       /megaParsec
+    end if
     ! Find the shock timescale (i.e. crossing time in the radial direction).
     timescaleShock=megaParsec/kilo/gigaYear*radius/speed
     ! Compute the heating rate.
@@ -131,7 +169,10 @@ contains
          &    satelliteTidalHeatingGnedinEpsilon                    &
          &   /(                                                     &
          &      1.0d0                                               &
-         &     +(timescaleShock/orbitalPeriod)**2                   &
+         &     +(                                                   &
+         &       +timescaleShock                                    &
+         &       *orbitalFrequencySatellite                         &
+         &      )**2                                                &
          &    )**satelliteTidalHeatingGnedinGamma                   &
          &   /3.0d0                                                 &
          &   *tidalTensor%doubleContract(tidalTensorPathIntegrated) &

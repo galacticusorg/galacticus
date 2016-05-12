@@ -52,7 +52,6 @@ contains
   !# </mergerTreeConstructMethod>
   subroutine Merger_Tree_Build_Initialize(mergerTreeConstructMethod,Merger_Tree_Construct)
     !% Initializes the merger tree building module.
-    use, intrinsic :: ISO_C_Binding
     use Input_Parameters
     use Memory_Management
     use Cosmology_Functions
@@ -100,7 +99,6 @@ contains
     type            (fgsl_integration_workspace       )                                      :: integrationWorkspace
     type            (fgsl_interp                      )                                      :: interpolationObject
     type            (fgsl_interp_accel                )                                      :: interpolationAccelerator
-    type            (c_ptr                            )                                      :: parameterPointer
     logical                                                                                  :: integrandReset               =.true. , interpolationReset                =.true.
     type            (hdf5Object                       )                                      :: treeFile
 
@@ -270,8 +268,8 @@ contains
           jSample=0
           do iSample=1,massFunctionSampleCount
              if (massFunctionSampleLogMass(iSample) > massFunctionSampleLogPrevious) then
-                probability=Integrate(massFunctionSampleLogPrevious&
-                     &,massFunctionSampleLogMass(iSample),Mass_Function_Sampling_Integrand,parameterPointer,integrandFunction &
+                probability=IntegrateTMP(massFunctionSampleLogPrevious&
+                     &,massFunctionSampleLogMass(iSample),Mass_Function_Sampling_Integrand,integrandFunction &
                      &,integrationWorkspace,toleranceAbsolute=toleranceAbsolute,toleranceRelative=toleranceRelative,reset=integrandReset)
              else
                 probability=0.0d0
@@ -418,14 +416,11 @@ contains
     return
   end subroutine Merger_Tree_Build_Initialize
 
-  function Mass_Function_Sampling_Integrand(logMass,parameterPointer) bind(c)
+  double precision function Mass_Function_Sampling_Integrand(logMass)
     !% The integrand over the mass function sampling density function.
-    use, intrinsic :: ISO_C_Binding
     use Merger_Trees_Mass_Function_Sampling
     implicit none
-    real(kind=c_double)        :: Mass_Function_Sampling_Integrand
-    real(kind=c_double), value :: logMass
-    type(c_ptr        ), value :: parameterPointer
+    double precision, intent(in   ) :: logMass
 
     Mass_Function_Sampling_Integrand=Merger_Tree_Construct_Mass_Function_Sampling(10.0d0**logMass,mergerTreeBuildTreesBaseTime,mergerTreeBuildHaloMassMinimum,mergerTreeBuildHaloMassMaximum)
     return

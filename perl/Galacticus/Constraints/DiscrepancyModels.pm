@@ -228,16 +228,12 @@ sub RunModels {
 		    }
 		}
 	    }
-	    # Find the multiplicative discrepancy between these two models.
-	    (my $nonZero, my $zero)                      = which_both($defaultY > 0.0);
-	    my $modelDiscrepancyMultiplicative           = $alternateY->copy();
-	    $modelDiscrepancyMultiplicative->($nonZero) /= $defaultY->($nonZero);
-	    $modelDiscrepancyMultiplicative->(   $zero) .= 1.0
-		if ( nelem($zero) > 0 );
-	    # Compute the covariance.
-	    my $modelDiscrepancyCovarianceMultiplicative = 
-		+outer($defaultY-$alternateY,$defaultY-$alternateY)
-		*outer(      1.0/$alternateY,      1.0/$alternateY);
+	    # Compute the multiplicative discrepancy covariance between these two models.
+	    (my $nonZero, my $zero) = which_both($alternateY > 0.0);
+	    my $modelDiscrepancyCovarianceMultiplicative = pdl zeroes(nelem($defaultY),nelem($defaultY));
+	    $modelDiscrepancyCovarianceMultiplicative->($nonZero,$nonZero) .= 
+		+outer($defaultY->($nonZero)-$alternateY->($nonZero),$defaultY->($nonZero)-$alternateY->($nonZero))
+		*outer(      1.0            /$alternateY->($nonZero),      1.0            /$alternateY->($nonZero));
 	    # Output the model discrepancy to file.
 	    my $outputFile = 
 		new PDL::IO::HDF5(
@@ -360,7 +356,9 @@ sub Apply_Discrepancies {
 			# truncate to that limit while preserving the correlation structure of the matrix.
 			my $variance     = $covarianceMultiplier->diagonal(0,1);
 			my $highVariance = which($variance > $options{'limitMultiplicativeCovariance'});
-			my $correlation  = $covarianceMultiplier/outer($variance->sqrt(),$variance->sqrt());
+			my $correlation  = zeroes($covarianceMultiplier);
+			my $nonZero      = which($variance > 0.0);
+			$correlation->($nonZero,$nonZero) .= $covarianceMultiplier->($nonZero,$nonZero)/outer($variance->($nonZero)->sqrt(),$variance->($nonZero)->sqrt());
 			$variance->($highVariance) .= $options{'limitMultiplicativeCovariance'};
 			$covarianceMultiplier .= $correlation*outer($variance->sqrt(),$variance->sqrt());
 			# Check for any off-diagonal terms that exceed the limit and limit them.

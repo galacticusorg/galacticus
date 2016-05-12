@@ -158,7 +158,6 @@ module Intergalactic_Medium_State
 
   subroutine intergalacticMediumStateElectronScatteringTabulate(self,time)
     !% Construct a table of electron scattering optical depth as a function of cosmological time.
-    use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     use Cosmology_Functions
     use FGSL
@@ -166,7 +165,6 @@ module Intergalactic_Medium_State
     class           (intergalacticMediumStateClass), intent(inout), target :: self
     double precision                               , intent(in   )         :: time
     class           (cosmologyFunctionsClass      ), pointer               :: cosmologyFunctions_
-    type            (c_ptr                        )                        :: parameterPointer
     type            (fgsl_function                )                        :: integrandFunction
     type            (fgsl_integration_workspace   )                        :: integrationWorkspace
     integer                                                                :: iTime
@@ -200,11 +198,10 @@ module Intergalactic_Medium_State
        do iTime=1,self%electronScatteringTableNumberPoints-1
           fullyIonized=.false.
           call self%electronScattering%populate(                                                             &
-               &                      -Integrate(                                                            &
+               &                      -IntegrateTMP(                                                            &
                &                                 self%electronScattering%x(iTime)                          , &
                &                                 self%electronScatteringTableTimeMaximum                   , &
                &                                 intergalacticMediumStateElectronScatteringIntegrand       , &
-               &                                 parameterPointer                                          , &
                &                                 integrandFunction                                         , &
                &                                 integrationWorkspace                                      , &
                &                                 toleranceAbsolute                                  =0.0d+0, &
@@ -215,11 +212,10 @@ module Intergalactic_Medium_State
           call Integrate_Done(integrandFunction,integrationWorkspace)
           fullyIonized=.true.
           call self%electronScatteringFullyIonized%populate(                                                             &
-               &                                  -Integrate(                                                            &
+               &                                  -IntegrateTMP(                                                            &
                &                                             self%electronScatteringFullyIonized%x(iTime)              , &
                &                                             self%electronScatteringTableTimeMaximum                   , &
                &                                             intergalacticMediumStateElectronScatteringIntegrand       , &
-               &                                             parameterPointer                                          , &
                &                                             integrandFunction                                         , &
                &                                             integrationWorkspace                                      , &
                &                                             toleranceAbsolute                                  =0.0d+0, &
@@ -240,20 +236,17 @@ module Intergalactic_Medium_State
     return
   end subroutine intergalacticMediumStateElectronScatteringTabulate
 
-  function intergalacticMediumStateElectronScatteringIntegrand(time,parameterPointer) bind(c)
+  double precision function intergalacticMediumStateElectronScatteringIntegrand(time)
     !% Integrand for electron scattering optical depth calculations.
-    use, intrinsic :: ISO_C_Binding
     use Cosmology_Functions
     use Cosmology_Parameters
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     implicit none
-    real            (kind=c_double           )          :: intergalacticMediumStateElectronScatteringIntegrand
-    real            (kind=c_double           ), value   :: time
-    type            (c_ptr                   ), value   :: parameterPointer
-    class           (cosmologyParametersClass), pointer :: cosmologyParameters_
-    class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
-    double precision                                    :: electronFraction                                    , expansionFactor
+    double precision                          , intent(in   ) :: time
+    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
+    class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
+    double precision                                          :: electronFraction    , expansionFactor
 
     ! Get the default cosmology.
     cosmologyParameters_ => cosmologyParameters                (    )

@@ -392,7 +392,6 @@ contains
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
     !% \ttfamily radius} (given in units of Mpc).
     use FGSL
-    use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Physical
@@ -405,7 +404,6 @@ contains
     class           (nodeComponentSatellite        )               , pointer  :: satellite
     class           (darkMatterHaloScaleClass      )               , pointer  :: darkMatterHaloScale_
     double precision                                , parameter               :: radiusMaximumFactor =1.0d2
-    type            (c_ptr                         )                          :: parameterPointer
     type            (fgsl_function                 )                          :: integrandFunction
     type            (fgsl_integration_workspace    )                          :: integrationWorkspace
     double precision                                                          :: radiusMaximum
@@ -422,11 +420,10 @@ contains
        darkMatterHaloScale_ => darkMatterHaloScale()
        radiusMaximum        =  +radiusMaximumFactor                                              &
             &                  *self%radiusInitial(node,darkMatterHaloScale_%virialRadius(node))
-       tidallyHeatedPotential=Integrate(                                        &
+       tidallyHeatedPotential=IntegrateTMP(                                        &
             &                           radius                                , &
             &                           radiusMaximum                         , &
             &                           tidallyHeatedPotentialIntegrand       , &
-            &                           parameterPointer                      , &
             &                           integrandFunction                     , &
             &                           integrationWorkspace                  , &
             &                           toleranceAbsolute              =0.0d+0, &
@@ -437,14 +434,11 @@ contains
     return
   end function tidallyHeatedPotential
 
-  function tidallyHeatedPotentialIntegrand(radius,parameterPointer) bind(c)
+  double precision function tidallyHeatedPotentialIntegrand(radius)
     !% Integrand for gravitational potential in a tidally-heated dark matter profile.
-    use, intrinsic :: ISO_C_Binding
     use Numerical_Constants_Physical
     implicit none
-    real(kind=c_double)        :: tidallyHeatedPotentialIntegrand
-    real(kind=c_double), value :: radius
-    type(c_ptr        ), value :: parameterPointer
+    double precision, intent(in   ) :: radius
     
     tidallyHeatedPotentialIntegrand=-gravitationalConstantGalacticus                             &
          &                          *tidallyHeatedSelf%enclosedMass(tidallyHeatedNode,radius)    &
