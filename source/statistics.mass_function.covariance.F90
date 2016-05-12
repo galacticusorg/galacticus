@@ -102,7 +102,6 @@ contains
     double precision                                                                          :: binCompleteness
     type   (fgsl_function             )                                                       :: integrandFunction
     type   (fgsl_integration_workspace)                                                       :: integrationWorkspace
-    type   (c_ptr                     )                                                       :: parameterPointer
     
     ! Initialize the module if necessary.
     if (.not.moduleInitialized) then
@@ -227,11 +226,10 @@ contains
           integrationReset=.true.
           volumeNormalization=                                     &
                &              +volumeNormalization                 &
-               &              +Integrate(                          &
+               &              +IntegrateTMP(                          &
                &                         timeMinimum             , &
                &                         timeMaximum             , &
                &                         Volume_Integrand        , &
-               &                         parameterPointer        , &
                &                         integrandFunction       , &
                &                         integrationWorkspace    , &
                &                         toleranceRelative=1.0d-3, &
@@ -242,11 +240,10 @@ contains
           integrationReset=.true.
           massFunction(i)=                                            &
                &          +massFunction(i)                            &
-               &          +Integrate(                                 &
+               &          +IntegrateTMP(                                 &
                &                     timeMinimum                    , &
                &                     timeMaximum                    , &
                &                     Mass_Function_Time_Integrand_I , &
-               &                     parameterPointer               , &
                &                     integrandFunction              , &
                &                     integrationWorkspace           , &
                &                     toleranceRelative=1.0d-3       , &
@@ -264,11 +261,10 @@ contains
        integrationReset=.true.
        do iTime=1,timeBinCount
           time=timeTable(iTime)
-          biasTable(iTime,i)=  Integrate(                  &
+          biasTable(iTime,i)=  IntegrateTMP(                  &
                &                 logMassLower            , &
                &                 logMassUpper            , &
                &                 Bias_Integrand_I        , &
-               &                 parameterPointer        , &
                &                 integrandFunction       , &
                &                 integrationWorkspace    , &
                &                 toleranceRelative=1.0d-2, &
@@ -350,11 +346,10 @@ contains
                    ! fields such that we accumulate a volume-weighted covariance, which will be normalized below.
                    covarianceHalo(i,j)=                                          &
                         &             + covarianceHalo(i,j)                      &
-                        &             + Integrate(                               &
+                        &             + IntegrateTMP(                               &
                         &                         timeMinimum                  , &
                         &                         timeMaximum                  , &
                         &                         Halo_Occupancy_Time_Integrand, &
-                        &                         parameterPointer             , &
                         &                         integrandFunction            , &
                         &                         integrationWorkspace         , &
                         &                         toleranceRelative=1.0d-3     , &
@@ -453,16 +448,14 @@ contains
     double precision                            , intent(in   ) :: timeMinimum         , timeMaximum
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
-    type            (c_ptr                     )                :: parameterPointer
     logical                                                     :: integrationReset
 
     lssBin                    =iBin
     integrationReset          =.true.
-    Galaxy_Root_Power_Spectrum=Integrate(                          &
+    Galaxy_Root_Power_Spectrum=IntegrateTMP(                          &
          &                               timeMinimum             , &
          &                               timeMaximum             , &
          &                               LSS_Integrand           , &
-         &                               parameterPointer        , &
          &                               integrandFunction       , &
          &                               integrationWorkspace    , &
          &                               toleranceRelative=1.0d-2, &
@@ -472,20 +465,17 @@ contains
     return
   end function Galaxy_Root_Power_Spectrum
 
-  function Angular_Power_Integrand(wavenumber,parameterPointer) bind(c)
+  double precision function Angular_Power_Integrand(wavenumber)
     !% Integrand for large scale structure variance computed using survey mask angular power spectrum.
-    use, intrinsic :: ISO_C_Binding
     implicit none
-    real            (c_double)        :: Angular_Power_Integrand
-    real            (c_double), value :: wavenumber
-    type            (c_ptr   ), value :: parameterPointer
-    integer                           :: iField                 , jField               , &
-         &                               l
-    double precision                  :: x0i                    , x1i                  , &
-         &                               x0j                    , x1j                  , &
-         &                               powerSpectrumI         , powerSpectrumJ       , &
-         &                               surveyDistanceMinimum  , surveyDistanceMaximum, &
-         &                               angularFactor
+    double precision, intent(in   ) :: wavenumber
+    integer                         :: iField                 , jField               , &
+         &                             l
+    double precision                :: x0i                    , x1i                  , &
+         &                             x0j                    , x1j                  , &
+         &                             powerSpectrumI         , powerSpectrumJ       , &
+         &                             surveyDistanceMinimum  , surveyDistanceMaximum, &
+         &                             angularFactor
 
     Angular_Power_Integrand=0.0d0
     if (wavenumber <= 0.0d0) return
@@ -649,41 +639,34 @@ contains
     return
   end function Angular_Power_Radial_Term
   
-  function Volume_Integrand(time,parameterPointer) bind(c)
+  double precision function Volume_Integrand(time)
     !% Integral for comoving volume.
-    use, intrinsic :: ISO_C_Binding
     use Cosmology_Functions
     implicit none
-    real(c_double)        :: Volume_Integrand
-    real(c_double), value :: time
-    type(c_ptr),    value :: parameterPointer
+    double precision, intent(in   ) :: time
 
     Volume_Integrand=cosmologyFunctions_%comovingVolumeElementTime(time)
     return
   end function Volume_Integrand
 
-  function Mass_Function_Time_Integrand_I(timePrime,parameterPointer) bind(c)
+  double precision function Mass_Function_Time_Integrand_I(timePrime)
     !% Integral for comoving volume.
-    use, intrinsic :: ISO_C_Binding
     use Cosmology_Functions
     use FGSL
     use Numerical_Integration
     implicit none
-    real(c_double                  )        :: Mass_Function_Time_Integrand_I
-    real(c_double                  ), value :: timePrime
-    type(c_ptr                     ), value :: parameterPointer
-    type(fgsl_function             )        :: integrandFunction
-    type(fgsl_integration_workspace)        :: integrationWorkspace
-    logical                                 :: integrationReset
-    double precision                        :: massFunction
+    double precision                            , intent(in   ) :: timePrime
+    type            (fgsl_function             )                :: integrandFunction
+    type            (fgsl_integration_workspace)                :: integrationWorkspace
+    logical                                                     :: integrationReset
+    double precision                                            :: massFunction
 
     time=timePrime
     integrationReset=.true.
-    massFunction=Integrate(                            &
+    massFunction=IntegrateTMP(                            &
          &                 logMassLower              , &
          &                 logMassUpper              , &
          &                 Mass_Function_Integrand_I , &
-         &                 parameterPointer          , &
          &                 integrandFunction         , &
          &                 integrationWorkspace      , &
          &                 toleranceRelative=1.0d-3  , &
@@ -694,18 +677,15 @@ contains
     return
   end function Mass_Function_Time_Integrand_I
 
-  function Mass_Function_Integrand_I(logMass,parameterPointer) bind(c)
+  double precision function Mass_Function_Integrand_I(logMass)
     !% Integral for mass function.
-    use, intrinsic :: ISO_C_Binding
     use Halo_Mass_Functions
     use Conditional_Mass_Functions
     implicit none
-    real             (c_double                    )          :: Mass_Function_Integrand_I
-    real             (c_double                    ), value   :: logMass
-    type             (c_ptr                       ), value   :: parameterPointer
-    class            (conditionalMassFunctionClass), pointer :: conditionalMassFunction_
-    class            (haloMassFunctionClass       ), pointer :: haloMassFunction_
-    double precision                                         :: mass
+    double precision                               , intent(in   ) :: logMass
+    class            (conditionalMassFunctionClass), pointer       :: conditionalMassFunction_
+    class            (haloMassFunctionClass       ), pointer       :: haloMassFunction_
+    double precision                                               :: mass
 
     conditionalMassFunction_ => conditionalMassFunction()
     haloMassFunction_        => haloMassFunction       ()
@@ -721,22 +701,19 @@ contains
     return
   end function Mass_Function_Integrand_I
 
-  function LSS_Integrand(timePrime,parameterPointer) bind(c)
+  double precision function LSS_Integrand(timePrime)
     !% Integral for LSS contribution to the covariance matrix.
-    use, intrinsic :: ISO_C_Binding
     use Cosmology_Functions
     use FGSL
     use Power_Spectra_Nonlinear
     use Numerical_Interpolation
     implicit none
-    real            (c_double                   )          :: LSS_Integrand
-    real            (c_double                   ), value   :: timePrime
-    type            (c_ptr                      ), value   :: parameterPointer
-    class           (powerSpectrumNonlinearClass), pointer :: powerSpectrumNonlinear_
-    type            (fgsl_interp                )          :: interpolationObject
-    type            (fgsl_interp_accel          )          :: interpolationAccelerator
-    logical                                                :: interpolationReset
-    double precision                                       :: bias                    , powerSpectrumValue
+    double precision                             , intent(in   ) :: timePrime
+    class           (powerSpectrumNonlinearClass), pointer       :: powerSpectrumNonlinear_
+    type            (fgsl_interp                )                :: interpolationObject
+    type            (fgsl_interp_accel          )                :: interpolationAccelerator
+    logical                                                      :: interpolationReset
+    double precision                                             :: bias                    , powerSpectrumValue
 
     ! Get required objects.
     powerSpectrumNonLinear_ => powerSpectrumNonLinear()
@@ -753,43 +730,36 @@ contains
     return
   end function LSS_Integrand
 
-  function Bias_Integrand_I(logMass,parameterPointer) bind(c)
+  double precision function Bias_Integrand_I(logMass)
     !% Integral for bias.
-    use, intrinsic :: ISO_C_Binding
     use Dark_Matter_Halo_Biases
     implicit none
-    real(c_double)        :: Bias_Integrand_I
-    real(c_double), value :: logMass
-    type(c_ptr),    value :: parameterPointer
-    double precision      :: mass
+    double precision, intent(in   ) :: logMass
+    double precision                :: mass
 
     mass=10.0d0**logMass
-    Bias_Integrand_I=Mass_Function_Integrand_I(logMass,parameterPointer)*Dark_Matter_Halo_Bias(mass,time)
+    Bias_Integrand_I=Mass_Function_Integrand_I(logMass)*Dark_Matter_Halo_Bias(mass,time)
   return
   end function Bias_Integrand_I
 
-  function Halo_Occupancy_Time_Integrand(timePrime,parameterPointer) bind(c)
+  double precision function Halo_Occupancy_Time_Integrand(timePrime)
     !% Integral for comoving volume.
-    use, intrinsic :: ISO_C_Binding
     use Cosmology_Functions
     use FGSL
     use Numerical_Integration
     implicit none
-    real(c_double                  )        :: Halo_Occupancy_Time_Integrand
-    real(c_double                  ), value :: timePrime
-    type(c_ptr                     ), value :: parameterPointer
-    type(fgsl_function             )        :: integrandFunction
-    type(fgsl_integration_workspace)        :: integrationWorkspace
-    logical                                 :: integrationReset
-    double precision                        :: massFunction
+    double precision                            , intent(in   ) :: timePrime
+    type            (fgsl_function             )                :: integrandFunction
+    type            (fgsl_integration_workspace)                :: integrationWorkspace
+    logical                                                     :: integrationReset
+    double precision                                            :: massFunction
 
     time=timePrime
     integrationReset=.true.
-    massFunction=Integrate(                          &
+    massFunction=IntegrateTMP(                          &
          &                 logMassLower            , &
          &                 logMassUpper            , &
          &                 Halo_Occupancy_Integrand, &
-         &                 parameterPointer        , &
          &                 integrandFunction       , &
          &                 integrationWorkspace    , &
          &                 toleranceRelative=1.0d-3, &
@@ -800,18 +770,15 @@ contains
     return
   end function Halo_Occupancy_Time_Integrand
 
-  function Halo_Occupancy_Integrand(logMass,parameterPointer) bind(c)
+  double precision function Halo_Occupancy_Integrand(logMass)
     !% Integral for mass function.
-    use, intrinsic :: ISO_C_Binding
     use Halo_Mass_Functions
     use Conditional_Mass_Functions
     implicit none
-    real             (c_double                    )          :: Halo_Occupancy_Integrand
-    real             (c_double                    ), value   :: logMass
-    type             (c_ptr                       ), value   :: parameterPointer
-    class            (conditionalMassFunctionClass), pointer :: conditionalMassFunction_
-    class            (haloMassFunctionClass       ), pointer :: haloMassFunction_
-    double precision                                         :: mass
+    double precision                               , intent(in   ) :: logMass
+    class            (conditionalMassFunctionClass), pointer       :: conditionalMassFunction_
+    class            (haloMassFunctionClass       ), pointer       :: haloMassFunction_
+    double precision                                               :: mass
     
     conditionalMassFunction_ => conditionalMassFunction()
     haloMassFunction_        => haloMassFunction       ()
@@ -847,7 +814,6 @@ contains
     integer                                                                   :: iField
     type            (fgsl_function             )                              :: integrandFunction
     type            (fgsl_integration_workspace)                              :: integrationWorkspace
-    type            (c_ptr                     )                              :: parameterPointer
     logical                                                                   :: integrationReset
 
     do iField=1,surveyGeometry_%fieldCount() 
@@ -862,11 +828,10 @@ contains
             &                 )
        ! Get the normalizing volume integral for bin i.
        integrationReset=.true.
-       volumeNormalization(iField)= Integrate(                          &
+       volumeNormalization(iField)= IntegrateTMP(                          &
             &                                 timeMinimum(iField)     , &
             &                                 timeMaximum(iField)     , &
             &                                 Volume_Integrand        , &
-            &                                 parameterPointer        , &
             &                                 integrandFunction       , &
             &                                 integrationWorkspace    , &
             &                                 toleranceRelative=1.0d-3, &
@@ -1095,7 +1060,6 @@ contains
     logical                                                                       :: integrationReset
     type            (fgsl_function             )                                  :: integrandFunction
     type            (fgsl_integration_workspace)                                  :: integrationWorkspace
-    type            (c_ptr                     )                                  :: parameterPointer
 
     fieldCount=surveyGeometry_%fieldCount()
     call omp_set_nested(.true.)
@@ -1157,11 +1121,10 @@ contains
                &           /Pi                                                  &
                &           /sum(volumeNormalizationI)**2                        &
                &           /sum(volumeNormalizationJ)**2                        &
-               &           *Integrate(                                          &
+               &           *IntegrateTMP(                                          &
                &                      wavenumberMinimum                       , &
                &                      wavenumberMaximum                       , &
                &                      Angular_Power_Integrand                 , &
-               &                      parameterPointer                        , &
                &                      integrandFunction                       , &
                &                      integrationWorkspace                    , &
                &                      toleranceRelative      =1.0d-2          , &

@@ -259,7 +259,6 @@ contains
     !% {4 \pi \over {\mathrm h}} \int_{\lambda_1}^{\lambda_2} \sigma(\lambda) j_{\nu}(\lambda) {{\mathrm d}\lambda \over \lambda},
     !% \end{equation}
     !% where $j_{\nu}$ is the flux of energy per unit area per unit solid angle and per unit frequency.
-    use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     use Numerical_Constants_Units
     use Numerical_Constants_Physical
@@ -267,7 +266,6 @@ contains
     class           (radiationStructure        )              , intent(in   ) :: radiation
     double precision                            , dimension(2), intent(in   ) :: wavelengthRange
     double precision                            , external                    :: crossSectionFunction
-    type            (c_ptr                     )                              :: parameterPointer
     type            (fgsl_function             )                              :: integrandFunction
     type            (fgsl_integration_workspace)                              :: integrationWorkspace
 
@@ -281,8 +279,8 @@ contains
     crossSectionFunctionGlobal => crossSectionFunction
 
     ! Perform the integration.
-    Radiation_Integrate_Over_Cross_Section=Integrate( wavelengthRange(1),wavelengthRange(2)            &
-         &                                           ,Cross_Section_Integrand,parameterPointer         &
+    Radiation_Integrate_Over_Cross_Section=IntegrateTMP( wavelengthRange(1),wavelengthRange(2)            &
+         &                                           ,Cross_Section_Integrand         &
          &                                           ,integrandFunction,integrationWorkspace           &
          &                                           ,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3 &
          &                                           ,integrationRule =FGSL_Integ_Gauss15&
@@ -295,12 +293,9 @@ contains
     return
   end function Radiation_Integrate_Over_Cross_Section
 
-  function Cross_Section_Integrand(wavelength,parameterPointer) bind(c)
+  double precision function Cross_Section_Integrand(wavelength)
     !% Integrand function use in integrating a radiation field over a cross section function.
-    use, intrinsic :: ISO_C_Binding
-    real(kind=c_double)        :: Cross_Section_Integrand
-    real(kind=c_double), value :: wavelength
-    type(c_ptr        ), value :: parameterPointer
+    double precision, intent(in   ) :: wavelength
 
     if (wavelength > 0.0d0) then
        Cross_Section_Integrand=crossSectionFunctionGlobal(wavelength)*Radiation_Flux(radiationGlobal,wavelength)/wavelength

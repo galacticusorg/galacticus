@@ -158,7 +158,6 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
   type            (abundances                )                                        :: abundancesStars
   type            (fgsl_function             )                                        :: integrandFunction
   type            (fgsl_integration_workspace)                                        :: integrationWorkspace
-  type            (c_ptr                     )                                        :: parameterPointer
   logical                                                                             :: integrationReset                    , useRapidEvaluation
   !GCC$ attributes unused :: simulationConvergence, timeEvaluate
   
@@ -395,11 +394,10 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
         else
            toleranceRelative=max(1.0d-3,toleranceRelativeFractional*self%error(imagnitude)*log(10.0d0)/2.5d0)
         end if
-        luminosity=Integrate(                                         &
+        luminosity=IntegrateTMP(                                         &
              &               timeStart                              , &
              &               timeObserved                           , &
              &               luminosityIntegrand                    , &
-             &               parameterPointer                       , &
              &               integrandFunction                      , &
              &               integrationWorkspace                   , &
              &               toleranceRelative   =toleranceRelative , &
@@ -442,18 +440,15 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
 
 contains
   
-  function luminosityIntegrand(time,parameterPointer) bind(c)
+  double precision function luminosityIntegrand(time)
     !% Star formation rate integrand.
-    use, intrinsic :: ISO_C_Binding
     use Star_Formation_IMF
     use Stellar_Population_Luminosities
     use Numerical_Constants_Math
     implicit none
-    real(c_double)        :: luminosityIntegrand
-    real(c_double), value :: time
-    type(c_ptr   ), value :: parameterPointer
-    integer               :: imfIndex
-    double precision      :: recycledFractionInstantaneous, starFormationRate
+    double precision, intent(in   ) :: time
+    integer                         :: imfIndex
+    double precision                :: recycledFractionInstantaneous, starFormationRate
     
     ! Find stellar population age.
     self%age         =timeObserved-time

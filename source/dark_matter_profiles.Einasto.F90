@@ -883,7 +883,6 @@ contains
 
   subroutine einastoEnergyTableMake(self,concentrationRequired,alphaRequired)
     !% Create a tabulation of the energy of Einasto profiles as a function of their concentration of $\alpha$ parameter.
-    use, intrinsic :: ISO_C_Binding
     use Numerical_Interpolation
     use Numerical_Integration
     use Numerical_Ranges
@@ -900,7 +899,6 @@ contains
          &                                                         potentialEnergyIntegral, radiusMaximum        , &
          &                                                         radiusMinimum          , concentrationParameter, &
          &                                                         alphaParameter
-    type            (c_ptr                     )                :: parameterPointer
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
 
@@ -950,8 +948,8 @@ contains
              radiusMaximum         =concentration
              concentrationParameter=concentration
              alphaParameter        =alpha
-             potentialEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,einastoPotentialEnergyIntegrand&
-                  &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+             potentialEnergyIntegral=IntegrateTMP(radiusMinimum,radiusMaximum,einastoPotentialEnergyIntegrand&
+                  &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
              call Integrate_Done(integrandFunction,integrationWorkspace)
              potentialEnergy=-0.5d0*(1.0d0/concentration+potentialEnergyIntegral)
 
@@ -960,8 +958,8 @@ contains
              radiusMaximum         =100.0d0*concentration
              concentrationParameter=        concentration
              alphaParameter        =alpha
-             jeansEquationIntegral=Integrate(radiusMinimum,radiusMaximum,einastoJeansEquationIntegrand&
-                  &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+             jeansEquationIntegral=IntegrateTMP(radiusMinimum,radiusMaximum,einastoJeansEquationIntegrand&
+                  &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
              call Integrate_Done(integrandFunction,integrationWorkspace)
 
              ! Compute the kinetic energy.
@@ -969,8 +967,8 @@ contains
              radiusMaximum         =concentration
              concentrationParameter=concentration
              alphaParameter        =alpha
-             kineticEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,einastoKineticEnergyIntegrand&
-                  &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+             kineticEnergyIntegral=IntegrateTMP(radiusMinimum,radiusMaximum,einastoKineticEnergyIntegrand&
+                  &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
              call Integrate_Done(integrandFunction,integrationWorkspace)
              kineticEnergy=2.0d0*Pi*(jeansEquationIntegral*concentration**3+kineticEnergyIntegral)
 
@@ -993,38 +991,29 @@ contains
     
   contains
     
-    function einastoPotentialEnergyIntegrand(radius,parameterPointer) bind(c)
+    double precision function einastoPotentialEnergyIntegrand(radius)
       !% Integrand for Einasto profile potential energy.
-      use, intrinsic :: ISO_C_Binding
       implicit none
-      real(kind=c_double)        :: einastoPotentialEnergyIntegrand
-      real(kind=c_double), value :: radius
-      type(c_ptr        ), value :: parameterPointer
+      double precision, intent(in   ) :: radius
       
       einastoPotentialEnergyIntegrand=(self%enclosedMassScaleFree(radius,concentrationParameter,alphaParameter)/radius)**2
       return
     end function einastoPotentialEnergyIntegrand
 
-    function einastoKineticEnergyIntegrand(radius,parameterPointer) bind(c)
+    double precision function einastoKineticEnergyIntegrand(radius)
       !% Integrand for Einasto profile kinetic energy.
-      use, intrinsic :: ISO_C_Binding
       implicit none
-      real(kind=c_double)        :: einastoKineticEnergyIntegrand
-      real(kind=c_double), value :: radius
-      type(c_ptr        ), value :: parameterPointer
+      double precision, intent(in   ) :: radius
       
       einastoKineticEnergyIntegrand=self%enclosedMassScaleFree(radius,concentrationParameter,alphaParameter)&
            &*self%densityScaleFree(radius,concentrationParameter,alphaParameter)*radius
       return
     end function einastoKineticEnergyIntegrand
     
-    function einastoJeansEquationIntegrand(radius,parameterPointer) bind(c)
+    double precision function einastoJeansEquationIntegrand(radius)
       !% Integrand for Einasto profile Jeans equation.
-      use, intrinsic :: ISO_C_Binding
       implicit none
-      real(kind=c_double)        :: einastoJeansEquationIntegrand
-      real(kind=c_double), value :: radius
-      type(c_ptr        ), value :: parameterPointer
+      double precision, intent(in   ) :: radius
       
       einastoJeansEquationIntegrand=self%enclosedMassScaleFree(radius,concentrationParameter,alphaParameter)&
            &*self%densityScaleFree(radius ,concentrationParameter,alphaParameter)/radius**2
@@ -1161,7 +1150,6 @@ contains
   subroutine einastoFourierProfileTableMake(self,wavenumberRequired,concentrationRequired,alphaRequired)
     !% Create a tabulation of the Fourier transform of Einasto profiles as a function of their $\alpha$ parameter and
     !% dimensionless wavenumber.
-    use, intrinsic :: ISO_C_Binding
     use Numerical_Interpolation
     use Numerical_Integration
     use Numerical_Ranges
@@ -1178,7 +1166,6 @@ contains
     double precision                                            :: alpha                        , concentration        , radiusMaximum      , &
          &                                                         radiusMinimum                , wavenumber           , wavenumberParameter, &
          &                                                         concentrationParameter       , alphaParameter
-    type            (c_ptr                     )                :: parameterPointer
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
     character       (len=12                    )                :: label
@@ -1258,8 +1245,8 @@ contains
                    wavenumberParameter   =wavenumber
                    alphaParameter        =alpha
                    concentrationParameter=concentration
-                   self%fourierProfileTable(iWavenumber,iConcentration,iAlpha)=Integrate(radiusMinimum,radiusMaximum&
-                        &,einastoFourierProfileIntegrand ,parameterPointer,integrandFunction,integrationWorkspace&
+                   self%fourierProfileTable(iWavenumber,iConcentration,iAlpha)=IntegrateTMP(radiusMinimum,radiusMaximum&
+                        &,einastoFourierProfileIntegrand,integrandFunction,integrationWorkspace&
                         &,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-2,maxIntervals=10000,errorStatus=errorStatus)
                    call Integrate_Done(integrandFunction,integrationWorkspace)
                    if (errorStatus /= errorStatusSuccess) then
@@ -1298,14 +1285,11 @@ contains
     
   contains
 
-    function einastoFourierProfileIntegrand(radius,parameterPointer) bind(c)
+    double precision function einastoFourierProfileIntegrand(radius)
       !% Integrand for Einasto Fourier profile.
-      use, intrinsic :: ISO_C_Binding
       use Numerical_Constants_Math
       implicit none
-      real(kind=c_double)        :: einastoFourierProfileIntegrand
-      real(kind=c_double), value :: radius
-      type(c_ptr        ), value :: parameterPointer
+      double precision, intent(in   ) :: radius
       
       einastoFourierProfileIntegrand=4.0d0*Pi*radius*sin(wavenumberParameter*radius)*self%densityScaleFree(radius&
            &,concentrationParameter,alphaParameter)/wavenumberParameter
@@ -1537,12 +1521,10 @@ contains
 
   double precision function einastoFreefallTimeScaleFree(self,radius,alpha)
     !% Compute the freefall time in a scale-free Einasto halo.
-    use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     implicit none
     class           (darkMatterProfileEinasto  ), intent(inout) :: self
     double precision                            , intent(in   ) :: alpha               , radius
-    type            (c_ptr                     )                :: parameterPointer
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
     double precision                                            :: radiusStart         , radiusEnd, &
@@ -1551,19 +1533,16 @@ contains
     radiusStart   =radius
     radiusEnd     =0.0d0
     alphaParameter=alpha
-    einastoFreefallTimeScaleFree=Integrate(radiusEnd,radiusStart,einastoFreefallTimeScaleFreeIntegrand,parameterPointer&
+    einastoFreefallTimeScaleFree=IntegrateTMP(radiusEnd,radiusStart,einastoFreefallTimeScaleFreeIntegrand&
          &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
     return
 
   contains
     
-    function einastoFreefallTimeScaleFreeIntegrand(radius,parameterPointer) bind(c)
+    double precision function einastoFreefallTimeScaleFreeIntegrand(radius)
       !% Integrand function used for finding the free-fall time in Einasto halos.
-      use, intrinsic :: ISO_C_Binding
       implicit none
-      real(kind=c_double)        :: einastoFreefallTimeScaleFreeIntegrand
-      real(kind=c_double), value :: radius
-      type(c_ptr        ), value :: parameterPointer
+      double precision, intent(in   ) :: radius
       
       einastoFreefallTimeScaleFreeIntegrand= 1.0d0                                                                   &
            &                                     /sqrt(                                                                  &

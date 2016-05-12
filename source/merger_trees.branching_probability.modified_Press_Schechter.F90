@@ -390,13 +390,11 @@ contains
 
   double precision function Modified_Press_Schechter_Branch_Mass_Root(logMassMaximum)
     !% Used to find the mass of a merger tree branching event.
-    use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     implicit none
     double precision                            , intent(in   ) :: logMassMaximum
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
-    type            (c_ptr                     )                :: parameterPointer
     double precision                                            :: integral            , massMaximum
 
     if (logMassMaximum < probabilityMinimumMassLog) then
@@ -406,11 +404,10 @@ contains
     else
        massMaximum=+exp(logMassMaximum)
        integral   =+branchingProbabilityPreFactor                                                                        &
-            &      *Integrate(                                                                                           &
+            &      *IntegrateTMP(                                                                                           &
             &                 probabilityMinimumMassLog                                                                , &
             &                 logMassMaximum                                                                           , &
             &                 Branching_Probability_Integrand_Logarithmic                                              , &
-            &                 parameterPointer                                                                         , &
             &                 integrandFunction                                                                        , &
             &                 integrationWorkspace                                                                     , &
             &                 toleranceAbsolute                          =0.0d0                                        , &
@@ -431,7 +428,6 @@ contains
     implicit none
     double precision       , intent(in   ) :: logMassMaximum
     double precision                       :: integral        , massMaximum
-    type            (c_ptr)                :: parameterPointer
 
     if (logMassMaximum < probabilityMinimumMassLog) then
        Modified_Press_Schechter_Branch_Mass_Root_Derivative=probabilityGradientMinimum
@@ -444,8 +440,7 @@ contains
             &                                                   max(                           &
             &                                                       log(massMaximum)         , &
             &                                                       probabilityMinimumMassLog  &
-            &                                                      )                         , &
-            &                                                   parameterPointer               &
+            &                                                      )                           &
             &                                                  )
        Modified_Press_Schechter_Branch_Mass_Root_Derivative=-integral
     end if
@@ -492,13 +487,11 @@ contains
   double precision function Modified_Press_Schechter_Branching_Probability(haloMass,deltaCritical,massResolution)
     !% Return the probability per unit change in $\delta_{\mathrm crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\tt
     !% deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}.
-    use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     implicit none
     double precision                               , intent(in   ) :: deltaCritical                , haloMass                    , &
          &                                                            massResolution
     class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
-    type            (c_ptr                        )                :: parameterPointer
     type            (fgsl_function                )                :: integrandFunction
     type            (fgsl_integration_workspace   )                :: integrationWorkspace
     double precision                                               :: massMaximum                  , massMinimum
@@ -521,11 +514,10 @@ contains
           massMinimum=      massResolution
           massMaximum=0.5d0*parentHaloMass
           probabilityPrevious=+branchingProbabilityPreFactor                                                                        &
-               &              *Integrate(                                                                                           &
+               &              *IntegrateTMP(                                                                                           &
                &                         log(massMinimum)                                                                         , &
                &                         log(massMaximum)                                                                         , &
                &                         Branching_Probability_Integrand_Logarithmic                                              , &
-               &                         parameterPointer                                                                         , &
                &                         integrandFunction                                                                        , &
                &                         integrationWorkspace                                                                     , &
                &                         toleranceAbsolute                          =0.0d0                                        , &
@@ -814,15 +806,12 @@ contains
     return
   end function Modified_Press_Schechter_Subresolution_Fraction
 
-  function Branching_Probability_Integrand_Logarithmic(logChildHaloMass,parameterPointer) bind(c)
+  double precision function Branching_Probability_Integrand_Logarithmic(logChildHaloMass)
     !% Integrand for the branching probability.
-    use, intrinsic :: ISO_C_Binding
     implicit none
-    real (kind=c_double                )          :: Branching_Probability_Integrand_Logarithmic
-    real (kind=c_double                ), value   :: logChildHaloMass
-    type (     c_ptr                   ), value   :: parameterPointer
-    class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
-    real (kind=c_double                )          :: childAlpha                     , childSigma, childHaloMass
+    double precision                               , intent(in   ) :: logChildHaloMass
+    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+    double precision                                               :: childAlpha               , childSigma, childHaloMass
     
     cosmologicalMassVariance_ => cosmologicalMassVariance()
     childHaloMass=exp(logChildHaloMass)

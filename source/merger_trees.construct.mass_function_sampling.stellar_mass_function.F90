@@ -135,7 +135,6 @@ contains
 
   double precision function Merger_Tree_Construct_Mass_Function_Sampling_Stellar_MF(mass,time,massMinimum,massMaximum)
     !% Computes the halo mass function sampling rate using a power-law distribution.
-    use, intrinsic :: ISO_C_Binding
     use FGSL
     use Halo_Mass_Functions
     use Galacticus_Meta_Compute_Times
@@ -150,7 +149,6 @@ contains
          &                                                         xi                                 , xiIntegral
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
-    type            (c_ptr                     )                :: parameterPointer
     !GCC$ attributes unused :: massMinimum, massMaximum
     
     ! Get the halo mass function, defined per logarithmic interval in halo mass.
@@ -161,7 +159,7 @@ contains
     massHalo             =mass
     logStellarMassMinimum=log10(haloMassFunctionSamplingStellarMassFunctionErrorMassMinimum)
     logStellarMassMaximum=log10(haloMassFunctionSamplingStellarMassFunctionErrorMassMaximum)
-    xiIntegral           =Integrate(logStellarMassMinimum,logStellarMassMaximum,Xi_Integrand,parameterPointer,integrandFunction &
+    xiIntegral           =IntegrateTMP(logStellarMassMinimum,logStellarMassMaximum,Xi_Integrand,integrandFunction &
          &,integrationWorkspace,toleranceAbsolute=toleranceAbsolute,toleranceRelative=toleranceRelative)
     call Integrate_Done(integrandFunction,integrationWorkspace)
 
@@ -176,18 +174,15 @@ contains
     return
   end function Merger_Tree_Construct_Mass_Function_Sampling_Stellar_MF
 
-  function Xi_Integrand(logStellarMass,parameterPointer) bind(c)
+  double precision function Xi_Integrand(logStellarMass)
     !% The integrand appearing in the $\xi$ function.
-    use, intrinsic :: ISO_C_Binding
     use Conditional_Mass_Functions
     implicit none
-    real            (kind=c_double               )          :: Xi_Integrand
-    real            (kind=c_double               ), value   :: logStellarMass
-    type            (c_ptr                       ), value   :: parameterPointer
-    class           (conditionalMassFunctionClass), pointer :: conditionalMassFunction_
-    double precision                                        :: conditionalMassFunctionVariance , stellarMass       , &
-         &                                                     stellarMassFunctionObservedError, stellarMassMaximum, &
-         &                                                     stellarMassMinimum
+    double precision                              , intent(in   ) :: logStellarMass
+    class           (conditionalMassFunctionClass), pointer       :: conditionalMassFunction_
+    double precision                                              :: conditionalMassFunctionVariance , stellarMass       , &
+         &                                                           stellarMassFunctionObservedError, stellarMassMaximum, &
+         &                                                           stellarMassMinimum
 
     ! Compute the stellar mass and range corresponding to data bins.
     stellarMass       =10.0d0** logStellarMass

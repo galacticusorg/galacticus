@@ -265,6 +265,8 @@ my $models =
 my @treeFiles;
 my $snapshotRedshifts = pdl [];
 my $haloMassMinimum   = pdl 1.0e60;
+die("monteCarloTrees.pl: tree directory does not exist")
+    unless ( -e $arguments{'treeDirectory'} );
 opendir(my $treeDirectory,$arguments{'treeDirectory'});
 while ( my $fileName = readdir($treeDirectory) ) {
     next
