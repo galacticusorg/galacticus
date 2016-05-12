@@ -279,7 +279,7 @@ contains
     crossSectionFunctionGlobal => crossSectionFunction
 
     ! Perform the integration.
-    Radiation_Integrate_Over_Cross_Section=IntegrateTMP( wavelengthRange(1),wavelengthRange(2)            &
+    Radiation_Integrate_Over_Cross_Section=Integrate( wavelengthRange(1),wavelengthRange(2)            &
          &                                           ,Cross_Section_Integrand         &
          &                                           ,integrandFunction,integrationWorkspace           &
          &                                           ,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3 &

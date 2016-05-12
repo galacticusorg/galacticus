@@ -131,7 +131,7 @@ contains
     Star_Formation_Feedback_Disk_Outflow_Rate_Creasey2012=                             &
          &  2.0d0*Pi                                                                   &
          & *starFormationFeedbackDisksCreasy2012Beta0                                  &
-         & *IntegrateTMP(                                                                 &
+         & *Integrate(                                                                 &
          &            radiusInner                                                    , &
          &            radiusOuter                                                    , &
          &            Star_Formation_Feedback_Disk_Outflow_Rate_Creasey2012_Integrand, &

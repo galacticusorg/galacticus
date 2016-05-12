@@ -318,7 +318,7 @@ contains
     
     massDistributionSphericalActive => self
     integrationReset=.true.
-    Mass_Distribution_Mass_Enc_By_Sphere_Spherical=4.0d0*Pi*IntegrateTMP(0.0d0,radius&
+    Mass_Distribution_Mass_Enc_By_Sphere_Spherical=4.0d0*Pi*Integrate(0.0d0,radius&
          &,Mass_Distribution_Mass_Enc_By_Sphere_Spherical_Integrand,integrandFunction,integrationWorkspace,reset&
          &=integrationReset,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6)
     call Integrate_Done(integrandFunction,integrationWorkspace)

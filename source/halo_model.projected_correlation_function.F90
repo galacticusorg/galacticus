@@ -141,7 +141,7 @@ contains
        integrationReset    =.true.
        volume              =                                       &
             & +volume                                              &
-            & +IntegrateTMP(                                          &
+            & +Integrate(                                          &
             &            timeMinimum                             , &
             &            timeMaximum                             , &
             &            volumeTimeIntegrand                     , &
@@ -156,7 +156,7 @@ contains
        integrationReset    =.true.
        galaxyDensity       =                                       &
             & +galaxyDensity                                       &
-            & +IntegrateTMP(                                          &
+            & +Integrate(                                          &
             &            timeMinimum                             , &
             &            timeMaximum                             , &
             &            normalizationTimeIntegrand              , &
@@ -173,7 +173,7 @@ contains
           integrationReset    =.true.
           powerSpectrumOneHalo        (iWavenumber)=                              &
                & +powerSpectrumOneHalo(iWavenumber)                               &
-               & +IntegrateTMP(                                                      &
+               & +Integrate(                                                      &
                &            timeMinimum                                         , &
                &            timeMaximum                                         , &
                &            powerSpectrumOneHaloTimeIntegrand                   , &
@@ -189,7 +189,7 @@ contains
           integrationReset    =.true.
           powerSpectrumTwoHalo        (iWavenumber)=                              &
                & +powerSpectrumTwoHalo(iWavenumber)                               &
-               & +IntegrateTMP(                                                      &
+               & +Integrate(                                                      &
                &            timeMinimum                                         , &
                &            timeMaximum                                         , &
                &            powerSpectrumTwoHaloTimeIntegrand                   , &
@@ -319,7 +319,7 @@ contains
       call thisBasic%timeLastIsolatedSet                 (time)
       integrationResetTime             =.true.
       powerSpectrumOneHaloTimeIntegrand=                                                  &
-           & +IntegrateTMP(                                                                  &
+           & +Integrate(                                                                  &
            &            projectedCorrelationFunctionHaloMassMinimum                     , &
            &            projectedCorrelationFunctionHaloMassMaximum                     , &
            &            powerSpectrumOneHaloIntegrand                                   , &
@@ -407,7 +407,7 @@ contains
       call thisBasic%timeLastIsolatedSet                 (time)
       integrationResetTime             =.true.
       powerSpectrumTwoHaloTimeIntegrand=                                                  &
-           & +IntegrateTMP(                                                                  &
+           & +Integrate(                                                                  &
            &            projectedCorrelationFunctionHaloMassMinimum                     , &
            &            projectedCorrelationFunctionHaloMassMaximum                     , &
            &            powerSpectrumTwoHaloIntegrand                                   , &
@@ -476,7 +476,7 @@ contains
       time           =timePrime
       integrationResetTime=.true.
       normalizationTimeIntegrand=                                           &
-           & +IntegrateTMP(                                                    &
+           & +Integrate(                                                    &
            &            projectedCorrelationFunctionHaloMassMinimum       , &
            &            projectedCorrelationFunctionHaloMassMaximum       , &
            &            normalizationIntegrand                            , &

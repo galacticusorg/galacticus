@@ -800,7 +800,7 @@
                    &            *angstromsPerMeter
               ! Integrate photoionizations over wavelength.
               integrationReset       =.true.
-              ionizationPhotoRateFrom=-IntegrateTMP(                                                 &
+              ionizationPhotoRateFrom=-Integrate(                                                 &
                    &                             wavelengthMinimum                              , &
                    &                             wavelengthMaximum                              , &
                    &                             Photoionization_Rate_Integrand                 , &
@@ -828,7 +828,7 @@
                    &            *angstromsPerMeter
               ! Integrate photoionizations over wavelength.
               integrationReset       =.true.
-              ionizationPhotoRateTo  =+IntegrateTMP(                                                 &
+              ionizationPhotoRateTo  =+Integrate(                                                 &
                    &                             wavelengthMinimum                              , &
                    &                             wavelengthMaximum                              , &
                    &                             Photoionization_Rate_Integrand                 , &
@@ -842,7 +842,7 @@
               call Integrate_Done(integrationFunction,integrationWorkspace) 
               integrationReset = .true.
               heatingRate                      =+heatingRate                                                        &
-                   &                            +IntegrateTMP(                                                         &
+                   &                            +Integrate(                                                         &
                    &                                       wavelengthMinimum                                      , &
                    &                                       wavelengthMaximum                                      , &
                    &                                       Photoionization_Heating_Rate_Integrand                 , &

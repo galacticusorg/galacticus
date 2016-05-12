@@ -118,7 +118,7 @@ contains
     ! Add in the contribution from stellar winds.
     initialMassGlobal=initialMass
     metallicityGlobal=metallicity
-    energyWinds=IntegrateTMP(0.0d0,age,Wind_Energy_Integrand,integrandFunction,integrationWorkspace&
+    energyWinds=Integrate(0.0d0,age,Wind_Energy_Integrand,integrandFunction,integrationWorkspace&
          &,toleranceAbsolute=1.0d-3*Stellar_Feedback_Cumulative_Energy_Input_Standard,toleranceRelative=1.0d-3)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     Stellar_Feedback_Cumulative_Energy_Input_Standard=Stellar_Feedback_Cumulative_Energy_Input_Standard+energyWinds

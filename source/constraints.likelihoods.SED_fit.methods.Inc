@@ -394,7 +394,7 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
         else
            toleranceRelative=max(1.0d-3,toleranceRelativeFractional*self%error(imagnitude)*log(10.0d0)/2.5d0)
         end if
-        luminosity=IntegrateTMP(                                         &
+        luminosity=Integrate(                                         &
              &               timeStart                              , &
              &               timeObserved                           , &
              &               luminosityIntegrand                    , &

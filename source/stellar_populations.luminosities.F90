@@ -334,7 +334,7 @@ contains
                               &                                iAge                        , &
                               &                                iMetallicity                  &
                               &                               )                              &
-                              & =IntegrateTMP(                                                  &
+                              & =Integrate(                                                  &
                               &            wavelengthRange(1)                              , &
                               &            wavelengthRange(2)                              , &
                               &            Filter_Luminosity_Integrand                     , &
@@ -374,7 +374,7 @@ contains
                 call Galacticus_Display_Counter_Clear(           verbosityWorking)
                 call Galacticus_Display_Unindent     ('finished',verbosityWorking)
                 ! Get the normalization by integrating a zeroth magnitude (AB) source through the filter.
-                normalization=IntegrateTMP(wavelengthRange(1),wavelengthRange(2),Filter_Luminosity_Integrand_AB &
+                normalization=Integrate(wavelengthRange(1),wavelengthRange(2),Filter_Luminosity_Integrand_AB &
                      &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative&
                      &=stellarPopulationLuminosityIntegrationToleranceRelative)
                 call Integrate_Done(integrandFunction,integrationWorkspace)

@@ -82,7 +82,7 @@ contains
        radiusOuter                        =+hotHalo%outerRadius()
        integrationReset                   =.true.
        enzoHydrostaticDensityNormalization=+hotHalo%mass       ()                                              &
-            &                              /IntegrateTMP(                                                         &
+            &                              /Integrate(                                                         &
             &                                         radiusInner                                            , &
             &                                         radiusOuter                                            , &                  
             &                                         enzoHydrostaticEnclosedMassIntegrand                   , &
@@ -199,7 +199,7 @@ contains
        radiusOuter                                  =  radius
        integrationReset                             =  .true.
        enzoHydrostaticEnclosedMass=+self%densityNormalization(node)                                    &
-            &                      *IntegrateTMP(                                                         &
+            &                      *Integrate(                                                         &
             &                                 radiusInner                                            , &
             &                                 radiusOuter                                            , &                  
             &                                 enzoHydrostaticEnclosedMassIntegrand                   , &
@@ -246,7 +246,7 @@ contains
          &                                   )
     integrationReset                   =  .true.
     enzoHydrostaticRadialMoment=+self%densityNormalization(node)                                    &
-         &                      *IntegrateTMP(                                                         &
+         &                      *Integrate(                                                         &
          &                                 radiusInner                                            , &
          &                                 radiusOuter                                            , &
          &                                 enzoHydrostaticRadialMomentIntegrand                   , &

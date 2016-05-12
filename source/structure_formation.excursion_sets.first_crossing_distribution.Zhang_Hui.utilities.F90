@@ -97,7 +97,7 @@ contains
        smallStep=0.5d0*smallStep
     end do
     ! Compute the non-divergent part of the integral numerically.
-    g_2_Integrated=IntegrateTMP(variance-deltaVariance,variance-smallStep,g_2_Integrand_Zhang_Hui&
+    g_2_Integrated=Integrate(variance-deltaVariance,variance-smallStep,g_2_Integrand_Zhang_Hui&
          &,integrandFunction,integrationWorkspace ,toleranceAbsolute=1.0d-50,toleranceRelative=1.0d-6,hasSingularities=.true.&
          &,integrationRule=FGSL_Integ_Gauss15)
     ! Compute the divergent part of the integral with an analytic approximation.

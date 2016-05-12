@@ -995,7 +995,7 @@ contains
           if (present(integrand)) then
              ! An integrand is given, numerically integrate the relevant terms over the integrand.
              integrationReset=.true.
-             factor0=IntegrateTMP(                                       &
+             factor0=Integrate(                                       &
                   &            lx0                                  , &
                   &            lx1                                  , &
                   &            factor0Integrand                     , &
@@ -1006,7 +1006,7 @@ contains
                   &           )
              call Integrate_Done(integrandFunction,integrationWorkspace)
              integrationReset=.true.
-             factor1=IntegrateTMP(                                       &
+             factor1=Integrate(                                       &
                   &            lx0                                  , &
                   &            lx1                                  , &
                   &            factor1Integrand                     , &

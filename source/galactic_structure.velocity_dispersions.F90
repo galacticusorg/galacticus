@@ -64,7 +64,7 @@ contains
        return
     end if
     ! Integrate the Jeans equation.
-    densityVelocityVariance=IntegrateTMP(radius,radiusOuter,Velocity_Dispersion_Integrand&
+    densityVelocityVariance=Integrate(radius,radiusOuter,Velocity_Dispersion_Integrand&
          &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     ! Get the density at this radius.

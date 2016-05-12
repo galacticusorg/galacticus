@@ -717,7 +717,7 @@ contains
                 maximumMass=IMF_Maximum_Mass(imfSelected)
                 ! Integrate ejected mass over the IMF between these limits.
                 integrationReset=.true.
-                recycledFractionTable(iAge,iMetallicity,recycledFractionIndex(imfSelected))=IntegrateTMP(minimumMass,maximumMass&
+                recycledFractionTable(iAge,iMetallicity,recycledFractionIndex(imfSelected))=Integrate(minimumMass,maximumMass&
                      &,Recycled_Fraction_Integrand,integrandFunction,integrationWorkspace,reset=integrationReset,toleranceAbsolute&
                      &=1.0d-3 ,toleranceRelative=1.0d-4)
                 call Integrate_Done(integrandFunction,integrationWorkspace)
@@ -1088,7 +1088,7 @@ contains
                 minimumMass=IMF_Minimum_Mass(imfSelected)
                 maximumMass=IMF_Maximum_Mass(imfSelected)
                 ! Integrate ejected mass over the IMF between these limits.
-                remnantFractionTable(iAge,iMetallicity,remnantFractionIndex(imfSelected))=IntegrateTMP(minimumMass,maximumMass&
+                remnantFractionTable(iAge,iMetallicity,remnantFractionIndex(imfSelected))=Integrate(minimumMass,maximumMass&
                      &,Remnant_Fraction_Integrand,integrandFunction,integrationWorkspace,toleranceAbsolute&
                      &=1.0d-3 ,toleranceRelative=1.0d-4)
                 call Integrate_Done(integrandFunction,integrationWorkspace)
@@ -1518,7 +1518,7 @@ contains
                    minimumMass=IMF_Minimum_Mass(imfSelected)
                    maximumMass=IMF_Maximum_Mass(imfSelected)
                    ! Integrate ejected mass over the IMF between these limits.
-                   metalYieldTable(iAge,iMetallicity,iElement,metalYieldIndex(imfSelected))=IntegrateTMP(minimumMass,maximumMass&
+                   metalYieldTable(iAge,iMetallicity,iElement,metalYieldIndex(imfSelected))=Integrate(minimumMass,maximumMass&
                         &,Metal_Yield_Integrand,integrandFunction,integrationWorkspace,toleranceAbsolute=1.0d-4&
                         &,toleranceRelative=1.0d-5)
                    call Integrate_Done(integrandFunction,integrationWorkspace)
@@ -1925,7 +1925,7 @@ contains
                 minimumMass=IMF_Minimum_Mass(imfSelected)
                 maximumMass=IMF_Maximum_Mass(imfSelected)
                 ! Integrate cumulative energy input over the IMF between these limits.
-                energyInputTable(iAge,iMetallicity,energyInputIndex(imfSelected))=IntegrateTMP(minimumMass,maximumMass&
+                energyInputTable(iAge,iMetallicity,energyInputIndex(imfSelected))=Integrate(minimumMass,maximumMass&
                      &,Cumulative_Energy_Integrand,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0&
                      &,toleranceRelative=1.0d-3)
                 call Integrate_Done(integrandFunction,integrationWorkspace)

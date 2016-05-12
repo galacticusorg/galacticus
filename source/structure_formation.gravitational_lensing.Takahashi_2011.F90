@@ -163,7 +163,7 @@ contains
                 cdfPrevious       =self%magnificationCDFTable%y(i-1)
              end if
              magnificationUpper   =self%magnificationCDFTable%x(i  )
-             cdf=IntegrateTMP(                           &
+             cdf=Integrate(                           &
                   &        magnificationLower       , &
                   &        magnificationUpper       , &
                   &        magnificationPDFIntegrand, &
@@ -386,7 +386,7 @@ contains
              self%aConvergence                        =finder%find(rootGuess=1.0d0)
              ! Evaluate zeroth and second moments of the convergence distribution.
              integrationReset     =.true.
-             convergencePdfMoment0=IntegrateTMP(                                         &
+             convergencePdfMoment0=Integrate(                                         &
                   &                          convergenceMinimum                     , &
                   &                          convergenceMaximum                     , &
                   &                          convergenceDistributionMoment0Integrand, &
@@ -397,7 +397,7 @@ contains
                   &                         )
              call Integrate_Done(integrandFunction,integrationWorkspace)
              integrationReset     =.true.
-             convergencePdfMoment1=IntegrateTMP(                                         &
+             convergencePdfMoment1=Integrate(                                         &
                   &                          convergenceMinimum                     , &
                   &                          convergenceMaximum                     , &
                   &                          convergenceDistributionMoment1Integrand, &
@@ -408,7 +408,7 @@ contains
                   &                         )
              call Integrate_Done(integrandFunction,integrationWorkspace)
              integrationReset     =.true.
-             convergencePdfMoment2=IntegrateTMP(                                         &
+             convergencePdfMoment2=Integrate(                                         &
                   &                          convergenceMinimum                     , &
                   &                          convergenceMaximum                     , &
                   &                          convergenceDistributionMoment2Integrand, &
@@ -475,7 +475,7 @@ contains
             &                                                                  )
        ! Find the convergence of an empty beam.
        integrationReset         =.true.
-       self%convergenceEmptyBeam=IntegrateTMP(                               &
+       self%convergenceEmptyBeam=Integrate(                               &
             &                              redshiftZero                 , &
             &                              redshift                     , &
             &                              emptyBeamConvergenceIntegrand, &
@@ -487,7 +487,7 @@ contains
        call Integrate_Done(integrandFunction,integrationWorkspace)
        ! Find the variance of the convergence.
        integrationReset         =.true.
-       self%convergenceVariance =IntegrateTMP(                               &
+       self%convergenceVariance =Integrate(                               &
             &                              redshiftZero                 , &
             &                              redshift                     , &
             &                              convergenceVarianceIntegrand , &
@@ -505,7 +505,7 @@ contains
        self%omegaConvergence                    =self%convergencePDF%interpolate(self%convergenceVarianceScaled,3)
        ! Integrate the modified magnification distribution in order to find the normalization.
        integrationReset        =.true.
-       magnificationPdfMoment0=IntegrateTMP(                           &
+       magnificationPdfMoment0=Integrate(                           &
             &                            magnificationMinimum     , &
             &                            magnificationMaximum     , &
             &                            magnificationPDFIntegrand, &
@@ -539,7 +539,7 @@ contains
       
       self%aConvergence    =a
       integrationReset     =.true.
-      convergencePdfMoment1=IntegrateTMP(                                        &
+      convergencePdfMoment1=Integrate(                                        &
            &                         convergenceMinimum                     , &
            &                         convergenceMaximum                     , &
            &                         convergenceDistributionMoment1Integrand, &
@@ -550,7 +550,7 @@ contains
            &                        )
       call Integrate_Done(integrandFunction,integrationWorkspace)
       integrationReset     =.true.
-      convergencePdfMoment2=IntegrateTMP(                                        &
+      convergencePdfMoment2=Integrate(                                        &
            &                         convergenceMinimum                     , &
            &                         convergenceMaximum                     , &
            &                         convergenceDistributionMoment2Integrand, &
@@ -635,7 +635,7 @@ contains
       logWavenumberMaximum=                    -log(scaleSource           )
       logWavenumberMinimum=logWavenumberMaximum+log(wavenumberDynamicRange)
       integrationReset    =.true.
-      lensingPower        =IntegrateTMP(                                           &
+      lensingPower        =Integrate(                                           &
            &                         logWavenumberMinimum                     , &
            &                         logWavenumberMaximum                     , &
            &                         convergenceVariancePowerSpectrumIntegrand, &

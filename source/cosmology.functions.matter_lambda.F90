@@ -1110,7 +1110,7 @@ contains
     matterLambdaSelfGlobal => self
     do iTime=1,self%distanceTableNumberPoints
        self%distanceTableComovingDistance(iTime)                                                       &
-            & =IntegrateTMP(                                                                              &
+            & =Integrate(                                                                              &
             &            self%expansionFactor(self%distanceTableTime(iTime                         )), &
             &            self%expansionFactor(self%distanceTableTime(self%distanceTableNumberPoints)), &
             &            matterLambdaComovingDistanceIntegrand                                       , &
