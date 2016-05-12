@@ -794,7 +794,7 @@ contains
       logical                                      :: integrationReset
       
       integrationReset=.true.
-      integralHalf=IntegrateTMP(0.0d0,xHalf,halfLightRadiusIntegrandX,integrandFunction,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
+      integralHalf=Integrate(0.0d0,xHalf,halfLightRadiusIntegrandX,integrandFunction,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
       halfLightRadiusRoot=integralHalf/2.0d0/Pi/cos(inclinationAngle)-0.5d0
       return
     end function halfLightRadiusRoot
@@ -811,7 +811,7 @@ contains
 
       integrationReset=.true.
       xIntegrate      =x
-      halfLightRadiusIntegrandX=IntegrateTMP(0.0d0,2.0d0*Pi,halfLightRadiusIntegrandPhi,integrandFunction,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)*x
+      halfLightRadiusIntegrandX=Integrate(0.0d0,2.0d0*Pi,halfLightRadiusIntegrandPhi,integrandFunction,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)*x
       return
     end function halfLightRadiusIntegrandX
 

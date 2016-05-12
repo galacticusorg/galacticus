@@ -198,7 +198,7 @@ module Intergalactic_Medium_State
        do iTime=1,self%electronScatteringTableNumberPoints-1
           fullyIonized=.false.
           call self%electronScattering%populate(                                                             &
-               &                      -IntegrateTMP(                                                            &
+               &                      -Integrate(                                                            &
                &                                 self%electronScattering%x(iTime)                          , &
                &                                 self%electronScatteringTableTimeMaximum                   , &
                &                                 intergalacticMediumStateElectronScatteringIntegrand       , &
@@ -212,7 +212,7 @@ module Intergalactic_Medium_State
           call Integrate_Done(integrandFunction,integrationWorkspace)
           fullyIonized=.true.
           call self%electronScatteringFullyIonized%populate(                                                             &
-               &                                  -IntegrateTMP(                                                            &
+               &                                  -Integrate(                                                            &
                &                                             self%electronScatteringFullyIonized%x(iTime)              , &
                &                                             self%electronScatteringTableTimeMaximum                   , &
                &                                             intergalacticMediumStateElectronScatteringIntegrand       , &

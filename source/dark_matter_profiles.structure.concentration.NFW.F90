@@ -127,9 +127,9 @@ contains
     ! Compute the mass of a progenitor as defined by NFW.
     collapseMass               =self%F*nodeMass
     ! Find the time of collapse for this progenitor.
-    collapseCriticalOverdensity=sqrt(2.0d0*fitParameterNuHalf**2*(cosmologicalMassVariance_%rootVariance(collapseMass)**2-cosmologicalMassVariance_%rootVariance(nodeMass)**2))+criticalOverdensity_%value(nodeTime)
-    collapseTime               =criticalOverdensity_%timeOfCollapse(collapseCriticalOverdensity)
-    collapseExpansionFactor    =cosmologyFunctions_%expansionFactor(collapseTime               )
+    collapseCriticalOverdensity=sqrt(2.0d0*fitParameterNuHalf**2*(cosmologicalMassVariance_%rootVariance(collapseMass)**2-cosmologicalMassVariance_%rootVariance(nodeMass)**2))+criticalOverdensity_%value(time=nodeTime,mass=nodeMass)
+    collapseTime               =criticalOverdensity_%timeOfCollapse(collapseCriticalOverdensity,mass=nodeMass)
+    collapseExpansionFactor    =cosmologyFunctions_%expansionFactor(collapseTime                             )
     ! Compute the overdensity of the progenitor at collapse using the scaling given by NFW.
     collapseOverdensity        =self%C*(expansionFactor/collapseExpansionFactor)**3
     ! Find the ratio of this overdensity to that at for the present node.

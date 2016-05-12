@@ -303,7 +303,7 @@ subroutine Sersic_Profile_Tabulate(radius)
         ! Loop over radii and compute the inverse Abel integral required to get the 3D Sérsic profile.
         do iRadius=1,sersicTableCount
            sersicRadiusStart=sersicTableRadius(iRadius)
-           sersicTableDensity(iRadius)=IntegrateTMP( sersicRadiusStart,radiusInfinity                       &
+           sersicTableDensity(iRadius)=Integrate( sersicRadiusStart,radiusInfinity                       &
                 &                                ,Sersic_Abel_Integrand           &
                 &                                ,integrandFunction,integrationWorkspace           &
                 &                                ,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3 &

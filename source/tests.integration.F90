@@ -35,23 +35,23 @@ program Test_Integration
 
   ! Test simple integrations.
   integrationReset=.true.
-  integral=IntegrateTMP(0.0d0,1.0d0,Integrand1,integrandFunction&
+  integral=Integrate(0.0d0,1.0d0,Integrand1,integrandFunction&
        &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
   call Assert("integrate f(x)=x          from x=0……1"          ,integral,0.5d0             ,relTol=1.0d-6)
   
   integrationReset=.true.
-  integral=IntegrateTMP(0.0d0,2.0d0*Pi,Integrand2,integrandFunction&
+  integral=Integrate(0.0d0,2.0d0*Pi,Integrand2,integrandFunction&
        &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
   call Assert("integrate f(x)=sin(x)     from x=0…2π"          ,integral,0.0d0             ,absTol=1.0d-6)
 
   integrationReset=.true.
-  integral=IntegrateTMP(0.0d0,10.0d0,Integrand3,integrandFunction&
+  integral=Integrate(0.0d0,10.0d0,Integrand3,integrandFunction&
        &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
   call Assert("integrate f(x)=1/√x       from x=0…10"          ,integral,2.0d0*sqrt(10.0d0),relTol=1.0d-6)
 
   ! Test 2D integrations.
   integrationReset=.true.
-  integral=IntegrateTMP(0.0d0,2.0d0*Pi,Integrand4,integrandFunction&
+  integral=Integrate(0.0d0,2.0d0*Pi,Integrand4,integrandFunction&
        &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
   call Assert("integrate f(x,y)=y·cos(x) from x=0…2π and y=0…x",integral,2.0d0*Pi          ,relTol=1.0d-6)
 

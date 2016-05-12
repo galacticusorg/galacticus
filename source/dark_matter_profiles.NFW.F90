@@ -771,7 +771,7 @@ contains
     radiusMinimum    =0.0d0
     radiusMaximum    =concentration
     concentrationParameter=concentration
-    potentialEnergyIntegral=IntegrateTMP(radiusMinimum,radiusMaximum,nfwPotentialEnergyIntegrand&
+    potentialEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,nfwPotentialEnergyIntegrand&
          &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     potentialEnergy=-0.5d0*(1.0d0/concentration+potentialEnergyIntegral)
@@ -779,14 +779,14 @@ contains
     radiusMinimum=concentration
     radiusMaximum=100.0d0*concentration
     concentrationParameter=concentration
-    jeansEquationIntegral=IntegrateTMP(radiusMinimum,radiusMaximum,nfwJeansEquationIntegrand&
+    jeansEquationIntegral=Integrate(radiusMinimum,radiusMaximum,nfwJeansEquationIntegrand&
          &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     ! Compute the kinetic energy.
     radiusMinimum=0.0d0
     radiusMaximum=concentration
     concentrationParameter=concentration
-    kineticEnergyIntegral=IntegrateTMP(radiusMinimum,radiusMaximum,nfwKineticEnergyIntegrand&
+    kineticEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,nfwKineticEnergyIntegrand&
          &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     kineticEnergy=2.0d0*Pi*(jeansEquationIntegral*concentration**3+kineticEnergyIntegral)
@@ -1016,7 +1016,7 @@ contains
        ! Use the full solution.
        radiusStart=radius
        radiusEnd  =0.0d0
-       nfwFreefallTimeScaleFree=IntegrateTMP(radiusEnd,radiusStart,nfwFreefallTimeScaleFreeIntegrand&
+       nfwFreefallTimeScaleFree=Integrate(radiusEnd,radiusStart,nfwFreefallTimeScaleFreeIntegrand&
             &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
        call Integrate_Done(integrandFunction,integrationWorkspace)
     else

@@ -277,7 +277,7 @@ contains
     epsilonPerturbationShared=epsilonPerturbation
 
     ! Integrate the perturbation equation from size zero to maximum size to get the time to maximum expansion.
-    tMaximum=IntegrateTMP(aMinimum,aMaximum,Perturbation_Integrand,integrandFunction,integrationWorkspace &
+    tMaximum=Integrate(aMinimum,aMaximum,Perturbation_Integrand,integrandFunction,integrationWorkspace &
          &,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6,hasSingularities=.true.,reset=integrationReset)&
          &/hubbleParameterInvGyr
     ! Add on analytic correction for region close to aMaximum.

@@ -226,7 +226,7 @@ contains
           integrationReset=.true.
           volumeNormalization=                                     &
                &              +volumeNormalization                 &
-               &              +IntegrateTMP(                          &
+               &              +Integrate(                          &
                &                         timeMinimum             , &
                &                         timeMaximum             , &
                &                         Volume_Integrand        , &
@@ -240,7 +240,7 @@ contains
           integrationReset=.true.
           massFunction(i)=                                            &
                &          +massFunction(i)                            &
-               &          +IntegrateTMP(                                 &
+               &          +Integrate(                                 &
                &                     timeMinimum                    , &
                &                     timeMaximum                    , &
                &                     Mass_Function_Time_Integrand_I , &
@@ -261,7 +261,7 @@ contains
        integrationReset=.true.
        do iTime=1,timeBinCount
           time=timeTable(iTime)
-          biasTable(iTime,i)=  IntegrateTMP(                  &
+          biasTable(iTime,i)=  Integrate(                  &
                &                 logMassLower            , &
                &                 logMassUpper            , &
                &                 Bias_Integrand_I        , &
@@ -346,7 +346,7 @@ contains
                    ! fields such that we accumulate a volume-weighted covariance, which will be normalized below.
                    covarianceHalo(i,j)=                                          &
                         &             + covarianceHalo(i,j)                      &
-                        &             + IntegrateTMP(                               &
+                        &             + Integrate(                               &
                         &                         timeMinimum                  , &
                         &                         timeMaximum                  , &
                         &                         Halo_Occupancy_Time_Integrand, &
@@ -452,7 +452,7 @@ contains
 
     lssBin                    =iBin
     integrationReset          =.true.
-    Galaxy_Root_Power_Spectrum=IntegrateTMP(                          &
+    Galaxy_Root_Power_Spectrum=Integrate(                          &
          &                               timeMinimum             , &
          &                               timeMaximum             , &
          &                               LSS_Integrand           , &
@@ -663,7 +663,7 @@ contains
 
     time=timePrime
     integrationReset=.true.
-    massFunction=IntegrateTMP(                            &
+    massFunction=Integrate(                            &
          &                 logMassLower              , &
          &                 logMassUpper              , &
          &                 Mass_Function_Integrand_I , &
@@ -756,7 +756,7 @@ contains
 
     time=timePrime
     integrationReset=.true.
-    massFunction=IntegrateTMP(                          &
+    massFunction=Integrate(                          &
          &                 logMassLower            , &
          &                 logMassUpper            , &
          &                 Halo_Occupancy_Integrand, &
@@ -828,7 +828,7 @@ contains
             &                 )
        ! Get the normalizing volume integral for bin i.
        integrationReset=.true.
-       volumeNormalization(iField)= IntegrateTMP(                          &
+       volumeNormalization(iField)= Integrate(                          &
             &                                 timeMinimum(iField)     , &
             &                                 timeMaximum(iField)     , &
             &                                 Volume_Integrand        , &
@@ -1121,7 +1121,7 @@ contains
                &           /Pi                                                  &
                &           /sum(volumeNormalizationI)**2                        &
                &           /sum(volumeNormalizationJ)**2                        &
-               &           *IntegrateTMP(                                          &
+               &           *Integrate(                                          &
                &                      wavenumberMinimum                       , &
                &                      wavenumberMaximum                       , &
                &                      Angular_Power_Integrand                 , &

@@ -1386,7 +1386,7 @@ contains
                             else
                                integrationReset=.true.                               
                                massFunctions       (i)%lensingTransfer(j  ,k-massFunctions(i)%massesBufferCount  ,jOutput)  &
-                                    & =IntegrateTMP(                                                                           &
+                                    & =Integrate(                                                                           &
                                     &            massFunctions(i)%massesLogarithmicMinimumBuffered(j)                     , &
                                     &            massFunctions(i)%massesLogarithmicMaximumBuffered(j)                     , &
                                     &            magnificationCDFIntegrand                                                , &

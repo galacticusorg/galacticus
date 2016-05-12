@@ -58,7 +58,7 @@ module Halo_Mass_Functions
   !#    self%time_ =  time
   !#    logMassLow =log(massLow )
   !#    logMassHigh=log(massHigh)
-  !#    haloMassFunctionIntegrated=IntegrateTMP(                                         &amp;
+  !#    haloMassFunctionIntegrated=Integrate(                                         &amp;
   !#        &amp;                            logMassLow                             , &amp;
   !#        &amp;                            logMassHigh                            , &amp;
   !#        &amp;                            integratedIntegrand                    , &amp;
@@ -87,7 +87,7 @@ module Halo_Mass_Functions
   !#    self%time_ =  time
   !#    logMassLow =log(massLow )
   !#    logMassHigh=log(massHigh)
-  !#    haloMassFunctionMassFraction=IntegrateTMP(                                          &amp;
+  !#    haloMassFunctionMassFraction=Integrate(                                          &amp;
   !#         &amp;                             logMassLow                              , &amp;
   !#         &amp;                             logMassHigh                             , &amp;
   !#         &amp;                             massFractionIntegrand                   , &amp;

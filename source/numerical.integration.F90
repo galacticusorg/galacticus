@@ -23,7 +23,7 @@ module Numerical_Integration
   use FGSL
   implicit none
   private
-  public :: Integrate_Done, IntegrateTMP
+  public :: Integrate_Done, Integrate
 
   ! Module scope error status.
   integer :: errorStatusGlobal
@@ -41,7 +41,7 @@ module Numerical_Integration
   
 contains
 
-  recursive double precision function IntegrateTMP(lowerLimit,upperLimit,integrand,integrandFunction&
+  recursive double precision function Integrate(lowerLimit,upperLimit,integrand,integrandFunction&
        &,integrationWorkspace,maxIntervals,toleranceAbsolute,toleranceRelative,hasSingularities,integrationRule,reset,errorStatus)
     !% Integrates the supplied {\normalfont \ttfamily integrand} function.
     use Galacticus_Error
@@ -125,7 +125,7 @@ contains
        status=FGSL_Integration_QAGS(integrandFunction,lowerLimit,upperLimit,toleranceAbsoluteActual,toleranceRelativeActual &
             &,maxIntervalsActual,integrationWorkspace,integrationValue,integrationError)
     end select
-    IntegrateTMP=integrationValue
+    Integrate=integrationValue
 
     ! Reset error handler.
     if (present(errorStatus)) then
@@ -135,7 +135,7 @@ contains
     ! Restore the previous integrand.
     currentIntegrand => previousIntegrand
     return
-  end function IntegrateTMP
+  end function Integrate
 
   function integrandWrapper(x,parameterPointer) bind(c)
     !% Wrapper function used for \gls{gsl} integration functions.

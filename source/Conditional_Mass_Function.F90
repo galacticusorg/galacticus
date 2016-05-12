@@ -245,7 +245,7 @@ program Conditional_Mass_Function
         if (conditionalMassFunctionRedshiftMaximum <= conditionalMassFunctionRedshiftMinimum) then
            ! No range of redshifts given. Compute the mass function at the minimum redshift.
            time=timeMaximum
-           thisConditionalMassFunction(iMass)=IntegrateTMP(                                    &
+           thisConditionalMassFunction(iMass)=Integrate(                                    &
                 &                                       logHaloMassLower                  , &
                 &                                       logHaloMassUpper                  , &
                 &                                       Mass_Function_Halo_Mass_Integrand , &
@@ -286,7 +286,7 @@ program Conditional_Mass_Function
               massFunctionIntegrand=                                                        &
                    &                +massFunctionIntegrand                                  &
                    &                +surveyGeometry_%solidAngle(iField)                     &
-                   &                *IntegrateTMP(                                             &
+                   &                *Integrate(                                             &
                    &                           binTimeMinimum                             , &
                    &                           binTimeMaximum                             , &
                    &                           Mass_Function_Time_Integrand               , &
@@ -298,7 +298,7 @@ program Conditional_Mass_Function
               volumeIntegrand      =                                                        &
                    &                +volumeIntegrand                                        &
                    &                +surveyGeometry_%solidAngle(iField)                     &
-                   &                *IntegrateTMP(                                             &
+                   &                *Integrate(                                             &
                    &                           binTimeMinimum                             , &
                    &                           binTimeMaximum                             , &
                    &                           Mass_Function_Time_Normalization_Integrand , &
@@ -358,7 +358,7 @@ contains
     logical                                     , save          :: integrationResetTime    =.true.
 
     time=timePrime
-    Mass_Function_Time_Integrand= IntegrateTMP(                                             &
+    Mass_Function_Time_Integrand= Integrate(                                             &
          &                                           logHaloMassLower                  , &
          &                                           logHaloMassUpper                  , &
          &                                           Mass_Function_Halo_Mass_Integrand , &
