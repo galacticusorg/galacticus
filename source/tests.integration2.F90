@@ -196,7 +196,7 @@ program Test_Integration2
               integrationRule=FGSL_Integ_Gauss61
            end select
            call System_Clock(countStart,countRate)
-           integralGSL(i)=IntegrateTMP(                                                      &
+           integralGSL(i)=Integrate(                                                      &
                 &                   testFunctions(iFunction)%rangeLow                   , &
                 &                   testFunctions(iFunction)%rangeHigh                  , &
                 &                   testFunctions(iFunction)%scalar                     , &

@@ -348,7 +348,7 @@ contains
       wavenumberMinimum=    0.0d0/topHatRadius
       wavenumberMaximum=min(1.0d3/topHatRadius,self%powerSpectrumWindowFunction_%wavenumberMaximum(smoothingMass))
       if (useTopHat) then
-         rootVariance=+IntegrateTMP(                                              &
+         rootVariance=+Integrate(                                              &
               &                  wavenumberMinimum                           , &
               &                  wavenumberMaximum                           , &
               &                  varianceIntegrandTopHat                     , &
@@ -361,7 +361,7 @@ contains
               &       /2.0d0                                                   &
               &       /Pi**2
       else
-         rootVariance=+IntegrateTMP(                                              &
+         rootVariance=+Integrate(                                              &
               &                  wavenumberMinimum                           , &
               &                  wavenumberMaximum                           , &
               &                  varianceIntegrand                           , &

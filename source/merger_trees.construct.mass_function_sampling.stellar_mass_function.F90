@@ -159,7 +159,7 @@ contains
     massHalo             =mass
     logStellarMassMinimum=log10(haloMassFunctionSamplingStellarMassFunctionErrorMassMinimum)
     logStellarMassMaximum=log10(haloMassFunctionSamplingStellarMassFunctionErrorMassMaximum)
-    xiIntegral           =IntegrateTMP(logStellarMassMinimum,logStellarMassMaximum,Xi_Integrand,integrandFunction &
+    xiIntegral           =Integrate(logStellarMassMinimum,logStellarMassMaximum,Xi_Integrand,integrandFunction &
          &,integrationWorkspace,toleranceAbsolute=toleranceAbsolute,toleranceRelative=toleranceRelative)
     call Integrate_Done(integrandFunction,integrationWorkspace)
 

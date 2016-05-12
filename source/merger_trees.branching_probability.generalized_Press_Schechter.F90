@@ -234,7 +234,7 @@ contains
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
 
-    Generalized_Press_Schechter_Branch_Mass_Root=probabilitySeek-IntegrateTMP(probabilityMinimumMass,massMaximum &
+    Generalized_Press_Schechter_Branch_Mass_Root=probabilitySeek-Integrate(probabilityMinimumMass,massMaximum &
          &,Branching_Probability_Integrand_Generalized,integrandFunction,integrationWorkspace,toleranceAbsolute&
          &=0.0d0 ,toleranceRelative=branchingProbabilityIntegrandToleraceRelative,integrationRule=FGSL_Integ_Gauss15)
     call Integrate_Done(integrandFunction,integrationWorkspace)
@@ -285,7 +285,7 @@ contains
        call Compute_Common_Factors
        massMinimum=massResolution
        massMaximum=0.5d0*parentHaloMass
-       Generalized_Press_Schechter_Branching_Probability=IntegrateTMP(massMinimum,massMaximum,Branching_Probability_Integrand_Generalized &
+       Generalized_Press_Schechter_Branching_Probability=Integrate(massMinimum,massMaximum,Branching_Probability_Integrand_Generalized &
             &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=branchingProbabilityIntegrandToleraceRelative&
             &,integrationRule=FGSL_Integ_Gauss15)
        call Integrate_Done(integrandFunction,integrationWorkspace)
@@ -344,7 +344,7 @@ contains
        massMinimum=generalizedPressSchechterMinimumMass
        massMaximum=massResolution
        Generalized_Press_Schechter_Subresolution_Fraction=Generalized_Press_Schechter_Subresolution_Fraction&
-            &+IntegrateTMP(massMinimum,massMaximum,Subresolution_Fraction_Integrand_Generalized,integrandFunction&
+            &+Integrate(massMinimum,massMaximum,Subresolution_Fraction_Integrand_Generalized,integrandFunction&
             &,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3 ,integrationRule=FGSL_Integ_Gauss15&
             &,errorStatus=errorStatus)
        call Integrate_Done(integrandFunction,integrationWorkspace)
@@ -361,7 +361,7 @@ contains
              end if
              !$omp end critical(Generalized_Press_Schechter_Subresolution_Fraction_Warn)
              Generalized_Press_Schechter_Subresolution_Fraction=Generalized_Press_Schechter_Subresolution_Fraction &
-                  &+IntegrateTMP(massMinimum,massMaximum,Subresolution_Fraction_Integrand_Generalized&
+                  &+Integrate(massMinimum,massMaximum,Subresolution_Fraction_Integrand_Generalized&
                   &,integrandFunction ,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-2 ,integrationRule&
                   &=FGSL_Integ_Gauss15)
           end if

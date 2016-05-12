@@ -101,7 +101,7 @@ contains
        integrationReset=.true.
        starFormationRate=+2.0d0                                                                                                            &
             &            *Pi                                                                                                               &
-            &            *IntegrateTMP(                                                                                                       &
+            &            *Integrate(                                                                                                       &
             &                       radiusInner                                                                                          , &
             &                       radiusOuter                                                                                          , &
             &                       Star_Formation_Rate_Integrand_Surface_Density                                                        , &

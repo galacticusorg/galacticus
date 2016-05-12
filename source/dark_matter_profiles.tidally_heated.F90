@@ -420,7 +420,7 @@ contains
        darkMatterHaloScale_ => darkMatterHaloScale()
        radiusMaximum        =  +radiusMaximumFactor                                              &
             &                  *self%radiusInitial(node,darkMatterHaloScale_%virialRadius(node))
-       tidallyHeatedPotential=IntegrateTMP(                                        &
+       tidallyHeatedPotential=Integrate(                                        &
             &                           radius                                , &
             &                           radiusMaximum                         , &
             &                           tidallyHeatedPotentialIntegrand       , &

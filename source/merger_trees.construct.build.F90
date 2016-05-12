@@ -268,7 +268,7 @@ contains
           jSample=0
           do iSample=1,massFunctionSampleCount
              if (massFunctionSampleLogMass(iSample) > massFunctionSampleLogPrevious) then
-                probability=IntegrateTMP(massFunctionSampleLogPrevious&
+                probability=Integrate(massFunctionSampleLogPrevious&
                      &,massFunctionSampleLogMass(iSample),Mass_Function_Sampling_Integrand,integrandFunction &
                      &,integrationWorkspace,toleranceAbsolute=toleranceAbsolute,toleranceRelative=toleranceRelative,reset=integrandReset)
              else

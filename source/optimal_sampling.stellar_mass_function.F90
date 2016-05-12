@@ -118,7 +118,7 @@ program Optimal_Sampling_SMF
      stellarMass=stellarMassTableMass(iMass)
 
      ! Integrate over the mass function weighting by the stellar conditional mass function.
-     stellarMassTableMassFunction(iMass)=IntegrateTMP(haloMassMinimum,haloMassMaximum,Stellar_Mass_Function_Integrand&
+     stellarMassTableMassFunction(iMass)=Integrate(haloMassMinimum,haloMassMaximum,Stellar_Mass_Function_Integrand&
           &,integrandFunction ,integrationWorkspace,toleranceAbsolute=toleranceAbsolute,toleranceRelative=toleranceRelative,reset&
           &=integrationReset)
 

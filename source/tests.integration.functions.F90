@@ -64,7 +64,7 @@ contains
     implicit none
     double precision, intent(in   ) :: x
 
-    Integrand4=cos(x)*IntegrateTMP(0.0d0,x,Integrand1,integrandFunction&
+    Integrand4=cos(x)*Integrate(0.0d0,x,Integrand1,integrandFunction&
        &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
     return
   end function Integrand4

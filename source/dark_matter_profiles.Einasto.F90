@@ -948,7 +948,7 @@ contains
              radiusMaximum         =concentration
              concentrationParameter=concentration
              alphaParameter        =alpha
-             potentialEnergyIntegral=IntegrateTMP(radiusMinimum,radiusMaximum,einastoPotentialEnergyIntegrand&
+             potentialEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,einastoPotentialEnergyIntegrand&
                   &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
              call Integrate_Done(integrandFunction,integrationWorkspace)
              potentialEnergy=-0.5d0*(1.0d0/concentration+potentialEnergyIntegral)
@@ -958,7 +958,7 @@ contains
              radiusMaximum         =100.0d0*concentration
              concentrationParameter=        concentration
              alphaParameter        =alpha
-             jeansEquationIntegral=IntegrateTMP(radiusMinimum,radiusMaximum,einastoJeansEquationIntegrand&
+             jeansEquationIntegral=Integrate(radiusMinimum,radiusMaximum,einastoJeansEquationIntegrand&
                   &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
              call Integrate_Done(integrandFunction,integrationWorkspace)
 
@@ -967,7 +967,7 @@ contains
              radiusMaximum         =concentration
              concentrationParameter=concentration
              alphaParameter        =alpha
-             kineticEnergyIntegral=IntegrateTMP(radiusMinimum,radiusMaximum,einastoKineticEnergyIntegrand&
+             kineticEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,einastoKineticEnergyIntegrand&
                   &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
              call Integrate_Done(integrandFunction,integrationWorkspace)
              kineticEnergy=2.0d0*Pi*(jeansEquationIntegral*concentration**3+kineticEnergyIntegral)
@@ -1245,7 +1245,7 @@ contains
                    wavenumberParameter   =wavenumber
                    alphaParameter        =alpha
                    concentrationParameter=concentration
-                   self%fourierProfileTable(iWavenumber,iConcentration,iAlpha)=IntegrateTMP(radiusMinimum,radiusMaximum&
+                   self%fourierProfileTable(iWavenumber,iConcentration,iAlpha)=Integrate(radiusMinimum,radiusMaximum&
                         &,einastoFourierProfileIntegrand,integrandFunction,integrationWorkspace&
                         &,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-2,maxIntervals=10000,errorStatus=errorStatus)
                    call Integrate_Done(integrandFunction,integrationWorkspace)
@@ -1533,7 +1533,7 @@ contains
     radiusStart   =radius
     radiusEnd     =0.0d0
     alphaParameter=alpha
-    einastoFreefallTimeScaleFree=IntegrateTMP(radiusEnd,radiusStart,einastoFreefallTimeScaleFreeIntegrand&
+    einastoFreefallTimeScaleFree=Integrate(radiusEnd,radiusStart,einastoFreefallTimeScaleFreeIntegrand&
          &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
     return
 

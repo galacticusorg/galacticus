@@ -222,7 +222,7 @@ double precision function likelihoodMassFunctionEvaluate(self,simulationState,pa
         massFunction=                                                               &
              &       +massFunction                                                  &
              &       +surveyGeometry_%solidAngle(j)                                 &
-             &       *IntegrateTMP(                                                    &
+             &       *Integrate(                                                    &
              &                   binTimeMinimum                                   , &
              &                   binTimeMaximum                                   , &
              &                   likelihoodMassFunctionTimeIntegrand              , &
@@ -234,7 +234,7 @@ double precision function likelihoodMassFunctionEvaluate(self,simulationState,pa
         normalization=                                                              &
              &        +normalization                                                &
              &        +surveyGeometry_%solidAngle(j)                                &
-             &        *IntegrateTMP(                                                   &
+             &        *Integrate(                                                   &
              &                   binTimeMinimum                                   , &
              &                   binTimeMaximum                                   , &
              &                   likelihoodMassFunctionTimeNormalizationIntegrand , &
@@ -323,7 +323,7 @@ contains
     end if
     time                =timePrime
     integrationResetTime=.true.
-    likelihoodMassFunctionTimeIntegrand= IntegrateTMP(                                            &
+    likelihoodMassFunctionTimeIntegrand= Integrate(                                            &
          &                                           log10(haloMassMinimum)                  , &
          &                                           log10(haloMassMaximum)                  , &
          &                                           likelihoodMassFunctionHaloMassIntegrand , &
