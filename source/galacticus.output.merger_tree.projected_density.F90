@@ -307,7 +307,6 @@ contains
   subroutine Galacticus_Output_Tree_Projected_Density(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time)
     !% Store projected density properties in the \glc\ output file buffers.
-    use, intrinsic :: ISO_C_Binding
     use FGSL
     use Numerical_Integration
     use Galacticus_Nodes
@@ -329,7 +328,6 @@ contains
     class           (darkMatterHaloScaleClass      )               , pointer :: darkMatterHaloScale_
     integer                                                                  :: i
     double precision                                                         :: radiusProjected           , radiusOuter   , radiusVirial
-    type            (c_ptr                         )                         :: parameterPointer
     type            (fgsl_function                 )                         :: integrandFunction
     type            (fgsl_integration_workspace    )                         :: integrationWorkspace
     !GCC$ attributes unused :: node, time, integerProperty, integerBufferCount, integerBuffer
@@ -380,11 +378,10 @@ contains
           radiusOuter=darkMatterHaloScale_%virialRadius(node)
           ! Store the projected density.
           doubleProperty=doubleProperty+1
-          doubleBuffer(doubleBufferCount,doubleProperty)=Integrate(                                                           &
+          doubleBuffer(doubleBufferCount,doubleProperty)=IntegrateTMP(                                                           &
                &                                                   radiusProjected                                          , &
                &                                                   radiusOuter                                              , &
                &                                                   Galacticus_Output_Tree_Projected_Density_Integrand       , &
-               &                                                   parameterPointer                                         , &
                &                                                   integrandFunction                                        , &
                &                                                   integrationWorkspace                                     , &
                &                                                   toleranceAbsolute                                 =0.0d+0, &
@@ -397,14 +394,12 @@ contains
     
   contains
     
-    function Galacticus_Output_Tree_Projected_Density_Integrand(radius,parameterPointer) bind(c)
+    double precision function Galacticus_Output_Tree_Projected_Density_Integrand(radius)
       !% Integrand function used for computing projected densities.
       use, intrinsic :: ISO_C_Binding
       use Galactic_Structure_Densities
       implicit none
-      real(kind=c_double)        :: Galacticus_Output_Tree_Projected_Density_Integrand
-      real(kind=c_double), value :: radius
-      type(c_ptr        ), value :: parameterPointer
+      double precision, intent(in   ) :: radius
 
       if (radius <= radiusProjected) then
          Galacticus_Output_Tree_Projected_Density_Integrand=+0.0d0

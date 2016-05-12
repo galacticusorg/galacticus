@@ -101,7 +101,6 @@ contains
     logical                                                                                                       :: computeTable                                , calculateLuminosity        , &
          &                                                                                                           stellarLuminositiesUniqueLabelConstructed
     double precision                                                                                              :: toleranceRelative                           , normalization
-    type            (c_ptr                        )                                                               :: parameterPointer
     type            (fgsl_function                )                                                               :: integrandFunction
     type            (fgsl_integration_workspace   )                                                               :: integrationWorkspace
     type            (varying_string               )                                                               :: message                                     , luminositiesFileName       , &
@@ -335,11 +334,10 @@ contains
                               &                                iAge                        , &
                               &                                iMetallicity                  &
                               &                               )                              &
-                              & =Integrate(                                                  &
+                              & =IntegrateTMP(                                                  &
                               &            wavelengthRange(1)                              , &
                               &            wavelengthRange(2)                              , &
                               &            Filter_Luminosity_Integrand                     , &
-                              &            parameterPointer                                , &
                               &            integrandFunction                               , &
                               &            integrationWorkspace                            , &
                               &            toleranceAbsolute          =0.0d0               , &
@@ -376,7 +374,7 @@ contains
                 call Galacticus_Display_Counter_Clear(           verbosityWorking)
                 call Galacticus_Display_Unindent     ('finished',verbosityWorking)
                 ! Get the normalization by integrating a zeroth magnitude (AB) source through the filter.
-                normalization=Integrate(wavelengthRange(1),wavelengthRange(2),Filter_Luminosity_Integrand_AB,parameterPointer &
+                normalization=IntegrateTMP(wavelengthRange(1),wavelengthRange(2),Filter_Luminosity_Integrand_AB &
                      &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative&
                      &=stellarPopulationLuminosityIntegrationToleranceRelative)
                 call Integrate_Done(integrandFunction,integrationWorkspace)
@@ -418,15 +416,13 @@ contains
 
   contains
 
-    function Filter_Luminosity_Integrand(wavelength,parameterPointer) bind(c)
+    double precision function Filter_Luminosity_Integrand(wavelength)
       !% Integrand for the luminosity through a given filter.
       use Stellar_Population_Spectra_Postprocess
       use Instruments_Filters
       implicit none
-      real            (kind=c_double)        :: Filter_Luminosity_Integrand
-      real            (kind=c_double), value :: wavelength
-      type            (c_ptr        ), value :: parameterPointer
-      double precision                       :: wavelengthRedshifted
+      double precision, intent(in   ) :: wavelength
+      double precision                :: wavelengthRedshifted
       
       ! If this luminosity is for a redshifted spectrum, then we shift wavelength at which we sample the stellar population spectrum
       ! to be a factor of (1+z) smaller. We therefore integrate over the stellar SED at shorter wavelengths, since these will be
@@ -441,16 +437,14 @@ contains
       return
     end function Filter_Luminosity_Integrand
     
-    function Filter_Luminosity_Integrand_AB(wavelength,parameterPointer) bind(c)
+    double precision function Filter_Luminosity_Integrand_AB(wavelength)
       !% Integrand for the luminosity of a zeroth magnitude (AB) source through a given filter.
       use Instruments_Filters
       use Numerical_Constants_Astronomical
       implicit none
-      real            (kind=c_double)            :: Filter_Luminosity_Integrand_AB
-      real            (kind=c_double), value     :: wavelength
-      type            (c_ptr        ), value     :: parameterPointer
+      double precision, intent(in   ) :: wavelength
       ! Luminosity of a zeroth magintude (AB) source in Solar luminosities per Hz.
-      double precision               , parameter :: luminosityZeroPointABSolar    =luminosityZeroPointAB/luminositySolar
+      double precision, parameter     :: luminosityZeroPointABSolar=luminosityZeroPointAB/luminositySolar
       
       Filter_Luminosity_Integrand_AB=Filter_Response(filterIndexTabulate,wavelength)*luminosityZeroPointABSolar/wavelength
       return

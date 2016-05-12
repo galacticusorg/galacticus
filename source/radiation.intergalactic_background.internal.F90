@@ -351,11 +351,10 @@ contains
                          imfIndex                =  imfIndexDisk
                          gasAbundances           => gasAbundancesDisk
                          integrationReset=.true.
-                         stellarSpectrumDisk     =  Integrate(                                                        &
+                         stellarSpectrumDisk     =  IntegrateTMP(                                                        &
                               &                               ageStart                                              , &
                               &                               ageEnd                                                , &
                               &                               stellarSpectraConvolution                             , &
-                              &                               parameterPointer                                      , &
                               &                               integrandFunction                                     , &
                               &                               integrationWorkspace                                  , &
                               &                               toleranceAbsolute        =integrationToleranceAbsolute, &
@@ -365,11 +364,10 @@ contains
                          call Integrate_Done(integrandFunction,integrationWorkspace)
                          gasAbundances           => gasAbundancesSpheroid
                          integrationReset=.true.
-                         stellarSpectrumSpheroid =  Integrate(                                                        &
+                         stellarSpectrumSpheroid =  IntegrateTMP(                                                        &
                               &                               ageStart                                              , &
                               &                               ageEnd                                                , &
                               &                               stellarSpectraConvolution                             , &
-                              &                               parameterPointer                                      , &
                               &                               integrandFunction                                     , &
                               &                               integrationWorkspace                                  , &
                               &                               toleranceAbsolute        =integrationToleranceAbsolute, &
@@ -481,13 +479,11 @@ contains
 
   contains
     
-    function stellarSpectraConvolution(age,parameterPointer) bind(c)
+    double precision function stellarSpectraConvolution(age)
       !% Integrand for convolution of stellar spectra.
       implicit none
-      real   (kind=c_double)        :: stellarSpectraConvolution
-      real   (kind=c_double), value :: age
-      type   (c_ptr        ), value :: parameterPointer
-      integer                       :: status
+      double precision, intent(in   ) :: age
+      integer                         :: status
 
       stellarSpectraConvolution=stellarPopulationSpectra_%luminosity(               &
            &                                                         gasAbundances, &

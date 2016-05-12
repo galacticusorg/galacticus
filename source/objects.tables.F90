@@ -961,7 +961,6 @@ contains
 
   function Table_Logarithmic_Integration_Weights(self,x0,x1,integrand)
     !% Returns a set of weights for trapezoidal integration on the table between limits {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}.
-    use, intrinsic :: ISO_C_Binding
     use FGSL
     use Numerical_Integration
     use Galacticus_Error
@@ -975,7 +974,6 @@ contains
     integer                                                                                  :: i
     type            (fgsl_function             )                                             :: integrandFunction
     type            (fgsl_integration_workspace)                                             :: integrationWorkspace
-    type            (c_ptr                     )                                             :: parameterPointer
     logical                                                                                  :: integrationReset
  
     if (x1 < x0) call Galacticus_Error_Report('Table_Logarithmic_Integration_Weights','inverted limits')
@@ -997,11 +995,10 @@ contains
           if (present(integrand)) then
              ! An integrand is given, numerically integrate the relevant terms over the integrand.
              integrationReset=.true.
-             factor0=Integrate(                                       &
+             factor0=IntegrateTMP(                                       &
                   &            lx0                                  , &
                   &            lx1                                  , &
                   &            factor0Integrand                     , &
-                  &            parameterPointer                     , &
                   &            integrandFunction                    , &
                   &            integrationWorkspace                 , &
                   &            toleranceRelative   =1.0d-4          , &
@@ -1009,11 +1006,10 @@ contains
                   &           )
              call Integrate_Done(integrandFunction,integrationWorkspace)
              integrationReset=.true.
-             factor1=Integrate(                                       &
+             factor1=IntegrateTMP(                                       &
                   &            lx0                                  , &
                   &            lx1                                  , &
                   &            factor1Integrand                     , &
-                  &            parameterPointer                     , &
                   &            integrandFunction                    , &
                   &            integrationWorkspace                 , &
                   &            toleranceRelative   =1.0d-4          , &
@@ -1039,26 +1035,22 @@ contains
     
   contains
     
-    function factor0Integrand(logx,parameterPointer) bind(c)
+    double precision function factor0Integrand(logx)
       !% Integrand used to evaluate integration weights over logarithmically spaced tables
       implicit none
-      real(c_double)        :: factor0Integrand
-      real(c_double), value :: logx
-      type(c_ptr),    value :: parameterPointer
-      real(c_double)        :: x
+      double precision, intent(in   ) :: logx
+      double precision                :: x
       
       x=exp(logx)
       factor0Integrand=x*integrand(x)
       return
     end function factor0Integrand
     
-    function factor1Integrand(logx,parameterPointer) bind(c)
+    double precision function factor1Integrand(logx)
       !% Integrand used to evaluate integration weights over logarithmically spaced tables
       implicit none
-      real(c_double)        :: factor1Integrand
-      real(c_double), value :: logx
-      type(c_ptr),    value :: parameterPointer
-      real(c_double)        :: x
+      double precision, intent(in   ) :: logx
+      double precision                :: x
       
       x=exp(logx)
       factor1Integrand=x*integrand(x)*(logx-self%xv(i-1))/(self%xv(i)-self%xv(i-1))
@@ -1424,7 +1416,7 @@ contains
     double precision                      , intent(in   )                               :: x0, x1
     procedure       (integrandTemplate   ), intent(in   )           , pointer, optional :: integrand
     double precision                      , dimension(size(self%xv))                    :: Table_Linear_CSpline_Integration_Weights
-    !GCC$ attributes unused :: self, x0, x1
+    !GCC$ attributes unused :: self, x0, x1, integrand
 
     Table_Linear_CSpline_Integration_Weights=0.0d0
     call Galacticus_Error_Report('Table_Linear_CSpline_Integration_Weights','integration weights not supported')

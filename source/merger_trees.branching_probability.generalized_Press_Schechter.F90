@@ -228,16 +228,14 @@ contains
   end function Generalized_Press_Schechter_Branch_Mass
 
   double precision function Generalized_Press_Schechter_Branch_Mass_Root(massMaximum)
-    use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     implicit none
     double precision                            , intent(in   ) :: massMaximum
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
-    type            (c_ptr                     )                :: parameterPointer
 
-    Generalized_Press_Schechter_Branch_Mass_Root=probabilitySeek-Integrate(probabilityMinimumMass,massMaximum &
-         &,Branching_Probability_Integrand_Generalized,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute&
+    Generalized_Press_Schechter_Branch_Mass_Root=probabilitySeek-IntegrateTMP(probabilityMinimumMass,massMaximum &
+         &,Branching_Probability_Integrand_Generalized,integrandFunction,integrationWorkspace,toleranceAbsolute&
          &=0.0d0 ,toleranceRelative=branchingProbabilityIntegrandToleraceRelative,integrationRule=FGSL_Integ_Gauss15)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     return
@@ -269,12 +267,10 @@ contains
   double precision function Generalized_Press_Schechter_Branching_Probability(haloMass,deltaCritical,massResolution)
     !% Return the probability per unit change in $\delta_{\mathrm crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\tt
     !% deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}.
-    use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     implicit none
     double precision                               , intent(in   ) :: deltaCritical            , haloMass   , massResolution
     class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
-    type            (c_ptr                        )                :: parameterPointer
     type            (fgsl_function                )                :: integrandFunction
     type            (fgsl_integration_workspace   )                :: integrationWorkspace
     double precision                                               :: massMaximum              , massMinimum
@@ -289,8 +285,8 @@ contains
        call Compute_Common_Factors
        massMinimum=massResolution
        massMaximum=0.5d0*parentHaloMass
-       Generalized_Press_Schechter_Branching_Probability=Integrate(massMinimum,massMaximum,Branching_Probability_Integrand_Generalized &
-            &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=branchingProbabilityIntegrandToleraceRelative&
+       Generalized_Press_Schechter_Branching_Probability=IntegrateTMP(massMinimum,massMaximum,Branching_Probability_Integrand_Generalized &
+            &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=branchingProbabilityIntegrandToleraceRelative&
             &,integrationRule=FGSL_Integ_Gauss15)
        call Integrate_Done(integrandFunction,integrationWorkspace)
     else
@@ -302,7 +298,6 @@ contains
   double precision function Generalized_Press_Schechter_Subresolution_Fraction(haloMass,deltaCritical,massResolution)
     !% Return the fraction of mass accreted in subresolution halos, i.e. those below {\normalfont \ttfamily massResolution}, per unit change in
     !% $\delta_{\mathrm crit}$ for a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical}. The integral is computed numerically.
-    use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     use Excursion_Sets_First_Crossings
     use Merger_Tree_Branching_Modifiers
@@ -318,7 +313,6 @@ contains
     double precision                               , parameter     :: resolutionSigmaOverParentSigmaTolerance=1.0d-3
     double precision                                               :: massMaximum                                   , massMinimum    , &
          &                                                            resolutionSigmaOverParentSigma
-    type            (c_ptr                        )                :: parameterPointer
     type            (fgsl_function                )                :: integrandFunction
     type            (fgsl_integration_workspace   )                :: integrationWorkspace
     integer                                                        :: errorStatus
@@ -350,7 +344,7 @@ contains
        massMinimum=generalizedPressSchechterMinimumMass
        massMaximum=massResolution
        Generalized_Press_Schechter_Subresolution_Fraction=Generalized_Press_Schechter_Subresolution_Fraction&
-            &+Integrate(massMinimum,massMaximum,Subresolution_Fraction_Integrand_Generalized ,parameterPointer,integrandFunction&
+            &+IntegrateTMP(massMinimum,massMaximum,Subresolution_Fraction_Integrand_Generalized,integrandFunction&
             &,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3 ,integrationRule=FGSL_Integ_Gauss15&
             &,errorStatus=errorStatus)
        call Integrate_Done(integrandFunction,integrationWorkspace)
@@ -367,7 +361,7 @@ contains
              end if
              !$omp end critical(Generalized_Press_Schechter_Subresolution_Fraction_Warn)
              Generalized_Press_Schechter_Subresolution_Fraction=Generalized_Press_Schechter_Subresolution_Fraction &
-                  &+Integrate(massMinimum,massMaximum,Subresolution_Fraction_Integrand_Generalized ,parameterPointer&
+                  &+IntegrateTMP(massMinimum,massMaximum,Subresolution_Fraction_Integrand_Generalized&
                   &,integrandFunction ,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-2 ,integrationRule&
                   &=FGSL_Integ_Gauss15)
           end if
@@ -378,15 +372,12 @@ contains
     return
   end function Generalized_Press_Schechter_Subresolution_Fraction
 
-  function Branching_Probability_Integrand_Generalized(childHaloMass,parameterPointer) bind(c)
+  double precision function Branching_Probability_Integrand_Generalized(childHaloMass)
     !% Integrand for the branching probability.
-    use, intrinsic :: ISO_C_Binding
     implicit none
-    real (kind=c_double                )         :: Branching_Probability_Integrand_Generalized
-    real (kind=c_double                ), value  :: childHaloMass
-    type (c_ptr                        ), value  :: parameterPointer
-    class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
-    real (kind=c_double                )         :: childAlpha                                 , childSigma
+    double precision                               , intent(in   ) :: childHaloMass
+    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+    double precision                                               :: childAlpha               , childSigma
 
     cosmologicalMassVariance_ => cosmologicalMassVariance()
     call cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(childHaloMass,childSigma,childAlpha)
@@ -394,15 +385,12 @@ contains
     return
   end function Branching_Probability_Integrand_Generalized
 
-  function Subresolution_Fraction_Integrand_Generalized(childHaloMass,parameterPointer) bind(c)
+  double precision function Subresolution_Fraction_Integrand_Generalized(childHaloMass)
     !% Integrand for the subresolution fraction.
-    use, intrinsic :: ISO_C_Binding
     implicit none
-    real (kind=c_double                )         :: Subresolution_Fraction_Integrand_Generalized
-    real (kind=c_double                ), value  :: childHaloMass
-    type (c_ptr                        ), value  :: parameterPointer
-    class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
-    real (kind=c_double                )         :: childAlpha                                  , childSigma
+    double precision                               , intent(in   ) :: childHaloMass
+    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+    double precision                                               :: childAlpha               , childSigma
 
     if (childHaloMass>0.0d0) then
     cosmologicalMassVariance_ => cosmologicalMassVariance()

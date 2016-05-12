@@ -553,7 +553,8 @@ contains
     real(kind=c_double), value :: x
     type(c_ptr        ), value :: parameterPointer
     real(kind=c_double)        :: Root_Finder_Wrapper_Function
-
+    !GCC$ attributes unused :: parameterPointer
+    
     Root_Finder_Wrapper_Function=currentFinder%finderFunction(x)
     return
   end function Root_Finder_Wrapper_Function
@@ -564,6 +565,7 @@ contains
     real(kind=c_double)        :: Root_Finder_Wrapper_Function_Derivative
     real(kind=c_double), value :: x
     type(c_ptr        ), value :: parameterPointer
+    !GCC$ attributes unused :: parameterPointer
 
     Root_Finder_Wrapper_Function_Derivative=currentFinder%finderFunctionDerivative(x)
     return
@@ -575,6 +577,7 @@ contains
     real(kind=c_double), value         :: x
     type(c_ptr        ), value         :: parameterPointer
     real(kind=c_double), intent(  out) :: f               , df
+    !GCC$ attributes unused :: parameterPointer
 
     call currentFinder%finderFunctionBoth(x,f,df)
     return
