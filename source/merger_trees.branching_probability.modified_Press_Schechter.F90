@@ -404,7 +404,7 @@ contains
     else
        massMaximum=+exp(logMassMaximum)
        integral   =+branchingProbabilityPreFactor                                                                        &
-            &      *IntegrateTMP(                                                                                           &
+            &      *Integrate(                                                                                           &
             &                 probabilityMinimumMassLog                                                                , &
             &                 logMassMaximum                                                                           , &
             &                 Branching_Probability_Integrand_Logarithmic                                              , &
@@ -514,7 +514,7 @@ contains
           massMinimum=      massResolution
           massMaximum=0.5d0*parentHaloMass
           probabilityPrevious=+branchingProbabilityPreFactor                                                                        &
-               &              *IntegrateTMP(                                                                                           &
+               &              *Integrate(                                                                                           &
                &                         log(massMinimum)                                                                         , &
                &                         log(massMaximum)                                                                         , &
                &                         Branching_Probability_Integrand_Logarithmic                                              , &

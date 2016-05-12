@@ -176,7 +176,7 @@ subroutine Mass_Distribution_Miyamoto_Nagai_Mass_Enclosed_Initialize(self)
              &  %populate(                                             &
              &            +4.0d0                                       &
              &            *Pi                                          &
-             &            *IntegrateTMP(                                  &
+             &            *Integrate(                                  &
              &                       0.0d0                           , &
              &                       self%massEnclosedTable%x(i)     , &
              &                       Mass_Enclosed_Integrand_R       , &
@@ -227,7 +227,7 @@ contains
 
     radius=r
     Mass_Enclosed_Integrand_R=+radius                                                 &
-         &                    *IntegrateTMP(                                             &
+         &                    *Integrate(                                             &
          &                               0.0d0                                      , &
          &                               sqrt(                                        &
          &                                    +self%massEnclosedTable%x(i)**2         &
@@ -281,7 +281,7 @@ subroutine Mass_Distribution_Miyamoto_Nagai_Surface_Density_Initialize(self)
              & %surfaceDensityTable                                    &
              &  %populate(                                             &
              &            +2.0d0                                       &
-             &            *IntegrateTMP(                                  &
+             &            *Integrate(                                  &
              &                       self%b*heightStart              , &
              &                       self%b*heightInfinity           , &
              &                       Surface_Density_Integrand       , &

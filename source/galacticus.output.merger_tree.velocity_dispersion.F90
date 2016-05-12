@@ -478,11 +478,11 @@ contains
                 weightIndex  =  radii(i)%integralWeightByIndex
                 radiusZero   =  0.0d0
                 radiusImpact =  radius
-                velocityDensityIntegrand=IntegrateTMP(radiusZero,radiusOuter&
+                velocityDensityIntegrand=Integrate(radiusZero,radiusOuter&
                      &,Galacticus_Output_Trees_Vlcty_Dsprsn_Vlcty_Dnsty_Srfc_Intgrnd ,integrandFunction&
                      &,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
                 call Integrate_Done(integrandFunction,integrationWorkspace)
-                densityIntegrand        =IntegrateTMP(radiusZero,radiusOuter&
+                densityIntegrand        =Integrate(radiusZero,radiusOuter&
                      &,Galacticus_Output_Trees_Vlcty_Dsprsn_Dnsty_Srfc_Intgrnd ,integrandFunction&
                      &,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
                 call Integrate_Done(integrandFunction,integrationWorkspace)
@@ -526,7 +526,7 @@ contains
                 else
                    ! Full calculation is required.
                    radiusZero=0.0d0
-                   numerator=IntegrateTMP(                                                                 &
+                   numerator=Integrate(                                                                 &
                         &                radiusZero                                                   , &
                         &                radius                                                       , &
                         &                Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd2        , &
@@ -536,7 +536,7 @@ contains
                         &                toleranceRelative                                     =1.0d-2  &
                         &               )
                    call Integrate_Done(integrandFunction,integrationWorkspace)
-                   denominator=IntegrateTMP(                                                               &
+                   denominator=Integrate(                                                               &
                         &                radiusZero                                                   , &
                         &                radius                                                       , &
                         &                Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd1        , &
@@ -600,7 +600,7 @@ contains
     else
        radiusImpact=radius
        densitySpheroid                                                                         &
-            & =IntegrateTMP(                                                                      &
+            & =Integrate(                                                                      &
             &            radius                                                              , &
             &            radiusOuter                                                         , &
             &            Galacticus_Output_Trees_Velocity_Dispersion_Density_Integrand       , &
@@ -638,7 +638,7 @@ contains
        else
           ! ...it is, so we must do the full calculation.
           sigmaLineOfSightSquaredSpheroidDensity                                                  &
-               & =IntegrateTMP(                                                                      &
+               & =Integrate(                                                                      &
                &            radius                                                              , &
                &            radiusOuter                                                         , &
                &            Galacticus_Output_Trees_Vlcty_Dispersion_Vlcty_Dnsty_Intgrnd        , &
@@ -811,11 +811,11 @@ contains
     type            (fgsl_integration_workspace)                :: integrationWorkspace
     double precision                                            :: densityIntegral     , velocityDensityIntegral
 
-    velocityDensityIntegral=IntegrateTMP(radius,radiusOuter&
+    velocityDensityIntegral=Integrate(radius,radiusOuter&
          &,Galacticus_Output_Trees_Vlcty_Dispersion_Vlcty_Dnsty_Intgrnd ,integrandFunction&
          &,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
     call Integrate_Done(integrandFunction,integrationWorkspace)
-    densityIntegral        =IntegrateTMP(radius,radiusOuter,Galacticus_Output_Trees_Velocity_Dispersion_Density_Integrand&
+    densityIntegral        =Integrate(radius,radiusOuter,Galacticus_Output_Trees_Velocity_Dispersion_Density_Integrand&
          & ,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     if (velocityDensityIntegral <= 0.0d0) then

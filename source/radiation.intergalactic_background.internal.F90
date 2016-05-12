@@ -351,7 +351,7 @@ contains
                          imfIndex                =  imfIndexDisk
                          gasAbundances           => gasAbundancesDisk
                          integrationReset=.true.
-                         stellarSpectrumDisk     =  IntegrateTMP(                                                        &
+                         stellarSpectrumDisk     =  Integrate(                                                        &
                               &                               ageStart                                              , &
                               &                               ageEnd                                                , &
                               &                               stellarSpectraConvolution                             , &
@@ -364,7 +364,7 @@ contains
                          call Integrate_Done(integrandFunction,integrationWorkspace)
                          gasAbundances           => gasAbundancesSpheroid
                          integrationReset=.true.
-                         stellarSpectrumSpheroid =  IntegrateTMP(                                                        &
+                         stellarSpectrumSpheroid =  Integrate(                                                        &
                               &                               ageStart                                              , &
                               &                               ageEnd                                                , &
                               &                               stellarSpectraConvolution                             , &

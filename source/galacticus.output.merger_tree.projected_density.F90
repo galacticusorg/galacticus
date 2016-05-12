@@ -378,7 +378,7 @@ contains
           radiusOuter=darkMatterHaloScale_%virialRadius(node)
           ! Store the projected density.
           doubleProperty=doubleProperty+1
-          doubleBuffer(doubleBufferCount,doubleProperty)=IntegrateTMP(                                                           &
+          doubleBuffer(doubleBufferCount,doubleProperty)=Integrate(                                                           &
                &                                                   radiusProjected                                          , &
                &                                                   radiusOuter                                              , &
                &                                                   Galacticus_Output_Tree_Projected_Density_Integrand       , &
