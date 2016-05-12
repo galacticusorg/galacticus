@@ -72,7 +72,6 @@ contains
     !% density of star formation rate.
     use Numerical_Constants_Math
     use Numerical_Integration
-    use, intrinsic :: ISO_C_Binding
     implicit none
     type            (treeNode                  ), intent(inout), pointer :: thisNode
     class           (nodeComponentDisk         )               , pointer :: thisDiskComponent
@@ -80,7 +79,6 @@ contains
     double precision                                                     :: diskScaleRadius               , gasMass                        , &
          &                                                                  radiusInner                   , radiusOuter                    , &
          &                                                                  starFormationRate
-   type            (c_ptr                     )                         :: parameterPointer
     type            (fgsl_function             )                         :: integrandFunction
     type            (fgsl_integration_workspace)                         :: integrationWorkspace
     logical                                                              :: integrationReset
@@ -103,11 +101,10 @@ contains
        integrationReset=.true.
        starFormationRate=+2.0d0                                                                                                            &
             &            *Pi                                                                                                               &
-            &            *Integrate(                                                                                                       &
+            &            *IntegrateTMP(                                                                                                       &
             &                       radiusInner                                                                                          , &
             &                       radiusOuter                                                                                          , &
             &                       Star_Formation_Rate_Integrand_Surface_Density                                                        , &
-            &                       parameterPointer                                                                                     , &
             &                       integrandFunction                                                                                    , &
             &                       integrationWorkspace                                                                                 , &
             &                       reset                                        =integrationReset                                       , &
@@ -126,14 +123,11 @@ contains
     return
   end function Star_Formation_Timescale_Disk_Integrated_SD
 
-  function Star_Formation_Rate_Integrand_Surface_Density(radius,parameterPointer) bind(c)
+  double precision function Star_Formation_Rate_Integrand_Surface_Density(radius)
     !% Integrand function for the ``integrated surface density'' star formation rate calculation.
-    use, intrinsic :: ISO_C_Binding
     use Star_Formation_Rate_Surface_Density_Disks
     implicit none
-    real(kind=c_double)        :: Star_Formation_Rate_Integrand_Surface_Density
-    real(kind=c_double), value :: radius
-    type(c_ptr        ), value :: parameterPointer
+    double precision, intent(in   ) :: radius
 
     ! Compute the star formation rate integrand.
     Star_Formation_Rate_Integrand_Surface_Density=radius*Star_Formation_Rate_Surface_Density_Disk(activeNode,radius)

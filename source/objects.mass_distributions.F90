@@ -306,13 +306,11 @@ contains
   double precision function Mass_Distribution_Mass_Enc_By_Sphere_Spherical(self,radius)
     !% Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for spherically-symmetric mass distributions using
     !% numerical integration.
-    use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     use Numerical_Constants_Math
     implicit none
     class           (massDistributionSpherical ), intent(inout), target :: self
     double precision                            , intent(in   )         :: radius
-    type            (c_ptr                     )                        :: parameterPointer
     type            (fgsl_function             )                        :: integrandFunction
     type            (fgsl_integration_workspace)                        :: integrationWorkspace
     logical                                                             :: integrationReset
@@ -320,22 +318,19 @@ contains
     
     massDistributionSphericalActive => self
     integrationReset=.true.
-    Mass_Distribution_Mass_Enc_By_Sphere_Spherical=4.0d0*Pi*Integrate(0.0d0,radius&
-         &,Mass_Distribution_Mass_Enc_By_Sphere_Spherical_Integrand,parameterPointer,integrandFunction,integrationWorkspace,reset&
+    Mass_Distribution_Mass_Enc_By_Sphere_Spherical=4.0d0*Pi*IntegrateTMP(0.0d0,radius&
+         &,Mass_Distribution_Mass_Enc_By_Sphere_Spherical_Integrand,integrandFunction,integrationWorkspace,reset&
          &=integrationReset,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     return
   end function Mass_Distribution_Mass_Enc_By_Sphere_Spherical
 
-  function Mass_Distribution_Mass_Enc_By_Sphere_Spherical_Integrand(radius,parameterPointer) bind(c)
+  double precision function Mass_Distribution_Mass_Enc_By_Sphere_Spherical_Integrand(radius)
     !% Enclosed mass integrand for spherical mass distributions.
-    use, intrinsic :: ISO_C_Binding
     use Coordinates
     implicit none
-    real(kind=c_double      )        :: Mass_Distribution_Mass_Enc_By_Sphere_Spherical_Integrand
-    real(kind=c_double      ), value :: radius
-    type(c_ptr              ), value :: parameterPointer
-    type(coordinateSpherical)        :: position
+    double precision                     , intent(in   ) :: radius
+    type            (coordinateSpherical)                :: position
 
     position=[radius,0.0d0,0.0d0]
     Mass_Distribution_Mass_Enc_By_Sphere_Spherical_Integrand=radius**2*massDistributionSphericalActive%density(position)

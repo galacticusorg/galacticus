@@ -43,26 +43,25 @@ contains
        &                                      projectedCorrelationBinned                    &
        &                                     )
     !% Compute the projected correlation function of galaxies above a specified mass using the halo model.
-    use, intrinsic :: ISO_C_Binding
-    use               FGSL
-    use               Memory_Management
-    use               Galacticus_Error
-    use               Geometry_Surveys
-    use               Galacticus_Nodes
-    use               Cosmology_Functions
-    use               Conditional_Mass_Functions
-    use               Numerical_Integration
-    use               Dark_Matter_Profiles_Concentration
-    use               Node_Component_Dark_Matter_Profile_Scale
-    use               Dark_Matter_Halo_Scales
-    use               Numerical_Ranges
-    use               Numerical_Constants_Math
-    use               Power_Spectra
-    use               FFTLogs
-    use               Tables
-    use               Table_Labels
-    use               Linear_Growth
-    use               Halo_Mass_Functions
+    use FGSL
+    use Memory_Management
+    use Galacticus_Error
+    use Geometry_Surveys
+    use Galacticus_Nodes
+    use Cosmology_Functions
+    use Conditional_Mass_Functions
+    use Numerical_Integration
+    use Dark_Matter_Profiles_Concentration
+    use Node_Component_Dark_Matter_Profile_Scale
+    use Dark_Matter_Halo_Scales
+    use Numerical_Ranges
+    use Numerical_Constants_Math
+    use Power_Spectra
+    use FFTLogs
+    use Tables
+    use Table_Labels
+    use Linear_Growth
+    use Halo_Mass_Functions
     implicit none
     class           (conditionalMassFunctionClass       ), intent(inout)                                             :: conditionalMassFunction_
     double precision                                     , intent(in   ), dimension(                             : ) :: projectedSeparationBinned
@@ -100,7 +99,6 @@ contains
          &                                                                                                              projectedCorrelationFunctionSeparationCount
     type            (fgsl_function                      )                                                            :: integrandFunction
     type            (fgsl_integration_workspace         )                                                            :: integrationWorkspace
-    type            (c_ptr                              )                                                            :: parameterPointer
     logical                                                                                                          :: integrationReset
     type            (table1DLogarithmicLinear           )                                                            :: correlationTable
 
@@ -143,11 +141,10 @@ contains
        integrationReset    =.true.
        volume              =                                       &
             & +volume                                              &
-            & +Integrate(                                          &
+            & +IntegrateTMP(                                          &
             &            timeMinimum                             , &
             &            timeMaximum                             , &
             &            volumeTimeIntegrand                     , &
-            &            parameterPointer                        , &
             &            integrandFunction                       , &
             &            integrationWorkspace                    , &
             &            toleranceRelative                =1.0d-2, &
@@ -159,11 +156,10 @@ contains
        integrationReset    =.true.
        galaxyDensity       =                                       &
             & +galaxyDensity                                       &
-            & +Integrate(                                          &
+            & +IntegrateTMP(                                          &
             &            timeMinimum                             , &
             &            timeMaximum                             , &
             &            normalizationTimeIntegrand              , &
-            &            parameterPointer                        , &
             &            integrandFunction                       , &
             &            integrationWorkspace                    , &
             &            toleranceRelative                =1.0d-2, &
@@ -177,11 +173,10 @@ contains
           integrationReset    =.true.
           powerSpectrumOneHalo        (iWavenumber)=                              &
                & +powerSpectrumOneHalo(iWavenumber)                               &
-               & +Integrate(                                                      &
+               & +IntegrateTMP(                                                      &
                &            timeMinimum                                         , &
                &            timeMaximum                                         , &
                &            powerSpectrumOneHaloTimeIntegrand                   , &
-               &            parameterPointer                                    , &
                &            integrandFunction                                   , &
                &            integrationWorkspace                                , &
                &            toleranceRelative                =1.0d-2            , &
@@ -194,11 +189,10 @@ contains
           integrationReset    =.true.
           powerSpectrumTwoHalo        (iWavenumber)=                              &
                & +powerSpectrumTwoHalo(iWavenumber)                               &
-               & +Integrate(                                                      &
+               & +IntegrateTMP(                                                      &
                &            timeMinimum                                         , &
                &            timeMaximum                                         , &
                &            powerSpectrumTwoHaloTimeIntegrand                   , &
-               &            parameterPointer                                    , &
                &            integrandFunction                                   , &
                &            integrationWorkspace                                , &
                &            toleranceRelative                =1.0d-2            , &
@@ -309,17 +303,15 @@ contains
       return
     end function binningIntegrandWeight
 
-    function powerSpectrumOneHaloTimeIntegrand(timePrime,parameterPointer) bind(c)
+    double precision function powerSpectrumOneHaloTimeIntegrand(timePrime)
       !% Time integrand for the one-halo term in the power spectrum.
       use Galacticus_Display
       implicit none
-      real   (c_double                  )        :: powerSpectrumOneHaloTimeIntegrand
-      real   (c_double                  ), value :: timePrime
-      type   (c_ptr                     ), value :: parameterPointer
-      type   (fgsl_function             )        :: integrandFunctionTime
-      type   (fgsl_integration_workspace)        :: integrationWorkspaceTime
-      logical                                    :: integrationResetTime
-      integer                                    :: errorStatus
+      double precision                            , intent(in   ) :: timePrime
+      type            (fgsl_function             )                :: integrandFunctionTime
+      type            (fgsl_integration_workspace)                :: integrationWorkspaceTime
+      logical                                                     :: integrationResetTime
+      integer                                                     :: errorStatus
 
       time           =timePrime
       expansionFactor=cosmologyFunctions_%expansionFactor(time)
@@ -327,11 +319,10 @@ contains
       call thisBasic%timeLastIsolatedSet                 (time)
       integrationResetTime             =.true.
       powerSpectrumOneHaloTimeIntegrand=                                                  &
-           & +Integrate(                                                                  &
+           & +IntegrateTMP(                                                                  &
            &            projectedCorrelationFunctionHaloMassMinimum                     , &
            &            projectedCorrelationFunctionHaloMassMaximum                     , &
            &            powerSpectrumOneHaloIntegrand                                   , &
-           &            parameterPointer                                                , &
            &            integrandFunctionTime                                           , &
            &            integrationWorkspaceTime                                        , &
            &            toleranceRelative                          =1.0d-2              , &
@@ -348,19 +339,18 @@ contains
       return
     end function powerSpectrumOneHaloTimeIntegrand
 
-    function powerSpectrumOneHaloIntegrand(massHalo,parameterPointer) bind(c)
+    double precision function powerSpectrumOneHaloIntegrand(massHalo)
       !% Integrand for the one-halo term in the power spectrum.
       use Dark_Matter_Halo_Biases
       use Dark_Matter_Profiles
       use Dark_Matter_Profile_Scales
       use Galacticus_Calculations_Resets
       implicit none
-      real            (c_double              )          :: powerSpectrumOneHaloIntegrand
-      real            (c_double              ), value   :: massHalo
-      type            (c_ptr                 ), value   :: parameterPointer
-      class           (darkMatterProfileClass), pointer :: darkMatterProfile_
-      class           (haloMassFunctionClass ), pointer :: haloMassFunction_
-      double precision                                  :: darkMatterProfileKSpace      , numberCentrals, numberSatellites, wavenumberMaximum
+      double precision                        , intent(in   ) :: massHalo
+      class           (darkMatterProfileClass), pointer       :: darkMatterProfile_
+      class           (haloMassFunctionClass ), pointer       :: haloMassFunction_
+      double precision                                        :: darkMatterProfileKSpace, numberCentrals   , &
+           &                                                     numberSatellites       , wavenumberMaximum
 
       darkMatterProfile_ => darkMatterProfile()
       call Galacticus_Calculations_Reset(thisNode)
@@ -401,17 +391,15 @@ contains
       return
     end function powerSpectrumOneHaloIntegrand
 
-    function powerSpectrumTwoHaloTimeIntegrand(timePrime,parameterPointer) bind(c)
+    double precision function powerSpectrumTwoHaloTimeIntegrand(timePrime)
       !% Time integrand for the two-halo term in the power spectrum.
       use Galacticus_Display
       implicit none
-      real   (c_double                  )          :: powerSpectrumTwoHaloTimeIntegrand
-      real   (c_double                  ), value   :: timePrime
-      type   (c_ptr                     ), value   :: parameterPointer
-      type   (fgsl_function             )          :: integrandFunctionTime
-      type   (fgsl_integration_workspace)          :: integrationWorkspaceTime
-      logical                                      :: integrationResetTime
-      integer                                      :: errorStatus
+      double precision                            , intent(in   ) :: timePrime
+      type            (fgsl_function             )                :: integrandFunctionTime
+      type            (fgsl_integration_workspace)                :: integrationWorkspaceTime
+      logical                                                     :: integrationResetTime
+      integer                                                     :: errorStatus
 
       time           =timePrime
       expansionFactor=cosmologyFunctions_%expansionFactor(time)
@@ -419,11 +407,10 @@ contains
       call thisBasic%timeLastIsolatedSet                 (time)
       integrationResetTime             =.true.
       powerSpectrumTwoHaloTimeIntegrand=                                                  &
-           & +Integrate(                                                                  &
+           & +IntegrateTMP(                                                                  &
            &            projectedCorrelationFunctionHaloMassMinimum                     , &
            &            projectedCorrelationFunctionHaloMassMaximum                     , &
            &            powerSpectrumTwoHaloIntegrand                                   , &
-           &            parameterPointer                                                , &
            &            integrandFunctionTime                                           , &
            &            integrationWorkspaceTime                                        , &
            &            toleranceRelative                          =1.0d-2              , &
@@ -441,19 +428,17 @@ contains
       return
     end function powerSpectrumTwoHaloTimeIntegrand
 
-    function powerSpectrumTwoHaloIntegrand(massHalo,parameterPointer) bind(c)
+    double precision function powerSpectrumTwoHaloIntegrand(massHalo)
       !% Integrand for the two-halo term in the power spectrum.
       use Dark_Matter_Halo_Biases
       use Dark_Matter_Profiles
       use Galacticus_Calculations_Resets
       use Dark_Matter_Profile_Scales
       implicit none
-      real            (c_double              )          :: powerSpectrumTwoHaloIntegrand
-      real            (c_double              ), value   :: massHalo
-      type            (c_ptr                 ), value   :: parameterPointer
-      class           (darkMatterProfileClass), pointer :: darkMatterProfile_
-      class           (haloMassFunctionClass ), pointer :: haloMassFunction_
-      double precision                                  :: wavenumberMaximum
+      double precision                        , intent(in   ) :: massHalo
+      class           (darkMatterProfileClass), pointer       :: darkMatterProfile_
+      class           (haloMassFunctionClass ), pointer       :: haloMassFunction_
+      double precision                                        :: wavenumberMaximum
 
       darkMatterProfile_ => darkMatterProfile()
       haloMassFunction_  => haloMassFunction ()
@@ -480,24 +465,21 @@ contains
       return
     end function powerSpectrumTwoHaloIntegrand
 
-    function normalizationTimeIntegrand(timePrime,parameterPointer) bind(c)
+    double precision function normalizationTimeIntegrand(timePrime)
       !% Time integrand for the normalization term in the power spectrum.
       implicit none
-      real   (c_double                  )        :: normalizationTimeIntegrand
-      real   (c_double                  ), value :: timePrime
-      type   (c_ptr                     ), value :: parameterPointer
-      type   (fgsl_function             )        :: integrandFunctionTime
-      type   (fgsl_integration_workspace)        :: integrationWorkspaceTime
-      logical                                    :: integrationResetTime
+      double precision                            , intent(in   ) :: timePrime
+      type            (fgsl_function             )                :: integrandFunctionTime
+      type            (fgsl_integration_workspace)                :: integrationWorkspaceTime
+      logical                                                     :: integrationResetTime
 
       time           =timePrime
       integrationResetTime=.true.
       normalizationTimeIntegrand=                                           &
-           & +Integrate(                                                    &
+           & +IntegrateTMP(                                                    &
            &            projectedCorrelationFunctionHaloMassMinimum       , &
            &            projectedCorrelationFunctionHaloMassMaximum       , &
            &            normalizationIntegrand                            , &
-           &            parameterPointer                                  , &
            &            integrandFunctionTime                             , &
            &            integrationWorkspaceTime                          , &
            &            toleranceRelative                          =1.0d-2, &
@@ -508,12 +490,10 @@ contains
       return
     end function normalizationTimeIntegrand
 
-    function normalizationIntegrand(massHalo,parameterPointer) bind(c)
+    double precision function normalizationIntegrand(massHalo)
       !% Integrand for the normalization term in the power spectrum.
       implicit none
-      real(c_double)        :: normalizationIntegrand
-      real(c_double), value :: massHalo
-      type(c_ptr   ), value :: parameterPointer
+      double precision, intent(in   ) :: massHalo
 
       normalizationIntegrand =                                                                              &
            & +haloMassFunction_%differential(time,massHalo)                                                 &
@@ -525,12 +505,10 @@ contains
       return
     end function normalizationIntegrand
 
-    function volumeTimeIntegrand(timePrime,parameterPointer) bind(c)
+    double precision function volumeTimeIntegrand(timePrime)
       !% Volume integrand for the normalization term in the power spectrum.
       implicit none
-      real   (c_double                  )        :: volumeTimeIntegrand
-      real   (c_double                  ), value :: timePrime
-      type   (c_ptr                     ), value :: parameterPointer
+      double precision, intent(in   ) :: timePrime
 
       time               =timePrime
       volumeTimeIntegrand=cosmologyFunctions_%comovingVolumeElementTime(time)

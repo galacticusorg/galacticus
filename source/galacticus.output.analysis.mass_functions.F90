@@ -716,7 +716,6 @@ contains
     type            (cosmologyParametersSimple     )               , pointer        :: cosmologyParametersObserved
     type            (fgsl_function                 )                                :: integrandFunction
     type            (fgsl_integration_workspace    )                                :: integrationWorkspace
-    type            (c_ptr                         )                                :: parameterPointer
     logical                                                                         :: integrationReset
 
     ! Initialize the module if necessary.
@@ -1387,11 +1386,10 @@ contains
                             else
                                integrationReset=.true.                               
                                massFunctions       (i)%lensingTransfer(j  ,k-massFunctions(i)%massesBufferCount  ,jOutput)  &
-                                    & =Integrate(                                                                           &
+                                    & =IntegrateTMP(                                                                           &
                                     &            massFunctions(i)%massesLogarithmicMinimumBuffered(j)                     , &
                                     &            massFunctions(i)%massesLogarithmicMaximumBuffered(j)                     , &
                                     &            magnificationCDFIntegrand                                                , &
-                                    &            parameterPointer                                                         , &
                                     &            integrandFunction                                                        , &
                                     &            integrationWorkspace                                                     , &
                                     &            toleranceRelative=1.0d-3                                                 , &
@@ -1539,13 +1537,10 @@ contains
 
   contains
 
-    function magnificationCDFIntegrand(logMass,parameterPointer) bind(c)
+    double precision function magnificationCDFIntegrand(logMass)
       !% Integrand over the gravitational lensing magnification cumulative distribution.
-      use, intrinsic :: ISO_C_Binding
       implicit none
-      real            (c_double)        :: magnificationCDFIntegrand
-      real            (c_double), value :: logMass
-      type            (c_ptr   ), value :: parameterPointer
+      double precision, intent(in   ) :: logMass
       
       magnificationCDFIntegrand=                                                                                         &
            & max(                                                                                                        &

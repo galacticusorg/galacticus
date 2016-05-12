@@ -51,7 +51,6 @@ contains
 
   double precision function enzoHydrostaticDensityNormalization(self,node)
     !% Return the density normalization in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
-    use, intrinsic :: ISO_C_Binding
     use FGSL
     use Numerical_Integration
     use Hot_Halo_Mass_Distributions_Core_Radii
@@ -61,7 +60,6 @@ contains
     class           (nodeComponentHotHalo                  )               , pointer :: hotHalo
     class           (hotHaloMassDistributionCoreRadiusClass)               , pointer :: hotHaloMassDistributionCoreRadius_
     double precision                                        , parameter              :: toleranceRelative   =1.0d-3
-    type            (c_ptr                                 )                         :: parameterPointer
     type            (fgsl_function                         )                         :: integrandFunction
     type            (fgsl_integration_workspace            )                         :: integrationWorkspace
     logical                                                                          :: integrationReset
@@ -84,11 +82,10 @@ contains
        radiusOuter                        =+hotHalo%outerRadius()
        integrationReset                   =.true.
        enzoHydrostaticDensityNormalization=+hotHalo%mass       ()                                              &
-            &                              /Integrate(                                                         &
+            &                              /IntegrateTMP(                                                         &
             &                                         radiusInner                                            , &
             &                                         radiusOuter                                            , &                  
             &                                         enzoHydrostaticEnclosedMassIntegrand                   , &
-            &                                         parameterPointer                                       , &
             &                                         integrandFunction                                      , &
             &                                         integrationWorkspace                                   , &
             &                                         reset                               =integrationReset  , &
@@ -100,15 +97,12 @@ contains
     return
   end function enzoHydrostaticDensityNormalization
     
-  function enzoHydrostaticEnclosedMassIntegrand(radius,parameterPointer) bind(c)
+  double precision function enzoHydrostaticEnclosedMassIntegrand(radius)
     !% Integrand used in finding the normalization of the {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
-    use, intrinsic :: ISO_C_Binding
     use Numerical_Constants_Math
     implicit none
-    real(kind=c_double)        :: enzoHydrostaticEnclosedMassIntegrand
-    real(kind=c_double), value :: radius
-    type(c_ptr        ), value :: parameterPointer
-    real(kind=c_double)        :: temperature                         , radiusEffective
+    double precision, intent(in   ) :: radius
+    double precision                :: temperature, radiusEffective
     
     if (radius <= 0.0d0) then
        enzoHydrostaticEnclosedMassIntegrand=0.0d0
@@ -177,7 +171,6 @@ contains
   
   double precision function enzoHydrostaticEnclosedMass(self,node,radius)
     !% Return the enclosed mass in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
-    use, intrinsic :: ISO_C_Binding
     use FGSL
     use Numerical_Integration
     use Hot_Halo_Mass_Distributions_Core_Radii
@@ -188,7 +181,6 @@ contains
     class           (hotHaloMassDistributionCoreRadiusClass)               , pointer :: hotHaloMassDistributionCoreRadius_
     double precision                                        , parameter              :: toleranceRelative   =1.0d-3
     class           (nodeComponentHotHalo                  )               , pointer :: hotHalo
-    type            (c_ptr                                 )                         :: parameterPointer
     type            (fgsl_function                         )                         :: integrandFunction
     type            (fgsl_integration_workspace            )                         :: integrationWorkspace
     logical                                                                          :: integrationReset
@@ -207,11 +199,10 @@ contains
        radiusOuter                                  =  radius
        integrationReset                             =  .true.
        enzoHydrostaticEnclosedMass=+self%densityNormalization(node)                                    &
-            &                      *Integrate(                                                         &
+            &                      *IntegrateTMP(                                                         &
             &                                 radiusInner                                            , &
             &                                 radiusOuter                                            , &                  
             &                                 enzoHydrostaticEnclosedMassIntegrand                   , &
-            &                                 parameterPointer                                       , &
             &                                 integrandFunction                                      , &
             &                                 integrationWorkspace                                   , &
             &                                 reset                               =integrationReset  , &
@@ -237,7 +228,6 @@ contains
     class           (hotHaloTemperatureProfileClass        )               , pointer :: hotHaloTemperatureProfile_
     class           (hotHaloMassDistributionCoreRadiusClass)               , pointer :: hotHaloMassDistributionCoreRadius_
     double precision                                        , parameter              :: toleranceRelative                 =1.0d-3
-    type            (c_ptr                                 )                         :: parameterPointer
     type            (fgsl_function                         )                         :: integrandFunction
     type            (fgsl_integration_workspace            )                         :: integrationWorkspace
     logical                                                                          :: integrationReset
@@ -256,11 +246,10 @@ contains
          &                                   )
     integrationReset                   =  .true.
     enzoHydrostaticRadialMoment=+self%densityNormalization(node)                                    &
-         &                      *Integrate(                                                         &
+         &                      *IntegrateTMP(                                                         &
          &                                 radiusInner                                            , &
          &                                 radiusOuter                                            , &
          &                                 enzoHydrostaticRadialMomentIntegrand                   , &
-         &                                 parameterPointer                                       , &
          &                                 integrandFunction                                      , &
          &                                 integrationWorkspace                                   , &
          &                                 reset                               =integrationReset  , &
@@ -272,14 +261,12 @@ contains
     
   contains
     
-    function enzoHydrostaticRadialMomentIntegrand(radius,parameterPointer) bind(c)
+    double precision function enzoHydrostaticRadialMomentIntegrand(radius)
       !% Integrand used in finding the normalization of the {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
       use Hot_Halo_Temperature_Profiles
       implicit none
-      real(kind=c_double)        :: enzoHydrostaticRadialMomentIntegrand
-      real(kind=c_double), value :: radius
-      type(c_ptr        ), value :: parameterPointer
-      real(kind=c_double)        :: temperature                         , radiusEffective
+      double precision, intent(in   ) :: radius
+      double precision                :: temperature, radiusEffective
       
       if (radius <= 0.0d0) then
          enzoHydrostaticRadialMomentIntegrand=0.0d0
