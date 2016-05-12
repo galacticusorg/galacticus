@@ -52,18 +52,16 @@ module Halo_Mass_Functions
   !#   <modules>Numerical_Integration</modules>
   !#   <code>
   !#    double precision                             :: logMassHigh         , logMassLow
-  !#    type            (c_ptr                     ) :: parameterPointer
   !#    type            (fgsl_function             ) :: integrandFunction
   !#    type            (fgsl_integration_workspace) :: integrationWorkspace
   !#    globalSelf => self
   !#    self%time_ =  time
   !#    logMassLow =log(massLow )
   !#    logMassHigh=log(massHigh)
-  !#    haloMassFunctionIntegrated=Integrate(                                         &amp;
+  !#    haloMassFunctionIntegrated=IntegrateTMP(                                         &amp;
   !#        &amp;                            logMassLow                             , &amp;
   !#        &amp;                            logMassHigh                            , &amp;
   !#        &amp;                            integratedIntegrand                    , &amp;
-  !#        &amp;                            parameterPointer                       , &amp;
   !#        &amp;                            integrandFunction                      , &amp;
   !#        &amp;                            integrationWorkspace                   , &amp;
   !#        &amp;                            toleranceAbsolute   =0.0d+0            , &amp;
@@ -83,18 +81,16 @@ module Halo_Mass_Functions
   !#   <modules>Numerical_Integration</modules>
   !#   <code>
   !#    double precision                             :: logMassHigh         , logMassLow
-  !#    type            (c_ptr                     ) :: parameterPointer
   !#    type            (fgsl_function             ) :: integrandFunction
   !#    type            (fgsl_integration_workspace) :: integrationWorkspace
   !#    globalSelf => self
   !#    self%time_ =  time
   !#    logMassLow =log(massLow )
   !#    logMassHigh=log(massHigh)
-  !#    haloMassFunctionMassFraction=Integrate(                                          &amp;
+  !#    haloMassFunctionMassFraction=IntegrateTMP(                                          &amp;
   !#         &amp;                             logMassLow                              , &amp;
   !#         &amp;                             logMassHigh                             , &amp;
   !#         &amp;                             massFractionIntegrand                   , &amp;
-  !#         &amp;                             parameterPointer                        , &amp;
   !#         &amp;                             integrandFunction                       , &amp;
   !#         &amp;                             integrationWorkspace                    , &amp;
   !#         &amp;                             toleranceAbsolute    =0.0d+0            , &amp;
@@ -113,13 +109,11 @@ module Halo_Mass_Functions
 
 contains
 
-  function integratedIntegrand(logMass,parameterPointer) bind(c)
+  double precision function integratedIntegrand(logMass)
     !% Integrand function used to integrate the dark matter halo mass function.
     implicit none
-    real(kind=c_double)        :: integratedIntegrand
-    real(kind=c_double), value :: logMass
-    type(c_ptr        ), value :: parameterPointer
-    real(kind=c_double)        :: mass
+    double precision, intent(in   ) :: logMass
+    double precision                :: mass
 
     ! Extract integrand parameters.
     mass=exp(logMass)
@@ -129,13 +123,11 @@ contains
     return
   end function integratedIntegrand
 
-  function massFractionIntegrand(logMass,parameterPointer) bind(c)
+  double precision function massFractionIntegrand(logMass)
     !% Integrand function used in computing the halo mass fraction.
     implicit none
-    real(kind=c_double)        :: massFractionIntegrand
-    real(kind=c_double), value :: logMass
-    type(c_ptr        ), value :: parameterPointer
-    real(kind=c_double)        :: mass
+    double precision, intent(in   ) :: logMass
+    double precision                :: mass
 
     ! Extract integrand parameters.
     mass=exp(logMass)

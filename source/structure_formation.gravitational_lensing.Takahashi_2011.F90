@@ -114,7 +114,6 @@ contains
   double precision function takahashi2011MagnificationCDF(self,magnification,redshift,scaleSource)
     !% Compute the magnification probability density function at the given {\normalfont \ttfamily magnification} and {\normalfont \ttfamily redshift} using the
     !% \cite{takahashi_probability_2011} formalism.
-    use, intrinsic :: ISO_C_Binding
     use FGSL
     use Numerical_Integration
     implicit none
@@ -127,7 +126,6 @@ contains
     integer                                                            :: i
     type            (fgsl_function                    )                :: integrandFunction
     type            (fgsl_integration_workspace       )                :: integrationWorkspace
-    type            (c_ptr                            )                :: parameterPointer
     logical                                                            :: integrationReset
     double precision                                                   :: magnificationLower             , magnificationUpper, &
          &                                                                cdf                            , cdfPrevious
@@ -165,11 +163,10 @@ contains
                 cdfPrevious       =self%magnificationCDFTable%y(i-1)
              end if
              magnificationUpper   =self%magnificationCDFTable%x(i  )
-             cdf=Integrate(                           &
+             cdf=IntegrateTMP(                           &
                   &        magnificationLower       , &
                   &        magnificationUpper       , &
                   &        magnificationPDFIntegrand, &
-                  &        parameterPointer         , &
                   &        integrandFunction        , &
                   &        integrationWorkspace     , &
                   &        toleranceRelative=1.0d-6 , &
@@ -193,13 +190,10 @@ contains
 
   contains
 
-    function magnificationPDFIntegrand(magnification,parameterPointer) bind(c)
+    double precision function magnificationPDFIntegrand(magnification)
       !% Integral for the magnification probability distribution function.
-      use, intrinsic :: ISO_C_Binding
       implicit none
-      real            (c_double)        :: magnificationPDFIntegrand
-      real            (c_double), value :: magnification
-      type            (c_ptr   ), value :: parameterPointer
+      double precision, intent(in   ) :: magnification
       
       magnificationPDFIntegrand=takahashi2011MagnificationDistribution(self,magnification)
      return
@@ -332,7 +326,6 @@ contains
     logical                                                                          :: integrationReset
     type            (fgsl_function                    )                              :: integrandFunction
     type            (fgsl_integration_workspace       )                              :: integrationWorkspace
-    type            (c_ptr                            )                              :: parameterPointer
     double precision                                                                 :: distanceComovingSource                    , timeLens               , &
          &                                                                              convergencePdfMoment0                     , convergencePdfMoment1  , &
          &                                                                              convergencePdfMoment2                     , convergenceMinimum     , &
@@ -393,11 +386,10 @@ contains
              self%aConvergence                        =finder%find(rootGuess=1.0d0)
              ! Evaluate zeroth and second moments of the convergence distribution.
              integrationReset     =.true.
-             convergencePdfMoment0=Integrate(                                         &
+             convergencePdfMoment0=IntegrateTMP(                                         &
                   &                          convergenceMinimum                     , &
                   &                          convergenceMaximum                     , &
                   &                          convergenceDistributionMoment0Integrand, &
-                  &                          parameterPointer                       , &
                   &                          integrandFunction                      , &
                   &                          integrationWorkspace                   , &
                   &                          toleranceRelative=1.0d-4               , &
@@ -405,11 +397,10 @@ contains
                   &                         )
              call Integrate_Done(integrandFunction,integrationWorkspace)
              integrationReset     =.true.
-             convergencePdfMoment1=Integrate(                                         &
+             convergencePdfMoment1=IntegrateTMP(                                         &
                   &                          convergenceMinimum                     , &
                   &                          convergenceMaximum                     , &
                   &                          convergenceDistributionMoment1Integrand, &
-                  &                          parameterPointer                       , &
                   &                          integrandFunction                      , &
                   &                          integrationWorkspace                   , &
                   &                          toleranceRelative=1.0d-4               , &
@@ -417,11 +408,10 @@ contains
                   &                         )
              call Integrate_Done(integrandFunction,integrationWorkspace)
              integrationReset     =.true.
-             convergencePdfMoment2=Integrate(                                         &
+             convergencePdfMoment2=IntegrateTMP(                                         &
                   &                          convergenceMinimum                     , &
                   &                          convergenceMaximum                     , &
                   &                          convergenceDistributionMoment2Integrand, &
-                  &                          parameterPointer                       , &
                   &                          integrandFunction                      , &
                   &                          integrationWorkspace                   , &
                   &                          toleranceRelative=1.0d-4               , &
@@ -485,11 +475,10 @@ contains
             &                                                                  )
        ! Find the convergence of an empty beam.
        integrationReset         =.true.
-       self%convergenceEmptyBeam=Integrate(                               &
+       self%convergenceEmptyBeam=IntegrateTMP(                               &
             &                              redshiftZero                 , &
             &                              redshift                     , &
             &                              emptyBeamConvergenceIntegrand, &
-            &                              parameterPointer             , &
             &                              integrandFunction            , &
             &                              integrationWorkspace         , &
             &                              toleranceRelative=1.0d-3     , &
@@ -498,11 +487,10 @@ contains
        call Integrate_Done(integrandFunction,integrationWorkspace)
        ! Find the variance of the convergence.
        integrationReset         =.true.
-       self%convergenceVariance =Integrate(                               &
+       self%convergenceVariance =IntegrateTMP(                               &
             &                              redshiftZero                 , &
             &                              redshift                     , &
             &                              convergenceVarianceIntegrand , &
-            &                              parameterPointer             , &
             &                              integrandFunction            , &
             &                              integrationWorkspace         , &
             &                              toleranceRelative=1.0d-3     , &
@@ -517,11 +505,10 @@ contains
        self%omegaConvergence                    =self%convergencePDF%interpolate(self%convergenceVarianceScaled,3)
        ! Integrate the modified magnification distribution in order to find the normalization.
        integrationReset        =.true.
-       magnificationPdfMoment0=Integrate(                           &
+       magnificationPdfMoment0=IntegrateTMP(                           &
             &                            magnificationMinimum     , &
             &                            magnificationMaximum     , &
             &                            magnificationPDFIntegrand, &
-            &                            parameterPointer         , &
             &                            integrandFunction        , &
             &                            integrationWorkspace     , &
             &                            toleranceRelative=1.0d-3 , &
@@ -536,13 +523,10 @@ contains
     
   contains
 
-    function magnificationPDFIntegrand(magnification,parameterPointer) bind(c)
+    double precision function magnificationPDFIntegrand(magnification)
       !% Integral for the magnification probability distribution function.
-      use, intrinsic :: ISO_C_Binding
       implicit none
-      real(c_double)        :: magnificationPDFIntegrand
-      real(c_double), value :: magnification
-      type(c_ptr   ), value :: parameterPointer
+      double precision, intent(in   ) :: magnification
 
       magnificationPDFIntegrand=takahashi2011MagnificationDistribution(self,magnification)
       return
@@ -555,11 +539,10 @@ contains
       
       self%aConvergence    =a
       integrationReset     =.true.
-      convergencePdfMoment1=Integrate(                                        &
+      convergencePdfMoment1=IntegrateTMP(                                        &
            &                         convergenceMinimum                     , &
            &                         convergenceMaximum                     , &
            &                         convergenceDistributionMoment1Integrand, &
-           &                         parameterPointer                       , &
            &                         integrandFunction                      , &
            &                         integrationWorkspace                   , &
            &                         toleranceRelative=1.0d-3               , &
@@ -567,11 +550,10 @@ contains
            &                        )
       call Integrate_Done(integrandFunction,integrationWorkspace)
       integrationReset     =.true.
-      convergencePdfMoment2=Integrate(                                        &
+      convergencePdfMoment2=IntegrateTMP(                                        &
            &                         convergenceMinimum                     , &
            &                         convergenceMaximum                     , &
            &                         convergenceDistributionMoment2Integrand, &
-           &                         parameterPointer                       , &
            &                         integrandFunction                      , &
            &                         integrationWorkspace                   , &
            &                         toleranceRelative=1.0d-3               , &
@@ -586,16 +568,13 @@ contains
     return
     end function convergencePdfParameterSolver
     
-    function emptyBeamConvergenceIntegrand(redshiftLens,parameterPointer) bind(c)
+    double precision function emptyBeamConvergenceIntegrand(redshiftLens)
       !% Integral for gravitational lensing convergence in an empty beam.
-      use, intrinsic :: ISO_C_Binding
       use Numerical_Constants_Physical
       use Numerical_Constants_Prefixes
       implicit none
-      real            (c_double)        :: emptyBeamConvergenceIntegrand
-      real            (c_double), value :: redshiftLens
-      type            (c_ptr   ), value :: parameterPointer
-      double precision                  :: distanceComovingLens
+      double precision, intent(in   ) :: redshiftLens
+      double precision                :: distanceComovingLens
 
       ! Find cosmic time at this redshift.
       timeLens            =cosmologyFunctions_ %cosmicTime                 (              &
@@ -628,22 +607,19 @@ contains
       return
     end function emptyBeamConvergenceIntegrand
     
-    function convergenceVarianceIntegrand(redshiftLens,parameterPointer) bind(c)
+    double precision function convergenceVarianceIntegrand(redshiftLens)
       !% Integral for variance in the gravitational lensing convergence.
-      use, intrinsic :: ISO_C_Binding
       use Numerical_Constants_Physical
       use Numerical_Constants_Prefixes
       use Numerical_Constants_Math
       implicit none
-      real            (c_double                  )            :: convergenceVarianceIntegrand
-      real            (c_double                  ), value     :: redshiftLens
-      type            (c_ptr                     ), value     :: parameterPointer
-      double precision                            , parameter :: wavenumberDynamicRange      =1.0d-6
-      logical                                                 :: integrationReset
-      double precision                                        :: distanceComovingLens               , logWavenumberMaximum, &
-           &                                                     lensingPower                       , logWavenumberMinimum
-      type            (fgsl_function             )            :: integrandFunction
-      type            (fgsl_integration_workspace)            :: integrationWorkspace
+      double precision                            , intent(in   ) :: redshiftLens
+      double precision                            , parameter     :: wavenumberDynamicRange      =1.0d-6
+      logical                                                     :: integrationReset
+      double precision                                            :: distanceComovingLens               , logWavenumberMaximum, &
+           &                                                         lensingPower                       , logWavenumberMinimum
+      type            (fgsl_function             )                :: integrandFunction
+      type            (fgsl_integration_workspace)                :: integrationWorkspace
       
       ! Find cosmic time at this redshift.
       timeLens            =cosmologyFunctions_ %cosmicTime                 (              &
@@ -659,11 +635,10 @@ contains
       logWavenumberMaximum=                    -log(scaleSource           )
       logWavenumberMinimum=logWavenumberMaximum+log(wavenumberDynamicRange)
       integrationReset    =.true.
-      lensingPower        =Integrate(                                           &
+      lensingPower        =IntegrateTMP(                                           &
            &                         logWavenumberMinimum                     , &
            &                         logWavenumberMaximum                     , &
            &                         convergenceVariancePowerSpectrumIntegrand, &
-           &                         parameterPointer                         , &
            &                         integrandFunction                        , &
            &                         integrationWorkspace                     , &
            &                         toleranceRelative=1.0d-3                 , &
@@ -696,16 +671,13 @@ contains
       return
     end function convergenceVarianceIntegrand
     
-    function convergenceVariancePowerSpectrumIntegrand(logWavenumber,parameterPointer) bind(c)
+    double precision function convergenceVariancePowerSpectrumIntegrand(logWavenumber)
       !% Integral over power spectrum used in computing the variance in the gravitational lensing convergence.
-      use, intrinsic :: ISO_C_Binding
       use Power_Spectra_Nonlinear
       implicit none
-      real (c_double                   )          :: convergenceVariancePowerSpectrumIntegrand
-      real (c_double                   ), value   :: logWavenumber
-      type (c_ptr                      ), value   :: parameterPointer      
-      class(powerSpectrumNonlinearClass), pointer :: powerSpectrumNonlinear_
-      real (c_double                   )          :: wavenumber
+      double precision                             , intent(in   ) :: logWavenumber
+      class           (powerSpectrumNonlinearClass), pointer       :: powerSpectrumNonlinear_
+      double precision                                             :: wavenumber
       
       ! Get required objects.
       powerSpectrumNonLinear_ => powerSpectrumNonLinear()
@@ -715,37 +687,28 @@ contains
       return
     end function convergenceVariancePowerSpectrumIntegrand
 
-    function convergenceDistributionMoment0Integrand(scaledConvergence,parameterPointer) bind(c)
+    double precision function convergenceDistributionMoment0Integrand(scaledConvergence)
       !% Integral over scaled convergence distribution.
-      use, intrinsic :: ISO_C_Binding
       implicit none
-      real            (c_double)        :: convergenceDistributionMoment0Integrand
-      real            (c_double), value :: scaledConvergence
-      type            (c_ptr   ), value :: parameterPointer
+      double precision, intent(in   ) :: scaledConvergence
 
       convergenceDistributionMoment0Integrand=self%convergenceDistribution(scaledConvergence)
       return
     end function convergenceDistributionMoment0Integrand
 
-    function convergenceDistributionMoment1Integrand(scaledConvergence,parameterPointer) bind(c)
+    double precision function convergenceDistributionMoment1Integrand(scaledConvergence)
       !% Integral of first moment over scaled convergence distribution.
-      use, intrinsic :: ISO_C_Binding
       implicit none
-      real            (c_double)        :: convergenceDistributionMoment1Integrand
-      real            (c_double), value :: scaledConvergence
-      type            (c_ptr   ), value :: parameterPointer
+      double precision, intent(in   ) :: scaledConvergence
 
       convergenceDistributionMoment1Integrand=scaledConvergence*self%convergenceDistribution(scaledConvergence)
       return
     end function convergenceDistributionMoment1Integrand
 
-    function convergenceDistributionMoment2Integrand(scaledConvergence,parameterPointer) bind(c)
+    double precision function convergenceDistributionMoment2Integrand(scaledConvergence)
       !% Integral of second moment over scaled convergence distribution.
-      use, intrinsic :: ISO_C_Binding
       implicit none
-      real            (c_double)        :: convergenceDistributionMoment2Integrand
-      real            (c_double), value :: scaledConvergence
-      type            (c_ptr   ), value :: parameterPointer
+      double precision, intent(in   ) :: scaledConvergence
 
       convergenceDistributionMoment2Integrand=scaledConvergence**2*self%convergenceDistribution(scaledConvergence)
       return

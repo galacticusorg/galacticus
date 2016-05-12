@@ -1079,14 +1079,12 @@ contains
     use Numerical_Ranges
     use Numerical_Integration
     use Memory_Management
-    use, intrinsic :: ISO_C_Binding
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout), target :: self
     double precision                                , intent(in   )         :: time
     double precision                                , parameter             :: toleranceAbsolute   =1.0d-5, toleranceRelative=1.0d-5
     integer                                                                 :: iTime
     logical                                                                 :: resetIntegration
-    type            (c_ptr                         )                        :: parameterPointer
     type            (fgsl_function                 )                        :: integrandFunction
     type            (fgsl_integration_workspace    )                        :: integrationWorkspace
     
@@ -1112,11 +1110,10 @@ contains
     matterLambdaSelfGlobal => self
     do iTime=1,self%distanceTableNumberPoints
        self%distanceTableComovingDistance(iTime)                                                       &
-            & =Integrate(                                                                              &
+            & =IntegrateTMP(                                                                              &
             &            self%expansionFactor(self%distanceTableTime(iTime                         )), &
             &            self%expansionFactor(self%distanceTableTime(self%distanceTableNumberPoints)), &
             &            matterLambdaComovingDistanceIntegrand                                       , &
-            &            parameterPointer                                                            , &
             &            integrandFunction                                                           , &
             &            integrationWorkspace                                                        , &
             &            toleranceAbsolute=toleranceAbsolute                                         , &
@@ -1143,15 +1140,12 @@ contains
     return
   end subroutine matterLambdaMakeDistanceTable
 
-  function matterLambdaComovingDistanceIntegrand(expansionFactor,parameterPointer) bind(c)
+  double precision function matterLambdaComovingDistanceIntegrand(expansionFactor)
     !% Integrand function used in computing the comoving distance.
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
-    use, intrinsic :: ISO_C_Binding
     implicit none
-    real(kind=c_double)        :: matterLambdaComovingDistanceIntegrand
-    real(kind=c_double), value :: expansionFactor
-    type(c_ptr        ), value :: parameterPointer
+    double precision, intent(in   ) :: expansionFactor
 
     matterLambdaComovingDistanceIntegrand=speedLight*gigaYear/megaParsec/expansionFactor**2/matterLambdaSelfGlobal%expansionRate(expansionFactor)
     return

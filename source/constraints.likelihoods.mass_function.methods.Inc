@@ -113,7 +113,6 @@ end function likelihoodMassFunctionConstructor
 
 double precision function likelihoodMassFunctionEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance)
   !% Return the log-likelihood for the mass function likelihood function.
-  use, intrinsic :: ISO_C_Binding
   use Constraints_State
   use Constraints_Constants
   use Constraints_Convergence
@@ -141,7 +140,6 @@ double precision function likelihoodMassFunctionEvaluate(self,simulationState,pa
   type            (massFunctionIncompletenessSurfaceBrightness)                              :: massFunctionIncompletenessModel
   type            (fgsl_function                              )                              :: integrandFunction               , integrandFunctionNormalization
   type            (fgsl_integration_workspace                 )                              :: integrationWorkspace            , integrationWorkspaceNormalization
-  type            (c_ptr                                      )                              :: parameterPointer
   type            (vector                                     )                              :: difference
   integer                                                                                    :: i                               , j
   double precision                                                                           :: binTimeMinimum                  , binTimeMaximum                    , &
@@ -224,11 +222,10 @@ double precision function likelihoodMassFunctionEvaluate(self,simulationState,pa
         massFunction=                                                               &
              &       +massFunction                                                  &
              &       +surveyGeometry_%solidAngle(j)                                 &
-             &       *Integrate(                                                    &
+             &       *IntegrateTMP(                                                    &
              &                   binTimeMinimum                                   , &
              &                   binTimeMaximum                                   , &
              &                   likelihoodMassFunctionTimeIntegrand              , &
-             &                   parameterPointer                                 , &
              &                   integrandFunction                                , &
              &                   integrationWorkspace                             , &
              &                   toleranceRelative=1.0d-3                         , &
@@ -237,11 +234,10 @@ double precision function likelihoodMassFunctionEvaluate(self,simulationState,pa
         normalization=                                                              &
              &        +normalization                                                &
              &        +surveyGeometry_%solidAngle(j)                                &
-             &        *Integrate(                                                   &
+             &        *IntegrateTMP(                                                   &
              &                   binTimeMinimum                                   , &
              &                   binTimeMaximum                                   , &
              &                   likelihoodMassFunctionTimeNormalizationIntegrand , &
-             &                   parameterPointer                                 , &
              &                   integrandFunctionNormalization                   , &
              &                   integrationWorkspaceNormalization                , &
              &                   toleranceRelative=1.0d-3                         , &
@@ -268,23 +264,19 @@ double precision function likelihoodMassFunctionEvaluate(self,simulationState,pa
   
 contains
   
-  function likelihoodMassFunctionTimeIntegrand(timePrime,parameterPointer) bind(c)
+  double precision function likelihoodMassFunctionTimeIntegrand(timePrime)
     !% Integral over time.
-    use, intrinsic :: ISO_C_Binding
     use Galacticus_Error
     use String_Handling
     implicit none
-    real            (c_double                  )        :: likelihoodMassFunctionTimeIntegrand
-    real            (c_double                  ), value :: timePrime
-    type            (c_ptr                     ), value :: parameterPointer
-    type            (fgsl_function             )        :: integrandFunctionTime
-    type            (fgsl_integration_workspace)        :: integrationWorkspaceTime
-    type            (c_ptr                     )        :: parameterPointerTime
-    integer                                             :: errorStatus
-    logical                                             :: integrationResetTime
-    type            (varying_string            )        :: message
-    character       (len=14                    )        :: label
-    double precision                                    :: haloMassMinimum,haloMassMaximum
+    double precision                            , intent(in   ) :: timePrime
+    type            (fgsl_function             )                :: integrandFunctionTime
+    type            (fgsl_integration_workspace)                :: integrationWorkspaceTime
+    integer                                                     :: errorStatus
+    logical                                                     :: integrationResetTime
+    type            (varying_string            )                :: message
+    character       (len=14                    )                :: label
+    double precision                                            :: haloMassMinimum,haloMassMaximum
 
     ! Check for zero contribution from the ends of our halo mass range.
     haloMassMinimum=10.0d0**self%logHaloMassMinimum
@@ -331,11 +323,10 @@ contains
     end if
     time                =timePrime
     integrationResetTime=.true.
-    likelihoodMassFunctionTimeIntegrand= Integrate(                                            &
+    likelihoodMassFunctionTimeIntegrand= IntegrateTMP(                                            &
          &                                           log10(haloMassMinimum)                  , &
          &                                           log10(haloMassMaximum)                  , &
          &                                           likelihoodMassFunctionHaloMassIntegrand , &
-         &                                           parameterPointerTime                    , &
          &                                           integrandFunctionTime                   , &
          &                                           integrationWorkspaceTime                , &
          &                                           toleranceRelative=1.0d-3                , &
@@ -356,26 +347,20 @@ contains
     return
   end function likelihoodMassFunctionTimeIntegrand
   
-  function likelihoodMassFunctionTimeNormalizationIntegrand(timePrime,parameterPointer) bind(c)
+  double precision function likelihoodMassFunctionTimeNormalizationIntegrand(timePrime)
     !% Normalization integral over time.
-    use, intrinsic :: ISO_C_Binding
     implicit none
-    real(c_double)        :: likelihoodMassFunctionTimeNormalizationIntegrand
-    real(c_double), value :: timePrime
-    type(c_ptr),    value :: parameterPointer
+    double precision, intent(in   ) :: timePrime
     
     likelihoodMassFunctionTimeNormalizationIntegrand=cosmologyFunctions_%comovingVolumeElementTime(timePrime)
     return
   end function likelihoodMassFunctionTimeNormalizationIntegrand
   
-  function likelihoodMassFunctionHaloMassIntegrand(logMass,parameterPointer) bind(c)
+  double precision function likelihoodMassFunctionHaloMassIntegrand(logMass)
     !% Integral over halo mass function.
-    use, intrinsic :: ISO_C_Binding
     implicit none
-    real(c_double)          :: likelihoodMassFunctionHaloMassIntegrand
-    real(c_double)  , value :: logMass
-    type(c_ptr   )  , value :: parameterPointer
-    double precision        :: mass
+    double precision, intent(in   ) :: logMass
+    double precision                :: mass
 
     mass=10.0d0**logMass
     likelihoodMassFunctionHaloMassIntegrand=+haloMassFunction_%differential(time,mass)                                &

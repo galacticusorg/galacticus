@@ -359,7 +359,6 @@ contains
     use Galactic_Structure_Velocity_Dispersions
     use Dark_Matter_Halo_Scales
     use FGSL
-    use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     use Galactic_Structure_Options
     use Galactic_Structure_Enclosed_Masses
@@ -373,9 +372,8 @@ contains
     class           (nodeComponentDisk             )               , pointer :: thisDisk
     class           (nodeComponentSpheroid         )               , pointer :: thisSpheroid
     class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfile
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    class           (darkMatterHaloScaleClass      )               , pointer :: darkMatterHaloScale_
     double precision                                , parameter              :: outerRadiusMultiplier     =10.0d0
-    type            (c_ptr                         )                         :: parameterPointer
     type            (fgsl_function                 )                         :: integrandFunction
     type            (fgsl_integration_workspace    )                         :: integrationWorkspace
     integer                                                                  :: i
@@ -480,12 +478,12 @@ contains
                 weightIndex  =  radii(i)%integralWeightByIndex
                 radiusZero   =  0.0d0
                 radiusImpact =  radius
-                velocityDensityIntegrand=Integrate(radiusZero,radiusOuter&
-                     &,Galacticus_Output_Trees_Vlcty_Dsprsn_Vlcty_Dnsty_Srfc_Intgrnd ,parameterPointer ,integrandFunction&
+                velocityDensityIntegrand=IntegrateTMP(radiusZero,radiusOuter&
+                     &,Galacticus_Output_Trees_Vlcty_Dsprsn_Vlcty_Dnsty_Srfc_Intgrnd ,integrandFunction&
                      &,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
                 call Integrate_Done(integrandFunction,integrationWorkspace)
-                densityIntegrand        =Integrate(radiusZero,radiusOuter&
-                     &,Galacticus_Output_Trees_Vlcty_Dsprsn_Dnsty_Srfc_Intgrnd ,parameterPointer ,integrandFunction&
+                densityIntegrand        =IntegrateTMP(radiusZero,radiusOuter&
+                     &,Galacticus_Output_Trees_Vlcty_Dsprsn_Dnsty_Srfc_Intgrnd ,integrandFunction&
                      &,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
                 call Integrate_Done(integrandFunction,integrationWorkspace)
                 if (velocityDensityIntegrand <= 0.0d0) then
@@ -528,22 +526,20 @@ contains
                 else
                    ! Full calculation is required.
                    radiusZero=0.0d0
-                   numerator=Integrate(                                                                 &
+                   numerator=IntegrateTMP(                                                                 &
                         &                radiusZero                                                   , &
                         &                radius                                                       , &
                         &                Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd2        , &
-                        &                parameterPointer                                             , &
                         &                integrandFunction                                            , &
                         &                integrationWorkspace                                         , &
                         &                toleranceAbsolute                                     =0.0d0 , &
                         &                toleranceRelative                                     =1.0d-2  &
                         &               )
                    call Integrate_Done(integrandFunction,integrationWorkspace)
-                   denominator=Integrate(                                                               &
+                   denominator=IntegrateTMP(                                                               &
                         &                radiusZero                                                   , &
                         &                radius                                                       , &
                         &                Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd1        , &
-                        &                parameterPointer                                             , &
                         &                integrandFunction                                            , &
                         &                integrationWorkspace                                         , &
                         &                toleranceAbsolute                                     =0.0d0 , &
@@ -563,7 +559,7 @@ contains
     return
   end subroutine Galacticus_Output_Tree_Velocity_Dispersion
 
-  function Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd1(radius,parameterPointer) bind(c)
+  double precision function Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd1(radius)
     !% Integrand function used for integrating the $\lambda_{\rm R}$ statistic of \cite{cappellari_sauron_2007}. In this case we
     !% want to evaluate
     !% \begin{equation}
@@ -582,7 +578,6 @@ contains
     !% \begin{equation}
     !% \sigma^2(r) = \left. \int_{-\infty}^{+\infty} P(V) [V-V(r)]^2 {\rm d}V \right/ \int_{-\infty}^{+\infty} P(V) {\rm d}V = {  \Sigma_{\rm s}(r) [\sigma_{\rm s}^2(r)] + \Sigma_{\rm d}(r) [V_{\rm d}(r)-V(r)]^2  \over [\Sigma_{\rm d}(r)+\Sigma_{\rm s}(r)]}.
     !% \end{equation}
-    use, intrinsic :: ISO_C_Binding
     use Galactic_Structure_Options
     use Galactic_Structure_Densities
     use Galactic_Structure_Velocity_Dispersions
@@ -592,26 +587,23 @@ contains
     use Numerical_Integration
     use FGSL
     implicit none
-    real            (kind=c_double             )            :: Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd1
-    real            (kind=c_double             ), value     :: radius
-    type            (c_ptr                     ), value     :: parameterPointer
-    double precision                            , parameter :: fractionSmall=1.0d-3
-    type            (fgsl_function             )            :: integrandFunction
-    type            (fgsl_integration_workspace)            :: integrationWorkspace
-    double precision                                        :: sigmaLineOfSightSquaredSpheroidDensity, densitySpheroid        , &
-         &                                                     densityDisk                           , velocityDisk           , &
-         &                                                     velocityMean                          , sigmaLineOfSightSquared
+    double precision                            , intent(in   ) :: radius
+    double precision                            , parameter     :: fractionSmall=1.0d-3
+    type            (fgsl_function             )                :: integrandFunction
+    type            (fgsl_integration_workspace)                :: integrationWorkspace
+    double precision                                            :: sigmaLineOfSightSquaredSpheroidDensity, densitySpheroid        , &
+         &                                                         densityDisk                           , velocityDisk           , &
+         &                                                         velocityMean                          , sigmaLineOfSightSquared
 
     if (radius <= 0.0d0) then
        Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd1=0.0d0
     else
        radiusImpact=radius
        densitySpheroid                                                                         &
-            & =Integrate(                                                                      &
+            & =IntegrateTMP(                                                                      &
             &            radius                                                              , &
             &            radiusOuter                                                         , &
             &            Galacticus_Output_Trees_Velocity_Dispersion_Density_Integrand       , &
-            &            parameterPointer                                                    , &
             &            integrandFunction                                                   , &
             &            integrationWorkspace                                                , &
             &            toleranceAbsolute                                            =0.0d0 , &
@@ -646,11 +638,10 @@ contains
        else
           ! ...it is, so we must do the full calculation.
           sigmaLineOfSightSquaredSpheroidDensity                                                  &
-               & =Integrate(                                                                      &
+               & =IntegrateTMP(                                                                      &
                &            radius                                                              , &
                &            radiusOuter                                                         , &
                &            Galacticus_Output_Trees_Vlcty_Dispersion_Vlcty_Dnsty_Intgrnd        , &
-               &            parameterPointer                                                    , &
                &            integrandFunction                                                   , &
                &            integrationWorkspace                                                , &
                &            toleranceAbsolute                                            =0.0d0 , &
@@ -684,7 +675,7 @@ contains
     return
   end function Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd1
   
-  function Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd2(radius,parameterPointer) bind(c)
+  double precision function Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd2(radius)
     !% Integrand function used for integrating the $\lambda_{\rm R}$ statistic of \cite{cappellari_sauron_2007}. In this case we
     !% want to evaluate
     !% \begin{equation}
@@ -699,7 +690,6 @@ contains
     !% \begin{equation}
     !% V(r) = \left. \int_{-\infty}^{+\infty} P(V) V {\rm d}V \right/ \int_{-\infty}^{+\infty} P(V) {\rm d}V = {\Sigma_{\rm d}(r) V_{\rm d}(r) \over [\Sigma_{\rm d}(r)+\Sigma_{\rm s}(r)]}.
     !% \end{equation}
-    use, intrinsic :: ISO_C_Binding
     use Galactic_Structure_Options
     use Galactic_Structure_Rotation_Curves
     use Galactic_Structure_Surface_Densities
@@ -707,10 +697,8 @@ contains
     use Numerical_Constants_Math
     use FGSL
     implicit none
-    real            (kind=c_double)        :: Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd2
-    real            (kind=c_double), value :: radius
-    type            (c_ptr        ), value :: parameterPointer
-    double precision                       :: densityDisk         , velocityDisk
+    double precision, intent(in   ) :: radius
+    double precision                :: densityDisk, velocityDisk
 
     if (radius <= 0.0d0) then
        Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd2=0.0d0
@@ -736,15 +724,12 @@ contains
     return
   end function Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd2
 
-  function Galacticus_Output_Trees_Vlcty_Dsprsn_Vlcty_Dnsty_Srfc_Intgrnd(radius,parameterPointer) bind(c)
+  double precision function Galacticus_Output_Trees_Vlcty_Dsprsn_Vlcty_Dnsty_Srfc_Intgrnd(radius)
     !% Integrand function used for integrating line-of-sight velocity dispersion over surface density.
-    use, intrinsic :: ISO_C_Binding
     use Galactic_Structure_Densities
     use Galactic_Structure_Velocity_Dispersions
     implicit none
-    real(kind=c_double             )        :: Galacticus_Output_Trees_Vlcty_Dsprsn_Vlcty_Dnsty_Srfc_Intgrnd
-    real(kind=c_double             ), value :: radius
-    type(c_ptr                     ), value :: parameterPointer
+    double precision, intent(in   ) :: radius
 
     if (radius <= 0.0d0) then
        Galacticus_Output_Trees_Vlcty_Dsprsn_Vlcty_Dnsty_Srfc_Intgrnd=0.0d0
@@ -773,14 +758,11 @@ contains
    return
   end function Galacticus_Output_Trees_Vlcty_Dsprsn_Vlcty_Dnsty_Srfc_Intgrnd
 
-  function Galacticus_Output_Trees_Vlcty_Dsprsn_Dnsty_Srfc_Intgrnd(radius,parameterPointer) bind(c)
+  double precision function Galacticus_Output_Trees_Vlcty_Dsprsn_Dnsty_Srfc_Intgrnd(radius)
     !% Integrand function used for integrating line-of-sight surface density dispersion over area.
-    use, intrinsic :: ISO_C_Binding
     use Galactic_Structure_Densities
     implicit none
-    real(kind=c_double             )        :: Galacticus_Output_Trees_Vlcty_Dsprsn_Dnsty_Srfc_Intgrnd
-    real(kind=c_double             ), value :: radius
-    type(c_ptr                     ), value :: parameterPointer
+    double precision, intent(in   ) :: radius
 
     if (radius <= 0.0d0) then
        Galacticus_Output_Trees_Vlcty_Dsprsn_Dnsty_Srfc_Intgrnd=0.0d0
@@ -822,21 +804,19 @@ contains
   double precision function Galacticus_Output_Trees_Line_of_Sight_Velocity_Dispersion(radius)
     !% Compute the line-of-sight velocity dispersion at the given {\normalfont \ttfamily radius}.
     use FGSL
-    use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     implicit none
     double precision                            , intent(in   ) :: radius
-    type            (c_ptr                     )                :: parameterPointer
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
     double precision                                            :: densityIntegral     , velocityDensityIntegral
 
-    velocityDensityIntegral=Integrate(radius,radiusOuter&
-         &,Galacticus_Output_Trees_Vlcty_Dispersion_Vlcty_Dnsty_Intgrnd ,parameterPointer ,integrandFunction&
+    velocityDensityIntegral=IntegrateTMP(radius,radiusOuter&
+         &,Galacticus_Output_Trees_Vlcty_Dispersion_Vlcty_Dnsty_Intgrnd ,integrandFunction&
          &,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
     call Integrate_Done(integrandFunction,integrationWorkspace)
-    densityIntegral        =Integrate(radius,radiusOuter,Galacticus_Output_Trees_Velocity_Dispersion_Density_Integrand&
-         &,parameterPointer ,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+    densityIntegral        =IntegrateTMP(radius,radiusOuter,Galacticus_Output_Trees_Velocity_Dispersion_Density_Integrand&
+         & ,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     if (velocityDensityIntegral <= 0.0d0) then
        Galacticus_Output_Trees_Line_of_Sight_Velocity_Dispersion=0.0d0
@@ -846,14 +826,11 @@ contains
     return
   end function Galacticus_Output_Trees_Line_of_Sight_Velocity_Dispersion
 
-  function Galacticus_Output_Trees_Velocity_Dispersion_Density_Integrand(radius,parameterPointer) bind(c)
+  double precision function Galacticus_Output_Trees_Velocity_Dispersion_Density_Integrand(radius)
     !% Integrand function used for computing line-of-sight velocity dispersions.
-    use, intrinsic :: ISO_C_Binding
     use Galactic_Structure_Densities
     implicit none
-    real(kind=c_double)        :: Galacticus_Output_Trees_Velocity_Dispersion_Density_Integrand
-    real(kind=c_double), value :: radius
-    type(c_ptr        ), value :: parameterPointer
+    double precision, intent(in   ) :: radius
 
     if (radius == 0.0d0) then
        Galacticus_Output_Trees_Velocity_Dispersion_Density_Integrand=0.0d0
@@ -874,7 +851,7 @@ contains
     return
   end function Galacticus_Output_Trees_Velocity_Dispersion_Density_Integrand
 
-  function Galacticus_Output_Trees_Vlcty_Dispersion_Vlcty_Dnsty_Intgrnd(radius,parameterPointer) bind(c)
+  double precision function Galacticus_Output_Trees_Vlcty_Dispersion_Vlcty_Dnsty_Intgrnd(radius)
     !% Integrand function used for computing line-of-sight velocity dispersions. Specifically, we wish to evaluate the integral:
     !% \begin{equation}
     !% \int_{r_{\rm i}}^{r_{\rm o}} \sigma^2(r) \rho(r) {r \over \sqrt{r^2-r_{\rm i}^2}} {\rm d}r,
@@ -899,15 +876,12 @@ contains
     !% \begin{equation}
     !% \int_{r_{\rm i}}^{r_{\rm o}} {{\rm G} M(<r) \over r^2} \rho(r) \sqrt{r^2-r_{\rm i}^2} {\rm d}r.
     !% \end{equation}
-    use, intrinsic :: ISO_C_Binding
     use Galactic_Structure_Densities
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     implicit none
-    real(kind=c_double)        :: Galacticus_Output_Trees_Vlcty_Dispersion_Vlcty_Dnsty_Intgrnd
-    real(kind=c_double), value :: radius
-    type(c_ptr        ), value :: parameterPointer
+    double precision, intent(in   ) :: radius
 
     if (radius <= radiusImpact) then
        Galacticus_Output_Trees_Vlcty_Dispersion_Vlcty_Dnsty_Intgrnd=0.0d0

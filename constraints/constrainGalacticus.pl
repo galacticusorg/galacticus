@@ -448,7 +448,7 @@ foreach my $constraint ( @constraints ) {
 	push(@temporaryFiles,$resultFile);
     }
     $analysisCommand .= " ".$constraintDefinition->{'analysisArguments'}
-        if ( exists($constraintDefinition->{'analysisArguments'}) );
+    if ( exists($constraintDefinition->{'analysisArguments'}) );    
     if ( $useThreads ) {
 	my ($thread) = threads->create(\&systemThread,$analysisCommand);
 	push(
@@ -471,7 +471,7 @@ foreach my $constraint ( @constraints ) {
 }
 $i = -1;
 foreach my $constraint ( @constraints ) {
-    my $descriptor           = pop(@threads);
+    my $descriptor           = shift(@threads);
     my $constraintDefinition = $descriptor->{'constraint'};
     my $result;
     if ( $useThreads ) {
@@ -487,7 +487,7 @@ foreach my $constraint ( @constraints ) {
 	&reportFailure($config,$scratchDirectory,$logFile,$stateFileRoot,0);
 	# Display the final likelihood.
 	&outputLikelihood($config,$badLogLikelihood,$badLogLikelihoodVariance);
-	print "constrainGalacticus.pl: analysis code failed";
+	print "constrainGalacticus.pl: analysis code failed\n";
 	unlink(@temporaryFiles)
 	    if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} eq "yes" && scalar(@temporaryFiles) > 0 );
 	my $ignoredResults = $_->{'thread'}->join()
