@@ -26,8 +26,8 @@
   type, extends(virialDensityContrastClass) :: virialDensityContrastSphericalCollapseMatterLambda
      !% A dark matter halo virial density contrast class based on spherical collapse in a matter plus cosmological constant universe.
      private
-     logical                                :: tableInitialized
-     double precision                       :: tableTimeMinimum, tableTimeMaximum
+     logical                                :: tableInitialized=.false.
+     double precision                       :: tableTimeMinimum        , tableTimeMaximum
      class           (table1D), allocatable :: deltaVirial
    contains
      !@ <objectMethods>
