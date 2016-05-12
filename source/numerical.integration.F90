@@ -23,22 +23,32 @@ module Numerical_Integration
   use FGSL
   implicit none
   private
-  public :: Integrate, Integrate_Done
+  public :: Integrate_Done, IntegrateTMP
 
   ! Module scope error status.
   integer :: errorStatusGlobal
 
+  ! Integrand interface.
+  abstract interface
+     double precision function integrandTemplate(x)
+       double precision, intent(in   ) :: x
+     end function integrandTemplate
+  end interface
+
+  ! Integrand function.
+  procedure(integrandTemplate), pointer :: currentIntegrand
+  !$omp threadprivate(currentIntegrand)
+  
 contains
 
-  recursive double precision function Integrate(lowerLimit,upperLimit,integrand,parameterPointer,integrandFunction&
+  recursive double precision function IntegrateTMP(lowerLimit,upperLimit,integrand,integrandFunction&
        &,integrationWorkspace,maxIntervals,toleranceAbsolute,toleranceRelative,hasSingularities,integrationRule,reset,errorStatus)
     !% Integrates the supplied {\normalfont \ttfamily integrand} function.
     use Galacticus_Error
     use, intrinsic :: ISO_C_Binding
     implicit none
-    double precision                            , external                           :: integrand
     double precision                                       , intent(in   )           :: lowerLimit                      , upperLimit
-    type            (c_ptr                     )           , intent(in   )           :: parameterPointer
+    procedure       (integrandTemplate         )                                     :: integrand
     type            (fgsl_function             )           , intent(inout)           :: integrandFunction
     type            (fgsl_integration_workspace)           , intent(inout)           :: integrationWorkspace
     type            (fgsl_error_handler_t      )                                     :: integrationErrorHandler         , standardGslErrorHandler
@@ -49,12 +59,17 @@ contains
     integer                                                , intent(  out), optional :: errorStatus
     integer                                     , parameter                          :: maxIntervalsDefault     =1000
     double precision                            , parameter                          :: toleranceAbsoluteDefault=1.0d-10, toleranceRelativeDefault=1.0d-10
+    type            (c_ptr                     )                                     :: parameterPointer
     integer                                                                          :: integrationRuleActual           , status
     integer         (kind=c_size_t             )                                     :: maxIntervalsActual
     double precision                                                                 :: integrationError                , integrationValue                , &
          &                                                                              toleranceAbsoluteActual         , toleranceRelativeActual
     logical                                                                          :: hasSingularitiesActual          , resetActual
-
+    procedure       (integrandTemplate         ), pointer                            :: previousIntegrand
+    
+    ! Store the current integrand function so that we can restore it on exit. This allows the integration function to be called recursively.
+    previousIntegrand => currentIntegrand
+    currentIntegrand  => integrand
     ! Set optional parameters to specified or default values.
     if (present(maxIntervals)) then
        maxIntervalsActual=maxIntervals
@@ -91,7 +106,7 @@ contains
     ! Initialize the integration variables if necessary.
     if (resetActual) then
        integrationWorkspace=FGSL_Integration_Workspace_Alloc(maxIntervalsActual)
-       integrandFunction   =FGSL_Function_Init(integrand,parameterPointer)
+       integrandFunction   =FGSL_Function_Init(integrandWrapper,parameterPointer)
     end if
 
     ! Set error handler if necessary.
@@ -110,16 +125,31 @@ contains
        status=FGSL_Integration_QAGS(integrandFunction,lowerLimit,upperLimit,toleranceAbsoluteActual,toleranceRelativeActual &
             &,maxIntervalsActual,integrationWorkspace,integrationValue,integrationError)
     end select
-    Integrate=integrationValue
+    IntegrateTMP=integrationValue
 
     ! Reset error handler.
     if (present(errorStatus)) then
        errorStatus            =errorStatusGlobal
        standardGslErrorHandler=FGSL_Set_Error_Handler (standardGslErrorHandler)
     end if
+    ! Restore the previous integrand.
+    currentIntegrand => previousIntegrand
     return
-  end function Integrate
+  end function IntegrateTMP
 
+  function integrandWrapper(x,parameterPointer) bind(c)
+    !% Wrapper function used for \gls{gsl} integration functions.
+    use, intrinsic :: ISO_C_Binding
+    implicit none
+    real(c_double)        :: integrandWrapper
+    real(c_double), value :: x
+    type(c_ptr   ), value :: parameterPointer
+    !GCC$ attributes unused :: parameterPointer
+    
+    integrandWrapper=currentIntegrand(x)
+    return
+  end function integrandWrapper
+  
   subroutine Integrate_Done(integrandFunction,integrationWorkspace)
     !% Frees up integration objects that are no longer required.
     implicit none

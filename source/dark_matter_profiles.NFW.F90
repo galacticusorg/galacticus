@@ -755,13 +755,11 @@ contains
   double precision function nfwProfileEnergy(self,concentration)
     !% Computes the total energy of an NFW profile halo of given {\normalfont \ttfamily concentration} using the methods of
     !% \citeauthor{cole_hierarchical_2000}~(\citeyear{cole_hierarchical_2000}; their Appendix~A).
-    use, intrinsic :: ISO_C_Binding
     use Numerical_Constants_Math
     use Numerical_Integration
     implicit none
     class           (darkMatterProfileNFW      ), intent(inout) :: self
     double precision                            , intent(in   ) :: concentration
-    type            (c_ptr                     )                :: parameterPointer
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
     double precision                                            :: jeansEquationIntegral  , kineticEnergy         , &
@@ -773,23 +771,23 @@ contains
     radiusMinimum    =0.0d0
     radiusMaximum    =concentration
     concentrationParameter=concentration
-    potentialEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,nfwPotentialEnergyIntegrand&
-         &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+    potentialEnergyIntegral=IntegrateTMP(radiusMinimum,radiusMaximum,nfwPotentialEnergyIntegrand&
+         &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     potentialEnergy=-0.5d0*(1.0d0/concentration+potentialEnergyIntegral)
     ! Compute the velocity dispersion at the virial radius.
     radiusMinimum=concentration
     radiusMaximum=100.0d0*concentration
     concentrationParameter=concentration
-    jeansEquationIntegral=Integrate(radiusMinimum,radiusMaximum,nfwJeansEquationIntegrand&
-         &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+    jeansEquationIntegral=IntegrateTMP(radiusMinimum,radiusMaximum,nfwJeansEquationIntegrand&
+         &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     ! Compute the kinetic energy.
     radiusMinimum=0.0d0
     radiusMaximum=concentration
     concentrationParameter=concentration
-    kineticEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,nfwKineticEnergyIntegrand&
-         &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+    kineticEnergyIntegral=IntegrateTMP(radiusMinimum,radiusMaximum,nfwKineticEnergyIntegrand&
+         &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     kineticEnergy=2.0d0*Pi*(jeansEquationIntegral*concentration**3+kineticEnergyIntegral)
     ! Compute the total energy.
@@ -798,38 +796,29 @@ contains
 
   contains
     
-    function nfwPotentialEnergyIntegrand(radius,parameterPointer) bind(c)
+    double precision function nfwPotentialEnergyIntegrand(radius)
       !% Integrand for NFW profile potential energy.
-      use, intrinsic :: ISO_C_Binding
       implicit none
-      real(kind=c_double)        :: nfwPotentialEnergyIntegrand
-      real(kind=c_double), value :: radius
-      type(c_ptr        ), value :: parameterPointer
+      double precision, intent(in   ) :: radius
       
       nfwPotentialEnergyIntegrand=(self%enclosedMassScaleFree(radius,concentrationParameter)/radius)**2
       return
     end function nfwPotentialEnergyIntegrand
     
-    function nfwKineticEnergyIntegrand(radius,parameterPointer) bind(c)
+    double precision function nfwKineticEnergyIntegrand(radius)
       !% Integrand for NFW profile kinetic energy.
-      use, intrinsic :: ISO_C_Binding
       implicit none
-      real(kind=c_double)        :: nfwKineticEnergyIntegrand
-      real(kind=c_double), value :: radius
-      type(c_ptr        ), value :: parameterPointer
+      double precision, intent(in   ) :: radius
       
       nfwKineticEnergyIntegrand=self%EnclosedMassScaleFree(radius,concentrationParameter)*self%densityScaleFree(radius&
            &,concentrationParameter)*radius
       return
     end function nfwKineticEnergyIntegrand
     
-    function nfwJeansEquationIntegrand(radius,parameterPointer) bind(c)
+    double precision function nfwJeansEquationIntegrand(radius)
       !% Integrand for NFW profile Jeans equation.
-      use, intrinsic :: ISO_C_Binding
       implicit none
-      real(kind=c_double)        :: nfwJeansEquationIntegrand
-      real(kind=c_double), value :: radius
-      type(c_ptr        ), value :: parameterPointer
+      double precision, intent(in   ) :: radius
       
       nfwJeansEquationIntegrand=self%enclosedMassScaleFree(radius,concentrationParameter)*self%densityScaleFree(radius &
            &,concentrationParameter)/radius**2
@@ -1013,13 +1002,11 @@ contains
 
   double precision function nfwFreefallTimeScaleFree(self,radius)
     !% Compute the freefall time in a scale-free NFW halo.
-    use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     implicit none
     class           (darkMatterProfileNFW      ), intent(inout) :: self
     double precision                            , intent(in   ) :: radius
     double precision                            , parameter     :: radiusSmall         =4.0d-6
-    type            (c_ptr                     )                :: parameterPointer
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
     double precision                                            :: radiusEnd                  , radiusStart
@@ -1029,7 +1016,7 @@ contains
        ! Use the full solution.
        radiusStart=radius
        radiusEnd  =0.0d0
-       nfwFreefallTimeScaleFree=Integrate(radiusEnd,radiusStart,nfwFreefallTimeScaleFreeIntegrand,parameterPointer&
+       nfwFreefallTimeScaleFree=IntegrateTMP(radiusEnd,radiusStart,nfwFreefallTimeScaleFreeIntegrand&
             &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
        call Integrate_Done(integrandFunction,integrationWorkspace)
     else
@@ -1041,16 +1028,13 @@ contains
 
   contains
     
-    function nfwFreefallTimeScaleFreeIntegrand(radius,parameterPointer) bind(c)
+    double precision function nfwFreefallTimeScaleFreeIntegrand(radius)
       !% Integrand function used for finding the free-fall time in NFW halos.
-      use, intrinsic :: ISO_C_Binding
       implicit none
-      real(kind=c_double)                   :: nfwFreefallTimeScaleFreeIntegrand
-      real(kind=c_double)           , value :: radius
-      type(c_ptr        )           , value :: parameterPointer
-      real(kind=c_double), parameter        :: radiusSmall                       =1.0d-6
-      real(kind=c_double), parameter        :: radiusSmallFraction               =1.0d-3
-      real(kind=c_double)                   :: x
+      double precision, intent(in   ) :: radius
+      double precision, parameter     :: radiusSmall        =1.0d-6
+      double precision, parameter     :: radiusSmallFraction=1.0d-3
+      double precision                :: x
       
       if (radius < radiusSmall) then
          ! Use a series approximation for small radii.

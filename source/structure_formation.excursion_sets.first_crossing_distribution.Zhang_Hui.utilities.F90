@@ -71,7 +71,6 @@ contains
   end function g_2
 
   double precision function g_2_Integrated(variance,deltaVariance,time)
-    use, intrinsic :: ISO_C_Binding
     use FGSL
     use Numerical_Comparison
     use Numerical_Integration
@@ -81,7 +80,6 @@ contains
          &                                                         variance
     double precision                            , parameter     :: gradientChangeTolerance=1.0d-3
     double precision                                            :: smallStep
-    type            (c_ptr                     )                :: parameterPointer
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
 
@@ -99,7 +97,7 @@ contains
        smallStep=0.5d0*smallStep
     end do
     ! Compute the non-divergent part of the integral numerically.
-    g_2_Integrated=Integrate(variance-deltaVariance,variance-smallStep,g_2_Integrand_Zhang_Hui,parameterPointer&
+    g_2_Integrated=IntegrateTMP(variance-deltaVariance,variance-smallStep,g_2_Integrand_Zhang_Hui&
          &,integrandFunction,integrationWorkspace ,toleranceAbsolute=1.0d-50,toleranceRelative=1.0d-6,hasSingularities=.true.&
          &,integrationRule=FGSL_Integ_Gauss15)
     ! Compute the divergent part of the integral with an analytic approximation.
@@ -108,17 +106,14 @@ contains
     return
   end function g_2_Integrated
 
-  function g_2_Integrand_Zhang_Hui(variance,parameterPointer) bind(c)
+  double precision function g_2_Integrand_Zhang_Hui(variance)
     !% Integrand function used in computing $\Delta_{i,i}$ in the \cite{zhang_random_2006} algorithm for excursion set barrier
     !% crossing probabilities.
     use Excursion_Sets_Barriers
     use Math_Distributions_Gaussian
-    use, intrinsic :: ISO_C_Binding
     implicit none
-    real(kind=c_double)        :: g_2_Integrand_Zhang_Hui
-    real(kind=c_double), value :: variance
-    type(c_ptr        ), value :: parameterPointer
-    real(kind=c_double)        :: barrier
+    double precision, intent(in   ) :: variance
+    double precision                :: barrier
 
     if (variance >= varianceGlobal) then
        g_2_Integrand_Zhang_Hui=0.0d0

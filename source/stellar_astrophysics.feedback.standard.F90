@@ -81,7 +81,6 @@ contains
 
   double precision function Stellar_Feedback_Cumulative_Energy_Input_Standard(initialMass,age,metallicity)
     !% Compute the cumulative energy input from a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.
-    use, intrinsic :: ISO_C_Binding
     use Stellar_Astrophysics
     use Supernovae_Type_Ia
     use Supernovae_Population_III
@@ -89,7 +88,6 @@ contains
     implicit none
     double precision                            , intent(in   ) :: age                 , initialMass, metallicity
     double precision                                            :: energySNe           , energyWinds, lifetime
-    type            (c_ptr                     )                :: parameterPointer
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
 
@@ -120,7 +118,7 @@ contains
     ! Add in the contribution from stellar winds.
     initialMassGlobal=initialMass
     metallicityGlobal=metallicity
-    energyWinds=Integrate(0.0d0,age,Wind_Energy_Integrand,parameterPointer,integrandFunction,integrationWorkspace&
+    energyWinds=IntegrateTMP(0.0d0,age,Wind_Energy_Integrand,integrandFunction,integrationWorkspace&
          &,toleranceAbsolute=1.0d-3*Stellar_Feedback_Cumulative_Energy_Input_Standard,toleranceRelative=1.0d-3)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     Stellar_Feedback_Cumulative_Energy_Input_Standard=Stellar_Feedback_Cumulative_Energy_Input_Standard+energyWinds
@@ -128,14 +126,11 @@ contains
     return
   end function Stellar_Feedback_Cumulative_Energy_Input_Standard
 
-  function Wind_Energy_Integrand(age,parameterPointer) bind(c)
+  double precision function Wind_Energy_Integrand(age)
     !% Integrand used in evaluating cumulative energy input from winds.
-    use, intrinsic :: ISO_C_Binding
     use Stellar_Astrophysics_Winds
     implicit none
-    real(kind=c_double)        :: Wind_Energy_Integrand
-    real(kind=c_double), value :: age
-    type(c_ptr        ), value :: parameterPointer
+    double precision, intent(in   ) :: age
 
     Wind_Energy_Integrand=0.5d0*Stellar_Winds_Mass_Loss_Rate(initialMassGlobal,age,metallicityGlobal)&
          &*Stellar_Winds_Terminal_Velocity(initialMassGlobal,age,metallicityGlobal)**2

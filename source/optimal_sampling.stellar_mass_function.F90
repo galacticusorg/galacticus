@@ -21,7 +21,6 @@
 
 program Optimal_Sampling_SMF
   !% Compute the optimal number of trees to run of each mass.
-  use, intrinsic :: ISO_C_Binding
   use Memory_Management
   use Numerical_Ranges
   use Numerical_Constants_Astronomical
@@ -49,7 +48,6 @@ program Optimal_Sampling_SMF
   double precision                                                        :: stellarMass,time,optimalSamplingLogarithmicBinWidth,haloMass
   class           (cosmologyFunctionsClass   ), pointer                   :: cosmologyFunctionsDefault
   class           (haloMassFunctionClass     ), pointer                   :: haloMassFunction_
-  type            (c_ptr                     )                            :: parameterPointer
   type            (fgsl_function             )                            :: integrandFunction
   type            (fgsl_integration_workspace)                            :: integrationWorkspace
   logical                                                                 :: integrationReset=.true.
@@ -120,7 +118,7 @@ program Optimal_Sampling_SMF
      stellarMass=stellarMassTableMass(iMass)
 
      ! Integrate over the mass function weighting by the stellar conditional mass function.
-     stellarMassTableMassFunction(iMass)=Integrate(haloMassMinimum,haloMassMaximum,Stellar_Mass_Function_Integrand,parameterPointer&
+     stellarMassTableMassFunction(iMass)=IntegrateTMP(haloMassMinimum,haloMassMaximum,Stellar_Mass_Function_Integrand&
           &,integrandFunction ,integrationWorkspace,toleranceAbsolute=toleranceAbsolute,toleranceRelative=toleranceRelative,reset&
           &=integrationReset)
 
@@ -177,16 +175,14 @@ program Optimal_Sampling_SMF
 
 contains
 
-  function Stellar_Mass_Function_Integrand(mass,parameterPointer) bind(c)
+  double precision function Stellar_Mass_Function_Integrand(mass)
     !% The integrand (as a function of halo mass) giving the stellar mass function.
     use Conditional_Mass_Functions
     implicit none
-    real            (kind=c_double               )            :: Stellar_Mass_Function_Integrand
-    real            (kind=c_double               ), value     :: mass
-    type            (c_ptr                       ), value     :: parameterPointer
-    class           (conditionalMassFunctionClass), pointer   :: conditionalMassFunction_
-    double precision                              , parameter :: deltaLogMass=0.097d0
-    double precision                                          :: conditionalStellarMassFunction
+    double precision                              , intent(in   ) :: mass
+    class           (conditionalMassFunctionClass), pointer       :: conditionalMassFunction_
+    double precision                              , parameter     :: deltaLogMass=0.097d0
+    double precision                                              :: conditionalStellarMassFunction
 
     conditionalMassFunction_        => conditionalMassFunction()
     conditionalStellarMassFunction=                                                                                       &

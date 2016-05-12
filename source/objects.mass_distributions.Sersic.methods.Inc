@@ -226,7 +226,6 @@ end function Mass_Distribution_Sersic_Half_Mass_Radius_Projected
 
 subroutine Sersic_Profile_Tabulate(radius)
   !% Tabulate the density and enclosed mass in a dimensionless S\'ersic profile.
-  use, intrinsic :: ISO_C_Binding
   use Memory_Management
   use Numerical_Ranges
   use Numerical_Integration
@@ -246,7 +245,6 @@ subroutine Sersic_Profile_Tabulate(radius)
   double precision                                                      :: deltaRadius                        , integrand                , &
        &                                                                   massPrevious                       , previousIntegrand        , &
        &                                                                   radiusActual                       , radiusInfinity
-  type            (c_ptr                     )                          :: parameterPointer
   type            (fgsl_function             )                          :: integrandFunction
   type            (fgsl_integration_workspace)                          :: integrationWorkspace
 
@@ -305,8 +303,8 @@ subroutine Sersic_Profile_Tabulate(radius)
         ! Loop over radii and compute the inverse Abel integral required to get the 3D Sérsic profile.
         do iRadius=1,sersicTableCount
            sersicRadiusStart=sersicTableRadius(iRadius)
-           sersicTableDensity(iRadius)=Integrate( sersicRadiusStart,radiusInfinity                       &
-                &                                ,Sersic_Abel_Integrand,parameterPointer           &
+           sersicTableDensity(iRadius)=IntegrateTMP( sersicRadiusStart,radiusInfinity                       &
+                &                                ,Sersic_Abel_Integrand           &
                 &                                ,integrandFunction,integrationWorkspace           &
                 &                                ,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3 &
                 &                               )
@@ -382,20 +380,17 @@ double precision function Sersic_Coefficient_Root(coefficient)
   Sersic_Coefficient_Root=Gamma_Function_Incomplete(2.0d0*sersicProfileIndex,coefficient)-0.5d0
 end function Sersic_Coefficient_Root
 
-function Sersic_Abel_Integrand(radius,parameterPointer) bind(c)
+double precision function Sersic_Abel_Integrand(radius)
   !% The integrand in the Abel integral used to invert the S\'ersic profile to get the corresponding 3-D profile.
-  use, intrinsic :: ISO_C_Binding
   use Numerical_Constants_Math
   implicit none
-  real(kind=c_double)        :: Sersic_Abel_Integrand
-  real(kind=c_double), value :: radius
-  type(c_ptr        ), value :: parameterPointer
+  double precision, intent(in   ) :: radius
 
   if (radius > sersicRadiusStart) then
      Sersic_Abel_Integrand= (1.0d0/Pi)                                                                &
           &                *      sersicCoefficient*(radius**(1.0d0/dble(sersicProfileIndex) -1.0d0)) &
           &                * exp(-sersicCoefficient*(radius**(1.0d0/dble(sersicProfileIndex))-1.0d0)) &
-          &                /dble(sersicProfileIndex)                                                  &
+          &                /                                        dble(sersicProfileIndex)          &
           &                /sqrt(radius**2-sersicRadiusStart**2)
   else
      Sersic_Abel_Integrand=0.0d0
