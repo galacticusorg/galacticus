@@ -201,32 +201,32 @@ contains
     cosmologicalMassVariance_           => cosmologicalMassVariance ()
     powerSpectrum_                      => powerSpectrum            ()
     basic                               => node               %basic()
-    radiusHaloLagrangian                =  +(                                                   &
-         &                                   +3.0d0                                             &
-         &                                   *basic%mass()                                      &
-         &                                   /4.0d0                                             &
-         &                                   /Pi                                                &
-         &                                   /cosmologyParameters_%densityCritical()            &
-         &                                   /cosmologyParameters_%OmegaMatter    ()            &
+    radiusHaloLagrangian                =  +(                                                                          &
+         &                                   +3.0d0                                                                    &
+         &                                   *basic%mass()                                                             &
+         &                                   /4.0d0                                                                    &
+         &                                   /Pi                                                                       &
+         &                                   /cosmologyParameters_%densityCritical()                                   &
+         &                                   /cosmologyParameters_%OmegaMatter    ()                                   &
          &                                  )**(1.0d0/3.0d0)
-    peakHeight                          = +criticalOverdensity_     %value       (basic%time()) &
-         &                                /cosmologicalMassVariance_%rootVariance(basic%mass())
-    wavenumber                          = +self%kappa                                           &
-         &                                *2.0d0                                                &
-         &                                *Pi                                                   &
+    peakHeight                          = +criticalOverdensity_     %value       (time=basic%time(),mass=basic%mass()) &
+         &                                /cosmologicalMassVariance_%rootVariance(                       basic%mass())
+    wavenumber                          = +self%kappa                                                                  &
+         &                                *2.0d0                                                                       &
+         &                                *Pi                                                                          &
          &                                /radiusHaloLagrangian
     powerSpectrumSlope                  = +powerSpectrum_%powerLogarithmicDerivative(wavenumber)
-    concentrationMinimum                = +self%phi0                                            &
-         &                                +self%phi1                                            &
+    concentrationMinimum                = +self%phi0                                                                   &
+         &                                +self%phi1                                                                   &
          &                                *powerSpectrumSlope
-    peakHeightMinimum                   = +self%eta0                                            &
-         &                                +self%eta1                                            &
+    peakHeightMinimum                   = +self%eta0                                                                   &
+         &                                +self%eta1                                                                   &
          &                                *powerSpectrumSlope
-    diemerKravtsov2014ConcentrationMean = +0.5d0                                                &
-         &                                *concentrationMinimum                                 &
-         &                                *(                                                    &
-         &                                  +(peakHeight/peakHeightMinimum)**(-self%alpha)      &
-         &                                  +(peakHeight/peakHeightMinimum)**(+self%beta )      &
+    diemerKravtsov2014ConcentrationMean = +0.5d0                                                                       &
+         &                                *concentrationMinimum                                                        &
+         &                                *(                                                                           &
+         &                                  +(peakHeight/peakHeightMinimum)**(-self%alpha)                             &
+         &                                  +(peakHeight/peakHeightMinimum)**(+self%beta )                             &
          &                                 )
     return
   end function diemerKravtsov2014ConcentrationMean
