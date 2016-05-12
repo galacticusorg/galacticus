@@ -241,6 +241,7 @@ contains
     ! Evaluate the root function.
     Enclosed_Mass_Root=Galactic_Structure_Enclosed_Mass(activeNode,radius,componentTypeShared,massTypeShared,weightByShared&
          &,weightIndexShared,haloLoadedShared)-massRoot
+    return
   end function Enclosed_Mass_Root
 
   double precision function Enclosed_Density_Root(radius)

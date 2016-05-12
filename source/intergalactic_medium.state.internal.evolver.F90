@@ -800,11 +800,10 @@
                    &            *angstromsPerMeter
               ! Integrate photoionizations over wavelength.
               integrationReset       =.true.
-              ionizationPhotoRateFrom=-Integrate(                                                 &
+              ionizationPhotoRateFrom=-IntegrateTMP(                                                 &
                    &                             wavelengthMinimum                              , &
                    &                             wavelengthMaximum                              , &
                    &                             Photoionization_Rate_Integrand                 , &
-                   &                             parameterPointer                               , &
                    &                             integrationFunction                            , &
                    &                             integrationWorkspace                           , &
                    &                             toleranceAbsolute             =0.0d+0          , &
@@ -829,11 +828,10 @@
                    &            *angstromsPerMeter
               ! Integrate photoionizations over wavelength.
               integrationReset       =.true.
-              ionizationPhotoRateTo  =+Integrate(                                                 &
+              ionizationPhotoRateTo  =+IntegrateTMP(                                                 &
                    &                             wavelengthMinimum                              , &
                    &                             wavelengthMaximum                              , &
                    &                             Photoionization_Rate_Integrand                 , &
-                   &                             parameterPointer                               , &
                    &                             integrationFunction                            , &
                    &                             integrationWorkspace                           , &
                    &                             toleranceAbsolute             =0.0d+0          , &
@@ -844,11 +842,10 @@
               call Integrate_Done(integrationFunction,integrationWorkspace) 
               integrationReset = .true.
               heatingRate                      =+heatingRate                                                        &
-                   &                            +Integrate(                                                         &
+                   &                            +IntegrateTMP(                                                         &
                    &                                       wavelengthMinimum                                      , &
                    &                                       wavelengthMaximum                                      , &
                    &                                       Photoionization_Heating_Rate_Integrand                 , &
-                   &                                       parameterPointer                                       , &
                    &                                       integrationFunction                                    , &
                    &                                       integrationWorkspace                                   , &
                    &                                       toleranceAbsolute                     =0.0d+0          , &
@@ -982,13 +979,11 @@
      
    contains
 
-     function Photoionization_Rate_Integrand(wavelength,parameterPointer) bind(c)
+     double precision function Photoionization_Rate_Integrand(wavelength)
        !% Integrand function used to compute the rate of photoionizations of an ionic species.
        implicit none
-       real            (kind=c_double)        :: Photoionization_Rate_Integrand
-       real            (kind=c_double), value :: wavelength
-       double precision                       :: photonDensity                 , photonFlux
-       type            (c_ptr        ), value :: parameterPointer
+       double precision, intent(in   ) :: wavelength
+       double precision                :: photonDensity, photonFlux
 
        if (wavelength <= 0.0d0) then
           Photoionization_Rate_Integrand=0.0d0
@@ -1015,13 +1010,11 @@
        return
      end function Photoionization_Rate_Integrand
  
-     function Photoionization_Heating_Rate_Integrand(wavelength,parameterPointer) bind(c)
+     double precision function Photoionization_Heating_Rate_Integrand(wavelength)
        !% Integrand function used to compute the rate of photoionization heating of an ionic species.
        implicit none
-       real            (kind=c_double)        :: Photoionization_Heating_Rate_Integrand
-       real            (kind=c_double), value :: wavelength
-       double precision                       :: photonDensity                         , photonFlux
-       type            (c_ptr        ), value :: parameterPointer
+       double precision, intent(in   ) :: wavelength
+       double precision                :: photonDensity, photonFlux
        
        if (wavelength < 0.0d0) then
           Photoionization_Heating_Rate_Integrand=0.0d0

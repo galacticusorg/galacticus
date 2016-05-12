@@ -791,41 +791,34 @@ contains
       double precision                :: integralHalf
       type            (fgsl_function             ) :: integrandFunction
       type            (fgsl_integration_workspace) :: integrationWorkspace
-      type            (c_ptr                     ) :: parameterPointer
       logical                                      :: integrationReset
       
       integrationReset=.true.
-      integralHalf=Integrate(0.0d0,xHalf,halfLightRadiusIntegrandX,parameterPointer,integrandFunction,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
+      integralHalf=IntegrateTMP(0.0d0,xHalf,halfLightRadiusIntegrandX,integrandFunction,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
       halfLightRadiusRoot=integralHalf/2.0d0/Pi/cos(inclinationAngle)-0.5d0
       return
     end function halfLightRadiusRoot
 
-    function halfLightRadiusIntegrandX(x,parameterPointer) bind(c)
+    double precision function halfLightRadiusIntegrandX(x)
       !% Integral for half-light radius.
-      use, intrinsic :: ISO_C_Binding
       use Numerical_Integration
       use FGSL
       implicit none
-      real(kind=c_double)        :: halfLightRadiusIntegrandX
-      real(kind=c_double), value :: x
-      type(c_ptr        ), value :: parameterPointer
-      type            (fgsl_function             ) :: integrandFunction
-      type            (fgsl_integration_workspace) :: integrationWorkspace
-      logical                                      :: integrationReset
+      double precision                            , intent(in   ) :: x
+      type            (fgsl_function             )                :: integrandFunction
+      type            (fgsl_integration_workspace)                :: integrationWorkspace
+      logical                                                     :: integrationReset
 
       integrationReset=.true.
       xIntegrate      =x
-      halfLightRadiusIntegrandX=Integrate(0.0d0,2.0d0*Pi,halfLightRadiusIntegrandPhi,parameterPointer,integrandFunction,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)*x
+      halfLightRadiusIntegrandX=IntegrateTMP(0.0d0,2.0d0*Pi,halfLightRadiusIntegrandPhi,integrandFunction,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)*x
       return
     end function halfLightRadiusIntegrandX
 
-    function halfLightRadiusIntegrandPhi(Phi,parameterPointer) bind(c)
+    double precision function halfLightRadiusIntegrandPhi(Phi)
       !% Integral for half-light radius.
-      use, intrinsic :: ISO_C_Binding
       implicit none
-      real(kind=c_double)        :: halfLightRadiusIntegrandPhi
-      real(kind=c_double), value :: phi
-      type(c_ptr        ), value :: parameterPointer
+      double precision, intent(in   ) :: phi
 
       halfLightRadiusIntegrandPhi=exp(-xIntegrate*sqrt((sin(phi)/cos(inclinationAngle))**2+cos(phi)**2))
       return

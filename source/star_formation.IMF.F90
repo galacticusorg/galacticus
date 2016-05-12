@@ -494,7 +494,6 @@ contains
     !$omp ,interpolationAgeAccelerator,interpolationMetallicityReset,interpolationAgeReset)
     type            (Node                      ), pointer                                                     ::        doc                                                , thisItem
     type            (NodeList                  ), pointer                                                     ::        dataList
-    type            (c_ptr                     )                                                              ::        parameterPointer
     type            (fgsl_function             )                                                              ::        integrandFunction
     type            (fgsl_integration_workspace)                                                              ::        integrationWorkspace
     logical                                                                                                   ::        integrationReset
@@ -718,8 +717,8 @@ contains
                 maximumMass=IMF_Maximum_Mass(imfSelected)
                 ! Integrate ejected mass over the IMF between these limits.
                 integrationReset=.true.
-                recycledFractionTable(iAge,iMetallicity,recycledFractionIndex(imfSelected))=Integrate(minimumMass,maximumMass&
-                     &,Recycled_Fraction_Integrand ,parameterPointer,integrandFunction,integrationWorkspace,reset=integrationReset,toleranceAbsolute&
+                recycledFractionTable(iAge,iMetallicity,recycledFractionIndex(imfSelected))=IntegrateTMP(minimumMass,maximumMass&
+                     &,Recycled_Fraction_Integrand,integrandFunction,integrationWorkspace,reset=integrationReset,toleranceAbsolute&
                      &=1.0d-3 ,toleranceRelative=1.0d-4)
                 call Integrate_Done(integrandFunction,integrationWorkspace)
              end do
@@ -816,14 +815,11 @@ contains
     return
   end function IMF_Recycling_Rate_NonInstantaneous
 
-  function Recycled_Fraction_Integrand(initialMass,parameterPointer) bind(c)
+  double precision function Recycled_Fraction_Integrand(initialMass)
     !% Integrand used in evaluating recycled fractions.
-    use, intrinsic :: ISO_C_Binding
     use Stellar_Astrophysics
     implicit none
-    real(kind=c_double)        :: Recycled_Fraction_Integrand
-    real(kind=c_double), value :: initialMass
-    type(c_ptr        ), value :: parameterPointer
+    double precision, intent(in   ) :: initialMass
 
     if (Star_Is_Evolved(initialMass,metallicity,lifetime)) then
        Recycled_Fraction_Integrand=IMF_Phi(initialMass,imfSelectedGlobal)*Star_Ejected_Mass(initialMass,metallicity)
@@ -871,7 +867,6 @@ contains
     !$omp ,interpolationAgeAccelerator,interpolationMetallicityReset,interpolationAgeReset)
     type            (Node                      ), pointer                                                                :: doc                                                , thisItem
     type            (NodeList                  ), pointer                                                                :: dataList
-    type            (c_ptr                     )                                                                         :: parameterPointer
     type            (fgsl_function             )                                                                         :: integrandFunction
     type            (fgsl_integration_workspace)                                                                         :: integrationWorkspace
     integer                                                                                                              :: fileFormat                                         , ioErr                                     , &
@@ -1093,8 +1088,8 @@ contains
                 minimumMass=IMF_Minimum_Mass(imfSelected)
                 maximumMass=IMF_Maximum_Mass(imfSelected)
                 ! Integrate ejected mass over the IMF between these limits.
-                remnantFractionTable(iAge,iMetallicity,remnantFractionIndex(imfSelected))=Integrate(minimumMass,maximumMass&
-                     &,Remnant_Fraction_Integrand ,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute&
+                remnantFractionTable(iAge,iMetallicity,remnantFractionIndex(imfSelected))=IntegrateTMP(minimumMass,maximumMass&
+                     &,Remnant_Fraction_Integrand,integrandFunction,integrationWorkspace,toleranceAbsolute&
                      &=1.0d-3 ,toleranceRelative=1.0d-4)
                 call Integrate_Done(integrandFunction,integrationWorkspace)
              end do
@@ -1208,14 +1203,11 @@ contains
     return
   end function Star_Is_Evolved
 
-  function Remnant_Fraction_Integrand(initialMass,parameterPointer) bind(c)
+  double precision function Remnant_Fraction_Integrand(initialMass)
     !% Integrand used in evaluating remnant fractions.
-    use, intrinsic :: ISO_C_Binding
     use Stellar_Astrophysics
     implicit none
-    real(kind=c_double)        :: Remnant_Fraction_Integrand
-    real(kind=c_double), value :: initialMass
-    type(c_ptr        ), value :: parameterPointer
+    double precision, intent(in   ) :: initialMass
 
     if (Star_Is_Evolved(initialMass,metallicity,lifetime)) then
        Remnant_Fraction_Integrand=IMF_Phi(initialMass,imfSelectedGlobal)*(initialMass-Star_Ejected_Mass(initialMass,metallicity))
@@ -1265,7 +1257,6 @@ contains
     !$omp ,interpolationAgeAccelerator,interpolationMetallicityReset,interpolationAgeReset)
     type            (Node                      ), pointer                                                                 :: doc                                , thisItem
     type            (NodeList                  ), pointer                                                                 :: dataList
-    type            (c_ptr                     )                                                                          :: parameterPointer
     type            (fgsl_function             )                                                                          :: integrandFunction
     type            (fgsl_integration_workspace)                                                                          :: integrationWorkspace
     integer         (c_size_t                  )                                                                          :: metallicityIndex
@@ -1527,8 +1518,8 @@ contains
                    minimumMass=IMF_Minimum_Mass(imfSelected)
                    maximumMass=IMF_Maximum_Mass(imfSelected)
                    ! Integrate ejected mass over the IMF between these limits.
-                   metalYieldTable(iAge,iMetallicity,iElement,metalYieldIndex(imfSelected))=Integrate(minimumMass,maximumMass&
-                        &,Metal_Yield_Integrand,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=1.0d-4&
+                   metalYieldTable(iAge,iMetallicity,iElement,metalYieldIndex(imfSelected))=IntegrateTMP(minimumMass,maximumMass&
+                        &,Metal_Yield_Integrand,integrandFunction,integrationWorkspace,toleranceAbsolute=1.0d-4&
                         &,toleranceRelative=1.0d-5)
                    call Integrate_Done(integrandFunction,integrationWorkspace)
                 end do
@@ -1640,51 +1631,48 @@ contains
      return
    end function IMF_Metal_Yield_Rate_NonInstantaneous
 
-  function Metal_Yield_Integrand(initialMass,parameterPointer) bind(c)
-    !% Integrand used in evaluating metal yields.
-    use, intrinsic :: ISO_C_Binding
-    use Stellar_Astrophysics
-    use Supernovae_Type_Ia
-    implicit none
-    real(kind=c_double)        :: Metal_Yield_Integrand
-    real(kind=c_double), value :: initialMass
-    type(c_ptr        ), value :: parameterPointer
-    real(kind=c_double)        :: sneiaLifetime        , yieldMass
-
-    ! Include yields from isolated stars.
-    if (Star_Is_Evolved(initialMass,metallicity,lifetime)) then
-       select case (atomIndexGlobal)
-       case (0)
-          ! Total metallicity required.
-          yieldMass=Star_Metal_Yield_Mass(initialMass,metallicity                )
-       case default
-          ! Inidividual element required.
-          yieldMass=Star_Metal_Yield_Mass(initialMass,metallicity,atomIndexGlobal)
-       end select
-       Metal_Yield_Integrand=IMF_Phi(initialMass,imfSelectedGlobal)*yieldMass
-    else
-       Metal_Yield_Integrand=0.0d0
-    end if
-
-    ! Include yield from Type Ia supernovae.
-    if (starFormationImfInstantaneousApproximation) then
-       ! In the instantaneous stellar evolution approximation use the effective age to compute the SNeIa yield.
-       sneiaLifetime=starFormationImfInstantaneousApproximationEffectiveAge
-    else
-       ! In the standard calculation simply use the current age.
-       sneiaLifetime=lifetime
-    end if
-    select case (atomIndexGlobal)
-    case (0)
-       ! Total metallicity required.
-       yieldMass=SNeIa_Cumulative_Yield(initialMass,sneiaLifetime,metallicity                )
-    case default
-       yieldMass=SNeIa_Cumulative_Yield(initialMass,sneiaLifetime,metallicity,atomIndexGlobal)
-    end select
-    Metal_Yield_Integrand=Metal_Yield_Integrand+IMF_Phi(initialMass,imfSelectedGlobal)*yieldMass
-    return
-  end function Metal_Yield_Integrand
-
+   double precision function Metal_Yield_Integrand(initialMass)
+     !% Integrand used in evaluating metal yields.
+     use Supernovae_Type_Ia
+     use Stellar_Astrophysics
+     implicit none
+     double precision, intent(in   ) :: initialMass
+     double precision                :: sneiaLifetime        , yieldMass
+     
+     ! Include yields from isolated stars.
+     if (Star_Is_Evolved(initialMass,metallicity,lifetime)) then
+        select case (atomIndexGlobal)
+        case (0)
+           ! Total metallicity required.
+           yieldMass=Star_Metal_Yield_Mass(initialMass,metallicity                )
+        case default
+           ! Inidividual element required.
+           yieldMass=Star_Metal_Yield_Mass(initialMass,metallicity,atomIndexGlobal)
+        end select
+        Metal_Yield_Integrand=IMF_Phi(initialMass,imfSelectedGlobal)*yieldMass
+     else
+        Metal_Yield_Integrand=0.0d0
+     end if
+     
+     ! Include yield from Type Ia supernovae.
+     if (starFormationImfInstantaneousApproximation) then
+        ! In the instantaneous stellar evolution approximation use the effective age to compute the SNeIa yield.
+        sneiaLifetime=starFormationImfInstantaneousApproximationEffectiveAge
+     else
+        ! In the standard calculation simply use the current age.
+        sneiaLifetime=lifetime
+     end if
+     select case (atomIndexGlobal)
+     case (0)
+        ! Total metallicity required.
+        yieldMass=SNeIa_Cumulative_Yield(initialMass,sneiaLifetime,metallicity                )
+     case default
+        yieldMass=SNeIa_Cumulative_Yield(initialMass,sneiaLifetime,metallicity,atomIndexGlobal)
+     end select
+     Metal_Yield_Integrand=Metal_Yield_Integrand+IMF_Phi(initialMass,imfSelectedGlobal)*yieldMass
+     return
+   end function Metal_Yield_Integrand
+   
   double precision function IMF_Energy_Input_Rate_NonInstantaneous(starFormationRate,fuelAbundances,component,ageMinimum,ageMaximum)
     !% Returns the energy input rate for a simple stellar population in (km/s)$^2$ Gyr$^{-1}$. The \gls{imf} is determined from the
     !% given {\normalfont \ttfamily starFormationRate} and {\normalfont \ttfamily fuelAbundances}. The energy input rate is computed for the given {\normalfont \ttfamily age} (in
@@ -1722,7 +1710,6 @@ contains
     !$omp ,interpolationAgeAccelerator,interpolationMetallicityReset,interpolationAgeReset)
     type            (Node                      ), pointer                                                     ::        doc                                           , thisItem
     type            (NodeList                  ), pointer                                                     ::        dataList
-    type            (c_ptr                     )                                                              ::        parameterPointer
     type            (fgsl_function             )                                                              ::        integrandFunction
     type            (fgsl_integration_workspace)                                                              ::        integrationWorkspace
     integer                                                                                                   ::        fileFormat                                    , iAge                                      , &
@@ -1938,8 +1925,8 @@ contains
                 minimumMass=IMF_Minimum_Mass(imfSelected)
                 maximumMass=IMF_Maximum_Mass(imfSelected)
                 ! Integrate cumulative energy input over the IMF between these limits.
-                energyInputTable(iAge,iMetallicity,energyInputIndex(imfSelected))=Integrate(minimumMass,maximumMass&
-                     &,Cumulative_Energy_Integrand,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0&
+                energyInputTable(iAge,iMetallicity,energyInputIndex(imfSelected))=IntegrateTMP(minimumMass,maximumMass&
+                     &,Cumulative_Energy_Integrand,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0&
                      &,toleranceRelative=1.0d-3)
                 call Integrate_Done(integrandFunction,integrationWorkspace)
              end do
@@ -2027,15 +2014,12 @@ contains
     return
   end function IMF_Energy_Input_Rate_NonInstantaneous
 
-  function Cumulative_Energy_Integrand(initialMass,parameterPointer) bind(c)
+  double precision function Cumulative_Energy_Integrand(initialMass)
     !% Integrand used in evaluating cumulative energy input.
-    use, intrinsic :: ISO_C_Binding
     use Stellar_Feedback
     implicit none
-    real(kind=c_double)        :: Cumulative_Energy_Integrand
-    real(kind=c_double), value :: initialMass
-    type(c_ptr        ), value :: parameterPointer
-    real(kind=c_double)        :: energyLifetime
+    double precision, intent(in   ) :: initialMass
+    double precision                :: energyLifetime
 
     if (starFormationImfInstantaneousApproximation) then
        ! In the instantaneous stellar evolution approximation, assume stars more massive than the long-lived star cut off

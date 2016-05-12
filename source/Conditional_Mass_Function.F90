@@ -21,7 +21,6 @@
 
 program Conditional_Mass_Function
   !% Computes the conditional mass function in bins of mass for a fixed halo mass for use in calculation of constraints.
-  use, intrinsic :: ISO_C_Binding
   use FGSL
   use IO_HDF5
   use Memory_Management
@@ -60,7 +59,6 @@ program Conditional_Mass_Function
        &                                                                          massFunctionIntegrand
   type     (fgsl_function             )                                        :: integrandFunction                     , integrandFunctionNormalization
   type     (fgsl_integration_workspace)                                        :: integrationWorkspace                  , integrationWorkspaceNormalization
-  type     (c_ptr                     )                                        :: parameterPointer
   type     (hdf5Object                )                                        :: outputFile
 
   ! Read in basic code memory usage.
@@ -247,11 +245,10 @@ program Conditional_Mass_Function
         if (conditionalMassFunctionRedshiftMaximum <= conditionalMassFunctionRedshiftMinimum) then
            ! No range of redshifts given. Compute the mass function at the minimum redshift.
            time=timeMaximum
-           thisConditionalMassFunction(iMass)=Integrate(                                    &
+           thisConditionalMassFunction(iMass)=IntegrateTMP(                                    &
                 &                                       logHaloMassLower                  , &
                 &                                       logHaloMassUpper                  , &
                 &                                       Mass_Function_Halo_Mass_Integrand , &
-                &                                       parameterPointer                  , &
                 &                                       integrandFunction                 , &
                 &                                       integrationWorkspace              , &
                 &                                       toleranceRelative=1.0d-3          , &
@@ -289,11 +286,10 @@ program Conditional_Mass_Function
               massFunctionIntegrand=                                                        &
                    &                +massFunctionIntegrand                                  &
                    &                +surveyGeometry_%solidAngle(iField)                     &
-                   &                *Integrate(                                             &
+                   &                *IntegrateTMP(                                             &
                    &                           binTimeMinimum                             , &
                    &                           binTimeMaximum                             , &
                    &                           Mass_Function_Time_Integrand               , &
-                   &                           parameterPointer                           , &
                    &                           integrandFunction                          , &
                    &                           integrationWorkspace                       , &
                    &                           toleranceRelative=1.0d-3                   , &
@@ -302,11 +298,10 @@ program Conditional_Mass_Function
               volumeIntegrand      =                                                        &
                    &                +volumeIntegrand                                        &
                    &                +surveyGeometry_%solidAngle(iField)                     &
-                   &                *Integrate(                                             &
+                   &                *IntegrateTMP(                                             &
                    &                           binTimeMinimum                             , &
                    &                           binTimeMaximum                             , &
                    &                           Mass_Function_Time_Normalization_Integrand , &
-                   &                           parameterPointer                           , &
                    &                           integrandFunctionNormalization             , &
                    &                           integrationWorkspaceNormalization          , &
                    &                           toleranceRelative=1.0d-3                   , &
@@ -354,24 +349,19 @@ program Conditional_Mass_Function
 
 contains  
   
-  function Mass_Function_Time_Integrand(timePrime,parameterPointer) bind(c)
+  double precision function Mass_Function_Time_Integrand(timePrime)
     !% Integral over time.
-    use, intrinsic :: ISO_C_Binding
     implicit none
-    real(c_double                  )        :: Mass_Function_Time_Integrand
-    real(c_double                  ), value :: timePrime
-    type(c_ptr                     ), value :: parameterPointer
-    type(fgsl_function             ), save  :: integrandFunctionTime
-    type(fgsl_integration_workspace), save  :: integrationWorkspaceTime
-    type(c_ptr                     )        :: parameterPointerTime
-    logical                         , save  :: integrationResetTime=.true.
+    double precision                            , intent(in   ) :: timePrime
+    type            (fgsl_function             ), save          :: integrandFunctionTime
+    type            (fgsl_integration_workspace), save          :: integrationWorkspaceTime
+    logical                                     , save          :: integrationResetTime    =.true.
 
     time=timePrime
-    Mass_Function_Time_Integrand= Integrate(                                             &
+    Mass_Function_Time_Integrand= IntegrateTMP(                                             &
          &                                           logHaloMassLower                  , &
          &                                           logHaloMassUpper                  , &
          &                                           Mass_Function_Halo_Mass_Integrand , &
-         &                                           parameterPointerTime              , &
          &                                           integrandFunctionTime             , &
          &                                           integrationWorkspaceTime          , &
          &                                           toleranceRelative=1.0d-3          , &
@@ -381,30 +371,24 @@ contains
     return
   end function Mass_Function_Time_Integrand
 
-  function Mass_Function_Time_Normalization_Integrand(timePrime,parameterPointer) bind(c)
+  double precision function Mass_Function_Time_Normalization_Integrand(timePrime)
     !% Normalization integral over time.
-    use, intrinsic :: ISO_C_Binding
     implicit none
-    real(c_double)        :: Mass_Function_Time_Normalization_Integrand
-    real(c_double), value :: timePrime
-    type(c_ptr),    value :: parameterPointer
+    double precision, intent(in   ) :: timePrime
 
     Mass_Function_Time_Normalization_Integrand=cosmologyFunctions_%comovingVolumeElementTime(timePrime)
     return
   end function Mass_Function_Time_Normalization_Integrand
 
-  function Mass_Function_Halo_Mass_Integrand(logMass,parameterPointer) bind(c)
+  double precision function Mass_Function_Halo_Mass_Integrand(logMass)
     !% Integral over halo mass function.
-    use, intrinsic :: ISO_C_Binding
     use Halo_Mass_Functions
     use Conditional_Mass_Functions
     implicit none
-    real            (c_double                    )          :: Mass_Function_Halo_Mass_Integrand
-    real            (c_double                    ), value   :: logMass
-    type            (c_ptr                       ), value   :: parameterPointer
-    class           (conditionalMassFunctionClass), pointer :: conditionalMassFunction_
-    class           (haloMassFunctionClass       ), pointer :: haloMassFunction_
-    double precision                                        :: mass
+    double precision                              , intent(in   ) :: logMass
+    class           (conditionalMassFunctionClass), pointer       :: conditionalMassFunction_
+    class           (haloMassFunctionClass       ), pointer       :: haloMassFunction_
+    double precision                                              :: mass
 
     conditionalMassFunction_ => conditionalMassFunction()
     haloMassFunction_        => haloMassFunction       ()

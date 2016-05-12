@@ -20,7 +20,6 @@
 
 program Test_Integration
   !% Tests that numerical integration routines work.
-  use, intrinsic :: ISO_C_Binding
   use Unit_Tests
   use Numerical_Integration
   use Test_Integration_Functions
@@ -29,7 +28,6 @@ program Test_Integration
   double precision                             :: integral
   type            (fgsl_function             ) :: integrandFunction
   type            (fgsl_integration_workspace) :: integrationWorkspace
-  type            (c_ptr                     ) :: parameterPointer
   logical                                      :: integrationReset
 
   ! Begin unit tests.
@@ -37,25 +35,25 @@ program Test_Integration
 
   ! Test simple integrations.
   integrationReset=.true.
-  integral=Integrate(0.0d0,1.0d0,Integrand1,parameterPointer,integrandFunction&
+  integral=IntegrateTMP(0.0d0,1.0d0,Integrand1,integrandFunction&
        &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
-  call Assert("integrate f(x)=x from 0 to 1",integral,0.5d0,relTol=1.0d-6)
+  call Assert("integrate f(x)=x          from x=0……1"          ,integral,0.5d0             ,relTol=1.0d-6)
+  
+  integrationReset=.true.
+  integral=IntegrateTMP(0.0d0,2.0d0*Pi,Integrand2,integrandFunction&
+       &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
+  call Assert("integrate f(x)=sin(x)     from x=0…2π"          ,integral,0.0d0             ,absTol=1.0d-6)
 
   integrationReset=.true.
-  integral=Integrate(0.0d0,2.0d0*Pi,Integrand2,parameterPointer,integrandFunction&
+  integral=IntegrateTMP(0.0d0,10.0d0,Integrand3,integrandFunction&
        &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
-  call Assert("integrate f(x)=sin(x) from 0 to 2 Pi",integral,0.0d0,absTol=1.0d-6)
-
-  integrationReset=.true.
-  integral=Integrate(0.0d0,10.0d0,Integrand3,parameterPointer,integrandFunction&
-       &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
-  call Assert("integrate f(x)=1/sqrt(x) from 0 to 10",integral,2.0d0*sqrt(10.0d0),relTol=1.0d-6)
+  call Assert("integrate f(x)=1/√x       from x=0…10"          ,integral,2.0d0*sqrt(10.0d0),relTol=1.0d-6)
 
   ! Test 2D integrations.
   integrationReset=.true.
-  integral=Integrate(0.0d0,2.0d0*Pi,Integrand4,parameterPointer,integrandFunction&
+  integral=IntegrateTMP(0.0d0,2.0d0*Pi,Integrand4,integrandFunction&
        &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
-  call Assert("integrate f(x,y)=cos(x)*y from x=0 to 2 Pi and y=0 to x",integral,2.0d0*Pi,relTol=1.0d-6)
+  call Assert("integrate f(x,y)=y·cos(x) from x=0…2π and y=0…x",integral,2.0d0*Pi          ,relTol=1.0d-6)
 
   ! End unit tests.
   call Unit_Tests_End_Group()

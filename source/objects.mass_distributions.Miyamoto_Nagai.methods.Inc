@@ -155,7 +155,6 @@ subroutine Mass_Distribution_Miyamoto_Nagai_Mass_Enclosed_Initialize(self)
   use Numerical_Constants_Math
   use FGSL
   use Table_Labels
-  use, intrinsic :: ISO_C_Binding
   implicit none
   class           (massDistributionMiyamotoNagai), intent(inout) :: self
   double precision                               , parameter     :: radiusMinimum       =1.0d-6, radiusMaximum =1.0d3
@@ -163,7 +162,6 @@ subroutine Mass_Distribution_Miyamoto_Nagai_Mass_Enclosed_Initialize(self)
   integer                                        , parameter     :: radiusCount         =300
   type            (fgsl_function                )                :: integrandFunction
   type            (fgsl_integration_workspace   )                :: integrationWorkspace
-  type            (c_ptr                        )                :: parameterPointer
   integer                                                        :: i
   double precision                                               :: radius
 
@@ -178,11 +176,10 @@ subroutine Mass_Distribution_Miyamoto_Nagai_Mass_Enclosed_Initialize(self)
              &  %populate(                                             &
              &            +4.0d0                                       &
              &            *Pi                                          &
-             &            *Integrate(                                  &
+             &            *IntegrateTMP(                                  &
              &                       0.0d0                           , &
              &                       self%massEnclosedTable%x(i)     , &
              &                       Mass_Enclosed_Integrand_R       , &
-             &                       parameterPointer                , &
              &                       integrandFunction               , &
              &                       integrationWorkspace            , &
              &                       toleranceAbsolute        =0.0d+0, &
@@ -220,27 +217,23 @@ subroutine Mass_Distribution_Miyamoto_Nagai_Mass_Enclosed_Initialize(self)
 
 contains
   
-  function Mass_Enclosed_Integrand_R(r,parameterPointer) bind(C)
+  double precision function Mass_Enclosed_Integrand_R(r)
     !% Integrand function used for finding the mass enclosed by a sphere in Miyamoto-Nagai disks.
-    use, intrinsic :: ISO_C_Binding
     use Coordinates
     implicit none
-    real(kind=c_double             )        :: Mass_Enclosed_Integrand_R
-    real(kind=c_double             ), value :: r
-    type(c_ptr                     ), value :: parameterPointer
-    type(fgsl_function             )        :: integrandFunction1
-    type(fgsl_integration_workspace)        :: integrationWorkspace1
+    double precision                            , intent(in   ) :: r
+    type            (fgsl_function             )                :: integrandFunction1
+    type            (fgsl_integration_workspace)                :: integrationWorkspace1
 
     radius=r
     Mass_Enclosed_Integrand_R=+radius                                                 &
-         &                    *Integrate(                                             &
+         &                    *IntegrateTMP(                                             &
          &                               0.0d0                                      , &
          &                               sqrt(                                        &
          &                                    +self%massEnclosedTable%x(i)**2         &
          &                                    -radius                     **2         &
          &                                   )                                      , &
          &                               Mass_Enclosed_Integrand_Z                  , &
-         &                               parameterPointer                           , &
          &                               integrandFunction1                         , &
          &                               integrationWorkspace1                      , &
          &                               toleranceAbsolute                   =0.0d+0, &
@@ -250,15 +243,12 @@ contains
     return
   end function Mass_Enclosed_Integrand_R
 
-  function Mass_Enclosed_Integrand_Z(z,parameterPointer) bind(C)
+  double precision function Mass_Enclosed_Integrand_Z(z)
     !% Integrand function used for finding the mass enclosed by a sphere in Miyamoto-Nagai disks.
-    use, intrinsic :: ISO_C_Binding
     use Coordinates
     implicit none
-    real(kind=c_double        )        :: Mass_Enclosed_Integrand_Z
-    real(kind=c_double        ), value :: z
-    type(c_ptr                ), value :: parameterPointer
-    type(coordinateCylindrical)        :: position
+    double precision                       , intent(in   ) :: z
+    type            (coordinateCylindrical)                :: position
 
     position                 =[radius,0.0d0,z]
     Mass_Enclosed_Integrand_Z=self%density(position)
@@ -272,7 +262,6 @@ subroutine Mass_Distribution_Miyamoto_Nagai_Surface_Density_Initialize(self)
   use Numerical_Integration
   use FGSL
   use Table_Labels
-  use, intrinsic :: ISO_C_Binding
   implicit none
   class           (massDistributionMiyamotoNagai), intent(inout) :: self
   double precision                               , parameter     :: radiusMinimum       =1.0d-6, radiusMaximum =1.0d3
@@ -280,7 +269,6 @@ subroutine Mass_Distribution_Miyamoto_Nagai_Surface_Density_Initialize(self)
   integer                                        , parameter     :: radiusCount         =300
   type            (fgsl_function                )                :: integrandFunction
   type            (fgsl_integration_workspace   )                :: integrationWorkspace
-  type            (c_ptr                        )                :: parameterPointer
   integer                                                        :: i
 
   ! Surface density is not analytically tractable. Tabulate the results of numerical integration.
@@ -293,11 +281,10 @@ subroutine Mass_Distribution_Miyamoto_Nagai_Surface_Density_Initialize(self)
              & %surfaceDensityTable                                    &
              &  %populate(                                             &
              &            +2.0d0                                       &
-             &            *Integrate(                                  &
+             &            *IntegrateTMP(                                  &
              &                       self%b*heightStart              , &
              &                       self%b*heightInfinity           , &
              &                       Surface_Density_Integrand       , &
-             &                       parameterPointer                , &
              &                       integrandFunction               , &
              &                       integrationWorkspace            , &
              &                       toleranceAbsolute        =0.0d+0, &
@@ -314,15 +301,12 @@ subroutine Mass_Distribution_Miyamoto_Nagai_Surface_Density_Initialize(self)
 
 contains
   
-  function Surface_Density_Integrand(height,parameterPointer) bind(C)
+  double precision function Surface_Density_Integrand(height)
     !% Integrand function used for finding the surface density of Miyamoto-Nagai disks.
-    use, intrinsic :: ISO_C_Binding
     use Coordinates
     implicit none
-    real(kind=c_double        )        :: Surface_Density_Integrand
-    real(kind=c_double        ), value :: height
-    type(c_ptr                ), value :: parameterPointer
-    type(coordinateCylindrical)        :: position
+    double precision                       , intent(in   ) :: height
+    type            (coordinateCylindrical)                :: position
 
     position                 =[self%surfaceDensityTable%x(i),0.0d0,height]
     Surface_Density_Integrand=self%density(position)

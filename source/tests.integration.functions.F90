@@ -20,7 +20,6 @@
 
 module Test_Integration_Functions
   !% Contains integrands for unit tests.
-  use, intrinsic :: ISO_C_Binding
   use FGSL
   implicit none
   private
@@ -32,48 +31,40 @@ module Test_Integration_Functions
 
 contains
 
-  function Integrand1(x,parameterPointer) bind(c)
+  double precision function Integrand1(x)
     !% Integral for unit testing.
     implicit none
-    real(kind=c_double)        :: Integrand1
-    real(kind=c_double), value :: x
-    type(c_ptr        ), value :: parameterPointer
+    double precision, intent(in   ) :: x
 
     Integrand1=x
     return
   end function Integrand1
 
-  function Integrand2(x,parameterPointer) bind(c)
+  double precision function Integrand2(x)
     !% Integral for unit testing.
     implicit none
-    real(kind=c_double)        :: Integrand2
-    real(kind=c_double), value :: x
-    type(c_ptr        ), value :: parameterPointer
+    double precision, intent(in   ) :: x
 
     Integrand2=sin(x)
     return
   end function Integrand2
 
-  function Integrand3(x,parameterPointer) bind(c)
+  double precision function Integrand3(x)
     !% Integral for unit testing.
     implicit none
-    real(kind=c_double)        :: Integrand3
-    real(kind=c_double), value :: x
-    type(c_ptr        ), value :: parameterPointer
+    double precision, intent(in   ) :: x
 
     Integrand3=1.0d0/sqrt(x)
     return
   end function Integrand3
 
-  function Integrand4(x,parameterPointer) bind(c)
+  double precision function Integrand4(x)
     !% Integral for unit testing.
     use Numerical_Integration
     implicit none
-    real(kind=c_double)        :: Integrand4
-    real(kind=c_double), value :: x
-    type(c_ptr        ), value :: parameterPointer
+    double precision, intent(in   ) :: x
 
-    Integrand4=cos(x)*Integrate(0.0d0,x,Integrand1,parameterPointer,integrandFunction&
+    Integrand4=cos(x)*IntegrateTMP(0.0d0,x,Integrand1,integrandFunction&
        &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
     return
   end function Integrand4
