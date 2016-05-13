@@ -21,7 +21,6 @@
 module Spherical_Collapse_Matter_Dark_Energy
   !% Implements calculations of spherical top hat collapse in cosmologies containing matter and dark energy.
   use FGSL
-  use, intrinsic :: ISO_C_Binding
   use ISO_Varying_String
   use Cosmology_Functions
   implicit none
@@ -323,7 +322,6 @@ contains
     double precision                    , parameter                                       :: odeToleranceAbsolute          =0.0d0, odeToleranceRelative            =1.0d-12
     type            (fodeiv2_system    )                                                  :: ode2System
     type            (fodeiv2_driver    )                                                  :: ode2Driver
-    type            (c_ptr             )                                                  :: parameterPointer
     logical                                                                               :: odeReset
     double precision                                                                      :: expansionFactorInitial              , perturbationExpansionRateInitial        , &
          &                                                                                   perturbationOverdensityInitial      , timeInitial
@@ -352,7 +350,6 @@ contains
             &                   nProperties                              , &
             &                   propertyValues                           , &
             &                   perturbationODEs                         , &
-            &                   parameterPointer                         , &
             &                   odeToleranceAbsolute,odeToleranceRelative, &
             &                   reset=odeReset                           , &
             &                   odeStatus=odeStatus                        &
@@ -369,14 +366,12 @@ contains
     return
   end subroutine Perturbation_Dynamics_Solver
 
-  function perturbationODEs(time,y,dydt,parameterPointer) bind(c)
+  integer function perturbationODEs(time,y,dydt)
     implicit none
-    integer         (kind=c_int   )                       :: perturbationODEs
-    real            (kind=c_double)               , value :: time
-    real            (kind=c_double), intent(in   )        :: y               (*)
-    real            (kind=c_double)                       :: dydt            (*)
-    type            (c_ptr        )               , value :: parameterPointer
-    double precision                                      :: expansionFactor
+    double precision, intent(in   )               :: time
+    double precision, intent(in   ), dimension(:) :: y
+    double precision, intent(  out), dimension(:) :: dydt
+    double precision                              :: expansionFactor
 
     if (y(1) <= 0.0d0) then
        dydt(1:2)=0.0d0

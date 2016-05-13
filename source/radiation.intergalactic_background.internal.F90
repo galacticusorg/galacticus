@@ -280,7 +280,6 @@ contains
     type            (fodeiv2_system               ), save          :: ode2System
     type            (fodeiv2_driver               ), save          :: ode2Driver
     logical                                        , save          :: odeReset
-    type            (c_ptr                        )                :: parameterPointer
     double precision                                               :: starFormationRateDisk               , starFormationRateSpheroid          , &
          &                                                            gasMassDisk                         , gasMassSpheroid                    , &
          &                                                            ageEnd                              , ageStart                           , &
@@ -421,7 +420,6 @@ contains
             &            backgroundRadiationWavelengthCount        , &
             &            backgroundRadiationSpectrum               , &
             &            backgroundRadiationODEs                   , &
-            &            parameterPointer                          , &
             &            odeToleranceAbsolute                      , &
             &            odeToleranceRelative                      , &
             &            reset=odeReset                              &
@@ -505,22 +503,19 @@ contains
 
   end function Radiation_Intergalactic_Background_Internal_Update
     
-  function backgroundRadiationODEs(time,spectrum,spectrumRateOfChange,parameterPointer) bind(c)
+  integer function backgroundRadiationODEs(time,spectrum,spectrumRateOfChange)
     !% Evaluates the ODEs controlling the evolution of cosmic background radiation.
-    use               ODE_Solver_Error_Codes
-    use, intrinsic :: ISO_C_Binding
-    use               Numerical_Constants_Astronomical
-    use               Numerical_Constants_Physical
-    use               Numerical_Constants_Units
-    use               Numerical_Constants_Atomic
+    use ODE_Solver_Error_Codes
+    use Numerical_Constants_Astronomical
+    use Numerical_Constants_Physical
+    use Numerical_Constants_Units
+    use Numerical_Constants_Atomic
     implicit none
-    integer  (kind=c_int                  )                       :: backgroundRadiationODEs
-    real     (kind=c_double               )               , value :: time
-    real     (kind=c_double               ), intent(in   )        :: spectrum            (*)
-    real     (kind=c_double               )                       :: spectrumRateOfChange(*)
-    real     (kind=c_double               )                       :: spectralGradient    (backgroundRadiationWavelengthCount)
-    real     (kind=c_double               )                       :: expansionFactor
-    type     (c_ptr                       )               , value :: parameterPointer
+    double precision, intent(in   )               :: time
+    double precision, intent(in   ), dimension(:) :: spectrum            
+    double precision, intent(  out), dimension(:) :: spectrumRateOfChange
+    double precision                              :: spectralGradient    (backgroundRadiationWavelengthCount)
+    double precision                              :: expansionFactor
 
     ! Get the expansion factor.
     expansionFactor=cosmologyFunctions_%expansionFactor(time)

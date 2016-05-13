@@ -22,9 +22,8 @@ program Test_ODE_Solver
   !% Tests that ODE solver routines work.
   use Unit_Tests
   use FGSL
-    use ODE_Solver
+  use ODE_Solver
   use Test_ODE_Solver_Functions
-  use, intrinsic :: ISO_C_Binding
   implicit none
   double precision                    , dimension(10) :: xEnd
   double precision                    , dimension( 2) :: y
@@ -33,7 +32,6 @@ program Test_ODE_Solver
   type            (fgsl_odeiv_evolve )                :: odeEvolver
   type            (fgsl_odeiv_system )                :: odeSystem
   logical                                             :: odeReset
-  type            (c_ptr             )                :: parameterPointer
   integer                                             :: i
   double precision                                    :: xStart
   character       (len=32            )                :: message
@@ -49,7 +47,7 @@ program Test_ODE_Solver
      y(1:1)=[0.0d0]
      xStart=0.0d0
      call ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,xStart,xEnd(i),1,y(1:1)&
-          &,ODE_Set_1,parameterPointer,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-9,reset=odeReset)
+          &,ODE_Set_1,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-9,reset=odeReset)
      call ODE_Solver_Free(odeStepper,odeController,odeEvolver,odeSystem)
      write (message,'(a,f4.1)') "x=0 to ",xEnd(i)
      call Assert(trim(message),y(1:1),1.0d0-cos(xEnd(i:i)),relTol=1.0d-6)
@@ -64,7 +62,7 @@ program Test_ODE_Solver
      y(1:2)=[1.0d0,0.0d0]
      xStart=0.0d0
      call ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,xStart,xEnd(i),2,y(1:2)&
-          &,ODE_Set_2,parameterPointer,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-9,reset=odeReset)
+          &,ODE_Set_2,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-9,reset=odeReset)
      call ODE_Solver_Free(odeStepper,odeController,odeEvolver,odeSystem)
      write (message,'(a,f4.1)') "x=0 to ",xEnd(i)
      call Assert(trim(message),y(1:2),[cos(xEnd(i)),-sin(xEnd(i))],relTol=1.0d-6)

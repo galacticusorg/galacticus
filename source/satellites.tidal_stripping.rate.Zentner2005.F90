@@ -145,7 +145,7 @@ contains
             &            *satelliteMass                   &
             &            /tidalPullGlobal                 &
             &            *(kilo*gigaYear/megaParsec)**2   &
-            &           )**(1.0d0/3.0d0)       
+            &           )**(1.0d0/3.0d0)
        ! Find the tidal radius in the dark matter profile.
        if (.not.finder%isInitialized()) then
           call finder%rootFunction(Tidal_Radius_Solver)

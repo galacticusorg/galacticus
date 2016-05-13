@@ -20,21 +20,34 @@
 
 module ODE_Solver
   !% Contains an interface to the GNU Scientific Library ODEIV differential equation solvers.
+  use, intrinsic :: ISO_C_Binding
   use ODE_Solver_Error_Codes
   implicit none
   private
   public :: ODE_Solve, ODE_Solver_Free
 
+  ! Integrand interface.
+  abstract interface
+     integer function odesTemplate(x,y,dydx)
+       double precision, intent(in   )               :: x
+       double precision, intent(in   ), dimension(:) :: y
+       double precision, intent(  out), dimension(:) :: dydx
+     end function odesTemplate
+  end interface
+
+  ! Integrand function.
+  procedure(odesTemplate), pointer :: currentODEs
+  integer  (c_size_t    )          :: currentODENumber       
+  !$omp threadprivate(currentODEs,currentODENumber)
+  
 contains
 
-  subroutine ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,x0,x1,yCount,y,odeFunction,parameterPointer&
-       &,toleranceAbsolute,toleranceRelative,yScale,reset)
+  subroutine ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,x0,x1,yCount,y,odes,toleranceAbsolute,toleranceRelative,yScale,reset)
     !% Interface to the GNU Scientific Library ODEIV differential equation solvers.
-    use Galacticus_Error
     use, intrinsic :: ISO_C_Binding
+    use               Galacticus_Error
     implicit none
     double precision                    , intent(in   )           :: toleranceAbsolute              , toleranceRelative              , x1
-    type            (c_ptr             ), intent(in   )           :: parameterPointer
     integer                             , intent(in   )           :: yCount
     double precision                    , intent(inout)           :: x0                             , y                (yCount)
     double precision                    , intent(in   ), optional :: yScale           (yCount)
@@ -43,16 +56,21 @@ contains
     type            (fgsl_odeiv_evolve ), intent(inout)           :: odeEvolver
     type            (fgsl_odeiv_system ), intent(inout)           :: odeSystem
     logical                             , intent(inout), optional :: reset
-    integer         (kind=4            ), external                :: odeFunction
+    procedure       (odesTemplate      )                          :: odes
+    procedure       (odesTemplate      ), pointer                 :: previousODEs
     double precision                    , parameter               :: dydtScaleUniform         =0.0d0, yScaleUniform            =1.0d0
     integer                                                       :: status
-    integer         (kind=c_size_t     )                          :: odeNumber
+    integer         (kind=c_size_t     )                          :: previousODENumber
     double precision                                              :: h                              , x                              , x1Internal
     logical                                                       :: forwardEvolve                  , resetActual
-
-    ! Number of ODEs to solve.
-    odeNumber=yCount
-
+    type            (c_ptr             )                          :: parameterPointer
+    
+    ! Store the current ODE function (and system size) so that we can restore it on exit. This allows the ODE function to be
+    ! called recursively.
+    previousODEs      => currentODEs
+    previousODENumber =  currentODENumber
+    currentODEs       => ODEs
+    currentODENumber  =  yCount
     ! Decide whether to reset.
     resetActual=.false.
     if (present(reset)) then
@@ -60,16 +78,15 @@ contains
        reset=.false.
     end if
     if (resetActual.or..not.FGSL_Well_Defined(odeSystem)) then
-       odeStepper      =FGSL_ODEiv_Step_Alloc        (FGSL_ODEiv_Step_RKCK,odeNumber)
+       odeStepper      =FGSL_ODEiv_Step_Alloc        (FGSL_ODEiv_Step_RKCK,currentODENumber)
        if (present(yScale)) then
-          odeController=FGSL_ODEiv_Control_Scaled_New(toleranceAbsolute,toleranceRelative,yScaleUniform,dydtScaleUniform,yScale,odeNumber)
+          odeController=FGSL_ODEiv_Control_Scaled_New(toleranceAbsolute,toleranceRelative,yScaleUniform,dydtScaleUniform,yScale,currentODENumber)
        else
           odeController=FGSL_ODEiv_Control_y_New     (toleranceAbsolute,toleranceRelative                                                )
        end if
-       odeEvolver      =FGSL_ODEiv_Evolve_Alloc      (odeNumber)
-       odeSystem       =FGSL_ODEiv_System_Init       (odeFunction,odeNumber,parameterPointer)
+       odeEvolver      =FGSL_ODEiv_Evolve_Alloc      (currentODENumber)
+       odeSystem       =FGSL_ODEiv_System_Init       (odesWrapper,currentODENumber,parameterPointer)
     end if
-
     ! Keep a local copy of the end point as we may reset it.
     x1Internal=x1
     ! Set initial value of x variable.
@@ -94,9 +111,27 @@ contains
     end do
     ! Return the new value of x.
     x0=x
+    ! Restore the previous OODEs.
+    currentODEs      => previousODEs
+    currentODENumber =  previousODENumber
     return
   end subroutine ODE_Solve
 
+  function odesWrapper(x,y,dydx,parameterPointer) bind(c)
+    !% Wrapper function used for \gls{gsl} ODE functions.
+    use, intrinsic :: ISO_C_Binding
+    implicit none
+    integer(kind=c_int   )                              :: odesWrapper
+    real   (kind=c_double), value                       :: x
+    real   (kind=c_double), dimension(*), intent(in   ) :: y
+    real   (kind=c_double), dimension(*)                :: dydx
+    type   (     c_ptr   ), value                       :: parameterPointer
+    !GCC$ attributes unused :: parameterPointer
+    
+    odesWrapper=currentODEs(x,y(1:currentODENumber),dydx(1:currentODENumber))
+    return
+  end function odesWrapper
+    
   subroutine ODE_Solver_Free(odeStepper,odeController,odeEvolver,odeSystem)
     !% Free up workspace allocated to ODE solving.
     implicit none

@@ -125,11 +125,7 @@ contains
 
   function matterDarkEnergyConstructorInternal(cosmologyParameters_,darkEnergyEquationOfStateW0,darkEnergyEquationOfStateW1)
     !% Constructor for the matter plus dark energy cosmological functions class.
-    use Numerical_Comparison
     use Cosmology_Parameters
-    use ISO_Varying_String
-    use ODE_Solver
-    use, intrinsic :: ISO_C_Binding
     implicit none
     type            (cosmologyFunctionsMatterDarkEnergy)                        :: matterDarkEnergyConstructorInternal
     class           (cosmologyParametersClass          ), intent(in   ), target :: cosmologyParameters_
@@ -644,14 +640,12 @@ contains
     !% Compute the expansion factor at time {\normalfont \ttfamily timeEnd} given an initial value {\normalfont \ttfamily expansionFactorStart} at time {\tt
     !% timeStart}.
     use ODE_Solver
-    use, intrinsic :: ISO_C_Binding
     implicit none
     double precision                    , intent(in   ) :: expansionFactorStart       , timeEnd                     , &
          &                                                 timeStart
     double precision                    , dimension(1)  :: y
     double precision                    , parameter     :: odeToleranceAbsolute=1.0d-9, odeToleranceRelative=1.0d-12
     double precision                                    :: time
-    type            (c_ptr             )                :: parameterPointer
     type            (fgsl_odeiv_step   )                :: odeStepper
     type            (fgsl_odeiv_control)                :: odeController
     type            (fgsl_odeiv_evolve )                :: odeEvolver
@@ -660,21 +654,18 @@ contains
 
     time=timeStart
     y(1)=expansionFactorStart
-    call ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,time,timeEnd,1,y,matterDarkEnergyAgeTableODEs,parameterPointer&
+    call ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,time,timeEnd,1,y,matterDarkEnergyAgeTableODEs&
          &,odeToleranceAbsolute,odeToleranceRelative,reset=odeReset)
     call ODE_Solver_Free(odeStepper,odeController,odeEvolver,odeSystem)
     matterDarkEnergyExpansionFactorChange=y(1)
     return
   end function matterDarkEnergyExpansionFactorChange
 
-  function matterDarkEnergyAgeTableODEs(t,a,dadt,parameterPointer) bind(c)
+  integer function matterDarkEnergyAgeTableODEs(t,a,dadt)
     !% System of differential equations to solve for expansion factor vs. age.
-    use, intrinsic :: ISO_C_Binding
-    integer(kind=c_int   )                              :: matterDarkEnergyAgeTableODEs
-    real   (kind=c_double)              , value         :: t
-    real   (kind=c_double), dimension(1), intent(in   ) :: a
-    real   (kind=c_double), dimension(1)                :: dadt
-    type   (c_ptr        )              , value         :: parameterPointer
+    double precision              , intent(in   ) :: t
+    double precision, dimension(:), intent(in   ) :: a
+    double precision, dimension(:), intent(  out) :: dadt
     !GCC$ attributes unused :: t
     
     if (a(1) <= 0.0d0) then

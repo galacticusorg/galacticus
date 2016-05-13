@@ -138,7 +138,6 @@ contains
     use Cosmology_Parameters
     use ISO_Varying_String
     use ODE_Solver
-    use, intrinsic :: ISO_C_Binding
     implicit none
     type            (cosmologyFunctionsMatterLambda)               , target :: matterLambdaConstructorInternal
     class           (cosmologyParametersClass      ), intent(in   ), target :: cosmologyParameters_
@@ -150,7 +149,6 @@ contains
          &                                                                     cubicTerm25Cubed                      , cubicTerm5                    , &
          &                                                                     cubicTerm9                            , densityPower                  , &
          &                                                                     expansionFactorDominant               , timeMaximumimum     (1)
-    type            (c_ptr                         )                        :: parameterPointer
     type            (fgsl_odeiv_step               )                        :: odeStepper
     type            (fgsl_odeiv_control            )                        :: odeController
     type            (fgsl_odeiv_evolve             )                        :: odeEvolver
@@ -259,7 +257,6 @@ contains
             &         1                                                            , &
             &         timeMaximumimum                                              , &
             &         matterLambdaCollapseODEs                                     , &
-            &         parameterPointer                                             , &
             &         odeToleranceAbsolute                                         , &
             &         odeToleranceRelative                                         , &
             &         reset=odeReset                                                 &
@@ -395,15 +392,12 @@ contains
     return
   end function matterLambdaCosmicTime
 
-  function matterLambdaCollapseODEs(a,t,dtda,parameterPointer) bind(c)
+  integer function matterLambdaCollapseODEs(a,t,dtda)
     !% System of differential equations to solve for age vs. expansion factor.
-    use, intrinsic :: ISO_C_Binding
     implicit none
-    integer(kind=c_int   )                              :: matterLambdaCollapseODEs
-    real   (kind=c_double)              , value         :: a
-    real   (kind=c_double), dimension(1), intent(in   ) :: t
-    real   (kind=c_double), dimension(1)                :: dtda
-    type   (c_ptr        )              , value         :: parameterPointer
+    double precision              , intent(in   ) :: a
+    double precision, dimension(:), intent(in   ) :: t
+    double precision, dimension(:), intent(  out) :: dtda
     !GCC$ attributes unused :: t
     
     dtda(1)=1.0d0/a/matterLambdaSelfGlobal%expansionRate(a)
@@ -779,7 +773,6 @@ contains
     use Numerical_Ranges
     use ODE_Solver
     use Memory_Management
-    use, intrinsic :: ISO_C_Binding
     use Cosmology_Parameters
     use FGSL
     implicit none
@@ -791,7 +784,6 @@ contains
     double precision                                                              :: OmegaDominant                             , densityPower                  , &
          &                                                                           expansionFactor                 (1)       , expansionFactorDominant       , &
          &                                                                           tDominant                                 , timeActual
-    type            (c_ptr                         )                              :: parameterPointer
     type            (fgsl_odeiv_step               )                              :: odeStepper
     type            (fgsl_odeiv_control            )                              :: odeController
     type            (fgsl_odeiv_evolve             )                              :: odeEvolver
@@ -891,7 +883,6 @@ contains
                &         1                       , &
                &         expansionFactor         , &
                &         matterLambdaAgeTableODEs, &
-               &         parameterPointer        , &
                &         odeToleranceAbsolute    , &
                &         odeToleranceRelative    , &
                &         reset=odeReset            &
@@ -909,14 +900,11 @@ contains
     return
   end subroutine matterLambdaMakeExpansionFactorTable
 
-  function matterLambdaAgeTableODEs(t,a,dadt,parameterPointer) bind(c)
+  integer function matterLambdaAgeTableODEs(t,a,dadt)
     !% System of differential equations to solve for expansion factor vs. age.
-    use, intrinsic :: ISO_C_Binding
-    integer(kind=c_int   )                              :: matterLambdaAgeTableODEs
-    real   (kind=c_double)              , value         :: t
-    real   (kind=c_double), dimension(1), intent(in   ) :: a
-    real   (kind=c_double), dimension(1)                :: dadt
-    type   (c_ptr        )              , value         :: parameterPointer
+    double precision              , intent(in   ) :: t
+    double precision, dimension(:), intent(in   ) :: a
+    double precision, dimension(:), intent(  out) :: dadt
     !GCC$ attributes unused :: t
     
     dadt(1)=a(1)*matterLambdaSelfGlobal%expansionRate(a(1))

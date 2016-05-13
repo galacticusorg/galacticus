@@ -374,7 +374,6 @@
      integer                                        , parameter                :: propertyCount               =10
      double precision                               , parameter                :: massFilteringScale=1.0d4
      double precision                               , dimension(propertyCount) :: properties, propertyScales
-     type            (c_ptr                        )                           :: parameterPointer
      type            (varying_string               )                           :: message
      character       (len=6                        )                           :: label
      type            (hdf5Object                   )                           :: igmGroup                            , igmDataset
@@ -434,7 +433,6 @@
              &            propertyCount                                                , &
              &            properties                                                   , &
              &            Intergalactic_Medium_State_Internal_ODEs                     , &
-             &            parameterPointer                                             , &
              &            odeToleranceAbsolute                                         , &
              &            odeToleranceRelative                                         , &
              &            yScale                                        =propertyScales, &
@@ -530,67 +528,64 @@
      return
    end function Intergalactic_Medium_State_Internal_Update
    
-   function Intergalactic_Medium_State_Internal_ODEs(time,properties,propertiesRateOfChange,parameterPointer) bind(c)
+   integer function Intergalactic_Medium_State_Internal_ODEs(time,properties,propertiesRateOfChange)
      !% Evaluates the ODEs controlling the evolution temperature.
-     use               ODE_Solver_Error_Codes
-     use, intrinsic :: ISO_C_Binding
-     use               Numerical_Constants_Astronomical
-     use               Numerical_Constants_Math
-     use               Numerical_Constants_Physical
-     use               Numerical_Constants_Units
-     use               Numerical_Constants_Prefixes
-     use               Numerical_Constants_Atomic
-     use               Cosmology_Parameters
-     use               Cosmology_Functions
-     use               Atomic_Ionization_Potentials
-     use               Atomic_Rates_Ionization_Collisional
-     use               Atomic_Rates_Recombination_Radiative
-     use               Atomic_Rates_Recombination_Dielectronic
-     use               Atomic_Radiation_Gaunt_Factors
-     use               Atomic_Rates_Excitation_Collisional
-     use               Atomic_Rates_Recombination_Radiative_Data
-     use               Radiation_Structure
-     use               Atomic_Cross_Sections_Ionization_Photo
-     use               Linear_Growth
-     use               Cosmological_Mass_Variance
-     use               Numerical_Integration
-     use               FGSL
+     use ODE_Solver_Error_Codes
+     use Numerical_Constants_Astronomical
+     use Numerical_Constants_Math
+     use Numerical_Constants_Physical
+     use Numerical_Constants_Units
+     use Numerical_Constants_Prefixes
+     use Numerical_Constants_Atomic
+     use Cosmology_Parameters
+     use Cosmology_Functions
+     use Atomic_Ionization_Potentials
+     use Atomic_Rates_Ionization_Collisional
+     use Atomic_Rates_Recombination_Radiative
+     use Atomic_Rates_Recombination_Dielectronic
+     use Atomic_Radiation_Gaunt_Factors
+     use Atomic_Rates_Excitation_Collisional
+     use Atomic_Rates_Recombination_Radiative_Data
+     use Radiation_Structure
+     use Atomic_Cross_Sections_Ionization_Photo
+     use Linear_Growth
+     use Cosmological_Mass_Variance
+     use Numerical_Integration
+     use FGSL
      implicit none
-     integer         (kind=c_int                   )                               :: Intergalactic_Medium_State_Internal_ODEs
-     real            (kind=c_double                ), value                        :: time
-     real            (kind=c_double                ), intent(in   ), dimension( *) :: properties
-     real            (kind=c_double                )               , dimension( *) :: propertiesRateOfChange
-     type            (c_ptr                        ), value                        :: parameterPointer
-     class           (gauntFactorClass             ), pointer                      :: gauntFactor_
-     class           (linearGrowthClass            ), pointer                      :: linearGrowth_
-     class           (cosmologicalMassVarianceClass), pointer                      :: cosmologicalMassVariance_
-     double precision                               , parameter                    :: dielectronicRecombinationRateHeIEnergyLoss=40.74d0 ! electron volts.
-     double precision                               , parameter                    :: massFilteringMinimum                      =1.0d2
-     double precision                                              , dimension( 2) :: densityHydrogen_                                  , massFilteringComposite_            , &
-          &                                                                           massFilteringCompositeRateOfChange
-     double precision                                              , dimension( 3) :: densityHelium_
-     type            (radiationStructure           ), save                         :: radiation  
-     type            (fgsl_function                )                               :: integrationFunction
-     type            (fgsl_integration_workspace   )                               :: integrationWorkspace
-     logical                                                                       :: integrationReset
-     integer                                                                       :: electronNumber                                    , atomicNumber                       , &
-          &                                                                        ionizationState                                   , shellNumber                        , &
-          &                                                                           photoionizationGroundIonizationState              , photoionizationGroundElectronNumber, &
-          &                                                                           iProperty
-     double precision                                                              :: temperature                                       , clumpingFactor                     , &
-          &                                                                           electronDensityRateOfChange                       , densityElectron                    , &
-          &                                                                           densityTotal                                      , ionizationPhotoRateFrom            , &
-          &                                                                           ionizationPhotoRateTo                             , opticalDepthRateOfChange           , &
-          &                                                                           massFilteringRateOfChange                         , wavenumberFilteringRateOfChange    , &
-          &                                                                           collisionIonizationRateFrom                       , collisionIonizationRateTo          , &
-          &                                                                           densityLowerIon                                   , densityUpperIon                    , &
-          &                                                                           densityThisIon                                    , recombinationDielectronicRateTo    , &
-          &                                                                           recombinationDielectronicRateFrom                 , recombinationRateTo                , &
-          &                                                                           recombinationRateFrom                             , wavelengthMinimum                  , &
-          &                                                                           wavelengthMaximum                                 , darkMatterFraction                 , &
-          &                                                                           massParticleMean                                  , massFiltering_                     , &
-          &                                                                           wavenumberFiltering                               , opticalDepth                       , &
-          &                                                                           heatingRate
+     double precision                               , intent(in  )                :: time
+     double precision                               , intent(in   ), dimension(:) :: properties
+     double precision                               , intent(  out), dimension(:) :: propertiesRateOfChange
+     class           (gauntFactorClass             ), pointer                     :: gauntFactor_
+     class           (linearGrowthClass            ), pointer                     :: linearGrowth_
+     class           (cosmologicalMassVarianceClass), pointer                     :: cosmologicalMassVariance_
+     double precision                               , parameter                   :: dielectronicRecombinationRateHeIEnergyLoss=40.74d0 ! electron volts.
+     double precision                               , parameter                   :: massFilteringMinimum                      =1.0d2
+     double precision                                              , dimension(2) :: densityHydrogen_                                  , massFilteringComposite_            , &
+          &                                                                          massFilteringCompositeRateOfChange
+     double precision                                              , dimension(3) :: densityHelium_
+     type            (radiationStructure           ), save                        :: radiation  
+     type            (fgsl_function                )                              :: integrationFunction
+     type            (fgsl_integration_workspace   )                              :: integrationWorkspace
+     logical                                                                      :: integrationReset
+     integer                                                                      :: electronNumber                                    , atomicNumber                       , &
+          &                                                                          ionizationState                                   , shellNumber                        , &
+          &                                                                          photoionizationGroundIonizationState              , photoionizationGroundElectronNumber, &
+          &                                                                          iProperty
+     double precision                                                             :: temperature                                       , clumpingFactor                     , &
+          &                                                                          electronDensityRateOfChange                       , densityElectron                    , &
+          &                                                                          densityTotal                                      , ionizationPhotoRateFrom            , &
+          &                                                                          ionizationPhotoRateTo                             , opticalDepthRateOfChange           , &
+          &                                                                          massFilteringRateOfChange                         , wavenumberFilteringRateOfChange    , &
+          &                                                                          collisionIonizationRateFrom                       , collisionIonizationRateTo          , &
+          &                                                                          densityLowerIon                                   , densityUpperIon                    , &
+          &                                                                          densityThisIon                                    , recombinationDielectronicRateTo    , &
+          &                                                                          recombinationDielectronicRateFrom                 , recombinationRateTo                , &
+          &                                                                          recombinationRateFrom                             , wavelengthMinimum                  , &
+          &                                                                          wavelengthMaximum                                 , darkMatterFraction                 , &
+          &                                                                          massParticleMean                                  , massFiltering_                     , &
+          &                                                                          wavenumberFiltering                               , opticalDepth                       , &
+          &                                                                          heatingRate
 
      ! Extract properties from the contiguous array.
      temperature            =max(properties( 1   ),0.0d0               )

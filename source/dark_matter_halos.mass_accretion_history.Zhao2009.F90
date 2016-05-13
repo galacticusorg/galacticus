@@ -34,7 +34,6 @@ contains
   double precision function zhao2009Time(self,node,mass)
     !% Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily
     !% thisNode} using the algorithm of \cite{zhao_accurate_2009}.
-    use, intrinsic :: ISO_C_Binding
     use FGSL
     use ODE_Solver
     use Galacticus_Error
@@ -54,7 +53,6 @@ contains
        &                                                                                    pObserved                             , sObserved                    , &
        &                                                                                    sigmaObserved                         , wObserved                    , &
        &                                                                                    currentMass
-    type            (c_ptr                                     )                         :: parameterPointer
     type            (fgsl_odeiv_step                           )                         :: odeStepper
     type            (fgsl_odeiv_control                        )                         :: odeController
     type            (fgsl_odeiv_evolve                         )                         :: odeEvolver
@@ -94,7 +92,7 @@ contains
     nowTime(1) =baseTime
     currentMass=baseMass
     call ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,currentMass,mass,1,nowTime &
-         &,growthRateODEs,parameterPointer,odeToleranceAbsolute,odeToleranceRelative,reset=odeReset)
+         &,growthRateODEs,odeToleranceAbsolute,odeToleranceRelative,reset=odeReset)
     odeReset=.true.
 
     ! Extract the time corresponding to the specified mass.
@@ -104,16 +102,14 @@ contains
 
   contains
     
-    function growthRateODEs(mass,nowTime,dNowTimedMass,parameterPointer) bind(c)
+    integer function growthRateODEs(mass,nowTime,dNowTimedMass)
       !% System of differential equations to solve for the growth rate.
       use Critical_Overdensities
       implicit none
-      integer(kind=c_int   )                              :: growthRateODEs
-      real   (kind=c_double)              , value         :: mass
-      real   (kind=c_double), dimension(1), intent(in   ) :: nowTime
-      real   (kind=c_double), dimension(1)                :: dNowTimedMass
-      type   (c_ptr        )              , value         :: parameterPointer
-      real   (kind=c_double)                              :: dDeltaCriticaldtNow      , dSigmadDeltaCriticalLogarithmic, &
+      double precision              , intent(in   ) :: mass
+      double precision, dimension(:), intent(in   ) :: nowTime
+      double precision, dimension(:), intent(  out) :: dNowTimedMass
+      double precision                              :: dDeltaCriticaldtNow      , dSigmadDeltaCriticalLogarithmic, &
            &                                                 dSigmadMassLogarithmicNow, deltaCriticalNow               , &
            &                                                 pNow                     , sNow                           , &
            &                                                 sigmaNow                 , wNow
