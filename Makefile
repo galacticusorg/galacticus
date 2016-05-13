@@ -94,7 +94,7 @@ CPPCOMPILER_VERSION = `$(CPPCOMPILER) -v 2>&1`
 # build the module file.
 vpath %.F90 source
 $(BUILDPATH)/%.p.F90 : source/%.F90 $(BUILDPATH)/hdf5FCInterop.dat
-	scripts/build/preprocess.pl source/$*.F90 $(BUILDPATH)/$*.p.F90
+	./scripts/build/preprocess.pl source/$*.F90 $(BUILDPATH)/$*.p.F90
 $(BUILDPATH)/%.o : $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
 	@mlist=`cat $(BUILDPATH)/$*.m` ; \
 	for mod in $$mlist ; \
@@ -158,7 +158,7 @@ $(BUILDPATH)/pFq/pfq.new.o : ./source/pFq/pfq.new.f Makefile
 # Rule for running *.Inc files through the preprocessor. We strip out single quote characters in comment lines to avoid spurious
 # complaints from the preprocessor.
 $(BUILDPATH)/%.Inc : ./source/%.Inc $(BUILDPATH)/hdf5FCInterop.dat
-	scripts/build/preprocess.pl ./source/$*.Inc $(BUILDPATH)/$*.Inc
+	./scripts/build/preprocess.pl ./source/$*.Inc $(BUILDPATH)/$*.Inc
 $(BUILDPATH)/%.inc : $(BUILDPATH)/%.Inc Makefile
 	perl -MRegexp::Common -ne '$$l=$$_;$$l =~ s/($$RE{comment}{Fortran}{-keep})/\/\*$$4\*\/$$5/; print $$l' $< | cpp -nostdinc -C | perl -MRegexp::Common -ne '$$l=$$_;$$l =~ s/($$RE{comment}{C}{-keep})/!$$4/; print $$l' > $(BUILDPATH)/$*.tmp
 	mv -f $(BUILDPATH)/$*.tmp $(BUILDPATH)/$*.inc

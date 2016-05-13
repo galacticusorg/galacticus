@@ -21,20 +21,17 @@
 module Test_ODE_Solver_Functions
   !% Contains ODEs for unit tests.
   use FGSL
-  use, intrinsic :: ISO_C_Binding
   implicit none
   private
   public :: ODE_Set_1, ODE_Set_2
 
 contains
 
-  function ODE_Set_1(x,y,dydx,parameterPointer) bind(c)
+  integer function ODE_Set_1(x,y,dydx)
     !% A set of ODEs for unit tests.
-    integer(kind=c_int   )                              :: ODE_Set_1
-    real   (kind=c_double)              , value         :: x
-    real   (kind=c_double), dimension(1), intent(in   ) :: y
-    real   (kind=c_double), dimension(1)                :: dydx
-    type   (c_ptr        )              , value         :: parameterPointer
+    double precision              , intent(in   ) :: x
+    double precision, dimension(:), intent(in   ) :: y
+    double precision, dimension(:), intent(  out) :: dydx
     !GCC$ attributes unused :: y
     
     dydx(1)=sin(x)
@@ -42,13 +39,11 @@ contains
     return
   end function ODE_Set_1
 
-  function ODE_Set_2(x,y,dydx,parameterPointer) bind(c)
+  integer function ODE_Set_2(x,y,dydx)
     !% A set of ODEs for unit tests.
-    integer(kind=c_int   )                              :: ODE_Set_2
-    real   (kind=c_double)              , value         :: x
-    real   (kind=c_double), dimension(2), intent(in   ) :: y
-    real   (kind=c_double), dimension(2)                :: dydx
-    type   (c_ptr        )              , value         :: parameterPointer
+    double precision              , intent(in   ) :: x
+    double precision, dimension(:), intent(in   ) :: y
+    double precision, dimension(:), intent(  out) :: dydx
     !GCC$ attributes unused :: x
     
     dydx(1)=       y(2)

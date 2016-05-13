@@ -20,38 +20,39 @@
 
 module ODEIV2_Solver
   !% Contains an interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} \href{http://www.gnu.org/software/gsl/manual/html_node/Ordinary-Differential-Equations.html}{ODEIV2} differential equation solvers.
-  use ODE_Solver_Error_Codes
-  use FODEIV2
+  use, intrinsic :: ISO_C_Binding
+  use               ODE_Solver_Error_Codes
+  use               FODEIV2
   private
   public :: ODEIV2_Solve, ODEIV2_Solver_Free
 
-  ! Interface for ODE solver function.
-  interface
-     function func(t, y, dydt, params) bind(c)
-       use, intrinsic :: iso_c_binding
-       real   (kind=c_double)              , value         :: t
-       real   (kind=c_double), dimension(*), intent(in   ) :: y
-       real   (kind=c_double), dimension(*)                :: dydt
-       type   (c_ptr        )              , value         :: params
-       integer(kind=c_int   )                              :: func
-     end function func
+  ! Integrand interface.
+  abstract interface
+     integer function odesTemplate(x,y,dydx)
+       double precision, intent(in   )               :: x
+       double precision, intent(in   ), dimension(:) :: y
+       double precision, intent(  out), dimension(:) :: dydx
+     end function odesTemplate
   end interface
+
+  ! Integrand function.
+  procedure(odesTemplate), pointer :: currentODEs
+  integer  (c_size_t    )          :: currentODENumber       
+  !$omp threadprivate(currentODEs,currentODENumber)
   
 contains
 
-  subroutine ODEIV2_Solve(odeDriver,odeSystem,x0,x1,yCount,y,odeFunction,parameterPointer,toleranceAbsolute,toleranceRelative&
+  subroutine ODEIV2_Solve(odeDriver,odeSystem,x0,x1,yCount,y,odes,toleranceAbsolute,toleranceRelative&
 #ifdef PROFILE
        &,Error_Analyzer &
 #endif
        &,yScale,errorHandler,algorithm,reset,odeStatus,stepSize)
     !% Interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} \href{http://www.gnu.org/software/gsl/manual/html_node/Ordinary-Differential-Equations.html}{ODEIV2} differential equation solvers.
     use Galacticus_Error
-    use, intrinsic :: ISO_C_Binding
     use ISO_Varying_String
     use String_Handling
     implicit none
     double precision                   , intent(in   )                    :: toleranceAbsolute        , toleranceRelative        , x1
-    type            (c_ptr            ), intent(in   )                    :: parameterPointer
     integer                            , intent(in   )                    :: yCount
     double precision                   , intent(inout)                    :: x0                       , y                (yCount)
     double precision                   , intent(in   ), optional          :: yScale           (yCount)
@@ -65,20 +66,25 @@ contains
 #ifdef PROFILE
     type            (c_funptr         ), intent(in   ), optional          :: Error_Analyzer
 #endif
-    procedure       (func             )                                   :: odeFunction
+    procedure       (odesTemplate     )                                   :: odes
+    procedure       (odesTemplate     ), pointer                          :: previousODEs
     integer                            , parameter                        :: genericFailureCountMaximum=10
     double precision                   , parameter                        :: dydtScaleUniform          =0.0d0, yScaleUniform=1.0d0
     integer                                                               :: status
-    integer         (kind=c_size_t    )                                   :: odeNumber
+    integer         (kind=c_size_t    )                                   :: previousODENumber
     double precision                                                      :: h                               , x                   , &
          &                                                                   x1Internal
     logical                                                               :: forwardEvolve                   , resetActual
     type            (fodeiv2_step_type)                                   :: algorithmActual
     type            (varying_string   )                                   :: message
-    
-    ! Number of ODEs to solve.
-    odeNumber=yCount
+    type            (c_ptr            )                                   :: parameterPointer
 
+    ! Store the current ODE function (and system size) so that we can restore it on exit. This allows the ODE function to be
+    ! called recursively.
+    previousODEs      => currentODEs
+    previousODENumber =  currentODENumber
+    currentODEs       => ODEs
+    currentODENumber  =  yCount
     ! Decide whether to reset.
     resetActual=.false.
     if (present(reset)) then
@@ -89,7 +95,7 @@ contains
        ! Make initial guess for timestep.
        h=(x1-x0)
        if (present(stepSize).and.stepSize > 0.0d0) h=min(stepSize,h)
-       odeSystem=FODEIV2_System_Init(odeFunction,odeNumber,parameterPointer)
+       odeSystem=FODEIV2_System_Init(odesWrapperIV2,currentODENumber,parameterPointer)
        ! Select the algorithm to use.
        if (present(algorithm)) then
           algorithmActual=algorithm
@@ -161,9 +167,27 @@ contains
     ! Return the new value of x.
     x0=x
     if (present(odeStatus)) odeStatus=status
+    ! Restore the previous OODEs.
+    currentODEs      => previousODEs
+    currentODENumber =  previousODENumber
     return
   end subroutine ODEIV2_Solve
 
+  function odesWrapperIV2(x,y,dydx,parameterPointer) bind(c)
+    !% Wrapper function used for \gls{gsl} ODEIV2 functions.
+    use, intrinsic :: ISO_C_Binding
+    implicit none
+    integer(kind=c_int   )                              :: odesWrapperIV2
+    real   (kind=c_double), value                       :: x
+    real   (kind=c_double), dimension(*), intent(in   ) :: y
+    real   (kind=c_double), dimension(*)                :: dydx
+    type   (     c_ptr   ), value                       :: parameterPointer
+    !GCC$ attributes unused :: parameterPointer
+    
+    odesWrapperIV2=currentODEs(x,y(1:currentODENumber),dydx(1:currentODENumber))
+    return
+  end function odesWrapperIV2
+    
   subroutine ODEIV2_Solver_Free(odeDriver,odeSystem)
     !% Free up workspace allocated to ODE solving.
     implicit none

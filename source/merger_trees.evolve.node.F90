@@ -75,7 +75,7 @@ module Merger_Trees_Evolve_Node
   end interface
 
   ! Pointer to an error handler for failures in the ODE solver.
-  procedure(), pointer :: Galacticus_ODE_Error_Handler=>Tree_Node_ODEs_Error_Handler
+  procedure(), pointer :: Galacticus_ODE_Error_Handler => Tree_Node_ODEs_Error_Handler
 
   ! Previous state of ODE system - used to restore this state if the ODE evaluation
   ! functions are called in succession without change.
@@ -197,7 +197,6 @@ contains
     !$omp threadprivate(nPropertiesPrevious)
     logical                                                                      :: solvedAnalytically
     double precision                                                             :: startTimeThisNode
-    type            (c_ptr                       )                               :: parameterPointer
 #ifdef PROFILE
     type            (c_funptr                    )                               :: Error_Analyzer
 #endif
@@ -293,7 +292,6 @@ contains
             &                   nProperties                              , &
             &                   propertyValues                           , &
             &                   Tree_Node_ODEs                           , &
-            &                   parameterPointer                         , &
             &                   odeToleranceAbsolute,odeToleranceRelative, &
 #ifdef PROFILE
             &                   Error_Analyzer                           , &
@@ -304,12 +302,7 @@ contains
             &                   algorithm   =Galacticus_ODE_Algorithm      &
             &                  )       
        ! Extract values.
-       call thisNode%deserializeValues(propertyValues)
-
-
-       !! AJB HACK
-       if (thisnode%isprimaryprogenitorof(1304507560_kind_int8)) call thisnode%dump()
-       
+       call thisNode%deserializeValues(propertyValues)       
        ! Ensure that the maximum time has not been exceed (can happen due to rounding errors).
        if (basicComponent%time() > endTime) call basicComponent%timeSet(endTime)
        ! Flag interruption if one occurred.
@@ -346,18 +339,15 @@ contains
     return
   end function Tree_Node_Is_Accurate
 
-  function Tree_Node_ODEs(time,y,dydt,parameterPointer) bind(c)
+  integer function Tree_Node_ODEs(time,y,dydt)
     !% Function which evaluates the set of ODEs for the evolution of a specific node.
     use ODE_Solver_Error_Codes
-    use, intrinsic :: ISO_C_Binding
     implicit none
-    integer  (kind=c_int                  )                       :: Tree_Node_ODEs
-    real     (kind=c_double               )               , value :: time
-    real     (kind=c_double               ), intent(in   )        :: y                 (*)
-    real     (kind=c_double               )                       :: dydt              (*)
-    type     (c_ptr                       )               , value :: parameterPointer
-    logical                                                       :: interrupt
-    procedure(Interrupt_Procedure_Template), pointer              :: interruptProcedure
+    double precision                       , intent(in   )               :: time
+    double precision                       , intent(in   ), dimension(:) :: y
+    double precision                       , intent(  out), dimension(:) :: dydt
+    logical                                                              :: interrupt
+    procedure(Interrupt_Procedure_Template), pointer                     :: interruptProcedure
 
     ! Return success by default.
     Tree_Node_ODEs=FGSL_Success
@@ -461,7 +451,6 @@ contains
     real     (kind=c_double     ), intent(in), dimension(nProperties) :: y
     real     (kind=c_double     )            , dimension(nProperties) :: dydt
     type     (varying_string    )                                     :: message
-    type     (c_ptr             )                                     :: parameterPointer
     integer                                                           :: i               , lengthMaximum
     character(len =12           )                                     :: label
     integer  (kind=c_int        )                                     :: odeStatus
@@ -472,7 +461,7 @@ contains
     ! Dump all node properties.
     call activeNode%dump()
     ! Evaluate derivatives.
-    odeStatus=Tree_Node_ODEs(time,y,dydt,parameterPointer)
+    odeStatus=Tree_Node_ODEs(time,y,dydt)
     call Galacticus_Display_Indent('ODE system parameters')
     lengthMaximum=0    
     do i=1,nProperties

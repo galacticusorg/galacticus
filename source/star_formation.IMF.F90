@@ -1637,7 +1637,7 @@ contains
      use Stellar_Astrophysics
      implicit none
      double precision, intent(in   ) :: initialMass
-     double precision                :: sneiaLifetime        , yieldMass
+     double precision                :: sneiaLifetime, yieldMass
      
      ! Include yields from isolated stars.
      if (Star_Is_Evolved(initialMass,metallicity,lifetime)) then

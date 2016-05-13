@@ -109,7 +109,6 @@ contains
   subroutine simpleRetabulate(self,time)
     !% Returns the linear growth factor $D(a)$ for expansion factor {\normalfont \ttfamily aExpansion}, normalized such that
     !% $D(1)=1$ for a simple matter plus cosmological constant cosmology.
-    use, intrinsic :: ISO_C_Binding
     use Tables
     use Table_Labels
     use ODE_Solver
@@ -125,7 +124,6 @@ contains
     double precision                                          :: expansionFactorMatterDominant           , growthFactorDerivative           , &
          &                                                       timeNow                                 , linearGrowthFactorPresent        , &
          &                                                       timeMatterDominant                      , timePresent
-    type            (c_ptr                   )                :: parameterPointer
     integer                                                   :: growthTableNumberPoints    
     type            (fgsl_odeiv_step         )                :: odeStepper
     type            (fgsl_odeiv_control      )                :: odeController
@@ -188,7 +186,6 @@ contains
                   &         2                                , &
                   &         growthFactorODEVariables         , &
                   &         growthFactorODEs                 , &
-                  &         parameterPointer                 , &
                   &         odeToleranceAbsolute             , &
                   &         odeToleranceRelative             , &
                   &         reset                   =odeReset  &
@@ -217,14 +214,12 @@ contains
     
   contains
     
-    function growthFactorODEs(time,values,derivatives,parameterPointer) bind(c)
+    integer function growthFactorODEs(time,values,derivatives)
       !% System of differential equations to solve for the growth factor.
-      integer(kind=c_int   )                              :: growthFactorODEs
-      real   (kind=c_double)              , value         :: time
-      real   (kind=c_double), dimension(2), intent(in   ) :: values
-      real   (kind=c_double), dimension(2)                :: derivatives
-      type   (     c_ptr   )              , value         :: parameterPointer
-      real   (kind=c_double)                              :: expansionFactor
+      double precision              , intent(in   ) :: time
+      double precision, dimension(:), intent(in   ) :: values
+      double precision, dimension(:), intent(  out) :: derivatives
+      double precision                              :: expansionFactor
       
       expansionFactor   =+self%cosmologyFunctions_%expansionFactor   (                           time)
       derivatives    (1)=+values                                     (                              2)
