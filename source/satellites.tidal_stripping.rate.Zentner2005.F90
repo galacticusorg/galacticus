@@ -138,16 +138,14 @@ contains
          &   Galactic_Structure_Enclosed_Mass(thisNode,radiusZero) >= 0.0d0      &
          & ) then
        ! Initial estimate of the tidal radius.
-       tidalRadius=                                  &
-            &      (                                 &
-            &        gravitationalConstantGalacticus &
-            &       *satelliteMass                   &
-            &       /(                               &
-            &          angularVelocity**2            &
-            &         -tidalTensor                   &
-            &        )                               &
-            &       *(kilo*gigaYear/megaParsec)**2   &
-            &      )**(1.0d0/3.0d0)
+       tidalPullGlobal =  angularVelocity**2-tidalTensor
+       tidalRadius     =                                  &
+            &           (                                 &
+            &            +gravitationalConstantGalacticus &
+            &            *satelliteMass                   &
+            &            /tidalPullGlobal                 &
+            &            *(kilo*gigaYear/megaParsec)**2   &
+            &           )**(1.0d0/3.0d0)       
        ! Find the tidal radius in the dark matter profile.
        if (.not.finder%isInitialized()) then
           call finder%rootFunction(Tidal_Radius_Solver)
@@ -160,7 +158,6 @@ contains
                &                   rangeExpandType              =rangeExpandMultiplicative      &
                &                  )
        end if
-       tidalPullGlobal =  angularVelocity**2-tidalTensor
        activeNode      => thisNode
        ! Check for complete stripping.
        if (Tidal_Radius_Solver(tidalRadiusTinyFraction*tidalRadius) > 0.0d0) then
