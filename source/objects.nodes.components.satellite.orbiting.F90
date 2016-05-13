@@ -250,21 +250,6 @@ contains
           else
              halfMassRadiusSatellite=0.0d0
           end if
-          ! Convert from initial to final radius resulting from expansion due to tidal heating.
-          halfMassRadiusSatellite =                                                &
-               &                    halfMassRadiusSatellite                        &
-               &                   /(                                              &
-               &                      1.0d0                                        &
-               &                     -2.0d0                                        &
-               &                     *halfMassRadiusSatellite**3                   &
-               &                     *tidalHeatingNormalized                       &
-               &                     /(                                            &
-               &                        gravitationalConstantGalacticus            &
-               &                       *0.5d0                                      &
-               &                       *Galactic_Structure_Enclosed_Mass(thisNode) &
-               &                      )                                            &
-               &                    )
-          darkMatterHaloScale_ => darkMatterHaloScale         ()
           satelliteMass        =  satelliteComponent%boundMass()
           basicComponent       => thisNode          %basic    ()
           basicMass            =  basicComponent    %mass     ()
