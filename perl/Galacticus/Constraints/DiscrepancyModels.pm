@@ -367,7 +367,8 @@ sub Apply_Discrepancies {
 			$covarianceMultiplier->flat()->($low ) .= -$options{'limitMultiplicativeCovariance'};
 			$covarianceMultiplier->flat()->($high) .= +$options{'limitMultiplicativeCovariance'};
 		    }
-		    $covariance              += $covarianceMultiplier*outer($value,$value);
+		    $covariance += $covarianceMultiplier*outer($value,$value);
+		    $error      += sqrt($covarianceMultiplier)*$value;
 		}		    
 		if ( $dataset eq "additive" ) {
 		    # Read the additive discrepancy
