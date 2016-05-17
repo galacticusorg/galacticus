@@ -36,7 +36,9 @@ module Merger_Tree_Operators
   !#   <type>void</type>
   !#   <pass>yes</pass>
   !#   <code>
+  !#    !GCC$ attributes unused :: self
   !#    ! Nothing to do.
+  !#    return
   !#   </code>
   !#  </method>
   !# </functionClass>

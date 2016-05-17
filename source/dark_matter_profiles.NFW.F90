@@ -687,7 +687,8 @@ contains
     implicit none
     class           (darkMatterProfileNFW), intent(inout) :: self
     double precision                      , intent(in   ) :: concentration
-
+    !GCC$ attributes unused :: self
+    
     nfwAngularMomentumScaleFree=(1.0d0+concentration-2.0d0*log(1.0d0+concentration)-1.0d0/(1.0d0+concentration)) &
          &/(log(1.0d0+concentration)-concentration/(1.0d0+concentration))
     return

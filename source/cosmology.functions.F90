@@ -175,14 +175,20 @@ module Cosmology_Functions
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: expansionFactor</argument>
-  !#   <code>cosmologyFunctionsRedshiftFromExpansionFactor=1.0d0/expansionFactor-1.0d0</code>
+  !#   <code>
+  !#    !GCC$ attributes unused :: self
+  !#    cosmologyFunctionsRedshiftFromExpansionFactor=1.0d0/expansionFactor-1.0d0
+  !#   </code>
   !#  </method>
   !#  <method name="expansionFactorFromRedshift" >
   !#   <description>Returns expansion factor given a redshift.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: redshift</argument>
-  !#   <code>cosmologyFunctionsExpansionFactorFromRedshift=1.0d0/(1.0d0+redshift)</code>
+  !#   <code>
+  !#    !GCC$ attributes unused :: self  
+  !#    cosmologyFunctionsExpansionFactorFromRedshift=1.0d0/(1.0d0+redshift)
+  !#   </code>
   !#  </method>
   !#  <method name="comovingVolumeElementRedshift" >
   !#   <description>Returns the differential comoving volume element ${\mathrm d}V/{\mathrm d}z = r_{\mathrm c}^2(t) {\mathrm c} H^{-1}(t)$ (where $r_{\mathrm c}$ is the comoving distance to time $t$ and $H(t)$ is the Hubble parameter at that time) for unit solid angle at the specified {\normalfont \ttfamily time}.</description>
