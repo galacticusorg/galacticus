@@ -141,11 +141,10 @@ contains
          &                                                                  probabilityTotal               , massSatellite                                       , &
          &                                                                  timeNode                       , velocityHost                                        , &
          &                                                                  radiusHost                     , massHost
+         &                                                                  radiusHostSelf
     logical                                                              :: foundOrbit
     !GCC$ attributes unused :: acceptUnboundOrbits
     
-    ! Reset the orbit.
-    call wetzel2010Orbit%reset()
     ! Get required objects.
     cosmologyFunctions_  => cosmologyFunctions ()
     darkMatterHaloScale_ => darkMatterHaloScale()
@@ -156,12 +155,9 @@ contains
     ! Find virial density contrast under Wetzel (2010) definition.
     virialDensityContrast_          => self                  %densityContrastDefinition(                )
     ! Find mass, radius, and velocity in the host corresponding to the Wetzel (2010) virial density contrast definition.
-    massHost     =Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%time()),radiusHost,velocityHost)
-    massSatellite=Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%time())                        )
+    massHost     =Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%time()),radiusHostSelf,velocityHost)
+    massSatellite=Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%time())                            )
     deallocate(virialDensityContrast_)
-    ! Set basic properties of the orbit.
-    call wetzel2010Orbit%massesSet(massSatellite,massHost)
-    call wetzel2010Orbit%radiusSet(radiusHost            )
     ! Get the time at which this node exists.
     timeNode=basic%time()
     ! Get the expansion factor.
@@ -176,17 +172,22 @@ contains
     ! Compute parameter of the circularity fitting function. We limit C1 to a given maximum - the fit is not explored in this
     ! regime and without the truncation we get problems evaluating hypergeometric functions.
     g1              =(1.0d0/expansionFactor)**wetzel2010CircularityP1
-    wetzel2010C1    =min(wetzel2010CircularityAlpha1*(1.0d0+wetzel2010CircularityBeta1*(g1*wetzel2010Orbit%hostMass()/massCharacteristic)**wetzel2010CircularityGamma1),wetzel2010C1Maximum)
+    wetzel2010C1    =min(wetzel2010CircularityAlpha1*(1.0d0+wetzel2010CircularityBeta1*(g1*massHost/massCharacteristic)**wetzel2010CircularityGamma1),wetzel2010C1Maximum)
     wetzel2010C0    =1.0d0
     probabilityTotal=wetzel2010CircularityCumulativeProbability(circularityMaximum)
     wetzel2010C0    =1.0d0/probabilityTotal
     ! Compute parameter of the pericentric distance fitting function. Since the fit for R1 can lead to negative pericentric
     ! distances in some cases we force R1 to always be above a specified minimum.
     g1=(1.0d0/expansionFactor)**wetzel2010PericenterP1
-    R1=max(wetzel2010PericenterAlpha1*(1.0d0+wetzel2010PericenterBeta1*(g1*wetzel2010Orbit%hostMass()/massCharacteristic)**wetzel2010PericenterGamma1),wetzel2010R1Minimum)
+    R1=max(wetzel2010PericenterAlpha1*(1.0d0+wetzel2010PericenterBeta1*(g1*massHost/massCharacteristic)**wetzel2010PericenterGamma1),wetzel2010R1Minimum)
     ! Search for an orbit.
     foundOrbit=.false.
     do while (.not.foundOrbit)
+       ! Reset the orbit.
+       call wetzel2010Orbit%reset()
+       ! Set basic properties of the orbit.
+       call wetzel2010Orbit%massesSet(massSatellite,massHost      )
+       call wetzel2010Orbit%radiusSet(              radiusHostSelf)
        ! Compute pericentric radius by inversion in table.
        wetzel2010UniformDeviate=Pseudo_Random_Get(self%pseudoSequenceObject,self%resetSequence)
        pericentricRadius=R1*self%pericentricRadiusTableInverse%interpolate(wetzel2010UniformDeviate)
@@ -199,8 +200,8 @@ contains
        foundOrbit          =apocentricRadius >= 1.0d0 .and. pericentricRadius <= 1.0d0
        if (.not.foundOrbit) cycle
        ! Set eccentricity and periapsis.
-       call wetzel2010Orbit%eccentricitySet    (sqrt(1.0d0-circularity**2)  )
-       call wetzel2010Orbit%radiusPericenterSet(pericentricRadius*radiusHost)
+       call wetzel2010Orbit%eccentricitySet    (sqrt(1.0d0-circularity**2)      )
+       call wetzel2010Orbit%radiusPericenterSet(pericentricRadius*radiusHostSelf)
        ! Propagate the orbit to the virial radius under the default density contrast definition.
        radiusHost=darkMatterHaloScale_%virialRadius(host)
        if (wetzel2010Orbit%radiusApocenter() >= radiusHost .and. wetzel2010Orbit%radiusPericenter() <= radiusHost) then
