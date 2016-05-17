@@ -304,6 +304,9 @@ module Kepler_Orbits
      procedure :: semiMajorAxis        =>Kepler_Orbits_Semi_Major_Axis
   end type keplerOrbit
 
+  ! A null orbit.
+  type(keplerOrbit), public :: zeroKeplerOrbit=keplerOrbit(0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.)
+  
 contains
 
   subroutine Kepler_Orbits_Destroy(thisOrbit)

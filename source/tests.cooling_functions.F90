@@ -56,7 +56,7 @@ program Test_Cooling_Functions
   ! Define plasma conditions.
   numberDensityHydrogen=1.0d-4 ! cm^-3
   temperature          =1.0d+6 ! K
-  chemicalDensities    =zeroChemicals
+  chemicalDensities    =zeroChemicalAbundances
   call radiation    %        define(                      [radiationTypeCMB ])
   call radiation    %           set(1.0d0                                    )
   call gasAbundances%metallicitySet(1.0d0,metallicityType= metallicityTypeLinearByMassSolar )

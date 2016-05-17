@@ -204,7 +204,7 @@ module Chemical_Abundances_Structure
   logical                                                         :: chemicalAbundancesInitialized=.false.
 
   ! Unit and zero chemical abundances objects.
-  type            (chemicalabundances), public                    :: unitChemicals                        , zeroChemicals
+  type            (chemicalabundances), public                    :: unitChemicalAbundances               , zeroChemicalAbundances
 
 contains
 
@@ -258,10 +258,10 @@ contains
              end do
           end if
           ! Create zero and unit chemical abundances objects.
-          call Alloc_Array(zeroChemicals%chemicalValue,[propertyCount])
-          call Alloc_Array(unitChemicals%chemicalValue,[propertyCount])
-          zeroChemicals%chemicalValue=0.0d0
-          unitChemicals%chemicalValue=1.0d0
+          call Alloc_Array(zeroChemicalAbundances%chemicalValue,[propertyCount])
+          call Alloc_Array(unitChemicalAbundances%chemicalValue,[propertyCount])
+          zeroChemicalAbundances%chemicalValue=0.0d0
+          unitChemicalAbundances%chemicalValue=1.0d0
           ! Flag that this module is now initialized.
           chemicalAbundancesInitialized=.true.
        end if
@@ -350,7 +350,7 @@ contains
     ! Ensure module is initialized.
     call Chemical_Abundances_Initialize
     if (chemicalsCount == 0) then
-       Chemical_Abundances_Add=zeroChemicals
+       Chemical_Abundances_Add=zeroChemicalAbundances
     else
        if (present(abundances2)) then
           Chemical_Abundances_Add%chemicalValue=abundances1%chemicalValue+abundances2%chemicalValue
@@ -371,7 +371,7 @@ contains
     ! Ensure module is initialized.
     call Chemical_Abundances_Initialize
     if (chemicalsCount == 0) then
-       Chemical_Abundances_Subtract=zeroChemicals
+       Chemical_Abundances_Subtract=zeroChemicalAbundances
     else
        if (present(abundances2)) then
           Chemical_Abundances_Subtract%chemicalValue= abundances1%chemicalValue-abundances2%chemicalValue
@@ -392,7 +392,7 @@ contains
     ! Ensure module is initialized.
     call Chemical_Abundances_Initialize
     if (chemicalsCount == 0) then
-       Chemical_Abundances_Multiply=zeroChemicals
+       Chemical_Abundances_Multiply=zeroChemicalAbundances
     else
        Chemical_Abundances_Multiply%chemicalValue=abundances1%chemicalValue*multiplier
     end if
@@ -409,7 +409,7 @@ contains
     ! Ensure module is initialized.
     call Chemical_Abundances_Initialize
     if (chemicalsCount == 0) then
-       Chemical_Abundances_Divide=zeroChemicals
+       Chemical_Abundances_Divide=zeroChemicalAbundances
     else
        Chemical_Abundances_Divide%chemicalValue=abundances1%chemicalValue/divisor
     end if

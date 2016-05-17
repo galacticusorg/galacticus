@@ -93,7 +93,7 @@ contains
     ! Initialize.
     atomicCIECloudyConstructorInternal%electronDensityPrevious        =-1.0d0
     atomicCIECloudyConstructorInternal%electronDensitySlopePrevious   =-1.0d0
-    atomicCIECloudyConstructorInternal%chemicalDensitiesPrevious      =-unitChemicals
+    atomicCIECloudyConstructorInternal%chemicalDensitiesPrevious      =-unitChemicalAbundances
     atomicCIECloudyConstructorInternal%    metallicityPrevious        =-1.0d0
     atomicCIECloudyConstructorInternal%    metallicitySlopePrevious   =-1.0d0
     atomicCIECloudyConstructorInternal%    metallicityChemicalPrevious=-1.0d0
