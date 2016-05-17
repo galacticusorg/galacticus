@@ -23,7 +23,9 @@
   !# </surveyGeometry>
 
   type, extends(surveyGeometryRandomPoints) :: surveyGeometryLiWhite2009SDSS
+     double precision :: limitDistanceMinimum, limitDistanceMaximum
    contains
+     procedure :: distanceMinimum   => liWhite2009SDSSDistanceMinimum
      procedure :: distanceMaximum   => liWhite2009SDSSDistanceMaximum
      procedure :: solidAngle        => liWhite2009SDSSSolidAngle
      procedure :: randomsInitialize => liWhite2009SDSSRandomsInitialize
@@ -32,19 +34,55 @@
   interface surveyGeometryLiWhite2009SDSS
      !% Constructors for the \cite{li_distribution_2009} survey geometry class.
      module procedure liWhite2009SDSSDefaultConstructor
+     module procedure liWhite2009SDSSRedshiftConstructor
   end interface surveyGeometryLiWhite2009SDSS
 
 contains
 
   function liWhite2009SDSSDefaultConstructor()
-    !% Default constructor for the \cite{li_distribution_2009} conditional mass function class.
+    !% Default constructor for the \cite{li_distribution_2009} survey geometry class.
     use Input_Parameters
     implicit none
     type(surveyGeometryLiWhite2009SDSS) :: liWhite2009SDSSDefaultConstructor
 
-    liWhite2009SDSSDefaultConstructor%geometryInitialized=.false.
+    liWhite2009SDSSDefaultConstructor%geometryInitialized =.false.
+    liWhite2009SDSSDefaultConstructor%limitDistanceMinimum=     0.0d0
+    liWhite2009SDSSDefaultConstructor%limitDistanceMaximum=huge(0.0d0)
     return
   end function liWhite2009SDSSDefaultConstructor
+
+  function liWhite2009SDSSRedshiftConstructor(redshiftMinimum,redshiftMaximum)
+    !% Constructor for the \cite{li_distribution_2009} survey geometry class which allows specification of minimum and maximum redshifts.
+    use Cosmology_Functions
+    use Cosmology_Functions_Options
+    implicit none
+    type            (surveyGeometryLiWhite2009SDSS)                :: liWhite2009SDSSRedshiftConstructor
+    double precision                               , intent(in   ) :: redshiftMinimum                  , redshiftMaximum
+    class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
+    
+    cosmologyFunctions_                                     => cosmologyFunctions()     
+    liWhite2009SDSSRedshiftConstructor%geometryInitialized  =  .false.
+    liWhite2009SDSSRedshiftConstructor%limitDistanceMinimum =  cosmologyFunctions_%distanceComovingConvert(                               &
+         &                                                                                                 output  =distanceTypeComoving, &
+         &                                                                                                 redshift=redshiftMinimum       &
+         &                                                                                                )
+    liWhite2009SDSSRedshiftConstructor%limitDistanceMaximum =  cosmologyFunctions_%distanceComovingConvert(                               &
+         &                                                                                                 output  =distanceTypeComoving, &
+         &                                                                                                 redshift=redshiftMaximum       &
+         &                                                                                                )
+    return
+  end function liWhite2009SDSSRedshiftConstructor
+
+  double precision function liWhite2009SDSSDistanceMinimum(self,mass,field)
+    !% Compute the minimum distance at which a galaxy is visible.
+    implicit none
+    class           (surveyGeometryLiWhite2009SDSS), intent(inout)           :: self
+    double precision                               , intent(in   )           :: mass
+    integer                                        , intent(in   ), optional :: field
+
+    liWhite2009SDSSDistanceMinimum=self%limitDistanceMinimum
+    return
+  end function liWhite2009SDSSDistanceMinimum
 
   double precision function liWhite2009SDSSDistanceMaximum(self,mass,field)
     !% Compute the maximum distance at which a galaxy is visible.
@@ -85,11 +123,13 @@ contains
     ! Get the default cosmology functions object.
     cosmologyFunctions_ => cosmologyFunctions()     
     ! Convert from redshift to comoving distance.
-    liWhite2009SDSSDistanceMaximum                                                     &
-         & =cosmologyFunctions_%distanceComovingConvert(                               &
-         &                                              output  =distanceTypeComoving, &
-         &                                              redshift=redshift              &
-         &                                             )
+    liWhite2009SDSSDistanceMaximum=min(                                                                           &
+         &                             self%limitDistanceMaximum                                                , &
+         &                             cosmologyFunctions_%distanceComovingConvert(                               &
+         &                                                                         output  =distanceTypeComoving, &
+         &                                                                         redshift=redshift              &
+         &                                                                        )                               &
+         &                            )
     return
   end function liWhite2009SDSSDistanceMaximum
 
