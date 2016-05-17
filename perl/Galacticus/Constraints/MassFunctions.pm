@@ -207,6 +207,7 @@ sub Construct {
 		    	# Adjust the model accordingly.
 		    	my $covarianceMultiplier = $discrepancyFile->dataset('multiplicativeCovariance')->get();
 		    	$covarianceGalacticus   += $covarianceMultiplier*outer($yGalacticus,$yGalacticus);
+			$errorGalacticus        += sqrt($covarianceMultiplier)*$yGalacticus;
 		    }		    
 		    if ( $dataset eq "additive" ) {
 		    	# Read the additive discrepancy
