@@ -349,11 +349,11 @@ my %testBuildJob =
      launchFile   => "testSuite/compileTests.pbs",
      label        => "testSuite-compileTests"    ,
      logFile      => "testSuite/compileTests.log",
-     command      => "rm -rf ./work/build; make -j12 ".join(" ",map {$_->{'name'}} @executablesToRun),
-     ppn          => 12,
+     command      => "rm -rf ./work/build; make -j16 ".join(" ",map {$_->{'name'}} @executablesToRun),
+     ppn          => 16,
      onCompletion => 
      {
-	 function  => \&testFailure,
+	 function  => \&testCompileFailure,
 	 arguments => [ "testSuite/compileTests.log", "Test code compilation" ]
      }
     );
@@ -401,11 +401,11 @@ my %galacticusBuildJob =
      launchFile   => "testSuite/compileGalacticus.pbs",
      label        => "testSuite-compileGalacticus"    ,
      logFile      => "testSuite/compileGalacticus.log",
-     command      => "make -j12 all"                  ,
-     ppn          => 12,
+     command      => "make -j16 all"                  ,
+     ppn          => 16,
      onCompletion => 
      {
-	 function  => \&testFailure,
+	 function  => \&testCompileFailure,
 	 arguments => [ "testSuite/compileGalacticus.log", "Galacticus compilation" ]
      }
     );
@@ -523,7 +523,7 @@ sub runTestScript {
 		    label        => "testSuite-".$label       ,
 		    logFile      => "testSuite/".$label.".log",
 		    command      => "cd testSuite; ".$fileName,
-		    ppn          => 12,
+		    ppn          => 16,
 		    onCompletion => 
 		    {
 			function  => \&testFailure,
@@ -563,6 +563,39 @@ sub testFailure {
 	system("grep -q FAIL ".$logFile);
 	$errorStatus = 1
 	    if ( $? == 0 );
+    }
+    # Report success or failure.
+    if ( $errorStatus == 0 ) {
+	# Job succeeded.
+	print lHndl "SUCCESS: ".$jobMessage."\n";
+	unlink($logFile);
+    } else {
+	# Job failed.
+	print lHndl "FAILED: ".$jobMessage."\n";
+	print lHndl "Job output follows:\n";
+	print lHndl slurp($logFile);
+    }
+}
+
+sub testCompileFailure {
+    # Callback function which checks for failure of compile jobs run in PBS.
+    my $logFile     = shift();
+    my $jobMessage  = shift();
+    my $jobID       = shift();
+    my $errorStatus = shift();
+    # Check for failure message in log file.
+    if ( $errorStatus == 0 ) {
+	system("grep -q FAIL ".$logFile);
+	$errorStatus = 1
+	    if ( $? == 0 );	
+    }
+    # Check for compiler warning message in log file.
+    if ( $errorStatus == 0 ) {
+	system("grep -q Warning: ".$logFile);
+	if ( $? == 0 ) {
+	    $errorStatus = 1;
+	    $jobMessage = "Compiler warnings issued\n".$jobMessage;
+	}
     }
     # Report success or failure.
     if ( $errorStatus == 0 ) {
