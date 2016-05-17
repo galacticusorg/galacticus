@@ -22,6 +22,9 @@ $haveColor = -t STDOUT ? $haveColor : 0;
 # Initalize a map.
 my @map;
 
+# Initialize a hash of (possibly) unused functions.
+my %unusedFunctions;
+
 # Open and read the file.
 my $lineNumber = 0;
 push(
@@ -45,12 +48,19 @@ while ( my $line = <$file> ) {
 	    }
 	    );	 
     }
+    # Capture unused function attributes.
+    if ( $line =~ m/^\s*!\$GLC\s+function\s+attributes\s+unused\s*::\s*([a-zA-Z0-9_,\s]+)\s*$/ ) {
+	(my $functions = $1) =~ s/\s*$//;
+	$unusedFunctions{lc($_)} = 1
+	    foreach ( split(/\s*,\s*/,$functions) );
+    }
 }
 close($file);
 
 # Do the remapping.
 my $buffer;
 my $status = 0;
+my $functionName;
 while ( my $line = <STDIN> ) {
     if ( $line =~ m/^([a-zA-Z0-9_\.\/]+\.p\.F90):(\d+):(\d+):\s*$/ ) {
 	my $fileName     = $1;
@@ -77,6 +87,16 @@ while ( my $line = <STDIN> ) {
     # <workaround type="gfortran" PR="58175" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=58175"/>
     $dropBuffer = 1
 	if ( $line =~ m/Only array FINAL procedures declared for derived type/ );
+    # Handle unused function attributes.
+    if ( $line =~ m/^\s*subroutine\s+([a-z0-9_]+)/i ) {
+	$functionName = lc($1);
+    }
+    if ( $line =~ m/\[\-Wunused\-function\]/ && defined($functionName) ) {
+	$dropBuffer = 1
+	    if ( exists($unusedFunctions{lc($functionName)}) );
+	undef($functionName);
+    }
+    # Determine when to print the buffered output.
     my $printBuffer = 0;
     $printBuffer = 1
 	if ( $line =~ m/^(Error|Warning):/ );

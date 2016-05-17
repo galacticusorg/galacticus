@@ -11,6 +11,19 @@ The source code introspection functionality allows automated generation of infor
 \item The directive {\normalfont \ttfamily \{introspection:location\}} in source code will be replaced with a character string giving a backtrace of the current location in the code, including any function, module, and file (including line number).
 \end{itemize}
 
+\subsection{Function Attributes}
+
+\glc\ allows the specification of attributes for functions which alter the way the compiler treats them. Function attributes are specified as:
+\begin{verbatim}
+!$GLC function attributes {attributes} :: {functionNames}
+\end{verbatim}
+where {\normalfont \ttfamily \{attributes\}} is a space-separated list of attributes, and {\normalfont \ttfamily \{functionNames\}} is a space-separated list of functions to apply these functions to. Function attribute directives may appear anywhere in a file containing the named function, but it is good practice to locate them immediately before the function.
+
+Currently, the supported attributes are:
+\begin{description}
+\item[{\normalfont \ttfamily unused}] The function is marked as being \emph{possibly} unused. Compiler warnings about unused functions will be suppressed for this function.
+\end{description}
+
 \subsection{Source Digest}
 
 The {\normalfont \ttfamily sourceDigest} directive will generate an \gls{MD5hash} hash of the source code of the file in which the directive is placed, along with the source code of any files upon which it depends. This can be useful in generating unique labels (e.g. to use as suffixes in file names) which automatically update if the source code is modified. To generate a source digest simply use:
