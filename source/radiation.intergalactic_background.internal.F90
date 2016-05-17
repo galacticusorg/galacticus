@@ -48,14 +48,6 @@ module Radiation_Intergalactic_Background_Internal
   class           (cosmologyFunctionsClass      ), pointer                     :: cosmologyFunctions_
   class           (intergalacticMediumStateClass), pointer                     :: intergalacticMediumState_
 
-  ! Stellar population variables used in convolution integral.
-  type            (abundances                   ), pointer                     :: gasAbundances
-  integer                                                                      :: imfIndex
-  double precision                                                             :: wavelength
-  logical                                                                      :: integrationReset=.true.
-  type            (fgsl_function                )                              :: integrandFunction
-  type            (fgsl_integration_workspace   )                              :: integrationWorkspace
- 
 contains
   
   !# <universePreEvolveTask>
@@ -277,18 +269,22 @@ contains
     class           (stellarPopulationSpectraClass), pointer       :: stellarPopulationSpectra_
     double precision                               , parameter     :: odeToleranceAbsolute        =1.0d-30, odeToleranceRelative        =1.0d-3
     double precision                               , parameter     :: integrationToleranceAbsolute=1.0d-30, integrationToleranceRelative=1.0d-3
+    type            (abundances                   ), target        :: gasAbundancesDisk                   , gasAbundancesSpheroid
+    type            (abundances                   ), pointer       :: gasAbundances
     type            (fodeiv2_system               ), save          :: ode2System
     type            (fodeiv2_driver               ), save          :: ode2Driver
-    logical                                        , save          :: odeReset
+    type            (fgsl_function                ), save          :: integrandFunction
+    type            (fgsl_integration_workspace   ), save          :: integrationWorkspace
+    logical                                        , save          :: odeReset                            , integrationReset            =.true.
     double precision                                               :: starFormationRateDisk               , starFormationRateSpheroid          , &
          &                                                            gasMassDisk                         , gasMassSpheroid                    , &
          &                                                            ageEnd                              , ageStart                           , &
          &                                                            stellarSpectrumDisk                 , stellarSpectrumSpheroid            , & 
          &                                                            timeStart                           , timeEnd                            , &
-         &                                                            treeTimeLatest
-    type            (abundances                   ), target        :: gasAbundancesDisk                   , gasAbundancesSpheroid
+         &                                                            treeTimeLatest                      , wavelength
     integer                                                        :: imfIndexDisk                        , imfIndexSpheroid                   , &
-         &                                                            iTime                               , iWavelength
+         &                                                            iTime                               , iWavelength                        , &
+         &                                                            imfIndex
     type            (varying_string               )                :: message
     character       (len=6                        )                :: label
     type            (hdf5Object                   )                :: backgroundRadiationGroup            , backgroundRadiationDataset
