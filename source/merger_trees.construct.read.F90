@@ -2861,6 +2861,7 @@ contains
     return
   end function Is_Subhalo_Subhalo_Merger
 
+  !$GLC function attributes unused :: Dump_Tree
   subroutine Dump_Tree(nodes,highlightNodes,branchRoot)
     !% Dumps the tree structure to a file in a format suitable for processing with \href{http://www.graphviz.org/}{\normalfont \scshape dot}.
     implicit none
@@ -2870,8 +2871,7 @@ contains
     class    (nodeData      ), pointer                               :: thisNode              
     integer                                                          :: fileUnit      , iNode 
     character(len=20        )                                        :: color         , style 
-    logical                                                          :: outputNode            
-    
+    logical                                                          :: outputNode                
     ! Open an output file and write the GraphViz opening.
     open(newunit=fileUnit,file='mergerTreeConstructReadTree.gv',status='unknown',form='formatted')
     write (fileUnit,*) 'digraph Tree {'
@@ -3187,6 +3187,7 @@ contains
     return
   end function progenitorIteratorExist
   
+  !$GLC function attributes unused :: Timing_Record
   subroutine Timing_Record(label)
     !% Record timing data.
     implicit none
@@ -3214,7 +3215,8 @@ contains
     return
   end subroutine Timing_Record
   
-  subroutine Timing_Report
+  !$GLC function attributes unused :: Timing_Report
+  subroutine Timing_Report()
     !% Report on time taken in various steps of processing merger trees read from file.
     use Galacticus_Display
     implicit none
