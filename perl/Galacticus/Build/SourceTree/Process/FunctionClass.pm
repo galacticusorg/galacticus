@@ -967,11 +967,18 @@ sub Process_FunctionClass {
 	    open(my $docHndl,">doc/methods/".$directive->{'name'}.".tex");
 	    print $docHndl $documentation;
 	    close($docHndl);
-		
-	    # Insert into tree.
+	    # Insert into tree.	
+	    # <workaround type="gfortran" PR="41209" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=41209"/>		    
+	    # To allow processing of "GCC attributes unused" directives by our preprocessor (since GCC does not support them yet),
+	    # we parse and process our generated code here, before serializing it back into the original node. Should we need to
+	    # retain this behavior permanently it would be cleaner to just generate the code as text (i.e. not in a node), then
+	    # parse into a tree and unshift() it to the start of the postcontains array.	    
+	    my $treeTmp = &SourceTree::ParseCode ($postContains->[0]->{'content'},'null');
+	    &SourceTree::ProcessTree($treeTmp);
+	    $postContains->[0]->{'content'} = &SourceTree::Serialize($treeTmp);
+	    # </workaround>
 	    &SourceTree::InsertPreContains ($node->{'parent'},$preContains );
 	    &SourceTree::InsertPostContains($node->{'parent'},$postContains);
-
 	}
 	$node = &SourceTree::Walk_Tree($node,\$depth);
     }
