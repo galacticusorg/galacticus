@@ -142,7 +142,7 @@ contains
     integer                    , intent(in   )          :: accretionMode
     !GCC$ attributes unused :: self, node, accretionMode
 
-    nullAccretionRateChemicals=zeroChemicals
+    nullAccretionRateChemicals=zeroChemicalAbundances
     return
   end function nullAccretionRateChemicals
 
@@ -157,6 +157,6 @@ contains
     integer                    , intent(in   )          :: accretionMode
     !GCC$ attributes unused :: self, node, accretionMode
 
-    nullAccretedMassChemicals=zeroChemicals
+    nullAccretedMassChemicals=zeroChemicalAbundances
     return
   end function nullAccretedMassChemicals

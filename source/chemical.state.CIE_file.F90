@@ -215,7 +215,7 @@ contains
     ! Initialize.
     cieFileConstructorInternal%electronDensityPrevious        =-1.0d0
     cieFileConstructorInternal%electronDensitySlopePrevious   =-1.0d0
-    cieFileConstructorInternal%chemicalDensitiesPrevious      =-unitChemicals
+    cieFileConstructorInternal%chemicalDensitiesPrevious      =-unitChemicalAbundances
     cieFileConstructorInternal%    metallicityPrevious        =-1.0d0
     cieFileConstructorInternal%    metallicitySlopePrevious   =-1.0d0
     cieFileConstructorInternal%    metallicityChemicalPrevious=-1.0d0

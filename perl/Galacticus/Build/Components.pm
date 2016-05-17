@@ -1621,15 +1621,15 @@ sub Generate_Deferred_Binding_Functions {
 			$functionCode .= "          ".$componentFunctionName."=self%".$parentType."%".$binding->{'method'}."(".join(",",@selflessArguments).")\n";
 		    }
 		} else {
-		    if ( $type eq "double precision" ) {
-			$functionCode .= "       ".$classFunctionName."=0.0d0\n";
+		    if ( $type eq "double precision function" ) {
+			$functionCode .= "       ".$componentFunctionName."=0.0d0\n";
 		    }
 		    $functionCode .= "          call Galacticus_Error_Report('".$componentFunctionName."','deferred function has not been assigned')\n";
 		}
 		$functionCode .= "       end if\n";
 		$functionCode .= "    class default\n";
-		if ( $type eq "double precision" ) {
-		    $functionCode .= "       ".$classFunctionName."=0.0d0\n";
+		if ( $type eq "double precision function" ) {
+		    $functionCode .= "       ".$componentFunctionName."=0.0d0\n";
 		}
 		$functionCode .= "       call Galacticus_Error_Report('".$componentFunctionName."','incorrect class - this should not happen')\n";
 		$functionCode .= "    end select\n";
@@ -1699,8 +1699,12 @@ sub Generate_Deferred_Procedure_Pointers {
 			) {
 			# Construct the template function.
 			my $template = $selfType."NullBinding".ucfirst($_).$dataType."InOut";
-			$template = lcfirst($componentID).ucfirst($propertyName).ucfirst($_)
-			    if ( $_ eq "get" );
+			if ( $_ eq "get" ) {
+			    $template = lcfirst($componentID).ucfirst($propertyName).ucfirst($_);
+			} else {
+			    # Record that a null binding function was used.
+			    $buildData->{'nullBindingsUsed'}->{lc($template)} = 1;
+			}
 			# Generate the procedure pointer and a boolean to indicate if is has been attached.
 			push(
 			    @dataContent,
@@ -5742,7 +5746,7 @@ sub Generate_Deferred_Function_Attacher {
 	if ( $property->{'attributes'}->{'bindsTo'} eq "top" );
     # Define the function name.
     my $functionLabel = lcfirst($attachTo).ucfirst($propertyName).ucfirst($gsr);
-    my $functionName = $functionLabel."Function";
+    my $functionName = $functionLabel."Function";    
     # Skip if this function was already created.
     unless ( exists($buildData->{'deferredFunctionComponentClassMethodsMade'}->{$functionLabel}) ) {
 	# Define the data content.
@@ -5780,7 +5784,7 @@ sub Generate_Deferred_Function_Attacher {
 	# Bind this function to the relevant type.
 	if ( 
 	    ( $property->{'attributes'}->{'bindsTo'} ne "top" && ( $gsr eq "get" || $gsr eq "set" ) ) ||
-	    (                                                    $gsr eq "rate"                   )
+	    (                                                      $gsr eq "rate"                   )
 	    ) {
 	    my $functionType = "\\void";
 	    $functionType = &dataObjectDocName($property)
@@ -5935,50 +5939,56 @@ sub Generate_Deferred_GSR_Function {
 		    my $attachTo = $componentName;
 		    $attachTo = $componentClassName
 			if ( $property->{'attributes' }->{'bindsTo'} eq "top" );
-		    my @dataContent =
-			(
-			 $dataDefinition,
-			 {
-			     intrinsic  => "class",
-			     type       => $type,
-			     attributes => [ "intent(inout)" ],
-			     variables  => [ "self" ]
-			 },
-			 {
-			     intrinsic  => "logical",
-			     attributes => [ "intent(inout)", "optional" ],
-			     variables  => [ "interrupt" ]
-			 },
-			 {
-			     intrinsic  => "procedure",
-			     type       => "Interrupt_Procedure_Template",
-			     attributes => [ "pointer", "optional", "intent(inout)" ],
-			     variables  => [ "interruptProcedure" ]
-			 }
-			);
-		    $functionCode  = "  subroutine ".$componentName.ucfirst($propertyName)."Rate(self,setValue,interrupt,interruptProcedure)\n";
-		    $functionCode .= "    !% Set the rate of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentName."} component using a deferred function.\n";
-		    $functionCode .= "    implicit none\n";
-		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-		    $functionCode .= "    call ".$attachTo.ucfirst($propertyName)."RateDeferred(self,setValue,interrupt,interruptProcedure)\n";
-		    $functionCode .= "    return\n";
-		    $functionCode .= "  end subroutine ".$componentName.ucfirst($propertyName)."Rate\n\n";
-		    # Insert into the function list.
-		    push(
-			@{$buildData->{'code'}->{'functions'}},
-			$functionCode
-			);
-		    # Bind this function to the relevant type.
-		    my $bindingName = $type.$propertyName."Rate";
-		    unless ( exists($bindings{$bindingName}) && $property->{'attributes' }->{'bindsTo'} eq "top" ) {
-			push(
-			    @{$buildData->{'types'}->{$type}->{'boundFunctions'}},
-			    {type => "procedure", name => $propertyName."Rate", function => $componentName.ucfirst($propertyName)."Rate", description => "Cumulate to the rate of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => "\\void", arguments => &dataObjectDocName($property)."\\ value"}
+		    my $functionLabel = $componentName.ucfirst($propertyName)."Rate";
+		    $functionLabel = "node".ucfirst($propertyName)."Rate"
+			if ( $property->{'attributes' }->{'bindsTo'} eq "top" );
+		    unless ( exists($buildData->{'topLevelDeferredFunctionsCreated'}->{$functionLabel}) ) {
+			$buildData->{'topLevelDeferredFunctionsCreated'}->{$functionLabel} = 1;
+			my @dataContent =
+			    (
+			     $dataDefinition,
+			     {
+				 intrinsic  => "class",
+				 type       => $type,
+				 attributes => [ "intent(inout)" ],
+				 variables  => [ "self" ]
+			     },
+			     {
+				 intrinsic  => "logical",
+				 attributes => [ "intent(inout)", "optional" ],
+				 variables  => [ "interrupt" ]
+			     },
+			     {
+				 intrinsic  => "procedure",
+				 type       => "Interrupt_Procedure_Template",
+				 attributes => [ "pointer", "optional", "intent(inout)" ],
+				 variables  => [ "interruptProcedure" ]
+			     }
 			    );
-			$bindings{$bindingName} = 1;
+			$functionCode  = "  subroutine ".$functionLabel."(self,setValue,interrupt,interruptProcedure)\n";
+			$functionCode .= "    !% Set the rate of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentName."} component using a deferred function.\n";
+			$functionCode .= "    implicit none\n";
+			$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+			$functionCode .= "    call ".$attachTo.ucfirst($propertyName)."RateDeferred(self,setValue,interrupt,interruptProcedure)\n";
+			$functionCode .= "    return\n";
+			$functionCode .= "  end subroutine ".$functionLabel."\n\n";
+			# Insert into the function list.
+			push(
+			    @{$buildData->{'code'}->{'functions'}},
+			    $functionCode
+			    );
+			# Bind this function to the relevant type.
+			my $bindingName = $type.$propertyName."Rate";
+			unless ( exists($bindings{$bindingName}) && $property->{'attributes' }->{'bindsTo'} eq "top" ) {
+			    push(
+				@{$buildData->{'types'}->{$type}->{'boundFunctions'}},
+				{type => "procedure", name => $propertyName."Rate", function => $functionLabel, description => "Cumulate to the rate of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => "\\void", arguments => &dataObjectDocName($property)."\\ value"}
+				);
+			    $bindings{$bindingName} = 1;
+			}
+			# Generate an attacher function.
+			&Generate_Deferred_Function_Attacher($component,$property,$buildData,"rate");
 		    }
-		    # Generate an attacher function.
-		    &Generate_Deferred_Function_Attacher($component,$property,$buildData,"rate");
 		}
 	    }
 	}
@@ -7889,20 +7899,35 @@ sub Generate_Null_Binding_Functions {
 		 }
 		);
 	    my $functionCode;
-	    $functionCode  = "  subroutine ".$componentClassName."NullBindingSet".$label.$intent."(self,setValue)\n";
+	    my $nullBindingName = $componentClassName."NullBindingSet".$label.$intent;
+	    $functionCode  = "  subroutine ".$nullBindingName."(self,setValue)\n";
 	    $functionCode .= "    !% A null set function for rank ".$nullFunction->{'rank'}." ".latex_encode(lc($intrinsicType))."s.\n";
 	    $functionCode .= "    implicit none\n";
 	    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	    $functionCode .= "   !GCC\$ attributes unused :: ".join(", ",@{$_->{'variables'}})."\n"
 		foreach ( @dataContent );
 	    $functionCode .= "    return\n";
-	    $functionCode .= "  end subroutine ".$componentClassName."NullBindingSet".$label.$intent."\n";
+	    $functionCode .= "  end subroutine ".$nullBindingName."\n";
+	    # Determine if this null rate function is actually used.
+	    my $nullBindingUsed = 0;
+	    foreach my $typeName ( keys(%{$buildData->{'types'}}) ) {
+		foreach my $typeBoundFunction ( @{$buildData->{'types'}->{$typeName}->{'boundFunctions'}} ) {
+		    if ( lc($typeBoundFunction->{'function'}) eq lc($nullBindingName) ) {
+			$nullBindingUsed = 1;
+			last;
+		    }
+		}
+		last
+		    if ( $nullBindingUsed );
+	    }
+	    $nullBindingUsed = grep {$_ eq lc($nullBindingName)} keys(%{$buildData->{'nullBindingsUsed'}})
+		unless ( $nullBindingUsed );
 	    # Insert into the function list.
 	    push(
 		@{$buildData->{'code'}->{'functions'}},
 		$functionCode
 		)
-		unless ( $intent eq "in" );
+		if ( $nullBindingUsed && $intent ne "in" );
 	    # Build code for the null rate function.
 	    @dataContent =
 		(
@@ -7925,20 +7950,35 @@ sub Generate_Null_Binding_Functions {
 		     variables  => [ "interruptProcedure" ]
 		 }
 		);
-	    $functionCode  = "  subroutine ".$componentClassName."NullBindingRate".$label.$intent."(self,setValue,interrupt,interruptProcedure)\n";
+	    $nullBindingName = $componentClassName."NullBindingRate".$label.$intent;
+	    $functionCode  = "  subroutine ".$nullBindingName."(self,setValue,interrupt,interruptProcedure)\n";
 	    $functionCode .= "    !% A null rate function for rank ".$nullFunction->{'rank'}." ".latex_encode(lc($intrinsicType))."s.\n";
 	    $functionCode .= "    implicit none\n";
 	    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	    $functionCode .= "   !GCC\$ attributes unused :: ".join(", ",@{$_->{'variables'}})."\n"
 		foreach ( @dataContent );
 	    $functionCode .= "    return\n";
-	    $functionCode .= "  end subroutine ".$componentClassName."NullBindingRate".$label.$intent."\n";
-	    # Insert into the function list.
+	    $functionCode .= "  end subroutine ".$nullBindingName."\n";
+	    # Determine if this null rate function is actually used.
+	    $nullBindingUsed = 0;
+	    foreach my $typeName ( keys(%{$buildData->{'types'}}) ) {
+		foreach my $typeBoundFunction ( @{$buildData->{'types'}->{$typeName}->{'boundFunctions'}} ) {
+		    if ( lc($typeBoundFunction->{'function'}) eq lc($nullBindingName) ) {
+			$nullBindingUsed = 1;
+			last;
+		    }
+		}
+		last
+		    if ( $nullBindingUsed );
+	    }
+	    $nullBindingUsed = grep {$_ eq lc($nullBindingName)} keys(%{$buildData->{'nullBindingsUsed'}})
+		unless ( $nullBindingUsed );
+	    # Insert into the function list (if it is used).
 	    push(
 		@{$buildData->{'code'}->{'functions'}},
 		$functionCode
 		)
-		unless ( $intent eq "in" );
+		if ( $nullBindingUsed && $intent ne "in" );
 	    # Build code for the null get function.
 	    pop(@{$dataDefinition->{'attributes'}});
 	    push(@{$dataDefinition->{'attributes'}},"allocatable")

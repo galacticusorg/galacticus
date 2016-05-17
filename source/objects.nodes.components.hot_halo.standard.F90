@@ -1286,18 +1286,18 @@ contains
        massVirial    =thisBasicComponent%mass()
        radiusVirial  =darkMatterHaloScale_%virialRadius  (thisNode)
        velocityVirial=darkMatterHaloScale_%virialVelocity(thisNode)
-       call    thisHotHaloComponent%                    massScale(               massVirial                            *scaleMassRelative  )
-       call    thisHotHaloComponent%           outflowedMassScale(               massVirial                            *scaleMassRelative  )
-       call    thisHotHaloComponent%          unaccretedMassScale(               massVirial                            *scaleMassRelative  )
-       call    thisHotHaloComponent%              abundancesScale(unitAbundances*massVirial                            *scaleMassRelative  )
-       call    thisHotHaloComponent%     outflowedAbundancesScale(unitAbundances*massVirial                            *scaleMassRelative  )
-       call    thisHotHaloComponent%               chemicalsScale(unitChemicals *massVirial                            *scaleMassRelative  )
-       call    thisHotHaloComponent%         angularMomentumScale(               massVirial*radiusVirial*velocityVirial*scaleMassRelative  )
-       call    thisHotHaloComponent%outflowedAngularMomentumScale(               massVirial*radiusVirial*velocityVirial*scaleMassRelative  )
-       call    thisHotHaloComponent%             outerRadiusScale(                          radiusVirial               *scaleRadiusRelative)
+       call    thisHotHaloComponent%                    massScale(                       massVirial                            *scaleMassRelative  )
+       call    thisHotHaloComponent%           outflowedMassScale(                       massVirial                            *scaleMassRelative  )
+       call    thisHotHaloComponent%          unaccretedMassScale(                       massVirial                            *scaleMassRelative  )
+       call    thisHotHaloComponent%              abundancesScale(unitAbundances        *massVirial                            *scaleMassRelative  )
+       call    thisHotHaloComponent%     outflowedAbundancesScale(unitAbundances        *massVirial                            *scaleMassRelative  )
+       call    thisHotHaloComponent%               chemicalsScale(unitChemicalAbundances*massVirial                            *scaleMassRelative  )
+       call    thisHotHaloComponent%         angularMomentumScale(                       massVirial*radiusVirial*velocityVirial*scaleMassRelative  )
+       call    thisHotHaloComponent%outflowedAngularMomentumScale(                       massVirial*radiusVirial*velocityVirial*scaleMassRelative  )
+       call    thisHotHaloComponent%             outerRadiusScale(                                  radiusVirial               *scaleRadiusRelative)
        if (hotHaloTrackStrippedGas) then
-          call thisHotHaloComponent%            strippedMassScale(               massVirial                            *scaleMassRelative  )
-          call thisHotHaloComponent%      strippedAbundancesScale(unitAbundances*massVirial                            *scaleMassRelative  )
+          call thisHotHaloComponent%            strippedMassScale(                       massVirial                            *scaleMassRelative  )
+          call thisHotHaloComponent%      strippedAbundancesScale(unitAbundances        *massVirial                            *scaleMassRelative  )
        end if
     end select
     return
@@ -1479,7 +1479,7 @@ contains
                   &                                                  +  thisHotHaloComponent%chemicals               () &
                   &                                                 )
              call   thisHotHaloComponent%               chemicalsSet(                                                   &
-                  &                                                   zeroChemicals                                     &
+                  &                                                   zeroChemicalAbundances                            &
                   &                                                 )
           end if
           ! Check if the baryon fraction in the parent hot halo exceeds the universal value. If it does, mitigate this by moving
@@ -1597,7 +1597,7 @@ contains
             &                                                +thisHotHaloComponent%chemicals               () &
             &                                               )
        call thisHotHaloComponent%               chemicalsSet(                                                 &
-            &                                                 zeroChemicals                                   &
+            &                                                 zeroChemicalAbundances                          &
             &                                               )
     end select
     return
@@ -1637,10 +1637,10 @@ contains
        class is (nodeComponentHotHaloStandard)
           ! If (outflowed) mass is non-positive, set mass and all related quantities to zero.
           if (thisHotHaloComponent%         mass() <= 0.0d0) then
-             call thisHotHaloComponent%massSet           (         0.0d0)
-             call thisHotHaloComponent%angularMomentumSet(         0.0d0)
-             call thisHotHaloComponent%abundancesSet     (zeroAbundances)
-             call thisHotHaloComponent%chemicalsSet      (zeroChemicals )
+             call thisHotHaloComponent%massSet           (0.0d0                 )
+             call thisHotHaloComponent%angularMomentumSet(0.0d0                 )
+             call thisHotHaloComponent%abundancesSet     (zeroAbundances        )
+             call thisHotHaloComponent%chemicalsSet      (zeroChemicalAbundances)
           end if
           if (thisHotHaloComponent%outflowedMass() <= 0.0d0) then
              call thisHotHaloComponent%outflowedMassSet           (         0.0d0)
