@@ -36,7 +36,7 @@
   logical :: ricotti2000Initialized=.false.
 
 contains
-
+  
   function ricotti2000DefaultConstructor()
     !% Default constructor for the ricotti2000 hot halo mass distribution class.
     use Galacticus_Error
@@ -83,6 +83,9 @@ contains
        end if
        !$omp end critical(ricotti2000Initialized)
     end if
+    ! Set the value of beta. This is arbitrary as it will be computed as needed, but avoids compiler complaints that this
+    ! constructor is not initialized
+    ricotti2000DefaultConstructor%beta=-1.0d0
     return
   end function ricotti2000DefaultConstructor
 
