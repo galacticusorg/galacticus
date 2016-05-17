@@ -437,7 +437,7 @@ foreach my $constraint ( @constraints ) {
     $analysisCommand .= " --modelDiscrepancies ".$projectDirectory."/modelDiscrepancy"
 	if ( -e $projectDirectory."/modelDiscrepancy" );
     unless ( $store eq "none" ) {
-	my $resultFile = $scratchDirectory."/results".$mpiRank.".xml";
+	my $resultFile = $scratchDirectory."/results".$mpiRank.":".$i.".hdf5";
 	$analysisCommand .= " --resultFile ".$resultFile;
 	push(@temporaryFiles,$resultFile);
     }
