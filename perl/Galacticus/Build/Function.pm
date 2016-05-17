@@ -700,6 +700,8 @@ sub Functions_Generate_Output {
 			$buildData->{'content'} .= "      ".$directive.ucfirst($method->{'name'}).$extension."=.false.\n";	
 		    } elsif ( $type =~ m/^integer/ ) {
 			$buildData->{'content'} .= "      ".$directive.ucfirst($method->{'name'}).$extension."=0\n";	
+		    } elsif ( $method->{'type'} =~ m/^type\((.*)\)$/ ) {
+			$buildData->{'content'} .= "      ".$directive.ucfirst($method->{'name'}).$extension."=zero".ucfirst($1)."\n";
 		    }
 		}
 	    }
