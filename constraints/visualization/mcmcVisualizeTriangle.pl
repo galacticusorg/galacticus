@@ -173,9 +173,9 @@ for(my $i=0;$i<scalar(@properties);++$i) {
 	    unless ( -e $outputFileName."_".$i."_".$j.".pdf" ) {
 	    	my %job =
 		    (
-		     launchFile => $outputFileName."_".$i.".pbs",
+		     launchFile => $outputFileName."_".$i."_".$j.".pbs",
 		     label      => "triangle",
-		     logFile    => $outputFileName."_".$i.".log",
+		     logFile    => $outputFileName."_".$i."_".$j.".log",
 		     command    => $command,
 		     ppn        => 1
 		    );
@@ -203,13 +203,15 @@ close(iHndl);
 
 # Open output file.
 open(oHndl,">".$outputFileName.".tex");
-print oHndl "\\renewcommand{\\arraystretch}{0}\n";
-print oHndl "\\begin{tabular}{".("l\@{}" x scalar(@properties))."}\n";
 
 # Loop over parameters.
 my $outputDirectoryName = `dirname  $outputFileName`;
 my $outputBaseName      = `basename $outputFileName`;
-print oHdl "\\newcommand{triangledir}{".$outputDirectoryName."}";
+chomp($outputDirectoryName);
+chomp($outputBaseName     );
+print oHndl "\\newcommand{\\triangledir}{".$outputDirectoryName."}\n";
+print oHndl "\\renewcommand{\\arraystretch}{0}\n";
+print oHndl "\\begin{tabular}{".("l\@{}" x scalar(@properties))."}\n";
 for(my $i=0;$i<scalar(@properties);++$i) {
     print oHndl ("&" x $i);
     my $width;
@@ -226,11 +228,11 @@ for(my $i=0;$i<scalar(@properties);++$i) {
     my $shiftVertical   = $scale*($height-$standardHeight);
     print oHndl "\\hspace{-".$shiftHorizontal."pt}"
 	if ( $i > 0 );
-    print oHndl "\\includegraphics[scale=".$scale."]{".$outputFileName."_".$i.".pdf}";
+    print oHndl "\\includegraphics[scale=".$scale."]{\\triangledir/".$outputBaseName."_".$i.".pdf}";
     print oHndl "\\vspace{-".$shiftVertical."pt}";
     if ( $i < scalar(@properties)-1 ) { 
 	for(my $j=$i+1;$j<scalar(@properties);++$j) {
-	    print oHndl "&\\raisebox{".$shiftVertical."pt}{\\includegraphics[scale=".$scale."]{\triangledir/".$outputBaseName."_".$i."_".$j.".pdf}}";
+	    print oHndl "&\\raisebox{".$shiftVertical."pt}{\\includegraphics[scale=".$scale."]{\\triangledir/".$outputBaseName."_".$i."_".$j.".pdf}}";
 	}
     }
     print oHndl "\\\\\n";
