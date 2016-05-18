@@ -46,6 +46,13 @@ module Node_Component_Hot_Halo_VS_Delayed
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of gas in the hot halo."/>
   !#   </property>
+  !#   <property>
+  !#     <name>outflowedAbundances</name>
+  !#     <type>abundances</type>
+  !#     <rank>0</rank>
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+  !#     <output unitsInSI="massSolar" comment="Mass of metals in the outflowed phase of the hot halo."/>
+  !#   </property>
   !#  </properties>
   !# </component>
 
@@ -67,7 +74,8 @@ contains
     !$omp critical (Node_Component_Hot_Halo_VS_Delayed_Initialize)
     if (.not.moduleInitialized) then
        ! Bind outflowing material pipes to the functions that will handle input of outflowing material to the hot halo.
-       call hotHaloComponent%outflowingMassRateFunction(Node_Component_Hot_Halo_VS_Delayed_Outflowing_Mass_Rate)
+       call hotHaloComponent%      outflowingMassRateFunction(Node_Component_Hot_Halo_VS_Delayed_Outflowing_Mass_Rate      )
+       call hotHaloComponent%outflowingAbundancesRateFunction(Node_Component_Hot_Halo_VS_Delayed_Outflowing_Abundances_Rate)
        ! Read parameters controlling the physical implementation.
        !@ <inputParameter>
        !@   <name>hotHaloVerySimpleDelayedMassScaleRelative</name>
@@ -96,10 +104,24 @@ contains
     procedure       (                    ), intent(inout), optional, pointer :: interruptProcedure
     !GCC$ attributes unused :: interrupt, interruptProcedure
     
-    ! Funnel the outflow gas into the outflowed reservoir.
+    ! Funnel the outflowing gas into the outflowed reservoir.
     call self%outflowedMassRate(rate)
     return
   end subroutine Node_Component_Hot_Halo_VS_Delayed_Outflowing_Mass_Rate
+  
+  subroutine Node_Component_Hot_Halo_VS_Delayed_Outflowing_Abundances_Rate(self,rate,interrupt,interruptProcedure)
+    !% Accept outflowing gas abundances from a galaxy and deposit them into very simple hot halo.
+    use Abundances_Structure
+    implicit none
+    class    (nodeComponentHotHalo), intent(inout)                    :: self
+    type     (abundances          ), intent(in   )                    :: rate
+    logical                        , intent(inout), optional          :: interrupt
+    procedure(                    ), intent(inout), optional, pointer :: interruptProcedure
+
+    ! Funnel the outflowing gas abundances into the outflowed reservoir.
+    call self%outflowedAbundancesRate(rate)
+    return
+  end subroutine Node_Component_Hot_Halo_VS_Delayed_Outflowing_Abundances_Rate
   
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Hot_Halo_VS_Delayed_Rate_Compute</unitName>
@@ -107,12 +129,15 @@ contains
   subroutine Node_Component_Hot_Halo_VS_Delayed_Rate_Compute(node,interrupt,interruptProcedure)
     !% Compute the very simple hot halo component mass rate of change.
     use Hot_Halo_Outflows_Reincorporations
+    use Abundances_Structure
     implicit none
     type            (treeNode                          ), intent(inout), pointer :: node
     logical                                             , intent(inout)          :: interrupt
     procedure       (                                  ), intent(inout), pointer :: interruptProcedure
     class           (nodeComponentHotHalo              )               , pointer :: hotHalo
     class           (hotHaloOutflowReincorporationClass)               , pointer :: hotHaloOutflowReincorporation_
+    type            (abundances                        ), save                   :: abundancesReturnRate
+    !$omp threadprivate(abundancesReturnRate)
     double precision                                                             :: outflowReturnRate
     !GCC$ attributes unused :: interrupt, interruptProcedure
     
@@ -123,10 +148,19 @@ contains
     select type (hotHalo)
     class is (nodeComponentHotHaloVerySimpleDelayed)
        ! Move outflowed material back to the hot reservoir.
-       hotHaloOutflowReincorporation_ => hotHaloOutflowReincorporation      (    )
-       outflowReturnRate              =  hotHaloOutflowReincorporation_%rate(node)
-       call hotHalo%outflowedMassRate(-outflowReturnRate)
-       call hotHalo%massRate         (+outflowReturnRate)
+       hotHaloOutflowReincorporation_ =>  hotHaloOutflowReincorporation      (    )
+       outflowReturnRate              =  +hotHaloOutflowReincorporation_%rate(node)
+       if (hotHalo%outflowedMass() > 0.0d0) then
+          abundancesReturnRate           =  +outflowReturnRate             &
+               &                            *hotHalo%outflowedAbundances() &
+               &                            /hotHalo%outflowedMass      ()
+       else
+          abundancesReturnRate           =  zeroAbundances
+       end if
+       call hotHalo%outflowedMassRate      (-   outflowReturnRate)
+       call hotHalo%outflowedAbundancesRate(-abundancesReturnRate)
+       call hotHalo%massRate               (+   outflowReturnRate)
+       call hotHalo%abundancesRate         (+abundancesReturnRate)
     end select
     return
   end subroutine Node_Component_Hot_Halo_VS_Delayed_Rate_Compute
@@ -136,6 +170,7 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Hot_Halo_VS_Delayed_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
+    use Abundances_Structure
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
     class           (nodeComponentHotHalo)               , pointer :: hotHalo
@@ -152,7 +187,8 @@ contains
        ! Get virial properties.
        massVirial =  basic%mass ()
        ! Set the scale.
-       call hotHalo%outflowedMassScale(massVirial*hotHaloVerySimpleDelayedMassScaleRelative)
+       call hotHalo%outflowedMassScale      (               massVirial*hotHaloVerySimpleDelayedMassScaleRelative)
+       call hotHalo%outflowedAbundancesScale(unitAbundances*massVirial*hotHaloVerySimpleDelayedMassScaleRelative)
     end select
     return
   end subroutine Node_Component_Hot_Halo_VS_Delayed_Scale_Set
@@ -165,6 +201,7 @@ contains
   subroutine Node_Component_Hot_Halo_VS_Delayed_Tree_Initialize(node)
     !% Initialize the contents of the very simple hot halo component.
     use Cosmology_Parameters
+    use Abundances_Structure
     implicit none
     type (treeNode                ), intent(inout), pointer :: node
     class(nodeComponentHotHalo    )               , pointer :: hotHalo
@@ -179,7 +216,8 @@ contains
     ! Ensure that it is of our class.
     select type (hotHalo)
     type is (nodeComponentHotHaloVerySimpleDelayed)
-       call hotHalo%outflowedMassSet(0.0d0)
+       call hotHalo%outflowedMassSet      (         0.0d0)
+       call hotHalo%outflowedAbundancesSet(zeroAbundances)
     end select
     return
   end subroutine Node_Component_Hot_Halo_VS_Delayed_Tree_Initialize
@@ -189,6 +227,7 @@ contains
   !# </satelliteMergerTask>
   subroutine Node_Component_Hot_Halo_VS_Delayed_Satellite_Merging(node)
     !% Remove any hot halo associated with {\normalfont \ttfamily node} before it merges with its host halo.
+    use Abundances_Structure
     implicit none
     type (treeNode            ), intent(inout), pointer :: node
     type (treeNode            )               , pointer :: hostNode
@@ -203,13 +242,20 @@ contains
        hostNode    => node    %mergesWith(                 )
        hostHotHalo => hostNode%hotHalo   (autoCreate=.true.)
        ! Move the hot halo to the host.
-       call hostHotHalo%outflowedMassSet(                             &
-            &                            +hostHotHalo%outflowedMass() &
-            &                            +    hotHalo%outflowedMass() &
-            &                           )
-       call     hotHalo%outflowedMassSet(                             &
-            &                            +0.0d0                       &
-            &                           )
+       call hostHotHalo%outflowedMassSet      (                                   &
+            &                                  +hostHotHalo%outflowedMass      () &
+            &                                  +    hotHalo%outflowedMass      () &
+            &                                 )
+       call hostHotHalo%outflowedAbundancesSet(                                   &
+            &                                  +hostHotHalo%outflowedAbundances() &
+            &                                  +    hotHalo%outflowedAbundances() &
+            &                                 )
+       call     hotHalo%outflowedMassSet      (                                   &
+            &                                  +0.0d0                             &
+            &                                 )
+       call     hotHalo%outflowedAbundancesSet(                                   &
+            &                                  +zeroAbundances                    &
+            &                                 )
     end select
     return
   end subroutine Node_Component_Hot_Halo_VS_Delayed_Satellite_Merging
@@ -237,10 +283,14 @@ contains
        ! promotion.
        select type (parentHotHalo)
        class is (nodeComponentHotHaloVerySimpleDelayed)
-          call hotHalo%outflowedMassSet(                               &
-               &                        +      hotHalo%outflowedMass() &
-               &                        +parentHotHalo%outflowedMass() &
-               &                       )
+          call hotHalo%outflowedMassSet      (                                     &
+               &                              +      hotHalo%outflowedMass      () &
+               &                              +parentHotHalo%outflowedMass      () &
+               &                             )
+          call hotHalo%outflowedAbundancesSet(                                     &
+               &                              +      hotHalo%outflowedAbundances() &
+               &                              +parentHotHalo%outflowedAbundances() &
+               &                             )
        end select
     end select
     return
@@ -251,6 +301,7 @@ contains
   !# </postEvolveTask>
   subroutine Node_Component_Hot_Halo_VS_Delayed_Post_Evolve(node)
     !% Do processing of the node required after evolution.
+    use Abundances_Structure
     implicit none
     type (treeNode            ), intent(inout), pointer :: node
     type (treeNode            )               , pointer :: parentNode
@@ -268,8 +319,10 @@ contains
              parentNode => parentNode%parent
           end do
           parentHotHalo => parentNode%hotHalo(autoCreate=.true.)
-          call parentHotHalo%outflowedMassSet(parentHotHalo%outflowedMass()+hotHalo%outflowedMass())
-          call       hotHalo%outflowedMassSet(                                                0.0d0)
+          call parentHotHalo%outflowedMassSet      (parentHotHalo%outflowedMass      ()+hotHalo%outflowedMass      ())
+          call parentHotHalo%outflowedAbundancesSet(parentHotHalo%outflowedAbundances()+hotHalo%outflowedAbundances())
+          call       hotHalo%outflowedMassSet      (                                                            0.0d0)
+          call       hotHalo%outflowedAbundancesSet(                                                   zeroAbundances)
        end if
     end select
     return
@@ -280,6 +333,7 @@ contains
   !# </nodeMergerTask>
   subroutine Node_Component_Hot_Halo_VS_Delayed_Node_Merger(node)
     !% Starve {\normalfont \ttfamily node} by transferring its hot halo to its parent.
+    use Abundances_Structure
     implicit none
     type (treeNode            ), intent(inout), pointer :: node
     type (treeNode            )               , pointer :: parentNode
@@ -294,8 +348,10 @@ contains
        parentHotHalo => parentNode%hotHalo(autoCreate=.true.)
        ! Move the hot halo to the parent. We leave the hot halo in place even if it is starved, since outflows will accumulate
        ! to this hot halo (and will be moved to the parent at the end of the evolution timestep).
-       call parentHotHalo%outflowedMassSet(parentHotHalo%outflowedMass()+hotHalo%outflowedMass())
-       call       hotHalo%outflowedMassSet(                                                0.0d0)
+       call parentHotHalo%outflowedMassSet      (parentHotHalo%outflowedMass      ()+hotHalo%outflowedMass      ())
+       call parentHotHalo%outflowedAbundancesSet(parentHotHalo%outflowedAbundances()+hotHalo%outflowedAbundances())
+       call       hotHalo%outflowedMassSet      (                                                            0.0d0)
+       call       hotHalo%outflowedAbundancesSet(                                                   zeroAbundances)
     end select
     return
   end subroutine Node_Component_Hot_Halo_VS_Delayed_Node_Merger
