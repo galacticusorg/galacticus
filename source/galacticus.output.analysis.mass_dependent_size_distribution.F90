@@ -681,6 +681,7 @@ contains
        ! Get the galactic radius.
        thisDisk => thisNode%disk  ()
        radius   =  thisDisk%radius()
+       if (radius <= 0.0d0) cycle
        if (associated(sizeFunctions(i)%descriptor%mapRadius)) radius=sizeFunctions(i)%descriptor%mapRadius(radius,thisNode)
        radius=radius*sizeFunctions(i)%cosmologyConversionSize(iOutput) ! Convert for cosmology.
        radiusLogarithmicFaceOn=log10(radius)
