@@ -160,9 +160,23 @@ my $kdeFileName = $plotFile.".tmp.kde";
 my @outlierChains;
 @outlierChains = split(/,/,$arguments{'outliers'})
     if ( exists($arguments{'outliers'}) );
+# If sampling from end of chains, determine chain lengths.
+my $iChainBegin = 0;
+if ( exists($arguments{'ngood'}) ) {
+    my $chainLength = 0;
+    open(iHndl,$fileRoot."_0000.log");
+    while ( my $line = <iHndl> ) {
+	++$chainLength;
+    }
+    close(iHndl);
+    $iChainBegin = $chainLength+1-$arguments{'ngood'};
+}
+# Read chains.
 open(oHndl,">".$kdeFileName);
 for(my $iChain=0; -e $fileRoot."_".sprintf("%4.4d",$iChain).".log";++$iChain) {
     my $skip = 0;
+    $skip = 1
+	if ( $iChain < $iChainBegin );
     if ( scalar(@outlierChains) > 0 ) {
 	foreach ( @outlierChains ) {
 	    $skip = 1
@@ -207,8 +221,6 @@ close(oHndl);
 my $command = "python constraints/visualization/kernelDensityEstimation.py ".$kdeFileName." ".$xColumn;
 $command .= " ".$yColumn
     if ( $dimensions == 2 );
-$command .= " --ngood=".$arguments{'ngood'}
-    if ( exists($arguments{'ngood'}) );
 $command .= " --ngrid=".$nGrid." --output=".$plotFile.".kde";
 system($command);
 unlink($kdeFileName);

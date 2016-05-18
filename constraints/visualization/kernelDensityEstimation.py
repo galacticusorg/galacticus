@@ -11,8 +11,6 @@ usage = "usage: %prog [options] statelog column1 [column2 [column3]]"
 parser = OptionParser(usage)
 parser.add_option("-o", "--output", dest="output",
                   help="write density to FILE", metavar="FILE")
-parser.add_option("--ngood", dest="ngood", type="int",
-                  help="number of states to use from end of statelog")
 parser.add_option("--ngrid", dest="ngrid", type="int", default=100,
                   help="number of points to use in output grid")
 (options, args) = parser.parse_args()
@@ -36,9 +34,6 @@ state = np.loadtxt(statelog,skiprows=0,usecols=columns)
 # Find range of states to use.
 rangeStart = 0
 rangeEnd   = state.shape[0]
-if options.ngood:
-    rangeStart = -options.ngood
-    rangeEnd   = -1
 
 # Extract required states and find ranges.
 if dimensions == 1:
