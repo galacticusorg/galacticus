@@ -56,6 +56,7 @@
      final     ::                                  galacticusDestructor
      procedure :: open                          => galacticusOpen
      procedure :: close                         => galacticusClose
+     procedure :: canReadSubsets                => galacticusCanReadSubsets
      procedure :: treesHaveSubhalos             => galacticusTreesHaveSubhalos
      procedure :: massesIncludeSubhalos         => galacticusMassesIncludeSubhalos
      procedure :: angularMomentaIncludeSubhalos => galacticusAngularMomentaIncludeSubhalos
@@ -104,7 +105,6 @@ contains
     use Input_Parameters
     implicit none
     type (mergerTreeImporterGalacticus), target :: galacticusDefaultConstructor
-    
     
     if (.not.galacticusInitialized) then
        !$omp critical (mergerTreeImporterGalacticusInitialize)
@@ -390,6 +390,15 @@ contains
     !$omp end critical(HDF5_Access)
     return
   end subroutine galacticusClose
+
+  logical function galacticusCanReadSubsets(self)
+    !% Return true since this format does permit reading of arbitrary subsets of halos from a forest.
+    implicit none
+    class(mergerTreeImporterGalacticus), intent(inout) :: self
+
+    galacticusCanReadSubsets=.true.
+    return
+  end function galacticusCanReadSubsets
 
   integer function galacticusTreesHaveSubhalos(self)
     !% Return a Boolean integer specifying whether or not the trees have subhalos.
@@ -908,7 +917,7 @@ contains
     return
   end function galacticusSubhaloTraceCount
 
-  subroutine galacticusImport(self,i,nodes,requireScaleRadii,requireAngularMomenta,requireAngularMomenta3D,requireSpin,requireSpin3D,requirePositions,requireParticleCounts,requireVelocityMaxima,requireVelocityDispersions)
+  subroutine galacticusImport(self,i,nodes,nodeSubset,requireScaleRadii,requireAngularMomenta,requireAngularMomenta3D,requireSpin,requireSpin3D,requirePositions,requireParticleCounts,requireVelocityMaxima,requireVelocityDispersions,structureOnly)
     !% Import the $i^{\mathrm th}$ merger tree.
     use Memory_Management
     use Cosmology_Functions
@@ -921,18 +930,20 @@ contains
     implicit none
     class           (mergerTreeImporterGalacticus), intent(inout)                              :: self
     integer                                       , intent(in   )                              :: i
-    class           (nodeData                    ), intent(  out), allocatable, dimension(:  ) :: nodes
-    logical                                       , intent(in   ), optional                    :: requireScaleRadii        , requireAngularMomenta, &
-         &                                                                                        requireAngularMomenta3D  , requirePositions     , &
-         &                                                                                        requireParticleCounts    , requireVelocityMaxima, &
-         &                                                                                        requireVelocityDispersions, requireSpin         , &
-         &                                                                                        requireSpin3D
+    class           (nodeDataMinimal             ), intent(  out), allocatable, dimension(:  ) :: nodes
+    integer         (c_size_t                    ), intent(in   ), optional   , dimension(:  ) :: nodeSubset
+    logical                                       , intent(in   ), optional                    :: requireScaleRadii         , requireAngularMomenta, &
+         &                                                                                        requireAngularMomenta3D   , requirePositions     , &
+         &                                                                                        requireParticleCounts     , requireVelocityMaxima, &
+         &                                                                                        requireVelocityDispersions, requireSpin          , &
+         &                                                                                        requireSpin3D             , structureOnly
     class           (cosmologyFunctionsClass     ), pointer                                    :: cosmologyFunctionsDefault
-    integer         (kind=HSIZE_T                )                            , dimension(1  ) :: firstNodeIndex           , nodeCount
+    integer         (kind=HSIZE_T                )                            , dimension(1  ) :: firstNodeIndex            , nodeCount
     integer         (c_size_t                    )                                             :: iNode
-    double precision                                             , allocatable, dimension(:,:) :: angularMomentum3D        , position             , &
-         &                                                                                        velocity                 , spin3D
-    logical                                                                                    :: timesAreInternal
+    integer         (c_size_t                    )               , allocatable, dimension(:  ) :: nodeSubsetOffset
+    double precision                                             , allocatable, dimension(:,:) :: angularMomentum3D         , position             , &
+         &                                                                                        velocity                  , spin3D
+    logical                                                                                    :: timesAreInternal          , useNodeSubset
 
     ! Get the default cosmology functions object.
     cosmologyFunctionsDefault => cosmologyFunctions()
@@ -941,32 +952,63 @@ contains
     ! Determine the first node index and the node count.
     firstNodeIndex(1)=self%firstNodes(i)
     nodeCount     (1)=self%nodeCounts(i)
+    ! Handle node subsets.
+    useNodeSubset=present(nodeSubset) .and. .not.nodeSubset(1) < 0
+    if (useNodeSubset) then
+       ! Check that all nodes are within range.
+       if (any(nodeSubset > nodeCount(1))) call Galacticus_Error_Report('galacticusImport','node subset lies outside of forest')
+       ! Shift node subset to start of this forest.
+       nodeSubsetOffset=nodeSubset+firstNodeIndex(1)-1
+       ! Reset size of node array to read.
+       nodeCount(1)=size(nodeSubset)
+    end if
     ! Allocate the nodes array.
-    allocate(nodeDataGalacticus :: nodes(nodeCount(1)))
+    if (present(structureOnly).and.structureOnly) then
+       allocate(nodeDataMinimal    :: nodes(nodeCount(1)))
+    else
+       allocate(nodeDataGalacticus :: nodes(nodeCount(1)))
+    end if
     !# <workaround type="gfortran" PR="65889" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=65889">
     select type (nodes)
+    type is (nodeDataMinimal   )
+       call Memory_Usage_Record(sizeof(nodes))
     type is (nodeDataGalacticus)
        call Memory_Usage_Record(sizeof(nodes))
     end select
     !# </workaround>
     !$omp critical(HDF5_Access)
-    ! nodeIndex
-    call self%forestHalos%readDatasetStatic("nodeIndex"      ,nodes%nodeIndex      ,firstNodeIndex,nodeCount)
-    ! hostIndex
-    call self%forestHalos%readDatasetStatic("hostIndex"      ,nodes%hostIndex      ,firstNodeIndex,nodeCount)
-    ! parentNode
-    call self%forestHalos%readDatasetStatic("descendentIndex",nodes%descendentIndex,firstNodeIndex,nodeCount)
-    ! nodeMass
-    call self%forestHalos%readDatasetStatic("nodeMass"       ,nodes%nodeMass       ,firstNodeIndex,nodeCount)
+    if (useNodeSubset) then
+       ! nodeIndex
+       call self%forestHalos%readDatasetStatic("nodeIndex"      ,nodes%nodeIndex                               ,readSelection=nodeSubsetOffset)
+       ! hostIndex
+       call self%forestHalos%readDatasetStatic("hostIndex"      ,nodes%hostIndex                               ,readSelection=nodeSubsetOffset)
+       ! parentNode
+       call self%forestHalos%readDatasetStatic("descendentIndex",nodes%descendentIndex                         ,readSelection=nodeSubsetOffset)
+    else
+       ! nodeIndex
+       call self%forestHalos%readDatasetStatic("nodeIndex"      ,nodes%nodeIndex      ,firstNodeIndex,nodeCount                               )
+       ! hostIndex
+       call self%forestHalos%readDatasetStatic("hostIndex"      ,nodes%hostIndex      ,firstNodeIndex,nodeCount                               )
+       ! parentNode
+       call self%forestHalos%readDatasetStatic("descendentIndex",nodes%descendentIndex,firstNodeIndex,nodeCount                               )
+    end if
     ! nodeTime
     timesAreInternal=.true. 
     if      (self%forestHalos%hasDataset("time"           )) then
        ! Time is present, so read it.
        timesAreInternal=.false.
-       call self%forestHalos%readDatasetStatic("time"           ,nodes%nodeTime,firstNodeIndex,nodeCount)
+       if (useNodeSubset) then
+          call self%forestHalos%readDatasetStatic("time"           ,nodes%nodeTime                         ,readSelection=nodeSubsetOffset)
+       else
+          call self%forestHalos%readDatasetStatic("time"           ,nodes%nodeTime,firstNodeIndex,nodeCount                               )
+       end if
     else if (self%forestHalos%hasDataset("expansionFactor")) then
        ! Expansion factor is present, read it instead.
-       call self%forestHalos%readDatasetStatic("expansionFactor",nodes%nodeTime,firstNodeIndex,nodeCount)
+       if (useNodeSubset) then
+          call self%forestHalos%readDatasetStatic("expansionFactor",nodes%nodeTime                         ,readSelection=nodeSubsetOffset)
+       else
+          call self%forestHalos%readDatasetStatic("expansionFactor",nodes%nodeTime,firstNodeIndex,nodeCount                               )
+       end if
        ! Validate expansion factors.
        if (any(nodes%nodeTime <= 0.0d0)) call Galacticus_Error_Report("galacticusImport","expansionFactor dataset values must be >0")
        if (any(nodes%nodeTime >  1.0d0)) call Galacticus_Warn        ("WARNING: some expansion factors are in the future when importing merger tree")
@@ -976,8 +1018,12 @@ contains
        end do
     else if (self%forestHalos%hasDataset("redshift"       )) then
        ! Redshift is present, read it instead.
-       call self%forestHalos%readDatasetStatic("redshift"       ,nodes%nodeTime,firstNodeIndex,nodeCount)
-      ! Validate redshifts.
+       if (useNodeSubset) then
+          call self%forestHalos%readDatasetStatic("redshift"       ,nodes%nodeTime                         ,readSelection=nodeSubsetOffset)
+       else
+          call self%forestHalos%readDatasetStatic("redshift"       ,nodes%nodeTime,firstNodeIndex,nodeCount                               )
+       end if
+       ! Validate redshifts.
        if (any(nodes%nodeTime <= -1.0d0)) call Galacticus_Error_Report("galacticusImport","redshift dataset values must be >-1")
        if (any(nodes%nodeTime <   0.0d0)) call Galacticus_Warn        ("WARNING: some redshifts are in the future when importing merger tree")
        ! Convert redshifts to times.
@@ -987,146 +1033,209 @@ contains
     else
        call Galacticus_Error_Report("galacticusImport","one of time, redshift or expansionFactor data sets must be present in forestHalos group")
     end if
-    ! Scale or half-mass radius.
-    if (present(requireScaleRadii).and.requireScaleRadii) then
-       if (self%forestHalos%hasDataset("scaleRadius")) then
-          nodes%halfMassRadius=-1.0d0
-          call self%forestHalos%readDatasetStatic("scaleRadius"   ,nodes%scaleRadius   ,firstNodeIndex,nodeCount)
-       else
-          nodes%scaleRadius   =-1.0d0
-          call self%forestHalos%readDatasetStatic("halfMassRadius",nodes%halfMassRadius,firstNodeIndex,nodeCount)
-       end if
+    ! nodeMass
+    if (useNodeSubset) then
+       call self%forestHalos%readDatasetStatic("nodeMass"       ,nodes%nodeMass                                ,readSelection=nodeSubsetOffset)
+    else
+       call self%forestHalos%readDatasetStatic("nodeMass"       ,nodes%nodeMass       ,firstNodeIndex,nodeCount                               )
     end if
-    ! Particle count.
-    if (present(requireParticleCounts     ).and.requireParticleCounts     )                                              &
-         & call self%forestHalos%readDatasetStatic("particleCount"     ,nodes%particleCount     ,firstNodeIndex,nodeCount)
-    ! Velocity maximum.
-    if (present(requireVelocityMaxima     ).and.requireVelocityMaxima     )                                              &
-         & call self%forestHalos%readDatasetStatic("velocityMaximum"   ,nodes%velocityMaximum   ,firstNodeIndex,nodeCount)
-    ! Velocity dispersion.
-    if (present(requireVelocityDispersions).and.requireVelocityDispersions)                                              &
-         & call self%forestHalos%readDatasetStatic("velocityDispersion",nodes%velocityDispersion,firstNodeIndex,nodeCount)
-    ! Halo angular momenta.
-    if (present(requireAngularMomenta).and.requireAngularMomenta) then
-       if (self%angularMomentaIsVector) then
-          call self%forestHalos%readDataset("angularMomentum",angularMomentum3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)])
-          ! Transfer to nodes.
-          forall(iNode=1:nodeCount(1))
-             nodes(iNode)%angularMomentum=Vector_Magnitude(angularMomentum3D(:,iNode))
-          end forall
-          call Dealloc_Array(angularMomentum3D)
-       else if (self%angularMomentaIsScalar) then
-          call self%forestHalos%readDatasetStatic("angularMomentum",nodes%angularMomentum,[firstNodeIndex(1)],[nodeCount(1)])
-       else
-          call Galacticus_Error_Report("galacticusImport","scalar angular momentum is not available")
-       end if
-    end if
-    if (present(requireAngularMomenta3D).and.requireAngularMomenta3D) then
-       if (.not.self%angularMomentaIsVector) call Galacticus_Error_Report("galacticusImport","vector angular momentum is not available")
-       call self%forestHalos%readDataset("angularMomentum",angularMomentum3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)])
-    end if
-    ! Halo spins.
-    if (present(requireSpin).and.requireSpin) then
-       if (self%spinIsVector) then
-          call self%forestHalos%readDataset("spin",spin3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)])
-          ! Transfer to nodes.
-          forall(iNode=1:nodeCount(1))
-             nodes(iNode)%spin=Vector_Magnitude(spin3D(:,iNode))
-          end forall
-          call Dealloc_Array(spin3D)
-       else if (self%spinIsScalar) then
-          call self%forestHalos%readDatasetStatic("spin",nodes%spin,[firstNodeIndex(1)],[nodeCount(1)])
-       else
-          call Galacticus_Error_Report("galacticusImport","scalar spin is not available")
-       end if
-    end if
-    if (present(requireSpin3D).and.requireSpin3D) then
-       if (.not.self%spinIsVector) call Galacticus_Error_Report("galacticusImport","vector spin is not available")
-       call self%forestHalos%readDataset("spin",spin3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)])
-       ! Transfer to nodes.
-       forall(iNode=1:nodeCount(1))
-          nodes(iNode)%spin3D=spin3D(:,iNode)
-       end forall
-       call Dealloc_Array(spin3D)
-    end if
+    !$omp end critical(HDF5_Access)
+    ! If only structure is requested we are done.
+    if (present(structureOnly).and.structureOnly) return
     select type (nodes)
     type is (nodeDataGalacticus)
+       !$omp critical(HDF5_Access)
+       ! Scale or half-mass radius.
+       if (present(requireScaleRadii).and.requireScaleRadii) then
+          if (self%forestHalos%hasDataset("scaleRadius")) then
+             nodes%halfMassRadius=-1.0d0
+             if (useNodeSubset) then
+                call self%forestHalos%readDatasetStatic("scaleRadius"   ,nodes%scaleRadius                            ,readSelection=nodeSubsetOffset)
+             else
+                call self%forestHalos%readDatasetStatic("scaleRadius"   ,nodes%scaleRadius   ,firstNodeIndex,nodeCount                               )
+             end if
+          else
+             nodes%scaleRadius   =-1.0d0
+             if (useNodeSubset) then
+                call self%forestHalos%readDatasetStatic("halfMassRadius",nodes%halfMassRadius                         ,readSelection=nodeSubsetOffset)
+             else
+                call self%forestHalos%readDatasetStatic("halfMassRadius",nodes%halfMassRadius,firstNodeIndex,nodeCount                               )
+             end if
+          end if
+       end if
+       ! Particle count.
+       if (useNodeSubset) then
+          if (present(requireParticleCounts     ).and.requireParticleCounts     )                                              &
+               & call self%forestHalos%readDatasetStatic("particleCount"     ,nodes%particleCount                              ,readSelection=nodeSubsetOffset)
+          ! Velocity maximum.
+          if (present(requireVelocityMaxima     ).and.requireVelocityMaxima     )                                              &
+               & call self%forestHalos%readDatasetStatic("velocityMaximum"   ,nodes%velocityMaximum                            ,readSelection=nodeSubsetOffset)
+          ! Velocity dispersion.
+          if (present(requireVelocityDispersions).and.requireVelocityDispersions)                                              &
+               & call self%forestHalos%readDatasetStatic("velocityDispersion",nodes%velocityDispersion                         ,readSelection=nodeSubsetOffset)
+       else
+          if (present(requireParticleCounts     ).and.requireParticleCounts     )                                              &
+               & call self%forestHalos%readDatasetStatic("particleCount"     ,nodes%particleCount     ,firstNodeIndex,nodeCount                               )
+          ! Velocity maximum.
+          if (present(requireVelocityMaxima     ).and.requireVelocityMaxima     )                                              &
+               & call self%forestHalos%readDatasetStatic("velocityMaximum"   ,nodes%velocityMaximum   ,firstNodeIndex,nodeCount                               )
+          ! Velocity dispersion.
+          if (present(requireVelocityDispersions).and.requireVelocityDispersions)                                              &
+               & call self%forestHalos%readDatasetStatic("velocityDispersion",nodes%velocityDispersion,firstNodeIndex,nodeCount                               )
+       end if
+       ! Halo angular momenta.
+       if (present(requireAngularMomenta).and.requireAngularMomenta) then
+          if (self%angularMomentaIsVector) then
+             if (useNodeSubset) then
+                call self%forestHalos%readDataset("angularMomentum",angularMomentum3D                                                         ,readSelection=nodeSubsetOffset)
+             else
+                call self%forestHalos%readDataset("angularMomentum",angularMomentum3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
+             end if
+             ! Transfer to nodes.
+             forall(iNode=1:nodeCount(1))
+                nodes(iNode)%angularMomentum=Vector_Magnitude(angularMomentum3D(:,iNode))
+             end forall
+             call Dealloc_Array(angularMomentum3D)
+          else if (self%angularMomentaIsScalar) then
+             if (useNodeSubset) then
+                call self%forestHalos%readDatasetStatic("angularMomentum",nodes%angularMomentum                                   ,readSelection=nodeSubsetOffset)
+             else
+                call self%forestHalos%readDatasetStatic("angularMomentum",nodes%angularMomentum,[firstNodeIndex(1)],[nodeCount(1)]                               )
+             end if
+          else
+             call Galacticus_Error_Report("galacticusImport","scalar angular momentum is not available")
+          end if
+       end if
+       if (present(requireAngularMomenta3D).and.requireAngularMomenta3D) then
+          if (.not.self%angularMomentaIsVector) call Galacticus_Error_Report("galacticusImport","vector angular momentum is not available")
+          if (useNodeSubset) then
+             call self%forestHalos%readDataset("angularMomentum",angularMomentum3D                                                         ,readSelection=nodeSubsetOffset)
+          else
+             call self%forestHalos%readDataset("angularMomentum",angularMomentum3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
+          end if
+       end if
+       ! Halo spins.
+       if (present(requireSpin).and.requireSpin) then
+          if (self%spinIsVector) then
+             if (useNodeSubset) then
+                call self%forestHalos%readDataset("spin",spin3D                                                         ,readSelection=nodeSubsetOffset)
+             else
+                call self%forestHalos%readDataset("spin",spin3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
+             end if
+             ! Transfer to nodes.
+             forall(iNode=1:nodeCount(1))
+                nodes(iNode)%spin=Vector_Magnitude(spin3D(:,iNode))
+             end forall
+             call Dealloc_Array(spin3D)
+          else if (self%spinIsScalar) then
+             if (useNodeSubset) then
+                call self%forestHalos%readDatasetStatic("spin",nodes%spin                                   ,readSelection=nodeSubsetOffset)
+             else
+                call self%forestHalos%readDatasetStatic("spin",nodes%spin,[firstNodeIndex(1)],[nodeCount(1)]                               )
+             end if
+          else
+             call Galacticus_Error_Report("galacticusImport","scalar spin is not available")
+          end if
+       end if
+       if (present(requireSpin3D).and.requireSpin3D) then
+          if (.not.self%spinIsVector) call Galacticus_Error_Report("galacticusImport","vector spin is not available")
+          if (useNodeSubset) then
+             call self%forestHalos%readDataset("spin",spin3D                                                         ,readSelection=nodeSubsetOffset)
+          else
+             call self%forestHalos%readDataset("spin",spin3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
+          end if
+          ! Transfer to nodes.
+          forall(iNode=1:nodeCount(1))
+             nodes(iNode)%spin3D=spin3D(:,iNode)
+          end forall
+          call Dealloc_Array(spin3D)
+       end if
        ! Initialize particle data to null values.
        nodes%particleIndexStart=-1_c_size_t
        nodes%particleIndexCount=-1_c_size_t
        ! Positions (and velocities).
        if (present(requirePositions).and.requirePositions) then
-          ! position.
-          call self%forestHalos%readDataset("position",position,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)])
-          ! velocity.
-          call self%forestHalos%readDataset("velocity",velocity,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)])
+          if (useNodeSubset) then
+             ! position.
+             call self%forestHalos%readDataset("position",position                                                         ,readSelection=nodeSubsetOffset)
+             ! velocity.
+             call self%forestHalos%readDataset("velocity",velocity                                                         ,readSelection=nodeSubsetOffset)
+          else
+             ! position.
+             call self%forestHalos%readDataset("position",position,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
+             ! velocity.
+             call self%forestHalos%readDataset("velocity",velocity,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
+          end if
           ! If a set of most bound particle indices are present, read them.
           if (self%forestHalos%hasDataset("particleIndexStart").and.self%forestHalos%hasDataset("particleIndexCount")) then
-             call self%forestHalos%readDatasetStatic("particleIndexStart",nodes%particleIndexStart,firstNodeIndex,nodeCount)
-             call self%forestHalos%readDatasetStatic("particleIndexCount",nodes%particleIndexCount,firstNodeIndex,nodeCount)
+             if (useNodeSubset) then
+                call self%forestHalos%readDatasetStatic("particleIndexStart",nodes%particleIndexStart                         ,readSelection=nodeSubsetOffset)
+                call self%forestHalos%readDatasetStatic("particleIndexCount",nodes%particleIndexCount                         ,readSelection=nodeSubsetOffset)
+             else
+                call self%forestHalos%readDatasetStatic("particleIndexStart",nodes%particleIndexStart,firstNodeIndex,nodeCount                               )
+                call self%forestHalos%readDatasetStatic("particleIndexCount",nodes%particleIndexCount,firstNodeIndex,nodeCount                               )
+             end if
           end if
        end if
-    class default
-       call Galacticus_Error_Report('galacticusImport','nodes should be of type nodeDataGalacticus')
+       !$omp end critical(HDF5_Access)
+       ! Unit conversion.
+       if     (                                                                              &
+            &   present(requirePositions)                                                    &
+            &  .and.                                                                         &
+            &           requirePositions                                                     &
+            &  .and.                                                                         &
+            &   .not.                                                                        &
+            &    (                                                                           &
+            &      self%lengthUnit%status                                                    &
+            &     .and.                                                                      &
+            &      self%velocityUnit%status                                                  &
+            &    )                                                                           &
+            & ) call Galacticus_Error_Report(                                                &
+            &                                'galacticusImport'                           ,  &
+            &                                'length and velocity units must be given if '// &
+            &                                'positions and velocities are to be read'       &
+            &                               )
+       if (self%timeUnit%status.and.self%timeUnit%scaleFactorExponent /= 0)                           &
+            &   call Galacticus_Error_Report(                                                         &
+            &                                'galacticusImport'                                     , &
+            &                                'expect no scaling of time units with expansion factor'  &
+            &                               )
+       if (self%    massUnit%status.and.self%    massUnit%unitsInSI <= 0.0d0) call Galacticus_Error_Report('galacticusImport','non-positive units for mass'    )
+       if (self%  lengthUnit%status.and.self%  lengthUnit%unitsInSI <= 0.0d0) call Galacticus_Error_Report('galacticusImport','non-positive units for length'  )
+       if (self%velocityUnit%status.and.self%velocityUnit%unitsInSI <= 0.0d0) call Galacticus_Error_Report('galacticusImport','non-positive units for velocity')
+       if (self%    timeUnit%status.and.self%    timeUnit%unitsInSI <= 0.0d0) call Galacticus_Error_Report('galacticusImport','non-positive units for time'    )
+       if (.not.timesAreInternal)                                                                                                                                         &
+            & nodes%nodeTime       =importerUnitConvert(nodes%nodeTime       ,nodes%nodeTime,self%timeUnit                                  ,gigaYear                 )
+       nodes       %nodeMass       =importerUnitConvert(nodes%nodeMass       ,nodes%nodeTime,                                  self%massUnit,                massSolar)
+       if (present(requireScaleRadii).and.requireScaleRadii) then
+          nodes    %scaleRadius    =importerUnitConvert(nodes%scaleRadius    ,nodes%nodeTime,self%lengthUnit                                ,megaParsec               )
+          nodes    %halfMassRadius =importerUnitConvert(nodes%halfMassRadius ,nodes%nodeTime,self%lengthUnit                                ,megaParsec               )
+       end if
+       if (present(requireVelocityMaxima     ).and.requireVelocityMaxima     )                                                                                                  &
+            &  nodes%velocityMaximum  =importerUnitConvert(nodes%velocityMaximum   ,nodes%nodeTime,                self%velocityUnit              ,           kilo          )
+       if (present(requireVelocityDispersions).and.requireVelocityDispersions)                                                                                                  &
+            & nodes%velocityDispersion=importerUnitConvert(nodes%velocityDispersion,nodes%nodeTime,                self%velocityUnit              ,           kilo          )
+       if (present(requireAngularMomenta     ).and.requireAngularMomenta     )                                                                                                  &
+            & nodes%angularMomentum   =importerUnitConvert(nodes%angularMomentum   ,nodes%nodeTime,self%lengthUnit*self%velocityUnit*self%massUnit,megaParsec*kilo*massSolar)
+       if (present(requireAngularMomenta3D).and.requireAngularMomenta3D) then
+          angularmomentum3d=importerUnitConvert(angularmomentum3d,nodes%nodeTime,self%lengthUnit*self%velocityUnit*self%massUnit,megaParsec*kilo*massSolar)
+          ! Transfer to nodes.
+          forall(iNode=1:nodeCount(1))
+             nodes(iNode)%angularMomentum3D=angularMomentum3D(:,iNode)
+          end forall
+          call Dealloc_Array(angularMomentum3D)
+       end if
+       if (present(requirePositions).and.requirePositions) then
+          position=importerUnitConvert(position,nodes%nodeTime,self%  lengthUnit,megaParsec)
+          velocity=importerUnitConvert(velocity,nodes%nodeTime,self%velocityUnit,kilo      )
+          ! Transfer to the nodes.  
+          forall(iNode=1:nodeCount(1))
+             nodes(iNode)%position=position(:,iNode)
+             nodes(iNode)%velocity=velocity(:,iNode)
+          end forall
+          call Dealloc_Array(position)
+          call Dealloc_Array(velocity)
+       end if
     end select
-    !$omp end critical(HDF5_Access)
-    ! Unit conversion.
-    if     (                                                                              &
-         &   present(requirePositions)                                                    &
-         &  .and.                                                                         &
-         &           requirePositions                                                     &
-         &  .and.                                                                         &
-         &   .not.                                                                        &
-         &    (                                                                           &
-         &      self%lengthUnit%status                                                    &
-         &     .and.                                                                      &
-         &      self%velocityUnit%status                                                  &
-         &    )                                                                           &
-         & ) call Galacticus_Error_Report(                                                &
-         &                                'galacticusImport'                           ,  &
-         &                                'length and velocity units must be given if '// &
-         &                                'positions and velocities are to be read'       &
-         &                               )
-    if (self%timeUnit%status.and.self%timeUnit%scaleFactorExponent /= 0)                           &
-         &   call Galacticus_Error_Report(                                                         &
-         &                                'galacticusImport'                                     , &
-         &                                'expect no scaling of time units with expansion factor'  &
-         &                               )
-    if (self%    massUnit%status.and.self%    massUnit%unitsInSI <= 0.0d0) call Galacticus_Error_Report('galacticusImport','non-positive units for mass'    )
-    if (self%  lengthUnit%status.and.self%  lengthUnit%unitsInSI <= 0.0d0) call Galacticus_Error_Report('galacticusImport','non-positive units for length'  )
-    if (self%velocityUnit%status.and.self%velocityUnit%unitsInSI <= 0.0d0) call Galacticus_Error_Report('galacticusImport','non-positive units for velocity')
-    if (self%    timeUnit%status.and.self%    timeUnit%unitsInSI <= 0.0d0) call Galacticus_Error_Report('galacticusImport','non-positive units for time'    )
-    if (.not.timesAreInternal)                                                                                                                                         &
-         & nodes%nodeTime       =importerUnitConvert(nodes%nodeTime       ,nodes%nodeTime,self%timeUnit                                  ,gigaYear                 )
-    nodes       %nodeMass       =importerUnitConvert(nodes%nodeMass       ,nodes%nodeTime,                                  self%massUnit,                massSolar)
-    if (present(requireScaleRadii).and.requireScaleRadii) then
-       nodes    %scaleRadius    =importerUnitConvert(nodes%scaleRadius    ,nodes%nodeTime,self%lengthUnit                                ,megaParsec               )
-       nodes    %halfMassRadius =importerUnitConvert(nodes%halfMassRadius ,nodes%nodeTime,self%lengthUnit                                ,megaParsec               )
-    end if
-    if (present(requireVelocityMaxima     ).and.requireVelocityMaxima     )                                                                                                  &
-         &  nodes%velocityMaximum  =importerUnitConvert(nodes%velocityMaximum   ,nodes%nodeTime,                self%velocityUnit              ,           kilo          )
-    if (present(requireVelocityDispersions).and.requireVelocityDispersions)                                                                                                  &
-         & nodes%velocityDispersion=importerUnitConvert(nodes%velocityDispersion,nodes%nodeTime,                self%velocityUnit              ,           kilo          )
-    if (present(requireAngularMomenta     ).and.requireAngularMomenta     )                                                                                                  &
-         & nodes%angularMomentum   =importerUnitConvert(nodes%angularMomentum   ,nodes%nodeTime,self%lengthUnit*self%velocityUnit*self%massUnit,megaParsec*kilo*massSolar)
-    if (present(requireAngularMomenta3D).and.requireAngularMomenta3D) then
-       angularmomentum3d=importerUnitConvert(angularmomentum3d,nodes%nodeTime,self%lengthUnit*self%velocityUnit*self%massUnit,megaParsec*kilo*massSolar)
-       ! Transfer to nodes.
-       forall(iNode=1:nodeCount(1))
-          nodes(iNode)%angularMomentum3D=angularMomentum3D(:,iNode)
-       end forall
-       call Dealloc_Array(angularMomentum3D)
-    end if
-    if (present(requirePositions).and.requirePositions) then
-       position=importerUnitConvert(position,nodes%nodeTime,self%  lengthUnit,megaParsec)
-       velocity=importerUnitConvert(velocity,nodes%nodeTime,self%velocityUnit,kilo      )
-       ! Transfer to the nodes.  
-       forall(iNode=1:self%nodeCounts(i))
-          nodes(iNode)%position=position(:,iNode)
-          nodes(iNode)%velocity=velocity(:,iNode)
-       end forall
-       call Dealloc_Array(position)
-       call Dealloc_Array(velocity)
-    end if
     return
   end subroutine galacticusImport
