@@ -126,10 +126,11 @@ contains
     class           (darkMatterProfileConcentrationSchneider2015), intent(inout)          :: self
     type            (treeNode                                   ), intent(inout), pointer :: node
     class           (nodeComponentBasic                         )               , pointer :: basic
-    double precision                                             , parameter              :: toleranceAbsolute          =0.0d0, toleranceRelative    =1.0d-6
-    double precision                                                                      :: mass                             , time                        , &
-         &                                                                                   collapseCriticalOverdensity      , timeCollapse                , &
-         &                                                                                   massReference                    , timeCollapseReference
+    double precision                                             , parameter              :: toleranceAbsolute                =0.0d0, toleranceRelative    =1.0d-6
+    double precision                                                                      :: mass                                   , time                        , &
+         &                                                                                   collapseCriticalOverdensity            , timeCollapse                , &
+         &                                                                                   massReference                          , timeCollapseReference       , &
+         &                                                                                   referenceCollapseMassRootPrevious      , massReferencePrevious
       
     ! Get the basic component and the halo mass and time.
     basic => node %basic()
@@ -159,7 +160,8 @@ contains
             &                        rangeExpandType    =rangeExpandMultiplicative      &
             &                       )
     end if
-    massReference=self%finder%find(rootGuess=mass)
+    massReferencePrevious=-1.0d0
+    massReference        =self%finder%find(rootGuess=mass)
     ! Compute the concentration of a node of this mass in the reference model.
     call basic%massSet(massReference)
     schneider2015Concentration=self%referenceConcentration%concentration(node)
@@ -174,16 +176,20 @@ contains
       implicit none
       double precision, intent(in   ) :: massReference
 
-      referenceCollapseMassRoot=+sqrt(                                                                                                    &
-         &                            +Pi                                                                                                 &
-         &                            /2.0d0                                                                                              &
-         &                            *(                                                                                                  &
-         &                              +self%referenceCosmologicalMassVariance%rootVariance(massReference*self%massFractionFormation)**2 &
-         &                              -self%referenceCosmologicalMassVariance%rootVariance(massReference                           )**2 &
-         &                             )                                                                                                  &
-         &                           )                                                                                                    &
-         &                      +self%referenceCriticalOverdensity%value(time=time                 ,mass=massReference)                   &
-         &                      -self%referenceCriticalOverdensity%value(time=timeCollapseReference,mass=massReference)
+      if (massReference /= massReferencePrevious) then
+         massReferencePrevious            =+massReference
+         referenceCollapseMassRootPrevious=+sqrt(                                                                                                    &
+              &                                  +Pi                                                                                                 &
+              &                                  /2.0d0                                                                                              &
+              &                                  *(                                                                                                  &
+              &                                    +self%referenceCosmologicalMassVariance%rootVariance(massReference*self%massFractionFormation)**2 &
+              &                                    -self%referenceCosmologicalMassVariance%rootVariance(massReference                           )**2 &
+              &                                   )                                                                                                  &
+              &                                 )                                                                                                    &
+              &                            +self%referenceCriticalOverdensity%value(time=time                 ,mass=massReference)                   &
+              &                            -self%referenceCriticalOverdensity%value(time=timeCollapseReference,mass=massReference)
+      end if
+      referenceCollapseMassRoot=referenceCollapseMassRootPrevious
       return
     end function referenceCollapseMassRoot
     

@@ -1,0 +1,39 @@
+--- drffti.f~	1998-10-30 15:36:32.000000000 +0000
++++ drffti.f	2016-05-04 23:11:10.443724634 +0000
+@@ -14,9 +14,9 @@
+       end
+ c
+ c-----------------------------------------------------------------------
+-      subroutine drfti1 (n,wa,ifac)
+-      integer n, ifac(15)
+-      real*8 wa(n)
++      subroutine drfti1 (n,wa,rfac)
++      integer n, ifac(16)
++      real*8 wa(n), rfac(8)
+ c
+       real*8 TPI
+       parameter (TPI = 6.2831853071 7958647692 5286766559 00577d0)
+@@ -28,6 +28,7 @@
+ c
+       data ntryh /4, 2, 3, 5/
+ c
++      ifac=transfer(rfac,ifac)
+       nl = n
+       nf = 0
+       j = 0
+@@ -52,6 +53,7 @@
+   107 if (nl .ne. 1) go to 104
+       ifac(1) = n
+       ifac(2) = nf
++      rfac=transfer(ifac,rfac)
+ c
+       argh = TPI/dble(n)
+       is = 0
+@@ -82,6 +84,7 @@
+          l1 = l2
+   110 continue
+ c
++      rfac=transfer(ifac,rfac)
+       return
+       end
+ c
