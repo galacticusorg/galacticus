@@ -1,0 +1,35 @@
+--- drfftb.f~	1998-10-30 15:36:02.000000000 +0000
++++ drfftb.f	2016-05-04 23:07:38.170939730 +0000
+@@ -5,6 +5,7 @@
+       integer n
+ c wsave is a work array which should be dimensioned at least 2*n+15
+       real*8 r(n), wsave(*)
++
+ c
+       if (n .eq. 1) return
+ c
+@@ -431,12 +432,13 @@
+       end
+ c
+ c-----------------------------------------------------------------------
+-      subroutine drftb1 (n,c,ch,wa,ifac)
+-      integer n, ifac(15)
+-      real*8 c(n), ch(n), wa(n)
++      subroutine drftb1 (n,c,ch,wa,rfac)
++      integer n, ifac(16)
++      real*8 c(n), ch(n), wa(n), rfac(8)
+ c
+       integer i, idl1, ido, ip, ix2, ix3, ix4, iw, k1, l1, l2, na, nf
+ c
++      ifac=transfer(rfac,ifac)
+       nf = ifac(2)
+       na = 0
+       l1 = 1
+@@ -492,6 +494,7 @@
+   115    l1 = l2
+          iw = iw+(ip-1)*ido
+   116 continue
++      rfac=transfer(ifac,rfac)
+ c
+       if (na .eq. 0) return
+       do 117 i=1,n

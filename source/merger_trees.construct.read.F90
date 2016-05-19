@@ -2982,18 +2982,29 @@ contains
     if (progenitors%exist()) then
        primaryProgenitor     => null()
        primaryProgenitorMass =  0.0d0
+
+write (0,*) "STAGE #0 "
+       
        do while (progenitors%next(nodes))
           progenitorNode => progenitors%current(nodes)
-          if (progenitorNode%nodeIndex /= lastSeenNode%nodeIndex .and. progenitorNode%nodeMass > primaryProgenitorMass) then
+   
+write (0,*) "STAGE #1 ",progenitorNode%nodeIndex , lastSeenNode%nodeIndex , progenitorNode%nodeMass ,primaryProgenitorMass
+
+if (progenitorNode%nodeIndex /= lastSeenNode%nodeIndex .and. progenitorNode%nodeMass > primaryProgenitorMass) then
              primaryProgenitorMass =  progenitorNode%nodeMass
              primaryProgenitor     => progenitorNode
           end if
        end do
-       ! Initialize time until merging to zero.
+
+write (0,*) "STAGE #2 "
+              ! Initialize time until merging to zero.
        timeUntilMerging=0.0d0
        ! If position information is available, compute the subresolution orbit.
        if (mergerTreeReadPresetPositions) then
           ! Find relative position and velocity.
+
+write (0,*) "TEST ",associated(primaryProgenitor),lastseennode%nodeindex,lastseennode%descendentindex,associated(lastseennode%descendent)
+          
           relativePosition=lastSeenNode%position-primaryProgenitor%position
           relativeVelocity=lastSeenNode%velocity-primaryProgenitor%velocity
           ! Update position/velocity for periodicity and Hubble flow.

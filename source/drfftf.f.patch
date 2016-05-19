@@ -1,0 +1,28 @@
+--- drfftf.f~	1998-10-30 15:36:22.000000000 +0000
++++ drfftf.f	2016-05-04 23:10:12.882511813 +0000
+@@ -424,13 +424,14 @@
+       end
+ c
+ c-----------------------------------------------------------------------
+-      subroutine drftf1 (n,c,ch,wa,ifac)
+-      integer n, ifac(15)
+-      real*8 c(n), ch(n), wa(n)
++      subroutine drftf1 (n,c,ch,wa,rfac)
++      integer n, ifac(16)
++      real*8 c(n), ch(n), wa(n), rfac(8)
+ c
+       integer i, idl1, ido, ip, iw, ix2, ix3, ix4,
+      &  k1, kh, l1, l2, na, nf
+ c
++      ifac=transfer(rfac,ifac)
+       nf = ifac(2)
+       na = 1
+       l2 = n
+@@ -488,6 +489,7 @@
+ c
+   110    l2 = l1
+   111 continue
++      rfac=transfer(ifac,rfac)
+ c
+       if (na .eq. 1) return
+       do 112 i=1,n
