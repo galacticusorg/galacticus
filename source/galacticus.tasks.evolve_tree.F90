@@ -222,7 +222,7 @@ contains
           call Get_Input_Parameter('treeEvolveSuspendToRAM',treeEvolveSuspendToRAM,defaultValue=.true.)
           if (.not.treeEvolveSuspendToRAM) then
              !@ <inputParameter>
-             !@   <name>treeEvolveSuspendToRAM</name>
+             !@   <name>treeEvolveSuspendPath</name>
              !@   <attachedTo>module</attachedTo>
              !@   <description>
              !@     The path to which tree suspension files will be stored.
