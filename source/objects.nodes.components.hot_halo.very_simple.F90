@@ -461,11 +461,14 @@ contains
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
     type            (treeNode            )               , pointer :: parentNode
-    class           (nodeComponentHotHalo)               , pointer :: parentHotHalo   , hotHalo
-    class           (nodeComponentBasic  )               , pointer :: basic           , parentBasic
+    class           (nodeComponentHotHalo)               , pointer :: parentHotHalo       , hotHalo
+    class           (nodeComponentBasic  )               , pointer :: basic               , parentBasic
     class           (accretionHaloClass  )               , pointer :: accretionHalo_
-    double precision                                               :: massAccreted    , massUnaccreted, &
-         &                                                            fractionAccreted, massReaccreted
+    type            (abundances          ), save                   :: massMetalsAccreted  , fractionMetalsAccreted, &
+         &                                                            massMetalsReaccreted
+    !$omp threadprivate(massMetalsAccreted,fractionMetalsAccreted,massMetalsReaccreted)
+    double precision                                               :: massAccreted        , massUnaccreted        , &
+         &                                                            fractionAccreted    , massReaccreted
         
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
@@ -489,23 +492,40 @@ contains
        call       hotHalo%          massSet(                                                  0.0d0)
        call       hotHalo%    abundancesSet(                                         zeroAbundances)
        ! Finally, since the parent node is undergoing mass growth through this merger we potentially return some of the unaccreted
-       ! gas to the hot phase. First, find the masses of hot and failed mass the node would have if it formed instantaneously.
+       ! gas to the hot phase.
+       !! First, find the masses of hot and failed mass the node would have if it formed instantaneously.
        massAccreted  =accretionHalo_%accretedMass      (parentNode,accretionModeTotal)
        massUnaccreted=accretionHalo_%failedAccretedMass(parentNode,accretionModeTotal)       
-       ! Find the fraction of mass that would be successfully accreted.
+       !! Find the fraction of mass that would be successfully accreted.
        fractionAccreted=+  massAccreted   &
             &           /(                &
             &             +massAccreted   &
             &             +massUnaccreted &
             &            )
-       ! Find the change in the unaccreted mass.
+       !! Find the change in the unaccreted mass.
        massReaccreted=+parentHotHalo   %unaccretedMass() &
             &         *fractionAccreted                  &
             &         *basic           %          mass() &
             &         /parentBasic     %          mass()
-       ! Reaccrete the gas,
+       !! Reaccrete the gas,
        call parentHotHalo%unaccretedMassSet(parentHotHalo%unaccretedMass()-massReaccreted)
        call parentHotHalo%          massSet(parentHotHalo%          mass()+massReaccreted)
+       ! Compute the reaccreted metals.
+       !! First, find the metal mass the node would have if it formed instantaneously.
+       massMetalsAccreted=accretionHalo_%accretedMassMetals(parentNode,accretionModeHot)
+       !! Find the mass fraction of metals that would be successfully accreted.
+       fractionMetalsAccreted=+  massMetalsAccreted &
+            &                 /(                    &
+            &                   +massAccreted       &
+            &                   +massUnaccreted     &
+            &                  )
+       !! Find the change in the unaccreted mass.
+       massMetalsReaccreted=+parentHotHalo   %unaccretedMass() &
+            &               *fractionMetalsAccreted            &
+            &               *basic           %          mass() &
+            &               /parentBasic     %          mass()
+       !! Reaccrete the metals.
+       call parentHotHaloComponent%abundancesSet(parentHotHaloComponent%abundances()+massMetalsReaccreted)
     end select
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Node_Merger
