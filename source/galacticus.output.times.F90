@@ -185,14 +185,14 @@ contains
     call Output_Times_Initialize()
 
     ! If the current time exceeds the last output, return an unphysical value.
-    if      (currentTime >= outputTimes(outputCount)) then
+    if      (currentTime > outputTimes(outputCount)) then
        Galacticus_Next_Output_Time=-1.0d0
        if (present(outputIndex)) outputIndex=-1
     else if (currentTime <  outputTimes(          1)) then
        Galacticus_Next_Output_Time=outputTimes(                                      1)
        if (present(outputIndex)) outputIndex=+1
     else
-       i=Search_Array(outputTimes,currentTime)+1
+       i=min(Search_Array(outputTimes,currentTime)+1,outputCount)
        Galacticus_Next_Output_Time=outputTimes(i)
        if (present(outputIndex)) outputIndex=i
     end if
