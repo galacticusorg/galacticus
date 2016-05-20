@@ -389,27 +389,55 @@ contains
   !# <nodeMergerTask>
   !#  <unitName>Node_Component_Hot_Halo_Very_Simple_Node_Merger</unitName>
   !# </nodeMergerTask>
-  subroutine Node_Component_Hot_Halo_Very_Simple_Node_Merger(thisNode)
-    !% Starve {\normalfont \ttfamily thisNode} by transferring its hot halo to its parent.
+  subroutine Node_Component_Hot_Halo_Very_Simple_Node_Merger(node)
+    !% Starve {\normalfont \ttfamily node} by transferring its hot halo to its parent.
+    use Accretion_Halos
     implicit none
-    type (treeNode            ), intent(inout), pointer :: thisNode
-    type (treeNode            )               , pointer :: parentNode
-    class(nodeComponentHotHalo)               , pointer :: parentHotHaloComponent, thisHotHaloComponent
-
+    type            (treeNode            ), intent(inout), pointer :: node
+    type            (treeNode            )               , pointer :: parentNode
+    class           (nodeComponentHotHalo)               , pointer :: parentHotHalo   , hotHalo
+    class           (nodeComponentBasic  )               , pointer :: basic           , parentBasic
+    class           (accretionHaloClass  )               , pointer :: accretionHalo_
+    double precision                                               :: massAccreted    , massUnaccreted, &
+         &                                                            fractionAccreted, massReaccreted
+        
     ! Get the hot halo component.
-    thisHotHaloComponent => thisNode%hotHalo()
-    select type (thisHotHaloComponent)
+    hotHalo => node%hotHalo()
+    select type (hotHalo)
     class is (nodeComponentHotHaloVerySimple)
+       ! Get required objects.
+       accretionHalo_ => accretionHalo()
        ! Find the parent node and its hot halo component.
-       parentNode => thisNode%parent
-       parentHotHaloComponent => parentNode%hotHalo(autoCreate=.true.)
+       parentNode    => node      %parent
+       parentHotHalo => parentNode%hotHalo(autoCreate=.true.)
+       ! Get the basic components.
+       basic       => node      %basic()
+       parentBasic => parentNode%basic()
        ! Any gas that failed to be accreted by this halo is always transferred to the parent.
-       call parentHotHaloComponent%unaccretedMassSet(parentHotHaloComponent%unaccretedMass()+thisHotHaloComponent%unaccretedMass())
-       call   thisHotHaloComponent%unaccretedMassSet(                                                                        0.0d0)
+       call parentHotHalo%unaccretedMassSet(parentHotHalo%unaccretedMass()+hotHalo%unaccretedMass())
+       call       hotHalo%unaccretedMassSet(                                                  0.0d0)
        ! Move the hot halo to the parent. We leave the hot halo in place even if it is starved, since outflows will accumulate
        ! to this hot halo (and will be moved to the parent at the end of the evolution timestep).
-       call parentHotHaloComponent%          massSet(parentHotHaloComponent%          mass()+thisHotHaloComponent%          mass())
-       call   thisHotHaloComponent%          massSet(                                                                        0.0d0)
+       call parentHotHalo%          massSet(parentHotHalo%          mass()+hotHalo%          mass())
+       call       hotHalo%          massSet(                                                  0.0d0)
+       ! Finally, since the parent node is undergoing mass growth through this merger we potentially return some of the unaccreted
+       ! gas to the hot phase. First, find the masses of hot and failed mass the node would have if it formed instantaneously.
+       massAccreted  =accretionHalo_%accretedMass      (parentNode,accretionModeTotal)
+       massUnaccreted=accretionHalo_%failedAccretedMass(parentNode,accretionModeTotal)       
+       ! Find the fraction of mass that would be successfully accreted.
+       fractionAccreted=+  massAccreted   &
+            &           /(                &
+            &             +massAccreted   &
+            &             +massUnaccreted &
+            &            )
+       ! Find the change in the unaccreted mass.
+       massReaccreted=+parentHotHalo   %unaccretedMass() &
+            &         *fractionAccreted                  &
+            &         *basic           %          mass() &
+            &         /parentBasic     %          mass()
+       ! Reaccrete the gas,
+       call parentHotHalo%unaccretedMassSet(parentHotHalo%unaccretedMass()-massReaccreted)
+       call parentHotHalo%          massSet(parentHotHalo%          mass()+massReaccreted)
     end select
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Node_Merger

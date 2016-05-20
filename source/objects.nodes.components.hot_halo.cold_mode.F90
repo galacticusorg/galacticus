@@ -63,7 +63,16 @@ module Node_Component_Hot_Halo_Cold_Mode
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
   !#     <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of cold-mode gas in the hot halo."/>
   !#   </property>
+  !#   <property>
+  !#     <name>massTotal</name>
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
+  !#     <type>double</type>
+  !#     <rank>0</rank>
+  !#     <isVirtual>true</isVirtual>
+  !#     <getFunction>Node_Component_Hot_Halo_Cold_Mode_Mass_Total</getFunction>
+  !#   </property>
   !#  </properties>
+  !#  <functions>objects.nodes.components.hot_halo.cold_mode.bound_functions.inc</functions>
   !# </component>
 
   ! Options controlling the behavior of the cold mode gas.
@@ -555,15 +564,11 @@ contains
                   &                                                      componentType=componentTypeAll  &
                   &                                                     )
              if (baryonicMassCurrent > baryonicMassMaximum .and. parentHotHalo%mass()+parentHotHalo%massCold() > 0.0d0) then
-                fractionRemove=min((baryonicMassCurrent-baryonicMassMaximum)/(parentHotHalo%mass()+parentHotHalo%massCold()),1.0d0)
-                call parentHotHalo%     unaccretedMassSet(                                                       &
-                     &                                     parentHotHalo%unaccretedMass ()                       &
-                     &                                    +parentHotHalo%mass           ()*       fractionRemove &
-                     &                                    +parentHotHalo%massCold       ()*       fractionRemove &
+                fractionRemove=min((baryonicMassCurrent-baryonicMassMaximum)/parentHotHalo%massTotal(),1.0d0)
+                call parentHotHalo%     unaccretedMassSet(                                                            &
+                     &                                     parentHotHalo%unaccretedMass     ()                        &
+                     &                                    +parentHotHalo%massCold           ()*       fractionRemove  &
                      &                                   )
-                call parentHotHalo%               massSet( parentHotHalo%mass               ()*(1.0d0-fractionRemove))
-                call parentHotHalo%    angularMomentumSet( parentHotHalo%angularMomentum    ()*(1.0d0-fractionRemove))
-                call parentHotHalo%         abundancesSet( parentHotHalo%abundances         ()*(1.0d0-fractionRemove))
                 call parentHotHalo%           massColdSet( parentHotHalo%massCold           ()*(1.0d0-fractionRemove))
                 call parentHotHalo%angularMomentumColdSet( parentHotHalo%angularMomentumCold()*(1.0d0-fractionRemove))
                 call parentHotHalo%     abundancesColdSet( parentHotHalo%abundancesCold     ()*(1.0d0-fractionRemove))
