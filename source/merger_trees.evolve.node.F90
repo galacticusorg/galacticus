@@ -54,7 +54,7 @@ module Merger_Trees_Evolve_Node
   ! Variables to track interrupt events.
   logical                                                 :: firstInterruptFound
   double precision                                        :: firstInterruptTime
-  procedure       (Interrupt_Procedure_Template), pointer :: firstInterruptProcedure
+  procedure       (interruptTask), pointer :: firstInterruptProcedure
   !$omp threadprivate(firstInterruptFound,firstInterruptTime,firstInterruptProcedure)
   ! Flag to indicate if node merging event method has been initialized.
   logical                                                 :: nodeMergersInitialized  =.false.
@@ -191,7 +191,7 @@ contains
     type            (treeNode                    )      , intent(inout), pointer :: thisNode
     double precision                                    , intent(in   )          :: endTime
     logical                                             , intent(  out)          :: interrupted
-    procedure       (Interrupt_Procedure_Template)      , intent(  out), pointer :: interruptProcedure
+    procedure       (interruptTask)      , intent(  out), pointer :: interruptProcedure
     class           (nodeComponentBasic          )                     , pointer :: basicComponent
     integer                                       , save                         :: nPropertiesPrevious=-1
     !$omp threadprivate(nPropertiesPrevious)
@@ -343,11 +343,11 @@ contains
     !% Function which evaluates the set of ODEs for the evolution of a specific node.
     use ODE_Solver_Error_Codes
     implicit none
-    double precision                       , intent(in   )               :: time
-    double precision                       , intent(in   ), dimension(:) :: y
-    double precision                       , intent(  out), dimension(:) :: dydt
-    logical                                                              :: interrupt
-    procedure(Interrupt_Procedure_Template), pointer                     :: interruptProcedure
+    double precision               , intent(in   )               :: time
+    double precision               , intent(in   ), dimension(:) :: y
+    double precision               , intent(  out), dimension(:) :: dydt
+    logical                                                     :: interrupt
+    procedure       (interruptTask), pointer                    :: interruptProcedure
 
     ! Return success by default.
     Tree_Node_ODEs=FGSL_Success
