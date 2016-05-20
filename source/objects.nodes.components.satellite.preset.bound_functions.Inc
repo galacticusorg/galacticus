@@ -64,21 +64,23 @@ double precision function SatellitePresetMergeBoundMass(self)
   type   (history                     )                :: boundMassHistory
   type   (fgsl_interp_accel           )                :: interpolationAccelerator
 
-  ! It does, so get the preset bound mass history.
-  boundMassHistory=self%boundMassHistory()
-  ! Check if the history exists.
-  if (boundMassHistory%exists()) then
-     ! It does, so find the preset time closest to the present one and return the mass at that time.
-     selfNode           => self    %host ()
+  ! Get the node and the bound mass history.
+  selfNode         => self%host            ()
+  boundMassHistory =  self%boundMassHistory()
+  ! Compute the bound mass.
+  if (.not.selfNode%isSatellite().or..not.boundMassHistory%exists()) then
+     ! The node is not a satellite, so simply use its basic mass.
+     selfBasicComponent => selfNode%basic()
+     SatellitePresetMergeBoundMass=selfBasicComponent%mass()
+  else
+     ! The node is a satellite and has a bound mass history, so find the preset time closest to the present one and return the
+     ! mass at that time.
      selfBasicComponent => selfNode%basic()
      interpolationReset=.true.
      iTime=Interpolate_Locate(boundMassHistory%time,interpolationAccelerator&
           &,selfBasicComponent%time(),reset=interpolationReset,closest=.true.)
      SatellitePresetMergeBoundMass=boundMassHistory%data(iTime,1)
      call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)
-  else
-     ! It does not, so return zero.
-     SatellitePresetMergeBoundMass=0.0d0
   end if
   call boundMassHistory%destroy()
   return

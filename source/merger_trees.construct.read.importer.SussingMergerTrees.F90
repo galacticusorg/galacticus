@@ -76,6 +76,7 @@
      !@ </objectMethods>
      procedure(sussingLoad), deferred :: load
      procedure                        :: close                         => sussingClose
+     procedure                        :: canReadSubsets                => sussingCanReadSubsets
      procedure                        :: treesHaveSubhalos             => sussingTreesHaveSubhalos
      procedure                        :: massesIncludeSubhalos         => sussingMassesIncludeSubhalos
      procedure                        :: angularMomentaIncludeSubhalos => sussingAngularMomentaIncludeSubhalos
@@ -385,6 +386,15 @@ contains
     
     return
   end subroutine sussingClose
+
+  logical function sussingCanReadSubsets(self)
+    !% Return false since this format does not permit reading of arbitrary subsets of halos from a forest.
+    implicit none
+    class(mergerTreeImporterSussing), intent(inout) :: self
+
+    sussingCanReadSubsets=.false.
+    return
+  end function sussingCanReadSubsets
 
   integer function sussingTreesHaveSubhalos(self)
     !% Return a Boolean integer specifying whether or not the trees have subhalos.
@@ -1035,23 +1045,28 @@ contains
     return
   end function sussingSubhaloTraceCount
 
-  subroutine sussingImport(self,i,nodes,requireScaleRadii,requireAngularMomenta,requireAngularMomenta3D,requireSpin,requireSpin3D,requirePositions,requireParticleCounts,requireVelocityMaxima,requireVelocityDispersions)
+  subroutine sussingImport(self,i,nodes,nodeSubset,requireScaleRadii,requireAngularMomenta,requireAngularMomenta3D,requireSpin,requireSpin3D,requirePositions,requireParticleCounts,requireVelocityMaxima,requireVelocityDispersions,structureOnly)
     !% Import the $i^{\mathrm th}$ merger tree.
     use Memory_Management
+    use Galacticus_Error
     implicit none
     class           (mergerTreeImporterSussing), intent(inout)                              :: self
     integer                                    , intent(in   )                              :: i
-    class           (nodeData                 ), intent(  out), allocatable, dimension(:  ) :: nodes
+    class           (nodeDataMinimal          ), intent(  out), allocatable, dimension(:  ) :: nodes
+    integer         (c_size_t                 ), intent(in   ), optional   , dimension(:  ) :: nodeSubset
     logical                                    , intent(in   ), optional                    :: requireScaleRadii         , requireAngularMomenta, &
          &                                                                                     requireAngularMomenta3D   , requirePositions     , &
          &                                                                                     requireParticleCounts     , requireVelocityMaxima, &
-         &                                                                                     requireVelocityDispersions, requireSpin         , &
-         &                                                                                     requireSpin3D
+         &                                                                                     requireVelocityDispersions, requireSpin          , &
+         &                                                                                     requireSpin3D             , structureOnly
     integer         (c_size_t                 )                                             :: j
     !GCC$ attributes unused :: requireAngularMomenta, requireAngularMomenta3D, requireScaleRadii, requirePositions, requireParticleCounts, requireVelocityMaxima, requireVelocityDispersions, requireSpin, requireSpin3D
     
     ! Decide if this tree should be included.
     if (self%randomSequence%sample() <= self%treeSampleRate) then
+    ! Validate arguments.
+    if (present(structureOnly).and.    structureOnly                ) call Galacticus_Error_Report('sussingImport','import of structure only is not supported')
+    if (present(nodeSubset   ).and.any(nodeSubset    /= -1_c_size_t)) call Galacticus_Error_Report('sussingImport','import of subsets is not supported'       )
        ! Allocate the nodes array.
        allocate(nodeData :: nodes(self%treeSizes(i)))
        !# <workaround type="gfortran" PR="65889" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=65889">
