@@ -1215,7 +1215,7 @@ contains
 
   subroutine Create_Node_Indices(nodes)
     !% Create a sorted list of node indices with an index into the original array.
-    use Galacticus_Display
+    use Galacticus_Error
     use String_Handling
     use Memory_Management
     use Sort
@@ -1235,17 +1235,13 @@ contains
        nodeIndicesSorted      (iNode)=nodes(nodeLocations      (iNode))%nodeIndex
        descendentIndicesSorted(iNode)=nodes(descendentLocations(iNode))%descendentIndex
     end forall
-    if (Galacticus_Verbosity_Level() >= verbosityWarn) then
-       do iNode=2,size(nodes)
-          if (nodeIndicesSorted(iNode) == nodeIndicesSorted(iNode-1)) then
-             if (Galacticus_Verbosity_Level() >= verbosityWarn) then
-                message="duplicate node index found ["
-                message=message//nodeIndicesSorted(iNode)//']'
-                call Galacticus_Display_Message(message,verbosityWarn)
-             end if
-          end if
-       end do
-    end if
+    do iNode=2,size(nodes)
+       if (nodeIndicesSorted(iNode) == nodeIndicesSorted(iNode-1)) then
+          message="WARNING: duplicate node index found in merger tree - this is not allowed ["
+          message=message//nodeIndicesSorted(iNode)//']'
+          call Galacticus_Warn(message)
+       end if
+    end do
     return
   end subroutine Create_Node_Indices
 
