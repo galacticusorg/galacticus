@@ -23,7 +23,12 @@ module Chemical_Abundances_Structure
   use ISO_Varying_String
   implicit none
   private
-  public :: chemicalAbundances, Chemicals_Names, Chemicals_Index, Chemicals_Property_Count
+  public :: chemicalAbundances, Chemicals_Names, Chemicals_Index, Chemicals_Property_Count, operator(*)
+
+  ! Interface to multiplication operators with chemical abundances objects as their second argument.
+  interface operator(*)
+     module procedure Chemical_Abundances_Multiply_Switched
+  end interface operator(*)
 
   type :: chemicalAbundances
      !% The structure used for describing chemical abundances in \glc.
@@ -398,6 +403,23 @@ contains
     end if
     return
   end function Chemical_Abundances_Multiply
+
+  function Chemical_Abundances_Multiply_Switched(multiplier,abundances1)
+    !% Multiply a chemical abundances object by a scalar.
+    implicit none
+    type            (chemicalAbundances)                :: Chemical_Abundances_Multiply_Switched
+    double precision                    , intent(in   ) :: multiplier
+    class           (chemicalAbundances), intent(in   ) :: abundances1
+
+    ! Ensure module is initialized.
+    call Chemical_Abundances_Initialize
+    if (chemicalsCount == 0) then
+       Chemical_Abundances_Multiply_Switched=zeroChemicalAbundances
+    else
+       Chemical_Abundances_Multiply_Switched%chemicalValue=abundances1%chemicalValue*multiplier
+    end if
+    return
+  end function Chemical_Abundances_Multiply_Switched
 
   function Chemical_Abundances_Divide(abundances1,divisor)
     !% Divide a chemical abundances object by a scalar.
