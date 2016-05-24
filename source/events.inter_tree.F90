@@ -81,6 +81,8 @@ contains
        splitForestUniqueID=thisEvent%splitForestUniqueID
        pairedNodeID       =thisEvent%pairedNodeID
      class default
+        splitForestUniqueID=-1
+        pairedNodeID       =-1
        call Galacticus_Error_Report('Node_Push_From_Tree','unknown event type')
     end select
     call Galacticus_Display_Message(message) !! AJB HACK ,verbosityInfo)
@@ -163,6 +165,7 @@ contains
        splitForestUniqueID=-1
        pairedNodeID       =-1
        timeMatchRequired  =.false.
+       isPrimary          =.false.
        call Galacticus_Error_Report('Node_Pull_From_Tree','unknown event type')
     end select
     call Galacticus_Display_Message(message)
