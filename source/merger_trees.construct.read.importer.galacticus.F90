@@ -395,6 +395,7 @@ contains
     !% Return true since this format does permit reading of arbitrary subsets of halos from a forest.
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
+    !GCC$ attributes unused :: self
 
     galacticusCanReadSubsets=.true.
     return
