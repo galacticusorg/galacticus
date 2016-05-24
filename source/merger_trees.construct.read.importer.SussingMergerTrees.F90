@@ -391,6 +391,7 @@ contains
     !% Return false since this format does not permit reading of arbitrary subsets of halos from a forest.
     implicit none
     class(mergerTreeImporterSussing), intent(inout) :: self
+    !GCC$ attributes unused :: self
 
     sussingCanReadSubsets=.false.
     return
