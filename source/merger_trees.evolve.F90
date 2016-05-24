@@ -204,7 +204,7 @@ contains
 
     ! Outer loop: This causes the tree to be repeatedly walked and evolved until it has been evolved all the way to the specified
     ! end time. We stop when no nodes were evolved, which indicates that no further evolution is possible.
-    didEvolve=.true.
+    didEvolve                  =.true.
     treeWalkCount              =0
     treeWalkCountPreviousOutput=0
     outerLoop: do while (didEvolve) ! Keep looping through the tree until we make a pass during which no nodes were evolved.
@@ -288,13 +288,21 @@ contains
                          treeLimited=.false.
                       end select
                       thisEvent => thisEvent%next
-                   end do            
+                   end do
                    evolveCondition: if (                                                 &
                         &                     hasParent                                  &
                         &               .and.                                            &
                         &                .not.associated(thisNode%firstChild  )          &
                         &               .and.                                            &
-                        &                   thisBasicComponent%time() <=  endTime        &
+                        &                (                                               &
+                        &                  thisBasicComponent%time() <  endTime          &
+                        &                 .or.                                           &
+                        &                  (                                             &
+                        &                    .not.treeLimited                            & ! For nodes that are not tree limited (i.e. have a node which
+                        &                   .and.                                        & ! will jump to another tree), allow them to evolve if the node
+                        &                    thisBasicComponent%time() == endTime        & ! is at the end time also, since the jump may occur at that time.
+                        &                  )                                             &
+                        &                )                                               &
                         &               .and.                                            &
                         &                (                                               &
                         &                   .not.treeLimited                             &
@@ -347,7 +355,6 @@ contains
                          
                          ! Update record of earliest time in the tree.
                          earliestTimeInTree=min(earliestTimeInTree,endTimeThisNode)
-  
                          ! Evolve the node to the next interrupt event, or the end time.
                          call Tree_Node_Evolve(currentTree,thisNode,endTimeThisNode,interrupted,interruptProcedure)
                          ! Check for interrupt.
