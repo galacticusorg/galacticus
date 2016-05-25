@@ -951,7 +951,6 @@ contains
     use Hot_Halo_Mass_Distributions
     use Node_Component_Hot_Halo_Standard_Data
     use Hot_Halo_Ram_Pressure_Stripping_Timescales
-    use Cosmology_Parameters
     use Node_Component_Hot_Halo_Standard_Data
     implicit none
     type            (treeNode                    )           , intent(inout), pointer :: thisNode
@@ -982,9 +981,11 @@ contains
     if (defaultHotHaloComponent%standardIsActive()) then
        ! Get required objects.
        accretionHalo_ => accretionHalo()
-       ! Find the rate of gas mass accretion onto the halo.
-       massAccretionRate      =accretionHalo_%accretionRate      (thisNode,accretionModeHot)
-       failedMassAccretionRate=accretionHalo_%failedAccretionRate(thisNode,accretionModeHot)
+       ! Find the rate of gas mass accretion onto the halo. We take all of the unaccreted gas, including any which is nominally
+       ! cold mode, since we do not care what mode it should be in (since it is not actually accreted). It will be assigned to the
+       ! relevant mode later when reaccreted.
+       massAccretionRate      =accretionHalo_%accretionRate      (thisNode,accretionModeHot  )
+       failedMassAccretionRate=accretionHalo_%failedAccretionRate(thisNode,accretionModeTotal)
        ! Get the basic component.
        thisBasicComponent => thisNode%basic()
        ! Apply accretion rates.
@@ -1329,7 +1330,7 @@ contains
     class           (nodeComponentBasic  )               , pointer :: thisBasicComponent
     class           (accretionHaloClass  )               , pointer :: accretionHalo_
     class           (nodeEvent           )               , pointer :: event
-    double precision                                               :: angularMomentum        , failedHotHaloMass   , &
+    double precision                                               :: angularMomentum        , failedMass          , &
          &                                                            hotHaloMass
 
     ! If the node has a child or the standard hot halo is not active, then return immediately.
@@ -1357,15 +1358,15 @@ contains
        ! Get required objects.
        accretionHalo_ => accretionHalo()
        ! Get the mass of hot gas accreted and the mass that failed to accrete.
-       hotHaloMass      =accretionHalo_%accretedMass      (thisNode,accretionModeHot)
-       failedHotHaloMass=accretionHalo_%failedAccretedMass(thisNode,accretionModeHot)
+       hotHaloMass=accretionHalo_%accretedMass      (thisNode,accretionModeHot  )
+       failedMass =accretionHalo_%failedAccretedMass(thisNode,accretionModeTotal)
        ! If either is non-zero, then create a hot halo component and add these masses to it.
-       if (hotHaloMass > 0.0d0 .or. failedHotHaloMass > 0.0d0) then
+       if (hotHaloMass > 0.0d0 .or. failedMass > 0.0d0) then
           call Node_Component_Hot_Halo_Standard_Create(thisNode)
           thisHotHaloComponent => thisNode%hotHalo()
           thisBasicComponent   => thisNode%basic  ()
-          call thisHotHaloComponent%           massSet(      hotHaloMass )
-          call thisHotHaloComponent% unaccretedMassSet(failedHotHaloMass )
+          call thisHotHaloComponent%           massSet(hotHaloMass)
+          call thisHotHaloComponent% unaccretedMassSet( failedMass)
           ! Also add the appropriate angular momentum.
           angularMomentum=hotHaloMass*Dark_Matter_Halo_Angular_Momentum(thisNode)/thisBasicComponent%mass()
           call thisHotHaloComponent%angularMomentumSet(angularMomentum   )
@@ -1404,7 +1405,8 @@ contains
     double precision                                                   :: baryonicMassCurrent    , baryonicMassMaximum      , &
          &                                                                fractionRemove         , massAccreted             , &
          &                                                                massUnaccreted         , massReaccreted           , &
-         &                                                                fractionAccreted       , angularMomentumAccreted
+         &                                                                fractionAccreted       , angularMomentumAccreted  , &
+         &                                                                massAccretedHot
     type            (abundances              ), save                   :: massMetalsAccreted     , fractionMetalsAccreted   , &
          &                                                                massMetalsReaccreted
     !$omp threadprivate(massMetalsAccreted,fractionMetalsAccreted,massMetalsReaccreted)
@@ -1438,13 +1440,14 @@ contains
        ! Since the parent node is undergoing mass growth through this merger we potentially return some of the unaccreted gas to
        ! the hot phase.
        !! First, find the masses of hot and failed mass the node would have if it formed instantaneously.
-       massAccreted  =accretionHalo_%      accretedMass(parentNode,accretionModeHot)
-       massUnaccreted=accretionHalo_%failedAccretedMass(parentNode,accretionModeHot)       
+       massAccretedHot=accretionHalo_%      accretedMass(parentNode,accretionModeHot  )
+       massAccreted   =accretionHalo_%      accretedMass(parentNode,accretionModeTotal)
+       massUnaccreted =accretionHalo_%failedAccretedMass(parentNode,accretionModeTotal)
        !! Find the fraction of mass that would be successfully accreted.
-       fractionAccreted=+  massAccreted   &
-            &           /(                &
-            &             +massAccreted   &
-            &             +massUnaccreted &
+       fractionAccreted=+  massAccretedHot &
+            &           /(                 &
+            &             +massAccreted    &
+            &             +massUnaccreted  &
             &            )
        !! Find the change in the unaccreted mass.
        massReaccreted=+parentHotHaloComponent   %unaccretedMass() &
