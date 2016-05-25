@@ -23,9 +23,10 @@
      double precision        , dimension(:  ), allocatable :: mass            , massFunction     , &
           &                                                   massMinimum     , massMaximum
      double precision        , dimension(:,:), allocatable :: covarianceMatrix
-     double precision                                      :: time
+     double precision                                      :: time            , massParticle
      type            (vector)                              :: means
      type            (matrix)                              :: covariance      , inverseCovariance
+     integer                                               :: errorModel
    contains
      procedure :: evaluate        => likelihoodHaloMassFunctionEvaluate
      procedure :: functionChanged => likelihoodHaloMassFunctionFunctionChanged
@@ -35,3 +36,9 @@
      !% Constructors for the halo mass function likelihood object.
      module procedure likelihoodHaloMassFunctionConstructor
   end interface likelihoodHaloMassFunction
+
+  ! Mass function error model enumeration.
+  integer, parameter :: haloMassFunctionErrorModelNone                =0
+  integer, parameter :: haloMassFunctionErrorModelPowerLaw            =1
+  integer, parameter :: haloMassFunctionErrorModelSphericalOverdensity=2
+  
