@@ -201,28 +201,32 @@ sub Get_Dataset {
     	unless ( exists($dataBlock->{'dataSets'}->{$dataSetName}) ) {
     	    if ( exists($dataBlock->{'dataSetsAvailable'}->{$dataSetName}) || $dataSetName eq "mergerTreeWeight" ) {
      		# Dataset exists in the output file, so simply read it.
-     		my $data     = pdl [];
-     		my $dataTree = pdl [];
+		my $data;
+     		my $dataTree;
 		# Read data.
 		if ( $dataBlock->{'tree'} eq "all" ) { 
 		    # All trees are to be read - grab the complete datasets.
 		    if ( $dataSetName eq "mergerTreeWeight" ) {
-			my $mergerTreeWeight = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeWeight")->get;
-			my $mergerTreeCount  = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeCount")->get;
+			my $mergerTreeWeight = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeWeight"    )->get();
+			my $mergerTreeCount  = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeCount"     )->get();
+			my $mergerTreeStart  = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeStartIndex")->get();
+			$data = pdl zeroes(sum($mergerTreeCount));
 			for (my $i=0;$i<nelem($mergerTreeWeight);++$i) {
-			    $data = $data->append($mergerTreeWeight->(($i))*ones($mergerTreeCount->(($i))->list()))
+			    $data->($mergerTreeStart->(($i)):$mergerTreeStart->(($i))+$mergerTreeCount->(($i))-1) .= $mergerTreeWeight->(($i))
 				if ( $mergerTreeCount->(($i)) > 0 );
 			}
 		    } else {
 			my $thisTreeData = $dataBlock->{'hdf5File'}->group("Outputs/Output".$dataBlock->{'output'}."/nodeData")->dataset($dataSetName)->get();
-			$data = $data->append($thisTreeData);
+			$data = $thisTreeData;
 		    }
 		    # Append the merger tree index.
 		    unless ( exists($dataBlock->{'dataSets'}->{'mergerTreeIndex'}) ) {
-			my $mergerTreeIndex = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeIndex")->get;
-			my $mergerTreeCount = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeCount")->get;
+			my $mergerTreeIndex = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeIndex"     )->get();
+			my $mergerTreeCount = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeCount"     )->get();
+			my $mergerTreeStart = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeStartIndex")->get();
+			$dataTree = pdl zeroes(sum($mergerTreeCount));
 			for(my $i=0;$i<nelem($mergerTreeCount);++$i) {
-			    $dataTree = $dataTree->append($mergerTreeIndex->(($i))*ones($mergerTreeCount->(($i))->sclr()))
+			    $dataTree->($mergerTreeStart->(($i)):$mergerTreeStart->(($i))+$mergerTreeCount->(($i))-1) .= $mergerTreeIndex->(($i))
 				if ( $mergerTreeCount->(($i)) > 0 );
 			}
 		    }
