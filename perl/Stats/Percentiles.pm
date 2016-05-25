@@ -60,11 +60,6 @@ sub BinnedPercentiles {
 	    # Interpolate to the desired percentiles to get the corresponding y values.
 	    $results(($iBin),:) .= interpol($percentiles,$cumulativeWeightsSelected,$yValuesSelected->index($sortIndex));
 
-	} else {
-
-	    # No values in this bin - return all zeroes.
-	    $results(($iBin),:) .= zeroes(nelem($percentiles));
-
 	}
 
     }
