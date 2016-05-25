@@ -249,6 +249,7 @@ contains
           else
              halfMassRadiusSatellite=0.0d0
           end if
+          darkMatterHaloScale_ => darkMatterHaloScale         ()
           satelliteMass        =  satelliteComponent%boundMass()
           basicComponent       => thisNode          %basic    ()
           basicMass            =  basicComponent    %mass     ()

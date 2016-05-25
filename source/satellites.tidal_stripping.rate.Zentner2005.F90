@@ -85,17 +85,17 @@ contains
     class           (nodeComponentSatellite), pointer                     :: thisSatellite
     type            (treeNode              ), pointer     , intent(inout) :: thisNode
     type            (treeNode              ), pointer                     :: hostNode
-    double precision                        , dimension(3)                :: position,velocity
+    double precision                        , dimension(3)                :: position                      , velocity
     double precision                        , parameter                   :: toleranceAbsolute      =0.0d0 , toleranceRelative=1.0d-3
     double precision                        , parameter                   :: radiusZero             =0.0d0
     double precision                        , parameter                   :: tidalRadiusTinyFraction=1.0d-6
     type            (rootFinder            ), save                        :: finder
     !$omp threadprivate(finder)
-    double precision                                                      :: satelliteMass          , parentDensity           , &
-         &                                                                   parentEnclosedMass     , angularVelocity         , &
-         &                                                                   orbitalPeriod          , radius                  , &
-         &                                                                   tidalTensor            , tidalRadius             , &
-         &                                                                   outerSatelliteMass     , radialTimeScale
+    double precision                                                      :: satelliteMass                 , parentDensity           , &
+         &                                                                   parentEnclosedMass            , angularFrequency        , &
+         &                                                                   orbitalPeriod                 , radius                  , &
+         &                                                                   tidalTensor                   , tidalRadius             , &
+         &                                                                   outerSatelliteMass            , radialFrequency
 
     ! Get required quantities from satellite and host nodes.
     hostNode          => thisNode     %mergesWith()
@@ -107,17 +107,19 @@ contains
     parentDensity     =  Galactic_Structure_Density      (hostNode,position,coordinateSystemCartesian)
     parentEnclosedMass=  Galactic_Structure_Enclosed_Mass(hostNode,radius                            )
     ! Compute the orbital period.
-    angularVelocity   =  Vector_Magnitude(Vector_Product(position,velocity)) &
+    angularFrequency  =  Vector_Magnitude(Vector_Product(position,velocity)) &
          &              /radius**2                                           &
          &              *kilo                                                &
          &              *gigaYear                                            &
          &              /megaParsec
-    radialTimescale   =  abs             (   Dot_Product(position,velocity)) &
+    radialFrequency   =  abs             (   Dot_Product(position,velocity)) &
          &              /radius**2                                           &
          &              *kilo                                                &
          &              *gigaYear                                            &
          &              /megaParsec
-    orbitalPeriod     =  1.0d0/max(angularVelocity/2.0d0/Pi,radialTimescale)
+    ! Find the orbital period. We use the larger of the angular and radial frequencies to avoid numerical problems for purely
+    ! radial or purely circular orbits.
+    orbitalPeriod     = 2.0d0*Pi/max(angularFrequency,radialFrequency)
     ! Find the tidal tensor.
     tidalTensor       = -gravitationalConstantGalacticus &
          &              *(                               &
@@ -131,14 +133,14 @@ contains
          &              *(kilo*gigaYear/megaParsec)**2
     ! If the tidal force is stretching (not compressing), compute the tidal radius.
     if     (                                                                     &
-         &   angularVelocity**2                                    > tidalTensor &
+         &   angularFrequency**2                                   > tidalTensor &
          &  .and.                                                                &
          &   satelliteMass                                         >  0.0d0      &
          &  .and.                                                                &
          &   Galactic_Structure_Enclosed_Mass(thisNode,radiusZero) >= 0.0d0      &
          & ) then
        ! Initial estimate of the tidal radius.
-       tidalPullGlobal =  angularVelocity**2-tidalTensor
+       tidalPullGlobal =  angularFrequency**2-tidalTensor
        tidalRadius     =                                  &
             &           (                                 &
             &            +gravitationalConstantGalacticus &
