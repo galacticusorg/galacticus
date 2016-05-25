@@ -354,7 +354,7 @@ sub Sample_Models {
 	if ( $arguments{'sampleCount'} < 0 );
     my $sampleIndex = pdl long(scalar(@chainParameters)*random($arguments{'sampleCount'}));
     # Run model for each sample.
-    my $sampleDirectory = exists($arguments{'sampleDirectory'}) ? $arguments{'sampleDirectory'}."/" : $workDirectory."/posteriorSampleModels/";
+    my $sampleDirectory = exists($arguments{'sampleDirectory'}) ? $arguments{'sampleDirectory'}."/" : $workDirectory."/posteriorSample/";
     my @pbsStack;
     for (my $i=0;$i<nelem($sampleIndex);++$i) {
 	# Create an output directory.
@@ -450,7 +450,7 @@ sub Sample_Models {
     &PBS::SubmitJobs(\%arguments,@pbsStack)
      	if ( scalar(@pbsStack) > 0 );
     # Return the number of models sampled.
-    return nelem($sampleIndex);
+    return (nelem($sampleIndex), $sampleDirectory);
 }
 
 sub Maximum_Likelihood_Parameters {
