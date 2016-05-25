@@ -114,7 +114,12 @@ sub Launch {
 	print $pbsFile "#PBS -q ".$launchScript->{'pbs'}->{'queue'}."\n"
 	    if ( exists($launchScript->{'pbs'}->{'queue'}) );
 	print $pbsFile "#PBS -V\n";
-	print $pbsFile "cd \$PBS_O_WORKDIR\n";
+	# Find the working directory - we support either PBS or SLURM environment variables here.
+	print $pbsFile "if [ ! -z \${PBS_O_WORKDIR+x} ]; then\n";
+	print $pbsFile " cd \$PBS_O_WORKDIR\n";
+	print $pbsFile "elif [ ! -z \${SLURM_SUBMIT_DIR+x} ]; then\n";
+	print $pbsFile " cd \$SLURM_SUBMIT_DIR\n";
+	print $pbsFile "fi\n";
 	print $pbsFile "export ".$_."\n"
 	    foreach ( &ExtraUtils::as_array($pbsConfig->{'environment'}) );
 	if ( exists($launchScript->{'pbs'}->{'environment'}) ) {
