@@ -295,15 +295,15 @@ contains
                 massLossRate=4.0d0*Pi*densityAtOuterRadius*outerRadius**2*outerRadiusGrowthRate
                 ! Adjust the rates.
                 ! Mass.
-                call thisHotHalo%           massColdRate(                                  massLossRate        ,interrupt,interruptProcedure)
+                call thisHotHalo%           massColdRate(-                                  massLossRate        ,interrupt,interruptProcedure)
                 ! Angular momentum.
-                call thisHotHalo%angularMomentumColdRate(thisHotHalo%angularMomentumCold()*massLossRate/gasMass,interrupt,interruptProcedure)
+                call thisHotHalo%angularMomentumColdRate(-thisHotHalo%angularMomentumCold()*massLossRate/gasMass,interrupt,interruptProcedure)
                 ! Metal abundances.
-                call thisHotHalo%     abundancesColdRate(thisHotHalo%abundancesCold     ()*massLossRate/gasMass,interrupt,interruptProcedure)
+                call thisHotHalo%     abundancesColdRate(-thisHotHalo%abundancesCold     ()*massLossRate/gasMass,interrupt,interruptProcedure)
                 ! Mass.
-                call thisHotHalo%       strippedMassRate(                                  massLossRate        ,interrupt,interruptProcedure)
+                call thisHotHalo%       strippedMassRate(+                                  massLossRate        ,interrupt,interruptProcedure)
                 ! Metal abundances.
-                call thisHotHalo% strippedAbundancesRate(thisHotHalo%abundances         ()*massLossRate/gasMass,interrupt,interruptProcedure)
+                call thisHotHalo% strippedAbundancesRate(+thisHotHalo%abundances         ()*massLossRate/gasMass,interrupt,interruptProcedure)
              end if
           end if
        end select
@@ -494,7 +494,9 @@ contains
   !# </nodeMergerTask>
   subroutine Node_Component_Hot_Halo_Cold_Mode_Node_Merger(thisNode)
     !% Starve {\normalfont \ttfamily thisNode} by transferring its hot halo to its parent.
+    use Accretion_Halos
     use Abundances_Structure
+    use Dark_Matter_Halo_Spins
     use Dark_Matter_Halo_Scales
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
@@ -503,12 +505,20 @@ contains
     implicit none
     type            (treeNode                ), intent(inout), pointer :: thisNode
     type            (treeNode                )               , pointer :: parentNode
-    class           (nodeComponentHotHalo    )               , pointer :: parentHotHalo      , thisHotHalo
+    class           (nodeComponentHotHalo    )               , pointer :: parentHotHalo          , thisHotHalo
     class           (nodeComponentSpin       )               , pointer :: parentSpin
-    class           (nodeComponentBasic      )               , pointer :: parentBasic
+    class           (nodeComponentBasic      )               , pointer :: parentBasic            , basic
     class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                                                   :: baryonicMassCurrent, baryonicMassMaximum, fractionRemove
+    class           (accretionHaloClass      )               , pointer :: accretionHalo_
+    double precision                                                   :: baryonicMassCurrent    , baryonicMassMaximum   , &
+         &                                                                fractionRemove         , massAccretedCold      , &
+         &                                                                massAccreted           , massUnaccreted        , &
+         &                                                                angularMomentumAccreted, massReaccreted        , &
+         &                                                                fractionAccreted
+    type            (abundances              ), save                   :: massMetalsAccreted     , fractionMetalsAccreted, &
+         &                                                                massMetalsReaccreted
+    !$omp threadprivate(massMetalsAccreted,fractionMetalsAccreted,massMetalsReaccreted)
 
     ! Get the hot halo component.
     thisHotHalo => thisNode%hotHalo()
@@ -517,10 +527,13 @@ contains
     class is (nodeComponentHotHaloColdMode)
        ! Get required objects.
        darkMatterHaloScale_ => darkMatterHaloScale()
+       accretionHalo_       => accretionHalo      ()
        ! Find the parent node and its hot halo and spin components.
        parentNode    => thisNode  %parent
        parentHotHalo => parentNode%hotHalo(autoCreate=.true.)
        parentSpin    => parentNode%spin   (                 )
+       parentBasic   => parentNode%basic  (                 )
+       basic         => thisNode  %basic  (                 )
        ! Determine if starvation is to be applied and if .
        if (starveSatellites) then
           ! Move the hot halo to the parent. We leave the hot halo in place even if it is starved, since outflows will accumulate to
@@ -549,11 +562,53 @@ contains
           call   thisHotHalo%     abundancesColdSet(                                                  &
                &                                      zeroAbundances                                  &
                &                                    )
+          ! Since the parent node is undergoing mass growth through this merger we potentially return some of the unaccreted gas to
+          ! the hot phase.
+          !! First, find the masses of hot and failed mass the node would have if it formed instantaneously.
+          massAccretedCold=accretionHalo_%      accretedMass(parentNode,accretionModeCold )
+          massAccreted    =accretionHalo_%      accretedMass(parentNode,accretionModeTotal)
+          massUnaccreted  =accretionHalo_%failedAccretedMass(parentNode,accretionModeTotal)
+          !! Find the fraction of mass that would be successfully accreted.
+          fractionAccreted=+  massAccretedCold &
+               &           /(                 &
+               &             +massAccreted    &
+               &             +massUnaccreted  &
+               &            )
+          !! Find the change in the unaccreted mass.
+          massReaccreted=+parentHotHalo   %unaccretedMass() &
+               &         *fractionAccreted                  &
+               &         *basic           %          mass() &
+               &         /parentBasic     %          mass()
+          !! Reaccrete the gas.
+          call parentHotHalo%unaccretedMassSet(parentHotHalo%unaccretedMass()-massReaccreted)
+          call parentHotHalo%      massColdSet(parentHotHalo%      massCold()+massReaccreted)
+          ! Compute the reaccreted angular momentum.
+          if (parentBasic%accretionRate() /= 0.0d0) then
+             angularMomentumAccreted=+Dark_Matter_Halo_Angular_Momentum_Growth_Rate(parentNode) &
+                  &                  *massReaccreted                                            &
+                  &                  /parentBasic%accretionRate()
+             call parentHotHalo%angularMomentumColdSet(parentHotHalo%angularMomentumCold()+angularMomentumAccreted)
+          end if
+          ! Compute the reaccreted metals.
+          !! First, find the metal mass the node would have if it formed instantaneously.
+          massMetalsAccreted=accretionHalo_%accretedMassMetals(parentNode,accretionModeCold)
+          !! Find the mass fraction of metals that would be successfully accreted.
+          fractionMetalsAccreted=+  massMetalsAccreted &
+               &                 /(                    &
+               &                   +massAccreted       &
+               &                   +massUnaccreted     &
+               &                  )
+          !! Find the change in the unaccreted mass.
+          massMetalsReaccreted=+parentHotHalo         %unaccretedMass() &
+               &               *fractionMetalsAccreted                  &
+               &               *basic                 %          mass() &
+               &               /parentBasic           %          mass()
+          !! Reaccrete the metals.
+          call parentHotHalo%abundancesColdSet(parentHotHalo%abundancesCold()+massMetalsReaccreted)
           ! Check if the baryon fraction in the parent hot halo exceeds the universal value. If it does, mitigate this by moving
           ! some of the mass to the failed accretion reservoir.
           if (hotHaloNodeMergerLimitBaryonFraction) then
              thisCosmologyParameters => cosmologyParameters()
-             parentBasic             => parentNode%basic()
              baryonicMassMaximum     =  parentBasic%mass()&
                   &                    *thisCosmologyParameters%omegaBaryon() &	
                   &                    /thisCosmologyParameters%omegaMatter()
