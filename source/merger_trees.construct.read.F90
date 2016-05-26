@@ -581,7 +581,7 @@ contains
        ! Warn if subhalo promotions are allowed, but branch jumps are not.
        if (mergerTreeReadAllowBranchJumps.and..not.mergerTreeReadPresetMergerTimes) then
           message='WARNING: allowing branch jumps while not presetting merger times can lead to tree deadlock if merging occurs prior to the jumped-to node time and before an output time which blocks the jumped-to node''s child.'//char(10)
-          message=message//'For example, "a" in the following tree (in which "<==" indicates subhalo host) jump from "3" to "1", but cannot merge with "1" since "1" still has a child, and that child, "2", cannot reach one because it is blocked by the otuput time, resulting in a deadlock of the tree:'//char(10)//char(10)
+          message=message//'For example, "a" in the following tree (in which "<==" indicates subhalo host) jump from "3" to "1", but cannot merge with "1" since "1" still has a child, and that child, "2", cannot reach one because it is blocked by the output time, resulting in a deadlock of the tree:'//char(10)//char(10)
           message=message//' ---           ---'//char(10)
           message=message//' |1|<==========|a|'//char(10)
           message=message//' ---           ---'//char(10)
