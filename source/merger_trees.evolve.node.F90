@@ -447,14 +447,14 @@ contains
     use String_Handling
     use Galacticus_Display
     implicit none
-    real     (kind=c_double     ), intent(in)                         :: time
-    real     (kind=c_double     ), intent(in), dimension(nProperties) :: y
-    real     (kind=c_double     )            , dimension(nProperties) :: dydt
-    type     (varying_string    )                                     :: message
-    integer                                                           :: i               , lengthMaximum
-    character(len =12           )                                     :: label
-    integer  (kind=c_int        )                                     :: odeStatus
- 
+    real            (kind=c_double     ), intent(in)                         :: time
+    real            (kind=c_double     ), intent(in), dimension(nProperties) :: y
+    real            (kind=c_double     )            , dimension(nProperties) :: dydt
+    type            (varying_string    )                                     :: message
+    integer                                                                  :: i         , lengthMaximum
+    character       (len =12           )                                     :: label
+    integer         (kind=c_int        )                                     :: odeStatus
+    double precision                                                         :: stepFactor
     message="ODE solver failed in tree #"
     message=message//activeTreeIndex
     call Galacticus_Display_Message(message)
@@ -468,6 +468,13 @@ contains
        lengthMaximum=max(lengthMaximum,len(activeNode%nameFromIndex(i)))
     end do
     do i=1,nProperties
+       stepFactor=+  abs(          dydt(i)) &
+            &     /(                        &
+            &       +odeToleranceRelative   &
+            &       *abs(           y  (i)) &
+            &       +odeToleranceAbsolute   &
+            &       *    propertyScales(i)  &
+            &     )
        message=activeNode%nameFromIndex(i)
        message=repeat(" ",lengthMaximum-len(message))//message
        write (label,'(e12.6)') y             (i)
@@ -475,6 +482,8 @@ contains
        write (label,'(e12.6)') dydt          (i)
        message=message//" : "//label
        write (label,'(e12.6)') propertyScales(i)
+       message=message//" : "//label
+       write (label,'(e12.6)') stepFactor
        message=message//" : "//label
        call Galacticus_Display_Message(message)
     end do
