@@ -163,7 +163,7 @@ contains
     type            (treeNode                    ), intent(inout)          , pointer :: thisNode
     double precision                              , intent(in   )                    :: massRate
     logical                                       , intent(inout), optional          :: interrupt
-    procedure       (Interrupt_Procedure_Template), intent(inout), optional, pointer :: interruptProcedure
+    procedure       (interruptTask), intent(inout), optional, pointer :: interruptProcedure
     type            (treeNode                    )                         , pointer :: coolingFromNode
     class           (nodeComponentHotHalo        )                         , pointer :: coolingFromHotHalo        , thisHotHalo
     type            (abundances                  ), save                             :: abundancesCoolingRate
@@ -234,7 +234,7 @@ contains
     implicit none
     type            (treeNode                    )      , intent(inout), pointer :: thisNode
     logical                                             , intent(inout)          :: interrupt
-    procedure       (Interrupt_Procedure_Template)      , intent(inout), pointer :: interruptProcedure
+    procedure       (interruptTask)      , intent(inout), pointer :: interruptProcedure
     class           (nodeComponentHotHalo        )                     , pointer :: thisHotHalo
     class           (nodeComponentBasic          )                     , pointer :: thisBasic
     class           (darkMatterHaloScaleClass    )                     , pointer :: darkMatterHaloScale_
@@ -327,7 +327,7 @@ contains
     implicit none
     class           (nodeComponentHotHaloStandard), intent(inout)          :: self
     logical                                       , intent(inout)          :: interrupt
-    procedure       (Interrupt_Procedure_Template), intent(inout), pointer :: interruptProcedure
+    procedure       (interruptTask), intent(inout), pointer :: interruptProcedure
     type            (treeNode                    ), pointer                :: selfNode
     class           (nodeComponentBasic          ), pointer                :: selfBasic
     class           (cosmologyParametersClass    ), pointer                :: thisCosmologyParameters
