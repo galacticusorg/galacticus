@@ -3,9 +3,20 @@
 package Local;
 use strict;
 use warnings;
+use threads;
+use Cwd;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+ $ENV{"GALACTICUS_ROOT_V094"} = getcwd()."/";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use Data::Dumper;
 use Sys::CPU;
-use threads;
+use Clone qw(clone);
 require Galacticus::Launch::Hooks;
 require Galacticus::Launch::PostProcess;
 
@@ -16,7 +27,8 @@ require Galacticus::Launch::PostProcess;
      local => {
 	 validate       => \&Validate        ,
 	 outputFileName => \&Output_File_Name,
-	 launch         => \&Launch
+	 launch         => \&Launch          ,
+	 jobArrayLaunch => \&jobArrayLaunch
      }
     );
 
@@ -88,6 +100,114 @@ sub Launch_Models {
 		&PostProcess::Failed ($jobs[$i],$launchScript);
 	    }
 	    &PostProcess::CleanUp    ($jobs[$i],$launchScript);
+	}
+    }
+}
+
+sub jobArrayLaunch {
+    # Launch an array of jobs as threads on the local machine.
+    my %arguments = %{shift()};
+    my @jobStack  = @_;
+    # Find the appropriate PBS section.
+    my $localConfig = &Options::Config("pbs");
+    # Determine maximum number allowed in queue at once.
+    my $jobMaximum = Sys::CPU::cpu_count() ;
+    $jobMaximum = $localConfig->{'jobMaximum'}
+       if ( exists($localConfig->{'jobMaximum'}) );
+    $jobMaximum = $arguments{'threadMaximum'}
+       if ( exists($arguments{'threadMaximum'}) );
+    # Submit jobs and wait.
+    print "Launching jobs locally...\n";
+    my @jobsToRun;
+    my %activeThreads;
+    my $jobNumber = -1;
+    while ( scalar(@jobStack) > 0 || scalar(keys(%activeThreads)) > 0 ) {
+	# Record of whether any work was done.
+	my $workDone = 0;
+	# Launch a job if possible.
+	if ( scalar(@jobStack) > 0 && scalar(keys(%activeThreads)) < $jobMaximum ) {
+	    # Pop a job from the job stack.
+	    my $newJob = pop(@jobStack);
+	    # Check for a dependency.
+	    if ( exists($newJob->{'dependsOn'}) && ! -e $newJob->{'dependsOn'} ) {
+		unshift(@jobStack,$newJob);
+		sleep 5;
+		last;
+	    }
+	    # Create the script.
+	    open(my $scriptFile,">".$newJob->{'launchFile'});
+	    print $scriptFile "#!/bin/bash\n";
+	    # Find the working directory.
+	    print $scriptFile "cd ".$galacticusPath."\n";
+	    print $scriptFile "export ".$_."\n"
+		foreach ( &ExtraUtils::as_array($localConfig->{'environment'}) );
+	    print $scriptFile "ulimit -t ".$newJob->{'local'}->{'cpuTimeLimit'}."\n"
+		if ( exists($newJob->{'local'}->{'cpuTimeLimit'}) );
+	    print $scriptFile "ulimit -c unlimited\n";
+	    print $scriptFile "export OMP_NUM_THREADS=".$newJob->{'local'}->{'ompThreads'}."\n"
+		if ( exists($newJob->{'local'}->{'ompThreads'}) );
+	    print $scriptFile $newJob->{'command'}."\n";
+	    print $scriptFile "exit\n";
+	    close($scriptFile);
+	    # Launch the thread.
+	    ++$jobNumber;
+	    print "Launch job ".$jobNumber."\n";
+	    if ( exists($arguments{'allowThreads'}) && $arguments{'allowThreads'} == 1 ) {
+		PDL::no_clone_skip_warning;
+		if ( $^V lt v5.14.0 ) { 
+		    $activeThreads{$jobNumber} = 
+		    {
+			thread => threads->create( sub {system("chmod u+x ".$newJob->{'launchFile'}."; ".$newJob->{'launchFile'}." >& ".$newJob->{'logFile'}); return $?;}),
+			job    => $newJob,
+			jobID  => $jobNumber
+		    };
+		} else {
+		    $activeThreads{$jobNumber} = 
+		    {
+			thread => threads->create({'context' => 'scalar'}, sub {system("chmod u+x ".$newJob->{'launchFile'}."; ".$newJob->{'launchFile'}." >& ".$newJob->{'logFile'}); return $?;}),
+			job    => $newJob,
+			jobID  => $jobNumber
+		    };
+		}
+	    } else {
+		$activeThreads{$jobNumber} = 
+		{
+		    job    => $newJob,
+		    jobID  => $jobNumber
+		};
+		push(@jobsToRun,$newJob);
+		if ( scalar(@jobsToRun) == $jobMaximum || scalar(@jobStack) == 0 ) {
+		    # Maximum number of jobs have been accumulated (or there are no more left on the stack). Launch them all and
+		    # then clear the list.
+		    system($galacticusPath."scripts/aux/localLaunchWrapper.pl ".join(" ",map {$_->{'launchFile'}." ".$_->{'logFile'}} @jobsToRun));
+		    @jobsToRun = ();
+		}
+	    }
+	    $workDone = 1;
+	} else {
+	    # Check for threads which can be rejoined.
+	    foreach ( keys(%activeThreads) ) {
+		if ( exists($arguments{'allowThreads'}) && $arguments{'allowThreads'} == 1 ) {
+		    if ( $activeThreads{$_}->{'thread'}->is_joinable() ) {
+			print "Job ".$activeThreads{$_}->{'jobID'}." has finished\n";
+			my $exitStatus = $activeThreads{$_}->{'thread'}->join();		  
+			&{$activeThreads{$_}->{'job'}->{'onCompletion'}->{'function'}}(@{$activeThreads{$_}->{'job'}->{'onCompletion'}->{'arguments'}},$activeThreads{$_}->{'jobID'},$exitStatus)
+			    if ( exists($activeThreads{$_}->{'job'}->{'onCompletion'}) );
+			delete($activeThreads{$_});
+			$workDone = 1;
+		    }
+		} else {
+		    print "Job ".$activeThreads{$_}->{'jobID'}." has finished\n";
+		    my $exitStatus = 0;
+		    &{$activeThreads{$_}->{'job'}->{'onCompletion'}->{'function'}}(@{$activeThreads{$_}->{'job'}->{'onCompletion'}->{'arguments'}},$activeThreads{$_}->{'jobID'},$exitStatus)
+			if ( exists($activeThreads{$_}->{'job'}->{'onCompletion'}) );
+			delete($activeThreads{$_});
+		    $workDone = 1;
+		}
+	   }
+	    # Pause if no work was done.
+	    sleep(2)
+		if ( $workDone == 0);
 	}
     }
 }
