@@ -380,7 +380,7 @@ As described in \S\ref{sec:DerivedProperties}, dust-attenuated luminosities can 
 Recording star formation histories is as simple as setting the {\normalfont \ttfamily [starFormationHistoriesMethod]} parameter to {\normalfont \ttfamily metallicitySplit}. This particular star formation history method stores the star formation in each galaxy as a function of time and metallicity, as required by {\normalfont \scshape Grasil}. The level of detail with which the star formation history is stored is controlled by several parameters:
 \begin{description}
 \item [{\normalfont \ttfamily starFormationHistoryTimeStep}] The timestep used in discretizing star formation histories.
-\item [{\normalfont \ttfamily starFormationHistoryFineTimeStep}] The timestep to use in discretizing star formation histories just prior to output times. This should typically be smaller than {\normalfont \ttfamily [starFormationHistoryTimeStep]} to give improved resolution in the star formation hsitory for recently formed stars.
+\item [{\normalfont \ttfamily starFormationHistoryFineTimeStep}] The timestep to use in discretizing star formation histories just prior to output times. This should typically be smaller than {\normalfont \ttfamily [starFormationHistoryTimeStep]} to give improved resolution in the star formation history for recently formed stars.
 \item [{\normalfont \ttfamily starFormationHistoryFineTime}] The period before each output for which the {\normalfont \ttfamily [starFormationHistoryFineTimeStep]} should be used.
 \item [{\normalfont \ttfamily starFormationHistoryMetallicityCount}] The number of bins in metallicity to use when discretizing the star formation history.
 \item [{\normalfont \ttfamily starFormationHistoryMetallicityMinimum}] The upper limit to the metallicity in the lowest metallicity bin (i.e. the lowest metallicity bin will extend from zero to this value).
@@ -468,7 +468,7 @@ Typical uses of stellar spectra postprocessors include accounting for absorption
 
 If you don't specify a postprocessing set, the ``default'' set (consisting of the {\normalfont \ttfamily inoue2014} postprocessor; see \S\ref{phys:spectraPostprocessor:spectraPostprocessorInoue2014}) is applied to each luminosity calculation. To specify other postprocessing sets add the following to your parameter file:
 \begin{verbatim}
- <luminosityFilter value="default recent unabsorbded recentUnabsorbed"/>
+ <luminosityPostprocessSet value="default recent unabsorbed recentUnabsorbed"/>
 \end{verbatim}
 where one set must be specified for each luminosity specified in the {\normalfont \ttfamily luminosityFilter} parameter. Note that set names can be reused in order to apply the same postprocessor set to multiple luminosities.
 
