@@ -279,14 +279,18 @@ contains
                    hasParent   =  associated(thisNode%parent)
                    treeLimited =  .true.
                    do while (associated(thisEvent).and.treeLimited)
-                      select type (thisEvent)
-                      type is (nodeEventSubhaloPromotionInterTree)
-                         hasParent  =.true.
-                         treeLimited=.false.
-                      type is (nodeEventBranchJumpInterTree      )
-                         hasParent  =.true.
-                         treeLimited=.false.
-                      end select
+                      ! Skip events which occur after the current evolution end time.
+                      if (thisEvent%time <= endTime) then
+                         ! Detect inter-tree events.
+                         select type (thisEvent)
+                         type is (nodeEventSubhaloPromotionInterTree)
+                            hasParent  =.true.
+                            treeLimited=.false.
+                         type is (nodeEventBranchJumpInterTree      )
+                            hasParent  =.true.
+                            treeLimited=.false.
+                         end select
+                      end if
                       thisEvent => thisEvent%next
                    end do
                    evolveCondition: if (                                                 &
