@@ -582,7 +582,7 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'ultravistaStellarMassFunctionZ3.50'         ,        &
-       &                                                   'ULTRAVISTA stellar mass function at z=4.00' ,        &
+       &                                                   'ULTRAVISTA stellar mass function at z=3.50' ,        &
        &                                                   null()                                       ,        &
        &                                                   null()                                       ,        &
        &                                                   null()                                                &
@@ -597,7 +597,7 @@ module Galacticus_Output_Analyses_Mass_Functions
      double precision                        , allocatable, dimension(:    ) :: systematicCoefficients
      ! Parameters for the random error model.
      double precision                        , allocatable, dimension(:    ) :: randomCoefficients
-     double precision                                                        :: randomMinimum
+     double precision                                                        :: randomMinimum                   , randomMaximum
      ! The number of mass bins.
      integer                                                                 :: massesCount
      ! Arrays for the masses and mass function.
@@ -1133,12 +1133,24 @@ contains
                       !@   <defaultValue>$10^{-3}$</defaultValue>
                       !@   <attachedTo>module</attachedTo>
                       !@   <description>
-                      !@     Mass function random error model minimum error
+                      !@     Mass function random error model minimum error.
                       !@   </description>
                       !@   <type>real</type>
                       !@   <cardinality>1</cardinality>
                       !@ </inputParameter>
                       call Get_Input_Parameter(char(parameterName),massFunctions(currentAnalysis)%randomMinimum,defaultValue=1.0d-3)
+                      parameterName=trim(massFunctionLabels(j))//'MassRandomMaximum'
+                      !@ <inputParameter>
+                      !@   <regEx>(sdssStellarMassFunction|bernardiSdssStellarMassFunction|gamaStellarMassFunction|alfalfaHiMassFunction|primusStellarMassFunction|vipersStellarMassFunction|ukidssUdsStellarMassFunction|zfourgeStellarMassFunction|ultravistaStellarMassFunction)Z[0-9\.]+MassRandomMaximum</regEx>
+                      !@   <defaultValue>10</defaultValue>
+                      !@   <attachedTo>module</attachedTo>
+                      !@   <description>
+                      !@     Mass function random error model maximum error.
+                      !@   </description>
+                      !@   <type>real</type>
+                      !@   <cardinality>1</cardinality>
+                      !@ </inputParameter>
+                      call Get_Input_Parameter(char(parameterName),massFunctions(currentAnalysis)%randomMaximum,defaultValue=10.0d0)
                       ! Read the appropriate observational data definition.
                       allocate(cosmologyParametersObserved)
                       select case (trim(massFunctionLabels(j)))
@@ -1460,7 +1472,13 @@ contains
                   &           -massFunctions(i)%descriptor%errorModelLogM0 &
                   &          )**(j-1)
           end do
-          randomError      (1)=max(randomError(1),massFunctions(i)%randomMinimum)
+          randomError      (1)=max(                                    &
+               &                   min(                                &
+               &                       randomError(1)                , &
+               &                       massFunctions(i)%randomMaximum  &
+               &                      )                              , &
+               &                       massFunctions(i)%randomMinimum  &
+               &                  )
           randomErrorWeight(1)=1.0d0
        end if
        thisGalaxy(i)%massFunction=0.0d0
