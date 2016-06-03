@@ -136,7 +136,7 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Sz_Dstrbtins
      ! Parameters for the systematic error model.
      double precision                        , allocatable, dimension(:    ) :: massSystematicCoefficients, radiusSystematicCoefficients, &
           &                                                                     massRandomCoefficients
-     double precision                                                           massRandomMinimum
+     double precision                                                           massRandomMinimum         , massRandomMaximum
      ! The number of bins.
      integer         (c_size_t              )                                :: massesCount               , radiiCount
      ! Arrays for the masses, radii and size function.
@@ -401,6 +401,18 @@ contains
                       !@   <cardinality>1</cardinality>
                       !@ </inputParameter>
                       call Get_Input_Parameter(char(parameterName),sizeFunctions(currentAnalysis)%massRandomMinimum,defaultValue=1.0d-3)
+                      parameterName=trim(sizeFunctionLabels(j))//'MassRandomMaximum'
+                      !@ <inputParameter>
+                      !@   <regEx>(sdssSizeFunction)Z[0-9\.]+MassRandomMaximum</regEx>
+                      !@   <defaultValue>10</defaultValue>
+                      !@   <attachedTo>module</attachedTo>
+                      !@   <description>
+                      !@     Mass-dependent size function mass random error maximum.
+                      !@   </description>
+                      !@   <type>real</type>
+                      !@   <cardinality>1</cardinality>
+                      !@ </inputParameter>
+                      call Get_Input_Parameter(char(parameterName),sizeFunctions(currentAnalysis)%massRandomMaximum,defaultValue=10.0d0)
                       ! Read the appropriate observational data definition.
                       select case (trim(sizeFunctionLabels(j)))
                       case ('sdssSizeFunctionZ0.07')
@@ -701,7 +713,7 @@ contains
                   &            -sizeFunctions(i)%descriptor%massSystematicLogM0 &
                   &           )**(j-1)
           end do
-          massRandomError=max(massRandomError,sizeFunctions(i)%massRandomMinimum)
+          massRandomError=max(min(massRandomError,sizeFunctions(i)%massRandomMaximum),sizeFunctions(i)%massRandomMinimum)
        end if
        if (associated(sizeFunctions(i)%descriptor%radiusRandomErrorFunction)) then
           sizeRandomError=sizeFunctions(i)%descriptor%radiusRandomErrorFunction(radius,thisNode)
