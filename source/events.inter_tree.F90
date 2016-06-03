@@ -311,15 +311,17 @@ contains
                 attachNode %firstSatellite => pullNode
                 pullNode   %parent         => attachNode
                 pullBasic                  => pullNode                 %basic()
-                attachBasic                => attachNode%parent        %basic()                
-                if (pullBasic%time() > attachBasic%time()) then
-                   message='pulled node exceeds node in time [non-primary]:'//char(10)
-                   message=message//" event ID="//thisEvent%id//char(10)
-                   write (label,'(f12.6)') attachBasic%time()
-                   message=message//"  node ID="//attachNode%index()//"; time="//label//" Gyr"//char(10)
-                   write (label,'(f12.6)')   pullBasic%time()
-                   message=message//"  pull ID="//pullNode  %index()//"; time="//label//" Gyr"
-                   call Galacticus_Error_Report('Node_Pull_From_Tree',message)
+                if (associated(attachNode%parent)) then
+                   attachBasic => attachNode%parent%basic()                
+                   if (pullBasic%time() > attachBasic%time()) then
+                      message='pulled node exceeds node in time [non-primary]:'//char(10)
+                      message=message//" event ID="//thisEvent%id//char(10)
+                      write (label,'(f12.6)') attachBasic%time()
+                      message=message//"  node ID="//attachNode%index()//"; time="//label//" Gyr"//char(10)
+                      write (label,'(f12.6)')   pullBasic%time()
+                      message=message//"  pull ID="//pullNode  %index()//"; time="//label//" Gyr"
+                      call Galacticus_Error_Report('Node_Pull_From_Tree',message)
+                   end if
                 end if
              end if
              ! Record that the event was performed, and set the deadlock status to not deadlocked since we changed the tree.
