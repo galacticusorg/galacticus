@@ -3723,7 +3723,28 @@ contains
                       call newNode%attachEvent(newEvent)
                    else
                       ! For a non-primary progenitor, attach the event to the primary progenitor of the node, such that our node
-                      ! can later be added as a sibling.
+                      ! can later be added as a sibling. If the primary progenitor has no child, create a clone.
+                      if (.not.associated(nodeList(iIsolatedNode)%node%firstChild)) then
+                         allocate                                    (newNode)
+                         call nodeList(iIsolatedNode)%node%copyNodeTo(newNode)
+                         newNode%parent                          => nodeList(iIsolatedNode)%node 
+                         newNode%sibling                         => null()
+                         newNode%firstChild                      => null()
+                         newNode%mergeTarget                     => null()
+                         newNode%siblingMergee                   => null()
+                         nodeList(iIsolatedNode)%node%firstChild => newNode
+                         newBasic                                => newNode%basic()
+                         call newBasic%timeSet(newBasic%time()*(1.0d0-1.0d-6))
+                         ! Events remain attached to the original and we do not want to duplicate them.
+                         newNode%event => null()
+                         ! Any satellites are now attached to the copy.
+                         nodeList(iIsolatedNode)%node%firstSatellite => null()
+                         satellite => newNode%firstSatellite
+                         do while (associated(satellite))
+                            satellite%parent => newNode
+                            satellite        => satellite%sibling
+                         end do
+                      end if
                       call nodeList(iIsolatedNode)%node%firstChild%attachEvent(newEvent)
                    end if
                    newEvent%time =  splitForestPushTime(pullListIndex(thisNode,iPull))
