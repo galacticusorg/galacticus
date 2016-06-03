@@ -399,55 +399,81 @@ sub Construct {
 					  title     => "Galacticus"
 		);
 	} else {
-	    # Plot multiple models. In this case we show a median and percentiles in each bin.
-	    # Initialize percentiles.
-	    my $percentiles = pdl [ 0.135, 2.275, 15.866, 50.0, 84.134, 97.725, 99.865 ];
-	    my $posterior   = pdl zeroes(nelem($config->{'x'}),nelem($percentiles));
-	    # Iterate over bins.
-	    for(my $i=0;$i<nelem($config->{'x'});++$i) {
-		my $y = pdl [];
-		# Iterate over models.
-		for(my $j=0;$j<scalar(@yGalacticus);++$j) {
-		    $y = $y->append($yGalacticus[$j]->(($i)));
+	    # Plot multiple models. 
+	    my $multiModel = exists($arguments{'multiModel'}) ? $arguments{'multiModel'} : "percentiles";
+	    if ( $multiModel eq "percentiles" ) {
+		# In this case we show a median and percentiles in each bin.
+		# Initialize percentiles.
+		my $percentiles = pdl [ 0.135, 2.275, 15.866, 50.0, 84.134, 97.725, 99.865 ];
+		my $posterior   = pdl zeroes(nelem($config->{'x'}),nelem($percentiles));
+		# Iterate over bins.
+		for(my $i=0;$i<nelem($config->{'x'});++$i) {
+		    my $y = pdl [];
+		    # Iterate over models.
+		    for(my $j=0;$j<scalar(@yGalacticus);++$j) {
+			$y = $y->append($yGalacticus[$j]->(($i)));
+		    }
+		    # Find the percentiles.
+		    my $bins    = pdl [0.0,1.0,2.0];
+		    my $x       = pdl ones($y);
+		    my $w       = pdl ones($y);
+		    my $results = &Percentiles::BinnedPercentiles($bins,$x,$y,$w,$percentiles);
+		    $posterior->(($i),:) .= $results->((1),:);
 		}
-		# Find the percentiles.
-		my $bins    = pdl [0.0,1.0,2.0];
-		my $x       = pdl ones($y);
-		my $w       = pdl ones($y);
-		my $results = &Percentiles::BinnedPercentiles($bins,$x,$y,$w,$percentiles);
-		$posterior->(($i),:) .= $results->((1),:);
+		&PrettyPlots::Prepare_Dataset(\$plot,
+					      $config->{'x'},
+					      $posterior->(:,(0)),
+					      y2 => $posterior->(:,(6)),
+					      style     => "filledCurve",
+					      weight    => [5,3],
+					      color     => ['#FFB6C1','#FFB6C1']
+		    );
+		&PrettyPlots::Prepare_Dataset(\$plot,
+					      $config->{'x'},
+					      $posterior->(:,(1)),
+					      y2 => $posterior->(:,(5)),
+					      style     => "filledCurve",
+					      weight    => [5,3],
+					      color     => ['#BA55D3','#BA55D3']
+		    );
+		&PrettyPlots::Prepare_Dataset(\$plot,
+					      $config->{'x'},
+					      $posterior->(:,(2)),
+					      y2 => $posterior->(:,(4)),
+					      style     => "filledCurve",
+					      weight    => [5,3],
+					      color     => ['#A020F0','#A020F0']
+		    );
+		&PrettyPlots::Prepare_Dataset(\$plot,
+					      $config->{'x'},
+					      $posterior->(:,(3)),
+					      style     => "line",
+					      weight    => [5,3],
+					      color     => $PrettyPlots::colorPairs{'redYellow'}
+		    );
+	    } elsif ( $multiModel eq "individual" ) {
+		# Plot each model, using a color transition.
+		my @colorStart          = (360.0,1.0,0.5);
+		my @colorEnd            = (  0.0,1.0,0.5);
+		my @colorStartHighlight = (360.0,1.0,0.8);
+		my @colorEndHighlight   = (  0.0,1.0,0.8);
+ 		for(my $j=0;$j<scalar(@yGalacticus);++$j) {
+		    my $colorFraction = $j/(scalar(@yGalacticus)-1);
+		    &PrettyPlots::Prepare_Dataset(\$plot,
+						  $config->{'x'},
+						  $yGalacticus[$j],
+						  style     => "line",
+						  weight    => [5,3],
+						  color     => 
+						  [
+						   &PrettyPlots::Color_Gradient($colorFraction,\@colorStart         ,\@colorEnd        ),
+						   &PrettyPlots::Color_Gradient($colorFraction,\@colorStartHighlight,\@colorEndHighlight)
+						  ]
+			);		    
+		}
+	    } else {
+		die("Galacticus::Constraints::MassFunction:Construct(): unknown multi-model plot option");
 	    }
-	    &PrettyPlots::Prepare_Dataset(\$plot,
-					  $config->{'x'},
-					  $posterior->(:,(0)),
-					  y2 => $posterior->(:,(6)),
-					  style     => "filledCurve",
-					  weight    => [5,3],
-					  color     => ['#FFB6C1','#FFB6C1']
-		);
-	    &PrettyPlots::Prepare_Dataset(\$plot,
-					  $config->{'x'},
-					  $posterior->(:,(1)),
-					  y2 => $posterior->(:,(5)),
-					  style     => "filledCurve",
-					  weight    => [5,3],
-					  color     => ['#BA55D3','#BA55D3']
-		);
-	    &PrettyPlots::Prepare_Dataset(\$plot,
-					  $config->{'x'},
-					  $posterior->(:,(2)),
-					  y2 => $posterior->(:,(4)),
-					  style     => "filledCurve",
-					  weight    => [5,3],
-					  color     => ['#A020F0','#A020F0']
-		);
-	    &PrettyPlots::Prepare_Dataset(\$plot,
-					  $config->{'x'},
-					  $posterior->(:,(3)),
-					  style     => "line",
-					  weight    => [5,3],
-					  color     => $PrettyPlots::colorPairs{'redYellow'}
-		);
 	    &PrettyPlots::Prepare_Dataset(\$plot,
 					  $config->{'x'},$config->{'y'},
 					  errorUp   => $error,
