@@ -353,7 +353,6 @@ contains
                 iOutput      =Galacticus_Output_Time_Count()+1
                 treeIsFinished=.true.
              end if           
-
              treeEvolveLoop : do while (iOutput <= Galacticus_Output_Time_Count())
                 ! We want to find the maximum time to which we can evolve this tree. This will be the minimum of the next output
                 ! time (at which we must stop and output the tree) and the next universal event time (at which we must stop and
@@ -432,6 +431,8 @@ contains
                      &   treeTimeLatest   > evolveToTime                                        &
                      &  .and.                                                                   &
                      &   treeTimeEarliest < evolveToTime                                        &
+                     &  .and.                                                                   &
+                     &   .not.evolutionIsEventLimited                                           &
                      & ) call Galacticus_Error_Report(                                          &
                      &                                'Galacticus_Task_Evolve_Tree'           , &
                      &                                'failed to evolve tree to required time'  &
