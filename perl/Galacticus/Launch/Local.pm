@@ -153,7 +153,7 @@ sub jobArrayLaunch {
 	    ++$jobNumber;
 	    print "Launch job ".$jobNumber."\n";
 	    if ( exists($arguments{'allowThreads'}) && $arguments{'allowThreads'} == 1 ) {
-		PDL::no_clone_skip_warning;
+		&PDL::no_clone_skip_warning();
 		if ( $^V lt v5.14.0 ) { 
 		    $activeThreads{$jobNumber} = 
 		    {
