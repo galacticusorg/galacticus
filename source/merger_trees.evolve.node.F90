@@ -449,12 +449,16 @@ contains
     implicit none
     real            (kind=c_double     ), intent(in)                         :: time
     real            (kind=c_double     ), intent(in), dimension(nProperties) :: y
-    real            (kind=c_double     )            , dimension(nProperties) :: dydt
-    type            (varying_string    )                                     :: message
+    real            (kind=c_double     )            , dimension(nProperties) :: dydt      , yError
+    type            (varying_string    )                                     :: message   , line
     integer                                                                  :: i         , lengthMaximum
     character       (len =12           )                                     :: label
     integer         (kind=c_int        )                                     :: odeStatus
     double precision                                                         :: stepFactor
+
+    ! Get the current errors in the ODE driver.
+    call FODEIV2_Driver_Errors(ode2Driver,yError)
+    ! Report the failure message.
     message="ODE solver failed in tree #"
     message=message//activeTreeIndex
     call Galacticus_Display_Message(message)
@@ -467,8 +471,12 @@ contains
     do i=1,nProperties
        lengthMaximum=max(lengthMaximum,len(activeNode%nameFromIndex(i)))
     end do
+    line=repeat("―",lengthMaximum)//repeat("―――――――――――――――",nProperties)
+    call Galacticus_Display_Message(line)
+    call Galacticus_Display_Message(repeat(" ",lengthMaximum)//' : y            : dy/dt        : yScale       : yError       : yErrorScaled')
+    call Galacticus_Display_Message(line)
     do i=1,nProperties
-       stepFactor=+  abs(          dydt(i)) &
+       stepFactor=+  abs(        yError(i)) &
             &     /(                        &
             &       +odeToleranceRelative   &
             &       *abs(           y  (i)) &
@@ -483,10 +491,13 @@ contains
        message=message//" : "//label
        write (label,'(e12.6)') propertyScales(i)
        message=message//" : "//label
+       write (label,'(e12.6)') yError        (i)
+       message=message//" : "//label
        write (label,'(e12.6)') stepFactor
        message=message//" : "//label
        call Galacticus_Display_Message(message)
     end do
+    call Galacticus_Display_Message(line)
     call Galacticus_Display_Unindent('done')
     return
   end subroutine Tree_Node_ODEs_Error_Handler
