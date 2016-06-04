@@ -38,6 +38,7 @@
   contains
     final     ::                  schneider2015Destructor
     procedure :: concentration => schneider2015Concentration
+    procedure :: descriptor    => schneider2015Descriptor
   end type darkMatterProfileConcentrationSchneider2015
 
   interface darkMatterProfileConcentrationSchneider2015
@@ -130,21 +131,24 @@ contains
     double precision                                                                      :: mass                                   , time                        , &
          &                                                                                   collapseCriticalOverdensity            , timeCollapse                , &
          &                                                                                   massReference                          , timeCollapseReference       , &
-         &                                                                                   referenceCollapseMassRootPrevious      , massReferencePrevious
+         &                                                                                   referenceCollapseMassRootPrevious      , massReferencePrevious       , &
+         &                                                                                   variance
       
     ! Get the basic component and the halo mass and time.
     basic => node %basic()
     mass  =  basic%mass ()
     time  =  basic%time ()
     ! Find critical overdensity at collapse for this node.
-    collapseCriticalOverdensity=+sqrt(                                                                                   &
-         &                            +Pi                                                                                &
-         &                            /2.0d0                                                                             &
-         &                            *(                                                                                 &
-         &                              +self%cosmologicalMassVariance_%rootVariance(mass*self%massFractionFormation)**2 &
-         &                              -self%cosmologicalMassVariance_%rootVariance(mass                           )**2 &
-         &                             )                                                                                 &
-         &                           )                                                                                   &
+    variance=max(                                                                                  &
+         &       +0.0d0                                                                          , &
+         &       +self%cosmologicalMassVariance_%rootVariance(mass*self%massFractionFormation)**2  &
+         &       -self%cosmologicalMassVariance_%rootVariance(mass                           )**2  &
+         &      )
+    collapseCriticalOverdensity=+sqrt(                                                &
+         &                            +Pi                                             &
+         &                            /2.0d0                                          &
+         &                            *variance                                       &
+         &                           )                                                &
          &                      +self%criticalOverdensity_%value(time=time,mass=mass)
     ! Compute the corresponding epoch of collapse.
     timeCollapse=self%criticalOverdensity_%timeOfCollapse(collapseCriticalOverdensity,mass)
@@ -155,9 +159,10 @@ contains
        call self%finder%rootFunction(referenceCollapseMassRoot                  )
        call self%finder%tolerance   (toleranceAbsolute        ,toleranceRelative)
        call self%finder%rangeExpand (                                                   &
-            &                        rangeExpandUpward  =2.0d0                        , &
-            &                        rangeExpandDownward=0.5d0                        , &
-            &                        rangeExpandType    =rangeExpandMultiplicative      &
+            &                        rangeExpandUpward  =2.000d0                      , &
+            &                        rangeExpandDownward=0.999d0                      , &
+            &                        rangeExpandType    =rangeExpandMultiplicative    , &
+            &                        rangeUpwardLimit   =1.0d60                         &
             &                       )
     end if
     massReferencePrevious=-1.0d0
@@ -175,16 +180,19 @@ contains
       !% \cite{schneider_structure_2015}.
       implicit none
       double precision, intent(in   ) :: massReference
+      double precision                :: variance
 
       if (massReference /= massReferencePrevious) then
          massReferencePrevious            =+massReference
+         variance                         =max(                                                                                                   &
+              &                                +0.0d0                                                                                           , &
+              &                                +self%referenceCosmologicalMassVariance%rootVariance(massReference*self%massFractionFormation)**2  &
+              &                                -self%referenceCosmologicalMassVariance%rootVariance(massReference                           )**2  &
+              &                               )
          referenceCollapseMassRootPrevious=+sqrt(                                                                                                    &
               &                                  +Pi                                                                                                 &
               &                                  /2.0d0                                                                                              &
-              &                                  *(                                                                                                  &
-              &                                    +self%referenceCosmologicalMassVariance%rootVariance(massReference*self%massFractionFormation)**2 &
-              &                                    -self%referenceCosmologicalMassVariance%rootVariance(massReference                           )**2 &
-              &                                   )                                                                                                  &
+              &                                  *variance                                                                                           &
               &                                 )                                                                                                    &
               &                            +self%referenceCriticalOverdensity%value(time=time                 ,mass=massReference)                   &
               &                            -self%referenceCriticalOverdensity%value(time=timeCollapseReference,mass=massReference)
@@ -195,3 +203,28 @@ contains
     
   end function schneider2015Concentration
 
+  subroutine schneider2015Descriptor(self,descriptor)
+    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
+    use Input_Parameters2
+    use FoX_DOM
+    implicit none
+    class    (darkMatterProfileConcentrationSchneider2015), intent(inout) :: self
+    type     (inputParameters                            ), intent(inout) :: descriptor
+    type     (inputParameters                            )                :: subParameters , referenceParameters
+    character(len=10                                     )                :: parameterLabel
+
+    call descriptor   %addParameter("darkMatterProfileConcentrationMethod","schneider2015")
+    subParameters      =descriptor   %subparameters("darkMatterProfileConcentrationMethod")
+    call subParameters%addParameter("reference"                           ,"null"         )
+    referenceParameters=subParameters%subparameters('reference'                           )
+    write (parameterLabel,'(f10.6)') self%massFractionFormation
+    call subParameters%addParameter("massFractionFormation",trim(adjustl(parameterLabel)))
+    call self%criticalOverdensity_             %descriptor(subParameters)
+    call self%cosmologicalMassVariance_        %descriptor(subParameters)
+    call self%cosmologyFunctions_              %descriptor(subParameters)
+    call self%referenceConcentration           %descriptor(referenceParameters)
+    call self%referenceCosmologyFunctions      %descriptor(referenceParameters)
+    call self%referenceCriticalOverdensity     %descriptor(referenceParameters)
+    call self%referenceCosmologicalMassVariance%descriptor(referenceParameters)
+    return
+  end subroutine schneider2015Descriptor
