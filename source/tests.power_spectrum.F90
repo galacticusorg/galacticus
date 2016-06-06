@@ -34,6 +34,7 @@ program Tests_Power_Spectrum
   implicit none
   type            (inputParameters                         ), target       :: parameters
   double precision                                          , parameter    :: radiusNormalization                      =8.0d0 ! Radius for σ(M) normalization in Mpc/h.
+  type            (darkMatterParticleCDM                   ), target       :: darkMatterParticleCDM_
   class           (cosmologyParametersClass                ), pointer      :: cosmologyParameters_
   type            (powerSpectrumPrimordialPowerLaw         ), target       :: powerSpectrumPrimordialPowerLaw_
   type            (powerSpectrumPrimordialTransferredSimple), target       :: powerSpectrumPrimordialTransferredSimple_
@@ -72,6 +73,7 @@ program Tests_Power_Spectrum
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Power spectra")
   ! Get required objects.
+  darkMatterParticleCDM_    =  darkMatterParticleCDM   ()
   cosmologyParameters_      => cosmologyParameters     ()
   cosmologicalMassVariance_ => cosmologicalMassVariance()
   powerSpectrum_            => powerSpectrum           ()
@@ -86,6 +88,7 @@ program Tests_Power_Spectrum
        & transferFunctionEisensteinHu1999        (                                                             &
        &                                          neutrinoNumberEffective =3.046d0                           , &
        &                                          neutrinoMassSummed      =0.000d0                           , &
+       &                                          darkMatterParticle_     =darkMatterParticleCDM_            , &
        &                                          cosmologyParameters_    =cosmologyParameters_                &
        &                                         )
   powerSpectrumPrimordialTransferredSimple_=                                                                  &

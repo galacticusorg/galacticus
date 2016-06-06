@@ -64,10 +64,12 @@ contains
     !% Constructor for the ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class
     !% which takes a parameter set as input.
     use Input_Parameters2
+    use Dark_Matter_Particles
     implicit none
     type            (transferFunctionEisensteinHu1999)                :: eisensteinHu1999ConstructorParameters
     type            (inputParameters                 ), intent(inout) :: parameters
     class           (cosmologyParametersClass        ), pointer       :: cosmologyParameters_
+    class           (darkMatterParticleClass         ), pointer       :: darkMatterParticle_
     double precision                                                  :: neutrinoNumberEffective             , neutrinoMassSummed
     !# <inputParameterList label="allowedParameterNames" />
 
@@ -91,16 +93,19 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     ! Call the internal constructor.
-    eisensteinHu1999ConstructorParameters=eisensteinHu1999ConstructorInternal(neutrinoNumberEffective,neutrinoMassSummed,cosmologyParameters_)
+    eisensteinHu1999ConstructorParameters=eisensteinHu1999ConstructorInternal(neutrinoNumberEffective,neutrinoMassSummed,darkMatterParticle_,cosmologyParameters_)
     return
   end function eisensteinHu1999ConstructorParameters
 
-  function eisensteinHu1999ConstructorInternal(neutrinoNumberEffective,neutrinoMassSummed,cosmologyParameters_)
+  function eisensteinHu1999ConstructorInternal(neutrinoNumberEffective,neutrinoMassSummed,darkMatterParticle_,cosmologyParameters_)
     !% Internal constructor for the ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
+    use Galacticus_Error
     implicit none
     type            (transferFunctionEisensteinHu1999)                                  :: eisensteinHu1999ConstructorInternal
     double precision                                  , intent(in   )                   :: neutrinoNumberEffective           , neutrinoMassSummed
+    class           (darkMatterParticleClass         ), intent(in   )                   :: darkMatterParticle_
     class           (cosmologyParametersClass        ), intent(in   ), target, optional :: cosmologyParameters_
     double precision                                                                    :: redshiftEquality                   , redshiftComptonDrag   , &
          &                                                                                 b1                                 , b2                    , &
@@ -109,6 +114,13 @@ contains
          &                                                                                 massFractionBaryonsNeutrinos       , suppressionDarkMatter , &
          &                                                                                 suppressionMatter
 
+    ! Require that the dark matter be cold dark matter.
+    select type (darkMatterParticle_)
+    class is (darkMatterParticleCDM)
+       ! Cold dark matter particle - this is as expected.
+    class default
+       call Galacticus_Error_Report('eisensteinHu1999ConstructorInternal','transfer function expects a cold dark matter particle')
+    end select
     ! Determine the cosmological parameters to use.
     if (present(cosmologyParameters_)) then
        eisensteinHu1999ConstructorInternal%cosmologyParameters_ => cosmologyParameters_
