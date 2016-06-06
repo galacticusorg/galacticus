@@ -265,7 +265,7 @@ Several miscellaneous properties often available from N-body merger trees can al
 \item[{mergerTreeReadPresetVelocityDispersions}] Sets the velocity dispersion of halos (requires the {\normalfont \ttfamily velocityDispersion} dataset to be present in the merger tree file).
 \end{description}
 
-\subsubsection{Subhalo Promotion}
+\subsubsection{Subhalo Promotion}\label{sec:Tutorial:NbodyTrees:SubhaloPromotion}
 
 A subhalo may, at a later time, become an isolated halo once again. \glc\ allows you to control whether such behavior is allowed, or should be prohibited. To allow such ``subhalo promotion'', set:
 \begin{verbatim}
@@ -273,7 +273,7 @@ A subhalo may, at a later time, become an isolated halo once again. \glc\ allows
 \end{verbatim}
 If you choose to inhibit this behavior by setting the above parameter to false, a halo that becomes a subhalo will remain a subhalo forever thereafter. Note that the isolated halo to which it would have been promoted will still exist, and may therefore form its own galaxy. This can result in double counting of mass, and so inhibiting subhalo promotion is not recommended.
 
-\subsubsection{``Fly-by'' Halos}
+\subsubsection{``Fly-by'' Halos}\label{sec:Tutorial:NbodyTrees:BranchJump}
 
 In some cases, a halo that is part of one tree can later become part of another tree. This can happen in so-called ``fly-by'' encounters where a halo may briefly become a subhalo in a halo in tree A then leave that halo and become a subhalo in tree B.
 
@@ -301,6 +301,24 @@ To add particle tracking data to a merger tree file, follow these steps:
   \item {\normalfont \ttfamily particleIndexCount} which should indicate the number of entries in the datasets in the {\normalfont \ttfamily particles} group for each halo (or $-0$ if no particle data is included for the halo).
   \end{enumerate}
 \end{enumerate}
+
+\subsection{Handling of Extremely Large Merger Tree Forests}\index{merger trees!large}\index{forests!large}
+
+Halos can move between merger trees (see \S\ref{sec:Tutorial:NbodyTrees:SubhaloPromotion} and \S\ref{sec:Tutorial:NbodyTrees:BranchJump}), leading to the necessity of merger tree forests---interconnected groups of merger trees that \glc\ typically processes as a whole. These forests can become very large---in some cases so large that they do not fit within the available memory. \glc\ can handle such forests by splitting them into individual trees. Each tree is processed separately, and nodes are moved between trees as needed. If a tree needs a node from another tree before its evolution can continue, its state can be suspended to disk, and later re-read once the node it requires becomes available. In this way, very large forests can be processed without running out of memory (as trees are stored to disk while they are not being processed).
+
+To cause forests to be split in this way, the following parameters should be set:
+\begin{verbatim}
+  <treeEvolveSuspendToRAM                   value="false"            />
+  <treeEvolveSuspendPath                    value="/my/scratch/path/"/>
+  <mergerTreeReadForestSizeMaximum          value="10000000"         />
+  <mergerTreeReadSubresolutionMergingMethod value="infinite"         />
+\end{verbatim}
+
+Here, {\normalfont \ttfamily treeEvolveSuspendToRAM} specifies that merger trees should be suspended to disk (i.e. not to RAM which is the default), and {\normalfont \ttfamily treeEvolveSuspendPath} gives a path where the suspended trees can be written---typically scratch space local to the compute node where \glc\ is being run is a good option.
+ 
+{\normalfont \ttfamily mergerTreeReadForestSizeMaximum} specifies the maximum number of nodes allowed in a forest before it will be split. A suitable number for this depends on the details of the available RAM, the number of threads sharing that RAM, and the characteristics of the \glc\ model being used (which will affect the memory required per node).
+ 
+Finally, {\normalfont \ttfamily mergerTreeReadSubresolutionMergingMethod} is set to {\normalfont \ttfamily infinite} to prevent any merging (which is not supported for split forests at present, although it should be soon).
 
 \subsection{Analyzing the Output}
 
