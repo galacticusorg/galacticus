@@ -248,7 +248,7 @@ sub Convert_Parameters_To_Galacticus {
     die("Convert_Parameters_To_Galacticus: number of supplied values does not match number of parameters")
 	unless ( scalar(@values) == $parameterCount );
 
-    # Map values to parameters, undoing any logarithmic mapping.
+    # Map values to parameters.
     my $j = -1;
     my %parameterValues;
     for(my $i=0;$i<scalar(@parameters);++$i) {
@@ -293,21 +293,12 @@ sub Convert_Parameters_To_Galacticus {
     return $newParameters;
 }
 
-sub Sample_Models {
-    # Generate a sample of models from the posterior distribution.
+sub Sample_Matrix {
+    # Generate a matrix of parameters sampled from the posterior distribution.
     my $config    =   shift() ;
     my %arguments = %{shift()};
     # Find the work directory.
     my $workDirectory = $config->{'likelihood'}->{'workDirectory'};
-    # Get a hash of the parameter values.
-    my $compilationFile;
-    if ( exists($arguments{'compilationOverride'}) ) {
-	$compilationFile = $arguments{'compilationOverride'};
-    } else {
-	$compilationFile = $config->{'likelihood'}->{'compilation'};
-    }
-    (my $constraintsRef, my $parameters) = &Parameters::Compilation($compilationFile,$config->{'likelihood'}->{'baseParameters'});
-    my @constraints = @{$constraintsRef};
     # Determine number of chains.
     my $logFileRoot = $config->{'simulation'}->{'logFileRoot'};
     my $chainCount  = 0;
@@ -353,10 +344,36 @@ sub Sample_Models {
     $arguments{'sampleCount'} = scalar(@chainParameters)
 	if ( $arguments{'sampleCount'} < 0 );
     my $sampleIndex = pdl long(scalar(@chainParameters)*random($arguments{'sampleCount'}));
+    # Build the matrix.
+    my $sampleMatrix = pdl zeroes(nelem($chainParameters[0]),nelem($sampleIndex));
+    for(my $i=0;$i<nelem($sampleIndex);++$i) {
+	$sampleMatrix->(:,($i)) .= $chainParameters[$sampleIndex->(($i))];
+    }
+    # Return the matrix.
+    return $sampleMatrix;
+}
+
+sub Sample_Models {
+    # Generate a sample of models from the posterior distribution.
+    my $config    =   shift() ;
+    my %arguments = %{shift()};
+    # Find the work directory.
+    my $workDirectory = $config->{'likelihood'}->{'workDirectory'};
+    # Get a hash of the parameter values.
+    my $compilationFile;
+    if ( exists($arguments{'compilationOverride'}) ) {
+	$compilationFile = $arguments{'compilationOverride'};
+    } else {
+	$compilationFile = $config->{'likelihood'}->{'compilation'};
+    }
+    (my $constraintsRef, my $parameters) = &Parameters::Compilation($compilationFile,$config->{'likelihood'}->{'baseParameters'});
+    my @constraints = @{$constraintsRef};
+    # Get a matrix of sampled states.
+    my $sampleMatrix = &Sample_Matrix($config,\%arguments);
     # Run model for each sample.
     my $sampleDirectory = exists($arguments{'sampleDirectory'}) ? $arguments{'sampleDirectory'}."/" : $workDirectory."/posteriorSample/";
     my @pbsStack;
-    for (my $i=0;$i<nelem($sampleIndex);++$i) {
+    for (my $i=0;$i<$sampleMatrix->dim(1);++$i) {
 	# Create an output directory.
 	my $modelDirectory = $sampleDirectory.$i."/";
 	system("mkdir -p ".$modelDirectory);
@@ -364,42 +381,16 @@ sub Sample_Models {
 	# Check if the model has already been run.
 	unless ( -e $galacticusFileName ) {
 	    # Convert these values into a parameter array.
-	    my $j             = $sampleIndex->(($i))->sclr();
 	    my $currentConfig = clone($config);
-	    my $newParameters = &Convert_Parameters_To_Galacticus($currentConfig,@{$chainParameters[$j]});    
+	    my $newParameters = &Convert_Parameters_To_Galacticus($currentConfig, $sampleMatrix->(:,($i))->list());
 	    # Increment the random number seed.
 	    $parameters->{'randomSeed'}->{'value'} += $config->{'likelihood'}->{'threads'};
 	    # Clone parameters.
 	    my $currentParameters = clone($parameters);
 	    # Apply to parameters.
-	    for my $newParameterName ( keys(%{$newParameters}) ) {
-		my $parameter = $currentParameters;
-		foreach ( split(/\-\>/,$newParameterName) ) {
-		    $parameter->{$_}->{'value'} = undef()
-			unless ( exists($parameter->{$_}) );
-		    $parameter = $parameter->{$_};
-		}
-		$parameter->{'value'} = $newParameters->{$newParameterName};
-	    }
+	    &Apply_Parameters($currentParameters,$newParameters);
 	    # Apply any parameters from command line.
-	    foreach my $argument ( keys(%arguments) ) {
-		if ( $argument =~ m/^parameterOverride:(.*)/ ) {
-		    my @parametersSet = split(":",$1);
-		    my $parameter     = $currentParameters;
-		    foreach my $parameterSet ( @parametersSet ) {
-			if ( $parameterSet =~ m/([^\{]*)(\{{0,1}([^\}]*)\}{0,1})/ ) {
-			    my $parameterName  = $1;
-			    my $parameterValue = $3;
-			    $parameter->{$parameterName}->{'value'} = $parameterValue
-				if ( defined($2) );
-			    $parameter = $parameter->{$parameterName};
-			} else {
-			    die("malformed parameter definition");
-			}
-		    }
-		    $parameter->{'value'} = $arguments{$argument};
-		}
-	    }
+	    &Apply_Command_Line_Parameters($currentParameters,\%arguments);
 	    # Specify the output file name.
 	    $currentParameters->{'galacticusOutputFileName'}->{'value'} = $galacticusFileName;
 	    # Write the modified parameters to file.
@@ -421,14 +412,16 @@ sub Sample_Models {
 	    $command .= "ulimit -c unlimited\n";
 	    $command .= "export OMP_NUM_THREADS=".$config->{'likelihood'}->{'threads'}."\n";
 	    $command .= "mpirun --bynode -np 1 Galacticus.exe ".$modelDirectory."parameters.xml\n";
-	    foreach my $constraint ( @constraints ) {
-		# Parse the definition file.
-		my $xml = new XML::Simple;
-		my $constraintDefinition = $xml->XMLin($constraint->{'definition'});	    
-		# Insert code to run the analysis code.
-		my $analysisCode = $constraintDefinition->{'analysis'};
-		(my $plotLabel = $constraintDefinition->{'label'}) =~ s/\./_/g;
-		$command .= $analysisCode." ".$galacticusFileName." --resultFile ".$modelDirectory."/".$constraintDefinition->{'label'}.".hdf5 --plotFile ".$modelDirectory."/".$plotLabel.".pdf --outputFile ".$modelDirectory."/".$constraintDefinition->{'label'}."Likelihood.xml --modelDiscrepancies ".$workDirectory."/modelDiscrepancy\n";
+	    unless ( exists($arguments{'analyze'}) && $arguments{'analyze'} eq "no" ) {
+		foreach my $constraint ( @constraints ) {
+		    # Parse the definition file.
+		    my $xml = new XML::Simple;
+		    my $constraintDefinition = $xml->XMLin($constraint->{'definition'});	    
+		    # Insert code to run the analysis code.
+		    my $analysisCode = $constraintDefinition->{'analysis'};
+		    (my $plotLabel = $constraintDefinition->{'label'}) =~ s/\./_/g;
+		    $command .= $analysisCode." ".$galacticusFileName." --resultFile ".$modelDirectory."/".$constraintDefinition->{'label'}.".hdf5 --plotFile ".$modelDirectory."/".$plotLabel.".pdf --outputFile ".$modelDirectory."/".$constraintDefinition->{'label'}."Likelihood.xml --modelDiscrepancies ".$workDirectory."/modelDiscrepancy\n";
+		}
 	    }
 	    # Create a PBS job.
 	    my %job =
@@ -450,15 +443,13 @@ sub Sample_Models {
     &PBS::SubmitJobs(\%arguments,@pbsStack)
      	if ( scalar(@pbsStack) > 0 );
     # Return the number of models sampled.
-    return (nelem($sampleIndex), $sampleDirectory);
+    return ($sampleMatrix->dim(1), $sampleDirectory);
 }
 
-sub Maximum_Likelihood_Parameters {
+sub Maximum_Likelihood_Vector {
     my $config    =   shift() ;
     my %arguments = %{shift()};
-    # Get a hash of the parameter values.
-    (my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'likelihood'}->{'compilation'},$config->{'likelihood'}->{'baseParameters'});
-   # Determine the MCMC directory.
+    # Determine the MCMC directory.
     my $logFileRoot = $config->{'simulation'}->{'logFileRoot'};
     (my $mcmcDirectory  = $logFileRoot) =~ s/\/[^\/]+$//;    
     # Determine number of chains.
@@ -494,9 +485,39 @@ sub Maximum_Likelihood_Parameters {
 	}
 	close(iHndl);
     }
-    # Convert these values into a parameter array.
-    my $newParameters = &Parameters::Convert_Parameters_To_Galacticus($config,@maximumLikelihoodParameters);
+    # Convert parameters to a PDL.
+    my $maximumLikelihoodVector = pdl @maximumLikelihoodParameters;
+    # Return the vector.
+    return $maximumLikelihoodVector;
+}
+
+sub Maximum_Likelihood_Parameters {
+    my $config    =   shift() ;
+    my %arguments = %{shift()};
+    # Get a vector of maximum likelihood parameters.
+    my $maximumLikelihoodVector = &Maximum_Likelihood_Vector($config,\%arguments);	
+    # Get the parameters.
+    my $parameters = &Convert_Parameter_Vector_To_Galacticus($config,$maximumLikelihoodVector);
+    return $parameters;
+}
+
+sub Convert_Parameter_Vector_To_Galacticus {
+    # Convert a PDL vector of parameter values into a Galacticus parameter structure.
+    my $config          = shift();
+    my $parameterVector = shift();
+    # Get a hash of the parameter values.
+    (my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'likelihood'}->{'compilation'},$config->{'likelihood'}->{'baseParameters'});
+    # Convert vector into a parameter array.
+    my $newParameters = &Parameters::Convert_Parameters_To_Galacticus($config,$parameterVector->list());
     # Apply to parameters.
+    &Apply_Parameters($parameters,$newParameters);
+    return $parameters;
+}
+
+sub Apply_Parameters {
+    # Apply a set of new parameters from a constraint procedure to an existing parameters data structure.
+    my $parameters    = shift();
+    my $newParameters = shift();
     for my $newParameterName ( keys(%{$newParameters}) ) {
 	my $parameter = $parameters;
 	foreach ( split(/\-\>/,$newParameterName) ) {
@@ -506,7 +527,6 @@ sub Maximum_Likelihood_Parameters {
 	}
 	$parameter->{'value'} = $newParameters->{$newParameterName};
     }
-    return $parameters;
 }
 
 sub Apply_Command_Line_Parameters {
@@ -517,18 +537,26 @@ sub Apply_Command_Line_Parameters {
 	if ( $argument =~ m/^parameter:(.*)/ ) {
 	    my @parametersSet = split(":",$1);
 	    my $parameter     = $parameters;
+	    my $parameterPrevious;
+	    my $parameterNameCurrent;
 	    foreach my $parameterSet ( @parametersSet ) {
 		if ( $parameterSet =~ m/([^\{]*)(\{{0,1}([^\}]*)\}{0,1})/ ) {
 		    my $parameterName  = $1;
 		    my $parameterValue = $3;
 		    $parameter->{$parameterName}->{'value'} = $parameterValue
 			if ( defined($2) );
-		    $parameter = $parameter->{$parameterName};
+		    $parameterNameCurrent = $parameterName;
+		    $parameterPrevious    = $parameter;
+		    $parameter            = $parameter->{$parameterName};
 		} else {
 		    die("malformed parameter definition");
 		}
 	    }
-	    $parameter->{'value'} = $arguments{$argument};
+	    if ( $arguments{$argument} eq "DELETE" ) {
+		delete($parameterPrevious->{$parameterNameCurrent});
+	    } else {
+		$parameter->{'value'} = $arguments{$argument};
+	    }
 	}
     }
 }

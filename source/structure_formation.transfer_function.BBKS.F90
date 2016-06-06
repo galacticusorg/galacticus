@@ -51,22 +51,34 @@ contains
   function bbksConstructorParameters(parameters)
     !% Constructor for the ``BBKS'' transfer function class which takes a parameter set as input.
     use Input_Parameters2
+    use Dark_Matter_Particles
     implicit none
     type (transferFunctionBBKS    )                :: bbksConstructorParameters
     type (inputParameters         ), intent(inout) :: parameters
     class(cosmologyParametersClass), pointer       :: cosmologyParameters_
-    
+    class(darkMatterParticleClass ), pointer       :: darkMatterParticle_
+
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    bbksConstructorParameters=bbksConstructorInternal(cosmologyParameters_)
+    !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
+    bbksConstructorParameters=bbksConstructorInternal(darkMatterParticle_,cosmologyParameters_)
     return
   end function bbksConstructorParameters
 
-  function bbksConstructorInternal(cosmologyParameters_)
+  function bbksConstructorInternal(darkMatterParticle_,cosmologyParameters_)
     !% Internal constructor for the ``BBKS'' transfer function class.
+    use Galacticus_Error    
     implicit none
     type (transferFunctionBBKS    )                                  :: bbksConstructorInternal
-    class(cosmologyParametersClass), intent(in   ), target, optional :: cosmologyParameters_    
+    class(darkMatterParticleClass ), intent(in   )                   :: darkMatterParticle_
+    class(cosmologyParametersClass), intent(in   ), target, optional :: cosmologyParameters_
 
+    ! Require that the dark matter be cold dark matter.
+    select type (darkMatterParticle_)
+    class is (darkMatterParticleCDM)
+       ! Cold dark matter particle - this is as expected.
+    class default
+       call Galacticus_Error_Report('bbksConstructorInternal','transfer function expects a cold dark matter particle')
+    end select
     ! Determine the cosmological parameters to use.
     if (present(cosmologyParameters_)) then
        bbksConstructorInternal%cosmologyParameters_ => cosmologyParameters_

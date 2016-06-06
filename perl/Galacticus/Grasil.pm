@@ -23,6 +23,9 @@ use List::Util qw(first);
 require Galacticus::HDF5;
 require Galacticus::Inclination;
 require Galacticus::Filters;
+require Galacticus::Launch::Hooks;
+require Galacticus::Launch::Local;
+require Galacticus::Launch::PBS;
 
 %HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
 			       "^grasilFlux[\\d\\.]+microns\$"        => \&Grasil::Get_Flux                 ,
@@ -63,9 +66,9 @@ sub Get_Flux {
     if ( exists($dataSet->{'selection'}) ) {
    	$selection = $dataSet->{'selection'};
     } else {
-    	$selection = sequence(nelem($dataSets->{'nodeIndex'}))-1;
+    	$selection = sequence(nelem($dataSets->{'nodeIndex'}));
     }
-
+    
     # Create an empty version of the flux property.
     $dataSets->{$dataSetName} = pdl zeroes(nelem($dataSets->{'nodeIndex'}));
     
@@ -101,8 +104,12 @@ sub Get_Flux {
     $cpuLimit          = $dataSet->{'grasilOptions'}->{'cpuLimit'         } if ( exists($dataSet->{'grasilOptions'}->{'cpuLimit'         }) );
 
     # Determine the number of CPUs available.
-    my $cpuCount = Sys::CPU::cpu_count();
-    $cpuCount = $dataSet->{'grasilOptions'}->{'maxThreads'} if ( exists($dataSet->{'grasilOptions'}->{'maxThreads'}) );
+    my $launchMethod = exists($dataSet->{'grasilOptions'}->{'launchMethod'}) ? $dataSet->{'grasilOptions'}->{'launchMethod'} : "local";
+    my $grasilJobsMaximum = 100;
+    $grasilJobsMaximum = Sys::CPU::cpu_count()
+	if ( $launchMethod eq "local" );
+    $grasilJobsMaximum = $dataSet->{'grasilOptions'}->{'grasilJobsMaximum'} 
+        if ( exists($dataSet->{'grasilOptions'}->{'grasilJobsMaximum'}) );
     
     # Open the file for reading.
     &HDF5::Open_File($dataSet);
@@ -184,7 +191,7 @@ sub Get_Flux {
 	@datasetsList = $nodeGroup->datasets();
 	unless ( defined(first { $_ eq "SED" } @datasetsList) && $recomputeSEDs == 0 ) {
 	    # Get a queue number for this galaxy.
-	    my $queueNumber = 1+$#grasilQueue;
+	    my $queueNumber = scalar(@grasilQueue);
 
 	    # Extract the star formation history for this galaxy.
 	    system("mkdir -p ".$dataSet->{'file'}.".grasilTmp".$$.".".$queueNumber);
@@ -223,8 +230,8 @@ sub Get_Flux {
 	    };
 
 	    # Process through Grasil if the queue is full.
-	    if ( $#grasilQueue >= $cpuCount-1 ) {
-		&Process_Through_Grasil(\@grasilQueue,$inclinations,$dataSet,$dataSets,$dataSetName,$cpuLimit);
+	    if ( scalar(@grasilQueue) >= $grasilJobsMaximum ) {
+		&Process_Through_Grasil(\@grasilQueue,$inclinations,$dataSet,$dataSets,$dataSetName,$cpuLimit,$launchMethod);
 		undef(@grasilQueue);
 	    }
 
@@ -242,8 +249,8 @@ sub Get_Flux {
     }
     
     # Process through Grasil if any galaxies remain in the queue.
-    if ( $#grasilQueue >= 0 ) {
-	&Process_Through_Grasil(\@grasilQueue,$inclinations,$dataSet,$dataSets,$dataSetName,$cpuLimit);
+    if ( scalar(@grasilQueue) > 0 ) {
+	&Process_Through_Grasil(\@grasilQueue,$inclinations,$dataSet,$dataSets,$dataSetName,$cpuLimit,$launchMethod);
 	undef(@grasilQueue);
     }
 
@@ -677,93 +684,146 @@ sub Compute_Luminosity_Under_Filter {
 
 sub Process_Through_Grasil {
     # Process a list of galaxies through Grasil.
-    my $grasilQueue        = shift;
-    my $inclinations       = shift;
-    my $dataSet            = shift;
-    my $dataSets           = shift;
-    my $dataSetName        = shift;
-    my $cpuLimit           = shift;
-
-    # Generate command to the script that runs Grasil.
-    my $wrapperCommand = $galacticusPath."/scripts/aux/Grasil_Wrapper.pl --cpuLimit ".$cpuLimit;
-    foreach my $galaxy ( @{$grasilQueue} ) {
-	$wrapperCommand .= " ".$galaxy->{'grasilFilesRoot'};
-    }
-
-    # Run the models through Grasil.
-    system($wrapperCommand);
-
-    # Read the data from the processed galaxies.
-    foreach my $galaxy ( @{$grasilQueue} ) {
-
-	# Check that Grasil completed.	
-	if ( -e $galaxy->{'grasilFilesRoot'}.".spe" ) {
-
-	    # Count number of wavelengths in output file.
-	    my $wavelengthCount = 0;
-	    open(iHndl,$galaxy->{'grasilFilesRoot'}.".spe");
-	    while ( my $line = <iHndl> ) {
-		++$wavelengthCount unless ( $line =~ m/^\#/ );
-	    }
-	    close(iHndl);
-	    
-	    # Parse and store the output SEDs.
-	    my $wavelength   = pdl zeroes(                     $wavelengthCount);
-	    my $SED          = pdl zeroes(nelem($inclinations),$wavelengthCount);
-	    my $iInclination = -1;
-	    foreach my $inclination ( $inclinations->list() ) {
-		++$iInclination;
-		my $iWavelength = -1;
-		open(iHndl,$galaxy->{'grasilFilesRoot'}.".".$inclination);
-		while ( my $line = <iHndl> ) {
-		    unless ( $line =~ m/^\#/ ) {
-			++$iWavelength;
-			$line =~ s/^\s*//;
-			$line =~ s/\s*$//;
-			my @columns = split(/\s+/,$line);
-			$wavelength(                ($iWavelength)) .= $columns[0];
-			$SED       (($iInclination),($iWavelength)) .= $columns[5];
-		    }
-		}
-		close(iHndl);
-	    }
-	    # Check if the datasets already exist.
-	    my @existingDatasets = $galaxy->{'nodeGroup'}->datasets();
-	    if ( defined(first { $_ eq "wavelength" } @existingDatasets) ) {
-		# Determine size of stored wavelength dataset.
-		my $storedWavelength = $galaxy->{'nodeGroup'}->dataset('wavelength')->get();
-		if ( nelem($storedWavelength) != nelem($wavelength) ) {
-		    # New dataset differs in size from the previously stored on. We therefore need to unlink the stored datasets
-		    # so that we can make new ones.
-		    $galaxy->{'nodeGroup'}->unlink($_)
-			foreach ( 'wavelength', 'inclination', 'SED' );
-		}
-	    }
-	    # Write datasets.
-	    my $wavelengthDataset  = $galaxy->{'nodeGroup'}->dataset('wavelength' );
-	    my $sedDataset         = $galaxy->{'nodeGroup'}->dataset('SED'        );
-	    my $inclinationDataset = $galaxy->{'nodeGroup'}->dataset('inclination');
-	    $wavelengthDataset ->set($wavelength  );
-	    $sedDataset        ->set($SED         );
-	    $inclinationDataset->set($inclinations);
-	    
-	    # Compute the required Grasil property.
-	    &Compute_Grasil_Property($dataSet,$wavelength,$SED,$inclinations,$dataSets,$dataSetName,$galaxy->{'galaxyIndex'});
-
-	    # Remove the folder.
-	    system("rm -rf `dirname ".$galaxy->{'grasilFilesRoot'}."`");
-
-	} else {
-	    # Grasil did not complete.
-	    my $workDirectory = $galaxy->{'grasilFilesRoot'};
-	    $workDirectory =~ s/\/[^\/]+$//;
-	    my $baseDirectory = $workDirectory;
-	    $baseDirectory =~ s/\/[^\/]+$//;
-	    system("mv ".$workDirectory." ".$baseDirectory."/".$galaxy->{'galaxyIndex'});
-	    print "Galacticus::Grasil - Grasil appears to have FAILED for ".$baseDirectory."/".$galaxy->{'galaxyIndex'}."\n";
-	    exit;
+    my @grasilQueue        = @{shift()};
+    my $inclinations       =   shift() ;
+    my $dataSet            =   shift() ;
+    my $dataSets           =   shift() ;
+    my $dataSetName        =   shift() ;
+    my $cpuLimit           =   shift() ;
+    my $launchMethod       =   shift() ;
+    # Ensure that we have Grasil.
+    &grasilGet();
+    # Iterate over galaxies, generating jobs.
+    my @submitQueue;
+    foreach my $grasilJob ( @grasilQueue ) {
+	(my $grasilDirectoryName = $grasilJob->{'grasilFilesRoot'}) =~ s/\/([^\/]+)$//;
+	my $grasilRun = "cd `dirname ".$grasilJob->{'grasilFilesRoot'}."`; ".$galacticusPath."/aux/Grasil/grasil `basename ".$grasilJob->{'grasilFilesRoot'}."`";
+	my %job =
+	    (
+	     launchFile   => $grasilDirectoryName."/grasil.script",
+	     logFile      => $grasilDirectoryName."/grasil.log"   ,
+	     label        => "grasil",
+	     command      => $grasilRun,
+	     onCompletion =>
+	     {
+		 function  => \&grasilPostProcess,
+		 arguments => [ $grasilJob, $dataSet, $dataSets, $dataSetName, $inclinations ]
+	     }
+	    );
+	foreach ( 'ppn', 'walltime', 'memory' ) {
+	    $job{$_} = $dataSet->{'grasilOptions'}->{$_}
+	       if ( exists($dataSet->{'grasilOptions'}->{$_}) );
 	}
+	push(@submitQueue,\%job);
     }
+    # Launch the jobs.
+    $dataSet->{'grasilOptions'}->{'allowThreads'} = 0;
+    &{$Hooks::moduleHooks{$launchMethod}->{'jobArrayLaunch'}}($dataSet->{'grasilOptions'},@submitQueue);
+}
+
+sub grasilPostProcess {
+    # Postprocess output of a Grasil job.
+    my $grasilJob    = shift();
+    my $dataSet      = shift();
+    my $dataSets     = shift();
+    my $dataSetName  = shift();
+    my $inclinations = shift();
+    my $jobID        = shift();
+    my $exitStatus   = shift();
+    # Check that Grasil completed.	
+    if ( $exitStatus ==0 && -e $grasilJob->{'grasilFilesRoot'}.".spe" ) {
+	# Count number of wavelengths in output file.
+	my $wavelengthCount = 0;
+	open(my $grasilSED,$grasilJob->{'grasilFilesRoot'}.".spe");
+	while ( my $line = <$grasilSED> ) {
+	    ++$wavelengthCount unless ( $line =~ m/^\#/ );
+	}
+	close($grasilSED);
+	# Parse and store the output SEDs.
+	my $wavelength   = pdl zeroes(                     $wavelengthCount);
+	my $SED          = pdl zeroes(nelem($inclinations),$wavelengthCount);
+	my $iInclination = -1;
+	foreach my $inclination ( $inclinations->list() ) {
+	    ++$iInclination;
+	    my $iWavelength = -1;
+	    open($grasilSED,$grasilJob->{'grasilFilesRoot'}.".".$inclination);
+	    while ( my $line = <$grasilSED> ) {
+		unless ( $line =~ m/^\#/ ) {
+		    ++$iWavelength;
+		    $line =~ s/^\s*//;
+		    $line =~ s/\s*$//;
+		    my @columns = split(/\s+/,$line);
+		    $wavelength(                ($iWavelength)) .= $columns[0];
+		    $SED       (($iInclination),($iWavelength)) .= $columns[5];
+		}
+	    }
+	    close($grasilSED);
+	}
+	# Check if the datasets already exist.
+	my @existingDatasets = $grasilJob->{'nodeGroup'}->datasets();
+	if ( defined(first { $_ eq "wavelength" } @existingDatasets) ) {
+	    # Determine size of stored wavelength dataset.
+	    my $storedWavelength = $grasilJob->{'nodeGroup'}->dataset('wavelength')->get();
+	    if ( nelem($storedWavelength) != nelem($wavelength) ) {
+		# New dataset differs in size from the previously stored on. We therefore need to unlink the stored datasets
+		# so that we can make new ones.
+		$grasilJob->{'nodeGroup'}->unlink($_)
+		    foreach ( 'wavelength', 'inclination', 'SED' );
+	    }
+	}
+	# Write datasets.
+	my $wavelengthDataset  = $grasilJob->{'nodeGroup'}->dataset('wavelength' );
+	my $sedDataset         = $grasilJob->{'nodeGroup'}->dataset('SED'        );
+	my $inclinationDataset = $grasilJob->{'nodeGroup'}->dataset('inclination');
+	$wavelengthDataset ->set($wavelength  );
+	$sedDataset        ->set($SED         );
+	$inclinationDataset->set($inclinations);	    
+	# Compute the required Grasil property.
+	&Compute_Grasil_Property($dataSet,$wavelength,$SED,$inclinations,$dataSets,$dataSetName,$grasilJob->{'galaxyIndex'});
+	# Remove the folder.
+	system("rm -rf `dirname ".$grasilJob->{'grasilFilesRoot'}."`");
+    } else {
+	# Grasil did not complete.
+	my $workDirectory = $grasilJob->{'grasilFilesRoot'};
+	$workDirectory =~ s/\/[^\/]+$//;
+	my $baseDirectory = $workDirectory;
+	$baseDirectory =~ s/\/[^\/]+$//;
+	system("mv ".$workDirectory." ".$baseDirectory."/".$grasilJob->{'galaxyIndex'});
+	print "Galacticus::Grasil::grasilPostprocess(): Grasil appears to have FAILED for ".$baseDirectory."/".$grasilJob->{'galaxyIndex'}."\n";
+	exit;
+    }
+}
+
+sub grasilGet {
+    # Ensure that we have the Grasil executable and data files.
+    my $grasilPath = $galacticusPath."/aux/Grasil/";
+    system("mkdir -p ".$grasilPath);
+    system("wget http://adlibitum.oats.inaf.it/silva/grasil/download/gslib.tar.gz -O ".$grasilPath."/gslib.tar.gz")
+	unless ( -e $grasilPath."/gslib.tar.gz" );
+    die("Galacticus::Grasil::grasilGet(): : unable to download gslib.tar.gz")
+	unless ( $? == 0 );
+    unless ( -e $grasilPath."/TAU96.OF" ) {
+	system("cd ".$grasilPath."; tar xvfz gslib.tar.gz");
+	die("Galacticus::Grasil::grasilGet(): : unable to extract gslib.tar.gz")
+	    unless ( $? == 0 );
+	unlink($grasilPath."/grasil")
+	    if ( -e $grasilPath."/grasil" );
+    }
+    system("wget http://adlibitum.oats.inaf.it/silva/grasil/SSP_zip/grasil.tar.gz -O ".$grasilPath."/grasil.tar.gz")
+	unless ( -e $grasilPath."/grasil.tar.gz" );
+    die("Galacticus::Grasil::grasilGet(): : unable to download grasil.tar.gz")
+	unless ( $? == 0 );
+    unless ( -e $grasilPath."/template_grasil.sf" ) {
+	system("cd ".$grasilPath."; tar xvfz grasil.tar.gz");
+	die("Galacticus::Grasil::grasilGet(): : unable to extract gslib.tar.gz")
+	    unless ( $? == 0 );
+	unlink($grasilPath."/grasil")
+	    if ( -e $grasilPath."/grasil" );
+    }
+    system("wget http://users.obs.carnegiescience.edu/abenson/galacticus/tools/grasil -O ".$grasilPath."/grasil; chmod u=wrx ".$grasilPath."/grasil")
+	unless ( -e $grasilPath."/grasil" );
+    die("Galacticus::Grasil::grasilGet(): : unable to download grasil")
+	unless ( $? == 0 );
 }
 
 1;
