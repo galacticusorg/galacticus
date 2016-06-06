@@ -19,6 +19,7 @@
 !% Contains a module which implements a transfer function class based on the \gls{wdm} modifier of \cite{bardeen_statistics_1986}.
 
   use Cosmology_Parameters
+  use Dark_Matter_Particles
 
   !# <transferFunction name="transferFunctionBBKSWDM">
   !#  <description>Provides a transfer function based on the \gls{wdm} modifier of \cite{bardeen_statistics_1986}.</description>
@@ -26,9 +27,10 @@
   type, extends(transferFunctionClass) :: transferFunctionBBKSWDM
      !% A transfer function class which modifies another transfer function using the \gls{wdm} modifier of \cite{bardeen_statistics_1986}.
      private
-     double precision                                    :: freeStreamingLength
      class           (transferFunctionClass   ), pointer :: transferFunctionCDM
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_
+     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_
+     double precision                                    :: lengthFreeStreaming
    contains
      final     ::                          bbksWDMDestructor
      procedure :: value                 => bbksWDMValue
@@ -53,41 +55,61 @@ contains
     type            (inputParameters         ), intent(inout) :: parameters
     class           (transferFunctionClass   ), pointer       :: transferFunctionCDM
     class           (cosmologyParametersClass), pointer       :: cosmologyParameters_    
-    double precision                                          :: freeStreamingLength    
+    class           (darkMatterParticleClass ), pointer       :: darkMatterParticle_    
     !# <inputParameterList label="allowedParameterNames" />
     
-    !# <inputParameter>
-    !#   <name>freeStreamingLength</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <attachedTo>module</attachedTo>
-    !#   <description>The warm dark matter free streaming length (in Mpc).</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
-    !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     !# <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
     ! Call the internal constructor
-    bbksWDMConstructorParameters =  bbksWDMConstructorInternal(transferFunctionCDM,freeStreamingLength,cosmologyParameters_)
+    bbksWDMConstructorParameters =bbksWDMConstructorInternal(transferFunctionCDM,cosmologyParameters_,darkMatterParticle_)
     return
   end function bbksWDMConstructorParameters
 
-  function bbksWDMConstructorInternal(transferFunctionCDM,freeStreamingLength,cosmologyParameters_)
+  function bbksWDMConstructorInternal(transferFunctionCDM,cosmologyParameters_,darkMatterParticle_)
     !% Internal constructor for the ``{\normalfont \ttfamily bbksWDM}'' transfer function class.
+    use Galacticus_Error
     implicit none
     type            (transferFunctionBBKSWDM )                                  :: bbksWDMConstructorInternal
     class           (transferFunctionClass   ), target, intent(in   )           :: transferFunctionCDM
-    double precision                                  , intent(in   )           :: freeStreamingLength
     class           (cosmologyParametersClass), target, intent(in   ), optional :: cosmologyParameters_    
+    class           (darkMatterParticleClass ), target, intent(in   ), optional :: darkMatterParticle_    
+    double precision                                                            :: degreesOfFreedomEffectiveDecoupling
 
     bbksWDMConstructorInternal%transferFunctionCDM => transferFunctionCDM
-    bbksWDMConstructorInternal%freeStreamingLength =  freeStreamingLength
     ! Determine the cosmological parameters to use.
     if (present(cosmologyParameters_)) then
        bbksWDMConstructorInternal%cosmologyParameters_ => cosmologyParameters_
     else
        bbksWDMConstructorInternal%cosmologyParameters_ => cosmologyParameters()
     end if
+    ! Determine the dark matter particle to use.
+    if (present(darkMatterParticle_)) then
+       bbksWDMConstructorInternal%darkMatterParticle_ => darkMatterParticle_
+    else
+       bbksWDMConstructorInternal%darkMatterParticle_ => darkMatterParticle()
+    end if
+    ! Get degrees of freedom at the time at which the dark matter particle decoupled.
+    select type (particle => bbksWDMConstructorInternal%darkMatterParticle_)
+    class is (darkMatterParticleWDMThermal)
+       degreesOfFreedomEffectiveDecoupling=particle%degreesOfFreedomEffectiveDecoupling()
+    class default
+       degreesOfFreedomEffectiveDecoupling=0.0d0
+       call Galacticus_Error_Report('bbksWDMConstructorInternal','transfer function expects a thermal warm dark matter particle')
+    end select
+    ! Compute the free-streaming length-like parameter (equation G6 of BBKS).
+    bbksWDMConstructorInternal%lengthFreeStreaming=+0.2d0                                                                                     &
+         &                                         /(                                                                                         &
+         &                                           +degreesOfFreedomEffectiveDecoupling                                                     &
+         &                                           /100.d0                                                                                  &
+         &                                          )**(4.0d0/3.0d0)                                                                          &
+         &                                         /(                                                                                         &
+         &                                           +(                                                                                       &
+         &                                             +bbksWDMConstructorInternal%cosmologyParameters_%OmegaMatter   (                  )    &
+         &                                             -bbksWDMConstructorInternal%cosmologyParameters_%OmegaBaryon   (                  )    &
+         &                                            )                                                                                       &
+         &                                           /  bbksWDMConstructorInternal%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
+         &                                          )
     return
   end function bbksWDMConstructorInternal
   
@@ -97,6 +119,7 @@ contains
     type(transferFunctionBBKSWDM), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyParameters_"/>
+    !# <objectDestructor name="self%darkMatterParticle_" />
     !# <objectDestructor name="self%transferFunctionCDM" />
     return
   end subroutine bbksWDMDestructor
@@ -108,8 +131,8 @@ contains
     double precision                         , intent(in   ) :: wavenumber
     double precision                                         :: wavenumberScaleFree
 
-    wavenumberScaleFree=+wavenumber                                 &
-         &              *self%freeStreamingLength
+    wavenumberScaleFree=+wavenumber               &
+         &              *self%lengthFreeStreaming
     bbksWDMValue       =+self%transferFunctionCDM%value(wavenumber) &
          &              *exp(                                       &
          &                   -0.5d0                                 &
@@ -130,9 +153,9 @@ contains
     class           (transferFunctionBBKSWDM), intent(inout) :: self
     double precision                         , intent(in   ) :: wavenumber
     double precision                                         :: wavenumberScaleFree
-
-    wavenumberScaleFree=+wavenumber                                                          &
-         &              *self%freeStreamingLength
+    
+    wavenumberScaleFree=+wavenumber               &
+         &              *self%lengthFreeStreaming
     bbksWDMLogarithmicDerivative=+self%transferFunctionCDM%logarithmicDerivative(wavenumber) &
          &                       -  wavenumberScaleFree                                      &
          &                       *(                                                          &
@@ -151,10 +174,10 @@ contains
     double precision                         , parameter     :: wavenumberHalfModeScaleFree=sqrt(0.25d0+2.0d0*log(2.0d0))-0.5d0
     double precision                                         :: matterDensity                                                  , wavenumberHalfMode
     
+    wavenumberHalfMode =+wavenumberHalfModeScaleFree &
+         &              /self%lengthFreeStreaming
     matterDensity      =+self%cosmologyParameters_%OmegaMatter    () &
          &              *self%cosmologyParameters_%densityCritical()
-    wavenumberHalfMode =+wavenumberHalfModeScaleFree                 &
-         &              /self%freeStreamingLength
     bbksWDMHalfModeMass=+4.0d0                &
          &              *Pi                   &
          &              /3.0d0                &
@@ -174,13 +197,11 @@ contains
     class    (transferFunctionBBKSWDM), intent(inout) :: self
     type     (inputParameters        ), intent(inout) :: descriptor
     type     (inputParameters        )                :: subParameters
-    character(len=10                 )                :: parameterLabel
 
     call descriptor%addParameter("transferFunctionMethod","BBKSWDM")
     subParameters=descriptor%subparameters("transferFunctionMethod")
-    write (parameterLabel,'(f10.6)') self%freeStreamingLength
-    call subParameters%addParameter("freeStreamingLength",trim(adjustl(parameterLabel)))
-    call self%transferFunctionCDM% descriptor(subParameters)
+    call self%transferFunctionCDM %descriptor(subParameters)
     call self%cosmologyParameters_%descriptor(subParameters)
-    return
+    call self%darkMatterParticle_ %descriptor(subParameters)
+   return
   end subroutine bbksWDMDescriptor

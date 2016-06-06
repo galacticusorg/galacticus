@@ -767,16 +767,20 @@ contains
        ! Set scales for abundances if necessary.
        if (abundancesCount > 0) then
           ! Set scale for gas abundances.
-          call thisSpheroidComponent%abundancesGasScale    (                                                 &
-               &                                             gasMassScaling                                  &
-               &                                            *max(                                            &
-               &                                                 abs(                                        &
-               &                                                     +thisDiskComponent    %abundancesGas()  &
-               &                                                     +thisSpheroidComponent%abundancesGas()  &
-               &                                                    )                                      , &
-               &                                                     +massMinimum                            &
-               &                                                     *unitAbundances                         &
-               &                                                )                                            &
+          call thisSpheroidComponent%abundancesGasScale    (                                                      &
+               &                                            +gasMassScaling                                       &
+               &                                            *max(                                                 &
+               &                                                 +abs(                                            &
+               &                                                      +thisDiskComponent    %abundancesGas    ()  &
+               &                                                      +thisSpheroidComponent%abundancesGas    ()  &
+               &                                                     )                                            &
+               &                                                 +abs(                                            &
+               &                                                      +thisDiskComponent    %abundancesStellar()  &
+               &                                                      +thisSpheroidComponent%abundancesStellar()  &
+               &                                                     )                                          , &
+               &                                                      +massMinimum                                &
+               &                                                      *unitAbundances                             &
+               &                                                )                                                 &
                &                                           )
 
           ! Set scale for stellar abundances.

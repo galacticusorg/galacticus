@@ -4639,10 +4639,7 @@ sub Generate_Implementation_Name_From_Index_Functions {
 	if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
 	    my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
 	    $functionBody .= "    call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%nameFromIndex(count,name)\n";
-	    $functionBody .= "    if (count <= 0) then\n";
-	    $functionBody .= "       name='?'\n";	    
-	    $functionBody .= "       return\n";	    
-	    $functionBody .= "    end if\n";
+	    $functionBody .= "    if (count <= 0) return\n";	    
 	    $selfUsed  = 1;
 	    $countUsed = 1;
 	}

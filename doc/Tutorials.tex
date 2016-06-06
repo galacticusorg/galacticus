@@ -380,7 +380,7 @@ As described in \S\ref{sec:DerivedProperties}, dust-attenuated luminosities can 
 Recording star formation histories is as simple as setting the {\normalfont \ttfamily [starFormationHistoriesMethod]} parameter to {\normalfont \ttfamily metallicitySplit}. This particular star formation history method stores the star formation in each galaxy as a function of time and metallicity, as required by {\normalfont \scshape Grasil}. The level of detail with which the star formation history is stored is controlled by several parameters:
 \begin{description}
 \item [{\normalfont \ttfamily starFormationHistoryTimeStep}] The timestep used in discretizing star formation histories.
-\item [{\normalfont \ttfamily starFormationHistoryFineTimeStep}] The timestep to use in discretizing star formation histories just prior to output times. This should typically be smaller than {\normalfont \ttfamily [starFormationHistoryTimeStep]} to give improved resolution in the star formation hsitory for recently formed stars.
+\item [{\normalfont \ttfamily starFormationHistoryFineTimeStep}] The timestep to use in discretizing star formation histories just prior to output times. This should typically be smaller than {\normalfont \ttfamily [starFormationHistoryTimeStep]} to give improved resolution in the star formation history for recently formed stars.
 \item [{\normalfont \ttfamily starFormationHistoryFineTime}] The period before each output for which the {\normalfont \ttfamily [starFormationHistoryFineTimeStep]} should be used.
 \item [{\normalfont \ttfamily starFormationHistoryMetallicityCount}] The number of bins in metallicity to use when discretizing the star formation history.
 \item [{\normalfont \ttfamily starFormationHistoryMetallicityMinimum}] The upper limit to the metallicity in the lowest metallicity bin (i.e. the lowest metallicity bin will extend from zero to this value).
@@ -413,6 +413,7 @@ $galacticus->{'grasilOptions'}->{'fluctuatingTemperatures'} = 1;
 $galacticus->{'grasilOptions'}->{'wavelengthCount'        } = 1000;
 $galacticus->{'grasilOptions'}->{'radialGridCount'        } = 30;
 $galacticus->{'grasilOptions'}->{'recomputeSEDs'          } = 0;
+$galacticus->{'grasilOptions'}->{'launchMethod'           } = "pbs";
 
 # Read results from model.                                                                                                       
 &HDF5::Select_Output($galacticus,2.0);
@@ -425,7 +426,11 @@ $galacticus->{'grasilOptions'}->{'recomputeSEDs'          } = 0;
                             'grasilInfraredLuminosity'
                            ]
 \end{verbatim}
-The {\normalfont \ttfamily grasilOptions} block in the above controls the behavior of {\normalfont \scshape Grasil}. Here we've chosen to include calculations of \gls{pah} features, have accounted for fluctuating tempertures in small grains (both of which slow down the calculation but make it more accurate), have specified the number of wavelengths and the size of the radial grid used to model each galaxy. We have also specified that the \gls{sed} should not be recomputed---if {\normalfont \scshape Grasil} fluxes are requested in future for galaxies in this model, they will be computed from the stored {\normalfont \scshape Grasil} \gls{sed}. If you want to change the parameters of the {\normalfont \scshape Grasil} calculation then set the {\normalfont \ttfamily recomputeSED} option to 1 instead\footnote{Exercise caution when using this option. Recomputing SEDs requires deleting the old SED group. The HDF5 library currently does not clean up the space occupied by the datasets in this deleted group, so the file size can grow rapidly if you repeatedly recompute {\normalfont \scshape Grasil} SEDs.}. Fluxes are returned in units of Janskys, while the total infrared luminosity ({\normalfont \ttfamily grasilInfraredLuminosity}) is returned in units of Solar luminosities.
+The {\normalfont \ttfamily grasilOptions} block in the above controls the behavior of {\normalfont \scshape Grasil}. Here we've chosen to include calculations of \gls{pah} features, have accounted for fluctuating tempertures in small grains (both of which slow down the calculation but make it more accurate), have specified the number of wavelengths and the size of the radial grid used to model each galaxy. We have also specified that the \gls{sed} should not be recomputed---if {\normalfont \scshape Grasil} fluxes are requested in future for galaxies in this model, they will be computed from the stored {\normalfont \scshape Grasil} \gls{sed}. If you want to change the parameters of the {\normalfont \scshape Grasil} calculation then set the {\normalfont \ttfamily recomputeSED} option to 1 instead\footnote{Exercise caution when using this option. Recomputing SEDs requires deleting the old SED group. The HDF5 library currently does not clean up the space occupied by the datasets in this deleted group, so the file size can grow rapidly if you repeatedly recompute {\normalfont \scshape Grasil} SEDs.}.
+
+Finally, the {\normalfont launchMethod} option specifies how {\normalfont \scshape Grasil} is to be run. Currently supported options are {\normalfont \ttfamily local} and {\normalfont \ttfamily pbs}. Selecting {\normalfont \ttfamily local} causes {\normalfont \scshape Grasil} to be run on the local machine. Multiple threads are launched automatically, up to one per available CPU core unless otherwise specified. Selecting {\normalfont \ttfamily pbs} causes {\normalfont \scshape Grasil} jobs to be submitted to  a PBS queue.
+
+Fluxes are returned in units of Janskys, while the total infrared luminosity ({\normalfont \ttfamily grasilInfraredLuminosity}) is returned in units of Solar luminosities.
 
 A simple plotting script is provided which illustrates how to access and use the {\normalfont \scshape Grasil} \glspl{sed} stored in \glc\ files. For example:
 \begin{verbatim}
@@ -463,7 +468,7 @@ Typical uses of stellar spectra postprocessors include accounting for absorption
 
 If you don't specify a postprocessing set, the ``default'' set (consisting of the {\normalfont \ttfamily inoue2014} postprocessor; see \S\ref{phys:spectraPostprocessor:spectraPostprocessorInoue2014}) is applied to each luminosity calculation. To specify other postprocessing sets add the following to your parameter file:
 \begin{verbatim}
- <luminosityFilter value="default recent unabsorbded recentUnabsorbed"/>
+ <luminosityPostprocessSet value="default recent unabsorbed recentUnabsorbed"/>
 \end{verbatim}
 where one set must be specified for each luminosity specified in the {\normalfont \ttfamily luminosityFilter} parameter. Note that set names can be reused in order to apply the same postprocessor set to multiple luminosities.
 
