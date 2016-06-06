@@ -47,29 +47,49 @@ contains
     !% Constructor for the {\normalfont \ttfamily kitayamaSuto1996} critical overdensity class
     !% which takes a parameter set as input.
     use Input_Parameters2
+    use Dark_Matter_Particles
+    use Galacticus_Error
     implicit none
-    type(criticalOverdensityKitayamaSuto1996)                :: kitayamaSuto1996ConstructorParameters
-    type(inputParameters                    ), intent(inout) :: parameters
+    type (criticalOverdensityKitayamaSuto1996)                :: kitayamaSuto1996ConstructorParameters
+    type (inputParameters                    ), intent(inout) :: parameters
+    class(darkMatterParticleClass            ), pointer       :: darkMatterParticle_
     !# <inputParameterList label="allowedParameterNames" />
     
     !# <objectBuilder class="linearGrowth"             name="kitayamaSuto1996ConstructorParameters%linearGrowth_"             source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"       name="kitayamaSuto1996ConstructorParameters%cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="kitayamaSuto1996ConstructorParameters%cosmologicalMassVariance_" source="parameters"/>
-   return
+    !# <objectBuilder class="darkMatterParticle"       name="darkMatterParticle_"                                             source="parameters"/>
+    select type (darkMatterParticle_)
+    class is (darkMatterParticleCDM)
+       ! Cold dark matter particle - this is as expected.
+    class default
+       call Galacticus_Error_Report('kitayamaSuto1996ConstructorParameters','critical overdensity expects a cold dark matter particle')
+    end select
+    return
   end function kitayamaSuto1996ConstructorParameters
 
-  function kitayamaSuto1996ConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_)
+  function kitayamaSuto1996ConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_)
     !% Internal constructor for the {\normalfont \ttfamily kitayamaSuto1996} critical overdensity class.
+    use Dark_Matter_Particles
+    use Galacticus_Error
     implicit none
     type (criticalOverdensityKitayamaSuto1996)                        :: kitayamaSuto1996ConstructorInternal
     class(cosmologyFunctionsClass            ), target, intent(in   ) :: cosmologyFunctions_
     class(linearGrowthClass                  ), target, intent(in   ) :: linearGrowth_
     class(cosmologicalMassVarianceClass      ), target, intent(in   ) :: cosmologicalMassVariance_
+    class(darkMatterParticleClass            )        , intent(in   ) :: darkMatterParticle_
 
     kitayamaSuto1996ConstructorInternal%cosmologyFunctions_       => cosmologyFunctions_
     kitayamaSuto1996ConstructorInternal%linearGrowth_             => linearGrowth_
     kitayamaSuto1996ConstructorInternal%cosmologicalMassVariance_ => cosmologicalMassVariance_
-    return
+    ! Require that the dark matter be cold dark matter.
+    select type (darkMatterParticle_)
+    class is (darkMatterParticleCDM)
+       ! Cold dark matter particle - this is as expected.
+    class default
+       call Galacticus_Error_Report('kitayamaSuto1996ConstructorInternal','critical overdensity expects a cold dark matter particle')
+    end select
+   return
   end function kitayamaSuto1996ConstructorInternal
 
   subroutine kitayamaSuto1996Destructor(self)

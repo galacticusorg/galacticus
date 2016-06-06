@@ -824,7 +824,8 @@ contains
     double precision                                                :: angularMomentum                      , mass
     type            (history              )                         :: stellarPopulationHistoryScales
     type            (stellarLuminosities  )                         :: stellarLuminositiesScale
-     
+    type            (abundances           )                         :: abundancesScale
+    
     ! Get the disk component.
     thisDiskComponent => thisNode%disk()
     ! Check if an standard disk component exists.
@@ -848,29 +849,24 @@ contains
 
        ! Set scales for abundances if necessary.
        if (abundancesCount > 0) then
+          ! Set scale for abundances.
+          abundancesScale=+max(                                                 &
+               &               +abs(                                            &
+               &                    +thisDiskComponent    %abundancesGas    ()  &
+               &                    +thisSpheroidComponent%abundancesGas    ()  &
+               &                   )                                            &
+               &               +abs(                                            &
+               &                    +thisDiskComponent    %abundancesStellar()  &
+               &                    +thisSpheroidComponent%abundancesStellar()  &
+               &                   )                                          , &
+               &                    +massMinimum                                &
+               &                    *unitAbundances                             &
+               &              )
           ! Set scale for gas abundances.
-          call thisDiskComponent%abundancesGasScale      (                                                &
-               &                                          max(                                            &
-               &                                              abs(                                        &
-               &                                                  +thisDiskComponent    %abundancesGas()  &
-               &                                                  +thisSpheroidComponent%abundancesGas()  &
-               &                                                 )                                      , &
-               &                                                  +massMinimum                            &
-               &                                                  *unitAbundances                         &
-               &                                             )                                            &
-               &                                         )
+          call thisDiskComponent%abundancesGasScale    (abundancesScale)
 
           ! Set scale for stellar abundances.
-          call thisDiskComponent%abundancesStellarScale  (                                                      &
-               &                                          max(                                                  &
-               &                                              abs(                                              &
-               &                                                  +thisDiskComponent    %abundancesStellar  ()  &
-               &                                                  +thisSpheroidComponent%abundancesStellar  ()  &
-               &                                                 )                                            , &
-               &                                                  +massMinimum                                  &
-               &                                                  *unitAbundances                               &
-               &                                             )                                                  &
-               &                                         )
+          call thisDiskComponent%abundancesStellarScale(abundancesScale)
        end if
        ! Set scale for stellar luminosities.
        stellarLuminositiesScale=max(                                                    &
