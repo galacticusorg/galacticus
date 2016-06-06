@@ -33,13 +33,15 @@ contains
 
   subroutine Galacticus_Output_Open_File
     !% Open the file for \glc\ output.
-    use Input_Parameters
-    use Input_Parameters2
+    use, intrinsic :: ISO_C_Binding
+    use               Input_Parameters
+    use               Input_Parameters2
     !# <include directive="outputFileOpenTask" type="moduleUse">
     include 'galacticus.output.open.modules.inc'
     !# </include>
     implicit none
-    integer :: chunkSize, sieveBufferSize, cacheElementsCount, cacheSizeBytes
+    integer         :: chunkSize         , sieveBufferSize
+    integer(size_t) :: cacheElementsCount, cacheSizeBytes
 
     if (.not.galacticusOutputFileIsOpen) then
        ! Get file name parameter.
@@ -104,7 +106,7 @@ contains
        !@   <cardinality>1</cardinality>
        !@   <group>output</group>
        !@ </inputParameter>
-       call Get_Input_Parameter('hdf5CacheElementsCount',cacheElementsCount,defaultValue=521,writeOutput=.false.)
+       call Get_Input_Parameter('hdf5CacheElementsCount',cacheElementsCount,defaultValue=521_size_t,writeOutput=.false.)
        hdf5CacheElementsCount=cacheElementsCount
        !@ <inputParameter>
        !@   <name>hdf5CacheSizeBytes</name>
@@ -117,7 +119,7 @@ contains
        !@   <cardinality>1</cardinality>
        !@   <group>output</group>
        !@ </inputParameter>
-       call Get_Input_Parameter('hdf5CacheSizeBytes',cacheSizeBytes,defaultValue=1048576,writeOutput=.false.)
+       call Get_Input_Parameter('hdf5CacheSizeBytes',cacheSizeBytes,defaultValue=1048576_size_t,writeOutput=.false.)
        hdf5CacheSizeBytes=cacheSizeBytes
        ! Open the file.
        !$omp critical(HDF5_Access)
@@ -137,8 +139,8 @@ contains
        call Get_Input_Parameter('galacticusOutputScratchFileName',galacticusOutputScratchFileName,defaultValue=char(galacticusOutputFileName))
        call Get_Input_Parameter('hdf5SieveBufferSize'            ,sieveBufferSize                ,defaultValue=65536                         )
        call Get_Input_Parameter('hdf5UseLatestFormat'            ,hdf5UseLatestFormat            ,defaultValue=.false.                       )
-       call Get_Input_Parameter('hdf5CacheElementsCount'         ,cacheElementsCount             ,defaultValue=521                           )
-       call Get_Input_Parameter('hdf5CacheSizeBytes'             ,cacheSizeBytes                 ,defaultValue=1048576                       )
+       call Get_Input_Parameter('hdf5CacheElementsCount'         ,cacheElementsCount             ,defaultValue=521_size_t                    )
+       call Get_Input_Parameter('hdf5CacheSizeBytes'             ,cacheSizeBytes                 ,defaultValue=1048576_size_t                )
        ! Read parameters.
        !@ <inputParameter>
        !@   <name>hdf5ChunkSize</name>

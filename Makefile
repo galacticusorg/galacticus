@@ -330,11 +330,31 @@ source/FFTlog/fftlog.f:
 	 touch source/FFTlog/drfftb.f; \
 	 touch source/FFTlog/drfftf.f; \
 	 touch source/FFTlog/drffti.f; \
-	else
-	 cd source/FFTlog
-	 patch < ../drfftb.f.patch
-	 patch < ../drfftf.f.patch
-	 patch < ../drffti.f.patch
-	 cd -
+	else \
+	 cd source/FFTlog; \
+	 patch < ../drfftb.f.patch; \
+	 patch < ../drfftf.f.patch; \
+	 patch < ../drffti.f.patch; \
+	 cd -; \
+	 ./scripts/build/Find_Use_Dependencies.pl `pwd` $(MAKE); \
 	fi
+	echo $(BUILDPATH)/FFTlog/cdgamma.o > $(BUILDPATH)/FFTlog/cdgamma.d
+	echo $(BUILDPATH)/FFTlog/drfftb.o  > $(BUILDPATH)/FFTlog/drfftb.d
+	echo $(BUILDPATH)/FFTlog/drfftf.o  > $(BUILDPATH)/FFTlog/drfftf.d
+	echo $(BUILDPATH)/FFTlog/drffti.o  > $(BUILDPATH)/FFTlog/drffti.d
+	echo $(BUILDPATH)/FFTlog/fftlog.o  > $(BUILDPATH)/FFTlog/fftlog.d
 
+$(BUILDPATH)/FFTlog/fftlog.o: ./source/FFTlog/fftlog.f Makefile
+	$(FCCOMPILER) -c $< -o $(BUILDPATH)/FFTlog/fftlog.o $(FCFLAGS)
+
+$(BUILDPATH)/FFTlog/cdgamma.o: ./source/FFTlog/cdgamma.f ./source/FFTlog/fftlog.f Makefile
+	$(FCCOMPILER) -c $< -o $(BUILDPATH)/FFTlog/cdgamma.o $(FCFLAGS)
+
+$(BUILDPATH)/FFTlog/drfftb.o: ./source/FFTlog/drfftb.f ./source/FFTlog/fftlog.f Makefile
+	$(FCCOMPILER) -c $< -o $(BUILDPATH)/FFTlog/drfftb.o $(FCFLAGS)
+
+$(BUILDPATH)/FFTlog/drfftf.o: ./source/FFTlog/drfftf.f ./source/FFTlog/fftlog.f Makefile
+	$(FCCOMPILER) -c $< -o $(BUILDPATH)/FFTlog/drfftf.o $(FCFLAGS)
+
+$(BUILDPATH)/FFTlog/drffti.o: ./source/FFTlog/drffti.f ./source/FFTlog/fftlog.f Makefile
+	$(FCCOMPILER) -c $< -o $(BUILDPATH)/FFTlog/drffti.o $(FCFLAGS)

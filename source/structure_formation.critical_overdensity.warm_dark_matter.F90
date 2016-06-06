@@ -18,7 +18,8 @@
 
 !% Contains a module which implements a critical overdensity for collapse the \gls{wdm} modifier of \cite{barkana_constraints_2001}.
   use Cosmology_Parameters
-  
+  use Dark_Matter_Particles
+
   !# <criticalOverdensity name="criticalOverdensityBarkana2001WDM" defaultThreaedPrivate="yes">
   !#  <description>Provides a critical overdensity for collapse based on the \gls{wdm} modifier of \cite{barkana_constraints_2001} applied to some other critical overdensity class.</description>
   !# </criticalOverdensity>
@@ -27,9 +28,9 @@
      private
      class           (criticalOverdensityClass), pointer                   :: criticalOverdensityCDM
      class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_
+     class           (darkMatterParticleClass ), pointer                   :: darkMatterParticle_
      logical                                                               :: useFittingFunction
-     double precision                                                      :: mx                             , gX            , &
-          &                                                                   jeansMass
+     double precision                                                      :: jeansMass
      integer                                                               :: deltaTableCount
      double precision                          , allocatable, dimension(:) :: deltaTableDelta                , deltaTableMass
      logical                                                               :: interpolationReset      =.true.
@@ -68,26 +69,10 @@ contains
     class           (cosmologyParametersClass         ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
     class           (cosmologicalMassVarianceClass    ), pointer       :: cosmologicalMassVariance_
-    double precision                                                   :: gX                                 , mX
+    class           (darkMatterParticleClass          ), pointer       :: darkMatterParticle_    
     logical                                                            :: useFittingFunction
     !# <inputParameterList label="allowedParameterNames" />
     
-    !# <inputParameter>
-    !#   <name>gX</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.5d0</defaultValue>
-    !#   <description>The effective number of degrees of freedom for the warm dark matter particle.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>mX</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The mass (in keV) of the warm dark matter particle.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
     !# <inputParameter>
     !#   <name>useFittingFunction</name>
     !#   <source>parameters</source>
@@ -100,12 +85,13 @@ contains
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !# <objectBuilder class="darkMatterParticle"       name="darkMatterParticle_"       source="parameters"/>
     ! Call the internal constructor
-    barkana2001WDMConstructorParameters=barkana2001WDMConstructorInternal(criticalOverdensityCDM,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,gX,mX,useFittingFunction)
+    barkana2001WDMConstructorParameters=barkana2001WDMConstructorInternal(criticalOverdensityCDM,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,useFittingFunction)
     return
   end function barkana2001WDMConstructorParameters
 
-  function barkana2001WDMConstructorInternal(criticalOverdensityCDM,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,gX,mX,useFittingFunction)
+  function barkana2001WDMConstructorInternal(criticalOverdensityCDM,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,useFittingFunction)
     !% Internal constructor for the ``{\normalfont \ttfamily barkana2001WDM}'' critical overdensity for collapse class.
     use FoX_DOM
     use IO_XML
@@ -118,7 +104,7 @@ contains
     class           (cosmologyParametersClass         ), target, intent(in   ) :: cosmologyParameters_
     class           (cosmologyFunctionsClass          ), target, intent(in   ) :: cosmologyFunctions_
     class           (cosmologicalMassVarianceClass    ), target, intent(in   ) :: cosmologicalMassVariance_
-    double precision                                           , intent(in   ) :: gX                               , mX
+    class           (darkMatterParticleClass          ), target, intent(in   ) :: darkMatterParticle_    
     logical                                                    , intent(in   ) :: useFittingFunction
     type            (node                             ), pointer               :: doc                              , element
     double precision                                                           :: matterRadiationEqualityRedshift
@@ -128,9 +114,8 @@ contains
     barkana2001WDMConstructorInternal%cosmologyParameters_      => cosmologyParameters_
     barkana2001WDMConstructorInternal%cosmologyFunctions_       => cosmologyFunctions_
     barkana2001WDMConstructorInternal%cosmologicalMassVariance_ => cosmologicalMassVariance_
+    barkana2001WDMConstructorInternal%darkMatterParticle_       => darkMatterParticle_
     barkana2001WDMConstructorInternal%useFittingFunction        =  useFittingFunction
-    barkana2001WDMConstructorInternal%gX                        =  mX
-    barkana2001WDMConstructorInternal%mX                        =  gX
     ! Compute corresponding Jeans mass.
     matterRadiationEqualityRedshift            =+3600.0d0                                                                                       &
          &                                      *(                                                                                              &
@@ -139,15 +124,20 @@ contains
          &                                        /0.15d0                                                                                       &
          &                                      )                                                                                               &
          &                                      -1.0d0
-    barkana2001WDMConstructorInternal%jeansMass=+3.06d8                                                                                                 &
-         &                                      *((1.0d0+matterRadiationEqualityRedshift)/3000.0d0)                                             **1.5d0 &
-         &                                      *sqrt(                                                                                                  &
-         &                                            +barkana2001WDMConstructorInternal%cosmologyParameters_%OmegaMatter   (                  )        &
-         &                                            *barkana2001WDMConstructorInternal%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2     &
-         &                                            /0.15d0                                                                                           &
-         &                                           )                                                                                                  &
-         &                                      /(gX/1.5d0)                                                                                             &
-         &                                      /(mX/1.0d0)                                                                                     **4    
+    select type (darkMatterParticle_)
+    class is (darkMatterParticleWDMThermal)
+       barkana2001WDMConstructorInternal%jeansMass=+3.06d8                                                                                                 &
+            &                                      *((1.0d0+matterRadiationEqualityRedshift)/3000.0d0)                                             **1.5d0 &
+            &                                      *sqrt(                                                                                                  &
+            &                                            +barkana2001WDMConstructorInternal%cosmologyParameters_%OmegaMatter   (                  )        &
+            &                                            *barkana2001WDMConstructorInternal%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2     &
+            &                                            /0.15d0                                                                                           &
+            &                                           )                                                                                                  &
+            &                                      /(darkMatterParticle_%degreesOfFreedomEffective()/1.5d0)                                                &
+            &                                      /(darkMatterParticle_%mass                     ()/1.0d0)                                        **4
+    class default
+       call Galacticus_Error_Report('barkana2001WDMConstructorInternal','critical overdensity expects a thermal warm dark matter particle')
+    end select
     ! Read in the tabulated critical overdensity scaling.
     doc => parseFile(char(Galacticus_Input_Path())//"data/darkMatter/criticalOverdensityWarmDarkMatterBarkana.xml",iostat=ioStatus)
     if (ioStatus /= 0) call Galacticus_Error_Report('barkana2001WDMConstructorInternal','unable to find or parse the tabulated data')
@@ -402,12 +392,9 @@ contains
 
     call descriptor%addParameter("criticalOverdensityMethod","barkana2001WDM")
     subParameters=descriptor%subparameters("criticalOverdensityMethod")
-    write (parameterLabel,'(f10.6)') self%gX
-    call subParameters%addParameter("gX"                ,trim(adjustl(parameterLabel)))
-    write (parameterLabel,'(f10.6)') self%mX
-    call subParameters%addParameter("mX"                ,trim(adjustl(parameterLabel)))
     write (parameterLabel,'(l1)   ') self%useFittingFunction
     call subParameters%addParameter("useFittingFunction",trim(adjustl(parameterLabel)))
-    call self%criticalOverdensityCDM% descriptor(subParameters)
+    call self%darkMatterParticle_   %descriptor(subParameters)
+    call self%criticalOverdensityCDM%descriptor(subParameters)
     return
   end subroutine barkana2001WDMDescriptor

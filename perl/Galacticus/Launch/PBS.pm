@@ -28,7 +28,8 @@ require List::ExtraUtils;
      pbs => {
 	 validate       => \&Validate        ,
 	 outputFileName => \&Output_File_Name,
-	 launch         => \&Launch
+	 launch         => \&Launch          ,
+	 jobArrayLaunch => \&SubmitJobs
      }
     );
 
