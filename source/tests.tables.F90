@@ -25,10 +25,13 @@ program Test_Tables
   use Memory_Management
   use Array_Utilities
   implicit none
-  class  (table           ), allocatable :: myTable
-  class  (table1D         ), allocatable :: myReversedTable
-  type   (table2DLogLogLin)              :: myTable2D
-  integer                                :: i              , j
+  class           (table           ), allocatable :: myTable
+  class           (table1D         ), allocatable :: myReversedTable
+  type            (table2DLogLogLin)              :: myTable2D
+  integer                                         :: i              , j
+  double precision                                :: x              , y, &
+       &                                             yPrevious
+  logical                                         :: isMonotonic
   
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.tables.size')
@@ -255,6 +258,26 @@ program Test_Tables
           &     )
   end select
   deallocate(myTable)
+  
+  ! Allocate a monotonic cubic spline interpolator table.
+  allocate(table1DLinearMonotoneCSpline :: myTable)
+  select type (myTable)
+  type is (table1DLinearMonotoneCSpline)
+     ! Create a table.
+     call myTable%create  (1.0d0,6.0d0,11                                                       )
+     call myTable%populate([2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,9.0d0,11.0d0,12.0d0])
+     ! Test interpolation in 1-D table.
+     isMonotonic=.true.
+     yPrevious  =0.0d0
+     do i=1,10000
+        x=1.0d0+5.0d0*dble(i-1)/dble(9999)
+        y=myTable%interpolate(x)
+        if (i > 1 .and. y < yPrevious) isMonotonic=.false.
+        yPrevious=y
+     end do
+     call Assert('monotone cubic spline interpolator is monotonic',isMonotonic,.true.)
+  end select
+  deallocate(myTable)
 
   ! Allocate a table object.
   allocate(table1DNonUniformLinearLogarithmic :: myTable)
@@ -280,7 +303,6 @@ program Test_Tables
           &      ]                                              , &
           &      absTol=1.0d-6                                    &
           &     )
-
 
      ! Test gradient interpolation in 1-D table.
      call Assert(                                                 &

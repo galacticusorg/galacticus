@@ -264,15 +264,14 @@ module Tables
      !@     <description>Populate the {\normalfont \ttfamily table}$^{\mathrm th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: create                                 =>Table_Linear_CSpline_1D_Create
-     procedure :: destroy                                =>Table_Linear_CSpline_1D_Destroy
-     procedure :: Table_Linear_CSpline_1D_Populate
-     procedure :: Table_Linear_CSpline_1D_Populate_Single
-     generic   :: populate                                => Table_Linear_CSpline_1D_Populate            , &
-          &                                                  Table_Linear_CSpline_1D_Populate_Single
-     procedure :: interpolate        =>Table_Linear_CSpline_1D_Interpolate
-     procedure :: interpolateGradient=>Table_Linear_CSpline_1D_Interpolate_Gradient
-     procedure :: integrationWeights =>Table_Linear_CSpline_Integration_Weights
+     procedure :: create              => Table_Linear_CSpline_1D_Create
+     procedure :: destroy             => Table_Linear_CSpline_1D_Destroy
+     procedure :: populateArray       => Table_Linear_CSpline_1D_Populate
+     procedure :: populateScalar      => Table_Linear_CSpline_1D_Populate_Single
+     procedure :: interpolate         => Table_Linear_CSpline_1D_Interpolate
+     procedure :: interpolateGradient => Table_Linear_CSpline_1D_Interpolate_Gradient
+     procedure :: integrationWeights  => Table_Linear_CSpline_Integration_Weights
+     generic   :: populate            => populateArray, populateScalar
   end type table1DLinearCSpline
 
   type, extends(table1DLinearCSpline) :: table1DLogarithmicCSpline
@@ -288,12 +287,9 @@ module Tables
      procedure :: xs                 =>Table_Logarithmic_CSpline_1D_Xs
   end type table1DLogarithmicCSpline
 
-  type, extends(table1D) :: table1DLinearMonotoneCSpline
+  type, extends(table1DLinearCSpline) :: table1DLinearMonotoneCSpline
      !% Table type supporting one dimensional table with linear spacing in $x$ and monotonic cubic spline interpolation.
      double precision, allocatable, dimension(:,:) :: c1            , c2           , c3
-     integer                                       :: dTablePrevious, iPrevious    , tablePrevious
-     double precision                              :: deltaX        , inverseDeltaX
-     double precision                              :: dxPrevious    , dyPrevious   , xPrevious    , yPrevious
    contains
      !@ <objectMethods>
      !@   <object>table1DLinearMonotoneCSpline</object>
@@ -310,15 +306,13 @@ module Tables
      !@     <description>Populate the {\normalfont \ttfamily table}$^{\mathrm th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: create                                 =>Table_Linear_Monotone_CSpline_1D_Create
-     procedure :: destroy                                =>Table_Linear_Monotone_CSpline_1D_Destroy
-     procedure :: Table_Linear_Monotone_CSpline_1D_Populate
-     procedure :: Table_Linear_Monotone_CSpline_1D_Populate_Single
-     generic   :: populate                                => Table_Linear_Monotone_CSpline_1D_Populate            , &
-          &                                                  Table_Linear_Monotone_CSpline_1D_Populate_Single
-     procedure :: interpolate        =>Table_Linear_Monotone_CSpline_1D_Interpolate
-     procedure :: interpolateGradient=>Table_Linear_Monotone_CSpline_1D_Interpolate_Gradient
-     procedure :: integrationWeights =>Table_Linear_Monotone_CSpline_Integration_Weights
+     procedure :: create              => Table_Linear_Monotone_CSpline_1D_Create
+     procedure :: destroy             => Table_Linear_Monotone_CSpline_1D_Destroy
+     procedure :: populateArray       => Table_Linear_Monotone_CSpline_1D_Populate
+     procedure :: populateScalar      => Table_Linear_Monotone_CSpline_1D_Populate_Single
+     procedure :: interpolate         => Table_Linear_Monotone_CSpline_1D_Interpolate
+     procedure :: interpolateGradient => Table_Linear_Monotone_CSpline_1D_Interpolate_Gradient
+     procedure :: integrationWeights  => Table_Linear_Monotone_CSpline_Integration_Weights
   end type table1DLinearMonotoneCSpline
   
   type, extends(table1DLinearMonotoneCSpline) :: table1DLogarithmicMonotoneCSpline
@@ -1868,14 +1862,16 @@ contains
 
   subroutine Table_Linear_Monotone_CSpline_1D_Create(self,xMinimum,xMaximum,xCount,tableCount,extrapolationType)
     !% Create a 1-D linear table.
+    use Galacticus_Error
     use Memory_Management
     use Numerical_Ranges
     implicit none
-    class           (table1DLinearMonotoneCSpline), intent(inout)           :: self
-    double precision                              , intent(in   )           :: xMaximum         , xMinimum
-    integer                                       , intent(in   )           :: xCount
-    integer                                       , intent(in   ), optional :: extrapolationType, tableCount
-    integer                                                                 :: tableCountActual
+    class           (table1DLinearMonotoneCSpline), intent(inout)                         :: self
+    double precision                              , intent(in   )                         :: xMaximum         , xMinimum
+    integer                                       , intent(in   )                         :: xCount
+    integer                                       , intent(in   ), optional               :: tableCount
+    integer                                       , intent(in   ), optional, dimension(2) :: extrapolationType
+    integer                                                                               :: tableCountActual
 
     ! Determine number of tables.
     tableCountActual=1
@@ -1884,9 +1880,9 @@ contains
     self%xCount=xCount
     call Alloc_Array(self%xv,[xCount                   ])
     call Alloc_Array(self%yv,[xCount  ,tableCountActual])
-    call Alloc_Array(self%c1,[xCount+1,tableCountActual])
-    call Alloc_Array(self%c2,[xCount  ,tableCountActual])
-    call Alloc_Array(self%c3,[xCount  ,tableCountActual])
+    call Alloc_Array(self%av,[xCount+1,tableCountActual])
+    call Alloc_Array(self%bv,[xCount  ,tableCountActual])
+    call Alloc_Array(self%cv,[xCount  ,tableCountActual])
     self%xv           =Make_Range(xMinimum,xMaximum,xCount,rangeType=rangeTypeLinear)
     self%       deltaX=self%xv(2)-self%xv(1)
     self%inverseDeltaX=1.0d0/self%deltaX
@@ -1894,6 +1890,7 @@ contains
     self%iPrevious    =-1
     ! Set extrapolation type.
     if (present(extrapolationType)) then
+       if (any(extrapolationType == extrapolationTypeZero)) call Galacticus_Error_Report('Table_Linear_Monotone_CSpline_1D_Create','zero extrapolation is not supported')
        self%extrapolationType=extrapolationType
     else
        self%extrapolationType=extrapolationTypeExtrapolate
@@ -1908,9 +1905,9 @@ contains
     class(table1DLinearMonotoneCSpline), intent(inout) :: self
 
     call Table_1D_Destroy(self)
-    if (allocated(self%c1)) call Dealloc_Array(self%c1)
-    if (allocated(self%c2)) call Dealloc_Array(self%c2)
-    if (allocated(self%c3)) call Dealloc_Array(self%c3)
+    if (allocated(self%av)) call Dealloc_Array(self%av)
+    if (allocated(self%bv)) call Dealloc_Array(self%bv)
+    if (allocated(self%cv)) call Dealloc_Array(self%cv)
     return
   end subroutine Table_Linear_Monotone_CSpline_1D_Destroy
 
@@ -1987,9 +1984,9 @@ contains
     self%dTablePrevious=-1
     self%     iPrevious=-1
     ! Allocate workspace.
-    allocate(dx(size(self%xv)))
-    allocate(dy(size(self%xv)))
-    allocate( m(size(self%xv)))
+    allocate(dx(size(self%xv)-1))
+    allocate(dy(size(self%xv)-1))
+    allocate( m(size(self%xv)-1))
     ! Get consecutive differences and slopes.
     do i=1,size(self%xv)-1
        dx(i)=self%xv(i+1      )-self%xv(i      )
@@ -1997,21 +1994,21 @@ contains
        m (i)=dy(i)/dx(i)
     end do
     ! Get degree-1 coefficients.
-    self%c1(1,table)=m(1)
-    do i=1,size(self%xv)-1
+    self%av(1,table)=m(1)
+    do i=1,size(dx)-1
        if (m(i)*m(i+1) <= 0.0d0) then
-          self%c1(i+1,table)=0.0d0
+          self%av(i+1,table)=0.0d0
        else
           dxSum=dx(i)+dx(i+1)
-          self%c1(i+1,table)=3.0d0*dxSum/((dxSum+dx(i+1))/m(i)+(dxSum+dx(i))/m(i+1))
+          self%av(i+1,table)=3.0d0*dxSum/((dxSum+dx(i+1))/m(i)+(dxSum+dx(i))/m(i+1))
        end if
     end do
-    self%c1(size(self%xv)+1,table)=m(size(self%xv))
+    self%av(size(dx)+1,table)=m(size(m))
     ! Get degree-2 and degree-3 coefficients.
-    do i=1,size(self%xv)
-       factor=self%c1(i,table)+self%c1(i+1,table)-2.0d0*m(i)
-       self%c2(i,table)=(m(i)-self%c1(i,table)-factor)/dx(i)
-       self%c3(i,table)=factor/dx(i)**2
+    do i=1,size(self%av)-1
+       factor=self%av(i,table)+self%av(i+1,table)-2.0d0*m(i)
+       self%bv(i,table)=(m(i)-self%av(i,table)-factor)/dx(i)
+       self%cv(i,table)=factor/dx(i)**2
     end do
     ! Destroy workspace.
     deallocate(dx)
@@ -2048,7 +2045,7 @@ contains
        ! Interpolate in the table.
        self%xPrevious    =x
        self%tablePrevious=tableActual
-       self%    yPrevious=self%yv(i,tableActual)+self%c1(i,tableActual)*dx+self%c2(i,tableActual)*dx**2+self%c3(i,tableActual)*dx**3
+       self%    yPrevious=self%yv(i,tableActual)+self%av(i,tableActual)*dx+self%bv(i,tableActual)*dx**2+self%cv(i,tableActual)*dx**3
     end if
     Table_Linear_Monotone_CSpline_1D_Interpolate=self%yPrevious
     return
@@ -2082,7 +2079,7 @@ contains
        ! Interpolate in the table.
        self%dxPrevious    =x
        self%dTablePrevious=tableActual
-       self%    dyPrevious=self%c1(i,tableActual)+2.0d0*self%c2(i,tableActual)*dx+3.0d0*self%c3(i,tableActual)*dx**2
+       self%    dyPrevious=self%av(i,tableActual)+2.0d0*self%bv(i,tableActual)*dx+3.0d0*self%cv(i,tableActual)*dx**2
     end if
     Table_Linear_Monotone_CSpline_1D_Interpolate_Gradient=self%dyPrevious
     return
@@ -2106,10 +2103,11 @@ contains
   subroutine Table_Logarithmic_Monotone_CSpline_1D_Create(self,xMinimum,xMaximum,xCount,tableCount,extrapolationType)
     !% Create a 1-D logarithmic table.
     implicit none
-    class           (table1DLogarithmicMonotoneCSpline), intent(inout)           :: self
-    double precision                                   , intent(in   )           :: xMaximum         , xMinimum
-    integer                                            , intent(in   )           :: xCount
-    integer                                            , intent(in   ), optional :: extrapolationType, tableCount
+    class           (table1DLogarithmicMonotoneCSpline), intent(inout)                         :: self
+    double precision                                   , intent(in   )                         :: xMaximum         , xMinimum
+    integer                                            , intent(in   )                         :: xCount
+    integer                                            , intent(in   ), optional, dimension(2) :: extrapolationType
+    integer                                            , intent(in   ), optional               ::  tableCount
 
     self%previousSet         =.false.
     self%xLinearPrevious     =-1.0d0
