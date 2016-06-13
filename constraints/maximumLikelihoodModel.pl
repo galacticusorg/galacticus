@@ -7,6 +7,9 @@ use Data::Dumper;
 use System::Redirect;
 use File::NFSLock;
 use Fcntl qw(:DEFAULT :flock);
+use PDL;
+use PDL::IO::HDF5;
+use File::Slurp;
 require Galacticus::Constraints::Parameters;
 require Galacticus::Options;
 
@@ -166,6 +169,9 @@ my $logFile = $maximumLikelihoodDirectory."/galacticus.log";
 die("maximumLikelihoodModel.pl: Galacticus model failed")
     unless ( $? == 0 );
 
+# Store raw XML parameter file in the model.
+&storeXML($maximumLikelihoodDirectory."/galacticus.hdf5",$maximumLikelihoodDirectory."/parameters.xml");
+
 # Perform processing of the model, accumulating likelihood as we go.
 my $logLikelihood = 0.0;
 foreach my $constraint ( @constraints ) {
@@ -202,3 +208,12 @@ print oHndl $logLikelihood."\n";
 close(oHndl);
 
 exit;
+
+sub storeXML {
+    my $galacticusFileName = shift();
+    my $parametersFileName = shift();
+    my $galacticusModel = new PDL::IO::HDF5(">".$galacticusFileName);
+    my $parametersGroup = $galacticusModel->group('Parameters');
+    my $parametersRaw   = read_file($parametersFileName);
+    $parametersGroup->attrSet('rawXML' => $parametersRaw);    
+}
