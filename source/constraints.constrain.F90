@@ -32,6 +32,8 @@ contains
     use IO_XML
     use Galacticus_Error
     use Galacticus_Display
+    use Galacticus_Nodes
+    use Node_Components
     use String_Handling
     use Statistics_Distributions
     use Constraints_Priors
@@ -76,6 +78,9 @@ contains
          &                                                     i                              , j                                        , &
          &                                                     iParameter                     , inactiveParameterCount
 
+    ! Ensure the nodes objects are initialized.
+    call Galacticus_Nodes_Initialize()
+    call Node_Components_Initialize ()
     ! Run the config file through an external XInclude filter to include any Xinclude'd files.
     filteredFile="/dev/shm/"//trim(configFile)//"_"//mpiSelf%rankLabel()
     filterCommand="mkdir -p `dirname "//filteredFile//"`; scripts/aux/xmlInclude.pl "//trim(configFile)//" "//filteredFile
