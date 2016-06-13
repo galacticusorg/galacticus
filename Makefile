@@ -323,9 +323,11 @@ source/FFTlog/fftlog.f:
 	mkdir -p source/FFTlog
 	wget http://casa.colorado.edu/~ajsh/FFTLog/fftlog.tar.gz -O - | tar xvz -C source/FFTlog -f -
 	if [ ! -e source/FFTlog/fftlog.f ]; then \
-	 echo "subroutine fhti(n,mu,q,dlnr,kr,kropt,wsave,ok)" > source/FFTlog/fftlog.f; \
-	 echo " stop 'FFTlog was not downloaded'" > source/FFTlog/fftlog.f; \
-	 echo "end subroutine fhti" >> source/FFTlog/fftlog.f; \
+	 echo "      subroutine fhti(n,mu,q,dlnr,kr,kropt,wsave,ok)" > source/FFTlog/fftlog.f; \
+	 echo "      stop 'FFTlog was not downloaded - to try again remove the source/FFTlog directory'" >> source/FFTlog/fftlog.f; \
+	 echo "      stop 'FFTlog was not downloaded - to try again" >> source/FFTlog/fftlog.f; \
+	 echo "     & remove the source/FFTlog directory'" >> source/FFTlog/fftlog.f; \
+	 echo "      end subroutine fhti" >> source/FFTlog/fftlog.f; \
 	 touch source/FFTlog/cdgamma.f; \
 	 touch source/FFTlog/drfftb.f; \
 	 touch source/FFTlog/drfftf.f; \
