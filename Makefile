@@ -319,8 +319,9 @@ $(BUILDPATH)/Makefile_All_Execs: ./scripts/build/Find_Programs.pl source/*.[fF]9
 deps: $(MAKE_DEPS) $(BUILDPATH)/Makefile_All_Execs
 
 # Rules for FFTLog library.
-source/FFTlog/fftlog.f:
+source/FFTlog/fftlog.f source/FFTlog/cdgamma.f source/FFTlog/drfftb.f source/FFTlog/drffti.f source/FFTlog/drfftf.f:
 	mkdir -p source/FFTlog
+	mkdir -p $(BUILDPATH)/FFTlog
 	wget http://casa.colorado.edu/~ajsh/FFTLog/fftlog.tar.gz -O - | tar xvz -C source/FFTlog -f -
 	if [ ! -e source/FFTlog/fftlog.f ]; then \
 	 echo "      subroutine fhti(n,mu,q,dlnr,kr,kropt,wsave,ok)" > source/FFTlog/fftlog.f; \
