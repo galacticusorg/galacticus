@@ -62,7 +62,7 @@ module Numerical_Constants_Physical
   ! Fine structure constant (unitless)
   double precision, parameter :: fineStructure                  =FGSL_CONST_NUM_FINE_STRUCTURE
 
-  ! classical electron radius (m)
+  ! Classical electron radius (m)
   double precision, parameter :: electronRadius                 = 1.0d0 / (4.0d0 * Pi * eps0) * electronCharge**2 / (electronMass * speedLight**2)
 
 end module Numerical_Constants_Physical
