@@ -19,7 +19,28 @@
   !% An implementation of cosmological density field mass variance computed using a filtered power spectrum.
 
   !# <cosmologicalMassVariance name="cosmologicalMassVarianceFilteredPower" defaultThreadPrivate="yes">
-  !#  <description>Mass variance of cosmological density fields computed from a filtered power spectrum.</description>
+  !#  <description>
+  !#   Mass variance of cosmological density fields computed from a filtered power spectrum. The
+  !#   normalization of the mass variance is specified via the {\normalfont \ttfamily [sigma_8]}
+  !#   parameter, which defines the linear theory root-variance of the density field in spheres
+  !#   of radii $8h^{-1}$Mpc.
+  !#
+  !#   The mass variance, $\sigma(M)$, is found by integration over the linear theory power
+  !#   spectrum, with the specified power spectrum window function. The fractional tolerance for
+  !#   this integration can be set via the {\normalfont \ttfamily [tolerance]} parameter. (The
+  !#   normalization of $\sigma(M)$ to give the desired $\sigma_8$ always uses a top-hat window
+  !#   function. For this integration the tolerance can be set via the {\noralfont \ttfamily
+  !#   [toleranceTopHat]} parameter.) This is tabulated across the required range.
+  !#
+  !#   Cubic spline interpolation is then used to interpolate in this table to give $\sigma(M)$
+  !#   at any required value of $M$. The tabulation is always forced to be monotonically
+  !#   decreasing with $M$. However, the interpolation is not necessarily monotonic---for
+  !#   example in cases where $\sigma(M)$ becomes constant or close to constant as a function of
+  !#   $M$ the interpolation can become non-monotonic over some ranges of $M$. If strict
+  !#   monotonicity is required set {\normalfont \ttfamily
+  !#   [monotonicInterpolation]}={\normalfont \ttfamily true}. This causes a monotonic spline
+  !#   interpolator to be used instead which gaurantees monotonicity.
+  !#  </description>
   !# </cosmologicalMassVariance>
   use Tables
   use Cosmology_Parameters
@@ -29,15 +50,16 @@
   type, extends(cosmologicalMassVarianceClass) :: cosmologicalMassVarianceFilteredPower
      !% A cosmological mass variance class computing variance from a filtered power spectrum.
      private
-     class           (cosmologyParametersClass               ), pointer :: cosmologyParameters_
-     class           (powerSpectrumPrimordialTransferredClass), pointer :: powerSpectrumPrimordialTransferred_
-     class           (powerSpectrumWindowFunctionClass       ), pointer :: powerSpectrumWindowFunction_
-     type            (powerSpectrumWindowFunctionTopHat      )          :: powerSpectrumWindowFunctionTopHat_
-     logical                                                            :: initialized
-     double precision                                                   :: tolerance                          , toleranceTopHat   , &
-          &                                                                sigma8Value                        , sigmaNormalization, &
-          &                                                                massMinimum                        , massMaximum
-     type            (table1DLogarithmicCSpline              )          :: rootVarianceTable
+     class           (cosmologyParametersClass                   ), pointer :: cosmologyParameters_
+     class           (powerSpectrumPrimordialTransferredClass    ), pointer :: powerSpectrumPrimordialTransferred_
+     class           (powerSpectrumWindowFunctionClass           ), pointer :: powerSpectrumWindowFunction_
+     type            (powerSpectrumWindowFunctionTopHat          )          :: powerSpectrumWindowFunctionTopHat_
+     logical                                                                :: initialized
+     double precision                                                       :: tolerance                          , toleranceTopHat   , &
+          &                                                                    sigma8Value                        , sigmaNormalization, &
+          &                                                                    massMinimum                        , massMaximum
+     class           (table1DLinearCSpline                   ), allocatable :: rootVarianceTable
+     logical                                                                :: monotonicInterpolation
    contains
      !@ <objectMethods>
      !@   <object>cosmologicalMassVarianceFilteredPower</object>
@@ -83,6 +105,7 @@ contains
     class           (powerSpectrumWindowFunctionClass       ), pointer       :: powerSpectrumWindowFunction_
     double precision                                                         :: sigma_8                            , tolerance, &
          &                                                                      toleranceTopHat
+    logical                                                                  :: monotonicInterpolation
     !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
@@ -112,20 +135,29 @@ contains
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>monotonicInterpolation</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>If true use a monotonic cubic spline interpolator to interpolate in the $\sigma(M)$ table. Otherwise use a standard cubic spline interpoltor. Use of the monotionic interpolator can be helpful is $\sigma(M)$ must be strictly monotonic but because a very weak function of $M$ at low masses.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"                name="cosmologyParameters_"                source="parameters"/>
     !# <objectBuilder class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferred_" source="parameters"/>
     !# <objectBuilder class="powerSpectrumWindowFunction"        name="powerSpectrumWindowFunction_"        source="parameters"/>    
     ! Construct the instance.
-    filteredPowerConstructorParameters=filteredPowerConstructorInternal(sigma_8,tolerance,toleranceTopHat,cosmologyParameters_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_)
+    filteredPowerConstructorParameters=filteredPowerConstructorInternal(sigma_8,tolerance,toleranceTopHat,monotonicInterpolation,cosmologyParameters_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_)
     return
   end function filteredPowerConstructorParameters
 
-  function filteredPowerConstructorInternal(sigma8,tolerance,toleranceTopHat,cosmologyParameters_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_)
+  function filteredPowerConstructorInternal(sigma8,tolerance,toleranceTopHat,monotonicInterpolation,cosmologyParameters_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_)
     !% Internal constructor for the {\normalfont \ttfamily filteredPower} linear growth class.
     implicit none
     type            (cosmologicalMassVarianceFilteredPower  )                        :: filteredPowerConstructorInternal
     double precision                                         , intent(in   )         :: tolerance                          , toleranceTopHat, &
          &                                                                              sigma8
+    logical                                                  , intent(in   )         :: monotonicInterpolation
     class           (cosmologyParametersClass               ), intent(in   ), target :: cosmologyParameters_
     class           (powerSpectrumPrimordialTransferredClass), intent(in   ), target :: powerSpectrumPrimordialTransferred_
     class           (powerSpectrumWindowFunctionClass       ), intent(in   ), target :: powerSpectrumWindowFunction_
@@ -133,6 +165,7 @@ contains
     filteredPowerConstructorInternal%sigma8Value                         =  sigma8
     filteredPowerConstructorInternal%tolerance                           =  tolerance
     filteredPowerConstructorInternal%toleranceTopHat                     =  toleranceTopHat
+    filteredPowerConstructorInternal%monotonicInterpolation              =  monotonicInterpolation
     filteredPowerConstructorInternal%cosmologyParameters_                => cosmologyParameters_
     filteredPowerConstructorInternal%powerSpectrumPrimordialTransferred_ => powerSpectrumPrimordialTransferred_
     filteredPowerConstructorInternal%powerSpectrumWindowFunction_        => powerSpectrumWindowFunction_
@@ -304,9 +337,17 @@ contains
             &                     *dble(filteredPowerTablePointsPerDecade) &
             &                    )
        ! Allocate table grid.
-       call self%rootVarianceTable%destroy(                                                        )
-       call self%rootVarianceTable%create (self%massMinimum,self%massMaximum,rootVarianceTableCount)
-       ! Compute sigma(M) at each tabulated point.
+       if (allocated(self%rootVarianceTable)) then
+          call self%rootVarianceTable%destroy()
+          deallocate(self%rootVarianceTable)
+       end if
+       if (self%monotonicInterpolation) then
+          allocate(table1DLogarithmicMonotoneCSpline :: self%rootVarianceTable)
+       else
+          allocate(table1DLogarithmicCSpline         :: self%rootVarianceTable)
+       end if
+       call self%rootVarianceTable%create(self%massMinimum,self%massMaximum,rootVarianceTableCount)
+       ! Compute sigma(M) at each tabulated point.       
        do i=1,rootVarianceTableCount
           smoothingMass=+self        %rootVarianceTable%x(                i)
           sigma        =+rootVariance                    (useTopHat=.false.) &
