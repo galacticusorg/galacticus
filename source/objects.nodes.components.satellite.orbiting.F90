@@ -132,8 +132,8 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('satelliteOrbitingDestructionMassFraction',satelliteOrbitingDestructionMassFraction,defaultValue=0.01d0)
-        ! Specify the function to use for setting virial orbits.
-        call satelliteComponent%virialOrbitSetFunction(Node_Component_Satellite_Orbiting_Virial_Orbit_Set)
+       ! Specify the function to use for setting virial orbits.
+       call satelliteComponent%virialOrbitSetFunction(Node_Component_Satellite_Orbiting_Virial_Orbit_Set)
        ! Record that the module is now initialized.
        moduleInitialized=.true.
     end if
@@ -183,10 +183,10 @@ contains
     double precision                                                              :: radius,halfMassRadiusSatellite
     double precision                                                              :: halfMassRadiusCentral,orbitalRadiusTest
     double precision                                                              :: radiusVirial
-    double precision                                                              :: orbitalPeriod, radialTimescale
-    double precision                                                              :: angularVelocity,parentDensity
+    double precision                                                              :: orbitalPeriod
+    double precision                                                              :: parentDensity
     double precision                                                              :: parentEnclosedMass,satelliteMass,basicMass
-    double precision                                                              :: tidalHeatingNormalized
+    double precision                                                              :: tidalHeatingNormalized,angularFrequency,radialFrequency
     type            (tensorRank2Dimension3Symmetric)                              :: tidalTensor,tidalTensorPathIntegrated,positionTensor
 
     ! Get the satellite component.
@@ -211,9 +211,20 @@ contains
                & -(gravitationalConstantGalacticus*parentEnclosedMass         /radius**3)*tensorIdentityR2D3Sym &
                & +(gravitationalConstantGalacticus*parentEnclosedMass*3.0d0   /radius**5)*positionTensor        &
                & -(gravitationalConstantGalacticus*parentDensity     *4.0d0*Pi/radius**2)*positionTensor
-          angularVelocity=Vector_Magnitude(Vector_Product(position,velocity))/radius**2*kilo*gigaYear/megaParsec
-          radialTimescale=abs             (Dot_Product   (position,velocity))/radius**2*kilo*gigaYear/megaParsec
-          orbitalPeriod  =1.0d0/(max(angularVelocity/2.0d0/Pi,radialTimescale))
+          ! Compute the orbital period.
+          angularFrequency  =  Vector_Magnitude(Vector_Product(position,velocity)) &
+               &              /radius**2                                           &
+               &              *kilo                                                &
+               &              *gigaYear                                            &
+               &              /megaParsec
+          radialFrequency   =  abs             (   Dot_Product(position,velocity)) &
+               &              /radius**2                                           &
+               &              *kilo                                                &
+               &              *gigaYear                                            &
+               &              /megaParsec
+          ! Find the orbital period. We use the larger of the angular and radial frequencies to avoid numerical problems for purely
+          ! radial or purely circular orbits.
+          orbitalPeriod     = 2.0d0*Pi/max(angularFrequency,radialFrequency)
           ! Calculate position, velocity, mass loss, integrated tidal tensor, and heating rates.
           call satelliteComponent%positionRate                 (                                                            &
                &                                                +(kilo*gigaYear/megaParsec)                                 &
@@ -255,8 +266,16 @@ contains
           basicMass            =  basicComponent    %mass     ()
           radiusVirial         =  darkMatterHaloScale_%virialRadius(hostNode)
           orbitalRadiusTest    =  max(halfMassRadiusSatellite+halfMassRadiusCentral,radiusVirialFraction*radiusVirial)
-          ! Test merging criterion.          
-          if (radius < orbitalRadiusTest .or. satelliteMass < satelliteOrbitingDestructionMassFraction*basicMass) then
+          ! Test merging criterion.
+          if     (                                                                       &
+               &     radius        <  orbitalRadiusTest                                  &
+               &  .or.                                                                   &
+               &   (                                                                     &
+               &     satelliteMass <  satelliteOrbitingDestructionMassFraction*basicMass &
+               &    .and.                                                                &
+               &     satelliteMass >= 0.0d0                                              &
+               &   )                                                                     &
+               & ) then
              ! Merging criterion met - trigger an interrupt.
              interrupt=.true.
              interruptProcedure => Node_Component_Satellite_Orbiting_Trigger_Merger
