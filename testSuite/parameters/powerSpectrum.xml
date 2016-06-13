@@ -5,6 +5,7 @@
   <version>0.9.4</version>
   <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.8"/>
+    <monotonicInterpolation value="false"/>
   </cosmologicalMassVarianceMethod>
   <transferFunctionMethod value="identity"/>
   <powerSpectrumPrimordialMethod value="powerLaw">
