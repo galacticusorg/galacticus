@@ -29,7 +29,8 @@ module Merger_Tree_Timesteps_History
 
   ! Variable inidicating if module is initialized and active.
   logical                                                        :: timestepHistoryInitialized      =.false.
-  logical                                                        :: diskActive                              , spheroidActive
+  logical                                                        :: diskActive                              , spheroidActive               , &
+       &                                                            outputTimestepHistory
 
   ! Variables which control the distribution of timesteps.
   integer                                                        :: timestepHistorySteps
@@ -46,6 +47,7 @@ module Merger_Tree_Timesteps_History
   ! Interpolation variables.
   type            (fgsl_interp_accel)                            :: interpolationAccelerator
   !$omp threadprivate(interpolationAccelerator)
+  
 contains
 
   !# <timeStepsTask>
@@ -77,81 +79,99 @@ contains
     if (.not.timestepHistoryInitialized) then
        !$omp critical (timestepHistoryInitialize)
        if (.not.timestepHistoryInitialized) then
-          ! Get the default cosmology functions object.
-          cosmologyFunctionsDefault => cosmologyFunctions()
-          ! Determine if we have active components that can provide star formation rates.
-          diskActive           =    defaultDiskComponent%starFormationRateIsGettable()
-          spheroidActive       =defaultSpheroidComponent%starFormationRateIsGettable()
-          ! Get time at present day.
-          time=cosmologyFunctionsDefault%cosmicTime(expansionFactor=0.999d0)
           ! Get module parameters.
           !@ <inputParameter>
-          !@   <name>timestepHistoryBegin</name>
-          !@   <defaultValue>5\% of the age of the Universe</defaultValue>
+          !@   <name>outputTimestepHistory</name>
+          !@   <defaultValue>true</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@     The earliest time at which to tabulate the volume averaged history of galaxies (in Gyr).
+          !@     Specifies whether or not accumulated galaxy population history statistics should be output.
           !@   </description>
           !@   <type>real</type>
           !@   <cardinality>1</cardinality>
           !@   <group>timeStepping</group>
           !@ </inputParameter>
-          call Get_Input_Parameter('timestepHistoryBegin',timestepHistoryBegin,defaultValue=0.05d0*time)
-          !@ <inputParameter>
-          !@   <name>timestepHistoryEnd</name>
-          !@   <defaultValue>The age of the Universe</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The latest time at which to tabulate the volume averaged history of galaxies (in Gyr).
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>timeStepping</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('timestepHistoryEnd'  ,timestepHistoryEnd  ,defaultValue=       time)
-          !@ <inputParameter>
-          !@   <name>timestepHistorySteps</name>
-          !@   <defaultValue>30</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The number of steps (spaced logarithmically in cosmic time) at which to tabulate the volume averaged history of galaxies.
-          !@   </description>
-          !@   <type>integer</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>timeStepping</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('timestepHistorySteps',timestepHistorySteps,defaultValue=30         )
-          ! Allocate storage arrays.
-          call Alloc_Array(historyTime                     ,[timestepHistorySteps])
-          call Alloc_Array(historyExpansion                ,[timestepHistorySteps])
-          call Alloc_Array(historyStarFormationRate        ,[timestepHistorySteps])
-          call Alloc_Array(historyDiskStarFormationRate    ,[timestepHistorySteps])
-          call Alloc_Array(historySpheroidStarFormationRate,[timestepHistorySteps])
-          call Alloc_Array(historyStellarDensity           ,[timestepHistorySteps])
-          call Alloc_Array(historyDiskStellarDensity       ,[timestepHistorySteps])
-          call Alloc_Array(historySpheroidStellarDensity   ,[timestepHistorySteps])
-          call Alloc_Array(historyGasDensity               ,[timestepHistorySteps])
-          call Alloc_Array(historyHotGasDensity            ,[timestepHistorySteps])
-          call Alloc_Array(historyNodeDensity              ,[timestepHistorySteps])
-          ! Initialize arrays.
-          historyTime=Make_Range(timestepHistoryBegin,timestepHistoryEnd,timestepHistorySteps,rangeTypeLogarithmic)
-          do timeIndex=1,timestepHistorySteps
-             historyExpansion(timeIndex)=cosmologyFunctionsDefault%expansionFactor(historyTime(timeIndex))
-          end do
-          historyStarFormationRate        =0.0d0
-          historyDiskStarFormationRate    =0.0d0
-          historySpheroidStarFormationRate=0.0d0
-          historyStellarDensity           =0.0d0
-          historyDiskStellarDensity       =0.0d0
-          historySpheroidStellarDensity   =0.0d0
-          historyGasDensity               =0.0d0
-          historyHotGasDensity            =0.0d0
-          historyNodeDensity              =0.0d0
-          timestepHistoryInitialized      =.true.
+          call Get_Input_Parameter('outputTimestepHistory',outputTimestepHistory,defaultValue=.true.)
+          if (outputTimestepHistory) then
+             ! Get the default cosmology functions object.
+             cosmologyFunctionsDefault => cosmologyFunctions()
+             ! Determine if we have active components that can provide star formation rates.
+             diskActive           =    defaultDiskComponent%starFormationRateIsGettable()
+             spheroidActive       =defaultSpheroidComponent%starFormationRateIsGettable()
+             ! Get time at present day.
+             time=cosmologyFunctionsDefault%cosmicTime(expansionFactor=0.999d0)
+             ! Get module parameters.
+             !@ <inputParameter>
+             !@   <name>timestepHistoryBegin</name>
+             !@   <defaultValue>5\% of the age of the Universe</defaultValue>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     The earliest time at which to tabulate the volume averaged history of galaxies (in Gyr).
+             !@   </description>
+             !@   <type>real</type>
+             !@   <cardinality>1</cardinality>
+             !@   <group>timeStepping</group>
+             !@ </inputParameter>
+             call Get_Input_Parameter('timestepHistoryBegin',timestepHistoryBegin,defaultValue=0.05d0*time)
+             !@ <inputParameter>
+             !@   <name>timestepHistoryEnd</name>
+             !@   <defaultValue>The age of the Universe</defaultValue>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     The latest time at which to tabulate the volume averaged history of galaxies (in Gyr).
+             !@   </description>
+             !@   <type>real</type>
+             !@   <cardinality>1</cardinality>
+             !@   <group>timeStepping</group>
+             !@ </inputParameter>
+             call Get_Input_Parameter('timestepHistoryEnd'  ,timestepHistoryEnd  ,defaultValue=       time)
+             !@ <inputParameter>
+             !@   <name>timestepHistorySteps</name>
+             !@   <defaultValue>30</defaultValue>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     The number of steps (spaced logarithmically in cosmic time) at which to tabulate the volume averaged history of galaxies.
+             !@   </description>
+             !@   <type>integer</type>
+             !@   <cardinality>1</cardinality>
+             !@   <group>timeStepping</group>
+             !@ </inputParameter>
+             call Get_Input_Parameter('timestepHistorySteps',timestepHistorySteps,defaultValue=30         )
+             ! Allocate storage arrays.
+             call Alloc_Array(historyTime                     ,[timestepHistorySteps])
+             call Alloc_Array(historyExpansion                ,[timestepHistorySteps])
+             call Alloc_Array(historyStarFormationRate        ,[timestepHistorySteps])
+             call Alloc_Array(historyDiskStarFormationRate    ,[timestepHistorySteps])
+             call Alloc_Array(historySpheroidStarFormationRate,[timestepHistorySteps])
+             call Alloc_Array(historyStellarDensity           ,[timestepHistorySteps])
+             call Alloc_Array(historyDiskStellarDensity       ,[timestepHistorySteps])
+             call Alloc_Array(historySpheroidStellarDensity   ,[timestepHistorySteps])
+             call Alloc_Array(historyGasDensity               ,[timestepHistorySteps])
+             call Alloc_Array(historyHotGasDensity            ,[timestepHistorySteps])
+             call Alloc_Array(historyNodeDensity              ,[timestepHistorySteps])
+             ! Initialize arrays.
+             historyTime=Make_Range(timestepHistoryBegin,timestepHistoryEnd,timestepHistorySteps,rangeTypeLogarithmic)
+             do timeIndex=1,timestepHistorySteps
+                historyExpansion(timeIndex)=cosmologyFunctionsDefault%expansionFactor(historyTime(timeIndex))
+             end do
+             historyStarFormationRate        =0.0d0
+             historyDiskStarFormationRate    =0.0d0
+             historySpheroidStarFormationRate=0.0d0
+             historyStellarDensity           =0.0d0
+             historyDiskStellarDensity       =0.0d0
+             historySpheroidStellarDensity   =0.0d0
+             historyGasDensity               =0.0d0
+             historyHotGasDensity            =0.0d0
+             historyNodeDensity              =0.0d0
+             timestepHistoryInitialized      =.true.
+          end if
        end if
        !$omp end critical (timestepHistoryInitialize)
     end if
 
+    ! Return if history data is not being gathered.
+    if (.not.outputTimestepHistory) return
+    
     ! Adjust timestep.
     ! Get current cosmic time.
     thisBasicComponent => thisNode%basic()
