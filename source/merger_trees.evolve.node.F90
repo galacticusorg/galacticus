@@ -343,11 +343,12 @@ contains
     !% Function which evaluates the set of ODEs for the evolution of a specific node.
     use ODE_Solver_Error_Codes
     implicit none
-    double precision                       , intent(in   )               :: time
-    double precision                       , intent(in   ), dimension(:) :: y
-    double precision                       , intent(  out), dimension(:) :: dydt
-    logical                                                              :: interrupt
-    procedure(Interrupt_Procedure_Template), pointer                     :: interruptProcedure
+    double precision                       , intent(in   )                         :: time
+    double precision                       , intent(in   ), dimension(          :) :: y
+    double precision                       , intent(  out), dimension(          :) :: dydt
+    double precision                                      , dimension(nProperties) :: yError            , yTolerance
+    logical                                                                        :: interrupt         , odeConverged
+    procedure(Interrupt_Procedure_Template), pointer                               :: interruptProcedure
 
     ! Return success by default.
     Tree_Node_ODEs=FGSL_Success
@@ -370,6 +371,11 @@ contains
     ! Set derivatives to zero initially.
     call activeNode%odeStepRatesInitialize()
 
+    ! Determine if the ODE evolver has reached sufficiently small errors for this step.
+    call FODEIV2_Driver_Errors(ode2Driver,yError)
+    yTolerance=treeNodeODEStepTolerances(y)
+    odeConverged=all(yError <= yTolerance)
+    
     if (firstInterruptFound .and. time >= firstInterruptTime) then
        ! Already beyond the location of the first interrupt, simply return zero derivatives.
        dydt                 (1:nProperties)=0.0d0
@@ -449,15 +455,17 @@ contains
     implicit none
     real            (kind=c_double     ), intent(in)                         :: time
     real            (kind=c_double     ), intent(in), dimension(nProperties) :: y
-    real            (kind=c_double     )            , dimension(nProperties) :: dydt      , yError
+    real            (kind=c_double     )            , dimension(nProperties) :: dydt      , yError       , &
+         &                                                                      yTolerance
     type            (varying_string    )                                     :: message   , line
     integer                                                                  :: i         , lengthMaximum
     character       (len =12           )                                     :: label
     integer         (kind=c_int        )                                     :: odeStatus
     double precision                                                         :: stepFactor
 
-    ! Get the current errors in the ODE driver.
+    ! Get the current errors and tolerances in the ODE driver.
     call FODEIV2_Driver_Errors(ode2Driver,yError)
+    yTolerance=treeNodeODEStepTolerances(y)
     ! Report the failure message.
     message="ODE solver failed in tree #"
     message=message//activeTreeIndex
@@ -476,13 +484,7 @@ contains
     call Galacticus_Display_Message(repeat(" ",lengthMaximum)//' : y            : dy/dt        : yScale       : yError       : yErrorScaled')
     call Galacticus_Display_Message(line)
     do i=1,nProperties
-       stepFactor=+  abs(        yError(i)) &
-            &     /(                        &
-            &       +odeToleranceRelative   &
-            &       *abs(           y  (i)) &
-            &       +odeToleranceAbsolute   &
-            &       *    propertyScales(i)  &
-            &     )
+       stepFactor=abs(yError(i))/yTolerance(i)
        message=activeNode%nameFromIndex(i)
        message=repeat(" ",lengthMaximum-len(message))//message
        write (label,'(e12.6)') y             (i)
@@ -502,6 +504,22 @@ contains
     return
   end subroutine Tree_Node_ODEs_Error_Handler
 
+  function treeNodeODEStepTolerances(propertyValues)
+    !% Compute the tolerances on each property being evolved in the ODE stystem at the current timestep.
+    implicit none
+    double precision               , dimension(nProperties) :: treeNodeODEStepTolerances
+    double precision, intent(in   ), dimension(nProperties) :: propertyValues
+    integer                                                 :: i
+    
+    forall(i=1:nProperties)
+       treeNodeODEStepTolerances(i)=+odeToleranceRelative   &
+            &                       *abs(propertyValues(i)) &
+            &                       +odeToleranceAbsolute   &
+            &                       *    propertyScales(i)
+    end forall
+    return
+  end function treeNodeODEStepTolerances
+  
 #ifdef PROFILE
   subroutine Tree_Node_Evolve_Error_Analyzer(currentPropertyValue,currentPropertyError,timeStep,stepStatus) bind(c)
     !% Profiles ODE solver step sizes and errors.
