@@ -739,7 +739,7 @@ contains
          &        self%cosmology%OmegaMatter    ()  &
          &   /abs(self%cosmology%OmegaDarkEnergy()) &
          &  )**(1.0d0/3.0d0)
-    if (requestType == requestTypeTime)                                &
+    if (requestTypeActual == requestTypeTime)                          &
          &                   matterLambdaEqualityEpochMatterDarkEnergy &
          &  =self%cosmicTime(matterLambdaEqualityEpochMatterDarkEnergy)
     return
@@ -759,9 +759,8 @@ contains
     else
        requestTypeActual=requestTypeExpansionFactor
     end if
-
     matterLambdaEqualityEpochMatterCurvature=self%cosmology%OmegaMatter()/abs(self%cosmology%OmegaCurvature())
-    if (requestType == requestTypeTime)                               &
+    if (requestTypeActual == requestTypeTime)                         &
          &                  matterLambdaEqualityEpochMatterCurvature  &
          & =self%cosmicTime(matterLambdaEqualityEpochMatterCurvature)
     return
