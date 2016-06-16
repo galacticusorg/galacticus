@@ -121,8 +121,7 @@ contains
     !$omp threadprivate(io_status,i_unit)
     open(newunit=i_unit,file=in_file,status='old',form='formatted',iostat=io_status)
     if (io_status /= 0) then
-       write (0,*) 'Count_Lines_in_File(): FATAL - cannot open file ',trim(in_file)
-       call Galacticus_Error_Report
+       call Galacticus_Error_Report('Count_Lines_in_File(): FATAL - cannot open file ',trim(in_file))
     end if
     Count_Lines_in_File_Char=0
     do while (io_status == 0)
