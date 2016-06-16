@@ -24,26 +24,26 @@ require File::Which;
 # Define new XMP tags.
 my %sourceStruct = (
     STRUCT_NAME => "Source",
-    NAMESPACE   => { "stSource"    => 'http://www.ctcp.caltech.edu/galacticus/ns/xmpext/1.0' },
+    NAMESPACE   => { "stSource"    => 'http://users.obs.carnegiescience.edu/abenson/galacticus/ns/xmpext/1.0' },
     hgDiff      => { },
     hgBundle    => { }
     );
 my %versionStruct = (
     STRUCT_NAME => "Version",
-    NAMESPACE   => { "stVersion"    => 'http://www.ctcp.caltech.edu/galacticus/ns/xmpext/1.0' },
+    NAMESPACE   => { "stVersion"    => 'http://users.obs.carnegiescience.edu/abenson/galacticus/ns/xmpext/1.0' },
     version     => { },
     revision    => { },
     runTime     => { }
     );
 my %parameterStruct = (
     STRUCT_NAME => "Parameter",
-    NAMESPACE   => { "stParameters" => 'http://www.ctcp.caltech.edu/galacticus/ns/xmpext/1.0' },
+    NAMESPACE   => { "stParameters" => 'http://users.obs.carnegiescience.edu/abenson/galacticus/ns/xmpext/1.0' },
     name        => { },
     value       => { }
     );
 my %buildStruct     = (
     STRUCT_NAME => "Build",
-    NAMESPACE   => { "stBuild"      => 'http://www.ctcp.caltech.edu/galacticus/ns/xmpext/1.0' },
+    NAMESPACE   => { "stBuild"      => 'http://users.obs.carnegiescience.edu/abenson/galacticus/ns/xmpext/1.0' },
     FGSL_library_version     => { },
     FoX_library_version      => { },
     GSL_library_version      => { },
@@ -63,7 +63,7 @@ my %buildStruct     = (
     );
 %Image::ExifTool::UserDefined::galacticus = ( 
     GROUPS     => { 0 => 'XMP', 1 => 'XMP-galacticus', 2 => 'Image' },
-    NAMESPACE  => { 'galacticus' => 'http://www.ctcp.caltech.edu/galacticus/ns/xmpext/1.0' },
+    NAMESPACE  => { 'galacticus' => 'http://users.obs.carnegiescience.edu/abenson/galacticus/ns/xmpext/1.0' },
     WRITABLE   => 'string',
     Source     => { Struct => \%sourceStruct                   },
     Build      => { Struct => \%buildStruct                    },
