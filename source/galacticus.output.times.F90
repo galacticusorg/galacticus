@@ -52,43 +52,62 @@ contains
        !$omp critical (Tasks_Evolve_Tree_Initialize)
        if (.not.outputsInitialized) then
           ! Get a list of output redshifts - stored temporarily in the outputTimes array.
-          if (Input_Parameter_Is_Present('outputRedshifts')) then
+          if      (Input_Parameter_Is_Present('outputTimes'    )) then
+             outputCount=Get_Input_Parameter_Array_Size('outputTimes'    )
+          else if (Input_Parameter_Is_Present('outputRedshifts')) then
              outputCount=Get_Input_Parameter_Array_Size('outputRedshifts')
           else
              outputCount=1
           end if
           call Alloc_Array(outputRedshifts,[outputCount])
           call Alloc_Array(outputTimes    ,[outputCount])
-          !@ <inputParameter>
-          !@   <name>outputRedshifts</name>
-          !@   <defaultValue>0</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     A list of (space-separated) redshifts at which \glc\ results should be output. Redshifts need not be in any particular order.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1..*</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          if (outputCount == 1) then
-             ! If only one (or zero) output redshifts present, make redshift zero the default.
-             call Get_Input_Parameter('outputRedshifts',outputRedshifts,defaultValue=[0.0d0])
-          else
-             call Get_Input_Parameter('outputRedshifts',outputRedshifts                     )
-          end if
           ! Get the default cosmology functions object.
           cosmologyFunctionsDefault => cosmologyFunctions()
-
-          ! Sort the redshifts.
-          outputRedshifts=-outputRedshifts
-          call Sort_Do(outputRedshifts)
-          outputRedshifts=-outputRedshifts
-
-          ! Convert redshifts to times.
-          do iOutput=1,outputCount
-             aExpansion=cosmologyFunctionsDefault%expansionFactorFromRedshift(outputRedshifts(iOutput))
-             outputTimes(iOutput)=cosmologyFunctionsDefault%cosmicTime(aExpansion)
-          end do
+          if (Input_Parameter_Is_Present('outputTimes')) then
+             !@ <inputParameter>
+             !@   <name>outputTimes</name>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     A list of (space-separated) times at which \glc\ results should be output. Times need not be in any particular order.
+             !@   </description>
+             !@   <type>real</type>
+             !@   <cardinality>1..*</cardinality>
+             !@   <group>output</group>
+             !@ </inputParameter>
+             call Get_Input_Parameter('outputTimes',outputTimes)
+             call Sort_Do(outputTimes)
+             ! Convert times to redshifts.
+             do iOutput=1,outputCount
+                outputRedshifts(iOutput)=cosmologyFunctionsDefault%redshiftFromExpansionFactor(cosmologyFunctionsDefault%expansionFactor(outputTimes(iOutput)))
+             end do
+           else
+             !@ <inputParameter>
+             !@   <name>outputRedshifts</name>
+             !@   <defaultValue>0</defaultValue>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     A list of (space-separated) redshifts at which \glc\ results should be output. Redshifts need not be in any particular order.
+             !@   </description>
+             !@   <type>real</type>
+             !@   <cardinality>1..*</cardinality>
+             !@   <group>output</group>
+             !@ </inputParameter>
+             if (outputCount == 1) then
+                ! If only one (or zero) output redshifts present, make redshift zero the default.
+                call Get_Input_Parameter('outputRedshifts',outputRedshifts,defaultValue=[0.0d0])
+             else
+                call Get_Input_Parameter('outputRedshifts',outputRedshifts                     )
+             end if
+              ! Sort the redshifts.
+             outputRedshifts=-outputRedshifts
+             call Sort_Do(outputRedshifts)
+             outputRedshifts=-outputRedshifts
+             ! Convert redshifts to times.
+             do iOutput=1,outputCount
+                aExpansion=cosmologyFunctionsDefault%expansionFactorFromRedshift(outputRedshifts(iOutput))
+                outputTimes(iOutput)=cosmologyFunctionsDefault%cosmicTime(aExpansion)
+             end do
+          end if
 
           ! Set history ranges to include these times.
           call History_Set_Times(timeEarliest=outputTimes(1),timeLatest=outputTimes(outputCount))

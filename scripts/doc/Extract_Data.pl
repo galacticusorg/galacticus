@@ -152,6 +152,21 @@ foreach my $fileName ( @fileNames ) {
 		    my $method = lc($3);
 		    $objects{lc($inDerivedType)}->{'methods'}->{$method}->{'description'} = "UNDEFINED"
 			unless ( exists($objects{lc($inDerivedType)}->{'methods'}->{$method}) );
+
+
+                    if ( $1 eq "generic" ) {
+			my $methodList = lc($4);
+			$methodList =~ s/^\s*//;
+			$methodList =~ s/\s*$//;
+			my @methods = split(/\s*,\s*/,$methodList);
+			foreach ( @methods ) {
+			    if ( exists($objects{lc($inDerivedType)}->{'methods'}->{$_}) ) {
+				$objects{lc($inDerivedType)}->{'methods'}->{$_}->{'description'} = "GENERIC";
+			    }
+			}
+                    }
+
+
 		}
 		if ( $processedLine =~ m/$genericRegex/i ) {
 		    my $procedure = lc($2);
@@ -390,7 +405,7 @@ foreach my $object ( sort(keys(%objects)) ) {
 	print methodHndl "\\subsubsection{\\large {\\normalfont \\ttfamily ".$objects{$object}->{'name'}."}}\\label{sec:AutoMethods".ucfirst($objects{$object}->{'name'})."}\n\n";
 	print methodHndl "\\begin{description}\n";
 	foreach my $method ( sort(keys(%{$objects{$object}->{'methods'}})) ) {
-	    if ( $objects{$object}->{'methods'}->{$method}->{'description'} ne "UNDEFINED" ) {
+	    if ( $objects{$object}->{'methods'}->{$method}->{'description'} ne "UNDEFINED" && $objects{$object}->{'methods'}->{$method}->{'description'} ne "GENERIC" ) {
 		print methodHndl "\\item[]{\\normalfont \\ttfamily ";
 		if ( exists($objects{$object}->{'methods'}->{$method}->{'type'}) ) {
 		    (my $methodLabel = $objects{$object}->{'methods'}->{$method}->{'type'}) =~ s/([^\\])_/$1\\_/g;
