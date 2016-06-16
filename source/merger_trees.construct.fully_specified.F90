@@ -122,14 +122,17 @@ contains
        !$omp critical (FoX_DOM_Access)
        nodeDefinition => item(nodes,i-1)
        ! Build parent pointers.
-       indexValue=Node_Definition_Index(nodeDefinition,'parent'     )
-       nodeArray(i)%node%parent     => Node_Lookup(nodeArray,indexValue)
+       indexValue=Node_Definition_Index(nodeDefinition,'parent'        )
+       nodeArray(i)%node%parent         => Node_Lookup(nodeArray,indexValue)
        ! Build child pointers.
-       indexValue=Node_Definition_Index(nodeDefinition,'firstChild' )
-       nodeArray(i)%node%firstChild => Node_Lookup(nodeArray,indexValue)
+       indexValue=Node_Definition_Index(nodeDefinition,'firstChild'    )
+       nodeArray(i)%node%firstChild     => Node_Lookup(nodeArray,indexValue)
        ! Build sibling pointers.
-       indexValue=Node_Definition_Index(nodeDefinition,'sibling'    )
-       nodeArray(i)%node%sibling    => Node_Lookup(nodeArray,indexValue)
+       indexValue=Node_Definition_Index(nodeDefinition,'sibling'       )
+       nodeArray(i)%node%sibling        => Node_Lookup(nodeArray,indexValue)
+       ! Build satellite pointers.
+       indexValue=Node_Definition_Index(nodeDefinition,'firstSatellite',required=.false.)
+       nodeArray(i)%node%firstSatellite => Node_Lookup(nodeArray,indexValue)
        !$omp end critical (FoX_DOM_Access)
        ! Assign the tree root node if this node has no parent.
        if (.not.associated(nodeArray(i)%node%parent)) then
@@ -154,22 +157,32 @@ contains
     return
   end subroutine Merger_Tree_Construct_Fully_Specified
 
-  function Node_Definition_Index(nodeDefinition,indexType)
+  function Node_Definition_Index(nodeDefinition,indexType,required)
     !% Extract and return an index from a node definition as used when constructing fully-specified merger trees.
     use FoX_Dom
     use Galacticus_Error
     use Kind_Numbers
     implicit none
-    integer  (kind=kind_int8)                         :: Node_Definition_Index
-    type     (node          ), intent(in   ), pointer :: nodeDefinition
-    character(len=*         ), intent(in   )          :: indexType
-    type     (nodeList      )               , pointer :: indexElements
-    type     (node          )               , pointer :: indexElement
-    integer                                           :: indexValue
-
+    integer  (kind=kind_int8)                          :: Node_Definition_Index
+    type     (node          ), intent(in   ), pointer  :: nodeDefinition
+    character(len=*         ), intent(in   )           :: indexType
+    logical                  , intent(in   ), optional :: required
+    type     (nodeList      )               , pointer  :: indexElements
+    type     (node          )               , pointer  :: indexElement
+    integer                                            :: indexValue
+    !# <optionalArgument name="required" defaultsTo=".true." />
+    
     ! Find all matching tags.
     indexElements => getElementsByTagname(nodeDefinition,indexType)
-    if (getLength(indexElements) < 1 .or. getLength(indexElements) > 1) call Galacticus_Error_Report('Node_Definition_Index','multiple indices specified')
+    if (getLength(indexElements) > 1) call Galacticus_Error_Report('Node_Definition_Index','multiple indices specified'  )
+    if (getLength(indexElements) < 1) then
+       if (required_) then
+          call Galacticus_Error_Report('Node_Definition_Index','required index not specified')
+       else
+          Node_Definition_Index=-1
+          return
+       end if
+    end if
     ! Get the index element.
     indexElement => item(indexElements,0)
     ! Extract the value.
@@ -190,7 +203,7 @@ contains
     integer(kind=kind_int8)              , intent(in   ) :: indexValue
     integer                                              :: i
 
-    node => null()
+    node => null()    
     if (indexValue < 0_kind_int8) return
     do i=1,size(nodeArray)
        if (nodeArray(i)%node%index() == indexValue) then

@@ -3134,7 +3134,8 @@ contains
     
     if (self%progenitorsFound) then
        progenitorIteratorNext=.true.
-      do while (self%progenitorIndex > 0)
+       self%progenitorLocation=-1
+       do while (self%progenitorIndex > 0)
           self%progenitorIndex=self%progenitorIndex-1
           if (self%progenitorIndex <= 0) exit
           self%progenitorLocation=descendentLocations(self%progenitorIndex)
