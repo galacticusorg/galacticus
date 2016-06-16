@@ -96,12 +96,14 @@ contains
     time=thisBasicComponent%time()
     
     ! Find current expansion timescale.
-    expansionFactor=cosmologyFunctionsDefault%expansionFactor(time)
-    expansionTimescale=1.0d0/cosmologyFunctionsDefault%expansionRate(expansionFactor)
-
-    ! Determine suitable timestep.
-    ourTimeStep=min(timestepSimpleRelative*expansionTimescale,timestepSimpleAbsolute)
-
+    if (timestepSimpleRelative > 0.0d0) then
+       expansionFactor=cosmologyFunctionsDefault%expansionFactor(time)
+       expansionTimescale=1.0d0/cosmologyFunctionsDefault%expansionRate(expansionFactor)
+       ourTimeStep=min(timestepSimpleRelative*expansionTimescale,timestepSimpleAbsolute)
+    else
+       ourTimeStep=                                              timestepSimpleAbsolute
+    end if
+       
     ! Set return value if our timestep is smaller than current one.
     if (ourTimeStep < timeStep) then
        if (present(lockNode)) lockNode => thisNode

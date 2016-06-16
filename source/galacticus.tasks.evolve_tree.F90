@@ -109,7 +109,7 @@ contains
     !$omp threadprivate(satelliteNode,baseNodeBasic)
     class           (mergerTreeOperatorClass), pointer     , save :: mergerTreeOperator_ => null()
     !$omp threadprivate(mergerTreeOperator_)
-    type            (semaphore              ), pointer            :: galacticusMutex
+    type            (semaphore              ), pointer            :: galacticusMutex     => null()
     character       (len=32                 )                     :: treeEvolveLoadAverageMaximumText,treeEvolveThreadsMaximumText
     !$omp threadprivate(activeTasks,totalTasks,loadAverage,overloaded,treeIsFinished,evolutionIsEventLimited,success,removeTree,suspendTree)
     type            (universeEvent          ), pointer     , save :: thisEvent

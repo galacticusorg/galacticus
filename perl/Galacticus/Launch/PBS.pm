@@ -112,8 +112,11 @@ sub Launch {
 	    $pwd .= "/";
 	}
 	print $pbsFile "#PBS -o ".$pwd.$job->{'directory'}."/galacticus.log\n";
-	print $pbsFile "#PBS -q ".$launchScript->{'pbs'}->{'queue'}."\n"
-	    if ( exists($launchScript->{'pbs'}->{'queue'}) );
+	if ( exists($launchScript->{'pbs'}->{'queue'}) ) {
+	    print $pbsFile "#PBS -q ".$launchScript->{'pbs'}->{'queue'}."\n";
+	} elsif ( exists($pbsConfig->{'queue'}) ) {
+	    print $pbsFile "#PBS -q ".$pbsConfig->{'queue'}."\n";
+	}
 	print $pbsFile "#PBS -V\n";
 	# Find the working directory - we support either PBS or SLURM environment variables here.
 	print $pbsFile "if [ ! -z \${PBS_O_WORKDIR+x} ]; then\n";
@@ -276,13 +279,30 @@ sub SubmitJobs {
 		# Call any "on completion" function.
 		if ( exists($pbsJobs{$jobID}->{'onCompletion'}) ) {
 		    my $exitStatus;
-		    open(my $trace,"tracejob -q -n 100 ".$jobID." |");
-		    while ( my $line = <$trace> ) {
-			if ( $line =~ m/Exit_status=(\d+)/ ) {
-			    $exitStatus = $1;
+		    my $traceJob = &File::Which::which("tracejob");
+		    my $sacct    = &File::Which::which("sacct"   );
+		    if ( defined($traceJob) ) {
+			open(my $trace,$traceJob." -q -n 100 ".$jobID." |");
+			while ( my $line = <$trace> ) {
+			    if ( $line =~ m/Exit_status=(\d+)/ ) {
+				$exitStatus = $1;
+			    }
 			}
+			close($trace);
+		    } elsif ( defined($sacct) ) {
+			open(my $trace,$sacct." -b -j ".$jobID." |");
+			while ( my $line = <$trace> ) {
+			    my @columns = split(" ",$line);
+			    if ( $columns[0] == $jobID ) {
+				if ( $columns[3] =~ m/(\d+):\d+/ ) {
+				    $exitStatus = $1;
+				}
+			    }
+			}
+			close($trace);
+		    } else {
+			$exitStatus = 0;		    
 		    }
-		    close($trace);
 		    &{$pbsJobs{$jobID}->{'onCompletion'}->{'function'}}(@{$pbsJobs{$jobID}->{'onCompletion'}->{'arguments'}},$jobID,$exitStatus);
 		}
 		# Remove the job ID from the list of active PBS jobs.
@@ -311,8 +331,11 @@ sub SubmitJobs {
 		    if ( exists($newJob->{'wallTime'}) );
 		print $scriptFile "#PBS -l mem=".$newJob->{'mem'}."\n"
 		    if ( exists($newJob->{'mem'}) );
-		print $scriptFile "#PBS -q ".$arguments{'queue'}."\n"
-		    if ( exists($arguments{'queue'}) );
+		if ( exists($arguments{'queue'}) ) {
+		    print $scriptFile "#PBS -q ".$arguments{'queue'}."\n";
+		} elsif ( exists($pbsConfig->{'queue'}) ) {
+		    print $scriptFile "#PBS -q ".$pbsConfig->{'queue'}."\n";
+		}
 		print $scriptFile "#PBS -l nodes=1:ppn=".$ppn."\n";
 		print $scriptFile "#PBS -j oe\n";
 		print $scriptFile "#PBS -o ".$newJob->{'logFile'}."\n";

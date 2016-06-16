@@ -21,7 +21,7 @@
   !# <cosmologicalMassVariance name="cosmologicalMassVarianceFilteredPower" defaultThreadPrivate="yes">
   !#  <description>
   !#   Mass variance of cosmological density fields computed from a filtered power spectrum. The
-  !#   normalization of the mass variance is specified via the {\normalfont \ttfamily [sigma_8]}
+  !#   normalization of the mass variance is specified via the {\normalfont \ttfamily [sigma\_8]}
   !#   parameter, which defines the linear theory root-variance of the density field in spheres
   !#   of radii $8h^{-1}$Mpc.
   !#
