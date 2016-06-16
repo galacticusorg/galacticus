@@ -97,10 +97,6 @@ contains
             & fractionalMass can be specified')
        massRoot=mass
     else if (present(fractionalMass)) then
-       if (fractionalMass >= 1.0d0) then
-          Galactic_Structure_Radius_Enclosing_Mass=radiusLarge
-          return
-       end if
        massRoot=fractionalMass*Galactic_Structure_Enclosed_Mass(thisNode,componentType=componentTypeShared,massType=massTypeShared,weightBy=weightByShared,weightIndex=weightIndexShared,haloLoaded=haloLoadedShared)
     else
        call Galacticus_Error_Report('Galactic_Structure_Radius_Enclosing_Mass','either mass or fractionalMass must be specified')

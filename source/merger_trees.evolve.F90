@@ -595,12 +595,16 @@ contains
           end do
           if (timeEarliest < huge(1.0d0)) hostTimeLimit=max(hostTimeLimit,timeEarliest)
        case (.false.)
-          ! Find current expansion timescale.
-          cosmologyFunctionsDefault => cosmologyFunctions()
-          expansionFactor=cosmologyFunctionsDefault%expansionFactor(time)
-          expansionTimescale=1.0d0/cosmologyFunctionsDefault%expansionRate(expansionFactor)
-          ! Determine suitable timestep.
-          hostTimeLimit=max(time+min(timestepHostRelative*expansionTimescale,timestepHostAbsolute),thisBasicComponent%time())
+          ! Find current expansion timescale. 
+          if (timestepHostRelative > 0.0d0) then
+             cosmologyFunctionsDefault => cosmologyFunctions()
+             expansionFactor           =  cosmologyFunctionsDefault%expansionFactor(time)
+             expansionTimescale        =  1.0d0/cosmologyFunctionsDefault%expansionRate(expansionFactor)
+             hostTimeLimit             =  max(time+min(timestepHostRelative*expansionTimescale,timestepHostAbsolute),thisBasicComponent%time())
+          else
+             ! Avoid use of expansion timescale if host absolute timestep is non-positive. This allows static universe cases to be handled.
+             hostTimeLimit=max(time+timestepHostAbsolute,thisBasicComponent%time())
+          end if
        end select
        ! Limit to this time.
        if (hostTimeLimit < Evolve_To_Time) then
