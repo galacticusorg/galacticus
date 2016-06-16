@@ -76,8 +76,10 @@ contains
        radialLogarithmicStepInverse=1.0d0/(log(radialSeparationMaximum/radialMinimum)/dble(radialBinCount-1))
        radialLogarithmicMinimum    =       log(                        radialMinimum)-0.5d0/radialLogarithmicStepInverse
     else
-       radialMinimum =-1.0d0
-       radialBinCount= 1
+       radialMinimum               =-1.0d0
+       radialBinCount              = 1
+       radialLogarithmicStepInverse= 0.0d0
+       radialLogarithmicMinimum    = 0.0d0
     end if
     ! Allocate arrays.
     if (allocated(separation )) call Dealloc_Array(separation )
