@@ -33,7 +33,7 @@
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_
      type            (inputParameters         )          :: descriptor_
      double precision                                    :: wavenumberMaximum
-     logical                                             :: wavenumberMaximumReached
+     logical                                             :: wavenumberMaximumReached, lockFile
    contains
      !@ <objectMethods>
      !@   <object>transferFunctionCAMB</object>
@@ -71,18 +71,27 @@ contains
     use Input_Parameters2
     use Dark_Matter_Particles
     implicit none
-    type(transferFunctionCAMB     )                :: cambConstructorParameters
-    type(inputParameters          ), intent(inout) :: parameters
-    class(cosmologyParametersClass), pointer       :: cosmologyParameters_    
-    class(darkMatterParticleClass ), pointer       :: darkMatterParticle_
-
+    type  (transferFunctionCAMB     )                :: cambConstructorParameters
+    type  (inputParameters          ), intent(inout) :: parameters
+    class  (cosmologyParametersClass), pointer       :: cosmologyParameters_    
+    class  (darkMatterParticleClass ), pointer       :: darkMatterParticle_
+    logical                                          :: lockFile
+    
+    !# <inputParameter>
+    !#   <name>lockFile</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>If true, attempt to lock the CAMB transfer function file before accessing. Otherwise, no locking is attempted.</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
-    cambConstructorParameters=cambConstructorInternal(darkMatterParticle_,cosmologyParameters_)
+    cambConstructorParameters=cambConstructorInternal(darkMatterParticle_,cosmologyParameters_,lockFile)
     return
   end function cambConstructorParameters
   
-  function cambConstructorInternal(darkMatterParticle_,cosmologyParameters_)
+  function cambConstructorInternal(darkMatterParticle_,cosmologyParameters_,lockFile)
     !% Internal constructor for the \href{http://camb.info}{\normalfont \scshape CAMB} transfer function class.
     use Input_Parameters2
     use Galacticus_Error
@@ -94,9 +103,11 @@ contains
     type     (transferFunctionCAMB    )                                  :: cambConstructorInternal
     class    (darkMatterParticleClass ), intent(in   )                   :: darkMatterParticle_
     class    (cosmologyParametersClass), intent(in   ), target, optional :: cosmologyParameters_    
+    logical                            , intent(in   )        , optional :: lockFile
     character(len=32                  )                                  :: parameterLabel
     type     (varying_string          )                                  :: uniqueLabel
-
+    !# <optionalArgument name="lockFile" defaultsTo=".true." />
+    
     ! Require that the dark matter be cold dark matter.
     select type (darkMatterParticle_)
     class is (darkMatterParticleCDM)
@@ -104,6 +115,8 @@ contains
     class default
        call Galacticus_Error_Report('cambConstructorInternal','transfer function expects a cold dark matter particle')
     end select
+    ! Set lock file option.
+    cambConstructorInternal%lockFile=lockFile_
     ! Determine the cosmological parameters to use.
     if (present(cosmologyParameters_)) then
        cambConstructorInternal%cosmologyParameters_ => cosmologyParameters_
@@ -178,13 +191,13 @@ contains
     if (.not.makeTransferFunction) return
     ! If the file exists but has not yet been read, read it now.
     if (.not.self%initialized.and.File_Exists(self%fileName)) then
-       call File_Lock(char(self%fileName//".lock"),fileLock)
+       if (self%lockFile) call File_Lock(char(self%fileName//".lock"),fileLock)
        call self%readFile(char(self%fileName))
-       call File_Unlock(fileLock)
+       if (self%lockFile) call File_Unlock(fileLock)
     else if (.not.self%initialized .or. wavenumber > self%transfer%x(-1)) then
        ! If the wavenumber if out of range, recompute the CAMB transfer function.
        ! Get a lock on the relevant lock file.
-       call File_Lock(char(self%fileName//".lock"),fileLock)
+       if (self%lockFile) call File_Lock(char(self%fileName//".lock"),fileLock)
        ! Remove the transfer function file so that a new one will be created.
        command='rm -f '//self%fileName
        call System_Command_Do(command)
@@ -212,7 +225,7 @@ contains
        ! Read the newly created file.
        call self%readFile(char(self%fileName))
        ! Unlock the lock file.
-       call File_Unlock(fileLock)
+       if (self%lockFile) call File_Unlock(fileLock)
     end if
     ! Check the maximum wavenumber.
     if (self%transfer%x(-1) > log(self%wavenumberMaximum)-0.01d0) self%wavenumberMaximumReached=.true.

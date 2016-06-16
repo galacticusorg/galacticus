@@ -145,11 +145,6 @@ contains
             &                                   )                                                               **0.15d0                   &
             &                                  /(particle%degreesOfFreedomEffective()/degreesOfFreedomReference)**0.29d0                   &
             &                                  /(particle%mass                     ()/            massReference)**1.15d0
-
-
-       write (0,*) particle%degreesOfFreedomEffective(),particle%mass                     (),bode2001ConstructorInternal%scaleCutOff,particle%degreesOfFreedomEffectiveDecoupling()
-       stop
-       
     class default
        call Galacticus_Error_Report('bode2001ConstructorInternal','transfer function expects a thermal warm dark matter particle')
     end select
