@@ -104,8 +104,9 @@ module Node_Component_Satellite_Orbiting
   ! Option controlling whether or not unbound virial orbits are acceptable.
   logical         , parameter :: acceptUnboundOrbits=.false.
 
-  ! Option controlling minimum separation of satellite and host halo centers before a merger is triggered.
-  double precision            :: satelliteOrbitingDestructionMassFraction
+  ! Option controlling minimum mass of satellite halos before a merger is triggered.
+  double precision            :: satelliteOrbitingDestructionMass
+  logical                     :: satelliteOrbitingDestructionMassIsFractional
 
 contains
 
@@ -123,16 +124,27 @@ contains
     if (defaultSatelliteComponent%orbitingIsActive().and..not.moduleInitialized) then
        ! Create the spheroid mass distribution.
        !@ <inputParameter>
-       !@   <name>satelliteOrbitingDestructionMassFraction</name>
-       !@   <defaultValue>0.01</defaultValue>
+       !@   <name>satelliteOrbitingDestructionMassIsFractional</name>
+       !@   <defaultValue>true</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@    The fraction of the satellite's initial mass below which the satellite is considered to be tidally destroyed and merged with the central halo.
+       !@    If true, then {\normalfont \ttfamily [satelliteOrbitingDestructionMass]} specifies the fractional mass a halo must reach before it is tidally destroyed. Otherwise, {\normalfont \ttfamily [satelliteOrbitingDestructionMass]} specifies an absolute mass.
        !@   </description>
        !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('satelliteOrbitingDestructionMassFraction',satelliteOrbitingDestructionMassFraction,defaultValue=0.01d0)
+       call Get_Input_Parameter('satelliteOrbitingDestructionMass',satelliteOrbitingDestructionMass,defaultValue=0.01d0)
+       !@ <inputParameter>
+       !@   <name>satelliteOrbitingDestructionMass</name>
+       !@   <defaultValue>0.01</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    The mass (possibly fractional---see {\normalfont \ttfamily [satelliteOrbitingDestructionMassIsFractional]}) below which the satellite is considered to be tidally destroyed and merged with the central halo.
+       !@   </description>
+       !@   <type>double</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('satelliteOrbitingDestructionMass',satelliteOrbitingDestructionMass,defaultValue=0.01d0)
        ! Specify the function to use for setting virial orbits.
        call satelliteComponent%virialOrbitSetFunction(Node_Component_Satellite_Orbiting_Virial_Orbit_Set)
        ! Record that the module is now initialized.
@@ -186,7 +198,7 @@ contains
     double precision                                                              :: radiusVirial
     double precision                                                              :: orbitalPeriod
     double precision                                                              :: parentDensity
-    double precision                                                              :: parentEnclosedMass,satelliteMass,basicMass
+    double precision                                                              :: parentEnclosedMass,satelliteMass,basicMass,massDestruction
     double precision                                                              :: tidalHeatingNormalized,angularFrequency,radialFrequency
     type            (tensorRank2Dimension3Symmetric)                              :: tidalTensor,tidalTensorPathIntegrated,positionTensor
 
@@ -268,14 +280,19 @@ contains
           radiusVirial         =  darkMatterHaloScale_%virialRadius(hostNode)
           orbitalRadiusTest    =  max(halfMassRadiusSatellite+halfMassRadiusCentral,radiusVirialFraction*radiusVirial)
           ! Test merging criterion.
-          if     (                                                                       &
-               &     radius        <  orbitalRadiusTest                                  &
-               &  .or.                                                                   &
-               &   (                                                                     &
-               &     satelliteMass <  satelliteOrbitingDestructionMassFraction*basicMass &
-               &    .and.                                                                &
-               &     satelliteMass >= 0.0d0                                              &
-               &   )                                                                     &
+          if (satelliteOrbitingDestructionMassIsFractional) then
+             massDestruction=satelliteOrbitingDestructionMass*basicMass
+          else
+             massDestruction=satelliteOrbitingDestructionMass
+          end if
+          if     (                                       &
+               &     radius        <  orbitalRadiusTest  &
+               &  .or.                                   &
+               &   (                                     &
+               &     satelliteMass <  massDestruction    &
+               &    .and.                                &
+               &     satelliteMass >= 0.0d0              &
+               &   )                                     &
                & ) then
              ! Merging criterion met - trigger an interrupt.
              interrupt=.true.
