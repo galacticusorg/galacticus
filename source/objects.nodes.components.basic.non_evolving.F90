@@ -29,7 +29,7 @@ module Node_Component_Basic_Non_Evolving
   !# <component>
   !#  <class>basic</class>
   !#  <name>nonEvolving</name>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>mass</name>

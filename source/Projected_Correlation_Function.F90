@@ -170,7 +170,7 @@ program Projected_Correlation_Function
   !@ </inputParameter>
   call Get_Input_Parameter('projectedCorrelationFunctionHaloMassMaximum',projectedCorrelationFunctionHaloMassMaximum,defaultValue=1.0d16)  
   ! Ensure the nodes objects are initialized.
-  call Galacticus_Nodes_Initialize                        ()
+  call Node_Class_Hierarchy_Initialize                        ()
   call Node_Component_Dark_Matter_Profile_Scale_Initialize()
   ! Get the default conditional mass function object.
   conditionalMassFunction_  => conditionalMassFunction()

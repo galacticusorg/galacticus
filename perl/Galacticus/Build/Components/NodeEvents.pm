@@ -12,7 +12,6 @@ unshift(@INC, $galacticusPath."perl");
 use strict;
 use warnings;
 use utf8;
-use Text::Template 'fill_in_string';
 require Galacticus::Build::Components::Utils;
 
 # Insert hooks for our functions.

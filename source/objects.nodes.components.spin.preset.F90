@@ -29,7 +29,7 @@ module Node_Component_Spin_Preset
   !# <component>
   !#  <class>spin</class>
   !#  <name>preset</name>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>spin</name>

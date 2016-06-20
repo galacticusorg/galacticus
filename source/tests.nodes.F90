@@ -49,7 +49,7 @@ program Test_Nodes
   call Unit_Tests_Begin_Group("Nodes")
 
   ! Initialize the Galacticus nodes objects module.
-  call Galacticus_Nodes_Initialize()
+  call Node_Class_Hierarchy_Initialize()
 
   ! Ensure tree node has the correct type.
   call Assert('Node has type "treeNode"',char(thisNode%type()),'treeNode')

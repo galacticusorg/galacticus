@@ -32,9 +32,9 @@ require Galacticus::Build::Components::DataTypes;
 	      ],
 	 default     =>
 	     [
+	      \&Implementation_Defaults,
 	      \&Null_Implementations   ,
-	      \&Default_Full_Name      ,
-	      \&Implementation_Defaults
+	      \&Default_Full_Name
 	     ],
 	 gather      =>
 	     [
@@ -70,7 +70,8 @@ sub Implementation_Defaults {
     # Default settings for implementations.
     my %defaults =
 	(
-	 bindings =>
+	 isDefault     => "booleanFalse",
+	 bindings      =>
 	 {
 	     binding =>
 	     {
@@ -105,7 +106,7 @@ sub Null_Implementations {
 	    if ( $implementation->{'name'     } eq "null" );
 	# Record if a default is already specified.
 	$classes{$implementation->{'class'}}->{'hasDefault'} = 1
-	    if ( $implementation->{'isDefault'} eq "yes"  );
+	    if ( $implementation->{'isDefault'} );
     }
     # Iterate over classes, creating null components as necessary.
     foreach my $class ( &ExtraUtils::sortedKeys(\%classes) ) {       
@@ -113,7 +114,7 @@ sub Null_Implementations {
 	if ( $classes{$class}->{'hasNull'} == 0 ) {
 	    # No pre-existing null component is present, so simply insert one into the build data.
 	    my $implementationName = ucfirst($class)."Null";
-	    my $isDefault   = $classes{$class}->{'hasDefault'} ? "no" : "yes";
+	    my $isDefault          = $classes{$class}->{'hasDefault'} ? 0 : 1;
 	    $build->{'components'}->{$implementationName}->{'class'    } = $class;
 	    $build->{'components'}->{$implementationName}->{'name'     } = "null";
 	    $build->{'components'}->{$implementationName}->{'isDefault'} = $isDefault;

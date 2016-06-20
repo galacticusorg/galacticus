@@ -33,7 +33,7 @@ module Node_Component_Satellite_Orbiting
   !# <component>
   !#  <class>satellite</class>
   !#  <name>orbiting</name>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>position</name>
@@ -62,7 +62,8 @@ module Node_Component_Satellite_Orbiting
   !#     <name>timeOfMerging</name>
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
+  !#     <isVirtual>true</isVirtual>
   !#     <classDefault>-1.0d0</classDefault>
   !#     <getFunction>Node_Component_Satellite_Orbiting_Time_Of_Merging</getFunction>
   !#   </property>

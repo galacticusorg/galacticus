@@ -32,7 +32,7 @@ module Node_Component_Disk_Very_Simple
   !# <component>
   !#  <class>disk</class>
   !#  <name>verySimple</name>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>isInitialized</name>
@@ -56,7 +56,8 @@ module Node_Component_Disk_Very_Simple
   !#   </property>
   !#   <property>
   !#     <name>starFormationRate</name>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" isVirtual="true" />
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" />
+  !#     <isVirtual>true</isVirtual>
   !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <output condition="[[diskOutputStarFormationRate]]" unitsInSI="massSolar/gigaYear" comment="Disk star formation rate."/>

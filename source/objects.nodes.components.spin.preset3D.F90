@@ -33,7 +33,7 @@ module Node_Component_Spin_Preset3D
   !#   <class>spin</class>
   !#   <name>preset</name>
   !#  </extends>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>spinVector</name>

@@ -29,7 +29,7 @@ module Node_Component_Formation_Times_Cole2000
   !# <component>
   !#  <class>formationTime</class>
   !#  <name>Cole2000</name>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>formationTime</name>
