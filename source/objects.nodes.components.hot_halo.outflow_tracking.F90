@@ -34,7 +34,7 @@ module Node_Component_Hot_Halo_Outflow_Tracking
   !#   <class>hotHalo</class>
   !#   <name>standard</name>
   !#  </extends>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>trackedOutflowMass</name>

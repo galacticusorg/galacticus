@@ -31,7 +31,7 @@ module Node_Component_Hot_Halo_Very_Simple
   !# <component>
   !#  <class>hotHalo</class>
   !#  <name>verySimple</name>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>mass</name>
@@ -49,13 +49,15 @@ module Node_Component_Hot_Halo_Very_Simple
   !#   </property>
   !#   <property>
   !#     <name>outflowingMass</name>
-  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" isVirtual="true" />
+  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
+  !#     <isVirtual>true</isVirtual>
   !#     <type>double</type>
   !#     <rank>0</rank>
   !#   </property>
   !#   <property>
   !#     <name>hotHaloCoolingMass</name>
-  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" isVirtual="true" />
+  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" />
+  !#     <isVirtual>true</isVirtual>
   !#     <type>double</type>
   !#     <rank>0</rank>
   !#   </property>
@@ -63,7 +65,8 @@ module Node_Component_Hot_Halo_Very_Simple
   !#     <name>outerRadius</name>
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" isVirtual="true" />
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" />
+  !#     <isVirtual>true</isVirtual>
   !#   </property>
   !#  </properties>
   !# </component>

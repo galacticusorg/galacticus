@@ -29,7 +29,7 @@ module Node_Component_Dark_Matter_Profile_Scale_Preset
   !# <component>
   !#  <class>darkMatterProfile</class>
   !#  <name>scalePreset</name>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>scale</name>

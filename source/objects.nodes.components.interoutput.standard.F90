@@ -29,7 +29,7 @@ module Node_Component_Inter_Output_Standard
   !# <component>
   !#  <class>interOutput</class>
   !#  <name>standard</name>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>diskStarFormationRate</name>

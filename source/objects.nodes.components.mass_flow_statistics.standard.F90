@@ -31,7 +31,7 @@ module Node_Component_Mass_Flow_Statistics_Standard
   !# <component>
   !#  <class>massFlowStatistics</class>
   !#  <name>standard</name>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>cooledMass</name>

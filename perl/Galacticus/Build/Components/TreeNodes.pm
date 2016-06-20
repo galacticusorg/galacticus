@@ -266,8 +266,8 @@ sub Build_Tree_Node_Class {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "attachEvent"                                                                                                     ,
 	     function    => "Tree_Node_Attach_Event"                                                                                          ,
-	     description => "Attach a {\\normalfont \\ttfamily nodeEvent} object in this node."                                               ,
-	     returnType  => "\\void"                                                      ,
+	     description => "Attach a {\\normalfont \\ttfamily nodeEvent} object to this node."                                               ,
+	     returnType  => "\\void"                                                                                                          ,
 	     arguments   => "\\textcolor{red}{\\textless *class(nodeEvent)\\textgreater} newEvent\\arginout"
 	 },
 	 {

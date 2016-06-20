@@ -40,7 +40,7 @@ module Node_Component_Hot_Halo_Cold_Mode
   !#    <class>hotHalo</class>
   !#    <name>standard</name>
   !#  </extends>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>massCold</name>

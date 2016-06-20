@@ -209,7 +209,7 @@ sub Build_Component_Classes {
 				    description => "Set the scale of the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$implementationIdentifier."} component."
 }
 				)
-				unless ( $property->{'attributes'}->{'isVirtual'} );
+				unless ( $property->{'isVirtual'} );
 			    $propertiesCreated{$functionName} = 1;
 			}
 		    }

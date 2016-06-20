@@ -27,6 +27,7 @@ require Fortran::Utils;
 require Galacticus::Build::Hooks;
 require Galacticus::Build::Components::Utils;
 require Galacticus::Build::Components::CodeGeneration;
+require Galacticus::Build::Components::Hierarchy;
 require Galacticus::Build::Components::TreeNodes;
 require Galacticus::Build::Components::NodeEvents;
 require Galacticus::Build::Components::BaseTypes;
@@ -117,8 +118,6 @@ sub Components_Generate_Output {
     # Iterate over all functions, calling them with the build data object.
     &{$_}($build)
 	foreach (
-	    # Create an initialization method.
-	    \&Generate_Initialization_Function                       ,
 	    # Generate a finalization method.
 	    \&Generate_Finalization_Function                         ,
 	    # Generate functions to map other functions over components.
@@ -217,10 +216,14 @@ sub Components_Generate_Output {
 	    \&Generate_Null_Binding_Functions                        ,
 	    # Generate all interfaces.
 	    \&Generate_Interfaces                                    ,
-	    # Insert the "contains" line.
-	    \&Insert_Contains
 	);
 
+    # Insert all module scope variables.
+    $build->{'content'} .= &Fortran_Utils::Format_Variable_Defintions($build->{'variables'})."\n";
+
+    # Insert the "contains" line.
+    $build->{'content'} .= "contains\n\n";
+    
     # Insert all functions into content.
     $build->{'content'} .= join("\n",@{$build->{'code'}->{'functions'}})."\n";
     
@@ -736,7 +739,7 @@ sub Generate_Deferred_Procedure_Pointers {
 			    $template = lcfirst($componentID).ucfirst($propertyName).ucfirst($_);
 			} else {
 			    # Record that a null binding function was used.
-			    $buildData->{'nullBindingsUsed'}->{lc($template)} = 1;
+			    $build->{'nullBindingsUsed'}->{lc($template)} = 1;
 			}
 			# Generate the procedure pointer and a boolean to indicate if is has been attached.
 			push(
@@ -853,126 +856,6 @@ sub Generate_Initialization_Status {
     # Insert into the document.
     $build->{'content'} .= "  ! Record of module initialization status.\n";
     $build->{'content'} .= "  logical :: moduleIsInitialized=.false.\n";
-}
-
-sub Generate_Initialization_Function {
-    # Generate an initialization function.
-    my $build = shift;
-    # Generate the function code.
-    my $functionCode;
-    $functionCode .= "  subroutine Galacticus_Nodes_Initialize()\n";
-    $functionCode .= "    !% Initialize the \\glc\\\ object system.\n";
-    $functionCode .= "    use Input_Parameters\n";
-    $functionCode .= "    use ISO_Varying_String\n";
-    $functionCode .= "    use Memory_Management\n";
-    $functionCode .= "    implicit none\n";
-    # Generate variables.
-    my @dataContent =
-	(
-	 {
-	     intrinsic  => "type",
-	     type       => "varying_string",
-	     variables  => [ "methodSelection", "message" ]
-	 }
-	);
-    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    # Check for already initialized.
-    $functionCode .= "   if (.not.moduleIsInitialized) then\n";
-    $functionCode .= "      !\$omp critical (Galacticus_Nodes_Initialize)\n";
-    $functionCode .= "      if (.not.moduleIsInitialized) then\n";
-    # Record of output conditions seen.
-    my %outputConditions;
-    # Iterate over all component classes.
-    $build->{'content'} .= "  ! Parameters controlling output.\n\n";
-    foreach my $componentClass ( @{$build->{'componentClassList'}} ) {
-	# Identify the default implementation.
-    	my $defaultMethod;
-    	foreach my $implementationName ( @{$build->{'componentClasses'}->{$componentClass}->{'members'}} ) {
-    	    my $fullName = ucfirst($componentClass).ucfirst($implementationName);
-    	    $defaultMethod = $implementationName
-		if ( $build->{'components'}->{$fullName}->{'isDefault'} eq "yes" );
-    	}
-	die("No default method was found for ".$componentClass." class")
-	    unless ( defined($defaultMethod) );
-	# Insert a function call to get the parameter controlling the choice of implementation for this class.
-        $functionCode .= "       !@ <inputParameter>\n";
-        $functionCode .= "       !@   <name>treeNodeMethod".ucfirst($componentClass)."</name>\n";
-        $functionCode .= "       !@   <defaultValue>".$defaultMethod."</defaultValue>\n";
-        $functionCode .= "       !@   <attachedTo>module</attachedTo>\n";
-        $functionCode .= "       !@   <description>\n";
-        $functionCode .= "       !@    Specifies the implementation to be used for the ".$componentClass." component of nodes.\n";
-        $functionCode .= "       !@   </description>\n";
-        $functionCode .= "       !@   <type>string</type>\n";
-        $functionCode .= "       !@   <cardinality>1</cardinality>\n";
-        $functionCode .= "       !@ </inputParameter>\n";
-    	$functionCode .= "       call Get_Input_Parameter('treeNodeMethod".&Utils::padClass(ucfirst($componentClass)."'",[1,0]).",methodSelection,defaultValue='".&Utils::padImplementation($defaultMethod."'",[1,0]).")\n";
-    	foreach my $implementationName ( @{$build->{'componentClasses'}->{$componentClass}->{'members'}} ) {
-    	    my $fullName  = ucfirst($componentClass).ucfirst($implementationName);
-	    my $component = $build->{'components'}->{$fullName};
-    	    $functionCode .= "       if (methodSelection == '".&Utils::padImplementation($implementationName."'",[1,0]).") then\n";
-	    $functionCode .= "          allocate(nodeComponent".&Utils::padFullyQualified($fullName,[0,0])." :: default".&Utils::padClass(ucfirst($componentClass)."Component",[9,0]).")\n";
-	    $functionCode .= "          nodeComponent".&Utils::padFullyQualified($fullName."IsActive",[8,0])."=.true.\n";
-	    until ( $fullName eq "" ) {
-		if ( exists($build->{'components'}->{$fullName}->{'extends'}) ) {
-		    $fullName = ucfirst($build->{'components'}->{$fullName}->{'extends'}->{'class'}).ucfirst($build->{'components'}->{$fullName}->{'extends'}->{'name'});
-		    $functionCode .= "          nodeComponent".&Utils::padFullyQualified($fullName."IsActive",[8,0])."=.true.\n";
-		} else {
-		    $fullName = "";
-		}
-	    }
-	    $functionCode .= "    end if\n";
-	    # Insert code to read and parameters controlling outputs.
-	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
-		my $property = $component->{'properties'}->{'property'}->{$propertyName};
-		# Check for output and output condition.
-		if (
-		    exists($property->{'output'}               )                       &&
-		    exists($property->{'output'}->{'condition'})                       &&
-		    $property->{'output'}->{'condition'} =~ m/\[\[([^\]]+)\]\]/
-		    )
-		{		    
-		    my $parameterName = $1;
-		    unless ( exists($outputConditions{$parameterName}) ) {
-			$functionCode .= "       !@ <inputParameter>\n";
-			$functionCode .= "       !@   <name>".$parameterName."</name>\n";
-			$functionCode .= "       !@   <defaultValue>false</defaultValue>\n";
-			$functionCode .= "       !@   <attachedTo>module</attachedTo>\n";
-			$functionCode .= "       !@   <description>\n";
-			$functionCode .= "       !@    Specifies whether the {\\normalfont \\ttfamily ".$propertyName."} method of the {\\normalfont \\ttfamily ".$implementationName."} implemention of the {\\normalfont \\ttfamily ".$componentClass."} component class should be output.\n";
-			$functionCode .= "       !@   </description>\n";
-			$functionCode .= "       !@   <type>string</type>\n";
-			$functionCode .= "       !@   <cardinality>1</cardinality>\n";
-			$functionCode .= "       !@ </inputParameter>\n";
-			$functionCode .= "       call Get_Input_Parameter('".$parameterName."',".$parameterName.",defaultValue=.false.)\n";
-			$build->{'content'} .= "  logical :: ".$parameterName."\n";
-			$outputConditions{$parameterName} = 1;
-		    }
-		}
-	    }
-
-    	}
-    	$functionCode .= "       if (.not.allocated(default".&Utils::padClass(ucfirst($componentClass)."Component",[9,0]).")) then\n";
-    	$functionCode .= "          message='unrecognized method \"'//methodSelection//'\" for \"".$componentClass."\" component'\n";
-	$functionCode .= "          message=message//char(10)//'  available methods are:'\n";
-    	foreach my $implementationName ( sort(@{$build->{'componentClasses'}->{$componentClass}->{'members'}}) ) {
-	    $functionCode .= "          message=message//char(10)//'    ".$implementationName."'\n";
-	}
-    	$functionCode .= "          call Galacticus_Error_Report('Galacticus_Nodes_Initialize',message)\n";
-    	$functionCode .= "       end if\n";
-    }
-    $build->{'content'} .= "\n";
-    $functionCode .= "         ! Record that the module is now initialized.\n";
-    $functionCode .= "         moduleIsInitialized=.true.\n";
-    $functionCode .= "       end if\n";
-    $functionCode .= "       !\$omp end critical (Galacticus_Nodes_Initialize)\n";
-    $functionCode .= "    end if\n";
-    $functionCode .= "    return\n";
-    $functionCode .= "  end subroutine Galacticus_Nodes_Initialize\n";	
-    # Insert into the function list.
-    push(
-	@{$build->{'code'}->{'functions'}},
-	$functionCode
-	);
 }
 
 sub Generate_Finalization_Function {
@@ -2114,7 +1997,7 @@ sub Generate_Implementation_Dump_Functions {
 			    $functionBody .= "    end do\n";
 			}			
 		    }
-		} elsif ( $property->{'attributes'}->{'isVirtual'} && $property->{'rank'} == 0 ) {
+		} elsif ( $property->{'isVirtual'} && $property->{'rank'} == 0 ) {
 		    if (&Utils::isIntrinsic($property->{'type'})) {
 			(my $typeFormat = $formatLabel{$property->{'type'}}) =~ s/^\'\((.*)\)\'$/$1/g;
 			$functionBody .= "    write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".&Utils::padImplementationPropertyName($propertyName,[0,0])."(),'</".$propertyName.">'\n";
@@ -2695,7 +2578,7 @@ sub Generate_Implementation_Output_Functions {
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    $rank   = $linkedData->{'rank'};
 		    $type   = $linkedData->{'type'};
-		} elsif ( $property->{'attributes'}->{'isVirtual'} && $property->{'attributes'}->{'isGettable'} ) {
+		} elsif ( $property->{'isVirtual'} && $property->{'attributes'}->{'isGettable'} ) {
 		    $rank = $property->{'rank'};
 		    $type = $property->{'type'};
 		} else {
@@ -2808,7 +2691,7 @@ sub Generate_Implementation_Output_Functions {
 			my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 			$rank   = $linkedData->{'rank'};
 			$type   = $linkedData->{'type'};
-		    } elsif ( $property->{'attributes'}->{'isVirtual'} && $property->{'attributes'}->{'isGettable'} ) {
+		    } elsif ( $property->{'isVirtual'} && $property->{'attributes'}->{'isGettable'} ) {
 			$rank = $property->{'rank'};
 			$type = $property->{'type'};
 		    } else {
@@ -3001,7 +2884,7 @@ sub Generate_Implementation_Output_Functions {
 			my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 			$rank   = $linkedData->{'rank'};
 			$type   = $linkedData->{'type'};
-		    } elsif ( $property->{'attributes'}->{'isVirtual'} && $property->{'attributes'}->{'isGettable'} ) {
+		    } elsif ( $property->{'isVirtual'} && $property->{'attributes'}->{'isGettable'} ) {
 			$rank = $property->{'rank'};
 			$type = $property->{'type'};
 		    } else {
@@ -4472,8 +4355,8 @@ sub Generate_Deferred_GSR_Function {
 		    my $functionLabel = $componentName.ucfirst($propertyName)."Rate";
 		    $functionLabel = "node".ucfirst($propertyName)."Rate"
 			if ( $property->{'attributes' }->{'bindsTo'} eq "top" );
-		    unless ( exists($buildData->{'topLevelDeferredFunctionsCreated'}->{$functionLabel}) ) {
-			$buildData->{'topLevelDeferredFunctionsCreated'}->{$functionLabel} = 1;
+		    unless ( exists($build->{'topLevelDeferredFunctionsCreated'}->{$functionLabel}) ) {
+			$build->{'topLevelDeferredFunctionsCreated'}->{$functionLabel} = 1;
 			my @dataContent =
 			    (
 			     $dataDefinition,
@@ -6138,7 +6021,7 @@ sub Generate_Component_Class_Output_Functions {
 			my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 			$rank   = $linkedData->{'rank'};
 			$type   = $linkedData->{'type'};
-		    } elsif ( $property->{'attributes'}->{'isVirtual'} && $property->{'attributes'}->{'isGettable'} ) {
+		    } elsif ( $property->{'isVirtual'} && $property->{'attributes'}->{'isGettable'} ) {
 			$rank = $property->{'rank'};
 			$type = $property->{'type'};
 		    } else {
@@ -6397,8 +6280,8 @@ sub Generate_Null_Binding_Functions {
 	    $functionCode .= "  end subroutine ".$nullBindingName."\n";
 	    # Determine if this null rate function is actually used.
 	    my $nullBindingUsed = 0;
-	    foreach my $typeName ( keys(%{$buildData->{'types'}}) ) {
-		foreach my $typeBoundFunction ( @{$buildData->{'types'}->{$typeName}->{'boundFunctions'}} ) {
+	    foreach my $typeName ( keys(%{$build->{'types'}}) ) {
+		foreach my $typeBoundFunction ( @{$build->{'types'}->{$typeName}->{'boundFunctions'}} ) {
 		    if ( lc($typeBoundFunction->{'function'}) eq lc($nullBindingName) ) {
 			$nullBindingUsed = 1;
 			last;
@@ -6407,7 +6290,7 @@ sub Generate_Null_Binding_Functions {
 		last
 		    if ( $nullBindingUsed );
 	    }
-	    $nullBindingUsed = grep {$_ eq lc($nullBindingName)} keys(%{$buildData->{'nullBindingsUsed'}})
+	    $nullBindingUsed = grep {$_ eq lc($nullBindingName)} keys(%{$build->{'nullBindingsUsed'}})
 		unless ( $nullBindingUsed );
 	    # Insert into the function list.
 	    push(
@@ -6448,8 +6331,8 @@ sub Generate_Null_Binding_Functions {
 	    $functionCode .= "  end subroutine ".$nullBindingName."\n";
 	    # Determine if this null rate function is actually used.
 	    $nullBindingUsed = 0;
-	    foreach my $typeName ( keys(%{$buildData->{'types'}}) ) {
-		foreach my $typeBoundFunction ( @{$buildData->{'types'}->{$typeName}->{'boundFunctions'}} ) {
+	    foreach my $typeName ( keys(%{$build->{'types'}}) ) {
+		foreach my $typeBoundFunction ( @{$build->{'types'}->{$typeName}->{'boundFunctions'}} ) {
 		    if ( lc($typeBoundFunction->{'function'}) eq lc($nullBindingName) ) {
 			$nullBindingUsed = 1;
 			last;
@@ -6458,7 +6341,7 @@ sub Generate_Null_Binding_Functions {
 		last
 		    if ( $nullBindingUsed );
 	    }
-	    $nullBindingUsed = grep {$_ eq lc($nullBindingName)} keys(%{$buildData->{'nullBindingsUsed'}})
+	    $nullBindingUsed = grep {$_ eq lc($nullBindingName)} keys(%{$build->{'nullBindingsUsed'}})
 		unless ( $nullBindingUsed );
 	    # Insert into the function list (if it is used).
 	    push(
@@ -6845,12 +6728,6 @@ sub Insert_Type_Definitions {
 	# Insert the type closing.
 	$build->{'content'} .= "  end type ".$type->{'name'}."\n\n";
     }
-}
-
-sub Insert_Contains {
-    # Insert the "contains" line.
-    my $build = shift;
-    $build->{'content'} .= "contains\n\n";
 }
 
 sub Generate_Interfaces {

@@ -29,7 +29,7 @@ module Node_Component_Age_Statistics_Standard
   !# <component>
   !#  <class>ageStatistics</class>
   !#  <name>standard</name>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>diskTimeWeightedIntegratedSFR</name>

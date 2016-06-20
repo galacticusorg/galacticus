@@ -33,7 +33,7 @@ module Node_Component_Disk_Standard
   !# <component>
   !#  <class>disk</class>
   !#  <name>standard</name>
-  !#  <isDefault>yes</isDefault>
+  !#  <isDefault>true</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>isInitialized</name>
@@ -85,7 +85,8 @@ module Node_Component_Disk_Standard
   !#   </property>
   !#   <property>
   !#     <name>halfMassRadius</name>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true"/>
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
+  !#     <isVirtual>true</isVirtual>
   !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <getFunction>Node_Component_Disk_Standard_Half_Mass_Radius</getFunction>
@@ -99,7 +100,8 @@ module Node_Component_Disk_Standard
   !#   </property>
   !#   <property>
   !#     <name>starFormationRate</name>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" isVirtual="true"/>
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" />
+  !#     <isVirtual>true</isVirtual>
   !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <output condition="[[diskOutputStarFormationRate]]" unitsInSI="massSolar/gigaYear" comment="Disk star formation rate."/>
