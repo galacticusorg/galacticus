@@ -26,9 +26,10 @@ module File_Utilities
   !% various files which remain open throughout.
   use, intrinsic :: ISO_C_Binding
   use ISO_Varying_String
+  !$ use OMP_Lib
   implicit none
   private
-  public :: Count_Lines_in_File, File_Exists, File_Lock, File_Unlock, Executable_Find
+  public :: Count_Lines_in_File, File_Exists, File_Lock_Initialize, File_Lock, File_Unlock, Executable_Find
 
   interface Count_Lines_in_File
      !% Generic interface for {\normalfont \ttfamily Count\_Lines\_in\_File} function.
@@ -72,8 +73,9 @@ module File_Utilities
   type, public :: lockDescriptor
      !% Type used to store file lock descriptors.
      private
-     type(c_ptr         ) :: lockDescriptorC
-     type(varying_string) :: fileName
+     type      (c_ptr         ) :: lockDescriptorC
+     !$ integer(omp_lock_kind ) :: threadLock
+     type      (varying_string) :: fileName
   end type lockDescriptor
 
 contains
@@ -138,16 +140,28 @@ contains
     return
   end function Count_Lines_in_File_Char
 
+  subroutine File_Lock_Initialize(lock)
+    !% Initilialize the per thread lock in a file lock object.
+    implicit none
+    type(lockDescriptor), intent(inout) :: lock
+
+    !$ call OMP_Init_Lock(lock%threadLock)
+    return
+  end subroutine File_Lock_Initialize
+
   subroutine File_Lock(fileName,lock,lockIsShared)
     !% Place a lock on a file.
     implicit none
     character(len=*         ), intent(in   )           :: fileName
-    type     (lockDescriptor), intent(  out)           :: lock
+    type     (lockDescriptor), intent(inout)           :: lock
     logical                  , intent(in   ), optional :: lockIsShared
     integer  (c_int)                                   :: lockIsShared_
 
     lockIsShared_=0
     if (present(lockIsShared).and.lockIsShared) lockIsShared_=1
+    ! First obtain a per-thread lock, since POSIX SETLKW locks only per process.
+    !$ call OMP_Set_Lock(lock%threadLock)
+    ! Now obtain the lock on the file.
     call flock_C(trim(fileName)//".lock"//char(0),lock%lockDescriptorC,lockIsShared_)
     lock%fileName=trim(fileName)
     return
@@ -160,10 +174,13 @@ contains
     type   (lockDescriptor), intent(inout) :: lock
     integer                                :: fileUnit
 
+    ! First unlock the file.
     call funlock_C(lock%lockDescriptorC)
     open(newUnit=fileUnit,file=char(lock%fileName),status='unknown')
     if (fsync(fnum(fileUnit)) /= 0) call Galacticus_Error_Report('File_Unlock','error syncing file at unlock')
     close(fileUnit)
+    ! Then release the per-thread lock.
+    !$ call OMP_Unset_Lock(lock%threadLock)
     return
   end subroutine File_Unlock
 
