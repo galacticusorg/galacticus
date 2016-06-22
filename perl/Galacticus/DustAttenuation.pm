@@ -183,7 +183,7 @@ sub Get_Dust_Attenuated_Luminosity {
 	    $sizes =                 $dataSets->{"spheroidRadius"}/$dataSets->{"diskRadius"};
 	}
 	my $sizesLimited;
-	if ( $extrapolateInSize == 1 ) {
+	if ( $extrapolateInSize == 0 ) {
 	    my $sizeMinimum  = $spheroidSizes->index(0);
 	    my $sizeMaximum  = $spheroidSizes->index($spheroidSizesCount-1);
 	    $sizesLimited = $sizeMaximum*($sizes>$sizeMaximum) + $sizeMinimum*($sizes<$sizeMinimum) + $sizes*(($sizes>=$sizeMinimum) & ($sizes<=$sizeMaximum));
@@ -220,7 +220,7 @@ sub Get_Dust_Attenuated_Luminosity {
     my $opticalDepthIndex;
     if ( $component      eq "disk"     ) {
 	my $opticalDepthCentralLimited;
-	if ( $extrapolateInTau == 1 ) {
+	if ( $extrapolateInTau == 0 ) {
 	    my $tauMinimum                 = $diskOpticalDepths->index(0);
 	    my $tauMaximum                 = $diskOpticalDepths->index($diskOpticalDepthsCount-1);
 	    $opticalDepthCentralLimited = $tauMaximum*($opticalDepthCentral>$tauMaximum)
@@ -232,7 +232,7 @@ sub Get_Dust_Attenuated_Luminosity {
 	($opticalDepthIndex,my $error) = interpolate($opticalDepthCentralLimited,$diskOpticalDepths    ,$diskOpticalDepthsIndices    );
     } elsif ( $component eq "spheroid" ) {
 	my $opticalDepthCentralLimited;
-	if ( $extrapolateInTau == 1 ) {
+	if ( $extrapolateInTau == 0 ) {
 	    my $tauMinimum                 = $spheroidOpticalDepths->index(0);
 	    my $tauMaximum                 = $spheroidOpticalDepths->index($spheroidOpticalDepthsCount-1);
 	    $opticalDepthCentralLimited = $tauMaximum*($opticalDepthCentral>$tauMaximum)
