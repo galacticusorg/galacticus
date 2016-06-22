@@ -188,7 +188,7 @@ contains
     ! Open and parse the data file.
     !$omp critical (FoX_DOM_Access)
     doc => parseFile(fileName,iostat=ioError)
-    if (ioError /= 0) call Galacticus_Error_Report('fileReadFile','Unable to find transfer function file')
+    if (ioError /= 0) call Galacticus_Error_Report('fileReadFile','Unable to find transfer function file "'//trim(fileName)//'"')
     ! Check that the file has the correct format version number.
     formatElement => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
     call extractDataContent(formatElement,versionNumber)
