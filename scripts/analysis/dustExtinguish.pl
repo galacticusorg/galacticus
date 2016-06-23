@@ -49,11 +49,6 @@ foreach my $redshift ( $galacticus->{'outputs'}->{'redshift'}->list() ) {
     foreach my $datasetName ( keys(%{$galacticus->{'dataSetsAvailable'}}) ) {
 	# Identify luminosity datasets.
 	if ( $datasetName =~ m/^(disk|spheroid)LuminositiesStellar:([^:]+):(rest|observed):z[\d\.]+$/ ) {
-
-	    ## AJB
-	    next
-		unless ( $2 eq "LSST_u" );
-	    
 	    # Generate corresponding dusty property name.
 	    my $dustyDatasetName = $datasetName.":dustAtlas";
 	    push(
