@@ -190,7 +190,7 @@ sub Get_Dust_Attenuated_Luminosity {
 	} else {
 	    $sizesLimited = $sizes;
 	}
-	($sizeIndex, my $error) = interpolate($sizesLimited,$spheroidSizes,$spheroidSizeIndices);
+	($sizeIndex, my $error) = interpolate($sizesLimited,$spheroidSizes,$spheroidSizeIndices);	
     }
     
     # Specify constants used in calculation of central optical depths.
@@ -254,14 +254,14 @@ sub Get_Dust_Attenuated_Luminosity {
 	$indices->((0),0:nelem($inclinationIndex)-1) .= $inclinationIndex;
 	$indices->((1),0:nelem($inclinationIndex)-1) .= $opticalDepthIndex;
 	$indices->((2),0:nelem($inclinationIndex)-1) .= $wavelengthIndex{$filterLabel};
-	$attenuations = $diskAttenuations->interpND($indices);
+	$attenuations = &dustTableInterpolation($diskAttenuations,$indices);
     } elsif ( $component eq "spheroid" ) {
 	my $indices = zeroes(4,nelem($inclinationIndex));
 	$indices->((0),0:nelem($inclinationIndex)-1) .= $sizeIndex;
 	$indices->((1),0:nelem($inclinationIndex)-1) .= $inclinationIndex;
 	$indices->((2),0:nelem($inclinationIndex)-1) .= $opticalDepthIndex;
 	$indices->((3),0:nelem($inclinationIndex)-1) .= $wavelengthIndex{$filterLabel};
-	$attenuations = $spheroidAttenuations->interpND($indices);
+	$attenuations = &dustTableInterpolation($spheroidAttenuations,$indices);
     } else{
  	die("Get_Dust_Attenuated_Luminosity(): unknown component");
     }
@@ -367,6 +367,96 @@ sub Load_Dust_Atlas {
 	}
 	$dustDataLoaded = 1;
     }
+}
+
+sub dustTableInterpolation {
+    # Interpolate (with extrapolation) in dust tables,
+    my $dustTable            = shift();
+    my $interpolationIndices = shift();
+    # Iterate over dimensions, computing interpolation/extrapolation factors.
+    my $factors              = pdl zeroes(2,$interpolationIndices->dim(0),$interpolationIndices->dim(1));
+    my $indexInRange         = pdl zeroes(  $interpolationIndices->dim(0),$interpolationIndices->dim(1));
+    for(my $i=0;$i<$interpolationIndices->dim(0);++$i) {
+	# Find allowed range of indices in tabulation.
+	my $indexMinimum =                     0;
+	my $indexMaximum = $dustTable->dim($i)-1;
+	# Construct a set of in-range indices.
+	$indexInRange->(($i),:) .= floor($interpolationIndices->(($i),:));
+	my $belowRange   = which($indexInRange->(($i),:) <  $indexMinimum);
+	my $aboveRange   = which($indexInRange->(($i),:) >= $indexMaximum);
+	$indexInRange->(($i),$belowRange) .= $indexMinimum  
+	    if ( nelem($belowRange) > 0 );
+	$indexInRange->(($i),$aboveRange) .= $indexMaximum-1
+	    if ( nelem($aboveRange) > 0 );
+	# Compute interpolation factors.
+	$factors->((1),($i),:) .= $interpolationIndices->(($i),:)-$indexInRange->(($i),:);
+	$factors->((0),($i),:) .= 1.0-$factors->((1),($i),:);
+    }
+    # Perform the interpolation.
+    my $attenuations       = pdl zeroes($interpolationIndices->dim(1));
+    my $attenuationsMaxima = pdl   ones($interpolationIndices->dim(1));
+    if ( $interpolationIndices->dim(0) == 3 ) {
+	for(my $i=0;$i<nelem($attenuations);++$i) {
+	    for(my $j=0;$j<2;++$j) {
+		for(my $k=0;$k<2;++$k) {
+		    for(my $l=0;$l<2;++$l) {
+			my $attenuationTabulated = $dustTable->
+			    (
+			     $indexInRange->((0),($i))+$j,
+			     $indexInRange->((1),($i))+$k,
+			     $indexInRange->((2),($i))+$l
+			    );
+			$attenuations->(($i)) += 
+			    +$attenuationTabulated
+			    *$factors->(($j),(0),($i))
+			    *$factors->(($k),(1),($i))
+			    *$factors->(($l),(2),($i));
+			$attenuationsMaxima->(($i)) .= 
+			    +$attenuationTabulated
+			    if ( $attenuationTabulated > $attenuationsMaxima->(($i)) );
+		    }
+		}
+	    }
+	}
+    } else {
+	for(my $i=0;$i<nelem($attenuations);++$i) {
+	    for(my $j=0;$j<2;++$j) {
+		for(my $k=0;$k<2;++$k) {
+		    for(my $l=0;$l<2;++$l) {
+			for(my $m=0;$m<2;++$m) {
+			    my $attenuationTabulated = $dustTable->
+				(
+				 $indexInRange->((0),($i))+$j,
+				 $indexInRange->((1),($i))+$k,
+				 $indexInRange->((2),($i))+$l,
+				 $indexInRange->((3),($i))+$m
+				);
+			    $attenuations->(($i)) += 
+				+$attenuationTabulated
+				*$factors->(($j),(0),($i))
+				*$factors->(($k),(1),($i))
+				*$factors->(($l),(2),($i))
+				*$factors->(($m),(3),($i));
+			    # Find the maximum attenuation.
+			    $attenuationsMaxima->(($i)) .= 
+				+$attenuationTabulated
+				if ( $attenuationTabulated > $attenuationsMaxima->(($i)) );
+			}
+		    }
+		}
+	    }
+	}
+    }
+    # Limit attenuations to be physical. Attenuations can not be negative. They are also prevented from exceeding the maximum of 1
+    # and the largest tabulated attenuation used in their interpolation.
+    my $attenuationBelow = which($attenuations < 0.0                );
+    my $attenuationAbove = which($attenuations > $attenuationsMaxima);
+    $attenuations->flat()->($attenuationBelow) .= 0.0
+	if ( nelem($attenuationBelow) > 0 );
+    $attenuations->flat()->($attenuationAbove) .= $attenuationsMaxima->($attenuationAbove)
+	if ( nelem($attenuationAbove) > 0 );
+    # Return the computed attenuations.
+    return $attenuations;
 }
 
 1;
