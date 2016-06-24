@@ -62,20 +62,21 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute(thisNode,interrupt,interruptProcedure)
+  subroutine Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure)
     !% Compute the hot halo node mass rate of change.
     use Abundances_Structure
     use Dark_Matter_Halo_Scales
     use Node_Component_Hot_Halo_Standard_Data
     implicit none
     type            (treeNode                    )           , intent(inout), pointer :: thisNode
+    logical                                                  , intent(in   )          :: odeConverged
     logical                                                  , intent(inout)          :: interrupt
     procedure       (interruptTask)           , intent(inout), pointer :: interruptProcedure
     class           (nodeComponentHotHalo        )                          , pointer :: thisHotHalo
     class           (darkMatterHaloScaleClass    )                          , pointer :: darkMatterHaloScale_
     double precision                                                                  :: massReturnRate
     type            (abundances                  )                                    :: abundancesReturnRate
-    !GCC$ attributes unused :: interrupt, interruptProcedure
+    !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
     ! Get the hot halo component.
     thisHotHalo => thisNode%hotHalo()

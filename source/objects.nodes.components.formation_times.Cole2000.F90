@@ -95,15 +95,17 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Formation_Time_Cole2000_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Formation_Time_Cole2000_Rate_Compute(thisNode,interrupt,interruptProcedure)
+  subroutine Node_Component_Formation_Time_Cole2000_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure)
     !% Check for need to update the formation time of a node in the {\normalfont \ttfamily Cole2000} formation time component.
     implicit none
     type     (treeNode                                              ), intent(inout), pointer :: thisNode
+    logical                                                          , intent(in   )          :: odeConverged
     logical                                                          , intent(inout)          :: interrupt
     procedure(interruptTask                          ), intent(inout), pointer :: interruptProcedure
     class    (nodeComponentFormationTime                            )               , pointer :: thisFormationTimeComponent
     class    (nodeComponentBasic                                    )               , pointer :: formationBasicComponent   , thisBasicComponent
-
+    !GCC$ attributes unused :: odeConverged
+    
     ! Get the hot halo component.
     thisFormationTimeComponent => thisNode%formationTime()
     if (defaultFormationTimeComponent%cole2000IsActive()) then

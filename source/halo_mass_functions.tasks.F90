@@ -35,7 +35,7 @@ module Halo_Mass_Functions_Tasks
        &                                                       haloMassFunction_nu                   , haloMassFunction_sigma            , &
        &                                                       haloMassFunction_virialRadius         , haloMassFunction_virialTemperature, &
        &                                                       haloMassFunction_virialVelocity       , haloMassFunction_scaleRadius      , &
-       &                                                       haloMassFunction_velocityMaximum
+       &                                                       haloMassFunction_velocityMaximum      , haloMassFunction_cumulativeSubhalo
 
   ! Arrays of output time data.
   double precision            , allocatable, dimension(:  ) :: outputCharacteristicMass              , outputCriticalOverdensities       , &
@@ -45,6 +45,9 @@ module Halo_Mass_Functions_Tasks
 
   ! The upper limit to halo mass used when computing cumulative mass functions.
   double precision            , parameter                   :: haloMassEffectiveInfinity      =1.0d16
+
+  ! Largest subhalo mass (in units of host mass) for which we expect significant unevolved subhalo mass function.
+  double precision            , parameter                   :: subhaloMassMaximum             =1.0d02
 
 contains
 
@@ -77,11 +80,13 @@ contains
     use Galacticus_Nodes
     use Node_Components
     use Halo_Mass_Functions
+    use Unevolved_Subhalo_Mass_Functions
     use Dark_Matter_Halo_Biases
     use Dark_Matter_Profiles
     use Dark_Matter_Profile_Scales
     use Memory_Management
     use Numerical_Ranges
+    use Numerical_Integration
     use Input_Parameters
     use Critical_Overdensities
     use Cosmological_Mass_Variance
@@ -93,21 +98,24 @@ contains
     use Galacticus_Calculations_Resets
     use ISO_Varying_String
     implicit none
-    class           (nodeComponentBasic            ), pointer :: thisBasic
-    class           (nodeComponentDarkMatterProfile), pointer :: thisDarkMatterProfile
-    type            (treeNode                      ), pointer :: thisNode
-    class           (cosmologyFunctionsClass       ), pointer :: cosmologyFunctions_
-    class           (darkMatterHaloScaleClass      ), pointer :: darkMatterHaloScale_
-    class           (darkMatterProfileClass        ), pointer :: darkMatterProfile_
-    class           (virialDensityContrastClass    ), pointer :: virialDensityContrast_
-    class           (criticalOverdensityClass      ), pointer :: criticalOverdensity_
-    class           (linearGrowthClass             ), pointer :: linearGrowth_
-    class           (cosmologicalMassVarianceClass ), pointer :: cosmologicalMassVariance_
-    class           (haloMassFunctionClass         ), pointer :: haloMassFunction_
-    integer                                                   :: haloMassFunctionsCount      , haloMassFunctionsPointsPerDecade, &
-         &                                                       iMass                       , iOutput                         , &
-         &                                                       outputCount                 , verbosityLevel
-    double precision                                          :: haloMassFunctionsMassMaximum, haloMassFunctionsMassMinimum
+    class           (nodeComponentBasic               ), pointer :: thisBasic
+    class           (nodeComponentDarkMatterProfile   ), pointer :: thisDarkMatterProfile
+    type            (treeNode                         ), pointer :: thisNode
+    class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_
+    class           (darkMatterHaloScaleClass         ), pointer :: darkMatterHaloScale_
+    class           (darkMatterProfileClass           ), pointer :: darkMatterProfile_
+    class           (virialDensityContrastClass       ), pointer :: virialDensityContrast_
+    class           (criticalOverdensityClass         ), pointer :: criticalOverdensity_
+    class           (linearGrowthClass                ), pointer :: linearGrowth_
+    class           (cosmologicalMassVarianceClass    ), pointer :: cosmologicalMassVariance_
+    class           (haloMassFunctionClass            ), pointer :: haloMassFunction_
+    class           (unevolvedSubhaloMassFunctionClass), pointer :: unevolvedSubhaloMassFunction_
+    type            (fgsl_function                    )          :: integrandFunction
+    type            (fgsl_integration_workspace       )          :: integrationWorkspace
+    integer                                                      :: haloMassFunctionsCount       , haloMassFunctionsPointsPerDecade, &
+         &                                                          iMass                        , iOutput                         , &
+         &                                                          outputCount                  , verbosityLevel
+    double precision                                             :: haloMassFunctionsMassMaximum , haloMassFunctionsMassMinimum
 
     ! Get the verbosity level parameter.
     !@ <inputParameter>
@@ -153,12 +161,13 @@ contains
        call Get_Input_Parameter('outputRedshifts',outputRedshifts                     )
     end if
     ! Get required objects.
-    cosmologyFunctions_    => cosmologyFunctions   ()
-    virialDensityContrast_ => virialDensityContrast()
-    darkMatterProfile_     => darkMatterProfile    ()
-    criticalOverdensity_   => criticalOverdensity  ()
-    linearGrowth_          => linearGrowth         ()
-    haloMassFunction_      => haloMassFunction     ()
+    cosmologyFunctions_           => cosmologyFunctions          ()
+    virialDensityContrast_        => virialDensityContrast       ()
+    darkMatterProfile_            => darkMatterProfile           ()
+    criticalOverdensity_          => criticalOverdensity         ()
+    linearGrowth_                 => linearGrowth                ()
+    haloMassFunction_             => haloMassFunction            ()
+    unevolvedSubhaloMassFunction_ => unevolvedSubhaloMassFunction()
     
     ! Find the mass range and increment size.
     !@ <inputParameter>
@@ -213,6 +222,7 @@ contains
     call Alloc_Array(haloMassFunction_dndM             ,[haloMassFunctionsCount,outputCount])
     call Alloc_Array(haloMassFunction_dndlnM           ,[haloMassFunctionsCount,outputCount])
     call Alloc_Array(haloMassFunction_cumulative       ,[haloMassFunctionsCount,outputCount])
+    call Alloc_Array(haloMassFunction_cumulativeSubhalo,[haloMassFunctionsCount,outputCount])
     call Alloc_Array(haloMassFunction_massFraction     ,[haloMassFunctionsCount,outputCount])
     call Alloc_Array(haloMassFunction_bias             ,[haloMassFunctionsCount,outputCount])
     call Alloc_Array(haloMassFunction_sigma            ,[haloMassFunctionsCount,outputCount])
@@ -263,12 +273,42 @@ contains
           haloMassFunction_virialTemperature(iMass,iOutput)=darkMatterHaloScale_ %virialTemperature      (thisNode)
           haloMassFunction_virialRadius     (iMass,iOutput)=darkMatterHaloScale_ %virialRadius           (thisNode)
           haloMassFunction_scaleRadius      (iMass,iOutput)=thisDarkMatterProfile%scale                  (        )
-          haloMassFunction_velocityMaximum  (iMass,iOutput)=darkMatterProfile_   %circularVelocityMaximum(thisNode)          
+          haloMassFunction_velocityMaximum  (iMass,iOutput)=darkMatterProfile_   %circularVelocityMaximum(thisNode)
+          ! Integrate the unevolved subhalo mass function over the halo mass function to get the total subhalo mass function.
+          haloMassFunction_cumulativeSubhalo(iMass,iOutput)=Integrate(                                          &
+               &                                                      log(haloMassFunction_Mass(1,iOutput)/subhaloMassMaximum       ), &
+               &                                                      log(                                 haloMassEffectiveInfinity), &
+               &                                                      subhaloMassFunctionIntegrand            , &
+               &                                                      integrandFunction                       , &
+               &                                                      integrationWorkspace                    , &
+               &                                                      toleranceAbsolute    =0.0d+0            , &
+               &                                                      toleranceRelative    =1.0d-4            , &
+               &                                                      integrationRule      =FGSL_Integ_Gauss15  &
+               &                                                     )
+          call Integrate_Done(integrandFunction,integrationWorkspace)
        end do
 
     end do
 
     return
+
+  contains
+    
+    double precision function subhaloMassFunctionIntegrand(logMass)
+      !% Integrand function used to find the cumulative subhalo mass function.
+      implicit none
+      double precision, intent(in   ) :: logMass
+      double precision                :: mass
+
+      ! Extract integrand parameters.
+      mass=exp(logMass)
+      ! Return the differential halo mass function multiplied by the integrated unevolved subhalo mass function in such hosts.
+      subhaloMassFunctionIntegrand=+                                                                                                                               mass  &
+           &                       *haloMassFunction_            %differential(outputTimes(iOutput)                                                               ,mass) &
+           &                       *unevolvedSubhaloMassFunction_%integrated  (outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity,mass)
+      return
+    end function subhaloMassFunctionIntegrand
+  
   end subroutine Halo_Mass_Function_Compute
 
   subroutine Halo_Mass_Function_Output
@@ -315,6 +355,10 @@ contains
     call thisDataset%writeAttribute(1.0d0/megaParsec**3,'unitsInSI')
     call thisDataset%close()
     call massFunctionGroup%writeDataset(haloMassFunction_cumulative,'haloMassFunctionCumulative','The halo cumulative mass&
+         & function.',datasetReturned=thisDataset)
+    call thisDataset%writeAttribute(1.0d0/megaParsec**3,'unitsInSI')
+    call thisDataset%close()
+    call massFunctionGroup%writeDataset(haloMassFunction_cumulativeSubhalo,'subhaloMassFunctionCumulative','The subhalo cumulative mass&
          & function.',datasetReturned=thisDataset)
     call thisDataset%writeAttribute(1.0d0/megaParsec**3,'unitsInSI')
     call thisDataset%close()

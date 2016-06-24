@@ -172,16 +172,18 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Hot_Halo_Very_Simple_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Hot_Halo_Very_Simple_Rate_Compute(thisNode,interrupt,interruptProcedure)
+  subroutine Node_Component_Hot_Halo_Very_Simple_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure)
     !% Compute the very simple hot halo component mass rate of change.
     use Accretion_Halos
     implicit none
     type            (treeNode            ), intent(inout), pointer :: thisNode
+    logical                               , intent(in   )          :: odeConverged
     logical                               , intent(inout)          :: interrupt
     procedure       (                    ), intent(inout), pointer :: interruptProcedure
     class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
     class           (accretionHaloClass  )               , pointer :: accretionHalo_
     double precision                                               :: massAccretionRate   , failedMassAccretionRate
+    !GCC$ attributes unused :: odeConverged
     
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()

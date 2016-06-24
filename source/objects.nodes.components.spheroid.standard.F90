@@ -508,7 +508,7 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Spheroid_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Spheroid_Standard_Rate_Compute(thisNode,interrupt,interruptProcedure)
+  subroutine Node_Component_Spheroid_Standard_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure)
     !% Compute the standard spheroid node mass rate of change.
     use Star_Formation_Feedback_Spheroids
     use Star_Formation_Feedback_Expulsion_Spheroids
@@ -523,6 +523,7 @@ contains
     use Stellar_Luminosities_Structure
     implicit none
     type            (treeNode             ), intent(inout), pointer :: thisNode
+    logical                                , intent(in   )          :: odeConverged
     logical                                , intent(inout)          :: interrupt
     procedure       (                     ), intent(inout), pointer :: interruptProcedure
     class           (nodeComponentSpheroid)               , pointer :: thisSpheroid
@@ -543,7 +544,7 @@ contains
     type            (history              )                         :: historyTransferRate       , stellarHistoryRate
     type            (stellarLuminosities  ), save                   :: luminositiesStellarRates
     !$omp threadprivate(luminositiesStellarRates)
-    !GCC$ attributes unused :: interrupt, interruptProcedure
+    !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
     ! Get the disk and check that it is of our class.
     thisSpheroid => thisNode%spheroid()
