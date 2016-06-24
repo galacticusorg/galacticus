@@ -139,7 +139,17 @@ contains
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
-    if (thisNode%isSatellite()) call Node_Component_Satellite_Standard_Create(thisNode)
+    if     (                                                                               &
+         &                     thisNode                            %isSatellite        ()  &
+         &  .or.                                                                           &
+         &   (                                                                             &
+         &     .not.           thisNode                            %isPrimaryProgenitor()  &
+         &    .and.                                                                        &
+         &          associated(thisNode                            %parent               ) &
+         &    .and.                                                                        &
+         &                     satelliteOrbitStoreOrbitalParameters                        &
+         &   )                                                                             &
+         & ) call Node_Component_Satellite_Standard_Create(thisNode)
     return
   end subroutine Node_Component_Satellite_Standard_Tree_Initialize
 
@@ -182,7 +192,7 @@ contains
     class(virialOrbitClass              ), pointer       :: virialOrbit_
 
     selfNode => self%host()
-    if (selfNode%isSatellite().or..not.selfNode%isPrimaryProgenitor().and.associated(selfNode%parent)) then
+    if (selfNode%isSatellite().or.(.not.selfNode%isPrimaryProgenitor().and.associated(selfNode%parent))) then
        if (satelliteOrbitStoreOrbitalParameters) then
           Node_Component_Satellite_Standard_Virial_Orbit=self%virialOrbitValue()
        else
