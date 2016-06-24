@@ -538,9 +538,9 @@ contains
              else
                 ! Parent halo is not close to the resolution limit - this is an error.
                 message="branch is not well-ordered in time:"           //char(10)
-                write (label,'(i20)'  ) thisNode       %index()
+                write (label,'(i20)'   ) thisNode       %index()
                 message=message//" ->      node index = "//label        //char(10)
-                write (label,'(i120)'  ) thisNode%parent%index()
+                write (label,'(i20)'   ) thisNode%parent%index()
                 message=message//" ->    parent index = "//label        //char(10)
                 write (label,'(e20.14)')                                   thisBasic%time()
                 message=message//" ->       node time = "//label//" Gyr"//char(10)

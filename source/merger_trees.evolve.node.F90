@@ -382,7 +382,7 @@ contains
        propertyRatesPrevious(1:nProperties)=0.0d0
     else
        ! Compute derivatives.
-       call Tree_Node_Compute_Derivatives(activeNode,interrupt,interruptProcedure)
+       call Tree_Node_Compute_Derivatives(activeNode,odeConverged,interrupt,interruptProcedure)
        ! Check whether an interrupt has been requested.
        select case (interrupt)
        case (.false.)
@@ -407,7 +407,7 @@ contains
     return
   end function Tree_Node_ODEs
 
-  subroutine Tree_Node_Compute_Derivatives(thisNode,interrupt,interruptProcedureReturn)
+  subroutine Tree_Node_Compute_Derivatives(thisNode,odeConverged,interrupt,interruptProcedureReturn)
     !% Call routines to set alls derivatives for {\normalfont \ttfamily thisNode}.
     use Galacticus_Calculations_Resets
     !# <include directive="preDerivativeTask" type="moduleUse">
@@ -418,6 +418,7 @@ contains
     !# </include>
     implicit none
     type     (treeNode), intent(inout), pointer :: thisNode
+    logical            , intent(in   )          :: odeConverged
     logical            , intent(  out)          :: interrupt
     procedure(        ), intent(  out), pointer :: interruptProcedureReturn
     procedure(        )               , pointer :: interruptProcedure
@@ -437,7 +438,7 @@ contains
 
     ! Call component routines to compute derivatives.
     !# <include directive="rateComputeTask" type="functionCall" functionType="void">
-    !#  <functionArgs>thisNode,interrupt,interruptProcedure</functionArgs>
+    !#  <functionArgs>thisNode,odeConverged,interrupt,interruptProcedure</functionArgs>
     include 'objects.node.component.derivatives.inc'
     !# </include>
 

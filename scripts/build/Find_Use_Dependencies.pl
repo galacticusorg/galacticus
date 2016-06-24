@@ -239,9 +239,13 @@ foreach my $srcdir ( @sourcedirs ) {
 			    if ( exists($includeLibararies{lc($includeFile)}) );
 		    }
 		    if ( $line =~ m/^\#/ ) {
-			if ( $line =~ m/^\#ifdef\s+([0-9A-Z_]+)\s*$/ ) {
+			if ( $line =~ m/^\#ifdef\s+([0-9A-Za-z_]+)\s*$/ ) {
 			    my $this_preproc = $1;
 			    push(@preproc_stack_name ,$this_preproc);
+			    push(@preproc_stack_state,1            );
+			}
+			if ( $line =~ m/^\#if\s/ ) {
+			    push(@preproc_stack_name ,"conditional");
 			    push(@preproc_stack_state,1            );
 			}
 			if ( $line =~ m/^\#ifndef\s+([0-9A-Z_]+)\s*$/ ) {

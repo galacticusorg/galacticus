@@ -27,6 +27,9 @@
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
+#ifdef __linux__
+#include <linux/version.h>
+#endif
 
 struct lockDescriptor {
   struct flock fl;
@@ -48,9 +51,17 @@ void flock_C(const char *name, struct lockDescriptor **ld, int lockIsShared) {
     (*ld)->fl.l_type  =F_RDLCK;
   }
   (*ld)->fl.l_whence=SEEK_SET;
-  (*ld)->fl.l_start =0;        /* Offset from l_whence         */
-  (*ld)->fl.l_len   =1;        /* length, 0 = to EOF           */
-  (*ld)->fl.l_pid   =getpid(); /* our PID                      */
+  (*ld)->fl.l_start =0;        /* Offset from l_whence                        */
+  (*ld)->fl.l_len   =1;        /* length, 0 = to EOF                          */
+#ifdef __linux__
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,15,0)
+  (*ld)->fl.l_pid   =0;        /* no PID for Linux open file descriptor locks */
+#else
+  (*ld)->fl.l_pid   =getpid(); /* our PID                                     */
+#endif
+#else
+  (*ld)->fl.l_pid   =getpid(); /* our PID                                     */
+#endif
   (*ld)->fd=open(name,O_RDWR | O_CREAT,S_IRUSR | S_IWUSR);
   if ( (*ld)->fd < 0 ) {
     printf("flock_C(): opening file '%s' failed\n",name);
@@ -58,7 +69,15 @@ void flock_C(const char *name, struct lockDescriptor **ld, int lockIsShared) {
     printf("  -> error description is : %s\n",strerror(errno));
     abort();
   }
-  if (fcntl((*ld)->fd, F_SETLKW, &(*ld)->fl) == -1) {
+#ifdef __linux__
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,15,0)
+  if (fcntl((*ld)->fd, F_OFD_SETLKW, &(*ld)->fl) == -1) {
+#else
+  if (fcntl((*ld)->fd, F_SETLKW    , &(*ld)->fl) == -1) {
+#endif
+#else
+  if (fcntl((*ld)->fd, F_SETLKW    , &(*ld)->fl) == -1) {
+#endif
     if (errno == ENOSYS) {
       /* File locking is not implemented on this system. Fail silently, returning a suitable error code in the lock descriptor */
       (*ld)->fd = -1;
@@ -89,7 +108,15 @@ void funlock_C(struct lockDescriptor **ld) {
   if ( (*ld)->fd != -1 ) {
     (*ld)->fl.l_type  =F_UNLCK;
     close((*ld)->fd);
-    fcntl((*ld)->fd, F_SETLK, &(*ld)->fl); /* set the region to unlocked */
+#ifdef __linux__
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,15,0)
+    fcntl((*ld)->fd, F_OFD_SETLK, &(*ld)->fl); /* set the region to unlocked */
+#else
+    fcntl((*ld)->fd, F_SETLK    , &(*ld)->fl); /* set the region to unlocked */
+#endif
+#else
+    fcntl((*ld)->fd, F_SETLK    , &(*ld)->fl); /* set the region to unlocked */
+#endif
     free((*ld)->name);
     free(*ld);
   }

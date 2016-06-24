@@ -322,7 +322,7 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Black_Hole_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Black_Hole_Standard_Rate_Compute(thisNode,interrupt,interruptProcedure)
+  subroutine Node_Component_Black_Hole_Standard_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure)
     !% Compute the black hole node mass rate of change.
     use Accretion_Disks
     use Numerical_Constants_Physical
@@ -333,7 +333,8 @@ contains
     implicit none
     type            (treeNode                                          )           , intent(inout), pointer :: thisNode
     logical                                                                        , intent(inout)          :: interrupt
-    procedure       (interruptTask                      )           , intent(inout), pointer :: interruptProcedure
+    logical                                                                        , intent(in   )          :: odeConverged
+    procedure       (interruptTask                                     )           , intent(inout), pointer :: interruptProcedure
     class           (nodeComponentBlackHole                            )                          , pointer :: binaryBlackHoleComponent                                                                                                                          , centralBlackHoleComponent                                      , &
          &                                                                                                     thisBlackHoleComponent
     class           (nodeComponentSpheroid                             )                          , pointer :: thisSpheroidComponent
@@ -356,6 +357,7 @@ contains
          &                                                                                                     spheroidRadius                                                                                                                                    , windEfficiencyNet                                              , &
          &                                                                                                     windFraction                                                                                                                                      , hotModeFraction
     logical                                                                                                 :: binaryRadiusFound
+    !GCC$ attributes unused :: odeConverged
 
     if (defaultBlackHoleComponent%standardIsActive()) then
        darkMatterHaloScale_ => darkMatterHaloScale()

@@ -105,15 +105,16 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Mass_Flow_Statistics_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Mass_Flow_Statistics_Standard_Rate_Compute(thisNode,interrupt,interruptProcedure)
+  subroutine Node_Component_Mass_Flow_Statistics_Standard_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure)
     !% Compute rates of change of properties in the standard implementation of the basic component.
     use Cooling_Rates
     implicit none
     type     (treeNode                       ), pointer, intent(inout) :: thisNode
+    logical                                            , intent(in   ) :: odeConverged
     logical                                   ,          intent(inout) :: interrupt
     procedure(                               ), pointer, intent(inout) :: interruptProcedure
     class    (nodeComponentMassFlowStatistics), pointer                :: massFlowStatisticsComponent
-    !GCC$ attributes unused :: interrupt, interruptProcedure
+    !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
     ! Get the massFlowStatistics component.
     massFlowStatisticsComponent => thisNode%massFlowStatistics()

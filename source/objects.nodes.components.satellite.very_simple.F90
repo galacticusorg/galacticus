@@ -119,14 +119,15 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Satellite_Very_Simple_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Satellite_Very_Simple_Rate_Compute(thisNode,interrupt,interruptProcedure)
+  subroutine Node_Component_Satellite_Very_Simple_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure)
     !% Compute the time until satellite merging rate of change.
     implicit none
     type            (treeNode              ), intent(inout), pointer :: thisNode
+    logical                                 , intent(in   )          :: odeConverged
     logical                                 , intent(inout)          :: interrupt
     procedure       (                      ), intent(inout), pointer :: interruptProcedure
     class           (nodeComponentSatellite)               , pointer :: satelliteComponent
-    !GCC$ attributes unused :: interrupt, interruptProcedure
+    !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
     ! Get the satellite component.
     satelliteComponent => thisNode%satellite()
