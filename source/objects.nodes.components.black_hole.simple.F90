@@ -72,6 +72,9 @@ module Node_Component_Black_Hole_Simple
 
 contains
 
+  !# <nodeComponentInitializationTask>
+  !#  <unitName>Node_Component_Black_Hole_Simple_Initialize</unitName>
+  !# </nodeComponentInitializationTask>
   subroutine Node_Component_Black_Hole_Simple_Initialize()
     !% Initializes the simple black hole node component module.
     use Input_Parameters
@@ -244,7 +247,7 @@ contains
 
        ! Find the rate of rest mass accretion onto the black hole.
        restMassAccretionRate=blackHoleToSpheroidStellarGrowthRatio*thisSpheroidComponent%starFormationRate()
-
+       
        ! Finish if there is no accretion.
        if (restMassAccretionRate <= 0.0d0) return
 
