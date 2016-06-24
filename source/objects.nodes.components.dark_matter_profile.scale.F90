@@ -149,17 +149,18 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Dark_Matter_Profile_Scale_Rate_Compute(thisNode,interrupt,interruptProcedure)
+  subroutine Node_Component_Dark_Matter_Profile_Scale_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure)
     !% Compute the rate of change of the scale radius.
     use Dark_Matter_Halo_Scales
     implicit none
     type            (treeNode                      ), intent(inout), pointer :: thisNode
+    logical                                         , intent(in   )          :: odeConverged
     logical                                         , intent(inout)          :: interrupt
     procedure       (                              ), intent(inout), pointer :: interruptProcedure
     class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
     class           (darkMatterHaloScaleClass      )               , pointer :: darkMatterHaloScale_
     double precision                                                         :: concentration                 , growthRate
-    !GCC$ attributes unused :: interrupt, interruptProcedure
+    !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
     ! Get the dark matter profile component.
     thisDarkMatterProfileComponent => thisNode%darkMatterProfile()
