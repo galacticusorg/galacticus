@@ -219,7 +219,7 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Hot_Halo_Cold_Mode_Rate_Compute(thisNode,interrupt,interruptProcedure)
+  subroutine Node_Component_Hot_Halo_Cold_Mode_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure)
     !% Compute the hot halo node mass rate of change.
     use Abundances_Structure
     use Accretion_Halos
@@ -233,6 +233,7 @@ contains
     use Galactic_Structure_Densities
     implicit none
     type            (treeNode                    )      , intent(inout), pointer :: thisNode
+    logical                                             , intent(in   )          :: odeConverged
     logical                                             , intent(inout)          :: interrupt
     procedure       (Interrupt_Procedure_Template)      , intent(inout), pointer :: interruptProcedure
     class           (nodeComponentHotHalo        )                     , pointer :: thisHotHalo
@@ -243,7 +244,8 @@ contains
          &                                                                          massAccretionRate           , massLossRate         , &
          &                                                                          outerRadius                 , outerRadiusGrowthRate, &
          &                                                                          gasMass                     , infallRate
-
+    !GCC$ attributes unused :: odeConverged
+    
     ! Get the hot halo component.
     thisHotHalo => thisNode%hotHalo()
     ! Ensure that the standard hot halo implementation is active.

@@ -68,14 +68,15 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Basic_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Basic_Standard_Rate_Compute(thisNode,interrupt,interruptProcedure)
+  subroutine Node_Component_Basic_Standard_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure)
     !% Compute rates of change of properties in the standard implementation of the basic component.
     implicit none
     type     (treeNode          ), intent(inout), pointer :: thisNode
+    logical                      , intent(in   )          :: odeConverged
     logical                      , intent(inout)          :: interrupt
     procedure(                  ), intent(inout), pointer :: interruptProcedure
     class    (nodeComponentBasic)               , pointer :: basicComponent
-    !GCC$ attributes unused :: interrupt, interruptProcedure
+    !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
     ! Get the basic component.
     basicComponent => thisNode%basic()
