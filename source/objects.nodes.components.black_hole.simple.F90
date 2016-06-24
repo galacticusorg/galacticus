@@ -215,13 +215,14 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Black_Hole_Simple_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Black_Hole_Simple_Rate_Compute(thisNode,interrupt,interruptProcedure)
+  subroutine Node_Component_Black_Hole_Simple_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure)
     !% Compute the black hole mass rate of change.
     use Cooling_Radii
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Physical
     implicit none
     type            (treeNode                                          )           , intent(inout), pointer :: thisNode
+    logical                                                                        , intent(in   )          :: odeConverged
     logical                                                                        , intent(inout)          :: interrupt
     procedure       (Interrupt_Procedure_Template                      )           , intent(inout), pointer :: interruptProcedure
     class           (nodeComponentBlackHole                            )                          , pointer :: thisBlackHoleComponent
@@ -234,7 +235,8 @@ contains
          &                                                                                                     energyInputRate                               , heatingRate          , &
          &                                                                                                     massAccretionRate                             , restMassAccretionRate, &
          &                                                                                                     x
-
+    !GCC$ attributes unused :: odeConverged
+    
     if (defaultBlackHoleComponent%simpleIsActive()) then
 
        ! Get the spheroid component.

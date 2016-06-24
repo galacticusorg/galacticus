@@ -937,7 +937,7 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Hot_Halo_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Hot_Halo_Standard_Rate_Compute(thisNode,interrupt,interruptProcedure)
+  subroutine Node_Component_Hot_Halo_Standard_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure)
     !% Compute the hot halo node mass rate of change.
     use Abundances_Structure
     use Accretion_Halos
@@ -954,6 +954,7 @@ contains
     use Node_Component_Hot_Halo_Standard_Data
     implicit none
     type            (treeNode                    )           , intent(inout), pointer :: thisNode
+    logical                                                  , intent(in   )          :: odeConverged
     logical                                                  , intent(inout)          :: interrupt
     procedure       (Interrupt_Procedure_Template)           , intent(inout), pointer :: interruptProcedure
     class           (nodeComponentHotHalo        )                          , pointer :: thisHotHaloComponent
@@ -970,7 +971,8 @@ contains
          &                                                                               massLossRate                             , massToDensityConversion, &
          &                                                                               outerRadius                              , outerRadiusGrowthRate  , &
          &                                                                               massAccretionRate
-
+    !GCC$ attributes unused :: odeConverged
+    
     ! Reset calculations if necessary.
     if (thisNode%uniqueID() /= uniqueIDPrevious) call Node_Component_Hot_Halo_Standard_Reset(thisNode)
     ! Get required objects.

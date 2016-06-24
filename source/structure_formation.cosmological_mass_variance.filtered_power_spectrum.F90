@@ -29,7 +29,7 @@
   !#   spectrum, with the specified power spectrum window function. The fractional tolerance for
   !#   this integration can be set via the {\normalfont \ttfamily [tolerance]} parameter. (The
   !#   normalization of $\sigma(M)$ to give the desired $\sigma_8$ always uses a top-hat window
-  !#   function. For this integration the tolerance can be set via the {\noralfont \ttfamily
+  !#   function. For this integration the tolerance can be set via the {\normalfont \ttfamily
   !#   [toleranceTopHat]} parameter.) This is tabulated across the required range.
   !#
   !#   Cubic spline interpolation is then used to interpolate in this table to give $\sigma(M)$

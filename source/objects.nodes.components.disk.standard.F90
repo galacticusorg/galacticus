@@ -558,7 +558,7 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Disk_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Disk_Standard_Rate_Compute(thisNode,interrupt,interruptProcedureReturn)
+  subroutine Node_Component_Disk_Standard_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedureReturn)
     !% Compute the standard disk node mass rate of change.
     use Abundances_Structure
     use Histories
@@ -575,6 +575,7 @@ contains
     use Stellar_Luminosities_Structure
     implicit none
     type            (treeNode                    ), intent(inout), pointer :: thisNode
+    logical                                       , intent(in   )          :: odeConverged
     class           (nodeComponentDisk           )               , pointer :: thisDisk
     class           (nodeComponentSpheroid       )               , pointer :: thisSpheroid
     class           (nodeComponentHotHalo        )               , pointer :: thisHotHalo
@@ -598,6 +599,7 @@ contains
     type            (history                      )                         :: historyTransferRate         , stellarHistoryRate
     type            (stellarLuminosities          ), save                   :: luminositiesStellarRates    , luminositiesTransferRate
     !$omp threadprivate(luminositiesStellarRates,luminositiesTransferRate)
+    !GCC$ attributes unused :: odeConverged
     
     ! Get a local copy of the interrupt procedure.
     interruptProcedure => interruptProcedureReturn
