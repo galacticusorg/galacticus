@@ -30,7 +30,7 @@ module Unevolved_Subhalo_Mass_Functions
   !#  <stateful>no</stateful>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="differential" >
-  !#   <description>Return the differential unevolved subhalo mass function per halo for {\normalfont \ttfamily mass} [$M_\odot$] subhalos in {\normalfont \ttfamily massHost} {$M_\odot$] hosts at {\normalfont \ttfamily time} [Gyr].</description>
+  !#   <description>Return the differential unevolved subhalo mass function per halo for {\normalfont \ttfamily mass} [$M_\odot$] subhalos in {\normalfont \ttfamily massHost} [$M_\odot$] hosts at {\normalfont \ttfamily time} [Gyr].</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: time, mass, massHost</argument>
