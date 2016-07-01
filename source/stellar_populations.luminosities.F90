@@ -192,6 +192,7 @@ contains
     ! Determine if we have tabulated luminosities for this luminosityIndex in this IMF yet.
     luminosityIndexMaximum=maxval(luminosityIndex)    
     if (.not.allocated(luminosityTables(imfIndex)%isTabulated) .or. luminosityTables(imfIndex)%isTabulatedMaximum < luminosityIndexMaximum) then
+       call File_Lock_Initialize(lockFileDescriptor)
        stellarLuminositiesUniqueLabelConstructed = .false.
        stellarPopulationSpectra_                 => null()
        luminosityIndexMaximum                    =  maxval(luminosityIndex)
