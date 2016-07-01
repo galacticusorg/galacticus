@@ -41,7 +41,7 @@ function stateCorrelationConstructor(parameterCount,acceptedStateCount)
   stateCorrelationConstructor%stepComputePrevious            = 0
   stateCorrelationConstructor%correlationLengths             =-1
   stateCorrelationConstructor%convergedCorrelationLengthCount= 0
-  stateCorrelationConstructor%chainIndexValue                 =mpiSelf%rank()
+  stateCorrelationConstructor%chainIndexValue                =mpiSelf%rank()
   return
 end function stateCorrelationConstructor
 
