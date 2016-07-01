@@ -324,8 +324,8 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
         if (activeChainCount < mpiSelf%count()) then
            message='outlier chains:'
            label=''
-           do i=1,mpiSelf%count()
-              if (.not.self%chainMask(i)) then
+           do i=0,mpiSelf%count()-1
+              if (.not.self%chainMask(i+1)) then
                  message=message//trim(label)//' '//i
                  label=","
               end if
