@@ -339,7 +339,7 @@ contains
        thisMergingStatistics => thisNode             %mergingStatistics     ()
        mergerIncrement       =  thisMergingStatistics%recentMajorMergerCount()
        integerProperty=integerProperty+1
-       integerBuffer(integerBufferCount,integerProperty)=mergerIncrement(Galacticus_Output_Time_Index(time))
+       integerBuffer(integerBufferCount,integerProperty)=mergerIncrement(Galacticus_Output_Time_Index(time,findClosest=.true.))
     end if
     return
   end subroutine Node_Component_Merging_Statistics_Recent_Output
