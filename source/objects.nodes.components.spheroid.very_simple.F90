@@ -327,7 +327,7 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Spheroid_Very_Simple_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Spheroid_Very_Simple_Rate_Compute(node,interrupt,interruptProcedureReturn)
+  subroutine Node_Component_Spheroid_Very_Simple_Rate_Compute(node,odeConverged,interrupt,interruptProcedureReturn)
     !% Compute the very simple spheroid node mass rate of change.
     use Star_Formation_Feedback_Spheroids
     use Stellar_Feedback
@@ -339,6 +339,7 @@ contains
     use Stellar_Luminosities_Structure
     implicit none
     type            (treeNode                    ), intent(inout), pointer :: node
+    logical                                       , intent(in   )          :: odeConverged
     class           (nodeComponentSpheroid       )               , pointer :: spheroid
     class           (nodeComponentHotHalo        )               , pointer :: hotHalo
     logical                                       , intent(inout)          :: interrupt
@@ -349,7 +350,8 @@ contains
     type            (history                     )                         :: stellarHistoryRate
     type            (abundances                  )                         :: fuelAbundancesRate      , stellarAbundancesRate, &
          &                                                                    abundancesOutflowRate
-    
+    !GCC$ attributes unused :: odeConverged
+
     ! Get a local copy of the interrupt procedure.
     interruptProcedure => interruptProcedureReturn
     ! Get the spheroid and check that it is of our class.
