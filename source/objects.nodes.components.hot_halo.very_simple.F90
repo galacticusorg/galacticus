@@ -527,7 +527,7 @@ contains
             &               *basic           %          mass() &
             &               /parentBasic     %          mass()
        !! Reaccrete the metals.
-       call parentHotHaloComponent%abundancesSet(parentHotHaloComponent%abundances()+massMetalsReaccreted)
+       call parentHotHalo%abundancesSet(parentHotHalo%abundances()+massMetalsReaccreted)
     end select
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Node_Merger
