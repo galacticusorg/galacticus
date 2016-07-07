@@ -118,8 +118,7 @@ contains
     class           (haloSpinDistributionClass)               , pointer :: haloSpinDistribution_
     class           (darkMatterProfileClass   )               , pointer :: darkMatterProfile_
     double precision                           , dimension(3)           :: angularMomentumOrbital, angularMomentumTotal
-    double precision                                                    :: spinValue             , massRatio                , &
-         &                                                                 angularMomentumHost
+    double precision                                                    :: spinValue             , massRatio
     
     ! Check if we are the default method.
     if (defaultSpinComponent%vitvitskaIsActive()) then
