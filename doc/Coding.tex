@@ -1,5 +1,34 @@
 \chapter{Coding \glc}
 
+\section{Node Objects Builder}
+
+\subsection{Variable Definitions}\label{sec:nodeBuilderVariableDefinitions}
+
+Throughout the node objects builder code, Fortran variables are defined using a common specification. This is a simple hash containing the following entries:
+\begin{description}
+  \item[intrinsic] a string specifying the intrinsic Fortran type ({\normalfont \ttfamily integer}, {\normalfont \ttfamily logical}, {\normalfont \ttfamily real}, {\normalfont \ttfamily double precision}, {\normalfont \ttfamily complex}, {\normalfont \ttfamily double complex}, {\normalfont \ttfamily type}, {\normalfont \ttfamily class}, {\normalfont \ttfamily procedure});
+  \item[type] \emph{[optional, except for {\normalfont \ttfamily type} and {\normalfont \ttfamily class} instrinics]} a string specifying the type of the variables;
+  \item[attributes] an array of strings specifying all attributes of the variables;
+  \item[variables] an array of strings giving the names of the variables.
+\end{description}
+For example, rank-1, long integer arguments which will not be modified in their function would be specified as:
+\begin{verbatim}
+{
+  intrinsic  => "integer", 
+  type       => "kind_int8",
+  attributes => [ "dimension(:)", "intent(in)" ],
+  variables  => [ "argument1", "argument2" ]
+}
+\end{verbatim}
+
+\subsection{The {\normalfont \ttfamily \$build} Data Structure}
+
+The {\normalfont \ttfamily \$build} data structure is used to accumulate all objects, variables, and functions needed to build the class hierarchy used to represent nodes and components in \glc. At the end of the node objects build process, this object is processed to generate the required Fortran code. The following subsections describe how to add information to this object.
+
+\subsubsection{Module-scope Variables}
+
+Any module-scope variables can be pushed to the array {\normalfont \ttfamily \@\{\$build->\{'variables'\}\}}, using the usual definition format described in \S\ref{sec:nodeBuilderVariableDefinitions}.
+
 \section{Galacticus Preprocessor Directives}
 
 \glc\ has its own preprocessor for Fortran source files. This preprocesses parses each source file into an internal tree representation, performs various manipulations on that tree, and then outputs the preprocessed file for compilation. The preprocessor is used to automate and standardize many common tasks, through the inclusion of directives into the source code. Directives are specified in comment lines beginning {\normalfont \ttfamily !\#}, and are written in XML. The remainder of this section describes the various preprocessor functionalities, and gives examples of their usage.
@@ -549,7 +578,7 @@ The usual embedded XML directives specifies that this function should be called 
 
 \section{Global Functions}
 
-In very exceptional circumstances it is necessary to subvert the module hierarchy used by \glc\ to permit one module to call a function in a higher level module\footnote{This usually arises because circular dependencies would arise if the called function were placed in a lower level module.}. Examples of where this approach is necessary usuually involve initial bootstrapping (i.e. to establish halo density contrasts, which requires knowledge of the halo density profile, which in turn requires knowledge of the halo density contrast\ldots).
+In very exceptional circumstances it is necessary to subvert the module hierarchy used by \glc\ to permit one module to call a function in a higher level module\footnote{This usually arises because circular dependencies would arise if the called function were placed in a lower level module.}. Examples of where this approach is necessary usually involve initial bootstrapping (i.e. to establish halo density contrasts, which requires knowledge of the halo density profile, which in turn requires knowledge of the halo density contrast\ldots).
 
 \glc\ provides for global functions which facilitate this---specifically, it is possible to generate function pointers to higher level functions which are accessible via a very low-level module. To create a globally callable copy of a function use add the follow prior to the function definition:
 \begin{verbatim}

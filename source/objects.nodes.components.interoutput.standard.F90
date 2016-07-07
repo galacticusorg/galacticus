@@ -29,7 +29,7 @@ module Node_Component_Inter_Output_Standard
   !# <component>
   !#  <class>interOutput</class>
   !#  <name>standard</name>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>diskStarFormationRate</name>
@@ -93,7 +93,7 @@ contains
     type            (treeNode                    ), intent(inout), pointer :: thisNode
     logical                                       , intent(in   )          :: odeConverged
     logical                                       , intent(inout)          :: interrupt
-    procedure       (Interrupt_Procedure_Template), intent(inout), pointer :: interruptProcedure
+    procedure       (interruptTask), intent(inout), pointer :: interruptProcedure
     class           (nodeComponentInterOutput    )               , pointer :: thisInterOutput
     class           (nodeComponentDisk           )               , pointer :: thisDisk
     class           (nodeComponentSpheroid       )               , pointer :: thisSpheroid
