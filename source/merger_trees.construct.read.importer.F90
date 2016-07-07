@@ -29,7 +29,7 @@ module Merger_Tree_Read_Importers
   include 'mergerTreeImporter.functionModules.inc'
   !# </include>
   private
-  public :: nodeData
+  public :: nodeData, nodeDataMinimal
 
   ! Type used to specify units.
   type :: importerUnits
@@ -74,17 +74,22 @@ module Merger_Tree_Read_Importers
      generic   :: operator(/=) => areNotEqual
   end type importerUnits
 
+  ! Types used to store raw data.
+  type :: nodeDataMinimal
+     !% Structure used to store minimal raw data read from merger tree files.
+     integer         (kind=kind_int8)               :: descendentIndex, hostIndex, & 
+          &                                            nodeIndex
+     double precision                               :: nodeTime       , nodeMass
+  end type nodeDataMinimal
+
   ! Type used to store raw data.
-  type nodeData
-     !% Structure used to store raw data read from merger tree files.
-     integer         (kind=kind_int8)               :: descendentIndex   , hostIndex               , & 
-          &                                            isolatedNodeIndex , mergesWithIndex         , & 
-          &                                            nodeIndex         , primaryIsolatedNodeIndex, &
-          &                                            particleCount
+  type, extends(nodeDataMinimal) :: nodeData
+     !% Structure used to store default raw data read from merger tree files.
+     integer         (kind=kind_int8)               :: isolatedNodeIndex , mergesWithIndex         , & 
+          &                                            particleCount     , primaryIsolatedNodeIndex
      double precision                               :: angularMomentum   , halfMassRadius          , & 
-          &                                            nodeMass          , nodeTime                , & 
-          &                                            scaleRadius       , velocityMaximum         , &
-          &                                            velocityDispersion, spin
+          &                                            velocityDispersion, spin                    , & 
+          &                                            scaleRadius       , velocityMaximum
      double precision                , dimension(3) :: position          , velocity                , &
           &                                            angularMomentum3D , spin3D
      logical                                        :: childIsSubhalo    , isSubhalo                   
@@ -94,7 +99,7 @@ module Merger_Tree_Read_Importers
   end type nodeData
 
   interface importerUnitConvert
-     !% Unit convertors for \glc\ format tree importer.
+     !% Unit convertors for merger tree importers.
      module procedure importerUnitConvertScalar
      module procedure importerUnitConvert1D
      module procedure importerUnitConvert2D
@@ -144,6 +149,11 @@ module Merger_Tree_Read_Importers
   !#  <method name="positionsArePeriodic" >
   !#   <description>Returns a Boolean integer specifying whether positions are periodic.</description>
   !#   <type>integer</type>
+  !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="canReadSubsets" >
+  !#   <description>Returns true if arbitrary subsets of halos from a forest can be read.</description>
+  !#   <type>logical</type>
   !#   <pass>yes</pass>
   !#  </method>
   !#  <method name="cubeLength" >
@@ -226,9 +236,10 @@ module Merger_Tree_Read_Importers
   !#   <description>Imports the $i^{\mathrm th}$ tree.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <argument>integer          , intent(in   )                            :: i</argument>
-  !#   <argument>class  (nodeData), intent(  out), allocatable, dimension(:) :: nodes</argument>
-  !#   <argument>logical          , intent(in   ), optional                  :: requireScaleRadii, requireAngularMomenta, requireAngularMomenta3D, requireSpin, requireSpin3D, requirePositions, requireParticleCounts, requireVelocityMaxima, requireVelocityDispersions</argument>
+  !#   <argument>integer                 , intent(in   )                            :: i</argument>
+  !#   <argument>class  (nodeDataMinimal), intent(  out), allocatable, dimension(:) :: nodes</argument>
+  !#   <argument>integer(kind=c_size_t  ), intent(in   ), optional   , dimension(:) :: nodeSubset</argument>
+  !#   <argument>logical                 , intent(in   ), optional                  :: requireScaleRadii, requireAngularMomenta, requireAngularMomenta3D, requireSpin, requireSpin3D, requirePositions, requireParticleCounts, requireVelocityMaxima, requireVelocityDispersions, structureOnly</argument>
   !#  </method>
   !#  <method name="subhaloTrace" >
   !#   <description>Supplies epochs, positions, and velocities for traced subhalos.</description>
