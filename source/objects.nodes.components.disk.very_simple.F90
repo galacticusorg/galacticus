@@ -48,11 +48,25 @@ module Node_Component_Disk_Very_Simple
   !#     <output unitsInSI="massSolar" comment="Mass of stars in the very simple disk."/>
   !#   </property>
   !#   <property>
+  !#     <name>abundancesStellar</name>
+  !#     <type>abundances</type>
+  !#     <rank>0</rank>
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+  !#     <output unitsInSI="massSolar" comment="Mass of metals in the stellar phase of the standard disk."/>
+  !#   </property>
+  !#   <property>
   !#     <name>massGas</name>
   !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of gas in the very simple disk."/>
+  !#   </property>
+  !#   <property>
+  !#     <name>abundancesGas</name>
+  !#     <type>abundances</type>
+  !#     <rank>0</rank>
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
+  !#     <output unitsInSI="massSolar" comment="Mass of metals in the gas phase of the standard disk."/>
   !#   </property>
   !#   <property>
   !#     <name>starFormationRate</name>
@@ -88,6 +102,7 @@ module Node_Component_Disk_Very_Simple
   double precision :: diskOutflowTimescaleMinimum                       , diskStarFormationTimescaleMinimum       , &
        &              diskVerySimpleMassScaleAbsolute                   , diskVerySimpleSurfaceDensityThreshold   , &
        &              diskVerySimpleSurfaceDensityVelocityExponent
+  logical          :: diskVerySimpleTrackAbundances
   
 contains
 
@@ -139,6 +154,17 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('diskStarFormationTimescaleMinimum',diskStarFormationTimescaleMinimum,defaultValue=1.0d-3)
+       !@ <inputParameter>
+       !@   <name>diskVerySimpleTrackAbundances</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Specifies whether or not to track abundances in the very simple disk component.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>0..1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('diskVerySimpleTrackAbundances',diskVerySimpleTrackAbundances,defaultValue=.false.)
        !@ <inputParameter>
        !@   <name>diskVerySimpleSurfaceDensityThreshold</name>
        !@   <defaultValue>0</defaultValue>
@@ -238,6 +264,7 @@ contains
     use Galacticus_Display
     use String_Handling
     use Histories
+    use Abundances_Structure
     implicit none
     type            (treeNode          ), intent(inout), pointer :: thisNode
     class           (nodeComponentDisk )               , pointer :: thisDiskComponent
@@ -262,8 +289,8 @@ contains
        if (thisDiskComponent%massGas() < 0.0d0) then
           ! Check if this exceeds the maximum previously recorded error.
           fractionalError=   abs(thisDiskComponent%massGas    ()) &
-               &          /(                                       &
-               &                  thisDiskComponent%massStellar()  &
+               &          /(                                      &
+               &                 thisDiskComponent%massStellar()  &
                &            +abs(thisDiskComponent%massGas    ()) &
                &           )
           !$omp critical (Very_Simple_Disk_Post_Evolve_Check)
@@ -292,9 +319,13 @@ contains
           ! Get the total mass of the disk material
           diskMass= thisDiskComponent%massGas    () &
                &   +thisDiskComponent%massStellar()
-          if (diskMass == 0.0d0) call thisDiskComponent%massStellarSet(0.0d0)
+          if (diskMass == 0.0d0) then
+             call thisDiskComponent%      massStellarSet(         0.0d0)
+             call thisDiskComponent%abundancesStellarSet(zeroAbundances)
+          end if
           ! Reset the gas mass of the disk.
-          call thisDiskComponent%massGasSet(0.0d0)
+          call thisDiskComponent%      massGasSet(         0.0d0)
+          call thisDiskComponent%abundancesGasSet(zeroAbundances)
        end if
     end select
     return
@@ -350,11 +381,13 @@ contains
     logical                                       , intent(inout)          :: interrupt
     procedure       (Interrupt_Procedure_Template), intent(inout), pointer :: interruptProcedureReturn
     procedure       (Interrupt_Procedure_Template)               , pointer :: interruptProcedure
-    double precision                                                       :: stellarMassRate         , fuelMassRate          , &
+    double precision                                                       :: stellarMassRate         , fuelMassRate         , &
          &                                                                    massOutflowRate
     type            (history                     )                         :: stellarHistoryRate
+    type            (abundances                  )                         :: fuelAbundancesRate      , stellarAbundancesRate, &
+         &                                                                    abundancesOutflowRate
     !GCC$ attributes unused :: odeConverged
-    
+        
     ! Get a local copy of the interrupt procedure.
     interruptProcedure => interruptProcedureReturn
     ! Get the disk and check that it is of our class.
@@ -370,16 +403,28 @@ contains
           return
        end if
        ! Get rates.
-       call Node_Component_Disk_Very_Simple_Rates(node,fuelMassRate,stellarMassRate,massOutflowRate,stellarHistoryRate)
+       call Node_Component_Disk_Very_Simple_Rates(node,fuelMassRate,fuelAbundancesRate,stellarMassRate,stellarAbundancesRate,massOutflowRate,stellarHistoryRate)
+       ! If not tracking abundances, zero abundance rates here.
+       if (.not.diskVerySimpleTrackAbundances) then
+          fuelAbundancesRate   =zeroAbundances
+          stellarAbundancesRate=zeroAbundances
+       end if
        ! Adjust rates.
-       call                                  disk%massStellarRate             (   stellarMassRate)
-       call                                  disk%    massGasRate             (      fuelMassRate)
-       if (stellarHistoryRate%exists()) call disk%stellarPropertiesHistoryRate(stellarHistoryRate)
+       call                                  disk%             massStellarRate(      stellarMassRate)
+       call                                  disk%                 massGasRate(         fuelMassRate)
+       call                                  disk%       abundancesStellarRate(stellarAbundancesRate)
+       call                                  disk%           abundancesGasRate(   fuelAbundancesRate)
+       if (stellarHistoryRate%exists()) call disk%stellarPropertiesHistoryRate(   stellarHistoryRate)
        if (massOutflowRate > 0.0d0) then
           ! Push to the hot halo.
-          hotHalo => node%hotHalo()
-          call hotHalo%outflowingMassRate(+massOutflowRate)
-          call disk   %massGasRate       (-massOutflowRate)
+          hotHalo               => node%hotHalo      ()
+          abundancesOutflowRate =  disk%abundancesGas()
+          call abundancesOutflowRate%massToMassFraction(disk%massGas())
+          abundancesOutflowRate =abundancesOutflowRate*massOutflowRate
+          call hotHalo%      outflowingMassRate(+      massOutflowRate)
+          call hotHalo%outflowingAbundancesRate(+abundancesOutflowRate)
+          call disk   %             massGasRate(-      massOutflowRate)
+          call disk   %       abundancesGasRate(-abundancesOutflowRate)
        end if
     end select
     ! Return the procedure pointer.
@@ -392,45 +437,53 @@ contains
   !# </analyticSolverTask>
   subroutine Node_Component_Disk_Very_Simple_Analytic_Solver(node,timeStart,timeEnd,solved)
     use Histories
+    use Abundances_Structure
     implicit none
     type            (treeNode              ), intent(inout), pointer   :: node
     double precision                        , intent(in   )            :: timeStart           , timeEnd
     logical                                 , intent(inout)            :: solved
     type            (treeNode              ),                pointer   :: hostNode
-    class           (nodeComponentBasic    )               , pointer   :: basic               , hostBasic           , &
+    class           (nodeComponentBasic    )               , pointer   :: basic               , hostBasic               , &
          &                                                                hostParentBasic
     class           (nodeComponentDisk     )               , pointer   :: disk
     class           (nodeComponentHotHalo  )               , pointer   :: hotHalo             , hostHotHalo
     class           (nodeComponentSatellite)               , pointer   :: satellite
     double precision                                       , parameter :: massTolerance=1.0d-6
-    double precision                                                   :: massGasInitial      , massStellarInitial   , &
-         &                                                                timescaleFuel       , timescaleOutflow     , &
-         &                                                                timescaleStellar    , massGasFinal         , &
-         &                                                                massStellarFinal    , massOutflowed        , &
-         &                                                                rateFuel            , rateStars            , &
-         &                                                                rateOutflow         , timeStep             , &
+    double precision                                                   :: massGasInitial      , massStellarInitial      , &
+         &                                                                timescaleFuel       , timescaleOutflow        , &
+         &                                                                timescaleStellar    , massGasFinal            , &
+         &                                                                massStellarFinal    , massOutflowed           , &
+         &                                                                rateFuel            , rateStars               , &
+         &                                                                rateOutflow         , timeStep                , &
          &                                                                exponentialFactor   , massStellarAsymptotic
     type            (history               )                           :: stellarHistoryRate
+    type            (abundances            )                           :: rateAbundanceFuel   , rateAbundanceStars      , &
+         &                                                                abundancesGasInitial, abundancesStellarInitial, &
+         &                                                                yieldMassEffective  , abundancesStellarFinal  , &
+         &                                                                abundancesGasFinal  , abundancesOutflowed
     
     if (diskVerySimpleUseAnalyticSolver) then
        disk => node%disk()
        if (node%isSatellite().and.disk%isInitialized()) then
           ! Calculate analytic solution.
           timeStep          =timeEnd-timeStart
-          massGasInitial    =disk%massGas    ()
-          massStellarInitial=disk%massStellar()
+          massGasInitial          =disk%massGas          ()
+          massStellarInitial      =disk%massStellar      ()
+          abundancesGasInitial    =disk%abundancesGas    ()
+          abundancesStellarInitial=disk%abundancesStellar()
           if (massGasInitial > massTolerance) then
              hotHalo   => node%hotHalo  ()
              satellite => node%satellite()
-             call Node_Component_Disk_Very_Simple_Rates(node,rateFuel,rateStars,rateOutflow,stellarHistoryRate)
+             call Node_Component_Disk_Very_Simple_Rates(node,rateFuel,rateAbundanceFuel,rateStars,rateAbundanceStars,rateOutflow,stellarHistoryRate)
              ! If any rates are zero, return without an analytic solution
              if (rateFuel == 0.0d0 .and. rateStars == 0.0d0 .and. rateOutflow == 0.0d0) return
              ! Compute timescales.             
-             timescaleFuel    =massGasInitial/(+rateOutflow-rateFuel          )
-             timescaleStellar =massGasInitial/(                     +rateStars)
-             timescaleOutflow =massGasInitial/(+rateOutflow                   )
+             timescaleFuel     =massGasInitial/(+rateOutflow-rateFuel                            )
+             timescaleStellar  =massGasInitial/(                              +rateStars         )
+             timescaleOutflow  =massGasInitial/(+rateOutflow                                     )
+             yieldMassEffective=timescaleFuel *(            +rateAbundanceFuel+rateAbundanceStars)
              ! Estimate asymptotic final stellar mass
-             massStellarAsymptotic=massStellarInitial+massGasInitial*(timescaleFuel/timescaleStellar)
+             massStellarAsymptotic=massStellarInitial+massGasInitial*(timescaleFuel/timescaleStellar)            
              ! Check if this galaxy can be removed because it will never be of sufficient mass to be interesting.
              if     (                                                                        &
                   &   massStellarAsymptotic     < diskVerySimpleAnalyticSolverPruneMassStars &
@@ -439,7 +492,7 @@ contains
                   &  .and.                                                                   &
                   &   satellite%timeOfMerging() > timePresentDay                             &
                   & ) then
-                ! Galaxy is too small to care about. Add gas which will outflow from this satellite to its future host halos.
+                ! Galaxy is too small to care about. Add gas and abundances which will outflow from this satellite to its future host halos.
                 hostNode => node%parent
                 do while (associated(hostNode%parent))
                    hostBasic       => hostNode%basic       ()
@@ -454,10 +507,56 @@ contains
                         &                    +exp(-max(0.0d0,hostBasic      %time()-timeStart)/timescaleFuel) &
                         &                    -exp(-max(0.0d0,hostParentBasic%time()-timeStart)/timescaleFuel) &
                         &                  )
-                   call hostHotHalo%outflowedMassSet(                             &
-                        &                            +hostHotHalo%outflowedMass() &
-                        &                            +            massOutflowed   &
-                        &                           )
+                   abundancesOutflowed=+(                               &
+                        &                -(                             &
+                        &                  +abundancesGasInitial        &
+                        &                  +yieldMassEffective          &
+                        &                  *(                           &
+                        &                    +1.0d0                     &
+                        &                    +(                         &
+                        &                      +hostBasic        %time()&
+                        &                      -timeStart               &
+                        &                     )                         &
+                        &                    /timescaleFuel             &
+                        &                   )                           &
+                        &                 )                             &
+                        &                *exp(                          &
+                        &                     -(                        &
+                        &                       +hostBasic      %time() &
+                        &                       -timeStart              &
+                        &                      )                        &
+                        &                     /timescaleFuel            &
+                        &                    )                          &
+                        &                +(                             &
+                        &                  +abundancesGasInitial        &
+                        &                  +yieldMassEffective          &
+                        &                  *(                           &
+                        &                    +1.0d0                     &
+                        &                    +(                         &
+                        &                      +hostParentBasic%time()  &
+                        &                      -timeStart               &
+                        &                     )                         &
+                        &                    /timescaleFuel             &
+                        &                   )                           &
+                        &                 )                             &
+                        &                *exp(                          &
+                        &                     -(                        &
+                        &                       +hostParentBasic%time() &
+                        &                       -timeStart              &
+                        &                      )                        &
+                        &                     /timescaleFuel            &
+                        &                    )                          &
+                        &               )                               &
+                        &              *timescaleFuel                   &
+                        &              /timescaleOutflow                   
+                   call hostHotHalo%outflowedMassSet      (                                   &
+                        &                                  +hostHotHalo%outflowedMass      () &
+                        &                                  +            massOutflowed         &
+                        &                                 )
+                   call hostHotHalo%outflowedAbundancesSet(                                   &
+                        &                                  +hostHotHalo%outflowedAbundances() &
+                        &                                  +            abundancesOutflowed   &
+                        &                                 )                   
                    hostNode => hostNode%parent
                 end do
                 ! Remove the node from the host and destroy it.
@@ -474,6 +573,55 @@ contains
                 call hotHalo%outflowedMassSet(massOutflowed   )
                 call disk   %massGasSet      (massGasFinal    )
                 call disk   %massStellarSet  (massStellarFinal)
+                if (diskVerySimpleTrackAbundances) then                   
+                   abundancesGasFinal    =+(                        &
+                        &                   +abundancesGasInitial   &
+                        &                   +yieldMassEffective     &
+                        &                   *timeStep               &
+                        &                   /timescaleFuel          &
+                        &                  )                        &
+                        &                 *exponentialFactor
+                   abundancesStellarFinal=+abundancesStellarFinal   &
+                        &                 +(                        &
+                        &                   +(                      &
+                        &                     +abundancesGasInitial &
+                        &                     +yieldMassEffective   &
+                        &                    )                      &
+                        &                   +(                      &
+                        &                     +abundancesGasInitial &
+                        &                     +yieldMassEffective   &
+                        &                     *(                    &
+                        &                       +1.0d0              &
+                        &                       +timeStep           &
+                        &                       /timescaleFuel      &
+                        &                      )                    &
+                        &                    )                      &
+                        &                   *exponentialFactor      &
+                        &                  )                        &
+                        &                 *timescaleFuel            &
+                        &                 /timescaleStellar                   
+                   abundancesOutflowed   =+(                        &
+                        &                   +(                      &
+                        &                     +abundancesGasInitial &
+                        &                     +yieldMassEffective   &
+                        &                    )                      &
+                        &                   +(                      &
+                        &                     +abundancesGasInitial &
+                        &                     +yieldMassEffective   &
+                        &                     *(                    &
+                        &                       +1.0d0              &
+                        &                       +timeStep           &
+                        &                       /timescaleFuel      &
+                        &                      )                    &
+                        &                    )                      &
+                        &                   *exponentialFactor      &
+                        &                  )                        &
+                        &                 *timescaleFuel            &
+                        &                 /timescaleOutflow                   
+                   call hotHalo%outflowedAbundancesSet(abundancesOutflowed   )
+                   call disk   %abundancesGasSet      (abundancesGasFinal    )
+                   call disk   %abundancesStellarSet  (abundancesStellarFinal)
+                end if
              end if
           end if
           ! Update time and merging times.
@@ -490,7 +638,7 @@ contains
     return
   end subroutine Node_Component_Disk_Very_Simple_Analytic_Solver
   
-  subroutine Node_Component_Disk_Very_Simple_Rates(node,fuelMassRate,stellarMassRate,massOutflowRate,stellarHistoryRate)
+  subroutine Node_Component_Disk_Very_Simple_Rates(node,fuelMassRate,fuelAbundancesRate,stellarMassRate,stellarAbundancesRate,massOutflowRate,stellarHistoryRate)
     !% Compute rates.
     use Star_Formation_Feedback_Disks
     use Stellar_Feedback
@@ -501,26 +649,31 @@ contains
     use Histories
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode                    ), intent(inout), pointer :: node
-    type            (history                     ), intent(inout)          :: stellarHistoryRate
-    double precision                              , intent(  out)          :: fuelMassRate            ,stellarMassRate        , &
-         &                                                                    massOutflowRate
-    class           (nodeComponentDisk           )               , pointer :: disk
-    class           (darkMatterHaloScaleClass    )               , pointer :: darkMatterHaloScale_
-    type            (abundances                  ), save                   :: fuelAbundancesRates     , stellarAbundancesRates
-    !$omp threadprivate(stellarAbundancesRates,fuelAbundancesRates)
-    double precision                                                       :: diskDynamicalTime       , fuelMass              , &
-         &                                                                    energyInputRate         , starFormationRate
-    type            (stellarLuminosities         )                         :: luminositiesStellarRates
+    type            (treeNode                ), intent(inout), pointer :: node
+    type            (history                 ), intent(inout)          :: stellarHistoryRate
+    double precision                          , intent(  out)          :: fuelMassRate            , stellarMassRate       , &
+         &                                                                massOutflowRate
+    type            (abundances              ), intent(  out)          :: fuelAbundancesRate      , stellarAbundancesRate
+    class           (nodeComponentDisk       )               , pointer :: disk
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    double precision                                                   :: diskDynamicalTime       , fuelMass              , &
+         &                                                                energyInputRate         , starFormationRate
+    type            (stellarLuminosities     )                         :: luminositiesStellarRates
+    type            (abundances              )                         :: fuelAbundances
     
     ! Get the disk.
     disk => node%disk()
     ! Initialize to zero rates.
-    fuelMassRate   =0.0d0
-    stellarMassRate=0.0d0
-    massOutflowRate=0.0d0
+    fuelMassRate         =0.0d0
+    stellarMassRate      =0.0d0
+    massOutflowRate      =0.0d0
+    fuelAbundancesRate   =zeroAbundances
+    stellarAbundancesRate=zeroAbundances
     ! Check for a realistic disk, return immediately if disk is unphysical.
-    if (disk%massGas() < 0.0d0) return
+    if (disk%massGas() <= 0.0d0) return
+    ! Compute fuel abundances.
+    fuelAbundances=disk%abundancesGas()
+    call fuelAbundances%massToMassFraction(disk%massGas())    
     ! Compute the star formation rate.
     select type (disk)
     class is (nodeComponentDiskVerySimple)
@@ -528,8 +681,8 @@ contains
     end select
     ! Find rates of change of stellar mass, and gas mass.
     stellarHistoryRate=disk%stellarPropertiesHistory()
-    call Stellar_Population_Properties_Rates(starFormationRate,zeroAbundances,componentTypeDisk,node,stellarHistoryRate &
-         &,stellarMassRate,stellarAbundancesRates,luminositiesStellarRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
+    call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,componentTypeDisk,node,stellarHistoryRate &
+         &,stellarMassRate,stellarAbundancesRate,luminositiesStellarRates,fuelMassRate,fuelAbundancesRate,energyInputRate)
     ! Find rate of outflow of material from the disk and pipe it to the outflowed reservoir.
     massOutflowRate=Star_Formation_Feedback_Disk_Outflow_Rate(node,starFormationRate,energyInputRate)
     if (massOutflowRate > 0.0d0) then
@@ -555,6 +708,7 @@ contains
     class           (nodeComponentDisk)               , pointer :: thisDiskComponent
     double precision                                            :: mass
     type            (history          )                         :: stellarPopulationHistoryScales
+    type            (abundances       )                         :: abundancesTotal
 
     ! Get the disk component.
     thisDiskComponent => thisNode%disk()
@@ -565,6 +719,10 @@ contains
        mass=thisDiskComponent%massGas()+thisDiskComponent%massStellar()
        call thisDiskComponent%massGasScale    (max(mass,diskVerySimpleMassScaleAbsolute))
        call thisDiskComponent%massStellarScale(max(mass,diskVerySimpleMassScaleAbsolute))
+       ! Set scale for gas and stellar abundances.
+       abundancesTotal=thisDiskComponent%abundancesGas()+thisDiskComponent%abundancesStellar()
+       call thisDiskComponent%abundancesGasScale    (max(abundancesTotal,unitAbundances*diskVerySimpleMassScaleAbsolute))
+       call thisDiskComponent%abundancesStellarScale(max(abundancesTotal,unitAbundances*diskVerySimpleMassScaleAbsolute))
        ! Set scales for stellar population properties and star formation histories.
        stellarPopulationHistoryScales=thisDiskComponent%stellarPropertiesHistory()
        call Stellar_Population_Properties_Scales           (stellarPopulationHistoryScales,thisDiskComponent%massStellar(),zeroAbundances)
@@ -583,63 +741,92 @@ contains
     !% Transfer any very simple disk associated with {\normalfont \ttfamily thisNode} to its host halo.
     use Satellite_Merging_Mass_Movements_Descriptors
     use Galacticus_Error
+    use Abundances_Structure
     implicit none
-    type (treeNode         ), intent(inout), pointer :: thisNode
-    type (treeNode         )               , pointer :: hostNode
-    class(nodeComponentDisk)               , pointer :: hostDiskComponent, thisDiskComponent
+    type (treeNode             ), intent(inout), pointer :: thisNode
+    type (treeNode             )               , pointer :: hostNode
+    class(nodeComponentDisk    )               , pointer :: hostDiskComponent    , thisDiskComponent
+    class(nodeComponentSpheroid)               , pointer :: hostSpheroidComponent
     
     ! Check that the disk is of the verySimple class.
     thisDiskComponent => thisNode%disk()
     select type (thisDiskComponent)
     class is (nodeComponentDiskVerySimple)
 
-       ! Find the node to merge with and its disk component.
-       hostNode          => thisNode%mergesWith()
-       hostDiskComponent => hostNode%disk      ()
-
+       ! Find the node to merge with and its disk component (and spheroid if necessary).
+       hostNode              => thisNode%mergesWith(                 )
+       hostDiskComponent     => hostNode%disk      (autoCreate=.true.)
+       if     (                                          &
+            &   thisMergerGasMovesTo  == movesToSpheroid &
+            &  .or.                                      &
+            &   thisMergerStarsMoveTo == movesToSpheroid &
+            & )                                          &
+            & hostSpheroidComponent => hostNode%spheroid(autoCreate=.true.)
        ! Move the gas component of the very simple disk to the host.
        select case (thisMergerGasMovesTo)
        case (movesToDisk)
-          call hostDiskComponent%massGasSet    (                                            &
-               &                                 hostDiskComponent%    massGas()            &
-               &                                +thisDiskComponent%    massGas()            &
-               &                               )
+          call hostDiskComponent    %massGasSet          (                                       &
+               &                                           hostDiskComponent    %      massGas() &
+               &                                          +thisDiskComponent    %      massGas() &
+               &                                         )
+          call hostDiskComponent    %abundancesGasSet    (                                       &
+               &                                           hostDiskComponent    %abundancesGas() &
+               &                                          +thisDiskComponent    %abundancesGas() &
+               &                                         )
        case (movesToSpheroid)
-          call Galacticus_Error_Report(                                                     &
-               &                       'Node_Component_Disk_Very_Simple_Satellite_Merging', &
-               &                       'this component does not work with spheroids'        &
-               &                      )
+          call hostSpheroidComponent%massGasSet          (                                       &
+               &                                           hostSpheroidComponent%massGas      () &
+               &                                          +thisDiskComponent    %massGas      () &
+               &                                         )
+          call hostSpheroidComponent%abundancesGasSet    (                                       &
+               &                                           hostSpheroidComponent%abundancesGas() &
+               &                                          +thisDiskComponent    %abundancesGas() &
+               &                                         )
        case default
-          call Galacticus_Error_Report(                                                     &
-               &                       'Node_Component_Disk_Very_Simple_Satellite_Merging', &
-               &                       'unrecognized movesTo descriptor'                    &
+          call Galacticus_Error_Report(                                                      &
+               &                       'Node_Component_Disk_Very_Simple_Satellite_Merging',  &
+               &                       'unrecognized movesTo descriptor'                     &
                &                      )
        end select
-       call    thisDiskComponent%massGasSet    (                                            &
-            &                                                              0.0d0            &
-            &                                  )
+       call    thisDiskComponent%massGasSet          (                                       &
+            &                                                                  0.0d0         &
+            &                                        )
+       call    thisDiskComponent%abundancesGasSet    (                                       &
+            &                                                         zeroAbundances         &
+            &                                        )
 
        ! Move the stellar component of the very simple disk to the host.
        select case (thisMergerStarsMoveTo)
        case (movesToDisk)
-          call hostDiskComponent%massStellarSet(                                            &
-               &                                 hostDiskComponent%massStellar()            &
-               &                                +thisDiskComponent%massStellar()            &
-               &                               )
+          call hostDiskComponent    %massStellarSet      (                                           &
+               &                                           hostDiskComponent    %      massStellar() &
+               &                                          +thisDiskComponent    %      massStellar() &
+               &                                         )
+          call hostDiskComponent    %abundancesStellarSet(                                           &
+               &                                           hostDiskComponent    %abundancesStellar() &
+               &                                          +thisDiskComponent    %abundancesStellar() &
+               &                                         )
        case (movesToSpheroid)
-          call Galacticus_Error_Report(                                                     &
-               &                       'Node_Component_Disk_Very_Simple_Satellite_Merging', &
-               &                       'this component does not work with spheroids'        &
-               &                      )
+          call hostSpheroidComponent%massStellarSet      (                                           &
+               &                                           hostSpheroidComponent%massStellar      () &
+               &                                          +thisDiskComponent    %massStellar      () &
+               &                                         )
+          call hostSpheroidComponent%abundancesStellarSet(                                           &
+               &                                           hostSpheroidComponent%abundancesStellar() &
+               &                                          +thisDiskComponent    %abundancesStellar() &
+               &                                         )
        case default
-          call Galacticus_Error_Report(                                                     &
-               &                       'Node_Component_Disk_Very_Simple_Satellite_Merging', &
-               &                       'unrecognized movesTo descriptor'                    &
+          call Galacticus_Error_Report(                                                      &
+               &                       'Node_Component_Disk_Very_Simple_Satellite_Merging',  &
+               &                       'unrecognized movesTo descriptor'                     &
                &                      )
        end select
-       call    thisDiskComponent%massStellarSet(                                            &
-            &                                                              0.0d0            &
-            &                                  )
+       call    thisDiskComponent%massStellarSet      (                                       &
+            &                                                               0.0d0            &
+            &                                        )
+       call    thisDiskComponent%abundancesStellarSet(                                       &
+            &                                                      zeroAbundances            &
+            &                                        )
     end select
     return
   end subroutine Node_Component_Disk_Very_Simple_Satellite_Merging
