@@ -2142,66 +2142,310 @@ sub Generate_Tree_Node_Object {
 }
 
 sub Generate_Node_Event_Objects {
-    # Generate the nodeEvent objects.
+    # Generate the nodeEvent objects. Type-bound functions are generated to dump and read raw binary representations of each class
+    # to file. The stored representation neglects pointers to the next event and to any node (since these targets likely move
+    # between dump and read anyway). Any pointer to the event task is stored however. To do this we transfer the address of the
+    # pointer to an integer array, and store that array to file. The array can then be re-read and transferred back to the
+    # pointer. This makes use of the transfer() intrinsic, and was motivated by the similar approach used for generic linked lists
+    # by Jason Blevins (http://jblevins.org/research/generic-list). This method assumes that the function pointed to will remain
+    # in the same memory location.
     my $buildData = shift;
-    # Add data content.
-    my @dataContent =
+
+    # Define nodeEvent class and subclasses.
+    my @nodeEventClass =
 	(
 	 {
-	     intrinsic  => "integer",
-	     type       => "kind=kind_int8",
-	     attributes => [ "public" ],
-	     variables  => [ "ID" ]
+	     name        => "nodeEvent",
+	     description => "Base class for events attached to nodes.",
+	     data        =>
+		 [
+		  {
+		      intrinsic  => "integer",
+		      type       => "kind=kind_int8",
+		      attributes => [ "public" ],
+		      variables  => [ "ID" ]
+		  },
+		  {
+		      intrinsic  => "type",
+		      type       => "treeNode",
+		      attributes => [ "pointer", "public" ],
+		      variables  => [ "node => null()" ]
+		  },
+		  {
+		      intrinsic  => "double precision",
+		      attributes => [ "public" ],
+		      variables  => [ "time" ]
+		  },
+		  {
+		      intrinsic  => "class",
+		      type       => "nodeEvent",
+		      attributes => [ "public", "pointer" ],
+		      variables  => [ "next => null()" ]
+		  },
+		  {
+		      intrinsic  => "procedure",
+		      type       => "nodeEventTask",
+		      attributes => [ "public", "pointer" ],
+		      variables  => [ "task" ]
+		  }
+		 ]
 	 },
 	 {
-	     intrinsic  => "type",
-	     type       => "treeNode",
-	     attributes => [ "pointer", "public" ],
-	     variables  => [ "node" ]
+	     name        => "nodeEventBranchJump",
+	     description => "Class for branch jump events attached to nodes.",
+	     extends     => "nodeEvent",
+	     data        => []
 	 },
 	 {
-	     intrinsic  => "double precision",
-	     attributes => [ "public" ],
-	     variables  => [ "time" ]
+	     name        => "nodeEventSubhaloPromotion",
+	     description => "Class for subhalo promotion events attached to nodes.",
+	     extends     => "nodeEvent",
+	     data        => []
 	 },
+	 {
+	     name        => "nodeEventBranchJumpInterTree",
+	     description => "Class for inter-tree branch jump events attached to nodes.",
+	     extends     => "nodeEvent",
+	     data        =>
+		 [
+		  {
+		      intrinsic  => "integer",
+		      type       => "kind=c_size_t",
+		      attributes => [ "public" ],
+		      variables  => [ "splitForestUniqueID" ]
+		  },
+		  {
+		      intrinsic  => "integer",
+		      type       => "kind=kind_int8",
+		      attributes => [ "public" ],
+		      variables  => [ "pairedNodeID" ]
+		  },
+		  {
+		      intrinsic  => "logical",
+		      attributes => [ "public" ],
+		      variables  => [ "isPrimary" ]
+		  }
+		 ]
+	 },
+	 {
+	     name        => "nodeEventSubhaloPromotionInterTree",
+	     description => "Class for inter-tree subhalo promotion events attached to nodes.",
+	     extends     => "nodeEvent",
+	     data        =>
+		 [
+		  {
+		      intrinsic  => "integer",
+		      type       => "kind=c_size_t",
+		      attributes => [ "public" ],
+		      variables  => [ "splitForestUniqueID" ]
+		  },
+		  {
+		      intrinsic  => "integer",
+		      type       => "kind=kind_int8",
+		      attributes => [ "public" ],
+		      variables  => [ "pairedNodeID" ]
+		  },
+		  {
+		      intrinsic  => "logical",
+		      attributes => [ "public" ],
+		      variables  => [ "isPrimary" ]
+		  }
+		 ]
+	 }
+	);
+    # Build the classes.
+    my $iClass = -1;
+    foreach my $class ( @nodeEventClass ) {
+	++$iClass;
+	# Create the type.
+	$buildData->{'types'}->{$class->{'name'}} = {
+	    name           => $class->{'name'},
+	    comment        => $class->{'description'},
+	    isPublic       => "true",
+	    dataContent    => $class->{'data'},
+	    boundFunctions =>
+		[
+		 {
+		     type        => "procedure",
+		     name        => "dumpRaw",
+		     function    => $class->{'name'}."DumpRaw",
+		     description => "Dump the event to file.",
+		     returnType  => "\\void",
+		     arguments   => "\\intzero\\ fileUnit"
+		 },
+		 {
+		     type        => "procedure",
+		     name        => "readRaw",
+		     function    => $class->{'name'}."ReadRaw",
+		     description => "Read an event from file.",
+		     returnType  => "\\void",
+		     arguments   => "\\intzero\\ fileUnit"
+		 }
+		]
+	};
+	$buildData->{'types'}->{$class->{'name'}}->{'extends'} = $class->{'extends'}
+	if ( exists($class->{'extends'}) );
+	# Generate raw dump function code.
+	my @dumpArguments =
+	    (
+	     {
+		 intrinsic  => "class",
+		 type       => $class->{'name'},
+		 variables  => [ "self" ],
+		 attributes => [ "intent(in   )" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "fileUnit" ],
+		 attributes => [ "intent(in   )" ]
+	     },
+	     {
+		 intrinsic  => "logical",
+		 variables  => [ "includeType" ],
+		 attributes => [ "intent(in   ), optional" ]
+	     }
+	    );
+	push(
+	    @dumpArguments,
+	     {
+		 intrinsic  => "type",
+		 type       => "c_funptr",
+		 variables  => [ "functionLocation" ]
+	     }
+	    )
+	    if ( $class->{'name'} eq "nodeEvent" );
+	my $dumpCode;
+	$dumpCode .= "  subroutine ".$class->{'name'}."DumpRaw(self,fileUnit,includeType)\n";
+	$dumpCode .= "     !% Dump a {\\normalfont \ttfamily ".$class->{'name'}."} object to file.\n";
+	$dumpCode .= "     use, intrinsic :: ISO_C_Binding\n";
+	$dumpCode .= "     implicit none\n";
+	$dumpCode .= &Fortran_Utils::Format_Variable_Defintions(\@dumpArguments)."\n";
+	$dumpCode .= "     ! Write an integer indicating the type of this event if requested.\n";
+	$dumpCode .= "     if (.not.present(includeType).or.includeType) write (fileUnit) ".$iClass."\n";
+	$dumpCode .= "     ! Dump the parent class if such exists.\n";
+	$dumpCode .= "     call self%".$class->{'extends'}."%dumpRaw(fileUnit,.false.)\n"
+	    if ( exists($class->{'extends'}) );
+	foreach my $data ( @{$class->{'data'}} ) {
+	    $dumpCode .= "     write (fileUnit) ".join(",",map {"self%".$_} @{$data->{'variables'}})."\n"
+		unless ( grep {$_ eq "pointer" } @{$data->{'attributes'}} );
+	}
+	# The task function pointer is handled by transfering the memory address to an integer array.
+	if ( $class->{'name'} eq "nodeEvent" ) {
+	    $dumpCode .= "     if (associated(self%task)) then\n";
+	    $dumpCode .= "        functionLocation=c_FunLoc(self%task)\n";
+	    $dumpCode .= "        write (fileUnit) 1\n";
+	    $dumpCode .= "        write (fileUnit) functionLocation\n";
+	    $dumpCode .= "     else\n";
+	    $dumpCode .= "        write (fileUnit) 0\n";
+	    $dumpCode .= "     end if\n";
+	}
+	$dumpCode .= "     return\n";
+	$dumpCode .= "  end subroutine ".$class->{'name'}."DumpRaw\n";
+	# Generate raw read function code.
+	my @readArguments =
+	    (
+	     {
+		 intrinsic  => "class",
+		 type       => $class->{'name'},
+		 variables  => [ "self" ],
+		 attributes => [ "intent(inout)" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "fileUnit" ],
+		 attributes => [ "intent(in   )" ]
+	     }
+	    );
+	push(
+	    @readArguments,
+	    {
+		intrinsic  => "integer",
+		variables  => [ "pointerAssociated" ]
+	    },
+	    {
+		intrinsic  => "type",
+		type       => "c_funptr",
+		variables  => [ "functionLocation" ]
+	    }
+	    )
+	    if ( $class->{'name'} eq "nodeEvent" );
+	my $readCode;
+	$readCode .= "  subroutine ".$class->{'name'}."ReadRaw(self,fileUnit)\n";
+	$readCode .= "     !% Read a {\\normalfont \ttfamily ".$class->{'name'}."} object from file.\n";
+	$readCode .= "     use, intrinsic :: ISO_C_Binding\n";
+	$readCode .= "     implicit none\n";
+	$readCode .= &Fortran_Utils::Format_Variable_Defintions(\@readArguments)."\n";
+	$readCode .= "     ! Read the parent class if such exists.\n";
+	$readCode .= "     call self%".$class->{'extends'}."%readRaw(fileUnit)\n"
+	    if ( exists($class->{'extends'}) );
+	foreach my $data ( @{$class->{'data'}} ) {
+	    $readCode .= "     read (fileUnit) ".join(",",map {"self%".$_} @{$data->{'variables'}})."\n"
+		unless ( grep {$_ eq "pointer" } @{$data->{'attributes'}} );
+	}
+	# The task function pointer is handled by transfering the memory address from an integer array.
+	if ( $class->{'name'} eq "nodeEvent" ) {
+	    $readCode .= "     read (fileUnit) pointerAssociated\n";
+	    $readCode .= "     if (pointerAssociated == 1) then\n";
+	    $readCode .= "        read (fileUnit) functionLocation\n";
+	    $readCode .= "        call c_f_ProcPointer(functionLocation,self%task)\n";
+	    $readCode .= "     else\n";
+	    $readCode .= "        self%task => null()\n";
+	    $readCode .= "     end if\n";
+	}
+	$readCode .= "     return\n";
+	$readCode .= "  end subroutine ".$class->{'name'}."ReadRaw\n";
+	# Insert into the function list.
+	push(
+	    @{$buildData->{'code'}->{'functions'}},
+	    $dumpCode,
+	    $readCode
+	    );
+    }    
+    # Push to list of types.
+    push(@{$buildData->{'typesOrder'}},map {$_->{'name'}} @nodeEventClass);
+    # Generate code for a function to read arbitrary members of this class back from a raw file.
+    my @readArguments =
+	(
 	 {
 	     intrinsic  => "class",
 	     type       => "nodeEvent",
-	     attributes => [ "public", "pointer" ],
-	     variables  => [ "next" ]
+	     variables  => [ "nodeEventBuildFromRaw" ],
+	     attributes => [ "pointer" ]
 	 },
 	 {
-	     intrinsic  => "procedure",
-	     type       => "nodeEventTask",
-	     attributes => [ "public", "pointer" ],
-	     variables  => [ "task" ]
+	     intrinsic  => "integer",
+	     variables  => [ "fileUnit" ],
+	     attributes => [ "intent(in   )" ]
+	 },
+	 {
+	     intrinsic  => "integer",
+	     variables  => [ "classType" ]
 	 }
 	);
-    # Create the nodeEvent class.
-    $buildData->{'types'}->{'nodeEvent'} = {
-	name           => "nodeEvent",
-	comment        => "Type for events attached to nodes.",
-	isPublic       => "true",
-	dataContent    => \@dataContent
-    };
-    # Add sub-classes.
-    my @emptyDataContent =();
-    $buildData->{'types'}->{'nodeEventBranchJump'} = {
-	name           => "nodeEventBranchJump",
-	extends        => "nodeEvent",
-	comment        => "Type for branch jump events attached to nodes.",
-	isPublic       => "true",
-	dataContent    => \@emptyDataContent
-    };
-    $buildData->{'types'}->{'nodeEventSubhaloPromotion'} = {
-	name           => "nodeEventSubhaloPromotion",
-	extends        => "nodeEvent",
-	comment        => "Type for subhalo promotion events attached to nodes.",
-	isPublic       => "true",
-	dataContent    => \@emptyDataContent
-    };
-    # Push to list of types.
-    push(@{$buildData->{'typesOrder'}},"nodeEvent","nodeEventBranchJump","nodeEventSubhaloPromotion");    
+    my $readCode;
+    $readCode .= "   function nodeEventBuildFromRaw(fileUnit)\n";
+    $readCode .= "     !% Build a {\\normalfont \ttfamily nodeEvent} class object from a raw dump file.\n";
+    $readCode .= "     implicit none\n";
+    $readCode .= &Fortran_Utils::Format_Variable_Defintions(\@readArguments)."\n";
+    $readCode .= "     read (fileUnit) classType\n";
+    $readCode .= "     select case (classType)\n";
+    $iClass = -1;
+    foreach my $class ( @nodeEventClass ) {
+	++$iClass;
+	$readCode .= "     case (".$iClass.")\n";
+	$readCode .= "     allocate(".$class->{'name'}." :: nodeEventBuildFromRaw)\n";
+    }
+    $readCode .= "     case default\n";
+    $readCode .= "        call Galacticus_Error_Report('nodeEventBuildFromRaw','unknown class type')\n";
+    $readCode .= "     end select\n";
+    $readCode .= "     call nodeEventBuildFromRaw%readRaw(fileUnit)\n";
+    $readCode .= "     return\n";
+    $readCode .= "  end function nodeEventBuildFromRaw\n";
+    # Insert into the function list.
+    push(
+	@{$buildData->{'code'}->{'functions'}},
+	$readCode
+	);
 }
 
 sub Generate_Initialization_Function {
@@ -5598,11 +5842,11 @@ sub Generate_Node_Copy_Function {
 	 {
 	     intrinsic  => "logical",
 	     attributes => [ "intent(in   )", "optional" ],
-	     variables  => [ "skipFormationNode" ]
+	     variables  => [ "skipFormationNode", "skipEvent" ]
 	 },
 	 {
 	     intrinsic  => "logical",
-	     variables  => [ "skipFormationNodeActual" ]
+	     variables  => [ "skipFormationNodeActual", "skipEventActual" ]
 	 },
 	 {
 	     intrinsic  => "integer",
@@ -5611,17 +5855,19 @@ sub Generate_Node_Copy_Function {
 	);
     # Generate the code.
     my $functionCode;
-    $functionCode .= "  subroutine Tree_Node_Copy_Node_To(self,targetNode,skipFormationNode)\n";
+    $functionCode .= "  subroutine Tree_Node_Copy_Node_To(self,targetNode,skipFormationNode,skipEvent)\n";
     $functionCode .= "    !% Make a copy of {\\normalfont \\ttfamily self} in {\\normalfont \\ttfamily targetNode}.\n";
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    $functionCode .= "    skipFormationNodeActual=.false.\n";
-    $functionCode .= "    if (present(skipFormationNode)) skipFormationNodeActual=skipFormationNode\n";
     $functionCode .= "    targetNode%".padComponentClass($_,[8,14])." =  self%".$_."\n"
 	foreach ( "uniqueIdValue", "indexValue", "timeStepValue" );
     $functionCode .= "    targetNode%".padComponentClass($_,[8,14])." => self%".$_."\n"
-	foreach ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "event", "hostTree" );
-    $functionCode .= "    if (.not.skipFormationNodeActual) targetNode%formationNode => self%formationNode\n";
+	foreach ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "event", "formationNode", "hostTree" );
+    foreach ( "formationNode", "event" ) {
+	$functionCode .= "    skip".ucfirst($_)."Actual=.false.\n";
+	$functionCode .= "    if (present(skip".ucfirst($_).")) skip".ucfirst($_)."Actual=skip".ucfirst($_)."\n";
+	$functionCode .= "    if (skip".ucfirst($_)."Actual) targetNode%".$_." => null()\n";
+    }
     # Loop over all component classes
     if ( $workaround == 1 ) { # Workaround "Assignment to an allocatable polymorphic variable is not yet supported"
 	foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
@@ -6611,30 +6857,33 @@ sub Generate_Tree_Node_Destruction_Function {
     $functionCode .= "    ! Iterate over all attached events.\n";
     $functionCode .= "    thisEvent => self%event\n";
     $functionCode .= "    do while (associated(thisEvent))\n";
-    $functionCode .= "        ! Locate the paired event and remove it.\n";
-    $functionCode .= "        pairEvent => thisEvent%node%event\n";
-    $functionCode .= "        lastEvent => thisEvent%node%event\n";
-    $functionCode .= "        ! Iterate over all events.\n";
-    $functionCode .= "        pairMatched=.false.\n";
-    $functionCode .= "        do while (associated(pairEvent).and..not.pairMatched)\n";
-    $functionCode .= "           ! Match the paired event ID with the current event ID.\n";
-    $functionCode .= "           if (pairEvent%ID == thisEvent%ID) then\n";
-    $functionCode .= "              pairMatched=.true.\n";
-    $functionCode .= "              if (associated(pairEvent,thisEvent%node%event)) then\n";
-    $functionCode .= "                 thisEvent%node  %event => pairEvent%next\n";
-    $functionCode .= "                 lastEvent       => thisEvent%node %event\n";
+    $functionCode .= "        ! If a paired node is given, remove any paired event from it.\n";
+    $functionCode .= "        if (associated(thisEvent%node)) then\n";
+    $functionCode .= "           ! Locate the paired event and remove it.\n";
+    $functionCode .= "           pairEvent => thisEvent%node%event\n";
+    $functionCode .= "           lastEvent => thisEvent%node%event\n";
+    $functionCode .= "           ! Iterate over all events.\n";
+    $functionCode .= "           pairMatched=.false.\n";
+    $functionCode .= "           do while (associated(pairEvent).and..not.pairMatched)\n";
+    $functionCode .= "              ! Match the paired event ID with the current event ID.\n";
+    $functionCode .= "              if (pairEvent%ID == thisEvent%ID) then\n";
+    $functionCode .= "                 pairMatched=.true.\n";
+    $functionCode .= "                 if (associated(pairEvent,thisEvent%node%event)) then\n";
+    $functionCode .= "                    thisEvent%node  %event => pairEvent%next\n";
+    $functionCode .= "                    lastEvent       => thisEvent%node %event\n";
+    $functionCode .= "                 else\n";
+    $functionCode .= "                    lastEvent%next  => pairEvent%next\n";
+    $functionCode .= "                 end if\n";
+    $functionCode .= "                 nextEvent => pairEvent%next\n";
+    $functionCode .= "                 deallocate(pairEvent)\n";
+    $functionCode .= "                 pairEvent => nextEvent\n";
     $functionCode .= "              else\n";
-    $functionCode .= "                 lastEvent%next  => pairEvent%next\n";
+    $functionCode .= "                 lastEvent => pairEvent\n";
+    $functionCode .= "                 pairEvent => pairEvent%next\n";
     $functionCode .= "              end if\n";
-    $functionCode .= "              nextEvent => pairEvent%next\n";
-    $functionCode .= "              deallocate(pairEvent)\n";
-    $functionCode .= "              pairEvent => nextEvent\n";
-    $functionCode .= "           else\n";
-    $functionCode .= "              lastEvent => pairEvent\n";
-    $functionCode .= "              pairEvent => pairEvent%next\n";
-    $functionCode .= "           end if\n";
-    $functionCode .= "        end do\n";
-    $functionCode .= "        if (.not.pairMatched) call Galacticus_Error_Report('treeNodeDestroy','unable to find paired event')\n";
+    $functionCode .= "           end do\n";
+    $functionCode .= "           if (.not.pairMatched) call Galacticus_Error_Report('treeNodeDestroy','unable to find paired event')\n";
+    $functionCode .= "        end if\n";
     $functionCode .= "        nextEvent => thisEvent%next\n";
     $functionCode .= "        deallocate(thisEvent)\n";
     $functionCode .= "        thisEvent => nextEvent\n";
