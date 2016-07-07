@@ -34,7 +34,7 @@ module Galacticus_Nodes
   use IO_HDF5
   use Pseudo_Random
   private
-  public :: Galacticus_Nodes_Initialize, Galacticus_Nodes_Finalize, Galacticus_Nodes_Unique_ID_Set, Interrupt_Procedure_Template
+  public :: Node_Class_Hierarchy_Initialize, Galacticus_Nodes_Finalize, Galacticus_Nodes_Unique_ID_Set, interruptTask
 
   type, public :: treeNodeList
      !% Type to give a list of treeNodes.
@@ -93,7 +93,7 @@ module Galacticus_Nodes
     integer                                                  :: allocErr
 
     ! Initialize tree node methods if necessary.
-    call Galacticus_Nodes_Initialize()
+    call Node_Class_Hierarchy_Initialize()
 
     ! Allocate the object.
     allocate(Tree_Node_Constructor,stat=allocErr)

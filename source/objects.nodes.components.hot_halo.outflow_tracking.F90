@@ -34,7 +34,7 @@ module Node_Component_Hot_Halo_Outflow_Tracking
   !#   <class>hotHalo</class>
   !#   <name>standard</name>
   !#  </extends>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>trackedOutflowMass</name>
@@ -71,7 +71,7 @@ contains
     type            (treeNode                    )           , intent(inout), pointer :: thisNode
     logical                                                  , intent(in   )          :: odeConverged
     logical                                                  , intent(inout)          :: interrupt
-    procedure       (Interrupt_Procedure_Template)           , intent(inout), pointer :: interruptProcedure
+    procedure       (interruptTask)           , intent(inout), pointer :: interruptProcedure
     class           (nodeComponentHotHalo        )                          , pointer :: thisHotHalo
     class           (darkMatterHaloScaleClass    )                          , pointer :: darkMatterHaloScale_
     double precision                                                                  :: massReturnRate

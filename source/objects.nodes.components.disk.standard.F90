@@ -33,7 +33,7 @@ module Node_Component_Disk_Standard
   !# <component>
   !#  <class>disk</class>
   !#  <name>standard</name>
-  !#  <isDefault>yes</isDefault>
+  !#  <isDefault>true</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>isInitialized</name>
@@ -86,9 +86,9 @@ module Node_Component_Disk_Standard
   !#   <property>
   !#     <name>halfMassRadius</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
+  !#     <isVirtual>true</isVirtual>
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>true</isVirtual>
   !#     <getFunction>Node_Component_Disk_Standard_Half_Mass_Radius</getFunction>
   !#   </property>
   !#   <property>
@@ -101,9 +101,9 @@ module Node_Component_Disk_Standard
   !#   <property>
   !#     <name>starFormationRate</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" />
+  !#     <isVirtual>true</isVirtual>
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>true</isVirtual>
   !#     <output condition="[[diskOutputStarFormationRate]]" unitsInSI="massSolar/gigaYear" comment="Disk star formation rate."/>
   !#   </property>
   !#   <property>
@@ -581,8 +581,8 @@ contains
     class           (nodeComponentHotHalo        )               , pointer :: thisHotHalo
     class           (darkMatterHaloScaleClass    )               , pointer :: darkMatterHaloScale_
     logical                                       , intent(inout)          :: interrupt
-    procedure       (Interrupt_Procedure_Template), intent(inout), pointer :: interruptProcedureReturn
-    procedure       (Interrupt_Procedure_Template)               , pointer :: interruptProcedure
+    procedure       (interruptTask), intent(inout), pointer :: interruptProcedureReturn
+    procedure       (interruptTask)               , pointer :: interruptProcedure
     type            (abundances                  ), save                   :: fuelAbundances              , fuelAbundancesRates       , &
          &                                                                    stellarAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)

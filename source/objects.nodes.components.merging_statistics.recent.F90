@@ -31,7 +31,7 @@ module Node_Component_Merging_Statistics_Recent
   !# <component>
   !#  <class>mergingStatistics</class>
   !#  <name>recent</name>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>recentMajorMergerCount</name>
