@@ -97,7 +97,7 @@ sub EigenInvert {
 	    unless ( $options{'errorTolerant'} == 1 );
     }
     unless ( all(isfinite($CInverseSPD   )) ) {
-	print "SVDInvert: covariance matrix inversion failed\n";
+	print "EigenInvert: covariance matrix inversion failed\n";
 	die
 	    unless ( $options{'errorTolerant'} == 1 );
     }
@@ -134,6 +134,8 @@ sub ComputeLikelihood {
     my %options;
     (%options) = @_
 	if ( scalar(@_) > 0 );
+    # Decide if we want a normalized likelihood.
+    my $normalized = exists($options{'normalized'}) ? $options{'normalized'} : 1;
     # Find the difference between the vectors.
     my $d                             = $y1-$y2;
     # Where upper limits are present, truncate the difference vector.
@@ -145,12 +147,14 @@ sub ComputeLikelihood {
     my $CInverse;
     my $logDeterminant;
     my $inversionMethod = exists($options{'inversionMethod'}) ? $options{'inversionMethod'} : "svd";
-    if      ( $inversionMethod eq "svd"                ) {
-	($CInverse, $logDeterminant) = &SVDInvert  ($C,%options);
-    } elsif ( $inversionMethod eq "eigendecomposition" ) {
-	($CInverse, $logDeterminant) = &EigenInvert($C,%options);
-    } else {
-	die("ComputeLikelihood(): unknown inversion method");
+    if ( $normalized || $inversionMethod eq "inverseMatrix" ) {
+	if      ( $inversionMethod eq "svd"                ) {
+	    ($CInverse, $logDeterminant) = &SVDInvert  ($C,%options);
+	} elsif ( $inversionMethod eq "eigendecomposition" ) {
+	    ($CInverse, $logDeterminant) = &EigenInvert($C,%options);
+	} else {
+	    die("ComputeLikelihood(): unknown inversion method");
+	}
     }
     # Construct the product of offsets with the inverse covariance matrix.
     my $productMethod = exists($options{'productMethod'}) ? $options{'productMethod'} : "inverseMatrix";
@@ -173,17 +177,20 @@ sub ComputeLikelihood {
     } else {
 	die("ComputeLikelihood(): unknown product method");
     }
-    # Construct the likelihood.    
-    my $logLikelihoodLog              = -0.5*$vCv->((0),(0))-0.5*nelem($y1)*log(2.0*3.1415927)-0.5*$logDeterminant;
-    $logLikelihoodLog                 = $vCv->((0),(0))
-	if ( exists($options{'normalized'}) && $options{'normalized'} == 0 );
+    # Construct the likelihood.
+    my $logLikelihood;
+    if ( $normalized ) {
+	$logLikelihood = -0.5*$vCv->((0),(0))-0.5*nelem($y1)*log(2.0*3.1415927)-0.5*$logDeterminant;
+    } else {
+	$logLikelihood =      $vCv->((0),(0))                                                      ;
+    }
     ${$options{'determinant'}} = $logDeterminant
 	if ( exists($options{'determinant'}) );
     ${$options{'inverseCovariance'}} = $CInverse
 	if ( exists($options{'inverseCovariance'}) );
     ${$options{'offsets'}} = $d
 	if ( exists($options{'offsets'}) );
-    return $logLikelihoodLog->sclr();
+    return $logLikelihood->sclr();
 }
 
 1;

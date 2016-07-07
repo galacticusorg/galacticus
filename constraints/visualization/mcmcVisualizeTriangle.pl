@@ -129,6 +129,7 @@ if ( exists($arguments{'range'}) ) {
 # Construct property list.
 my @properties;
 foreach my $parameter ( @{$config->{'parameters'}->{'parameter'}} ) {
+    print $parameter->{'name'}."\t".join(" ",@propertyNames)."\n";
     push(@properties,$parameter)
 	if ( grep {$parameter->{'name'} eq $_} @propertyNames );
 }
@@ -196,7 +197,9 @@ for(my $i=0;$i<scalar(@properties);++$i) {
     }
 }
 # Send jobs to PBS.
+print Dumper(\@pbsStack);
 &PBS::SubmitJobs(\%arguments,@pbsStack);
+exit;
 
 # Get output size.
 open(iHndl,"pdfinfo ".$outputFileName."_0_1.pdf|");
