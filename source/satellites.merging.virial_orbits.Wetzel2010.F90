@@ -140,7 +140,7 @@ contains
          &                                                                  massCharacteristic             , pericentricRadius                                   , &
          &                                                                  probabilityTotal               , massSatellite                                       , &
          &                                                                  timeNode                       , velocityHost                                        , &
-         &                                                                  radiusHost                     , massHost
+         &                                                                  radiusHost                     , massHost                                            , &
          &                                                                  radiusHostSelf
     logical                                                              :: foundOrbit
     !GCC$ attributes unused :: acceptUnboundOrbits
