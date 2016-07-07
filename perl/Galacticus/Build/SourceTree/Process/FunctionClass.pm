@@ -433,7 +433,7 @@ sub Process_FunctionClass {
 			while ( $subNode ) {
 			    if ( $subNode->{'type'} eq "objectBuilder" ) {
 				print 
-				    "WARN: instance '"                                                                                          .
+				    "Warning: instance '"                                                                                 .
 				    $class    ->{'type'}                                                                                  .
 				    "' of function class '"                                                                               .
 				    $directive->{'name'}                                                                                  .

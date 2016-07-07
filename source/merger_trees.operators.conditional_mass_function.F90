@@ -1384,7 +1384,7 @@ contains
     use Memory_Management
     implicit none
     class           (mergerTreeOperatorConditionalMF), intent(inout)                     :: self
-    type            (hdf5Object                     )                                    :: conditionalMassFunctionGroup , massDataset
+    type            (hdf5Object                     )                                    :: conditionalMassFunctionGroup       , massDataset                       , &
          &                                                                                  dataset
     double precision                                 , allocatable  , dimension(:      ) :: normalizationSubhaloMassFunction
     double precision                                 , allocatable  , dimension(:,:    ) :: normalization
