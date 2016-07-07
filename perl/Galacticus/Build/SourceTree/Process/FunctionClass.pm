@@ -674,6 +674,8 @@ sub Process_FunctionClass {
 			    $setValue = "0";
 			} elsif ( $method->{'type'} =~ m/^double\s+precision/ ) {
 			    $setValue = "0.0d0";
+			} elsif ( $method->{'type'} =~ m/^logical/ ) {
+			    $setValue = ".false.";
 			}
 			die("Process_FunctionClass(): do not know how to set '".$method->{'type'}."'")
 			    unless ( defined($setValue) );
