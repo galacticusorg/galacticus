@@ -177,6 +177,7 @@ our %colorPairs = (
     blueCyan       => [$colors{'Blue'          },$colors{'Cyan'          }],
     peachPuff      => [$colors{'Bisque3'       },$colors{'PeachPuff'     }],
     slateGray      => [$colors{'DarkSlateGray' },$colors{'SlateGray'     }],
+    lightGray      => [$colors{'Gray'          },$colors{'LightGray'     }],
     cornflowerBlue => [$colors{'DarkSlateBlue' },$colors{'CornflowerBlue'}],
     lightSkyBlue   => [$colors{'DodgerBlue'    },$colors{'LightSkyBlue'  }],
     mediumSeaGreen => [$colors{'SeaGreen'      },$colors{'MediumSeaGreen'}],

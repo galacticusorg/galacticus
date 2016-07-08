@@ -99,21 +99,21 @@ $options .= " --useUnconverged ".$arguments{'useUnconverged'}
 # Open the config file and parse the available parameter names.
 my $xml    = new XML::Simple;
 my $config = $xml->XMLin($configFileName, KeyAttr => []);
-my @propertiesAvailable;
+my @propertyNamesAvailable;
 foreach my $parameter ( @{$config->{'parameters'}->{'parameter'}} ) {
-    push(@propertiesAvailable,$parameter->{'name'})
+    push(@propertyNamesAvailable,$parameter->{'name'})
 	 if ( exists($parameter->{'prior'}) );
 }
-my @properties;
+my @propertyNames;
 if ( exists($arguments{'property'}) ) {
-    @properties = @{$arguments{'property'}};
-    die("mcmcVisualizeTriangle.pl: at least 3 properties must be specified")
-	if ( scalar(@properties) < 3 );
-    foreach my $property ( @properties ) {
-	die("Property '".$property->{'name'}."' is not available") unless ( grep {$_ eq $property->{'name'}} @propertiesAvailable );
+    @propertyNames = @{$arguments{'property'}};
+    die("mcmcVisualizeTriangle.pl: at least 3 propertyNames must be specified")
+	if ( scalar(@propertyNames) < 3 );
+    foreach my $property ( @propertyNames ) {
+	die("Property '".$property->{'name'}."' is not available") unless ( grep {$_ eq $property->{'name'}} @propertyNamesAvailable );
     }
 } else {
-    @properties = @propertiesAvailable;
+    @propertyNames = @propertyNamesAvailable;
 }
 
 # Determine any ranges to be applied to parameters.
@@ -122,8 +122,16 @@ if ( exists($arguments{'range'}) ) {
     @ranges = @{$arguments{'range'}};
     foreach my $property ( @ranges ) {
 	my @range = split(/:/,$property);
-	die("Property '".$range[0]."' is not available") unless ( grep {$_ eq $range[0]} @propertiesAvailable );
+	die("Property '".$range[0]."' is not available") unless ( grep {$_ eq $range[0]} @propertyNamesAvailable );
     }
+}
+
+# Construct property list.
+my @properties;
+foreach my $parameter ( @{$config->{'parameters'}->{'parameter'}} ) {
+    print $parameter->{'name'}."\t".join(" ",@propertyNames)."\n";
+    push(@properties,$parameter)
+	if ( grep {$parameter->{'name'} eq $_} @propertyNames );
 }
 
 # Loop over parameters.
@@ -131,7 +139,7 @@ my @pbsStack;
 my $standardWidth;
 my $standardHeight;
 for(my $i=0;$i<scalar(@properties);++$i) {
-    my $command = "constraints/visualization/mcmcVisualize.pl ".$fileRoot." ".$configFileName." --workDirectory ".$workDirectory." --xProperty '".$properties[$i]->{'name'}."' --xScale ".$properties[$i]->{'scaling'}." --textSize ".$textSize." --labelStyle ".$labelStyle." --output ".$outputFileName."_".$i.".pdf --data ".$outputFileName."_".$i.".xml ".$options;
+    my $command = "constraints/visualization/mcmcVisualize.pl ".$configFileName." ".$fileRoot." --workDirectory ".$workDirectory." --xProperty '".$properties[$i]->{'name'}."' --xScale ".$properties[$i]->{'mapping'}->{'type'}." --textSize ".$textSize." --labelStyle ".$labelStyle." --output ".$outputFileName."_".$i.".pdf --data ".$outputFileName."_".$i.".xml ".$options;
     $command .= " --xLabel '".$properties[$i]->{'xLabel'}."'"
         if ( exists($properties[$i]->{'xLabel'}) );
     $command .= " --zLabel '".$properties[$i]->{'zLabel'}."'"
@@ -159,7 +167,7 @@ for(my $i=0;$i<scalar(@properties);++$i) {
     }
     if ( $i < scalar(@properties)-1 ) { 
 	for(my $j=$i+1;$j<scalar(@properties);++$j) {
-	    my $command = "constraints/visualization/mcmcVisualize.pl ".$fileRoot." ".$configFileName." --workDirectory ".$workDirectory." --yProperty '".$properties[$i]->{'name'}."' --yScale ".$properties[$i]->{'scaling'}." --xProperty '".$properties[$j]->{'name'}."' --xScale ".$properties[$j]->{'scaling'}." --textSize ".$textSize." --labelStyle ".$labelStyle." --output ".$outputFileName."_".$i."_".$j.".pdf --data ".$outputFileName."_".$i."_".$j.".xml ".$options;
+	    my $command = "constraints/visualization/mcmcVisualize.pl ".$configFileName." ".$fileRoot." --workDirectory ".$workDirectory." --yProperty '".$properties[$i]->{'name'}."' --yScale ".$properties[$i]->{'mapping'}->{'type'}." --xProperty '".$properties[$j]->{'name'}."' --xScale ".$properties[$j]->{'mapping'}->{'type'}." --textSize ".$textSize." --labelStyle ".$labelStyle." --output ".$outputFileName."_".$i."_".$j.".pdf --data ".$outputFileName."_".$i."_".$j.".xml ".$options;
 	    $command .= " --xLabel '".$properties[$j]->{'xLabel'}."'"
 		if ( exists($properties[$j]->{'xLabel'}) );
 	    $command .= " --yLabel '".$properties[$i]->{'xLabel'}."'"
@@ -189,7 +197,9 @@ for(my $i=0;$i<scalar(@properties);++$i) {
     }
 }
 # Send jobs to PBS.
+print Dumper(\@pbsStack);
 &PBS::SubmitJobs(\%arguments,@pbsStack);
+exit;
 
 # Get output size.
 open(iHndl,"pdfinfo ".$outputFileName."_0_1.pdf|");

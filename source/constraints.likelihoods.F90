@@ -121,22 +121,24 @@ contains
          &                                                           likelihoodLineOfSightDepthDefinition           , likelihoodHalfIntegralDefinition                        , &
          &                                                           likelihoodExclusionsDefinition                 , likelihoodDumpEmulatorDefinition                        , &
          &                                                           likelihoodDelayIntervalDefinition              , likelihoodDummyEmulatorDefinition                       , &
-         &                                                           likelihoodRedshiftDefinition
-    type            (nodeList      ), pointer                     :: covarianceRows
+         &                                                           likelihoodRedshiftDefinition                   , likelihoodMassParticleDefinition ion                    , &
+         &                                                           likelihoodBinCountMinimumDefinition            , likelihoodMassFunctionTypeDefinition                    , &
+         &                                                           likelihoodMassFunctionErrorModelDefinition
     double precision                , allocatable, dimension(:  ) :: likelihoodMean
     double precision                , allocatable, dimension(:,:) :: likelihoodCovariance
     integer                         , allocatable, dimension(:  ) :: likelihoodExclusions
     integer                                                       :: i                                              , dimensionCount                            , &
          &                                                           likelihoodRealizationCount                     , likelihoodRealizationCountMinimum         , &
          &                                                           likelihoodEmulatorRebuildCount                 , likelihoodPolynomialOrder                 , &
-         &                                                           likelihoodReportCount                          , likelihoodNeighborCount
+         &                                                           likelihoodReportCount                          , likelihoodNeighborCount                   , &
+         &                                                           likelihoodBinCountMinimum
     double precision                                              :: likelihoodSigmaBuffer                          , likelihoodLogLikelihoodBuffer             , &
          &                                                           likelihoodHaloMassMinimum                      , likelihoodHaloMassMaximum                 , &
          &                                                           likelihoodRedshiftMinimum                      , likelihoodRedshiftMaximum                 , &
          &                                                           likelihoodLogLikelihoodErrorTolerance          , likelihoodSurfaceBrightnessLimit          , &
          &                                                           likelihoodTolerance                            , likelihoodLineOfSightDepth                , &
          &                                                           likelihoodDelayInterval                        , likelihoodRedshift                        , &
-         &                                                           likelihoodMassRangeMinimum
+         &                                                           likelihoodMassRangeMinimum                     , likelihoodMassParticle
     logical                                                       :: likelihoodEmulateOutliers                      , likelihoodUseSurveyLimits                 , &
          &                                                           likelihoodModelSurfaceBrightness               , likelihoodHalfIntegral                    , &
          &                                                           likelihoodDummyEmulator
@@ -290,15 +292,29 @@ contains
        allocate(likelihoodHaloMassFunction :: newLikelihood)
        select type (newLikelihood)
        type is (likelihoodHaloMassFunction)
-          likelihoodRedshiftDefinition             => XML_Get_First_Element_By_Tag_Name(definition,"redshift"        )
-          likelihoodMassRangeMinimumDefinition     => XML_Get_First_Element_By_Tag_Name(definition,"massRangeMinimum")
-          likelihoodMassFunctionFileNameDefinition => XML_Get_First_Element_By_Tag_Name(definition,"fileName"        )
+          likelihoodRedshiftDefinition               => XML_Get_First_Element_By_Tag_Name(definition,"redshift"              )
+          likelihoodMassRangeMinimumDefinition       => XML_Get_First_Element_By_Tag_Name(definition,"massRangeMinimum"      )
+          likelihoodBinCountMinimumDefinition        => XML_Get_First_Element_By_Tag_Name(definition,"binCountMinimum"       )
+          likelihoodMassFunctionTypeDefinition       => XML_Get_First_Element_By_Tag_Name(definition,"massFunctionType"      )
+          likelihoodMassFunctionErrorModelDefinition => XML_Get_First_Element_By_Tag_Name(definition,"massFunctionErrorModel")
+          likelihoodMassFunctionFileNameDefinition   => XML_Get_First_Element_By_Tag_Name(definition,"fileName"              )
+          if (getTextContent(likelihoodMassFunctionErrorModelDefinition) == "sphericalOverdensity") then
+             likelihoodMassParticleDefinition => XML_Get_First_Element_By_Tag_Name(definition,"massParticle")
+             call extractDataContent(likelihoodMassParticleDefinition,likelihoodMassParticle)
+          else
+             likelihoodMassParticle=0.0d0
+          end if
           call extractDataContent(likelihoodRedshiftDefinition        ,likelihoodRedshift        )
           call extractDataContent(likelihoodMassRangeMinimumDefinition,likelihoodMassRangeMinimum)
-          newLikelihood=likelihoodHaloMassFunction(                                                          &
-               &                                   getTextContent(likelihoodMassFunctionFileNameDefinition), &
-               &                                   likelihoodRedshift                                      , &
-               &                                   likelihoodMassRangeMinimum                                &
+          call extractDataContent(likelihoodBinCountMinimumDefinition ,likelihoodBinCountMinimum )
+          newLikelihood=likelihoodHaloMassFunction(                                                            &
+               &                                   getTextContent(likelihoodMassFunctionFileNameDefinition  ), &
+               &                                   likelihoodRedshift                                        , &
+               &                                   likelihoodMassRangeMinimum                                , &
+               &                                   likelihoodBinCountMinimum                                 , &
+               &                                   getTextContent(likelihoodMassFunctionTypeDefinition      ), &
+               &                                   getTextContent(likelihoodMassFunctionErrorModelDefinition), &
+               &                                   likelihoodMassParticle                                      &
                &                                  )
        end select
     case ("projectedCorrelationFunction")
