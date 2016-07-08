@@ -374,18 +374,18 @@ contains
     use Histories
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode                    ), intent(inout), pointer :: node
-    logical                                       , intent(in   )          :: odeConverged
-    class           (nodeComponentDisk           )               , pointer :: disk
-    class           (nodeComponentHotHalo        )               , pointer :: hotHalo
-    logical                                       , intent(inout)          :: interrupt
-    procedure       (interruptTask), intent(inout), pointer :: interruptProcedureReturn
-    procedure       (interruptTask)               , pointer :: interruptProcedure
-    double precision                                                       :: stellarMassRate         , fuelMassRate         , &
-         &                                                                    massOutflowRate
-    type            (history                     )                         :: stellarHistoryRate
-    type            (abundances                  )                         :: fuelAbundancesRate      , stellarAbundancesRate, &
-         &                                                                    abundancesOutflowRate
+    type            (treeNode            ), intent(inout), pointer :: node
+    logical                               , intent(in   )          :: odeConverged
+    class           (nodeComponentDisk   )               , pointer :: disk
+    class           (nodeComponentHotHalo)               , pointer :: hotHalo
+    logical                               , intent(inout)          :: interrupt
+    procedure       (interruptTask       ), intent(inout), pointer :: interruptProcedureReturn
+    procedure       (interruptTask       )               , pointer :: interruptProcedure
+    double precision                                               :: stellarMassRate         , fuelMassRate         , &
+         &                                                            massOutflowRate
+    type            (history             )                         :: stellarHistoryRate
+    type            (abundances          )                         :: fuelAbundancesRate      , stellarAbundancesRate, &
+         &                                                            abundancesOutflowRate
     !GCC$ attributes unused :: odeConverged
         
     ! Get a local copy of the interrupt procedure.

@@ -38,7 +38,7 @@ module Node_Component_Spin_Vitvitska
   !# <component>
   !#  <class>spin</class>
   !#  <name>vitvitska</name>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>spin</name>

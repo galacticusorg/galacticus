@@ -44,8 +44,12 @@ sub Gather_Classes {
 	my $implementationName = $implementation->{'name' };
 	# Append the component name to the list of members for its class.
 	push(
-	    @{$build->{'componentClasses'}->{$className}->{'members'}},
+	    @{$build->{'componentClasses'}->{$className}->{'memberNames'}},
 	    $implementationName
+	    );
+	push(
+	    @{$build->{'componentClasses'}->{$className}->{'members'    }},
+	    $implementation
 	    );
     }
     # Construct a list of component class names.
@@ -55,7 +59,7 @@ sub Gather_Classes {
 	print "         --> Found the following component classes and implementations:\n";
 	foreach my $className ( @{$build->{'componentClassList'}} ) {
 	    print "            --> ".$className."\n";
-	    foreach my $implementationName ( @{$build->{'componentClasses'}->{$className}->{'members'}} ) {
+	    foreach my $implementationName ( @{$build->{'componentClasses'}->{$className}->{'memberNames'}} ) {
 		print "               --> ".$implementationName."\n";
 	    }
 	}
@@ -74,7 +78,7 @@ sub Build_Component_Classes {
 	# Create a list for type-bound functions.
 	my @typeBoundFunctions;
   	# Insert definitions for each method associated with a component implementation of this component class.
-    	foreach my $implementationName ( @{$class->{'members'}} ) {
+    	foreach my $implementationName ( @{$class->{'memberNames'}} ) {
 	    # Construct a fully-qualified name for this implementation.
 	    my $implementationIdentifier = ucfirst($className).ucfirst($implementationName);
 	    # Get the implementation.

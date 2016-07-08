@@ -223,6 +223,9 @@ sub Components_Generate_Output {
 
     # Insert the "contains" line.
     $build->{'content'} .= "contains\n\n";
+
+    # Serialize all functions.
+    &functionsSerialize($build);
     
     # Insert all functions into content.
     $build->{'content'} .= join("\n",@{$build->{'code'}->{'functions'}})."\n";
@@ -2452,7 +2455,7 @@ sub Generate_Implementation_Builder_Functions {
 		if ( exists($component->{'extends'}) );
 	    # Enter critical section.
 	    $functionCode .= "    !\$omp critical (FoX_DOM_Access)\n";
-	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    foreach my $propertyName ( sort(keys(%{$component->{'properties'}->{'property'}})) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property has any linked data in this component.
 		if ( exists($property->{'linkedData'}) ) {
@@ -2780,7 +2783,7 @@ sub Generate_Implementation_Output_Functions {
 	}
 	$functionBody .= "    return\n";
 	$functionBody .= "  end subroutine Node_Component_".ucfirst($componentID)."_Output_Count\n";
-	foreach my $type ( keys(%typeUsed) ) {
+	foreach my $type ( sort(keys(%typeUsed)) ) {
 	    $functionCode .= "  !GCC\$ attributes unused :: ".$type."PropertyCount\n"
 		unless ( $typeUsed{$type} );
 	}	
@@ -2990,7 +2993,7 @@ sub Generate_Implementation_Output_Functions {
 	$functionBody .= "    return\n";
 	$functionBody .= "  end subroutine Node_Component_".ucfirst($componentID)."_Output_Names\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	foreach my $type ( keys(%typeUsed) ) {
+	foreach my $type ( sort(keys(%typeUsed)) ) {
 	    $functionCode .= "  !GCC\$ attributes unused :: ".join(", ",map {$type.$_} ('Property','PropertyNames','PropertyComments','PropertyUnitsSI'))."\n"
 		unless ( $typeUsed{$type} );
 	}	
@@ -3797,7 +3800,7 @@ sub Generate_Component_Get_Functions {
 	# Generate function to create component via an interrupt.
 	my $createIfNeeded = 0;
 	# Iterate over component implementations.
-	foreach my $implementationName ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+	foreach my $implementationName ( @{$build->{'componentClasses'}->{$componentClassName}->{'memberNames'}} ) {
 	    my $implementationID = ucfirst($componentClassName).ucfirst($implementationName);
 	    my $component = $build->{'components'}->{$implementationID};
 	    # Iterate over properties.
@@ -3815,7 +3818,7 @@ sub Generate_Component_Get_Functions {
 	    $functionCode .= "    ".$componentClassName." => self%".$componentClassName."(autoCreate=.true.)\n";
 	    # Loop over instances of this class, and call custom create routines if necessary.
 	    my $foundCreateFunctions = 0;
-    	foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+    	foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'memberNames'}} ) {
 		my $componentID = ucfirst($componentClassName).ucfirst($componentName);
 	    my $component = $build->{'components'}->{$componentID};
 		if ( exists($component->{'createFunction'}) ) {
@@ -3847,7 +3850,7 @@ sub Generate_Component_Get_Functions {
 		);
 	}
 	# If any create function is deferred, create a function to set it at runt time.
-    	foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+    	foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'memberNames'}} ) {
 	    my $componentID = ucfirst($componentClassName).ucfirst($componentName);
 	    my $component = $build->{'components'}->{$componentID};
 	    if (
@@ -4044,7 +4047,7 @@ sub Generate_Node_Copy_Function {
 	    $functionCode .= "    if (allocated(targetNode%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")) deallocate(targetNode%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")\n";
 	    $functionCode .= "    allocate(targetNode%component".&Utils::padClass(ucfirst($componentClassName),[0,0])."(size(self%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")),source=self%component".&Utils::padClass(ucfirst($componentClassName),[0,0])."(1))\n";
 	    $functionCode .= "    do i=1,size(self%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")\n";
-	    foreach my $implementationName ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+	    foreach my $implementationName ( @{$build->{'componentClasses'}->{$componentClassName}->{'memberNames'}} ) {
 		$functionCode .= "      select type (from => self%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")\n";
 		$functionCode .= "      type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
 		$functionCode .= "        select type (to => targetNode%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")\n";
@@ -5085,7 +5088,7 @@ sub Generate_Tree_Node_Builder_Function {
     $functionCode .= "    type is (treeNode)\n";
     $functionCode .= "       call componentIndex%initialize()\n";
     $functionCode .= "       !\$omp critical (FoX_DOM_Access)\n";
-   foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
+   foreach my $componentClass ( @{$build->{'componentClassList'}} ) {
 	$functionCode .= "    componentList => getChildNodes(nodeDefinition)\n";
 	$functionCode .= "    componentCount=0\n";
 	$functionCode .= "    do i=0,getLength(componentList)-1\n";
@@ -5101,7 +5104,7 @@ sub Generate_Tree_Node_Builder_Function {
     $functionCode .= "    componentCount=getLength(componentList)\n";
     $functionCode .= "    !\$omp end critical (FoX_DOM_Access)\n";
     $functionCode .= "    do i=0,componentCount-1\n";
-    foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
+    foreach my $componentClass ( @{$build->{'componentClassList'}} ) {
 	$functionCode .= "     !\$omp critical (FoX_DOM_Access)\n";
 	$functionCode .= "     componentDefinition => item(componentList,i)\n";
 	$functionCode .= "     nodeName=getNodeName(componentDefinition)\n";
@@ -5134,7 +5137,7 @@ sub Generate_GSR_Availability_Functions {
 	# Initialize a structure of properties.
 	my $properties;
 	# Iterate over class members.
-	foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+	foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'memberNames'}} ) {
 	    # Get the component.
 	    my $componentID = ucfirst($componentClassName).ucfirst($componentName);
 	    my $component   = $build->{'components'}->{$componentID};
@@ -5471,7 +5474,7 @@ sub Generate_Component_Class_Removal_Functions {
 	$functionCode .= "    else\n";
 	$functionCode .= "      ! Multiple instances, so remove the specified instance.\n";
 	$functionCode .= "      allocate(instancesTemporary(instanceCount-1),source=self%component".ucfirst($componentClassName)."(1))\n";
-	foreach my $implementationName ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+	foreach my $implementationName ( @{$build->{'componentClasses'}->{$componentClassName}->{'memberNames'}} ) {
 	    $functionCode .= "      select type (from => self%component".ucfirst($componentClassName).")\n";
 	    $functionCode .= "      type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
 	    $functionCode .= "        select type (to => instancesTemporary)\n";
@@ -5568,7 +5571,7 @@ sub Generate_Component_Class_Move_Functions {
 	$functionCode .= "    else\n";
 	$functionCode .= "      ! Multiple instances, so remove the specified instance.\n";
 	$functionCode .= "      allocate(instancesTemporary(instanceCount+targetCount),source=self%component".ucfirst($componentClassName)."(1))\n";
-	foreach my $implementationName ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+	foreach my $implementationName ( @{$build->{'componentClasses'}->{$componentClassName}->{'memberNames'}} ) {
 	    $functionCode .= "      select type (from => targetNode%component".ucfirst($componentClassName).")\n";
 	    $functionCode .= "      type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
 	    $functionCode .= "        select type (to => instancesTemporary)\n";
@@ -5577,7 +5580,7 @@ sub Generate_Component_Class_Move_Functions {
 	    $functionCode .= "        end select\n";
 	    $functionCode .= "      end select\n";
 	}
-	foreach my $implementationName ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+	foreach my $implementationName ( @{$build->{'componentClasses'}->{$componentClassName}->{'memberNames'}} ) {
 	    $functionCode .= "      select type (from => self%component".ucfirst($componentClassName).")\n";
 	    $functionCode .= "      type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
 	    $functionCode .= "        select type (to => instancesTemporary)\n";
@@ -5903,7 +5906,7 @@ sub Generate_Component_Class_Output_Functions {
 	# Find all derived types to be output.
 	my %outputTypes;
 	my %rank1OutputTypes;
-	foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+	foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'memberNames'}} ) {
 	    # Get the component.
 	    my $componentID  = ucfirst($componentClassName).ucfirst($componentName);
 	    my $component    = $build->{'components'}->{$componentID};
@@ -5966,7 +5969,7 @@ sub Generate_Component_Class_Output_Functions {
 	undef($functionCode);
 	# Find modules required.
 	my %modulesRequired;
-	foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+	foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'memberNames'}} ) {
 	    # Get the component.
 	    my $componentID  = ucfirst($componentClassName).ucfirst($componentName);
 	    my $component    = $build->{'components'}->{$componentID};
@@ -6001,7 +6004,7 @@ sub Generate_Component_Class_Output_Functions {
 	     integer => 0,
 	     double  => 0
 	    );
-        foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+        foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'memberNames'}} ) {
 	    # Get the component.
 	    my $componentID  = ucfirst($componentClassName).ucfirst($componentName);
 	    my $component    = $build->{'components'}->{$componentID};
@@ -6124,7 +6127,7 @@ sub Generate_Component_Class_Output_Functions {
 	    unless ( $instanceUsed );
 	$functionCode .= "    !GCC\$ attributes unused :: time\n"
 	    unless ( $timeUsed );
-	foreach my $type ( keys(%typeUsed) ) {
+	foreach my $type ( sort(keys(%typeUsed)) ) {
 	    $functionCode .= "    !GCC\$ attributes unused :: ".join(", ",map {$type.$_} ("Property", "BufferCount", "Buffer"))."\n"
 		unless ( $typeUsed{$type} );
 	}
@@ -6422,7 +6425,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 	# Initialize hash to track which property have been created already.
 	my %propertiesCreated;
 	# Iterate over implementations in this class.
-    	foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+    	foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'memberNames'}} ) {
 	    # Get the component.
 	    my $componentID = ucfirst($componentClassName).ucfirst($componentName);
 	    my $component   = $build->{'components'}->{$componentID};
@@ -6458,7 +6461,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 		    $functionCode .= "     !% Returns true if the {\\normalfont \\ttfamily ".$propertyName."} property is gettable for the {\\normalfont \\ttfamily ".$componentClassName."} component class.\n\n"; 
 		    $functionCode .= "     implicit none\n";
 		    $functionCode .= "     ".ucfirst($componentClassName).ucfirst($propertyName)."IsGettable=.false.\n";
-		    foreach my $componentName2 ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+		    foreach my $componentName2 ( @{$build->{'componentClasses'}->{$componentClassName}->{'memberNames'}} ) {
 			my $component2ID = ucfirst($componentClassName).ucfirst($componentName2);
 			my $component2   = $build->{'components'}->{$component2ID};
 			$functionCode .= "     if (nodeComponent".ucfirst($component2ID)."IsActive) ".ucfirst($componentClassName).ucfirst($propertyName)."IsGettable=.true.\n"
@@ -6492,7 +6495,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 		    # Build default value code, and accumulate which additional components are needed.
 		    my $defaultLines = "";
 		    my %requiredComponents;
-		    foreach my $componentName2 ( @{$build->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+		    foreach my $componentName2 ( @{$build->{'componentClasses'}->{$componentClassName}->{'memberNames'}} ) {
 			my $component2ID = ucfirst($componentClassName).ucfirst($componentName2);
 			my $component2   = $build->{'components'}->{$component2ID};
 			if ( exists($component2->{'properties'}->{'property'}->{$propertyName}) ) {
@@ -6765,6 +6768,44 @@ CODE
 
     }
     
+}
+
+sub functionsSerialize {
+    # Serialize function code.
+    my $build = shift();
+    print "   --> Serialize functions...\n";
+    # Iterate over functions.
+    foreach my $function ( @{$build->{'functions'}} ) {
+	# Report.
+	print "      --> ".$function->{'name'}."\n";
+	# Build function type definition.
+	$function->{'type'} = $function->{'type'} eq "void" ? "subroutine" : $function->{'type'}." function";
+	# Build a list of arguments.
+	my @arguments;
+	foreach my $variables ( @{$function->{'variables'}} ) {
+	    push(
+		@arguments,
+		@{$variables->{'variables'}}
+		)
+		if ( exists($variables->{'attributes'}) && grep {$_ =~ m/^intent\s*\(\s*(in|inout|out)\s*\)/} @{$variables->{'attributes'}} );
+	}
+	# Serialize function opener.
+	$build->{'content'} .= $function->{'type'}." ".$function->{'name'}."(".join(",",@arguments).")\n";
+	# Serialize description.
+	$build->{'content'} .= "   !% ".$function->{'description'}."\n";
+	# Serialize module uses.
+	$build->{'content'} .= "   use ".$_."\n"
+	    foreach ( @{$function->{'modules'}} );
+	# Serialize variable definitions.
+	$build->{'content'} .= "   implicit none\n";
+	$build->{'content'} .= &Fortran_Utils::Format_Variable_Defintions($function->{'variables'})
+	    if ( exists($function->{'variables'}) );
+	# Serialize content.
+	$build->{'content'} .= $function->{'content'};
+	# Serialize function closer.
+	$build->{'content'} .= "   return\n";
+	$build->{'content'} .= "end ".$function->{'type'}." ".$function->{'name'}."\n\n";
+    }
 }
 
 1;

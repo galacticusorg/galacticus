@@ -88,6 +88,11 @@ sub Implementation_Defaults {
 	&Utils::applyDefaults($implementation,$_,$defaults{$_})
 	    foreach ( keys(%defaults) );
     }
+    # Record the default implementation for each class.
+    foreach my $implementation ( &ExtraUtils::hashList($build->{'components'}) ) {
+	$build->{'componentClasses'}->{$implementation->{'class'}}->{'defaultImplementation'} = $implementation->{'name'}
+	    if ( $implementation->{'isDefault'} );
+    }
 }
 
 sub Null_Implementations {
@@ -115,9 +120,11 @@ sub Null_Implementations {
 	    # No pre-existing null component is present, so simply insert one into the build data.
 	    my $implementationName = ucfirst($class)."Null";
 	    my $isDefault          = $classes{$class}->{'hasDefault'} ? 0 : 1;
-	    $build->{'components'}->{$implementationName}->{'class'    } = $class;
-	    $build->{'components'}->{$implementationName}->{'name'     } = "null";
-	    $build->{'components'}->{$implementationName}->{'isDefault'} = $isDefault;
+	    $build->{'components'      }->{$implementationName}->{'class'                } = $class;
+	    $build->{'components'      }->{$implementationName}->{'name'                 } = "null";
+	    $build->{'components'      }->{$implementationName}->{'isDefault'            } = $isDefault; 
+	    $build->{'componentClasses'}->{$class             }->{'defaultImplementation'} = "null"
+		if ( $isDefault );
 	    # Append this new component ID to the component ID list.
 	    push(@{$build->{'componentIdList'}},$implementationName);
 	    # Display a message.
@@ -143,22 +150,22 @@ sub Implementation_Dependencies {
 	if ( $Utils::verbosityLevel >= 1 );
     foreach my $className ( @{$build->{'componentClassList'}} ) {
 	my %dependencies;
-	foreach my $implementationName ( @{$build->{'componentClasses'}->{$className}->{'members'}} ) {
+	foreach my $implementationName ( @{$build->{'componentClasses'}->{$className}->{'memberNames'}} ) {
 	    my $implementationID = ucfirst($className).ucfirst($implementationName);
  	    my $implementation   = $build->{'components'}->{$implementationID};
 	    push(@{$dependencies{$implementation->{'extends'}->{'name'}}},$implementationName)
 		if ( exists($implementation->{'extends'}) );
 	}
-	@{$build->{'componentClasses'}->{$className}->{'members'}} =
+	@{$build->{'componentClasses'}->{$className}->{'memberNames'}} =
 	    toposort
 	    (
 	     sub { @{$dependencies{$_[0]} || []}; },
-	     \@{$build->{'componentClasses'}->{$className}->{'members'}}
+	     \@{$build->{'componentClasses'}->{$className}->{'memberNames'}}
 	    );
 	if ( $Utils::verbosityLevel >= 1 ) {
 	    print "            --> ".$className.":\n";
 	    print "               --> ".$_."\n"
-		foreach ( @{$build->{'componentClasses'}->{$className}->{'members'}} );
+		foreach ( @{$build->{'componentClasses'}->{$className}->{'memberNames'}} );
 	}
     }
     # Update the component ID list such that it is in dependency order.
@@ -166,7 +173,7 @@ sub Implementation_Dependencies {
 	nestedmap {
 	    nestedmap {
 		ucfirst($NestedMap::stack[1]).ucfirst($NestedMap::stack[0])		
-	    } @{$build->{'componentClasses'}->{$NestedMap::stack[0]}->{'members'}}	    
+	    } @{$build->{'componentClasses'}->{$NestedMap::stack[0]}->{'memberNames'}}	    
     } @{$build->{'componentClassList'}};
 }
 

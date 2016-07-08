@@ -25,6 +25,23 @@ For example, rank-1, long integer arguments which will not be modified in their 
 
 The {\normalfont \ttfamily \$build} data structure is used to accumulate all objects, variables, and functions needed to build the class hierarchy used to represent nodes and components in \glc. At the end of the node objects build process, this object is processed to generate the required Fortran code. The following subsections describe how to add information to this object.
 
+\subsubsection{Component Classes and Implementations}
+
+A reference to a hash of structures which define all component classes, keyed by class name, is provided as {\normalfont \ttfamily \$build->\{'componentClasses'\}}. Each component class structure has the form:
+\begin{verbatim}
+{
+ name    => <name of the class>,
+ members => <reference to a hash of structures which define all member implementation of the class>
+}
+\end{verbatim}
+Each member implementation structure has the form:
+\begin{verbatim}
+{
+ name       =>             <name of the implementation>,
+ properties => property => <reference to a hash of structures which define all properties of this implementation>
+}
+\end{verbatim}
+
 \subsubsection{Module-scope Variables}
 
 Any module-scope variables can be pushed to the array {\normalfont \ttfamily \@\{\$build->\{'variables'\}\}}, using the usual definition format described in \S\ref{sec:nodeBuilderVariableDefinitions}.
@@ -520,7 +537,7 @@ The second feature accounts for the fact that the properties of a node will chan
 
 \section{Mixed Language Coding}\label{sec:MixedLanguageCoding}\index{coding!mixed language}\index{mixed language coding}\index{C (language) coding}
 
-It is possible to incorporate C or C++ code into \glc. The implementation of C++-integration into \glc\ is currently only partially complete---if there is a specific function or feature that you would like to be C++-interoperable \href{mailto:abenson@.carnegiescience.edu}{contact us}. For an example of the various C++ interoperability see the {\normalfont \ttfamily star\_formation.timescales.disks.Baugh2005.cpp} file.
+It is possible to incorporate C or C++ code into \glc. The implementation of C++-integration into \glc\ is currently only partially complete---if there is a specific function or feature that you would like to be C++-interoperable \href{mailto:abenson@carnegiescience.edu}{contact us}. For an example of the various C++ interoperability see the {\normalfont \ttfamily star\_formation.timescales.disks.Baugh2005.cpp} file.
 
 \subsection{Component Property Methods}
 
