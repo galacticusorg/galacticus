@@ -311,33 +311,21 @@ contains
                       deltaW               =deltaWAccretionLimit
                       snapAccretionFraction=.true.
                    end if
-                   if (deltaW <= 0.0d0) then
-                      ! Terminate the branch with a final node.
-                      nodeIndex          =  nodeIndex+1
-                      newNode1           => treeNode      (nodeIndex,tree)
-                      newBasic1          => newNode1%basic(autoCreate=.true. )
-                      ! Compute new mass accounting for sub-resolution accretion.
-                      nodeMass1          = branchMassCurrent
-                      ! Compute the time corresponding to this event.
-                      time               = criticalOverdensity_%timeOfCollapse(criticalOverdensity=branchDeltaCriticalCurrent,mass=branchMassCurrent)
-                      ! Set properties of the new node.
-                      deltaCritical1     = criticalOverdensity_%value         (time               =time                      ,mass=nodeMass1        )
-                      call newBasic1%massSet(nodeMass1     )
-                      call newBasic1%timeSet(deltaCritical1)
-                      ! Create links from old to new node and vice-versa.
-                      thisNode%firstChild => newNode1
-                      newNode1%parent     => thisNode
-                      ! Move to the terminating node (necessary otherwise we would move to this terminating node next and continue
-                      ! to grow a branch from it), and flag that the branch is done.
-                      thisNode            => newNode1
-                      branchIsDone        =  .true.
-                   end if
                 end if
                 if     (                                                                   &
                      &   branchingProbabilityRate > 0.0d0                                  &
                      &  .and.                                                              &
                      &   .not.self%branchIntervalStep                                      &
-                     & ) deltaW=min(deltaW,self%mergeProbability/branchingProbabilityRate)
+                     & ) then
+                   if (self%mergeProbability/branchingProbabilityRate < deltaW) then
+                      ! Timestep is limited by branching rate. Reduce the timestep to the allowed
+                      ! size and unset the flag to snap the accretion fraction to its maximum
+                      ! allowed value (since we won't reach that value with this new, reduced
+                      ! timestep).
+                      deltaW               =self%mergeProbability/branchingProbabilityRate
+                      snapAccretionFraction=.false.
+                   end if
+                end if
                 ! Limit the timestep so that the maximum allowed time is not exceeded.
                 deltaWEarliestTime=+criticalOverdensity_%value(                        &
                      &                                         time=self%timeEarliest, &
@@ -355,8 +343,9 @@ contains
                 if (.not.self%branchIntervalStep)                           &
                      & branchingProbability=branchingProbabilityRate*deltaW
                 accretionFraction          =accretionFraction       *deltaW
-                ! Accretion fraction must be less than unity. Reduce timestep (and branching probability and accretion fraction) by
-                ! factors of two until this condition is satisfied.
+                ! Accretion fraction must be less than unity. Reduce timestep (and branching
+                ! probability and accretion fraction) by factors of two until this condition is
+                ! satisfied.
                 do while (accretionFraction+accretionFractionCumulative >= 1.0d0)
                    if (.not.self%branchIntervalStep)                      &
                         & branchingProbability=branchingProbability*0.5d0
@@ -367,7 +356,8 @@ contains
                 end do
                 ! Decide if a branching occurs.
                 if (self%branchIntervalStep) then
-                   ! In this case we draw intervals between branching events from a negative exponential distribution.
+                   ! In this case we draw intervals between branching events from a negative
+                   ! exponential distribution.
                    if (branchingProbabilityRate > 0.0d0) then
                       branchingIntervalScaleFree=0.0d0
                       do while (branchingIntervalScaleFree <= 0.0d0)
@@ -419,9 +409,9 @@ contains
                 ! Determine the critical overdensity for collapse for the new halo(s).
                 if (snapEarliestTime) then
                    deltaCritical                 =+criticalOverdensity_%value(                        &
-                     &                                                        time=self%timeEarliest, &
-                     &                                                        mass=branchMassCurrent  &
-                     &                                                       )
+                        &                                                        time=self%timeEarliest, &
+                        &                                                        mass=branchMassCurrent  &
+                        &                                                       )
                 else
                    deltaCritical                 =+branchDeltaCriticalCurrent &
                         &                         +deltaW
