@@ -39,7 +39,7 @@ contains
     if (present(iStatus)) then
        iStatus=iStatusActual
     else
-       if (iStatusActual /= 0) call Galacticus_Error_Report('System_Command_Do','failed to execute system command')
+       if (iStatusActual /= 0) call Galacticus_Error_Report('System_Command_Do','failed to execute system command:'//char(10)//' --> '//char(command))
     end if
     return
   end subroutine System_Command_Do

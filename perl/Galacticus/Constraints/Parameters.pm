@@ -76,69 +76,71 @@ sub Compilation {
     my $xml = new XML::Simple;
     # Retrieve the compilation file.
     my $compilationFilePath = "constraints/compilations/".$compilationFileName;
-    my $compilation;
-    if ( -e $compilationFilePath.".store" ) {
-	$compilation = retrieve($compilationFilePath.".store");
-    } else {
-	# Create an XML worker object.
-	# Parse the constraint compilation file.
-	$compilation = $xml->XMLin($compilationFilePath);
-    }
+    my $compilation =
+	-e $compilationFilePath.".store" 
+	?
+	retrieve($compilationFilePath.".store")
+	:
+	$xml->XMLin($compilationFilePath);
+    # Parse the base set of parameters.
+    my $parameters = 
+	-e $baseParametersFileName.".store" 
+	?
+	retrieve($baseParametersFileName.".store") 
+	:
+	$xml->XMLin($baseParametersFileName);
     # Specify default values for parameters which can be adjusted by constraint definitions.
-    my %outputRedshifts;
     my %outputLuminosities;
     my %optionsOn;
+    my %outputRedshifts;
+    if ( exists($parameters->{'outputRedshifts'}) ) {
+	foreach my $redshift ( split(" ",$parameters->{'outputRedshifts'}->{'value'}) ) {
+	    $outputRedshifts{&redshiftPrecision($redshift)} = 1;
+	}
+    }
     my $haloMassResolution;
-    my $haloMassMinimum;
-    my $haloMassMaximum;
-    # Parse the base set of parameters.
-    my $parameters;
-    if ( -e $baseParametersFileName.".store" ) {
-	$parameters = retrieve($baseParametersFileName.".store");
-    } else {
-	$parameters = $xml->XMLin($baseParametersFileName);
+    if ( exists($parameters->{'mergerTreeMassResolutionMethod'}) ) {
+	if ( $parameters->{'mergerTreeMassResolutionMethod'}->{'value'} eq "fixed" ) {
+	    $haloMassResolution = $parameters->{'mergerTreeMassResolutionMethod'}->{'massResolution'       }->{'value'};
+	} elsif ( $parameters->{'mergerTreeMassResolutionMethod'}->{'value'} eq "scaled" ) {
+	    $haloMassResolution = $parameters->{'mergerTreeMassResolutionMethod'}->{'massResolutionMinimum'}->{'value'};
+	}
     }
+    my $haloMassMinimum = 
+	exists($parameters->{'mergerTreeBuildHaloMassMinimum'}) 
+	?
+	$parameters->{'mergerTreeBuildHaloMassMinimum'}->{'value'} 
+        :
+	undef();
+    my $haloMassMaximum = 
+	exists($parameters->{'mergerTreeBuildHaloMassMaximum'}) 
+	?
+	$parameters->{'mergerTreeBuildHaloMassMaximum'}->{'value'} 
+        :
+	undef();
     # Scan through all constraints.
-    my @constraints;
-    if ( ref($compilation->{'constraint'}) eq "ARRAY" ) {
-	@constraints = @{$compilation->{'constraint'}};
-    } else {
-	push(@constraints,$compilation->{'constraint'});
-    }
+    my @constraints = exists($compilation->{'constraint'}) ? &ExtraUtils::as_array($compilation->{'constraint'}) : ();
     foreach my $constraint ( @constraints ) {
 	# Check we have a definition file.
 	die("Compilation(): compilation must specify a definition for each constraint")
 	    unless ( defined($constraint->{'definition'}) );
 	# Parse the definition file.
-	my $constraintDefinition;
-	if ( -e $constraint->{'definition'}.".store" ) {
-	    $constraintDefinition = retrieve($constraint->{'definition'}.".store");
-	} else {
-	    $constraintDefinition = $xml->XMLin($constraint->{'definition'},KeyAttr => "");
-	}
+	my $constraintDefinition =
+	    -e $constraint->{'definition'}.".store"
+	    ?
+	    retrieve($constraint->{'definition'}.".store") 
+	    :
+	    $xml->XMLin($constraint->{'definition'},KeyAttr => "");
 	# Extract any required output redshift.
 	if ( defined($constraintDefinition->{'outputRedshift'}) ) {
-	    my @redshifts;
-	    if ( ref($constraintDefinition->{'outputRedshift'}) eq "ARRAY" ) {
-		@redshifts = @{$constraintDefinition->{'outputRedshift'}};
-	    } else {
-		push(@redshifts,$constraintDefinition->{'outputRedshift'});
-	    }
-	    foreach my $redshift ( @redshifts ) {
+	    foreach my $redshift ( &ExtraUtils::as_array($constraintDefinition->{'outputRedshift'}) ) {
 		# Add each redshift (at a specific precision) to the list of output redshifts.
-		my $precisionRedshift = sprintf("%6.4f",$redshift);
-		$outputRedshifts{$precisionRedshift} = 1;
+		$outputRedshifts{&redshiftPrecision($redshift)} = 1;
 	    }
 	}
 	# Extract any filter definitions.
 	if ( defined($constraintDefinition->{'luminosity'}) ) {
-	    my @luminosities;
-	    if ( ref($constraintDefinition->{'luminosity'}) eq "ARRAY" ) {
-		@luminosities = @{$constraintDefinition->{'luminosity'}};
-	    } else {
-		push(@luminosities,$constraintDefinition->{'luminosity'});
-	    }
-	    foreach my $luminosity ( @luminosities ) {
+	    foreach my $luminosity ( &ExtraUtils::as_array($constraintDefinition->{'luminosity'}) ) {
 		# Encode the luminosity into a unique key.
 		my $key = join(":",($luminosity->{'filter'},sprintf("%6.4f",$luminosity->{'redshift'}),$luminosity->{'frame'}));
 		$outputLuminosities{$key} = 1;
@@ -147,37 +149,25 @@ sub Compilation {
 	# Ensure that the halo mass resolution is sufficient.
 	if ( defined($constraintDefinition->{'haloMassResolution'}) ) {
 	    $haloMassResolution = $constraintDefinition->{'haloMassResolution'}
-	    unless ( defined($haloMassResolution) && $constraintDefinition->{'haloMassResolution'} > $haloMassResolution );
+	        unless ( defined($haloMassResolution) && $constraintDefinition->{'haloMassResolution'} > $haloMassResolution );
 	}
 	# Ensure that the minimum halo mass is sufficient.
 	if ( defined($constraintDefinition->{'haloMassMinimum'}) ) {
 	    $haloMassMinimum = $constraintDefinition->{'haloMassMinimum'}
-	    unless ( defined($haloMassMinimum) && $constraintDefinition->{'haloMassMinimum'} > $haloMassMinimum );
+	        unless ( defined($haloMassMinimum   ) && $constraintDefinition->{'haloMassMinimum'   } > $haloMassMinimum    );
 	}
 	# Ensure that the maximum halo mass is sufficient.
 	if ( defined($constraintDefinition->{'haloMassMaximum'}) ) {
 	    $haloMassMaximum = $constraintDefinition->{'haloMassMaximum'}
-	    unless ( defined($haloMassMaximum) && $constraintDefinition->{'haloMassMaximum'} < $haloMassMaximum );
+	        unless ( defined($haloMassMaximum   ) && $constraintDefinition->{'haloMassMaximum'   } < $haloMassMaximum    );
 	}
 	# Accumulate any options that must be switched on.
 	if ( defined($constraintDefinition->{'optionOn'}) ) {
-	    my @options;
-	    if ( ref($constraintDefinition->{'optionOn'}) eq "ARRAY" ) {
-		@options = @{$constraintDefinition->{'optionOn'}};
-	    } else {
-		push(@options,$constraintDefinition->{'optionOn'});
-	    }
-	    for my $option ( @options ) {$optionsOn{$option} = 1};
+	    for my $option ( &ExtraUtils::as_array($constraintDefinition->{'optionOn'}) ) {$optionsOn{$option} = 1};
 	}    
 	# Accumulate any parameters that must be set.
 	if ( defined($constraintDefinition->{'parameter'}) ) {
-	    my @extraParameters;
-	    if ( ref($constraintDefinition->{'parameter'}) eq "ARRAY" ) {
-		@extraParameters = @{$constraintDefinition->{'parameter'}};
-	    } else {
-		push(@extraParameters,$constraintDefinition->{'parameter'});
-	    }
-	    for my $parameter ( @extraParameters ) {
+	    for my $parameter ( &ExtraUtils::as_array($constraintDefinition->{'parameter'}) ) {
 		my $name  = $parameter->{'name' };
 		my $value = $parameter->{'value'};
 		$value =~ s/^\s*(.*?)\s*$/$1/;
@@ -202,7 +192,7 @@ sub Compilation {
     # redshift.
     my @outputRedshiftList = keys(%outputRedshifts);
     if ( scalar(@outputRedshiftList) == 0 ) {
-	push(@outputRedshiftList,"0.0000");
+	push(@outputRedshiftList,&redshiftPrecision(0.0));
     } else {
 	@outputRedshiftList = sort(@outputRedshiftList);
     }
@@ -215,6 +205,16 @@ sub Compilation {
     $parameters->{'mergerTreeBuildMassResolutionFixed'}->{'value'} = $haloMassResolution;
     $parameters->{'mergerTreeBuildHaloMassMinimum'    }->{'value'} = $haloMassMinimum   ;
     $parameters->{'mergerTreeBuildHaloMassMaximum'    }->{'value'} = $haloMassMaximum   ;
+    if ( exists($parameters->{'mergerTreeMassResolutionMethod'}) ) {
+	if ( $parameters->{'mergerTreeMassResolutionMethod'}->{'value'} eq "fixed" ) {
+	    $parameters->{'mergerTreeMassResolutionMethod'}->{'massResolution'       }->{'value'} = $haloMassResolution;
+	} elsif ( $parameters->{'mergerTreeMassResolutionMethod'}->{'value'} eq "scaled" ) {
+	    $parameters->{'mergerTreeMassResolutionMethod'}->{'massResolutionMinimum'}->{'value'} = $haloMassResolution;
+	}
+    } else {
+	$parameters->{'mergerTreeMassResolutionMethod'}                    ->{'value'} = "fixed";
+	$parameters->{'mergerTreeMassResolutionMethod'}->{'massResolution'}->{'value'} = $haloMassResolution;
+    }
     # Set required options on.
     $parameters->{$_}->{'value'} = "true" 
 	foreach ( keys(%optionsOn) );
@@ -232,14 +232,8 @@ sub Compilation {
 sub Convert_Parameters_To_Galacticus {
     my $config = shift;
     my @values = @_;
-
     # Extract parameters from config file.
-    my @parameters;
-    if ( UNIVERSAL::isa($config->{'parameters'}->{'parameter'},"ARRAY") ) {
-	@parameters = @{$config->{'parameters'}->{'parameter'}};
-    } else {
-	push(@parameters,$config->{'parameters'}->{'parameter'});
-    }
+    my @parameters = &ExtraUtils::as_array($config->{'parameters'}->{'parameter'});
     # Count active parameters.
     my $parameterCount = 0;
     for(my $i=0;$i<scalar(@parameters);++$i) {
@@ -398,13 +392,7 @@ sub Sample_Models {
 	    # Construct the tasks to perform.
 	    my $command;
 	    if ( exists($config->{'likelihood'}->{'environment'}) ) {
-		my @environment;
-		if ( UNIVERSAL::isa($config->{'likelihood'}->{'environment'},"ARRAY") ) {
-		    push(@environment,@{$config->{'likelihood'}->{'environment'}});
-		} else {
-		    push(@environment,  $config->{'likelihood'}->{'environment'} );
-		}
-		foreach ( @environment ) {
+		foreach ( &ExtraUtils::as_array($config->{'likelihood'}->{'environment'}) ) {
 		    $command .= "export ".$_."\n";
 		}
 	    }
@@ -559,6 +547,12 @@ sub Apply_Command_Line_Parameters {
 	    }
 	}
     }
+}
+
+sub redshiftPrecision {
+    # Return a redshift formatted to given precision.
+    my $redshift = shift();
+    return sprintf("%6.4f",$redshift);
 }
 
 1;

@@ -207,6 +207,7 @@ contains
        if (self%lockFileGlobally) then
           call File_Lock(char(self%fileName),cambFileLockGlobal)
        else
+          call File_Lock_Initialize(fileLock)
           call File_Lock(char(self%fileName),fileLock          )
        end if
        call self%readFile(char(self%fileName))

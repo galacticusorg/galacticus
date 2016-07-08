@@ -534,6 +534,7 @@ sub Process_FunctionClass {
 		$postContains->[0]->{'content'} .= "  !# </galacticusStateStoreTask>\n";
 		$postContains->[0]->{'content'} .= "  subroutine ".$directive->{'name'}."DoStateStore(stateFile,fgslStateFile)\n";
 		$postContains->[0]->{'content'} .= "    !% Store the state to file.\n";
+		$postContains->[0]->{'content'} .= "    use FGSL\n";
 		$postContains->[0]->{'content'} .= "    implicit none\n";
 		$postContains->[0]->{'content'} .= "    integer           , intent(in   ) :: stateFile\n";
 		$postContains->[0]->{'content'} .= "    type   (fgsl_file), intent(in   ) :: fgslStateFile\n";
@@ -547,6 +548,7 @@ sub Process_FunctionClass {
 		$postContains->[0]->{'content'} .= "  !# </galacticusStateRetrieveTask>\n";
 		$postContains->[0]->{'content'} .= "  subroutine ".$directive->{'name'}."DoStateRetrieve(stateFile,fgslStateFile)\n";
 		$postContains->[0]->{'content'} .= "    !% Retrieve the state from file.\n";
+		$postContains->[0]->{'content'} .= "    use FGSL\n";
 		$postContains->[0]->{'content'} .= "    implicit none\n";
 		$postContains->[0]->{'content'} .= "    integer           , intent(in   ) :: stateFile\n";
 		$postContains->[0]->{'content'} .= "    type   (fgsl_file), intent(in   ) :: fgslStateFile\n";
@@ -672,6 +674,8 @@ sub Process_FunctionClass {
 			    $setValue = "0";
 			} elsif ( $method->{'type'} =~ m/^double\s+precision/ ) {
 			    $setValue = "0.0d0";
+			} elsif ( $method->{'type'} =~ m/^logical/ ) {
+			    $setValue = ".false.";
 			}
 			die("Process_FunctionClass(): do not know how to set '".$method->{'type'}."'")
 			    unless ( defined($setValue) );

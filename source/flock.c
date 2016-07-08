@@ -17,6 +17,12 @@
 
 //% Implements Fortran-callable wrappers around the Linux file locking functions.
 
+#ifdef __linux__
+#include <linux/version.h>
+#endif
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,15,0)
+#define _GNU_SOURCE
+#endif
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/types.h>
@@ -27,9 +33,6 @@
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
-#ifdef __linux__
-#include <linux/version.h>
-#endif
 
 struct lockDescriptor {
   struct flock fl;
