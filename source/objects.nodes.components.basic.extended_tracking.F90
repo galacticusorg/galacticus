@@ -32,7 +32,7 @@ module Node_Component_Basic_Extended_Tracking
   !#   <class>basic</class>
   !#   <name>standardExtended</name>
   !#  </extends>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>massMaximum</name>

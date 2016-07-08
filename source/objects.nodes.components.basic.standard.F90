@@ -30,7 +30,7 @@ module Node_Component_Basic_Standard
   !# <component>
   !#  <class>basic</class>
   !#  <name>standard</name>
-  !#  <isDefault>yes</isDefault>
+  !#  <isDefault>true</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>mass</name>
