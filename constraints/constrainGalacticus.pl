@@ -20,7 +20,10 @@ use Storable;
 use Fcntl;
 use POSIX::RT::Semaphore;
 use PDL;
-use Storable qw(dclone);require Fortran::Utils;
+use PDL::IO::HDF5;
+use File::Slurp;
+use Storable qw(dclone);
+require Fortran::Utils;
 require File::Which;
 require File::NFSLock;
 require System::Redirect;
@@ -415,6 +418,9 @@ unless ( $? == 0 ) {
 $modelLock->unlock()
     if ( $runSequential eq "yes" );
 
+# Store raw XML parameter file in the model.
+&storeXML($parameters->{'galacticusOutputFileName'}->{'value'},$scratchDirectory."/constrainGalacticusParameters".$mpiRank.".xml");
+
 # Perform processing of the model, accumulating likelihood as we go.
 my $logLikelihood         =  0.0;
 my $logLikelihoodVariance =  0.0;
@@ -666,4 +672,13 @@ sub systemThread {
     system($command);
     my $status = $?;
     return $status;
+}
+
+sub storeXML {
+    my $galacticusFileName = shift();
+    my $parametersFileName = shift();
+    my $galacticusModel = new PDL::IO::HDF5(">".$galacticusFileName);
+    my $parametersGroup = $galacticusModel->group('Parameters');
+    my $parametersRaw   = read_file($parametersFileName);
+    $parametersGroup->attrSet('rawXML' => $parametersRaw);    
 }

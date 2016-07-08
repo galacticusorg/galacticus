@@ -13,6 +13,7 @@ use Clone qw(clone);
 require Galacticus::Options;
 require Galacticus::Constraints::DiscrepancyModels;
 require Galacticus::Launch::PBS;
+require Galacticus::Constraints::Parameters;
 
 # Run calculations to determine the model discrepancy arising from the use of a cosmology-independent set of merger trees.
 # Andrew Benson (09-January-2014)

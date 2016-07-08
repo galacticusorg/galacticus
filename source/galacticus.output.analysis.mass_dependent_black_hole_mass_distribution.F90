@@ -177,7 +177,6 @@ contains
     double precision                                , allocatable  , dimension(:  ) :: blackHoleMasses ,masses
     class           (nodeComponentBasic            )               , pointer        :: thisBasic
     class           (nodeComponentBlackHole        )               , pointer        :: thisBlackHole
-    class           (nodeComponentSpheroid         )               , pointer        :: thisSpheroid
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )               , pointer        :: cosmologyParametersObserved
@@ -186,7 +185,7 @@ contains
     double precision                                , parameter                     :: massRandomErrorMinimum         =1.0d-3
     double precision                                , parameter                     :: blackHoleMassRandomErrorMinimum=1.0d-3
     integer         (c_size_t                      )                                :: k,jOutput
-    integer                                                                         :: i,j,l,currentAnalysis,activeAnalysisCount,haloMassBin,iDistribution,jDistribution
+    integer                                                                         :: i,j,l,currentAnalysis,activeAnalysisCount,haloMassBin
     double precision                                                                :: dataHubbleParameter ,mass,massLogarithmic&
          &,massRandomError,blackHoleMassLogarithmic,blackHoleMass,blackHoleMassRandomError,dataOmegaDarkEnergy,dataOmegaMatter,redshift,timeMinimum,timeMaximum,distanceMinimum,distanceMaximum,unitsInSI,blackHoleMassMinimum,blackHoleMassMaximum,massMinimum,massMaximum
     type            (varying_string                )                                :: parameterName&
@@ -796,12 +795,9 @@ contains
     use Linear_Algebra
     use Memory_Management
     implicit none
-    double precision            , allocatable, dimension(:  ) :: blackHoleMassMean
-    double precision            , allocatable, dimension(:,:) :: blackHoleMassMeanCovariance, jacobian
-    integer                                                   :: k,m,mi,zi,mj,zj,ci,cj
-    type            (hdf5Object)                              :: analysisGroup,blackHoleMassDistributionGroup,thisDataset
-    double precision                                          :: haloWeightBinTotal
-    type            (matrix    )                              :: jacobianMatrix, covarianceMatrix
+    integer                      :: k,m,mi,zi,mj,zj,ci,cj
+    type            (hdf5Object) :: analysisGroup,blackHoleMassDistributionGroup,thisDataset
+    double precision             :: haloWeightBinTotal
 
     ! Return immediately if this analysis is not active.
     if (.not.analysisActive) return
@@ -884,7 +880,8 @@ contains
     implicit none
     double precision          , intent(in   )          :: blackHoleMass
     type            (treeNode), intent(inout), pointer :: thisNode
-
+    !GCC$ attributes unused :: thisNode
+    
     Map_Black_Hole_Mass_Kormendy_Ho=blackHoleMass
     return
   end function Map_Black_Hole_Mass_Kormendy_Ho
@@ -895,6 +892,7 @@ contains
     implicit none
     double precision          , intent(in   )          :: mass
     type            (treeNode), intent(inout), pointer :: thisNode
+    !GCC$ attributes unused :: thisNode
 
     Map_Galaxy_Mass_Kormendy_Ho=mass
     return

@@ -26,7 +26,8 @@ double precision function Node_Component_Spheroid_Very_Simple_Enclosed_Mass(self
   integer                                          , intent(in   )           :: componentType, massType, weightBy, weightIndex
   double precision                                 , intent(in   )           :: radius
   logical                                          , intent(in   ), optional :: haloLoaded
-
+  !GCC$ attributes unused :: haloLoaded, weightIndex
+  
   ! Return zero mass if the mass and component types do not match.
   Node_Component_Spheroid_Very_Simple_Enclosed_Mass=0.0d0
   if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
