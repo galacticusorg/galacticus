@@ -204,7 +204,7 @@ contains
     end if
 
     ! Ensure the nodes objects are initialized.
-    call Node_Class_Hierarchy_Initialize()
+    call nodeClassHierarchyInitialize()
     call Node_Components_Initialize ()
 
     ! The following processes merger trees, one at a time, to each successive output time, then dumps their contents to file. It

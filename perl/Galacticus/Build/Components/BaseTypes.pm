@@ -220,7 +220,7 @@ sub Build_Node_Component_Class {
 	     intrinsic  =>   "type",
 	     type       =>   "treeNode"            ,
 	     attributes => [ "pointer" , "public" ],
-	     variables  => [ "hostNode"           ]
+	     variables  => [ "hostNode => null()" ]
 	 }
 	);
     # Create the nodeComponent class.

@@ -214,7 +214,7 @@ sub Class_Defaults_Scatter {
 	foreach my $property ( &ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' ) ) {
 	    if ( exists($build->{'classDefaults'}->{$component->{'class'}}->{$property->{'name'}}) ) {
 		print 
-		    "         --> WARN: property '".
+		    "         --> Warning: property '"                                                           .
 		    $property ->{'name' }                                                                        .
 		    "' of component '"                                                                           .
 		    $component->{'name' }                                                                        .
