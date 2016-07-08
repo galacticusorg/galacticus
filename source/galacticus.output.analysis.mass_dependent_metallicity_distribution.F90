@@ -255,7 +255,7 @@ contains
     double precision                                , parameter                     :: metallicityRandomErrorMinimum=1.0d-3
     logical                                                                         :: massTypeStellarRequired, massTypeGaseousRequired
     integer         (c_size_t                      )                                :: k,jOutput
-    integer                                                                         :: i,j,l,currentAnalysis,activeAnalysisCount,haloMassBin,iDistribution,jDistribution
+    integer                                                                         :: i,j,l,currentAnalysis,activeAnalysisCount,haloMassBin
     double precision                                                                :: dataHubbleParameter ,mass,massLogarithmic&
          &,massRandomError,metallicityLogarithmic,metallicity,metallicityRandomError,dataOmegaDarkEnergy,dataOmegaMatter,redshift,timeMinimum,timeMaximum,distanceMinimum,distanceMaximum,unitsInSI,metallicityMinimum,metallicityMaximum,metallicityMass
     type            (varying_string                )                                :: parameterName&
@@ -1182,6 +1182,7 @@ contains
     implicit none
     double precision          , intent(in   )          :: metallicity
     type            (treeNode), intent(inout), pointer :: thisNode
+    !GCC$ attributes unused :: thisNode
 
     Map_Metallicity_SDSS_Stellar_Phase_Z0_07=metallicity/metallicitySolar
     return
@@ -1194,7 +1195,8 @@ contains
     implicit none
     double precision          , intent(in   )          :: metallicity
     type            (treeNode), intent(inout), pointer :: thisNode
-
+    !GCC$ attributes unused :: thisNode
+    
     Map_Metallicity_SDSS_Gas_Phase_Z0_07=+10.0d0**8.86d0   &
          &                               *metallicity      &
          &                               /metallicitySolar

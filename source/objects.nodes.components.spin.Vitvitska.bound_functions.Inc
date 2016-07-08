@@ -25,7 +25,8 @@ double precision function spinVitvitskaSpinGrowthRate(self)
   !% this model.
   implicit none
   class(nodeComponentSpinVitvitska), intent(inout) :: self
-
+  !GCC$ attributes unused :: self
+  
   spinVitvitskaSpinGrowthRate=0.0d0
   return
 end function spinVitvitskaSpinGrowthRate

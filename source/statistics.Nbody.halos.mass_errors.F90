@@ -41,7 +41,10 @@ module Statistics_NBody_Halo_Mass_Errors
   !#   <description>Return {\normalfont \ttfamily true} if the mass error is always zero for any halo.</description>
   !#   <type>logical</type>
   !#   <pass>yes</pass>
-  !#   <code>nbodyHaloMassErrorErrorZeroAlways=.false.</code>
+  !#   <code>
+  !#    !GCC$ attributes unused :: self
+  !#    nbodyHaloMassErrorErrorZeroAlways=.false.
+  !#   </code>
   !#  </method>
   !# </functionClass>
 

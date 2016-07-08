@@ -27,7 +27,6 @@
      private
      double precision :: normalization, exponent
    contains
-     final     ::                    powerLawDestructor
      procedure :: errorFractional => powerLawErrorFractional
   end type nbodyHaloMassErrorPowerLaw
 
@@ -86,15 +85,6 @@ contains
     nbodyHaloMassErrorPowerLawInternal%exponent     =exponent
     return
   end function nbodyHaloMassErrorPowerLawInternal
-
-  subroutine powerLawDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily powerLaw} N-body halo mass error class.
-    implicit none
-    type(nbodyHaloMassErrorPowerLaw), intent(inout) :: self
-
-    ! Nothing to do.
-    return
-  end subroutine powerLawDestructor
 
   double precision function powerLawErrorFractional(self,node)
     !% Return the fractional error on the mass of an N-body halo in the power-law error model.

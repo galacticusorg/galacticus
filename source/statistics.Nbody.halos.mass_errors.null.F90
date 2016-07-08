@@ -25,7 +25,6 @@
      !% A null N-body halo mass error class.
      private
     contains
-     final     ::                    nullDestructor
      procedure :: errorFractional => nullErrorFractional
      procedure :: errorZeroAlways => nullErrorZeroAlways
   end type nbodyHaloMassErrorNull
@@ -33,7 +32,6 @@
   interface nbodyHaloMassErrorNull
      !% Constructors for the {\normalfont \ttfamily null} N-body halo mass error class.
      module procedure nbodyHaloMassErrorNullParameters
-     module procedure nbodyHaloMassErrorNullInternal
   end interface nbodyHaloMassErrorNull
 
 contains
@@ -48,32 +46,16 @@ contains
     
     ! Check and read parameters.
     call parameters%checkParameters(allowedParameterNames)
+    nbodyHaloMassErrorNullParameters=nbodyHaloMassErrorNull()
     return
   end function nbodyHaloMassErrorNullParameters
-
-  function nbodyHaloMassErrorNullInternal()
-    !% Internal constructor for the {\normalfont \ttfamily null} N-body halo mass error class.
-    implicit none
-    type(nbodyHaloMassErrorNull) :: nbodyHaloMassErrorNullInternal
-
-    ! Nothing to do.
-    return
-  end function nbodyHaloMassErrorNullInternal
-
-  subroutine nullDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily null} N-body halo mass error class.
-    implicit none
-    type(nbodyHaloMassErrorNull), intent(inout) :: self
-
-    ! Nothing to do.
-    return
-  end subroutine nullDestructor
 
   double precision function nullErrorFractional(self,node)
     !% Return the fractional error on the mass of an N-body halo.
     implicit none
     class(nbodyHaloMassErrorNull), intent(inout)          :: self
     type (treeNode              ), intent(inout), pointer :: node
+    !GCC$ attributes unused :: self, node
 
     nullErrorFractional=0.0d0
     return
@@ -82,8 +64,9 @@ contains
   logical function nullErrorZeroAlways(self)
     !% Return true since errors are always zero in this model.
     implicit none
-    class(nbodyHaloMassErrorNull), intent(inout)          :: self
-
+    class(nbodyHaloMassErrorNull), intent(inout) :: self
+    !GCC$ attributes unused :: self
+    
     nullErrorZeroAlways=.true.
     return
   end function nullErrorZeroAlways

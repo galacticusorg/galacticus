@@ -35,7 +35,6 @@
      double precision :: logM0  , logSFR0, &
           &              logSFR1
    contains
-     final     ::           starFormationRateDestructor
      procedure :: passes => starFormationRatePasses
   end type galacticFilterStarFormationRate
 
@@ -99,15 +98,6 @@ contains
     starFormationRateConstructorInternal%logSFR1=logSFR1
     return
   end function starFormationRateConstructorInternal
-
-  elemental subroutine starFormationRateDestructor(self)
-    !% Destructor for the ``starFormationRate'' galactic filter class.
-    implicit none
-    type(galacticFilterStarFormationRate), intent(inout) :: self
-
-    ! Nothing to do.
-    return
-  end subroutine starFormationRateDestructor
 
   logical function starFormationRatePasses(self,node)
     !% Implement an starFormationRate-pass galactic filter.
