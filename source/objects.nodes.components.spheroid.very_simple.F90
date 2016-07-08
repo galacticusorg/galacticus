@@ -130,7 +130,6 @@ contains
     use Cosmology_Functions
     implicit none
     type (nodeComponentSpheroidVerySimple)          :: spheroidVerySimpleComponent
-    class(cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_
 
     ! Initialize the module if necessary.
     !$omp critical (Node_Component_Spheroid_Very_Simple_Initialize)

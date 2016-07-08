@@ -48,6 +48,8 @@ contains
     implicit none
     type(surveyGeometryFullSky) :: fullSkyDefaultConstructor
 
+    fullSkyDefaultConstructor%limitDistanceMinimum=-1.0d0
+    fullSkyDefaultConstructor%limitDistanceMaximum=-1.0d0
     call Galacticus_Error_Report('fullSkyDefaultConstructor','default constructor not available')
     return
   end function fullSkyDefaultConstructor
@@ -79,7 +81,8 @@ contains
     class           (surveyGeometryFullSky), intent(inout)           :: self
     double precision                       , intent(in   )           :: mass
     integer                                , intent(in   ), optional :: field
-
+    !GCC$ attributes unused :: mass, field
+    
     fullSkyDistanceMinimum=self%limitDistanceMinimum
     return
   end function fullSkyDistanceMinimum
@@ -90,6 +93,7 @@ contains
     class           (surveyGeometryFullSky), intent(inout)           :: self
     double precision                       , intent(in   )           :: mass
     integer                                , intent(in   ), optional :: field
+    !GCC$ attributes unused :: mass, field
 
     fullSkyDistanceMaximum=self%limitDistanceMaximum
     return
@@ -101,7 +105,8 @@ contains
     implicit none
     class           (surveyGeometryFullSky), intent(inout)           :: self
     integer                                , intent(in   ), optional :: field
-    
+    !GCC$ attributes unused :: self, field
+
     fullSkySolidAngle=4.0d0*Pi
     return
   end function fullSkySolidAngle
@@ -110,6 +115,7 @@ contains
     !% Return true to indicate that survey window function is available.
     implicit none
     class(surveyGeometryFullSky), intent(inout) :: self
+    !GCC$ attributes unused :: self
 
     fullSkyWindowFunctionAvailable=.true.
     return
@@ -119,6 +125,7 @@ contains
     !% Return true to indicate that survey angular power is available.
     implicit none
     class(surveyGeometryFullSky), intent(inout) :: self
+    !GCC$ attributes unused :: self
 
     fullSkyAngularPowerAvailable=.true.
     return
@@ -164,8 +171,8 @@ contains
     ! Set up origin.
     origin=[0.5d0,0.5d0,0.5d0]*boxLength
     ! Populate the cube with the survey selection function.
-    selectionFunction1=cmplx(0.0d0,0.0d0)
-    selectionFunction2=cmplx(0.0d0,0.0d0)
+    selectionFunction1=dcmplx(0.0d0,0.0d0)
+    selectionFunction2=dcmplx(0.0d0,0.0d0)
     ! Iterate over grid cells.
     do i=1,gridCount
        do j=1,gridCount
@@ -200,6 +207,7 @@ contains
     implicit none
     class  (surveyGeometryFullSky), intent(inout) :: self
     integer                       , intent(in   ) :: i   , j, l
+    !GCC$ attributes unused :: self, i, j
 
     if (l == 0) then
        fullSkyAngularPower=4.0d0*Pi
@@ -217,7 +225,8 @@ contains
     double precision                       , intent(in   ), dimension(3) :: point
     double precision                       , intent(in   )               :: mass
     double precision                                                     :: distance
-    
+    !GCC$ attributes unused :: mass
+
     distance            =Vector_Magnitude(point)
     fullSkyPointIncluded=(distance >= self%limitDistanceMinimum .and. distance <= self%limitDistanceMaximum)
     return

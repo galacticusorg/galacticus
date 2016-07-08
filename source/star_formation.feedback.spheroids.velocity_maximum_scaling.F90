@@ -110,7 +110,8 @@ contains
     double precision                         , save                   :: expansionFactorPrevious=-1.0d0, expansionFactorFactorPrevious=-1.0d0
     !$omp threadprivate(expansionFactorPrevious,expansionFactorFactorPrevious)
     double precision                                                  :: expansionFactor                , velocityMaximum
-
+    !GCC$ attributes unused :: starFormationRate
+    
     ! Get the default cosmology functions object.
     cosmologyFunctions_ => cosmologyFunctions()
     darkMatterProfile_  => darkMatterProfile ()
