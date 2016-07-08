@@ -29,7 +29,7 @@ module Node_Component_Position_Preset
   !# <component>
   !#  <class>position</class>
   !#  <name>preset</name>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>position</name>

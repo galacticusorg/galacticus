@@ -37,7 +37,7 @@ module Node_Component_Hot_Halo_VS_Delayed
   !#   <class>hotHalo</class>
   !#   <name>verySimple</name>
   !#  </extends>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>outflowedMass</name>

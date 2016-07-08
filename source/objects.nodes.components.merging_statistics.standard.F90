@@ -30,7 +30,7 @@ module Node_Component_Merging_Statistics_Standard
   !# <component>
   !#  <class>mergingStatistics</class>
   !#  <name>standard</name>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>galaxyMajorMergerTime</name>

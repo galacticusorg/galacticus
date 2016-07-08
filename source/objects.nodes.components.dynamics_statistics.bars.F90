@@ -28,7 +28,7 @@ module Node_Component_Dynamics_Statistics_Bars
   !# <component>
   !#  <class>dynamicsStatistics</class>
   !#  <name>bars</name>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>time</name>

@@ -135,7 +135,7 @@ contains
     call Galacticus_Verbosity_Level_Set(verbosityLevel)
     
     ! Initialize nodes and components.
-    call Galacticus_Nodes_Initialize()
+    call Node_Class_Hierarchy_Initialize()
     call Node_Components_Initialize ()
 
     ! Get the requested output redshifts.
