@@ -20,7 +20,7 @@
   
   use Statistics_NBody_Halo_Mass_Errors
 
-  !# <mergerTreeOperator name="mergerTreeOperatorConditionalMF" defaultThreadPrivate="no">
+  !# <mergerTreeOperator name="mergerTreeOperatorConditionalMF" defaultThreadPrivate="yes">
   !#  <description>
   !#   Provides a merger tree operator which accumulates conditional mass functions for trees. In
   !#   addition to the cumulative mass function, 1$^{\rm st}$ through $n^{\rm th}$ most-massive
@@ -551,28 +551,22 @@ contains
     type            (mergerTree                     ), intent(inout)                         , target :: tree
     type            (treeNode                       ), pointer                                        :: node                          , nodeChild                 , &
          &                                                                                               nodeParent                    , nodeParentChild           , &
-         &                                                                                               descendentNode                , nodeSibling               , &
-         &                                                                                               nodeWork
+         &                                                                                               descendentNode                , nodeSibling
     type            (mergerTree                     ), pointer                                        :: treeCurrent
     class           (nodeComponentBasic             ), pointer                                        :: basic                         , basicChild                , &
          &                                                                                               basicParent                   , descendentBasic           , &
-         &                                                                                               basicParentChild              , basicSibling              , &
-         &                                                                                               basicWork
+         &                                                                                               basicParentChild              , basicSibling
     class           (nodeComponentMergingStatistics ), pointer                                        :: mergingStatistics
     integer                                                                                           :: i                             , binMassParent             , &
          &                                                                                               binMassRatio                  , iPrimary                  , &
-         &                                                                                               jPrimary                      , binMassRatioCreation      , &
-         &                                                                                               binMassRatioDescendent        , depthHierarchy
+         &                                                                                               jPrimary                      , depthHierarchy
     double precision                                                                                  :: branchBegin                   , branchEnd                 , &
          &                                                                                               parentBranchBegin             , parentBranchEnd           , &
          &                                                                                               massProgenitor                , massParent                , &
          &                                                                                               branchMassInitial             , branchMassFinal           , &
          &                                                                                               parentBranchMassInitial       , parentBranchMassFinal     , &
-         &                                                                                               massRatioLogarithmic          , massParentLogarithmic     , &
-         &                                                                                               massRatio                     , massRatioCreation         , &
-         &                                                                                               massRatioCreationLogarithmic  , massRatioDescendent       , &
-         &                                                                                               massRatioDescendentLogarithmic, massUnevolved             , &
-         &                                                                                               massError                     , timeUnevolved
+         &                                                                                               massRatioLogarithmic          , timeUnevolved             , &
+         &                                                                                               massRatio                     , massUnevolved
     double precision                                  , dimension(                                                                                                   &
          &                                                        self%timeCount             ,                                                                       &
          &                                                        self%parentMassCount       ,                                                                       &
@@ -1052,10 +1046,9 @@ contains
 
   function conditionalMFBinWeights2D(self,mass1,time1,mass2,time2,massLogarithmicMinimumBins1,massLogarithmicWidthInverseBins1,countBins1,massRatioLogarithmicMinimumBins2,massRatioLogarithmicWidthInverseBins2,countBins2,moment)
     !% Computes the weight that a given halo contributes to a 2D array of bins.
-    use, intrinsic :: ISO_C_Binding
-    use               FGSL
-    use               Numerical_Integration
-    use               Galacticus_Error
+    use FGSL
+    use Numerical_Integration
+    use Galacticus_Error
     implicit none
     class           (mergerTreeOperatorConditionalMF), intent(inout)                    :: self
     double precision                                 , intent(in   )                    :: mass1                           , time1                                , &
@@ -1072,7 +1065,6 @@ contains
          &                                                                                 mass1LowerLimit                 , mass1UpperLimit                      , &
          &                                                                                 mass2LowerLimit                 , mass2UpperLimit
     integer                                                                             :: i                               , j
-    type            (c_ptr                          )                                   :: parameterPointer
     type            (fgsl_function                  )                                   :: integrandFunction
     type            (fgsl_integration_workspace     )                                   :: integrationWorkspace
 
@@ -1169,7 +1161,6 @@ contains
                         &                                       mass1LowerLimit                           , &
                         &                                       mass1UpperLimit                           , &
                         &                                       conditionalMFBinWeights2DIntegrand        , &
-                        &                                       parameterPointer                          , &
                         &                                       integrandFunction                         , &
                         &                                       integrationWorkspace                      , &
                         &                                       toleranceAbsolute                 =1.0d-10, &
@@ -1189,14 +1180,13 @@ contains
 
   contains
 
-    function conditionalMFBinWeights2DIntegrand(mass1Primed,parameterPointer) bind(c)
+    double precision function conditionalMFBinWeights2DIntegrand(mass1Primed)
       !% Integrand used in finding the weight given to a bin in the space of parent mass vs. progenitor mass ratio.
       use Numerical_Constants_Math
+      use Galacticus_Error
       implicit none
-      real(kind=c_double)        :: conditionalMFBinWeights2DIntegrand
-      real(kind=c_double), value :: mass1Primed
-      type(c_ptr        ), value :: parameterPointer
-      double precision           :: mass2LowerLimit                   , mass2UpperLimit
+      double precision, intent(in   ) :: mass1Primed
+      double precision                :: mass2LowerLimit, mass2UpperLimit
       
       mass2LowerLimit                   =+exp(                                       &
            &                                  +massRatioLogarithmicMinimumBins2      &
@@ -1352,6 +1342,9 @@ contains
               &                                   )                     &
               &                               /2.0d0                    &
               &                              )
+      case default
+         conditionalMFBinWeights2DIntegrand=0.0d0
+         call Galacticus_Error_Report('conditionalMFBinWeights2DIntegrand','moment not supported')
       end select
       conditionalMFBinWeights2DIntegrand=+conditionalMFBinWeights2DIntegrand &
            &                             *exp(                               &
@@ -1384,8 +1377,7 @@ contains
     use Memory_Management
     implicit none
     class           (mergerTreeOperatorConditionalMF), intent(inout)                     :: self
-    type            (hdf5Object                     )                                    :: conditionalMassFunctionGroup       , massDataset                       , &
-         &                                                                                  dataset
+    type            (hdf5Object                     )                                    :: conditionalMassFunctionGroup       , massDataset
     double precision                                 , allocatable  , dimension(:      ) :: normalizationSubhaloMassFunction
     double precision                                 , allocatable  , dimension(:,:    ) :: normalization
     double precision                                 , allocatable  , dimension(:,:,:  ) :: conditionalMassFunction            , conditionalMassFunctionError      , &

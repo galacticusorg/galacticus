@@ -33,7 +33,6 @@
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
      class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_
    contains
-     final     ::                    soHaloFinderDestructor
      procedure :: errorFractional => soHaloFinderErrorFractional
   end type nbodyHaloMassErrorSOHaloFinder
 
@@ -81,15 +80,6 @@ contains
     nbodyHaloMassErrorSOHaloFinderInternal%massParticle           =  massParticle
     return
   end function nbodyHaloMassErrorSOHaloFinderInternal
-
-  subroutine soHaloFinderDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily soHaloFinder} N-body halo mass error class.
-    implicit none
-    type(nbodyHaloMassErrorSOHaloFinder), intent(inout) :: self
-
-    ! Nothing to do.
-    return
-  end subroutine soHaloFinderDestructor
 
   double precision function soHaloFinderErrorFractional(self,node)
     !% Return the fractional error on the mass of an N-body halo in the power-law error model.

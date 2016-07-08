@@ -103,9 +103,6 @@ contains
          &                                                             satelliteRadius                , satelliteSpheroidMass
     class           (nodeComponentDisk    )               , pointer :: hostDiskComponent              , satelliteDiskComponent
     class           (nodeComponentSpheroid)               , pointer :: hostSpheroidComponent          , satelliteSpheroidComponent
-    double precision                                                :: componentMass                  , satelliteSpheroidHalfMassRadius, &
-         &                                                             hostDiskHalfMassRadius         , hostSpheroidHalfMassRadius     , &
-         &                                                             satelliteDiskHalfMassRadius
 
     ! Get the disk and spheroid components of host and satellite.
     hostDiskComponent          =>      hostNode%disk    ()

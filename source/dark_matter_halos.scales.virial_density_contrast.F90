@@ -248,7 +248,8 @@ contains
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)          :: self
     type (treeNode                                          ), intent(inout), pointer :: thisNode
-
+    !GCC$ attributes unused :: self, thisNode
+    
     ! Halos at given epoch have fixed density, so radius always grows as the cube-root of mass.
     virialDensityContrastDefinitionVirialRadiusGradientLogMass=1.0d0/3.0d0
     return

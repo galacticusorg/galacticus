@@ -24,14 +24,12 @@
      !% A galactic filter class which always passes.
      private
    contains
-     final     ::           alwaysDestructor
      procedure :: passes => alwaysPasses
   end type galacticFilterAlways
 
   interface galacticFilterAlways
      !% Constructors for the ``always'' galactic filter class.
      module procedure alwaysConstructorParameters
-     module procedure alwaysConstructorInternal
   end interface galacticFilterAlways
 
 contains
@@ -42,33 +40,19 @@ contains
     implicit none
     type(galacticFilterAlways)                :: alwaysConstructorParameters
     type(inputParameters     ), intent(in   ) :: parameters
+    !GCC$ attributes unused :: parameters
 
+    alwaysConstructorParameters=galacticFilterAlways()
     return
   end function alwaysConstructorParameters
-
-  function alwaysConstructorInternal()
-    !% Internal constructor for the ``always'' galactic filter class.
-    implicit none
-    type(galacticFilterAlways) :: alwaysConstructorInternal
-
-    return
-  end function alwaysConstructorInternal
-
-  elemental subroutine alwaysDestructor(self)
-    !% Destructor for the ``always'' galactic filter class.
-    implicit none
-    type(galacticFilterAlways), intent(inout) :: self
-
-    ! Nothing to do.
-    return
-  end subroutine alwaysDestructor
 
   logical function alwaysPasses(self,node)
     !% Implement an always-pass galactic filter.
     implicit none
     class(galacticFilterAlways), intent(inout) :: self
     type (treeNode            ), intent(inout) :: node
-    
+    !GCC$ attributes unused :: self, node
+
     alwaysPasses=.true.
     return
   end function alwaysPasses

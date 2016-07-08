@@ -115,7 +115,6 @@ contains
     type            (treeNode                      ), pointer       :: node
     class           (nodeComponentBasic            ), pointer       :: basic
     double precision                                                :: massLow                 , massHigh
-    type            (c_ptr                         )                :: parameterPointer
     type            (fgsl_function                 )                :: integrandFunction
     type            (fgsl_integration_workspace    )                :: integrationWorkspace
 
@@ -144,7 +143,6 @@ contains
          &                                           massLow                      , &
          &                                           massHigh                     , &
          &                                           errorConvolvedConvolution    , &
-         &                                           parameterPointer             , &
          &                                           integrandFunction            , &
          &                                           integrationWorkspace         , &
          &                                           toleranceAbsolute   =1.0d-100, &
@@ -154,13 +152,11 @@ contains
     return
   end function errorConvolvedDifferential
   
-  function errorConvolvedConvolution(massPrime,parameterPointer) bind(c)
+  double precision function errorConvolvedConvolution(massPrime)
     !% Integrand function used in convolving the dark matter halo mass function.
     use Numerical_Constants_Math
     implicit none
-    real(kind=c_double)        :: errorConvolvedConvolution
-    real(kind=c_double), value :: massPrime
-    type(c_ptr        ), value :: parameterPointer
+    double precision, intent(in   ) :: massPrime
 
     ! Return the convolution integrand.
     errorConvolvedConvolution=+errorConvolvedIntrinsicMassFunction%differential(errorConvolvedTime,massPrime) &

@@ -117,7 +117,8 @@ contains
     type     (abundances          ), intent(in   )                    :: rate
     logical                        , intent(inout), optional          :: interrupt
     procedure(                    ), intent(inout), optional, pointer :: interruptProcedure
-
+    !GCC$ attributes unused :: interrupt, interruptProcedure
+    
     ! Funnel the outflowing gas abundances into the outflowed reservoir.
     call self%outflowedAbundancesRate(rate)
     return

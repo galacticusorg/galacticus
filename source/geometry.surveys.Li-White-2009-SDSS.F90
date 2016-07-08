@@ -79,7 +79,8 @@ contains
     class           (surveyGeometryLiWhite2009SDSS), intent(inout)           :: self
     double precision                               , intent(in   )           :: mass
     integer                                        , intent(in   ), optional :: field
-
+    !GCC$ attributes unused :: mass, field
+    
     liWhite2009SDSSDistanceMinimum=self%limitDistanceMinimum
     return
   end function liWhite2009SDSSDistanceMinimum
