@@ -298,7 +298,7 @@ contains
              call outputGroups(iOutput)%hdf5Group%writeDataset([currentTree%index]       ,"mergerTreeIndex"     ,"Index of each merger tree."                                  ,appendTo=.true.)
              call outputGroups(iOutput)%hdf5Group%writeDataset(referenceStart            ,"mergerTreeStartIndex","Index in nodeData datasets at which each merger tree begins.",appendTo=.true.)
              call outputGroups(iOutput)%hdf5Group%writeDataset(referenceLength           ,"mergerTreeCount"     ,"Number of nodes in nodeData datasets for each merger tree."  ,appendTo=.true.)
-             call outputGroups(iOutput)%hdf5Group%writeDataset([currentTree%volumeWeight],"mergerTreeWeight"    ,"Number density of each tree [Mpc⁻³]."                   ,appendTo=.true.)
+             call outputGroups(iOutput)%hdf5Group%writeDataset([currentTree%volumeWeight],"mergerTreeWeight"    ,"Number density of each tree [Mpc⁻³]."                        ,appendTo=.true.)
              ! Increment the number of nodes written to this output group.
              outputGroups(iOutput)%length=outputGroups(iOutput)%length+referenceLength(1)
              !$omp end critical(HDF5_Access)

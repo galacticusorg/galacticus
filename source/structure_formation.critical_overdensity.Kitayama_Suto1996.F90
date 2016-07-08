@@ -27,7 +27,8 @@
   type, extends(criticalOverdensityClass) :: criticalOverdensityKitayamaSuto1996
      !% A critical overdensity class based on the fitting functions of \cite{kitayama_semianalytic_1996}.
      private
-     class(linearGrowthClass), pointer :: linearGrowth_
+     double precision                             :: timePrevious , valuePrevious
+     class           (linearGrowthClass), pointer :: linearGrowth_
     contains
      final     ::                   kitayamaSuto1996Destructor
      procedure :: value          => kitayamaSuto1996Value
@@ -59,6 +60,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions"       name="kitayamaSuto1996ConstructorParameters%cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="kitayamaSuto1996ConstructorParameters%cosmologicalMassVariance_" source="parameters"/>
     !# <objectBuilder class="darkMatterParticle"       name="darkMatterParticle_"                                             source="parameters"/>
+    kitayamaSuto1996ConstructorParameters%timePrevious=-1.0d0
     select type (darkMatterParticle_)
     class is (darkMatterParticleCDM)
        ! Cold dark matter particle - this is as expected.
@@ -79,6 +81,7 @@ contains
     class(cosmologicalMassVarianceClass      ), target, intent(in   ) :: cosmologicalMassVariance_
     class(darkMatterParticleClass            )        , intent(in   ) :: darkMatterParticle_
 
+    kitayamaSuto1996ConstructorInternal%timePrevious              =  -1.0d0
     kitayamaSuto1996ConstructorInternal%cosmologyFunctions_       => cosmologyFunctions_
     kitayamaSuto1996ConstructorInternal%linearGrowth_             => linearGrowth_
     kitayamaSuto1996ConstructorInternal%cosmologicalMassVariance_ => cosmologicalMassVariance_
@@ -114,9 +117,11 @@ contains
     !GCC$ attributes unused :: mass
     
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
-    kitayamaSuto1996Value=+(3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)                                  &
-         &                *(1.0d0+0.0123d0*log10(self%cosmologyFunctions_%omegaMatterEpochal(time_))) &
-         &                /                      self%linearGrowth_      %value             (time_)
+    if (time_ /= self%timePrevious)                                                                       &
+         & self%valuePrevious=+(3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)                                  &
+         &                    *(1.0d0+0.0123d0*log10(self%cosmologyFunctions_%omegaMatterEpochal(time_))) &
+         &                    /                      self%linearGrowth_      %value             (time_)
+    kitayamaSuto1996Value=self%valuePrevious
     return
   end function kitayamaSuto1996Value
 
