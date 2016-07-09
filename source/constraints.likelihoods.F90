@@ -121,9 +121,10 @@ contains
          &                                                           likelihoodLineOfSightDepthDefinition           , likelihoodHalfIntegralDefinition                        , &
          &                                                           likelihoodExclusionsDefinition                 , likelihoodDumpEmulatorDefinition                        , &
          &                                                           likelihoodDelayIntervalDefinition              , likelihoodDummyEmulatorDefinition                       , &
-         &                                                           likelihoodRedshiftDefinition                   , likelihoodMassParticleDefinition ion                    , &
+         &                                                           likelihoodRedshiftDefinition                   , likelihoodMassParticleDefinition                        , &
          &                                                           likelihoodBinCountMinimumDefinition            , likelihoodMassFunctionTypeDefinition                    , &
          &                                                           likelihoodMassFunctionErrorModelDefinition
+    type            (nodeList      ), pointer                     :: covarianceRows
     double precision                , allocatable, dimension(:  ) :: likelihoodMean
     double precision                , allocatable, dimension(:,:) :: likelihoodCovariance
     integer                         , allocatable, dimension(:  ) :: likelihoodExclusions
@@ -142,7 +143,6 @@ contains
     logical                                                       :: likelihoodEmulateOutliers                      , likelihoodUseSurveyLimits                 , &
          &                                                           likelihoodModelSurfaceBrightness               , likelihoodHalfIntegral                    , &
          &                                                           likelihoodDummyEmulator
-
 
     select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"type",directChildrenOnly=.true.))))
     case ("multivariateNormal")
