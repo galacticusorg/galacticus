@@ -1189,8 +1189,8 @@ contains
   end function Map_Metallicity_SDSS_Stellar_Phase_Z0_07
 
   double precision function Map_Metallicity_SDSS_Gas_Phase_Z0_07(metallicity,thisNode)
-    !% Maps raw metallicities into 12+log(O/H) units. Andrews & Martini assume 12+log(O/H)=8.86
-    !% for the Solar oxygen abundance.
+    !% Maps raw metallicities into 12+log(O/H) units. \cite{andrews_mass-metallicity_2013}
+    !% assume 12+log(O/H)=8.86 for the Solar oxygen abundance.
     use Numerical_Constants_Astronomical
     implicit none
     double precision          , intent(in   )          :: metallicity
