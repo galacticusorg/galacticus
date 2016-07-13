@@ -224,6 +224,7 @@ my @groups =
 	     [
 	      "accretionHaloMethod",
 	      "accretionHalosSimpleNegativeAccretionAllowed",
+	      "accretionHalosSimpleAccreteNewGrowthOnly",
 	      "accretionColdModeShockStabilityThreshold",
 	      "accretionColdModeShockStabilityTransitionWidth"
 	     ]
@@ -251,13 +252,15 @@ my @groups =
 	      "coolingFunctionMethod",
 	      "coolingMeanAngularMomentumFrom",
 	      "coolingRadiusMethod",
+	      "infallRadiusMethod",
 	      "coolingRotationVelocityFrom",
 	      "coolingSpecificAngularMomentumMethod",
 	      "coolingTimeMethod",
 	      qr/^coolingTime.*/,
 	      "coldModeInfallRateMethod",
 	      qr/^coldModeInfallRate.*/,
-	      "zeroCoolingRateAboveVelocity"
+	      "zeroCoolingRateAboveVelocity",
+	      "chemicalStateMethod"
 	     ]
      },
      {
@@ -394,6 +397,7 @@ my @groups =
 	      "accretionDiskSwitchedScaleAdafRadiativeEfficiency",
 	      "accretionRateThinDiskMaximum",
 	      "accretionRateThinDiskMinimum",
+	      "accretionRateTransitionWidth",
 	      "adafAdiabaticIndex",
 	      "adafEnergyOption",
 	      "adafRadiativeEfficiency",
@@ -411,6 +415,7 @@ my @groups =
 	      "blackHoleSeedMass",
 	      "blackHoleWindEfficiency",
 	      "blackHoleWindEfficiencyScalesWithRadiativeEfficiency",
+	      "blackHoleRadioModeFeedbackEfficiency",
 	      "bondiHoyleAccretionEnhancementHotHalo",
 	      "bondiHoyleAccretionEnhancementSpheroid",
 	      "bondiHoyleAccretionHotModeOnly",
