@@ -22,7 +22,10 @@ my $configFile = $ARGV[0];
 # Create a hash of named arguments.
 my %arguments =
     (
-     outliersMaximum => 10
+     outliersMaximum  => 10,
+     useUnconverged   => "yes",
+     parametersMapped => "yes",
+     randomSample     => "no"
     );
 &Options::Parse_Options(\@ARGV,\%arguments);
 
@@ -30,12 +33,12 @@ my %arguments =
 my $config = &Parameters::Parse_Config($configFile);
 
 # Validate the config file.
-die("convergenceGelmanRubin.pl: workDirectory must be specified in config file" ) unless ( exists($config->{'workDirectory' }) );
-die("convergenceGelmanRubin.pl: nodes must be specified in config file"         ) unless ( exists($config->{'nodes'         }) );
-die("convergenceGelmanRubin.pl: threadsPerNode must be specified in config file") unless ( exists($config->{'threadsPerNode'}) );
+die("convergenceGelmanRubin.pl: workDirectory must be specified in config file")
+    unless ( exists($config->{'likelihood'}->{'workDirectory' }) );
 
 # Compute the number of parallel chains.
-my $chainCount = $config->{'nodes'}*$config->{'threadsPerNode'};
+my $chainCount = &Parameters::Chains_Count($config,\%arguments);
+print "Found ".$chainCount." chains\n";
 
 # Construct mask of outlier chains.
 my $outlierMask = pdl zeroes($chainCount);
@@ -45,33 +48,26 @@ if ( exists($arguments{'outliers'}) ) {
     }
 }
 
-# Read the header line.
-open(iHndl,$config->{'workDirectory'}."/mcmc/galacticusBIE.statelog");
-my $header = <iHndl>;
-close(iHndl);
-chomp($header);
-$header =~ s/^"//;
-$header =~ s/"$//;
-my @labels = split(/"\s*"/,$header);
-
 # Determine the number of parameters.
-my $parameterCount = scalar(@labels)-5;
+my $parameterCount = &Parameters::Parameters_Count($config,\%arguments);
+print "Found ".$parameterCount." parameters\n";
 
-# Read the chains.
-my @columns        = 5..($parameterCount+4);
-my @chainData      = rcols($config->{'workDirectory'}."/mcmc/galacticusBIE.statelog",@columns,{IGNORE => '/"/'});
-my @likelihoodData = rcols($config->{'workDirectory'}."/mcmc/galacticusBIE.statelog",2       ,{IGNORE => '/"/'});
-
-# Determine how many steps to burn.
-my $burnCount   = nelem($chainData[0])*0;
-my $chainLength = nelem($chainData[0])-$burnCount;
+# Get the chain state matrix.
+my @chainData;
+for(my $i=0;$i<$chainCount;++$i) {
+    $arguments{'selectChain'} = $i;
+    push(@chainData,&Parameters::Sample_Matrix($config,\%arguments));
+}
 
 # Detect outlier chains.
 my @currentState;
 for(my $j=0;$j<$parameterCount;++$j) {
-    $currentState[$j] = $chainData[$j]->(-$chainCount:-1;|);
+    $currentState[$j] = pdl [];
+    for(my $i=0;$i<$chainCount;++$i) {
+	$currentState[$j] = $currentState[$j]->append($chainData[$i]->(($j),(-1)));
+    }
 }
-while ( $outlierMask->sum() <= $arguments{'outliersMaximum'} ) {
+while ( $outlierMask->sum() < $arguments{'outliersMaximum'} ) {
     my $activeChains     = which($outlierMask == 0);
     my $activeChainCount = nelem($activeChains);
     my @currentMean;
@@ -98,21 +94,14 @@ while ( $outlierMask->sum() <= $arguments{'outliersMaximum'} ) {
 		$deviationMaximumChain     = $activeChains->(($i));
 		$deviationMaximumParameter = $j;
 	    }
-	    if ($j == 10 && $currentState[$j]->($activeChains)->(($i)) > 0.0) {
-		$deviationMaximum          = 10.0;
-		$deviationMaximumChain     = $activeChains->(($i));
-		$deviationMaximumParameter = $j;
-	    }
 	}
     }
     if ( defined($deviationMaximumChain) && defined($deviationMaximumParameter) ) {
-	my $offset = $likelihoodData[0]->(($deviationMaximumChain))-max($likelihoodData[0]);
 	print "Outlier:\n";
 	print "         G = ".$grubbsCriticalValue."\n";
 	print "         D = ".$deviationMaximum."\n";
 	print "     chain = ".$deviationMaximumChain."\n";
 	print " parameter = ".$deviationMaximumParameter."\n";
-	print "    offset = ".$offset."\n";
 	$outlierMask->(($deviationMaximumChain)) .= 1;
 	my $outlierCount = $outlierMask->sum();
 	print "  outliers = ".$outlierCount."\n";
@@ -121,22 +110,23 @@ while ( $outlierMask->sum() <= $arguments{'outliersMaximum'} ) {
     }
 }
 my $outliers = which($outlierMask == 1);
-die("convergenceGelmanRubin.pl: maximum number of outliers exceeded")
+print "convergenceGelmanRubin.pl: maximum number of outliers exceeded\n"
     if ( nelem($outliers) > $arguments{'outliersMaximum'} );
 
-# Extract the unburned section of each chain and discard outlier chains.
+# Discard outlier chains.
 my @chains;
 my $ii = -1;
 for(my $i=0;$i<$chainCount;++$i) {
     if ( $outlierMask->(($i)) == 0 ) {
 	++$ii;
 	for(my $j=0;$j<$parameterCount;++$j) {
-	    $chains[$ii][$j] = $chainData[$j]->($burnCount+$i:-1:$chainCount;|);
+	    $chains[$ii][$j] = $chainData[$i]->(($j),:);
 	}
     }
 }
 my $stepCount = nelem($chains[0][0]); # Determine number of available steps.
 $chainCount = $ii+1;                  # Reset number of chains to total minus outliers.
+print "Found ".$stepCount." states in ".$chainCount." non-outlier chains\n";
 
 # Find the mean within each chain.
 my @mean;
@@ -156,7 +146,13 @@ for(my $i=0;$i<$chainCount;++$i) {
 
 # Iterate over parameters.
 my @convergence;
+my $iParameter = -1;
 for(my $j=0;$j<$parameterCount;++$j) {
+    # Find the next active parameter in our list.
+    ++$iParameter;
+    while ( ! exists($config->{'parameters'}->{'parameter'}->[$iParameter]->{'prior'}) ) {
+	++$iParameter;
+    }
     # Find the mean over all chains for this parameter.
     my $interChainMean  = pdl 0.0;
     my $interChainMean2 = pdl 0.0;
@@ -179,7 +175,7 @@ for(my $j=0;$j<$parameterCount;++$j) {
     for(my $i=0;$i<$chainCount;++$i) {
 	$W += $variance[$i][$j];
     }
-    $W /= $chainCount;
+    $W /= $chainCount;  
     # Compute variance of chain variances.
     my $varW = pdl 0.0;
     for(my $i=0;$i<$chainCount;++$i) {
@@ -218,7 +214,7 @@ for(my $j=0;$j<$parameterCount;++$j) {
 	    between          => $interChainVariance,
 	    within           => $W                 ,
 	    degreesOfFreedom => $d                 ,
-	    label            => $labels[$j+5]
+	    label            => $config->{'parameters'}->{'parameter'}->[$iParameter]->{'name'}
 	}
 	);
 }
