@@ -1271,11 +1271,11 @@ contains
        xEffective=self%xEffective(x)
        ! Determine the location in the table.
        if      (xEffective <  self%xv(          1)) then
-          i=1
+          i=                                                    1
        else if (xEffective >= self%xv(self%xCount)) then
-          i=self%xCount-1
+          i=                                                      self%xCount-1
        else
-          i=int((xEffective-self%xv(1))*self%inverseDeltaX)+1
+          i=min(int((xEffective-self%xv(1))*self%inverseDeltaX)+1,self%xCount-1)
        end if
        ! Compute offset from tabulated point.
        dx=xEffective-self%xv(i)
@@ -1305,11 +1305,11 @@ contains
        xEffective=self%xEffective(x)
        ! Determine the location in the table.
        if      (xEffective <  self%xv(          1)) then
-          i=1
+          i=                                                    1
        else if (xEffective >= self%xv(self%xCount)) then
-          i=self%xCount-1
+          i=                                                      self%xCount-1
        else
-          i=int((xEffective-self%xv(1))*self%inverseDeltaX)+1
+          i=min(int((xEffective-self%xv(1))*self%inverseDeltaX)+1,self%xCount-1)
        end if
        ! Compute offset from tabulated point.
        dx=xEffective-self%xv(i)
