@@ -1050,7 +1050,7 @@ The satellite position, if not already assigned, is selected such that its magni
 Properties are evolved according to:
 \begin{eqnarray}
 \dot{\mathbf{r}}&=&\mathbf{v}\\
-\dot{\mathbf{v}}&=&-\frac{G M_{\mathrm host}(<r)\mathbf{r}}{r^3}+{\mathbf a}_{\mathrm DF}\\
+\dot{\mathbf{v}}&=&-\frac{G M_{\mathrm host}(<r)\mathbf{r}}{r^3}\left(1+\frac{M_{\mathrm node,bound}}{M_{\mathrm host}(<r)}\right+{\mathbf a}_{\mathrm DF}\\
 \dot{G}_{ij}&=&g_{ij}-G_{ij}/T_{\mathrm orb},
 \end{eqnarray}
 with $r=|\mathbf{r}|$, ${\mathbf a}_{DF}$ set to the rate given by the {\normalfont \ttfamily satelliteDynamicalFrictionMethod} (see \S\ref{sec:satelliteDynamicalFrictionMethod}), $g_{ij}$ being the tidal tensor, $T_{\mathrm orb}$ being the satellite's orbital period, $\dot{M}_{\mathrm node,bound}$ set to the rate given by the {\normalfont \ttfamily satelliteTidalStrippingMethod} (see \S\ref{sec:satelliteTidalStrippingMethod}), and $\dot{Q}_{\mathrm tidal}$ set to the rate given by the {\normalfont \ttfamily satelliteTidalHeatingMethod} (see \S\ref{sec:satelliteTidalHeatingMethod}). Note that in the evolution of $G_{ij}$ a decay term is artificially introduced such that the integration of $g_{ij}$ is effectively over just the previous orbit (i.e. over the previous tidal shock).
