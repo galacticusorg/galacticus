@@ -36,6 +36,7 @@
           &                                                 timeSnapshot
      logical                                             :: satelliteOffset     , nonCosmological               , &
           &                                                 positionOffset
+     integer                                             :: selection
      integer         (kind_int8               )          :: idMultiplier
    contains
      final     ::            particulateDestructor
@@ -48,6 +49,22 @@
      module procedure particulateConstructorInternal
   end interface mergerTreeOperatorParticulate
 
+  !# <enumeration>
+  !#  <name>selection</name>
+  !#  <description>Options for selection of nodes to particulate.</description>
+  !#  <encodeFunction>yes</encodeFunction>
+  !#  <validator>yes</validator>
+  !#  <visibility>private</visibility>
+  !#  <entry label="all"        />
+  !#  <entry label="hosts"      />
+  !#  <entry label="satellites" />
+  !# </enumeration>
+
+  ! Entries in the energy distribution table.
+  integer, parameter :: energyDistributionTableDensity     =1
+  integer, parameter :: energyDistributionTablePotential   =2
+  integer, parameter :: energyDistributionTableDistribution=3
+
 contains
 
   function particulateConstructorParameters(parameters)
@@ -56,6 +73,7 @@ contains
     implicit none
     type(mergerTreeOperatorParticulate)                :: particulateConstructorParameters
     type(inputParameters              ), intent(inout) :: parameters
+    type(varying_string               )                :: selection
     !# <inputParameterList label="allowedParameterNames" />
     
     call parameters%checkParameters(allowedParameterNames)
@@ -119,6 +137,16 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
+    !#   <name>selection</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>var_str('all')</defaultValue>
+    !#   <variable>selection</variable>
+    !#   <description>Selects the type of halo to ouput. Allowed options are ``{\normalfont \ttfamily all}'', ``{\normalfont \ttfamily hosts}'', and ``{\normalfont \ttfamily satellites}''.</description>
+    !#   <type>string</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    particulateConstructorParameters%selection=enumerationSelectionEncode(char(selection),includesPrefix=.false.)
+    !# <inputParameter>
     !#   <name>nonCosmological</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
@@ -132,8 +160,9 @@ contains
     return
   end function particulateConstructorParameters
 
-  function particulateConstructorInternal(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,nonCosmological,cosmologyParameters_,cosmologyFunctions_)
+  function particulateConstructorInternal(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,selection,nonCosmological,cosmologyParameters_,cosmologyFunctions_)
     !% Internal constructor for the particulate merger tree operator class.
+    use Galacticus_Error
     implicit none
     type            (mergerTreeOperatorParticulate)                        :: particulateConstructorInternal
     type            (varying_string               ), intent(in   )         :: outputFileName
@@ -142,9 +171,13 @@ contains
          &                                                                    timeSnapshot
     logical                                        , intent(in   )         :: satelliteOffset               , nonCosmological               , &
          &                                                                    positionOffset
+    integer                                        , intent(in   )         :: selection
     class           (cosmologyParametersClass     ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
 
+    ! Validate input.
+    if (.not.enumerationSelectionIsValid(selection)) call Galacticus_Error_Report('particulateConstructorInternal','invalid selection type')
+    ! Store properties.
     particulateConstructorInternal%outputFileName                 =  outputFileName
     particulateConstructorInternal%idMultiplier                   =  idMultiplier
     particulateConstructorInternal%massParticle                   =  massParticle
@@ -152,6 +185,7 @@ contains
     particulateConstructorInternal%timeSnapshot                   =  timeSnapshot
     particulateConstructorInternal%satelliteOffset                =  satelliteOffset
     particulateConstructorInternal%positionOffset                 =  positionOffset
+    particulateConstructorInternal%selection                      =  selection
     particulateConstructorInternal%nonCosmological                =  nonCosmological
     particulateConstructorInternal%cosmologyParameters_           => cosmologyParameters_  
     particulateConstructorInternal%cosmologyFunctions_            => cosmologyFunctions_
@@ -170,20 +204,21 @@ contains
 
   subroutine particulateOperate(self,tree)
     !% Perform a particulation operation on a merger tree (i.e. create a particle representation of the tree).
+    use ISO_Varying_String
     use IO_HDF5
     use FGSL
     use Numerical_Constants_Math
     use Pseudo_Random
     use Poisson_Random
-    use Gaussian_Random
     use Dark_Matter_Halo_Scales
     use Galactic_Structure_Enclosed_Masses
-    use Galactic_Structure_Velocity_Dispersions
     use Galactic_Structure_Options
     use Galacticus_Calculations_Resets
     use Coordinates
     use Numerical_Comparison
     use Memory_Management
+    use Tables
+    use Galacticus_Error
     implicit none
     class           (mergerTreeOperatorParticulate), intent(inout)               :: self
     type            (mergerTree                   ), intent(inout) , target      :: tree
@@ -193,24 +228,34 @@ contains
     class           (nodeComponentSatellite       ), pointer                     :: satellite
     type            (mergerTree                   ), pointer                     :: treeCurrent
     class           (darkMatterHaloScaleClass     ), pointer                     :: darkMatterHaloScale_
-    double precision                               , parameter                   :: tolerance           =1.0d-06
-    double precision                               , parameter                   :: unitGadgetMass      =1.0d+10
-    double precision                               , parameter                   :: unitGadgetLength    =1.0d-03
-    double precision                               , parameter                   :: unitGadgetVelocity  =1.0d+00
+    double precision                               , parameter                   :: tolerance                 =1.0d-06
+    double precision                               , parameter                   :: unitGadgetMass            =1.0d+10
+    double precision                               , parameter                   :: unitGadgetLength          =1.0d-03
+    double precision                               , parameter                   :: unitGadgetVelocity        =1.0d+00
+    double precision                               , parameter                   :: distributionFunctionBuffer=0.1d0
     double precision                               , dimension(3  )              :: positionVector             , velocityVector
     integer                                        , dimension(6  )              :: particleCounts
     double precision                               , dimension(:,:), allocatable :: particlePosition           , particleVelocity
     integer         (kind_int8                    ), dimension(  :), allocatable :: particleIDs
-    double precision                                                             :: particleCountMean          , velocityDispersion, &
-         &                                                                          radiusVirial               , radiusTruncate    , &
-         &                                                                          massFractionTruncate       , massTruncate
-    integer                                                                      :: particleCountActual        , i
+    class           (table1D                      ), allocatable                 :: radiusDistributionTable
+    double precision                                                             :: particleCountMean          , distributionFunction                 , &
+         &                                                                          radiusVirial               , radiusTruncate                       , &
+         &                                                                          speedPrevious              , massTruncate                         , &
+         &                                                                          energy                     , radiusEnergy                         , &
+         &                                                                          energyPotential            , speed                                , &
+         &                                                                          speedEscape                , distributionFunctionMaximum
+    integer                                                                      :: particleCountActual        , i                                    , &
+         &                                                                          j
     type            (fgsl_rng                     )                              :: pseudoSequenceObject
-    logical                                                                      :: pseudoSequenceReset =.true.
+    logical                                                                      :: pseudoSequenceReset =.true., energyDistributionInitialized=.false., &
+         &                                                                          keepSample
     type            (coordinateCartesian          )                              :: positionCartesian          , velocityCartesian
-    type            (coordinateSpherical          )                              :: positionSpherical
-    type            (hdf5Object                   )                              :: outputFile                 , header            , &
+    type            (coordinateSpherical          )                              :: positionSpherical          , velocitySpherical
+    type            (hdf5Object                   )                              :: outputFile                 , header                               , &
          &                                                                          particleGroup
+    type            (table1DLogarithmicCSpline    )                              :: energyDistributionTable
+    type            (varying_string               )                              :: message
+    character       (len=13                       )                              :: label
     
     ! Get required objects.
     darkMatterHaloScale_ => darkMatterHaloScale()
@@ -261,7 +306,27 @@ contains
           call Galacticus_Calculations_Reset(node)
           ! Check if the node exists at the snapshot time.
           basic => node%basic()
-          if (Values_Agree(basic%time(),self%timeSnapshot,relTol=tolerance)) then
+          if     (                                                               &
+               &   Values_Agree(basic%time(),self%timeSnapshot,relTol=tolerance) &
+               &  .and.                                                          &
+               &   (                                                             &
+               &            self%selection == selectionAll                       &
+               &    .or.                                                         &
+               &     (                                                           &
+               &            self%selection == selectionHosts                     &
+               &      .and.                                                      &
+               &       .not.node%isSatellite()                                   &
+               &     )                                                           &
+               &    .or.                                                         &
+               &     (                                                           &
+               &            self%selection == selectionSatellites                &
+               &      .and.                                                      &
+               &            node%isSatellite()                                   &
+               &     )                                                           &
+               &   )                                                             &
+               & ) then
+             ! Force the energy distribution tables to be rebuilt.
+             energyDistributionInitialized=.false.
              ! Determine the virial radius.
              radiusVirial=darkMatterHaloScale_%virialRadius(node)
              ! Determine the truncation radius.
@@ -274,11 +339,9 @@ contains
                   &                                        massType      =massTypeDark, &
                   &                                        haloLoaded    =.true.        &
                   &                                       ) 
-             massFractionTruncate=+massTruncate      &
-                  &               /basic%mass()
              ! Determine the mean number of particle required to represent this node.          
-             particleCountMean  =+massTruncate      &
-                  &              /self%massParticle
+             particleCountMean   =+massTruncate      &
+                  &               /self%massParticle
              ! Determine the actual number of particles to use to represent the node.
              particleCountActual=Poisson_Random_Get(pseudoSequenceObject,particleCountMean,pseudoSequenceReset)
              ! Allocate space for particle data.
@@ -293,31 +356,113 @@ contains
                 ! Sample particle positions from the halo density distribution. Currently, we assume that halos are spherically
                 ! symmetric.
                 call positionSpherical%  phiSet(     2.0d0*Pi*Pseudo_Random_Get(pseudoSequenceObject,pseudoSequenceReset)       )
-                call positionSpherical%thetaSet(acos(2.0d0   *Pseudo_Random_Get(pseudoSequenceObject,pseudoSequenceReset)-1.0d0))
-                call positionSpherical%    rSet(                                                                                                                      &
-                     &                          Galactic_Structure_Radius_Enclosing_Mass(                                                                             &
-                     &                                                                   node                                                                       , &
-                     &                                                                   fractionalMass=+massFractionTruncate                                         &
-                     &                                                                                  *Pseudo_Random_Get(pseudoSequenceObject,pseudoSequenceReset), &
-                     &                                                                   massType      =massTypeDark                                                , &
-                     &                                                                   haloLoaded    =.true.                                                        &
-                     &                                                                  )                                                                             &
+                call positionSpherical%thetaSet(acos(2.0d0   *Pseudo_Random_Get(pseudoSequenceObject,pseudoSequenceReset)-1.0d0))                
+                call positionSpherical%    rSet(                                                                                                                  &
+                     &                          Galactic_Structure_Radius_Enclosing_Mass(                                                                         &
+                     &                                                                   node                                                                   , &
+                     &                                                                   mass      =+massTruncate                                                 &
+                     &                                                                              *Pseudo_Random_Get(pseudoSequenceObject,pseudoSequenceReset), &
+                     &                                                                   massType  =massTypeDark                                                , &
+                     &                                                                   haloLoaded=.true.                                                        &
+                     &                                                                  )                                                                         &
                      &                         )
                 ! Get the corresponding cartesian coordinates.
                 positionCartesian=positionSpherical
-               ! Find the velocity dispersion. Currently we assume isotropic velocity dispersion.
-                velocityDispersion=Galactic_Structure_Velocity_Dispersion(                                             &
-                     &                                                    node                                       , &
-                     &                                                    positionSpherical%r()                      , &
-                     &                                                    radiusOuter          =radiusTruncate       , &
-                     &                                                    componentType        =componentTypeDarkHalo, &
-                     &                                                    massType             =massTypeDark         , &
-                     &                                                    haloLoaded           =.true.                 &
-                     &                                                   )
-                ! Select velocity components assuming isotropic velocity dispersion.
-                call velocityCartesian%xSet(Gaussian_Random_Get(pseudoSequenceObject,velocityDispersion,pseudoSequenceReset))
-                call velocityCartesian%ySet(Gaussian_Random_Get(pseudoSequenceObject,velocityDispersion,pseudoSequenceReset))
-                call velocityCartesian%zSet(Gaussian_Random_Get(pseudoSequenceObject,velocityDispersion,pseudoSequenceReset))
+                ! Construct the energy distribution function encompassing this radius.
+                call particulateEnergyDistribution(positionSpherical%r())
+                ! Find the potential energy and escape speed (actually the speed to reach the truncation radius) at this radius.
+                energyPotential=energyDistributionTable%interpolate(                                        &
+                     &                                                    positionSpherical%r()           , &
+                     &                                              table=energyDistributionTablePotential  &
+                     &                                             )
+                speedEscape    =sqrt(                 &
+                     &               -2.0d0           &
+                     &               *energyPotential &
+                     &             )
+                ! Estimate the maximum of the speed distribution function.
+                distributionFunctionMaximum=+0.0d0
+                speedPrevious              =-1.0d0
+                do j=1,energyDistributionTable%size()
+                   ! Find the energy at this radius in the tabulated profile.
+                   energy=energyDistributionTable%y(j,table=energyDistributionTablePotential)
+                   ! Only consider points with positive kinetic energy and energy below the escape speed (i.e. the speed required
+                   ! to reach the truncation radius).
+                   if (energy-energyPotential > 0.0d0 .and. speedPrevious < speedEscape) then
+                      ! Compute the speed corresponding to this total energy
+                      speed               =+sqrt(                   &
+                           &                     +2.0d0             &
+                           &                     *(                 &
+                           &                       +energy          &
+                           &                       -energyPotential &
+                           &                      )                 &
+                           &                     )
+                      speedPrevious       =+speed
+                      ! Find the distribution function. This is v²f(E). The tabulated function is the anti-derivative of f(E), so
+                      ! we need to take the derivative with respect to energy. We do this by taking the derivative with respect to
+                      ! radius and dividing by dE/dr.
+                      distributionFunction       =+speed**2                                                                                                            &
+                           &                      *energyDistributionTable%interpolateGradient(energyDistributionTable%x(j),table=energyDistributionTableDistribution) &
+                           &                      /energyDistributionTable%interpolateGradient(energyDistributionTable%x(j),table=energyDistributionTablePotential   )
+                      ! Track the maximum of this distribution function.
+                      distributionFunctionMaximum=+max(                             &
+                           &                           distributionFunctionMaximum, &
+                           &                           distributionFunction         &
+                           &                          )
+                   end if
+                end do
+                ! Add some buffer to the distribution function maximum.
+                distributionFunctionMaximum=+distributionFunctionMaximum  &
+                     &                      *(                            &
+                     &                        +1.0d0                      &
+                     &                        +distributionFunctionBuffer &
+                     &                       )
+                ! Draw a speed from the distribution function between zero and the escape speed (to the truncation radius) using
+                ! rejection sampling.
+                keepSample=.false.
+                do while (.not.keepSample)
+                   ! Draw a speed uniformly at random between zero and the escape velocity.
+                   speed               =+Pseudo_Random_Get(                      &
+                        &                                  pseudoSequenceObject, &
+                        &                                  pseudoSequenceReset   &
+                        &                                 )                      &
+                        &               *speedEscape
+                   energy              =+energyPotential    &
+                        &               +0.5d0              &
+                        &               *speed          **2
+                   radiusEnergy        =+radiusDistributionTable%interpolate        (                                           &
+                        &                                                                  energy                             , &
+                        &                                                            table=energyDistributionTablePotential     &
+                        &                                                           )
+                   distributionFunction=+speed**2                                                                               &
+                        &               *energyDistributionTable%interpolateGradient(                                           &
+                        &                                                                  radiusEnergy                       , &
+                        &                                                            table=energyDistributionTableDistribution  &
+                        &                                                           )                                           &
+                        &               /energyDistributionTable%interpolateGradient(                                           &
+                        &                                                                  radiusEnergy                       , &
+                        &                                                            table=energyDistributionTablePotential     &
+                        &                                                           )
+                   if (distributionFunction > distributionFunctionMaximum) then
+                      write (label,'(e12.6)') distributionFunction
+                      message='distribution function ['//trim(label)//'] exceeds estimated maximum ['
+                      write (label,'(e12.6)') distributionFunctionMaximum
+                      message=message//trim(label)//']'
+                      call Galacticus_Error_Report('particulateOperate',message)
+                   end if
+                   keepSample= +Pseudo_Random_Get(                     &
+                        &                        pseudoSequenceObject, &
+                        &                        pseudoSequenceReset   &
+                        &                       )                      &
+                        &     <                                        &
+                        &      +distributionFunction                   &
+                        &      /distributionFunctionMaximum
+                end do
+                ! Choose a velocity vector in spherical coordinates with velocity chosen to give the required kinetic energy.
+                call velocitySpherical%  phiSet(     2.0d0*Pi*Pseudo_Random_Get(pseudoSequenceObject,pseudoSequenceReset)       )
+                call velocitySpherical%thetaSet(acos(2.0d0   *Pseudo_Random_Get(pseudoSequenceObject,pseudoSequenceReset)-1.0d0))
+                call velocitySpherical%    rSet(speed                                                                           )
+                ! Get the corresponding cartesian coordinates.
+                velocityCartesian=velocitySpherical
                 ! Offset position and velocity to the position and velocity of the node.
                 if (self%positionOffset) then
                    positionVector=position%position()
@@ -384,4 +529,144 @@ contains
        treeCurrent => treeCurrent%nextTree
     end do
     return
+
+  contains
+    
+    subroutine particulateEnergyDistribution(radius)
+      !% Construct the energy distribution function assuming a spherical dark matter halo with
+      !% isotropic velocity dispersion. We solve Eddington's formula
+      !% \citep[][eqn. 4.43a]{binney_galactic_2008}.    
+      !% \begin{equation}
+      !%  f(E) = {1 \over \sqrt{8} \pi^2} {{\rm d}\over {\rm d}E} \int_E^0 {{\rm d}\Phi \over \sqrt{\Phi-E}} {{\rm d}\rho \over {\rm d} \Phi}.
+      !% \end{equation}
+      !% In practice, we tabulate:
+      !% \begin{equation}
+      !%  F(E) = \int_E^0 {{\rm d}\Phi \over \sqrt{\Phi-E}} {{\rm d}\rho \over {\rm d} \Phi},
+      !% \end{equation}
+      !% which we can then take the derivative of numerically to obtain the distribution function.
+      use FGSL
+      use Numerical_Integration
+      use Dark_Matter_Profiles
+      use Dark_Matter_Halo_Scales
+      use Table_Labels
+      use Galacticus_Error
+      implicit none
+      double precision                            , intent(in   )          :: radius
+      class           (darkMatterProfileClass    ), pointer                :: darkMatterProfile_
+      class           (darkMatterHaloScaleClass  ), pointer                :: darkMatterHaloScale_
+      double precision                            , parameter              :: radiusVirialFraction             =1.0d-4
+      double precision                            , parameter              :: toleranceTabulation              =1.0d-6
+      double precision                            , parameter              :: energyDistributionPointsPerDecade=3.0d+2
+      double precision                            , parameter              :: radiusTabulateFactor             =1.0d+4
+      double precision                                                     :: radiusMinimum                           , energyPotentialTruncate
+      logical                                                              :: tableRebuild
+      integer                                                              :: i
+      integer                                                              :: radiusCount
+      type            (fgsl_function             )                         :: integrandFunction
+      type            (fgsl_integration_workspace)                         :: integrationWorkspace
+      
+      ! Get required objects.
+      darkMatterProfile_   => darkMatterProfile  ()
+      darkMatterHaloScale_ => darkMatterHaloScale()
+      ! Determine the minimum of the given radius and some small fraction of the virial radius.
+      radiusMinimum=min(radius,radiusVirialFraction*darkMatterHaloScale_%virialRadius(node))
+      ! Rebuild the density vs. potential table to have sufficient range if necessary.
+      if (energyDistributionInitialized) then
+         tableRebuild=(radiusMinimum < (1.0d0-toleranceTabulation)*energyDistributionTable%x(1))
+         if (tableRebuild) call energyDistributionTable%destroy()
+      else
+         tableRebuild                 =.true.
+         energyDistributionInitialized=.true.
+      end if
+      if (tableRebuild) then
+         ! Build tables of potential and density.
+         radiusCount=int(energyDistributionPointsPerDecade*log10(radiusTruncate*radiusTabulateFactor/radiusMinimum))+1
+         call energyDistributionTable%create(                                                                &
+              &                                                +radiusMinimum                              , &
+              &                                                +radiusTruncate                               &
+              &                                                *radiusTabulateFactor                       , &
+              &                                                 radiusCount                                , &
+              &                              tableCount       = 3                                          , &
+              &                              extrapolationType= [extrapolationTypeFix,extrapolationTypeFix]  &
+              &                             )
+         energyPotentialTruncate=+darkMatterProfile_%potential(                       &
+              &                                                 node                , &
+              &                                                +radiusTruncate        &
+              &                                                *radiusTabulateFactor  &
+              &                                               )
+         do i=1,radiusCount
+            call energyDistributionTable%populate(                                                                          & 
+                 &                                              +darkMatterProfile_%density  (                              &
+                 &                                                                            node                        , &
+                 &                                                                            energyDistributionTable%x(i)  &
+                 &                                                                           )                            , &
+                 &                                                                                                      i , &
+                 &                                table        =energyDistributionTableDensity                            , &
+                 &                                computeSpline=i==radiusCount                                              &
+                 &                               )            
+            call energyDistributionTable%populate(                                                                          & 
+                 &                                              +darkMatterProfile_%potential(                              &
+                 &                                                                            node                        , &
+                 &                                                                            energyDistributionTable%x(i)  &
+                 &                                                                           )                              &
+                 &                                              -energyPotentialTruncate                                  , &
+                 &                                                                                                      i , &
+                 &                                table        =energyDistributionTablePotential                          , &
+                 &                                computeSpline=i==radiusCount                                              &
+                 &                               )
+         end do
+         ! Evaluate the integral in Eddington's formula. Ignore the normalization as we will simply use rejection sampling to draw
+         ! from this distribution.
+         do i=1,radiusCount
+            energy=energyDistributionTable%y(i,table=energyDistributionTablePotential)
+            call energyDistributionTable%populate(                                                                         & 
+                 &                                              Integrate(                                                 &
+                 &                                                                          +energyDistributionTable%x(i), &
+                 &                                                                          +radiusTruncate                &
+                 &                                                                          *radiusTabulateFactor        , &
+                 &                                                                           eddingtonIntegrand          , &
+                 &                                                                           integrandFunction           , &
+                 &                                                                           integrationWorkspace        , &
+                 &                                                        toleranceAbsolute=+0.0d0                       , &
+                 &                                                        toleranceRelative=+1.0d-3                        &
+                 &                                                       )                                               , &
+                 &                                                                                                      i, &
+                 &                                table        =energyDistributionTableDistribution                      , &
+                 &                                computeSpline=i==radiusCount                                             &
+                 &                               )
+            call Integrate_Done(integrandFunction,integrationWorkspace)
+            ! Check that the distribution function is monotonically increasing.
+            if     (                                                                           &
+                 &    i                                                                        &
+                 &   >                                                                         &
+                 &    1                                                                        &           
+                 &  .and.                                                                      &
+                 &    energyDistributionTable%y(i  ,table=energyDistributionTableDistribution) &
+                 &   <                                                                         &
+                 &    energyDistributionTable%y(i-1,table=energyDistributionTableDistribution) &
+                 & ) call Galacticus_Error_Report('particulateEnergyDistribution','unphysical distribution function')
+         end do
+         ! Construct a reversed (radius vs. potential function) table.
+         call energyDistributionTable%reverse(radiusDistributionTable,table=energyDistributionTablePotential)
+         ! Record that the distribution is initialized.
+         energyDistributionInitialized=.true.
+      end if
+      return
+    end subroutine particulateEnergyDistribution
+
+    double precision function eddingtonIntegrand(radius)
+      !% The integrand appearing in Eddington's formula for the distribution function.
+      implicit none
+      double precision, intent(in   ) :: radius
+      double precision                :: potential
+
+      potential=energyDistributionTable%interpolate(radius,table=energyDistributionTablePotential)
+      if (potential > energy) then
+         eddingtonIntegrand=energyDistributionTable%interpolateGradient(radius,table=energyDistributionTableDensity)/sqrt(potential-energy)
+      else
+         eddingtonIntegrand=0.0d0
+      end if
+      return
+    end function eddingtonIntegrand
+    
   end subroutine particulateOperate
