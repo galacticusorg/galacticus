@@ -163,8 +163,8 @@ contains
              historyGasDensity               =0.0d0
              historyHotGasDensity            =0.0d0
              historyNodeDensity              =0.0d0
-             timestepHistoryInitialized      =.true.
           end if
+          timestepHistoryInitialized=.true.
        end if
        !$omp end critical (timestepHistoryInitialize)
     end if
@@ -286,7 +286,7 @@ contains
     type(hdf5Object) :: historyDataset, historyGroup
 
     ! Output the history data if and only if any has been collated.
-    if (timestepHistoryInitialized) then
+    if (outputTimestepHistory) then
        !$omp critical (HDF5_Access)
        !@ <outputType>
        !@   <name>globalHistory</name>

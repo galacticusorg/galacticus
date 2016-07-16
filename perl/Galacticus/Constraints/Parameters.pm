@@ -287,8 +287,8 @@ sub Convert_Parameters_To_Galacticus {
     return $newParameters;
 }
 
-sub Sample_Matrix {
-    # Generate a matrix of parameters sampled from the posterior distribution.
+sub Chains_Count {
+    # Return a count of the number of chains used.
     my $config    =   shift() ;
     my %arguments = %{shift()};
     # Find the work directory.
@@ -302,16 +302,51 @@ sub Sample_Matrix {
 	last
 	unless ( -e $chainFileName );
     }
-    print "Found ".$chainCount." chains\n";
+    return $chainCount;
+}
+
+sub Parameters_Count {
+    # Return a count of the number of parameters used.
+    my $config    =   shift() ;
+    my %arguments = %{shift()};
+    # Find the work directory.
+    my $workDirectory = $config->{'likelihood'}->{'workDirectory'};
+    # Read the first chain.
+    my $logFileRoot = $config->{'simulation'}->{'logFileRoot'};
+    my $chainFileName = sprintf("%s_%4.4i.log",$logFileRoot,0);
+    my $parameterCount;
+    open(iHndl,$chainFileName);
+    while ( my $line = <iHndl> ) {
+	unless ( $line =~ m/^\"/ ) {
+	    my @columns = split(" ",$line);
+	    $parameterCount = scalar(@columns)-6;
+	}
+    }
+    die("Galacticus::Constraints::Parameters::Parameters_Count(): could not determine number of parameters")
+	unless ( defined($parameterCount) );
+    return $parameterCount;
+}
+
+sub Sample_Matrix {
+    # Generate a matrix of parameters sampled from the posterior distribution.
+    my $config    =   shift() ;
+    my %arguments = %{shift()};
+    # Find the work directory.
+    my $workDirectory = $config->{'likelihood'}->{'workDirectory'};
+    # Determine number of chains.
+    my $logFileRoot = $config->{'simulation'}->{'logFileRoot'};    
+    my $chainCount  = &Chains_Count($config,\%arguments);
     # Build a list of outlier chains.
-    my @outlierChains = split(/,/,$arguments{'outliers'});
-    print scalar(@outlierChains) > 0 ? "Outlier chains are: ".join(", ",@outlierChains)."\n" : "No outlier chains\n";
+    my @outlierChains = exists($arguments{'outliers'}) ? split(/,/,$arguments{'outliers'}) : ();
     # Parse the chains to find all parameter values sampled by the chains.
     my @chainParameters;
     for(my $i=0;$i<$chainCount;++$i) {
 	# Skip outlier chains.
 	next
 	    if ( grep {$_ eq $i} @outlierChains );
+	# Skip non-selected chain.
+	next
+	    if ( defined($arguments{'selectChain'}) && $i != $arguments{'selectChain'} );
 	# Parse the chain file.
 	my $chainFileName = sprintf("%s_%4.4i.log",$logFileRoot,$i);
 	my $step = 0;
@@ -333,15 +368,32 @@ sub Sample_Matrix {
 	}
     }
     close(iHndl);
-    print "Found ".scalar(@chainParameters)." chain states\n";
     # Sample parameters.
     $arguments{'sampleCount'} = scalar(@chainParameters)
-	if ( $arguments{'sampleCount'} < 0 );
-    my $sampleIndex = pdl long(scalar(@chainParameters)*random($arguments{'sampleCount'}));
+	if ( ! exists($arguments{'sampleCount'}) || $arguments{'sampleCount'} < 0 );
+    my $sampleIndex;
+    my $randomSample = exists($arguments{'randomSample'}) ? $arguments{'randomSample'} : "no";
+    if ( $randomSample eq "yes" ) {
+	$sampleIndex = pdl long(scalar(@chainParameters)*random($arguments{'sampleCount'}));
+    } else {
+	$sampleIndex = pdl sequence(scalar(@chainParameters));
+    }
     # Build the matrix.
     my $sampleMatrix = pdl zeroes(nelem($chainParameters[0]),nelem($sampleIndex));
     for(my $i=0;$i<nelem($sampleIndex);++$i) {
 	$sampleMatrix->(:,($i)) .= $chainParameters[$sampleIndex->(($i))];
+    }
+    # If parameters are to be mapped, so do.
+    if ( exists($arguments{'parametersMapped'}) && $arguments{'parametersMapped'} eq "yes" ) {
+	my $i = -1;
+	foreach my $parameter ( @{$config->{'parameters'}->{'parameter'}} ) {
+	    if ( exists($parameter->{'prior'}) ) {
+		++$i;
+		if ( $parameter->{'mapping'}->{'type'} eq "logarithmic" ) {
+		    $sampleMatrix->(($i),:) .= log($sampleMatrix->(($i),:));		    
+		}
+	    }
+	}
     }
     # Return the matrix.
     return $sampleMatrix;
