@@ -153,7 +153,7 @@ sub Get_Dust_Attenuated_Luminosity {
 	} else {
 	    $effectiveWavelength{$filterLabel} = pdl $filterData->{'effectiveWavelength'}/(1.0+$redshift);
 	}
-	($wavelengthIndex{$filterLabel}, my $error) = interpolate($effectiveWavelength{$filterLabel},$wavelengths,$wavelengthIndices);    
+	($wavelengthIndex{$filterLabel}, my $error) = interpolate(log($effectiveWavelength{$filterLabel}),log($wavelengths),$wavelengthIndices);    
     }
     # Get interpolations of inclinations.
     my $galacticusInclination;
@@ -173,6 +173,7 @@ sub Get_Dust_Attenuated_Luminosity {
     
     # Get interpolations of bulge sizes.
     my $sizeIndex;
+    my $diskless;
     if ( $component eq "spheroid" ) {
 	# Compute size as spheroid (assumed to be Hernquist profile) half-mass radius in units of disk scale length.
 	my $sizes;
@@ -182,6 +183,10 @@ sub Get_Dust_Attenuated_Luminosity {
 	if ( $dataSet->{'parameters'}->{"spheroidMassDistribution"}->{'value'} eq "sersic" ) {
 	    $sizes =                 $dataSets->{"spheroidRadius"}/$dataSets->{"diskRadius"};
 	}
+	# Identify diskless galaxies and assign an arbitrary size. These will later have attenuation set to unity anyway, so the
+	# value here does not matter.
+	$diskless = which($dataSets->{'diskRadius'} <= 0.0);
+	$sizes->($diskless) .= 1.0;
 	my $sizesLimited;
 	if ( $extrapolateInSize == 0 ) {
 	    my $sizeMinimum  = $spheroidSizes->index(0);
@@ -213,16 +218,14 @@ sub Get_Dust_Attenuated_Luminosity {
     my $noDisks                        = which($diskScaleLength <= 0.0);
     my $gasMetalsSurfaceDensityCentral = $gasMetalMass/(2.0*$Pi*($mega*$diskScaleLength)**2);
     $gasMetalsSurfaceDensityCentral->index($noDisks) .= 0.0;
-
     # Compute central optical depths.
     my $opticalDepthCentral            = $opticalDepthNormalization*$gasMetalsSurfaceDensityCentral;
-
     my $opticalDepthIndex;
     if ( $component      eq "disk"     ) {
 	my $opticalDepthCentralLimited;
 	if ( $extrapolateInTau == 0 ) {
-	    my $tauMinimum                 = $diskOpticalDepths->index(0);
-	    my $tauMaximum                 = $diskOpticalDepths->index($diskOpticalDepthsCount-1);
+	    my $tauMinimum              = $diskOpticalDepths->index(0);
+	    my $tauMaximum              = $diskOpticalDepths->index($diskOpticalDepthsCount-1);
 	    $opticalDepthCentralLimited = $tauMaximum*($opticalDepthCentral>$tauMaximum)
 		+ $tauMinimum*($opticalDepthCentral<$tauMinimum)
 		+ $opticalDepthCentral*(($opticalDepthCentral>=$tauMinimum) & ($opticalDepthCentral<=$tauMaximum));
@@ -233,8 +236,8 @@ sub Get_Dust_Attenuated_Luminosity {
     } elsif ( $component eq "spheroid" ) {
 	my $opticalDepthCentralLimited;
 	if ( $extrapolateInTau == 0 ) {
-	    my $tauMinimum                 = $spheroidOpticalDepths->index(0);
-	    my $tauMaximum                 = $spheroidOpticalDepths->index($spheroidOpticalDepthsCount-1);
+	    my $tauMinimum              = $spheroidOpticalDepths->index(0);
+	    my $tauMaximum              = $spheroidOpticalDepths->index($spheroidOpticalDepthsCount-1);
 	    $opticalDepthCentralLimited = $tauMaximum*($opticalDepthCentral>$tauMaximum)
 		+ $tauMinimum*($opticalDepthCentral<$tauMinimum)
 		+ $opticalDepthCentral*(($opticalDepthCentral>=$tauMinimum) & ($opticalDepthCentral<=$tauMaximum));
@@ -265,6 +268,7 @@ sub Get_Dust_Attenuated_Luminosity {
     } else{
  	die("Get_Dust_Attenuated_Luminosity(): unknown component");
     }
+    $attenuations->($diskless) .= 1.0;
     $PDL::BIGPDL = 0;
     
     # Multiply luminosities by attenuations.
@@ -394,67 +398,59 @@ sub dustTableInterpolation {
     }
     # Perform the interpolation.
     my $attenuations       = pdl zeroes($interpolationIndices->dim(1));
-    my $attenuationsMaxima = pdl   ones($interpolationIndices->dim(1));
+    my $attenuationsMaxima = pdl zeroes($interpolationIndices->dim(1));
     if ( $interpolationIndices->dim(0) == 3 ) {
-	for(my $i=0;$i<nelem($attenuations);++$i) {
-	    for(my $j=0;$j<2;++$j) {
-		for(my $k=0;$k<2;++$k) {
-		    for(my $l=0;$l<2;++$l) {
-			my $attenuationTabulated = $dustTable->
-			    (
-			     $indexInRange->((0),($i))+$j,
-			     $indexInRange->((1),($i))+$k,
-			     $indexInRange->((2),($i))+$l
-			    );
-			$attenuations->(($i)) += 
-			    +$attenuationTabulated
-			    *$factors->(($j),(0),($i))
-			    *$factors->(($k),(1),($i))
-			    *$factors->(($l),(2),($i));
-			$attenuationsMaxima->(($i)) .= 
-			    +$attenuationTabulated
-			    if ( $attenuationTabulated > $attenuationsMaxima->(($i)) );
-		    }
+	for(my $j=0;$j<2;++$j) {
+	    for(my $k=0;$k<2;++$k) {
+		for(my $l=0;$l<2;++$l) {
+		    # Shift the indices to use in the dust tables according to out interpolation hyper-cube.
+		    my $indexInRangeShift    = $indexInRange+[$j,$k,$l];
+		    # Compute the attenuation at these indices. We use the logarithmic attenuation as that is what we want to interpolate in.
+		    my $attenuationTabulated = log($dustTable->indexND($indexInRangeShift));
+		    $attenuations += 
+			+$attenuationTabulated
+			*$factors->(($j),(0),:)
+			*$factors->(($k),(1),:)
+			*$factors->(($l),(2),:);
+		    # Find the maximum attenuation.
+		    my $attenuationsMaximaExceeded = which($attenuationTabulated > $attenuationsMaxima);
+		    $attenuationsMaxima->($attenuationsMaximaExceeded) .= 
+			+$attenuationTabulated->($attenuationsMaximaExceeded)
+			    if ( nelem($attenuationsMaximaExceeded) > 0 );
 		}
 	    }
 	}
     } else {
-	for(my $i=0;$i<nelem($attenuations);++$i) {
-	    for(my $j=0;$j<2;++$j) {
-		for(my $k=0;$k<2;++$k) {
-		    for(my $l=0;$l<2;++$l) {
-			for(my $m=0;$m<2;++$m) {
-			    my $attenuationTabulated = $dustTable->
-				(
-				 $indexInRange->((0),($i))+$j,
-				 $indexInRange->((1),($i))+$k,
-				 $indexInRange->((2),($i))+$l,
-				 $indexInRange->((3),($i))+$m
-				);
-			    $attenuations->(($i)) += 
-				+$attenuationTabulated
-				*$factors->(($j),(0),($i))
-				*$factors->(($k),(1),($i))
-				*$factors->(($l),(2),($i))
-				*$factors->(($m),(3),($i));
-			    # Find the maximum attenuation.
-			    $attenuationsMaxima->(($i)) .= 
-				+$attenuationTabulated
-				if ( $attenuationTabulated > $attenuationsMaxima->(($i)) );
-			}
+	for(my $j=0;$j<2;++$j) {
+	    for(my $k=0;$k<2;++$k) {
+		for(my $l=0;$l<2;++$l) {
+		    for(my $m=0;$m<2;++$m) {			
+			my $indexInRangeShift    = $indexInRange+[$j,$k,$l,$m];
+			my $attenuationTabulated = $dustTable->indexND($indexInRangeShift);
+			$attenuations += 
+			    +$attenuationTabulated
+			    *$factors->(($j),(0),:)
+			    *$factors->(($k),(1),:)
+			    *$factors->(($l),(2),:)
+			    *$factors->(($m),(3),:);		    
+			# Find the maximum attenuation.
+			my $attenuationsMaximaExceeded = which($attenuationTabulated > $attenuationsMaxima);
+			$attenuationsMaxima->($attenuationsMaximaExceeded) .= 
+			    +$attenuationTabulated->($attenuationsMaximaExceeded)
+			    if ( nelem($attenuationsMaximaExceeded) > 0 );
 		    }
 		}
 	    }
 	}
     }
-    # Limit attenuations to be physical. Attenuations can not be negative. They are also prevented from exceeding the maximum of 1
-    # and the largest tabulated attenuation used in their interpolation.
-    my $attenuationBelow = which($attenuations < 0.0                );
+    # Limit attenuations to be physical. Attenuations can not be negative - this is automatically handled by the fact that we
+    # interpolate in the logarithm of the attenuation. They are also prevented from exceeding the maximum of 1 and the largest
+    # tabulated attenuation used in their interpolation.
     my $attenuationAbove = which($attenuations > $attenuationsMaxima);
-    $attenuations->flat()->($attenuationBelow) .= 0.0
-	if ( nelem($attenuationBelow) > 0 );
     $attenuations->flat()->($attenuationAbove) .= $attenuationsMaxima->($attenuationAbove)
 	if ( nelem($attenuationAbove) > 0 );
+    # Convert attenuations back from logarithmic form.
+    $attenuations .= exp($attenuations);
     # Return the computed attenuations.
     return $attenuations;
 }

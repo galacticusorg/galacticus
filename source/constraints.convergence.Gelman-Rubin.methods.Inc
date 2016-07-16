@@ -130,7 +130,7 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
      currentStateMeanSquared=mpiSelf%average(simulationState%get()**2,self%chainMask)
      currentStateVariance   = (currentStateMeanSquared-currentStateMean**2) &
           &                  *dble(activeChainCount  )                      &
-          &                  /dble(activeChainCount-1)
+          &                  /dble(activeChainCount-1) 
      allocate(chainDeviation(size(currentStateVariance)))
      where (currentStateVariance > 0.0d0)
         chainDeviation         = abs(simulationState%get()-currentStateMean)   &
@@ -235,15 +235,15 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
        &                 /dble(activeChainCount-1)
   ! Find the covariance of chain variances and means.
   covarianceVarianceMean       = (mpiSelf%average(chainVariance*chainMean   ,self%chainMask)-W*interchainMean       ) &
-       &                        *dble(activeChainCount  )                                                        &
+       &                        *dble(activeChainCount  )                                                             &
        &                        /dble(activeChainCount-2)
   covarianceVarianceMeanSquared= (mpiSelf%average(chainVariance*chainMean**2,self%chainMask)-W*interchainMeanSquared) &
-       &                        *dble(activeChainCount  )                                                        &
+       &                        *dble(activeChainCount  )                                                             &
        &                        /dble(activeChainCount-2)
   ! Estimate Vhat and variance in Vhat from Gelman & Rubin (eqn. 4).
   hatV=  +W*dble(simulationState%count()-1)/dble(simulationState%count()) &
        & +B/dble(simulationState%count()  )                               &
-       & +B/dble(simulationState%count()  )/dble(mpiSelf        %count())
+       & +B/dble(simulationState%count()  )/dble(activeChainCount       )
   varianceHatV=                                      &
        &        (                                    &
        &          dble(simulationState%count()-1)    &
@@ -284,8 +284,8 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
        &      max(                                    &
        &           0.0d0                            , &
        &           (                                  &
-       &             dble(mpiSelf         %count()+1) &
-       &            /dble(mpiSelf         %count()  ) &
+       &             dble(activeChainCount        +1) &
+       &            /dble(activeChainCount          ) &
        &           )                                  &
        &          *(                                  &
        &            (                                 &
