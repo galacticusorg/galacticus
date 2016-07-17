@@ -118,8 +118,6 @@ sub Components_Generate_Output {
     # Iterate over all functions, calling them with the build data object.
     &{$_}($build)
 	foreach (
-	    # Generate a finalization method.
-	    \&Generate_Finalization_Function                         ,
 	    # Generate functions to map other functions over components.
 	    \&Generate_Map_Functions                                 ,
 	    # Generate functions to dump nodes.
@@ -859,43 +857,6 @@ sub Generate_Initialization_Status {
     # Insert into the document.
     $build->{'content'} .= "  ! Record of module initialization status.\n";
     $build->{'content'} .= "  logical :: moduleIsInitialized=.false.\n";
-}
-
-sub Generate_Finalization_Function {
-    # Generate a finalization function.
-    my $build = shift;
-    # Create a table for the deallocation code.
-    my $table = Text::Table->new(
-	{
-	    is_sep => 1,
-	    body   => "    deallocate(default"
-	},
-	{
-	    align  => "left"
-	},
-	{
-	    is_sep => 1,
-	    body   => ")"
-	},
-	);
-    # Populate the table.
-    foreach ( @{$build->{'componentClassList'}} ) {
-	$table->add(ucfirst($_)."Component");
-    }
-    # Generate the function code.
-    my $functionCode;
-    $functionCode .= "  subroutine Galacticus_Nodes_Finalize()\n";
-    $functionCode .= "    !% Finialize the \\glc\\ object system.\n";
-    $functionCode .= "    implicit none\n\n";
-    $functionCode .= "    if (.not.moduleIsInitialized) return\n";
-    $functionCode .= $table->table();
-    $functionCode .= "    return\n";
-    $functionCode .= "  end subroutine Galacticus_Nodes_Finalize\n";
-    # Insert into the function list.
-    push(
-	@{$build->{'code'}->{'functions'}},
-	$functionCode
-	);
 }
 
 sub Generate_Map_Functions {

@@ -27,7 +27,8 @@ require Galacticus::Build::Components::DataTypes;
      {
 	 functions =>
 	     [
-	      \&Hierarchy_Initialization
+	      \&Hierarchy_Initialization,
+	      \&Hierarchy_Finalization
 	     ]
      }
     );
@@ -171,6 +172,28 @@ CODE
     # Add the function to the functions list.
     push(
 	@{$build->{'functions'}},
+	$function
+	);
+}
+
+sub Hierarchy_Finalization {
+    # Generate a finalization function for the node hierarchy.
+    $code::build = shift();
+    # Generate the function.
+    my $function =
+    {
+	type        => "void",
+	name        => "nodeClassHierarchyFinalize",
+	description => "Finalize the \\glc\\\ node/component class hierarchy."
+    };
+    # Generate the function code.
+    $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
+if (.not.moduleIsInitialized) return
+{join(" ",map {"deallocate(default".$_->{'name'}."Component)\n"} &ExtraUtils::hashList($build->{'componentClasses'}))}
+CODE
+    # Add the function to the functions list.
+    push(
+	@{$code::build->{'functions'}},
 	$function
 	);
 }
