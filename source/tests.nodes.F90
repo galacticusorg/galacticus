@@ -144,7 +144,7 @@ program Test_Nodes
 
   ! Finalize the objects module. (Not strictly necessary, but it cleans up some allocations which otherwise get reported by
   ! Valgrind.)
-  call Galacticus_Nodes_Finalize()
+  call nodeClassHierarchyFinalize()
 
   ! Clean up allocations to avoid them being reported by Valgrind.
   call parameterFile%destroy()

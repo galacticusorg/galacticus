@@ -34,7 +34,7 @@ module Galacticus_Nodes
   use IO_HDF5
   use Pseudo_Random
   private
-  public :: nodeClassHierarchyInitialize, Galacticus_Nodes_Finalize, Galacticus_Nodes_Unique_ID_Set, interruptTask
+  public :: nodeClassHierarchyInitialize, nodeClassHierarchyFinalize, Galacticus_Nodes_Unique_ID_Set, interruptTask
 
   type, public :: treeNodeList
      !% Type to give a list of treeNodes.
