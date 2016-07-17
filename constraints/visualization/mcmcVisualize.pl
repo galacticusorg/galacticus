@@ -71,22 +71,28 @@ $nGrid = $arguments{'ngrid'}
     if ( exists($arguments{'ngrid'}) );
 my $xScale = "linear";
 $xScale = $arguments{'xScale'}
-    if ( exists($arguments{'xScale'}) );
+if ( exists($arguments{'xScale'}) );
+die("xScale must be 'linear' or 'logarithmic'")
+    unless ( $xScale eq "linear" || $xScale eq "logarithmic" );
 my $xLabel = "x";
 $xLabel = $arguments{'xLabel'}
 if ( exists($arguments{'xLabel'}) );
 my $yScale = "linear";
 $yScale = $arguments{'yScale'}
     if ( exists($arguments{'yScale'}) );
+die("yScale must be 'linear' or 'logarithmic'")
+    unless ( $yScale eq "linear" || $yScale eq "logarithmic" );
 my $yLabel = "y";
 $yLabel = $arguments{'yLabel'}
     if ( exists($arguments{'yLabel'}) );
 my $zScale = "linear";
 $zScale = $arguments{'zScale'}
-    if ( exists($arguments{'zScale'}) );
+if ( exists($arguments{'zScale'}) );
+die("zScale must be 'linear' or 'logarithmic'")
+    unless ( $zScale eq "linear" || $zScale eq "logarithmic" );
 my $zLabel = "\${\\rm d}p/{\\rm d}x\$";
 $zLabel = "\${\\rm d}p/{\\rm d}\\log x\$"
-    if ( $xScale eq "log" );
+    if ( $xScale eq "logarithmic" );
 $zLabel = $arguments{'zLabel'}
     if ( exists($arguments{'zLabel'}) );
 my $plotFile = "mcmcVisualize.pdf";
@@ -98,12 +104,21 @@ $title = $arguments{'title'}
 my $colorbox = 1;
 $colorbox = $arguments{'colorbox'}
     if ( exists($arguments{'colorbox'}) );
+my $plotSize = "5cm,5cm";
+$plotSize = $arguments{'plotSize'}
+    if ( exists($arguments{'plotSize'}) );
 my $textSize = 7;
 $textSize = $arguments{'textSize'}
     if ( exists($arguments{'textSize'}) );
 my $labelStyle = "normalsize";
 $labelStyle = $arguments{'labelStyle'}
     if ( exists($arguments{'labelStyle'}) );
+my $showLabels = "yes";
+$showLabels = $arguments{'showLabels'}
+    if ( exists($arguments{'showLabels'}) );
+my $lineWeight = "5,3";
+$lineWeight = $arguments{'lineWeight'}
+    if ( exists($arguments{'lineWeight'}) );
 
 # Validate.
 die("mcmcVisualize.pl: if outliers are specified chainCount must also be specified")
@@ -168,14 +183,14 @@ my @contourColors = ( "FF44FF", "AAAAAA" );
 my $plot;
 my $gnuPlot;
 (my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
-open($gnuPlot,"|gnuplot 1>/dev/null 2>&1");
-print $gnuPlot "set terminal epslatex color colortext lw 2 solid ".$textSize."\n";
+open($gnuPlot,"|gnuplot");
+print $gnuPlot "set terminal epslatex color colortext lw 2 solid size ".$plotSize." ".$textSize."\n";
 print $gnuPlot "set output '".$plotFileEPS."'\n";
 print $gnuPlot "set title '".$title."'\n"
     unless ( $title eq "none" );
 print $gnuPlot "set xlabel '{\\".$labelStyle." ".$xLabel."}'\n"
-    unless ( $labelX eq "" );
-unless ( $labelY eq "" ) {
+    unless ( $labelX eq "" || $showLabels eq "no" );
+unless ( $labelY eq "" || $showLabels eq "no" ) {
     if ( $dimensions == 1 ) {
 	print $gnuPlot "set ylabel '{\\".$labelStyle." ".$zLabel."}'\n";
     } else {
@@ -186,24 +201,31 @@ unless ( $labelY eq "" ) {
     }
 }
 print $gnuPlot "set ytics offset graph 1.1,0\n"
-    if ( $labelY eq "y2" );
+    if ( $labelY eq "y2" && $showLabels eq "yes");
 print $gnuPlot "unset colorbox\n"
     if ( $colorbox == 0 );
-print $gnuPlot "set lmargin screen 0.15\n";
-print $gnuPlot "set rmargin screen 0.95\n";
-print $gnuPlot "set bmargin screen 0.15\n";
-print $gnuPlot "set tmargin screen 0.95\n";
+if ( $showLabels eq "yes" ) {
+    print $gnuPlot "set lmargin screen 0.15\n";
+    print $gnuPlot "set rmargin screen 0.95\n";
+    print $gnuPlot "set bmargin screen 0.15\n";
+    print $gnuPlot "set tmargin screen 0.95\n";
+} else {
+    print $gnuPlot "set lmargin screen 0\n";
+    print $gnuPlot "set rmargin screen 1\n";
+    print $gnuPlot "set bmargin screen 0\n";
+    print $gnuPlot "set tmargin screen 1\n";
+}
 print $gnuPlot "set key spacing 1.2\n";
 print $gnuPlot "set key at screen 0.275,0.16\n";
 print $gnuPlot "set key left\n";
 print $gnuPlot "set key bottom\n";
-if ( $xScale eq "log" ) {
+if ( $xScale eq "logarithmic" ) {
     print $gnuPlot "set logscale x\n";
     print $gnuPlot "set mxtics 10\n";
     print $gnuPlot "set format x '\$10^{\%L}\$'\n"
 	unless ( $labelX eq "" );
 }
-if ( ( $dimensions == 1 && $zScale eq "log" ) || ( $dimensions == 2 && $yScale eq "log" ) ) {
+if ( ( $dimensions == 1 && $zScale eq "logarithmic" ) || ( $dimensions == 2 && $yScale eq "logarithmic" ) ) {
     print $gnuPlot "set logscale y\n";
     print $gnuPlot "set mytics 10\n";
     print $gnuPlot "set format y '\$10^{\%L}\$'\n"
@@ -213,6 +235,10 @@ print $gnuPlot "set format x ''\n"
     if ( $labelX eq "" );
 print $gnuPlot "set format y ''\n"
     if ( $labelY eq "" );
+if ( $showLabels eq "no" ) {
+    print $gnuPlot "set xtics format ''\n";
+    print $gnuPlot "set ytics format ''\n";
+}
 print $gnuPlot "set pointsize 2.0\n";
 
 # Temporary files.
@@ -226,260 +252,260 @@ my $iFileRoot = -1;
 foreach my $fileRoot ( @fileRoots ) {
     ++$iFileRoot;
     
-# Extract only converged entries and entries within a given range if necessary.
-my $kdeFileName = $plotFile.".tmp.kde";
+    # Extract only converged entries and entries within a given range if necessary.
+    my $kdeFileName = $plotFile.".tmp.kde";
     push(@tempFiles,$kdeFileName);
-my @outlierChains;
-@outlierChains = split(/,/,$arguments{'outliers'})
-    if ( exists($arguments{'outliers'}) );
-# If sampling from end of chains, determine chain lengths.
-my $iChainBegin = 0;
-if ( exists($arguments{'ngood'}) ) {
-    my $chainLength = 0;
-    open(iHndl,$fileRoot."_0000.log");
-    while ( my $line = <iHndl> ) {
-	++$chainLength;
-    }
-    close(iHndl);
-    $iChainBegin = $chainLength+1-$arguments{'ngood'};
-}
-# Read chains.
-open(oHndl,">".$kdeFileName);
-for(my $iChain=0; -e $fileRoot."_".sprintf("%4.4d",$iChain).".log";++$iChain) {
-    my $skip = 0;
-    $skip = 1
-	if ( $iChain < $iChainBegin );
-    if ( scalar(@outlierChains) > 0 ) {
-	foreach ( @outlierChains ) {
-	    $skip = 1
-		if ( $iChain == $_ );
+    my @outlierChains;
+    @outlierChains = split(/,/,$arguments{'outliers'})
+	if ( exists($arguments{'outliers'}) );
+    # If sampling from end of chains, determine chain lengths.
+    my $iChainBegin = 0;
+    if ( exists($arguments{'ngood'}) ) {
+	my $chainLength = 0;
+	open(iHndl,$fileRoot."_0000.log");
+	while ( my $line = <iHndl> ) {
+	    ++$chainLength;
 	}
+	close(iHndl);
+	$iChainBegin = $chainLength+1-$arguments{'ngood'};
     }
-    next
-	if ( $skip == 1 );
-    open(iHndl,$fileRoot."_".sprintf("%4.4d",$iChain).".log");
-    my $i = -1;
-    while ( my $line = <iHndl> ) {
-	my $lineCopy = $line;
-	$lineCopy =~ s/^\s*//;
-	$lineCopy =~ s/\s*$//;
-	my @columns = split(/\s+/,$lineCopy);
-	my $include = 1;
-	$include = 0
-	    if ( $columns[3] eq "F" && ( ! exists($arguments{'useUnconverged'}) || $arguments{'useUnconverged'} eq "no" ) );
-	$include = 0
-	    if ( exists($arguments{'minimumLogL'}) && $columns[4] < $arguments{'minimumLogL'} );
-	if ( exists($arguments{'range'}) ) {
-	    foreach my $range ( @{$arguments{'range'}} ) {
-		$include = 0
-		    if (
-			$columns[$range->{'column'}] < $range->{'lower'}
-			||
-			$columns[$range->{'column'}] > $range->{'upper'}
-		    );
+    # Read chains.
+    open(oHndl,">".$kdeFileName);
+    for(my $iChain=0; -e $fileRoot."_".sprintf("%4.4d",$iChain).".log";++$iChain) {
+	my $skip = 0;
+	if ( scalar(@outlierChains) > 0 ) {
+	    foreach ( @outlierChains ) {
+		$skip = 1
+		    if ( $iChain == $_ );
 	    }
 	}
-	if ( $include == 1 ) {
-	    $columns[$xColumn] = log($columns[$xColumn])
-		if ( $xScale eq "log" );
-	    $columns[$yColumn] = log($columns[$yColumn])
-		if ( $yScale eq "log" );
-	    print oHndl join("\t",@columns)."\n";
+	next
+	    if ( $skip == 1 );
+	open(iHndl,$fileRoot."_".sprintf("%4.4d",$iChain).".log");
+	my $i = -1;
+	while ( my $line = <iHndl> ) {
+	    my $lineCopy = $line;
+	    $lineCopy =~ s/^\s*//;
+	    $lineCopy =~ s/\s*$//;
+	    my @columns = split(/\s+/,$lineCopy);
+	    my $include = 1;
+	    $include = 0
+		if ( $columns[3] eq "F" && ( ! exists($arguments{'useUnconverged'}) || $arguments{'useUnconverged'} eq "no" ) );
+	    $include = 0
+		if ( exists($arguments{'minimumLogL'}) && $columns[4] < $arguments{'minimumLogL'} );
+	    $skip = 1
+		if ( $i < $iChainBegin );
+	    if ( exists($arguments{'range'}) ) {
+		foreach my $range ( @{$arguments{'range'}} ) {
+		    $include = 0
+			if (
+			    $columns[$range->{'column'}] < $range->{'lower'}
+			    ||
+			    $columns[$range->{'column'}] > $range->{'upper'}
+			);
+		}
+	    }
+	    if ( $include == 1 ) {
+		$columns[$xColumn] = log($columns[$xColumn])
+		    if ( $xScale eq "logarithmic" );
+		$columns[$yColumn] = log($columns[$yColumn])
+		    if ( $yScale eq "logarithmic" );
+		print oHndl join("\t",@columns)."\n";
+	    }
+	}
+	close(iHndl);
+    }
+    close(oHndl);
+    
+    # Run script to do the kernel density estimation.
+    my $command = "python constraints/visualization/kernelDensityEstimation.py ".$kdeFileName." ".$xColumn;
+    $command .= " ".$yColumn
+	if ( $dimensions == 2 );
+    $command .= " --ngrid=".$nGrid." --output=".$plotFile.".kde";
+    push(@tempFiles,$plotFile.".kde");
+    system($command);
+
+    # Read the file.
+    my $x = pdl [];
+    my $y = pdl [];
+    my $p = pdl [];
+    open(iHndl,$plotFile.".kde");
+    while ( my $line = <iHndl> ) {
+	chomp($line);
+	my @columns = split(/\s+/,$line);
+	$x = $x->append($columns[0]);
+	if ( $dimensions == 1 ) {
+	    $p = $p->append($columns[1]);
+	} else {
+	    $y = $y->append($columns[1]);
+	    $p = $p->append($columns[2]);
 	}
     }
     close(iHndl);
-}
-close(oHndl);
 
-# Run script to do the kernel density estimation.
-my $command = "python constraints/visualization/kernelDensityEstimation.py ".$kdeFileName." ".$xColumn;
-$command .= " ".$yColumn
-    if ( $dimensions == 2 );
-$command .= " --ngrid=".$nGrid." --output=".$plotFile.".kde";
-system($command);
-unlink($kdeFileName);
+    # Determine contour levels for confidence regions.
+    my $pSorted          = $p->qsort();
+    my $total            = $p->sum ();
+    my $pCumulant        = $pSorted->cumusumover()/$total;
+    my $confidence       = pdl ( 0.682689492137,  0.954499736104, 0.997300203937 );
+    my $excludedFraction = 1.0-$confidence;
+    (my $levels, my $error) = interpolate($excludedFraction,$pCumulant,$pSorted);
 
-# Read the file.
-my $x = pdl [];
-my $y = pdl [];
-my $p = pdl [];
-open(iHndl,$plotFile.".kde");
-while ( my $line = <iHndl> ) {
-    chomp($line);
-    my @columns = split(/\s+/,$line);
-    $x = $x->append($columns[0]);
+    # Convert axes with logarithmic scaling.
+    $x = exp($x)
+	if ( $xScale eq "logarithmic" );
+    $y = exp($y)
+	if ( $yScale eq "logarithmic" );
+
+    # Find ranges.
+    my $pMin;
+    my $pMax;
+    if ( $iFileRoot == 0 ) {
+	my $xMin = $x->min();
+	my $xMax = $x->max();
+	if ( exists($arguments{'xRange'}) && $arguments{'xRange'} =~ m/(.*):(.*)/ ) {
+	    $xMin = $1;
+	    $xMax = $2;
+	}
+	my $yMin = $y->min();
+	my $yMax = $y->max();
+	if ( exists($arguments{'yRange'}) && $arguments{'yRange'} =~ m/(.*):(.*)/ ) {
+	    $yMin = $1;
+	    $yMax = $2;
+	}
+	$pMin = 0.0;
+	$pMin = 1.0e-3
+	    if ( $zScale eq "logarithmic" );
+	$pMax = 1.02*$p->max();
+	if ( exists($arguments{'pRange'}) && $arguments{'pRange'} =~ m/(.*):(.*)/ ) {
+	    $pMin = $1;
+	    $pMax = $2;
+	}
+	print $gnuPlot "set xrange [".$xMin.":".$xMax."]\n";
+	if ( $dimensions == 1 ) {
+	    print $gnuPlot "set yrange [".$pMin.":".$pMax."]\n";
+	} else {
+	    print $gnuPlot "set yrange [".$yMin.":".$yMax."]\n";
+	}
+    }
+
+    # Remove temporary file.
+    unlink($workDirectory."/kde.txt");
+
     if ( $dimensions == 1 ) {
-	$p = $p->append($columns[1]);
-    } else {
-	$y = $y->append($columns[1]);
-	$p = $p->append($columns[2]);
-    }
-}
-close(iHndl);
-
-# Determine contour levels for confidence regions.
-my $pSorted          = $p->qsort();
-my $total            = $p->sum ();
-my $pCumulant        = $pSorted->cumusumover()/$total;
-my $confidence       = pdl ( 0.682689492137,  0.954499736104, 0.997300203937 );
-my $excludedFraction = 1.0-$confidence;
-(my $levels, my $error) = interpolate($excludedFraction,$pCumulant,$pSorted);
-
-# Convert axes with logarithmic scaling.
-$x = exp($x)
-    if ( $xScale eq "log" );
-$y = exp($y)
-    if ( $yScale eq "log" );
-
-# Find ranges.
-my $pMin;
-my $pMax;
-if ( $iFileRoot == 0 ) {
-    my $xMin = $x->min();
-    my $xMax = $x->max();
-    if ( exists($arguments{'xRange'}) && $arguments{'xRange'} =~ m/(.*):(.*)/ ) {
-	$xMin = $1;
-	$xMax = $2;
-    }
-    my $yMin = $y->min();
-    my $yMax = $y->max();
-    if ( exists($arguments{'yRange'}) && $arguments{'yRange'} =~ m/(.*):(.*)/ ) {
-	$yMin = $1;
-	$yMax = $2;
-    }
-    $pMin = 0.0;
-    $pMin = 1.0e-3
-	if ( $zScale eq "log" );
-    $pMax = 1.02*$p->max();
-    if ( exists($arguments{'pRange'}) && $arguments{'pRange'} =~ m/(.*):(.*)/ ) {
-	$pMin = $1;
-	$pMax = $2;
-    }
-    print $gnuPlot "set xrange [".$xMin.":".$xMax."]\n";
-    if ( $dimensions == 1 ) {
-	print $gnuPlot "set yrange [".$pMin.":".$pMax."]\n";
-    } else {
-	print $gnuPlot "set yrange [".$yMin.":".$yMax."]\n";
-    }
-}
-
-# Remove temporary file.
-unlink($workDirectory."/kde.txt");
-
-if ( $dimensions == 1 ) {
-    for(my $i=2;$i>=0;--$i) {
-	my $selection = which($p <= $levels->(($i)));
-	my $pLevel = $p->copy();
-	$pLevel->index($selection) .= -1.0;
+	my @lineWeight = split(",",$lineWeight);
+	for(my $i=2;$i>=0;--$i) {
+	    my $selection = which($p <= $levels->(($i)));
+	    my $pLevel = $p->copy();
+	    $pLevel->index($selection) .= -1.0;
+	    &PrettyPlots::Prepare_Dataset(
+		\$plot,
+		$x,$pLevel,
+		style       => "filledCurve",
+		weight      => \@lineWeight,
+		color       => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'sequence1'}}[$i]},
+		filledCurve => "x1"
+		);
+	}
 	&PrettyPlots::Prepare_Dataset(
 	    \$plot,
-	    $x,$pLevel,
-	    style       => "filledCurve",
-	    weight      => [5,3],
-	    color       => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'sequence1'}}[$i]},
-	    filledCurve => "x1"
+	    $x,$p,
+	    style       => "line",
+	    weight      => \@lineWeight,
+	    color       => $PrettyPlots::colorPairs{'redYellow'},
 	    );
-    }
-    &PrettyPlots::Prepare_Dataset(
-	 \$plot,
-	 $x,$p,
-	 style       => "line",
-	 weight      => [5,3],
-	 color       => $PrettyPlots::colorPairs{'redYellow'},
-    );
-    &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
-    # Output data to file if required.
-    if ( exists($arguments{'data'}) ) {
-	my $xml = new XML::Simple(RootName => "data", NoAttr => 1);
-	my $data;
-	@{$data->{'x'         }} = $x         ->list();
-	@{$data->{'p'         }} = $p         ->list();
-	@{$data->{'confidence'}} = $levels    ->list();
-	@{$data->{'levels'    }} = $confidence->list();
-	$data  ->{'xProperty' }  = $arguments{'xProperty'};
-	$data  ->{'xLabel'    }  = $xLabel;
-	$data  ->{'pLabel'    }  = $zLabel;
-	$data  ->{'xScale'    }  = $xScale;
-	open(my $oHndl,">".$arguments{'data'});
-	print $oHndl $xml->XMLout($data);
-	close($oHndl);
-    }
-} else {
-    # Generate confidence contours.
-    open(ppHndl,"|gnuplot");
-    print ppHndl "set table '".$plotFile.".contour.dat'\n";
-    print ppHndl "unset surface\n";
-    print ppHndl "set contour base; set cntrparam levels discrete ".join(",",$levels->list())."\n";
-    print ppHndl "splot '-'\n";
-    my $k = -1;
-    for(my $i=0;$i<$nGrid;++$i) {
-	for(my $j=0;$j<$nGrid;++$j) {
-	    ++$k;
-	    print ppHndl $x->(($k))." ".$y->(($k))." ".$p->(($k))."\n";
+	&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+	# Output data to file if required.
+	if ( exists($arguments{'data'}) ) {
+	    my $xml = new XML::Simple(RootName => "data", NoAttr => 1);
+	    my $data;
+	    @{$data->{'x'         }} = $x         ->list();
+	    @{$data->{'p'         }} = $p         ->list();
+	    @{$data->{'confidence'}} = $levels    ->list();
+	    @{$data->{'levels'    }} = $confidence->list();
+	    $data  ->{'xProperty' }  = $arguments{'xProperty'};
+	    $data  ->{'xLabel'    }  = $xLabel;
+	    $data  ->{'pLabel'    }  = $zLabel;
+	    $data  ->{'xScale'    }  = $xScale;
+	    open(my $oHndl,">".$arguments{'data'});
+	    print $oHndl $xml->XMLout($data);
+	    close($oHndl);
 	}
-	print ppHndl "\n"
-	    unless ( $i == $nGrid-1 );
-    }
-    print ppHndl "e\n";
-    print ppHndl "unset table\n";
-    close(ppHndl);
-    push(@tempFiles,"contour.dat","contour".$iFileRoot.".dat");
-    system("awk \"NF<2{printf\\\"\\n\\\"}{print}\" <".$plotFile.".contour.dat >".$plotFile.".contour1.dat");
-    print $gnuPlot "set pm3d map\n";
-    print $gnuPlot "set pm3d explicit\n";
-    print $gnuPlot "set pm3d corners2color c1\n";
-    print $gnuPlot "set palette rgbformulae 21,22,23 negative\n";
-    print $gnuPlot "set log cb\n"
-	if ( $zScale eq "log" );
-    if ( $iFileRoot == 0 ) {
-	print $gnuPlot "set cbrange ".$pMin.":".$pMax."\n";
-    } elsif ( $iFileRoot == 1 ) {
-	print $gnuPlot "unset colorbox\n"
-	    unless ( $colorbox == 0 );
-    }
-    print $gnuPlot "splot '-' with pm3d notitle, '".$plotFile.".contour1.dat' with line lt -1 lc rgbcolor \"#FF44FF\" notitle\n";
-    $k = -1;
-    for(my $i=0;$i<$nGrid;++$i) {
-	for(my $j=0;$j<$nGrid;++$j) {
-	    ++$k;
-	    print $gnuPlot $x->(($k))." ".$y->(($k))." ".$p->(($k))."\n";
-	}
-	print $gnuPlot "\n"
-	    unless ( $i == $nGrid-1 );
-    }
-    print $gnuPlot "e\n";
     } else {
-	print $gnuPlot "splot 'contour".$iFileRoot.".dat' with line lt -1 lc rgbcolor \"#".$contourColors[$iFileRoot]."\" notitle\n";
+	# Generate confidence contours.
+	open(ppHndl,"|gnuplot");
+	print ppHndl "set table '".$plotFile.".contour.dat'\n";
+	print ppHndl "unset surface\n";
+	print ppHndl "set contour base; set cntrparam levels discrete ".join(",",$levels->list())."\n";
+	print ppHndl "splot '-'\n";
+	my $k = -1;
+	for(my $i=0;$i<$nGrid;++$i) {
+	    for(my $j=0;$j<$nGrid;++$j) {
+		++$k;
+		print ppHndl $x->(($k))." ".$y->(($k))." ".$p->(($k))."\n";
+	    }
+	    print ppHndl "\n"
+		unless ( $i == $nGrid-1 );
+	}
+	print ppHndl "e\n";
+	print ppHndl "unset table\n";
+	close(ppHndl);
+	push(@tempFiles,$plotFile.".contour.dat",$plotFile.".contour1.dat");
+	system("awk \"NF<2{printf\\\"\\n\\\"}{print}\" <".$plotFile.".contour.dat >".$plotFile.".contour1.dat");
+	print $gnuPlot "set pm3d map\n";
+	print $gnuPlot "set pm3d explicit\n";
+	print $gnuPlot "set pm3d corners2color c1\n";
+	print $gnuPlot "set palette rgbformulae 21,22,23 negative\n";
+	print $gnuPlot "set log cb\n"
+	    if ( $zScale eq "logarithmic" );
+	if ( $iFileRoot == 0 ) {
+	    print $gnuPlot "set cbrange ".$pMin.":".$pMax."\n";
+	} elsif ( $iFileRoot == 1 ) {
+	    print $gnuPlot "unset colorbox\n"
+		unless ( $colorbox == 0 );
+	}
+	if ( $iFileRoot == 0 ) {
+	    print $gnuPlot "splot '-' with pm3d notitle, '".$plotFile.".contour1.dat' with line lt -1 lc rgbcolor \"#FF44FF\" notitle\n";
+	    $k = -1;
+	    for(my $i=0;$i<$nGrid;++$i) {
+		for(my $j=0;$j<$nGrid;++$j) {
+		    ++$k;
+		    print $gnuPlot $x->(($k))." ".$y->(($k))." ".$p->(($k))."\n";
+		}
+		print $gnuPlot "\n"
+		unless ( $i == $nGrid-1 );
+	    }
+	    print $gnuPlot "e\n";
+ 	} else {
+	    print $gnuPlot "splot 'contour".$iFileRoot.".dat' with line lt -1 lc rgbcolor \"#".$contourColors[$iFileRoot]."\" notitle\n";
+	}
+	# Output data to file if required.
+	if ( exists($arguments{'data'}) ) {
+	    my $xml = new XML::Simple(RootName => "data", NoAttr => 1);
+	    my $data;
+	    @{$data->{'x'         }} = $x         ->list();
+	    @{$data->{'y'         }} = $y         ->list();
+	    @{$data->{'p'         }} = $p         ->list();
+	    @{$data->{'confidence'}} = $levels    ->list();
+	    @{$data->{'levels'    }} = $confidence->list();
+	    $data  ->{'xProperty' }  = $arguments{'xProperty'};
+	    $data  ->{'yProperty' }  = $arguments{'yProperty'};
+	    $data  ->{'xLabel'    }  = $xLabel;
+	    $data  ->{'yLabel'    }  = $yLabel;
+	    $data  ->{'xScale'    }  = $xScale;
+	    $data  ->{'yScale'    }  = $yScale;
+	    open(my $oHndl,">".$arguments{'data'});
+	    print $oHndl $xml->XMLout($data);
+	    close($oHndl);
+	}
     }
-    # Output data to file if required.
-    if ( exists($arguments{'data'}) ) {
-	my $xml = new XML::Simple(RootName => "data", NoAttr => 1);
-	my $data;
-	@{$data->{'x'         }} = $x         ->list();
-	@{$data->{'y'         }} = $y         ->list();
-	@{$data->{'p'         }} = $p         ->list();
-	@{$data->{'confidence'}} = $levels    ->list();
-	@{$data->{'levels'    }} = $confidence->list();
-	$data  ->{'xProperty' }  = $arguments{'xProperty'};
-	$data  ->{'yProperty' }  = $arguments{'yProperty'};
-	$data  ->{'xLabel'    }  = $xLabel;
-	$data  ->{'yLabel'    }  = $yLabel;
-	$data  ->{'xScale'    }  = $xScale;
-	$data  ->{'yScale'    }  = $yScale;
-	open(my $oHndl,">".$arguments{'data'});
-	print $oHndl $xml->XMLout($data);
-	close($oHndl);
-    }
-}
-
-
 }
 
 print $gnuPlot "unset multiplot\n"
     if ( $dimensions == 2 );
 
 close($gnuPlot);
-unlink(uniq(@tempFiles));
+unlink(uniq(sort(@tempFiles)));
 &LaTeX::GnuPlot2PDF($plotFileEPS, margin => 1);
 
 exit;
