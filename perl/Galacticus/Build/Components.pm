@@ -30,6 +30,7 @@ require Galacticus::Build::Components::CodeGeneration;
 require Galacticus::Build::Components::Hierarchy;
 require Galacticus::Build::Components::TreeNodes;
 require Galacticus::Build::Components::TreeNodes::CreateDestroy;
+require Galacticus::Build::Components::TreeNodes::Utils;
 require Galacticus::Build::Components::NodeEvents;
 require Galacticus::Build::Components::BaseTypes;
 require Galacticus::Build::Components::Classes;
@@ -54,9 +55,6 @@ $SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
 
 # Include debugging code.
 my $debugging                           = 0;
-
-# Switch to control gfortran workarounds.
-my $workaround                         = 1;
 
 # Adjectives for attributes.
 my %attributeAdjective =
@@ -131,8 +129,6 @@ sub Components_Generate_Output {
 	    \&Generate_Node_Offset_Functions                         ,
 	    # Generate functions to get property names from a supplied index.
 	    \&Generate_Node_Property_Name_From_Index_Function        ,
-	    # Generate function to copy one node to another.
-	    \&Generate_Node_Copy_Function                            ,
 	    # Generate function to move one node to another.
 	    \&Generate_Node_Move_Function                            ,
 	    # Generate type name functions.
@@ -3950,97 +3946,6 @@ sub Generate_Component_Creation_Functions {
 	    {type => "procedure", name => $componentClassName."Create" , function => $componentClassName."CreateLinked", description => "Create a {\\normalfont \\ttfamily ".$componentClassName."} component in the node. If no {\\normalfont \\ttfamily template} is specified use the active implementation of this class.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless class(nodeComponent".ucfirst($componentClassName).")\\textgreater}\\ [template]\\argin"}
 	    );
     }
-}
-
-sub Generate_Node_Copy_Function {
-    # Generate function to copy one node to another.
-    my $build = shift;
-    # Specify variables.
-    my @dataContent =
-	(
-	 {
-	     intrinsic  => "class",
-	     type       => "treeNode",
-	     attributes => [ "intent(in   )" ],
-	     variables  => [ "self" ]
-	 },
-	 {
-	     intrinsic  => "class",
-	     type       => "treeNode",
-	     attributes => [ "intent(inout)" ],
-	     variables  => [ "targetNode" ]
-	 },
-	 {
-	     intrinsic  => "logical",
-	     attributes => [ "intent(in   )", "optional" ],
-	     variables  => [ "skipFormationNode" ]
-	 },
-	 {
-	     intrinsic  => "logical",
-	     variables  => [ "skipFormationNodeActual" ]
-	 },
-	 {
-	     intrinsic  => "integer",
-	     variables  => [ "i" ]
-	 }
-	);
-    # Generate the code.
-    my $functionCode;
-    $functionCode .= "  subroutine Tree_Node_Copy_Node_To(self,targetNode,skipFormationNode)\n";
-    $functionCode .= "    !% Make a copy of {\\normalfont \\ttfamily self} in {\\normalfont \\ttfamily targetNode}.\n";
-    $functionCode .= "    implicit none\n";
-    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    $functionCode .= "    skipFormationNodeActual=.false.\n";
-    $functionCode .= "    if (present(skipFormationNode)) skipFormationNodeActual=skipFormationNode\n";
-    $functionCode .= "    targetNode%".&Utils::padClass($_,[8,14])." =  self%".$_."\n"
-	foreach ( "uniqueIdValue", "indexValue", "timeStepValue" );
-    $functionCode .= "    targetNode%".&Utils::padClass($_,[8,14])." => self%".$_."\n"
-	foreach ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "event", "hostTree" );
-    $functionCode .= "    if (.not.skipFormationNodeActual) targetNode%formationNode => self%formationNode\n";
-    # Loop over all component classes
-    if ( $workaround == 1 ) { # Workaround "Assignment to an allocatable polymorphic variable is not yet supported"
-	foreach my $componentClassName ( @{$build->{'componentClassList'}} ) {
-	    $functionCode .= "    if (allocated(targetNode%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")) deallocate(targetNode%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")\n";
-	    $functionCode .= "    allocate(targetNode%component".&Utils::padClass(ucfirst($componentClassName),[0,0])."(size(self%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")),source=self%component".&Utils::padClass(ucfirst($componentClassName),[0,0])."(1))\n";
-	    $functionCode .= "    do i=1,size(self%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")\n";
-	    foreach my $implementationName ( @{$build->{'componentClasses'}->{$componentClassName}->{'memberNames'}} ) {
-		$functionCode .= "      select type (from => self%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")\n";
-		$functionCode .= "      type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
-		$functionCode .= "        select type (to => targetNode%component".&Utils::padClass(ucfirst($componentClassName),[0,0]).")\n";
-		$functionCode .= "        type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
-		$functionCode .= "          to=from\n";
-		$functionCode .= "        end select\n";
-		$functionCode .= "      end select\n";
-	    }
-	    $functionCode .= "    end do\n";
-	}
-    } else {
-	foreach ( @{$build->{'componentClassList'}} ) {
-	    $functionCode .= "    targetNode%component".&Utils::padClass(ucfirst($_),[0,14])."=  self%component".ucfirst($_)."\n";
-	}
-    }
-    # Update target node pointers.
-    $functionCode .= "    select type (targetNode)\n";
-    $functionCode .= "    type is (treeNode)\n";
-    foreach ( @{$build->{'componentClassList'}} ) {
-	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
-	
-	$functionCode .= "        targetNode%component".&Utils::padClass(ucfirst($_),[0,14])."(i)%hostNode =>  targetNode\n";
-	$functionCode .= "      end do\n";
-    }
-    $functionCode .= "    end select\n";
-    $functionCode .= "    return\n";
-    $functionCode .= "  end subroutine Tree_Node_Copy_Node_To\n\n";
-    # Insert into the function list.
-    push(
-	@{$build->{'code'}->{'functions'}},
-	$functionCode
-	);
-    # Insert a type-binding for this function into the treeNode type.
-    push(
-	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "copyNodeTo", function => "Tree_Node_Copy_Node_To", description => "Make a copy of the node in {\\normalfont \\ttfamily targetNode}. If {\\normalfont \\ttfamily skipFormationNode} is {\\normalfont \\ttfamily true} then do not copy any pointer to the formation node.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless class(treeNode)\\textgreater} targetNode\\arginout, \\logicalzero\\ [skipFormationNode]\\argin"}
-	);
 }
 
 sub Generate_Node_Move_Function {
