@@ -29,6 +29,7 @@ require Galacticus::Build::Components::Utils;
 require Galacticus::Build::Components::CodeGeneration;
 require Galacticus::Build::Components::Hierarchy;
 require Galacticus::Build::Components::TreeNodes;
+require Galacticus::Build::Components::TreeNodes::CreateDestroy;
 require Galacticus::Build::Components::NodeEvents;
 require Galacticus::Build::Components::BaseTypes;
 require Galacticus::Build::Components::Classes;
@@ -134,10 +135,6 @@ sub Components_Generate_Output {
 	    \&Generate_Node_Copy_Function                            ,
 	    # Generate function to move one node to another.
 	    \&Generate_Node_Move_Function                            ,
-	    # Generate a tree node creation function.
-	    \&Generate_Tree_Node_Creation_Function                   ,
-	    # Generate a tree node destruction function.
-	    \&Generate_Tree_Node_Destruction_Function                ,
 	    # Generate a tree node builder function.
 	    \&Generate_Tree_Node_Builder_Function                    ,
 	    # Generate type name functions.
@@ -4852,144 +4849,6 @@ sub Generate_GSR_Functions {
 	    }
 	}
     }
-}
-
-sub Generate_Tree_Node_Creation_Function {
-    # Generate a tree node creation function.
-    my $build = shift;
-    # Specify data content.
-    my @dataContent =
-	(
-	 {
-	     intrinsic  => "class",
-	     type       => "treeNode",
-	     attributes => [ "intent(inout)", "target" ],
-	     variables  => [ "self" ]
-	 },
-	 {
-	     intrinsic  => "integer",
-	     type       => "kind=kind_int8",
-	     attributes => [ "intent(in   )", "optional" ],
-	     variables  => [ "index" ]
-	 },
-	 {
-	     intrinsic  => "type",
-	     type       => "mergerTree",
-	     attributes => [ "intent(in   )", "optional", "target" ],
-	     variables  => [ "hostTree" ]
-	 }
-	);
-    # Create the function code.
-    my $functionCode;
-    $functionCode .= "  subroutine treeNodeInitialize(self,index,hostTree)\n";
-    $functionCode .= "    !% Initialize a {\\normalfont \\ttfamily treeNode} object.\n";
-    $functionCode .= "    use Galacticus_Error\n";
-    $functionCode .= "    implicit none\n";
-    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    $functionCode .= "    ! Ensure pointers are nullified.\n";
-    $functionCode .= "    nullify (self%".&Utils::padClass($_,[9,14]).")\n"
-	foreach ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "formationNode", "event" );
-    foreach ( @{$build->{'componentClassList'}} ) {
-    	$functionCode .= "    allocate(self%".&Utils::padClass("component".ucfirst($_),[9,14])."(1))\n";
-    }
-    $functionCode .= "    select type (self)\n";
-    $functionCode .= "    type is (treeNode)\n";
-    foreach ( @{$build->{'componentClassList'}} ) {
-	$functionCode .= "       self%component".&Utils::padClass(ucfirst($_),[0,0])."(1)%hostNode => self\n";
-    }
-    $functionCode .= "    end select\n";
-    $functionCode .= "    ! Assign a host tree if supplied.\n";
-    $functionCode .= "    if (present(hostTree)) self%hostTree => hostTree\n";
-    $functionCode .= "    ! Assign index if supplied.\n";
-    $functionCode .= "    if (present(index)) call self%indexSet(index)\n";
-    $functionCode .= "    ! Assign a unique ID.\n";
-    $functionCode .= "    !\$omp critical(UniqueID_Assign)\n";
-    $functionCode .= "    uniqueIDCount=uniqueIDCount+1\n";
-    $functionCode .= "    if (uniqueIDCount <= 0) call Galacticus_Error_Report('treeNodeInitialize','ran out of unique ID numbers')\n";
-    $functionCode .= "    self%uniqueIdValue=uniqueIDCount\n";
-    $functionCode .= "    !\$omp end critical(UniqueID_Assign)\n";
-    $functionCode .= "    ! Assign a timestep.\n";
-    $functionCode .= "    self%timeStepValue=-1.0d0\n";
-    $functionCode .= "    return\n";
-    $functionCode .= "  end subroutine treeNodeInitialize\n";	
-    # Insert into the function list.
-    push(
-	@{$build->{'code'}->{'functions'}},
-	$functionCode
-	);
-}
-
-sub Generate_Tree_Node_Destruction_Function {
-    # Generate a tree node destruction function.
-    my $build = shift;
-    # Specify data content.
-    my @dataContent =
-	(
-	 {
-	     intrinsic  => "class",
-	     type       => "treeNode",
-	     attributes => [ "intent(inout)" ],
-	     variables  => [ "self" ]
-	 },
-	 {
-	     intrinsic  => "class",
-	     type       => "nodeEvent",
-	     attributes => [ "pointer" ],
-	     variables  => [ "thisEvent", "pairEvent", "lastEvent", "nextEvent" ]
-	 },
-	 {
-	     intrinsic  => "logical",
-	     variables  => [ "pairMatched" ]
-	 }
-	);
-    # Create the function code.
-    my $functionCode;
-    $functionCode .= "  subroutine treeNodeDestroy(self)\n";
-    $functionCode .= "    !% Destroy a {\\normalfont \\ttfamily treeNode} object.\n";
-    $functionCode .= "    implicit none\n";
-    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    foreach my $componentClass ( @{$build->{'componentClassList'}} ) {
-     	$functionCode .= "    call self%".&Utils::padClass(lc($componentClass)."Destroy",[7,0])."()\n";
-    }
-    # Remove any events attached to the node, along with their paired event in other nodes.
-    $functionCode .= "    ! Iterate over all attached events.\n";
-    $functionCode .= "    thisEvent => self%event\n";
-    $functionCode .= "    do while (associated(thisEvent))\n";
-    $functionCode .= "        ! Locate the paired event and remove it.\n";
-    $functionCode .= "        pairEvent => thisEvent%node%event\n";
-    $functionCode .= "        lastEvent => thisEvent%node%event\n";
-    $functionCode .= "        ! Iterate over all events.\n";
-    $functionCode .= "        pairMatched=.false.\n";
-    $functionCode .= "        do while (associated(pairEvent).and..not.pairMatched)\n";
-    $functionCode .= "           ! Match the paired event ID with the current event ID.\n";
-    $functionCode .= "           if (pairEvent%ID == thisEvent%ID) then\n";
-    $functionCode .= "              pairMatched=.true.\n";
-    $functionCode .= "              if (associated(pairEvent,thisEvent%node%event)) then\n";
-    $functionCode .= "                 thisEvent%node  %event => pairEvent%next\n";
-    $functionCode .= "                 lastEvent       => thisEvent%node %event\n";
-    $functionCode .= "              else\n";
-    $functionCode .= "                 lastEvent%next  => pairEvent%next\n";
-    $functionCode .= "              end if\n";
-    $functionCode .= "              nextEvent => pairEvent%next\n";
-    $functionCode .= "              deallocate(pairEvent)\n";
-    $functionCode .= "              pairEvent => nextEvent\n";
-    $functionCode .= "           else\n";
-    $functionCode .= "              lastEvent => pairEvent\n";
-    $functionCode .= "              pairEvent => pairEvent%next\n";
-    $functionCode .= "           end if\n";
-    $functionCode .= "        end do\n";
-    $functionCode .= "        if (.not.pairMatched) call Galacticus_Error_Report('treeNodeDestroy','unable to find paired event')\n";
-    $functionCode .= "        nextEvent => thisEvent%next\n";
-    $functionCode .= "        deallocate(thisEvent)\n";
-    $functionCode .= "        thisEvent => nextEvent\n";
-    $functionCode .= "    end do\n";
-    $functionCode .= "    return\n";
-    $functionCode .= "  end subroutine treeNodeDestroy\n";	
-    # Insert into the function list.
-    push(
-	@{$build->{'code'}->{'functions'}},
-	$functionCode
-	);
 }
 
 sub Generate_Tree_Node_Builder_Function {
