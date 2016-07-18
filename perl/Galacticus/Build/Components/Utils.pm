@@ -27,6 +27,9 @@ use List::Util qw(max);
      }
     );
 
+# Switch on compiler bug workarounds?
+our $workaround     = 1;
+
 # Global verbosity level.
 our $verbosityLevel = 1;
 

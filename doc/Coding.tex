@@ -42,6 +42,23 @@ Each member implementation structure has the form:
 }
 \end{verbatim}
 
+\subsubsection{Types}
+
+Definitions of derived types are accumulated to the hash {\normalfont \ttfamily \$build->\{'types'\}}, with the key of each entry being the derived type's name. Each derived type structure has the form:
+\begin{verbatim}
+{
+ boundFunctions => 
+  {
+   type        => <procedure|generic>
+   name        => <name of the bound method>
+   function    => <name of function to bind to>
+   description => <LaTeX-syntax description of the method>
+   returnType  => <LaTeX-syntax return type of the method>
+   arguments   => <LaTeX-syntax definition of all arguments to the method>
+  }
+}
+\end{verbatim}
+
 \subsubsection{Module-scope Variables}
 
 Any module-scope variables can be pushed to the array {\normalfont \ttfamily \@\{\$build->\{'variables'\}\}}, using the usual definition format described in \S\ref{sec:nodeBuilderVariableDefinitions}.
