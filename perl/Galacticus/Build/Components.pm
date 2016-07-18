@@ -135,8 +135,6 @@ sub Components_Generate_Output {
 	    \&Generate_Node_Copy_Function                            ,
 	    # Generate function to move one node to another.
 	    \&Generate_Node_Move_Function                            ,
-	    # Generate a tree node builder function.
-	    \&Generate_Tree_Node_Builder_Function                    ,
 	    # Generate type name functions.
 	    \&Generate_Type_Name_Functions                           ,
 	    # Generate component assignment function.
@@ -4849,104 +4847,6 @@ sub Generate_GSR_Functions {
 	    }
 	}
     }
-}
-
-sub Generate_Tree_Node_Builder_Function {
-    # Generate a tree node builder function.
-    my $build = shift;
-    # Specify data content.
-    my @dataContent =
-	(
-	 {
-	     intrinsic  => "class",
-	     type       => "treeNode",
-	     attributes => [ "intent(inout)" ],
-	     variables  => [ "self" ]
-	 },
-	 {
-	     intrinsic  => "type",
-	     type       => "node",
-	     attributes => [ "intent(in   )", "pointer" ],
-	     variables  => [ "nodeDefinition" ]
-	 },
-	 {
-	     intrinsic  => "type",
-	     type       => "node",
-	     attributes => [ "pointer" ],
-	     variables  => [ "componentDefinition" ]
-	 },
-	 {
-	     intrinsic  => "type",
-	     type       => "nodeList",
-	     attributes => [ "pointer" ],
-	     variables  => [ "componentList" ]
-	 },
-	 {
-	     intrinsic  => "integer",
-	     variables  => [ "i", "j", "componentCount" ]
-	 },
-	 {
-	     intrinsic  => "type",
-	     type       => "integerScalarHash",
-	     variables  => [ "componentIndex" ]
-	 },
-	 {
-	     intrinsic  => "character",
-	     type       => "len=128",
-	     variables  => [ "nodeName" ]
-	 }
-	);
-    # Create the function code.
-    my $functionCode;
-    $functionCode .= "  subroutine Tree_Node_Component_Builder(self,nodeDefinition)\n";
-    $functionCode .= "    !% Build components in a {\\normalfont \\ttfamily treeNode} object given an XML definition.\n";
-    $functionCode .= "    use FoX_Dom\n";
-    $functionCode .= "    use Hashes\n";
-    $functionCode .= "    implicit none\n";
-    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    $functionCode .= "    select type (self)\n";
-    $functionCode .= "    type is (treeNode)\n";
-    $functionCode .= "       call componentIndex%initialize()\n";
-    $functionCode .= "       !\$omp critical (FoX_DOM_Access)\n";
-   foreach my $componentClass ( @{$build->{'componentClassList'}} ) {
-	$functionCode .= "    componentList => getChildNodes(nodeDefinition)\n";
-	$functionCode .= "    componentCount=0\n";
-	$functionCode .= "    do i=0,getLength(componentList)-1\n";
-	$functionCode .= "      componentDefinition => item(componentList,i)\n";
-	$functionCode .= "      if (getNodeName(componentDefinition) == '".$componentClass."') componentCount=componentCount+1\n";
-	$functionCode .= "    end do\n";
-	$functionCode .= "    if (componentCount > 0) then\n";
-	$functionCode .= "      if (allocated(self%component".ucfirst($componentClass).")) deallocate(self%component".ucfirst($componentClass).")\n";
-	$functionCode .= "      allocate(self%component".ucfirst($componentClass)."(componentCount),source=default".ucfirst($componentClass)."Component)\n";
-	$functionCode .= "      call componentIndex%set('".$componentClass."',0)\n";
-	$functionCode .= "    end if\n";
-    }
-    $functionCode .= "    componentCount=getLength(componentList)\n";
-    $functionCode .= "    !\$omp end critical (FoX_DOM_Access)\n";
-    $functionCode .= "    do i=0,componentCount-1\n";
-    foreach my $componentClass ( @{$build->{'componentClassList'}} ) {
-	$functionCode .= "     !\$omp critical (FoX_DOM_Access)\n";
-	$functionCode .= "     componentDefinition => item(componentList,i)\n";
-	$functionCode .= "     nodeName=getNodeName(componentDefinition)\n";
-	$functionCode .= "     !\$omp end critical (FoX_DOM_Access)\n";
-	$functionCode .= "     if (trim(nodeName) == '".$componentClass."') then\n";
-	$functionCode .= "       j=componentIndex%value('".$componentClass."')\n";
-	$functionCode .= "       j=j+1\n";
-	$functionCode .= "       self%component".ucfirst($componentClass)."(j)%hostNode => self\n";
-	$functionCode .= "       call self%component".ucfirst($componentClass)."(j)%builder(componentDefinition)\n";
-	$functionCode .= "       call componentIndex%set('".$componentClass."',j)\n";
-	$functionCode .= "     end if\n";
-    }
-    $functionCode .= "      end do\n";
-    $functionCode .= "      call componentIndex%destroy()\n";
-    $functionCode .= "    end select\n";
-    $functionCode .= "    return\n";
-    $functionCode .= "  end subroutine Tree_Node_Component_Builder\n";	
-    # Insert into the function list.
-    push(
-	@{$build->{'code'}->{'functions'}},
-	$functionCode
-	);
 }
 
 sub Generate_GSR_Availability_Functions {

@@ -26,6 +26,7 @@ require Galacticus::Build::Components::DataTypes;
 	 functions =>
 	     [
 	      \&Tree_Node_Creation    ,
+	      \&Tree_Node_Builder     ,
 	      \&Tree_Node_Finalization
 	     ]
      }
@@ -85,6 +86,114 @@ self%uniqueIdValue=uniqueIDCount
 !$omp end critical(UniqueID_Assign)
 ! Assign a timestep.
 self%timeStepValue=-1.0d0
+CODE
+    # Add the function to the functions list.
+    push(
+	@{$build->{'functions'}},
+	$function
+	);
+}
+
+sub Tree_Node_Builder {
+    # Generate a function to build tree nodes from an XML definition.
+    my $build = shift();
+    my $function =
+    {
+	type        => "void",
+	name        => "treeNodeComponentBuilder",
+	description => "Build components in a {\\normalfont \\ttfamily treeNode} object given an XML definition.",
+	modules     =>
+	    [
+	     "FoX_DOM",
+	     "Hashes"
+	    ],
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "class",
+		 type       => "treeNode",
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "node",
+		 attributes => [ "intent(in   )", "pointer" ],
+		 variables  => [ "nodeDefinition" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "node",
+		 attributes => [ "pointer" ],
+		 variables  => [ "componentDefinition" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "nodeList",
+		 attributes => [ "pointer" ],
+		 variables  => [ "componentList" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "i", "j", "componentCount" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "integerScalarHash",
+		 variables  => [ "componentIndex" ]
+	     },
+	     {
+		 intrinsic  => "character",
+		 type       => "len=128",
+		 variables  => [ "nodeName" ]
+	     }
+	    ]
+    };
+    $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
+select type (self)
+type is (treeNode)
+   call componentIndex%initialize()
+   !$omp critical (FoX_DOM_Access)
+CODE
+    foreach $code::component ( &ExtraUtils::hashList($build->{'componentClasses'}) ) {
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+    componentList => getChildNodes(nodeDefinition)
+    componentCount=0
+    do i=0,getLength(componentList)-1
+      componentDefinition => item(componentList,i)
+      if (getNodeName(componentDefinition) == '{$component->{'name'}}') componentCount=componentCount+1
+    end do
+    if (componentCount > 0) then
+      if (allocated(self%component{ucfirst($component->{'name'})})) deallocate(self%component{ucfirst($component->{'name'})})
+      allocate(self%component{ucfirst($component->{'name'})}(componentCount),source=default{ucfirst($component->{'name'})}Component)
+      call componentIndex%set('{$component->{'name'}}',0)
+    end if
+CODE
+    }
+    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+   componentCount=getLength(componentList)
+   !$omp end critical (FoX_DOM_Access)
+   do i=0,componentCount-1
+CODE
+    foreach $code::component ( &ExtraUtils::hashList($build->{'componentClasses'}) ) {
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+     !$omp critical (FoX_DOM_Access)
+     componentDefinition => item(componentList,i)
+     nodeName=getNodeName(componentDefinition)
+     !$omp end critical (FoX_DOM_Access)
+     if (trim(nodeName) == '{$component->{'name'}}') then
+       j=componentIndex%value('{$component->{'name'}}')
+       j=j+1
+       self%component{ucfirst($component->{'name'})}(j)%hostNode => self
+       call self%component{ucfirst($component->{'name'})}(j)%builder(componentDefinition)
+       call componentIndex%set('{$component->{'name'}}',j)
+     end if
+CODE
+    }
+    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+  end do
+  call componentIndex%destroy()
+end select
 CODE
     # Add the function to the functions list.
     push(
