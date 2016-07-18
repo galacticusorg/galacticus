@@ -129,8 +129,6 @@ sub Components_Generate_Output {
 	    \&Generate_Node_Offset_Functions                         ,
 	    # Generate functions to get property names from a supplied index.
 	    \&Generate_Node_Property_Name_From_Index_Function        ,
-	    # Generate function to move one node to another.
-	    \&Generate_Node_Move_Function                            ,
 	    # Generate type name functions.
 	    \&Generate_Type_Name_Functions                           ,
 	    # Generate component assignment function.
@@ -3946,65 +3944,6 @@ sub Generate_Component_Creation_Functions {
 	    {type => "procedure", name => $componentClassName."Create" , function => $componentClassName."CreateLinked", description => "Create a {\\normalfont \\ttfamily ".$componentClassName."} component in the node. If no {\\normalfont \\ttfamily template} is specified use the active implementation of this class.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless class(nodeComponent".ucfirst($componentClassName).")\\textgreater}\\ [template]\\argin"}
 	    );
     }
-}
-
-sub Generate_Node_Move_Function {
-    # Generate function to move one node to another.
-    my $build = shift;
-    # Specify variables.
-    my @dataContent =
-	(
-	 {
-	     intrinsic  => "class",
-	     type       => "treeNode",
-	     attributes => [ "intent(inout)" ],
-	     variables  => [ "self" ]
-	 },
-	 {
-	     intrinsic  => "type",
-	     type       => "treeNode",
-	     attributes => [ "intent(inout)", "target" ],
-	     variables  => [ "targetNode" ]
-	 },
-	 {
-	     intrinsic  => "integer",
-	     variables  => [ "i" ]
-	 }
-	);
-    # Generate the code.
-    my $functionCode;
-    # Create functions for moving node components.
-    $functionCode .= "  subroutine Tree_Node_Move_Components(self,targetNode)\n";
-    $functionCode .= "    !% Move components from {\\normalfont \\ttfamily self} to {\\normalfont \\ttfamily targetNode}.\n";
-    $functionCode .= "    implicit none\n";
-    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    # Loop over all component classes
-    foreach ( @{$build->{'componentClassList'}} ) {	    
-	$functionCode .= "    if (allocated(targetNode%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(targetNode%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        call targetNode%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%destroy()\n";
-	$functionCode .= "      end do\n";
-	$functionCode .= "      deallocate(targetNode%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "    end if\n";
-	$functionCode .= "    if (allocated(self      %component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "       call Move_Alloc(self%component".&Utils::padClass(ucfirst($_),[0,0]).",targetNode%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "       do i=1,size(targetNode%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "         targetNode%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%hostNode => targetNode\n";
-	$functionCode .= "       end do\n";
-	$functionCode .= "    end if\n";
-    }
-    $functionCode .= "    return\n";
-    $functionCode .= "  end subroutine Tree_Node_Move_Components\n\n";
-    # Insert into the function list.
-    push(
-	@{$build->{'code'}->{'functions'}},
-	$functionCode
-	);
-    # Insert a type-binding for this function into the treeNode type.
-    push(
-	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "moveComponentsTo", function => "Tree_Node_Move_Components", description => "Move components from a node to {\\normalfont \\ttfamily targetNode}.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless class(treeNode)\\textgreater} targetNode\\arginout"}
-	);
 }
 
 sub Generate_Deferred_Function_Attacher {
