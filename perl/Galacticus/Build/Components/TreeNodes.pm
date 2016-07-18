@@ -113,7 +113,7 @@ sub Build_Tree_Node_Class {
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "componentBuilder"                                                                                                ,
-	     function    => "Tree_Node_Component_Builder"                                                                                     ,
+	     function    => "treeNodeComponentBuilder"                                                                                        ,
 	     description => "Build components in this node given an XML description of their properties."                                     ,
 	     returnType  => "\\void"                                                                                                          ,
 	     arguments   => "\\textcolor{red}{\\textless *type(node)\\textgreater} nodeDefinition\\argin"
