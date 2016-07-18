@@ -25,7 +25,8 @@ require Galacticus::Build::Components::DataTypes;
      {
 	 functions =>
 	     [
-	      \&Tree_Node_Copy
+	      \&Tree_Node_Copy,
+	      \&Tree_Node_Move
 	     ]
      }
     );
@@ -40,31 +41,31 @@ sub Tree_Node_Copy {
 	description => "Make a copy of {\\normalfont \\ttfamily self} in {\\normalfont \\ttfamily targetNode}.",
 	variables   =>
 	    [
-	 {
-	     intrinsic  => "class",
-	     type       => "treeNode",
-	     attributes => [ "intent(in   )" ],
-	     variables  => [ "self" ]
-	 },
-	 {
-	     intrinsic  => "class",
-	     type       => "treeNode",
-	     attributes => [ "intent(inout)" ],
-	     variables  => [ "targetNode" ]
-	 },
-	 {
-	     intrinsic  => "logical",
-	     attributes => [ "intent(in   )", "optional" ],
-	     variables  => [ "skipFormationNode" ]
-	 },
-	 {
-	     intrinsic  => "logical",
-	     variables  => [ "skipFormationNodeActual" ]
-	 },
-	 {
-	     intrinsic  => "integer",
-	     variables  => [ "i" ]
-	 }
+	     {
+		 intrinsic  => "class",
+		 type       => "treeNode",
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "class",
+		 type       => "treeNode",
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "targetNode" ]
+	     },
+	     {
+		 intrinsic  => "logical",
+		 attributes => [ "intent(in   )", "optional" ],
+		 variables  => [ "skipFormationNode" ]
+	     },
+	     {
+		 intrinsic  => "logical",
+		 variables  => [ "skipFormationNodeActual" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "i" ]
+	     }
 	    ]
     };    
     $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -126,7 +127,78 @@ CODE
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "copyNodeTo", function => "treeNodeCopyNodeTo", description => "Make a copy of the node in {\\normalfont \\ttfamily targetNode}. If {\\normalfont \\ttfamily skipFormationNode} is {\\normalfont \\ttfamily true} then do not copy any pointer to the formation node.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless class(treeNode)\\textgreater} targetNode\\arginout, \\logicalzero\\ [skipFormationNode]\\argin"}
+	{
+	    type        => "procedure", 
+	    name        => "copyNodeTo", 
+	    function    => "treeNodeCopyNodeTo", 
+	    description => "Make a copy of the node in {\\normalfont \\ttfamily targetNode}. If {\\normalfont \\ttfamily skipFormationNode} is {\\normalfont \\ttfamily true} then do not copy any pointer to the formation node.", 
+	    returnType  => "\\void", 
+	    arguments   => "\\textcolor{red}{\\textless class(treeNode)\\textgreater} targetNode\\arginout, \\logicalzero\\ [skipFormationNode]\\argin"
+	}
+	);
+}
+
+sub Tree_Node_Move {
+    # Generate a function to move components of one tree node to another.
+    my $build = shift();
+    my $function =
+    {
+	type        => "void",
+	name        => "treeNodeComponentsMove",
+	description => "Move components from {\\normalfont \\ttfamily self} to {\\normalfont \\ttfamily targetNode}.",
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "class",
+		 type       => "treeNode",
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "treeNode",
+		 attributes => [ "intent(inout)", "target" ],
+		 variables  => [ "targetNode" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "i" ]
+	     }
+	    ]
+    };
+    # Iterate over all component classes
+    foreach $code::class ( &ExtraUtils::hashList($build->{'componentClasses'}) ) {
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (allocated(targetNode%component{ucfirst($class->{'name'})})) then
+  do i=1,size(targetNode%component{ucfirst($class->{'name'})})
+    call targetNode%component{ucfirst($class->{'name'})}(i)%destroy()
+  end do
+  deallocate(targetNode%component{ucfirst($class->{'name'})})
+end if
+if (allocated(self      %component{ucfirst($class->{'name'})})) then
+   call Move_Alloc(self%component{ucfirst($class->{'name'})},targetNode%component{ucfirst($class->{'name'})})
+   do i=1,size(targetNode%component{ucfirst($class->{'name'})})
+     targetNode%component{ucfirst($class->{'name'})}(i)%hostNode => targetNode
+   end do
+end if
+CODE
+    }
+    # Add the function to the functions list.
+    push(
+	@{$build->{'functions'}},
+	$function
+	);
+    # Insert a type-binding for this function into the treeNode type.
+    push(
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	{
+	    type        => "procedure", 
+	    name        => "moveComponentsTo", 
+	    function    => "treeNodeComponentsMove", 
+	    description => "Move components from a node to {\\normalfont \\ttfamily targetNode}.", 
+	    returnType  => "\\void", 
+	    arguments   => "\\textcolor{red}{\\textless class(treeNode)\\textgreater} targetNode\\arginout"
+	}
 	);
 }
 
