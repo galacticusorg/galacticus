@@ -472,7 +472,7 @@ contains
     message=message//activeTreeIndex
     call Galacticus_Display_Message(message)
     ! Dump all node properties.
-    call activeNode%dump()
+    call activeNode%serializeASCII()
     ! Evaluate derivatives.
     odeStatus=Tree_Node_ODEs(time,y,dydt)
     call Galacticus_Display_Indent('ODE system parameters')
