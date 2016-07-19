@@ -194,9 +194,9 @@ contains
     else
        call Galacticus_Verbosity_Level_Set(verbosityStandard)
        call Galacticus_Display_Indent('Satellite node')
-       call node%dump()
+       call node%serializeASCII()
        call Galacticus_Display_Indent('Host node'     )
-       call host%dump()
+       call host%serializeASCII()
        call Galacticus_Display_Indent('Host node'     )
        message="orbit does not reach halo radius"               //char(10)
        write (label,'(e12.6)') massSatellite
