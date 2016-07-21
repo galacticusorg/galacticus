@@ -30,6 +30,7 @@ require Galacticus::Build::Components::CodeGeneration;
 require Galacticus::Build::Components::Hierarchy;
 require Galacticus::Build::Components::TreeNodes;
 require Galacticus::Build::Components::TreeNodes::CreateDestroy;
+require Galacticus::Build::Components::TreeNodes::ODESolver;
 require Galacticus::Build::Components::TreeNodes::Serialization;
 require Galacticus::Build::Components::TreeNodes::Utils;
 require Galacticus::Build::Components::NodeEvents;
@@ -122,12 +123,6 @@ sub Components_Generate_Output {
 	    \&Generate_Map_Functions                                 ,
 	    # Generate functions to output nodes.
 	    \&Generate_Node_Output_Functions                         ,
-	    # Generate functions to serialize/deserialize nodes to/from arrays.
-	    \&Generate_Node_Serialization_Functions                  ,
-	    # Generate functions compute offsets into serialization arrays.
-	    \&Generate_Node_Offset_Functions                         ,
-	    # Generate functions to get property names from a supplied index.
-	    \&Generate_Node_Property_Name_From_Index_Function        ,
 	    # Generate type name functions.
 	    \&Generate_Type_Name_Functions                           ,
 	    # Generate component assignment function.
@@ -1209,243 +1204,6 @@ sub Generate_Node_Output_Functions {
 	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{type => "procedure", name => "output", function => "Node_Output", description => "Populate output buffers with properties for a node.", returnType  => "\\void", arguments   => "\\intzero\\ integerProperty\\arginout, \\intzero\\ integerBufferCount\\arginout, \\inttwo\\ integerBuffer\\arginout, \\intzero doubleProperty\\arginout, \\intzero\\ doubleBufferCount\\arginout, \\doubletwo\\ doubleBuffer\\arginout, \\doublezero\\ time\\argin"}
 	);
-}
-
-sub Generate_Node_Property_Name_From_Index_Function {
-    # Generate function to get the name of a property given an index.
-    my $build = shift;
-
-    # Define variables.
-    my @dataContent =
-	(
-	 {
-	     intrinsic  => "class",
-	     type       => "treeNode",
-	     attributes => [ "intent(in   )" ],
-	     variables  => [ "self" ]
-	 },
-	 {
-	     intrinsic  => "integer",
-	     attributes => [ "intent(in   )" ],
-	     variables  => [ "index" ]
-	 },
-	 {
-	     intrinsic  => "type",
-	     type       => "varying_string",
-	     variables  => [ "name" ]
-	 },
-	 {
-	     intrinsic  => "integer",
-	     variables  => [ "count", "i" ]
-	 }
-	);
-    my $functionCode;
-    $functionCode .= "  function Node_Property_Name_From_Index(self,index) result (name)\n";
-    $functionCode .= "    !% Return the name of a property given its index.\n";
-    $functionCode .= "    use ISO_Varying_String\n";
-    $functionCode .= "    implicit none\n";
-    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-
-    # Loop over all component classes
-    $functionCode .= "  name='unknown'\n";
-    $functionCode .= "  count=index\n";
-    foreach ( @{$build->{'componentClassList'}} ) {	    
-     	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%nameFromIndex(count,name)\n";
-	$functionCode .= "        if (count <= 0) return\n";
-	$functionCode .= "      end do\n";
-	$functionCode .= "    end if\n";
-    }
-    $functionCode .= "    if (name == 'unknown') call Galacticus_Error_Report('Node_Property_Name_From_Index','property index out of range')\n";
-    $functionCode .= "    return\n";
-    $functionCode .= "  end function Node_Property_Name_From_Index\n";
-    # Insert into the function list.
-    push(
-	@{$build->{'code'}->{'functions'}},
-	$functionCode
-	);
-    # Insert a type-binding for this function into the treeNode type.
-    push(
-	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "nameFromIndex", function => "Node_Property_Name_From_Index", description => "Return the name of a property given its index in a node.", returnType => "\\textcolor{red}{\\textless varying\\_string\\textgreater}", arguments => "\\intzero\\ index\\argin"}
-	);
-}
-
-sub Generate_Node_Serialization_Functions {
-    # Generate functions to serialize/deserialize nodes to/from arrays.
-    my $build = shift;
-
-    # Function computing a count of the serialization length.
-    my @dataContent =
-	(
-	 {
-	     intrinsic  => "class",
-	     type       => "treeNode",
-	     attributes => [ "intent(in   )" ],
-	     variables  => [ "self" ]
-	 },
-	 {
-	     intrinsic  => "integer",
-	     variables  => [ "count", "i" ]
-	 }
-	);
-    my $functionCode;
-    $functionCode .= "  function SerializeToArrayCount(self) result (count)\n";
-    $functionCode .= "    !% Return a count of the size of the serialized {\\normalfont \\ttfamily treeNode} object.\n";
-    $functionCode .= "    implicit none\n";
-    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    $functionCode .= "    count=0\n";
-    # Loop over all component classes
-    foreach ( @{$build->{'componentClassList'}} ) {	    
-     	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        count=count+self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
-	$functionCode .= "      end do\n";
-	$functionCode .= "    end if\n";
-    }
-    $functionCode .= "    return\n";
-    $functionCode .= "  end function SerializeToArrayCount\n\n";
-    # Insert into the function list.
-    push(
-	@{$build->{'code'}->{'functions'}},
-	$functionCode
-	);
-    # Insert a type-binding for this function into the treeNode type.
-    push(
-	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "serializeCount", function => "serializeToArrayCount", description => "Return a count of the number of evolvable properties of the serialized object.", returnType => "\\intzero", arguments => ""}
-	);
-    # Create the serialization function.
-    @dataContent =
-	(
-	 {
-	     intrinsic  => "class",
-	     type       => "treeNode",
-	     attributes => [ "intent(in   )" ],
-	     variables  => [ "self" ]
-	 },
-	 {
-	     intrinsic  => "integer",
-	     variables  => [ "count", "offset", "i" ],
-	 },
-	 {
-	     intrinsic  => "double precision",
-	     attributes => [ "dimension(:)", "intent(  out)" ],
-	     variables  => [ "array" ]
-	 }
-	);
-    $functionCode  = "  subroutine SerializeToArrayValues(self,array)\n";
-    $functionCode .= "    !% Serialize values to array.\n";
-    $functionCode .= "    use Memory_Management\n";
-    $functionCode .= "    implicit none\n";
-    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    $functionCode .= "    offset=1\n";
-    # Loop over all component classes
-    foreach ( @{$build->{'componentClassList'}} ) {	    
-	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        count=self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
-	$functionCode .= "        if (count > 0) call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%serializeValues(array(offset:))\n";
-	$functionCode .= "        offset=offset+count\n";
-	$functionCode .= "      end do\n";
-	$functionCode .= "    end if\n";
-    }
-    $functionCode .= "    return\n";
-    $functionCode .= "  end subroutine SerializeToArrayValues\n\n";
-    # Insert into the function list.
-    push(
-	@{$build->{'code'}->{'functions'}},
-	$functionCode
-	);
-    # Insert a type-binding for this function into the treeNode type.
-    push(
-	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "serializeValues", function => "serializeToArrayValues", description => "Serialize values to {\\normalfont \\ttfamily array}.", returnType => "\\void", arguments => "\\doubleone\\ array\\argout"}
-	);
-    # Create the deserialization function.
-    @dataContent =
-	(
-	 {
-	     intrinsic  => "class",
-	     type       => "treeNode",
-	     attributes => [ "intent(inout)" ],
-	     variables  => [ "self" ]
-	 },
-	 {
-	     intrinsic  => "integer",
-	     variables  => [ "count", "offset", "i" ],
-	 },
-	 {
-	     intrinsic  => "double precision",
-	     attributes => [ "dimension(:)", "intent(in   )" ],
-	     variables  => [ "array" ]
-	 }
-	);
-    $functionCode  = "  subroutine DeserializeFromArrayValues(self,array)\n";
-    $functionCode .= "    !% Deserialize values from {\\normalfont \\ttfamily array}.\n";
-    $functionCode .= "    use Memory_Management\n";
-    $functionCode .= "    implicit none\n";
-    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    $functionCode .= "    offset=1\n";
-    # Loop over all component classes
-    foreach ( @{$build->{'componentClassList'}} ) {	    
-	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        count=self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
-	$functionCode .= "        if (count > 0) call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%deserializeValues(array(offset:))\n";
-	$functionCode .= "        offset=offset+count\n";
-	$functionCode .= "      end do\n";
-	$functionCode .= "    end if\n";
-    }
-    $functionCode .= "    return\n";
-    $functionCode .= "  end subroutine DeserializeFromArrayValues\n\n";
-    # Insert into the function list.
-    push(
-	@{$build->{'code'}->{'functions'}},
-	$functionCode
-	);
-    # Insert a type-binding for this function into the treeNode type.
-    push(
-	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "deserializeValues", function => "deserializeFromArrayValues", description => "Deserialize values from {\\normalfont \\ttfamily array}.", returnType => "\\void", arguments => "\\doubleone\\ array\\argin"}
-	);
-    # Generate serialization functions for scales and rates.
-    foreach my $content ( "scale", "rate" ) {
-	# Create the serialization function.
-	@dataContent =
-	    (
-	     {
-		 intrinsic  => "class",
-		 type       => "treeNode",
-		 attributes => [ "intent(in   )" ],
-		 variables  => [ "self" ]
-	     },
-	     {
-		 intrinsic  => "double precision",
-		 attributes => [ "dimension(:)", "intent(  out)" ],
-		 variables  => [ "array" ]
-	     }
-	    );
-	$functionCode  = "  subroutine SerializeToArray".pad(ucfirst($content)."s",6)."(self,array)\n";
-	$functionCode .= "    !% Serialize ".$content."s to array.\n";
-	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	$functionCode .= "    !GCC\$ attributes unused :: self\n";
-	$functionCode .= "    array(1:nodeSerializationCount)=node".ucfirst($content)."s(1:nodeSerializationCount)\n";
-	$functionCode .= "    return\n";
-	$functionCode .= "  end subroutine SerializeToArray".ucfirst($content)."s\n\n";
-	# Insert into the function list.
-	push(
-	    @{$build->{'code'}->{'functions'}},
-	    $functionCode
-	    );
-	# Insert a type-binding for this function into the treeNode type.
-	push(
-	    @{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	    {type => "procedure", name => "serialize".ucfirst($content)."s", function => "serializeToArray".ucfirst($content)."s", description => "Serialize ".$content."s to {\\normalfont \\ttfamily array}.", returnType => "\\void", arguments => "\\doubleone\\ array\\argout"}
-	    );
-    }
 }
 
 sub Generate_Node_ODE_Initialization_Functions {
@@ -3201,65 +2959,6 @@ sub offsetName {
     my $componentName = shift();
     my $propertyName  = shift();
     return "offset".ucfirst($componentName).ucfirst($propertyName);
-}
-
-sub Generate_Node_Offset_Functions {
-    # Generate functions to compute offsets into serialization arrays.
-    my $build = shift;
-
-    # Function computing a count of the serialization length.
-    my @dataContent =
-	(
-	 {
-	     intrinsic  => "class",
-	     type       => "treeNode",
-	     attributes => [ "intent(in   )" ],
-	     variables  => [ "self" ]
-	 },
-	 {
-	     intrinsic  => "integer",
-	     variables  => [ "i", "count" ]
-	 }
-	);
-    my $functionCode;
-    $functionCode .= "  subroutine SerializationOffsets(self)\n";
-    $functionCode .= "    !% Compute offsets into serialization arrays for {\\normalfont \\ttfamily treeNode} object.\n";
-    $functionCode .= "    implicit none\n";
-    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    $functionCode .= "    count=0\n";
-    # Loop over all component classes
-    foreach ( @{$build->{'componentClassList'}} ) {	    
-     	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%serializationOffsets(count)\n";
-	$functionCode .= "      end do\n";
-	$functionCode .= "    end if\n";
-    }
-    $functionCode .= "    if (.not.allocated(nodeScales)) then\n";
-    $functionCode .= "       allocate  (nodeScales        (count))\n";
-    $functionCode .= "       allocate  (nodeRates         (count))\n";
-    $functionCode .= "       allocate  (nodeRatesIncrement(count))\n";
-    $functionCode .= "    else if (size(nodeScales) < count) then\n";
-    $functionCode .= "       deallocate(nodeScales               )\n";
-    $functionCode .= "       deallocate(nodeRates                )\n";
-    $functionCode .= "       deallocate(nodeRatesIncrement       )\n";
-    $functionCode .= "       allocate  (nodeScales        (count))\n";
-    $functionCode .= "       allocate  (nodeRates         (count))\n";
-    $functionCode .= "       allocate  (nodeRatesIncrement(count))\n";
-    $functionCode .= "    end if\n";
-    $functionCode .= "    nodeSerializationCount=count\n";
-    $functionCode .= "    return\n";
-    $functionCode .= "  end subroutine SerializationOffsets\n\n";
-    # Insert into the function list.
-    push(
-	@{$build->{'code'}->{'functions'}},
-	$functionCode
-	);
-    # Insert a type-binding for this function into the treeNode type.
-    push(
-	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "serializationOffsets", function => "SerializationOffsets", description => "Compute offsets into serialization arrays for all properties", returnType => "\\void", arguments => ""}
-	);
 }
 
 sub Generate_Implementation_Offset_Functions {
@@ -6093,7 +5792,31 @@ sub functionsSerialize {
 	# Report.
 	print "      --> ".$function->{'name'}."\n";
 	# Build function type definition.
-	$function->{'type'} = $function->{'type'} eq "void" ? "subroutine" : $function->{'type'}." function";
+	my $form;
+	my $type;
+	my $result;
+	if ( $function->{'type'} =~ m/^([a-zA-Z0-9_\(\)\s]+)\s+=>\s+([a-zA-Z0-9_]+)/ ) {
+	    my $returnType  = $1;
+	    $result         = "result(".$2.")";
+	    $type           = "";
+	    $form           = "function";
+	    my $declaration =
+	    {
+		attributes => [],
+		variables  => [ $2 ]
+	    };
+	    if ( $returnType =~ m/^(type|class)\s*\(\s*([a-zA-Z0-9_]+)\s*\)/ ) {
+		$declaration->{'intrinsic'} = $1;
+		$declaration->{'type'     } = $2;
+	    } else {
+		$declaration->{'intrinsic'} = $returnType;
+	    }
+	    push(@{$function->{'variables'}},$declaration);
+	} else {
+	    $form   = $function->{'type'} eq "void" ? "subroutine" : "function";
+	    $type   = $function->{'type'} eq "void" ? ""           : $function->{'type'};
+	    $result = "";
+	}
 	# Build a list of arguments.
 	my @arguments;
 	foreach my $variables ( @{$function->{'variables'}} ) {
@@ -6104,7 +5827,7 @@ sub functionsSerialize {
 		if ( exists($variables->{'attributes'}) && grep {$_ =~ m/^intent\s*\(\s*(in|inout|out)\s*\)/} @{$variables->{'attributes'}} );
 	}
 	# Serialize function opener.
-	$build->{'content'} .= $function->{'type'}." ".$function->{'name'}."(".join(",",@arguments).")\n";
+	$build->{'content'} .= $type." ".$form." ".$function->{'name'}."(".join(",",@arguments).") ".$result."\n";
 	# Serialize description.
 	$build->{'content'} .= "   !% ".$function->{'description'}."\n";
 	# Serialize module uses.
@@ -6118,7 +5841,7 @@ sub functionsSerialize {
 	$build->{'content'} .= $function->{'content'};
 	# Serialize function closer.
 	$build->{'content'} .= "   return\n";
-	$build->{'content'} .= "end ".$function->{'type'}." ".$function->{'name'}."\n\n";
+	$build->{'content'} .= "end ".$form." ".$function->{'name'}."\n\n";
     }
 }
 
