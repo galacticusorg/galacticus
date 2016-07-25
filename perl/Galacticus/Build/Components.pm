@@ -36,7 +36,9 @@ require Galacticus::Build::Components::TreeNodes::Utils;
 require Galacticus::Build::Components::NodeEvents;
 require Galacticus::Build::Components::BaseTypes;
 require Galacticus::Build::Components::Classes;
+require Galacticus::Build::Components::Classes::Names;
 require Galacticus::Build::Components::Implementations;
+require Galacticus::Build::Components::Implementations::Names;
 require Galacticus::Build::Components::Properties;
 require Galacticus::Build::Components::Properties::Set;
 require Galacticus::Build::Components::Attributes;
@@ -123,8 +125,6 @@ sub Components_Generate_Output {
 	    \&Generate_Map_Functions                                 ,
 	    # Generate functions to output nodes.
 	    \&Generate_Node_Output_Functions                         ,
-	    # Generate type name functions.
-	    \&Generate_Type_Name_Functions                           ,
 	    # Generate component assignment function.
 	    \&Generate_Component_Assignment_Function                 ,
 	    # Generate component class destruction functions.
@@ -4233,91 +4233,6 @@ sub Generate_GSR_Availability_Functions {
 		{type => "procedure", pass => "nopass", name => $propertyName."AttributeMatch", function => $functionName, description => "Return a list of implementations that provide the given list off attributes for the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component", returnType => "\\textcolor{red}{\\textless type(varying\\_string)(:)\\textgreater}", arguments => "\\logicalzero [requireGettable]\\argin, \\logicalzero [requireSettable]\\argin, \\logicalzero [requireEvolvable]\\argin"}
 		);
 	}
-    }
-}
-
-sub Generate_Type_Name_Functions {
-    # Generate a type name functions.
-    my $build = shift;
-    # Initialize data content.
-    my @dataContent;
-    # Initialize the function code.
-    my $functionCode;
-    # Iterate over component classes.
-    foreach ( @{$build->{'componentClassList'}} ) {
-	# Specify data content.
-	@dataContent =
-	    (
-	     {
-		 intrinsic  => "class",
-		 type       => "nodeComponent".ucfirst($_),
-		 attributes => [ "intent(in   )" ],
-		 variables  => [ "self" ]
-	     },
-	     {
-		 intrinsic  => "type",
-		 type       => "varying_string",
-		 variables  => [ "Node_Component_".ucfirst($_)."_Type" ]
-	     }
-	    );
-	# Create the function code.
-	$functionCode  = "  function Node_Component_".ucfirst($_)."_Type(self)\n";
-	$functionCode .= "     !% Returns the type for the ".$_." component.\n";
-	$functionCode .= "     implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	$functionCode .= "     !GCC\$ attributes unused :: self\n";
-	$functionCode .= "     ".&Utils::padClass("Node_Component_".ucfirst($_)."_Type",[20,0])."='nodeComponent:".$_."'\n";
-	$functionCode .= "     return\n";
-	$functionCode .= "  end function Node_Component_".ucfirst($_)."_Type\n\n";
-	# Insert into the function list.
-	push(
-	    @{$build->{'code'}->{'functions'}},
-	    $functionCode
-	    );
-
-	# Bind this function to the relevant type.
-	push(
-	    @{$build->{'types'}->{'nodeComponent'.ucfirst($_)}->{'boundFunctions'}},
-	    {type => "procedure", name => "type", function => "Node_Component_".ucfirst($_)."_Type"}
-	    );
-    }
-    # Iterate over implementations.
-    foreach my $componentName ( @{$build->{'componentIdList'}} ) {
-	my $component = $build->{'components'}->{$componentName};
-	# Specify data content.
-	@dataContent =
-	    (
-	     {
-		 intrinsic  => "class",
-		 type       => "nodeComponent".ucfirst($componentName),
-		 attributes => [ "intent(in   )" ],
-		 variables  => [ "self" ]
-	     },
-	     {
-		 intrinsic  => "type",
-		 type       => "varying_string",
-		 variables  => [ "Node_Component_".ucfirst($componentName)."_Type" ]
-	     }
-	    );
-	# Create the function code.
-  	$functionCode  = "  function Node_Component_".ucfirst($componentName)."_Type(self)\n";
-	$functionCode .= "    !% Returns the type for the ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
-	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	$functionCode .= "    !GCC\$ attributes unused :: self\n";
-	$functionCode .= "    ".&Utils::padImplementationPropertyName("Node_Component_".ucfirst($componentName)."_Type",[20,0])."='nodeComponent:".$component->{'class'}.":".$component->{'name'}."'\n";
-	$functionCode .= "    return\n";
-	$functionCode .= "  end function Node_Component_".ucfirst($componentName)."_Type\n\n";
-	# Insert into the function list.
-	push(
-	    @{$build->{'code'}->{'functions'}},
-	    $functionCode
-	    );	
-	# Bind this function to the relevant type.
-	push(
-	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentName)}->{'boundFunctions'}},
-	    {type => "procedure", name => "type", function => "Node_Component_".ucfirst($componentName)."_Type"}
-	    );
     }
 }
 
