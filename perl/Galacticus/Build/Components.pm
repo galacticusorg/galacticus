@@ -37,6 +37,7 @@ require Galacticus::Build::Components::NodeEvents;
 require Galacticus::Build::Components::BaseTypes;
 require Galacticus::Build::Components::Classes;
 require Galacticus::Build::Components::Classes::Names;
+require Galacticus::Build::Components::Classes::Utils;
 require Galacticus::Build::Components::Implementations;
 require Galacticus::Build::Components::Implementations::Names;
 require Galacticus::Build::Components::Properties;
@@ -129,10 +130,6 @@ sub Components_Generate_Output {
 	    \&Generate_Component_Assignment_Function                 ,
 	    # Generate component class destruction functions.
 	    \&Generate_Component_Class_Destruction_Functions         ,
-	    # Generate component class removal functions.
-	    \&Generate_Component_Class_Removal_Functions             ,
-	    # Generate component class move functions.
-	    \&Generate_Component_Class_Move_Functions                ,
 	    # Generate dump functions for each component class.
 	    \&Generate_Component_Class_Dump_Functions                ,
 	    # Generate builder functions for each component class.
@@ -4348,194 +4345,6 @@ sub Generate_Component_Class_Destruction_Functions {
 	push(
 	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
 	    {type => "procedure", name => "destroy", function => "Node_Component_".ucfirst($componentClassName)."_Destroy"}
-	    );
-    }
-}
-
-sub Generate_Component_Class_Removal_Functions {
-    # Generate class removal functions.
-    my $build = shift;
-
-    # Initialize data content.
-    my @dataContent;
-    # Generate the function code.
-    my $functionCode;
-    foreach my $componentClassName ( @{$build->{'componentClassList'}} ) {
-	# Specify data content.
-	@dataContent =
-	    (
-	     {
-		 intrinsic  => "class",
-		 type       => "treeNode",
-		 attributes => [ "intent(inout)" ],
-		 variables  => [ "self" ]
-	     },
-	     {
-		 intrinsic  => "integer",
-		 attributes => [ "intent(in   )" ],
-		 variables  => [ "instance" ]
-	     },
-	     {
-		 intrinsic  => "integer",
-		 variables  => [ "instanceCount" ]
-	     },
-	     {
-		 intrinsic  => "class",
-		 type       => "nodeComponent".ucfirst($componentClassName),
-		 attributes => [ "allocatable, dimension(:)" ],
-		 variables  => [ "instancesTemporary" ]
-	     }
-	    );
-	# Generate the function code.
-	$functionCode  = "  subroutine Node_Component_".ucfirst($componentClassName)."_Remove(self,instance)\n";
-	$functionCode .= "    !% Removes an instance of the ".$componentClassName." component, shifting other instances to keep the array contiguous.\n";
-	$functionCode .= "    use Galacticus_Error\n";
-	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	$functionCode .= "    instanceCount=self%".$componentClassName."count()\n";
-	$functionCode .= "    if (instance < 1 .or. instance > instanceCount) call Galacticus_Error_Report('Node_Component_".ucfirst($componentClassName)."_Remove','instance out of range')\n";
-	$functionCode .= "    call self%component".ucfirst($componentClassName)."(instance)%destroy()\n";
-	$functionCode .= "    if (instanceCount == 1) then\n";
-	$functionCode .= "      ! Only one instance of this component. Deallocate it and reallocate with generic type.\n";
-	$functionCode .= "      deallocate(self%component".ucfirst($componentClassName).")\n";
-	$functionCode .= "      allocate(self%component".ucfirst($componentClassName)."(1))\n";
-	$functionCode .= "    else\n";
-	$functionCode .= "      ! Multiple instances, so remove the specified instance.\n";
-	$functionCode .= "      allocate(instancesTemporary(instanceCount-1),source=self%component".ucfirst($componentClassName)."(1))\n";
-	foreach my $implementationName ( @{$build->{'componentClasses'}->{$componentClassName}->{'memberNames'}} ) {
-	    $functionCode .= "      select type (from => self%component".ucfirst($componentClassName).")\n";
-	    $functionCode .= "      type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
-	    $functionCode .= "        select type (to => instancesTemporary)\n";
-	    $functionCode .= "        type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
-	    $functionCode .= "          if (instance >             1) to(       1:instance     -1)=from(         1:instance     -1)\n";
-	    $functionCode .= "          if (instance < instanceCount) to(instance:instanceCount-1)=from(instance+1:instanceCount  )\n";
-	    $functionCode .= "        end select\n";
-	    $functionCode .= "      end select\n";
-	}
-	$functionCode .= "      deallocate(self%component".ucfirst($componentClassName).")\n";
-	$functionCode .= "      call Move_Alloc(instancesTemporary,self%component".ucfirst($componentClassName).")\n";
-	
-	$functionCode .= "    end if\n";
-	$functionCode .= "    return\n";
-	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Remove\n";
-	# Insert into the function list.
-	push(
-	    @{$build->{'code'}->{'functions'}},
-	    $functionCode
-	    );
-	# Bind this function to the treeNode type.
-	push(
-	    @{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	    {type => "procedure", name => $componentClassName."Remove", function => "Node_Component_".ucfirst($componentClassName)."_Remove", description => "Remove an instance of the ".$componentClassName." component, shifting other instances to keep the array contiguous. If no {\\normalfont \\ttfamily instance} is specified, the first instance is assumed.", returnType => "\\void", arguments => "\\intzero\\ [instance]\\argin"}
-	    );
-    }
-}
-
-sub Generate_Component_Class_Move_Functions {
-    # Generate class move functions.
-    my $build = shift;
-    # Initialize data content.
-    my @dataContent;
-    # Generate the function code.
-    my $functionCode;
-    foreach my $componentClassName ( @{$build->{'componentClassList'}} ) {
-	# Specify data content.
-	@dataContent =
-	    (
-	     {
-		 intrinsic  => "class",
-		 type       => "treeNode",
-		 attributes => [ "intent(inout)" ],
-		 variables  => [ "self" ]
-	     },
-	     {
-		 intrinsic  => "type",
-		 type       => "treeNode",
-		 attributes => [ "intent(inout)", "target" ],
-		 variables  => [ "targetNode" ]
-	     },
-	     {
-		 intrinsic  => "logical",
-		 attributes => [ "intent(in   )", "optional" ],
-		 variables  => [ "overwrite" ]
-	     },
-	     {
-		 intrinsic  => "integer",
-		 variables  => [ "instanceCount", "targetCount", "i" ]
-	     },
-	     {
-		 intrinsic  => "class",
-		 type       => "nodeComponent".ucfirst($componentClassName),
-		 attributes => [ "allocatable, dimension(:)" ],
-		 variables  => [ "instancesTemporary" ]
-	     },
-	     {
-		 intrinsic  => "logical",
-		 variables  => [ "overwrite_" ]
-	     }
-	    );
-	# Generate the function code.
-	$functionCode  = "  subroutine Node_Component_".ucfirst($componentClassName)."_Move(self,targetNode,overwrite)\n";
-	$functionCode .= "    !% Move instances of the ".$componentClassName." component, from one node to another.\n";
-	$functionCode .= "    use Galacticus_Error\n";
-	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	$functionCode .= "    overwrite_=.false.\n";
-	$functionCode .= "    if (present(overwrite)) overwrite_=overwrite\n";
-	$functionCode .= "    instanceCount=self      %".$componentClassName."count()\n";
-	$functionCode .= "    targetCount  =targetNode%".$componentClassName."count()\n";
-	$functionCode .= "    if (overwrite_ .and. targetCount > 0) then\n";
-	$functionCode .= "      do i=1,targetCount\n";
-	$functionCode .= "        call targetNode%component".ucfirst($componentClassName)."(i)%destroy()\n";
-	$functionCode .= "      end do \n";
-        $functionCode .= "      targetCount=0\n";
-	$functionCode .= "      deallocate(targetNode%component".ucfirst($componentClassName).")\n";
-	$functionCode .= "      allocate(targetNode%component".ucfirst($componentClassName)."(1))\n";
-        $functionCode .= "    end if\n";	
-	$functionCode .= "    if (instanceCount == 0) return\n";
-	$functionCode .= "    if (targetCount == 0) then\n";
-	$functionCode .= "      deallocate(targetNode%component".ucfirst($componentClassName).")\n";
-	$functionCode .= "      call Move_Alloc(self%component".ucfirst($componentClassName).",targetNode%component".ucfirst($componentClassName).")\n";
-	$functionCode .= "    else\n";
-	$functionCode .= "      ! Multiple instances, so remove the specified instance.\n";
-	$functionCode .= "      allocate(instancesTemporary(instanceCount+targetCount),source=self%component".ucfirst($componentClassName)."(1))\n";
-	foreach my $implementationName ( @{$build->{'componentClasses'}->{$componentClassName}->{'memberNames'}} ) {
-	    $functionCode .= "      select type (from => targetNode%component".ucfirst($componentClassName).")\n";
-	    $functionCode .= "      type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
-	    $functionCode .= "        select type (to => instancesTemporary)\n";
-	    $functionCode .= "        type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
-	    $functionCode .= "          to(1:targetCount)=from\n";
-	    $functionCode .= "        end select\n";
-	    $functionCode .= "      end select\n";
-	}
-	foreach my $implementationName ( @{$build->{'componentClasses'}->{$componentClassName}->{'memberNames'}} ) {
-	    $functionCode .= "      select type (from => self%component".ucfirst($componentClassName).")\n";
-	    $functionCode .= "      type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
-	    $functionCode .= "        select type (to => instancesTemporary)\n";
-	    $functionCode .= "        type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
-	    $functionCode .= "          to(targetCount+1:targetCount+instanceCount)=from\n";
-	    $functionCode .= "        end select\n";
-	    $functionCode .= "      end select\n";
-	}
-	$functionCode .= "      call targetNode%".$componentClassName."Destroy()\n";
-	$functionCode .= "      call self      %".$componentClassName."Destroy()\n";
-	$functionCode .= "      call Move_Alloc(instancesTemporary,targetNode%component".ucfirst($componentClassName).")\n";
-	$functionCode .= "      allocate(self%component".ucfirst($componentClassName)."(1))\n";
-	$functionCode .= "    end if\n";
-	$functionCode .= "    do i=1,size(targetNode%component".ucfirst($componentClassName).")\n";
-	$functionCode .= "       targetNode%component".ucfirst($componentClassName)."(i)%hostNode => targetNode\n";
-	$functionCode .= "    end do\n";
-	$functionCode .= "    return\n";
-	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Move\n";
-	# Insert into the function list.
-	push(
-	    @{$build->{'code'}->{'functions'}},
-	    $functionCode
-	    );
-	# Bind this function to the treeNode type.
-	push(
-	    @{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	    {type => "procedure", name => $componentClassName."Move", function => "Node_Component_".ucfirst($componentClassName)."_Move", description => "", returnType => "\\void", arguments => "\\textcolor{red}{\\textless type(treeNode)\\textgreater} targetNode\\arginout"}
 	    );
     }
 }
