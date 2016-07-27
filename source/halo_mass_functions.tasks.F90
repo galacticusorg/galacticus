@@ -104,7 +104,7 @@ contains
     class           (nodeComponentDarkMatterProfile   ), pointer :: thisDarkMatterProfile
     type            (treeNode                         ), pointer :: thisNode
     class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_
-    class           (cosmologyParametersClass      ), pointer :: cosmologyParameters_
+    class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_
     class           (darkMatterHaloScaleClass         ), pointer :: darkMatterHaloScale_
     class           (darkMatterProfileClass           ), pointer :: darkMatterProfile_
     class           (virialDensityContrastClass       ), pointer :: virialDensityContrast_
