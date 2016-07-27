@@ -37,7 +37,7 @@ module Node_Component_Position_Preset
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <getFunction bindsTo="component">PositionPresetPosition</getFunction>
-  !#     <output labels="[X,Y,Z]" unitsInSI="megaParsec" comment="Position of the node."/>
+  !#     <output labels="[X,Y,Z]" unitsInSI="megaParsec" comment="Position of the node (in physical coordinates)."/>
   !#     <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
   !#   </property>
   !#   <property>
@@ -46,7 +46,7 @@ module Node_Component_Position_Preset
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <getFunction bindsTo="component">PositionPresetVelocity</getFunction>
-  !#     <output labels="[X,Y,Z]" unitsInSI="kilo" comment="Velocity of the node."/>
+  !#     <output labels="[X,Y,Z]" unitsInSI="kilo" comment="Velocity of the node (in physical coordinates)."/>
   !#     <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
   !#   </property>
   !#   <property>
