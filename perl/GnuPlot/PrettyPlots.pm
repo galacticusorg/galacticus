@@ -411,17 +411,19 @@ sub Prepare_Dataset {
 		die ("GnuPlot::PrettyPlots - filledCurve requires a 'y2' vector")
 		    unless ( exists($options{'y2'}) );
 	    }
+	    my $currentLineColor = $lineColor{'upper'};
+	    if ( exists($options{'transparency'}) && $currentLineColor =~ m/rgbcolor "\#(.*)"/ ) {
+		$currentLineColor = " lc rgbcolor \"#".sprintf("%2X",int(255*$options{'transparency'})).$1."\"";
+	    }
 	    if ( exists($phaseRules{$phase}->{'level'}) ) {
 		# Plot just a single level, no real data.
 		my $level = "upper";
 		${$plot}->{$phase}->{'command'} .= ${$plot}->{$phase}->{'prefix'}." '-' with filledcurve "
 		    .$options{'filledCurve'}
 		.$lineType  {$level}
-		.$lineColor {$level}
+		.$currentLineColor
 		.$lineWeight{$level}
 		." fill noborder";
-		${$plot}->{$phase}->{'command'} .= " fs transparent solid ".$options{'transparency'}
-		    if ( exists($options{'transparency'}) );
 		${$plot}->{$phase}->{'command'} .= $title;
 		${$plot}->{$phase}->{'data'   } .= $dummyPoint;
 		${$plot}->{$phase}->{'data'   } .= $endPoint;
@@ -429,9 +431,7 @@ sub Prepare_Dataset {
 	    } else {
 		my $level = "upper";
 		${$plot}->{$phase}->{'data'} .= "set style fill solid 1.0 noborder\n";
-		${$plot}->{$phase}->{'data'} .= "plot '-' with filledcurve ".$options{'filledCurve'}."".$lineType{$level}.$lineColor{$level}.$lineWeight{$level}." fill border notitle";
-		${$plot}->{$phase}->{'data'} .= " fs transparent solid ".$options{'transparency'}
-		    if ( exists($options{'transparency'}) );
+		${$plot}->{$phase}->{'data'} .= "plot '-' with filledcurve ".$options{'filledCurve'}."".$lineType{$level}.$currentLineColor.$lineWeight{$level}." fill border notitle";
 		${$plot}->{$phase}->{'data'} .= "\n";
 		${$plot}->{$phase}->{'data'} .= $x->index(0)." ".$y->index(0)." ".$y->index(0)."\n"
 		    if ( $options{'filledCurve'} eq "closed" );

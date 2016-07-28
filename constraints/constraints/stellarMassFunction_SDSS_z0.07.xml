@@ -1,6 +1,6 @@
 <!-- Defines a constraint to match to the z=0.07 stellar mass function. -->
 <constraint>
-  <name>SDSS z0.07 stellar mass function</name>
+  <name>SDSS $$z=0.07$$ stellar mass function</name>
   <label>sdssStellarMassFunctionZ0.07</label>
   <outputRedshift>0.01</outputRedshift>
   <outputRedshift>0.03</outputRedshift>
