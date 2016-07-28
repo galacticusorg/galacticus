@@ -33,11 +33,11 @@ my $configFile = $ARGV[0];
 my $iArg = -1;
 my %arguments = 
     (
-     make        => "yes",
-     sampleFrom  =>    -1,
-     sampleCount =>    -1,
-     sampleData  =>  "no" ,
-     outliers    =>    ""
+     make           => "yes",
+     sampleFrom     =>    -1,
+     sampleCount    =>    -1,
+     outliers       =>    "",
+     overSampleRate => 1
     );
 while ( $iArg < $#ARGV ) {
     ++$iArg;
@@ -71,7 +71,7 @@ if ( exists($arguments{'compilationOverride'}) ) {
 my @constraints = @{$constraintsRef};
 
 # Generate a sample of models.
-my $sampleCount = &Parameters::Sample_Models($config,\%arguments);
+(my $sampleCount, my $sampleDirectory) = &Parameters::Sample_Models($config,\%arguments);
 
 # Read in the results for all models and constraints.
 my $xml = new XML::Simple;
@@ -82,12 +82,11 @@ foreach my $constraint ( @constraints ) {
     my $constraintDefinition = $xml->XMLin($constraint->{'definition'});	    
     # Iterate over models.
     my @modelY;
-    my @modelCovariance;
     my $dataY;
     my $dataCovariance;
     for (my $i=0;$i<$sampleCount;++$i) {
 	# Specify output directory.
-	my $modelDirectory = $arguments{'sampleDirectory'}."/".$i."/";
+	my $modelDirectory = $sampleDirectory."/".$i."/";
 	# Parse the results file.
 	my $resultFile         = $modelDirectory."/".$constraintDefinition->{'label'}.".hdf5";
 	my $results            = new PDL::IO::HDF5($resultFile);
@@ -96,77 +95,60 @@ foreach my $constraint ( @constraints ) {
 	my $dataCovarianceFlat = $results->dataset('covarianceData')->get();
 	my $covarianceFlat     = $results->dataset('covariance'    )->get();
 	my $dataSize           = nelem($y);
-	my $covariance         = reshape($covarianceFlat    ,$dataSize,$dataSize);
 	$dataCovariance        = reshape($dataCovarianceFlat,$dataSize,$dataSize);
-	# Store the results.
-	push(@modelY         ,$y         );
-	push(@modelCovariance,$covariance);
+	# Compute the square root of the covariance matrix using eigendecomposition. This is more robust than Cholesky
+	# decomposition in this case as it allows us to zero out any negative eigenvalues.
+	(my $eigenVectors, my $eigenValues)                = eigens_sym($dataCovariance        );
+	my $eigenValuesMatrix                              = zeroes    ($dataCovariance        );
+	my $nonNegative                                    = which     ($eigenValues     >= 0.0);
+	$eigenValuesMatrix->diagonal(0,1)->($nonNegative) .= $eigenValues->($nonNegative)->sqrt();
+	my $dataCovarianceSquareRoot                       = $eigenVectors x $eigenValuesMatrix;
+	# Build a realization of the data from the model and the data covariance.
+	for(my $i=0;$i<$arguments{'overSampleRate'};++$i) {
+	    my $randomDeviates     = pdl grandom($dataSize);
+	    my $perturbations      = $dataCovarianceSquareRoot x transpose($randomDeviates);
+	    my $yPerturbed         = $y+$perturbations->((0),:);
+	    # Store the results.
+	    push(@modelY,$yPerturbed);
+	}
     }
     # Evaluate the mean result and covariance.
     my $meanY      = pdl zeroes(nelem($modelY[0]));
     my $covariance = pdl zeroes(nelem($modelY[0]),nelem($modelY[0]));
-    for (my $i=0;$i<$sampleCount;++$i) {
-	$meanY    += $modelY[$i];
+    for (my $i=0;$i<scalar(@modelY);++$i) {
+	$meanY += $modelY[$i];
     }
     $meanY /= scalar(@modelY);
-    for (my $i=0;$i<$sampleCount;++$i) {
+    for (my $i=0;$i<scalar(@modelY);++$i) {
 	my $offset = $modelY[$i]-$meanY;
 	$covariance += outer($offset,$offset);
     }
-    $covariance           /= $sampleCount-1;
-
-
+    $covariance /= scalar(@modelY)-1;
     my $inverseCovariance;
     my $logCovarianceDeterminant;
     if ( nelem($covariance) > 1 ) {
 	($inverseCovariance, $logCovarianceDeterminant) = &Covariances::SVDInvert($covariance);
     } else {
-	$inverseCovariance        = minv($covariance);
-	$logCovarianceDeterminant = det($covariance);
+	$inverseCovariance = minv($covariance);
     }
     # Compute the test statistic.
     my $testStatistic = pdl [];
-    for (my $i=0;$i<$sampleCount;++$i) {
+    for (my $i=0;$i<scalar(@modelY);++$i) {
 	my $difference = $modelY[$i]-$meanY;
 	$testStatistic = $testStatistic->append(sclr($difference x $inverseCovariance x transpose($difference)));
     }
-    # Compute the test statistic for the observed data.
-    my $pValue;
     # Compute test statistic for the data.
-    my $difference        = $dataY-$meanY;
-    my $testStatisticData = sclr($difference x $inverseCovariance x transpose($difference));
+    my $difference              = $dataY-$meanY;
+    my $testStatisticData       = sclr($difference x $inverseCovariance x transpose($difference));
     my $testStatisticDataSample = pdl [];
-    if ( $arguments{'sampleData'} eq "yes" ) {
-	# Find data bins where there is no signal.
-	my $dataZero             = which($dataY < 1.0e-60);
-	my $dataYCopy            = $dataY         ->copy();
-	$dataYCopy->($dataZero) .= 0.0;
-	my $choleskyDecomposed   = mchol($dataCovariance);
-	$pValue = 0.0;
-	for (my $i=0;$i<$sampleCount;++$i) {
-	    # Generate random realization of data.
-	    my $randomDeviates  = grandom(nelem($meanY));
-	    my $dataRealization = $dataYCopy+($randomDeviates x $choleskyDecomposed);
-	    $dataRealization->($dataZero) .= 0.0;
-	    # Construct test statistic.
-	    my $difference              = $dataRealization-$meanY;
-	    my $testStatisticThisSample = sclr($difference x $inverseCovariance x transpose($difference));
-	    $testStatisticDataSample    = $testStatisticDataSample->append($testStatisticThisSample);
-	    # Find the p-value.
-	    my $exceeders        = which($testStatistic > $testStatisticThisSample);
-	    my $pValueThisSample = nelem($exceeders)/nelem($testStatistic);
-	    ++$pValue
-		if ( $pValueThisSample <= 0.05 || $pValueThisSample > 0.95 );
-	}
-	$pValue /= $sampleCount;
-    } else {
-	# Find the p-value.
-	my $exceeders = which($testStatistic > $testStatisticData);
-	$pValue       = nelem($exceeders)/nelem($testStatistic);
-    }
+    # Find the p-value.
+    my $exceeders = which($testStatistic > $testStatisticData);
+    my $pValue    = nelem($exceeders)/nelem($testStatistic);
     system("mkdir -p ".$workDirectory."/posteriorPredictiveChecks");
     open(oHndl,">".$workDirectory."/posteriorPredictiveChecks/".$constraintDefinition->{'label'}."_testStatistic_pValue.txt");
-    print oHndl $pValue."\n";
+    print oHndl "Test statistic, model realizations: ".$testStatistic    ."\n";
+    print oHndl "Test statistic, data              : ".$testStatisticData."\n";
+    print oHndl "Bayesian p-value                  : ".$pValue           ."\n";
     close(oHndl);
     # Create a plot showing the test statistic distribution.
     my ($gnuPlot, $outputFile, $outputFileEPS, $plot);
@@ -210,20 +192,6 @@ foreach my $constraint ( @constraints ) {
 	 weight      => [5,3],
 	 color       => $PrettyPlots::colorPairs{'redYellow'}
 	);
-    if ( $arguments{'sampleData'} eq "yes" ) {
-	my $testStatisticDataSampleSorted  = $testStatisticDataSample->qsort();
-	my $cumulativeProbabilityData      = pdl sequence(nelem($testStatisticDataSample));
-	$cumulativeProbabilityData        /=              nelem($testStatisticDataSample) ;
-	&PrettyPlots::Prepare_Dataset
-	    (
-	     \$plot,
-	     $testStatisticDataSampleSorted,
-	     $cumulativeProbabilityData,
-	     style       => "line",
-	     weight      => [5,3],
-	     color       => $PrettyPlots::colorPairs{'cornflowerBlue'}
-	    );
-    }
     &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
     close($gnuPlot);
     &LaTeX::GnuPlot2PDF($outputFileEPS);
