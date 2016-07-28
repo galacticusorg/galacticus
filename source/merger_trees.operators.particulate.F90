@@ -35,7 +35,7 @@
      double precision                                    :: massParticle        , radiusTruncateOverRadiusVirial, &
           &                                                 timeSnapshot
      logical                                             :: satelliteOffset     , nonCosmological               , &
-          &                                                 positionOffset
+          &                                                 positionOffset      , addHubbleFlow
      integer                                             :: selection
      integer         (kind_int8               )          :: idMultiplier
    contains
@@ -155,12 +155,21 @@ contains
     !#   <type>boolean</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>addHubbleFlow</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <variable>particulateConstructorParameters%addHubbleFlow</variable>
+    !#   <description>If true, Hubble flow will be added to velocity offsets of halos (if applied).</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="particulateConstructorParameters%cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="particulateConstructorParameters%cosmologyFunctions_"  source="parameters"/>
     return
   end function particulateConstructorParameters
 
-  function particulateConstructorInternal(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,selection,nonCosmological,cosmologyParameters_,cosmologyFunctions_)
+  function particulateConstructorInternal(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,selection,nonCosmological,addHubbleFlow,cosmologyParameters_,cosmologyFunctions_)
     !% Internal constructor for the particulate merger tree operator class.
     use Galacticus_Error
     implicit none
@@ -170,7 +179,7 @@ contains
     double precision                               , intent(in   )         :: massParticle                  , radiusTruncateOverRadiusVirial, &
          &                                                                    timeSnapshot
     logical                                        , intent(in   )         :: satelliteOffset               , nonCosmological               , &
-         &                                                                    positionOffset
+         &                                                                    positionOffset                , addHubbleFlow
     integer                                        , intent(in   )         :: selection
     class           (cosmologyParametersClass     ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
@@ -187,6 +196,7 @@ contains
     particulateConstructorInternal%positionOffset                 =  positionOffset
     particulateConstructorInternal%selection                      =  selection
     particulateConstructorInternal%nonCosmological                =  nonCosmological
+    particulateConstructorInternal%addHubbleFlow                  =  addHubbleFlow
     particulateConstructorInternal%cosmologyParameters_           => cosmologyParameters_  
     particulateConstructorInternal%cosmologyFunctions_            => cosmologyFunctions_
    return
@@ -467,6 +477,9 @@ contains
                 if (self%positionOffset) then
                    positionVector=position%position()
                    velocityVector=position%velocity()
+                   if (self%addHubbleFlow) velocityVector=+velocityVector                                                          &
+                        &                                 +positionVector                                                          &
+                        &                                 *self%cosmologyFunctions_%hubbleParameterEpochal(time=self%timeSnapshot)
                    call positionCartesian%xSet(positionCartesian%x()+positionVector(1))
                    call positionCartesian%ySet(positionCartesian%y()+positionVector(2))
                    call positionCartesian%zSet(positionCartesian%z()+positionVector(3))

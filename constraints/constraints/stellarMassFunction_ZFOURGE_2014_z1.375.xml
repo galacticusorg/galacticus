@@ -1,6 +1,6 @@
 <!-- Defines a constraint to match to the ZFOURGE z~1.375 stellar mass functions. -->
 <constraint>
-  <name>ZFOURGE z~1.375 stellar mass functions</name>
+  <name>ZFOURGE $z=1.375$ stellar mass function</name>
   <label>zfourgeStellarMassFunctionZ1.375</label>
   <outputRedshift>1.250</outputRedshift>
   <outputRedshift>1.375</outputRedshift>

@@ -71,7 +71,7 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="errorConvolvedConstructorParameters%cosmologyParameters_"  source="parameters"/>
-    !# <objectBuilder class="nBodyHaloMassError"  name="errorConvolvedConstructorParameters%nBodyHaloMassError_"   source="parameters"/>
+    !# <objectBuilder class="nbodyHaloMassError"  name="errorConvolvedConstructorParameters%nBodyHaloMassError_"   source="parameters"/>
     !# <objectBuilder class="haloMassFunction"    name="errorConvolvedConstructorParameters%massFunctionIntrinsic" source="parameters"/>
     return
   end function errorConvolvedConstructorParameters

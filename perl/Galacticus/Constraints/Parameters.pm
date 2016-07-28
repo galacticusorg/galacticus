@@ -369,11 +369,11 @@ sub Sample_Matrix {
     }
     close(iHndl);
     # Sample parameters.
+    my $randomSample = exists($arguments{'sampleCount'}) && $arguments{'sampleCount'} > 0 ? 1 : 0;
     $arguments{'sampleCount'} = scalar(@chainParameters)
-	if ( ! exists($arguments{'sampleCount'}) || $arguments{'sampleCount'} < 0 );
+	if ( ! exists($arguments{'sampleCount'}) || $arguments{'sampleCount'} <= 0 );
     my $sampleIndex;
-    my $randomSample = exists($arguments{'randomSample'}) ? $arguments{'randomSample'} : "no";
-    if ( $randomSample eq "yes" ) {
+    if ( $randomSample == 1 ) {
 	$sampleIndex = pdl long(scalar(@chainParameters)*random($arguments{'sampleCount'}));
     } else {
 	$sampleIndex = pdl sequence(scalar(@chainParameters));
@@ -403,6 +403,8 @@ sub Sample_Models {
     # Generate a sample of models from the posterior distribution.
     my $config    =   shift() ;
     my %arguments = %{shift()};
+    (my %options) = @_
+	if ( scalar(@_) > 0 );
     # Find the work directory.
     my $workDirectory = $config->{'likelihood'}->{'workDirectory'};
     # Get a hash of the parameter values.
@@ -437,6 +439,9 @@ sub Sample_Models {
 	    &Apply_Parameters($currentParameters,$newParameters);
 	    # Apply any parameters from command line.
 	    &Apply_Command_Line_Parameters($currentParameters,\%arguments);
+	    # Apply any other parameter modifications requested by the caller.
+	    &{$options{'parametersModifier'}}($currentParameters)
+		if ( exists($options{'parametersModifier'}) );
 	    # Specify the output file name.
 	    $currentParameters->{'galacticusOutputFileName'}->{'value'} = $galacticusFileName;
 	    # Write the modified parameters to file.
@@ -478,7 +483,7 @@ sub Sample_Models {
 	    # Queue the calculation.
 	    push(@pbsStack,\%job);
 	}
-    }    
+    }
     # Send jobs to PBS.
     &PBS::SubmitJobs(\%arguments,@pbsStack)
      	if ( scalar(@pbsStack) > 0 );
