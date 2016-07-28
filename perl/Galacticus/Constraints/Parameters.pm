@@ -369,11 +369,11 @@ sub Sample_Matrix {
     }
     close(iHndl);
     # Sample parameters.
+    my $randomSample = exists($arguments{'sampleCount'}) && $arguments{'sampleCount'} > 0 ? 1 : 0;
     $arguments{'sampleCount'} = scalar(@chainParameters)
-	if ( ! exists($arguments{'sampleCount'}) || $arguments{'sampleCount'} < 0 );
+	if ( ! exists($arguments{'sampleCount'}) || $arguments{'sampleCount'} <= 0 );
     my $sampleIndex;
-    my $randomSample = exists($arguments{'randomSample'}) ? $arguments{'randomSample'} : "no";
-    if ( $randomSample eq "yes" ) {
+    if ( $randomSample == 1 ) {
 	$sampleIndex = pdl long(scalar(@chainParameters)*random($arguments{'sampleCount'}));
     } else {
 	$sampleIndex = pdl sequence(scalar(@chainParameters));
