@@ -273,6 +273,11 @@ sub Construct {
 	    $yGalacticusLimited->($noConstraint) .= $config->{'y'}->($noConstraint)
 		if ( nelem($noConstraint) > 0 );
 	}
+	if ( exists($arguments{$config->{'massType'}."Minimum"}) ) {
+	    my $noConstraint = which($config->{'x'} < $arguments{$config->{'massType'}."Minimum"});
+	    $yGalacticusLimited->($noConstraint) .= $config->{'y'}->($noConstraint)
+		if ( nelem($noConstraint) > 0 );
+	}
 	# If log-normal errors are requested, map y-values and covariances to logarithmic values.
 	my $yGalacticusMapped             ;
 	my $yDataMapped                   ;

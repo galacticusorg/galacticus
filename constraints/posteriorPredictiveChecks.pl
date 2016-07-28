@@ -21,6 +21,7 @@ require Galacticus::Constraints::Parameters;
 require Galacticus::Constraints::Covariances;
 require GnuPlot::PrettyPlots;
 require GnuPlot::LaTeX;
+require LaTeX::Format;
 
 # Run calculations of posterior predictive checks on a constrained Galacticus model.
 # Andrew Benson (19-March-2013)
@@ -33,11 +34,13 @@ my $configFile = $ARGV[0];
 my $iArg = -1;
 my %arguments = 
     (
-     make        => "yes",
-     sampleFrom  =>    -1,
-     sampleCount =>    -1,
-     sampleData  =>  "no" ,
-     outliers    =>    ""
+     make           => "yes",
+     plotTitle      => "yes",
+     showPValue     => "yes",
+     sampleFrom     =>    -1,
+     sampleCount    =>    -1,
+     outliers       =>    "",
+     overSampleRate =>     1
     );
 while ( $iArg < $#ARGV ) {
     ++$iArg;
@@ -71,23 +74,31 @@ if ( exists($arguments{'compilationOverride'}) ) {
 my @constraints = @{$constraintsRef};
 
 # Generate a sample of models.
-my $sampleCount = &Parameters::Sample_Models($config,\%arguments);
+print "Generating posterior model sample...\n";
+(my $sampleCount, my $sampleDirectory) = &Parameters::Sample_Models($config,\%arguments);
 
+# Begin building LaTeX table of p-values.
+system("mkdir -p ".$workDirectory."/posteriorPredictiveChecks");
+open(my $pValueTable,">".$workDirectory."/posteriorPredictiveChecks/ppcPValues.tex");
+print $pValueTable "\\begin{tabular}{ll}\n";
+print $pValueTable "\\hline\n";
+print $pValueTable "{\\bf Constraint} & \\boldmath{\$p_{\\rm B}\$} \\\\\n";
+print $pValueTable "\\hline\n";
 # Read in the results for all models and constraints.
 my $xml = new XML::Simple;
 # Iterate over constraints.
 foreach my $constraint ( @constraints ) {
     # Parse the definition file.
     my $xml = new XML::Simple;
-    my $constraintDefinition = $xml->XMLin($constraint->{'definition'});	    
+    my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
+    print "Posterior predictive check for constraint '".$constraintDefinition->{'label'}."'...\n"; 
     # Iterate over models.
     my @modelY;
-    my @modelCovariance;
     my $dataY;
     my $dataCovariance;
     for (my $i=0;$i<$sampleCount;++$i) {
 	# Specify output directory.
-	my $modelDirectory = $arguments{'sampleDirectory'}."/".$i."/";
+	my $modelDirectory = $sampleDirectory."/".$i."/";
 	# Parse the results file.
 	my $resultFile         = $modelDirectory."/".$constraintDefinition->{'label'}.".hdf5";
 	my $results            = new PDL::IO::HDF5($resultFile);
@@ -96,108 +107,109 @@ foreach my $constraint ( @constraints ) {
 	my $dataCovarianceFlat = $results->dataset('covarianceData')->get();
 	my $covarianceFlat     = $results->dataset('covariance'    )->get();
 	my $dataSize           = nelem($y);
-	my $covariance         = reshape($covarianceFlat    ,$dataSize,$dataSize);
 	$dataCovariance        = reshape($dataCovarianceFlat,$dataSize,$dataSize);
-	# Store the results.
-	push(@modelY         ,$y         );
-	push(@modelCovariance,$covariance);
+	# Compute the square root of the covariance matrix using eigendecomposition. This is more robust than Cholesky
+	# decomposition in this case as it allows us to zero out any negative eigenvalues.
+	(my $eigenVectors, my $eigenValues)                = eigens_sym($dataCovariance        );
+	my $eigenValuesMatrix                              = zeroes    ($dataCovariance        );
+	my $nonNegative                                    = which     ($eigenValues     >= 0.0);
+	$eigenValuesMatrix->diagonal(0,1)->($nonNegative) .= $eigenValues->($nonNegative)->sqrt();
+	my $dataCovarianceSquareRoot                       = $eigenVectors x $eigenValuesMatrix;
+	# Build a realization of the data from the model and the data covariance.
+	for(my $i=0;$i<$arguments{'overSampleRate'};++$i) {
+	    my $randomDeviates     = pdl grandom($dataSize);
+	    my $perturbations      = $dataCovarianceSquareRoot x transpose($randomDeviates);
+	    my $yPerturbed         = $y+$perturbations->((0),:);
+	    # Store the results.
+	    push(@modelY,$yPerturbed);
+	}
     }
     # Evaluate the mean result and covariance.
     my $meanY      = pdl zeroes(nelem($modelY[0]));
     my $covariance = pdl zeroes(nelem($modelY[0]),nelem($modelY[0]));
-    for (my $i=0;$i<$sampleCount;++$i) {
-	$meanY    += $modelY[$i];
+    for (my $i=0;$i<scalar(@modelY);++$i) {
+	$meanY += $modelY[$i];
     }
     $meanY /= scalar(@modelY);
-    for (my $i=0;$i<$sampleCount;++$i) {
+    for (my $i=0;$i<scalar(@modelY);++$i) {
 	my $offset = $modelY[$i]-$meanY;
 	$covariance += outer($offset,$offset);
     }
-    $covariance           /= $sampleCount-1;
-
-
+    $covariance /= scalar(@modelY)-1;
     my $inverseCovariance;
     my $logCovarianceDeterminant;
     if ( nelem($covariance) > 1 ) {
 	($inverseCovariance, $logCovarianceDeterminant) = &Covariances::SVDInvert($covariance);
     } else {
-	$inverseCovariance        = minv($covariance);
-	$logCovarianceDeterminant = det($covariance);
+	$inverseCovariance = minv($covariance);
     }
     # Compute the test statistic.
     my $testStatistic = pdl [];
-    for (my $i=0;$i<$sampleCount;++$i) {
+    for (my $i=0;$i<scalar(@modelY);++$i) {
 	my $difference = $modelY[$i]-$meanY;
 	$testStatistic = $testStatistic->append(sclr($difference x $inverseCovariance x transpose($difference)));
     }
-    # Compute the test statistic for the observed data.
-    my $pValue;
     # Compute test statistic for the data.
-    my $difference        = $dataY-$meanY;
-    my $testStatisticData = sclr($difference x $inverseCovariance x transpose($difference));
+    my $difference              = $dataY-$meanY;
+    my $testStatisticData       = sclr($difference x $inverseCovariance x transpose($difference));
     my $testStatisticDataSample = pdl [];
-    if ( $arguments{'sampleData'} eq "yes" ) {
-	# Find data bins where there is no signal.
-	my $dataZero             = which($dataY < 1.0e-60);
-	my $dataYCopy            = $dataY         ->copy();
-	$dataYCopy->($dataZero) .= 0.0;
-	my $choleskyDecomposed   = mchol($dataCovariance);
-	$pValue = 0.0;
-	for (my $i=0;$i<$sampleCount;++$i) {
-	    # Generate random realization of data.
-	    my $randomDeviates  = grandom(nelem($meanY));
-	    my $dataRealization = $dataYCopy+($randomDeviates x $choleskyDecomposed);
-	    $dataRealization->($dataZero) .= 0.0;
-	    # Construct test statistic.
-	    my $difference              = $dataRealization-$meanY;
-	    my $testStatisticThisSample = sclr($difference x $inverseCovariance x transpose($difference));
-	    $testStatisticDataSample    = $testStatisticDataSample->append($testStatisticThisSample);
-	    # Find the p-value.
-	    my $exceeders        = which($testStatistic > $testStatisticThisSample);
-	    my $pValueThisSample = nelem($exceeders)/nelem($testStatistic);
-	    ++$pValue
-		if ( $pValueThisSample <= 0.05 || $pValueThisSample > 0.95 );
-	}
-	$pValue /= $sampleCount;
-    } else {
-	# Find the p-value.
-	my $exceeders = which($testStatistic > $testStatisticData);
-	$pValue       = nelem($exceeders)/nelem($testStatistic);
+    # Find the p-value.
+    my $exceeders = which($testStatistic > $testStatisticData);
+    my $pValue    = nelem($exceeders)/nelem($testStatistic);
+	my $pValueLabel;
+    if ( $pValue == 0.0 ) {
+	my $pValueLimit = 1.0/nelem($testStatistic);
+	$pValueLabel = "<".($pValueLimit < 1.0e-2 ? &LaTeX::Format::Number($pValueLimit,2, mathMode => 0) : sprintf("%4.2f",$pValueLimit));
+    } else { 
+	$pValueLabel = $pValue < 1.0e-2 ? &LaTeX::Format::Number($pValue,2,mathMode => 0) : sprintf("%4.2f",$pValue);
     }
-    system("mkdir -p ".$workDirectory."/posteriorPredictiveChecks");
+    print "   → p_B = ".$pValue."\n";
+    print $pValueTable $constraintDefinition->{'name'}." & \$".$pValueLabel."\$ \\\\\n";
     open(oHndl,">".$workDirectory."/posteriorPredictiveChecks/".$constraintDefinition->{'label'}."_testStatistic_pValue.txt");
-    print oHndl $pValue."\n";
+    print oHndl "Bayesian p-value                           : ".$pValue           ."\n";
+    print oHndl "Test statistic, data                       : ".$testStatisticData."\n";
+    print oHndl "Test statistic realization number and value:\n";
+    for(my $i=0;$i<nelem($testStatistic);++$i) {
+	print oHndl "\t".$i."\t".$testStatistic->(($i))."\n";
+    }
     close(oHndl);
     # Create a plot showing the test statistic distribution.
-    my ($gnuPlot, $outputFile, $outputFileEPS, $plot);
+    my ($gnuPlot, $plot);
     system("mkdir -p ".$workDirectory."/posteriorPredictiveChecks");
     (my $safeLabel = $constraintDefinition->{'label'}) =~ s/\./_/g;
     my $plotFileName = $workDirectory."/posteriorPredictiveChecks/".$safeLabel."_testStatistic.pdf";
     $plotFileName =~ s/_pdf$/.pdf/;
-    ($outputFileEPS = $plotFileName) =~ s/\.pdf$/.eps/;
+    (my $plotFileTeX = $plotFileName) =~ s/\.pdf$/.tex/;
     open($gnuPlot,"|gnuplot");
-    print $gnuPlot "set terminal epslatex color colortext lw 2 7\n";
-    print $gnuPlot "set output '".$outputFileEPS."'\n";
+    print $gnuPlot "set terminal cairolatex pdf standalone color lw 2\n";
+    print $gnuPlot "set output '".$plotFileTeX."'\n";
     print $gnuPlot "set lmargin screen 0.15\n";
     print $gnuPlot "set rmargin screen 0.95\n";
     print $gnuPlot "set bmargin screen 0.15\n";
-    print $gnuPlot "set tmargin screen 0.95\n";
+    print $gnuPlot "set tmargin screen 0.90\n";
     print $gnuPlot "set key spacing 1.2\n";
     print $gnuPlot "set key at screen 0.2,0.2\n";
     print $gnuPlot "set key left\n";
     print $gnuPlot "set key bottom\n";
-    print $gnuPlot "set logscale x\n";
-    print $gnuPlot "set mxtics 10\n";
-    print $gnuPlot "set format x '\$10^{\%L}\$'\n";
     my $xAll     = $testStatistic->append($testStatisticDataSample)->append($testStatisticData);
     my $xMinimum = minimum($xAll);
     my $xMaximum = maximum($xAll);
+    my $decadesSpanned = log10($xMaximum/$xMinimum);
+    if ( $decadesSpanned > 2.0 ) {
+	print $gnuPlot "set logscale x\n";
+	print $gnuPlot "set mxtics 10\n";
+	print $gnuPlot "set format x '\$10^{\%L}\$'\n";
+    }
     print $gnuPlot "set xrange [".$xMinimum.":".$xMaximum."]\n";
     print $gnuPlot "set yrange [-0.05:1.05]\n";
-    print $gnuPlot "set title 'Posterior predictive check test statistic for ".$constraintDefinition->{'name'}."'\n";
-    print $gnuPlot "set xlabel '\$\\mathcal{T}\$ []'\n";
-    print $gnuPlot "set ylabel 'Cumulative probability []'\n";
-    print $gnuPlot "set arrow from first ".$testStatisticData.", 0.0 to first ".$testStatisticData.", 0.4 ls 1 lw 5 filled lc rgbcolor \"#3CB371\"\n";
+    print $gnuPlot "set title '".$constraintDefinition->{'name'}."'\n"
+	if ( $arguments{'plotTitle'} eq "yes" );
+    print $gnuPlot "set xlabel 'Test statistic; \$\\mathcal{T}\$'\n";
+    print $gnuPlot "set ylabel 'Cumulative probability; \$ P ( < \\mathcal{T})\$'\n";
+    print $gnuPlot "set arrow from first ".$testStatisticData.", 0.0 to first ".$testStatisticData.", 0.4 filled linewidth 5 linecolor rgbcolor \"#3CB371\"\n";
+    if ( $arguments{'showPValue'} eq "yes" ) {
+	print $gnuPlot "set label '\$ p_\\mathrm{B}".($pValue == 0.0 ? "" : "=").$pValueLabel."\$' at graph 0.05, 0.8\n";
+    }
     my $testStatisticSorted    = $testStatistic->qsort();
     my $cumulativeProbability  = pdl sequence(nelem($testStatistic));
     $cumulativeProbability    /= nelem($testStatistic);
@@ -210,23 +222,12 @@ foreach my $constraint ( @constraints ) {
 	 weight      => [5,3],
 	 color       => $PrettyPlots::colorPairs{'redYellow'}
 	);
-    if ( $arguments{'sampleData'} eq "yes" ) {
-	my $testStatisticDataSampleSorted  = $testStatisticDataSample->qsort();
-	my $cumulativeProbabilityData      = pdl sequence(nelem($testStatisticDataSample));
-	$cumulativeProbabilityData        /=              nelem($testStatisticDataSample) ;
-	&PrettyPlots::Prepare_Dataset
-	    (
-	     \$plot,
-	     $testStatisticDataSampleSorted,
-	     $cumulativeProbabilityData,
-	     style       => "line",
-	     weight      => [5,3],
-	     color       => $PrettyPlots::colorPairs{'cornflowerBlue'}
-	    );
-    }
     &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
     close($gnuPlot);
-    &LaTeX::GnuPlot2PDF($outputFileEPS);
+    &LaTeX::GnuPlot2PDF($plotFileTeX);
 }
+print $pValueTable "\\hline\n";
+print $pValueTable "\\end{tabular}\n";
+close($pValueTable);
 
 exit;

@@ -296,8 +296,8 @@ sub Load_Dust_Atlas {
         # Process the dust data into a PDL array.
 
         # Get wavelengths.
-	$wavelengths = pdl @{$dustData->{'wavelengths'}->{'lambda'}};
-	$wavelengthCount = nelem($wavelengths);
+	$wavelengths       = pdl @{$dustData->{'wavelengths'}->{'lambda'}};
+	$wavelengthCount   = nelem($wavelengths);
 	$wavelengthIndices = pdl [0..$wavelengthCount-1];
 	
         # Get attenuations.
@@ -314,15 +314,17 @@ sub Load_Dust_Atlas {
 		    my $inclinationStruct = ${$dustData->{'components'}->{$component}->{'inclination'}}[$iInclination];
 		    $diskInclinations->(($iInclination)) += $inclinationStruct->{'angle'};
 		    #print "  Processing inclination ".$inclinationStruct->{'angle'}."\n";
-		    $diskOpticalDepthsCount = $#{$inclinationStruct->{'opticalDepth'}}+1;
-		    $diskOpticalDepths = zeroes($diskOpticalDepthsCount);
-		    for(my $iOpticalDepth=0;$iOpticalDepth<=$#{$inclinationStruct->{'opticalDepth'}};++$iOpticalDepth) {
-			my $opticalDepthStruct = ${$inclinationStruct->{'opticalDepth'}}[$iOpticalDepth];
+		    $diskOpticalDepthsCount   = $#{$inclinationStruct->{'opticalDepth'}}+2; # Add an extra zero optical depth.
+		    $diskOpticalDepths        = zeroes($diskOpticalDepthsCount);
+		    $diskOpticalDepthsIndices = pdl [0..$diskOpticalDepthsCount-1];
+		    $diskOpticalDepths->((0)) .= 0.0;
+		    for(my $iOpticalDepth=1;$iOpticalDepth<$diskOpticalDepthsCount;++$iOpticalDepth) {
+			my $opticalDepthStruct = ${$inclinationStruct->{'opticalDepth'}}[$iOpticalDepth-1];
 			$diskOpticalDepths->(($iOpticalDepth)) += $opticalDepthStruct->{'tau'};
-			$diskOpticalDepthsIndices = pdl [0..$diskOpticalDepthsCount-1];
 			#print "    Processing optical depth ".$opticalDepthStruct->{'tau'}."\n";
 			unless ( $diskPdlCreated == 1 ) {
 			    $diskAttenuations = zeroes($diskInclinationsCount,$diskOpticalDepthsCount,$wavelengthCount);
+			    $diskAttenuations->(:,(0),:) .= 1.0;
 			    $diskPdlCreated = 1;
 			}
 			for(my $iAttenuation=0;$iAttenuation<=$#{$opticalDepthStruct->{'attenuation'}};++$iAttenuation) {
@@ -350,15 +352,16 @@ sub Load_Dust_Atlas {
 			my $inclinationStruct = ${$sizeStruct->{'inclination'}}[$iInclination];
 			$spheroidInclinations->(($iInclination)) += $inclinationStruct->{'angle'};
 			#print "  Processing inclination ".$inclinationStruct->{'angle'}."\n";
-			$spheroidOpticalDepthsCount = $#{$inclinationStruct->{'opticalDepth'}}+1;
-			$spheroidOpticalDepths = zeroes($spheroidOpticalDepthsCount);
-			for(my $iOpticalDepth=0;$iOpticalDepth<=$#{$inclinationStruct->{'opticalDepth'}};++$iOpticalDepth) {
-			    my $opticalDepthStruct = ${$inclinationStruct->{'opticalDepth'}}[$iOpticalDepth];
+			$spheroidOpticalDepthsCount   = $#{$inclinationStruct->{'opticalDepth'}}+2; # Add an extra zero optical depth.
+			$spheroidOpticalDepths        = zeroes($spheroidOpticalDepthsCount);
+			$spheroidOpticalDepthsIndices = pdl [0..$spheroidOpticalDepthsCount-1];
+			for(my $iOpticalDepth=1;$iOpticalDepth<$spheroidOpticalDepthsCount;++$iOpticalDepth) {
+			    my $opticalDepthStruct = ${$inclinationStruct->{'opticalDepth'}}[$iOpticalDepth-1];
 			    $spheroidOpticalDepths->(($iOpticalDepth)) += $opticalDepthStruct->{'tau'};
-			    $spheroidOpticalDepthsIndices = pdl [0..$spheroidOpticalDepthsCount-1];
 			    #print "    Processing optical depth ".$opticalDepthStruct->{'tau'}."\n";
 			    unless ( $spheroidPdlCreated == 1 ) {
 				$spheroidAttenuations = zeroes($spheroidSizesCount,$spheroidInclinationsCount,$spheroidOpticalDepthsCount,$wavelengthCount);
+				$spheroidAttenuations->(:,(0),:) .= 1.0;
 				$spheroidPdlCreated = 1;
 			    }
 			    for(my $iAttenuation=0;$iAttenuation<=$#{$opticalDepthStruct->{'attenuation'}};++$iAttenuation) {
