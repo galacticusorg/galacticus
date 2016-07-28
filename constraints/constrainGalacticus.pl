@@ -442,6 +442,11 @@ foreach my $constraint ( @constraints ) {
     $analysisCommand .= " --temperature ".$temperatureEffective;
     $analysisCommand .= " --modelDiscrepancies ".$projectDirectory."/modelDiscrepancy"
 	if ( -e $projectDirectory."/modelDiscrepancy" );
+    if ( exists($config->{'likelihood'}->{'massLimit'}) ) {
+	foreach ( keys(%{$config->{'likelihood'}->{'massLimit'}}) ) {
+	    $analysisCommand .= " --".$_."Minimum ".$config->{'likelihood'}->{'massLimit'}->{$_};
+	}
+    }
     unless ( $store eq "none" ) {
 	my $resultFile = $scratchDirectory."/results".$mpiRank.":".$i.".hdf5";
 	$analysisCommand .= " --resultFile ".$resultFile;
