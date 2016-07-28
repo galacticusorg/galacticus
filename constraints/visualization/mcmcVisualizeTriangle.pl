@@ -155,7 +155,7 @@ foreach my $parameter ( @{$config->{'parameters'}->{'parameter'}} ) {
 my @pbsStack;
 my $standardWidth;
 my $standardHeight;
-for(my $i=0;$i<scalar(@properties);++$i) {
+for(my $i=0;$i<scalar(@properties);++$i) {    
     my $command = "constraints/visualization/mcmcVisualize.pl ".$configFileName." ".$fileRoot." --workDirectory ".$workDirectory." --xProperty '".$properties[$i]->{'name'}."' --xScale ".$properties[$i]->{'mapping'}->{'type'}." --textSize ".$textSize." --plotSize ".$plotSize." --lineWeight ".$lineWeight." --labelStyle ".$labelStyle." --output ".$outputFileName."_".$i.".pdf --data ".$outputFileName."_".$i.".xml ".$options;
     $command .= " --showLabels no"
 	if ( $drawLabels ne "gnuplot" );
@@ -197,6 +197,11 @@ for(my $i=0;$i<scalar(@properties);++$i) {
 		$command .= " --labels y2 --colorbox 0";
 	    } else {
 		$command .= " --labels none --colorbox 0";
+	    }
+	    if ( @ranges ) {
+		foreach my $range ( @ranges ) {
+		    $command .= " --range ".$range;
+		}
 	    }
 	    # Create PBS job.
 	    unless ( -e $outputFileName."_".$i."_".$j.".pdf" ) {

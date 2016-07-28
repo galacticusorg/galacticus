@@ -53,7 +53,7 @@ while ( $iArg < $#ARGV ) {
 		 name  => $rangeSpecifiers[0],
 		 lower => $rangeSpecifiers[1],
 		 upper => $rangeSpecifiers[2],
-		);		
+		);
 	    push(@{$arguments{$argument}},\%rangeData);
 	} else {
 	    $arguments{$argument} = $value;
@@ -170,7 +170,7 @@ if ( exists($arguments{'yProperty'}) ) {
 if ( exists($arguments{'range'}) ) {
     foreach my $range ( @{$arguments{'range'}} ) {
 	for(my $i=0;$i<scalar(@properties);++$i) {
-	    $range->{'column'} = $i
+	    $range->{'column'} = $i+6
 		if ( $properties[$i] eq $range->{'name'} );
 	}
     } 
@@ -195,12 +195,12 @@ unless ( $labelY eq "" || $showLabels eq "no" ) {
 	print $gnuPlot "set ylabel '{\\".$labelStyle." ".$zLabel."}'\n";
     } else {
 	print $gnuPlot "set ylabel '{\\".$labelStyle." ".$yLabel."}'";
-	print $gnuPlot " offset graph 1.2,0"
+	print $gnuPlot " offset graph 1.4,0"
 	    if ( $labelY eq "y2" );
 	print $gnuPlot "\n";
     }
 }
-print $gnuPlot "set ytics offset graph 1.1,0\n"
+print $gnuPlot "set ytics offset graph 1.2,0\n"
     if ( $labelY eq "y2" && $showLabels eq "yes");
 print $gnuPlot "unset colorbox\n"
     if ( $colorbox == 0 );
