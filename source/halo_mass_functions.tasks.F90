@@ -36,7 +36,8 @@ module Halo_Mass_Functions_Tasks
        &                                                       haloMassFunction_virialRadius         , haloMassFunction_virialTemperature, &
        &                                                       haloMassFunction_virialVelocity       , haloMassFunction_scaleRadius      , &
        &                                                       haloMassFunction_velocityMaximum      , haloMassFunction_nuFnu            , &
-       &                                                       haloMassFunction_alpha                , haloMassFunction_cumulativeSubhalo
+       &                                                       haloMassFunction_alpha                , haloMassFunction_cumulativeSubhalo, &
+       &                                                       haloMassFunction_dndlnMBinAveraged
 
   ! Arrays of output time data.
   double precision            , allocatable, dimension(:  ) :: outputCharacteristicMass              , outputCriticalOverdensities       , &
@@ -118,7 +119,9 @@ contains
     integer                                                      :: haloMassFunctionsCount       , haloMassFunctionsPointsPerDecade, &
          &                                                          iMass                        , iOutput                         , &
          &                                                          outputCount                  , verbosityLevel
-    double precision                                             :: haloMassFunctionsMassMaximum , haloMassFunctionsMassMinimum
+    double precision                                             :: haloMassFunctionsMassMaximum , haloMassFunctionsMassMinimum    , &
+         &                                                          haloMassBinMinimum           , haloMassBinMaximum              , &
+         &                                                          haloMassLogarithmicInterval
 
     ! Get the verbosity level parameter.
     !@ <inputParameter>
@@ -225,6 +228,7 @@ contains
     call Alloc_Array(haloMassFunction_Mass             ,[haloMassFunctionsCount,outputCount])
     call Alloc_Array(haloMassFunction_dndM             ,[haloMassFunctionsCount,outputCount])
     call Alloc_Array(haloMassFunction_dndlnM           ,[haloMassFunctionsCount,outputCount])
+    call Alloc_Array(haloMassFunction_dndlnMBinAveraged,[haloMassFunctionsCount,outputCount])
     call Alloc_Array(haloMassFunction_cumulative       ,[haloMassFunctionsCount,outputCount])
     call Alloc_Array(haloMassFunction_cumulativeSubhalo,[haloMassFunctionsCount,outputCount])
     call Alloc_Array(haloMassFunction_massFraction     ,[haloMassFunctionsCount,outputCount])
@@ -258,7 +262,8 @@ contains
        call thisBasic%timeSet(outputTimes(iOutput))
 
        ! Build a range of halo masses.
-       haloMassFunction_Mass(:,iOutput)=Make_Range(haloMassFunctionsMassMinimum,haloMassFunctionsMassMaximum,haloMassFunctionsCount,rangeTypeLogarithmic)
+       haloMassFunction_Mass      (:,iOutput)=Make_Range(haloMassFunctionsMassMinimum,haloMassFunctionsMassMaximum,haloMassFunctionsCount,rangeTypeLogarithmic)
+       haloMassLogarithmicInterval           =log(haloMassFunctionsMassMaximum/haloMassFunctionsMassMinimum)/dble(haloMassFunctionsCount-1)
        
        ! Loop over all halo masses.
        do iMass=1,haloMassFunctionsCount
@@ -268,10 +273,14 @@ contains
           ! Set the mass in the node.
           call thisBasic            %massSet (haloMassFunction_Mass(iMass,iOutput))
           ! Set the node scale radius.
-          call thisDarkMatterProfile%scaleSet(Dark_Matter_Profile_Scale(thisNode))          
+          call thisDarkMatterProfile%scaleSet(Dark_Matter_Profile_Scale(thisNode))
+          ! Compute bin interval.
+          haloMassBinMinimum=haloMassFunction_Mass(iMass,iOutput)*exp(-0.5*haloMassLogarithmicInterval)
+          haloMassBinMaximum=haloMassFunction_Mass(iMass,iOutput)*exp(+0.5*haloMassLogarithmicInterval)
           ! Compute halo properties.
           haloMassFunction_dndM             (iMass,iOutput)=haloMassFunction_%differential(outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput))
           haloMassFunction_dndlnM           (iMass,iOutput)=haloMassFunction_dndM(iMass,iOutput)*haloMassFunction_Mass(iMass,iOutput)
+          haloMassFunction_dndlnMBinAveraged(iMass,iOutput)=haloMassFunction_%integrated  (outputTimes(iOutput),haloMassBinMinimum                  ,haloMassBinMaximum       )/haloMassLogarithmicInterval
           haloMassFunction_cumulative       (iMass,iOutput)=haloMassFunction_%integrated  (outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity)
           haloMassFunction_massFraction     (iMass,iOutput)=haloMassFunction_%massFraction(outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity)
           haloMassFunction_sigma            (iMass,iOutput)=cosmologicalMassVariance_%rootVariance                   (haloMassFunction_Mass(iMass,iOutput))
@@ -378,6 +387,10 @@ contains
     call thisDataset%close()
     call massFunctionGroup%writeDataset(haloMassFunction_dndlnM,'haloMassFunctionLnM','The halo mass function (per logarithmic   &
          &       halo mass).',datasetReturned=thisDataset)
+    call thisDataset%writeAttribute(1.0d0/megaParsec**3,'unitsInSI')
+    call thisDataset%close()
+    call massFunctionGroup%writeDataset(haloMassFunction_dndlnMBinAveraged,'haloMassFunctionLnMBinAveraged','The halo mass function (per logarithmic   &
+         &       halo mass averaged across the bin).',datasetReturned=thisDataset)
     call thisDataset%writeAttribute(1.0d0/megaParsec**3,'unitsInSI')
     call thisDataset%close()
     call massFunctionGroup%writeDataset(haloMassFunction_cumulative,'haloMassFunctionCumulative','The halo cumulative mass&
