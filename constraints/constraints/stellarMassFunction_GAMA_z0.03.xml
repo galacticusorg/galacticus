@@ -1,6 +1,6 @@
 <!-- Defines a constraint to match to the z=0.03 GAMA stellar mass function. -->
 <constraint>
-  <name>GAMA z=0.03 stellar mass function</name>
+  <name>GAMA $z=0.03$ stellar mass function</name>
   <label>gamaStellarMassFunctionZ0.03</label>
   <outputRedshift>0.00</outputRedshift>
   <outputRedshift>0.01</outputRedshift>
