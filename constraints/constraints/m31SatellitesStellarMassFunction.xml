@@ -1,6 +1,6 @@
 <!-- Defines a constraint to match to the M31 satellite stellar mass functions. -->
 <constraint>
-  <name>M31 satellite stellar mass functions</name>
+  <name>M31 satellite stellar mass function</name>
   <label>m31SMF</label>
   <outputRedshift>0.0</outputRedshift>
   <haloMassResolution>1.0e8</haloMassResolution>

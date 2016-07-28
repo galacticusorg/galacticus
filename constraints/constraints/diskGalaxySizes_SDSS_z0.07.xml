@@ -1,6 +1,6 @@
 <!-- Defines a constraint to match to the z=0.07 SDSS disk galaxy sizes. -->
 <constraint>
-  <name>SDSS z=0.07 disk galaxy sizes</name>
+  <name>SDSS $z=0.07$ disk galaxy sizes</name>
   <label>diskGalaxySizeZ0.07</label>
   <outputRedshift>0.01</outputRedshift>
   <outputRedshift>0.03</outputRedshift>

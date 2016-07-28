@@ -1,6 +1,6 @@
 <!-- Defines a constraint to match to the PRIMUS z~0.725 stellar mass functions. -->
 <constraint>
-  <name>PRIMUS z~0.725 stellar mass functions</name>
+  <name>PRIMUS $z=0.725$ stellar mass function</name>
   <label>primusStellarMassFunctionZ0.725</label>
   <outputRedshift>0.65</outputRedshift>
   <outputRedshift>0.70</outputRedshift>
