@@ -1,6 +1,6 @@
 <!-- Defines a constraint to match to the Milky Way satellite stellar mass functions. -->
 <constraint>
-  <name>Milky Way satellite stellar mass functions</name>
+  <name>Milky Way satellite stellar mass function</name>
   <label>milkyWaySMF</label>
   <outputRedshift>0.0</outputRedshift>
   <haloMassResolution>1.0e8</haloMassResolution>
