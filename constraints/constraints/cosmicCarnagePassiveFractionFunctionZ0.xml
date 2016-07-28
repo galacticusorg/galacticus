@@ -1,6 +1,6 @@
 <!-- Defines a constraint to match to the z=0 passive fraction function used in the Cosmic CARnage workshop. -->
 <constraint>
-  <name>Cosmic CARnage z=0 passive fraction function</name>
+  <name>Cosmic CARnage $z=0$ passive fraction function</name>
   <label>cosmicCarnagePassiveFractionFunctionZ0</label>
   <outputRedshift>0.0</outputRedshift>
   <haloMassResolution>1.0e9</haloMassResolution>

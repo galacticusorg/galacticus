@@ -1,6 +1,6 @@
 <!-- Defines a constraint to match to the ULTRAVISTA z~2.25 stellar mass functions. -->
 <constraint>
-  <name>ULTRAVISTA z~2.25 stellar mass functions</name>
+  <name>ULTRAVISTA $z=2.25$ stellar mass function</name>
   <label>ultravistaStellarMassFunctionZ2.25</label>
   <outputRedshift>2.00</outputRedshift>
   <outputRedshift>2.25</outputRedshift>
