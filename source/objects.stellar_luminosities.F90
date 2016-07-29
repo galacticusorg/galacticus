@@ -1070,14 +1070,18 @@ contains
     integer                              , intent(in   )              :: imfSelected
     double precision                     , intent(in   )              :: mass             , time
     type            (abundances         ), intent(in   )              :: abundancesStellar
-    double precision                     , dimension(luminosityCount) :: ages             , massToLightRatio
+    double precision                     , dimension(:) , allocatable :: ages             , massToLightRatio
 
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
-
+    
     ! Return if no luminosities are tracked.
     if (luminosityCount == 0) return
 
+    ! Allocate workspace.
+    allocate(ages            (luminosityCount))
+    allocate(massToLightRatio(luminosityCount))
+    
     ! Get the ages that this stellar population will have at the various output times.
     ages=luminosityCosmicTime-time
 
