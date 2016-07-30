@@ -119,10 +119,6 @@ contains
          &                             +1.0d0                           &
          &                             /(                               &
          &                               +densityRatioInternalToSurface &
-         &                               *(                             &
-         &                                 +1.0d0                       &
-         &                                 +errorFractionalFixedSphere  &
-         &                                )                             &
          &                               -1.0d0                         &
          &                              )                               &
          &                            )
