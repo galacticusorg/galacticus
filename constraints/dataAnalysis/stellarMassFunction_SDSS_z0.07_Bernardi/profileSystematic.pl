@@ -90,7 +90,7 @@ print $gnuPlot "set key left\n";
 print $gnuPlot "set key bottom\n";
 print $gnuPlot "set xrange [9.0:12.5]\n";
 print $gnuPlot "set yrange [-1:1]\n";
-print $gnuPlot "set xlabel '\$\\log_{10} M_{\\star,{\\tt cmodel}}\$'\n";
+print $gnuPlot "set xlabel '\$\\log_{10} (M_{\\star,{\\tt cmodel}}/{\\rm M}_\\odot)\$'\n";
 print $gnuPlot "set ylabel '\$\\log_{10} M_{\\star,{\\tt cmodel}}-\\log_{10} M_{\\star}\$'\n";
 
 # Compute mass functions for each model.
