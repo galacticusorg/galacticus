@@ -27,8 +27,20 @@ my $workDirectory = "constraints/dataAnalysis/hiMassFunction_ALFALFA_z0.00/";
 system("wget http://egg.astro.cornell.edu/alfalfa/data/a40files/a40.datafile1.csv -O ".$workDirectory."alfalfaSurveyData.csv")
     unless ( -e $workDirectory."alfalfaSurveyData.csv" );
 
+# Remove troublesome double-double quotes.
+unless ( -e $workDirectory."alfalfaSurveyDataClean.csv" ) {
+    open(my $inFile ,    $workDirectory."alfalfaSurveyData.csv"     );
+    open(my $outFile,">".$workDirectory."alfalfaSurveyDataClean.csv");
+    while ( my $line = <$inFile> ) {
+	$line =~ s/\"\"//g;
+	print $outFile $line;
+    }
+    close($inFile );
+    close($outFile);
+}
+
 # Load the data.
-(my $W50, my $errorW50, my $logarithmicMassHI) = rcols($workDirectory."alfalfaSurveyData.csv",7,8,14,{ IGNORE => '/^AGCNr/', COLSEP => ','});
+(my $W50, my $errorW50, my $logarithmicMassHI) = rcols($workDirectory."alfalfaSurveyDataClean.csv",7,8,14,{ IGNORE => '/^AGCNr/', COLSEP => ','});
 
 # Find the binned median line width vs. logarithmic mass.
 my $usableGalaxies          = 
@@ -73,15 +85,15 @@ my $plotFile = $workDirectory."lineWidthMassRelation.pdf";
 open($gnuPlot,"|gnuplot 1>/dev/null 2>&1");
 print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
 print $gnuPlot "set output '".$plotFileEPS."'\n";
-print $gnuPlot "set title 'Line width vs. HI gas mass for ALFALFA 40\\\% (\$\\alpha.40\$) sample'\n";
-print $gnuPlot "set xlabel 'HI gas mass; \$M_{\\rm HI} [M_\\odot]\$'\n";
+#print $gnuPlot "set title 'Line width vs. HI gas mass for ALFALFA 40\\\% (\$\\alpha.40\$) sample'\n";
+print $gnuPlot "set xlabel 'HI gas mass; \$M_{\\rm HI} [{\\rm M}_\\odot]\$'\n";
 print $gnuPlot "set ylabel 'Line width; \$W_{50}\$ [km/s]'\n";
 print $gnuPlot "set lmargin screen 0.15\n";
 print $gnuPlot "set rmargin screen 0.95\n";
 print $gnuPlot "set bmargin screen 0.15\n";
 print $gnuPlot "set tmargin screen 0.95\n";
 print $gnuPlot "set key spacing 1.2\n";
-print $gnuPlot "set key at screen 0.275,0.76\n";
+print $gnuPlot "set key at screen 0.225,0.76\n";
 print $gnuPlot "set key left\n";
 print $gnuPlot "set key bottom\n";
 print $gnuPlot "set logscale xy\n";
