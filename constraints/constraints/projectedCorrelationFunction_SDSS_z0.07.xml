@@ -1,6 +1,6 @@
 <!-- Defines a constraint to match to the z~0.07 SDSS stellar mass-selected projected correlation functions. -->
 <constraint>
-  <name>SDSS z0.07 stellar mass-selected projected correlation function</name>
+  <name>SDSS $z=0.07$ stellar mass-selected projected correlation function</name>
   <label>sdssClusteringZ0.07</label>
   <outputRedshift>0.07</outputRedshift>
   <haloMassResolution>1.0e8</haloMassResolution>
