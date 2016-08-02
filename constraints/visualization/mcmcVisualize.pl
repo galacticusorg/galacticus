@@ -119,6 +119,7 @@ $showLabels = $arguments{'showLabels'}
 my $lineWeight = "5,3";
 $lineWeight = $arguments{'lineWeight'}
     if ( exists($arguments{'lineWeight'}) );
+my $firstParameterColumn = exists($arguments{'oldChainFormat'}) && $arguments{'oldChainFormat'} eq "yes" ? 5 : 6;
 
 # Validate.
 die("mcmcVisualize.pl: if outliers are specified chainCount must also be specified")
@@ -151,26 +152,26 @@ foreach my $parameter ( @{$config->{'parameters'}->{'parameter'}} ) {
 }
 
 # Find which columns to plot.
-my $xColumn = 6;
-my $yColumn = 7;
+my $xColumn = $firstParameterColumn  ;
+my $yColumn = $firstParameterColumn+1;
 my $dimensions = 1;
 if ( exists($arguments{'xProperty'}) ) {
     for(my $i=0;$i<scalar(@properties);++$i) {
-	$xColumn = $i+6
+	$xColumn = $i+$firstParameterColumn
 	    if ( $properties[$i] eq $arguments{'xProperty'} );
     } 
 }
 if ( exists($arguments{'yProperty'}) ) {
     $dimensions = 2;
     for(my $i=0;$i<scalar(@properties);++$i) {
-	$yColumn = $i+6
+	$yColumn = $i+$firstParameterColumn
 	    if ( $properties[$i] eq $arguments{'yProperty'} );
     } 
 }
 if ( exists($arguments{'range'}) ) {
     foreach my $range ( @{$arguments{'range'}} ) {
 	for(my $i=0;$i<scalar(@properties);++$i) {
-	    $range->{'column'} = $i+6
+	    $range->{'column'} = $i+$firstParameterColumn
 		if ( $properties[$i] eq $range->{'name'} );
 	}
     } 
