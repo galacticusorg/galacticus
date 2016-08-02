@@ -461,7 +461,26 @@ my @groups =
 	      "mergerTreeOutput",
 	      "mergerTreeOutputReferences",
 	      "outputRedshifts",
-	      "outputSatelliteStatus"
+	      "outputSatelliteStatus",
+	      "outputColdModeInfallRate"
+	     ]
+     },
+     {
+	 name        => "luminosities" ,
+	 description => "Stellar luminosities",
+	 members     =>
+	     [
+	      "luminosityFilter",
+	      "luminosityRedshift",
+	      "luminosityType",
+	     ]
+     },
+     {
+	 name        => "numerics" ,
+	 description => "Numerics",
+	 members     =>
+	     [
+	      "randomSeed",
 	     ]
      },
      {
