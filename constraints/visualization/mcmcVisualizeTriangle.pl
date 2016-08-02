@@ -157,6 +157,8 @@ my $standardWidth;
 my $standardHeight;
 for(my $i=0;$i<scalar(@properties);++$i) {    
     my $command = "constraints/visualization/mcmcVisualize.pl ".$configFileName." ".$fileRoot." --workDirectory ".$workDirectory." --xProperty '".$properties[$i]->{'name'}."' --xScale ".$properties[$i]->{'mapping'}->{'type'}." --textSize ".$textSize." --plotSize ".$plotSize." --lineWeight ".$lineWeight." --labelStyle ".$labelStyle." --output ".$outputFileName."_".$i.".pdf --data ".$outputFileName."_".$i.".xml ".$options;
+    $command .= " --oldChainFormat ".$arguments{'oldChainFormat'}
+	if ( exists($arguments{'oldChainFormat'}) );
     $command .= " --showLabels no"
 	if ( $drawLabels ne "gnuplot" );
     $command .= " --xLabel '".$properties[$i]->{'xLabel'}."'"
@@ -187,6 +189,8 @@ for(my $i=0;$i<scalar(@properties);++$i) {
     if ( $i < scalar(@properties)-1 ) { 
 	for(my $j=$i+1;$j<scalar(@properties);++$j) {
 	    my $command = "constraints/visualization/mcmcVisualize.pl ".$configFileName." ".$fileRoot." --workDirectory ".$workDirectory." --yProperty '".$properties[$i]->{'name'}."' --yScale ".$properties[$i]->{'mapping'}->{'type'}." --xProperty '".$properties[$j]->{'name'}."' --xScale ".$properties[$j]->{'mapping'}->{'type'}." --textSize ".$textSize." --plotSize ".$plotSize." --lineWeight ".$lineWeight." --labelStyle ".$labelStyle." --output ".$outputFileName."_".$i."_".$j.".pdf --data ".$outputFileName."_".$i."_".$j.".xml ".$options;
+	    $command .= " --oldChainFormat ".$arguments{'oldChainFormat'}
+	        if ( exists($arguments{'oldChainFormat'}) );
 	    $command .= " --showLabels no"
 		if ( $drawLabels ne "gnuplot" );
 	    $command .= " --xLabel '".$properties[$j]->{'xLabel'}."'"
@@ -297,7 +301,8 @@ if ( $drawLabels eq "gnuplot" ) {
 	    my $rangeMaximum = &latexFormat($data->{'x'}->[-1],2);
 
 	    my @columns;
-	    foreach ( $rangeMinimum, "\$".$properties[$i-1]->{'label'}."\$", $rangeMaximum ) {
+	    my $label = exists($properties[$i-1]->{'label'}) ? "\$".$properties[$i-1]->{'label'}."\$" : $properties[$i-1]->{'xLabel'};
+	    foreach ( $rangeMinimum, $label, $rangeMaximum ) {
 		my $content;
 		$content .= "\\multicolumn{1}{p{".($width*$scale/3.25)."pt}}{";
 		$content .= "\\raisebox{";
