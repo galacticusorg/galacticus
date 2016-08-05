@@ -32,7 +32,7 @@ module Node_Component_Disk_Very_Simple
   !# <component>
   !#  <class>disk</class>
   !#  <name>verySimple</name>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>isInitialized</name>
@@ -71,9 +71,9 @@ module Node_Component_Disk_Very_Simple
   !#   <property>
   !#     <name>starFormationRate</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" />
+  !#     <isVirtual>true</isVirtual>
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>true</isVirtual>
   !#     <output condition="[[diskOutputStarFormationRate]]" unitsInSI="massSolar/gigaYear" comment="Disk star formation rate."/>
   !#   </property>
   !#   <property>
@@ -374,18 +374,18 @@ contains
     use Histories
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode                    ), intent(inout), pointer :: node
-    logical                                       , intent(in   )          :: odeConverged
-    class           (nodeComponentDisk           )               , pointer :: disk
-    class           (nodeComponentHotHalo        )               , pointer :: hotHalo
-    logical                                       , intent(inout)          :: interrupt
-    procedure       (Interrupt_Procedure_Template), intent(inout), pointer :: interruptProcedureReturn
-    procedure       (Interrupt_Procedure_Template)               , pointer :: interruptProcedure
-    double precision                                                       :: stellarMassRate         , fuelMassRate         , &
-         &                                                                    massOutflowRate
-    type            (history                     )                         :: stellarHistoryRate
-    type            (abundances                  )                         :: fuelAbundancesRate      , stellarAbundancesRate, &
-         &                                                                    abundancesOutflowRate
+    type            (treeNode            ), intent(inout), pointer :: node
+    logical                               , intent(in   )          :: odeConverged
+    class           (nodeComponentDisk   )               , pointer :: disk
+    class           (nodeComponentHotHalo)               , pointer :: hotHalo
+    logical                               , intent(inout)          :: interrupt
+    procedure       (interruptTask       ), intent(inout), pointer :: interruptProcedureReturn
+    procedure       (interruptTask       )               , pointer :: interruptProcedure
+    double precision                                               :: stellarMassRate         , fuelMassRate         , &
+         &                                                            massOutflowRate
+    type            (history             )                         :: stellarHistoryRate
+    type            (abundances          )                         :: fuelAbundancesRate      , stellarAbundancesRate, &
+         &                                                            abundancesOutflowRate
     !GCC$ attributes unused :: odeConverged
         
     ! Get a local copy of the interrupt procedure.

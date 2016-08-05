@@ -28,7 +28,7 @@ module Node_Component_NBody_Standard
   !# <component>
   !#  <class>nBody</class>
   !#  <name>standard</name>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>velocityMaximum</name>

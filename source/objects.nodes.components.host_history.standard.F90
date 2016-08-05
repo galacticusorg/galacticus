@@ -28,7 +28,7 @@ module Node_Component_Host_History_Standard
   !# <component>
   !#  <class>hostHistory</class>
   !#  <name>standard</name>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>hostMassMaximum</name>

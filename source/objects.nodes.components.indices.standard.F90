@@ -28,7 +28,7 @@ module Node_Component_Indices_Standard
   !# <component>
   !#  <class>indices</class>
   !#  <name>standard</name>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>branchTip</name>

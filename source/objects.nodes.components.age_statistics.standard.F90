@@ -29,7 +29,7 @@ module Node_Component_Age_Statistics_Standard
   !# <component>
   !#  <class>ageStatistics</class>
   !#  <name>standard</name>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>diskTimeWeightedIntegratedSFR</name>
@@ -112,7 +112,7 @@ contains
     type            (treeNode                    ), intent(inout), pointer :: thisNode
     logical                                       , intent(in   )          :: odeConverged
     logical                                       , intent(inout)          :: interrupt
-    procedure       (Interrupt_Procedure_Template), intent(inout), pointer :: interruptProcedure
+    procedure       (interruptTask), intent(inout), pointer :: interruptProcedure
     class           (nodeComponentAgeStatistics  )               , pointer :: thisAgeStatistics
     class           (nodeComponentDisk           )               , pointer :: thisDisk
     class           (nodeComponentSpheroid       )               , pointer :: thisSpheroid
