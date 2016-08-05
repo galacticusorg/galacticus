@@ -1,5 +1,68 @@
 \chapter{Coding \glc}
 
+\section{Node Objects Builder}
+
+\subsection{Variable Definitions}\label{sec:nodeBuilderVariableDefinitions}
+
+Throughout the node objects builder code, Fortran variables are defined using a common specification. This is a simple hash containing the following entries:
+\begin{description}
+  \item[intrinsic] a string specifying the intrinsic Fortran type ({\normalfont \ttfamily integer}, {\normalfont \ttfamily logical}, {\normalfont \ttfamily real}, {\normalfont \ttfamily double precision}, {\normalfont \ttfamily complex}, {\normalfont \ttfamily double complex}, {\normalfont \ttfamily type}, {\normalfont \ttfamily class}, {\normalfont \ttfamily procedure});
+  \item[type] \emph{[optional, except for {\normalfont \ttfamily type} and {\normalfont \ttfamily class} instrinics]} a string specifying the type of the variables;
+  \item[attributes] an array of strings specifying all attributes of the variables;
+  \item[variables] an array of strings giving the names of the variables.
+\end{description}
+For example, rank-1, long integer arguments which will not be modified in their function would be specified as:
+\begin{verbatim}
+{
+  intrinsic  => "integer", 
+  type       => "kind_int8",
+  attributes => [ "dimension(:)", "intent(in)" ],
+  variables  => [ "argument1", "argument2" ]
+}
+\end{verbatim}
+
+\subsection{The {\normalfont \ttfamily \$build} Data Structure}
+
+The {\normalfont \ttfamily \$build} data structure is used to accumulate all objects, variables, and functions needed to build the class hierarchy used to represent nodes and components in \glc. At the end of the node objects build process, this object is processed to generate the required Fortran code. The following subsections describe how to add information to this object.
+
+\subsubsection{Component Classes and Implementations}
+
+A reference to a hash of structures which define all component classes, keyed by class name, is provided as {\normalfont \ttfamily \$build->\{'componentClasses'\}}. Each component class structure has the form:
+\begin{verbatim}
+{
+ name    => <name of the class>,
+ members => <reference to a hash of structures which define all member implementation of the class>
+}
+\end{verbatim}
+Each member implementation structure has the form:
+\begin{verbatim}
+{
+ name       =>             <name of the implementation>,
+ properties => property => <reference to a hash of structures which define all properties of this implementation>
+}
+\end{verbatim}
+
+\subsubsection{Types}
+
+Definitions of derived types are accumulated to the hash {\normalfont \ttfamily \$build->\{'types'\}}, with the key of each entry being the derived type's name. Each derived type structure has the form:
+\begin{verbatim}
+{
+ boundFunctions => 
+  {
+   type        => <procedure|generic>
+   name        => <name of the bound method>
+   function    => <name of function to bind to>
+   description => <LaTeX-syntax description of the method>
+   returnType  => <LaTeX-syntax return type of the method>
+   arguments   => <LaTeX-syntax definition of all arguments to the method>
+  }
+}
+\end{verbatim}
+
+\subsubsection{Module-scope Variables}
+
+Any module-scope variables can be pushed to the array {\normalfont \ttfamily \@\{\$build->\{'variables'\}\}}, using the usual definition format described in \S\ref{sec:nodeBuilderVariableDefinitions}.
+
 \section{Galacticus Preprocessor Directives}
 
 \glc\ has its own preprocessor for Fortran source files. This preprocesses parses each source file into an internal tree representation, performs various manipulations on that tree, and then outputs the preprocessed file for compilation. The preprocessor is used to automate and standardize many common tasks, through the inclusion of directives into the source code. Directives are specified in comment lines beginning {\normalfont \ttfamily !\#}, and are written in XML. The remainder of this section describes the various preprocessor functionalities, and gives examples of their usage.
@@ -491,7 +554,7 @@ The second feature accounts for the fact that the properties of a node will chan
 
 \section{Mixed Language Coding}\label{sec:MixedLanguageCoding}\index{coding!mixed language}\index{mixed language coding}\index{C (language) coding}
 
-It is possible to incorporate C or C++ code into \glc. The implementation of C++-integration into \glc\ is currently only partially complete---if there is a specific function or feature that you would like to be C++-interoperable \href{mailto:abenson@.carnegiescience.edu}{contact us}. For an example of the various C++ interoperability see the {\normalfont \ttfamily star\_formation.timescales.disks.Baugh2005.cpp} file.
+It is possible to incorporate C or C++ code into \glc. The implementation of C++-integration into \glc\ is currently only partially complete---if there is a specific function or feature that you would like to be C++-interoperable \href{mailto:abenson@carnegiescience.edu}{contact us}. For an example of the various C++ interoperability see the {\normalfont \ttfamily star\_formation.timescales.disks.Baugh2005.cpp} file.
 
 \subsection{Component Property Methods}
 
@@ -549,7 +612,7 @@ The usual embedded XML directives specifies that this function should be called 
 
 \section{Global Functions}
 
-In very exceptional circumstances it is necessary to subvert the module hierarchy used by \glc\ to permit one module to call a function in a higher level module\footnote{This usually arises because circular dependencies would arise if the called function were placed in a lower level module.}. Examples of where this approach is necessary usuually involve initial bootstrapping (i.e. to establish halo density contrasts, which requires knowledge of the halo density profile, which in turn requires knowledge of the halo density contrast\ldots).
+In very exceptional circumstances it is necessary to subvert the module hierarchy used by \glc\ to permit one module to call a function in a higher level module\footnote{This usually arises because circular dependencies would arise if the called function were placed in a lower level module.}. Examples of where this approach is necessary usually involve initial bootstrapping (i.e. to establish halo density contrasts, which requires knowledge of the halo density profile, which in turn requires knowledge of the halo density contrast\ldots).
 
 \glc\ provides for global functions which facilitate this---specifically, it is possible to generate function pointers to higher level functions which are accessible via a very low-level module. To create a globally callable copy of a function use add the follow prior to the function definition:
 \begin{verbatim}

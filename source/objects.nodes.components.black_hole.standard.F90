@@ -32,7 +32,7 @@ module Node_Component_Black_Hole_Standard
   !# <component>
   !#  <class>blackHole</class>
   !#  <name>standard</name>
-  !#  <isDefault>yes</isDefault>
+  !#  <isDefault>true</isDefault>
   !#  <output instances="first"/>
   !#  <properties>
   !#   <property>
@@ -83,16 +83,16 @@ module Node_Component_Black_Hole_Standard
   !#   <property>
   !#     <name>accretionRate</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" />
+  !#     <isVirtual>true</isVirtual>
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>true</isVirtual>
   !#   </property>
   !#   <property>
   !#     <name>radiativeEfficiency</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" />
+  !#     <isVirtual>true</isVirtual>
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>true</isVirtual>
   !#   </property>
   !#  </properties>
   !#  <bindings>
@@ -334,7 +334,7 @@ contains
     type            (treeNode                                          )           , intent(inout), pointer :: thisNode
     logical                                                                        , intent(inout)          :: interrupt
     logical                                                                        , intent(in   )          :: odeConverged
-    procedure       (Interrupt_Procedure_Template                      )           , intent(inout), pointer :: interruptProcedure
+    procedure       (interruptTask                                     )           , intent(inout), pointer :: interruptProcedure
     class           (nodeComponentBlackHole                            )                          , pointer :: binaryBlackHoleComponent                                                                                                                          , centralBlackHoleComponent                                      , &
          &                                                                                                     thisBlackHoleComponent
     class           (nodeComponentSpheroid                             )                          , pointer :: thisSpheroidComponent
