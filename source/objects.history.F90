@@ -185,25 +185,29 @@ module Histories
      generic                   :: operator(-)            => subtract
      generic                   :: operator(/)            => divide
      generic                   :: operator(*)            => multiply
-     procedure :: isZero        =>History_Is_Zero
-     procedure :: builder       =>History_Builder
-     procedure :: dump          =>History_Dump
-     procedure :: dumpRaw       =>History_Dump_Raw
-     procedure :: readRaw       =>History_Read_Raw
-     procedure :: create        =>History_Create
-     procedure :: clone         =>History_Clone
-     procedure :: destroy       =>History_Destroy
-     procedure :: trim          =>History_Trim
-     procedure :: extend        =>History_Extend
-     procedure :: increment     =>History_Increment
-     procedure :: combine       =>History_Combine
-     procedure :: reset         =>History_Reset
-     procedure :: setToUnity    =>History_Set_To_Unity
-     procedure :: exists        =>History_Exists
-     procedure :: timeSteps     =>History_Timesteps
-     procedure :: serializeCount=>History_Serialize_Count
-     procedure :: serialize     =>History_Serialize
-     procedure :: deserialize   =>History_Deserialize
+     procedure :: isZero        => History_Is_Zero
+     procedure :: builder       => History_Builder
+     procedure :: dump          => History_Dump
+     procedure :: dumpRaw       => History_Dump_Raw
+     procedure :: readRaw       => History_Read_Raw
+     procedure :: create        => History_Create
+     procedure :: clone         => History_Clone
+     procedure :: destroy       => History_Destroy
+     procedure :: trim          => History_Trim
+     procedure :: extend        => History_Extend
+     procedure :: increment     => History_Increment
+     procedure :: combine       => History_Combine
+     procedure :: reset         => History_Reset
+     procedure :: setToUnity    => History_Set_To_Unity
+     procedure :: exists        => History_Exists
+     procedure :: timeSteps     => History_Timesteps
+     procedure :: serializeCount=> History_Serialize_Count
+     procedure :: serialize     => History_Serialize
+     procedure :: deserialize   => History_Deserialize
+     procedure ::                  History_Append_History
+     procedure ::                  History_Append_Epoch
+     generic   :: append        => History_Append_History, &
+          &                        History_Append_Epoch
   end type history
 
   type longIntegerHistory
@@ -275,16 +279,20 @@ module Histories
      !@     <arguments></arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: builder       =>History_Long_Integer_Builder
-     procedure :: dump          =>History_Long_Integer_Dump
-     procedure :: dumpRaw       =>History_Long_Integer_Dump_Raw
-     procedure :: readRaw       =>History_Long_Integer_Read_Raw
-     procedure :: create        =>History_Long_Integer_Create
-     procedure :: clone         =>History_Long_Integer_Clone
-     procedure :: destroy       =>History_Long_Integer_Destroy
-     procedure :: trim          =>History_Long_Integer_Trim
-     procedure :: reset         =>History_Long_Integer_Reset
-     procedure :: exists        =>History_Long_Integer_Exists
+     procedure :: builder       => History_Long_Integer_Builder
+     procedure :: dump          => History_Long_Integer_Dump
+     procedure :: dumpRaw       => History_Long_Integer_Dump_Raw
+     procedure :: readRaw       => History_Long_Integer_Read_Raw
+     procedure :: create        => History_Long_Integer_Create
+     procedure :: clone         => History_Long_Integer_Clone
+     procedure :: destroy       => History_Long_Integer_Destroy
+     procedure :: trim          => History_Long_Integer_Trim
+     procedure :: reset         => History_Long_Integer_Reset
+     procedure :: exists        => History_Long_Integer_Exists
+     procedure ::                  History_Long_Integer_Append_History
+     procedure ::                  History_Long_Integer_Append_Epoch
+     generic   :: append        => History_Long_Integer_Append_History, &
+          &                        History_Long_Integer_Append_Epoch
   end type longIntegerHistory
 
   ! A null history object.
@@ -912,6 +920,144 @@ contains
     return
   end subroutine History_Long_Integer_Trim
 
+  subroutine History_Long_Integer_Append_History(self,append)
+    !% Append a history to a long integer history.
+    use Memory_Management
+    use Galacticus_Error
+    implicit none
+    class           (longIntegerHistory), intent(inout)                 :: self
+    type            (longIntegerHistory), intent(in   )                 :: append
+    double precision                    , allocatable  , dimension(:  ) :: timeTmp
+    integer         (kind=kind_int8    ), allocatable  , dimension(:,:) :: dataTmp
+    
+    if (.not.allocated(self%time)) then
+       ! No pre-existing history - simply copy the history to append.
+       self%time=append%time
+       self%data=append%data
+    else
+       ! A history already exists. Validate the provided append history.
+       if (append%time(1) <= self%time(size(self%time))) call Galacticus_Error_Report('History_Long_Integer_Append_History','history to append starts before end of history to which it is being appended')
+       if (size(self%data,dim=2) /= size(append%data,dim=2)) call Galacticus_Error_Report('History_Long_Integer_Append_History','histories have different cardinalities')
+       ! Do the append.
+       call Alloc_Array(timeTmp,[size(self%time)+size(append%time)                      ])
+       call Alloc_Array(dataTmp,[size(self%time)+size(append%time),size(self%data,dim=2)])
+       timeTmp(                1:size(self%time)                    )=self  %time
+       timeTmp(size(self%time)+1:size(self%time)+size(append%time)  )=append%time
+       dataTmp(                1:size(self%time)                  ,:)=self  %data
+       dataTmp(size(self%time)+1:size(self%time)+size(append%time),:)=append%data
+       call Dealloc_Array(        self%time)
+       call Dealloc_Array(        self%data)
+       call Move_Alloc   (timeTmp,self%time)
+       call Move_Alloc   (dataTmp,self%data)       
+    end if
+    return
+  end subroutine History_Long_Integer_Append_History
+  
+  subroutine History_Long_Integer_Append_Epoch(self,time,append)
+    !% Append a history to a long integer history.
+    use Memory_Management
+    use Galacticus_Error
+    implicit none
+    class           (longIntegerHistory), intent(inout)                 :: self
+    double precision                    , intent(in   )                 :: time
+    integer         (kind=kind_int8    ), intent(in   ), dimension(:  ) :: append
+    double precision                    , allocatable  , dimension(:  ) :: timeTmp
+    integer         (kind=kind_int8    ), allocatable  , dimension(:,:) :: dataTmp
+    
+    if (.not.allocated(self%time)) then
+       ! No pre-existing history - simply copy the history to append.
+       call Alloc_Array(self%time,[1              ])
+       call Alloc_Array(self%data,[1,size(append)])
+       self%time(1  )=time
+       self%data(1,:)=append
+    else
+       ! A history already exists. Validate the provided append history.
+       if (time <= self%time(size(self%time))) call Galacticus_Error_Report('History_Append_History','history to append starts before end of history to which it is being appended')
+       if (size(self%data,dim=2) /= size(append)) call Galacticus_Error_Report('History_Long_Integer_Append_History','histories have different cardinalities')
+       ! Do the append.
+       call Alloc_Array(timeTmp,[size(self%time)+1                      ])
+       call Alloc_Array(dataTmp,[size(self%time)+1,size(self%data,dim=2)])
+       timeTmp(                1:size(self%time)    )=self   %time
+       timeTmp(size(self%time)+1                    )=        time
+       dataTmp(                1:size(self%time)  ,:)=self   %data
+       dataTmp(size(self%time)+1                  ,:)=        append
+       call Dealloc_Array(        self%time)
+       call Dealloc_Array(        self%data)
+       call Move_Alloc   (timeTmp,self%time)
+       call Move_Alloc   (dataTmp,self%data)       
+    end if
+    return
+  end subroutine History_Long_Integer_Append_Epoch
+  
+  subroutine History_Append_History(self,append)
+    !% Append a history to a long integer history.
+    use Memory_Management
+    use Galacticus_Error
+    implicit none
+    class           (history), intent(inout)                 :: self
+    type            (history), intent(in   )                 :: append
+    double precision         , allocatable  , dimension(:  ) :: timeTmp
+    double precision         , allocatable  , dimension(:,:) :: dataTmp
+    
+    if (.not.allocated(self%time)) then
+       ! No pre-existing history - simply copy the history to append.
+       self%time=append%time
+       self%data=append%data
+    else
+       ! A history already exists. Validate the provided append hsitory.
+       if (append%time(1) <= self%time(size(self%time))) call Galacticus_Error_Report('History_Append_History','history to append starts before end of history to which it is being appended')
+       if (size(self%data,dim=2) /= size(append%data,dim=2)) call Galacticus_Error_Report('History_Append_History','histories have different cardinalities')
+       ! Do do the append.
+       call Alloc_Array(timeTmp,[size(self%time)+size(append%time)                      ])
+       call Alloc_Array(dataTmp,[size(self%time)+size(append%time),size(self%data,dim=2)])
+       timeTmp(                1:size(self%time)                    )=self  %time
+       timeTmp(size(self%time)+1:size(self%time)+size(append%time)  )=append%time
+       dataTmp(                1:size(self%time)                  ,:)=self  %data
+       dataTmp(size(self%time)+1:size(self%time)+size(append%time),:)=append%data
+       call Dealloc_Array(        self%time)
+       call Dealloc_Array(        self%data)
+       call Move_Alloc   (timeTmp,self%time)
+       call Move_Alloc   (dataTmp,self%data)       
+    end if
+    return
+  end subroutine History_Append_History
+  
+  subroutine History_Append_Epoch(self,time,append)
+    !% Append a history to a long integer history.
+    use Memory_Management
+    use Galacticus_Error
+    implicit none
+    class           (history), intent(inout)                 :: self
+    double precision         , intent(in   )                 :: time
+    double precision         , intent(in   ), dimension(:  ) :: append
+    double precision         , allocatable  , dimension(:  ) :: timeTmp
+    double precision         , allocatable  , dimension(:,:) :: dataTmp
+    
+    if (.not.allocated(self%time)) then
+       ! No pre-existing history - simply copy the history to append.
+       call Alloc_Array(self%time,[1              ])
+       call Alloc_Array(self%data,[1,size(append)])
+       self%time(1  )=time
+       self%data(1,:)=append
+    else
+       ! A history already exists. Validate the provided append data.
+       if (time <= self%time(size(self%time))) call Galacticus_Error_Report('History_Append_History','history to append starts before end of history to which it is being appended')
+       if (size(self%data,dim=2) /= size(append)) call Galacticus_Error_Report('History_Append_History','histories have different cardinalities')
+       ! Do the append.
+       call Alloc_Array(timeTmp,[size(self%time)+1                      ])
+       call Alloc_Array(dataTmp,[size(self%time)+1,size(self%data,dim=2)])
+       timeTmp(                1:size(self%time)    )=self   %time
+       timeTmp(size(self%time)+1                    )=        time
+       dataTmp(                1:size(self%time)  ,:)=self   %data
+       dataTmp(size(self%time)+1                  ,:)=        append
+       call Dealloc_Array(        self%time)
+       call Dealloc_Array(        self%data)
+       call Move_Alloc   (timeTmp,self%time)
+       call Move_Alloc   (dataTmp,self%data)       
+    end if
+    return
+  end subroutine History_Append_Epoch
+  
    subroutine History_Increment(thisHistory,addHistory)
      !% Adds the data in {\normalfont \ttfamily addHistory} to that in {\normalfont \ttfamily thisHistory}. This function is designed for histories that track
      !% instantaneous rates. The rates in {\normalfont \ttfamily addHistory} are interpolated to the times in {\normalfont \ttfamily thisHistory} and added to the
