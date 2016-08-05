@@ -1880,9 +1880,9 @@ contains
     self%xCount=xCount
     call Alloc_Array(self%xv,[xCount                   ])
     call Alloc_Array(self%yv,[xCount  ,tableCountActual])
-    call Alloc_Array(self%av,[xCount+1,tableCountActual])
-    call Alloc_Array(self%bv,[xCount  ,tableCountActual])
-    call Alloc_Array(self%cv,[xCount  ,tableCountActual])
+    call Alloc_Array(self%av,[xCount  ,tableCountActual])
+    call Alloc_Array(self%bv,[xCount-1,tableCountActual])
+    call Alloc_Array(self%cv,[xCount-1,tableCountActual])
     self%xv           =Make_Range(xMinimum,xMaximum,xCount,rangeType=rangeTypeLinear)
     self%       deltaX=self%xv(2)-self%xv(1)
     self%inverseDeltaX=1.0d0/self%deltaX
