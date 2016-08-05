@@ -285,14 +285,18 @@ contains
   subroutine filteredPowerRetabulate(self,mass)
     !% Tabulate the cosmological mass variance.
     use Numerical_Constants_Math
+    use Galacticus_Error
     implicit none
     class           (cosmologicalMassVarianceFilteredPower  ), intent(inout)           :: self
     double precision                                         , intent(in   ), optional :: mass
     ! Radius for σ(M) normalization in Mpc/h.
     double precision                                         , parameter               :: radiusNormalization                =8.0d0
     integer                                                                            :: i                                        , rootVarianceTableCount
-    double precision                                                                   :: sigma                                    , smoothingMass
+    double precision                                                                   :: sigma                                    , smoothingMass         , &
+         &                                                                                massMinimum
     logical                                                                            :: remakeTable
+    type            (varying_string                         )                          :: message
+    character       (len=12                                 )                          :: label
     
     ! Check if we need to recompute our table.
     if (self%initialized) then
@@ -347,16 +351,27 @@ contains
           allocate(table1DLogarithmicCSpline         :: self%rootVarianceTable)
        end if
        call self%rootVarianceTable%create(self%massMinimum,self%massMaximum,rootVarianceTableCount)
-       ! Compute sigma(M) at each tabulated point.       
+       ! Compute σ(M) at each tabulated point.
+       massMinimum=-1.0d0
        do i=1,rootVarianceTableCount
           smoothingMass=+self        %rootVarianceTable%x(                i)
           sigma        =+rootVariance                    (useTopHat=.false.) &
                &        *self%sigmaNormalization
           ! Enforce monotonicity.
-          if (i > 1) sigma=min(sigma,self%rootVarianceTable%y(i-1))
+          if (i > 1) then
+             if (sigma >= self%rootVarianceTable%y(i-1)) massMinimum=smoothingMass
+             sigma=min(sigma,self%rootVarianceTable%y(i-1))
+          end if
           ! Store the value.
           call self%rootVarianceTable%populate(sigma,i,computeSpline=(i == rootVarianceTableCount))
        end do
+       ! Warn if σ(M) has no increase below some mass scale.
+       if (massMinimum > 0.0d0) then
+          write (label,'(e12.6)') massMinimum
+          message=         "WARNING: σ(M) is non-increasing below mass M="//label//"M☉."//char(10)
+          message=message//"         If problems occur consider not attempting to model structure below this mass scale."
+          call Galacticus_Warn(message)
+       end if
        ! Table is now initialized.
        self%initialized=.true.
     end if
