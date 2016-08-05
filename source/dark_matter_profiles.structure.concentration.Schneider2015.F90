@@ -127,11 +127,12 @@ contains
     class           (darkMatterProfileConcentrationSchneider2015), intent(inout)          :: self
     type            (treeNode                                   ), intent(inout), pointer :: node
     class           (nodeComponentBasic                         )               , pointer :: basic
-    double precision                                             , parameter              :: toleranceAbsolute                =0.0d0, toleranceRelative    =1.0d-6
-    double precision                                                                      :: mass                                   , time                        , &
-         &                                                                                   collapseCriticalOverdensity            , timeCollapse                , &
-         &                                                                                   massReference                          , timeCollapseReference       , &
-         &                                                                                   referenceCollapseMassRootPrevious      , massReferencePrevious       , &
+    double precision                                             , parameter              :: toleranceAbsolute                =0.0d00, toleranceRelative    =1.0d-6, &
+         &                                                                                   massReferenceMaximum             =1.0d20
+    double precision                                                                      :: mass                                    , time                        , &
+         &                                                                                   collapseCriticalOverdensity             , timeCollapse                , &
+         &                                                                                   massReference                           , timeCollapseReference       , &
+         &                                                                                   referenceCollapseMassRootPrevious       , massReferencePrevious       , &
          &                                                                                   variance
       
     ! Get the basic component and the halo mass and time.
@@ -162,11 +163,17 @@ contains
             &                        rangeExpandUpward  =2.000d0                      , &
             &                        rangeExpandDownward=0.999d0                      , &
             &                        rangeExpandType    =rangeExpandMultiplicative    , &
-            &                        rangeUpwardLimit   =1.0d60                         &
+            &                        rangeUpwardLimit   =massReferenceMaximum           &
             &                       )
     end if
-    massReferencePrevious=-1.0d0
-    massReference        =self%finder%find(rootGuess=mass)
+    if (referenceCollapseMassRoot(massReferenceMaximum) > 0.0d0) then
+       ! No solution can be found even at the maximum allowed mass. Simply set the reference mass to the maximum allowed mass -
+       ! the choice shouldn't matter too much as the abundances of such halos should be hugely suppressed.
+       massReference        =massReferenceMaximum
+    else
+       massReferencePrevious=-1.0d0
+       massReference        =self%finder%find(rootGuess=mass)
+    end if
     ! Compute the concentration of a node of this mass in the reference model.
     call basic%massSet(massReference)
     schneider2015Concentration=self%referenceConcentration%concentration(node)
