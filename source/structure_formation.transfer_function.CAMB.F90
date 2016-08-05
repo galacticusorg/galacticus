@@ -67,7 +67,9 @@
 
   ! Global lock descriptor to be used in non-(recent Linux) cases
   type   (lockDescriptor) :: cambFileLockGlobal
-  logical                 :: cambFileLockInitialized=.true.
+  logical                 :: cambFileLockInitialized       =.false.
+  logical                 :: cambFileLockPrivateInitialized=.false.
+  !$omp threadprivate(cambFileLockPrivateInitialized)
 
 contains
 
@@ -202,12 +204,13 @@ contains
           cambFileLockInitialized=.true.
        end if
        !$omp end critical (cambFileLockInitialize)
+    else
+       call File_Lock_Initialize(fileLock)
     end if
     if (.not.self%initialized.and.File_Exists(self%fileName)) then
        if (self%lockFileGlobally) then
           call File_Lock(char(self%fileName),cambFileLockGlobal)
        else
-          call File_Lock_Initialize(fileLock)
           call File_Lock(char(self%fileName),fileLock          )
        end if
        call self%readFile(char(self%fileName))
@@ -246,9 +249,6 @@ contains
             &  self%fileName                                //' '// &
             &  trim(wavenumberLabel)                        //' '// &
             &  fileFormatVersionCurrent
-
-write (0,*) "THREAD ",omp_get_thread_num()," RUNS CAMB"
-
        call System_Command_Do(command)
        ! Remove the parameter file.
        command='rm -f '//parameterFile
@@ -260,10 +260,7 @@ write (0,*) "THREAD ",omp_get_thread_num()," RUNS CAMB"
           call File_Unlock(cambFileLockGlobal)
        else
           call File_Unlock(fileLock          )
-       end if
-       
-write (0,*) "THREAD ",omp_get_thread_num()," DONE CAMB"
-
+       end if      
     end if
     ! Check the maximum wavenumber.
     if (self%transfer%x(-1) > log(self%wavenumberMaximum)-0.01d0) self%wavenumberMaximumReached=.true.
