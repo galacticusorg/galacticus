@@ -370,7 +370,7 @@ contains
     
     ! Set derivatives to zero initially.
     call activeNode%odeStepRatesInitialize()
-
+    
     ! Determine if the ODE evolver has reached sufficiently small errors for this step.
     call FODEIV2_Driver_Errors(ode2Driver,yError)
     yTolerance=treeNodeODEStepTolerances(y)
@@ -480,7 +480,7 @@ contains
     do i=1,nProperties
        lengthMaximum=max(lengthMaximum,len(activeNode%nameFromIndex(i)))
     end do
-    line=repeat("―",lengthMaximum)//repeat("―――――――――――――――",nProperties)
+    line=repeat("―",lengthMaximum)//repeat("―――――――――――――――",5)
     call Galacticus_Display_Message(line)
     call Galacticus_Display_Message(repeat(" ",lengthMaximum)//' : y            : dy/dt        : yScale       : yError       : yErrorScaled')
     call Galacticus_Display_Message(line)
