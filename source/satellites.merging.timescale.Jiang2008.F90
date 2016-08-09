@@ -177,9 +177,9 @@ contains
        jiang2008TimeUntilMerging=0.0d0
     else
        ! Compute dynamical friction timescale.
-       jiang2008TimeUntilMerging       &
+       jiang2008TimeUntilMerging                                 &
             & =Dynamical_Friction_Timescale_Multiplier(        ) &
-            & *darkMatterHaloScale_%dynamicalTimescale   (hostNode) &
+            & *darkMatterHaloScale_%dynamicalTimescale(hostNode) &
             & *sqrt(equivalentCircularOrbitRadius/radialScale)   &
             & *((a*(orbitalCircularity**b)+d)/2.0d0/C)           &
             & *          massRatio                               &
@@ -188,7 +188,7 @@ contains
        if (self%scatter > 0.0d0) then
           randomDeviate=Gaussian_Random_Get(self%randomSequenceObject,self%scatter,self%resetRandomSequence)
           jiang2008TimeUntilMerging=jiang2008TimeUntilMerging*exp(randomDeviate)
-       end if
+       end if 
     end if
     return
   end function jiang2008TimeUntilMerging

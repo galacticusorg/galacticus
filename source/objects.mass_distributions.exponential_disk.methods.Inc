@@ -189,7 +189,7 @@ double precision function Mass_Distribution_Exponential_Disk_Surface_Density(sel
 end function Mass_Distribution_Exponential_Disk_Surface_Density
 
 double precision function Mass_Distribution_Exponential_Disk_Rotation_Curve(self,radius)
-  !% Return the mid-plane rotation curve for an exponential disk.
+  !% Return the mid-plane rotation curve for an exponential disk.  
   use Coordinates
   use Numerical_Constants_Physical
   implicit none
@@ -501,9 +501,14 @@ subroutine Mass_Distribution_Exponential_Disk_State_Store(self,stateFile,fgslSta
   type   (fgsl_file                      ), intent(in   ) :: fgslStateFile
   !GCC$ attributes unused :: fgslStateFile
   
-  write (stateFile) self%scaleLengthFactor                     , self%scaleLengthFactorSet                  , &
-       &            self%rotationCurveHalfRadiusMinimum        , self%rotationCurveHalfRadiusMaximum        , &
-       &            self%rotationCurveGradientHalfRadiusMinimum, self%rotationCurveGradientHalfRadiusMaximum
+  write (stateFile) self%scaleRadius             , self%scaleHeight                     , &
+       &            self%densityNormalization    , self%surfaceDensityNormalization     , &
+       &            self%mass                    , self%scaleLengthFactorSet            , &
+       &            self%rotationCurveInitialized, self%rotationCurveGradientInitialized
+  if (self%scaleLengthFactorSet                                               ) write (stateFile) self%scaleLengthFactor
+  if (self%rotationCurveInitialized .or. self%rotationCurveGradientInitialized) write (stateFile) self%rotationCurveHalfRadiusMinimum, self%rotationCurveHalfRadiusMaximum
+  if (self%rotationCurveInitialized                                           ) call self%rotationCurveTable        %serializeRaw(stateFile,includeType=.false.)
+  if (                                   self%rotationCurveGradientInitialized) call self%rotationCurveGradientTable%serializeRaw(stateFile,includeType=.false.)
   return
 end subroutine Mass_Distribution_Exponential_Disk_State_Store
 
@@ -516,11 +521,13 @@ subroutine Mass_Distribution_Exponential_Disk_State_Restore(self,stateFile,fgslS
   type   (fgsl_file                      ), intent(in   ) :: fgslStateFile
   !GCC$ attributes unused :: fgslStateFile
   
-  read (stateFile) self%scaleLengthFactor                     , self%scaleLengthFactorSet                  , &
-       &           self%rotationCurveHalfRadiusMinimum        , self%rotationCurveHalfRadiusMaximum        , &
-       &           self%rotationCurveGradientHalfRadiusMinimum, self%rotationCurveGradientHalfRadiusMaximum
-  ! Mark tables as uninitialized to trigger rebuilds.
-  self%rotationCurveInitialized        =.false.
-  self%rotationCurveGradientInitialized=.false.
+  read (stateFile) self%scaleRadius             , self%scaleHeight                     , &
+       &           self%densityNormalization    , self%surfaceDensityNormalization     , &
+       &           self%mass                    , self%scaleLengthFactorSet            , &
+       &           self%rotationCurveInitialized, self%rotationCurveGradientInitialized
+  if (self%scaleLengthFactorSet                                               ) read (stateFile) self%scaleLengthFactor
+  if (self%rotationCurveInitialized .or. self%rotationCurveGradientInitialized) read (stateFile) self%rotationCurveHalfRadiusMinimum, self%rotationCurveHalfRadiusMaximum
+  if (self%rotationCurveInitialized                                           ) call self%rotationCurveTable        %deserializeRaw(stateFile)
+  if (                                   self%rotationCurveGradientInitialized) call self%rotationCurveGradientTable%deserializeRaw(stateFile)  
   return
 end subroutine Mass_Distribution_Exponential_Disk_State_Restore

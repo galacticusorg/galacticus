@@ -109,7 +109,7 @@ contains
     ! Compute the stability threshold.
     stabilityThreshold=stabilityThresholdStellar*(1.0d0-gasFraction)+stabilityThresholdGaseous*gasFraction
     ! Compute the stability estimator for this node.
-    stabilityEstimator=max(&
+    stabilityEstimator=max(                                       &
          &                  stabilityIsolatedDisk               , &
          &                  velocityBoostFactor                   &
          &                 *thisDiskComponent      %velocity()    &
@@ -118,7 +118,7 @@ contains
          &                       *diskMass                        &
          &                       /thisDiskComponent%radius  ()    &
          &                      )                                 &
-         &                )
+         &                )    
     ! Check if the disk is bar unstable.
     if (stabilityEstimator < stabilityThreshold) then
        ! Disk is unstable, compute a timescale for depletion.
