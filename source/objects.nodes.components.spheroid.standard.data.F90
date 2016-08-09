@@ -26,5 +26,6 @@ module Node_Component_Spheroid_Standard_Data
 
   ! The mass distribution object.
   class(massDistribution), pointer :: spheroidMassDistribution
-
+  !$omp threadprivate(spheroidMassDistribution)
+  
 end module Node_Component_Spheroid_Standard_Data
