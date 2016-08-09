@@ -18,11 +18,11 @@
 
 type, public, extends(massDistributionCylindrical) :: massDistributionExponentialDisk
    !% The exponential disk profile: $\rho(r,z)=\rho_0 \exp(-r/r_{\rm s}) \hbox{sech}^2(z/z_{\rm s})$.
-   double precision :: scaleRadius         , scaleHeight                , &
-        &              densityNormalization, surfaceDensityNormalization, &
-        &              mass
+   double precision                           :: scaleRadius                                   , scaleHeight                                   , &
+        &                                        densityNormalization                          , surfaceDensityNormalization                   , &
+        &                                        mass
    ! Tables used for rotation curves.
-   logical                                    :: scaleLengthFactorSet                  =.false., rotationCurveInitialized              =.false.   , &
+   logical                                    :: scaleLengthFactorSet                  =.false., rotationCurveInitialized              =.false., &
         &                                        rotationCurveGradientInitialized      =.false.
    double precision                           :: scaleLengthFactor
    double precision                           :: rotationCurveHalfRadiusMinimum                , rotationCurveHalfRadiusMaximum
