@@ -211,7 +211,11 @@ contains
     type   (fgsl_file                                       ), intent(in   ) :: fgslStateFile
     !GCC$ attributes unused :: fgslStateFile
 
-    write (stateFile) self%tableTimeMinimum,self%tableTimeMaximum
+    write (stateFile) self%tableInitialized
+    if (self%tableInitialized) then
+       write (stateFile) self%tableTimeMinimum,self%tableTimeMaximum
+       call self%overdensityCritical%serializeRaw(stateFile)
+    end if
     return
   end subroutine sphericalCollapseMatterLambdaStateStore
   
@@ -224,8 +228,10 @@ contains
     type   (fgsl_file                                       ), intent(in   ) :: fgslStateFile
     !GCC$ attributes unused :: fgslStateFile
     
-    read (stateFile) self%tableTimeMinimum,self%tableTimeMaximum
-    self%tableInitialized=.false.
-    call self%retabulate(sqrt(self%tableTimeMinimum*self%tableTimeMaximum))
+    read (stateFile) self%tableInitialized
+    if (self%tableInitialized) then
+       read (stateFile) self%tableTimeMinimum,self%tableTimeMaximum
+       call table1DDeserializeClassRaw(self%overdensityCritical,stateFile)
+    end if
     return
   end subroutine sphericalCollapseMatterLambdaStateRestore
