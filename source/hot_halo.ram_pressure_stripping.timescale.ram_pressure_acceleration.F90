@@ -69,7 +69,7 @@ contains
     ! Get the hot halo mass distribution.
     defaultHotHaloMassDistribution => hotHaloMassDistribution()
     darkMatterHaloScale_           => darkMatterHaloScale    ()
-   ! Evaluate surface density and ram pressure force.
+    ! Evaluate surface density and ram pressure force.
     thisHotHalo                 => thisNode   %hotHalo                   (                    )
     outerRadius                 =  thisHotHalo%outerRadius               (                    )
     densityAtOuterRadius        =  defaultHotHaloMassDistribution%density(thisNode,outerRadius)
@@ -88,21 +88,21 @@ contains
     ! Find the hosting node.
     hostNode => thisNode%parent
     ! Evaluate the timescale.
-    Hot_Halo_Ram_Pressure_Timescale_Ram_Pressure_Accel         &
-         & =(                                                  &
-         &    megaParsec                                       &
-         &   /kilo                                             &
-         &   /gigaYear                                         &
-         &  )                                                  &
-         &  *max(                                              &
-         &       sqrt(                                         &
-         &            2.0d0                                    &
-         &            *outerRadius                             &
-         &            *surfaceDensityAtOuterRadius             &
-         &            /forceRamPressure                        &
-         &           )                                       , &
-         &         outerRadius                                 &
-         &        /velocityStrippingMaximum                    &
+    Hot_Halo_Ram_Pressure_Timescale_Ram_Pressure_Accel            &
+         & =(                                                     &
+         &    megaParsec                                          &
+         &   /kilo                                                &
+         &   /gigaYear                                            &
+         &  )                                                     &
+         &  *max(                                                 &
+         &       sqrt(                                            &
+         &            2.0d0                                       &
+         &            *outerRadius                                &
+         &            *surfaceDensityAtOuterRadius                &
+         &            /forceRamPressure                           &
+         &           )                                          , &
+         &         outerRadius                                    &
+         &        /velocityStrippingMaximum                       &
          &        /darkMatterHaloScale_%virialVelocity(hostNode)  &
          &      )
     return

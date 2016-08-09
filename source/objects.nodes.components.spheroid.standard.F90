@@ -20,6 +20,7 @@
 
 module Node_Component_Spheroid_Standard
   !% Implements the standard spheroid component.
+  use ISO_Varying_String
   use Galacticus_Nodes
   use Histories
   use Stellar_Population_Properties
@@ -30,8 +31,9 @@ module Node_Component_Spheroid_Standard
        &    Node_Component_Spheroid_Standard_Radius_Solver    , Node_Component_Spheroid_Standard_Star_Formation_History_Output, &
        &    Node_Component_Spheroid_Standard_Initialize       , Node_Component_Spheroid_Standard_Post_Evolve                  , &
        &    Node_Component_Spheroid_Standard_Pre_Evolve       , Node_Component_Spheroid_Standard_Radius_Solver_Plausibility   , &
-       &    Node_Component_Spheroid_Standard_Satellite_Merging
-
+       &    Node_Component_Spheroid_Standard_Satellite_Merging, Node_Component_Spheroid_Standard_Thread_Initialize            , &
+       &    Node_Component_Spheroid_Standard_State_Store      , Node_Component_Spheroid_Standard_State_Retrieve
+  
   !# <component>
   !#  <class>spheroid</class>
   !#  <name>standard</name>
@@ -156,16 +158,22 @@ module Node_Component_Spheroid_Standard
   ! Internal count of abundances.
   integer                                     :: abundancesCount
 
-  ! Storage for the star formation history time range, used whene extending this range.
+  ! Storage for the star formation history time range, used when extending this range.
   double precision, allocatable, dimension(:) :: starFormationHistoryTemplate
   !$omp threadprivate(starFormationHistoryTemplate)
   ! Parameters controlling the physical implementation.
-  double precision                            :: spheroidEnergeticOutflowMassRate            , spheroidOutflowTimescaleMinimum
-  double precision                            :: spheroidAngularMomentumAtScaleRadius        , spheroidMassToleranceAbsolute
+  double precision                            :: spheroidEnergeticOutflowMassRate            , spheroidOutflowTimescaleMinimum       , &
+       &                                         spheroidMassToleranceAbsolute
   logical                                     :: spheroidStarFormationInSatellites
+
+  
+  ! Spheroid structural parameters.
+  type            (varying_string)            :: spheroidMassDistributionName
+  double precision                            :: spheroidAngularMomentumAtScaleRadius        , spheroidSersicIndex
   
   ! Record of whether this module has been initialized.
-  logical                                     :: moduleInitialized                   =.false.
+  logical                                     :: moduleInitialized                   =.false., sersicIndexInitialized        =.false., &
+       &                                         angularMomentumInitialized          =.false.
 
 contains
 
@@ -175,17 +183,10 @@ contains
   subroutine Node_Component_Spheroid_Standard_Initialize()
     !% Initializes the tree node standard spheroid methods module.
     use Input_Parameters
-    use Stellar_Luminosities_Structure
     use Abundances_Structure
-    use ISO_Varying_String
     use Galacticus_Error
-    use Memory_Management
     implicit none
     type            (nodeComponentSpheroidStandard) :: spheroidStandardComponent
-    double precision                                :: spheroidAngularMomentumAtScaleRadiusDefault, spheroidMassDistributionDensityMomentum2, &
-         &                                             spheroidMassDistributionDensityMomentum3   , spheroidSersicIndex
-    logical                                         :: densityMoment2IsInfinite                   , densityMoment3IsInfinite
-    type            (varying_string               ) :: spheroidMassDistributionName
 
     ! Initialize the module if necessary.
     !$omp critical (Node_Component_Spheroid_Standard_Initialize)
@@ -206,26 +207,6 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('spheroidMassDistribution',spheroidMassDistributionName,defaultValue="hernquist")
-       spheroidMassDistribution => Mass_Distribution_Create(char(spheroidMassDistributionName))
-       select type (spheroidMassDistribution)
-       type is (massDistributionHernquist)
-          call spheroidMassDistribution%initialize(isDimensionless=.true.)
-       type is (massDistributionSersic   )
-          !@ <inputParameter>
-          !@   <name>spheroidSersicIndex</name>
-          !@   <defaultValue>$4$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The S\'ersic index to use for the spheroid component mass distribution.
-          !@   </description>
-          !@   <type>double</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('spheroidSersicIndex',spheroidSersicIndex,defaultValue=4.0d0)
-          call spheroidMassDistribution%initialize(index=spheroidSersicIndex,isDimensionless=.true.)
-       class default
-          call Galacticus_Error_Report('Node_Component_Spheroid_Standard_Initialize','unsupported mass distribution')
-       end select
 
        ! Bind deferred functions.
        call spheroidStandardComponent%       starFormationRateFunction(Node_Component_Spheroid_Standard_Star_Formation_Rate        )
@@ -234,33 +215,7 @@ contains
        call spheroidStandardComponent%starFormationHistoryRateFunction(Node_Component_Spheroid_Standard_Star_Formation_History_Rate)
        call spheroidStandardComponent%               createFunctionSet(Node_Component_Spheroid_Standard_Initializor                )
 
-       ! Determine the specific angular momentum at the scale radius in units of the mean specific angular
-       ! momentum of the spheroid. This is equal to the ratio of the 2nd to 3rd radial moments of the density
-       ! distribution (assuming a flat rotation curve).
-       spheroidMassDistributionDensityMomentum2=spheroidMassDistribution%densityRadialMoment(2.0d0,isInfinite=densityMoment2IsInfinite)
-       spheroidMassDistributionDensityMomentum3=spheroidMassDistribution%densityRadialMoment(3.0d0,isInfinite=densityMoment3IsInfinite)
-       if (densityMoment2IsInfinite.or.densityMoment3IsInfinite) then
-          ! One of the moments is infinte, so we can not compute the appropriate ratio. Simply assume a value
-          ! of 0.5 as a default.
-          spheroidAngularMomentumAtScaleRadiusDefault=0.5d0
-       else
-          ! Moments are well-defined, so compute their ratio.
-          spheroidAngularMomentumAtScaleRadiusDefault=spheroidMassDistributionDensityMomentum2&
-               &/spheroidMassDistributionDensityMomentum3
-       end if
-
        ! Read parameters controlling the physical implementation.
-       !@ <inputParameter>
-       !@   <name>spheroidAngularMomentumAtScaleRadius</name>
-       !@   <defaultValue>$I_2/I_3$ where $I_n=\int_0^\infty \rho(r) r^n {\mathrm d}r$, where $\rho(r)$ is the spheroid density profile, unless either $I_2$ or $I_3$ is infinite, in which case a default of $1/2$ is used instead</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The assumed ratio of the specific angular momentum at the scale radius to the mean specific angular momentum of the standard spheroid component.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('spheroidAngularMomentumAtScaleRadius',spheroidAngularMomentumAtScaleRadius,defaultValue=spheroidAngularMomentumAtScaleRadiusDefault)
        !@ <inputParameter>
        !@   <name>spheroidEnergeticOutflowMassRate</name>
        !@   <defaultValue>0.01</defaultValue>
@@ -312,6 +267,79 @@ contains
     !$omp end critical (Node_Component_Spheroid_Standard_Initialize)
     return
   end subroutine Node_Component_Spheroid_Standard_Initialize
+
+  !# <mergerTreeEvolveThreadInitialize>
+  !#  <unitName>Node_Component_Spheroid_Standard_Thread_Initialize</unitName>
+  !# </mergerTreeEvolveThreadInitialize>
+  subroutine Node_Component_Spheroid_Standard_Thread_Initialize
+    !% Initializes the tree node hot halo methods module.
+    use Input_Parameters
+    use Galacticus_Error
+    implicit none
+    logical          :: densityMoment2IsInfinite                   , densityMoment3IsInfinite
+    double precision :: spheroidMassDistributionDensityMomentum2   , spheroidMassDistributionDensityMomentum3   , &
+         &              spheroidAngularMomentumAtScaleRadiusDefault
+
+    ! Check if this implementation is selected. If so, initialize the mass distribution.
+    if (defaultSpheroidComponent%standardIsActive()) then
+       spheroidMassDistribution => Mass_Distribution_Create(char(spheroidMassDistributionName))
+       select type (spheroidMassDistribution)
+       type is (massDistributionHernquist)
+          call spheroidMassDistribution%initialize(                          isDimensionless=.true.)
+       type is (massDistributionSersic   )
+          !$omp critical (spheroidStandardInitializeSersic)
+          if (.not.sersicIndexInitialized) then
+             !@ <inputParameter>
+             !@   <name>spheroidSersicIndex</name>
+             !@   <defaultValue>$4$</defaultValue>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@    The S\'ersic index to use for the spheroid component mass distribution.
+             !@   </description>
+             !@   <type>double</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter('spheroidSersicIndex',spheroidSersicIndex,defaultValue=4.0d0)
+             sersicIndexInitialized=.true.
+          end if
+          !$omp end critical (spheroidStandardInitializeSersic)
+          call spheroidMassDistribution%initialize(index=spheroidSersicIndex,isDimensionless=.true.)
+       class default
+          call Galacticus_Error_Report('Node_Component_Spheroid_Standard_Thread_Initialize','unsupported mass distribution')
+       end select
+       ! Determine the specific angular momentum at the scale radius in units of the mean specific angular
+       ! momentum of the spheroid. This is equal to the ratio of the 2nd to 3rd radial moments of the density
+       ! distribution (assuming a flat rotation curve).
+       spheroidMassDistributionDensityMomentum2=spheroidMassDistribution%densityRadialMoment(2.0d0,isInfinite=densityMoment2IsInfinite)
+       spheroidMassDistributionDensityMomentum3=spheroidMassDistribution%densityRadialMoment(3.0d0,isInfinite=densityMoment3IsInfinite)
+       if (densityMoment2IsInfinite.or.densityMoment3IsInfinite) then
+          ! One of the moments is infinte, so we can not compute the appropriate ratio. Simply assume a value
+          ! of 0.5 as a default.
+          spheroidAngularMomentumAtScaleRadiusDefault=+0.5d0
+       else
+          ! Moments are well-defined, so compute their ratio.
+          spheroidAngularMomentumAtScaleRadiusDefault=+spheroidMassDistributionDensityMomentum2 &
+               &                                      /spheroidMassDistributionDensityMomentum3
+       end if
+       !$omp critical (spheroidStandardInitializeSersic)
+       if (.not.angularMomentumInitialized) then
+          !@ <inputParameter>
+          !@   <name>spheroidAngularMomentumAtScaleRadius</name>
+          !@   <defaultValue>$I_2/I_3$ where $I_n=\int_0^\infty \rho(r) r^n {\mathrm d}r$, where $\rho(r)$ is the spheroid density profile, unless either $I_2$ or $I_3$ is infinite, in which case a default of $1/2$ is used instead</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The assumed ratio of the specific angular momentum at the scale radius to the mean specific angular momentum of the standard spheroid component.
+          !@   </description>
+          !@   <type>double</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('spheroidAngularMomentumAtScaleRadius',spheroidAngularMomentumAtScaleRadius,defaultValue=spheroidAngularMomentumAtScaleRadiusDefault)
+          angularMomentumInitialized=.true.
+       end if
+       !$omp end critical (spheroidStandardInitializeSersic)
+    end if
+    return
+  end subroutine Node_Component_Spheroid_Standard_Thread_Initialize
 
   !# <preEvolveTask>
   !# <unitName>Node_Component_Spheroid_Standard_Pre_Evolve</unitName>
@@ -1394,5 +1422,35 @@ contains
     end select
     return
   end subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Output
+
+  !# <galacticusStateStoreTask>
+  !#  <unitName>Node_Component_Spheroid_Standard_State_Store</unitName>
+  !# </galacticusStateStoreTask>
+  subroutine Node_Component_Spheroid_Standard_State_Store(stateFile,fgslStateFile)
+    !% Write the tablulation state to file.
+    use FGSL
+    implicit none
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
+    write (stateFile) spheroidAngularMomentumAtScaleRadius
+    call spheroidMassDistribution%stateStore(stateFile,fgslStateFile)
+    return
+  end subroutine Node_Component_Spheroid_Standard_State_Store
+
+  !# <galacticusStateRetrieveTask>
+  !#  <unitName>Node_Component_Spheroid_Standard_State_Retrieve</unitName>
+  !# </galacticusStateRetrieveTask>
+  subroutine Node_Component_Spheroid_Standard_State_Retrieve(stateFile,fgslStateFile)
+    !% Retrieve the tabulation state from the file.
+    use FGSL
+    implicit none
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
+    read (stateFile) spheroidAngularMomentumAtScaleRadius
+    call spheroidMassDistribution%stateRestore(stateFile,fgslStateFile)
+    return
+  end subroutine Node_Component_Spheroid_Standard_State_Retrieve
 
 end module Node_Component_Spheroid_Standard

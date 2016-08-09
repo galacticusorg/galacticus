@@ -297,15 +297,15 @@ contains
                 massLossRate=4.0d0*Pi*densityAtOuterRadius*outerRadius**2*outerRadiusGrowthRate
                 ! Adjust the rates.
                 ! Mass.
-                call thisHotHalo%           massColdRate(-                                  massLossRate        ,interrupt,interruptProcedure)
+                call thisHotHalo%           massColdRate(+                                  massLossRate        ,interrupt,interruptProcedure)
                 ! Angular momentum.
-                call thisHotHalo%angularMomentumColdRate(-thisHotHalo%angularMomentumCold()*massLossRate/gasMass,interrupt,interruptProcedure)
+                call thisHotHalo%angularMomentumColdRate(+thisHotHalo%angularMomentumCold()*massLossRate/gasMass,interrupt,interruptProcedure)
                 ! Metal abundances.
-                call thisHotHalo%     abundancesColdRate(-thisHotHalo%abundancesCold     ()*massLossRate/gasMass,interrupt,interruptProcedure)
+                call thisHotHalo%     abundancesColdRate(+thisHotHalo%abundancesCold     ()*massLossRate/gasMass,interrupt,interruptProcedure)
                 ! Mass.
-                call thisHotHalo%       strippedMassRate(+                                  massLossRate        ,interrupt,interruptProcedure)
+                call thisHotHalo%       strippedMassRate(-                                  massLossRate        ,interrupt,interruptProcedure)
                 ! Metal abundances.
-                call thisHotHalo% strippedAbundancesRate(+thisHotHalo%abundances         ()*massLossRate/gasMass,interrupt,interruptProcedure)
+                call thisHotHalo% strippedAbundancesRate(-thisHotHalo%abundances         ()*massLossRate/gasMass,interrupt,interruptProcedure)
              end if
           end if
        end select

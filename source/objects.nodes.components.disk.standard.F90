@@ -21,6 +21,7 @@
 module Node_Component_Disk_Standard
   !% Implements the standard disk node component.
   use Galacticus_Nodes
+  use ISO_Varying_String
   implicit none
   private
   public :: Node_Component_Disk_Standard_Scale_Set                    , Node_Component_Disk_Standard_Pre_Evolve       , &
@@ -28,7 +29,8 @@ module Node_Component_Disk_Standard
        &    Node_Component_Disk_Standard_Star_Formation_History_Output, Node_Component_Disk_Standard_Rate_Compute     , &
        &    Node_Component_Disk_Standard_Initialize                   , Node_Component_Disk_Standard_Post_Evolve      , &
        &    Node_Component_Disk_Standard_Satellite_Merging            , Node_Component_Disk_Standard_Calculation_Reset, &
-       &    Node_Component_Disk_Standard_State_Store                  , Node_Component_Disk_Standard_State_Retrieve
+       &    Node_Component_Disk_Standard_State_Store                  , Node_Component_Disk_Standard_State_Retrieve   , &
+       &    Node_Component_Disk_Standard_Thread_Initialize
 
   !# <component>
   !#  <class>disk</class>
@@ -156,7 +158,9 @@ module Node_Component_Disk_Standard
   double precision, parameter                 :: angularMomentumMinimum               =1.0d-6
 
   ! Disk structural parameters.
+  type            (varying_string)            :: diskMassDistributionName
   double precision                            :: diskStructureSolverSpecificAngularMomentum  , diskRadiusSolverFlatVsSphericalFactor
+  !$omp threadprivate(diskStructureSolverSpecificAngularMomentum,diskRadiusSolverFlatVsSphericalFactor)
   
   ! Record of whether this module has been initialized.
   logical                                     :: moduleInitialized                    =.false.
@@ -170,17 +174,10 @@ contains
     !% Initializes the tree node standard disk methods module.
     use Input_Parameters
     use Abundances_Structure
-    use Stellar_Luminosities_Structure
-    use Memory_Management
-    use Tables
-    use Node_Component_Disk_Standard_Data
-    use ISO_Varying_String
     use Galacticus_Error
+    use Node_Component_Disk_Standard_Data
     implicit none
-    type            (nodeComponentDiskStandard) :: diskStandardComponent
-    type            (varying_string           ) :: diskMassDistributionName
-    double precision                            :: diskMassDistributionDensityMoment1, diskMassDistributionDensityMoment2
-    logical                                     :: surfaceDensityMoment1IsInfinite   , surfaceDensityMoment2IsInfinite
+    type(nodeComponentDiskStandard) :: diskStandardComponent
 
     ! Initialize the module if necessary.
     !$omp critical (Node_Component_Disk_Standard_Initialize)
@@ -285,6 +282,26 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('diskMassDistribution',diskMassDistributionName,defaultValue="exponentialDisk")
+       ! Record that the module is now initialized.
+       moduleInitialized=.true.
+    end if
+    !$omp end critical (Node_Component_Disk_Standard_Initialize)
+    return
+  end subroutine Node_Component_Disk_Standard_Initialize
+
+  !# <mergerTreeEvolveThreadInitialize>
+  !#  <unitName>Node_Component_Disk_Standard_Thread_Initialize</unitName>
+  !# </mergerTreeEvolveThreadInitialize>
+  subroutine Node_Component_Disk_Standard_Thread_Initialize
+    !% Initializes the tree node hot halo methods module.
+    use Galacticus_Error
+    use Node_Component_Disk_Standard_Data
+    implicit none
+    double precision :: diskMassDistributionDensityMoment1, diskMassDistributionDensityMoment2
+    logical          :: surfaceDensityMoment1IsInfinite   , surfaceDensityMoment2IsInfinite
+
+    ! Check if this implementation is selected. If so, initialize the mass distribution.
+    if (defaultDiskComponent%standardIsActive()) then
        diskMassDistribution => Mass_Distribution_Create(char(diskMassDistributionName))
        select type (diskMassDistribution)
        type is (massDistributionExponentialDisk)
@@ -292,7 +309,7 @@ contains
        type is (massDistributionMiyamotoNagai  )
           call diskMassDistribution%initialize(b          =heightToRadialScaleDisk,isDimensionless=.true.)
        class default
-          call Galacticus_Error_Report('Node_Component_Disk_Standard_Initialize','unsupported mass distribution')
+          call Galacticus_Error_Report('Node_Component_Disk_Standard_Thread_Initialize','unsupported mass distribution')
        end select
        ! Compute the specific angular momentum of the disk at this structure solver radius in units of the mean specific angular
        ! momentum of the disk assuming a flat rotation curve.
@@ -315,7 +332,7 @@ contains
                   &  )
           end if
        class default
-          call Galacticus_Error_Report('Node_Component_Disk_Standard_Initialize','only cylcindrically symmetric mass distributions are allowed')
+          call Galacticus_Error_Report('Node_Component_Disk_Standard_Thread_Initialize','only cylcindrically symmetric mass distributions are allowed')
        end select
        ! If necessary, compute the specific angular momentum correction factor to account for the difference between rotation
        ! curves for thin disk and a spherical mass distribution.
@@ -328,12 +345,9 @@ contains
                   & -diskMassDistribution%massEnclosedBySphere(diskStructureSolverRadius)
           end select
        end if
-       ! Record that the module is now initialized.
-       moduleInitialized=.true.
     end if
-    !$omp end critical (Node_Component_Disk_Standard_Initialize)
     return
-  end subroutine Node_Component_Disk_Standard_Initialize
+  end subroutine Node_Component_Disk_Standard_Thread_Initialize
 
   !# <calculationResetTask>
   !#   <unitName>Node_Component_Disk_Standard_Calculation_Reset</unitName>
@@ -1277,6 +1291,7 @@ contains
     integer           , intent(in   ) :: stateFile
     type   (fgsl_file), intent(in   ) :: fgslStateFile
 
+    write (stateFile) diskStructureSolverSpecificAngularMomentum,diskRadiusSolverFlatVsSphericalFactor
     call diskMassDistribution%stateStore(stateFile,fgslStateFile)
     return
   end subroutine Node_Component_Disk_Standard_State_Store
@@ -1292,6 +1307,7 @@ contains
     integer           , intent(in   ) :: stateFile
     type   (fgsl_file), intent(in   ) :: fgslStateFile
 
+    read (stateFile) diskStructureSolverSpecificAngularMomentum,diskRadiusSolverFlatVsSphericalFactor
     call diskMassDistribution%stateRestore(stateFile,fgslStateFile)
     return
   end subroutine Node_Component_Disk_Standard_State_Retrieve

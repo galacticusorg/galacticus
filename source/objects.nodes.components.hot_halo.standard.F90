@@ -519,11 +519,12 @@ contains
     class(nodeComponentSpin   )               , pointer :: parentSpinComponent
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     
-    ! Limit hot gas mass to be non-negative.
+    ! Limit hot gas mass, and outer radius to be non-negative.
     thisHotHaloComponent => thisNode%hotHalo()
     select type (thisHotHaloComponent)
     class is (nodeComponentHotHaloStandard)
-       if (thisHotHaloComponent%mass() < 0.0d0) call thisHotHaloComponent%massSet(0.0d0)
+       if (thisHotHaloComponent%       mass() < 0.0d0) call thisHotHaloComponent%       massSet(0.0d0)
+       if (thisHotHaloComponent%outerRadius() < 0.0d0) call thisHotHaloComponent%outerRadiusSet(0.0d0)
     end select
     ! Process hot gas for satellites.
     if (thisNode%isSatellite()) then
