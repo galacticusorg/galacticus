@@ -76,8 +76,6 @@ my @tmpFiles;
 my $xml = new XML::Simple;
 my $data = $xml->XMLin($galacticusPath."data/observations/galaxySizes/Disk_Sizes_Dejong_2000.xml");
 my $i = -1;
-my @leafFiles;
-my @plotFiles;
 foreach my $dataSet ( @{$data->{'sizeDistribution'}} ) {
     my $columns = $dataSet->{'columns'};
     my $x = pdl @{$columns->{'scaleLength'}->{'data'}};
@@ -124,21 +122,21 @@ foreach my $dataSet ( @{$data->{'sizeDistribution'}} ) {
     my $plot;
     my $gnuPlot;
     (my $plotFile = $outputFile) =~ s/\.pdf/_$i.pdf/;
-    (my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
+    (my $plotFileTeX = $plotFile) =~ s/\.pdf$/.tex/;
     open($gnuPlot,"|gnuplot > /dev/null 2>&1");
-    print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
-    print $gnuPlot "set output '".$plotFileEPS."'\n";
+    print $gnuPlot "set terminal cairolatex pdf standalone color lw 2\n";
+    print $gnuPlot "set output '".$plotFileTeX."'\n";
     my $title = $dataSet->{'description'};
     $title =~ s/([\-\d]+\s*<\s*)M(\s*<\s*[\-\d]+)/\$$1M_{\\rm I,0}$2\$/;
-    print $gnuPlot "set title '".$title."'\n";
-    print $gnuPlot "set xlabel 'Disk scale length; \$r_{\\rm disk}\$ [kpc]'\n";
-    print $gnuPlot "set ylabel 'Comoving number density; \${\\rm d}^2n/{\\rm d}\\log_{10}r_{\\rm disk}/{\\rm d}M_{\\rm I,0} [\\hbox{Mpc}^{-3} \\hbox{mag}^{-1}]\$'\n";
+    print $gnuPlot "set title offset 0,-1 '".$title."'\n";
+    print $gnuPlot "set xlabel '\$r_\\mathrm{disk}\$ [kpc]'\n";
+    print $gnuPlot "set ylabel '\$\\mathrm{d}^2n/\\mathrm{d}\\log_{10}r_\\mathrm{disk}/\\mathrm{d}M_{\\rm I,0}\\,\\,[\\hbox{Mpc}^{-3} \\hbox{mag}^{-1}]\$'\n";
     print $gnuPlot "set lmargin screen 0.15\n";
     print $gnuPlot "set rmargin screen 0.95\n";
     print $gnuPlot "set bmargin screen 0.15\n";
     print $gnuPlot "set tmargin screen 0.95\n";
     print $gnuPlot "set key spacing 1.2\n";
-    print $gnuPlot "set key at screen 0.275,0.16\n";
+    print $gnuPlot "set key at screen 0.5,0.76\n";
     print $gnuPlot "set key left\n";
     print $gnuPlot "set key bottom\n";
     print $gnuPlot "set logscale xy\n";
@@ -159,8 +157,9 @@ foreach my $dataSet ( @{$data->{'sizeDistribution'}} ) {
 	style      => "point",
 	symbol     => [6,7],
 	weight     => [5,3],
-	color      => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'slideSequence'}}[0]},
-	title      => $label.' [observed]'
+	pointSize  => 0.5,
+	color      => $PrettyPlots::colorPairs{'cornflowerBlue'},
+	title      => $label
 	);
     &PrettyPlots::Prepare_Dataset(
 	\$plot,
@@ -170,21 +169,15 @@ foreach my $dataSet ( @{$data->{'sizeDistribution'}} ) {
 	style      => "point",
 	symbol     => [6,7],
 	weight     => [5,3],
+	pointSize  => 0.5,
 	color      => $PrettyPlots::colorPairs{'redYellow'},
 	title      => 'Galacticus'
 	);
     &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
     close($gnuPlot);
-    &LaTeX::GnuPlot2PDF($plotFileEPS);
-    (my $leafName = $plotFile) =~ s/^.*\/([^\/]+)$/$1/;
-    push(@leafFiles,$leafName);
-    push(@plotFiles,$plotFile);
+    &LaTeX::GnuPlot2PDF($plotFileTeX);
+    &MetaData::Write($plotFile,$galacticusFile,$self);
 }
-die("Plot_Disk_Scalelengths.pl: 'pdfmerge' tool is required")
-    unless ( &File::Which::which("pdfmerge") );
-&SystemRedirect::tofile("rm -f ".$outputFile."; cd ".$outputDir."; pdfmerge ".join(" ",@leafFiles)." tmp.pdf; cd -; mv ".$outputDir."/tmp.pdf ".$outputFile,"/dev/null");
-unlink(@plotFiles);
-&MetaData::Write($outputFile,$galacticusFile,$self);
 
 # Display chi^2 information
 if ( $showFit == 1 ) {

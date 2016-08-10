@@ -163,19 +163,19 @@ if ( $showFit == 1 ) {
 my $plot;
 my $gnuPlot;
 my $plotFile = $outputFile;
-(my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
-open($gnuPlot,"|gnuplot 1>/dev/null 2>&1");
-print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
-print $gnuPlot "set output '".$plotFileEPS."'\n";
-print $gnuPlot "set title 'Star Formation Rate History'\n";
-print $gnuPlot "set xlabel 'Redshift; \$z\$'\n";
-print $gnuPlot "set ylabel 'Comoving star formation rate density; \$\\dot{\\rho}(z) [M_\\odot/\\hbox{yr}/\\hbox{Mpc}^{-3}]\$'\n";
+(my $plotFileTeX = $plotFile) =~ s/\.pdf$/.tex/;
+open($gnuPlot,"|gnuplot");
+print $gnuPlot "set terminal cairolatex pdf standalone color lw 2\n";
+print $gnuPlot "set output '".$plotFileTeX."'\n";
+print $gnuPlot "set title offset 0,-1 'Star Formation Rate History'\n";
+print $gnuPlot "set xlabel '\$z\$'\n";
+print $gnuPlot "set ylabel '\$\\dot{\\rho}(z)\\,\\,[\\mathrm{M}_\\odot/\\hbox{yr}/\\hbox{Mpc}^{-3}]\$'\n";
 print $gnuPlot "set lmargin screen 0.15\n";
 print $gnuPlot "set rmargin screen 0.95\n";
 print $gnuPlot "set bmargin screen 0.15\n";
 print $gnuPlot "set tmargin screen 0.95\n";
 print $gnuPlot "set key spacing 1.2\n";
-print $gnuPlot "set key at screen 0.275,0.16\n";
+print $gnuPlot "set key at screen 0.325,0.16\n";
 print $gnuPlot "set key left\n";
 print $gnuPlot "set key bottom\n";
 print $gnuPlot "set logscale y\n";
@@ -195,8 +195,9 @@ for($iDataset=0;$iDataset<scalar(@dataSets);++$iDataset) {
 	 style      => "point",
 	 symbol     => [6,7],
 	 weight     => [5,3],
-	 color      => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'slideSequence'}}[$iDataset]},
-	 title      => $dataSets[$iDataset]->{'label'}.' [observed]'
+	 pointSize  => 0.5,
+	 color      => $PrettyPlots::colorPairs{($iDataset == 0 ? 'cornflowerBlue' : 'lightSkyBlue')},
+	 title      => $dataSets[$iDataset]->{'label'}
 	);
 }
 my $nonZeroPoints = which($SFR > 0.0);
@@ -210,7 +211,7 @@ my $nonZeroPoints = which($SFR > 0.0);
     );
 &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF($plotFileEPS);
+&LaTeX::GnuPlot2PDF($plotFileTeX);
 &MetaData::Write($plotFile,$galacticusFile,$self);
 
 exit;

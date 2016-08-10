@@ -155,7 +155,7 @@ if ( $gnuPlotVersion[0] < 4 || $gnuPlotVersion[0] == 4 && $gnuPlotVersion[1] <= 
     print pHndl "set table 'contour.dat'\n";
 }
 print pHndl "unset surface\n";
-print pHndl "set contour base; set cntrparam level 10\n";
+print pHndl "set contour base; set cntrparam level auto 10\n";
 print pHndl "splot '-'\n";
 for(my $iMagnitude=0;$iMagnitude<$magnitudePoints;++$iMagnitude) {
     for(my $iColor=0;$iColor<$colorPoints;++$iColor) {
@@ -169,18 +169,24 @@ close(pHndl);
 system("awk \"NF<2{printf\\\"\\n\\\"}{print}\" <contour.dat >contour1.dat");
 
 open(my $gnuPlot,"|gnuplot");
-print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
-print $gnuPlot "set output 'tmp.eps'\n";
-print $gnuPlot "set title 'SDSS Galaxy Color Distribution'\n";
-print $gnuPlot "set xlabel '\$^{0.1}\$r'\n";
-print $gnuPlot "set ylabel '\$^{0.1}\$g\$-^{0.1}\$r'\n";
+print $gnuPlot "set terminal cairolatex pdf standalone color lw 2\n";
+print $gnuPlot "set output 'tmp.tex'\n";
+print $gnuPlot "set title offset 0,-1 'SDSS Galaxy Color Distribution'\n";
+print $gnuPlot "set lmargin screen 0.15\n";
+print $gnuPlot "set rmargin screen 0.95\n";
+print $gnuPlot "set bmargin screen 0.15\n";
+print $gnuPlot "set tmargin screen 0.95\n";
+print $gnuPlot "set xlabel '\$^{0.1}M_\\mathrm{r}\$'\n";
+print $gnuPlot "set ylabel offset -0.75,0 '\$^{0.1}M_\\mathrm{g}-^{0.1}M_\\mathrm{r}\$'\n";
 print $gnuPlot "set xrange [".$magnitudeMin.":".$magnitudeMax."]\n";
 print $gnuPlot "set yrange [".$colorMin.":".$colorMax."]\n";
+print $gnuPlot "set zrange [2.0e-3:25.0]\n";
 print $gnuPlot "set pm3d map\n";
 print $gnuPlot "set pm3d explicit\n";
+print $gnuPlot "unset colorbox\n";
 print $gnuPlot "set logscale z\n";
-print $gnuPlot "set palette rgbformulae 34,35,36\n";
-print $gnuPlot "splot '-' with pm3d title \"".$data->{'galaxyColors'}->{'label'}."\", 'contour1.dat' with line lt -1 lc rgbcolor \"#FFFF00\" title \"Galacticus\"\n";
+print $gnuPlot "set palette defined (0 'white', 1 'dark-blue')\n";
+print $gnuPlot "splot '-' with pm3d notitle, 'contour1.dat' with line lt -1 lw 3 lc rgbcolor \"#FF0000\" notitle, 'contour1.dat' with line lt -1 lc rgbcolor \"#FFFF00\" notitle\n";
 for(my $iMagnitude=0;$iMagnitude<$magnitudePoints;++$iMagnitude) {
     for(my $iColor=0;$iColor<$colorPoints;++$iColor) {
  	print $gnuPlot $magnitudeBins->index($iMagnitude)." ".$colorBins->index($iColor)." ".$countSDSS(($iMagnitude),($iColor))."\n";
@@ -189,8 +195,8 @@ for(my $iMagnitude=0;$iMagnitude<$magnitudePoints;++$iMagnitude) {
 }
 print $gnuPlot "e\n";
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF("tmp.eps");
-unlink("tmp.eps");
+&LaTeX::GnuPlot2PDF("tmp.tex");
+unlink("tmp.tex","tmp-inc.pdf");
 unlink("contour.dat");
 unlink("contour1.dat");
 
