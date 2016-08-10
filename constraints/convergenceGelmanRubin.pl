@@ -25,7 +25,8 @@ my %arguments =
      outliersMaximum  => 10,
      useUnconverged   => "yes",
      parametersMapped => "yes",
-     randomSample     => "no"
+     randomSample     => "no" ,
+     includePrevious  => "yes"
     );
 &Options::Parse_Options(\@ARGV,\%arguments);
 
