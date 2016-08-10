@@ -186,7 +186,8 @@ sub Get_Dust_Attenuated_Luminosity {
 	# Identify diskless galaxies and assign an arbitrary size. These will later have attenuation set to unity anyway, so the
 	# value here does not matter.
 	$diskless = which($dataSets->{'diskRadius'} <= 0.0);
-	$sizes->($diskless) .= 1.0;
+	$sizes->($diskless) .= 1.0
+	    if ( nelem($diskless) > 0 );
 	my $sizesLimited;
 	if ( $extrapolateInSize == 0 ) {
 	    my $sizeMinimum  = $spheroidSizes->index(0);
@@ -268,7 +269,8 @@ sub Get_Dust_Attenuated_Luminosity {
     } else{
  	die("Get_Dust_Attenuated_Luminosity(): unknown component");
     }
-    $attenuations->($diskless) .= 1.0;
+    $attenuations->($diskless) .= 1.0
+	if ( nelem($diskless) > 0 );
     $PDL::BIGPDL = 0;
     
     # Multiply luminosities by attenuations.
