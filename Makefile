@@ -59,7 +59,7 @@ FCFLAGS += -O3 -ffinite-math-only -fno-math-errno
 FCFLAGS += -fopenmp
 
 # C compiler flags:
-CFLAGS = -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ -I/opt/gsl-trunk/include ${GALACTICUS_CFLAGS}
+CFLAGS = -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ ${GALACTICUS_CFLAGS}
 CFLAGS += -g
 
 # C++ compiler flags:
@@ -217,8 +217,8 @@ $(BUILDPATH)/%.m : ./source/%.F90
 # file.
 %.exe : $(BUILDPATH)/%.o $(BUILDPATH)/%.d `cat $(BUILDPATH)/$*.d` $(MAKE_DEPS)
 	 $(CONDORLINKER) $(FCCOMPILER) `cat $*.d` -o $*.exe $(FCFLAGS) `scripts/build/Library_Dependencies.pl $*.exe $(FCFLAGS)`
-	 ./scripts/build/Find_Executable_Size.pl $*.exe $*.size
-	 ./scripts/build/Find_Parameter_Dependencies.pl `pwd` $*.exe
+	 ./scripts/build/executableSize.pl $*.exe $*.size
+	 ./scripts/build/parameterDependencies.pl `pwd` $*.exe
 
 # Ensure that we don't delete object files which make considers to be intermediate
 .PRECIOUS: %.o %.d %.dd %.m %.make %.Inc $(BUILDPATH)/%.p.F90
@@ -308,13 +308,13 @@ $(BUILDPATH)/Makefile_Directives: ./scripts/build/Code_Directive_Parser.pl sourc
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/Code_Directive_Parser.pl `pwd`
 
-$(BUILDPATH)/Makefile_Include_Deps: ./scripts/build/Find_Include_Dependencies.pl source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp)
+$(BUILDPATH)/Makefile_Include_Deps: ./scripts/build/includeDependencies.pl source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp)
 	@mkdir -p $(BUILDPATH)
-	./scripts/build/Find_Include_Dependencies.pl `pwd`
+	./scripts/build/includeDependencies.pl `pwd`
 
-$(BUILDPATH)/Makefile_All_Execs: ./scripts/build/Find_Programs.pl source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp)
+$(BUILDPATH)/Makefile_All_Execs: ./scripts/build/findExecutables.pl source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp)
 	@mkdir -p $(BUILDPATH)
-	./scripts/build/Find_Programs.pl `pwd`
+	./scripts/build/findExecutables.pl `pwd`
 
 deps: $(MAKE_DEPS) $(BUILDPATH)/Makefile_All_Execs
 
