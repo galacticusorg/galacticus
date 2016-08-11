@@ -112,8 +112,8 @@ program Halo_Model_Mock
   !@ </inputParameter>
   call Get_Input_Parameter('haloModelMockMassMaximum',haloModelMockMassMaximum,defaultValue=1.0d16)
   ! Initialize nodes infrastructure.
-  call Galacticus_Nodes_Initialize()
-  call Node_Components_Initialize ()
+  call nodeClassHierarchyInitialize()
+  call Node_Components_Initialize  ()
   ! Get required objects.
   cosmologyFunctions_      => cosmologyFunctions     ()
   darkMatterProfile_       => darkMatterProfile      ()

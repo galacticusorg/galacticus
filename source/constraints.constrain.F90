@@ -79,7 +79,7 @@ contains
          &                                                     iParameter                     , inactiveParameterCount
 
     ! Ensure the nodes objects are initialized.
-    call Galacticus_Nodes_Initialize()
+    call nodeClassHierarchyInitialize()
     call Node_Components_Initialize ()
     ! Run the config file through an external XInclude filter to include any Xinclude'd files.
     filteredFile="/dev/shm/"//trim(configFile)//"_"//mpiSelf%rankLabel()
