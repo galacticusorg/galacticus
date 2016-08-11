@@ -68,29 +68,25 @@ module Node_Component_Black_Hole_Standard
   !#     <name>massSeed</name>
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
-  !#     <isVirtual>true</isVirtual>
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
   !#     <getFunction>Node_Component_Black_Hole_Standard_Seed_Mass</getFunction>
   !#   </property>
   !#   <property>
   !#     <name>spinSeed</name>
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
-  !#     <isVirtual>true</isVirtual>
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
   !#     <getFunction>Node_Component_Black_Hole_Standard_Seed_Spin</getFunction>
   !#   </property>
   !#   <property>
   !#     <name>accretionRate</name>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" />
-  !#     <isVirtual>true</isVirtual>
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" isVirtual="true" />
   !#     <type>double</type>
   !#     <rank>0</rank>
   !#   </property>
   !#   <property>
   !#     <name>radiativeEfficiency</name>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" />
-  !#     <isVirtual>true</isVirtual>
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" isVirtual="true" />
   !#     <type>double</type>
   !#     <rank>0</rank>
   !#   </property>

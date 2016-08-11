@@ -70,8 +70,7 @@ module Node_Component_Disk_Very_Simple
   !#   </property>
   !#   <property>
   !#     <name>starFormationRate</name>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" />
-  !#     <isVirtual>true</isVirtual>
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" isVirtual="true" />
   !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <output condition="[[diskOutputStarFormationRate]]" unitsInSI="massSolar/gigaYear" comment="Disk star formation rate."/>

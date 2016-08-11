@@ -94,22 +94,19 @@ module Node_Component_Hot_Halo_Standard
   !#   </property>
   !#   <property>
   !#     <name>outflowingMass</name>
-  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
-  !#     <isVirtual>true</isVirtual>
+  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" isVirtual="true" />
   !#     <type>double</type>
   !#     <rank>0</rank>
   !#   </property>
   !#   <property>
   !#     <name>outflowingAngularMomentum</name>
-  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
-  !#     <isVirtual>true</isVirtual>
+  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" isVirtual="true" />
   !#     <type>double</type>
   !#     <rank>0</rank>
   !#   </property>
   !#   <property>
   !#     <name>outflowingAbundances</name>
-  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
-  !#     <isVirtual>true</isVirtual>
+  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" isVirtual="true" />
   !#     <type>abundances</type>
   !#     <rank>0</rank>
   !#   </property>
@@ -141,45 +138,39 @@ module Node_Component_Hot_Halo_Standard
   !#   </property>
   !#   <property>
   !#     <name>hotHaloCoolingMass</name>
-  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" />
-  !#     <isVirtual>true</isVirtual>
+  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" isVirtual="true" />
   !#     <type>double</type>
   !#     <rank>0</rank>
   !#   </property>
   !#   <property>
   !#     <name>hotHaloCoolingAngularMomentum</name>
-  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" />
-  !#     <isVirtual>true</isVirtual>
+  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" isVirtual="true" />
   !#     <type>double</type>
   !#     <rank>0</rank>
   !#   </property>
   !#   <property>
   !#     <name>hotHaloCoolingAbundances</name>
-  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" />
-  !#     <isVirtual>true</isVirtual>
+  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" isVirtual="true" />
   !#     <type>abundances</type>
   !#     <rank>0</rank>
   !#   </property>
   !#   <property>
   !#     <name>massSink</name>
-  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
-  !#     <isVirtual>true</isVirtual>
+  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" isVirtual="true" />
   !#     <type>double</type>
   !#     <rank>0</rank>
   !#   </property>
   !#   <property>
   !#     <name>heatSource</name>
-  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
-  !#     <isVirtual>true</isVirtual>
+  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" isVirtual="true" />
   !#     <type>double</type>
   !#     <rank>0</rank>
   !#   </property>
   !#   <property>
   !#     <name>massTotal</name>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>true</isVirtual>
   !#     <getFunction>Node_Component_Hot_Halo_Standard_Mass_Total</getFunction>
   !#   </property>
   !#  </properties>

@@ -65,10 +65,9 @@ module Node_Component_Hot_Halo_Cold_Mode
   !#   </property>
   !#   <property>
   !#     <name>massTotal</name>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>true</isVirtual>
   !#     <getFunction>Node_Component_Hot_Halo_Cold_Mode_Mass_Total</getFunction>
   !#   </property>
   !#  </properties>

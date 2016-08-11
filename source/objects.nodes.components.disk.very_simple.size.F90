@@ -45,8 +45,7 @@ module Node_Component_Disk_Very_Simple_Size
   !#   </property>
   !#   <property>
   !#     <name>halfMassRadius</name>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
-  !#     <isVirtual>true</isVirtual>
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
   !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <getFunction>Node_Component_Disk_Very_Simple_Size_Half_Mass_Radius</getFunction>
