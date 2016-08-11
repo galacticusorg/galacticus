@@ -308,7 +308,7 @@ CODE
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})
-    call self%component{ucfirst($class->{'name'})}(i)%nameFromIndex(count,name)
+    name=self%component{ucfirst($class->{'name'})}(i)%nameFromIndex(count)
     if (count <= 0) return
   end do
 end if

@@ -250,7 +250,7 @@ sub Construct_Data {
 		isEvolvable => $property->{'attributes'}->{'isEvolvable'}
 	    };
 	    # Unless this property is virtual, create a linked data object for it.
-	    unless ( $property->{'isVirtual'} ) {
+	    unless ( $property->{'attributes'}->{'isVirtual'} ) {
 		# Write a message.
 		print "            --> '".$property->{'name'}."'\n";
 		# Create the linked data name.

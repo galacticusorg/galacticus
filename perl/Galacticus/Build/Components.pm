@@ -28,6 +28,7 @@ require Galacticus::Build::Hooks;
 require Galacticus::Build::Components::Utils;
 require Galacticus::Build::Components::CodeGeneration;
 require Galacticus::Build::Components::Hierarchy;
+require Galacticus::Build::Components::Hierarchy::ODESolver;
 require Galacticus::Build::Components::TreeNodes;
 require Galacticus::Build::Components::TreeNodes::CreateDestroy;
 require Galacticus::Build::Components::TreeNodes::ODESolver;
@@ -40,6 +41,7 @@ require Galacticus::Build::Components::Classes::Names;
 require Galacticus::Build::Components::Classes::Utils;
 require Galacticus::Build::Components::Implementations;
 require Galacticus::Build::Components::Implementations::Names;
+require Galacticus::Build::Components::Implementations::ODESolver;
 require Galacticus::Build::Components::Properties;
 require Galacticus::Build::Components::Properties::Set;
 require Galacticus::Build::Components::Attributes;
@@ -152,8 +154,6 @@ sub Components_Generate_Output {
 	    \&Generate_Implementation_Builder_Functions              ,
 	    # Generate output functions for each implementation.
 	    \&Generate_Implementation_Output_Functions               ,
-	    # Generate functions to get the name of properties from an index.
-	    \&Generate_Implementation_Name_From_Index_Functions      ,
 	    # Generate serialization/deserialization functions for each implementation.
 	    \&Generate_Implementation_Serialization_Functions        ,
 	    # Generate serialization offset functions for each implementation.
@@ -1455,7 +1455,7 @@ sub Generate_Implementation_Dump_Functions {
 			    $functionBody .= "    end do\n";
 			}			
 		    }
-		} elsif ( $property->{'isVirtual'} && $property->{'rank'} == 0 ) {
+		} elsif ( $property->{'attributes'}->{'isVirtual'} && $property->{'rank'} == 0 ) {
 		    if (&Utils::isIntrinsic($property->{'type'})) {
 			(my $typeFormat = $formatLabel{$property->{'type'}}) =~ s/^\'\((.*)\)\'$/$1/g;
 			$functionBody .= "    write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".&Utils::padImplementationPropertyName($propertyName,[0,0])."(),'</".$propertyName.">'\n";
@@ -2039,7 +2039,7 @@ sub Generate_Implementation_Output_Functions {
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    $rank   = $linkedData->{'rank'};
 		    $type   = $linkedData->{'type'};
-		} elsif ( $property->{'isVirtual'} && $property->{'attributes'}->{'isGettable'} ) {
+		} elsif ( $property->{'attributes'}->{'isVirtual'} && $property->{'attributes'}->{'isGettable'} ) {
 		    $rank = $property->{'rank'};
 		    $type = $property->{'type'};
 		} else {
@@ -2152,7 +2152,7 @@ sub Generate_Implementation_Output_Functions {
 			my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 			$rank   = $linkedData->{'rank'};
 			$type   = $linkedData->{'type'};
-		    } elsif ( $property->{'isVirtual'} && $property->{'attributes'}->{'isGettable'} ) {
+		    } elsif ( $property->{'attributes'}->{'isVirtual'} && $property->{'attributes'}->{'isGettable'} ) {
 			$rank = $property->{'rank'};
 			$type = $property->{'type'};
 		    } else {
@@ -2345,7 +2345,7 @@ sub Generate_Implementation_Output_Functions {
 			my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 			$rank   = $linkedData->{'rank'};
 			$type   = $linkedData->{'type'};
-		    } elsif ( $property->{'isVirtual'} && $property->{'attributes'}->{'isGettable'} ) {
+		    } elsif ( $property->{'attributes'}->{'isVirtual'} && $property->{'attributes'}->{'isGettable'} ) {
 			$rank = $property->{'rank'};
 			$type = $property->{'type'};
 		    } else {
@@ -2468,146 +2468,6 @@ sub Generate_Implementation_Output_Functions {
 	    {type => "procedure", name => "outputNames", function => "Node_Component_".ucfirst($componentID)."_Output_Names"},
 	    );
     }
-}
-
-sub Generate_Implementation_Name_From_Index_Functions {
-    # Generate serialization/deserialization functions for each component implementation.
-    my $build = shift;
-    # Initialize function code.
-    my $functionCode;
-    # Initialize data content.
-    my @dataContent;
-    # Iterate over component implementations.
-    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
-	# Get the component.
-	my $component = $build->{'components'}->{$componentID};
-	# Generate data content.
-	@dataContent =
-	    (
-	     {
-		 intrinsic  => "class",
-		 type       => "nodeComponent".ucfirst($componentID),
-		 attributes => [ "intent(in   )" ],
-		 variables  => [ "self" ]
-	     },
-	     {
-		 intrinsic  => "integer",
-		 attributes => [ "intent(inout)" ],
-		 variables  => [ "count" ]
-	     },
-	     {
-		 intrinsic  => "type",
-		 type       => "varying_string",	
-		 attributes => [ "intent(inout)" ],
-		 variables  => [ "name" ]
-	     }
-	    );
-	# Generate the function.
-	my $selfUsed  = 0;
-	my $countUsed = 0;
-  	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Name_From_Index(self,count,name)\n";
-	$functionCode .= "    !% Return the name of the property of given index for a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
-	$functionCode .= "    use ISO_Varying_String\n";
-	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	my $functionBody = "";
-	# If this component is an extension, first call on the extended type.
-	if ( exists($build->{'components'}->{$componentID}->{'extends'}) ) {
-	    my $extends = $build->{'components'}->{$componentID}->{'extends'};
-	    $functionBody .= "    call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%nameFromIndex(count,name)\n";
-	    $functionBody .= "    if (count <= 0) return\n";	    
-	    $selfUsed  = 1;
-	    $countUsed = 1;
-	}
-	# Iterate over properties.
-	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
-	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
-   	    # Check if this property has any linked data in this component.
-	    if ( exists($property->{'linkedData'}) ) {
-		# For each linked datum count if necessary.
-		my $linkedDataName = $property->{'linkedData'};
-		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
-		if ( $linkedData->{'isEvolvable'} ) {
-		    $countUsed = 1;
-		    if ( $linkedData->{'rank'} == 0 ) {
-			if ( $linkedData->{'type'} eq "double" ) {
-			    $functionBody .= "    count=count-1\n";
-			}
-			else {
-			    $functionBody .= "    count=count-self%".&Utils::padLinkedData($linkedDataName,[0,0])."%serializeCount()\n";
-			    $selfUsed  = 1;
-			}
-		    } else {
-			$functionBody .= "    if (allocated(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")) count=count-size(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")\n";
-			$selfUsed  = 1;
-		    }
-		    $functionBody .= "    if (count <= 0) then\n";
-		    $functionBody .= "      name='".$component->{'class'}.":".$component->{'name'}.":".$propertyName."'\n";
-		    $functionBody .= "      return\n";
-		    $functionBody .= "    end if\n";
-		}
-	    }
-	}
-	$functionBody .= "    name='?'\n";
-	$functionBody .= "    return\n";
-	$functionBody .= "  end subroutine Node_Component_".ucfirst($componentID)."_Name_From_Index\n\n";
-	$functionCode .= "   !GCC\$ attributes unused :: self\n"
-	    unless ( $selfUsed  );
-	$functionCode .= "   !GCC\$ attributes unused :: count\n"
-	    unless ( $countUsed );
-	$functionCode .= $functionBody;
-	# Insert into the function list.
-	push(
-	    @{$build->{'code'}->{'functions'}},
-	    $functionCode
-	    );
-	# Insert a type-binding for this function into the implementation type.
-	push(
-	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-	    {type => "procedure", name => "nameFromIndex", function => "Node_Component_".ucfirst($componentID)."_Name_From_Index"}
-	    );
-    }
-    # Generate data content.
-    @dataContent =
-	(
-	 {
-	     intrinsic  => "class",
-	     type       => "nodeComponent",
-	     attributes => [ "intent(in   )" ],
-	     variables  => [ "self" ]
-	 },
-	 {
-	     intrinsic  => "integer",
-	     attributes => [ "intent(inout)" ],
-	     variables  => [ "count" ]
-	 },
-	 {
-	     intrinsic  => "type",
-	     type       => "varying_string",	
-	     attributes => [ "intent(inout)" ],
-	     variables  => [ "name" ]
-	 }
-	);
-    # Generate the function.
-    $functionCode  = "  subroutine Node_Component_Name_From_Index(self,count,name)\n";
-    $functionCode .= "    !% Return the name of the property of given index.\n";
-    $functionCode .= "    use ISO_Varying_String\n";
-    $functionCode .= "    implicit none\n";
-    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    $functionCode .= "    !GCC\$ attributes unused :: self, count\n";
-    $functionCode .= "    name='?'\n";
-    $functionCode .= "    return\n";
-    $functionCode .= "  end subroutine Node_Component_Name_From_Index\n\n";
-    # Insert into the function list.
-    push(
-	@{$build->{'code'}->{'functions'}},
-	$functionCode
-	);
-    # Insert a type-binding for this function into the implementation type.
-    push(
-	@{$build->{'types'}->{'nodeComponent'}->{'boundFunctions'}},
-	{type => "procedure", name => "nameFromIndex", function => "Node_Component_Name_From_Index", description => "Return the name of a property given is index.", returnType => "\\void", arguments => "\\intzero\\ count\\argin, \\textcolor{red}{\\textless varying\\_string\\textgreater}name\\argout"}
-	);
 }
 
 sub Generate_Implementation_Serialization_Functions {
@@ -4775,7 +4635,7 @@ sub Generate_Component_Class_Output_Functions {
 			my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 			$rank   = $linkedData->{'rank'};
 			$type   = $linkedData->{'type'};
-		    } elsif ( $property->{'isVirtual'} && $property->{'attributes'}->{'isGettable'} ) {
+		    } elsif ( $property->{'attributes'}->{'isVirtual'} && $property->{'attributes'}->{'isGettable'} ) {
 			$rank = $property->{'rank'};
 			$type = $property->{'type'};
 		    } else {
