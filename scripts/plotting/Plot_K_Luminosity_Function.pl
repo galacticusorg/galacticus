@@ -99,19 +99,19 @@ if ( $showFit == 1 ) {
 my $plot;
 my $gnuPlot;
 my $plotFile = $outputFile;
-(my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
+(my $plotFileTeX = $plotFile) =~ s/\.pdf$/.tex/;
 open($gnuPlot,"|gnuplot 1>/dev/null 2>&1");
-print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
-print $gnuPlot "set output '".$plotFileEPS."'\n";
-print $gnuPlot "set title 'K-band Luminosity Function at \$z=0\$'\n";
-print $gnuPlot "set xlabel 'K-band absolute magnitude; \$M_{\\rm K}\$'\n";
-print $gnuPlot "set ylabel 'Comoving number density; \${\\rm d}n/{\\rm d}M_{\\rm K}(M_{\\rm K}) [\\hbox{Mpc}^{-3}]\$'\n";
+print $gnuPlot "set terminal cairolatex pdf standalone color lw 2\n";
+print $gnuPlot "set output '".$plotFileTeX."'\n";
+print $gnuPlot "set title offset 0,-1 'K-band Luminosity Function at \$z=0\$'\n";
+print $gnuPlot "set xlabel '\$M_{\\rm K}\$'\n";
+print $gnuPlot "set ylabel '\$\\mathrm{d}n/\\mathrm{d}M_\\mathrm{K}(M_\\mathrm{K})\\,\\,[\\hbox{Mpc}^{-3}]\$'\n";
 print $gnuPlot "set lmargin screen 0.15\n";
 print $gnuPlot "set rmargin screen 0.95\n";
 print $gnuPlot "set bmargin screen 0.15\n";
 print $gnuPlot "set tmargin screen 0.95\n";
 print $gnuPlot "set key spacing 1.2\n";
-print $gnuPlot "set key at screen 0.275,0.16\n";
+print $gnuPlot "set key at screen 0.5,0.2\n";
 print $gnuPlot "set key left\n";
 print $gnuPlot "set key bottom\n";
 print $gnuPlot "set logscale y\n";
@@ -128,8 +128,9 @@ print $gnuPlot "set pointsize 2.0\n";
     style      => "point",
     symbol     => [6,7],
     weight     => [5,3],
-    color      => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'slideSequence'}}[0]},
-    title      => $data->{'luminosityFunction'}->{'label'}.' [observed]'
+    pointSize  => 0.5,
+    color      => $PrettyPlots::colorPairs{'cornflowerBlue'},
+    title      => $data->{'luminosityFunction'}->{'label'}
     );
 &PrettyPlots::Prepare_Dataset(
     \$plot,
@@ -139,12 +140,13 @@ print $gnuPlot "set pointsize 2.0\n";
     style      => "point",
     symbol     => [6,7],
     weight     => [5,3],
+    pointSize  => 0.5,
     color      => $PrettyPlots::colorPairs{'redYellow'},
     title      => 'Galacticus'
     );
 &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF($plotFileEPS);
+&LaTeX::GnuPlot2PDF($plotFileTeX);
 &MetaData::Write($plotFile,$galacticusFile,$self);
 
 exit;

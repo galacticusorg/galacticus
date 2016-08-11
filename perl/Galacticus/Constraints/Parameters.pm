@@ -348,26 +348,29 @@ sub Sample_Matrix {
 	next
 	    if ( defined($arguments{'selectChain'}) && $i != $arguments{'selectChain'} );
 	# Parse the chain file.
-	my $chainFileName = sprintf("%s_%4.4i.log",$logFileRoot,$i);
-	my $step = 0;
-	open(iHndl,$chainFileName);
-	while ( my $line = <iHndl> ) {
-	    unless ( $line =~ m/^\"/ ) {
-		++$step;
-		my @columns = split(" ",$line);
-		my $accept = 1;
-		# Skip unconverged states unless explicitly allowed.
-		$accept = 0
-		    if ( $columns[3] eq "F" && ( ! exists($arguments{'useUnconverged'}) || $arguments{'useUnconverged'} eq "no" ) );
-		# Skip chains before the given start point.
-		$accept = 0
-		    if ( exists($arguments{'sampleFrom'}) && $step < $arguments{'sampleFrom'} );
-		push(@{$chainParameters[++$#chainParameters]},@columns[6..$#columns])
-		    if ( $accept );
-	    }
+	my @suffixes = ( "" );
+	push(@suffixes,"Previous")
+	    if ( exists($arguments{'includePrevious'}) && $arguments{'includePrevious'} eq "yes" );
+	foreach my $suffix ( @suffixes ) {
+	    my $chainFileName = sprintf("%s%s_%4.4i.log",$logFileRoot,$suffix,$i);
+	    open(iHndl,$chainFileName);
+	    while ( my $line = <iHndl> ) {
+		unless ( $line =~ m/^\"/ ) {
+		    my @columns = split(" ",$line);
+		    my $accept = 1;
+		    # Skip unconverged states unless explicitly allowed.
+		    $accept = 0
+			if ( $columns[3] eq "F" && ( ! exists($arguments{'useUnconverged'}) || $arguments{'useUnconverged'} eq "no" ) );
+		    # Skip chains before the given start point.
+		    $accept = 0
+			if ( exists($arguments{'sampleFrom'}) && $columns[0] < $arguments{'sampleFrom'} );
+		    push(@{$chainParameters[++$#chainParameters]},@columns[6..$#columns])
+			if ( $accept );
+		}
+	    } 
+	    close(iHndl);
 	}
     }
-    close(iHndl);
     # Sample parameters.
     my $randomSample = exists($arguments{'sampleCount'}) && $arguments{'sampleCount'} > 0 ? 1 : 0;
     $arguments{'sampleCount'} = scalar(@chainParameters)

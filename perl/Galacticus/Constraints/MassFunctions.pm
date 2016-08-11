@@ -152,12 +152,14 @@ sub Construct {
 	    if ( exists($config->{'massMap'}) ) {
 		$logarithmicMass = &{$config->{'massMap'}}($config,$galacticus);
 	    } else {
+		my $zeroMass = which($dataSets->{$config->{'massType'}} <= 0.0);
 		$logarithmicMass = log10($dataSets->{$config->{'massType'}});
+		$logarithmicMass->($zeroMass) .= -100.0;
 	    }
 	    # Add random Gaussian errors to the masses.
 	    my $sigma = pdl ones(nelem($logarithmicMass));
 	    if ( ref($config->{'massErrorRandomDex'}) && reftype($config->{'massErrorRandomDex'}) eq "CODE" ) {
-		$sigma .= &{$config->{'massErrorRandomDex'}}($logarithmicMass,$galacticus);
+		$sigma .= &{$config->{'massErrorRandomDex'}}($logarithmicMass,$config,$galacticus);
 	    } else {
 		$sigma *= $config->{'massErrorRandomDex'};
 	    }
@@ -365,7 +367,7 @@ sub Construct {
 	print $gnuPlot "set bmargin screen 0.15\n";
 	print $gnuPlot "set tmargin screen 0.95\n";
 	print $gnuPlot "set key spacing 1.2\n";
-	print $gnuPlot "set key at screen 0.4,0.2\n";
+	print $gnuPlot "set key at screen 0.25,0.2\n";
 	print $gnuPlot "set key left\n";
 	print $gnuPlot "set key bottom\n";
 	print $gnuPlot "set logscale xy\n";
