@@ -497,7 +497,7 @@ Finally, we use the {\normalfont \ttfamily find} method to return the value of t
 
 The function evaluating $f(x)$ must have a form compatible with that shown for {\normalfont \ttfamily myRootFunction} in the above example.
 
-\section{Computation Dependencies and Data Files}\index{depdencies, computation}\index{labels, unique}\index{unique labels}
+\section{Computation Dependencies and Data Files}\index{dependencies, computation}\index{labels, unique}\index{unique labels}
 
 In many situations, some module in \glc\ might want to perform a calculation and then store the results to a file so that they can be reused later. A good example is the {\normalfont \ttfamily CAMB} transfer function method (see \S\ref{sec:TransferFunction:CAMB}), which computes a transfer function using {\normalfont \scshape CAMB} and stores this function in a file so that it can be re-read next time, avoiding the need to recompute the transfer function. A problem arises in such cases as the calculation may depend on the values of parameters (in our example, the transfer function will depend on cosmological parameters for example). We would like to record which parameter values this calculation refers to, perhaps encoding these into the file name, so that we can reuse these data in a future run only if the parameter values are unchanged. Given the modular nature of \glc\ it is impossible to know in advance which parameters will be relevant (e.g. does the cosmological parameter implementation have a parameter that describes a time varying equation of state for dark energy?). 
 
