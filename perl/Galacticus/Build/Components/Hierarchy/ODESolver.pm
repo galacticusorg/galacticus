@@ -64,19 +64,13 @@ sub Component_ODE_Name_From_Index {
 !GCC$ attributes unused :: self, count
 name='?'
 CODE
-    # Add the function to the functions list.
-    push(
-	@{$build->{'functions'}},
-	$function
-	);
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$build->{'types'}->{'nodeComponent'}->{'boundFunctions'}},
 	{
 	    type        => "procedure", 
+	    descriptor  => $function,
 	    name        => "nameFromIndex", 
-	    function    => "nodeComponentNameFromIndex",
-	    description => "Return the name of the property of given index for a {\\normalfont \\ttfamily nodeComponent} object.",
 	    returnType  => "\\textcolor{red}{\\textless varying\\_string\\textgreater}", 
 	    arguments   => "\\intzero\\ index\\argin"
 	}

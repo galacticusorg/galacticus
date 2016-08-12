@@ -70,19 +70,13 @@ if (allocated(self%component{ucfirst($class->{'name'})})) then
 end if
 CODE
     }
-    # Add the function to the functions list.
-    push(
-	@{$build->{'functions'}},
-	$function
-	);
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{
 	    type        => "procedure", 
+	    descriptor  => $function,
 	    name        => "serializeCount", 
-	    function    => "treeNodeSerializeCount", 
-	    description => "Return a count of the number of evolvable properties of the serialized object.",
 	    returnType  => "\\intzero", 
 	    arguments   => ""
 	}
@@ -135,19 +129,13 @@ if (allocated(self%component{ucfirst($class->{'name'})})) then
 end if
 CODE
     }
-    # Add the function to the functions list.
-    push(
-	@{$build->{'functions'}},
-	$function
-	);
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{
 	    type        => "procedure", 
+	    descriptor  => $function,
 	    name        => "serializeValues", 
-	    function    => "treeNodeSerializeValuesToArray", 
-	    description => "Serialize values to {\\normalfont \\ttfamily array}.",
 	    returnType  => "\\void", 
 	    arguments   => "\\doubleone\\ array\\argout"
 	}
@@ -200,19 +188,13 @@ if (allocated(self%component{ucfirst($class->{'name'})})) then
 end if
 CODE
     }
-    # Add the function to the functions list.
-    push(
-	@{$build->{'functions'}},
-	$function
-	);
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{
 	    type        => "procedure", 
+	    descriptor  => $function,
 	    name        => "deserializeValues", 
-	    function    => "treeNodeDeserializeValuesFromArray", 
-	    description => "Deserialize values from {\\normalfont \\ttfamily array}.",
 	    returnType  => "\\void", 
 	    arguments   => "\\doubleone\\ array\\argin"
 	}
@@ -248,19 +230,13 @@ sub Tree_Node_ODE_Serialize_RatesScales {
 !GCC$ attributes unused :: self
 array(1:nodeSerializationCount)=node{ucfirst($content)}s(1:nodeSerializationCount)
 CODE
-	# Add the function to the functions list.
-	push(
-	    @{$build->{'functions'}},
-	    $function
-	    );
 	# Insert a type-binding for this function into the treeNode type.
 	push(
 	    @{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	    {
 		type        => "procedure", 
+		descriptor  => $function,
 		name        => "serialize".ucfirst($code::content)."s", 
-		function    => "treeNodeSerialize".ucfirst($code::content)."ToArray",
-		description => "Serialize ".$code::content."s to {\\normalfont \\ttfamily array}.",
 		returnType  => "\\void", 
 		arguments   => "\\doubleone\\ array\\argout"
 	    }
@@ -317,19 +293,13 @@ CODE
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (name == 'unknown') call Galacticus_Error_Report('treeNodePropertyNameFromIndex','property index out of range')
 CODE
-    # Add the function to the functions list.
-    push(
-	@{$build->{'functions'}},
-	$function
-	);
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{
 	    type        => "procedure", 
+	    descriptor  => $function,
 	    name        => "nameFromIndex", 
-	    function    => "treeNodePropertyNameFromIndex", 
-	    description => "Return the name of a property given its index in a node.",
 	    returnType  => "\\textcolor{red}{\\textless varying\\_string\\textgreater}", 
 	    arguments   => "\\intzero\\ index\\argin"
 	}
@@ -386,19 +356,13 @@ else if (size(nodeScales) < count) then
 end if
 nodeSerializationCount=count
 CODE
-    # Add the function to the functions list.
-    push(
-	@{$build->{'functions'}},
-	$function
-	);
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{
 	    type        => "procedure", 
+	    descriptor  => $function,
 	    name        => "serializationOffsets", 
-	    function    => "treeNodeSerializeOffsets", 
-	    description => "Compute offsets into serialization arrays for all properties.",
 	    returnType  => "\\void", 
 	    arguments   => ""
 	}

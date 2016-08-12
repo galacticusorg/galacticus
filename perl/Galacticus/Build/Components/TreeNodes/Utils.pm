@@ -119,19 +119,13 @@ CODE
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 end select
 CODE
-    # Add the function to the functions list.
-    push(
-	@{$build->{'functions'}},
-	$function
-	);
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{
 	    type        => "procedure", 
+	    descriptor  => $function,
 	    name        => "copyNodeTo", 
-	    function    => "treeNodeCopyNodeTo", 
-	    description => "Make a copy of the node in {\\normalfont \\ttfamily targetNode}. If {\\normalfont \\ttfamily skipFormationNode} is {\\normalfont \\ttfamily true} then do not copy any pointer to the formation node.", 
 	    returnType  => "\\void", 
 	    arguments   => "\\textcolor{red}{\\textless class(treeNode)\\textgreater} targetNode\\arginout, \\logicalzero\\ [skipFormationNode]\\argin"
 	}
@@ -183,19 +177,13 @@ if (allocated(self      %component{ucfirst($class->{'name'})})) then
 end if
 CODE
     }
-    # Add the function to the functions list.
-    push(
-	@{$build->{'functions'}},
-	$function
-	);
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{
 	    type        => "procedure", 
+	    descriptor  => $function,
 	    name        => "moveComponentsTo", 
-	    function    => "treeNodeComponentsMove", 
-	    description => "Move components from a node to {\\normalfont \\ttfamily targetNode}.", 
 	    returnType  => "\\void", 
 	    arguments   => "\\textcolor{red}{\\textless class(treeNode)\\textgreater} targetNode\\arginout"
 	}

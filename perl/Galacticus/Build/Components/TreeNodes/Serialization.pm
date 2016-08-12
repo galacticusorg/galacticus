@@ -98,19 +98,13 @@ CODE
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 call Galacticus_Display_Unindent('done')
 CODE
-    # Add the function to the functions list.
-    push(
-	@{$build->{'functions'}},
-	$function
-	);
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{
 	    type        => "procedure", 
+	    descriptor  => $function,
 	    name        => "serializeASCII", 
-	    function    => "treeNodeSerializeASCII", 
-	    description => "Generate an ASCII serialization of all content of a node.", 
 	    returnType  => "\\void", 
 	    arguments   => ""
 	}
@@ -185,19 +179,13 @@ CODE
 write (fileHandle,*) ' </node>'
 !$omp end critical(Node_XML_Dump)
 CODE
-    # Add the function to the functions list.
-    push(
-	@{$build->{'functions'}},
-	$function
-	);
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{
 	    type        => "procedure", 
+	    descriptor  => $function,
 	    name        => "serializeXML", 
-	    function    => "treeNodeSerializeXML", 
-	    description => "Serialize all content of a node to XML.", 
 	    returnType  => "\\void", 
 	    arguments   => "\\intzero\\ fileHandle\\argin"
 	}
@@ -252,19 +240,13 @@ if (allocated(self%component{ucfirst($class->{'name'})})) then
 end if
 CODE
     }
-    # Add the function to the functions list.
-    push(
-	@{$build->{'functions'}},
-	$function
-	);
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{
 	    type        => "procedure", 
+	    descriptor  => $function,
 	    name        => "serializeRaw", 
-	    function    => "treeNodeSerializeRaw", 
-	    description => "Serialize all content of a tree node to a raw (binary) file.", 
 	    returnType  => "\\void", 
 	    arguments   => "\\intzero\\ fileHandle\\argin"
 	}
@@ -333,19 +315,13 @@ else
 end if
 CODE
     }
-    # Add the function to the functions list.
-    push(
-	@{$build->{'functions'}},
-	$function
-	);
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{
 	    type        => "procedure", 
+	    descriptor  => $function,
 	    name        => "deserializeRaw", 
-	    function    => "treeNodeDeserializeRaw", 
-	    description => "Deserialize a tree node object from a raw (binary) file.", 
 	    returnType  => "\\void", 
 	    arguments   => "\\intzero\\ fileHandle\\argin"
 	}

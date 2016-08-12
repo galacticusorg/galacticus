@@ -134,19 +134,13 @@ do i=1,size(targetNode%component{ucfirst($class->{'name'})})
    targetNode%component{ucfirst($class->{'name'})}(i)%hostNode => targetNode
 end do
 CODE
-	# Add the function to the functions list.
-	push(
-	    @{$build->{'functions'}},
-	    $function
-	    );
 	# Insert a type-binding for this function into the treeNode type.
 	push(
 	    @{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	    {
 		type        => "procedure", 
+		descriptor  => $function,
 		name        => $code::class->{'name'}."Move", 
-		function    => $classTypeName."Move", 
-		description => "Move instances of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component, from one node to another.",
 		returnType  => "\\void", 
 		arguments   => "\\textcolor{red}{\\textless type(treeNode)\\textgreater} targetNode\\arginout"
 	    }
@@ -223,19 +217,13 @@ CODE
   call Move_Alloc(instancesTemporary,self%component{ucfirst($class->{'name'})})
 end if
 CODE
-	# Add the function to the functions list.
-	push(
-	    @{$build->{'functions'}},
-	    $function
-	    );
 	# Insert a type-binding for this function into the treeNode type.
 	push(
 	    @{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	    {
 		type        => "procedure", 
+		descriptor  => $function,
 		name        => $code::class->{'name'}."Remove", 
-		function    => $classTypeName."Remove", 
-		description => "Remove an instance of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component, shifting other instances to keep the array contiguous. If no {\\normalfont \\ttfamily instance} is specified, the first instance is assumed.",
 		returnType  => "\\void", 
 		arguments   => "\\intzero\\ [instance]\\argin"
 	    }

@@ -55,19 +55,13 @@ sub Class_Type {
 !GCC$ attributes unused :: self
 name='nodeComponent:{$class->{'name'}}'
 CODE
-	# Add the function to the functions list.
-	push(
-	    @{$build->{'functions'}},
-	    $function
-	    );
 	# Insert a type-binding for this function into the treeNode type.
 	push(
 	    @{$build->{'types'}->{$classTypeName}->{'boundFunctions'}},
 	    {
 		type        => "procedure", 
+		descriptor  => $function,
 		name        => "type", 
-		function    => $classTypeName."Type", 
-		description => "Returns the type name for the ".$code::class->{'name'}." component class.",
 		returnType  => "\\textcolor{red}{\\textless varying\\_string\\textgreater}", 
 		arguments   => ""
 	    }
