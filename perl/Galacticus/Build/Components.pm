@@ -40,6 +40,7 @@ require Galacticus::Build::Components::Classes;
 require Galacticus::Build::Components::Classes::Names;
 require Galacticus::Build::Components::Classes::Utils;
 require Galacticus::Build::Components::Implementations;
+require Galacticus::Build::Components::Implementations::Utils;
 require Galacticus::Build::Components::Implementations::Names;
 require Galacticus::Build::Components::Implementations::ODESolver;
 require Galacticus::Build::Components::Properties;
@@ -140,8 +141,6 @@ sub Components_Generate_Output {
 	    \&Generate_Component_Class_Initializor_Functions         ,
 	    # Generate output functions for each component class.
 	    \&Generate_Component_Class_Output_Functions              ,
-	    # Generate functions to determine if an implementation is active.
-	    \&Generate_Is_Active_Functions                           ,
 	    # Generate component implementation destruction functions.
 	    \&Generate_Component_Implementation_Destruction_Functions,
 	    # Generate ODE solver initialization functions.
@@ -154,8 +153,6 @@ sub Components_Generate_Output {
 	    \&Generate_Implementation_Builder_Functions              ,
 	    # Generate output functions for each implementation.
 	    \&Generate_Implementation_Output_Functions               ,
-	    # Generate serialization/deserialization functions for each implementation.
-	    \&Generate_Implementation_Serialization_Functions        ,
 	    # Generate serialization offset functions for each implementation.
 	    \&Generate_Implementation_Offset_Functions               ,
 	    # Generate component count methods.
@@ -374,7 +371,7 @@ sub Generate_Active_Implementation_Records{
 	);
     # Iterate over all component implementations.
     foreach ( @{$build->{'componentIdList'}} ) {
-	$recordTable->add("nodeComponent".$_."IsActive");
+	$recordTable->add("nodeComponent".$_."IsActiveValue");
     }
     # Insert into the document.
     $build->{'content'} .= "  ! Records of which component implementations are active.\n";
@@ -2470,293 +2467,6 @@ sub Generate_Implementation_Output_Functions {
     }
 }
 
-sub Generate_Implementation_Serialization_Functions {
-    # Generate serialization/deserialization functions for each component implementation.
-    my $build = shift;
-    # Initialize function code.
-    my $functionCode;
-    # Initialize data content.
-    my @dataContent;
-    # Iterate over component implementations.
-    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
-	# Get the component.
-	my $component = $build->{'components'}->{$componentID};
-	# Generate data content.
-	@dataContent =
-	    (
-	     {
-		 intrinsic  => "class",
-		 type       => "nodeComponent".ucfirst($componentID),
-		 attributes => [ "intent(in   )" ],
-		 variables  => [ "self" ]
-	     }
-	    );
-	# Generate a count function.
-  	$functionCode  = "  integer function Node_Component_".ucfirst($componentID)."_Count(self)\n";
-	$functionCode .= "    !% Return a count of the serialization of a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
-	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	my $functionBody = "";
-	my $selfUsed = 0;
-	# If this component is an extension, get the count of the extended type.
-	$functionBody .= "    Node_Component_".ucfirst($componentID)."_Count=";
-	if ( exists($build->{'components'}->{$componentID}->{'extends'}) ) {
-	    my $extends = $build->{'components'}->{$componentID}->{'extends'};
-	    $functionBody .= "self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serializeCount()\n";
-	    $selfUsed = 1;
-	} else {
-	    $functionBody .= "0\n";
-	}
-	# Initialize a count of scalar properties.
-	my $scalarPropertyCount = 0;
-	# Iterate over properties.
-	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
-	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
-   	    # Check if this property has any linked data in this component.
-	    if ( exists($property->{'linkedData'}) ) {
-		# For each linked datum count if necessary.
-		my $linkedDataName = $property->{'linkedData'};
-		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
-		if ( $linkedData->{'isEvolvable'} ) {
-		    if ( $linkedData->{'rank'} == 0 ) {
-			if ( $linkedData->{'type'} eq "double" ) {
-			    ++$scalarPropertyCount;
-			}
-			else {
-			    $functionBody .= "    Node_Component_".ucfirst($componentID)."_Count=Node_Component_".ucfirst($componentID)."_Count+self%".&Utils::padLinkedData($linkedDataName,[0,0])."%serializeCount()\n";
-			    $selfUsed = 1;
-			}
-		    } else {
-			$functionBody .= "    if (allocated(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")) Node_Component_".ucfirst($componentID)."_Count=Node_Component_".ucfirst($componentID)."_Count+size(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")\n";
-			$selfUsed = 1;
-		    }
-		}
-	    }
-	}
-	# Insert the final count of scalar properties.
-	$functionBody .= "    Node_Component_".ucfirst($componentID)."_Count=Node_Component_".ucfirst($componentID)."_Count+".$scalarPropertyCount."\n"
-	    if ($scalarPropertyCount > 0);
-	$functionBody .= "    return\n";
-	$functionBody .= "  end function Node_Component_".ucfirst($componentID)."_Count\n\n";
-	$functionCode .= "   !GCC\$ attributes unused :: self\n"
-	    unless ( $selfUsed  );		    
-	$functionCode .= $functionBody;
-	# Insert into the function list.
-	push(
-	    @{$build->{'code'}->{'functions'}},
-	    $functionCode
-	    );
-	# Insert a type-binding for this function into the treeNode type.
-	push(
-	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-	    {type => "procedure", name => "serializeCount", function => "Node_Component_".ucfirst($componentID)."_Count"}
-	    );
-	# Specify data content for serialization functions.
-	@dataContent =
-	    (
-	     {
-		 intrinsic  => "class",
-		 type       => "nodeComponent".ucfirst($componentID),
-		 attributes => [ "intent(in   )" ],
-		 variables  => [ "self" ]
-	     },
-	     {
-		 intrinsic  => "double precision",
-		 attributes => [ "intent(  out)", "dimension(:)" ],
-		 variables  => [ "array" ]
-	     }
-	    );
-	# Generate serialization function.
-	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Serialize_Values(self,array)\n";
-	$functionCode .= "    !% Serialize values of a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
-	$functionCode .= "    implicit none\n";
-	my $serializationCode;
-	my $needCount = 0;
-	my $arrayUsed = 0;
-	$selfUsed     = 0;
-	# If this component is an extension, call serialization on the extended type.
-	if ( exists($build->{'components'}->{$componentID}->{'extends'}) ) {
-	    my $extends = $build->{'components'}->{$componentID}->{'extends'};
-	    $serializationCode .= " count=self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serializeCount()\n";
-	    $serializationCode .= " if (count > 0) then\n";
-	    $serializationCode .= "  call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serializeValues(array)\n";
-	    $serializationCode .= "  offset=offset+count\n";
-	    $serializationCode .= " end if\n";
-	    $needCount = 1;
-	    $arrayUsed = 1;
-	    $selfUsed  = 1;
-	}
-	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
-	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
-	    # Check if this property has any linked data in this component.
-	    if ( exists($property->{'linkedData'}) ) {
-		my $linkedDataName = $property->{'linkedData'};
-		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
-		if ( $linkedData->{'isEvolvable'} ) {
-		    $arrayUsed = 1;
-		    $selfUsed  = 1;
-		    if ( $linkedData->{'rank'} == 0 ) {
-			if ( $linkedData->{'type'} eq "double" ) {
-			    $serializationCode .= "    write (0,*) 'DEBUG -> Node_Component_".ucfirst($componentID)."_Serialize_Values -> ".$linkedDataName."',offset,size(array)\n"
-				if ( $debugging == 1 );
-			    $serializationCode .= "    array(offset)=self%".&Utils::padLinkedData($linkedDataName,[0,0])."\n";
-			    $serializationCode .= "    offset=offset+1\n";
-			}
-			else {
-			    $serializationCode .= "    count=self%".&Utils::padLinkedData($linkedDataName,[0,0])."%serializeCount(                            )\n";
-			    $serializationCode .= "    write (0,*) 'DEBUG -> Node_Component_".ucfirst($componentID)."_Serialize_Values -> ".$linkedDataName."',offset,count,size(array)\n"
-				if ( $debugging == 1 );
-			    $serializationCode .= "    if (count > 0) call  self%".&Utils::padLinkedData($linkedDataName,[0,0])."%serialize     (array(offset:offset+count-1))\n";
-			    $serializationCode .= "    offset=offset+count\n";
-			    $needCount = 1;
-			}
-		    } else {
-			$serializationCode .= "    if (allocated(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")) then\n";
-			$serializationCode .= "       count=size(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")\n";
-			$serializationCode .= "    write (0,*) 'DEBUG -> Node_Component_".ucfirst($componentID)."_Serialize_Values -> ".$linkedDataName."',offset,count,size(array)\n"
-			    if ( $debugging == 1 );
-			$serializationCode .= "       array(offset:offset+count-1)=reshape(self%".&Utils::padLinkedData($linkedDataName,[0,0]).",[count])\n";
-			$serializationCode .= "       offset=offset+count\n";
-			$serializationCode .= "    end if\n";
-			$needCount = 1;
-		    }
-		}
-	    }
-	}
-	if ( defined($serializationCode) ) {
-	    my @variables = ( "offset" );
-	    push(@variables,"count") 
-		if ( $needCount == 1 );
-	    push(
-		@dataContent,
-		{
-		    intrinsic  => "integer",
-		    variables  => \@variables
-		}    
-		);
-	    $serializationCode = "    offset=1\n".$serializationCode;
-	}
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	$functionCode .= "   !GCC\$ attributes unused :: array\n"
-	    unless ( $arrayUsed );		    
-	$functionCode .= "   !GCC\$ attributes unused :: self\n"
-	    unless ( $selfUsed  );		    
-	$functionCode .= $serializationCode
-	    if ( defined($serializationCode) );
-	$functionCode .= "    return\n";
-	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Serialize_Values\n\n";
-	# Insert into the function list.
-	push(
-	    	@{$build->{'code'}->{'functions'}},
-	    $functionCode
-	    );
-	# Insert a type-binding for this function into the implementation type.
-	push(
-	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-	    {type => "procedure", name => "serializeValues", function => "Node_Component_".ucfirst($componentID)."_Serialize_Values"},
-	    );
-	# Specify data content for deserialization functions.
-	@dataContent =
-	    (
-	     {
-		 intrinsic  => "class",
-		 type       => "nodeComponent".ucfirst($componentID),
-		 attributes => [ "intent(inout)" ],
-		 variables  => [ "self" ]
-	     },
-	     {
-		 intrinsic  => "double precision",
-		 attributes => [ "intent(in   )", "dimension(:)" ],
-		 variables  => [ "array" ]
-	     }
-	    );
-	# Generate deserialization function.
-	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Deserialize_Values(self,array)\n";
-	$functionCode .= "    !% Serialize values of a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
-	$functionCode .= "    implicit none\n";
-	my $deserializationCode;
-	$selfUsed  = 0;
-	$arrayUsed = 0;
-	$needCount = 0;
-	# If this component is an extension, call deserialization on the extended type.
-	if ( exists($build->{'components'}->{$componentID}->{'extends'}) ) {
-	    my $extends = $build->{'components'}->{$componentID}->{'extends'};
-	    $deserializationCode .= " count=self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serializeCount()\n";
-	    $deserializationCode .= " if (count > 0) then\n";
-	    $deserializationCode .= "  call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%deserializeValues(array)\n";
-	    $deserializationCode .= "  offset=offset+count\n";
-	    $deserializationCode .= " end if\n";
-	    $needCount = 1;
-	    $arrayUsed = 1;
-	    $selfUsed  = 1;
-	}
-	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
-	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
-	    # Check if this property has any linked data in this component.
-	    if ( exists($property->{'linkedData'}) ) {
-		# For each linked datum count if necessary.
-		my $linkedDataName = $property->{'linkedData'};
-		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
-		if ( $linkedData->{'isEvolvable'} ) {
-		    $arrayUsed = 1;
-		    $selfUsed  = 1;
-		    if ( $linkedData->{'rank'} == 0 ) {
-			if ( $linkedData->{'type'} eq  "double" ) {
-			    $deserializationCode .= "    self%".&Utils::padLinkedData($linkedDataName,[0,0])."=array(offset)\n";
-			    $deserializationCode .= "    offset=offset+1\n";
-			}
-			else {
-			    $deserializationCode .= "    count=self%".&Utils::padLinkedData($linkedDataName,[0,0])."%serializeCount(                            )\n";
-			    $deserializationCode .= "    call  self%".&Utils::padLinkedData($linkedDataName,[0,0])."%deserialize   (array(offset:offset+count-1))\n";
-			    $deserializationCode .= "    offset=offset+count\n";
-			    $needCount = 1;
-			}
-		    } else {
-			$deserializationCode .= "    if (allocated(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")) then\n";
-			$deserializationCode .= "       count=size(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")\n";
-			$deserializationCode .= "       self%".&Utils::padLinkedData($linkedDataName,[0,0])."=reshape(array(offset:offset+count-1),shape(self%".&Utils::padLinkedData($linkedDataName,[0,0])."))\n";
-			$deserializationCode .= "       offset=offset+count\n";
-			$deserializationCode .= "    end if\n";
-			$needCount = 1;
-		    }
-		}
-	    }
-	}
-	if ( defined($deserializationCode) ) {
-	    my @variables = ( "offset" );
-	    push(@variables,"count") 
-		if ( $needCount == 1 );
-	    push(
-		@dataContent,
-		{
-		    intrinsic  => "integer",
-		    variables  => \@variables
-		}    
-		);
-	    $deserializationCode = "    offset=1\n".$deserializationCode;
-	}
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	$functionCode .= "   !GCC\$ attributes unused :: array\n"
-	    unless ( $arrayUsed );		    
-	$functionCode .= "   !GCC\$ attributes unused :: self\n"
-	    unless ( $selfUsed  );		    
-	$functionCode .= $deserializationCode
-	    if ( defined($deserializationCode) );
-	$functionCode .= "    return\n";
-	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Deserialize_Values\n\n";
-	# Insert into the function list.
-	push(
-	    @{$build->{'code'}->{'functions'}},
-	    $functionCode
-	    );
-	# Insert a type-binding for this function into the implementation type.
-	push(
-	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-	    {type => "procedure", name => "deserializeValues", function => "Node_Component_".ucfirst($componentID)."_Deserialize_Values"},
-	    );
-    }
-}
-
 sub Generate_Serialization_Offset_Variables {
     # Generate variables which store offsets into arrays for serialization.
     my $build = shift;
@@ -4742,33 +4452,6 @@ sub Generate_Component_Class_Output_Functions {
     }
 }
 
-sub Generate_Is_Active_Functions {
-    # Generate "isActive" functions.
-    my $build = shift;
-    # Initialize function code.
-    my $functionCode;
-    # Iterate over component implementations.
-    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
-	my $component = $build->{'components'}->{$componentID};
-	$functionCode  = "  logical function Node_Component_".ucfirst($componentID)."_Is_Active()\n";
-	$functionCode .= "    !% Return true if the ".$component->{'name'}." implementation of the ".$component->{'class'}." component is the active choice.\n";
-	$functionCode .= "    implicit none\n\n";
-	$functionCode .= "    Node_Component_".ucfirst($componentID)."_Is_Active=nodeComponent".ucfirst($componentID)."IsActive\n";
-	$functionCode .= "    return\n";
-	$functionCode .= "  end function Node_Component_".ucfirst($componentID)."_Is_Active\n";
-	# Insert into the function list.
-	push(
-	    @{$build->{'code'}->{'functions'}},
-	    $functionCode
-	    );
-	# Bind this function to the implementation type.
-	push(
-	    @{$build->{'types'}->{'nodeComponent'.ucfirst($component->{'class'})}->{'boundFunctions'}},
-	    {type => "procedure", pass => "nopass", name => lcfirst($component->{'name'})."IsActive", function => "Node_Component_".ucfirst($componentID)."_Is_Active", description => "Return whether the ".$component->{'name'}." implementation of the ".$component->{'class'}." component class is active.", returnType => "\\logicalzero", arguments => ""}
-	    );
-    }
-}
-
 sub Generate_Component_Implementation_Destruction_Functions {
     # Generate component implementation destruction functions.
     my $build = shift;
@@ -4896,7 +4579,19 @@ sub Generate_Null_Binding_Functions {
 	    my $nullBindingUsed = 0;
 	    foreach my $typeName ( keys(%{$build->{'types'}}) ) {
 		foreach my $typeBoundFunction ( @{$build->{'types'}->{$typeName}->{'boundFunctions'}} ) {
-		    if ( lc($typeBoundFunction->{'function'}) eq lc($nullBindingName) ) {
+		    if (
+			(
+			 exists($typeBoundFunction->{'function'})
+			 &&
+			 lc($typeBoundFunction->{'function'}) eq lc($nullBindingName) 
+			)
+			||
+			(
+			 exists($typeBoundFunction->{'descriptor'})
+			 &&
+			 lc($typeBoundFunction->{'descriptor'}->{'name'}) eq lc($nullBindingName) 
+			 )
+			) {
 			$nullBindingUsed = 1;
 			last;
 		    }
@@ -4947,7 +4642,19 @@ sub Generate_Null_Binding_Functions {
 	    $nullBindingUsed = 0;
 	    foreach my $typeName ( keys(%{$build->{'types'}}) ) {
 		foreach my $typeBoundFunction ( @{$build->{'types'}->{$typeName}->{'boundFunctions'}} ) {
-		    if ( lc($typeBoundFunction->{'function'}) eq lc($nullBindingName) ) {
+		    if (
+			(
+			 exists($typeBoundFunction->{'function'})
+			 &&
+			 lc($typeBoundFunction->{'function'}) eq lc($nullBindingName) 
+			)
+			||
+			(
+			 exists($typeBoundFunction->{'descriptor'})
+			 &&
+			 lc($typeBoundFunction->{'descriptor'}->{'name'}) eq lc($nullBindingName) 
+			 )
+			) {
 			$nullBindingUsed = 1;
 			last;
 		    }
@@ -5061,7 +4768,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 		    foreach my $componentName2 ( @{$build->{'componentClasses'}->{$componentClassName}->{'memberNames'}} ) {
 			my $component2ID = ucfirst($componentClassName).ucfirst($componentName2);
 			my $component2   = $build->{'components'}->{$component2ID};
-			$functionCode .= "     if (nodeComponent".ucfirst($component2ID)."IsActive) ".ucfirst($componentClassName).ucfirst($propertyName)."IsGettable=.true.\n"
+			$functionCode .= "     if (nodeComponent".ucfirst($component2ID)."IsActiveValue) ".ucfirst($componentClassName).ucfirst($propertyName)."IsGettable=.true.\n"
 			    if (
 				exists($component2->{'properties'}->{'property'}->{$propertyName}                  ) && 
 				exists($component2->{'properties'}->{'property'}->{$propertyName}->{'classDefault'})
@@ -5098,7 +4805,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 			if ( exists($component2->{'properties'}->{'property'}->{$propertyName}) ) {
 			    my $property2 = $component2->{'properties'}->{'property'}->{$propertyName};
 			    if ( exists($property2->{'classDefault'}) ) {
-				$defaultLines .= "     if (nodeComponent".ucfirst($component2ID)."IsActive) then\n";
+				$defaultLines .= "     if (nodeComponent".ucfirst($component2ID)."IsActiveValue) then\n";
 				my %selfComponents;
 				my $default = $property2->{'classDefault'}->{'code'};
 				while ( $default =~ m/self([a-zA-Z]+)Component\s*%/ ) {
@@ -5187,8 +4894,13 @@ sub Generate_Component_Class_Default_Value_Functions {
 
 sub Bound_Function_Table {
     # Get the list of type-bound functions.
-    my $objectName         = shift;
-    my @typeBoundFunctions = sort {$a->{'function'} cmp $b->{'function'}} @{$_[0]};
+    my $objectName         = shift();
+    my @typeBoundFunctions = 
+	sort
+         {$a->{'functionName'} cmp $b->{'functionName'}}
+         map
+          {$_->{'functionName'} = exists($_->{'descriptor'}) ? $_->{'descriptor'}->{'name'} : $_->{'function'}; $_}
+          @{shift()};
     # Create a text table object suitable for type-bound function definitions.
     my $table =  Text::Table->new(
 	{
@@ -5222,7 +4934,7 @@ sub Bound_Function_Table {
 	# Determine pass status.
 	my $pass = "";
 	$pass = ", ".$_->{'pass'}
-	if ( exists($_->{'pass'}) );
+	    if ( exists($_->{'pass'}) );
 	# Determine the connector to use.
 	my $connector = "";
 	$connector = " => "
@@ -5230,7 +4942,7 @@ sub Bound_Function_Table {
 	# Determine the name to use.
 	my $name = "";
 	$name = $_->{'name'}
-	if ( exists($_->{'name'}) );
+	    if ( exists($_->{'name'}) );
 	# Add a row to the table.
 	if ( defined(reftype($_->{'function'})) && reftype($_->{'function'}) eq "ARRAY" ) {
 	    # Multiple functions specified. List them, one per row.
@@ -5248,18 +4960,27 @@ sub Bound_Function_Table {
 		    $table->add("     &"    ,""   ,""    ,""   ,""        ,$function,$suffix);
 		}		
 	    }
+	} elsif ( exists($_->{'descriptor'}) ) {
+	    # Single function specified, and a function descriptor was provided. Take the function name directly from the descriptor.
+	    $table->add($_->{'type'},$pass," :: ",$name,$connector,$_->{'descriptor'}->{'name'},"");
 	} else {
 	    # Single function specified. Simply add to the table.
-	    $table->add($_->{'type'},$pass," :: ",$name,$connector,$_->{'function'},"");
+	    $table->add($_->{'type'},$pass," :: ",$name,$connector,$_->{'function'  }          ,"");
 	}
     }
     # Add any descriptions.
     my $description;
     my $methodCount = 0;
     foreach ( @typeBoundFunctions ) {
-	if ( exists($_->{'description'}) ) {
+	my $descriptionText;
+	if ( exists($_->{'descriptor'}) ) {
+	    $descriptionText = $_->{'descriptor'}->{'description'};
+	} elsif ( exists($_->{'description'}) ) {
+	    $descriptionText = $_                ->{'description'};
+	}
+	if ( defined($descriptionText) ) {
 	    ++$methodCount;
-	    $description .= "     !@  <objectMethod>\n     !@   <method>".$_->{'name'}."</method>\n     !@   <description>".$_->{'description'}."</description>\n";
+	    $description .= "     !@  <objectMethod>\n     !@   <method>".$_->{'name'}."</method>\n     !@   <description>".$descriptionText."</description>\n";
 	    $description .= "     !@    <type>".$_->{'returnType'}."</type>\n"
 		if ( exists($_->{'returnType'}) );
 	    $description .= "     !@    <arguments>".$_->{'arguments'}."</arguments>\n"
@@ -5372,7 +5093,17 @@ sub functionsSerialize {
     my $build = shift();
     print "   --> Serialize functions...\n";
     # Iterate over functions.
-    foreach my $function ( @{$build->{'functions'}} ) {
+    foreach my $function 
+	(
+	 # Include all functions explicitly added to the functions list.
+	 @{$build->{'functions'}},
+	 # Also include functions which were bound to a derived type. We use two map operations to do this. In the first we
+	 # iterate over all derived types, selecting out those with bound functions. For each such derived type, we use a second
+	 # map to select out each bound function with an included function descriptor, and return a list of those descriptors.
+	 map
+	  {exists($_->{'boundFunctions'}) ? map {exists($_->{'descriptor'}) ? $_->{'descriptor'} : ()} @{$_->{'boundFunctions'}} : ()}
+	  &ExtraUtils::hashList($build->{'types'})
+	) {
 	# Report.
 	print "      --> ".$function->{'name'}."\n";
 	# Build function type definition.

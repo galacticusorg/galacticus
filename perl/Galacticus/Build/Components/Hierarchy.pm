@@ -87,20 +87,20 @@ CODE
     !@   <type>string</type>
     !@   <cardinality>1</cardinality>
     !@ </inputParameter>
-    call Get_Input_Parameter('treeNodeMethod{&Utils::padClass(ucfirst($class->{'name'})."'",[1,0])},methodSelection,defaultValue='{&Utils::padImplementation($defaultImplementation."'",[1,0])})
+    call Get_Input_Parameter('treeNodeMethod{ucfirst($class->{'name'})}',methodSelection,defaultValue='{$defaultImplementation}')
 CODE
     	foreach $code::component ( @{$code::class->{'members'}} ) {
     	    $code::fullName  = ucfirst($code::class->{'name'}).ucfirst($code::component->{'name'});
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-    if (methodSelection == '{&Utils::padImplementation($component->{'name'}."'",[1,0])}) then
-       allocate(default{&Utils::padClass(ucfirst($class->{'name'})."Component",[9,0])},source=default{&Utils::padFullyQualified($fullName."Component",[9,0])})
-        nodeComponent{&Utils::padFullyQualified($fullName."IsActive",[8,0])}=.true.
+    if (methodSelection == '{$component->{'name'}}') then
+       allocate(default{ucfirst($class->{'name'})}Component,source=default{$fullName}Component)
+        nodeComponent{$fullName}IsActiveValue=.true.
 CODE
 	    until ( $code::fullName eq "" ) {
 		if ( exists($build->{'components'}->{$code::fullName}->{'extends'}) ) {
 		    $code::fullName = ucfirst($build->{'components'}->{$code::fullName}->{'extends'}->{'class'}).ucfirst($build->{'components'}->{$code::fullName}->{'extends'}->{'name'});
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-	nodeComponent{&Utils::padFullyQualified($fullName."IsActive",[8,0])}=.true.
+	nodeComponent{$fullName}IsActiveValue=.true.
 CODE
 		} else {
 		    $code::fullName = "";
@@ -147,7 +147,7 @@ CODE
 	    }
     	}       
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-    if (.not.allocated(default{&Utils::padClass(ucfirst($class->{'name'})."Component",[9,0])})) then
+    if (.not.allocated(default{ucfirst($class->{'name'})}Component)) then
       message='unrecognized method "'//methodSelection//'" for "{$class->{'name'}}" component'
       message=message//char(10)//'  available methods are:'
       {
