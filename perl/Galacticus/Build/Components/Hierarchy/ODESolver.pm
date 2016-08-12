@@ -70,9 +70,7 @@ CODE
 	{
 	    type        => "procedure", 
 	    descriptor  => $function,
-	    name        => "nameFromIndex", 
-	    returnType  => "\\textcolor{red}{\\textless varying\\_string\\textgreater}", 
-	    arguments   => "\\intzero\\ index\\argin"
+	    name        => "nameFromIndex"
 	}
 	);	    
 }

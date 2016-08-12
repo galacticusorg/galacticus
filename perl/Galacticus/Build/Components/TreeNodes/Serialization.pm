@@ -104,9 +104,7 @@ CODE
 	{
 	    type        => "procedure", 
 	    descriptor  => $function,
-	    name        => "serializeASCII", 
-	    returnType  => "\\void", 
-	    arguments   => ""
+	    name        => "serializeASCII"
 	}
 	);
 }
@@ -185,9 +183,7 @@ CODE
 	{
 	    type        => "procedure", 
 	    descriptor  => $function,
-	    name        => "serializeXML", 
-	    returnType  => "\\void", 
-	    arguments   => "\\intzero\\ fileHandle\\argin"
+	    name        => "serializeXML"
 	}
 	);
 }
@@ -246,9 +242,7 @@ CODE
 	{
 	    type        => "procedure", 
 	    descriptor  => $function,
-	    name        => "serializeRaw", 
-	    returnType  => "\\void", 
-	    arguments   => "\\intzero\\ fileHandle\\argin"
+	    name        => "serializeRaw"
 	}
 	);
 }
@@ -321,9 +315,7 @@ CODE
 	{
 	    type        => "procedure", 
 	    descriptor  => $function,
-	    name        => "deserializeRaw", 
-	    returnType  => "\\void", 
-	    arguments   => "\\intzero\\ fileHandle\\argin"
+	    name        => "deserializeRaw"
 	}
 	);
 }

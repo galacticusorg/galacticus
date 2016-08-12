@@ -223,9 +223,7 @@ CODE
 	    {
 		type        => "procedure", 
 		descriptor  => $function,
-		name        => $code::class->{'name'}."Remove", 
-		returnType  => "\\void", 
-		arguments   => "\\intzero\\ [instance]\\argin"
+		name        => $code::class->{'name'}."Remove"
 	    }
 	    );
     }

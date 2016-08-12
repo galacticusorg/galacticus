@@ -22,6 +22,7 @@ use XML::SAX::ParserFactory;
 use XML::Validator::Schema;
 use LaTeX::Encode;
 use Carp 'verbose';
+use Sub::Identify ':all';
 require File::Changes;
 require Fortran::Utils;
 require Galacticus::Build::Hooks;
@@ -38,6 +39,7 @@ require Galacticus::Build::Components::NodeEvents;
 require Galacticus::Build::Components::BaseTypes;
 require Galacticus::Build::Components::Classes;
 require Galacticus::Build::Components::Classes::Names;
+require Galacticus::Build::Components::Classes::CreateDestroy;
 require Galacticus::Build::Components::Classes::Utils;
 require Galacticus::Build::Components::Implementations;
 require Galacticus::Build::Components::Implementations::Utils;
@@ -115,8 +117,9 @@ sub Components_Generate_Output {
 	print "   --> ".ucfirst($phase)."...\n";
 	foreach my $hook ( @hooks ) {	
 	    if ( exists($hook->{'hook'}->{$phase}) ) {
-		foreach my $function ( &ExtraUtils::as_array($hook->{'hook'}->{$phase}) ) {
-		    print "      --> ".$hook->{'name'}."\n";
+		my @functions = &ExtraUtils::as_array($hook->{'hook'}->{$phase});
+		foreach my $function ( @functions ) {
+		    print "      --> ".$hook->{'name'}.(scalar(@functions) > 1 ? " {".sub_name($function)."}" : "")."\n";
 		    &{$function}($build);
 		}
 	    }
@@ -131,14 +134,8 @@ sub Components_Generate_Output {
 	    \&Generate_Node_Output_Functions                         ,
 	    # Generate component assignment function.
 	    \&Generate_Component_Assignment_Function                 ,
-	    # Generate component class destruction functions.
-	    \&Generate_Component_Class_Destruction_Functions         ,
 	    # Generate dump functions for each component class.
 	    \&Generate_Component_Class_Dump_Functions                ,
-	    # Generate builder functions for each component class.
-	    \&Generate_Component_Class_Builder_Functions             ,
-	    # Generate initializor functions for each component class.
-	    \&Generate_Component_Class_Initializor_Functions         ,
 	    # Generate output functions for each component class.
 	    \&Generate_Component_Class_Output_Functions              ,
 	    # Generate component implementation destruction functions.
@@ -3879,46 +3876,6 @@ sub Generate_Component_Assignment_Function {
 	);
 }
 
-sub Generate_Component_Class_Destruction_Functions {
-    # Generate class destruction functions.
-    my $build = shift;
-    # Initialize data content.
-    my @dataContent;
-    # Generate the function code.
-    my $functionCode;
-    foreach my $componentClassName ( @{$build->{'componentClassList'}} ) {
-	# Specify data content.
-	@dataContent =
-	    (
-	     {
-		 intrinsic  => "class",
-		 type       => "nodeComponent".ucfirst($componentClassName),
-		 attributes => [ "intent(inout)" ],
-		 variables  => [ "self" ]
-	     }
-	    );
-	# Generate the function code.
-	$functionCode  = "  subroutine Node_Component_".ucfirst($componentClassName)."_Destroy(self)\n";
-	$functionCode .= "    !% Destroys a ".$componentClassName." component.\n";
-	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent);
-	$functionCode .= "    !GCC\$ attributes unused :: self\n\n";
-	$functionCode .= "    ! Do nothing.\n";
-	$functionCode .= "    return\n";
-	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Destroy\n\n";
-	# Insert into the function list.
-	push(
-	    @{$build->{'code'}->{'functions'}},
-	    $functionCode
-	    );
-	# Bind this function to the treeNode type.
-	push(
-	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
-	    {type => "procedure", name => "destroy", function => "Node_Component_".ucfirst($componentClassName)."_Destroy"}
-	    );
-    }
-}
-
 sub Generate_Component_Class_Dump_Functions {
     # Generate dump for each component class.
     my $build = shift;
@@ -3957,93 +3914,6 @@ sub Generate_Component_Class_Dump_Functions {
 	push(
 	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
 	    {type => "procedure", name => "dump", function => "Node_Component_".ucfirst($componentClassName)."_Dump"},
-	    );
-    }
-}
-
-sub Generate_Component_Class_Initializor_Functions {
-    # Generate initializor for each component class.
-    my $build = shift;
-    # Iterate over component classes.
-    foreach my $componentClassName ( @{$build->{'componentClassList'}} ) {
-	# Initialize function code.
-	my $functionCode;
-	# Initialize data content.
-	my @dataContent =
-	    (
-	     {
-		 intrinsic  => "class",
-		 type       => "nodeComponent".ucfirst($componentClassName),
-		 attributes => [ "intent(inout)" ],
-		 variables  => [ "self" ]
-	     }
-	    );
-	# Generate initializor function.
-	$functionCode  = "  subroutine Node_Component_".ucfirst($componentClassName)."_Initializor(self)\n";
-	$functionCode .= "    !% Initialize a generic ".$componentClassName." component.\n";
-	$functionCode .= "    use Galacticus_Error\n";
-	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	$functionCode .= "    !GCC\$ attributes unused :: self\n";
-	$functionCode .= "    call Galacticus_Error_Report('Node_Component_".ucfirst($componentClassName)."_Initializor','can not initialize a generic component')\n";
-	$functionCode .= "    return\n";
-	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Initializor\n";
-	# Insert into the function list.
-	push(
-	    @{$build->{'code'}->{'functions'}},
-	    $functionCode
-	    );
-	# Insert a type-binding for this function into the implementation type.
-	push(
-	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
-	    {type => "procedure", name => "initialize", function => "Node_Component_".ucfirst($componentClassName)."_Initializor", description => "Initialize the object.", returnType => "\\void", arguments => ""},
-	    );
-    }
-}
-
-sub Generate_Component_Class_Builder_Functions {
-    # Generate builder for each component class.
-    my $build = shift;
-    # Iterate over component classes.
-    foreach my $componentClassName ( @{$build->{'componentClassList'}} ) {
-	# Initialize function code.
-	my $functionCode;
-	# Initialize data content.
-	my @dataContent =
-	    (
-	     {
-		 intrinsic  => "class",
-		 type       => "nodeComponent".ucfirst($componentClassName),
-		 attributes => [ "intent(inout)" ],
-		 variables  => [ "self" ]
-	     },
-	     {
-		 intrinsic  => "type",
-		 type       => "node",
-		 attributes => [ "intent(in   )", "pointer" ],
-		 variables  => [ "componentDefinition" ]
-	     }
-	    );
-	# Generate dump function.
-	$functionCode  = "  subroutine Node_Component_".ucfirst($componentClassName)."_Builder(self,componentDefinition)\n";
-	$functionCode .= "    !% Build a generic ".$componentClassName." component.\n";
-	$functionCode .= "    use FoX_DOM\n";
-	$functionCode .= "    use Galacticus_Error\n";
-	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	$functionCode .= "    !GCC\$ attributes unused :: self, componentDefinition\n";
-	$functionCode .= "    call Galacticus_Error_Report('Node_Component_".ucfirst($componentClassName)."_Builder','can not build a generic component')\n";
-	$functionCode .= "    return\n";
-	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Builder\n";
-	# Insert into the function list.
-	push(
-	    @{$build->{'code'}->{'functions'}},
-	    $functionCode
-	    );
-	# Insert a type-binding for this function into the implementation type.
-	push(
-	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
-	    {type => "procedure", name => "builder", function => "Node_Component_".ucfirst($componentClassName)."_Builder", description => "Build a {\\normalfont \\ttfamily nodeComponent} from a supplied XML definition.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless *type(node)\\textgreater}componentDefinition\\argin"},
 	    );
     }
 }
@@ -4981,10 +4851,47 @@ sub Bound_Function_Table {
 	if ( defined($descriptionText) ) {
 	    ++$methodCount;
 	    $description .= "     !@  <objectMethod>\n     !@   <method>".$_->{'name'}."</method>\n     !@   <description>".$descriptionText."</description>\n";
-	    $description .= "     !@    <type>".$_->{'returnType'}."</type>\n"
-		if ( exists($_->{'returnType'}) );
-	    $description .= "     !@    <arguments>".$_->{'arguments'}."</arguments>\n"
-		if ( exists($_->{'arguments'}) );
+	    if ( exists($_->{'descriptor'}) ) {
+		# Build type and argument descriptions directly from the function descriptor.
+		my $returnType;	
+		if ( $_->{'descriptor'}->{'type'} =~ m/^([a-zA-Z0-9_\(\)\s]+)\s+=>\s+([a-zA-Z0-9_]+)/ ) {
+		    $returnType = latex_encode($1);
+		} else {
+		    $returnType = $_->{'descriptor'}->{'type'};
+		}
+		my @arguments;
+		if ( exists($_->{'descriptor'}->{'variables'}) ) {
+		    foreach my $declaration ( @{$_->{'descriptor'}->{'variables'}} ) {
+			my $intent = join(" ",map {$_ =~ m/intent\(\s*((in|out)+)\s*\)/ ? $1 : ()} @{$declaration->{'attributes'}});
+			if ( $intent ne "" ) {
+			    my $type = $declaration->{'intrinsic'};
+			    $type .= "(".$declaration->{'type'}.")"
+				if ( exists($declaration->{'type'}) );
+			    $type = "*".$type
+				if ( grep {$_ eq "pointer"} @{$declaration->{'attributes'}} );
+			    my $dimension = join(",",map {$_ =~ m/dimension\(\s*(.*)\s*\)/ ? $1 : ()} @{$declaration->{'attributes'}});
+			    $type .= "[".$dimension."]"
+				unless ( $dimension eq "" );
+			    my $optional =  grep {$_ eq "optional"} @{$declaration->{'attributes'}};
+			    foreach ( @{$declaration->{'variables'}} ) {
+				push(
+				    @arguments,
+				    "\\textcolor{red}{\\textless ".$type."\\textgreater} ".($optional ? "[" : "").$_.($optional ? "]" : "")."\\arg".$intent
+				    )
+				    unless ( $_ eq "self" );
+			    }
+			}
+		    }
+		}
+		$description .= "     !@    <type>\\textcolor{red}{\\textless ".$returnType."\\textgreater}</type>\n";
+		$description .= "     !@    <arguments>".join(", ",@arguments)."</arguments>\n";
+	    } else {
+		# Build type and arguments from those directly supplied.
+		$description .= "     !@    <type>".$_->{'returnType'}."</type>\n"
+		    if ( exists($_->{'returnType'}) );
+		$description .= "     !@    <arguments>".$_->{'arguments'}."</arguments>\n"
+		    if ( exists($_->{'arguments'}) );
+	    }
 	    $description .= "     !@  </objectMethod>\n";
 	}
     }

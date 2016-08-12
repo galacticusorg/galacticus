@@ -76,9 +76,7 @@ CODE
 	{
 	    type        => "procedure", 
 	    descriptor  => $function,
-	    name        => "serializeCount", 
-	    returnType  => "\\intzero", 
-	    arguments   => ""
+	    name        => "serializeCount"
 	}
 	);
 }
@@ -135,9 +133,7 @@ CODE
 	{
 	    type        => "procedure", 
 	    descriptor  => $function,
-	    name        => "serializeValues", 
-	    returnType  => "\\void", 
-	    arguments   => "\\doubleone\\ array\\argout"
+	    name        => "serializeValues"
 	}
 	);
 }
@@ -194,9 +190,7 @@ CODE
 	{
 	    type        => "procedure", 
 	    descriptor  => $function,
-	    name        => "deserializeValues", 
-	    returnType  => "\\void", 
-	    arguments   => "\\doubleone\\ array\\argin"
+	    name        => "deserializeValues"
 	}
 	);
 }
@@ -236,9 +230,7 @@ CODE
 	    {
 		type        => "procedure", 
 		descriptor  => $function,
-		name        => "serialize".ucfirst($code::content)."s", 
-		returnType  => "\\void", 
-		arguments   => "\\doubleone\\ array\\argout"
+		name        => "serialize".ucfirst($code::content)."s"
 	    }
 	    );
     }
@@ -299,9 +291,7 @@ CODE
 	{
 	    type        => "procedure", 
 	    descriptor  => $function,
-	    name        => "nameFromIndex", 
-	    returnType  => "\\textcolor{red}{\\textless varying\\_string\\textgreater}", 
-	    arguments   => "\\intzero\\ index\\argin"
+	    name        => "nameFromIndex"
 	}
 	);
 }
@@ -362,9 +352,7 @@ CODE
 	{
 	    type        => "procedure", 
 	    descriptor  => $function,
-	    name        => "serializationOffsets", 
-	    returnType  => "\\void", 
-	    arguments   => ""
+	    name        => "serializationOffsets"
 	}
 	);
 }

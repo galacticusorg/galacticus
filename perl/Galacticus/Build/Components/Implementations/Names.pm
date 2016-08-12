@@ -63,9 +63,7 @@ CODE
 		{
 		    type        => "procedure", 
 		    descriptor  => $function,
-		    name        => "type", 
-		    returnType  => "\\textcolor{red}{\\textless varying\\_string\\textgreater}", 
-		    arguments   => ""
+		    name        => "type"
 		}
 		);
 	}
