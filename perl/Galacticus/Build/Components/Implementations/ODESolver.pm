@@ -150,9 +150,7 @@ CODE
 		{
 		    type        => "procedure", 
 		    descriptor  => $function,
-		    name        => "nameFromIndex", 
-		    returnType  => "\\textcolor{red}{\\textless varying\\_string\\textgreater}", 
-		    arguments   => "\\intzero\\ index\\argin"
+		    name        => "nameFromIndex"
 		}
 		);	    
 	}
@@ -262,9 +260,7 @@ CODE
 		{
 		    type        => "procedure", 
 		    descriptor  => $function,
-		    name        => "serializeCount", 
-		    returnType  => "\\intzero", 
-		    arguments   => ""
+		    name        => "serializeCount"
 		}
 		);	    
 	}
@@ -389,15 +385,13 @@ end if
 CODE
 		}
 	    }
-	    # Insert a type-binding for this function into the treeNode type.
+	    # Insert a type-binding for this function into the implementation type.
 	    push(
 		@{$build->{'types'}->{$implementationTypeName}->{'boundFunctions'}},
 		{
 		    type        => "procedure",
 		    descriptor  => $function,
-		    name        => "serializeValues", 
-		    returnType  => "\\void", 
-		    arguments   => "\\doubleone array(:)\\argout"
+		    name        => "serializeValues"
 		}
 		);	    
 	}
@@ -528,9 +522,7 @@ CODE
 		{
 		    type        => "procedure", 
 		    descriptor  => $function,
-		    name        => "deserializeValues", 
-		    returnType  => "\\void", 
-		    arguments   => "\\doubleone array(:)\\argin"
+		    name        => "deserializeValues"
 		}
 		);	    
 	}

@@ -56,9 +56,7 @@ CODE
 		    type        => "procedure", 
 		    descriptor  => $function,
 		    pass        => "nopass",
-		    name        => $code::member->{'name'}."IsActive", 
-		    returnType  => "\\logicalzero", 
-		    arguments   => ""
+		    name        => $code::member->{'name'}."IsActive"
 		}
 		);	    
 	}

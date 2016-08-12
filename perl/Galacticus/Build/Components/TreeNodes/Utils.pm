@@ -183,9 +183,7 @@ CODE
 	{
 	    type        => "procedure", 
 	    descriptor  => $function,
-	    name        => "moveComponentsTo", 
-	    returnType  => "\\void", 
-	    arguments   => "\\textcolor{red}{\\textless class(treeNode)\\textgreater} targetNode\\arginout"
+	    name        => "moveComponentsTo"
 	}
 	);
 }

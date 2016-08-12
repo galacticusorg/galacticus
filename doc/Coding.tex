@@ -1,6 +1,8 @@
 \chapter{Coding \glc}
 
-\section{Node Objects Builder}
+\section{Node Class Hierarchy Builder}
+
+The hierarchy of classes describing a merger tree node and its galaxy (i.e. {\normalfont \ttfamily treeNode}, {\normalfont \ttfamily nodeComponent}, {\normalfont \ttfamily nodeComponentBasic}, {\normalfont \ttfamily nodeComponentBasicStandard}, etc.) are built automatically to realize the set of component implementations and properties specified in source files.
 
 \subsection{Variable Definitions}\label{sec:nodeBuilderVariableDefinitions}
 
@@ -42,20 +44,42 @@ Each member implementation structure has the form:
 }
 \end{verbatim}
 
-\subsubsection{Types}
+\subsubsection{Types}\label{sec:buildHierarchyTypes}
 
 Definitions of derived types are accumulated to the hash {\normalfont \ttfamily \$build->\{'types'\}}, with the key of each entry being the derived type's name. Each derived type structure has the form:
 \begin{verbatim}
 {
+ name           => <name of the derived type>
+ comment        => <a description of the type>
+ isPublic       => <1 if the class should have public visbility, 0 otherwise>
+ dataContent    => <variable list containing all data for this class>
  boundFunctions => 
-  {
-   type        => <procedure|generic>
-   name        => <name of the bound method>
-   function    => <name of function to bind to>
-   description => <LaTeX-syntax description of the method>
-   returnType  => <LaTeX-syntax return type of the method>
-   arguments   => <LaTeX-syntax definition of all arguments to the method>
-  }
+  [
+   {
+    type        => <procedure|generic>
+    descriptor  => <a function descriptor data structure> [optional]
+    name        => <name of the bound method>
+    function    => <name of function to bind to> [optional; not required if descriptor is provided]
+    description => <LaTeX-syntax description of the method> [optional; not required if descriptor is provided]
+    returnType  => <LaTeX-syntax return type of the method> [optional; not required if descriptor is provided]
+    arguments   => <LaTeX-syntax definition of all arguments to the method> [optional; not required if descriptor is provided]
+   }
+  ]
+}
+\end{verbatim}
+The preferred approach is to provide a function descriptor (see \S\ref{sec:buildHierarchyFunctions}), and to omit the {\normalfont \ttfamily function}, {\normalfont \ttfamily description}, {\normalfont \ttfamily returnType}, and {\normalfont \ttfamily arguments} entries (which will be inferred from the function descriptor). The {\normalfont \ttfamily function}, {\normalfont \ttfamily description}, {\normalfont \ttfamily returnType}, and {\normalfont \ttfamily arguments} entries will eventually be deprecated in favor of the {\normalfont \ttfamily descriptor} entry.
+
+\subsubsection{Functions}\label{sec:buildHierarchyFunctions}
+
+Definitions of functions are accumulated either to the list {\normalfont \ttfamily \$build->\{'functions'\}} or are included as the {\normalfont \ttfamily descriptor} in a derived type structure (see \S\ref{sec:buildHierarchyTypes}). Each function structure has the form:
+\begin{verbatim}
+{
+ type        => <the type of function>
+ name        => <function name>
+ description => <LaTeX-syntax description of the function>
+ modules     => <list of names of modules required by the function> [optional]
+ variables   => <list of variables required by the function> [optional]
+ content     => <the code of the function (excluding opener, closer, and variable definitions)>
 }
 \end{verbatim}
 
