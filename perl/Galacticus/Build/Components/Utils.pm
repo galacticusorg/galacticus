@@ -1,6 +1,6 @@
 # Contains a Perl module which implements hooks for the component build system.
 
-package Utils;
+package Galacticus::Build::Components::Utils;
 my $galacticusPath;
 if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
     $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
@@ -14,6 +14,9 @@ use warnings;
 use utf8;
 use Data::Dumper;
 use List::Util qw(max);
+use Exporter qw(import);
+our $VERSION = 1.00;
+our @EXPORT_OK = qw($verbosityLevel $workaround @booleanLabel %intrinsicTypes $classNameLengthMax $implementationNameLengthMax $fullyQualifiedNameLengthMax $propertyNameLengthMax $implementationPropertyNameLengthMax $linkedDataNameLengthMax applyDefaults isIntrinsic isOutputIntrinsic offsetName padClass padImplementation padFullyQualified padPropertyName padImplementationPropertyName padLinkedData);
 
 # Define a hash into which modules can insert their hooks.
 %Galacticus::Build::Component::Utils::componentUtils = 
@@ -99,6 +102,22 @@ sub isOutputIntrinsic {
     # Return true if the given type matches an outputtable intrinsic type.
     my $type = shift();
     return (grep {$_ eq $type} ("double","integer","longInteger")) == 1 ? 1 : 0;
+}
+
+sub offsetName {
+    # Return the name of the variable used to store the offset of a property into the ODE solver arrays.
+    if ( scalar(@_) == 2 ) {
+	my $componentName = shift();
+	my $propertyName  = shift();
+	return "offset".ucfirst($componentName).ucfirst($propertyName);
+    } elsif ( scalar(@_) == 3 ) {
+	my $class    = shift();
+	my $member   = shift();
+	my $property = shift();
+	return "offset".ucfirst($class->{'name'}).ucfirst($member->{'name'}).ucfirst($property->{'name'});
+    } else {
+	die("offsetName(): incorrect number of arguments");
+    }
 }
 
 sub padClass {

@@ -1,21 +1,13 @@
 # Contains a Perl module which provides various utility functions for tree nodes.
 
 package Utils;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
 use strict;
 use warnings;
 use utf8;
 use Text::Template 'fill_in_string';
-require List::ExtraUtils;
-require Galacticus::Build::Components::Utils;
-require Galacticus::Build::Components::DataTypes;
+use List::ExtraUtils;
+use Galacticus::Build::Components::Utils qw($workaround);
+use Galacticus::Build::Components::DataTypes;
 
 # Insert hooks for our functions.
 %Galacticus::Build::Component::Utils::componentUtils = 
@@ -76,7 +68,7 @@ if (present(skipFormationNode)) skipFormationNodeActual=skipFormationNode
 if (.not.skipFormationNodeActual) targetNode%formationNode => self%formationNode
 CODE
     # Loop over all component classes
-    if ( $Utils::workaround == 1 ) { # Workaround "Assignment to an allocatable polymorphic variable is not yet supported"
+    if ( $workaround == 1 ) { # Workaround "Assignment to an allocatable polymorphic variable is not yet supported"
 	foreach $code::class ( &ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(targetNode%component{ucfirst($class->{'name'})})) deallocate(targetNode%component{ucfirst($class->{'name'})})

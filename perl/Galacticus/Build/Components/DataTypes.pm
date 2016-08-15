@@ -1,18 +1,11 @@
 # Contains a Perl module which handles data types for the component build system.
 
 package DataTypes;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
 use strict;
 use warnings;
 use utf8;
 use LaTeX::Encode;
+use Galacticus::Build::Components::Utils qw(%intrinsicTypes);
 
 sub dataObjectPrimitiveName {
     # Construct and return the name and attributes of the primitive data class to use for data of given type and rank.
@@ -27,9 +20,9 @@ sub dataObjectPrimitiveName {
     }
     # Construct name, type, and attributes.
     my $name = 
-	exists($Utils::intrinsicTypes{$dataObject->{'type'}}) 
+	exists($intrinsicTypes{$dataObject->{'type'}}) 
 	?
-	       $Utils::intrinsicTypes{$dataObject->{'type'}} 
+	       $intrinsicTypes{$dataObject->{'type'}} 
         :
 	"type(".                      $dataObject->{'type'}.")";    
     my $type = join("",map {ucfirst($_)} split(" ",$dataObject->{'type'}));
@@ -57,9 +50,9 @@ sub dataObjectDocName {
     return
 	"\\textcolor{red}{\\textless ".
 	(
-	 exists              ($Utils::intrinsicTypes{$dataObject->{'type'}})
+	 exists              ($intrinsicTypes{$dataObject->{'type'}})
 	 ?
-	         latex_encode($Utils::intrinsicTypes{$dataObject->{'type'}})
+	         latex_encode($intrinsicTypes{$dataObject->{'type'}})
 	 :
 	 "type(".latex_encode(                       $dataObject->{'type'} ).")"
 	).
@@ -78,8 +71,8 @@ sub dataObjectName {
     my $dataObject = shift;
     # Create the object name.
     my $name = "nodeData";
-    if ( exists($Utils::intrinsicTypes{$dataObject->{'type'}}) ) {
-	$name .= join("",map {ucfirst($_)} split(" ",$Utils::intrinsicTypes{$dataObject->{'type'}}));
+    if ( exists($intrinsicTypes{$dataObject->{'type'}}) ) {
+	$name .= join("",map {ucfirst($_)} split(" ",$intrinsicTypes{$dataObject->{'type'}}));
     } else {
 	$name .= ucfirst($dataObject->{'type'});
     }
@@ -109,8 +102,8 @@ sub dataObjectDefinition {
     die "dataObjectDefinition: no 'type' specifier present"
 	unless ( exists($dataObject->{'type'}) );
     # Construct properties.
-    if ( exists($Utils::intrinsicTypes{$dataObject->{'type'}}) ) {
-	$intrinsicName = $Utils::intrinsicTypes{$dataObject->{'type'}};
+    if ( exists($intrinsicTypes{$dataObject->{'type'}}) ) {
+	$intrinsicName = $intrinsicTypes{$dataObject->{'type'}};
     } else {
 	$intrinsicName =                               "type"  ;
 	$type          =                 $dataObject->{'type'} ;

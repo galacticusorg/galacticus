@@ -1,14 +1,6 @@
 # Contains a Perl module which handles component implementations during build.
 
 package Implementations;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
 use strict;
 use warnings;
 use utf8;
@@ -16,9 +8,9 @@ use Data::Dumper;
 use Sort::Topological qw(toposort);
 use Scalar::Util;
 use NestedMap;
-require List::ExtraUtils;
-require Galacticus::Build::Components::Utils;
-require Galacticus::Build::Components::DataTypes;
+use List::ExtraUtils;
+use Galacticus::Build::Components::Utils qw(applyDefaults $verbosityLevel @booleanLabel);
+use Galacticus::Build::Components::DataTypes;
 
 # Insert hooks for our functions.
 %Galacticus::Build::Component::Utils::componentUtils = 
@@ -85,7 +77,7 @@ sub Implementation_Defaults {
 	);
     # Iterate over implementations and apply all defaults.
     foreach my $implementation ( &ExtraUtils::hashList($build->{'components'}) ) {
-	&Utils::applyDefaults($implementation,$_,$defaults{$_})
+	&applyDefaults($implementation,$_,$defaults{$_})
 	    foreach ( keys(%defaults) );
     }
     # Record the default implementation for each class.
@@ -128,13 +120,13 @@ sub Null_Implementations {
 	    # Append this new component ID to the component ID list.
 	    push(@{$build->{'componentIdList'}},$implementationName);
 	    # Display a message.
-	    if ( $Utils::verbosityLevel >= 1 ) {
+	    if ( $verbosityLevel >= 1 ) {
 		print "         --> Adding null implementation ";
 		print "as default "
 		    unless ( $classes{$class}->{'hasDefault'} );
 		print "for ".$class." class\n";
 	    }
-	} elsif ( $Utils::verbosityLevel >= 1 ) {
+	} elsif ( $verbosityLevel >= 1 ) {
 	    # Advise that null components don't need to be explicitly specified.
 	    print "         --> INFO: a pre-existing null component was found for the '".$class."' class,\n";
 	    print "                   but would be built automatically.\n";
@@ -147,7 +139,7 @@ sub Implementation_Dependencies {
     my $build = shift();
     # Iterate over classes
     print "         --> Sorting implentations into parent->child order:\n"
-	if ( $Utils::verbosityLevel >= 1 );
+	if ( $verbosityLevel >= 1 );
     foreach my $className ( @{$build->{'componentClassList'}} ) {
 	my %dependencies;
 	foreach my $implementationName ( @{$build->{'componentClasses'}->{$className}->{'memberNames'}} ) {
@@ -162,7 +154,7 @@ sub Implementation_Dependencies {
 	     sub { @{$dependencies{$_[0]} || []}; },
 	     \@{$build->{'componentClasses'}->{$className}->{'memberNames'}}
 	    );
-	if ( $Utils::verbosityLevel >= 1 ) {
+	if ( $verbosityLevel >= 1 ) {
 	    print "            --> ".$className.":\n";
 	    print "               --> ".$_."\n"
 		foreach ( @{$build->{'componentClasses'}->{$className}->{'memberNames'}} );
@@ -311,13 +303,13 @@ sub Build_Component_Implementations {
 		     type     => "procedure", 
 		     pass     => "nopass",
 		     name     => $propertyName."IsGettable", 
-		     function => "Boolean_".ucfirst($Utils::booleanLabel[$property->{'attributes'}->{'isGettable'}])
+		     function => "Boolean_".ucfirst($booleanLabel[$property->{'attributes'}->{'isGettable'}])
 		 },
 		 {
 		     type     => "procedure",
 		     pass     => "nopass", 
 		     name     => $propertyName."IsSettable",
-		     function => "Boolean_".ucfirst($Utils::booleanLabel[$property->{'attributes'}->{'isSettable'}])
+		     function => "Boolean_".ucfirst($booleanLabel[$property->{'attributes'}->{'isSettable'}])
 		 }
 		);
 	}

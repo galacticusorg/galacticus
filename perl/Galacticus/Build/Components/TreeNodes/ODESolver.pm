@@ -25,6 +25,7 @@ require Galacticus::Build::Components::DataTypes;
      {
 	 functions =>
 	     [
+	      \&Tree_Node_ODE_Step_Initialize      ,
 	      \&Tree_Node_ODE_Serialize_Count      ,
 	      \&Tree_Node_ODE_Serialize_Values     ,
 	      \&Tree_Node_ODE_Deserialize_Values   ,
@@ -34,6 +35,52 @@ require Galacticus::Build::Components::DataTypes;
 	     ]
      }
     );
+
+sub Tree_Node_ODE_Step_Initialize {
+    # Generate a function to initialize ODE solver variables.
+    my $build = shift();
+    my @quantities =
+	(
+	 {
+	     name  => "rate",
+	     value => "0.0d0"
+	 },
+	 {
+	     name  => "scale",
+	     value => "1.0d0"
+	 }
+	);
+    foreach $code::quantity ( @quantities ) {
+	my $function =
+	{
+	    type        => "void",
+	    name        => "treeNodeODEStep".ucfirst($code::quantity->{'name'})."sInitialize",
+	    description => "Initialize the ".$code::quantity->{'name'}."s in components of tree node {\\normalfont \\ttfamily self} in preparation for an ODE solver step.",
+	    variables   =>
+		[
+		 {
+		     intrinsic  => "class",
+		     type       => "treeNode",
+		     attributes => [ "intent(in   )" ],
+		     variables  => [ "self" ]
+		 }
+		]
+	};    
+	$function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
+!GCC$ attributes unused :: self
+node{ucfirst($quantity->{'name'})}s={$quantity->{'value'}}
+CODE
+	# Insert a type-binding for this function into the treeNode type.
+	push(
+	    @{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	    {
+		type        => "procedure", 
+		descriptor  => $function,
+		name        => "odeStep".ucfirst($code::quantity->{'name'})."sInitialize"
+	    }
+	    );
+    }
+}
 
 sub Tree_Node_ODE_Serialize_Count {
     # Generate a function to return a count of serializable, evolvable properties of a node for the ODE solver.
