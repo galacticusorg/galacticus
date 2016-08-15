@@ -205,12 +205,37 @@ for(my $j=0;$j<$parameterCount;++$j) {
     my $Rhat = sqrt((($chainCount+1)/$chainCount)*((($stepCount-1)/$stepCount)*$W+$B/$stepCount)/$W-($stepCount-1)/$stepCount/$chainCount);
     # Compute corrected statistic (Brooks & Gelman, eqn. at end of section 1.3).
     my $Rhatc = ($d+3)*$Rhat/($d+1);
+    # For comparison we also compute the interval statistic proposed by Brooks & Gelman (1998, Section 4.3,
+    # http://www.statslab.cam.ac.uk/Reports/1996/1996-4.ps.gz) since it makes no assumptions of normality in the parameter
+    # distributions.
+    my $alpha           = 0.15;
+    my $x               = pdl [ $alpha/2.0, 1.0-$alpha/2.0 ];
+    my $intervalLengths = pdl zeroes($chainCount);
+    my $mixedChains     = pdl [];
+    for(my $i=0;$i<$chainCount;++$i) {
+	# Accumulate chain to sample of all chains.
+	$mixedChains                       = $mixedChains->append($chains[$i][$j]);
+	# Get index into an ordered list.
+	my $rank                           = $chains[$i][$j]->qsorti();
+	# Identify interval.
+	my $uniform                        = pdl (sequence(nelem($rank))+1)/nelem($rank);
+	(my $interval, my $intervalError)  = interpolate($x,$uniform,$chains[$i][$j]->($rank));
+	$intervalLengths->(($i))          .= $interval->((1))-$interval->((0));
+    }
+    # Get index into an ordered list.
+    my $rank                          = $mixedChains->qsorti();
+    # Identify interval.
+    my $uniform                       = pdl (sequence(nelem($rank))+1)/nelem($rank);
+    (my $interval, my $intervalError) = interpolate($x,$uniform,$mixedChains->($rank));
+    my $mixedIntervalLength           = $interval->((1))-$interval->((0));
+    my $Rinterval                     = $mixedIntervalLength/$intervalLengths->average();
     # Store results.
     push(
 	@convergence,
 	{
 	    parameter        => $j                 ,
 	    Rhatc            => $Rhatc             ,
+	    Rinterval        => $Rinterval         ,
 	    mean             => $interChainMean    ,
 	    between          => $interChainVariance,
 	    within           => $W                 ,
@@ -219,12 +244,14 @@ for(my $j=0;$j<$parameterCount;++$j) {
 	}
 	);
 }
-my @sortedConvergence = sort {$a->{'Rhatc'}->sclr() <=> $b->{'Rhatc'}->sclr()} @convergence;
+my @sortedConvergence = sort {$a->{'Rhatc'    }->sclr() <=> $b->{'Rhatc'    }->sclr()} @convergence;
+my @sortedInterval    = sort {$a->{'Rinterval'}->sclr() <=> $b->{'Rinterval'}->sclr()} @convergence;
 foreach ( @sortedConvergence ) {
-    print $_->{'parameter'}."\t".$_->{'mean'}."\t".$_->{'between'}."\t".$_->{'within'}."\t".$_->{'Rhatc'}."\t".$_->{'degreesOfFreedom'}."\t".$_->{'label'}."\n";
+    print $_->{'parameter'}."\t".$_->{'mean'}."\t".$_->{'between'}."\t".$_->{'within'}."\t".$_->{'Rhatc'}."\t".$_->{'Rinterval'}."\t".$_->{'degreesOfFreedom'}."\t".$_->{'label'}."\n";
 }
 print "\n";
-print "Minimum/Maximum Rhat = ".$sortedConvergence[0]->{'Rhatc'}."\t".$sortedConvergence[-1]->{'Rhatc'}."\n\n";
+print "Minimum/Maximum Rhat = ".$sortedConvergence[0]->{'Rhatc'    }."\t".$sortedConvergence[-1]->{'Rhatc'    }."\n";
+print "Minimum/Maximum Rint = ".$sortedInterval   [0]->{'Rinterval'}."\t".$sortedInterval   [-1]->{'Rinterval'}."\n\n";
 print "Outliers: ".join(",",$outliers->list())."\n";
 print "Chain length: ".$stepCount."\n";
 
