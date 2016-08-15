@@ -1,21 +1,13 @@
 # Contains a Perl module which handles component classes during build.
 
 package Classes;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
 use strict;
 use warnings;
 use utf8;
 use Data::Dumper;
-require List::ExtraUtils;
-require Galacticus::Build::Components::Utils;
-require Galacticus::Build::Components::DataTypes;
+use List::ExtraUtils;
+use Galacticus::Build::Components::Utils qw($verbosityLevel);
+use Galacticus::Build::Components::DataTypes;
 
 # Insert hooks for our functions.
 %Galacticus::Build::Component::Utils::componentUtils = 
@@ -55,7 +47,7 @@ sub Gather_Classes {
     # Construct a list of component class names.
     @{$build->{'componentClassList'}} = &ExtraUtils::sortedKeys($build->{'componentClasses'});
     # Output report if sufficiently verbose.
-    if ( $Utils::verbosityLevel > 0 ) {
+    if ( $verbosityLevel > 0 ) {
 	print "         --> Found the following component classes and implementations:\n";
 	foreach my $className ( @{$build->{'componentClassList'}} ) {
 	    print "            --> ".$className."\n";

@@ -1,14 +1,6 @@
 # Contains a Perl module which implements processing of "component" directives in the Galacticus build system.
 
 package Component;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
 use strict;
 use warnings;
 use utf8;
@@ -23,32 +15,32 @@ use XML::Validator::Schema;
 use LaTeX::Encode;
 use Carp 'verbose';
 use Sub::Identify ':all';
-require File::Changes;
-require Fortran::Utils;
-require Galacticus::Build::Hooks;
-require Galacticus::Build::Components::Utils;
-require Galacticus::Build::Components::CodeGeneration;
-require Galacticus::Build::Components::Hierarchy;
-require Galacticus::Build::Components::Hierarchy::ODESolver;
-require Galacticus::Build::Components::TreeNodes;
-require Galacticus::Build::Components::TreeNodes::CreateDestroy;
-require Galacticus::Build::Components::TreeNodes::ODESolver;
-require Galacticus::Build::Components::TreeNodes::Serialization;
-require Galacticus::Build::Components::TreeNodes::Utils;
-require Galacticus::Build::Components::NodeEvents;
-require Galacticus::Build::Components::BaseTypes;
-require Galacticus::Build::Components::Classes;
-require Galacticus::Build::Components::Classes::Names;
-require Galacticus::Build::Components::Classes::CreateDestroy;
-require Galacticus::Build::Components::Classes::Utils;
-require Galacticus::Build::Components::Implementations;
-require Galacticus::Build::Components::Implementations::Utils;
-require Galacticus::Build::Components::Implementations::Names;
-require Galacticus::Build::Components::Implementations::ODESolver;
-require Galacticus::Build::Components::Properties;
-require Galacticus::Build::Components::Properties::Set;
-require Galacticus::Build::Components::Attributes;
-require Galacticus::Build::Components::DataTypes;
+use File::Changes;
+use Fortran::Utils;
+use Galacticus::Build::Hooks;
+use Galacticus::Build::Components::Utils qw(@booleanLabel $implementationPropertyNameLengthMax $fullyQualifiedNameLengthMax padClass padLinkedData padImplementationPropertyName padFullyQualified isIntrinsic isOutputIntrinsic offsetName);
+use Galacticus::Build::Components::CodeGeneration;
+use Galacticus::Build::Components::Hierarchy;
+use Galacticus::Build::Components::Hierarchy::ODESolver;
+use Galacticus::Build::Components::TreeNodes;
+use Galacticus::Build::Components::TreeNodes::CreateDestroy;
+use Galacticus::Build::Components::TreeNodes::ODESolver;
+use Galacticus::Build::Components::TreeNodes::Serialization;
+use Galacticus::Build::Components::TreeNodes::Utils;
+use Galacticus::Build::Components::NodeEvents;
+use Galacticus::Build::Components::BaseTypes;
+use Galacticus::Build::Components::Classes;
+use Galacticus::Build::Components::Classes::Names;
+use Galacticus::Build::Components::Classes::CreateDestroy;
+use Galacticus::Build::Components::Classes::Utils;
+use Galacticus::Build::Components::Implementations;
+use Galacticus::Build::Components::Implementations::Utils;
+use Galacticus::Build::Components::Implementations::Names;
+use Galacticus::Build::Components::Implementations::ODESolver;
+use Galacticus::Build::Components::Properties;
+use Galacticus::Build::Components::Properties::Set;
+use Galacticus::Build::Components::Attributes;
+use Galacticus::Build::Components::DataTypes;
 $SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
 
 # Insert hooks for our functions.
@@ -78,7 +70,7 @@ sub Components_Validate {
     # Validate a component document.
     my $document  = shift;
     my $file      = shift;
-    my $validator = XML::Validator::Schema->new(file => $galacticusPath."schema/componentSchema.xsd");
+    my $validator = XML::Validator::Schema->new(file => $main::galacticusPath."schema/componentSchema.xsd");
     my $parser    = XML::SAX::ParserFactory->parser(Handler => $validator); 
     eval { $parser->parse_string($document) };
     die "Galacticus::Build::Components::Components_Validate(): validation failed in file ".$file.":\n".$@
@@ -140,8 +132,6 @@ sub Components_Generate_Output {
 	    \&Generate_Component_Class_Output_Functions              ,
 	    # Generate component implementation destruction functions.
 	    \&Generate_Component_Implementation_Destruction_Functions,
-	    # Generate ODE solver initialization functions.
-	    \&Generate_Node_ODE_Initialization_Functions             ,
 	    # Generate dump functions for each implementation.
 	    \&Generate_Implementation_Dump_Functions                 ,
 	    # Generate initializor functions for each implementation.
@@ -150,8 +140,6 @@ sub Components_Generate_Output {
 	    \&Generate_Implementation_Builder_Functions              ,
 	    # Generate output functions for each implementation.
 	    \&Generate_Implementation_Output_Functions               ,
-	    # Generate serialization offset functions for each implementation.
-	    \&Generate_Implementation_Offset_Functions               ,
 	    # Generate component count methods.
 	    \&Generate_Component_Count_Functions                     ,
 	    # Generate component get methods.
@@ -333,8 +321,8 @@ sub Generate_Implementations {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    push(
 		@typeBoundFunctions,
-		{type => "procedure", pass => "nopass", name => $propertyName."IsGettable", function => "Boolean_".ucfirst($Utils::booleanLabel[$property->{'attributes'}->{'isGettable'}])},
-		{type => "procedure", pass => "nopass", name => $propertyName."IsSettable", function => "Boolean_".ucfirst($Utils::booleanLabel[$property->{'attributes'}->{'isSettable'}])}
+		{type => "procedure", pass => "nopass", name => $propertyName."IsGettable", function => "Boolean_".ucfirst($booleanLabel[$property->{'attributes'}->{'isGettable'}])},
+		{type => "procedure", pass => "nopass", name => $propertyName."IsSettable", function => "Boolean_".ucfirst($booleanLabel[$property->{'attributes'}->{'isSettable'}])}
 		);
 	}
 	# Create the type.
@@ -864,9 +852,9 @@ sub Generate_Map_Functions {
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     foreach ( @{$build->{'componentClassList'}} ) {	    
-     	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[19,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[19,0]).")\n";
-	$functionCode .= "        call mapFunction(self%component".&Utils::padClass(ucfirst($_),[19,0])."(i))\n";
+     	$functionCode .= "    if (allocated(self%component".&padClass(ucfirst($_),[19,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&padClass(ucfirst($_),[19,0]).")\n";
+	$functionCode .= "        call mapFunction(self%component".&padClass(ucfirst($_),[19,0])."(i))\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
@@ -960,17 +948,17 @@ sub Generate_Map_Functions {
 			$baseClass =~ s/^nodeComponent//;
 			$baseClass = lc($baseClass);
 			# Construct code for this component.
-			$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($baseClass),[0,0]).")) then\n";
-			$functionCode .= "      select type (c => self%component".&Utils::padClass(ucfirst($baseClass),[0,0]).")\n";
+			$functionCode .= "    if (allocated(self%component".&padClass(ucfirst($baseClass),[0,0]).")) then\n";
+			$functionCode .= "      select type (c => self%component".&padClass(ucfirst($baseClass),[0,0]).")\n";
 			$functionCode .= "      type is (".$type.")\n";
-			$functionCode .= "         do i=1,size(self%component".&Utils::padClass(ucfirst($baseClass),[0,0]).")\n";
+			$functionCode .= "         do i=1,size(self%component".&padClass(ucfirst($baseClass),[0,0]).")\n";
 			$functionCode .= "            mapComponentsDouble0=mapComponentsDouble0";
 			if ( $reduction eq "summation" ) {
 			    $functionCode .= "+";
 			} elsif ( $reduction eq "product" ) {
 			    $functionCode .= "*";
 			}
-			$functionCode .= "mapFunction(self%component".&Utils::padClass(ucfirst($baseClass),[0,0])."(i))\n";
+			$functionCode .= "mapFunction(self%component".&padClass(ucfirst($baseClass),[0,0])."(i))\n";
 			$functionCode .= "         end do\n";
 			$functionCode .= "      end select\n";
 			$functionCode .= "    end if\n";
@@ -993,9 +981,9 @@ sub Generate_Map_Functions {
     $functionCode .= "      call Galacticus_Error_Report('mapComponentsDouble0','unknown reduction')\n";
     $functionCode .= "    end select\n";
     foreach ( @{$build->{'componentClassList'}} ) {	    
-     	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
-     	$functionCode .= "        componentValue=mapFunction(self%component".&Utils::padClass(ucfirst($_),[0,0])."(i))\n";
+     	$functionCode .= "    if (allocated(self%component".&padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&padClass(ucfirst($_),[0,0]).")\n";
+     	$functionCode .= "        componentValue=mapFunction(self%component".&padClass(ucfirst($_),[0,0])."(i))\n";
      	$functionCode .= "        select case (reduction)\n";
      	$functionCode .= "        case (reductionSummation)\n";
      	$functionCode .= "          mapComponentsDouble0=mapComponentsDouble0+componentValue\n";
@@ -1056,9 +1044,9 @@ sub Generate_Node_Output_Functions {
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Iterate over all component classes
     foreach ( @{$build->{'componentClassList'}} ) {	    
-	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%outputCount(integerPropertyCount,doublePropertyCount,time,instance=i)\n";
+	$functionCode .= "    if (allocated(self%component".&padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        call self%component".&padClass(ucfirst($_),[0,0])."(i)%outputCount(integerPropertyCount,doublePropertyCount,time,instance=i)\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
@@ -1116,9 +1104,9 @@ sub Generate_Node_Output_Functions {
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Iterate over all component classes
     foreach ( @{$build->{'componentClassList'}} ) {	    
-	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance=i)\n";
+	$functionCode .= "    if (allocated(self%component".&padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        call self%component".&padClass(ucfirst($_),[0,0])."(i)%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance=i)\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
@@ -1176,9 +1164,9 @@ sub Generate_Node_Output_Functions {
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Iterate over all component classes
     foreach ( @{$build->{'componentClassList'}} ) {	    
-	$functionCode .= "    if (allocated(self%component".&Utils::padClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".&Utils::padClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        call self%component".&Utils::padClass(ucfirst($_),[0,0])."(i)%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty&
+	$functionCode .= "    if (allocated(self%component".&padClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".&padClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        call self%component".&padClass(ucfirst($_),[0,0])."(i)%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time,instance=i)\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
@@ -1194,59 +1182,6 @@ sub Generate_Node_Output_Functions {
     push(
 	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{type => "procedure", name => "output", function => "Node_Output", description => "Populate output buffers with properties for a node.", returnType  => "\\void", arguments   => "\\intzero\\ integerProperty\\arginout, \\intzero\\ integerBufferCount\\arginout, \\inttwo\\ integerBuffer\\arginout, \\intzero doubleProperty\\arginout, \\intzero\\ doubleBufferCount\\arginout, \\doubletwo\\ doubleBuffer\\arginout, \\doublezero\\ time\\argin"}
-	);
-}
-
-sub Generate_Node_ODE_Initialization_Functions {
-    # Generate functions initialize a node for an ODE step.
-    my $build = shift;
-    # Create functions to initialize property rates for an ODE step.
-    my @dataContent =
-	(
-	 {
-	     intrinsic  => "class",
-	     type       => "treeNode",
-	     attributes => [ "intent(inout)" ],
-	     variables  => [ "self" ]
-	 }
-	);
-    my $functionCode;
-    $functionCode  = "  subroutine Tree_Node_ODE_Step_Rates_Initialize(self)\n";
-    $functionCode .= "    !% Initialize the rates in components of tree node {\\normalfont \\ttfamily self} in preparation for an ODE solver step.\n";
-    $functionCode .= "    implicit none\n";
-    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    $functionCode .= "    !GCC\$ attributes unused :: self\n";
-    $functionCode .= "    nodeRates=0.0d0\n";
-    $functionCode .= "    return\n";
-    $functionCode .= "  end subroutine Tree_Node_ODE_Step_Rates_Initialize\n\n";
-    # Insert into the function list.
-    push(
-	@{$build->{'code'}->{'functions'}},
-	$functionCode
-	);
-    # Insert a type-binding for this function into the treeNode type.
-    push(
-	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "odeStepRatesInitialize", function => "Tree_Node_ODE_Step_Rates_Initialize", description => "Initialize rates of evolvable properties.", returnType => "\\void", arguments => ""},
-	);    
-    # Create functions to initialize property scales for an ODE step.
-    $functionCode  = "  subroutine Tree_Node_ODE_Step_Scales_Initialize(self)\n";
-    $functionCode .= "    !% Initialize the scales in components of tree node {\\normalfont \\ttfamily self} in preparation for an ODE solver step.\n";
-    $functionCode .= "    implicit none\n";
-    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    $functionCode .= "    !GCC\$ attributes unused :: self\n";
-    $functionCode .= "    nodeScales=1.0d0\n";
-    $functionCode .= "    return\n";
-    $functionCode .= "  end subroutine Tree_Node_ODE_Step_Scales_Initialize\n\n";
-    # Insert into the function list.
-    push(
-	@{$build->{'code'}->{'functions'}},
-	$functionCode
-	);
-    # Insert a type-binding for this function into the treeNode type.
-    push(
-	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "odeStepScalesInitialize" , function => "Tree_Node_ODE_Step_Scales_Initialize", description => "Initialize tolerance scales of evolvable properties.", returnType => "\\void", arguments => ""}
 	);
 }
 
@@ -1325,7 +1260,7 @@ sub Generate_Implementation_Dump_Functions {
 	    # Dump the parent type if necessary.
 	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%dump()\n"
 		if ( exists($component->{'extends'}) );
-	    $functionCode .= "    call Galacticus_Display_Indent('".$component->{'class'}.": ".(" " x ($Utils::fullyQualifiedNameLengthMax-length($component->{'class'}))).$component->{'name'}."')\n";
+	    $functionCode .= "    call Galacticus_Display_Indent('".$component->{'class'}.": ".(" " x ($fullyQualifiedNameLengthMax-length($component->{'class'}))).$component->{'name'}."')\n";
 	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property has any linked data in this component.
@@ -1333,22 +1268,22 @@ sub Generate_Implementation_Dump_Functions {
 		    my $linkedDataName = $property->{'linkedData'};
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    if ( $linkedData->{'rank'} == 0 ) {
-			if (&Utils::isIntrinsic($linkedData->{'type'})) {
-			    $functionCode .= "    write (label,".$formatLabel{$linkedData->{'type'}}.") self%".&Utils::padLinkedData($linkedDataName,[0,0])."\n";
-			    $functionCode .= "    message='".$propertyName.": ".(" " x ($Utils::implementationPropertyNameLengthMax-length($propertyName)))."'//label\n";
+			if (&isIntrinsic($linkedData->{'type'})) {
+			    $functionCode .= "    write (label,".$formatLabel{$linkedData->{'type'}}.") self%".&padLinkedData($linkedDataName,[0,0])."\n";
+			    $functionCode .= "    message='".$propertyName.": ".(" " x ($implementationPropertyNameLengthMax-length($propertyName)))."'//label\n";
 			    $functionCode .= "    call Galacticus_Display_Message(message)\n";
 			}
 			else {
 			    $functionCode .= "    message='".$propertyName.":'\n";
 			    $functionCode .= "    call Galacticus_Display_Indent(message)\n";
-			    $functionCode .= "    call self%".&Utils::padLinkedData($linkedDataName,[0,0])."%dump()\n";
+			    $functionCode .= "    call self%".&padLinkedData($linkedDataName,[0,0])."%dump()\n";
 			    $functionCode .= "    call Galacticus_Display_Unindent('end')\n";
 			}
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
-			if (&Utils::isIntrinsic($linkedData->{'type'})) {
+			if (&isIntrinsic($linkedData->{'type'})) {
 			    $functionCode .= "    do i=1,size(self%".$linkedDataName.")\n";
 			    $functionCode .= "       write (label,'(i3)') i\n";
-			    $functionCode .= "       message='".$propertyName.": ".(" " x ($Utils::implementationPropertyNameLengthMax-length($propertyName)))." '//trim(label)\n";
+			    $functionCode .= "       message='".$propertyName.": ".(" " x ($implementationPropertyNameLengthMax-length($propertyName)))." '//trim(label)\n";
 			    $functionCode .= "       write (label,".$formatLabel{$linkedData->{'type'}}.") self%".$linkedDataName."(i)\n";
 			    $functionCode .= "       message=message//': '//label\n";
 			    $functionCode .= "       call Galacticus_Display_Message(message)\n";
@@ -1357,7 +1292,7 @@ sub Generate_Implementation_Dump_Functions {
 			else {
 			    $functionCode .= "    do i=1,size(self%".$linkedDataName.")\n";
 			    $functionCode .= "       write (label,'(i3)') i\n";
-			    $functionCode .= "       message='".$propertyName.": ".(" " x ($Utils::implementationPropertyNameLengthMax-length($propertyName)))." '//trim(label)\n";
+			    $functionCode .= "       message='".$propertyName.": ".(" " x ($implementationPropertyNameLengthMax-length($propertyName)))." '//trim(label)\n";
 			    $functionCode .= "       call Galacticus_Display_Indent(message)\n";
 			    $functionCode .= "       call self%".$linkedDataName."(i)%dump()\n";
 			    $functionCode .= "       call Galacticus_Display_Unindent('end')\n";
@@ -1427,16 +1362,16 @@ sub Generate_Implementation_Dump_Functions {
 		    my $linkedDataName = $property->{'linkedData'};
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    if ( $linkedData->{'rank'} == 0 ) {
-			if (&Utils::isIntrinsic($linkedData->{'type'})) {
+			if (&isIntrinsic($linkedData->{'type'})) {
 			    (my $typeFormat = $formatLabel{$linkedData->{'type'}}) =~ s/^\'\((.*)\)\'$/$1/g;
-				$functionBody .= "    write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".&Utils::padLinkedData($linkedDataName,[0,0]).",'</".$propertyName.">'\n";
+				$functionBody .= "    write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".&padLinkedData($linkedDataName,[0,0]).",'</".$propertyName.">'\n";
 			}
 			else {
 			    $functionBody .= "    write (fileHandle,'(a)') '   <".$propertyName.">'\n";
 			    $functionBody .= "    write (fileHandle,'(a)') '   </".$propertyName.">'\n";
 			}
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
-			if (&Utils::isIntrinsic($linkedData->{'type'})) {
+			if (&isIntrinsic($linkedData->{'type'})) {
 			    (my $typeFormat = $formatLabel{$linkedData->{'type'}}) =~ s/^\'\((.*)\)\'$/$1/g;
 			    $functionBody .= "    do i=1,size(self%".$linkedDataName.")\n";
 			    $functionBody .= "       write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".$linkedDataName."(i),'</".$propertyName.">'\n";
@@ -1450,9 +1385,9 @@ sub Generate_Implementation_Dump_Functions {
 			}			
 		    }
 		} elsif ( $property->{'attributes'}->{'isVirtual'} && $property->{'rank'} == 0 ) {
-		    if (&Utils::isIntrinsic($property->{'type'})) {
+		    if (&isIntrinsic($property->{'type'})) {
 			(my $typeFormat = $formatLabel{$property->{'type'}}) =~ s/^\'\((.*)\)\'$/$1/g;
-			$functionBody .= "    write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".&Utils::padImplementationPropertyName($propertyName,[0,0])."(),'</".$propertyName.">'\n";
+			$functionBody .= "    write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".&padImplementationPropertyName($propertyName,[0,0])."(),'</".$propertyName.">'\n";
 		    }
 		}
 	    }
@@ -1499,7 +1434,7 @@ sub Generate_Implementation_Dump_Functions {
 		my $linkedDataName = $property->{'linkedData'};
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		if ( $linkedData->{'rank'} == 1 && $counterAdded == 0) {
-		    unless (&Utils::isIntrinsic($linkedData->{'type'})) {
+		    unless (&isIntrinsic($linkedData->{'type'})) {
 			push(
 			    @dataContent,
 			    {
@@ -1536,18 +1471,18 @@ sub Generate_Implementation_Dump_Functions {
 		    my $linkedDataName = $property->{'linkedData'};
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    if ( $linkedData->{'rank'} == 0 ) {
-			if (&Utils::isIntrinsic($linkedData->{'type'})) {
-			    $functionCode .= "    write (fileHandle) self%".&Utils::padLinkedData($linkedDataName,[0,0])."\n";
-			    $functionBody .= "    write (fileHandle) self%".&Utils::padLinkedData($linkedDataName,[0,0])."\n";
+			if (&isIntrinsic($linkedData->{'type'})) {
+			    $functionCode .= "    write (fileHandle) self%".&padLinkedData($linkedDataName,[0,0])."\n";
+			    $functionBody .= "    write (fileHandle) self%".&padLinkedData($linkedDataName,[0,0])."\n";
 			}
 			else {
-			    $functionBody .= "    call self%".&Utils::padLinkedData($linkedDataName,[0,0])."%dumpRaw(fileHandle)\n";
+			    $functionBody .= "    call self%".&padLinkedData($linkedDataName,[0,0])."%dumpRaw(fileHandle)\n";
 			}
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
 			$functionBody .= "    write (fileHandle) allocated(self%".$linkedDataName.")\n";
 			$functionBody .= "    if (allocated(self%".$linkedDataName.")) then\n";
 			$functionBody .= "       write (fileHandle) size(self%".$linkedDataName.")\n";
-			if (&Utils::isIntrinsic($linkedData->{'type'})) {
+			if (&isIntrinsic($linkedData->{'type'})) {
 			    $functionBody .= "      write (fileHandle) self%".$linkedDataName."\n";
 			}
 			else {
@@ -1617,7 +1552,7 @@ sub Generate_Implementation_Dump_Functions {
 			$readArraysAdded = 1;
 		    }
 		    if ( $readCounterAdded == 0 ) {
-			unless (&Utils::isIntrinsic($linkedData->{'type'})) {
+			unless (&isIntrinsic($linkedData->{'type'})) {
 			    push(
 				@dataContent,
 				{
@@ -1656,16 +1591,16 @@ sub Generate_Implementation_Dump_Functions {
 		    my $linkedDataName = $property->{'linkedData'};
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    if ( $linkedData->{'rank'} == 0 ) {
-			if (&Utils::isIntrinsic($linkedData->{'type'})) {
-			    $functionBody .= "    read (fileHandle) self%".&Utils::padLinkedData($linkedDataName,[0,0])."\n";
+			if (&isIntrinsic($linkedData->{'type'})) {
+			    $functionBody .= "    read (fileHandle) self%".&padLinkedData($linkedDataName,[0,0])."\n";
 			} else {
-			    $functionBody .= "    call self%".&Utils::padLinkedData($linkedDataName,[0,0])."%readRaw(fileHandle)\n";
+			    $functionBody .= "    call self%".&padLinkedData($linkedDataName,[0,0])."%readRaw(fileHandle)\n";
 			}
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
 			$functionBody .= "    read (fileHandle) isAllocated\n";
 			$functionBody .= "    if (isAllocated) then\n";
 			$functionBody .= "       read (fileHandle) arraySize\n";
-			if (&Utils::isIntrinsic($linkedData->{'type'})) {
+			if (&isIntrinsic($linkedData->{'type'})) {
 			    $functionBody .= "      call Alloc_Array(self%".$linkedDataName.",[arraySize])\n";
 			    $functionBody .= "      read (fileHandle) self%".$linkedDataName."\n";
 			}
@@ -1736,29 +1671,29 @@ sub Generate_Implementation_Initializor_Functions {
 		    }
 		    $default = $property->{'classDefault'}->{'code'};
 		    if ( exists($property->{'classDefault'}->{'count'}) ) {
-			$initializeCode .= "           call Alloc_Array(self%".&Utils::padLinkedData($linkedDataName,[0,0]).",[".$property->{'classDefault'}->{'count'}."])\n";
+			$initializeCode .= "           call Alloc_Array(self%".&padLinkedData($linkedDataName,[0,0]).",[".$property->{'classDefault'}->{'count'}."])\n";
 		    }
-		    $initializeCode .= "            self%".&Utils::padLinkedData($linkedDataName,[0,0])."=".$default."\n";
+		    $initializeCode .= "            self%".&padLinkedData($linkedDataName,[0,0])."=".$default."\n";
 		} else {
 		    # Set to null.
 		    if    ( $linkedData->{'type'} eq"double" ) {
 			if ( $linkedData->{'rank'} == 0 ) {
-			    $initializeCode .= "            self%".&Utils::padLinkedData($linkedDataName,[0,0])."=0.0d0\n";
+			    $initializeCode .= "            self%".&padLinkedData($linkedDataName,[0,0])."=0.0d0\n";
 			} else {
-			    $initializeCode .= "            call Alloc_Array(self%".&Utils::padLinkedData($linkedDataName,[0,0]).",[".join(",","0" x $linkedData->{'rank'})."])\n";
+			    $initializeCode .= "            call Alloc_Array(self%".&padLinkedData($linkedDataName,[0,0]).",[".join(",","0" x $linkedData->{'rank'})."])\n";
 			}
 		    }
 		    elsif ( $linkedData->{'type'} eq"integer"     ) {
-			$initializeCode .= "            self%".&Utils::padLinkedData($linkedDataName,[0,0])."=0\n";
+			$initializeCode .= "            self%".&padLinkedData($linkedDataName,[0,0])."=0\n";
 		    }
 		    elsif ( $linkedData->{'type'} eq"longInteger" ) {
-			$initializeCode .= "            self%".&Utils::padLinkedData($linkedDataName,[0,0])."=0_kind_int8\n";
+			$initializeCode .= "            self%".&padLinkedData($linkedDataName,[0,0])."=0_kind_int8\n";
 		    }
 		    elsif ( $linkedData->{'type'} eq"logical"     ) {
-			$initializeCode .= "            self%".&Utils::padLinkedData($linkedDataName,[0,0])."=.false.\n";
+			$initializeCode .= "            self%".&padLinkedData($linkedDataName,[0,0])."=.false.\n";
 		    }
 		    else {
-			$initializeCode .= "       call self%".&Utils::padLinkedData($linkedDataName,[0,0])."%reset()\n";			    
+			$initializeCode .= "       call self%".&padLinkedData($linkedDataName,[0,0])."%reset()\n";			    
 		    }
 		}
 	    }
@@ -1922,17 +1857,17 @@ sub Generate_Implementation_Builder_Functions {
 			    ||
 			    $linkedData->{'type'} eq "logical"
 			    ) {
-			    $functionCode .= "      call extractDataContent(property,self%".&Utils::padLinkedData($linkedDataName,[0,0]).")\n";
+			    $functionCode .= "      call extractDataContent(property,self%".&padLinkedData($linkedDataName,[0,0]).")\n";
 			} elsif ( $linkedData->{'type'} eq "longInteger" ) {
 			    $functionCode .= "      call Galacticus_Error_Report('Node_Component_".ucfirst($componentID)."_Builder','building of long integer properties currently not supported')\n";
 			}
 			else {
-			    $functionCode .= "      call self%".&Utils::padLinkedData($linkedDataName,[0,0])."%builder(property)\n";
+			    $functionCode .= "      call self%".&padLinkedData($linkedDataName,[0,0])."%builder(property)\n";
 			}
 			$functionCode .= "    end if\n";
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
 			$functionCode .= "    if (getLength(propertyList) >= 1) then\n";
-			if (&Utils::isIntrinsic($linkedData->{'type'})) {
+			if (&isIntrinsic($linkedData->{'type'})) {
 			    $functionCode .= "      call Alloc_Array(self%".$linkedDataName.",[getLength(propertyList)])\n";
 			    $functionCode .= "      do i=1,getLength(propertyList)\n";
 			    $functionCode .= "        property => item(propertyList,i-1)\n";
@@ -2040,7 +1975,7 @@ sub Generate_Implementation_Output_Functions {
 		    die("Generate_Implementation_Output_Functions(): can not output [".$propertyName."]");
 		}
 		# Increment the counters.
-		if (&Utils::isOutputIntrinsic($type)) {
+		if (&isOutputIntrinsic($type)) {
 		    if ( $rank == 1 && exists($property->{'output'}->{'condition'}) && $counterAdded == 0 ) {
 			push(
 			    @dataContent,
@@ -2070,7 +2005,7 @@ sub Generate_Implementation_Output_Functions {
 		    $type = $property->{'type'};		
 		}
 		$outputTypes{$type} = 1
-		    unless (&Utils::isOutputIntrinsic($type));
+		    unless (&isOutputIntrinsic($type));
 	    }
 	}
 	my @outputTypes;
@@ -2174,7 +2109,7 @@ sub Generate_Implementation_Output_Functions {
 			die("Generate_Implementation_Output_Functions(): output of rank>1 arrays not supported");
 		    }
 		    # Increment the counters.
-		    if (&Utils::isOutputIntrinsic($type)) {
+		    if (&isOutputIntrinsic($type)) {
 			if ( $rank == 0 ) {
 			    if ( exists($property->{'output'}->{'condition'}) ) {
 				my $condition = $property->{'output'}->{'condition'};
@@ -2346,7 +2281,7 @@ sub Generate_Implementation_Output_Functions {
 			die("Generate_Implementation_Output_Functions(): can not output [".$propertyName."]");
 		    }		   
 		    # Increment the counters.
-		    if (&Utils::isOutputIntrinsic($type)) {
+		    if (&isOutputIntrinsic($type)) {
 			$typeUsed{$typeMap{$type}} = 1;
 			if ( $rank == 0 ) {
 			    if ( exists($property->{'output'}->{'condition'}) ) {
@@ -2517,98 +2452,6 @@ sub Generate_Serialization_Offset_Variables {
     $build->{'content'} .= " integer                                     :: nodeSerializationCount\n";
     $build->{'content'} .= " double precision, allocatable, dimension(:) :: nodeScales, nodeRates, nodeRatesIncrement\n";
     $build->{'content'} .= " !\$omp threadprivate(nodeScales,nodeRates,nodeRatesIncrement,nodeSerializationCount)\n";
-}
-
-sub offsetName {
-    my $componentName = shift();
-    my $propertyName  = shift();
-    return "offset".ucfirst($componentName).ucfirst($propertyName);
-}
-
-sub Generate_Implementation_Offset_Functions {
-    # Generate serialization offset functions for each component implementation.
-    my $build = shift;
-    # Initialize function code.
-    my $functionCode;
-    # Initialize data content.
-    my @dataContent;
-    # Iterate over component implementations.
-    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
-	# Get the component.
-	my $component = $build->{'components'}->{$componentID};
-	# Generate data content.
-	@dataContent =
-	    (
-	     {
-		 intrinsic  => "class",
-		 type       => "nodeComponent".ucfirst($componentID),
-		 attributes => [ "intent(in   )" ],
-		 variables  => [ "self" ]
-	     },
-	     {
-		 intrinsic  => "integer",
-		 attributes => [ "intent(inout)" ],
-		 variables  => [ "count" ]
-	     }
-	    );
-	# Generate a count function.
-  	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Offsets(self,count)\n";
-	$functionCode .= "    !% Return a count of the serialization of a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
-	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	my $functionBody = "";
-	# If this component is an extension, compute offsets of the extended type.
-	if ( exists($build->{'components'}->{$componentID}->{'extends'}) ) {
-	    my $extends = $build->{'components'}->{$componentID}->{'extends'};
-	    $functionBody .= "call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serializationOffsets(count)\n";
-	}
-	# Iterate over properties.
-	my $countUsed = 0;
-	my $selfUsed  =0;
-	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
-	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
-   	    # Check if this property has any linked data in this component.
-	    if ( exists($property->{'linkedData'}) ) {
-		# For each linked datum count if necessary.
-		my $linkedDataName = $property->{'linkedData'};
-		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
-		if ( $linkedData->{'isEvolvable'} ) {
-		    $countUsed = 1;
-		    my $offsetName = &offsetName($componentID,$propertyName);
-		    $functionBody .= "    ".$offsetName."=count+1\n";
-		    if ( $linkedData->{'rank'} == 0 ) {
-			if ( $linkedData->{'type'} eq "double" ) {
-			    $functionBody .= "    count=count+1\n";
-			}
-			else {
-			    $selfUsed = 1;
-			    $functionBody .= "    count=count+self%".&Utils::padLinkedData($linkedDataName,[0,0])."%serializeCount()\n";
-			}
-		    } else {
-			$selfUsed = 1;
-			$functionBody .= "    if (allocated(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")) count=count+size(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")\n";
-		    }
-		}
-	    }
-	}
-	$functionBody .= "    return\n";
-	$functionBody .= "  end subroutine Node_Component_".ucfirst($componentID)."_Offsets\n\n";
-	$functionCode .= "   !GCC\$ attributes unused :: count\n"
-	    unless ( $countUsed );		    
-	$functionCode .= "   !GCC\$ attributes unused :: self\n"
-	    unless ( $selfUsed  );		    
-	$functionCode .= $functionBody;	    
-	# Insert into the function list.
-	push(
-	    @{$build->{'code'}->{'functions'}},
-	    $functionCode
-	    );
-	# Insert a type-binding for this function into the treeNode type.
-	push(
-	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-	    {type => "procedure", name => "serializationOffsets", function => "Node_Component_".ucfirst($componentID)."_Offsets"}
-	    );
-    }
 }
 
 sub Generate_Component_Count_Functions {
@@ -2789,7 +2632,7 @@ sub Generate_Component_Get_Functions {
 			$functionCode .= "    select type (".$componentClassName.")\n";
 			$foundCreateFunctions = 1;
 		    }
-		$functionCode .= "    type is (nodeComponent".&Utils::padFullyQualified(ucfirst($componentID),[0,0]).")\n";
+		$functionCode .= "    type is (nodeComponent".&padFullyQualified(ucfirst($componentID),[0,0]).")\n";
 		    my $createFunction = $component->{'createFunction'};
 		    $createFunction = $component->{'createFunction'}->{'content'}
 		    if ( exists($component->{'createFunction'}->{'content'}) );
@@ -3830,9 +3673,9 @@ sub Generate_Component_Assignment_Function {
     $functionCode .= "    select type (to)\n";
     foreach my $componentName ( @{$build->{'componentIdList'}} ) {
 	my $component = $build->{'components'}->{$componentName};
-	$functionCode .= "    type is (nodeComponent".&Utils::padFullyQualified($componentName,[0,0]).")\n";
+	$functionCode .= "    type is (nodeComponent".&padFullyQualified($componentName,[0,0]).")\n";
 	$functionCode .= "       select type (from)\n";
-	$functionCode .= "       type is (nodeComponent".&Utils::padFullyQualified($componentName,[0,0]).")\n";
+	$functionCode .= "       type is (nodeComponent".&padFullyQualified($componentName,[0,0]).")\n";
 	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    if ( exists($property->{'linkedData'}) ) {
@@ -3840,7 +3683,7 @@ sub Generate_Component_Assignment_Function {
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		if ( $linkedData->{'type'} eq"double" ) {
 		    # Deallocate if necessary.
-		    $functionCode .= "   if (allocated(to%".&Utils::padLinkedData($linkedDataName,[0,0]).")) call Dealloc_Array(to%".&Utils::padLinkedData($linkedDataName,[0,0]).") \n"
+		    $functionCode .= "   if (allocated(to%".&padLinkedData($linkedDataName,[0,0]).")) call Dealloc_Array(to%".&padLinkedData($linkedDataName,[0,0]).") \n"
 			if ( $linkedData->{'rank'} > 0 );
 		}
 		elsif ( $linkedData->{'type'} eq"integer"     ) {
@@ -3853,9 +3696,9 @@ sub Generate_Component_Assignment_Function {
 		    # Nothing to do in this case.
 		}
 		else {
-		    $functionCode .= "    call to%".&Utils::padLinkedData($linkedDataName,[0,0])."%destroy()\n";
+		    $functionCode .= "    call to%".&padLinkedData($linkedDataName,[0,0])."%destroy()\n";
 		}
-		$functionCode .= "          to%".&Utils::padLinkedData($linkedDataName,[0,0])."=from%".&Utils::padLinkedData($linkedDataName,[0,0])."\n";
+		$functionCode .= "          to%".&padLinkedData($linkedDataName,[0,0])."=from%".&padLinkedData($linkedDataName,[0,0])."\n";
 	    }
 	}
 	$functionCode .= "       end select\n";
@@ -3901,7 +3744,7 @@ sub Generate_Component_Class_Dump_Functions {
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	$functionCode .= "    !GCC\$ attributes unused :: self\n";
-	$functionCode .= "    call Galacticus_Display_Indent('".$componentClassName.": ".(" " x ($Utils::fullyQualifiedNameLengthMax-length($componentClassName)))."generic')\n";
+	$functionCode .= "    call Galacticus_Display_Indent('".$componentClassName.": ".(" " x ($fullyQualifiedNameLengthMax-length($componentClassName)))."generic')\n";
 	$functionCode .= "    call Galacticus_Display_Unindent('done')\n";
 	$functionCode .= "    return\n";
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Dump\n";
@@ -4101,9 +3944,9 @@ sub Generate_Component_Class_Output_Functions {
 			$type = $property->{'type'};		
 		    }
 		    $outputTypes{$type} = 1
-			unless (&Utils::isOutputIntrinsic($type));
+			unless (&isOutputIntrinsic($type));
 		    $rank1OutputTypes{$type} = 1
-			if ( &Utils::isOutputIntrinsic($type) && $property->{'rank'} == 1 && exists($property->{'output'}->{'condition'}) );
+			if ( &isOutputIntrinsic($type) && $property->{'rank'} == 1 && exists($property->{'output'}->{'condition'}) );
 		}
 	    }
 	}
@@ -4243,7 +4086,7 @@ sub Generate_Component_Class_Output_Functions {
 			die("Generate_Component_Class_Output_Functions(): output of rank>1 arrays not supported");
 		    }
 		    # Increment the counters.
-		    if (&Utils::isOutputIntrinsic($type)) {
+		    if (&isOutputIntrinsic($type)) {
 			$typeUsed{$typeMap{$type}} = 1;
 			if ( $rank == 0 ) {
 			    if ( exists($property->{'output'}->{'condition'}) ) {
@@ -4368,11 +4211,11 @@ sub Generate_Component_Implementation_Destruction_Functions {
 		    # Nothing to do in this case.
 		}
 		else {
-		    $functionBody .= "    call self%".&Utils::padLinkedData($linkedDataName,[0,0])."%destroy()\n";
+		    $functionBody .= "    call self%".&padLinkedData($linkedDataName,[0,0])."%destroy()\n";
 		    $selfUsed = 1;
 		}
 		if ( $linkedData->{'rank'} > 0 ) {
-		    $functionCode .= "    if (allocated(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")) call Dealloc_Array(self%".&Utils::padLinkedData($linkedDataName,[0,0]).")\n";
+		    $functionCode .= "    if (allocated(self%".&padLinkedData($linkedDataName,[0,0]).")) call Dealloc_Array(self%".&padLinkedData($linkedDataName,[0,0]).")\n";
 		    $selfUsed = 1;
 		}
 	    }

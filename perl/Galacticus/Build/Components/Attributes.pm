@@ -14,8 +14,8 @@ use warnings;
 use utf8;
 use Data::Dumper;
 use Scalar::Util 'reftype';
-require List::ExtraUtils;
-require Galacticus::Build::Components::Utils;
+use List::ExtraUtils;
+use Galacticus::Build::Components::Utils qw(isIntrinsic);
 
 # Insert hooks for our functions.
 %Galacticus::Build::Component::Utils::componentUtils = 
@@ -89,7 +89,7 @@ sub Validate_Evolvable_Intrinsics {
 		"' component can not be evolvable"
 		)
 		if (
-		    &Utils::isIntrinsic($property->{'type'})
+		    &isIntrinsic($property->{'type'})
 		    &&
 		    $property->{'type'      }                  ne "double"
 		    &&

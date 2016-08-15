@@ -1,21 +1,13 @@
 # Contains a Perl module which handles component properties during build.
 
 package Properties;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
 use strict;
 use warnings;
 use utf8;
 use Data::Dumper;
 use List::Uniq ':all';
-require List::ExtraUtils;
-require Galacticus::Build::Components::Utils;
+use List::ExtraUtils;
+use Galacticus::Build::Components::Utils qw($linkedDataNameLengthMax applyDefaults);
 
 # Insert hooks for our functions.
 %Galacticus::Build::Component::Utils::componentUtils = 
@@ -73,7 +65,7 @@ sub Property_Defaults {
 	);
     # Iterate over implementations and apply all defaults.
     foreach my $implementation ( &ExtraUtils::hashList($build->{'components'}) ) {
-	&Utils::applyDefaults($implementation,$_,$defaults{$_})
+	&applyDefaults($implementation,$_,$defaults{$_})
 	    foreach ( keys(%defaults) );
     }
 }
@@ -259,8 +251,8 @@ sub Construct_Data {
 		$property ->{'linkedData'}                              = $linkedDataName;
 		$component->{'content'   }->{'data'}->{$linkedDataName} = $property->{'data'};
 		# Record the longest linked data name.
-		$Utils::linkedDataNameLengthMax = length($linkedDataName)
-		    if (length($linkedDataName) > $Utils::linkedDataNameLengthMax);
+		$linkedDataNameLengthMax = length($linkedDataName)
+		    if (length($linkedDataName) > $linkedDataNameLengthMax);
 	    }
 	}
     }

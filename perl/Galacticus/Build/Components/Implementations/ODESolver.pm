@@ -1,23 +1,15 @@
 # Contains a Perl module which provides various ODE solver-related functions for component implementations.
 
 package ODESolver;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
 use strict;
 use warnings;
 use utf8;
 use Text::Template 'fill_in_string';
 use Data::Dumper;
-require List::ExtraUtils;
-require Galacticus::Build::Components::Utils;
-require Galacticus::Build::Components::DataTypes;
-require Galacticus::Build::Components::Implementations::Utils;
+use List::ExtraUtils;
+use Galacticus::Build::Components::Utils;
+use Galacticus::Build::Components::DataTypes;
+use Galacticus::Build::Components::Implementations::Utils;
 
 # Insert hooks for our functions.
 %Galacticus::Build::Component::Utils::componentUtils = 
@@ -30,7 +22,8 @@ require Galacticus::Build::Components::Implementations::Utils;
 	      \&Implementation_ODE_Serialize_Count   ,
 	      \&Implementation_ODE_Serialize_Values  ,
 	      \&Implementation_ODE_Deserialize_Values,
-	      \&Implementation_ODE_Name_From_Index
+	      \&Implementation_ODE_Name_From_Index   ,
+	      \&Implementation_ODE_Offsets
 	     ]
      }
     );
@@ -525,6 +518,107 @@ CODE
 		    name        => "deserializeValues"
 		}
 		);	    
+	}
+    }
+}
+
+sub Implementation_ODE_Offsets {
+    # Generate function to compute offsets into serialization arrays for component implementations.
+    my $build = shift();
+    # Iterate over component classes.
+    foreach $code::class ( &ExtraUtils::hashList($build->{'componentClasses'}) ) {
+	# Iterate over class member implementations.
+	foreach $code::member ( @{$code::class->{'members'}} ) {
+	    my $implementationTypeName = "nodeComponent".ucfirst($code::class->{'name'}).ucfirst($code::member->{'name'});
+	    my $function =
+	    {
+		type        => "void",
+		name        => $implementationTypeName."SerializeOffsets",
+		description => "Return a count of the serialization of a {\\normalfont \\ttfamily ".$code::member->{'name'}."} implementation of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
+		variables   =>
+		    [
+		     {
+			 intrinsic  => "class",
+			 type       => $implementationTypeName,
+			 attributes => [ "intent(in   )" ],
+			 variables  => [ "self" ]
+		     },
+		     {
+			 intrinsic  => "integer",
+			 attributes => [ "intent(inout)" ],
+			 variables  => [ "count" ]
+		     }
+		    ]
+	    };
+	    # Determine if the function arguments are unused.
+	    @code::unused = ();
+	    push(@code::unused,"self")
+		unless 
+		(
+		 exists($code::member->{'extends'})
+		 ||
+		 &Galacticus::Build::Components::Implementations::Utils::hasRealNonTrivialEvolvers($code::member)
+		);
+	    push(@code::unused,"count")
+		unless 
+		(
+		 exists($code::member->{'extends'})
+		 ||
+		 &Galacticus::Build::Components::Implementations::Utils::hasRealEvolvers           ($code::member)
+		);
+	    # Build the function.
+	    $function->{'content'} = "";
+	    if ( scalar(@code::unused) > 0 ) {
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+!GCC$ attributes unused :: {join(",",@unused)}
+CODE
+	    }
+	    # If this component is an extension, compute offsets of the extended type.
+	    if ( exists($code::member->{'extends'}) ) {
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+call self%nodeComponent{ucfirst($code::member->{'extends'}->{'class'}).ucfirst($code::member->{'extends'}->{'name'})}%serializationOffsets(count)
+CODE
+	    }
+	    # Iterate over properties.
+	    foreach $code::property ( &ExtraUtils::hashList($code::member->{'properties'}->{'property'}) ) {
+		# Only evolvable, non-virtual properties are included in the ODE solver.
+		next
+		    unless
+		    (
+		     ! $code::property->{'attributes'}->{'isVirtual'  }
+		     &&
+		       $code::property->{'data'      }->{'isEvolvable'}
+		    );
+		# Set the offset for this property to the current count plus 1 (since we haven't yet updated the count. 
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
+{&Galacticus::Build::Components::Utils::offsetName($class,$member,$property)}=count+1
+CODE
+		# Update the count by the size of this property.
+		if ( $code::property->{'data'}->{'rank'} == 0 ) {
+		    if ( $code::property->{'data'}->{'type'} eq "double" ) {
+			$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
+count=count+1
+CODE
+		    } else {
+			$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
+count=count+self%{$property->{'name'}}Data%serializeCount()
+CODE
+		    }
+		} else {
+		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
+if (allocated(self%{$property->{'name'}}Data)) count=count+size(self%{$property->{'name'}}Data)
+CODE
+		}
+	    }
+	    # Insert a type-binding for this function into the treeNode type.
+	    push(
+		@{$build->{'types'}->{$implementationTypeName}->{'boundFunctions'}},
+		{
+		    type        => "procedure", 
+		    descriptor  => $function,
+		    name        => "serializationOffsets"
+		}
+		);
 	}
     }
 }
