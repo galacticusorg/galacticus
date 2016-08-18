@@ -89,4 +89,23 @@ sub hasRealNonTrivialEvolvers {
          &List::ExtraUtils::hashList($member->{'properties'}->{'property'});	
 }
 
+sub listRealEvolvers {
+    # Returns a list of non-virtual, evolvable properties.
+    my $member = shift();
+    return
+	map
+         {
+	     (	
+		! $_->{'attributes'}->{'isVirtual'  }
+		&&	    
+		  $_->{'data'      }->{'isEvolvable'}
+	     )
+	    ?
+	     $_
+	    :
+	     ()			
+	 }
+    &List::ExtraUtils::hashList($member->{'properties'}->{'property'});	
+}
+
 1;

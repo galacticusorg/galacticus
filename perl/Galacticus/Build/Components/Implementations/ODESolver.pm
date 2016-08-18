@@ -94,16 +94,8 @@ name=self%nodeComponent{ucfirst($member->{'extends'}->{'class'}).ucfirst($member
 if (count <= 0) return
 CODE
 	    }
-	    # Iterate over properties.
-	    foreach $code::property ( &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) ) {
-		# Only evolvable, non-virtual properties are included in the ODE solver.
-		next
-		    unless
-		    (
-		     ! $code::property->{'attributes'}->{'isVirtual'  }
-		     &&
-		       $code::property->{'data'      }->{'isEvolvable'}
-		    );
+	    # Iterate over non-virtual, evolvable properties.
+	    foreach $code::property ( &Galacticus::Build::Components::Implementations::Utils::listRealEvolvers($code::member) ) {
 		# Find condition for count update. For allocatable properties, condition is that the object be allocated. For
 		# non-allocatable properties, always update the count.
 		$code::condition = 
@@ -182,19 +174,7 @@ sub Implementation_ODE_Serialize_Count {
 		unless (
 		    exists($code::member->{'extends'})
 		    ||
-		    grep
-		    {	
-			! $_->{'attributes'}->{'isVirtual'  }
-			&&	    
-			  $_->{'data'      }->{'isEvolvable'}
-			&&
-			    (
-			     $_->{'data'}->{'rank'       } >  0 
-			     ||
-			     $_->{'data'}->{'type'       } ne "double"
-			    )			
-		    }
-		    &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'})
+		    &Galacticus::Build::Components::Implementations::Utils::hasRealNonTrivialEvolvers($code::member)
 		);
 	    # Build the function.
 	    $function->{'content'}  = "";
@@ -209,16 +189,8 @@ CODE
 CODE
 	    # Initialize count of fixed, scalar properties to zero.
 	    $code::scalarPropertyCount = 0;
-	    # Iterate over properties.
-	    foreach $code::property ( &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) ) {
-		# Only evolvable, non-virtual properties are included in the ODE solver.
-		next
-		    unless
-		    (
-		     ! $code::property->{'attributes'}->{'isVirtual'  }
-		     &&
-		       $code::property->{'data'      }->{'isEvolvable'}
-		    );
+	    # Iterate over non-virtual, evolvable properties.
+	    foreach $code::property ( &Galacticus::Build::Components::Implementations::Utils::listRealEvolvers($code::member) ) {
 		if ( $code::property->{'data'}->{'rank'} == 0 && $code::property->{'data'}->{'type'} eq "double" ) {
 		    ++$code::scalarPropertyCount;
 		} else {		
@@ -347,16 +319,8 @@ if (count > 0) then
 end if
 CODE
 	    }
-	    # Iterate over properties.
-	    foreach $code::property ( &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) ) {
-		# Only evolvable, non-virtual properties are included in the ODE solver.
-		next
-		    unless
-		    (
-		     ! $code::property->{'attributes'}->{'isVirtual'  }
-		     &&
-		       $code::property->{'data'      }->{'isEvolvable'}
-		    );
+	    # Iterate over non-virtual, evolvable properties.
+	    foreach $code::property ( &Galacticus::Build::Components::Implementations::Utils::listRealEvolvers($code::member) ) {
 		if ( $code::property->{'data'}->{'rank'} == 0 ) {
 		    if ( $code::property->{'data'}->{'type'} eq "double" ) {
 			$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
@@ -478,16 +442,8 @@ if (count > 0) then
 end if
 CODE
 	    }
-	    # Iterate over properties.
-	    foreach $code::property ( &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) ) {
-		# Only evolvable, non-virtual properties are included in the ODE solver.
-		next
-		    unless
-		    (
-		     ! $code::property->{'attributes'}->{'isVirtual'  }
-		     &&
-		       $code::property->{'data'      }->{'isEvolvable'}
-		    );
+	    # Iterate over non-virtual, evolvable properties.
+	    foreach $code::property ( &Galacticus::Build::Components::Implementations::Utils::listRealEvolvers($code::member) ) {
 		if ( $code::property->{'data'}->{'rank'} == 0 ) {
 		    if ( $code::property->{'data'}->{'type'} eq "double" ) {
 			$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
@@ -581,16 +537,8 @@ CODE
 call self%nodeComponent{ucfirst($code::member->{'extends'}->{'class'}).ucfirst($code::member->{'extends'}->{'name'})}%serializationOffsets(count)
 CODE
 	    }
-	    # Iterate over properties.
-	    foreach $code::property ( &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) ) {
-		# Only evolvable, non-virtual properties are included in the ODE solver.
-		next
-		    unless
-		    (
-		     ! $code::property->{'attributes'}->{'isVirtual'  }
-		     &&
-		       $code::property->{'data'      }->{'isEvolvable'}
-		    );
+	    # Iterate over non-virtual, evolvable properties.
+	    foreach $code::property ( &Galacticus::Build::Components::Implementations::Utils::listRealEvolvers($code::member) ) {
 		# Set the offset for this property to the current count plus 1 (since we haven't yet updated the count. 
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
 {&Galacticus::Build::Components::Utils::offsetName($class,$member,$property)}=count+1
