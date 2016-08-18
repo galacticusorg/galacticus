@@ -1,14 +1,6 @@
 # Contains a Perl module which implements hooks for the component build system.
 
 package Galacticus::Build::Components::Utils;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
 use strict;
 use warnings;
 use utf8;
@@ -61,13 +53,13 @@ sub Label_Lengths {
     # Determine the lengths of various types of label for use in formatting.
     my $build = shift();
     # Find maximum lengths.
-    $classNameLengthMax          = max map {                      length($_->{'class'})} &ExtraUtils::hashList($build->{'components'});
-    $implementationNameLengthMax = max map {length($_->{'name' })                      } &ExtraUtils::hashList($build->{'components'});
-    $fullyQualifiedNameLengthMax = max map {length($_->{'name' })+length($_->{'class'})} &ExtraUtils::hashList($build->{'components'});
+    $classNameLengthMax          = max map {                      length($_->{'class'})} &List::ExtraUtils::hashList($build->{'components'});
+    $implementationNameLengthMax = max map {length($_->{'name' })                      } &List::ExtraUtils::hashList($build->{'components'});
+    $fullyQualifiedNameLengthMax = max map {length($_->{'name' })+length($_->{'class'})} &List::ExtraUtils::hashList($build->{'components'});
     # Get property label lengths.
     $implementationPropertyNameLengthMax = 0;
-    foreach my $component ( &ExtraUtils::hashList($build->{'components'}) ) {
-	$propertyNameLengthMax               = max map {length($_->{'name' })} &ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' );
+    foreach my $component ( &List::ExtraUtils::hashList($build->{'components'}) ) {
+	$propertyNameLengthMax               = max map {length($_->{'name' })} &List::ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' );
 	$implementationPropertyNameLengthMax = 
 	    max 
 	    (
@@ -80,7 +72,7 @@ sub Label_Lengths {
 		  +
 		 length($_        ->{'name' })
 	     }
-	     &ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' )
+	     &List::ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' )
 	    );
     }
     # Report.
@@ -171,13 +163,13 @@ sub applyDefaults {
 	# The default we've been passed is actually a list of deeper default settings. Iterate over them if the currently named
 	# element exists ion the current data structure and apply them by calling ourself recursively.
 	if ( exists($object->{$name}) ) {
-	    foreach my $subObject ( &ExtraUtils::as_array($object->{$name}) ) {
+	    foreach my $subObject ( &List::ExtraUtils::as_array($object->{$name}) ) {
 		&applyDefaults($subObject,$_,$default->{$_})
 		    foreach ( keys(%{$default}) );
 	    }
 	# Alternatively if the special name "ALL" is used, then iterate over all members of the object.    
 	} elsif ( $name eq "ALL" ) {
-	    foreach my $subObject ( &ExtraUtils::hashList($object) ) {
+	    foreach my $subObject ( &List::ExtraUtils::hashList($object) ) {
 		&applyDefaults($subObject,$_,$default->{$_})
 		    foreach ( keys(%{$default}) );
 	    }	    
@@ -185,7 +177,7 @@ sub applyDefaults {
     } else {
 	# We've been passed an actual default. Iterate over all named objects in our data structure and apply the default if
 	# necessary.
-	foreach ( &ExtraUtils::as_array($object) ) {
+	foreach ( &List::ExtraUtils::as_array($object) ) {
 	    if ( $default =~ m/^boolean/ ) {
 		# In the case of a boolean default, we also translate any preset value into the associated boolean.
 		if ( exists($_->{$name}) ) {

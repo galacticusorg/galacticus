@@ -1,28 +1,22 @@
 # Contains a Perl module which implements baryon fraction calculations for Galacticus.
 
-package Baryons;
+package Galacticus::Baryons;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use Data::Dumper;
-require Galacticus::HDF5;
+use Galacticus::HDF5;
 
-%HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-    "hotHalo(Fraction|Frac)" => \&Baryons::Get_hotHaloFraction
+%Galacticus::HDF5::galacticusFunctions = ( %Galacticus::HDF5::galacticusFunctions,
+    "hotHalo(Fraction|Frac)" => \&Galacticus::Baryons::Get_hotHaloFraction
     );
 
 sub Get_hotHaloFraction {
     my $dataSet = shift;
     my $dataSetName = $_[0];
-    &HDF5::Get_Dataset($dataSet,['hotHaloMass','nodeMass']);
+    &Galacticus::HDF5::Get_Dataset($dataSet,['hotHaloMass','nodeMass']);
     my $dataSets = $dataSet->{'dataSets'};
     $dataSets->{$dataSetName} = $dataSets->{'hotHaloMass'}/$dataSets->{'nodeMass'};
 }

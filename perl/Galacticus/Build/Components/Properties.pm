@@ -1,9 +1,11 @@
 # Contains a Perl module which handles component properties during build.
 
-package Properties;
+package Galacticus::Build::Components::Properties;
 use strict;
 use warnings;
 use utf8;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Data::Dumper;
 use List::Uniq ':all';
 use List::ExtraUtils;
@@ -64,7 +66,7 @@ sub Property_Defaults {
 	 }
 	);
     # Iterate over implementations and apply all defaults.
-    foreach my $implementation ( &ExtraUtils::hashList($build->{'components'}) ) {
+    foreach my $implementation ( &List::ExtraUtils::hashList($build->{'components'}) ) {
 	&applyDefaults($implementation,$_,$defaults{$_})
 	    foreach ( keys(%defaults) );
     }
@@ -74,9 +76,9 @@ sub Data_Validate {
     # Validate that data type can be determined for each property.
     my $build = shift();
     # Iterate over components.
-    foreach my $component ( &ExtraUtils::hashList($build->{'components'}) ) {
+    foreach my $component ( &List::ExtraUtils::hashList($build->{'components'}) ) {
 	# Iterate over all properties belonging to this component.	
-	foreach my $property ( &ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' ) ) {
+	foreach my $property ( &List::ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' ) ) {
 	    # Check that we have type, and rank specified.
 	    foreach my $requiredElement ( "type", "rank" ) {
 		die
@@ -102,9 +104,9 @@ sub Class_Defaults_Validate {
     my $build = shift();
     my $classDefaults;
     # Iterate over components.
-    foreach my $component ( &ExtraUtils::hashList($build->{'components'}) ) {
+    foreach my $component ( &List::ExtraUtils::hashList($build->{'components'}) ) {
 	# Iterate over all properties belonging to this component.	
-	foreach my $property ( &ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' ) ) {
+	foreach my $property ( &List::ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' ) ) {
 	    # Check for class defaults.
 	    if ( exists($property->{'classDefault'}) ) {
 		# Check that default code is the same for all implementations.
@@ -159,9 +161,9 @@ sub Class_Defaults_Gather {
     # Gather class default settings.
     my $build = shift();
     # Iterate over components.
-    foreach my $component ( &ExtraUtils::hashList($build->{'components'}) ) {
+    foreach my $component ( &List::ExtraUtils::hashList($build->{'components'}) ) {
 	# Iterate over all properties belonging to this component.	
-	foreach my $property ( &ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' ) ) {
+	foreach my $property ( &List::ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' ) ) {
 	    # Check for class defaults.
 	    if ( exists($property->{'classDefault'}) ) {
 		# Get the default code.
@@ -201,9 +203,9 @@ sub Class_Defaults_Scatter {
     # Scatter class default settings to all components.
     my $build = shift();
     # Iterate over components.
-    foreach my $component ( &ExtraUtils::hashList($build->{'components'}) ) {
+    foreach my $component ( &List::ExtraUtils::hashList($build->{'components'}) ) {
 	# Iterate over all properties belonging to this component.	
-	foreach my $property ( &ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' ) ) {
+	foreach my $property ( &List::ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' ) ) {
 	    if ( exists($build->{'classDefaults'}->{$component->{'class'}}->{$property->{'name'}}) ) {
 		print 
 		    "         --> Warning: property '"                                                           .
@@ -224,7 +226,7 @@ sub Construct_Data {
     # Construct data objects for each property.
     my $build = shift();
     # Iterate over components.
-    foreach my $component ( &ExtraUtils::hashList($build->{'components'}) ) {
+    foreach my $component ( &List::ExtraUtils::hashList($build->{'components'}) ) {
 	# Write a message.
 	print 
 	    "         --> Creating linked data objects for implementation '".
@@ -233,7 +235,7 @@ sub Construct_Data {
 	    lcfirst($component->{'class'})                                  .
 	    "' class\n";
 	# Iterate over all properties belonging to this component.	
-	foreach my $property ( &ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' ) ) {
+	foreach my $property ( &List::ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' ) ) {
 	    # Create the data object.
 	    $property->{'data'} = 
 	    {

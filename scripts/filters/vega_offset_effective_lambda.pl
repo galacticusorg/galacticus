@@ -1,19 +1,14 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use XML::Simple;
 use Data::Dumper;
 use PDL;
 use PDL::NiceSlice;
 use File::Copy;
+use Galacticus::Path;
 
 # Compute Vega-AB offsets and effective wavelengths for any filters which do not already have them.
 # Andrew Benson (16-Feb-2010)
@@ -26,7 +21,7 @@ my $filtersDirectory;
 if ( scalar(@ARGV) > 0 ) {
     $filtersDirectory = $ARGV[0];
 } else {
-    $filtersDirectory = $galacticusPath."data/filters";
+    $filtersDirectory = &galacticusPath()."data/filters";
 }
 # Get the Vega spectrum file.
 my $vegaSpectrumFile;
@@ -34,7 +29,7 @@ if ( scalar(@ARGV) == 2 ) {
     $vegaSpectrumFile = $ARGV[1];
 } else {
     # None given, so use the default.
-    $vegaSpectrumFile = $galacticusPath."data/stellarAstrophysics/vega/A0V_Castelli.xml";
+    $vegaSpectrumFile = &galacticusPath()."data/stellarAstrophysics/vega/A0V_Castelli.xml";
     # Check that the file exists - if not, attempt to download data and create it.
     unless ( -e $vegaSpectrumFile ) {
 	print "Cannot find A0V_Castelli.xml file - will attempt to download data and create it....\n";

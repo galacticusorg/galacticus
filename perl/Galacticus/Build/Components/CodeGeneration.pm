@@ -1,14 +1,6 @@
 # Contains a Perl module which implements functions required for code generation.
 
-package CodeGeneration;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+package Galacticus::Build::Components::CodeGeneration;
 use strict;
 use warnings;
 use utf8;

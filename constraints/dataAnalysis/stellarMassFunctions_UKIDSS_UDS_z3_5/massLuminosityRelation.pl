@@ -1,22 +1,17 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath  = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath  = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::Misc;
 use PDL::Fit::Polynomial;
 use Astro::Cosmology;
-require Stats::Percentiles;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
+use Stats::Percentiles;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
 
 # Determine the relation between stellar mass and Spitzer IRAC 4.5um apparent magnitude using semi-analytic models from the
 # Millennium Database. Specifically, the Henriques2012a models (http://adsabs.harvard.edu/abs/2012MNRAS.421.2904H) are used -
@@ -25,7 +20,7 @@ require GnuPlot::LaTeX;
 # Andrew Benson (21-August-2012)
 
 # Define a working directory.
-my $workDirectory = $galacticusPath."constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/massLuminosityWork/";
+my $workDirectory = &galacticusPath()."constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/massLuminosityWork/";
 system("mkdir -p ".$workDirectory);
 
 # Define little Hubble parameter for the Millennium Simulation.
@@ -71,7 +66,7 @@ my $redshiftBins    = sequence($redshiftCount)*($redshiftMaximum-$redshiftMinimu
 
 # Find the median stellar mass as a function of redshift.
 my $percentiles  = pdl ( 50.0 );
-my $medianMassV  = &Percentiles::BinnedPercentiles($redshiftBins,$redshift,$logMass,$weight,$percentiles);
+my $medianMassV  = &Stats::Percentiles::BinnedPercentiles($redshiftBins,$redshift,$logMass,$weight,$percentiles);
 my $medianMass = $medianMassV->(:,(0));
 
 # Generate a fit to the data.
@@ -116,27 +111,27 @@ print $gnuPlot "set format x '\$10^{\%L}\$'\n";
 print $gnuPlot "set xrange [6.0e9:6.0e10]\n";
 print $gnuPlot "set yrange [2.5:5.5]\n";
 print $gnuPlot "set pointsize 2.0\n";
-&PrettyPlots::Prepare_Dataset(
+&GnuPlot::PrettyPlots::Prepare_Dataset(
     \$plot,
     10.0**$fitMass,
     $fitRedshift,
     style      => "line",
     weight     => [5,3],
-    color      => $PrettyPlots::colorPairs{'mediumSeaGreen'},
+    color      => $GnuPlot::PrettyPlots::colorPairs{'mediumSeaGreen'},
     title      => 'Fit'
     );
-&PrettyPlots::Prepare_Dataset(
+&GnuPlot::PrettyPlots::Prepare_Dataset(
     \$plot,
     10.0**$medianMass,
     $redshiftBins,
     style      => "point",
     weight     => [5,3],
     symbol     => [6,7],
-    color      => $PrettyPlots::colorPairs{'redYellow'},
+    color      => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
     title      => 'Guo et al. (2011) SAM'
     );
-&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF($plotFileEPS);
+&GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS);
 
 exit;

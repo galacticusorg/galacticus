@@ -1,30 +1,24 @@
 # Contains a Perl module which implements constructing a list of parameter names used in a unit.
 
-package InputParameterList;
+package Galacticus::Build::SourceTree::Process::InputParameterList;
 use strict;
 use warnings;
 use utf8;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Data::Dumper;
 use XML::Simple;
 use LaTeX::Encode;
-require List::ExtraUtils;
-require Fortran::Utils;
-require Galacticus::Build::Directives;
-require Galacticus::Build::SourceTree::Hooks;
-require Galacticus::Build::SourceTree;
-require Galacticus::Build::SourceTree::Parse::Declarations;
-require Galacticus::Build::SourceTree::Parse::ModuleUses;
+use List::ExtraUtils;
+use Fortran::Utils;
+use Galacticus::Build::Directives;
+## AJB HACK use Galacticus::Build::SourceTree::Hooks;
+## AJB HACK use Galacticus::Build::SourceTree;
+## AJB HACK use Galacticus::Build::SourceTree::Parse::Declarations;
+## AJB HACK use Galacticus::Build::SourceTree::Parse::ModuleUses;
 
 # Insert hooks for our functions.
-$Hooks::processHooks{'inputParameterList'} = \&Process_InputParameterList;
+$Galacticus::Build::SourceTree::Hooks::processHooks{'inputParameterList'} = \&Process_InputParameterList;
 
 sub Process_InputParameterList {
     # Get the tree.
@@ -36,7 +30,7 @@ sub Process_InputParameterList {
     $fileName = $tree->{'name'}
         if ( $tree->{'type'} eq "file" );
     # Get code directive locations.
-    my $directiveLocations = $xml->XMLin($galacticusPath.$ENV{'BUILDPATH'}."/Code_Directive_Locations.xml");
+    my $directiveLocations = $xml->XMLin($ENV{'BUILDPATH'}."/Code_Directive_Locations.xml");
     # Initialize list of unlisted parameters.
     my @unlistedInputParameters;
     # Walk the tree, looking for input parameter list directives.
@@ -70,8 +64,8 @@ sub Process_InputParameterList {
 				my $attributeName = $2;
 				die('Process_InputParameterList(): locations not found for directives')
 				    unless ( exists($directiveLocations->{$directiveName}) );
-				foreach my $fileName ( &ExtraUtils::as_array($directiveLocations->{$directiveName}->{'file'}) ) {
-				    foreach ( &Directives::Extract_Directives($fileName,$directiveName) ) {
+				foreach my $fileName ( &List::ExtraUtils::as_array($directiveLocations->{$directiveName}->{'file'}) ) {
+				    foreach ( &Galacticus::Build::Directives::Extract_Directives($fileName,$directiveName) ) {
 					(my $parameterName = $sibling->{'directive'}->{'iterator'}) =~ s/\(\#$directiveName\-\>$attributeName\)/$_->{$attributeName}/;
 					push(@inputParameterNames,$parameterName);
 				    }
@@ -96,9 +90,9 @@ sub Process_InputParameterList {
 		attributes => [ "dimension(".scalar(@inputParameterNames).")" ],
 		variables  => [ $node->{'directive'}->{'label'} ]
 	    };
-	    &Declarations::AddDeclarations($node->{'parent'},[$declaration]);
+	    &Galacticus::Build::SourceTree::Parse::Declarations::AddDeclarations($node->{'parent'},[$declaration]);
 	    # Add module usage.
-	    &ModuleUses::AddUses($node->{'parent'},{moduleUse => {ISO_Varying_String => {all => 1}}});
+	    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},{moduleUse => {ISO_Varying_String => {all => 1}}});
 	    # Generate the setting code.
 	    if ( scalar(@inputParameterNames) > 0 ) {
 		my $setter;
@@ -114,7 +108,7 @@ sub Process_InputParameterList {
 		    parent     => $node->{'parent'},
 		    firstChild => undef()
 		};
-		&SourceTree::InsertAfterNode($node,[$setterNode]);
+		&Galacticus::Build::SourceTree::InsertAfterNode($node,[$setterNode]);
 	    }
 	}
 	# Look for inputParameter directives for which no input parameter list is defined.
@@ -136,7 +130,7 @@ sub Process_InputParameterList {
 		}
 	    }
 	}
-	$node = &SourceTree::Walk_Tree($node,\$depth);
+	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }
     # Output file of unlisted parameters.
     if ( @unlistedInputParameters ) {

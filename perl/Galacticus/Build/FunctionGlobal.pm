@@ -1,22 +1,16 @@
 # Contains a Perl module which implements processing of "functionGlobal" directives in the Galacticus build system.
 
-package FunctionGlobal;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+package Galacticus::Build::FunctionGlobal;
 use strict;
 use warnings;
 use utf8;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use DateTime;
 use Data::Dumper;
-require Galacticus::Build::Hooks;
-require List::ExtraUtils;
-require Fortran::Utils;
+use Galacticus::Build::Hooks;
+use List::ExtraUtils;
+use Fortran::Utils;
 
 # Insert hooks for our functions.
 %Hooks::moduleHooks = 
@@ -91,14 +85,14 @@ sub FunctionGlobal_Pointers_Generate_Output {
 	    $closer =                                                  "function";
 	}
 	my @names;
-	foreach ( &ExtraUtils::as_array($buildData->{'functionGlobals'}->{$_}->{'arguments'}) ) {
+	foreach ( &List::ExtraUtils::as_array($buildData->{'functionGlobals'}->{$_}->{'arguments'}) ) {
 	    if ( $_ =~ m/::(.*)$/ ) {
-		push(@names,&Fortran_Utils::Extract_Variables($1));
+		push(@names,&Fortran::Utils::Extract_Variables($1));
 	    }
 	}
 	$buildData->{'content'} .= " ".$opener." ".$buildData->{'functionGlobals'}->{$_}->{'name'}."_Null(".join(",",@names).")\n";
 	$buildData->{'content'} .= "  use Galacticus_Error\n";
-	foreach ( &ExtraUtils::as_array($buildData->{'functionGlobals'}->{$_}->{'arguments'}) ) {
+	foreach ( &List::ExtraUtils::as_array($buildData->{'functionGlobals'}->{$_}->{'arguments'}) ) {
 	    $buildData->{'content'} .= "  ".$_."\n";
 	}
 	$buildData->{'content'} .= "  !GCC\$ attributes unused :: ".join(",",@names)."\n";

@@ -1,15 +1,17 @@
 # Contains a Perl module which implements total stellar mass calculations for Galacticus.
 
-package StellarMass;
+package Galacticus::StellarMass;
 use strict;
 use warnings;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
-require Galacticus::HDF5;
+use Galacticus::HDF5;
 use Data::Dumper;
 
-%HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-    "massStellar"       => \&StellarMass::Get_StellarMass      ,
-    "starFormationRate" => \&StellarMass::Get_StarFormationRate
+%Galacticus::HDF5::galacticusFunctions = ( %Galacticus::HDF5::galacticusFunctions,
+    "massStellar"       => \&Galacticus::StellarMass::Get_StellarMass      ,
+    "starFormationRate" => \&Galacticus::StellarMass::Get_StarFormationRate
     );
 
 sub Get_StellarMass {
@@ -17,7 +19,7 @@ sub Get_StellarMass {
     my $dataSetName = $_[0];
 
     # Get available datasets.
-    &HDF5::Get_Datasets_Available($model);
+    &Galacticus::HDF5::Get_Datasets_Available($model);
 
     # Decide which datasets to get.
     my @dataSetsRequired = ( "mergerTreeWeight" );
@@ -29,7 +31,7 @@ sub Get_StellarMass {
     push(@dataSetsRequired,@stellarMassComponents);
 
     # Get the datasets.
-    &HDF5::Get_Dataset($model,\@dataSetsRequired);
+    &Galacticus::HDF5::Get_Dataset($model,\@dataSetsRequired);
 
     # Sum the stellar masses.
     $model->{'dataSets'}->{$dataSetName} = pdl zeroes(nelem($model->{'dataSets'}->{'mergerTreeWeight'}));
@@ -44,7 +46,7 @@ sub Get_StarFormationRate {
     my $dataSetName = $_[0];
 
     # Get available datasets.
-    &HDF5::Get_Datasets_Available($model);
+    &Galacticus::HDF5::Get_Datasets_Available($model);
 
     # Decide which datasets to get.
     my @dataSetsRequired = ( "mergerTreeWeight" );
@@ -56,7 +58,7 @@ sub Get_StarFormationRate {
     push(@dataSetsRequired,@starFormationRateComponents);
 
     # Get the datasets.
-    &HDF5::Get_Dataset($model,\@dataSetsRequired);
+    &Galacticus::HDF5::Get_Dataset($model,\@dataSetsRequired);
 
     # Sum the stellar masses.
     $model->{'dataSets'}->{$dataSetName} = pdl zeroes(nelem($model->{'dataSets'}->{'mergerTreeWeight'}));

@@ -1,14 +1,9 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::Misc;
@@ -17,11 +12,11 @@ use PDL::IO::Misc;
 # Andrew Benson (27-August-2014)
 
 # Define work directory.
-my $dataDirectoryName = $galacticusPath."constraints/dataAnalysis/stellarMassFunctions_ULTRAVISTA_z0.2_4.0/";
+my $dataDirectoryName = &galacticusPath()."constraints/dataAnalysis/stellarMassFunctions_ULTRAVISTA_z0.2_4.0/";
 # Define work directory.
 my $workDirectoryName = $dataDirectoryName."work/";
 # Define mangle directory.
-my $mangle            = $galacticusPath."aux/mangle/bin/";
+my $mangle            = &galacticusPath()."aux/mangle/bin/";
 # Generate raw field geometry.
 unless ( -e $dataDirectoryName."field.ply" ) {
     open(my $rawFile,">".$dataDirectoryName."field.ply");

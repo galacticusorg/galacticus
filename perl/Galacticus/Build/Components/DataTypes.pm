@@ -1,9 +1,11 @@
 # Contains a Perl module which handles data types for the component build system.
 
-package DataTypes;
+package Galacticus::Build::Components::DataTypes;
 use strict;
 use warnings;
 use utf8;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use LaTeX::Encode;
 use Galacticus::Build::Components::Utils qw(%intrinsicTypes);
 

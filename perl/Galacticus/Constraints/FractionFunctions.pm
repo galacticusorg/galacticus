@@ -1,17 +1,11 @@
 # Contains a Perl module which implements construction of a variety of fraction functions from
 # Galacticus when fitting to constraints.
 
-package FractionFunctions;
+package Galacticus::Constraints::FractionFunctions;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath  = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath  = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use PDL::NiceSlice;
 use PDL::Constants qw(PI);
@@ -23,8 +17,8 @@ use LaTeX::Encode;
 use XML::Simple;
 use Scalar::Util 'reftype';
 use Astro::Cosmology;
-require Galacticus::HDF5;
-require Galacticus::Constraints::Covariances;
+use Galacticus::HDF5;
+use Galacticus::Constraints::Covariances;
 
 sub Construct {
     # Construct a fraction function from Galacticus for constraint purposes.
@@ -84,7 +78,7 @@ sub Construct {
     my $covarianceGalacticus;
 
     # Determine if the model file contains a pre-computed mass function.
-    &HDF5::Open_File($galacticus);
+    &Galacticus::HDF5::Open_File($galacticus);
     my @analysisGroups = $galacticus->{'hdf5File'}->group('analysis')->groups();
     if ( grep {$_ eq $config->{'analysisLabel'}} @analysisGroups ) {
 	$yGalacticus          = $galacticus->{'hdf5File'}->group('analysis')->group($config->{'analysisLabel'})->dataset('fraction'          )->get();
@@ -166,7 +160,7 @@ sub Construct {
 	my $logDeterminant;
 	my $offsets;
 	my $inverseCovariance;
-	my $logLikelihood = &Covariances::ComputeLikelihood($yGalacticusLimited,$config->{'y'},$fullCovariance, determinant => \$logDeterminant, inverseCovariance => \$inverseCovariance, offsets => \$offsets, quiet => $arguments{'quiet'});
+	my $logLikelihood = &Galacticus::Constraints::Covariances::ComputeLikelihood($yGalacticusLimited,$config->{'y'},$fullCovariance, determinant => \$logDeterminant, inverseCovariance => \$inverseCovariance, offsets => \$offsets, quiet => $arguments{'quiet'});
 	$constraint->{'logLikelihood'} = $logLikelihood;
 	# Find the Jacobian of the log-likelihood with respect to the model mass function.
 	my $jacobian = pdl zeroes(1,nelem($yGalacticus));
@@ -213,29 +207,29 @@ sub Construct {
 	print $gnuPlot "set title '".$config->{'title'}."'\n";
 	print $gnuPlot "set xlabel '".$config->{'xLabel'}."'\n";
 	print $gnuPlot "set ylabel '".$config->{'yLabel'}."'\n";
-	&PrettyPlots::Prepare_Dataset(\$plot,
+	&GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 				      $config->{'x'},$config->{'y'},
 				      errorUp   => $error,
 				      errorDown => $error,
 				      style     => "point",
 				      symbol    => [6,7], 
 				      weight    => [5,3],
-				      color     => $PrettyPlots::colorPairs{'cornflowerBlue'},
+				      color     => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'},
 				      title     => $config->{'observationLabel'}
 	    );
-	&PrettyPlots::Prepare_Dataset(\$plot,
+	&GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 				      $config->{'x'},$yGalacticus,
 				      errorUp   => $errorGalacticus,
 				      errorDown => $errorGalacticus,
 				      style     => "point",
 				      symbol    => [6,7], 
 				      weight    => [5,3],
-				      color     => $PrettyPlots::colorPairs{'redYellow'},
+				      color     => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
 				      title     => "Galacticus"
 	    );
-	&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+	&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 	close($gnuPlot);
-	&LaTeX::GnuPlot2PDF($plotFileEPS,margin => 1);
+	&GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS,margin => 1);
 
     }
 

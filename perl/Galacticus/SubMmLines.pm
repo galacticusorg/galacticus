@@ -1,23 +1,16 @@
 # Contains a Perl module which implements calculations luminosities of various sub-mm lines.
 
-package SubMmLines;
+package Galacticus::SubMmLines;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
- $ENV{"GALACTICUS_ROOT_V094"} = getcwd()."/";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
-require Galacticus::HDF5;
-require Galacticus::Grasil;
+use Galacticus::HDF5;
+use Galacticus::Grasil;
 
-%HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-			       "luminosityCII"   => \&SubMmLines::Get_CIIline,
+%Galacticus::HDF5::galacticusFunctions = ( %Galacticus::HDF5::galacticusFunctions,
+			       "luminosityCII"   => \&Galacticus::SubMmLines::Get_CIIline,
     );
 
 sub Get_CIIline {
@@ -31,7 +24,7 @@ sub Get_CIIline {
     my $dataSetName = $_[0];
 
     # Ensure that we have the total infrared luminosity.
-    &HDF5::Get_Dataset($dataBlock,["grasilInfraredLuminosity"]);
+    &Galacticus::HDF5::Get_Dataset($dataBlock,["grasilInfraredLuminosity"]);
     my $dataSets = $dataBlock->{'dataSets'};
 
     my $logLuminosity = log10($dataSets->{'grasilInfraredLuminosity'});

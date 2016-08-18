@@ -1,24 +1,19 @@
 #!/usr/bin/env perl
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
 use strict;
 use warnings;
 no warnings 'once';
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use XML::Simple;
 use Data::Dumper;
 use File::Slurp;
 use Digest::MD5 qw(md5_base64);
-require Fortran::Utils;
-require Galacticus::Build::Directives;
-require Galacticus::Build::Make;
-require List::ExtraUtils;
-require File::Match;
+use Fortran::Utils;
+use Galacticus::Build::Directives;
+use Galacticus::Build::Make;
+use List::ExtraUtils;
+use File::Match;
 
 # Construct a unique string that defines the operation of a given module. A function is constructed for every instance of a
 # "uniqueLabel" directive embedded in the source code. This function is constructed as follows:
@@ -74,7 +69,7 @@ my $methodFiles;
 
 # Extract C-include directories from the Makefile.
 my $cFlags = $ENV{'GALACTICUS_CFLAGS'};
-open(my $make,$galacticusPath."Makefile");
+open(my $make,&galacticusPath()."Makefile");
 while ( my $line = <$make> ) {
     if ( $line =~ m/^\s*CFLAGS\s*\+??=\s*(.*)$/ ) {
 	$cFlags .= " ".$1;
@@ -82,11 +77,16 @@ while ( my $line = <$make> ) {
 }
 close($make);
 # Extract include directories from flags.
+my $installPath = &galacticusPath();
 my @includeDirectories;
 while ( $cFlags =~ m/\-I(\S+)/ ) {
     my $path = $1;
-    $path =~ s/^\.\//$galacticusPath/;
-    $path =~ s/\$\((.*)\)/$1/;
+    $path =~ s/^\.\//$installPath/;
+    if ( $path =~ m/\$\((.*)\)/ ) {
+	my $variable = $1;
+	$path = $ENV{$variable}
+	   if ( exists($ENV{$variable}) );
+    }
     push(@includeDirectories,$path);
     $cFlags =~ s/\-I(\S+)//;
 }
@@ -99,11 +99,11 @@ foreach my $fileName ( @{$codeDirectiveLocations->{'uniqueLabel'}->{'file'}} ) {
     (my $depFile = $objectFile) =~ s/source\/(.*)\.o$/$ENV{'BUILDPATH'}\/$1.d/;
     # Extract the function name and any parameters to ignore.
     my ($labelFunction, %ignoreParameters, @ignorePatterns, @hashFiles);
-    foreach my $uniqueLabel ( &Directives::Extract_Directives($fileName,"uniqueLabel") ) {
+    foreach my $uniqueLabel ( &Galacticus::Build::Directives::Extract_Directives($fileName,"uniqueLabel") ) {
 	$labelFunction = $uniqueLabel->{'function'};
-	map { $ignoreParameters{$_} = 1 } &ExtraUtils::as_array($uniqueLabel->{'ignore'});
-	&ExtraUtils::smart_push(\@ignorePatterns,$uniqueLabel->{'ignoreRegex'});
-	@hashFiles = &ExtraUtils::as_array($uniqueLabel->{'hashFile'});
+	map { $ignoreParameters{$_} = 1 } &List::ExtraUtils::as_array($uniqueLabel->{'ignore'});
+	&List::ExtraUtils::smart_push(\@ignorePatterns,$uniqueLabel->{'ignoreRegex'});
+	@hashFiles = &List::ExtraUtils::as_array($uniqueLabel->{'hashFile'});
     }
     # Begin creating the function for the definition.
     my $definitionCode =
@@ -136,15 +136,15 @@ CODE
 		$_->{'submatches'}->[1] =~ s/'$//;
 		$_->{'submatches'}->[1] =~ s/'/''/;
 		$defaultValues{$_->{'submatches'}->[0]} = $_->{'submatches'}->[1];
-	    } &Fortran_Utils::Get_Matching_Lines($sourceFile,qr/Get_Input_Parameter\s*\(\s*'([^']*)'.*defaultValue\s*=\s*(.*)[,\)]/);
+	    } &Fortran::Utils::Get_Matching_Lines($sourceFile,qr/Get_Input_Parameter\s*\(\s*'([^']*)'.*defaultValue\s*=\s*(.*)[,\)]/);
 	    # Locate and process any new-style method definitions.
-	    foreach my $include ( &Directives::Extract_Directives($sourceFile,"include",conditions => {type => "function"}) ) {
+	    foreach my $include ( &Galacticus::Build::Directives::Extract_Directives($sourceFile,"include",conditions => {type => "function"}) ) {
 		# Add any files implementing this method to the list of dependencies.
 		push(
 		    @dependencyFileStack,
 		    map
 		    {$_ =~ s/^.*$sourceDirectory\/(.*)\.F90/$1/; $_;}
-		    &ExtraUtils::as_array($codeDirectiveLocations->{$include->{'directive'}}->{'file'})
+		    &List::ExtraUtils::as_array($codeDirectiveLocations->{$include->{'directive'}}->{'file'})
 		    );
 	        # Extract and store the default implementation for this method.
 		$defaultValues{$include->{'directive'}."Method"} = $include->{'default'};
@@ -152,13 +152,13 @@ CODE
 		push(@directives,$include->{'directive'});
  	    }
 	    # Locate and process any preprocessor functionClass directives.
-	    foreach my $functionClass ( &Directives::Extract_Directives($sourceFile,"functionClass") ) {
+	    foreach my $functionClass ( &Galacticus::Build::Directives::Extract_Directives($sourceFile,"functionClass") ) {
 		# Add any files implementing this method to the list of dependencies.
 		push(
 		    @dependencyFileStack,
 		    map
 		    {$_ =~ s/^.*$sourceDirectory\/(.*)\.F90/$1/; $_;}
-		    &ExtraUtils::as_array($codeDirectiveLocations->{$functionClass->{'name'}}->{'file'})
+		    &List::ExtraUtils::as_array($codeDirectiveLocations->{$functionClass->{'name'}}->{'file'})
 		    );
 	        # Extract and store the default implementation for this method.
 		$defaultValues{$functionClass->{'name'}."Method"} = $functionClass->{'default'};
@@ -170,8 +170,8 @@ CODE
     # Construct dependencies between new-style method implementations.
     foreach my $directive ( @directives ) {
 	$methodStructure->{$directive}->{$directive."Class"}->{'extends'} = undef();
-	foreach my $sourceFile ( &ExtraUtils::as_array($codeDirectiveLocations->{$directive}->{'file'}) ) {
-    	    foreach my $classDeclaration ( &Fortran_Utils::Get_Matching_Lines($sourceFile,$Fortran_Utils::classDeclarationRegEx) ) {
+	foreach my $sourceFile ( &List::ExtraUtils::as_array($codeDirectiveLocations->{$directive}->{'file'}) ) {
+    	    foreach my $classDeclaration ( &Fortran::Utils::Get_Matching_Lines($sourceFile,$Fortran::Utils::classDeclarationRegEx) ) {
 		my $type      = $classDeclaration->{'submatches'}->[3];
 		my $extends   = $classDeclaration->{'submatches'}->[1];
 		(my $leafName = $sourceFile) =~ s/.*source\///;
@@ -190,22 +190,22 @@ CODE
 	    my $allowed = join("|",grep {$_ ne $directive."Class"} keys(%{$methodStructure->{$directive}}));
 	    # Match instantiations of the form:
 	    #  type(cosmologyParametersSimple) :: abcd
-	    unless ( grep {$_ =~ m/$sourceFile/} &ExtraUtils::as_array($codeDirectiveLocations->{$directive}->{'file'}) ) {
+	    unless ( grep {$_ =~ m/$sourceFile/} &List::ExtraUtils::as_array($codeDirectiveLocations->{$directive}->{'file'}) ) {
 		push(@directiveNamesUsed,$_->{'submatches'}->[0])
-		    foreach ( &Fortran_Utils::Get_Matching_Lines($sourceFile,qr/^\s*type\s*\(\s*($allowed)\s*\).*::/i) );
+		    foreach ( &Fortran::Utils::Get_Matching_Lines($sourceFile,qr/^\s*type\s*\(\s*($allowed)\s*\).*::/i) );
 	    }
 	    # Match instantiations of the form:
 	    #  abcd => cosmologyParametersSimple(1,2,3,4)
 	    push(@directiveNamesUsed,$_->{'submatches'}->[0])
-		foreach ( &Fortran_Utils::Get_Matching_Lines($sourceFile,qr/^\s*[a-zA-Z0-9_]+\s*=>\s*($allowed)\s*\(.*\)\s*$/i) );
+		foreach ( &Fortran::Utils::Get_Matching_Lines($sourceFile,qr/^\s*[a-zA-Z0-9_]+\s*=>\s*($allowed)\s*\(.*\)\s*$/i) );
 	    # Match instantiations of the form:
 	    #  abcd => cosmologyParameters('simple')
 	    push(@directiveNamesUsed,$directive.ucfirst($_->{'submatches'}->[0]))
-		foreach ( &Fortran_Utils::Get_Matching_Lines($sourceFile,qr/^\s*[a-zA-Z0-9_]+\s*=>\s*$directive\s*\(\s*[\'\"]\s*(.*?)\s*[\'\"]\s*\)\s*$/i) );
+		foreach ( &Fortran::Utils::Get_Matching_Lines($sourceFile,qr/^\s*[a-zA-Z0-9_]+\s*=>\s*$directive\s*\(\s*[\'\"]\s*(.*?)\s*[\'\"]\s*\)\s*$/i) );
 	    # Match instantiations of the form:
 	    #  abcd => cosmologyParameters()
 	    push(@directiveNamesUsed,$directive."Class")
-		if ( &Fortran_Utils::Get_Matching_Lines($sourceFile,qr/^\s*[a-zA-Z0-9_]+\s*=>\s*$directive\s*\(\s*\)\s*$/i) );
+		if ( &Fortran::Utils::Get_Matching_Lines($sourceFile,qr/^\s*[a-zA-Z0-9_]+\s*=>\s*$directive\s*\(\s*\)\s*$/i) );
 	    # Record which implementations were used.
 	    $methodStructure->{$directive}->{$_}->{'isUsed'} = 1
 		foreach ( @directiveNamesUsed );
@@ -228,7 +228,7 @@ CODE
     # Process the list of dependencies.
     foreach my $dependencyFile ( @dependencyFileList ) {
 	# Get the name of the associated module.
-	my $moduleName    = &Make::Module_Name($dependencyFile,default => "self");
+	my $moduleName    = &Galacticus::Build::Make::Module_Name($dependencyFile,default => "self");
 	# Initialize the code that will be used to label this module.
 	my $moduleCode    = "  ".$labelFunction."=".$labelFunction."//'::".$moduleName."'\n";
 	# Scan this file for parameters.
@@ -241,15 +241,15 @@ CODE
 	    # Extract old-style method activation parameter names and values.
 	    map 
 	    {$methodParameter = $_->{'submatches'}->[0]."Method"; $methodValue = $_->{'submatches'}->[1];} 
-	    &Fortran_Utils::Get_Matching_Lines($sourceFile,qr/^\s*if\s*\(\s*([a-zA-Z0-9_]+)Method\s*==\s*\'([a-zA-Z0-9_\-\+]+)\'\s*\)/);
+	    &Fortran::Utils::Get_Matching_Lines($sourceFile,qr/^\s*if\s*\(\s*([a-zA-Z0-9_]+)Method\s*==\s*\'([a-zA-Z0-9_\-\+]+)\'\s*\)/);
 	    # Extract new-style method activation parameter names and values.
 	    foreach my $directive ( @directives ) {
 		map 
 		{$methodParameter = $directive."Method"; ($methodValue = $_->{'name'}) =~ s/^$directive//; $methodValue = lcfirst($methodValue);} 
-		&Directives::Extract_Directives($sourceFile,$directive);
+		&Galacticus::Build::Directives::Extract_Directives($sourceFile,$directive);
 	    }
 	    # Extract any input parameters from this file.
-	    foreach my $directive ( &Directives::Extract_Directives($sourceFile,"inputParameter",comment => qr/^\s*(\!|\/\/)(\@|\#)/) ) {
+	    foreach my $directive ( &Galacticus::Build::Directives::Extract_Directives($sourceFile,"inputParameter",comment => qr/^\s*(\!|\/\/)(\@|\#)/) ) {
 		# Use parameter regEx as name if no name is defined.
 		unless ( exists($directive->{'name'}) ) {
 		    if      ( exists($directive->{'regEx'   }) ) {
@@ -270,8 +270,8 @@ CODE
 		    if ( $directive->{'name'} =~ m/\(\#([a-zA-Z0-9]+)\->([a-z]+)\)/ ) {
 			my $dependentDirectiveName = $1;
 			my $dependentPropertyName  = $2;
-			foreach my $dependentFileName ( &ExtraUtils::as_array($codeDirectiveLocations->{$dependentDirectiveName}->{'file'}) ) {
-			    foreach my $dependentDirective ( &Directives::Extract_Directives($dependentFileName,$dependentDirectiveName) ) {
+			foreach my $dependentFileName ( &List::ExtraUtils::as_array($codeDirectiveLocations->{$dependentDirectiveName}->{'file'}) ) {
+			    foreach my $dependentDirective ( &Galacticus::Build::Directives::Extract_Directives($dependentFileName,$dependentDirectiveName) ) {
 				my $dependentProperty = $dependentDirective->{$dependentPropertyName};
 				(my $parameterName = $directive->{'name'}) =~ s/\(\#[a-zA-Z0-9]+\->[a-z]+\)/$dependentProperty/;
 				$moduleCode .=
@@ -302,13 +302,13 @@ CODE
 	    }
 	    # Add a source MD5 digest for this file.
 	    my $ctx = Digest::MD5->new();
-	    $ctx->add(&Fortran_Utils::read_file($sourceFile,state => "raw", followIncludes => 1, includeLocations => [ "../source", ".".$ENV{'BUILDPATH'} ], stripRegEx => qr/^\s*![^\#\@].*$/, stripLeading => 1, stripTrailing => 1));
+	    $ctx->add(&Fortran::Utils::read_file($sourceFile,state => "raw", followIncludes => 1, includeLocations => [ "../source", ".".$ENV{'BUILDPATH'} ], stripRegEx => qr/^\s*![^\#\@].*$/, stripLeading => 1, stripTrailing => 1));
 	    # Search for use on any files from the data directory by this source file.
 	    &Hash_Data_Files(
 		$ctx,
 		map 
 		{$_->{'submatches'}->[0]} 
-		&Fortran_Utils::Get_Matching_Lines($sourceFile,qr/[\"\'](data\/[a-zA-Z0-9_\.\-\/]+\.(xml|hdf5))[\"\']/)
+		&Fortran::Utils::Get_Matching_Lines($sourceFile,qr/[\"\'](data\/[a-zA-Z0-9_\.\-\/]+\.(xml|hdf5))[\"\']/)
 		);
 	    my $sourceCodeDigest = $ctx->b64digest();
 	    $moduleCode .= "  if (present(includeSourceDigest)) then\n";
@@ -380,7 +380,7 @@ CODE
 			$ctx,
 			map 
 			{$_->{'submatches'}->[0]} 
-			&File_Match::Get_Matching_Lines($sourceFile,qr/\"(data\/[a-zA-Z0-9_\.\-\/]+\.(xml|hdf5))\"/)
+			&File::Match::Get_Matching_Lines($sourceFile,qr/\"(data\/[a-zA-Z0-9_\.\-\/]+\.(xml|hdf5))\"/)
 			);
 		    my $sourceCodeDigest = $ctx->b64digest();
 		    $definitionCode .=

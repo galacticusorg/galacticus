@@ -2,25 +2,19 @@
 use strict;
 use warnings;
 use Cwd;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "../";
- $ENV{"GALACTICUS_ROOT_V094"} = getcwd()."/../";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/../perl';
 use PDL;
 use PDL::NiceSlice;
 use Data::Dumper;
-require Stats::Means;
-require Stats::Histograms;
+use Stats::Means;
+use Stats::Histograms;
+use Galacticus::Path;
 
 # Test Perl modules.
 # Andrew Benson (7-July-2013)
 
 # Check individual compilation.
+&galacticusPathExport();
 system("cd ..; find . -type f -name \"*.pl\" | xargs -n 1 perl -c 1>perl.tmp 2>&1; sed -r s/failed/FAILED/g perl.tmp; rm perl.tmp");
 system("cd ..; find perl -type f -name \"*.pm\" | xargs -n 1 perl -c 1>perl.tmp 2>&1; sed -r s/failed/FAILED/g perl.tmp; rm perl.tmp");
 
@@ -37,7 +31,7 @@ my $mExpect  = pdl ( 4.5       , 14.5       , 24.5        );
 my $meExpect = pdl ( 0.90829511,  0.90829511,  0.90829511 );
 my $dExpect  = pdl ( 3.0276503 ,  3.0276503 ,  3.0276503  );
 my $deExpect = pdl ( 1.6371658 ,  1.6371658 ,  1.6371658  );
-(my $m, my $me, my $d, my $de) = &Means::BinnedMean($bins,$xm,$ym,$wm);
+(my $m, my $me, my $d, my $de) = &Stats::Means::BinnedMean($bins,$xm,$ym,$wm);
 print "FAILED: Stats::Means::BinnedMean fails to compute correct means\n"
     unless ( all(abs($m - $mExpect) < $eps*$mExpect ) );
 print "FAILED: Stats::Means::BinnedMean fails to compute correct errors on means\n"
@@ -54,7 +48,7 @@ my $yBins = pdl sequence(3);
 my $x     = pdl 4.0*random(100);
 my $y     = pdl 3.0*random(100);
 my $w     = pdl random(100);
-(my $h, my $e, my $c) = &Histograms::Histogram2D($xBins,$yBins,$x,$y,$w);
+(my $h, my $e, my $c) = &Stats::Histograms::Histogram2D($xBins,$yBins,$x,$y,$w);
 foreach my $i ( $xBins->list() ) {
     foreach my $j ( $yBins->list() ) {
 	print "FAILED: Stats::Histograms::Histogram2D fails to compute correct weight in bin #1\n"
@@ -79,7 +73,7 @@ my $y2Bins = pdl 2*sequence(3);
 my $x2     = pdl 8.0*random(100);
 my $y2     = pdl 6.0*random(100);
 my $w2     = pdl random(100);
-(my $h2, my $e2, my $c2) = &Histograms::Histogram2D($x2Bins,$y2Bins,$x2,$y2,$w2,differential => "xy");
+(my $h2, my $e2, my $c2) = &Stats::Histograms::Histogram2D($x2Bins,$y2Bins,$x2,$y2,$w2,differential => "xy");
 for(my $i=0;$i<3;++$i) {
     for(my $j=0;$j<3;++$j) {
 	print "FAILED: Stats::Histograms::Histogram2D fails to compute correct weight in bin #2\n"
@@ -101,10 +95,10 @@ for(my $i=0;$i<3;++$i) {
 }
 ### Test normalization.
 #### xy
-(my $hxyh, my $exyh, my $cxyh) = &Histograms::Histogram2D($xBins,$yBins,$x,$y,$w,normalized => "xy",normalizeBy => "histogram");
+(my $hxyh, my $exyh, my $cxyh) = &Stats::Histograms::Histogram2D($xBins,$yBins,$x,$y,$w,normalized => "xy",normalizeBy => "histogram");
 print "FAILED: Stats::Histograms::Histogram2D fails to normalize [xy:histogram]\n"
     unless ( &agree(sum($hxyh),1.0,1.0e-6) );
-(my $hxyw, my $exyw, my $cxyw) = &Histograms::Histogram2D($xBins,$yBins,$x,$y,$w,normalized => "xy",normalizeBy => "weights"  );
+(my $hxyw, my $exyw, my $cxyw) = &Stats::Histograms::Histogram2D($xBins,$yBins,$x,$y,$w,normalized => "xy",normalizeBy => "weights"  );
 print "FAILED: Stats::Histograms::Histogram2D fails to normalize [xy:weights]\n"
     unless (
 	&agree(
@@ -125,8 +119,8 @@ print "FAILED: Stats::Histograms::Histogram2D fails to normalize [xy:weights]\n"
 	)
     );
 #### x
-(my $hxh, my $exh, my $cxh) = &Histograms::Histogram2D($xBins,$yBins,$x,$y,$w,normalized => "x", normalizeBy => "histogram");
-(my $hxw, my $exw, my $cxw) = &Histograms::Histogram2D($xBins,$yBins,$x,$y,$w,normalized => "x", normalizeBy => "weights"  );
+(my $hxh, my $exh, my $cxh) = &Stats::Histograms::Histogram2D($xBins,$yBins,$x,$y,$w,normalized => "x", normalizeBy => "histogram");
+(my $hxw, my $exw, my $cxw) = &Stats::Histograms::Histogram2D($xBins,$yBins,$x,$y,$w,normalized => "x", normalizeBy => "weights"  );
 for(my $j=0;$j<3;++$j) {
     print "FAILED: Stats::Histograms::Histogram2D fails to normalize [x:histogram]\n"
 	unless ( &agree(sum($hxh->(:,($j))),1.0,1.0e-6) );
@@ -134,8 +128,8 @@ for(my $j=0;$j<3;++$j) {
 	unless ( &agree(sum($hxw->(:,($j))),sum(where($w,($x > -0.5) & ($x < 2.5) & ($y > $j-0.5) & ($y < $j+0.5)))/sum(where($w,($y > $j-0.5) & ($y < $j+0.5))),1.0e-6) );
 }
 #### y
-(my $hyh, my $eyh, my $cyh) = &Histograms::Histogram2D($xBins,$yBins,$x,$y,$w,normalized => "y", normalizeBy => "histogram");
-(my $hyw, my $eyw, my $cyw) = &Histograms::Histogram2D($xBins,$yBins,$x,$y,$w,normalized => "y", normalizeBy => "weights"  );
+(my $hyh, my $eyh, my $cyh) = &Stats::Histograms::Histogram2D($xBins,$yBins,$x,$y,$w,normalized => "y", normalizeBy => "histogram");
+(my $hyw, my $eyw, my $cyw) = &Stats::Histograms::Histogram2D($xBins,$yBins,$x,$y,$w,normalized => "y", normalizeBy => "weights"  );
 for(my $i=0;$i<3;++$i) {
     print "FAILED: Stats::Histograms::Histogram2D fails to normalize [y:histogram]\n"
 	unless ( &agree(sum($hyh->(($i),:)),1.0,1.0e-6) );
@@ -148,7 +142,7 @@ my $ys = pdl ( 1.0 );
 my $sx = pdl ( 1.0 );
 my $sy = pdl ( 1.0 );
 my $ws = pdl ( 1.0 );
-(my $hs, my $es, my $cs) = &Histograms::Histogram2D($xBins,$yBins,$xs,$ys,$ws,gaussianSmoothX => $sx,gaussianSmoothY => $sy);
+(my $hs, my $es, my $cs) = &Stats::Histograms::Histogram2D($xBins,$yBins,$xs,$ys,$ws,gaussianSmoothX => $sx,gaussianSmoothY => $sy);
 my $hst = pdl
     [
      [0.058433556, 0.092564571, 0.058433556],
@@ -160,8 +154,8 @@ print "FAILED: Stats::Histograms::Histogram2D fails to smooth\n"
 print "FAILED: Stats::Histograms::Histogram2D covariance fails for gaussian smoothing\n"
     unless ( &agree(sqrt($cs->diagonal(0,1)),$es->flat(),1.0e-6) );
 #### Normalized in x
-(my $hsxh, my $esxh, my $csxh) = &Histograms::Histogram2D($xBins,$yBins,$xs,$ys,$ws,gaussianSmoothX => $sx,gaussianSmoothY => $sy, normalized => "x", normalizeBy => "histogram");
-(my $hsxw, my $esxw, my $csxw) = &Histograms::Histogram2D($xBins,$yBins,$xs,$ys,$ws,gaussianSmoothX => $sx,gaussianSmoothY => $sy, normalized => "x", normalizeBy => "weights");
+(my $hsxh, my $esxh, my $csxh) = &Stats::Histograms::Histogram2D($xBins,$yBins,$xs,$ys,$ws,gaussianSmoothX => $sx,gaussianSmoothY => $sy, normalized => "x", normalizeBy => "histogram");
+(my $hsxw, my $esxw, my $csxw) = &Stats::Histograms::Histogram2D($xBins,$yBins,$xs,$ys,$ws,gaussianSmoothX => $sx,gaussianSmoothY => $sy, normalized => "x", normalizeBy => "weights");
 for(my $j=0;$j<3;++$j) {
     print "FAILED: Stats::Histograms::Histogram2D fails to normalize [x:histogram]\n"
 	unless ( &agree(sum($hsxh->(:,($j))),1.0000000000,1.0e-6) );
@@ -173,8 +167,8 @@ my $csxht = pdl zeroes(9);
 print "FAILED: Stats::Histograms::Histogram2D covariance fails for gaussian smoothing\n"
     unless ( &agree(sqrt($csxh->diagonal(0,1)),$csxht,1.0e-6,absolute => 1) );
 #### Normalized in y
-(my $hsyh, my $esyh, my $csyh) = &Histograms::Histogram2D($xBins,$yBins,$xs,$ys,$ws,gaussianSmoothX => $sx,gaussianSmoothY => $sy, normalized => "y", normalizeBy => "histogram");
-(my $hsyw, my $esyw, my $csyw) = &Histograms::Histogram2D($xBins,$yBins,$xs,$ys,$ws,gaussianSmoothX => $sx,gaussianSmoothY => $sy, normalized => "y", normalizeBy => "weights");
+(my $hsyh, my $esyh, my $csyh) = &Stats::Histograms::Histogram2D($xBins,$yBins,$xs,$ys,$ws,gaussianSmoothX => $sx,gaussianSmoothY => $sy, normalized => "y", normalizeBy => "histogram");
+(my $hsyw, my $esyw, my $csyw) = &Stats::Histograms::Histogram2D($xBins,$yBins,$xs,$ys,$ws,gaussianSmoothX => $sx,gaussianSmoothY => $sy, normalized => "y", normalizeBy => "weights");
 for(my $i=0;$i<3;++$i) {
     print "FAILED: Stats::Histograms::Histogram2D fails to normalize [y:histogram]\n"
 	unless ( &agree(sum($hsyh->(($i),:)),1.0000000000,1.0e-6) );

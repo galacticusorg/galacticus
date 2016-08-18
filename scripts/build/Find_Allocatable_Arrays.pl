@@ -2,16 +2,10 @@
 use strict;
 use warnings;
 use Data::Dumper;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use XML::Simple;
-require System::Redirect;
+use System::Redirect;
 
 # Locate all allocatable arrays in the code base and determine their type and dimensionality.
 
@@ -106,7 +100,7 @@ close(outHndl);
 
 # Replace original file only if it has changed.
 if ( -e $sourcedir."/".$ENV{'BUILDPATH'}."/Allocatable_Arrays.xml" ) {
-    &SystemRedirect::tofile("diff -q  ".$sourcedir."/".$ENV{'BUILDPATH'}."/Allocatable_Arrays.xml.tmp ".$sourcedir."/".$ENV{'BUILDPATH'}."/Allocatable_Arrays.xml","/dev/null");
+    &System::Redirect::tofile("diff -q  ".$sourcedir."/".$ENV{'BUILDPATH'}."/Allocatable_Arrays.xml.tmp ".$sourcedir."/".$ENV{'BUILDPATH'}."/Allocatable_Arrays.xml","/dev/null");
     if ( $? == 0 ) {
 	system("rm -f ".$sourcedir."/".$ENV{'BUILDPATH'}."/Allocatable_Arrays.xml.tmp");
     } else {

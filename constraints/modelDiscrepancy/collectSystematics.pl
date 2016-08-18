@@ -1,12 +1,6 @@
 #!/usr/bin/env perl
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use strict;
 use warnings;
 use PDL;
@@ -14,8 +8,8 @@ use PDL::NiceSlice;
 use PDL::IO::HDF5;
 use Data::Dumper;
 use XML::Simple;
-require Galacticus::Options;
-require Galacticus::Constraints::Parameters;
+use Galacticus::Options;
+use Galacticus::Constraints::Parameters;
 
 # Collect systematic shifts arising from model discrepancies and combine them into offsets on systematics model parameter priors.
 # Andrew Benson (01-April-2016)
@@ -30,10 +24,10 @@ my $iArg = -1;
 my %arguments = 
     (
     );
-&Options::Parse_Options(\@ARGV,\%arguments);
+&Galacticus::Options::Parse_Options(\@ARGV,\%arguments);
 
 # Parse the configuration file.
-my $config = &Parameters::Parse_Config($configFileName,useStored => 0);
+my $config = &Galacticus::Constraints::Parameters::Parse_Config($configFileName,useStored => 0);
 
 # Validate the config file.
 die("monteCarloTrees.pl: workDirectory must be specified in config file" )

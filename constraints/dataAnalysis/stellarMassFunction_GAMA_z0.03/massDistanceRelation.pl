@@ -1,28 +1,23 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath  = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath  = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use PDL;
 use PDL::NiceSlice;
 use PDL::Fit::Polynomial;
 use XML::Simple;
 use Data::Dumper;
-require Stats::Percentiles;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
+use Stats::Percentiles;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
 
 # Determine the relation between stellar mass and limiting distance for the GAMA stellar mass function.
 # Andrew Benson (04-June-2014)
 
 # Define a working directory.
-my $workDirectory = $galacticusPath."constraints/dataAnalysis/stellarMassFunction_GAMA_z0.03/";
+my $workDirectory = &galacticusPath()."constraints/dataAnalysis/stellarMassFunction_GAMA_z0.03/";
 
 # Define survey solid angle.
 my $squareDegreesPerSteradian = pdl 3282.80635;
@@ -30,7 +25,7 @@ my $solidAngle                = pdl 143.0/$squareDegreesPerSteradian;
 
 # Read the stellar mass function.
 my $xml = new XML::Simple();
-my $stellarMassFunction = $xml->XMLin($galacticusPath."data/observations/massFunctionsStellar/Stellar_Mass_Function_GAMA_2012.xml");
+my $stellarMassFunction = $xml->XMLin(&galacticusPath()."data/observations/massFunctionsStellar/Stellar_Mass_Function_GAMA_2012.xml");
 my $logarithmicMass = pdl $stellarMassFunction->{'massFunction'}->{'columns'}->{'mass'        }->{'datum'};
 my $massFunction    = pdl $stellarMassFunction->{'massFunction'}->{'columns'}->{'massFunction'}->{'datum'};
 my $number          = pdl $stellarMassFunction->{'massFunction'}->{'columns'}->{'number'      }->{'datum'};
@@ -123,30 +118,30 @@ foreach my $field ( @fields ) {
 	}
     }
 
-    &PrettyPlots::Prepare_Dataset(
+    &GnuPlot::PrettyPlots::Prepare_Dataset(
 	\$plot,
 	10.0**$fitMass,
 	10.0**$fitDistance,
 	style      => "line",
 	weight     => [5,3],
-	color      => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'sequence2'}}[$color]},
+	color      => $GnuPlot::PrettyPlots::colorPairs{${$GnuPlot::PrettyPlots::colorPairSequences{'sequence2'}}[$color]},
 	title      => 'Fit ['.$field->{'label'}.']'
 	);
-    &PrettyPlots::Prepare_Dataset(
+    &GnuPlot::PrettyPlots::Prepare_Dataset(
 	\$plot,
 	10.0**$logarithmicMass,
 	10.0**$logarithmicDistance,
 	style      => "point",
 	weight     => [5,3],
 	symbol     => [6,7],
-	color      => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'sequence1'}}[$color]},
+	color      => $GnuPlot::PrettyPlots::colorPairs{${$GnuPlot::PrettyPlots::colorPairSequences{'sequence1'}}[$color]},
 	title      => 'GAMA ['.$field->{'label'}.']'
 	);
 
 }
 
-&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF($plotFileEPS);
+&GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS);
 
 exit;

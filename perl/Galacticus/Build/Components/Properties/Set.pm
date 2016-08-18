@@ -1,20 +1,14 @@
 # Contains a Perl module which handles setting of component properties during build.
 
-package Set;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+package Galacticus::Build::Components::Properties::Set;
 use strict;
 use warnings;
 use utf8;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Data::Dumper;
-require List::ExtraUtils;
-require Galacticus::Build::Components::Utils;
+use List::ExtraUtils;
+use Galacticus::Build::Components::Utils;
 
 # Insert hooks for our functions.
 %Galacticus::Build::Component::Utils::componentUtils = 
@@ -33,9 +27,9 @@ sub Build_Setters {
     # Validate that data type can be determined for each property.
     my $build = shift();
     # Iterate over components.
-    foreach my $component ( &ExtraUtils::hashList($build->{'components'}) ) {
+    foreach my $component ( &List::ExtraUtils::hashList($build->{'components'}) ) {
 	# Iterate over all properties belonging to this component.	
-	foreach my $property ( &ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' ) ) {
+	foreach my $property ( &List::ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' ) ) {
 	    # Insert an "isSettable" function into the base class.
 	    my $functionName = $property->{'name'}."IsSettable";
 	    unless ( grep {$_->{'name'} eq $functionName} @{$build->{'types'}->{'nodeComponent'.ucfirst($component->{'class'})}->{'boundFunctions'}} ) {

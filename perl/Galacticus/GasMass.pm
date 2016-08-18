@@ -1,15 +1,17 @@
 # Contains a Perl module which implements total gas mass calculations for Galacticus.
 
-package GasMass;
+package Galacticus::GasMass;
 use strict;
 use warnings;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use PDL::NiceSlice;
 use Data::Dumper;
-require Galacticus::HDF5;
+use Galacticus::HDF5;
 
-%HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-    "massColdGas" => \&GasMass::Get_Cold_Gas_Mass,
+%Galacticus::HDF5::galacticusFunctions = ( %Galacticus::HDF5::galacticusFunctions,
+    "massColdGas" => \&Galacticus::GasMass::Get_Cold_Gas_Mass,
     );
 
 sub Get_Cold_Gas_Mass {
@@ -17,7 +19,7 @@ sub Get_Cold_Gas_Mass {
     my $dataSetName = $_[0];
 
     # Get available datasets.
-    &HDF5::Get_Datasets_Available($model);
+    &Galacticus::HDF5::Get_Datasets_Available($model);
 
     # Decide which datasets to get.
     my @dataSetsRequired = ( "mergerTreeWeight" );
@@ -29,7 +31,7 @@ sub Get_Cold_Gas_Mass {
     push(@dataSetsRequired,@gasMassComponents);
 
     # Get the datasets.
-    &HDF5::Get_Dataset($model,\@dataSetsRequired);
+    &Galacticus::HDF5::Get_Dataset($model,\@dataSetsRequired);
 
     # Sum the gas masses.
     $model->{'dataSets'}->{$dataSetName} = pdl zeroes(nelem($model->{'dataSets'}->{'mergerTreeWeight'}));

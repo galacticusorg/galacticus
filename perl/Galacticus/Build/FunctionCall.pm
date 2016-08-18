@@ -1,22 +1,16 @@
 # Contains a Perl module which implements processing of "functionCall" directives in the Galacticus build system.
 
-package FunctionCall;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+package Galacticus::Build::FunctionCall;
 use strict;
 use warnings;
 use utf8;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use DateTime;
 use Data::Dumper;
 use Scalar::Util 'reftype';
-require Galacticus::Build::Hooks;
-require Galacticus::Build::Dependencies;
+use Galacticus::Build::Hooks;
+use Galacticus::Build::Dependencies;
 
 # Insert hooks for our functions.
 %Hooks::moduleHooks = 
@@ -154,7 +148,7 @@ sub Function_Calls_Generate_Output {
     $buildData->{'content'} .= "!  Time: ".$now."\n";
 
     # Perform the dependency sort.
-    &Dependencies::Dependency_Sort($buildData->{'functionCall'},$buildData);
+    &Galacticus::Build::Dependencies::Dependency_Sort($buildData->{'functionCall'},$buildData);
 
     # Find the length of the longest unit name.
     my $longestNameLength = 0;

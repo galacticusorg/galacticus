@@ -1,9 +1,11 @@
 # Contains a Perl module which implements processing of "component" directives in the Galacticus build system.
 
-package Component;
+package Galacticus::Build::Components;
 use strict;
 use warnings;
 use utf8;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use DateTime;
 use Data::Dumper;
 use Text::Table;
@@ -17,6 +19,7 @@ use Carp 'verbose';
 use Sub::Identify ':all';
 use File::Changes;
 use Fortran::Utils;
+use Galacticus::Path;
 use Galacticus::Build::Hooks;
 use Galacticus::Build::Components::Utils qw(@booleanLabel $implementationPropertyNameLengthMax $fullyQualifiedNameLengthMax padClass padLinkedData padImplementationPropertyName padFullyQualified isIntrinsic isOutputIntrinsic offsetName);
 use Galacticus::Build::Components::CodeGeneration;
@@ -56,7 +59,7 @@ $SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
     );
 
 # Include debugging code.
-my $debugging                           = 0;
+my $debugging = 0;
 
 # Adjectives for attributes.
 my %attributeAdjective =
@@ -70,7 +73,7 @@ sub Components_Validate {
     # Validate a component document.
     my $document  = shift;
     my $file      = shift;
-    my $validator = XML::Validator::Schema->new(file => $main::galacticusPath."schema/componentSchema.xsd");
+    my $validator = XML::Validator::Schema->new(file => &galacticusPath()."schema/componentSchema.xsd");
     my $parser    = XML::SAX::ParserFactory->parser(Handler => $validator); 
     eval { $parser->parse_string($document) };
     die "Galacticus::Build::Components::Components_Validate(): validation failed in file ".$file.":\n".$@
@@ -101,7 +104,7 @@ sub Components_Generate_Output {
     # Sort hooks.
     my @hooks = map
     {{name => $_, hook => $Galacticus::Build::Component::Utils::componentUtils{$_}}}
-    &ExtraUtils::sortedKeys(\%Galacticus::Build::Component::Utils::componentUtils);
+    &List::ExtraUtils::sortedKeys(\%Galacticus::Build::Component::Utils::componentUtils);
 
     # Iterate over phases.
     print "--> Phase:\n";
@@ -109,7 +112,7 @@ sub Components_Generate_Output {
 	print "   --> ".ucfirst($phase)."...\n";
 	foreach my $hook ( @hooks ) {	
 	    if ( exists($hook->{'hook'}->{$phase}) ) {
-		my @functions = &ExtraUtils::as_array($hook->{'hook'}->{$phase});
+		my @functions = &List::ExtraUtils::as_array($hook->{'hook'}->{$phase});
 		foreach my $function ( @functions ) {
 		    print "      --> ".$hook->{'name'}.(scalar(@functions) > 1 ? " {".sub_name($function)."}" : "")."\n";
 		    &{$function}($build);
@@ -179,7 +182,7 @@ sub Components_Generate_Output {
 	);
 
     # Insert all module scope variables.
-    $build->{'content'} .= &Fortran_Utils::Format_Variable_Defintions($build->{'variables'})."\n";
+    $build->{'content'} .= &Fortran::Utils::Format_Variable_Defintions($build->{'variables'})."\n";
 
     # Insert the "contains" line.
     $build->{'content'} .= "contains\n\n";
@@ -204,7 +207,7 @@ sub Components_Generate_Output {
     print makeFile $ENV{'BUILDPATH'}."/objects.nodes.o:".join("",map {" ".$ENV{'BUILDPATH'}."/".$_} @includeDependencies)
 	if ( scalar(@includeDependencies) > 0 );
     close(makeFile);
-    &File_Changes::Update($ENV{'BUILDPATH'}."/Makefile_Component_Includes" ,$ENV{'BUILDPATH'}."/Makefile_Component_Includes.tmp" );
+    &File::Changes::Update($ENV{'BUILDPATH'}."/Makefile_Component_Includes" ,$ENV{'BUILDPATH'}."/Makefile_Component_Includes.tmp" );
 
 }
 
@@ -250,9 +253,9 @@ sub Generate_Implementations {
 	    "nodeComponent".ucfirst($componentClassName);
      	# Create data objects to store all of the linked data for this component.
 	my @dataContent;
-    	foreach ( &ExtraUtils::sortedKeys($component->{'content'}->{'data'}) ) {
-    	    my $type = &DataTypes::dataObjectName($component->{'content'}->{'data'}->{$_});
-	    (my $typeDefinition, my $typeLabel) = &DataTypes::dataObjectDefinition($component->{'content'}->{'data'}->{$_});
+    	foreach ( &List::ExtraUtils::sortedKeys($component->{'content'}->{'data'}) ) {
+    	    my $type = &Galacticus::Build::Components::DataTypes::dataObjectName($component->{'content'}->{'data'}->{$_});
+	    (my $typeDefinition, my $typeLabel) = &Galacticus::Build::Components::DataTypes::dataObjectDefinition($component->{'content'}->{'data'}->{$_});
 	    $typeDefinition->{'variables'} = [ $_ ];
 	    push(
 		@dataContent,
@@ -284,7 +287,7 @@ sub Generate_Implementations {
 		} else {
 		    # Binding is deferred, map to a suitable wrapper function.
 		    $function{'function'   } = $componentID.$_->{'method'};
-		    $function{'returnType' } = &DataTypes::dataObjectDocName($_->{'interface'});
+		    $function{'returnType' } = &Galacticus::Build::Components::DataTypes::dataObjectDocName($_->{'interface'});
 		    $function{'arguments'  } = "";
 		    $function{'description'} = "Get the {\\normalfont \\ttfamily ".$_->{'method'}."} property of the {\\normalfont \\ttfamily ". $componentID."} component.";
 		    # Also add bindings to functions to set and test the deferred function.
@@ -316,7 +319,7 @@ sub Generate_Implementations {
 	    }
 	}
 	# Iterate over properties.
-	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+	foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    # Get the property.
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    push(
@@ -413,7 +416,7 @@ sub Generate_Deferred_Binding_Procedure_Pointers {
 	    }
 	}
     }
-    $build->{'content'} .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent, indent => 2)."\n";
+    $build->{'content'} .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent, indent => 2)."\n";
 }
 
 sub Generate_Deferred_Binding_Functions {
@@ -432,7 +435,7 @@ sub Generate_Deferred_Binding_Functions {
 	    if ( $binding->{'isDeferred'} ) {
 		# Determine type and arguments of the function.
 		my $type = $binding->{'interface'}->{'type'};
-		($type, my $name, my $attributeList) = &DataTypes::dataObjectPrimitiveName($binding->{'interface'})
+		($type, my $name, my $attributeList) = &Galacticus::Build::Components::DataTypes::dataObjectPrimitiveName($binding->{'interface'})
 		    unless ( $type eq "void" );
 		my $endType;
 		if ( $type eq "void" ) {
@@ -450,7 +453,7 @@ sub Generate_Deferred_Binding_Functions {
 			if ( $_ =~ m/::\s*([a-zA-Z0-9_,\s\(\):]+)\s*$/ ) {
 			    push(
 				@selflessArguments,
-				&Fortran_Utils::Extract_Variables($1)
+				&Fortran::Utils::Extract_Variables($1)
 				);
 			} else {
 			    die "Generate_Deferred_Binding_Functions: unrecognized argument format"
@@ -503,7 +506,7 @@ sub Generate_Deferred_Binding_Functions {
 		    $functionCode  = "  subroutine ".$classFunctionName."DeferredFunctionSet(deferredFunction)\n";
 		    $functionCode .= "    !% Set the function to be used for the {\\normalfont \\ttfamily ".$binding->{'method'}."} method of the {\\normalfont \\ttfamily ".$component->{'class'}."} component class.\n";
 		    $functionCode .= "    implicit none\n";
-		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+		    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 		    $functionCode .= "    ".$classFunctionName."Deferred   => deferredFunction\n";
 		    $functionCode .= "    ".$classFunctionName."IsSetValue =  .true.\n";
 		    $functionCode .= "    return\n";
@@ -568,7 +571,7 @@ sub Generate_Deferred_Binding_Functions {
 		$functionCode  = "  subroutine ".$componentFunctionName."DeferredFunctionSet(deferredFunction)\n";
 		$functionCode .= "    !% Set the function to be used for the {\\normalfont \\ttfamily ".$binding->{'method'}."} method of the {\\normalfont \\ttfamily ".$componentID."} component.\n";
 		$functionCode .= "    implicit none\n";
-		$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+		$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 		$functionCode .= "    ".$componentFunctionName."Deferred   => deferredFunction\n";
 		$functionCode .= "    ".$componentFunctionName."IsSetValue =  .true.\n";
 		$functionCode .= "    return\n";
@@ -674,13 +677,13 @@ sub Generate_Deferred_Procedure_Pointers {
 		$component->{'createFunction'}->{'isDeferred'}
 	    );
 	# Iterate over properties.
-	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+	foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    unless ( $property->{'attributes' }->{'isDeferred'} eq "" ) {
 		my $selfType = "generic";
 		$selfType = $component->{'class'}
 		   unless ( $property->{'attributes'}->{'bindsTo'} eq "top" );
-		(my $dataObject, my $label) = &DataTypes::dataObjectDefinition($property);
+		(my $dataObject, my $label) = &Galacticus::Build::Components::DataTypes::dataObjectDefinition($property);
 		my $dataType = $label.$property->{'rank'};
 		# Determine where to attach.
 		my $attachTo = $componentID;
@@ -733,7 +736,7 @@ sub Generate_Deferred_Procedure_Pointers {
 	}
     }
     # Insert data content.
-    $build->{'content'} .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent, indent => 2)."\n";
+    $build->{'content'} .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent, indent => 2)."\n";
 }
 
 sub Generate_Node_Event_Interface {
@@ -766,7 +769,7 @@ sub Generate_Node_Event_Interface {
 abstract interface
   logical function nodeEventTask(thisEvent,thisNode,deadlockStatus)
     import nodeEvent,treeNode
-{&Fortran_Utils::Format_Variable_Defintions(\@dataContent, indent => 4)}
+{&Fortran::Utils::Format_Variable_Defintions(\@dataContent, indent => 4)}
   end function nodeEventTask
 end interface
 CODE
@@ -777,7 +780,7 @@ sub Generate_Default_Component_Sources{
     my $build = shift;
     # Create default objects for each class.
     $build->{'content'} .= "  ! Objects that will record which type of each component is to be used by default.\n";
-    $build->{'content'} .= &Fortran_Utils::Format_Variable_Defintions
+    $build->{'content'} .= &Fortran::Utils::Format_Variable_Defintions
 	(
 	 [
 	  map
@@ -795,7 +798,7 @@ sub Generate_Default_Component_Sources{
 	);
     # Create source objects for each class.
     $build->{'content'} .= "  ! Objects used to allocate components of given class..\n";
-    $build->{'content'} .= &Fortran_Utils::Format_Variable_Defintions
+    $build->{'content'} .= &Fortran::Utils::Format_Variable_Defintions
 	(
 	 [
 	  map
@@ -850,7 +853,7 @@ sub Generate_Map_Functions {
     $functionCode .= "  subroutine mapComponentsVoid(self,mapFunction)\n";
     $functionCode .= "    !% Map a void function over components.\n";
     $functionCode .= "    implicit none\n";
-    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
     foreach ( @{$build->{'componentClassList'}} ) {	    
      	$functionCode .= "    if (allocated(self%component".&padClass(ucfirst($_),[19,0]).")) then\n";
 	$functionCode .= "      do i=1,size(self%component".&padClass(ucfirst($_),[19,0]).")\n";
@@ -909,7 +912,7 @@ sub Generate_Map_Functions {
     $functionCode .= "    !% Map a scalar double function over components with a specified {\\normalfont \\ttfamily reduction}.\n";
     $functionCode .= "    use Galacticus_Error\n";
     $functionCode .= "    implicit none\n";
-    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Scan through available node component methods and find ones which are mappable. Create optimized versions of this function
     # for them.
     my $optimizationLabel      = -1;
@@ -938,7 +941,7 @@ sub Generate_Map_Functions {
 		    die("Generate_Map_Functions(): unrecognized reduction");
 		}
 		# Iterate over available types.
-		foreach my $type ( &ExtraUtils::sortedKeys($build->{'types'}) ) {
+		foreach my $type ( &List::ExtraUtils::sortedKeys($build->{'types'}) ) {
 		    if ( $type =~ m/^nodeComponent.+/  && grep {$_->{'name'} eq $boundFunction->{'name'}} @{$build->{'types'}->{$type}->{'boundFunctions'}} ) {
 			# Determine the class of this component.
 			my $baseClass = $type;
@@ -1041,7 +1044,7 @@ sub Generate_Node_Output_Functions {
     $functionCode  = "  subroutine Node_Output_Count(self,integerPropertyCount,doublePropertyCount,time)\n";
     $functionCode .= "    !% Increment the count of properties to output for this node.\n";
     $functionCode .= "    implicit none\n";
-    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Iterate over all component classes
     foreach ( @{$build->{'componentClassList'}} ) {	    
 	$functionCode .= "    if (allocated(self%component".&padClass(ucfirst($_),[0,0]).")) then\n";
@@ -1101,7 +1104,7 @@ sub Generate_Node_Output_Functions {
     $functionCode  = "  subroutine Node_Output_Names(self,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)\n";
     $functionCode .= "    !% Establish the names of properties to output for this node.\n";
     $functionCode .= "    implicit none\n";
-    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Iterate over all component classes
     foreach ( @{$build->{'componentClassList'}} ) {	    
 	$functionCode .= "    if (allocated(self%component".&padClass(ucfirst($_),[0,0]).")) then\n";
@@ -1161,7 +1164,7 @@ sub Generate_Node_Output_Functions {
     $functionCode  = "  subroutine Node_Output(self,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time)\n";
     $functionCode .= "    ! Output properties for this node.\n";
     $functionCode .= "    implicit none\n";
-    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Iterate over all component classes
     foreach ( @{$build->{'componentClassList'}} ) {	    
 	$functionCode .= "    if (allocated(self%component".&padClass(ucfirst($_),[0,0]).")) then\n";
@@ -1219,7 +1222,7 @@ sub Generate_Implementation_Dump_Functions {
 		    variables  => [ "label" ]
 		}
 		);
-	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+	    foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property has any linked data in this component.
 		if ( exists($property->{'linkedData'}) ) {
@@ -1253,7 +1256,7 @@ sub Generate_Implementation_Dump_Functions {
 	$functionCode .= "    use ISO_Varying_String\n";
 	$functionCode .= "    use String_Handling\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	$functionCode .= "    !GCC\$ attributes unused :: self\n"
 	    if ( $component->{'name'} eq "null" );
 	unless ( $component->{'name'} eq "null" ) {
@@ -1261,7 +1264,7 @@ sub Generate_Implementation_Dump_Functions {
 	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%dump()\n"
 		if ( exists($component->{'extends'}) );
 	    $functionCode .= "    call Galacticus_Display_Indent('".$component->{'class'}.": ".(" " x ($fullyQualifiedNameLengthMax-length($component->{'class'}))).$component->{'name'}."')\n";
-	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+	    foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property has any linked data in this component.
 		if ( exists($property->{'linkedData'}) ) {
@@ -1342,7 +1345,7 @@ sub Generate_Implementation_Dump_Functions {
 	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Dump_XML(self,fileHandle)\n";
 	$functionCode .= "    !% Dump the contents of a ".$component->{'name'}." implementation of the ".$component->{'class'}." component to XML.\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	my $selfUsed = 0;
 	my $fileUsed = 0;
 	my $functionBody = "";
@@ -1354,7 +1357,7 @@ sub Generate_Implementation_Dump_Functions {
 		$selfUsed = 1;
 	    }
 	    $functionBody .= "    write (fileHandle,'(a)') '  <".$component->{'class'}." type=\"".$component->{'name'}."\">'\n";
-            foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+            foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property has any linked data in this component.
 		if ( exists($property->{'linkedData'}) ) {
@@ -1427,7 +1430,7 @@ sub Generate_Implementation_Dump_Functions {
 	     }
 	    );
 	$counterAdded = 0;
-	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+	foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    # Check if this property has any linked data in this component.
 	    if ( exists($property->{'linkedData'}) ) {
@@ -1451,7 +1454,7 @@ sub Generate_Implementation_Dump_Functions {
 	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Dump_Raw(self,fileHandle)\n";
 	$functionCode .= "    !% Dump the contents of a ".$component->{'name'}." implementation of the ".$component->{'class'}." component in binary.\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	$functionBody = "";
 	$selfUsed     = 0;
 	$fileUsed     = 0;	
@@ -1462,7 +1465,7 @@ sub Generate_Implementation_Dump_Functions {
 		$selfUsed = 1;
 		$fileUsed = 1;
 	    }
-	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+	    foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property has any linked data in this component.
 		if ( exists($property->{'linkedData'}) ) {
@@ -1530,7 +1533,7 @@ sub Generate_Implementation_Dump_Functions {
 	    );
 	my $readCounterAdded = 0;
 	my $readArraysAdded  = 0;
-	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+	foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    # Check if this property has any linked data in this component.
 	    if ( exists($property->{'linkedData'}) ) {
@@ -1571,7 +1574,7 @@ sub Generate_Implementation_Dump_Functions {
 	$functionCode .= "    !% Read the contents of a ".$component->{'name'}." implementation of the ".$component->{'class'}." component in binary.\n";
 	$functionCode .= "    use Memory_Management\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	$selfUsed     = 0;
 	$fileUsed     = 0;
 	$functionBody = "";
@@ -1582,7 +1585,7 @@ sub Generate_Implementation_Dump_Functions {
 		$selfUsed = 1;
 		$fileUsed = 1;
 	    }
-            foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+            foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property has any linked data in this component.
 		if ( exists($property->{'linkedData'}) ) {
@@ -1657,7 +1660,7 @@ sub Generate_Implementation_Initializor_Functions {
 	# Generate the initialization code.
 	my %requiredComponents;
 	my $initializeCode = "";
-	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+	foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    if ( exists($property->{'linkedData'}) ) {
 		my $linkedDataName = $property->{'linkedData'};
@@ -1708,7 +1711,7 @@ sub Generate_Implementation_Initializor_Functions {
 		variables  => [ "self".ucfirst($_)."Component" ]
 	    }
 	    )
-	    foreach ( &ExtraUtils::sortedKeys(\%requiredComponents) );
+	    foreach ( &List::ExtraUtils::sortedKeys(\%requiredComponents) );
 	# Generate initializor function.
 	my $selfUsed     = 0;
 	my $functionBody = "";
@@ -1717,7 +1720,7 @@ sub Generate_Implementation_Initializor_Functions {
 	$functionCode .= "    use Memory_Management\n";
 	# Insert any required modules.
 	my %requiredModules;
-	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+	foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    if ( exists($property->{'classDefault'}) && exists($property->{'classDefault'}->{'modules'}) ) {
 		foreach ( @{$property->{'classDefault'}->{'modules'}} ) {
@@ -1725,11 +1728,11 @@ sub Generate_Implementation_Initializor_Functions {
 		}
 	    }
 	}
-	foreach ( &ExtraUtils::sortedKeys(\%requiredModules) ) {
+	foreach ( &List::ExtraUtils::sortedKeys(\%requiredModules) ) {
 	    $functionCode .= "    use ".$_."\n";
 	}
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";	
+	$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";	
 	unless ( $component->{'name'} eq "null" ) {
 	    # Initialize the parent type if necessary.
 	    if ( exists($component->{'extends'}) ) {
@@ -1737,7 +1740,7 @@ sub Generate_Implementation_Initializor_Functions {
 		$selfUsed = 1;
 	    }
 	}
-	foreach my $requiredComponent ( &ExtraUtils::sortedKeys(\%requiredComponents) ) {
+	foreach my $requiredComponent ( &List::ExtraUtils::sortedKeys(\%requiredComponents) ) {
 	    $functionBody .= "     self".$requiredComponent."Component => self%hostNode%".lc($requiredComponent)."()\n";
 	    $selfUsed = 1;
 	}
@@ -1802,7 +1805,7 @@ sub Generate_Implementation_Builder_Functions {
 		}
 		);
 	    my $counterAdded = 0;
-	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+	    foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property has any linked data in this component.
 		if ( exists($property->{'linkedData'}) ) {
@@ -1828,7 +1831,7 @@ sub Generate_Implementation_Builder_Functions {
 	$functionCode .= "    use Galacticus_Error\n";
 	$functionCode .= "    use Memory_Management\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	$functionCode .= "    !GCC\$ attributes unused :: self, componentDefinition\n"
 	    if ( $component->{'name'} eq "null" );
 	unless ( $component->{'name'} eq "null" ) {
@@ -1911,7 +1914,7 @@ sub Generate_Implementation_Output_Functions {
 	my $component = $build->{'components'}->{$componentID};
 	# Find modules required.
 	my %modulesRequired;
-	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+	foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    # Check if this property is to be output.
 	    if ( exists($property->{'output'}) ) {
@@ -1955,7 +1958,7 @@ sub Generate_Implementation_Output_Functions {
 	    );
 	# Check for rank-1 outputs.
 	my $counterAdded = 0;
-	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+	foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    # Check if this property is to be output.
 	    if ( exists($property->{'output'}) ) {
@@ -1991,7 +1994,7 @@ sub Generate_Implementation_Output_Functions {
 	}
 	# Find all derived types to be output.
 	my %outputTypes;
-	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+	foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    # Check if property is to be output.
 	    if ( exists($property->{'output'}) ) {
@@ -2009,7 +2012,7 @@ sub Generate_Implementation_Output_Functions {
 	    }
 	}
 	my @outputTypes;
-	foreach ( &ExtraUtils::sortedKeys(\%outputTypes) ){
+	foreach ( &List::ExtraUtils::sortedKeys(\%outputTypes) ){
 	    push(
 		@outputTypes,
 		{
@@ -2025,9 +2028,9 @@ sub Generate_Implementation_Output_Functions {
 	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Output_Count(self,integerPropertyCount,doublePropertyCount,time,instance)\n";
 	$functionCode .= "    !% Increment output property count for a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
 	$functionCode .= "    use ".$_."\n"
-	    foreach ( &ExtraUtils::sortedKeys(\%modulesRequired) );
+	    foreach ( &List::ExtraUtils::sortedKeys(\%modulesRequired) );
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	my %typeUsed =
 	    (
 	     integer => 0,
@@ -2068,7 +2071,7 @@ sub Generate_Implementation_Output_Functions {
 		 integer     => "integer",
 		 longInteger => "integer"
 		);
-	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+	    foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property is to be output.
 		if ( exists($property->{'output'}) ) {
@@ -2227,7 +2230,7 @@ sub Generate_Implementation_Output_Functions {
 	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Output_Names(self,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance)\n";
 	$functionCode .= "    !% Establish property names for a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
 	$functionCode .= "    use ".$_."\n"
-	    foreach ( &ExtraUtils::sortedKeys(\%modulesRequired) );
+	    foreach ( &List::ExtraUtils::sortedKeys(\%modulesRequired) );
 	$functionCode .= "    implicit none\n";
 	$functionBody = "";
 	my $nameCounterAdded = 0;
@@ -2261,7 +2264,7 @@ sub Generate_Implementation_Output_Functions {
 		 integer     => "integer",
 		 longInteger => "integer"
 		);
-	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+	    foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property is to be output.
 		if ( exists($property->{'output'}) ) {
@@ -2376,7 +2379,7 @@ sub Generate_Implementation_Output_Functions {
 	}
 	$functionBody .= "    return\n";
 	$functionBody .= "  end subroutine Node_Component_".ucfirst($componentID)."_Output_Names\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	foreach my $type ( sort(keys(%typeUsed)) ) {
 	    $functionCode .= "  !GCC\$ attributes unused :: ".join(", ",map {$type.$_} ('Property','PropertyNames','PropertyComments','PropertyUnitsSI'))."\n"
 		unless ( $typeUsed{$type} );
@@ -2430,7 +2433,7 @@ sub Generate_Serialization_Offset_Variables {
 	# Get the component.
 	my $component = $build->{'components'}->{$componentID};
 	# Iterate over properties.
-	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+	foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
    	    # Check if this property has any linked data in this component.
 	    if ( exists($property->{'linkedData'}) ) {
@@ -2450,8 +2453,8 @@ sub Generate_Serialization_Offset_Variables {
     $build->{'content'} .= $offsetTable ->table()."\n";
     $build->{'content'} .= $privateTable->table()."\n";
     $build->{'content'} .= " integer                                     :: nodeSerializationCount\n";
-    $build->{'content'} .= " double precision, allocatable, dimension(:) :: nodeScales, nodeRates, nodeRatesIncrement\n";
-    $build->{'content'} .= " !\$omp threadprivate(nodeScales,nodeRates,nodeRatesIncrement,nodeSerializationCount)\n";
+    $build->{'content'} .= " double precision, allocatable, dimension(:) :: nodeScales, nodeRates\n";
+    $build->{'content'} .= " !\$omp threadprivate(nodeScales,nodeRates,nodeSerializationCount)\n";
 }
 
 sub Generate_Component_Count_Functions {
@@ -2477,7 +2480,7 @@ sub Generate_Component_Count_Functions {
     	$functionCode  = "  integer function ".$componentClassName."CountLinked(self)\n";
 	$functionCode .= "    !% Returns the number of {\\normalfont \\ttfamily ".$componentClassName."} components in {\\normalfont \\ttfamily self}.\n";
     	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
     	$functionCode .= "    select type (self)\n";
     	$functionCode .= "    class is (treeNode)\n";
 	$functionCode .= "     if (allocated(self%component".ucfirst($componentClassName).")) then\n";
@@ -2557,7 +2560,7 @@ sub Generate_Component_Get_Functions {
 	$functionCode .= "    !% Returns the {\\normalfont \\ttfamily ".$componentClassName."} component of {\\normalfont \\ttfamily self}.\n";
 	$functionCode .= "    use Galacticus_Error\n";   
  	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
     	$functionCode .= "    instanceActual=1\n";
     	$functionCode .= "    if (present(instance)) instanceActual=instance\n";
     	$functionCode .= "    autoCreateActual=.false.\n";
@@ -2620,7 +2623,7 @@ sub Generate_Component_Get_Functions {
 	    $functionCode  = "  subroutine ".$componentClassName."CreateByInterrupt(self)\n";
 	    $functionCode .= "    !% Create the {\\normalfont \\ttfamily ".$componentClassName."} component of {\\normalfont \\ttfamily self} via an interrupt.\n";
 	    $functionCode .= "    implicit none\n";
-	    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	    $functionCode .= "    ".$componentClassName." => self%".$componentClassName."(autoCreate=.true.)\n";
 	    # Loop over instances of this class, and call custom create routines if necessary.
 	    my $foundCreateFunctions = 0;
@@ -2703,7 +2706,7 @@ sub Generate_Component_Destruction_Functions {
     	my $functionCode = "  subroutine ".$componentClassName."DestroyLinked(self)\n";
 	$functionCode   .= "    !% Destroy the {\\normalfont \\ttfamily ".$componentClassName."} component of {\\normalfont \\ttfamily self}.\n";
     	$functionCode   .= "    implicit none\n";
-	$functionCode   .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode   .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
     	$functionCode   .= "    if (allocated(self%component".ucfirst($componentClassName).")) then\n";
 	$functionCode   .= "      do i=1,size(self%component".ucfirst($componentClassName).")\n";
 	$functionCode   .= "        call        self%component".ucfirst($componentClassName)."(i)%destroy()\n";
@@ -2764,7 +2767,7 @@ sub Generate_Component_Creation_Functions {
 	$functionCode .= "    use Galacticus_Error\n";
 	$functionCode .= "    use String_Handling\n";
     	$functionCode .= "    implicit none\n";
- 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+ 	$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	$functionCode .= "    if (Galacticus_Verbosity_Level() >= verbosityInfo) then\n";
 	$functionCode .= "      message='Creating ".$componentClassName." in node '\n";
 	$functionCode .= "      message=message//self%index()\n";
@@ -2828,7 +2831,7 @@ sub Generate_Deferred_Function_Attacher {
 	my $selfType = "generic";
 	$selfType = $component->{'class'}
 	   unless ( $property->{'attributes'}->{'bindsTo'} eq "top" );
-	(my $dataObject, my $label) = &DataTypes::dataObjectDefinition($property);
+	(my $dataObject, my $label) = &Galacticus::Build::Components::DataTypes::dataObjectDefinition($property);
 	my $dataType = $label.$property->{'rank'};
 	my $type = $selfType."NullBinding".ucfirst($gsr).$dataType."InOut";
 	$type = $componentName.ucfirst($propertyName).ucfirst($gsr)
@@ -2846,7 +2849,7 @@ sub Generate_Deferred_Function_Attacher {
 	$functionCode  = "  subroutine ".$functionName."(deferredFunction)\n";
 	$functionCode .= "    !% Set the function to be used for ".$gsr." of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$attachTo."} component class.\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	$functionCode .= "    ".$functionLabel."Deferred       => deferredFunction\n";
 	$functionCode .= "    ".$functionLabel."IsAttachedValue=  .true.\n";
 	$functionCode .= "    return\n";
@@ -2862,7 +2865,7 @@ sub Generate_Deferred_Function_Attacher {
 	    (                                                      $gsr eq "rate"                   )
 	    ) {
 	    my $functionType = "\\void";
-	    $functionType = &DataTypes::dataObjectDocName($property)
+	    $functionType = &Galacticus::Build::Components::DataTypes::dataObjectDocName($property)
 		if ( $gsr eq "get" );
 	    push(
 		@{$build->{'types'}->{"nodeComponent".ucfirst($attachTo)}->{'boundFunctions'}},
@@ -2906,7 +2909,7 @@ sub Generate_Deferred_GSR_Function {
 	# Get the component.
 	my $component = $build->{'components'}->{$componentID};
 	# Iterate over properties.
-	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+	foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    # Get the property.
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    # Get the component fully-qualified and class names.
@@ -2919,7 +2922,7 @@ sub Generate_Deferred_GSR_Function {
 		# Get the name of the property.
 		my $propertyName = $property->{'name'};
 		# Get properties of the data type needed.
-		(my $dataDefinition, my $label) = &DataTypes::dataObjectDefinition($property,matchOnly => 1);
+		(my $dataDefinition, my $label) = &Galacticus::Build::Components::DataTypes::dataObjectDefinition($property,matchOnly => 1);
 		# Identify properties with a deferred get function to be built.
 		if (
 		    $property->{'attributes' }->{'isDeferred'} =~ m/get/ &&
@@ -2943,7 +2946,7 @@ sub Generate_Deferred_GSR_Function {
 		    $functionCode  = "  function ".$componentName.ucfirst($propertyName)."Get(self)\n";
 		    $functionCode .= "    !% Get the value of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentName."} component using a deferred function.\n";
 		    $functionCode .= "    implicit none\n";
-		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+		    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 		    $functionCode .= "    ".$componentName.ucfirst($propertyName)."Get=".$componentName.ucfirst($propertyName)."GetDeferred(self)\n";
 		    $functionCode .= "    return\n";
 		    $functionCode .= "  end function ".$componentName.ucfirst($propertyName)."Get\n";
@@ -2983,7 +2986,7 @@ sub Generate_Deferred_GSR_Function {
 		    $functionCode  = "  subroutine ".$componentName.ucfirst($propertyName)."Set(self,setValue)\n";
 		    $functionCode .= "    !% Set the value of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentName."} component using a deferred function.\n";
 		    $functionCode .= "    implicit none\n";
-		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+		    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 		    $functionCode .= "    call ".$componentName.ucfirst($propertyName)."SetDeferred(self,setValue)\n";
 		    $functionCode .= "    return\n";
 		    $functionCode .= "  end subroutine ".$componentName.ucfirst($propertyName)."Set\n\n";
@@ -3043,7 +3046,7 @@ sub Generate_Deferred_GSR_Function {
 			$functionCode  = "  subroutine ".$functionLabel."(self,setValue,interrupt,interruptProcedure)\n";
 			$functionCode .= "    !% Set the rate of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentName."} component using a deferred function.\n";
 			$functionCode .= "    implicit none\n";
-			$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+			$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 			$functionCode .= "    call ".$attachTo.ucfirst($propertyName)."RateDeferred(self,setValue,interrupt,interruptProcedure)\n";
 			$functionCode .= "    return\n";
 			$functionCode .= "  end subroutine ".$functionLabel."\n\n";
@@ -3057,7 +3060,7 @@ sub Generate_Deferred_GSR_Function {
 			unless ( exists($bindings{$bindingName}) && $property->{'attributes' }->{'bindsTo'} eq "top" ) {
 			    push(
 			    @{$build->{'types'}->{$type}->{'boundFunctions'}},
-			    {type => "procedure", name => $propertyName."Rate", function => $functionLabel, description => "Cumulate to the rate of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => "\\void", arguments => &DataTypes::dataObjectDocName($property)."\\ value"}
+			    {type => "procedure", name => $propertyName."Rate", function => $functionLabel, description => "Cumulate to the rate of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => "\\void", arguments => &Galacticus::Build::Components::DataTypes::dataObjectDocName($property)."\\ value"}
 				);
 			    $bindings{$bindingName} = 1;
 			}
@@ -3086,7 +3089,7 @@ sub Generate_GSR_Functions {
 	# Get the parent class.
 	my $componentClassName = $component->{'class'};
 	# Iterate over properties.
-	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+	foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    # Handle cases where a get function is explicitly specified for a non-deferred virtual property.
 	    if (
@@ -3132,7 +3135,7 @@ sub Generate_GSR_Functions {
 			$suffix = "Value"
 			    if ( $property->{'attributes' }->{'isDeferred'} =~ m/get/ );
 			# Specify the data content.
-			(my $dataDefinition,my $label) = &DataTypes::dataObjectDefinition($linkedData);
+			(my $dataDefinition,my $label) = &Galacticus::Build::Components::DataTypes::dataObjectDefinition($linkedData);
 			push(@{$dataDefinition->{'variables'}},$componentID.ucfirst($propertyName)."Get".$suffix);
 			@dataContent = (
 			    $dataDefinition,
@@ -3147,7 +3150,7 @@ sub Generate_GSR_Functions {
 			$functionCode  = "  function ".$componentID.ucfirst($propertyName)."Get".$suffix."(self)\n";
 			$functionCode .= "    !% Return the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentID."} component implementation.\n";
 			$functionCode .= "    implicit none\n";
-			$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+			$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 			$functionCode .= "    ".$componentID.$propertyName."Get".$suffix."=self%".$linkedDataName."\n";
 			$functionCode .= "    return\n";
 			$functionCode .= "  end function ".$componentID.ucfirst($propertyName)."Get".$suffix."\n\n";
@@ -3159,7 +3162,7 @@ sub Generate_GSR_Functions {
 			# Insert a type-binding for this function into the implementation type.
 			push(
 			    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-			    {type => "procedure", name => $propertyName.$suffix, function => $componentID.ucfirst($propertyName)."Get".$suffix, description => "Get the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => &DataTypes::dataObjectDocName($property), arguments => ""}
+			    {type => "procedure", name => $propertyName.$suffix, function => $componentID.ucfirst($propertyName)."Get".$suffix, description => "Get the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => &Galacticus::Build::Components::DataTypes::dataObjectDocName($property), arguments => ""}
 			    );
 		    }
 		}
@@ -3171,7 +3174,7 @@ sub Generate_GSR_Functions {
 			$suffix = "Value"
 			    if ( $property->{'attributes' }->{'isDeferred'} =~ m/set/ );
 			# Specify the data content.
-			(my $dataDefinition,my $label) = &DataTypes::dataObjectDefinition($linkedData,matchOnly => 1);
+			(my $dataDefinition,my $label) = &Galacticus::Build::Components::DataTypes::dataObjectDefinition($linkedData,matchOnly => 1);
 			push(@{$dataDefinition->{'attributes'}},"intent(in   )");
 			push(@{$dataDefinition->{'variables' }},"setValue"     );
 			@dataContent = (
@@ -3188,7 +3191,7 @@ sub Generate_GSR_Functions {
 			$functionCode .= "    !% Set the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentID."} component implementation.\n";
 			$functionCode .= "    use Memory_Management\n";
 			$functionCode .= "    implicit none\n";
-			$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+			$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 			# For non-real properties we also set the rate and scale content. This ensures that they get reallocated to
 			# the correct size.
 			if ( $linkedData->{'rank'} == 0 ) {
@@ -3215,7 +3218,7 @@ sub Generate_GSR_Functions {
 			# Insert a type-binding for this function into the implementation type.
 			push(
 			    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-			    {type => "procedure", name => $propertyName."Set".$suffix, function => $componentID.ucfirst($propertyName)."Set".$suffix, description => "Set the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => "\\void", arguments => &DataTypes::dataObjectDocName($property)."\\ value"}
+			    {type => "procedure", name => $propertyName."Set".$suffix, function => $componentID.ucfirst($propertyName)."Set".$suffix, description => "Set the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => "\\void", arguments => &Galacticus::Build::Components::DataTypes::dataObjectDocName($property)."\\ value"}
 			    );
 		    }
 		}
@@ -3235,7 +3238,7 @@ sub Generate_GSR_Functions {
 		    $functionCode  = "  integer function ".$componentID.ucfirst($propertyName)."Count(self)\n";
 		    $functionCode .= "    !% Return a count of the number of scalar properties in the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".lcfirst($componentID)."} component implementation.\n";
 		    $functionCode .= "    implicit none\n";
-		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+		    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 		    my $functionBody = "";
 		    if ( $linkedData->{'rank'} ==  0 ) {
 			$functionBody .= "    ".$componentID.$propertyName."Count=1\n";
@@ -3264,10 +3267,10 @@ sub Generate_GSR_Functions {
 			{type => "procedure", name => $propertyName."Count", function => $componentID.ucfirst($propertyName)."Count"}
 			);
 		    # Get the data content for remaining functions.
-		    (my $dataDefinition,my $label) = &DataTypes::dataObjectDefinition($linkedData,matchOnly => 1);
+		    (my $dataDefinition,my $label) = &Galacticus::Build::Components::DataTypes::dataObjectDefinition($linkedData,matchOnly => 1);
 		    push(@{$dataDefinition->{'variables' }},"setValue"     );
 		    push(@{$dataDefinition->{'attributes'}},"intent(in   )");
-		    (my $currentDefinition,my $currentLabel) = &DataTypes::dataObjectDefinition($linkedData,matchOnly => 1);
+		    (my $currentDefinition,my $currentLabel) = &Galacticus::Build::Components::DataTypes::dataObjectDefinition($linkedData,matchOnly => 1);
 		    push(@{$currentDefinition->{'variables' }},"current"     );
 		    # If rate function is deferred, then create an intrinsic version.
 		    my $rateSuffix = "";
@@ -3331,7 +3334,7 @@ sub Generate_GSR_Functions {
 			$rateSetCode .= "       call current%serialize(nodeRates(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1))\n";
 			$rateSetCode .= "    end if\n";
 		    }
-		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+		    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 		    $functionCode .= "   !GCC\$ attributes unused :: self, interrupt, interruptProcedure\n";
 		    $functionCode .= $rateSetCode;
 		    $functionCode .= "    return\n";
@@ -3350,7 +3353,7 @@ sub Generate_GSR_Functions {
 		    if ( $rateSuffix eq "intrinsic" ) {
 			$typeDefinition{'description'} = "Cumulate directly (i.e. circumventing any deferred function binding) to the rate of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentID."} component.";
 			$typeDefinition{'returnType' } = "\\void";
-			$typeDefinition{'arguments'  } = &DataTypes::dataObjectDocName($property)."\\ value";
+			$typeDefinition{'arguments'  } = &Galacticus::Build::Components::DataTypes::dataObjectDocName($property)."\\ value";
 		    }
 		    push(
 			@{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
@@ -3398,7 +3401,7 @@ sub Generate_GSR_Functions {
 			$functionCode .= "    use Galacticus_Error\n"
 			    if ( $property->{'attributes'}->{'createIfNeeded'} );
 			$functionCode .= "    implicit none\n";
-			$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+			$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 			$functionCode .= "    thisNode => self%host()\n";
 			$functionCode .= "    this".ucfirst($componentClassName)." => thisNode%".$componentClassName."()\n";
 			if ( $property->{'attributes'}->{'createIfNeeded'} ) {
@@ -3466,7 +3469,7 @@ sub Generate_GSR_Functions {
 			    $functionCode .= "    !% Accept a rate set for the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component class. Trigger an interrupt to create the component.\n";
 			    $functionCode .= "    use Galacticus_Error\n";
 			    $functionCode .= "    implicit none\n";
-			    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+			    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 			    $functionCode .= "    !GCC\$ attributes unused :: self\n";
 			    $functionCode .= "    ! No specific component exists, so we must interrupt and create one unless the rate is zero.\n";
 			    if ( $linkedData->{'rank'} == 0 ) {
@@ -3528,7 +3531,7 @@ sub Generate_GSR_Functions {
 			$scaleSetCode .= "    count=setValue%serializeCount()\n";
 			$scaleSetCode .= "    if (count > 0) call setValue%serialize(nodeScales(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1))\n";
 		    }
-		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+		    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 		    $functionCode .= "    !GCC\$ attributes unused :: self\n";
 		    $functionCode .= $scaleSetCode;
 		    $functionCode .= "    return\n";
@@ -3564,7 +3567,7 @@ sub Generate_GSR_Availability_Functions {
 	    # Iterate over component and parents.
 	    while ( defined($component) ) {
 		# Iterate over the properties of this implementation.
-	        foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+	        foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		    # Get the property.
 		    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		    # Record attributes.
@@ -3581,7 +3584,7 @@ sub Generate_GSR_Availability_Functions {
 	    }
 	}
 	# Iterate over properties, creating a function for each.
-	foreach my $propertyName ( &ExtraUtils::sortedKeys($properties) ) {
+	foreach my $propertyName ( &List::ExtraUtils::sortedKeys($properties) ) {
 	    my $property = $properties->{$propertyName};
 	    my $functionName = $componentClassName.ucfirst($propertyName)."AttributeMatch";
 	    my $functionCode;
@@ -3600,7 +3603,7 @@ sub Generate_GSR_Availability_Functions {
 	    $functionCode .= "   if (present(requireGettable )) requireGettableActual =requireGettable\n";
 	    $functionCode .= "   if (present(requireEvolvable)) requireEvolvableActual=requireEvolvable\n";
 	    # Iterate over component implementations.
-	    foreach my $componentName ( &ExtraUtils::sortedKeys($property) ) {
+	    foreach my $componentName ( &List::ExtraUtils::sortedKeys($property) ) {
 		my $component = $property->{$componentName};
 		my @logic;
 		push(@logic,".not.requireSettableActual" )
@@ -3668,7 +3671,7 @@ sub Generate_Component_Assignment_Function {
     $functionCode  = "  subroutine Node_Component_Assign(to,from)\n";
     $functionCode .= "    !% Assign a node component to another node component.\n";
     $functionCode .= "    implicit none\n";
-    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
     $functionCode .= "    to%hostNode => from%hostNode\n";
     $functionCode .= "    select type (to)\n";
     foreach my $componentName ( @{$build->{'componentIdList'}} ) {
@@ -3676,7 +3679,7 @@ sub Generate_Component_Assignment_Function {
 	$functionCode .= "    type is (nodeComponent".&padFullyQualified($componentName,[0,0]).")\n";
 	$functionCode .= "       select type (from)\n";
 	$functionCode .= "       type is (nodeComponent".&padFullyQualified($componentName,[0,0]).")\n";
-	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+	foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    if ( exists($property->{'linkedData'}) ) {
 		my $linkedDataName = $property->{'linkedData'};		
@@ -3742,7 +3745,7 @@ sub Generate_Component_Class_Dump_Functions {
 	$functionCode .= "    use Galacticus_Display\n";
 	$functionCode .= "    use ISO_Varying_String\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	$functionCode .= "    !GCC\$ attributes unused :: self\n";
 	$functionCode .= "    call Galacticus_Display_Indent('".$componentClassName.": ".(" " x ($fullyQualifiedNameLengthMax-length($componentClassName)))."generic')\n";
 	$functionCode .= "    call Galacticus_Display_Unindent('done')\n";
@@ -3803,7 +3806,7 @@ sub Generate_Component_Class_Output_Functions {
 	$functionCode  = "  subroutine Node_Component_".ucfirst($componentClassName)."_Output_Count(self,integerPropertyCount,doublePropertyCount,time,instance)\n";
 	$functionCode .= "    !% Increment the count of properties to output for a generic ".$componentClassName." component.\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	$functionCode .= "    allocate(selfDefault,source=default".ucfirst($componentClassName)."Component)\n";
 	$functionCode .= "    selfDefault%hostNode => self%hostNode\n";
 	$functionCode .= "    call selfDefault%outputCount(integerPropertyCount,doublePropertyCount,time,instance)\n";
@@ -3865,7 +3868,7 @@ sub Generate_Component_Class_Output_Functions {
 	$functionCode  = "  subroutine Node_Component_".ucfirst($componentClassName)."_Output_Names(self,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance)\n";
 	$functionCode .= "    !% Establish property names for a generic ".$componentClassName." component.\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	$functionCode .= "    allocate(selfDefault,source=default".ucfirst($componentClassName)."Component)\n";
 	$functionCode .= "    selfDefault%hostNode => self%hostNode\n";
 	$functionCode .= "    call selfDefault%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance)\n";
@@ -3930,7 +3933,7 @@ sub Generate_Component_Class_Output_Functions {
 	    # Get the component.
 	    my $componentID  = ucfirst($componentClassName).ucfirst($componentName);
 	    my $component    = $build->{'components'}->{$componentID};
-	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+	    foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if property is to be output.
 		if ( exists($property->{'output'}) ) {
@@ -3956,7 +3959,7 @@ sub Generate_Component_Class_Output_Functions {
 	     longInteger     => "integer(kind=kind_int8)",
 	     double => "double precision"
 	    );
-	foreach ( &ExtraUtils::sortedKeys(\%rank1OutputTypes) ) {
+	foreach ( &List::ExtraUtils::sortedKeys(\%rank1OutputTypes) ) {
 	    push(
 		@dataContent,
 		{
@@ -3975,7 +3978,7 @@ sub Generate_Component_Class_Output_Functions {
 	    )
 	    if ( scalar(keys(%rank1OutputTypes)) > 0 );
 	my @outputTypes;
-	foreach ( &ExtraUtils::sortedKeys(\%outputTypes) ){
+	foreach ( &List::ExtraUtils::sortedKeys(\%outputTypes) ){
 	    push(
 		@outputTypes,
 		{
@@ -3993,7 +3996,7 @@ sub Generate_Component_Class_Output_Functions {
 	    # Get the component.
 	    my $componentID  = ucfirst($componentClassName).ucfirst($componentName);
 	    my $component    = $build->{'components'}->{$componentID};
-	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+	    foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property is to be output.
 		if ( exists($property->{'output'}) ) {
@@ -4012,9 +4015,9 @@ sub Generate_Component_Class_Output_Functions {
 	$functionCode  = "  subroutine Node_Component_".ucfirst($componentClassName)."_Output(self,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time,instance)\n";
 	$functionCode .= "    !% Output properties for a ".$componentClassName." component.\n";
 	$functionCode .= "    use ".$_."\n" 
-	    foreach ( &ExtraUtils::sortedKeys(\%modulesRequired) );
+	    foreach ( &List::ExtraUtils::sortedKeys(\%modulesRequired) );
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	my $functionBody = "";
 	my $selfUsed     = 0;
 	my $instanceUsed = 0;
@@ -4039,7 +4042,7 @@ sub Generate_Component_Class_Output_Functions {
 	    }
 	    $activeCheck .= ") then\n";
 	    my $outputsFound = 0;
-	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+	    foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property is to be output.
 		if ( exists($property->{'output'}) ) {
@@ -4187,11 +4190,11 @@ sub Generate_Component_Implementation_Destruction_Functions {
 	$functionCode .= "    !% Destroy a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
 	$functionCode .= "    use Memory_Management\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	# Iterate over properties.
 	my $selfUsed     = 0;
 	my $functionBody = "";
-	foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+	foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
    	    # Check if this property has any linked data in this component.
 	    if ( exists($property->{'linkedData'}) ) {
@@ -4242,15 +4245,15 @@ sub Generate_Null_Binding_Functions {
     # Generate null binding functions.
     my $build = shift;
     # Iterate over component classes.
-    foreach my $componentClassName ( &ExtraUtils::sortedKeys($build->{'nullProperties'}) ) {
+    foreach my $componentClassName ( &List::ExtraUtils::sortedKeys($build->{'nullProperties'}) ) {
 	# Get the null functions required for this component class.
 	my $componentClass = $build->{'nullProperties'}->{$componentClassName};
 	# Iterate over required null functions for this component class.
-	foreach my $nullFunctionName ( &ExtraUtils::sortedKeys($componentClass) ) {
+	foreach my $nullFunctionName ( &List::ExtraUtils::sortedKeys($componentClass) ) {
 	    # Get the null function definition.
 	    my $nullFunction = $componentClass->{$nullFunctionName};
 	    # Construct a datatype for this null function.
-	    (my $dataDefinition, my $label) = &DataTypes::dataObjectDefinition($nullFunction,matchOnly => 1);
+	    (my $dataDefinition, my $label) = &Galacticus::Build::Components::DataTypes::dataObjectDefinition($nullFunction,matchOnly => 1);
 	    my $labelRaw = $label;
 	    # Build a label describing the intrinsic type of the data.
 	    my $intrinsicType = $dataDefinition->{'intrinsic'};
@@ -4283,7 +4286,7 @@ sub Generate_Null_Binding_Functions {
 	    $functionCode  = "  subroutine ".$nullBindingName."(self,setValue)\n";
 	    $functionCode .= "    !% A null set function for rank ".$nullFunction->{'rank'}." ".latex_encode(lc($intrinsicType))."s.\n";
 	    $functionCode .= "    implicit none\n";
-	    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	    $functionCode .= "   !GCC\$ attributes unused :: ".join(", ",@{$_->{'variables'}})."\n"
 		foreach ( @dataContent );
 	    $functionCode .= "    return\n";
@@ -4346,7 +4349,7 @@ sub Generate_Null_Binding_Functions {
 	    $functionCode  = "  subroutine ".$nullBindingName."(self,setValue,interrupt,interruptProcedure)\n";
 	    $functionCode .= "    !% A null rate function for rank ".$nullFunction->{'rank'}." ".latex_encode(lc($intrinsicType))."s.\n";
 	    $functionCode .= "    implicit none\n";
-	    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	    $functionCode .= "   !GCC\$ attributes unused :: ".join(", ",@{$_->{'variables'}})."\n"
 		foreach ( @dataContent );
 	    $functionCode .= "    return\n";
@@ -4402,7 +4405,7 @@ sub Generate_Null_Binding_Functions {
 	    $functionCode  = "  function ".$functionName."(self)\n";
 	    $functionCode .= "    !% A null get function for rank ".$nullFunction->{'rank'}." ".latex_encode(lc($intrinsicType))."s.\n";
 	    $functionCode .= "    implicit none\n";
-	    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	    $functionCode .= "   !GCC\$ attributes unused :: self\n";
 	    if ( $nullFunction->{'rank'} == 0 ) {
 		if    ( $labelRaw eq "Double" ) {
@@ -4447,7 +4450,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 	    my $componentID = ucfirst($componentClassName).ucfirst($componentName);
 	    my $component   = $build->{'components'}->{$componentID};
 	    # Iterate over the properties of this implementation.
-	    foreach my $propertyName ( &ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
+	    foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
 		# Get the property.
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Get the linked data.
@@ -4459,7 +4462,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 		    $linkedData = $property;
 		}
 		# Specify required data content.
-		(my $dataDefinition, my $label ) = &DataTypes::dataObjectDefinition($linkedData);
+		(my $dataDefinition, my $label ) = &Galacticus::Build::Components::DataTypes::dataObjectDefinition($linkedData);
 		push(@{$dataDefinition->{'variables' }},ucfirst($componentClassName).ucfirst($propertyName));
 		my @dataContent = (
 		    $dataDefinition,
@@ -4497,7 +4500,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 		    # Bind this function to the implementation type.
 		    push(
 			@{$build->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
-			{type => "procedure", pass => "nopass", name => $propertyName."IsGettable", function => ucfirst($componentClassName).ucfirst($propertyName)."IsGettable", description => "Get the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => &DataTypes::dataObjectDocName($property), arguments => ""}
+			{type => "procedure", pass => "nopass", name => $propertyName."IsGettable", function => ucfirst($componentClassName).ucfirst($propertyName)."IsGettable", description => "Get the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => &Galacticus::Build::Components::DataTypes::dataObjectDocName($property), arguments => ""}
 			);
 		    # Generate code for default value function.
 		    $functionCode  = "  function ".ucfirst($componentClassName).ucfirst($propertyName)."(self)\n";
@@ -4527,7 +4530,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 				    $default =~ s/self([a-zA-Z]+)Component\s*%//;
 				}
 				$defaultLines .= "    selfNode => self%host()\n" if ( scalar(keys(%selfComponents)) > 0 );
-				foreach my $selfComponent ( &ExtraUtils::sortedKeys(\%selfComponents) ) {
+				foreach my $selfComponent ( &List::ExtraUtils::sortedKeys(\%selfComponents) ) {
 				    $defaultLines .= "     self".$selfComponent."Component => selfNode%".lc($selfComponent)."()\n";
 				}
 				$defaultLines .= "       call Alloc_Array(".ucfirst($componentClassName).ucfirst($propertyName).",[".$property2->{'classDefault'}->{'count'}."])\n"
@@ -4558,9 +4561,9 @@ sub Generate_Component_Class_Default_Value_Functions {
 			    variables  => [ "self".ucfirst($_)."Component" ]
 			}
 			)
-			foreach ( &ExtraUtils::sortedKeys(\%requiredComponents) );
+			foreach ( &List::ExtraUtils::sortedKeys(\%requiredComponents) );
 		    # Insert data content.
-		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+		    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
 		    $functionCode .= "   !GCC\$ attributes unused :: self\n";
 		    # Insert code to set required default.
 		    $functionCode .= $defaultLines;
@@ -4595,7 +4598,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 		    # Bind this function to the implementation type.
 		    push(
 			@{$build->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
-			{type => "procedure", name => $propertyName, function => ucfirst($componentClassName).ucfirst($propertyName), description => "Get the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => &DataTypes::dataObjectDocName($property), arguments => ""}
+			{type => "procedure", name => $propertyName, function => ucfirst($componentClassName).ucfirst($propertyName), description => "Get the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => &Galacticus::Build::Components::DataTypes::dataObjectDocName($property), arguments => ""}
 			);
 		    # Record that this property has been created.
 		    $propertiesCreated{$propertyName} = 1;
@@ -4757,7 +4760,7 @@ sub Insert_Type_Definitions {
     my $build = shift;
     # Sort types into dependency order.
     my %typeDependencies;
-    foreach ( &ExtraUtils::hashList($build->{'types'}) ) {
+    foreach ( &List::ExtraUtils::hashList($build->{'types'}) ) {
 	# Types are dependent on their parent type.
 	push(@{$typeDependencies{$_->{'extends'}}},$_->{'name'})
 	    if ( exists($_->{'extends'}) );
@@ -4778,7 +4781,7 @@ sub Insert_Type_Definitions {
 		 );
 	}
     }
-    my @typeSort  = &ExtraUtils::sortedKeys($build->{'types'});
+    my @typeSort  = &List::ExtraUtils::sortedKeys($build->{'types'});
     my @typeOrder =
 	toposort
 	(
@@ -4802,7 +4805,7 @@ sub Insert_Type_Definitions {
 	# Declare contents private.
 	$build->{'content'} .= "    private\n";
 	# Process any data content.
-	$build->{'content'} .= &Fortran_Utils::Format_Variable_Defintions($type->{'dataContent'})
+	$build->{'content'} .= &Fortran::Utils::Format_Variable_Defintions($type->{'dataContent'})
 	    if ( exists($type->{'dataContent'}) );
 	# Generate and insert a type-bound function table.
 	if ( exists($type->{'boundFunctions'}) ) {
@@ -4820,16 +4823,16 @@ sub Generate_Interfaces {
     my $build = shift();
     # Iterate over interfaces.
     print "   --> Interfaces...\n";
-    foreach ( &ExtraUtils::hashList($build->{'interfaces'}) ) {
+    foreach ( &List::ExtraUtils::hashList($build->{'interfaces'}) ) {
 	print "      ---> ".$_->{'name'}."\n";
-	$CodeGeneration::interface = $_;
+	$Galacticus::Build::Components::CodeGeneration::interface = $_;
 	$build->{'content'} .= 
-	    fill_in_string(<<'CODE', PACKAGE => 'CodeGeneration')."\n";
+	    fill_in_string(<<'CODE', PACKAGE => 'Galacticus::Build::Components::CodeGeneration')."\n";
 ! {$interface->{'comment'}}
 abstract interface
   {$interface->{'intrinsic'} eq "void" ? "subroutine" : $interface->{'intrinsic'}." function"} {$interface->{'name'}}({join(",",&Function_Arguments($interface->{'data'}))})
     {&Importables($interface->{'data'}) ? "import ".join(", ",&Importables($interface->{'data'})) : ""}
-{&Fortran_Utils::Format_Variable_Defintions($interface->{'data'}, indent => 4)}
+{&Fortran::Utils::Format_Variable_Defintions($interface->{'data'}, indent => 4)}
   end {$interface->{'intrinsic'} eq "void" ? "subroutine" : "function"} {$interface->{'name'}}
 end interface
 CODE
@@ -4852,7 +4855,7 @@ sub functionsSerialize {
 	 # map to select out each bound function with an included function descriptor, and return a list of those descriptors.
 	 map
 	  {exists($_->{'boundFunctions'}) ? map {exists($_->{'descriptor'}) ? $_->{'descriptor'} : ()} @{$_->{'boundFunctions'}} : ()}
-	  &ExtraUtils::hashList($build->{'types'})
+	  &List::ExtraUtils::hashList($build->{'types'})
 	) {
 	# Report.
 	print "      --> ".$function->{'name'}."\n";
@@ -4900,7 +4903,7 @@ sub functionsSerialize {
 	    foreach ( @{$function->{'modules'}} );
 	# Serialize variable definitions.
 	$build->{'content'} .= "   implicit none\n";
-	$build->{'content'} .= &Fortran_Utils::Format_Variable_Defintions($function->{'variables'})
+	$build->{'content'} .= &Fortran::Utils::Format_Variable_Defintions($function->{'variables'})
 	    if ( exists($function->{'variables'}) );
 	# Serialize content.
 	$build->{'content'} .= $function->{'content'};

@@ -1,21 +1,15 @@
 # Contains a Perl module which handles creation and destruction of the treeNode class.
 
-package CreateDestroy;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+package Galacticus::Build::Components::TreeNodes::CreateDestroy;
 use strict;
 use warnings;
 use utf8;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Text::Template 'fill_in_string';
-require List::ExtraUtils;
-require Galacticus::Build::Components::Utils;
-require Galacticus::Build::Components::DataTypes;
+use List::ExtraUtils;
+use Galacticus::Build::Components::Utils;
+use Galacticus::Build::Components::DataTypes;
 
 # Insert hooks for our functions.
 %Galacticus::Build::Component::Utils::componentUtils = 
@@ -69,10 +63,10 @@ sub Tree_Node_Creation {
     $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
 ! Ensure pointers are nullified.
 {join("",map {"nullify (self%".$_.")\n"} ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "formationNode", "event" ))}
-{join("",map {"allocate(self%component".$_->{'name'}."(1))\n"} &ExtraUtils::hashList($build->{'componentClasses'}))}
+{join("",map {"allocate(self%component".$_->{'name'}."(1))\n"} &List::ExtraUtils::hashList($build->{'componentClasses'}))}
 select type (self)
 type is (treeNode)
-{join("",map {"   self%component".$_->{'name'}."(1)%hostNode => self\n"} &ExtraUtils::hashList($build->{'componentClasses'}))}
+{join("",map {"   self%component".$_->{'name'}."(1)%hostNode => self\n"} &List::ExtraUtils::hashList($build->{'componentClasses'}))}
 end select
 ! Assign a host tree if supplied.
 if (present(hostTree)) self%hostTree => hostTree
@@ -155,7 +149,7 @@ type is (treeNode)
    call componentIndex%initialize()
    !$omp critical (FoX_DOM_Access)
 CODE
-    foreach $code::component ( &ExtraUtils::hashList($build->{'componentClasses'}) ) {
+    foreach $code::component ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
     componentList => getChildNodes(nodeDefinition)
     componentCount=0
@@ -175,7 +169,7 @@ CODE
    !$omp end critical (FoX_DOM_Access)
    do i=0,componentCount-1
 CODE
-    foreach $code::component ( &ExtraUtils::hashList($build->{'componentClasses'}) ) {
+    foreach $code::component ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
      !$omp critical (FoX_DOM_Access)
      componentDefinition => item(componentList,i)
@@ -233,7 +227,7 @@ sub Tree_Node_Finalization {
     };
     $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
 ! Destroy all components.
-{join(" ",map {"call self%".$_->{'name'}."Destroy()\n"} &ExtraUtils::hashList($build->{'componentClasses'}))}
+{join(" ",map {"call self%".$_->{'name'}."Destroy()\n"} &List::ExtraUtils::hashList($build->{'componentClasses'}))}
 ! Remove any events attached to the node, along with their paired event in other nodes.
 thisEvent => self%event
 do while (associated(thisEvent))

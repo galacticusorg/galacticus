@@ -1,13 +1,15 @@
 # Contains a Perl module which implements processing GnuPlot output through LaTeX into either PDF or PNG formats.
 
-package LaTeX;
+package GnuPlot::LaTeX;
 use strict;
 use warnings;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use File::Copy;
 use File::Temp;
 use File::Slurp;
 use Digest::MD5  qw(md5_hex);
-require System::Redirect;
+use System::Redirect;
 
 sub GnuPlot2PNG {
     # Generate a PNG image of the plot with a transparent background.
@@ -209,7 +211,7 @@ sub GnuPlot2PDF {
     move($gnuplotRoot.".tex.swapped",$gnuplotRoot.".tex");
 
     # Convert the plot body from EPS to PDF.
-    &SystemRedirect::tofile("epstopdf ".$gnuplotRoot.".eps","/dev/null")
+    &System::Redirect::tofile("epstopdf ".$gnuplotRoot.".eps","/dev/null")
 	if ( -e $gnuplotRoot.".eps" );
 
     # Do we need to create a wrapper?
@@ -265,7 +267,7 @@ sub GnuPlot2PDF {
     $command .= " --margins ".$options{'margin'}
         if ( exists($options{'margin'}) );
     my $tmpFile = File::Temp->new();
-    &SystemRedirect::tofile($command,$tmpFile->filename());
+    &System::Redirect::tofile($command,$tmpFile->filename());
     my $logOutput = read_file($tmpFile->filename());
     unless ( $logOutput =~ m/LaTeX Error/ ) {
 	move($folderName.$fileToLaTeX."-crop.pdf",$gnuplotPdfFile);

@@ -1,9 +1,11 @@
 # Contains a Perl module which provides various ODE solver-related functions for component implementations.
 
-package ODESolver;
+package Galacticus::Build::Components::Implementations::ODESolver;
 use strict;
 use warnings;
 use utf8;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Text::Template 'fill_in_string';
 use Data::Dumper;
 use List::ExtraUtils;
@@ -33,7 +35,7 @@ sub Implementation_ODE_Name_From_Index {
     # implementation.
     my $build = shift();
     # Iterate over component classes.
-    foreach $code::class ( &ExtraUtils::hashList($build->{'componentClasses'}) ) {
+    foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	# Iterate over class member implementations.
 	foreach $code::member ( @{$code::class->{'members'}} ) {
 	    my $implementationTypeName = "nodeComponent".ucfirst($code::class->{'name'}).ucfirst($code::member->{'name'});
@@ -93,7 +95,7 @@ if (count <= 0) return
 CODE
 	    }
 	    # Iterate over properties.
-	    foreach $code::property ( &ExtraUtils::hashList($code::member->{'properties'}->{'property'}) ) {
+	    foreach $code::property ( &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) ) {
 		# Only evolvable, non-virtual properties are included in the ODE solver.
 		next
 		    unless
@@ -154,7 +156,7 @@ sub Implementation_ODE_Serialize_Count {
     # Generate a function to return a count of serializable, evolvable properties of each component implementation for the ODE solver.
     my $build = shift();
     # Iterate over component classes.
-    foreach $code::class ( &ExtraUtils::hashList($build->{'componentClasses'}) ) {
+    foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	# Iterate over class member implementations.
 	foreach $code::member ( @{$code::class->{'members'}} ) {
 	    $code::implementationTypeName = "nodeComponent".ucfirst($code::class->{'name'}).ucfirst($code::member->{'name'});
@@ -192,7 +194,7 @@ sub Implementation_ODE_Serialize_Count {
 			     $_->{'data'}->{'type'       } ne "double"
 			    )			
 		    }
-		    &ExtraUtils::hashList($code::member->{'properties'}->{'property'})
+		    &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'})
 		);
 	    # Build the function.
 	    $function->{'content'}  = "";
@@ -203,12 +205,12 @@ CODE
 	    }
 	    # If this component is an extension, first call on the extended type.
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-{$implementationTypeName}SerializeCount={exists($code::member->{'extends'}) ? "self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serializeCount()" : "0"}
+{$implementationTypeName}SerializeCount={exists($member->{'extends'}) ? "self%nodeComponent".ucfirst($member->{'extends'}->{'class'}).ucfirst($member->{'extends'}->{'name'})."%serializeCount()" : "0"}
 CODE
 	    # Initialize count of fixed, scalar properties to zero.
 	    $code::scalarPropertyCount = 0;
 	    # Iterate over properties.
-	    foreach $code::property ( &ExtraUtils::hashList($code::member->{'properties'}->{'property'}) ) {
+	    foreach $code::property ( &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) ) {
 		# Only evolvable, non-virtual properties are included in the ODE solver.
 		next
 		    unless
@@ -264,7 +266,7 @@ sub Implementation_ODE_Serialize_Values {
     # Generate a function to serialize values of evolvable properties of each component implementation to array for the ODE solver.
     my $build = shift();
     # Iterate over component classes.
-    foreach $code::class ( &ExtraUtils::hashList($build->{'componentClasses'}) ) {
+    foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	# Iterate over class member implementations.
 	foreach $code::member ( @{$code::class->{'members'}} ) {
 	    my $implementationTypeName = "nodeComponent".ucfirst($code::class->{'name'}).ucfirst($code::member->{'name'});
@@ -346,7 +348,7 @@ end if
 CODE
 	    }
 	    # Iterate over properties.
-	    foreach $code::property ( &ExtraUtils::hashList($code::member->{'properties'}->{'property'}) ) {
+	    foreach $code::property ( &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) ) {
 		# Only evolvable, non-virtual properties are included in the ODE solver.
 		next
 		    unless
@@ -395,7 +397,7 @@ sub Implementation_ODE_Deserialize_Values {
     # Generate a function to deserialize values of evolvable properties of each component implementation from array for the ODE solver.
     my $build = shift();
     # Iterate over component classes.
-    foreach $code::class ( &ExtraUtils::hashList($build->{'componentClasses'}) ) {
+    foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	# Iterate over class member implementations.
 	foreach $code::member ( @{$code::class->{'members'}} ) {
 	    my $implementationTypeName = "nodeComponent".ucfirst($code::class->{'name'}).ucfirst($code::member->{'name'});
@@ -477,7 +479,7 @@ end if
 CODE
 	    }
 	    # Iterate over properties.
-	    foreach $code::property ( &ExtraUtils::hashList($code::member->{'properties'}->{'property'}) ) {
+	    foreach $code::property ( &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) ) {
 		# Only evolvable, non-virtual properties are included in the ODE solver.
 		next
 		    unless
@@ -526,7 +528,7 @@ sub Implementation_ODE_Offsets {
     # Generate function to compute offsets into serialization arrays for component implementations.
     my $build = shift();
     # Iterate over component classes.
-    foreach $code::class ( &ExtraUtils::hashList($build->{'componentClasses'}) ) {
+    foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	# Iterate over class member implementations.
 	foreach $code::member ( @{$code::class->{'members'}} ) {
 	    my $implementationTypeName = "nodeComponent".ucfirst($code::class->{'name'}).ucfirst($code::member->{'name'});
@@ -580,7 +582,7 @@ call self%nodeComponent{ucfirst($code::member->{'extends'}->{'class'}).ucfirst($
 CODE
 	    }
 	    # Iterate over properties.
-	    foreach $code::property ( &ExtraUtils::hashList($code::member->{'properties'}->{'property'}) ) {
+	    foreach $code::property ( &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) ) {
 		# Only evolvable, non-virtual properties are included in the ODE solver.
 		next
 		    unless

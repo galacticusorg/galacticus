@@ -1,16 +1,11 @@
 # Parse command line options.
 
-package Options;
+package Galacticus::Options;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use Scalar::Util 'reftype';
 use XML::Simple;
 
@@ -19,9 +14,9 @@ sub Config {
     my $section          = shift();
     my $xml              = new XML::Simple;
     my $configSection;
-    if ( -e $galacticusPath."galacticusConfig.xml" ) {
-	my $galacticusConfig = $xml->XMLin($galacticusPath."galacticusConfig.xml", KeyAttr => 0);   
-	foreach ( &ExtraUtils::as_array($galacticusConfig->{$section}->{'host'}) ) {
+    if ( -e &galacticusPath()."galacticusConfig.xml" ) {
+	my $galacticusConfig = $xml->XMLin(&galacticusPath()."galacticusConfig.xml", KeyAttr => 0);   
+	foreach ( &List::ExtraUtils::as_array($galacticusConfig->{$section}->{'host'}) ) {
 	    if ( $_->{'name'} eq $ENV{'HOSTNAME'} || $_->{'name'} eq "default" ) {
 		$configSection = $_;
 		last;

@@ -1,24 +1,18 @@
 # Contains a Perl module which implements some of the missing !GCC$ attribute functionality.
 
-package GCCAttributes;
+package Galacticus::Build::SourceTree::Process::GCCAttributes;
 use strict;
 use warnings;
 use utf8;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Data::Dumper;
-require List::ExtraUtils;
-require Galacticus::Build::SourceTree::Hooks;
-require Galacticus::Build::SourceTree;
+use List::ExtraUtils;
+## AJB HACK use Galacticus::Build::SourceTree::Hooks;
+## AJB HACK use Galacticus::Build::SourceTree;
 
 # Insert hooks for our functions.
-$Hooks::processHooks{'gccAttributes'} = \&Process_GCCAttributes;
+$Galacticus::Build::SourceTree::Hooks::processHooks{'gccAttributes'} = \&Process_GCCAttributes;
 
 sub Process_GCCAttributes {
     # Get the tree.
@@ -56,9 +50,9 @@ sub Process_GCCAttributes {
 		    };
 		    # Insert at the end of the function, or before any "contains".
 		    if ( $finalNode->{'type'} eq "contains" ) {
-			&SourceTree::InsertBeforeNode($finalNode,[$newNode]);
+			&Galacticus::Build::SourceTree::InsertBeforeNode($finalNode,[$newNode]);
 		    } else {
-			&SourceTree::InsertAfterNode ($finalNode,[$newNode]);
+			&Galacticus::Build::SourceTree::InsertAfterNode ($finalNode,[$newNode]);
 		    }
 		    # Neutralize the directive.
 		    $line =~ s/^\s*!GCC\$/!GCC/;
@@ -68,7 +62,7 @@ sub Process_GCCAttributes {
 	    close($content);
 	    $node->{'content'} = $newContent;
 	}
-	$node = &SourceTree::Walk_Tree($node,\$depth);
+	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }
 }
 

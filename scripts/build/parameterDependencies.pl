@@ -1,21 +1,15 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use XML::Simple;
 use Data::Dumper;
 use File::Slurp;
 use List::Uniq ':all';
 use List::MoreUtils qw{ any };
-require Galacticus::Doc::Parameters;
-require Galacticus::Build::Directives;
+use Galacticus::Doc::Parameters;
+use Galacticus::Build::Directives;
 
 # Scan source files for input parameter definitions for a given executable.
 # Andrew Benson (18-October-2011)
@@ -74,8 +68,8 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 	    (
 	     @{$output->{'parameters'}},
 	     map 
-	      {exists($_->{'regEx'}) ? "regEx:".&Parameters::ExpandRegEx($_->{'regEx'},$sourceDirectoryName) : $_->{'name'}}
-	      &Directives::Extract_Directives($fileToProcess,"inputParameter",comment => qr/^\s*(!|\/\/)\@/) 
+	      {exists($_->{'regEx'}) ? "regEx:".&Galacticus::Doc::Parameters::ExpandRegEx($_->{'regEx'},$sourceDirectoryName) : $_->{'name'}}
+	      &Galacticus::Build::Directives::Extract_Directives($fileToProcess,"inputParameter",comment => qr/^\s*(!|\/\/)\@/) 
 	    );
     }
 }

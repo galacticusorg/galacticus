@@ -1,9 +1,11 @@
 # Contains a Perl module which provides various utility functions for tree nodes.
 
-package Utils;
+package Galacticus::Build::Components::TreeNodes::Utils;
 use strict;
 use warnings;
 use utf8;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Text::Template 'fill_in_string';
 use List::ExtraUtils;
 use Galacticus::Build::Components::Utils qw($workaround);
@@ -69,7 +71,7 @@ if (.not.skipFormationNodeActual) targetNode%formationNode => self%formationNode
 CODE
     # Loop over all component classes
     if ( $workaround == 1 ) { # Workaround "Assignment to an allocatable polymorphic variable is not yet supported"
-	foreach $code::class ( &ExtraUtils::hashList($build->{'componentClasses'}) ) {
+	foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(targetNode%component{ucfirst($class->{'name'})})) deallocate(targetNode%component{ucfirst($class->{'name'})})
 allocate(targetNode%component{ucfirst($class->{'name'})}(size(self%component{ucfirst($class->{'name'})})),source=self%component{ucfirst($class->{'name'})}(1))
@@ -91,9 +93,9 @@ end do
 CODE
 	}
     } else {
-	foreach $code::component ( &ExtraUtils::hashList($build->{'componentClasses'}) ) {
+	foreach $code::component ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	    $function->{'content'} .=
-		join("",map {"targetNode%component".ucfirst($_->{'name'})." = self%component".ucfirst($_->{'name'})."\n"} &ExtraUtils::hashList($build->{'componentClasses'}));
+		join("",map {"targetNode%component".ucfirst($_->{'name'})." = self%component".ucfirst($_->{'name'})."\n"} &List::ExtraUtils::hashList($build->{'componentClasses'}));
 	}
     }
     # Update target node pointers.
@@ -101,7 +103,7 @@ CODE
 select type (targetNode)
 type is (treeNode)
 CODE
-    foreach $code::class ( &ExtraUtils::hashList($build->{'componentClasses'}) ) {
+    foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
    do i=1,size(self%component{ucfirst($class->{'name'})})
      targetNode%component{ucfirst($class->{'name'})}(i)%hostNode => targetNode
@@ -153,7 +155,7 @@ sub Tree_Node_Move {
 	    ]
     };
     # Iterate over all component classes
-    foreach $code::class ( &ExtraUtils::hashList($build->{'componentClasses'}) ) {
+    foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(targetNode%component{ucfirst($class->{'name'})})) then
   do i=1,size(targetNode%component{ucfirst($class->{'name'})})

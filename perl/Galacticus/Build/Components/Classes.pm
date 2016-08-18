@@ -1,9 +1,11 @@
 # Contains a Perl module which handles component classes during build.
 
-package Classes;
+package Galacticus::Build::Components::Classes;
 use strict;
 use warnings;
 use utf8;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Data::Dumper;
 use List::ExtraUtils;
 use Galacticus::Build::Components::Utils qw($verbosityLevel);
@@ -29,7 +31,7 @@ sub Gather_Classes {
     # Determine class membership of each component implementation, and build a list of component class names.
     my $build = shift();
     # Iterate over all component instances.
-    foreach my $implementation ( &ExtraUtils::hashList($build->{'components'}) ) {
+    foreach my $implementation ( &List::ExtraUtils::hashList($build->{'components'}) ) {
 	# Get the name of the component class.
 	my $className          = $implementation->{'class'};
 	# Get the name of the implementation.
@@ -45,7 +47,7 @@ sub Gather_Classes {
 	    );
     }
     # Construct a list of component class names.
-    @{$build->{'componentClassList'}} = &ExtraUtils::sortedKeys($build->{'componentClasses'});
+    @{$build->{'componentClassList'}} = &List::ExtraUtils::sortedKeys($build->{'componentClasses'});
     # Output report if sufficiently verbose.
     if ( $verbosityLevel > 0 ) {
 	print "         --> Found the following component classes and implementations:\n";
@@ -63,7 +65,7 @@ sub Build_Component_Classes {
     my $build = shift();    
     # Iterate over all component classes.
     my %classGetDefaults;
-    foreach my $class ( &ExtraUtils::hashList($build->{'componentClasses'}, keyAs => 'name') ) {
+    foreach my $class ( &List::ExtraUtils::hashList($build->{'componentClasses'}, keyAs => 'name') ) {
 	my $className  = $class->{'name'};
 	# Define a hash to record which properties have already been created.
 	my %propertiesCreated;
@@ -76,7 +78,7 @@ sub Build_Component_Classes {
 	    # Get the implementation.
 	    my $implementation           = $build->{'components'}->{$implementationIdentifier};
 	    # Iterate over properties beloning to this implementation.
-	    foreach my $property ( &ExtraUtils::hashList($implementation->{'properties'}->{'property'}, keyAs => 'name') ) {
+	    foreach my $property ( &List::ExtraUtils::hashList($implementation->{'properties'}->{'property'}, keyAs => 'name') ) {
 		# Create functions to set/get/evolve each property as necessary.
 		if ( 
 		    $property->{'attributes'}->{'isGettable' }
@@ -89,7 +91,7 @@ sub Build_Component_Classes {
 		    # Name of function being processed.
 		    my $functionName;
 		    # Get a fully-qualified type identfier for this property.
-		    (my $intrinsic,my $type,my $attributes) = &DataTypes::dataObjectPrimitiveName($property);
+		    (my $intrinsic,my $type,my $attributes) = &Galacticus::Build::Components::DataTypes::dataObjectPrimitiveName($property);
 		    $type .= $property->{'rank'}."InOut";
 		    # Record the null bindings needed.
 		    $build->{'nullProperties'}->{$className}->{$type} = 
@@ -135,7 +137,7 @@ sub Build_Component_Classes {
 				    name        => $functionName, 
 				    function    => $boundTo     ,
 				    returnType  => "\\void"     ,
-				    arguments   => &DataTypes::dataObjectDocName($property)."\\ value",
+				    arguments   => &Galacticus::Build::Components::DataTypes::dataObjectDocName($property)."\\ value",
 				    description => "Set the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$className."} component."
 }
 				);
@@ -188,7 +190,7 @@ sub Build_Component_Classes {
 					name        => $functionName,
 					function    => $boundTo     , 
 					returnType  => "\\void"     ,
-					arguments   => &DataTypes::dataObjectDocName($property)."\\ value",
+					arguments   => &Galacticus::Build::Components::DataTypes::dataObjectDocName($property)."\\ value",
 					description => "Cumulate to the rate of the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$implementationIdentifier."} component."
 				    }
 				    );
@@ -201,7 +203,7 @@ sub Build_Component_Classes {
 				    name        => $property->{'name'}."Scale"      ,
 				    function    => $className."NullBindingSet".$type,
 				    returnType  => "\\void"                         ,
-				    arguments   => &DataTypes::dataObjectDocName($property)."\\ value",
+				    arguments   => &Galacticus::Build::Components::DataTypes::dataObjectDocName($property)."\\ value",
 				    description => "Set the scale of the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$implementationIdentifier."} component."
 }
 				)

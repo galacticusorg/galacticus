@@ -1,27 +1,22 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use PDL;
 use XML::Simple;
 use Math::SigFigs;
 use Data::Dumper;
 use LaTeX::Encode;
-require File::Which;
-require Stats::Histograms;
-require Galacticus::HDF5;
-require Galacticus::Magnitudes;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
-require System::Redirect;
-require XMP::MetaData;
+use File::Which;
+use Stats::Histograms;
+use Galacticus::HDF5;
+use Galacticus::Magnitudes;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
+use System::Redirect;
+use XMP::MetaData;
 
 # Get name of input and output files.
 die("Plot_Disk_Scalelengths.pl <galacticusFile> <outputDir/File> [<showFit>]")
@@ -55,11 +50,11 @@ if ( $outputTo =~ m/\.pdf$/ ) {
 my $dataBlock;
 $dataBlock->{'file'} = $galacticusFile;
 $dataBlock->{'store'} = 0;
-&HDF5::Get_Parameters($dataBlock);
-&HDF5::Count_Trees($dataBlock);
-&HDF5::Select_Output($dataBlock,0.0);
+&Galacticus::HDF5::Get_Parameters($dataBlock);
+&Galacticus::HDF5::Count_Trees($dataBlock);
+&Galacticus::HDF5::Select_Output($dataBlock,0.0);
 $dataBlock->{'tree'} = "all";
-&HDF5::Get_Dataset($dataBlock,['mergerTreeWeight','diskRadius','magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega','bulgeToTotalLuminosities:RGO_I:rest:z0.0000:dustAtlas']);
+&Galacticus::HDF5::Get_Dataset($dataBlock,['mergerTreeWeight','diskRadius','magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega','bulgeToTotalLuminosities:RGO_I:rest:z0.0000:dustAtlas']);
 my $dataSets = $dataBlock->{'dataSets'};
 my $scaleLength = $dataSets->{'diskRadius'};
 my $magnitude = $dataSets->{'magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega'};
@@ -74,7 +69,7 @@ my $degreesOfFreedom = 0;
 # Read the XML data file.
 my @tmpFiles;
 my $xml = new XML::Simple;
-my $data = $xml->XMLin($galacticusPath."data/observations/galaxySizes/Disk_Sizes_Dejong_2000.xml");
+my $data = $xml->XMLin(&galacticusPath()."data/observations/galaxySizes/Disk_Sizes_Dejong_2000.xml");
 my $i = -1;
 foreach my $dataSet ( @{$data->{'sizeDistribution'}} ) {
     my $columns = $dataSet->{'columns'};
@@ -103,7 +98,7 @@ foreach my $dataSet ( @{$data->{'sizeDistribution'}} ) {
     my $logScaleLengthSelected = where(3.0+log10($scaleLength),($magnitude > $magnitudeMinimum) & ($magnitude <= $magnitudeMaximum) & ($morphology >= $morphologyMinimum) & ($morphology <= $morphologyMaximum));
     my $weightSelected         = where($weight                ,($magnitude > $magnitudeMinimum) & ($magnitude <= $magnitudeMaximum) & ($morphology >= $morphologyMinimum) & ($morphology <= $morphologyMaximum));
     my $xBins = log10($x);
-    (my $yGalacticus, my$errorGalacticus) = &Histograms::Histogram($xBins,$logScaleLengthSelected,$weightSelected
+    (my $yGalacticus, my$errorGalacticus) = &Stats::Histograms::Histogram($xBins,$logScaleLengthSelected,$weightSelected
 							     ,differential => 1);
     $yGalacticus         /= ($magnitudeMaximum-$magnitudeMinimum);
     $errorGalacticus     /= ($magnitudeMaximum-$magnitudeMinimum);
@@ -149,7 +144,7 @@ foreach my $dataSet ( @{$data->{'sizeDistribution'}} ) {
     print $gnuPlot "set pointsize 2.0\n";
     my $label = latex_encode($data->{'label'});
     $label =~ s/\\/\\\\/g;
-    &PrettyPlots::Prepare_Dataset(
+    &GnuPlot::PrettyPlots::Prepare_Dataset(
 	\$plot,
 	$x,$yP,
 	errorDown  => $yLowerErrorP,
@@ -158,10 +153,10 @@ foreach my $dataSet ( @{$data->{'sizeDistribution'}} ) {
 	symbol     => [6,7],
 	weight     => [5,3],
 	pointSize  => 0.5,
-	color      => $PrettyPlots::colorPairs{'cornflowerBlue'},
+	color      => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'},
 	title      => $label
 	);
-    &PrettyPlots::Prepare_Dataset(
+    &GnuPlot::PrettyPlots::Prepare_Dataset(
 	\$plot,
 	$x,$yGalacticus,
 	errorDown  => $errorDownGalacticus,
@@ -170,13 +165,13 @@ foreach my $dataSet ( @{$data->{'sizeDistribution'}} ) {
 	symbol     => [6,7],
 	weight     => [5,3],
 	pointSize  => 0.5,
-	color      => $PrettyPlots::colorPairs{'redYellow'},
+	color      => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
 	title      => 'Galacticus'
 	);
-    &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+    &GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
     close($gnuPlot);
-    &LaTeX::GnuPlot2PDF($plotFileTeX);
-    &MetaData::Write($plotFile,$galacticusFile,$self);
+    &GnuPlot::LaTeX::GnuPlot2PDF($plotFileTeX);
+    &XMP::MetaData::Write($plotFile,$galacticusFile,$self);
 }
 
 # Display chi^2 information

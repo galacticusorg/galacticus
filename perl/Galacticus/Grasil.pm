@@ -1,18 +1,10 @@
 # Contains a Perl module which implements calculations of SEDs using Grasil.
 
-package Grasil;
+package Galacticus::Grasil;
 use strict;
 use warnings;
 use Cwd;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
- $ENV{"GALACTICUS_ROOT_V094"} = getcwd()."/";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use PDL::NiceSlice;
 use PDL::GSL::INTERP;
@@ -20,18 +12,19 @@ use Text::Table;
 use Sys::CPU;
 use Data::Dumper;
 use List::Util qw(first);
-require Galacticus::HDF5;
-require Galacticus::Inclination;
-require Galacticus::Filters;
-require Galacticus::Launch::Hooks;
-require Galacticus::Launch::Local;
-require Galacticus::Launch::PBS;
+use Galacticus::HDF5;
+use Galacticus::Inclination;
+use Galacticus::Filters;
+use Galacticus::Launch::Hooks;
+use Galacticus::Launch::Local;
+use Galacticus::Launch::PBS;
+use Galacticus::Path;
 
-%HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-			       "^grasilFlux[\\d\\.]+microns\$"        => \&Grasil::Get_Flux                 ,
-			       "^grasilFlux:([^:]+)\$"                => \&Grasil::Compute_Flux_Under_Filter,
-			       "^grasilInfraredLuminosity\$"          => \&Grasil::Get_Flux                 ,
-			       "^luminosity:grasil:([^:]+):([^:]+)\$" => \&Grasil::Get_Flux
+%Galacticus::HDF5::galacticusFunctions = ( %Galacticus::HDF5::galacticusFunctions,
+			       "^grasilFlux[\\d\\.]+microns\$"        => \&Galacticus::Grasil::Get_Flux                 ,
+			       "^grasilFlux:([^:]+)\$"                => \&Galacticus::Grasil::Compute_Flux_Under_Filter,
+			       "^grasilInfraredLuminosity\$"          => \&Galacticus::Grasil::Get_Flux                 ,
+			       "^luminosity:grasil:([^:]+):([^:]+)\$" => \&Galacticus::Grasil::Get_Flux
     );
 
 # Compute conversion factor for units from luminosity to flux.
@@ -56,7 +49,7 @@ sub Get_Flux {
     my $dataSetName = $_[0];
 
     # Extract a basic property so we can figure out how many galaxies exist.
-    &HDF5::Get_Dataset($dataSet,["nodeIndex","mergerTreeIndex","redshift","inclination","luminosityDistance"]);
+    &Galacticus::HDF5::Get_Dataset($dataSet,["nodeIndex","mergerTreeIndex","redshift","inclination","luminosityDistance"]);
     
     # Get a reference to the datasets.
     my $dataSets = $dataSet->{'dataSets'};
@@ -112,7 +105,7 @@ sub Get_Flux {
         if ( exists($dataSet->{'grasilOptions'}->{'grasilJobsMaximum'}) );
     
     # Open the file for reading.
-    &HDF5::Open_File($dataSet);
+    &Galacticus::HDF5::Open_File($dataSet);
     my @groupsList;
     my @datasetsList;
 
@@ -195,10 +188,10 @@ sub Get_Flux {
 
 	    # Extract the star formation history for this galaxy.
 	    system("mkdir -p ".$dataSet->{'file'}.".grasilTmp".$$.".".$queueNumber);
-	    &Grasil::Extract_Star_Formation_History($dataSet,$outputIndex,$mergerTreeIndex,$nodeIndex,$dataSet->{'file'}.".grasilTmp".$$.".".$queueNumber."/grasil".$queueNumber.".dat");
+	    &Galacticus::Grasil::Extract_Star_Formation_History($dataSet,$outputIndex,$mergerTreeIndex,$nodeIndex,$dataSet->{'file'}.".grasilTmp".$$.".".$queueNumber."/grasil".$queueNumber.".dat");
 
 	    # Generate a parameter file for Grasil.
-	    open(iHndl,$galacticusPath."/data/grasil/grasilBaseParameters.txt");
+	    open(iHndl,&galacticusPath()."/data/grasil/grasilBaseParameters.txt");
 	    open(oHndl,">".$dataSet->{'file'}.".grasilTmp".$$.".".$queueNumber."/grasil".$queueNumber.".par");
 	    my $inInclinations = 0;
 	    $inclinations = pdl [];
@@ -487,10 +480,10 @@ sub Extract_Star_Formation_History {
  		    $metallicityHigh = FormatSigFigs($metallicities->index($i),2);
  		}
  		my $label = "\\\\small Spheroid: \$".$metallicityLow."<Z<".$metallicityHigh."\$";
- 		&PrettyPlots::Prepare_Dataset(\$plot,
+ 		&GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
  					      $spheroidTimeCentral, $spheroidSFR(:,($i)),
  					      style => "point", symbol => [4,5], weight => [5,3],
- 					      color => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'sequence1'}}[$iColor]},
+ 					      color => $GnuPlot::PrettyPlots::colorPairs{${$GnuPlot::PrettyPlots::colorPairSequences{'sequence1'}}[$iColor]},
  					      title => $label);
  	    }
  	}
@@ -510,16 +503,16 @@ sub Extract_Star_Formation_History {
  		    $metallicityHigh = FormatSigFigs($metallicities->index($i),2);
  		}
  		my $label = "\\\\small Disk: \$".$metallicityLow."<Z<".$metallicityHigh."\$";
- 		&PrettyPlots::Prepare_Dataset(\$plot,
+ 		&GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
  					      $diskTimeCentral, $diskSFR(:,($i)),
  					      style => "point", symbol => [6,7], weight => [5,3],
- 					      color => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'sequence1'}}[$iColor]},
+ 					      color => $GnuPlot::PrettyPlots::colorPairs{${$GnuPlot::PrettyPlots::colorPairSequences{'sequence1'}}[$iColor]},
  					      title => $label);
  	    }
  	}
- 	&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+ 	&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
  	close($gnuPlot);
- 	&LaTeX::GnuPlot2PDF($outputFileEPS);
+ 	&GnuPlot::LaTeX::GnuPlot2PDF($outputFileEPS);
 	
     }
 
@@ -611,7 +604,7 @@ sub Compute_Flux_Under_Filter {
     # Construct the corresponding luminosity name.
     (my $luminosityDataSet = $dataSetName) =~ s/^grasilFlux:([^:]+)$/luminosity:grasil:$1:observed/;
     # Get the luminosity dataset.
-    &HDF5::Get_Dataset($dataSet,[$luminosityDataSet,"redshift","luminosityDistance"]);
+    &Galacticus::HDF5::Get_Dataset($dataSet,[$luminosityDataSet,"redshift","luminosityDistance"]);
     # Compute the flux in this filter.
     $dataSet->{'dataSets'}->{$dataSetName} = $luminosityAB*$dataSet->{'dataSets'}->{$luminosityDataSet}*(1.0+$dataSet->{'dataSets'}->{"redshift"})/4.0/$Pi/$dataSet->{'dataSets'}->{"luminosityDistance"}**2/$megaParsec**2/$Jansky;
 }
@@ -642,7 +635,7 @@ sub Compute_Luminosity_Under_Filter {
 	$indices->((1),:) .= sequence(nelem($wavelength));
 	my $sedInclined = $SED->interpND($indices);
 	# Load the filter.
-	(my $filterWavelengths, my $filterResponse) = &Filters::Load($filterName);	
+	(my $filterWavelengths, my $filterResponse) = &Galacticus::Filters::Load($filterName);	
 	# Make a joint set of filter and SED wavelengths.
 	my $filterWavelengthRestFrame = $filterWavelengths->copy();
 	$filterWavelengthRestFrame /= (1.0+$redshift)
@@ -697,7 +690,7 @@ sub Process_Through_Grasil {
     my @submitQueue;
     foreach my $grasilJob ( @grasilQueue ) {
 	(my $grasilDirectoryName = $grasilJob->{'grasilFilesRoot'}) =~ s/\/([^\/]+)$//;
-	my $grasilRun = "cd `dirname ".$grasilJob->{'grasilFilesRoot'}."`; ".$galacticusPath."/aux/Grasil/grasil `basename ".$grasilJob->{'grasilFilesRoot'}."`";
+	my $grasilRun = "cd `dirname ".$grasilJob->{'grasilFilesRoot'}."`; ".&galacticusPath()."/aux/Grasil/grasil `basename ".$grasilJob->{'grasilFilesRoot'}."`";
 	my %job =
 	    (
 	     launchFile   => $grasilDirectoryName."/grasil.script",
@@ -796,7 +789,7 @@ sub grasilPostProcess {
 
 sub grasilGet {
     # Ensure that we have the Grasil executable and data files.
-    my $grasilPath = $galacticusPath."/aux/Grasil/";
+    my $grasilPath = &galacticusPath()."/aux/Grasil/";
     system("mkdir -p ".$grasilPath);
     system("wget http://adlibitum.oats.inaf.it/silva/grasil/download/gslib.tar.gz -O ".$grasilPath."/gslib.tar.gz")
 	unless ( -e $grasilPath."/gslib.tar.gz" );

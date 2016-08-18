@@ -1,20 +1,14 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Scalar::Util 'reftype';
 use XML::LibXML qw(:libxml);
 use XML::LibXML::PrettyPrint;
 use Data::Dumper;
-require Galacticus::Options;
-require List::ExtraUtils;
+use Galacticus::Options;
+use List::ExtraUtils;
 
 # Format a Galacticus parameter file to make it more easily comprehansible.
 # Andrew Benson (08-March-2016)
@@ -28,7 +22,7 @@ my %options =
     (
     );
 # Parse options.
-%options = &Options::Parse_Options(\@ARGV,\%options);
+%options = &Galacticus::Options::Parse_Options(\@ARGV,\%options);
 
 # Parse the input file.
 my $parser = XML::LibXML->new();

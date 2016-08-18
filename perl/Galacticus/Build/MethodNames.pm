@@ -1,20 +1,14 @@
 # Contains a Perl module which implements processing of "methodNames" directives in the Galacticus build system.
 
-package MethodNames;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+package Galacticus::Build::MethodNames;
 use strict;
 use warnings;
 use utf8;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use DateTime;
 use Data::Dumper;
-require Galacticus::Build::Hooks;
+use Galacticus::Build::Hooks;
 
 # Insert hooks for our functions.
 %Hooks::moduleHooks = 

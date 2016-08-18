@@ -1,21 +1,15 @@
 # Contains a Perl module which provides various ODE solver-related functions for tree nodes.
 
-package ODESolver;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+package Galacticus::Build::Components::TreeNodes::ODESolver;
 use strict;
 use warnings;
 use utf8;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Text::Template 'fill_in_string';
-require List::ExtraUtils;
-require Galacticus::Build::Components::Utils;
-require Galacticus::Build::Components::DataTypes;
+use List::ExtraUtils;
+use Galacticus::Build::Components::Utils;
+use Galacticus::Build::Components::DataTypes;
 
 # Insert hooks for our functions.
 %Galacticus::Build::Component::Utils::componentUtils = 
@@ -108,7 +102,7 @@ sub Tree_Node_ODE_Serialize_Count {
 treeNodeSerializeCount=0
 CODE
     # Iterate over all component classes
-    foreach $code::class ( &ExtraUtils::hashList($build->{'componentClasses'}) ) {
+    foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})
@@ -163,7 +157,7 @@ sub Tree_Node_ODE_Serialize_Values {
 offset=1
 CODE
     # Iterate over all component classes
-    foreach $code::class ( &ExtraUtils::hashList($build->{'componentClasses'}) ) {
+    foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})
@@ -220,7 +214,7 @@ sub Tree_Node_ODE_Deserialize_Values {
 offset=1
 CODE
     # Iterate over all component classes
-    foreach $code::class ( &ExtraUtils::hashList($build->{'componentClasses'}) ) {
+    foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})
@@ -319,7 +313,7 @@ name='unknown'
 count=index
 CODE
     # Iterate over all component classes
-    foreach $code::class ( &ExtraUtils::hashList($build->{'componentClasses'}) ) {
+    foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})
@@ -369,7 +363,7 @@ sub Tree_Node_ODE_Offsets {
 count=0
 CODE
     # Iterate over all component classes
-    foreach $code::class ( &ExtraUtils::hashList($build->{'componentClasses'}) ) {
+    foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})
@@ -382,14 +376,11 @@ CODE
 if (.not.allocated(nodeScales)) then
    allocate  (nodeScales        (count))
    allocate  (nodeRates         (count))
-   allocate  (nodeRatesIncrement(count))
 else if (size(nodeScales) < count) then
    deallocate(nodeScales               )
    deallocate(nodeRates                )
-   deallocate(nodeRatesIncrement       )
    allocate  (nodeScales        (count))
    allocate  (nodeRates         (count))
-   allocate  (nodeRatesIncrement(count))
 end if
 nodeSerializationCount=count
 CODE
