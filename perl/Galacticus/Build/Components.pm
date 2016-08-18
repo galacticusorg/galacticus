@@ -47,9 +47,9 @@ use Galacticus::Build::Components::DataTypes;
 $SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
 
 # Insert hooks for our functions.
-%Hooks::moduleHooks = 
+%Galacticus::Build::Hooks::moduleHooks = 
     (
-     %Hooks::moduleHooks,
+     %Galacticus::Build::Hooks::moduleHooks,
      component => 
      {
 	 parse    => \&Components_Parse_Directive,
@@ -99,7 +99,7 @@ sub Components_Parse_Directive {
 
 sub Components_Generate_Output {
     # Generate output for a "component" directive.
-    my $build = shift;
+    my $build = shift();
 
     # Sort hooks.
     my @hooks = map
