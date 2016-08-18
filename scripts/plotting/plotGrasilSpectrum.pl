@@ -1,21 +1,15 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
-require Galacticus::HDF5;
-require XMP::MetaData;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
+use Galacticus::HDF5;
+use XMP::MetaData;
 
 # Plot the spectrum of a galaxy computed by Galacticus+Grasil.
 # Andrew Benson (18-January-2013)
@@ -84,17 +78,17 @@ print $gnuPlot "set format y '\$10^{\%L}\$'\n";
 print $gnuPlot "set xrange [1.0e-2:1.0e5]\n";
 print $gnuPlot "set yrange [1.0e1:1.0e11]\n";
 print $gnuPlot "set pointsize 2.0\n";
-&PrettyPlots::Prepare_Dataset(
+&GnuPlot::PrettyPlots::Prepare_Dataset(
     \$plot,
     $wavelengths,
     $sed,
     style      => "line",
     weight     => [3,1],
-    color      => $PrettyPlots::colorPairs{'redYellow'},
+    color      => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
     );
-&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF($plotFileEPS, margin => 2);
-&MetaData::Write($plotFile,$galacticusFile,$self);
+&GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS, margin => 2);
+&XMP::MetaData::Write($plotFile,$galacticusFile,$self);
 
 exit;

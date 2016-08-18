@@ -1,8 +1,10 @@
 # Contains a Perl module which implements simple, yet pretty plotting of PDL datasets using GnuPlot.
 
-package PrettyPlots;
+package GnuPlot::PrettyPlots;
 use strict;
 use warnings;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use Imager::Color;
 

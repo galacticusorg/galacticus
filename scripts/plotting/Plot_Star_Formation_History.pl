@@ -1,24 +1,19 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use PDL;
 use XML::Simple;
 use Astro::Cosmology;
 use Math::SigFigs;
 use Data::Dumper;
-require Stats::Means;
-require Galacticus::HDF5;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
-require XMP::MetaData;
+use Stats::Means;
+use Galacticus::HDF5;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
+use XMP::MetaData;
 
 # Get name of input and output files.
 die("Plot_Star_Formation_History.pl <galacticusFile> <outputDir/File> [<showFit>]")
@@ -38,7 +33,7 @@ if ( scalar(@ARGV) == 3 ) {
 # Get parameters for the Galacticus model.
 my $dataBlock;
 $dataBlock->{'file'} = $galacticusFile;
-&HDF5::Get_Parameters($dataBlock);
+&Galacticus::HDF5::Get_Parameters($dataBlock);
 
 # Check if output location is file or directory.
 my $outputFile;
@@ -51,7 +46,7 @@ if ( $outputTo =~ m/\.pdf$/ ) {
 (my $fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/$1/;
 
 # Extract global data
-&HDF5::Get_History($dataBlock,['historyExpansion','historyStarFormationRate']);
+&Galacticus::HDF5::Get_History($dataBlock,['historyExpansion','historyStarFormationRate']);
 my $history        = $dataBlock->{'history'};
 my $time           = $history->{'historyTime'};
 my $redshift       = 1.0/$history->{'historyExpansion'}-1.0;
@@ -73,7 +68,7 @@ my $redshiftBins   = pdl (0..$redshiftPoints-1)*$redshiftBin+$redshiftMin+0.5*$r
 
 # Read the XML data file.
 my $xml = new XML::Simple;
-my $data = $xml->XMLin($galacticusPath."data/observations/starFormationRate/Star_Formation_Rate_Data.xml");
+my $data = $xml->XMLin(&galacticusPath()."data/observations/starFormationRate/Star_Formation_Rate_Data.xml");
 my $iDataset = -1;
 my $chiSquared = 0.0;
 my $degreesOfFreedom = 0;
@@ -134,9 +129,9 @@ foreach my $dataSet ( @{$data->{'starFormationRate'}} ) {
     my $e      = sqrt($yUpperError**2+$yLowerError**2);
     my $weight = 1.0/($yUpperError**2+$yLowerError**2);
     (my $yBinned, my $yBinnedError, my $ySigma, my $ySigmaError)
-	= &Means::BinnedMean($redshiftBins,$x,$y,$weight);
+	= &Stats::Means::BinnedMean($redshiftBins,$x,$y,$weight);
     (my $eBinned, my $eBinnedError, my $eSigma, my $eSigmaError)
-	= &Means::BinnedMean($redshiftBins,$x,$e,$weight);
+	= &Stats::Means::BinnedMean($redshiftBins,$x,$e,$weight);
     my $sigmaMax = which($ySigma > $eBinned);
     $eBinned->index($sigmaMax) .= $ySigma->index($sigmaMax);
     my $empty = which($yBinnedError == 0.0);
@@ -185,7 +180,7 @@ print $gnuPlot "set xrange [-0.25:9.0]\n";
 print $gnuPlot "set yrange [0.005:1.0]\n";
 print $gnuPlot "set pointsize 2.0\n";
 for($iDataset=0;$iDataset<scalar(@dataSets);++$iDataset) {
-    &PrettyPlots::Prepare_Dataset(
+    &GnuPlot::PrettyPlots::Prepare_Dataset(
 	 \$plot,
 	 $dataSets[$iDataset]->{'x'},$dataSets[$iDataset]->{'y'},
 	 errorRight => $dataSets[$iDataset]->{'xUpperError'},
@@ -196,22 +191,22 @@ for($iDataset=0;$iDataset<scalar(@dataSets);++$iDataset) {
 	 symbol     => [6,7],
 	 weight     => [5,3],
 	 pointSize  => 0.5,
-	 color      => $PrettyPlots::colorPairs{($iDataset == 0 ? 'cornflowerBlue' : 'lightSkyBlue')},
+	 color      => $GnuPlot::PrettyPlots::colorPairs{($iDataset == 0 ? 'cornflowerBlue' : 'lightSkyBlue')},
 	 title      => $dataSets[$iDataset]->{'label'}
 	);
 }
 my $nonZeroPoints = which($SFR > 0.0);
-&PrettyPlots::Prepare_Dataset(
+&GnuPlot::PrettyPlots::Prepare_Dataset(
     \$plot,
     $redshift->index($nonZeroPoints),$SFR->index($nonZeroPoints),
     style      => "line",
     weight     => [5,3],
-    color      => $PrettyPlots::colorPairs{'redYellow'},
+    color      => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
     title      => 'Galacticus'
     );
-&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF($plotFileTeX);
-&MetaData::Write($plotFile,$galacticusFile,$self);
+&GnuPlot::LaTeX::GnuPlot2PDF($plotFileTeX);
+&XMP::MetaData::Write($plotFile,$galacticusFile,$self);
 
 exit;

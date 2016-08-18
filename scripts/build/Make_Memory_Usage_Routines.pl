@@ -1,17 +1,11 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use XML::Simple;
-require Fortran::Utils;
-require File::Changes;
+use Fortran::Utils;
+use File::Changes;
 
 # Script which builds the include files used by utility.memory_management.F90
 # Andrew Benson (24-Apr-2007)
@@ -214,8 +208,8 @@ close(postContainHandle);
 
 # Truncate lines and update old files..
 foreach my $file ( "utility.memory_management.precontain.inc", "utility.memory_management.postcontain.inc", "utility.memory_management.use.inc" ) {
-    &Fortran_Utils::Truncate_Fortran_Lines("".$ENV{'BUILDPATH'}."/".$file.".tmp");
-    &File_Changes::Update($ENV{'BUILDPATH'}."/".$file ,$ENV{'BUILDPATH'}."/".$file.".tmp" );
+    &Fortran::Utils::Truncate_Fortran_Lines("".$ENV{'BUILDPATH'}."/".$file.".tmp");
+    &File::Changes::Update($ENV{'BUILDPATH'}."/".$file ,$ENV{'BUILDPATH'}."/".$file.".tmp" );
 }
 
 exit;

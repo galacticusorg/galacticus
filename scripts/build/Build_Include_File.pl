@@ -1,29 +1,23 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-our $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use XML::Simple;
 use Data::Dumper;
 use Scalar::Util 'reftype';
 use Fcntl qw(SEEK_SET);
 use UNIVERSAL;
-require Fortran::Utils;
-require Galacticus::Build::Hooks;
-require Galacticus::Build::ModuleUse;
-require Galacticus::Build::MethodNames;
-require Galacticus::Build::Labels;
-require Galacticus::Build::Function;
-require Galacticus::Build::FunctionCall;
-require Galacticus::Build::BindingsC;
-require Galacticus::Build::FunctionGlobal;
-require Galacticus::Build::SourceTree;
+use Fortran::Utils;
+use Galacticus::Build::Hooks;
+use Galacticus::Build::ModuleUse;
+use Galacticus::Build::MethodNames;
+use Galacticus::Build::Labels;
+use Galacticus::Build::Function;
+use Galacticus::Build::FunctionCall;
+use Galacticus::Build::BindingsC;
+use Galacticus::Build::FunctionGlobal;
+use Galacticus::Build::SourceTree;
 
 # Scans source code for "!#" directives and generates an include file.
 # Andrew Benson (18-November-2011)
@@ -103,7 +97,7 @@ foreach my $currentFileName ( @filesToScan ) {
 	    my $bufferedComments;
 	    if ( $buildData->{'codeType'} eq "fortran" ) {
 		# Get next line from the Fortran source.
-		&Fortran_Utils::Get_Fortran_Line($infile,$rawLine,$processedLine,$bufferedComments);
+		&Fortran::Utils::Get_Fortran_Line($infile,$rawLine,$processedLine,$bufferedComments);
 	    } elsif ( $buildData->{'codeType'} eq "c" ) {
 		# Get the next line from a C(++) source.
 		$processedLine = <$infile>;
@@ -136,7 +130,7 @@ foreach my $currentFileName ( @filesToScan ) {
 		    my $nextLine = "";
 		    until ( $nextLine =~ m/<\/$xmlTag>/ || eof($infile) ) {
 			if ( $buildData->{'codeType'} eq "fortran" ) {
-				&Fortran_Utils::Get_Fortran_Line($infile,$nextLine,$processedLine,$bufferedComments);
+				&Fortran::Utils::Get_Fortran_Line($infile,$nextLine,$processedLine,$bufferedComments);
 			} elsif ( $buildData->{'codeType'} eq "c" ) {
 			    $nextLine = <$infile>;
 			}
@@ -210,12 +204,12 @@ die("Build_Include_File.pl: failed to find a function to generate ".$buildData->
 # Parse Fortran files, simply output other files.
 if ( $buildData->{'fileName'} =~ m/\.Inc$/ ) {
     # Parse the file to build a tree.
-    my $tree = &SourceTree::ParseCode($buildData->{'content'},$buildData->{'fileName'});
+    my $tree = &Galacticus::Build::SourceTree::ParseCode($buildData->{'content'},$buildData->{'fileName'});
     # Process the tree.
-    &SourceTree::ProcessTree($tree);
+    &Galacticus::Build::SourceTree::ProcessTree($tree);
     # Serialize back to source code.
     open(my $outputFile,">",$buildData->{'fileName'});
-    print $outputFile &SourceTree::Serialize($tree);
+    print $outputFile &Galacticus::Build::SourceTree::Serialize($tree);
     close($outputFile);
 } else {
     open(my $outputFile,">",$buildData->{'fileName'});

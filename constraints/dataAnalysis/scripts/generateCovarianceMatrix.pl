@@ -1,14 +1,9 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use XML::Simple;
 use PDL;
 use PDL::NiceSlice;
@@ -40,7 +35,7 @@ my $xml          = new XML::Simple;
 my $parameters   = $xml->XMLin($parameterFile);
 
 # Compute the covariance matrix.
-system("cd ".$galacticusPath."; make Mass_Function_Covariance.exe");
+system("cd ".&galacticusPath()."; make Mass_Function_Covariance.exe");
 system("Mass_Function_Covariance.exe ".$parameterFile);
 
 # Open the covariance HDF5 file.

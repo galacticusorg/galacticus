@@ -1,22 +1,16 @@
 # Contains a Perl module which provides utility functions related to component implementations.
 
 package Galacticus::Build::Components::Implementations::Utils;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
 use strict;
 use warnings;
 use utf8;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Text::Template 'fill_in_string';
 use Data::Dumper;
-require List::ExtraUtils;
-require Galacticus::Build::Components::Utils;
-require Galacticus::Build::Components::DataTypes;
+use List::ExtraUtils;
+use Galacticus::Build::Components::Utils;
+use Galacticus::Build::Components::DataTypes;
 
 # Insert hooks for our functions.
 %Galacticus::Build::Component::Utils::componentUtils = 
@@ -35,7 +29,7 @@ sub Implementation_Is_Active {
     # Generate functions which return true if a component implementation is active.
     my $build = shift();
     # Iterate over component classes.
-    foreach $code::class ( &ExtraUtils::hashList($build->{'componentClasses'}) ) {
+    foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	# Iterate over class member implementations.
 	foreach $code::member ( @{$code::class->{'members'}} ) {
 	    $code::implementationTypeName = "nodeComponent".ucfirst($code::class->{'name'}).ucfirst($code::member->{'name'});
@@ -73,7 +67,7 @@ sub hasRealEvolvers {
 	  &&	    
 	     $_->{'data'      }->{'isEvolvable'}
          }
-         &ExtraUtils::hashList($member->{'properties'}->{'property'});	
+         &List::ExtraUtils::hashList($member->{'properties'}->{'property'});	
 }
 
 sub hasRealNonTrivialEvolvers {
@@ -92,7 +86,7 @@ sub hasRealNonTrivialEvolvers {
 	       $_->{'data'      }->{'type'       } ne "double"
 	     )			
          }
-         &ExtraUtils::hashList($member->{'properties'}->{'property'});	
+         &List::ExtraUtils::hashList($member->{'properties'}->{'property'});	
 }
 
 1;

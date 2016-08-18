@@ -1,9 +1,11 @@
 # Contains a Perl module which handles component implementations during build.
 
-package Implementations;
+package Galacticus::Build::Components::Implementations;
 use strict;
 use warnings;
 use utf8;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Data::Dumper;
 use Sort::Topological qw(toposort);
 use Scalar::Util;
@@ -46,14 +48,14 @@ sub Default_Full_Name {
     my $build = shift();
     # Iterate over components.
     $_->{'fullyQualifiedName'} = ucfirst($_->{'class'}).ucfirst($_->{'name'})
-	foreach ( &ExtraUtils::hashList($build->{'components'}) );
+	foreach ( &List::ExtraUtils::hashList($build->{'components'}) );
 }
 
 sub Implementation_ID_List {
     # Create a list of component IDs.
     my $build = shift();
     # Construct a list of all component names.
-    @{$build->{'componentIdList'}} = &ExtraUtils::sortedKeys($build->{'components'});
+    @{$build->{'componentIdList'}} = &List::ExtraUtils::sortedKeys($build->{'components'});
 }
 
 sub Implementation_Defaults {
@@ -76,12 +78,12 @@ sub Implementation_Defaults {
 	 }
 	);
     # Iterate over implementations and apply all defaults.
-    foreach my $implementation ( &ExtraUtils::hashList($build->{'components'}) ) {
+    foreach my $implementation ( &List::ExtraUtils::hashList($build->{'components'}) ) {
 	&applyDefaults($implementation,$_,$defaults{$_})
 	    foreach ( keys(%defaults) );
     }
     # Record the default implementation for each class.
-    foreach my $implementation ( &ExtraUtils::hashList($build->{'components'}) ) {
+    foreach my $implementation ( &List::ExtraUtils::hashList($build->{'components'}) ) {
 	$build->{'componentClasses'}->{$implementation->{'class'}}->{'defaultImplementation'} = $implementation->{'name'}
 	    if ( $implementation->{'isDefault'} );
     }
@@ -92,7 +94,7 @@ sub Null_Implementations {
     my $build = shift();
     # Iterate over components to determine which classes need a null case building.
     my %classes;
-    foreach my $implementation ( &ExtraUtils::hashList($build->{'components'}) ) {
+    foreach my $implementation ( &List::ExtraUtils::hashList($build->{'components'}) ) {
 	# Initialize this class if it hasn't been seen before.
 	unless ( exists($classes{$implementation->{'class'}}) ) {
 	    $classes{$implementation->{'class'}}->{'hasNull'   } = 0;
@@ -106,7 +108,7 @@ sub Null_Implementations {
 	    if ( $implementation->{'isDefault'} );
     }
     # Iterate over classes, creating null components as necessary.
-    foreach my $class ( &ExtraUtils::sortedKeys(\%classes) ) {       
+    foreach my $class ( &List::ExtraUtils::sortedKeys(\%classes) ) {       
 	# Test for pre-existing null component.
 	if ( $classes{$class}->{'hasNull'} == 0 ) {
 	    # No pre-existing null component is present, so simply insert one into the build data.
@@ -173,7 +175,7 @@ sub Implementation_Parents {
     # Create links to parent implementations.
     my $build = shift();
     # Iterate over implementations.
-    foreach my $implementation ( &ExtraUtils::hashList($build->{'components'}) ) {
+    foreach my $implementation ( &List::ExtraUtils::hashList($build->{'components'}) ) {
 	# For extensions, locate and link to the parent.
 	if ( exists($implementation->{'extends'}) ) {
 	    my $parentIdentifier = ucfirst($implementation->{'extends'}->{'class'}).ucfirst($implementation->{'extends'}->{'name'});
@@ -186,7 +188,7 @@ sub Implementation_Bindings_Inherit {
     # Inherit bindings from any parent implementations.
     my $build = shift();
     # Iterate over implementations.
-    foreach my $implementation ( &ExtraUtils::hashList($build->{'components'}) ) {
+    foreach my $implementation ( &List::ExtraUtils::hashList($build->{'components'}) ) {
 	# For extensions, copy any binding from the parent class.
 	if ( exists($implementation->{'extends'}) ) {
 	    foreach my $parentBinding ( @{$implementation->{'extends'}->{'implementation'}->{'bindings'}->{'binding'}} ) {
@@ -209,7 +211,7 @@ sub Build_Component_Implementations {
     # Generate a class for each component implementation.
     my $build = shift();
     # Iterate over implementations.
-    foreach my $implementation ( &ExtraUtils::hashList($build->{'components'}) ) {
+    foreach my $implementation ( &List::ExtraUtils::hashList($build->{'components'}) ) {
     	# Determine the name of the class which this component extends (use the "nodeComponent" class by default).
     	my $extensionOf = 
 	    exists($implementation->{'extends'})
@@ -219,8 +221,8 @@ sub Build_Component_Implementations {
 	    "nodeComponent".ucfirst($implementation->{'class'});
      	# Create data objects to store all of the linked data for this component.
 	my @dataContent;
-    	foreach ( &ExtraUtils::sortedKeys($implementation->{'content'}->{'data'}) ) {
-	    (my $typeDefinition, my $typeLabel) = &DataTypes::dataObjectDefinition($implementation->{'content'}->{'data'}->{$_});
+    	foreach ( &List::ExtraUtils::sortedKeys($implementation->{'content'}->{'data'}) ) {
+	    (my $typeDefinition, my $typeLabel) = &Galacticus::Build::Components::DataTypes::dataObjectDefinition($implementation->{'content'}->{'data'}->{$_});
 	    $typeDefinition->{'variables'} = [ $_ ];
 	    push(
 		@dataContent,
@@ -261,7 +263,7 @@ sub Build_Component_Implementations {
 		} else {
 		    # Binding is deferred, map to a suitable wrapper function.
 		    $function{'function'   } = $implementation->{'fullyQualifiedName'}.$_->{'method'};
-		    $function{'returnType' } = &DataTypes::dataObjectDocName($_->{'interface'});
+		    $function{'returnType' } = &Galacticus::Build::Components::DataTypes::dataObjectDocName($_->{'interface'});
 		    $function{'arguments'  } = "";
 		    $function{'description'} = "Get the {\\normalfont \\ttfamily ".$_->{'method'}."} property of the {\\normalfont \\ttfamily ". $implementation->{'fullyQualifiedName'}."} component.";
 		    # Also add bindings to functions to set and test the deferred function.
@@ -293,7 +295,7 @@ sub Build_Component_Implementations {
 	    }
 	}
 	# Iterate over properties.
-	foreach my $propertyName ( &ExtraUtils::sortedKeys($implementation->{'properties'}->{'property'}) ) {
+	foreach my $propertyName ( &List::ExtraUtils::sortedKeys($implementation->{'properties'}->{'property'}) ) {
 	    # Get the property.
 	    my $property = $implementation->{'properties'}->{'property'}->{$propertyName};
 	    push

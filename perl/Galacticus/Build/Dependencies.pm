@@ -1,17 +1,11 @@
 # Contains a Perl module which implements dependency sorting of tasks.
 
-package Dependencies;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+package Galacticus::Build::Dependencies;
 use strict;
 use warnings;
 use utf8;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Sort::Topological qw(toposort);
 use Scalar::Util 'reftype';
 use Data::Dumper;

@@ -1,20 +1,14 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use PDL::NiceSlice;
 use Data::Dumper;
-require Galacticus::HDF5;
-require Galacticus::DustAttenuation;
-require Galacticus::Options;
+use Galacticus::HDF5;
+use Galacticus::DustAttenuation;
+use Galacticus::Options;
  
 # Compute dust-extinguished luminosities for all luminosities in a Galacticus output.
 # Andrew Benson (10-March-2016)
@@ -29,7 +23,7 @@ my %options =
     (
      overwrite => "false"
     );
-&Options::Parse_Options(\@ARGV,\%options);
+&Galacticus::Options::Parse_Options(\@ARGV,\%options);
 
 # Create data structure to read the results.
 my $galacticus;
@@ -38,11 +32,11 @@ $galacticus->{'store'} = 1;
 $galacticus->{'tree' } = "all";
 
 # Iterate over redshifts.
-&HDF5::Get_Times($galacticus);
+&Galacticus::HDF5::Get_Times($galacticus);
 foreach my $redshift ( $galacticus->{'outputs'}->{'redshift'}->list() ) {
     print "Processing z=".$redshift."\n";
-    &HDF5::Select_Output         ($galacticus,$redshift);
-    &HDF5::Get_Datasets_Available($galacticus          );
+    &Galacticus::HDF5::Select_Output         ($galacticus,$redshift);
+    &Galacticus::HDF5::Get_Datasets_Available($galacticus          );
     # Iterate over datasets.
     my @properties;
     my $outputGroup = $galacticus->{'hdf5File'}->group('Outputs/Output'.$galacticus->{'output'}.'/nodeData');
@@ -63,7 +57,7 @@ foreach my $redshift ( $galacticus->{'outputs'}->{'redshift'}->list() ) {
 	}
     }
     # Retrieve (and store) dust luminosities.
-    &HDF5::Get_Dataset($galacticus,\@properties);
+    &Galacticus::HDF5::Get_Dataset($galacticus,\@properties);
     # Drop all properties.
     delete($galacticus->{'dataSets'});
 }

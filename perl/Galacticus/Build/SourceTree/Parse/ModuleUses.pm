@@ -1,24 +1,18 @@
 # Contains a Perl module which implements parsing of module uses in the Galacticus preprocessor system.
 
-package ModuleUses;
+package Galacticus::Build::SourceTree::Parse::ModuleUses;
 use strict;
 use warnings;
 use utf8;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Data::Dumper;
-require Fortran::Utils;
-require Galacticus::Build::SourceTree::Hooks;
-require Galacticus::Build::SourceTree;
+use Fortran::Utils;
+## AJB HACK use Galacticus::Build::SourceTree::Hooks;
+## AJB HACK use Galacticus::Build::SourceTree;
 
 # Insert hooks for our functions.
-$Hooks::parseHooks{'moduleUses'} = \&Parse_ModuleUses;
+$Galacticus::Build::SourceTree::Hooks::parseHooks{'moduleUses'} = \&Parse_ModuleUses;
 
 sub Parse_ModuleUses {
     # Get the tree.
@@ -38,7 +32,7 @@ sub Parse_ModuleUses {
 	    open(my $code,"<",\$node->{'content'});
 	    do {
 		# Get a line.
-		&Fortran_Utils::Get_Fortran_Line($code,my $rawLine, my $processedLine, my $bufferedComments);
+		&Fortran::Utils::Get_Fortran_Line($code,my $rawLine, my $processedLine, my $bufferedComments);
 		# Determine if line is a module use line.
 		my $isModuleUse = 0;
 		$isModuleUse    = 1
@@ -116,10 +110,10 @@ sub Parse_ModuleUses {
 	    # If we have a single code block, nothing needs to change.
 	    unless ( scalar(@newNodes) == 1 && $newNodes[0]->{'type'} eq "code" ) {
 		# New nodes created, insert them, replacing the old node.
-		&SourceTree::ReplaceNode($node,\@newNodes);
+		&Galacticus::Build::SourceTree::ReplaceNode($node,\@newNodes);
 	    }
 	}
-	$node = &SourceTree::Walk_Tree($node,\$depth);
+	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }    
 }
 
@@ -152,7 +146,7 @@ sub AddUses {
 	    parent     => $usesNode,
 	    firstChild => undef()
 	};
-	&SourceTree::InsertBeforeNode($node->{'firstChild'},[$usesNode]);
+	&Galacticus::Build::SourceTree::InsertBeforeNode($node->{'firstChild'},[$usesNode]);
     }
     # Merge the module usages.
     foreach my $moduleName ( keys(%{$moduleUses->{'moduleUse'}}) ) {

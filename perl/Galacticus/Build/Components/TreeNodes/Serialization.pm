@@ -1,21 +1,15 @@
 # Contains a Perl module which provides various serialization/deserialization functions for tree nodes.
 
-package Serialization;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+package Galacticus::Build::Components::TreeNodes::Serialization;
 use strict;
 use warnings;
 use utf8;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Text::Template 'fill_in_string';
-require List::ExtraUtils;
-require Galacticus::Build::Components::Utils;
-require Galacticus::Build::Components::DataTypes;
+use List::ExtraUtils;
+use Galacticus::Build::Components::Utils;
+use Galacticus::Build::Components::DataTypes;
 
 # Insert hooks for our functions.
 %Galacticus::Build::Component::Utils::componentUtils = 
@@ -77,7 +71,7 @@ call Galacticus_Display_Indent('pointers')
 CODE
     foreach $code::pointer ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "formationNode" ) {
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-message='{(" " x (14-length($pointer))}{$pointer}: '
+message='{" " x (14-length($pointer))}{$pointer}: '
 message=message//self%{$pointer}%index()
 call Galacticus_Display_Message(message)
 CODE
@@ -86,7 +80,7 @@ CODE
 call Galacticus_Display_Unindent('done')
 CODE
     # Iterate over all component classes
-    foreach $code::class ( &ExtraUtils::hashList($build->{'componentClasses'}) ) {
+    foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})
@@ -164,7 +158,7 @@ CODE
 write (fileHandle,'(a)') '  </pointer>'
 CODE
     # Iterate over all component classes
-    foreach $code::class ( &ExtraUtils::hashList($build->{'componentClasses'}) ) {
+    foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})
@@ -219,7 +213,7 @@ sub Tree_Node_Serialize_Raw {
 write (fileHandle) self%isPhysicallyPlausible
 CODE
     # Iterate over all component classes
-    foreach $code::class ( &ExtraUtils::hashList($build->{'componentClasses'}) ) {
+    foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 write (fileHandle) allocated(self%component{ucfirst($class->{'name'})})
 if (allocated(self%component{ucfirst($class->{'name'})})) then
@@ -282,7 +276,7 @@ sub Tree_Node_Deserialize_Raw {
 read (fileHandle) self%isPhysicallyPlausible
 CODE
     # Iterate over all component classes
-    foreach $code::class ( &ExtraUtils::hashList($build->{'componentClasses'}) ) {
+    foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 read (fileHandle) isAllocated
 if (isAllocated) then

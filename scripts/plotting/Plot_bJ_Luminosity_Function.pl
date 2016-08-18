@@ -1,25 +1,20 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use PDL;
 use PDL::NiceSlice;
 use XML::Simple;
 use Math::SigFigs;
 use Data::Dumper;
-require Stats::Histograms;
-require Galacticus::HDF5;
-require Galacticus::Magnitudes;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
-require XMP::MetaData;
+use Stats::Histograms;
+use Galacticus::HDF5;
+use Galacticus::Magnitudes;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
+use XMP::MetaData;
 
 # Get name of input and output files.
 die("Plot_bJ_Luminosity_Function.pl <galacticusFile> <outputDir/File> [<showFit>]")
@@ -50,13 +45,13 @@ if ( $outputTo =~ m/\.pdf$/ ) {
 my $dataSet;
 $dataSet->{'file'} = $galacticusFile;
 $dataSet->{'store'} = 0;
-&HDF5::Get_Parameters($dataSet);
-&HDF5::Count_Trees($dataSet);
-&HDF5::Select_Output($dataSet,0.0);
+&Galacticus::HDF5::Get_Parameters($dataSet);
+&Galacticus::HDF5::Count_Trees($dataSet);
+&Galacticus::HDF5::Select_Output($dataSet,0.0);
 
 # Read the XML data file.
 my $xml     = new XML::Simple;
-my $data    = $xml->XMLin($galacticusPath."data/observations/luminosityFunctions/bJ_Luminosity_Function_2dFGRS_Norberg_2002.xml");
+my $data    = $xml->XMLin(&galacticusPath()."data/observations/luminosityFunctions/bJ_Luminosity_Function_2dFGRS_Norberg_2002.xml");
 my $columns = $data->{'luminosityFunction'}->{'columns'};
 my $xBins   = pdl @{$columns->{'magnitude'}->{'data'}};
 my $x       = pdl @{$columns->{'magnitude'}->{'data'}};
@@ -75,14 +70,14 @@ $error = $error(-1:0);
 
 # Read galaxy data and construct luminosity function.
 $dataSet->{'tree'} = "all";
-&HDF5::Get_Dataset($dataSet,['mergerTreeWeight','magnitudeTotal:bJ:rest:z0.0000:vega','magnitudeTotal:bJ:rest:z0.0000:dustAtlas:vega']);
+&Galacticus::HDF5::Get_Dataset($dataSet,['mergerTreeWeight','magnitudeTotal:bJ:rest:z0.0000:vega','magnitudeTotal:bJ:rest:z0.0000:dustAtlas:vega']);
 my $dataSets      = $dataSet->{'dataSets'};
 my $magnitude     = $dataSets->{'magnitudeTotal:bJ:rest:z0.0000:dustAtlas:vega'};
 my $magnitudeFree = $dataSets->{'magnitudeTotal:bJ:rest:z0.0000:vega'};
 my $weight        = $dataSets->{'mergerTreeWeight'};
 delete($dataSet->{'dataSets'});
-(my $yGalacticus    , my $errorGalacticus    ) = &Histograms::Histogram($xBins,$magnitude    ,$weight,differential => 1);
-(my $yGalacticusFree, my $errorGalacticusFree) = &Histograms::Histogram($xBins,$magnitudeFree,$weight,differential => 1);
+(my $yGalacticus    , my $errorGalacticus    ) = &Stats::Histograms::Histogram($xBins,$magnitude    ,$weight,differential => 1);
+(my $yGalacticusFree, my $errorGalacticusFree) = &Stats::Histograms::Histogram($xBins,$magnitudeFree,$weight,differential => 1);
 
 # Compute chi^2.
 my $chiSquared = sum(($yGalacticus-$y)**2/($errorGalacticus**2+$error**2));
@@ -122,7 +117,7 @@ print $gnuPlot "set format y '\$10^{\%L}\$'\n";
 print $gnuPlot "set xrange [-24.5:-14.5]\n";
 print $gnuPlot "set yrange [1.0e-8:3.0e-2]\n";
 print $gnuPlot "set pointsize 2.0\n";
-&PrettyPlots::Prepare_Dataset(
+&GnuPlot::PrettyPlots::Prepare_Dataset(
     \$plot,
     $x,$y,
     errorUp    => $error,
@@ -131,10 +126,10 @@ print $gnuPlot "set pointsize 2.0\n";
     symbol     => [6,7],
     weight     => [5,3],
     pointSize  => 0.5,
-    color      => $PrettyPlots::colorPairs{'cornflowerBlue'},
+    color      => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'},
     title      => $data->{'luminosityFunction'}->{'label'}
     );
-&PrettyPlots::Prepare_Dataset(
+&GnuPlot::PrettyPlots::Prepare_Dataset(
     \$plot,
     $x,$yGalacticus,
     errorUp    => $errorGalacticus,
@@ -143,12 +138,12 @@ print $gnuPlot "set pointsize 2.0\n";
     symbol     => [6,7],
     weight     => [5,3],
     pointSize  => 0.5,
-    color      => $PrettyPlots::colorPairs{'redYellow'},
+    color      => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
     title      => 'Galacticus'
     );
-&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF($plotFileTeX);
-&MetaData::Write($plotFile,$galacticusFile,$self);
+&GnuPlot::LaTeX::GnuPlot2PDF($plotFileTeX);
+&XMP::MetaData::Write($plotFile,$galacticusFile,$self);
 
 exit;

@@ -1,16 +1,8 @@
 # Contains a Perl module which implements calculations of binned means (and dispersions) of weighted data.
 
-package Means;
+package Stats::Means;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use PDL::NiceSlice;
 

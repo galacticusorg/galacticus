@@ -1,19 +1,13 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath  = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath  = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use PDL::NiceSlice;
 use PDL::GSLSF::GAMMA;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
 
 # Compute mass systematic model coefficients to describe the mass systematic in the SDSS stellar
 # mass functon arising from the choice of profile fitting. Based on the results of Bernardi et
@@ -112,13 +106,13 @@ foreach my $model ( @models ) {
     $model->{'offset'} = $models[0]->{'logMassLimited'}-$model->{'logMassLimited'};
     unless ( $model->{'name'} eq "cmodel" ) {
 	++$color;
-	&PrettyPlots::Prepare_Dataset(\$plot,
+	&GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 				      $logMassLimited,
 				      $model->{'offset'},
 				      style     => "point",
 				      symbol    => [6,7], 
 				      weight    => [5,3],
-				      color     => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'sequence1'}}[$color]},
+				      color     => $GnuPlot::PrettyPlots::colorPairs{${$GnuPlot::PrettyPlots::colorPairSequences{'sequence1'}}[$color]},
 				      title     => $model->{'name'}
 	    );
     }
@@ -147,18 +141,18 @@ foreach my $fit ( @fits ) {
 	+($fit->{'mu0'}+$fit->{'kappa0'}*$logMassNormalized)*(1.0-1.0/(1.0+exp(-$logMassNormalized/$fit->{'beta'})))
 	+($fit->{'mu1'}+$fit->{'kappa1'}*$logMassNormalized)*(    1.0/(1.0+exp(-$logMassNormalized/$fit->{'beta'})));
     ++$color;
-    &PrettyPlots::Prepare_Dataset(\$plot,
+    &GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 				  $logMassLimited,
 				  $systematic,
 				  style     => "line",
 				  weight    => [5,3],
-				  color     => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'slideSequence'}}[$color]},
+				  color     => $GnuPlot::PrettyPlots::colorPairs{${$GnuPlot::PrettyPlots::colorPairSequences{'slideSequence'}}[$color]},
 				  title     => "model"
 	);
 }
 # Finish plotting.
-&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF($plotFileEPS,margin => 1);
+&GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS,margin => 1);
 
 exit;

@@ -1,21 +1,15 @@
 # Contains a Perl module which provides naming functions for component implementations.
 
-package Names;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+package Galacticus::Build::Components::Implementations::Names;
 use strict;
 use warnings;
 use utf8;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Text::Template 'fill_in_string';
-require List::ExtraUtils;
-require Galacticus::Build::Components::Utils;
-require Galacticus::Build::Components::DataTypes;
+use List::ExtraUtils;
+use Galacticus::Build::Components::Utils;
+use Galacticus::Build::Components::DataTypes;
 
 # Insert hooks for our functions.
 %Galacticus::Build::Component::Utils::componentUtils = 
@@ -34,7 +28,7 @@ sub Implementation_Type {
     # Generate functions to provide type names for component implementations.
     my $build = shift();
     # Iterate over component classes.
-    foreach $code::class ( &ExtraUtils::hashList($build->{'componentClasses'}) ) {
+    foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	# Iterate over class member implementations.
 	foreach $code::member ( @{$code::class->{'members'}} ) {
 	    my $implementationTypeName = "nodeComponent".ucfirst($code::class->{'name'}).ucfirst($code::member->{'name'});

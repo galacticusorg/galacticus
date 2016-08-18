@@ -2,14 +2,9 @@
 use strict;
 use warnings;
 use XML::Simple;
-my $galacticusPath;
-if ( exists($ENV{'GALACTICUS_ROOT_V094'}) ) {
-    $galacticusPath = $ENV{'GALACTICUS_ROOT_V094'};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl");
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 
 # Driver script for Cosmic Emu power spectrum emulator.
 # Andrew Benson (10-July-2012)
@@ -21,34 +16,34 @@ my $parameterFile     = $ARGV[0];
 my $powerSpectrumFile = $ARGV[1];
 
 # Create a directory for the emulator.
-system("mkdir -p ". $galacticusPath."aux/CosmicEmu");
+system("mkdir -p ". &galacticusPath()."aux/CosmicEmu");
 
 # Check for presence of the executable.
-unless ( -e $galacticusPath."aux/CosmicEmu/emu.exe" ) {
+unless ( -e &galacticusPath()."aux/CosmicEmu/emu.exe" ) {
     
     # Check for presence of the source code.
-    unless ( -e $galacticusPath."aux/CosmicEmu/emu.c" ) {
+    unless ( -e &galacticusPath()."aux/CosmicEmu/emu.c" ) {
 	
 	# Download the code.
-	unless ( -e $galacticusPath."aux/CosmicEmu/CosmicEmu_v1.1.tar.gz" ) {
+	unless ( -e &galacticusPath()."aux/CosmicEmu/CosmicEmu_v1.1.tar.gz" ) {
 	    print "Cosmic_Emu_Driver.pl: downloading Cosmic_Emu code.\n";
-	    system("wget http://www.lanl.gov/projects/cosmology/CosmicEmu/CosmicEmu_v1.1.tar.gz -O ".$galacticusPath."aux/CosmicEmu/CosmicEmu_v1.1.tar.gz");
+	    system("wget http://www.lanl.gov/projects/cosmology/CosmicEmu/CosmicEmu_v1.1.tar.gz -O ".&galacticusPath()."aux/CosmicEmu/CosmicEmu_v1.1.tar.gz");
 	    die("Cosmic_Emu_Driver.pl: FATAL - failed to download Cosmic_Emu code.")
-		unless ( -e $galacticusPath."aux/CosmicEmu/CosmicEmu_v1.1.tar.gz" );
+		unless ( -e &galacticusPath()."aux/CosmicEmu/CosmicEmu_v1.1.tar.gz" );
 	}
 
 	# Unpack the code.
 	print "Cosmic_Emu_Driver.pl: unpacking Cosmic_Emu code.\n";
-	system("tar -x -v -z -C ".$galacticusPath."aux/CosmicEmu -f ".$galacticusPath."aux/CosmicEmu/CosmicEmu_v1.1.tar.gz");
+	system("tar -x -v -z -C ".&galacticusPath()."aux/CosmicEmu -f ".&galacticusPath()."aux/CosmicEmu/CosmicEmu_v1.1.tar.gz");
 	die("Cosmic_Emu_Driver.pl: FATAL - failed to unpack Cosmic_Emu code.")
-	    unless ( -e $galacticusPath."aux/CosmicEmu/emu.c" );
+	    unless ( -e &galacticusPath()."aux/CosmicEmu/emu.c" );
     }
 
     # Build the code.
     print "Cosmic_Emu_Driver.pl: compiling Cosmic_Emu code.\n";
-    system("cd ".$galacticusPath."aux/CosmicEmu/; make");
+    system("cd ".&galacticusPath()."aux/CosmicEmu/; make");
     die("Cosmic_Emu_Driver.pl: FATAL - failed to build Cosmic_Emu code.")
-	unless ( -e $galacticusPath."aux/CosmicEmu/emu.exe" );
+	unless ( -e &galacticusPath()."aux/CosmicEmu/emu.exe" );
 }
 
 # Parse the parameter file.
@@ -67,7 +62,7 @@ my $omegaMatter = $parameterData->{'OmegaMatter'}->{'value'}*($parameterData->{'
 my $omegaBaryon = $parameterData->{'OmegaBaryon'}->{'value'}*($parameterData->{'HubbleConstant'}->{'value'}/100.0)**2;
 
 # Run Cosmic_Emu.
-open(emuPipe,"|".$galacticusPath."aux/CosmicEmu/emu.exe");
+open(emuPipe,"|".&galacticusPath()."aux/CosmicEmu/emu.exe");
 print emuPipe $powerSpectrumFile."\n";
 print emuPipe $omegaMatter."\n";
 print emuPipe $omegaBaryon."\n";

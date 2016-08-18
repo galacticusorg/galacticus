@@ -2,7 +2,7 @@ package File::Which;
 
 use strict;
 
-require Exporter;
+use Exporter;
 
 @File::Which::ISA       = qw(Exporter);
 

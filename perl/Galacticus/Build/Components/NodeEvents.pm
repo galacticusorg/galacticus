@@ -1,18 +1,12 @@
 # Contains a Perl module which builds the nodeEvent class.
 
-package NodeEvents;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+package Galacticus::Build::Components::NodeEvents;
 use strict;
 use warnings;
 use utf8;
-require Galacticus::Build::Components::Utils;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Build::Components::Utils;
 
 # Insert hooks for our functions.
 %Galacticus::Build::Component::Utils::componentUtils = 

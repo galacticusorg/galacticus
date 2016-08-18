@@ -1,19 +1,14 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
 use PDL::Constants qw(PI);
-require Mangle;
+use Mangle;
 
 # Generate C_l's from a survey window using mangle (http://space.mit.edu/~molly/mangle/).
 # Andrew Benson (18-April-2014)
@@ -54,7 +49,7 @@ foreach my $file ( @files ) {
 		$multiplier = pdl -1.0;
 	    }
 	    print "  --> processing file (".$multiplier->sclr().") ".$fileName."\n";
-	    system("time ".$galacticusPath."../mangle/bin/harmonize -l".$lMax." ".$fileName." ".$fileName.".wlm")
+	    system("time ".&galacticusPath()."../mangle/bin/harmonize -l".$lMax." ".$fileName." ".$fileName.".wlm")
 		unless ( -e $fileName.".wlm" );
 	    die("mangleHarmonize.pl: failed to generate wlm file")
 		unless ( -e $fileName.".wlm" );

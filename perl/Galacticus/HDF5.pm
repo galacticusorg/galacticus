@@ -1,6 +1,6 @@
 # Contains a Perl module which implements various useful functionality for extracting data from Galacticus HDF5 files.
 
-package HDF5;
+package Galacticus::HDF5;
 use strict;
 use warnings;
 use PDL;

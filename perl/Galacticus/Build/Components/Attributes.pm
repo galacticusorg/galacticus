@@ -1,17 +1,11 @@
 # Contains a Perl module which creates get/set/evolve code for component property attributes.
 
-package Attributes;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+package Galacticus::Build::Components::Attributes;
 use strict;
 use warnings;
 use utf8;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Data::Dumper;
 use Scalar::Util 'reftype';
 use List::ExtraUtils;
@@ -42,11 +36,11 @@ sub Validate_Boolean {
     # Validate that property attributes are "true" or "false".
     my $build = shift();
     # Iterate over components.
-    foreach my $component ( &ExtraUtils::hashList($build->{'components'}) ) {
+    foreach my $component ( &List::ExtraUtils::hashList($build->{'components'}) ) {
 	# Iterate over all properties belonging to this component.	
 	next 
 	    unless ( exists($component->{'properties'}) );
-	foreach my $property ( &ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' ) ) {
+	foreach my $property ( &List::ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' ) ) {
 	    # Assert that property attributes must be "false" or "true", and convert to boolean form.
 	    foreach ( "isSettable", "isGettable", "isEvolvable" ) {
 		if ( exists($property->{'attributes'}->{$_}) ) {
@@ -75,11 +69,11 @@ sub Validate_Evolvable_Intrinsics {
     # Validate that evolvable intrinsic properties are of "double" type only.
     my $build = shift();
     # Iterate over components.
-    foreach my $component ( &ExtraUtils::hashList($build->{'components'}) ) {
+    foreach my $component ( &List::ExtraUtils::hashList($build->{'components'}) ) {
 	# Iterate over all properties belonging to this component.	
 	next 
 	    unless ( exists($component->{'properties'}) );
-	foreach my $property ( &ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' ) ) {
+	foreach my $property ( &List::ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' ) ) {
 	    # Assert that non-real intrinsic properties be not evolvable.
 	    die(
 		"Validate_Evolvable_Intrinsics: non-real intrinsic property '".
@@ -103,11 +97,11 @@ sub Validate_Deferreds_Functionless {
     # Validate that deferred attributes of properties do not have functions specified at build time.
     my $build = shift();
     # Iterate over components.
-    foreach my $component ( &ExtraUtils::hashList($build->{'components'}) ) {
+    foreach my $component ( &List::ExtraUtils::hashList($build->{'components'}) ) {
 	# Iterate over all properties belonging to this component.	
 	next 
 	    unless ( exists($component->{'properties'}) );
-	foreach my $property ( &ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' ) ) {
+	foreach my $property ( &List::ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' ) ) {
 	    my @deferredMethods = split(/:/,$property->{'attributes'}->{'isDeferred'})
 		if ( exists($property->{'attributes'}->{'isDeferred'}) );
 	    foreach ( @deferredMethods ) {
@@ -132,14 +126,14 @@ sub Default_Functions {
     # Set default functions for property attributes.
     my $build = shift();
     # Iterate over implementations.
-    foreach my $implementation ( &ExtraUtils::hashList($build->{'components'}) ) {
+    foreach my $implementation ( &List::ExtraUtils::hashList($build->{'components'}) ) {
 	my $componentIdentifier = 
 	    ucfirst($implementation->{'class'}).
 	    ucfirst($implementation->{'name' });
 	# Iterate over all properties belonging to this component.	
 	next 
 	    unless ( exists($implementation->{'properties'}) );
-	foreach my $property ( &ExtraUtils::hashList($implementation->{'properties'}->{'property'}, keyAs => 'name' ) ) {	    
+	foreach my $property ( &List::ExtraUtils::hashList($implementation->{'properties'}->{'property'}, keyAs => 'name' ) ) {	    
 	    # Rate function.
 	    $property->{'rateFunction'} = 
 		$componentIdentifier         .

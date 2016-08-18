@@ -1,12 +1,6 @@
 #!/usr/bin/env perl
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use strict;
 use warnings;
 use XML::Simple;
@@ -17,11 +11,11 @@ use PDL::MatrixOps;
 use PDL::IO::HDF5;
 use PDL::Constants qw(PI);
 use Data::Dumper;
-require Galacticus::Options;
-require Galacticus::Launch::PBS;
-require Galacticus::Constraints::Parameters;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
+use Galacticus::Options;
+use Galacticus::Launch::PBS;
+use Galacticus::Constraints::Parameters;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
 
 # Compute projections of the posterior which give the strongest constraints.
 # Andrew Benson (27-May-2016)
@@ -43,21 +37,21 @@ my %options =
      tableFile           => "projection.tex",
      modelsDirectory     => "projectionModels"
     );
-&Options::Parse_Options(\@ARGV,\%options);
+&Galacticus::Options::Parse_Options(\@ARGV,\%options);
 
 # Parse the constraint config file.
-my $config = &Parameters::Parse_Config($configFile);
+my $config = &Galacticus::Constraints::Parameters::Parse_Config($configFile);
 
 # Validate the config file.
 die("projectionPursuit.pl: workDirectory must be specified in config file" ) unless ( exists($config->{'likelihood'}->{'workDirectory' }) );
 
 # Find maximum likelihood model parameters.
 print "Finding maximum likelihood model...\n";
-my $parametersMaximumLikelihood = &Parameters::Maximum_Likelihood_Vector($config,\%options);
+my $parametersMaximumLikelihood = &Galacticus::Constraints::Parameters::Maximum_Likelihood_Vector($config,\%options);
 
 # Generate a sample of model parameters.
 print "Building matrix of samples from model posterior...\n";
-my $parametersMatrix            = &Parameters::Sample_Matrix            ($config,\%options);
+my $parametersMatrix            = &Galacticus::Constraints::Parameters::Sample_Matrix            ($config,\%options);
 print "...found ".$parametersMatrix->dim(1)." samples\n";
 
 # For each parameter, apply mappings and normalize sampled states by the variance in the prior.
@@ -210,8 +204,8 @@ for(my $i=0;$i<nelem($eigenValues) && $i<$options{'eigenVectorsRetain'};++$i) {
 	my $modelDirectory = $config->{'likelihood'}->{'workDirectory'}."/".$options{'modelsDirectory'}."/vector".$i."_perturb".$n."/";
 	unless ( -e $modelDirectory."galacticus.hdf5" ) {
 	    system("mkdir -p ".$modelDirectory);
-	    my $perturbedParameters = &Parameters::Convert_Parameter_Vector_To_Galacticus($config,$perturbedModel);
-	    &Parameters::Apply_Command_Line_Parameters($perturbedParameters,\%options);
+	    my $perturbedParameters = &Galacticus::Constraints::Parameters::Convert_Parameter_Vector_To_Galacticus($config,$perturbedModel);
+	    &Galacticus::Constraints::Parameters::Apply_Command_Line_Parameters($perturbedParameters,\%options);
 	    $perturbedParameters->{'galacticusOutputFileName'}->{'value'} = $modelDirectory."galacticus.hdf5";
 	    open(my $parameterFile,">".$modelDirectory."parameters.xml");
 	    print $parameterFile $xml->XMLout($perturbedParameters, rootName => "parameters");
@@ -234,6 +228,6 @@ for(my $i=0;$i<nelem($eigenValues) && $i<$options{'eigenVectorsRetain'};++$i) {
      }
 }
 # Send jobs to PBS.
-&PBS::SubmitJobs(\%options,@pbsJobs);
+&Galacticus::Launch::PBS::SubmitJobs(\%options,@pbsJobs);
 
 exit;

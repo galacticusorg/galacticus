@@ -1,21 +1,16 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath  = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath  = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use PDL;
 use PDL::NiceSlice;
 use PDL::Math;
 use PDL::IO::HDF5;
 use PDL::LinearAlgebra;
-require Galacticus::Options;
-require Galacticus::HDF5;
+use Galacticus::Options;
+use Galacticus::HDF5;
 
 # Compute likelihood (and make a plot) for a Galacticus model given the early-type relation data
 # for z=0 from Kelvin et al. (2014).
@@ -29,13 +24,13 @@ my %arguments =
     (
      quiet => 0
     );
-&Options::Parse_Options(\@ARGV,\%arguments);
+&Galacticus::Options::Parse_Options(\@ARGV,\%arguments);
 
 # Specify constants.
 my $massSolar = pdl 1.9891e30;
 
 # Read observational data.
-my  $observations              = new PDL::IO::HDF5($galacticusPath."data/observations/morphology/earlyTypeFractionGAMA.hdf5");
+my  $observations              = new PDL::IO::HDF5(&galacticusPath()."data/observations/morphology/earlyTypeFractionGAMA.hdf5");
 my  $massStellarObserved       = $observations->dataset('mass'             )->get();
 my  $countAllObserved          = $observations->dataset('countAll'         )->get();
 my  $countEarlyObserved        = $observations->dataset('countEarly'       )->get();
@@ -57,8 +52,8 @@ if ( $massScaling eq "linear" ) {
 # Read model data.
 my $model;
 $model->{'file'}    = $galacticusFileName;
-&HDF5::Open_File     ($model);
-&HDF5::Get_Parameters($model);
+&Galacticus::HDF5::Open_File     ($model);
+&Galacticus::HDF5::Get_Parameters($model);
 my $analysis        = $model   ->       {'hdf5File'                 }->group ('analysis'                  )
                                                                      ->group ('gamaEarlyTypeFractionZ0.03');
 my $massModel       = $analysis->dataset('mass'                      )->get  (                            );
@@ -167,8 +162,8 @@ if ( exists($arguments{'outputFile'}) ) {
  
 # Make a plot if requested.
 if ( exists($arguments{'plotFile'}) ) {
-    require GnuPlot::PrettyPlots;
-    require GnuPlot::LaTeX;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
     # Declare variables for GnuPlot;
     my ($gnuPlot, $plotFileEPS, $plot);
     # Open a pipe to GnuPlot.
@@ -196,7 +191,7 @@ if ( exists($arguments{'plotFile'}) ) {
     # Plot observations. Areas of points for observations with and without LBS class included
     # are scaled by the probability for LBS inclusion. Error bars showing the 68% confidence
     # interval are displayed.
-    &PrettyPlots::Prepare_Dataset
+    &GnuPlot::PrettyPlots::Prepare_Dataset
 	(
 	 \$plot,
 	 $massStellarObserved,
@@ -207,9 +202,9 @@ if ( exists($arguments{'plotFile'}) ) {
 	 symbol    => [6,7], 
 	 weight    => [1,1],
 	 pointSize => sqrt($lbsInclusionProbability),
-	 color     => $PrettyPlots::colorPairs{'cornflowerBlue'}
+	 color     => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'}
     	);
-    &PrettyPlots::Prepare_Dataset
+    &GnuPlot::PrettyPlots::Prepare_Dataset
 	(
 	 \$plot,
 	 $massStellarObserved,
@@ -220,11 +215,11 @@ if ( exists($arguments{'plotFile'}) ) {
 	 symbol    => [6,7], 
 	 weight    => [1,1],
 	 pointSize => sqrt(1.0-$lbsInclusionProbability),
-	 color     => $PrettyPlots::colorPairs{'cornflowerBlue'},
+	 color     => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'},
 	 title     => $labelObserved
     	);
     # Plot model.
-    &PrettyPlots::Prepare_Dataset
+    &GnuPlot::PrettyPlots::Prepare_Dataset
 	(
 	 \$plot,
 	 $massModel,
@@ -234,12 +229,12 @@ if ( exists($arguments{'plotFile'}) ) {
 	 style     => "point",
 	 symbol    => [6,7], 
 	 weight    => [1,1],
-	 color     => $PrettyPlots::colorPairs{'redYellow'},
+	 color     => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
 	 title     => "Galacticus"
     	);
-    &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+    &GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
     close($gnuPlot);
-    &LaTeX::GnuPlot2PDF($plotFileEPS,margin => 1);
+    &GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS,margin => 1);
 }
 
 exit;

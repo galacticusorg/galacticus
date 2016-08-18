@@ -1,22 +1,17 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use PDL::NiceSlice;
 use PDL::Basic;
 use XML::Simple;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
-require Galacticus::HDF5;
-require Stats::Histograms;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
+use Galacticus::HDF5;
+use Stats::Histograms;
+use Galacticus::Path;
 
 # Run a test of the progenitor mass function construction algorithms.
 # Andrew Benson (12-Feb-2010)
@@ -25,7 +20,7 @@ require Stats::Histograms;
 print "Progenitor_Mass_Function.pl is running: will create a plot of progenitor mass functions from Galacticus...\n";
 
 # Specify name of Galacticus output file to be used.
-my $galacticusOutput = $galacticusPath."tests/progenitorMassFunction/progenitorMassFunctionTest.hdf5";
+my $galacticusOutput = &galacticusPath()."tests/progenitorMassFunction/progenitorMassFunctionTest.hdf5";
 
 # Hubble constant.
 my $h0 = 0.73;
@@ -54,7 +49,7 @@ my $summedWeights = zeroes($rootBinCount,$outputCount-1);
 
 # Read data from the Millennium Simulation.
 my $xml = new XML::Simple;
-my $data = $xml->XMLin($galacticusPath."data/darkMatter/Progenitor_Mass_Function_Millennium_Simulation.xml");
+my $data = $xml->XMLin(&galacticusPath()."data/darkMatter/Progenitor_Mass_Function_Millennium_Simulation.xml");
 my %millenniumData;
 foreach my $massFunction ( @{$data->{'massFunction'}} ) {
     my $label = $massFunction->{'rootMass'}.":".$massFunction->{'redshift'};
@@ -65,7 +60,7 @@ foreach my $massFunction ( @{$data->{'massFunction'}} ) {
 # Run Galacticus to generate the data.
 unless ( -e $galacticusOutput ) {
     print "  -> Running Galacticus to generate merger trees...\n";
-    system($galacticusPath."Galacticus.exe ".$galacticusPath."tests/progenitorMassFunction/Progenitor_Mass_Function_Parameters.xml");
+    system(&galacticusPath()."Galacticus.exe ".&galacticusPath()."tests/progenitorMassFunction/Progenitor_Mass_Function_Parameters.xml");
 }
 
 # Create data structure to read the results.
@@ -79,7 +74,7 @@ for (my $iOutput=$outputCount;$iOutput>0;--$iOutput) {
     $dataSet->{'output'} = $iOutput;
 
     # Get a count of the number of trees present.
-    &HDF5::Count_Trees($dataSet);
+    &Galacticus::HDF5::Count_Trees($dataSet);
     my $treesCount = scalar(@{$dataSet->{'mergerTreesAvailable'}});
     print "  -> Found ".$treesCount." trees: processing.......\n";
 
@@ -88,7 +83,7 @@ for (my $iOutput=$outputCount;$iOutput>0;--$iOutput) {
 	$dataSet->{'tree'} = $dataSet->{'mergerTreesAvailable'}->[$iTree-1];
 	
 	# Read the node masses and which nodes are isolated.
-	&HDF5::Get_Dataset($dataSet,['basicMass','nodeIsIsolated','mergerTreeWeight']);
+	&Galacticus::HDF5::Get_Dataset($dataSet,['basicMass','nodeIsIsolated','mergerTreeWeight']);
 	my $dataSets = $dataSet->{'dataSets'};
 	# Get a list of isolated node masses.
 	my $isolatedNodeMass = where($dataSets->{'basicMass'},$dataSets->{'nodeIsIsolated'} == 1);
@@ -115,7 +110,7 @@ for (my $iOutput=$outputCount;$iOutput>0;--$iOutput) {
 	    }
 	    if ( $rootBin >= 0 && $rootBin < $rootBinCount) {
 		# Build a histogram.
-		(my $hist, my $histErrors) = &Histograms::Histogram($lgMval,$isolatedNodeMass,$weight);
+		(my $hist, my $histErrors) = &Stats::Histograms::Histogram($lgMval,$isolatedNodeMass,$weight);
 		# Accumulate.
 		my $vWeight = $dataSets->{'mergerTreeWeight'}->index(0);
 		$progenitorMF->(($rootBin),($iOutput-1),:) += $hist*$vWeight;
@@ -135,7 +130,7 @@ for (my $rootBin=0;$rootBin<$rootBinCount;++$rootBin) {
 
 # Create the plot.
 print "  -> Creating the plot...\n";
-my $plotName = $galacticusPath."tests/progenitorMassFunction/progenitorMassFunction.pdf";
+my $plotName = &galacticusPath()."tests/progenitorMassFunction/progenitorMassFunction.pdf";
 my $gnuPlot;
 my $plotFile = $plotName;
 (my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
@@ -191,28 +186,28 @@ for(my $rootBin=0;$rootBin<$rootBinCount;++$rootBin) {
 	my $label = $M2.":".$z1;
 	my $xM = pdl @{${$millenniumData{$label}}{'Mass'}};
 	my $yM = pdl @{${$millenniumData{$label}}{'Fcmf'}};
-	&PrettyPlots::Prepare_Dataset(
+	&GnuPlot::PrettyPlots::Prepare_Dataset(
 	    \$plot,
 	    $Mval,$progenitorMF->(($rootBin),($iOutput-1),:),
 	    style  => "point",
 	    symbol => [6,7],
 	    weight => [3,1],
-	    color  => $PrettyPlots::colorPairs{'redYellow'}
+	    color  => $GnuPlot::PrettyPlots::colorPairs{'redYellow'}
 	    );
-	&PrettyPlots::Prepare_Dataset(
+	&GnuPlot::PrettyPlots::Prepare_Dataset(
 	    \$plot,
 	    $xM,$yM,
 	    style  => "point",
 	    symbol => [6,7],
 	    weight => [3,1],
-	    color  => $PrettyPlots::colorPairs{'cornflowerBlue'}
+	    color  => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'}
 	    );
-	&PrettyPlots::Plot_Datasets($gnuPlot,\$plot, multiPlot => 1);
+	&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot, multiPlot => 1);
     }
 }
 print $gnuPlot "unset multiplot\n";
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF($plotFileEPS, margin => 2);
+&GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS, margin => 2);
 print "  -> Plot is available in: ".$plotName."\n";
 
 exit;

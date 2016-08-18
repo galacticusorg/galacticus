@@ -1,23 +1,17 @@
 # Contains a Perl module which implements processing of directives associated with the generation of C bindings in the Galacticus
 # build system.
 
-package BindingsC;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+package Galacticus::Build::BindingsC;
 use strict;
 use warnings;
 use utf8;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use DateTime;
 use Data::Dumper;
 use Scalar::Util 'reftype';
-require Galacticus::Build::Hooks;
-require Galacticus::Build::Dependencies;
+use Galacticus::Build::Hooks;
+use Galacticus::Build::Dependencies;
 
 # Insert hooks for our functions.
 %Hooks::moduleHooks = 

@@ -1,27 +1,22 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use PDL;
 use PDL::NiceSlice;
 use XML::Simple;
 use List::Util qw(first);
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
 
 # Plot errors from the Li & White (2009) stellar mass function along with a fitting function.
 # Andrew Benson (10-December-2011)
 
 # Read the XML data file.
 my $xml       = new XML::Simple;
-my $data      = $xml->XMLin($galacticusPath."data/observations/massFunctionsStellar/Stellar_Mass_Function_Li_White_2009.xml");
+my $data      = $xml->XMLin(&galacticusPath()."data/observations/massFunctionsStellar/Stellar_Mass_Function_Li_White_2009.xml");
 my $columns   = $data->{'massFunction'}->{'columns'};
 my $x         = pdl @{$columns->{'mass'        }->{'datum'}};
 my $y         = pdl @{$columns->{'massFunction'}->{'datum'}};
@@ -60,23 +55,23 @@ print $gnuPlot "set yrange [1.0e-8:1.0e-2]\n";
 print $gnuPlot "set title 'Errors on the stellar mass function at \$z=0.1\$'\n";
 print $gnuPlot "set xlabel '\$M_\\star\$ [\$M_\\odot\$]'\n";
 print $gnuPlot "set ylabel '\$\\sigma_{{\\rm d}n/{\\rm d}\\log_{10}M_\\star}\$'\n";
-&PrettyPlots::Prepare_Dataset(\$plot,
+&GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 			      $x,$errorFit,
 			      style     => "line",
 			      weight    => [5,3],
-			      color     => $PrettyPlots::colorPairs{'redYellow'},
+			      color     => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
 			      title     => "Fit"
     );
-&PrettyPlots::Prepare_Dataset(\$plot,
+&GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 			      $x,$error,
 			      style     => "point",
 			      symbol    => [6,7], 
 			      weight    => [5,3],
-			      color     => $PrettyPlots::colorPairs{'cornflowerBlue'},
+			      color     => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'},
 			      title     => $data->{'stellarMassFunction'}->{'label'}
     );
-&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF($plotFileEPS);
+&GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS);
 
 exit;

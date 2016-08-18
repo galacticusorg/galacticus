@@ -1,23 +1,18 @@
 # Launch models on PBS system using a single job.
 
-package MonolithicPBS;
+package Galacticus::Launch::MonolithicPBS;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Data::Dumper;
 use Sys::CPU;
-require Galacticus::Launch::Hooks;
-require Galacticus::Launch::PostProcess;
-require Galacticus::Launch::PBS;
-require System::Redirect;
-require List::ExtraUtils;
+use Galacticus::Launch::Hooks;
+use Galacticus::Launch::PostProcess;
+use Galacticus::Launch::PBS;
+use System::Redirect;
+use List::ExtraUtils;
+use Galacticus::Path;
 
 # Insert hooks for our functions.
 %Hooks::moduleHooks = 
@@ -51,7 +46,7 @@ sub Validate {
     if ( exists($launchScript->{'monolithicPBS'}->{'mpiImplementation'}) ) {
 	$mpiIs = $launchScript->{'monolithicPBS'}->{'mpiImplementation'};
     } else {
-	$mpiIs = &PBS::mpiDetect();
+	$mpiIs = &Galacticus::Launch::PBS::mpiDetect();
     }
     if ( $mpiIs eq "OpenMPI" ) {
 	    $defaults{'mpiRun'         } = "mpirun";
@@ -110,9 +105,9 @@ CODE
     my $compileCommand;
     $compileCommand .= &Set_Environment($launchScript);
     $compileCommand .= "mpicc ".$launchScript->{'modelRootDirectory'}."/mpiRank.c -o ".$launchScript->{'modelRootDirectory'}."/mpiRank";
-    $compileCommand .= " ".join(" ",map {"-I".$_} &ExtraUtils::as_array($launchScript->{'monolithicPBS'}->{'includePath'}))
+    $compileCommand .= " ".join(" ",map {"-I".$_} &List::ExtraUtils::as_array($launchScript->{'monolithicPBS'}->{'includePath'}))
         if ( exists($launchScript->{'monolithicPBS'}->{'includePath'}) );
-    $compileCommand .= " ".join(" ",map {"-L".$_} &ExtraUtils::as_array($launchScript->{'monolithicPBS'}->{'libraryPath'}))
+    $compileCommand .= " ".join(" ",map {"-L".$_} &List::ExtraUtils::as_array($launchScript->{'monolithicPBS'}->{'libraryPath'}))
         if ( exists($launchScript->{'monolithicPBS'}->{'libraryPath'}) );
     system($compileCommand);
     die("MonolithicPBS::Validate: failed to compile MPI rank code")
@@ -160,7 +155,7 @@ sub Launch {
     $singleJobScript .= "#PBS -V\n";
     $singleJobScript .= "cd \$PBS_O_WORKDIR\n";
     $singleJobScript .= "chmod u=wrx ".$launchScript->{'modelRootDirectory'}."/launchGalacticus.sh\n";
-    $singleJobScript .= join("\n",&ExtraUtils::as_array($launchScript->{'monolithicPBS'}->{'pbsCommand'}))."\n"
+    $singleJobScript .= join("\n",&List::ExtraUtils::as_array($launchScript->{'monolithicPBS'}->{'pbsCommand'}))."\n"
 	if ( exists($launchScript->{'monolithicPBS'}->{'pbsCommand'}) );
     $singleJobScript .= "setenv MPI_DSM_DISTRIBUTE 0\n";
     $singleJobScript .= "setenv KMP_AFFINITY disabled\n";
@@ -188,7 +183,7 @@ sub Launch {
 	    my $scratchPath = $launchScript->{'monolithicPBS'}->{'scratchPath'}."/model_".$launchScript->{'modelCounter'}."_".$$."/";
 	    print $launchFile "mkdir -p ".$scratchPath."\n";
 	}
-	print $launchFile $galacticusPath."/Galacticus.exe ".$job->{'directory'}."/parameters.xml\n";
+	print $launchFile &galacticusPath()."/Galacticus.exe ".$job->{'directory'}."/parameters.xml\n";
 	if ( exists($launchScript->{'monolithicPBS'}->{'scratchPath'}) ) {
 	    print $launchFile "mv ".$launchScript->{'monolithicPBS'}->{'scratchPath'}."galacticus.hdf5 ".$job->{'directory'}."/galacticus.hdf5\n";
 	    if ( $launchScript->{'useStateFile'} eq "yes" ) {
@@ -240,9 +235,9 @@ sub Launch {
     }
     # Post-process.
     foreach my $job ( @jobs ) {
-	&PostProcess::Analyze($job,$launchScript)
+	&Galacticus::Launch::PostProcess::Analyze($job,$launchScript)
 	    unless ( $launchScript->{'monolithicPBS'}->{'analyze'} eq "yes" );
-	&PostProcess::CleanUp($job,$launchScript);
+	&Galacticus::Launch::PostProcess::CleanUp($job,$launchScript);
     }
 }
 
@@ -251,9 +246,9 @@ sub Set_Environment {
     my $environment = "";
     if ( exists($launchScript->{'monolithicPBS'}->{'environment'}) ) {
 	if ( $launchScript->{'monolithicPBS'}->{'shell'} eq "bash" ) {
-	    $environment = join("\n",map {"export ".$_} &ExtraUtils::as_array($launchScript->{'monolithicPBS'}->{'environment'}))."\n";
+	    $environment = join("\n",map {"export ".$_} &List::ExtraUtils::as_array($launchScript->{'monolithicPBS'}->{'environment'}))."\n";
 	} elsif ( $launchScript->{'monolithicPBS'}->{'shell'} eq "csh" ) {
-	    $environment = join("\n",map {local $_ = $_; s/(.*)=(.*)/setenv $1 $2/; $_} &ExtraUtils::as_array($launchScript->{'monolithicPBS'}->{'environment'}))."\n";
+	    $environment = join("\n",map {local $_ = $_; s/(.*)=(.*)/setenv $1 $2/; $_} &List::ExtraUtils::as_array($launchScript->{'monolithicPBS'}->{'environment'}))."\n";
 	}
     }
     return $environment;

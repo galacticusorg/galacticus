@@ -1,17 +1,9 @@
 # Contains a Perl module which provides various systematics models for
 # use in model discrepancy modeling.
 
-package DiscrepancySystematics;
+package Galacticus::Constraints::DiscrepancySystematics;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath  = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath  = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use PDL::NiceSlice;
 use Data::Dumper;

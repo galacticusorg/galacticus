@@ -2,14 +2,8 @@
 use strict;
 use warnings;
 use Cwd;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = cwd()."/";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use XML::Simple;
 use PDL;
 use PDL::NiceSlice;
@@ -20,11 +14,11 @@ use Data::Dumper;
 use DateTime;
 use LaTeX::Encode;
 use Scalar::Util qw(looks_like_number);
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
-require List::ExtraUtils;
-require Galacticus::Constraints::Covariances;
-require CosmoSim;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
+use List::ExtraUtils;
+use Galacticus::Constraints::Covariances;
+use CosmoSim;
 
 # Generate a file containing the projected correlation function along with its covariance matrix.
 # Andrew Benson (22-July-2014)
@@ -61,7 +55,7 @@ $massVariable = $config->{'massVariable'}
 (my $massMinimum, my $massMaximum) = &observedCorrelationFunction($parameterFile,$configFile,$stage);
 
 # Read the parameter file for this covariance calculation.
-$parameterFile = $galacticusPath.$parameterFile
+$parameterFile = &galacticusPath().$parameterFile
     unless ( $parameterFile =~ m/^\// );
 my $parameters   = $xml->XMLin($parameterFile);
 
@@ -445,7 +439,7 @@ if ( all($covarianceZeroDiagonal == 0.0) ) {
 } else {
     # Invert the matrix using Cholesky decomposition. Work with a scaled matrix to avoid underflow problems.
     my $scaledCovariance       = $covariance/$covariance->((0),(0));
-    ($inverseCovariance, $logDeterminantCovariance) = &Covariances::SVDInvert($scaledCovariance);
+    ($inverseCovariance, $logDeterminantCovariance) = &Galacticus::Constraints::Covariances::SVDInvert($scaledCovariance);
     $inverseCovariance        /= $covariance->((0),(0));
     $logDeterminantCovariance += $separation->getdim(0)*log($covariance->((0),(0)));
 }
@@ -639,7 +633,7 @@ sub generateHalosPinocchio {
 	$command  = "cd ".$workDirectory."\n";
 	$command .= "mpirun -np 192 -hostfile \$PBS_NODEFILE pinocchio-3.0.x parametersPinocchio".$realization.".txt\n";
 	$command .= "if [ -e pinocchio.pinMock".$realization.".histories.out ]; then\n";
-	$command .= "   ".$galacticusPath."constraints/dataAnalysis/scripts/pinocchioToIrate.pl ".$workDirectory." ".$realization." ".$workDirectory."pinocchioHalos".$realization.".hdf5\n";
+	$command .= "   ".&galacticusPath()."constraints/dataAnalysis/scripts/pinocchioToIrate.pl ".$workDirectory." ".$realization." ".$workDirectory."pinocchioHalos".$realization.".hdf5\n";
 	$command .= "   if [ -e ".$workDirectory."pinocchioHalos".$realization.".hdf5 ]; then\n";
 	$command .= "      rm -f pinocchio.pinMock".$realization.".cosmology.out\n";
 	$command .= "      rm -f pinocchio.pinMock".$realization.".histories.out\n";
@@ -746,7 +740,7 @@ sub generateHalosNBody {
 
 sub Submit_To_PBS {
     # Submit a job to the PBS queue and wait for it to complete.
-    my @pbsStack   = &ExtraUtils::as_array(shift());
+    my @pbsStack   = &List::ExtraUtils::as_array(shift());
     my $jobMaximum =                       shift() ;
     my %pbsJobs;
     # Submit jobs and wait.

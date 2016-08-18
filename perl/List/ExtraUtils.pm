@@ -1,14 +1,6 @@
 # Contains a Perl module which implements extra list utilities.
 
-package ExtraUtils;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+package List::ExtraUtils;
 use strict;
 use warnings;
 use Scalar::Util 'reftype';

@@ -1,14 +1,16 @@
 # Contains a Perl module which implements host halo property calculations for Galacticus.
 
-package HostNode;
+package Galacticus::HostNode;
 use strict;
 use warnings;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use PDL::NiceSlice;
-require Galacticus::HDF5;
+use Galacticus::HDF5;
 
-%HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-    "^hostNodeMass[\\d\\.]*\$" => \&HostNode::Get_Host_Node_Mass
+%Galacticus::HDF5::galacticusFunctions = ( %Galacticus::HDF5::galacticusFunctions,
+    "^hostNodeMass[\\d\\.]*\$" => \&Galacticus::HostNode::Get_Host_Node_Mass
     );
 
 sub Get_Host_Node_Mass {
@@ -25,7 +27,7 @@ sub Get_Host_Node_Mass {
 	die("Get_Host_Node_Mass: dataset name is not recognized");
     }
 
-    &HDF5::Get_Dataset($model,[
+    &Galacticus::HDF5::Get_Dataset($model,[
 			   $nodeMassDataSet,
 			   "nodeIndex",
 			   "parentIndex",

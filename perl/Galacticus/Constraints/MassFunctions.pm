@@ -1,17 +1,11 @@
 # Contains a Perl module which implements construction of a variety of mass functions from
 # Galacticus when fitting to constraints.
 
-package MassFunctions;
+package Galacticus::Constraints::MassFunctions;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath  = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath  = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use PDL::NiceSlice;
 use PDL::Constants qw(PI);
@@ -23,14 +17,14 @@ use LaTeX::Encode;
 use XML::Simple;
 use Scalar::Util 'reftype';
 use Astro::Cosmology;
-require Galacticus::HDF5;
-require Galacticus::StellarMass;
-require Galacticus::HIGasMass;
-require Galacticus::GasMass;
-require Galacticus::Constraints::Covariances;
-require Stats::Histograms;
-require Stats::Percentiles;
-require List::ExtraUtils;
+use Galacticus::HDF5;
+use Galacticus::StellarMass;
+use Galacticus::HIGasMass;
+use Galacticus::GasMass;
+use Galacticus::Constraints::Covariances;
+use Stats::Histograms;
+use Stats::Percentiles;
+use List::ExtraUtils;
 
 sub Construct {
     # Construct a mass function from Galacticus for constraint purposes.
@@ -95,12 +89,12 @@ sub Construct {
 
     # Determine if the model file contains a pre-computed mass function.
     my $modelCount = -1;
-    foreach my $galacticusFileName ( &ExtraUtils::as_array($config->{'galacticusFile'}) ) {
+    foreach my $galacticusFileName ( &List::ExtraUtils::as_array($config->{'galacticusFile'}) ) {
 	++$modelCount;
 	my $galacticus;
 	$galacticus->{'file' } = $galacticusFileName;
 	$galacticus->{'store'} = 0;
-	&HDF5::Open_File($galacticus);
+	&Galacticus::HDF5::Open_File($galacticus);
 	my $gotModelMassFunction = 0;
 	my @rootGroups = $galacticus->{'hdf5File'}->groups();
 	if ( grep {$_ eq "analysis"} @rootGroups ) {
@@ -118,10 +112,10 @@ sub Construct {
 	    die('MassFunctions::Construct: incompleteness modeling is not supported')
 		if ( exists($arguments{'incompletenessModel'}) );
 	    $galacticus->{'tree'} = "all";
-	    &HDF5::Get_Parameters($galacticus);
-	    &HDF5::Count_Trees  ($galacticus                      );
-	    &HDF5::Select_Output($galacticus,$config->{'redshift'});
-	    &HDF5::Get_Dataset  ($galacticus,['mergerTreeWeight',$config->{'massType'}]);
+	    &Galacticus::HDF5::Get_Parameters($galacticus);
+	    &Galacticus::HDF5::Count_Trees  ($galacticus                      );
+	    &Galacticus::HDF5::Select_Output($galacticus,$config->{'redshift'});
+	    &Galacticus::HDF5::Get_Dataset  ($galacticus,['mergerTreeWeight',$config->{'massType'}]);
 	    my $dataSets = $galacticus->{'dataSets'};
 	    my $weight   = $dataSets->{'mergerTreeWeight'};
 	    # Find cosmological conversion factors.
@@ -182,7 +176,7 @@ sub Construct {
 		);
 	    $options{'binWidths'} = $xBinWidths
 		if ( defined($xBinWidths) );
-	    ($yGalacticus[$modelCount],$errorGalacticus[$modelCount],$covarianceGalacticus[$modelCount]) = &Histograms::Histogram($xBins,$logarithmicMass,$weight,%options);
+	    ($yGalacticus[$modelCount],$errorGalacticus[$modelCount],$covarianceGalacticus[$modelCount]) = &Stats::Histograms::Histogram($xBins,$logarithmicMass,$weight,%options);
 	    # Convert model mass function from per log10(M) to per log(M).
 	    $yGalacticus         [$modelCount] /= log(10.0);
 	    $errorGalacticus     [$modelCount] /= log(10.0);
@@ -328,7 +322,7 @@ sub Construct {
 	    my $offsets;
 	    my $jacobian;
 	    my $logLikelihood =
-		&Covariances::ComputeLikelihood
+		&Galacticus::Constraints::Covariances::ComputeLikelihood
 		(
 		 $yGalacticusMapped                          ,
 		 $yDataMapped                                ,
@@ -382,7 +376,7 @@ sub Construct {
 	print $gnuPlot "set ylabel '".$config->{'yLabel'}."'\n";
 	if ( scalar(@yGalacticus) == 1 ) {
 	    # Plot a single model.
-	    &PrettyPlots::Prepare_Dataset(\$plot,
+	    &GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 					  $config->{'x'},$config->{'y'},
 					  errorUp   => $error,
 					  errorDown => $error,
@@ -390,10 +384,10 @@ sub Construct {
 					  symbol    => [6,7], 
 					  weight    => [5,3],
 					  pointSize => 0.5,
-					  color     => $PrettyPlots::colorPairs{'cornflowerBlue'},
+					  color     => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'},
 					  title     => $config->{'observationLabel'}
 		);
-	    &PrettyPlots::Prepare_Dataset(\$plot,
+	    &GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 					  $config->{'x'},
 					  $yGalacticus[0],
 					  errorUp   => $errorGalacticus[0],
@@ -402,7 +396,7 @@ sub Construct {
 					  symbol    => [6,7], 
 					  weight    => [5,3],
 					  pointSize => 0.5,
-					  color     => $PrettyPlots::colorPairs{'redYellow'},
+					  color     => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
 					  title     => "Galacticus"
 		);
 	} else {
@@ -424,10 +418,10 @@ sub Construct {
 		    my $bins    = pdl [0.0,1.0,2.0];
 		    my $x       = pdl ones($y);
 		    my $w       = pdl ones($y);
-		    my $results = &Percentiles::BinnedPercentiles($bins,$x,$y,$w,$percentiles);
+		    my $results = &Stats::Percentiles::BinnedPercentiles($bins,$x,$y,$w,$percentiles);
 		    $posterior->(($i),:) .= $results->((1),:);
 		}
-		&PrettyPlots::Prepare_Dataset(\$plot,
+		&GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 					      $config->{'x'},
 					      $posterior->(:,(0)),
 					      y2 => $posterior->(:,(6)),
@@ -435,7 +429,7 @@ sub Construct {
 					      weight    => [5,3],
 					      color     => ['#FFB6C1','#FFB6C1']
 		    );
-		&PrettyPlots::Prepare_Dataset(\$plot,
+		&GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 					      $config->{'x'},
 					      $posterior->(:,(1)),
 					      y2 => $posterior->(:,(5)),
@@ -443,7 +437,7 @@ sub Construct {
 					      weight    => [5,3],
 					      color     => ['#BA55D3','#BA55D3']
 		    );
-		&PrettyPlots::Prepare_Dataset(\$plot,
+		&GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 					      $config->{'x'},
 					      $posterior->(:,(2)),
 					      y2 => $posterior->(:,(4)),
@@ -451,12 +445,12 @@ sub Construct {
 					      weight    => [5,3],
 					      color     => ['#A020F0','#A020F0']
 		    );
-		&PrettyPlots::Prepare_Dataset(\$plot,
+		&GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 					      $config->{'x'},
 					      $posterior->(:,(3)),
 					      style     => "line",
 					      weight    => [5,3],
-					      color     => $PrettyPlots::colorPairs{'redYellow'}
+					      color     => $GnuPlot::PrettyPlots::colorPairs{'redYellow'}
 		    );
 	    } elsif ( $multiModel eq "individual" ) {
 		# Plot each model, using a color transition.
@@ -466,22 +460,22 @@ sub Construct {
 		my @colorEndHighlight   = (  0.0,1.0,0.8);
  		for(my $j=0;$j<scalar(@yGalacticus);++$j) {
 		    my $colorFraction = $j/(scalar(@yGalacticus)-1);
-		    &PrettyPlots::Prepare_Dataset(\$plot,
+		    &GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 						  $config->{'x'},
 						  $yGalacticus[$j],
 						  style     => "line",
 						  weight    => [5,3],
 						  color     => 
 						  [
-						   &PrettyPlots::Color_Gradient($colorFraction,\@colorStart         ,\@colorEnd        ),
-						   &PrettyPlots::Color_Gradient($colorFraction,\@colorStartHighlight,\@colorEndHighlight)
+						   &GnuPlot::PrettyPlots::Color_Gradient($colorFraction,\@colorStart         ,\@colorEnd        ),
+						   &GnuPlot::PrettyPlots::Color_Gradient($colorFraction,\@colorStartHighlight,\@colorEndHighlight)
 						  ]
 			);		    
 		}
 	    } else {
 		die("Galacticus::Constraints::MassFunction:Construct(): unknown multi-model plot option");
 	    }
-	    &PrettyPlots::Prepare_Dataset(\$plot,
+	    &GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 					  $config->{'x'},$config->{'y'},
 					  errorUp   => $error,
 					  errorDown => $error,
@@ -489,13 +483,13 @@ sub Construct {
 					  symbol    => [6,7], 
 					  weight    => [5,3],
 					  pointSize => 0.5,
-					  color     => $PrettyPlots::colorPairs{'cornflowerBlue'},
+					  color     => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'},
 					  title     => $config->{'observationLabel'}
 		);
 	}
-	&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+	&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 	close($gnuPlot);
-	&LaTeX::GnuPlot2PDF($plotFileTeX,margin => 1);
+	&GnuPlot::LaTeX::GnuPlot2PDF($plotFileTeX,margin => 1);
 
     }
 

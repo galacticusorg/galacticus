@@ -1,18 +1,13 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath  = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath  = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use PDL;
 use PDL::IO::HDF5;
-require Galacticus::Options;
-require Galacticus::Constraints::MassFunctions;
+use Galacticus::Options;
+use Galacticus::Constraints::MassFunctions;
 
 # Compute likelihood (and make a plot) for a Galacticus model given the stellar mass function data from Muzzin et al. (2013;
 # http://adsabs.harvard.edu/abs/2013ApJ...777...18M).
@@ -30,7 +25,7 @@ my %arguments =
     (
      quiet => 0
     );
-&Options::Parse_Options(\@ARGV,\%arguments);
+&Galacticus::Options::Parse_Options(\@ARGV,\%arguments);
 
 # Specify the properties of this mass function.
 my $entry                                    = 0;
@@ -49,7 +44,7 @@ $massFunctionConfig->{'systematicOrder'    } = 1;
 $massFunctionConfig->{'systematicZeroPoint'} = 11.3;
 
 # Read the observed data.
-my $observations                                      = new PDL::IO::HDF5($galacticusPath."data/observations/massFunctionsStellar/Stellar_Mass_Function_ULTRAVISTA_2013_z0.50_1.00.hdf5");
+my $observations                                      = new PDL::IO::HDF5(&galacticusPath()."data/observations/massFunctionsStellar/Stellar_Mass_Function_ULTRAVISTA_2013_z0.50_1.00.hdf5");
 $massFunctionConfig ->{'x'                           }  = $observations->dataset('mass'                )->get    (                  );
 $massFunctionConfig ->{'y'                           }  = $observations->dataset('massFunctionObserved')->get    (                  );
 $massFunctionConfig ->{'yIsPer'                      }  = "ln";
@@ -65,6 +60,6 @@ $massFunctionConfig ->{'errorModel'                  }  = "logNormal"           
 ($massFunctionConfig->{'cosmologyScalingMassFunction'}) = $observations->dataset('massFunction'        )->attrGet('cosmologyScaling');
 
 # Construct the mass function.
-&MassFunctions::Construct(\%arguments,$massFunctionConfig);
+&Galacticus::Constraints::MassFunctions::Construct(\%arguments,$massFunctionConfig);
 
 exit;

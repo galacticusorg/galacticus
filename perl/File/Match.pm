@@ -1,16 +1,8 @@
 # Contains a Perl module which implements matching lines in a file.
 
-package File_Match;
+package File::Match;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
 
 sub Get_Matching_Lines {
     # Return a structure containing all lines from a file that match a regex,

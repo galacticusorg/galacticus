@@ -1,25 +1,19 @@
 # Contains a Perl module which implements processing of "function" directives in the Galacticus build system.
 
-package Function;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+package Galacticus::Build::Function;
 use strict;
 use warnings;
 use utf8;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use DateTime;
 use Data::Dumper;
 use Scalar::Util 'reftype';
 use Sort::Topological qw(toposort);
-require Galacticus::Build::Hooks;
-require Galacticus::Build::Dependencies;
-require Fortran::Utils;
-require List::ExtraUtils;
+use Galacticus::Build::Hooks;
+use Galacticus::Build::Dependencies;
+use Fortran::Utils;
+use List::ExtraUtils;
 
 # Insert hooks for our functions.
 %Hooks::moduleHooks = 
@@ -256,7 +250,7 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= "    private\n";
     $buildData->{'content'} .= "    logical :: isIndestructible=.false.\n";
     $buildData->{'content'} .= "    logical :: isDefaultValue  =.false.\n";
-    foreach ( &ExtraUtils::as_array($buildData->{'data'}) ) {
+    foreach ( &List::ExtraUtils::as_array($buildData->{'data'}) ) {
 	if ( reftype($_) ) {
 	    $_->{'scope'} = "self"
 		unless ( exists($_->{'scope'}) );
@@ -289,7 +283,7 @@ sub Functions_Generate_Output {
 		    my $attributeList =                 $matches[$declarator->{'attributes'}-1] ;
 		    $attributeList =~ s/^\s*,?\s*//;
 		    $attributeList =~ s/\s*$//;
-		    my @attributes = &Fortran_Utils::Extract_Variables($attributeList, keepQualifiers => 1, removeSpaces => 1);
+		    my @attributes = &Fortran::Utils::Extract_Variables($attributeList, keepQualifiers => 1, removeSpaces => 1);
 		    my @variables     = split(/\s*,\s*/,$matches[$declarator->{'variables' }-1]);
 		    foreach my $variable ( @variables ) {
 			$argumentList .= $separator."\\textcolor{red}{\\textless ".$intrinsicName;
@@ -363,7 +357,7 @@ sub Functions_Generate_Output {
     foreach my $class ( @{$buildData->{$directive}->{'classes'}} ) {
 	open(my $classFile,$class->{'file'});
 	until ( eof($classFile) ) {
-	    &Fortran_Utils::Get_Fortran_Line($classFile,my $rawLine, my $processedLine, my $bufferedComments);
+	    &Fortran::Utils::Get_Fortran_Line($classFile,my $rawLine, my $processedLine, my $bufferedComments);
 	    if ( $processedLine =~ m/^\s*type\s*(,\s*abstract\s*|,\s*public\s*|,\s*private\s*|,\s*extends\s*\(([a-zA-Z0-9_]+)\)\s*)*(::)??\s*$directive([a-z0-9_]+)\s*$/i ) {
 		my $extends = $2;
 		my $type    = $directive.$4;
@@ -383,7 +377,7 @@ sub Functions_Generate_Output {
 	my $unitDepth = 0;
 	open(my $classFile,$class->{'file'});
 	until ( eof($classFile) ) {
-	    &Fortran_Utils::Get_Fortran_Line($classFile,my $rawLine, my $processedLine, my $bufferedComments);
+	    &Fortran::Utils::Get_Fortran_Line($classFile,my $rawLine, my $processedLine, my $bufferedComments);
 	    foreach my $unitType ( keys(%unitOpeners) ) {
 		++$unitDepth
 		    if ( $processedLine =~ m/$unitOpeners{$unitType}->{"regEx"}/i );
@@ -430,7 +424,7 @@ sub Functions_Generate_Output {
     }
 
     # Insert any module-scope class content.
-    foreach ( &ExtraUtils::as_array($buildData->{'data'}) ) {
+    foreach ( &List::ExtraUtils::as_array($buildData->{'data'}) ) {
 	if ( reftype($_) ) {
 	    if ( exists($_->{'scope'}) && $_->{'scope'} eq "module" ) {
 		$buildData->{'content'} .= $_->{'content'}."\n";
@@ -756,7 +750,7 @@ sub Functions_Generate_Output {
 			my $attributeList =                 $matches[$declarator->{'attributes'}-1] ;
 			$attributeList =~ s/^\s*,?\s*//;
 			$attributeList =~ s/\s*$//;
-			my @attributes = &Fortran_Utils::Extract_Variables($attributeList, keepQualifiers => 1, removeSpaces => 1);
+			my @attributes = &Fortran::Utils::Extract_Variables($attributeList, keepQualifiers => 1, removeSpaces => 1);
 			foreach my $attribute ( @attributes ) {
 			    die("Galacticus::Build::Functions::Functions_Generate_Output:  attribute not supported for C++-binding")
 				unless ( $attribute eq "intent(in)" );
@@ -798,7 +792,7 @@ sub Functions_Generate_Output {
 	my $containsFound = 0;
 	open(my $classFile,$class->{'file'});
 	until ( eof($classFile) ) {
-	    &Fortran_Utils::Get_Fortran_Line($classFile,my $rawLine, my $processedLine, my $bufferedComments);
+	    &Fortran::Utils::Get_Fortran_Line($classFile,my $rawLine, my $processedLine, my $bufferedComments);
 	    foreach my $unitType ( keys(%unitOpeners) ) {
 		++$unitDepth
 		    if ( $processedLine =~ m/$unitOpeners{$unitType}->{"regEx"}/i );
@@ -861,7 +855,7 @@ sub Functions_Generate_Output {
 			my $attributeList =                 $matches[$declarator->{'attributes'}-1] ;
 			$attributeList =~ s/^\s*,?\s*//;
 			$attributeList =~ s/\s*$//;
-			my @attributes = &Fortran_Utils::Extract_Variables($attributeList, keepQualifiers => 1, removeSpaces => 1);
+			my @attributes = &Fortran::Utils::Extract_Variables($attributeList, keepQualifiers => 1, removeSpaces => 1);
 			foreach my $attribute ( @attributes ) {
 			    die("Galacticus::Build::Functions::Functions_Generate_Output:  attribute not supported for C++-binding")
 				unless ( $attribute eq "intent(in)" );
@@ -961,12 +955,12 @@ sub Functions_Generate_Output {
 	my $separator    = "";
 	my @argumentDefinitions;
 	foreach my $argument ( @arguments ) {
-	    if ( $argument =~ $Fortran_Utils::variableDeclarationRegEx ) {
+	    if ( $argument =~ $Fortran::Utils::variableDeclarationRegEx ) {
 		my $intrinsic     = $1;
 		my $type          = $2;
 		my $attributeList = $3;
 		my $variableList  = $4;
-		my @variables  = &Fortran_Utils::Extract_Variables($variableList,keepQualifiers => 1,lowerCase => 0);
+		my @variables  = &Fortran::Utils::Extract_Variables($variableList,keepQualifiers => 1,lowerCase => 0);
 		my $declaration =
 		{
 		    intrinsic  => $intrinsic,
@@ -979,7 +973,7 @@ sub Functions_Generate_Output {
 		}
 		if ( defined($attributeList) ) {
 		    $attributeList =~ s/^\s*,\s*//;
-		    my @attributes = &Fortran_Utils::Extract_Variables($attributeList,keepQualifiers => 1);
+		    my @attributes = &Fortran::Utils::Extract_Variables($attributeList,keepQualifiers => 1);
 		    $declaration->{'attributes'} = \@attributes;
 		}
 		push(@argumentDefinitions,$declaration);
@@ -1004,7 +998,7 @@ sub Functions_Generate_Output {
 	$documentation .= $argumentList
 	    unless ( $argumentList eq "" );
 	$documentation .= ")\n";
-	$documentation .= &Fortran_Utils::Format_Variable_Defintions(\@argumentDefinitions);
+	$documentation .= &Fortran::Utils::Format_Variable_Defintions(\@argumentDefinitions);
 	$documentation .= "   end ".$type.$category." myImplementation".ucfirst($method->{'name'})."\n";
 	$documentation .= "\\end{lstlisting}\n\n";
     }
@@ -1053,7 +1047,7 @@ sub Functions_Modules_Generate_Output {
 	my $unitDepth = 0;
 	open(my $classFile,$class->{'file'});
 	until ( eof($classFile) ) {
-	    &Fortran_Utils::Get_Fortran_Line($classFile,my $rawLine, my $processedLine, my $bufferedComments);
+	    &Fortran::Utils::Get_Fortran_Line($classFile,my $rawLine, my $processedLine, my $bufferedComments);
 	    if ( $processedLine =~ m/^\s*use\s+([a-zA-Z0-9_\s:\,]+)/ ){
 		$modules{$1} = $1;
 	    }

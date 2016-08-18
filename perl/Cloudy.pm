@@ -3,21 +3,16 @@
 package Cloudy;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 
 sub Initialize {
     # Download and compile Cloudy so that it is ready for use.
     # Specify Cloudy version.
     my $cloudyVersion = "c13.03";
     # Specify Cloudy path.
-    my $cloudyPath    = $galacticusPath."aux/".$cloudyVersion;
+    my $cloudyPath    = &galacticusPath()."aux/".$cloudyVersion;
     # Download the code.
     unless ( -e $cloudyPath.".tar.gz" ) {
 	print "Cloudy::Initialize: downloading Cloudy code.\n";

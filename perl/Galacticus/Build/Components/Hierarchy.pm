@@ -1,23 +1,17 @@
 # Contains a Perl module which handles the object hierarchy.
 
-package Hierarchy;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+package Galacticus::Build::Components::Hierarchy;
 use strict;
 use warnings;
 use utf8;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Data::Dumper;
 use Text::Template 'fill_in_string';
-require List::ExtraUtils;
-require Fortran::Utils;
-require Galacticus::Build::Components::Utils;
-require Galacticus::Build::Components::DataTypes;
+use List::ExtraUtils;
+use Fortran::Utils;
+use Galacticus::Build::Components::Utils;
+use Galacticus::Build::Components::DataTypes;
 
 # Insert hooks for our functions.
 %Galacticus::Build::Component::Utils::componentUtils = 
@@ -73,7 +67,7 @@ if (.not.moduleIsInitialized) then
   if (.not.moduleIsInitialized) then
     ! Parameters controlling output.
 CODE
-    foreach $code::class ( &ExtraUtils::hashList($build->{'componentClasses'}) ) {
+    foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	$code::defaultImplementation = $code::class->{'defaultImplementation'};
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
     ! Insert a function call to get the parameter controlling the choice of implementation for this class.
@@ -110,7 +104,7 @@ CODE
     end if
 CODE
 	    # Insert code to read and parameters controlling outputs.
-	    foreach $code::property ( &ExtraUtils::hashList($code::component->{'properties'}->{'property'}) ) {
+	    foreach $code::property ( &List::ExtraUtils::hashList($code::component->{'properties'}->{'property'}) ) {
 		# Check for output and output condition.
 		if (
 		    exists($code::property->{'output'}               )                       &&
@@ -189,7 +183,7 @@ sub Hierarchy_Finalization {
     # Generate the function code.
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 if (.not.moduleIsInitialized) return
-{join(" ",map {"deallocate(default".$_->{'name'}."Component)\n"} &ExtraUtils::hashList($build->{'componentClasses'}))}
+{join(" ",map {"deallocate(default".$_->{'name'}."Component)\n"} &List::ExtraUtils::hashList($build->{'componentClasses'}))}
 CODE
     # Add the function to the functions list.
     push(

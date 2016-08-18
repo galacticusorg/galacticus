@@ -1,22 +1,16 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath  = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath  = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use XML::Simple;
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
 use Data::Dumper;
-require Galacticus::Options;
-require Galacticus::Constraints::Covariances;
-require Galacticus::Constraints::DiscrepancyModels;
+use Galacticus::Options;
+use Galacticus::Constraints::Covariances;
+use Galacticus::Constraints::DiscrepancyModels;
 
 # Compute likelihood (and make a plot) for a Galacticus model given the projected correlation function data from Hearin et
 # al. (2013; http://adsabs.harvard.edu/abs/2013arXiv1310.6747H).
@@ -32,7 +26,7 @@ my %arguments =
     (
      quiet => 0
     );
-&Options::Parse_Options(\@ARGV,\%arguments);
+&Galacticus::Options::Parse_Options(\@ARGV,\%arguments);
 
 # Object to hold all data.
 my $data;
@@ -60,9 +54,9 @@ foreach ( "separation", "correlationFunction", "correlationFunctionCovariance" )
 
 # Create a plot of the correlation function.
 if ( exists($arguments{'plotFile'}) ) {
-    require GnuPlot::PrettyPlots;
-    require GnuPlot::LaTeX;
-    require XMP::MetaData;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
+use XMP::MetaData;
     # Iterate over masses.
     for(my $entry=0;$entry<3;++$entry) {
 	# Declare variables for GnuPlot;
@@ -92,7 +86,7 @@ if ( exists($arguments{'plotFile'}) ) {
 	print $gnuPlot "set title offset 0,-0.5 'Projected correlation function at \$z\\approx 0.07\$ for \$\\log_{10}(M_\\star/M_\\odot) > ".$data->{'observed'}->{$entry}->{'massMinimum'}."\$'\n";
 	print $gnuPlot "set xlabel 'Separation; \$r_{\\rm p}\$ [Mpc]'\n";
 	print $gnuPlot "set ylabel 'Projected correlation; \$w_{\\rm p}(r_{\\rm p})\$ [Mpc]'\n";
-	&PrettyPlots::Prepare_Dataset(\$plot,
+	&GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 				      $data->{'observed'}->{$entry}->{'separation'         },
 				      $data->{'observed'}->{$entry}->{'correlationFunction'},
 				      errorUp   => $data->{'observed'}->{$entry}->{'error'},
@@ -100,7 +94,7 @@ if ( exists($arguments{'plotFile'}) ) {
 				      style     => "point",
 				      symbol    => [6,7], 
 				      weight    => [5,3],
-				      color     => $PrettyPlots::colorPairs{'cornflowerBlue'},
+				      color     => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'},
 				      title     => "Hearin et al. (2013)"
 	    );
 	my $separationCount = nelem($data->{'model'}->{'separation'});
@@ -112,7 +106,7 @@ if ( exists($arguments{'plotFile'}) ) {
 		->diagonal(0,1)
 		->($entry*$separationCount:($entry+1)*$separationCount-1)
 	    );
-	&PrettyPlots::Prepare_Dataset(\$plot,
+	&GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 				      $data->{'model'}->{'separation'         },
 				      $data->{'model'}->{'correlationFunction'}->(:,($entry)),
 				      errorUp   => $modelError,
@@ -120,12 +114,12 @@ if ( exists($arguments{'plotFile'}) ) {
 				      style     => "point",
 				      symbol    => [6,7], 
 				      weight    => [5,3],
-				      color     => $PrettyPlots::colorPairs{'redYellow'},
+				      color     => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
 				      title     => "Galacticus"
 	    );
-	&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+	&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 	close($gnuPlot);
-	&LaTeX::GnuPlot2PDF($plotFileEPS,margin => 1);
+	&GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS,margin => 1);
     }
 }
 
@@ -147,7 +141,7 @@ $data->{'model'}->{'combined'}->{'correlationFunctionCovariance'} =      $data->
 $data->{'model'}->{'combined'}->{'correlationFunctionError'     } = sqrt($data->{'model'}->{'correlationFunctionCovariance'}->diagonal(0,1));
 
 # Apply discrepancies.
-&DiscrepancyModels::Apply_Discrepancies(
+&Galacticus::Constraints::DiscrepancyModels::Apply_Discrepancies(
     "discrepancySdssClusteringZ0.07.hdf5"                                ,
     $arguments                           {'modelDiscrepancies'           },
     $data     ->{'model'}->{'combined'}->{'correlationFunction'          },
@@ -179,7 +173,7 @@ if ( exists($arguments{'outputFile'}) ) {
     my $offsets;
     my $jacobian;
     my $logLikelihood = 
-	&Covariances::ComputeLikelihood(
+	&Galacticus::Constraints::Covariances::ComputeLikelihood(
 	$data->{'model'   }->{'combined'}->{'correlationFunction'},
 	$data->{'observed'}->{'combined'}->{'correlationFunction'},
 	$fullCovariance                         ,

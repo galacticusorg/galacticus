@@ -1,26 +1,20 @@
 # Contains a Perl module which converts HF5 Fortran types into C-interoperable types to silence compiler warnings.
 
-package HDF5FCInterop;
+package Galacticus::Build::SourceTree::Process::HDF5FCInterop;
 use strict;
 use warnings;
 use utf8;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Data::Dumper;
-require List::ExtraUtils;
-require Galacticus::Build::SourceTree::Hooks;
-require Galacticus::Build::SourceTree;
-require Galacticus::Build::SourceTree::Parse::Declarations;
-require Galacticus::Build::SourceTree::Parse::ModuleUses;
+use List::ExtraUtils;
+## AJB HACK use Galacticus::Build::SourceTree::Hooks;
+## AJB HACK use Galacticus::Build::SourceTree;
+## AJB HACK use Galacticus::Build::SourceTree::Parse::Declarations;
+## AJB HACK use Galacticus::Build::SourceTree::Parse::ModuleUses;
 
 # Insert hooks for our functions.
-$Hooks::processHooks{'hdf5FCInterop'} = \&Process_HDF5FCInterop;
+$Galacticus::Build::SourceTree::Hooks::processHooks{'hdf5FCInterop'} = \&Process_HDF5FCInterop;
 
 sub Process_HDF5FCInterop {
     # Get the tree.
@@ -56,7 +50,7 @@ sub Process_HDF5FCInterop {
 	    }
 	    if ( $typeChanged ) {
 		# Rebuild declarations.
-		&Declarations::BuildDeclarations($node);
+		&Galacticus::Build::SourceTree::Parse::Declarations::BuildDeclarations($node);
 		# Check that the ISO_C_Binding module is used.
 		my $sibling = $node->{'parent'}->{'firstChild'};
 		while ( $sibling ) {
@@ -68,7 +62,7 @@ sub Process_HDF5FCInterop {
 				intrinsic => 1,
 				only      => \%typesAdded
 			    };
-			    &ModuleUses::AddUses($sibling,$moduleUses);
+			    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($sibling,$moduleUses);
 			}
 			last;
 		    }
@@ -76,7 +70,7 @@ sub Process_HDF5FCInterop {
 		}
 	    }
 	}
-	$node = &SourceTree::Walk_Tree($node,\$depth);
+	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }
 }
 

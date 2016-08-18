@@ -1,16 +1,18 @@
 # Launch models on SLURM system.
 
-package Slurm;
+package Galacticus::Launch::Slurm;
 use strict;
 use warnings;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Data::Dumper;
 use Sys::CPU;
 use Cwd;
-require File::Which;
-require Galacticus::Launch::Hooks;
-require Galacticus::Launch::PostProcess;
-require System::Redirect;
-require List::ExtraUtils;
+use File::Which;
+use Galacticus::Launch::Hooks;
+use Galacticus::Launch::PostProcess;
+use System::Redirect;
+use List::ExtraUtils;
 
 # Insert hooks for our functions.
 %Hooks::moduleHooks = 
@@ -128,7 +130,7 @@ sub Launch {
 	    print $slurmFile "mkdir -p ".$scratchPath."\n";
 	}
 	if ( exists($launchScript->{'slurm'}->{'preCommand'}) ) {
-	    foreach my $command ( &ExtraUtils::as_array($launchScript->{'slurm'}->{'preCommand'}) ) {
+	    foreach my $command ( &List::ExtraUtils::as_array($launchScript->{'slurm'}->{'preCommand'}) ) {
 		print $slurmFile $command."\n";
 	    }
 	}
@@ -171,9 +173,9 @@ sub Launch {
 	foreach my $jobID ( keys(%slurmJobs) ) {
 	    unless ( exists($runningSLURMJobs{$jobID}) ) {
 		print " -> SLURM job ".$jobID." has finished; post-processing....\n";
-		&PostProcess::Analyze($slurmJobs{$jobID}->{'job'},$launchScript)
+		&Galacticus::Launch::PostProcess::Analyze($slurmJobs{$jobID}->{'job'},$launchScript)
 		    unless ( $launchScript->{'slurm'}->{'analyze'} eq "yes" );
-		&PostProcess::CleanUp($slurmJobs{$jobID}->{'job'},$launchScript);
+		&Galacticus::Launch::PostProcess::CleanUp($slurmJobs{$jobID}->{'job'},$launchScript);
 		# Remove the job ID from the list of active SLURM jobs.
 		delete($slurmJobs{$jobID});
 	    }

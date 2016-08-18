@@ -1,18 +1,12 @@
 #!/usr/bin/env perl
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use strict;
 use warnings;
 use Data::Dumper;
 use XML::Simple;
 use POSIX;
-require Galacticus::Launch::PBS;
+use Galacticus::Launch::PBS;
 
 # Visualize the posterior distribution from MCMC chains using a triangle arrangement.
 # Andrew Benson (12-June-2012)
@@ -227,7 +221,7 @@ for(my $i=0;$i<scalar(@properties);++$i) {
     }
 }
 # Send jobs to PBS.
-&PBS::SubmitJobs(\%arguments,@pbsStack);
+&Galacticus::Launch::PBS::SubmitJobs(\%arguments,@pbsStack);
 
 # Get output size.
 open(iHndl,"pdfinfo ".$outputFileName."_0_1.pdf|");

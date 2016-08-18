@@ -2,14 +2,8 @@ package CosmoSim;
 use strict;
 use warnings;
 use Cwd;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = cwd()."/";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use WWW::Curl::Easy;
 use WWW::Curl::Form;
 use XML::Simple;
@@ -23,9 +17,9 @@ sub query {
     # Parse the Galacticus config file if it is present.
     my $sqlUser;
     my $sqlPassword;
-    if ( -e $galacticusPath."/galacticusConfig.xml" ) {
+    if ( -e &galacticusPath()."/galacticusConfig.xml" ) {
 	my $xml    = new XML::Simple();
-	my $config = $xml->XMLin($galacticusPath."/galacticusConfig.xml");
+	my $config = $xml->XMLin(&galacticusPath()."/galacticusConfig.xml");
 	if ( exists($config->{'cosmosimDB'}->{'host'}) ) {
 	    my %hosts;
 	    if ( exists($config->{'cosmosimDB'}->{'host'}->{'name'}) ) {

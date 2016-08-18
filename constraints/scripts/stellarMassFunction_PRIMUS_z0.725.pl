@@ -1,19 +1,14 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath  = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath  = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use PDL;
 use PDL::NiceSlice;
 use XML::Simple;
-require Galacticus::Options;
-require Galacticus::Constraints::MassFunctions;
+use Galacticus::Options;
+use Galacticus::Constraints::MassFunctions;
 
 # Compute likelihood (and make a plot) for a Galacticus model given the PRIMUS z=0.725 stellar mass function data from
 # Moustakas et al. (2013; http://adsabs.harvard.edu/abs/2013ApJ...767...50M),
@@ -28,7 +23,7 @@ $massFunctionConfig->{'galacticusFile'} = $ARGV[0];
 # Create a hash of named arguments.
 my $iArg = -1;
 my %arguments;
-&Options::Parse_Options(\@ARGV,\%arguments);
+&Galacticus::Options::Parse_Options(\@ARGV,\%arguments);
 
 # Specify the properties of this mass function.
 my $entry                                    = 5;
@@ -44,7 +39,7 @@ $massFunctionConfig->{'yLabel'             } = "\${\\rm d}n/{\\rm d}\\log M_\\st
 $massFunctionConfig->{'title'              } = "Stellar mass function at \$z\\approx 0.725\$";
 
 # Read the observed data.
-my $observations                                      = new PDL::IO::HDF5($galacticusPath."data/observations/massFunctionsStellar/Stellar_Mass_Function_PRIMUS_z0.65_0.80.hdf5");
+my $observations                                      = new PDL::IO::HDF5(&galacticusPath()."data/observations/massFunctionsStellar/Stellar_Mass_Function_PRIMUS_z0.65_0.80.hdf5");
 $massFunctionConfig ->{'x'                           }  = $observations->dataset('mass'                )->get    (                  );
 $massFunctionConfig ->{'y'                           }  = $observations->dataset('massFunctionObserved')->get    (                  );
 $massFunctionConfig ->{'yIsPer'                      }  = "ln";
@@ -60,6 +55,6 @@ $massFunctionConfig ->{'errorModel'                  }  = "logNormal"           
 ($massFunctionConfig->{'cosmologyScalingMassFunction'}) = $observations->dataset('massFunction'        )->attrGet('cosmologyScaling');
 
 # Construct the mass function.
-&MassFunctions::Construct(\%arguments,$massFunctionConfig);
+&Galacticus::Constraints::MassFunctions::Construct(\%arguments,$massFunctionConfig);
 
 exit;

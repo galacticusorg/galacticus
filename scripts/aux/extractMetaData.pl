@@ -16,6 +16,6 @@ my $mergeFile     = $outputPrefix.".bundle";
 my $patchFile     = $outputPrefix.".patch";
 
 # Extract the metadata.
-&MetaData::Read($plotFile,$parameterFile,$scriptFile,$mergeFile,$patchFile);
+&XMP::MetaData::Read($plotFile,$parameterFile,$scriptFile,$mergeFile,$patchFile);
 
 exit;
