@@ -11,9 +11,9 @@ use Data::Dumper;
 use Galacticus::Build::Hooks;
 
 # Insert hooks for our functions.
-%Hooks::moduleHooks = 
+%Galacticus::Build::Hooks::moduleHooks = 
     (
-     %Hooks::moduleHooks,
+     %Galacticus::Build::Hooks::moduleHooks,
      moduleUse => {parse => \&ModuleUse_Parse_Directive, generate => \&ModuleUse_Generate_Output}
     );
 

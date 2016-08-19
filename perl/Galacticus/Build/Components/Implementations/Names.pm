@@ -17,7 +17,7 @@ use Galacticus::Build::Components::DataTypes;
      %Galacticus::Build::Component::Utils::componentUtils,
      implementationNames =>
      {
-	 functions =>
+	 implementationIteratedFunctions =>
 	     [
 	      \&Implementation_Type
 	     ]
@@ -26,42 +26,38 @@ use Galacticus::Build::Components::DataTypes;
 
 sub Implementation_Type {
     # Generate functions to provide type names for component implementations.
-    my $build = shift();
-    # Iterate over component classes.
-    foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
-	# Iterate over class member implementations.
-	foreach $code::member ( @{$code::class->{'members'}} ) {
-	    my $implementationTypeName = "nodeComponent".ucfirst($code::class->{'name'}).ucfirst($code::member->{'name'});
-	    my $function =
-	    {
-		type        => "type(varying_string) => name",
-		name        => $implementationTypeName."Type",
-		description => "Returns the type name for the ".$code::member->{'name'}." implementation of the ".$code::class->{'name'}." component class.",
-		variables   =>
-		    [
-		     {
-			 intrinsic  => "class",
-			 type       => $implementationTypeName,
-			 attributes => [ "intent(in   )" ],
-			 variables  => [ "self" ]
-		     }
-		    ]
-	    };    
-	    $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
+    my $build     = shift();
+    $code::class  = shift();
+    $code::member = shift();
+    my $implementationTypeName = "nodeComponent".ucfirst($code::class->{'name'}).ucfirst($code::member->{'name'});
+    my $function =
+    {
+	type        => "type(varying_string) => name",
+	name        => $implementationTypeName."Type",
+	description => "Returns the type name for the ".$code::member->{'name'}." implementation of the ".$code::class->{'name'}." component class.",
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "class",
+		 type       => $implementationTypeName,
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "self" ]
+	     }
+	    ]
+    };    
+    $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
 !GCC$ attributes unused :: self
 name='nodeComponent:{$class->{'name'}}:{$member->{'name'}}'
 CODE
-	    # Insert a type-binding for this function into the treeNode type.
-	    push(
-		@{$build->{'types'}->{$implementationTypeName}->{'boundFunctions'}},
-		{
-		    type        => "procedure", 
-		    descriptor  => $function,
-		    name        => "type"
-		}
-		);
+    # Insert a type-binding for this function into the treeNode type.
+    push(
+	@{$build->{'types'}->{$implementationTypeName}->{'boundFunctions'}},
+	{
+	    type        => "procedure", 
+	    descriptor  => $function,
+	    name        => "type"
 	}
-    } 
+	);
 }
 
 1;

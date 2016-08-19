@@ -17,7 +17,7 @@ use Galacticus::Build::Components::DataTypes;
      %Galacticus::Build::Component::Utils::componentUtils,
      classNames =>
      {
-	 functions =>
+	 classIteratedFunctions =>
 	     [
 	      \&Class_Type
 	     ]
@@ -26,39 +26,37 @@ use Galacticus::Build::Components::DataTypes;
 
 sub Class_Type {
     # Generate functions to provide type names for component classes.
-    my $build = shift();
-    # Iterate over component classes.
-    foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
-	my $classTypeName = "nodeComponent".ucfirst($code::class->{'name'});
-	my $function =
-	{
-	    type        => "type(varying_string) => name",
-	    name        => $classTypeName."Type",
-	    description => "Returns the type name for the ".$code::class->{'name'}." component class.",
-	    variables   =>
-		[
-		 {
-		     intrinsic  => "class",
-		     type       => $classTypeName,
-		     attributes => [ "intent(in   )" ],
-		     variables  => [ "self" ]
-		 }
-		]
-	};    
-	$function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
+    my $build    = shift();
+    $code::class = shift();
+    my $classTypeName = "nodeComponent".ucfirst($code::class->{'name'});
+    my $function =
+    {
+	type        => "type(varying_string) => name",
+	name        => $classTypeName."Type",
+	description => "Returns the type name for the ".$code::class->{'name'}." component class.",
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "class",
+		 type       => $classTypeName,
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "self" ]
+	     }
+	    ]
+    };    
+    $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
 !GCC$ attributes unused :: self
 name='nodeComponent:{$class->{'name'}}'
 CODE
-	# Insert a type-binding for this function into the treeNode type.
-	push(
-	    @{$build->{'types'}->{$classTypeName}->{'boundFunctions'}},
-	    {
-		type        => "procedure", 
-		descriptor  => $function,
-		name        => "type"
-	    }
-	    );
-    }
+    # Insert a type-binding for this function into the treeNode type.
+    push(
+	@{$build->{'types'}->{$classTypeName}->{'boundFunctions'}},
+	{
+	    type        => "procedure", 
+	    descriptor  => $function,
+	    name        => "type"
+	}
+	);
 }
 
 1;

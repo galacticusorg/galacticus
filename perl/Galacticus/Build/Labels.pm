@@ -11,9 +11,9 @@ use Text::Table;
 use Galacticus::Build::Hooks;
 
 # Insert hooks for our functions.
-%Hooks::moduleHooks = 
+%Galacticus::Build::Hooks::moduleHooks = 
     (
-     %Hooks::moduleHooks,
+     %Galacticus::Build::Hooks::moduleHooks,
      label => {parse => \&Labels_Parse_Directive, generate => \&Labels_Generate_Output}
     );
 

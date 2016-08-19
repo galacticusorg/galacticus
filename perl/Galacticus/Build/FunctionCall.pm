@@ -13,9 +13,9 @@ use Galacticus::Build::Hooks;
 use Galacticus::Build::Dependencies;
 
 # Insert hooks for our functions.
-%Hooks::moduleHooks = 
+%Galacticus::Build::Hooks::moduleHooks = 
     (
-     %Hooks::moduleHooks,
+     %Galacticus::Build::Hooks::moduleHooks,
      functionCall => {parse => \&Function_Calls_Parse_Directive, generate => \&Function_Calls_Generate_Output}
     );
 

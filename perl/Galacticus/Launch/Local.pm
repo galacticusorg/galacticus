@@ -14,9 +14,9 @@ use Galacticus::Launch::PostProcess;
 use Galacticus::Path;
 
 # Insert hooks for our functions.
-%Hooks::moduleHooks = 
+%Galacticus::Launch::Hooks::moduleHooks = 
     (
-     %Hooks::moduleHooks,
+     %Galacticus::Launch::Hooks::moduleHooks,
      local => {
 	 validate       => \&Validate        ,
 	 outputFileName => \&Output_File_Name,

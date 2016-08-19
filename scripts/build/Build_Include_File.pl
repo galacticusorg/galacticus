@@ -158,14 +158,14 @@ foreach my $currentFileName ( @filesToScan ) {
 		    }
 		    # Look for a match for this action type and call the relevant function to parse it.
 		    my $foundMatch = 0;
-		    foreach my $hook ( keys(%Hooks::moduleHooks) ) {
+		    foreach my $hook ( keys(%Galacticus::Build::Hooks::moduleHooks) ) {
 			if ( $buildData->{'type'} eq $hook ) {
 			    $foundMatch = 1;
-			    if ( exists($Hooks::moduleHooks{$hook}->{'validate'}) ) {
-				my $validateFunction = $Hooks::moduleHooks{$hook}->{'validate'};
+			    if ( exists($Galacticus::Build::Hooks::moduleHooks{$hook}->{'validate'}) ) {
+				my $validateFunction = $Galacticus::Build::Hooks::moduleHooks{$hook}->{'validate'};
 				&{$validateFunction}($xmlCode,$currentFileName);
 			    }
-			    my $parseFunction = $Hooks::moduleHooks{$hook}->{'parse'};
+			    my $parseFunction = $Galacticus::Build::Hooks::moduleHooks{$hook}->{'parse'};
 			    &{$parseFunction}($buildData);
 			}
 		    }
@@ -191,10 +191,10 @@ foreach my $currentFileName ( @filesToScan ) {
 
 # Look for a match for this action type and call the relevant function to generate content.
 my $foundMatch = 0;
-foreach my $hook ( keys(%Hooks::moduleHooks) ) {
+foreach my $hook ( keys(%Galacticus::Build::Hooks::moduleHooks) ) {
     if ( $buildData->{'type'} eq $hook ) {
 	$foundMatch = 1;
-	my $generateFunction = $Hooks::moduleHooks{$hook}->{'generate'};
+	my $generateFunction = $Galacticus::Build::Hooks::moduleHooks{$hook}->{'generate'};
 	&{$generateFunction}($buildData);
     }
 }
