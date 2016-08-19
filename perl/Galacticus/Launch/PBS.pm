@@ -16,9 +16,9 @@ use System::Redirect;
 use List::ExtraUtils;
 
 # Insert hooks for our functions.
-%Hooks::moduleHooks = 
+%Galacticus::Launch::Hooks::moduleHooks = 
     (
-     %Hooks::moduleHooks,
+     %Galacticus::Launch::Hooks::moduleHooks,
      pbs => {
 	 validate       => \&Validate        ,
 	 outputFileName => \&Output_File_Name,

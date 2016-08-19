@@ -6,8 +6,10 @@ use warnings;
 use utf8;
 use Cwd;
 use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Sub::Identify ':all';
 use Text::Template 'fill_in_string';
 use List::ExtraUtils;
+use Data::Dumper;
 use Galacticus::Build::Components::Utils;
 use Galacticus::Build::Components::DataTypes;
 
@@ -19,8 +21,9 @@ use Galacticus::Build::Components::DataTypes;
      {
 	 functions =>
 	     [
-	      \&Class_Move  ,
-	      \&Class_Remove
+	      \&Class_Move             ,
+	      \&Class_Remove           ,
+	      \&Class_Function_Iterator
 	     ]
      }
     );
@@ -220,6 +223,24 @@ CODE
 		name        => $code::class->{'name'}."Remove"
 	    }
 	    );
+    }
+}
+
+sub Class_Function_Iterator {
+    # Iterates over component classes and calls registered functions for each class.
+    my $build = shift();
+    my @hooks = &List::ExtraUtils::hashList(\%Galacticus::Build::Component::Utils::componentUtils, keyAs => 'name');
+    foreach my $hook ( @hooks ) {
+	if ( exists($hook->{'classIteratedFunctions'}) ) {
+	    my @functions = &List::ExtraUtils::as_array($hook->{'classIteratedFunctions'});
+	    foreach my $function ( @functions ) {
+		print "         --> ".$hook->{'name'}.(scalar(@functions) > 1 ? " {".sub_name($function)."}" : "")."\n";
+		# Iterate over classes.
+		foreach my $class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
+		    &{$function}($build,$class);
+		}
+	    }
+	}
     }
 }
 

@@ -13,9 +13,9 @@ use List::ExtraUtils;
 use Fortran::Utils;
 
 # Insert hooks for our functions.
-%Hooks::moduleHooks = 
+%Galacticus::Build::Hooks::moduleHooks = 
     (
-     %Hooks::moduleHooks,
+     %Galacticus::Build::Hooks::moduleHooks,
      functionGlobalEstablish => {parse => \&FunctionGlobal_Parse_Directive, generate => \&FunctionGlobal_Establish_Generate_Output},
      functionGlobalPointers  => {parse => \&FunctionGlobal_Parse_Directive , generate => \&FunctionGlobal_Pointers_Generate_Output }
     );

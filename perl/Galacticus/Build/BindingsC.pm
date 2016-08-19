@@ -14,9 +14,9 @@ use Galacticus::Build::Hooks;
 use Galacticus::Build::Dependencies;
 
 # Insert hooks for our functions.
-%Hooks::moduleHooks = 
+%Galacticus::Build::Hooks::moduleHooks = 
     (
-     %Hooks::moduleHooks,
+     %Galacticus::Build::Hooks::moduleHooks,
      cBinding   => {parse => \&CBinding_Parse_Directive  , generate => \&CBinding_Generate_Output  },
      cTemplate  => {parse => \&CTemplate_Parse_Directive , generate => \&CTemplate_Generate_Output },
      cInterface => {parse => \&CInterface_Parse_Directive, generate => \&CInterface_Generate_Output}

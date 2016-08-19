@@ -6,6 +6,7 @@ use warnings;
 use utf8;
 use Cwd;
 use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Sub::Identify ':all';
 use Text::Template 'fill_in_string';
 use Data::Dumper;
 use List::ExtraUtils;
@@ -20,7 +21,8 @@ use Galacticus::Build::Components::DataTypes;
      {
 	 functions =>
 	     [
-	      \&Implementation_Is_Active
+	      \&Implementation_Is_Active        ,
+	      \&Implementation_Function_Iterator
 	     ]
      }
     );
@@ -106,6 +108,27 @@ sub listRealEvolvers {
 	     ()			
 	 }
     &List::ExtraUtils::hashList($member->{'properties'}->{'property'});	
+}
+
+sub Implementation_Function_Iterator {
+    # Iterates over component classes and calls registered functions for each class.
+    my $build = shift();
+    my @hooks = &List::ExtraUtils::hashList(\%Galacticus::Build::Component::Utils::componentUtils, keyAs => 'name');
+    foreach my $hook ( @hooks ) {
+	if ( exists($hook->{'implementationIteratedFunctions'}) ) {
+	    my @functions = &List::ExtraUtils::as_array($hook->{'implementationIteratedFunctions'});
+	    foreach my $function ( @functions ) {
+		print "         --> ".$hook->{'name'}.(scalar(@functions) > 1 ? " {".sub_name($function)."}" : "")."\n";
+		# Iterate over classes.
+		foreach my $class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
+		    # Iterate over class member implementations.
+		    foreach my $member ( @{$class->{'members'}} ) {
+			&{$function}($build,$class,$member);
+		    }
+		}
+	    }
+	}
+    }
 }
 
 1;
