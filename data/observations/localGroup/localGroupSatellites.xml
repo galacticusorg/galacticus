@@ -748,53 +748,83 @@
       </alias>
       <rightAscensionHours>
         <value>22</value>
+        <reference>Kim et al. (arXiv:1608:04934)</reference>
+        <referenceURL>http://arxiv.org/abs/1608.04934</referenceURL>
       </rightAscensionHours>
       <rightAscensionMinutes>
         <value>24</value>
+        <reference>Kim et al. (arXiv:1608:04934)</reference>
+        <referenceURL>http://arxiv.org/abs/1608.04934</referenceURL>
       </rightAscensionMinutes>
       <rightAscensionSeconds>
-        <value>24.2</value>
+        <value>24.48</value>
 	<error>2.0</error>
+        <reference>Kim et al. (arXiv:1608:04934)</reference>
+        <referenceURL>http://arxiv.org/abs/1608.04934</referenceURL>
       </rightAscensionSeconds>
       <declinationDegrees>
         <value>+05</value>
+        <reference>Kim et al. (arXiv:1608:04934)</reference>
+        <referenceURL>http://arxiv.org/abs/1608.04934</referenceURL>
       </declinationDegrees>
       <declinationArcMinutes>
         <value>24</value>
+        <reference>Kim et al. (arXiv:1608:04934)</reference>
+        <referenceURL>http://arxiv.org/abs/1608.04934</referenceURL>
       </declinationArcMinutes>
       <declinationArcSeconds>
-        <value>36</value>
+        <value>18.0</value>
 	<error>24</error>
+        <reference>Kim et al. (arXiv:1608:04934)</reference>
+        <referenceURL>http://arxiv.org/abs/1608.04934</referenceURL>
       </declinationArcSeconds>
       <latitudeGalactic>
-        <value>69.849</value>
+        <value>69.8452</value>
+	<reference>Kim et al. (arXiv:1608:04934)</reference>
+        <referenceURL>http://arxiv.org/abs/1608.04934</referenceURL>
       </latitudeGalactic>
       <longitudeGalactic>
-        <value>-41.825</value>
+        <value>-41.8293</value>
+        <reference>Kim et al. (arXiv:1608:04934)</reference>
+        <referenceURL>http://arxiv.org/abs/1608.04934</referenceURL>
       </longitudeGalactic>
       <distanceModulus>
-        <value>21.56</value>
-	<error>0.20</error>
+        <value>21.66</value>
+	<error>0.12</error>
+        <reference>Kim et al. (arXiv:1608:04934)</reference>
+        <referenceURL>http://arxiv.org/abs/1608.04934</referenceURL>
       </distanceModulus>
-       <distanceHeliocentric>
-         <value>205</value>
-	 <error>20</error>
+      <distanceHeliocentric>
+        <value>215</value>
+	<error>12</error>
+        <reference>Kim et al. (arXiv:1608:04934)</reference>
+        <referenceURL>http://arxiv.org/abs/1608.04934</referenceURL>
       </distanceHeliocentric>
       <magnitudeAbsoluteV>
-        <value>-4.1</value>
-        <error>0.5</error>
+        <value>-3.4</value>
+        <error>0.4</error>
+        <reference>Kim et al. (arXiv:1608:04934)</reference>
+        <referenceURL>http://arxiv.org/abs/1608.04934</referenceURL>
       </magnitudeAbsoluteV>
       <radiusHalfLight>
-        <value>110e-3</value>
-        <error>6e-3</error>
+        <value>53e-3</value>
+        <error>14e-3</error>
+        <reference>Kim et al. (arXiv:1608:04934)</reference>
+        <referenceURL>http://arxiv.org/abs/1608.04934</referenceURL>
       </radiusHalfLight>
       <ellipticityProjected>
-        <value>0.4</value>
-	<error>0.1</error>
+        <value>0.38</value>
+	<errorHigh>0.22</errorHigh>
+	<errorLow>0.38</errorLow>
+        <reference>Kim et al. (arXiv:1608:04934)</reference>
+        <referenceURL>http://arxiv.org/abs/1608.04934</referenceURL>
       </ellipticityProjected>
       <positionAngle>
-        <value>120</value>
-	<error>15</error>
+        <value>114</value>
+	<errorHigh>19</errorHigh>
+	<errorLow>17</errorLow>
+        <reference>Kim et al. (arXiv:1608:04934)</reference>
+        <referenceURL>http://arxiv.org/abs/1608.04934</referenceURL>
       </positionAngle>
       <massStellar>
         <value>0.0036</value>
@@ -806,6 +836,31 @@
       <metallicityStellar>
         <value>-2.1</value>
       </metallicityStellar>
+      <velocityRadialHeliocentric>
+        <value>-222.9</value>
+        <error>2.6</error>
+        <reference>Kim et al. (arXiv:1608:04934)</reference>
+        <referenceURL>http://arxiv.org/abs/1608.04934</referenceURL>
+      </velocityRadialHeliocentric>
+      <velocityMilkyWay>
+        <value>-67.6</value>
+        <reference>Kim et al. (arXiv:1608:04934)</reference>
+        <referenceURL>http://arxiv.org/abs/1608.04934</referenceURL>
+      </velocityMilkyWay>
+      <velocityDispersionStellar>
+        <value>5.4</value>
+	<errorHigh>3.0</errorHigh>
+	<errorLow>2.5</errorLow>
+        <reference>Kim et al. (arXiv:1608:04934)</reference>
+        <referenceURL>http://arxiv.org/abs/1608.04934</referenceURL>
+      </velocityDispersionStellar>
+      <massDynamicalHalfLightRadius>
+        <value>1.4</value>
+	<errorHigh>3.0</errorHigh>
+	<errorLow>1.1</errorLow>
+        <reference>Kim et al. (arXiv:1608:04934)</reference>
+        <referenceURL>http://arxiv.org/abs/1608.04934</referenceURL>
+      </massDynamicalHalfLightRadius>
       <publication>
 	<value>Kim et al. (2015; arXiv:1503.08268)</value>
       </publication>
