@@ -1,24 +1,19 @@
 # Contains a Perl module which implements parsing of variable declarations in the Galacticus preprocessor system.
 
-package Declarations;
+package Galacticus::Build::SourceTree::Parse::Declarations;
 use strict;
 use warnings;
 use utf8;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Data::Dumper;
-use Storable qw(dclone);require Fortran::Utils;
-require Galacticus::Build::SourceTree::Hooks;
-require Galacticus::Build::SourceTree;
+use Storable qw(dclone);
+use Fortran::Utils;
+## AJB HACK use Galacticus::Build::SourceTree::Hooks;
+## AJB HACK use Galacticus::Build::SourceTree;
 
 # Insert hooks for our functions.
-$Hooks::parseHooks{'declarations'} = \&Parse_Declarations;
+$Galacticus::Build::SourceTree::Hooks::parseHooks{'declarations'} = \&Parse_Declarations;
 
 sub Parse_Declarations {
     # Get the tree.
@@ -38,23 +33,23 @@ sub Parse_Declarations {
 	    open(my $code,"<",\$node->{'content'});
 	    do {
 		# Get a line.
-		&Fortran_Utils::Get_Fortran_Line($code,my $rawLine, my $processedLine, my $bufferedComments);
+		&Fortran::Utils::Get_Fortran_Line($code,my $rawLine, my $processedLine, my $bufferedComments);
 		# Determine if line is a declaration line.
 		my $isDeclaration = 0;
 		$isDeclaration    = 1
 		    if ( $processedLine =~ m/^\s*implicit\s+none\s*$/ );
 		my $declaration;
-		foreach ( keys(%Fortran_Utils::intrinsicDeclarations) ) {
-		    if ( my @matches = ( $processedLine =~ $Fortran_Utils::intrinsicDeclarations{$_}->{'regEx'} ) ) {
-			my $intrinsic  = $Fortran_Utils::intrinsicDeclarations{$_}->{'intrinsic'};
+		foreach ( keys(%Fortran::Utils::intrinsicDeclarations) ) {
+		    if ( my @matches = ( $processedLine =~ $Fortran::Utils::intrinsicDeclarations{$_}->{'regEx'} ) ) {
+			my $intrinsic  = $Fortran::Utils::intrinsicDeclarations{$_}->{'intrinsic'};
 			my $type;
-			($type         = $matches[$Fortran_Utils::intrinsicDeclarations{$_}->{'type'}]) =~ s/\((.*)\)/$1/
-			    if ( $matches[$Fortran_Utils::intrinsicDeclarations{$_}->{'type'}] );
-			my $attributesText = $matches[$Fortran_Utils::intrinsicDeclarations{$_}->{'attributes'}];
+			($type         = $matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'type'}]) =~ s/\((.*)\)/$1/
+			    if ( $matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'type'}] );
+			my $attributesText = $matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'attributes'}];
 			$attributesText =~ s/^\s*,\s*//
 			    if  ( $attributesText );
-			my @attributes = &Fortran_Utils::Extract_Variables($attributesText,keepQualifiers => 1);
-			my @variables  = &Fortran_Utils::Extract_Variables($matches[$Fortran_Utils::intrinsicDeclarations{$_}->{'variables'}],keepQualifiers => 1);
+			my @attributes = &Fortran::Utils::Extract_Variables($attributesText,keepQualifiers => 1);
+			my @variables  = &Fortran::Utils::Extract_Variables($matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'variables'}],keepQualifiers => 1);
 			$declaration = {
 			    intrinsic  => $intrinsic  ,
 			    type       => $type       ,
@@ -126,10 +121,10 @@ sub Parse_Declarations {
 	    # If we have a single code block, nothing needs to change.
 	    unless ( scalar(@newNodes) == 1 && $newNodes[0]->{'type'} eq "code" ) {
 		# New nodes created, insert them, replacing the old node.
-		&SourceTree::ReplaceNode($node,\@newNodes);
+		&Galacticus::Build::SourceTree::ReplaceNode($node,\@newNodes);
 	    }
 	}
-	$node = &SourceTree::Walk_Tree($node,\$depth);
+	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }    
 }
 
@@ -181,9 +176,9 @@ sub AddDeclarations {
 	};
 	# Inert the node, after any module use node if one exists.
 	if ( $usesNode ) {
-	    &SourceTree::InsertAfterNode ($usesNode            ,[$declarationsNode]);
+	    &Galacticus::Build::SourceTree::InsertAfterNode ($usesNode            ,[$declarationsNode]);
 	} else {	
-	    &SourceTree::InsertBeforeNode($node->{'firstChild'},[$declarationsNode]);
+	    &Galacticus::Build::SourceTree::InsertBeforeNode($node->{'firstChild'},[$declarationsNode]);
 	}
     }
     # Add the declarations.
@@ -213,9 +208,9 @@ sub AddAttributes {
 	}
  	$childNode = $childNode->{'sibling'};
     }
-    die('Galacticus::Build::SourceTree::Process::Declarations::AddAttributes: no declarations present'       )
+    die('Galacticus::Build::SourceTree::Process::Galacticus::Build::SourceTree::Parse::Declarations::AddAttributes: no declarations present'       )
 	unless ( $declarationsFound );
-    die('Galacticus::Build::SourceTree::Process::Declarations::AddAttributes: variable declaration not found')
+    die('Galacticus::Build::SourceTree::Process::Galacticus::Build::SourceTree::Parse::Declarations::AddAttributes: variable declaration not found')
 	unless ( $declarationFound  );
     # Modify the attributes.
     if ( scalar(@{$declarationFound->{'variables'}}) > 1 ) {
@@ -256,9 +251,9 @@ sub GetDeclaration {
 	}
  	$childNode = $childNode->{'sibling'};
     }
-    die('Galacticus::Build::SourceTree::Process::Declarations::GetDeclaration: no declarations present'       )
+    die('Galacticus::Build::SourceTree::Process::Galacticus::Build::SourceTree::Parse::Declarations::GetDeclaration: no declarations present'       )
 	unless ( $declarationsFound );
-    die('Galacticus::Build::SourceTree::Process::Declarations::GetDeclaration: variable declaration not found')
+    die('Galacticus::Build::SourceTree::Process::Galacticus::Build::SourceTree::Parse::Declarations::GetDeclaration: variable declaration not found')
 	unless ( $declarationFound  );
     return $declarationFound;
 }

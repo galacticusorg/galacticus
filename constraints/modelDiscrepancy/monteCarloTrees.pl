@@ -1,12 +1,6 @@
 #!/usr/bin/env perl
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use strict;
 use warnings;
 use PDL;
@@ -14,11 +8,11 @@ use PDL::NiceSlice;
 use PDL::IO::HDF5;
 use Data::Dumper;
 use XML::Simple;
-require Galacticus::Options;
-require Galacticus::Constraints::Parameters;
-require Galacticus::Constraints::DiscrepancyModels;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
+use Galacticus::Options;
+use Galacticus::Constraints::Parameters;
+use Galacticus::Constraints::DiscrepancyModels;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
 
 # Run calculations to determine the model discrepancy arising from the use of Monte Carlo merger trees.
 # Andrew Benson (16-November-2012)
@@ -35,7 +29,7 @@ my %arguments =
      waitSleepDuration => 10   ,
      monotonizeGrowth  => "no"
     );
-&Options::Parse_Options(\@ARGV,\%arguments);
+&Galacticus::Options::Parse_Options(\@ARGV,\%arguments);
 
 # Define constants.
 my $massSolar = pdl 1.93392e30;
@@ -79,7 +73,7 @@ if ( $arguments{'make'} eq "yes" ) {
 }
 
 # Get a hash of the parameter values.
-(my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'likelihood'}->{'compilation'},$baseParameters);
+(my $constraintsRef, my $parameters) = &Galacticus::Constraints::Parameters::Compilation($config->{'likelihood'}->{'compilation'},$baseParameters);
 my @constraints = @{$constraintsRef};
 
 # Extract all existing analyses.
@@ -557,7 +551,7 @@ my @modelRuns =
 foreach my $model ( @modelRuns ) {
     $arguments{$_} = $model->{$_}
         foreach ( keys(%{$model}) );
-    &DiscrepancyModels::RunModels(
+    &Galacticus::Constraints::DiscrepancyModels::RunModels(
 	    "monteCarloTrees"                              ,
 	    "the use of Monte Carlo generated merger trees",
 	    $configFile                                    ,
@@ -604,7 +598,7 @@ for (my $i=0;$i<nelem($snapshotRedshifts);$i+=$step) {
 	    my $mass     = $hmf->dataset('mass')->get();
 	    my $massFunction = $hmf->dataset('massFunction')->get();
 	    my $massFunctionCovariance = $hmf->dataset('massFunctionCovariance')->get();
-	    &PrettyPlots::Prepare_Dataset(
+	    &GnuPlot::PrettyPlots::Prepare_Dataset(
 		\$plot,
 		$mass,
 		$massFunction,
@@ -614,14 +608,14 @@ for (my $i=0;$i<nelem($snapshotRedshifts);$i+=$step) {
 		symbol    => [6,7], 
 		weight    => [5,3],
 		pointSize => 0.1,
-		color     => $PrettyPlots::colorPairs{$PrettyPlots::colorPairSequences{'contrast'}[$j]},
+		color     => $GnuPlot::PrettyPlots::colorPairs{$GnuPlot::PrettyPlots::colorPairSequences{'contrast'}[$j]},
 		title     => $modelName." : ".$type
 		);
 	}
     }
-    &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+    &GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
     close($gnuPlot);
-    &LaTeX::GnuPlot2PDF($plotFileTeX,margin => 1);
+    &GnuPlot::LaTeX::GnuPlot2PDF($plotFileTeX,margin => 1);
 }
 
 exit;

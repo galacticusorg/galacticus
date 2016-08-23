@@ -1,14 +1,8 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Config;
 use if $Config{'useithreads'}, 'threads';
 use XML::Simple;
@@ -23,12 +17,12 @@ use PDL;
 use PDL::IO::HDF5;
 use File::Slurp;
 use Storable qw(dclone);
-require Fortran::Utils;
-require File::Which;
-require File::NFSLock;
-require System::Redirect;
-require Galacticus::Constraints::Parameters;
-require List::ExtraUtils;
+use Fortran::Utils;
+use File::Which;
+use File::NFSLock;
+use System::Redirect;
+use Galacticus::Constraints::Parameters;
+use List::ExtraUtils;
 my $useThreads = 0;
 if ( $^V gt v5.10.0 && $Config{useithreads} ) {
     $useThreads = 1;
@@ -46,7 +40,7 @@ if ( $^V gt v5.10.0 && $Config{useithreads} ) {
 die("Usage: constrainGalacticus.pl <configFile> <mpiRank> <likelihoodFile> <temperature> <store> <param1> [<param2>......]") 
     unless ( scalar(@ARGV) > 5 );
 my $configFile = $ARGV[0];
-my $config     = &Parameters::Parse_Config($configFile,useStored => 1);
+my $config     = &Galacticus::Constraints::Parameters::Parse_Config($configFile,useStored => 1);
 
 # Error codes.
 my $errorStatusXCPU = 1025; # CPU time limit exceeded.
@@ -74,7 +68,7 @@ my $temperature    = $ARGV[3];
 # Get the store status.
 my $store          = $ARGV[4];
 # Get a hash of the new parameters.
-my $newParameters = &Parameters::Convert_Parameters_To_Galacticus($config,@ARGV[5..$#ARGV]);
+my $newParameters = &Galacticus::Constraints::Parameters::Convert_Parameters_To_Galacticus($config,@ARGV[5..$#ARGV]);
 
 # Find the scratch directory.
 my $scratchDirectory = $config->{'likelihood'}->{'workDirectory'}."/mcmc";
@@ -139,7 +133,7 @@ my $badLogLikelihoodVariance =  0.0;
 my @temporaryFiles;
 
 # Get a hash of the parameter values.
-(my $constraintsRef, my $parameters) = &Parameters::Compilation($compilationFile,$baseParameters);
+(my $constraintsRef, my $parameters) = &Galacticus::Constraints::Parameters::Compilation($compilationFile,$baseParameters);
 my @constraints = @{$constraintsRef};
 
 # Remove any old semaphore file.
@@ -251,7 +245,7 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
 		    if ( exists($parameters->{'mergerTreeOperatorMethod'}) ) {
 			my @operators;
 			if ( $parameters->{'mergerTreeOperatorMethod'}->{'value'} eq "sequence" ) {
-			    @operators = &ExtraUtils::as_array($parameters->{'mergerTreeOperatorMethod'}->{'mergerTreeOperatorMethod'});
+			    @operators = &List::ExtraUtils::as_array($parameters->{'mergerTreeOperatorMethod'}->{'mergerTreeOperatorMethod'});
 			    push(@operators,$newOperator);
 			} else {
 			    @operators = ( dclone($parameters->{'mergerTreeOperatorMethod'}), $newOperator );
@@ -321,7 +315,7 @@ if ( defined($newParameters) ) {
 }
 
 # Write the modified parameters to file.
-&Parameters::Output($parameters,$scratchDirectory."/constrainGalacticusParameters".$mpiRank.".xml");
+&Galacticus::Constraints::Parameters::Output($parameters,$scratchDirectory."/constrainGalacticusParameters".$mpiRank.".xml");
 push(@temporaryFiles,$scratchDirectory."/constrainGalacticusParameters".$mpiRank.".xml");
 
 # Run the Galacticus model.
@@ -333,7 +327,7 @@ $glcCommand .= "ulimit -v ".$memoryLimit."; "
 $glcCommand .= "export OMP_NUM_THREADS=".$config->{'likelihood'}->{'threads'}."; "
     if ( exists($config->{'likelihood'}->{'threads'}) );
 $glcCommand .= "export ".$_."; "
-    foreach ( &ExtraUtils::as_array($config->{'likelihood'}->{'environment'}) );
+    foreach ( &List::ExtraUtils::as_array($config->{'likelihood'}->{'environment'}) );
 my $coredump = "YES";
 $coredump = $config->{'likelihood'}->{'coredump'}
     if ( exists($config->{'likelihood'}->{'coredump'}) );

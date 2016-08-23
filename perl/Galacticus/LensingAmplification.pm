@@ -1,18 +1,11 @@
 # Contains a Perl module which implements calculations of probabilistic
 # gravitational lensing amplification for galaxies.
 
-package LensingAmplification;
+package Galacticus::LensingAmplification;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
- $ENV{"GALACTICUS_ROOT_V094"} = getcwd()."/";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use PDL::Math;
 use PDL::NiceSlice;
@@ -23,10 +16,10 @@ use PDL::IO::HDF5;
 use Astro::Cosmology;
 use DateTime;
 use Data::Dumper;
-require Galacticus::HDF5;
+use Galacticus::HDF5;
 
-%HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-    "^lensingAmplification\$" => \&LensingAmplification::Get_Amplification
+%Galacticus::HDF5::galacticusFunctions = ( %Galacticus::HDF5::galacticusFunctions,
+    "^lensingAmplification\$" => \&Galacticus::LensingAmplification::Get_Amplification
     );
 
 # Module variables.
@@ -272,7 +265,7 @@ sub Get_Amplification {
     }
 
     # Retrieve the redshift of the galaxies.
-    &HDF5::Get_Dataset($dataBlock,["redshift"]);
+    &Galacticus::HDF5::Get_Dataset($dataBlock,["redshift"]);
 
     # Generate uniform random deviates in the 0-1 range for all galaxies.
     my $dataSets = $dataBlock->{'dataSets'};

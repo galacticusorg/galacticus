@@ -1,26 +1,21 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use PDL;
 use PDL::NiceSlice;
 use XML::Simple;
 use Math::SigFigs;
 use Data::Dumper;
-require File::Which;
-require Galacticus::HDF5;
-require Galacticus::Magnitudes;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
-require System::Redirect;
-require XMP::MetaData;
+use File::Which;
+use Galacticus::HDF5;
+use Galacticus::Magnitudes;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
+use System::Redirect;
+use XMP::MetaData;
 
 # Get name of input and output files.
 die("Plot_SDSS_Colors_Distribution.pl <galacticusFile> <outputDir/File> [<showFit>]")
@@ -51,13 +46,13 @@ if ( $outputTo =~ m/\.pdf$/ ) {
 my $dataSet;
 $dataSet->{'file'} = $galacticusFile;
 $dataSet->{'store'} = 0;
-&HDF5::Get_Parameters($dataSet);
-&HDF5::Count_Trees($dataSet);
-&HDF5::Select_Output($dataSet,0.1);
+&Galacticus::HDF5::Get_Parameters($dataSet);
+&Galacticus::HDF5::Count_Trees($dataSet);
+&Galacticus::HDF5::Select_Output($dataSet,0.1);
 
 # Read the XML data file.
 my $xml = new XML::Simple;
-my $data = $xml->XMLin($galacticusPath."data/observations/galaxyColors/Galaxy_Colors_SDSS_Weinmann_2006.xml");
+my $data = $xml->XMLin(&galacticusPath()."data/observations/galaxyColors/Galaxy_Colors_SDSS_Weinmann_2006.xml");
 my $columns = $data->{'galaxyColors'}->{'columns'};
 my $magnitude = pdl @{$columns->{'magnitude'}->{'data'}};
 my $color = pdl @{$columns->{'color'}->{'data'}};
@@ -97,7 +92,7 @@ my $countGalacticus = PDL->zeroes($magnitudePoints,$colorPoints);
 my $errorGalacticus = PDL->zeroes($magnitudePoints,$colorPoints);
 
 $dataSet->{'tree'} = "all";
-&HDF5::Get_Dataset($dataSet,['mergerTreeWeight','magnitudeTotal:SDSS_r:observed:z0.1000:dustAtlas:AB','magnitudeTotal:SDSS_g:observed:z0.1000:dustAtlas:AB']);
+&Galacticus::HDF5::Get_Dataset($dataSet,['mergerTreeWeight','magnitudeTotal:SDSS_r:observed:z0.1000:dustAtlas:AB','magnitudeTotal:SDSS_g:observed:z0.1000:dustAtlas:AB']);
 my $dataSets  = $dataSet->{'dataSets'};
 my $magnitudeGalacticus = $dataSets->{'magnitudeTotal:SDSS_r:observed:z0.1000:dustAtlas:AB'};
 my $colorGalacticus     = $dataSets->{'magnitudeTotal:SDSS_g:observed:z0.1000:dustAtlas:AB'}-$dataSets->{'magnitudeTotal:SDSS_r:observed:z0.1000:dustAtlas:AB'};
@@ -195,7 +190,7 @@ for(my $iMagnitude=0;$iMagnitude<$magnitudePoints;++$iMagnitude) {
 }
 print $gnuPlot "e\n";
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF("tmp.tex");
+&GnuPlot::LaTeX::GnuPlot2PDF("tmp.tex");
 unlink("tmp.tex","tmp-inc.pdf");
 unlink("contour.dat");
 unlink("contour1.dat");
@@ -232,8 +227,8 @@ system("ps2pdf tmp.ps tmp2.pdf");
 unlink($outputFile);
 die("Plot_SDSS_Color_Distribution.pl: 'pdfmerge' tool is required")
     unless ( &File::Which::which("pdfmerge") );
-&SystemRedirect::tofile("pdfmerge tmp.pdf tmp2.pdf ".$outputFile,"/dev/null");
+&System::Redirect::tofile("pdfmerge tmp.pdf tmp2.pdf ".$outputFile,"/dev/null");
 unlink("tmp.ps","tmp.pdf","tmp2.pdf");
-&MetaData::Write($outputFile,$galacticusFile,$self);
+&XMP::MetaData::Write($outputFile,$galacticusFile,$self);
 
 exit;

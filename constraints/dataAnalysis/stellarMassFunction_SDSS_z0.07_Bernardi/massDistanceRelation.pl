@@ -1,20 +1,15 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use PDL;
 use PDL::NiceSlice;
 use PDL::Fit::Polynomial;
 use PDL::IO::HDF5;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
 
 # Find relation between mass and maximum distance for the sample of Bernardi et al. (2013;
 # http://adsabs.harvard.edu/abs/2013MNRAS.436..697B).  Andrew Benson (24-April-2014)
@@ -100,8 +95,8 @@ my $volumeMaximum = pdl # Comoving volumes are in units of 10^9 Mpc^3.
     );
 
 # Solid angle of the sample.
-system($galacticusPath."scripts/aux/mangleRansack.pl ".$galacticusPath."constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/sdss_dr72safe0_res6d.pol ".$galacticusPath."constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/solidAngle.hdf5 0");
-my $solidAngleFile = new PDL::IO::HDF5($galacticusPath."constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/solidAngle.hdf5");
+system(&galacticusPath()."scripts/aux/mangleRansack.pl ".&galacticusPath()."constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/sdss_dr72safe0_res6d.pol ".&galacticusPath()."constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/solidAngle.hdf5 0");
+my $solidAngleFile = new PDL::IO::HDF5(&galacticusPath()."constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/solidAngle.hdf5");
 my $solidAngles    = $solidAngleFile->dataset('solidAngle')->get();
 my $solidAngle     = $solidAngles->sum();
 
@@ -127,7 +122,7 @@ for(my $i=0;$i<nelem($coeffs);++$i) {
 # Create a plot.
 my $plot;
 my $gnuPlot;
-my $plotFile = $galacticusPath."constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/massDistanceRelation.pdf";
+my $plotFile = &galacticusPath()."constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/massDistanceRelation.pdf";
 (my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
 open($gnuPlot,"|gnuplot");
 print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
@@ -151,27 +146,27 @@ print $gnuPlot "set format y '\$10^{\%L}\$'\n";
 print $gnuPlot "set xrange [3.0e8:2.0e12]\n";
 print $gnuPlot "set yrange [100.0:2500.0]\n";
 print $gnuPlot "set pointsize 2.0\n";
-&PrettyPlots::Prepare_Dataset(
+&GnuPlot::PrettyPlots::Prepare_Dataset(
     \$plot,
     10.0**$log10MassStellar,
     10.0**$log10DistanceMaximum,
     style      => "point",
     weight     => [5,3],
     symbol     => [6,7],
-    color      => $PrettyPlots::colorPairs{'mediumSeaGreen'},
+    color      => $GnuPlot::PrettyPlots::colorPairs{'mediumSeaGreen'},
     title      => 'Bernardi et al. (2013)'
     );
-&PrettyPlots::Prepare_Dataset(
+&GnuPlot::PrettyPlots::Prepare_Dataset(
     \$plot,
     10.0**$fitMass    ,
     10.0**$fitDistance,
     style      => "line",
     weight     => [5,3],
-    color      => $PrettyPlots::colorPairs{'redYellow'},
+    color      => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
     title      => 'fit'
     );
-&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF($plotFileEPS);
+&GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS);
 
 exit;

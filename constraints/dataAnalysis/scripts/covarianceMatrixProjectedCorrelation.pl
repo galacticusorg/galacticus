@@ -1,14 +1,9 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use XML::Simple;
 use PDL;
 use PDL::NiceSlice;
@@ -17,8 +12,8 @@ use PDL::Math;
 use Data::Dumper;
 use LaTeX::Encode;
 use Clone qw(clone);
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
 
 # Find the maximum likelihood estimate of the covariance matrix for projected correlation functions.
 # Andrew Benson (05-July-2012)
@@ -113,7 +108,7 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	print oHndl $xmlOutput->XMLout($parameters);
 	close(oHndl);
 	# Generate the covariance matrix.
-	system($galacticusPath."constraints/dataAnalysis/scripts/generateCovarianceMatrixProjectedCorrelation.pl ".$stageDirectory."/".$parameterFileLeaf." ".$configFile." ".$mcmcConfigFile." ".$stage);
+	system(&galacticusPath()."constraints/dataAnalysis/scripts/generateCovarianceMatrixProjectedCorrelation.pl ".$stageDirectory."/".$parameterFileLeaf." ".$configFile." ".$mcmcConfigFile." ".$stage);
 	# Estimate the intergal constraint.
 	my $covarianceFile = new PDL::IO::HDF5(">".$parameters->{'parameter'}->{'projectedCorrelationFunctionCovarianceOutputFileName'}->{'value'});
 	my $mockCorrelation    = $covarianceFile->dataset('projectedCorrelationFunction')->get();
@@ -184,7 +179,7 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
     	}
     	print $gnuPlot "e\n";
     	close($gnuPlot);
-    	&LaTeX::GnuPlot2PDF($plotFileEPS);
+    	&GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS);
     }
 
     # Launch MCMC simulation to find parameters which give a good fit to this mass function.
@@ -379,7 +374,7 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	    open(oHndl,">".$stageDirectory."/projectedCorrelationFunctionGenerate".$i.".xml");
 	    print oHndl $xmlOutput->XMLout($parameters);
 	    close(oHndl);
-	    system($galacticusPath."Projected_Correlation_Function.exe ".$stageDirectory."/projectedCorrelationFunctionGenerate".$i.".xml");
+	    system(&galacticusPath()."Projected_Correlation_Function.exe ".$stageDirectory."/projectedCorrelationFunctionGenerate".$i.".xml");
 	    # Read the best fit projected correlation function data.
 	    my $bestFit                      = new PDL::IO::HDF5($stageDirectory."/projectedCorrelationFunctionBestFit".$i.".hdf5");
 	    my $separation                   = $bestFit->dataset('separation'          )->get();
@@ -422,7 +417,7 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	    print $gnuPlot "set yrange [".$yMinimum.":".$yMaximum."]\n";
 	    print $gnuPlot "set pointsize 2.0\n";
 	    $sourceLabel =~ s/\\/\\\\/g;
-	    &PrettyPlots::Prepare_Dataset(
+	    &GnuPlot::PrettyPlots::Prepare_Dataset(
 		\$plot,
 		$separationObserved,
 		$projectedCorrelationFunctionObserved->(:,($i)),
@@ -431,10 +426,10 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 		style      => "point",
 		weight     => [5,3],
 		symbol     => [6,7],
-		color      => $PrettyPlots::colorPairs{'mediumSeaGreen'},
+		color      => $GnuPlot::PrettyPlots::colorPairs{'mediumSeaGreen'},
 		title      => $sourceLabel
 		);
-	    &PrettyPlots::Prepare_Dataset(
+	    &GnuPlot::PrettyPlots::Prepare_Dataset(
 		\$plot,
 		$separation,
 		$projectedCorrelationFunction,
@@ -442,12 +437,12 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 		weight     => [5,3],
 		symbol     => [6,7],
 		pointSize  => 0.5,
-		color      => $PrettyPlots::colorPairs{'redYellow'},
+		color      => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
 		title      => "Maximum likelihood fit"
     	    );
-	    &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+	    &GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 	    close($gnuPlot);
-	    &LaTeX::GnuPlot2PDF($plotFileEPS);
+	    &GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS);
 	}
     }    
 }

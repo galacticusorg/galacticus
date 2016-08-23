@@ -1,16 +1,9 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
- $ENV{"GALACTICUS_ROOT_V094"} = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
-require File::Which;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/../perl';
+use File::Which;
 
 # Take trees from the Bolshoi simulation and process into both Galacticus and IRATE formats.
 # Andrew Benson (12-October-2012)

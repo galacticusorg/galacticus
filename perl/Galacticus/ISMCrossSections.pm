@@ -1,6 +1,6 @@
 # Contains a Perl module which implements calculation of cross-sections in the ISM.
 
-package ISMCrossSections;
+package Galacticus::ISMCrossSections;
 use strict;
 use warnings;
 use utf8;

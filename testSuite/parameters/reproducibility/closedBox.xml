@@ -6,14 +6,14 @@
   <version>0.9.4</version>
 
   <!-- Component selection -->
-  <treeNodeMethodBasic             value="standard"   />
-  <treeNodeMethodHotHalo           value="null"       />
-  <treeNodeMethodBlackHole         value="null"       />
-  <treeNodeMethodDarkMatterProfile value="null"       />
-  <treeNodeMethodDisk              value="verySimple" />
-  <treeNodeMethodSatellite         value="null"       />
-  <treeNodeMethodSpheroid          value="null"       />
-  <treeNodeMethodSpin              value="null"       />
+  <treeNodeMethodBasic             value="standard"       />
+  <treeNodeMethodHotHalo           value="null"           />
+  <treeNodeMethodBlackHole         value="null"           />
+  <treeNodeMethodDarkMatterProfile value="null"           />
+  <treeNodeMethodDisk              value="verySimpleSize" />
+  <treeNodeMethodSatellite         value="null"           />
+  <treeNodeMethodSpheroid          value="null"           />
+  <treeNodeMethodSpin              value="preset"         />
 
   <!-- Cosmological parameters and options -->
   <cosmologyFunctionsMethod  value="matterLambda"/>
@@ -44,7 +44,7 @@
   <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
 
   <!-- Merger tree building options -->
-  <mergerTreeConstructMethod                 value="fullySpecified"                                      />
+  <mergerTreeConstructMethod                 value="fullySpecified"                                        />
   <mergerTreeConstructFullySpecifiedFileName value="testSuite/parameters/reproducibility/closedBoxTree.xml"/>
 
   <!-- Halo accretion options -->
@@ -53,8 +53,11 @@
   <!-- Dark matter halo profile -->
   <darkMatterProfileMethod value="isothermal"/>
   
-  <!-- Hot hal model options -->
+  <!-- Hot halo model options -->
   <hotHaloMassDistributionMethod value="null"/>
+
+  <!-- Galactic structure options -->
+  <galacticStructureRadiusSolverMethod value="fixed"/>
 
   <!-- Star formation rate -->
   <starFormationTimescaleDisksMethod         value="fixed" />

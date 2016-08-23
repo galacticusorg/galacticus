@@ -1,24 +1,18 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath  = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath  = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use XML::Simple;
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
 use PDL::GSL::RNG;
 use Data::Dumper;
-require Galacticus::HDF5;
-require Galacticus::Options;
-require Galacticus::Constraints::Covariances;
-require Galacticus::Constraints::LocalGroupDatabase;
+use Galacticus::HDF5;
+use Galacticus::Options;
+use Galacticus::Constraints::Covariances;
+use Galacticus::Constraints::LocalGroupDatabase;
 
 # Compute likelihood (and make a plot) for a Galacticus model given the stellar mass function of Milky Way satellite galaxies.
 # Andrew Benson (13-November-2014)
@@ -36,7 +30,7 @@ my %arguments =
      central     => "MilkyWay",
      massMinimum => 0.0
     );
-&Options::Parse_Options(\@ARGV,\%arguments);
+&Galacticus::Options::Parse_Options(\@ARGV,\%arguments);
 
 # Define constants.
 my $Pi = pdl 3.1415927;
@@ -46,7 +40,7 @@ my $distanceDataset = "distance".$arguments{'central'};
 
 # Extract data from the Local Group database.
 (my $names, my $masses, my $distanceModuli, my $vBandApparentMagnitudes, my $vBandAbsoluteMagnitudes, my $detectionEfficiency, my $publication, my $distances) 
-    = &LocalGroup::Select(["name","massStellar","distanceModulus","magnitudeApparentV","magnitudeAbsoluteV","detectionEfficiencyHalfLight","publication",$distanceDataset], excludeCentral => 1, );
+    = &Galacticus::Constraints::LocalGroupDatabase::Select(["name","massStellar","distanceModulus","magnitudeApparentV","magnitudeAbsoluteV","detectionEfficiencyHalfLight","publication",$distanceDataset], excludeCentral => 1, );
 # Find the mass conversion.
 my $massConversion     = $masses   ->{'meta'}->{'unitsInSI'}/1.9891e30;
 # Find the distance conversion.
@@ -66,7 +60,7 @@ $distances->{'value'    } *= $distanceConversion;
 # Read model mass function.
 my $galacticus;
 $galacticus->{'file' } = $galacticusFileName;
-&HDF5::Get_Parameters($galacticus);
+&Galacticus::HDF5::Get_Parameters($galacticus);
 my $massFunctionGroup = $galacticus->{'hdf5File'}->group('analysis')->group(lcfirst($arguments{'central'}).'MassFunction');
 my $model;
 ($model->{'haloRadius'}, $model->{'logLikelihood'}, $model->{'haloCount'}) = $massFunctionGroup->attrGet('haloRadius','logLikelihood' ,'haloCount');
@@ -147,9 +141,9 @@ if ( $arguments{'central'} eq "MilkyWay" ) {
 
 # Create a plot of the mass function function.
 if ( exists($arguments{'plotFile'}) ) {
-    require GnuPlot::PrettyPlots;
-    require GnuPlot::LaTeX;
-    require XMP::MetaData;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
+use XMP::MetaData;
     # Find label for central galaxy.
     my $centralLabel;
     $centralLabel = "Milky Way"
@@ -181,7 +175,7 @@ if ( exists($arguments{'plotFile'}) ) {
     print $gnuPlot "set title 'Cumulative stellar mass function of ".$centralLabel." satellite galaxies'\n";
     print $gnuPlot "set xlabel 'Stellar mass; \$M_\\star\$ [\$M_\\odot\$]'\n";
     print $gnuPlot "set ylabel 'Cumulative number; \$ N ( > M_\\star) \$ []'\n";
-    &PrettyPlots::Prepare_Dataset(\$plot,
+    &GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 				  $masses              ->{'value'    }->($masses->{'order'}),
 				  $number                             ->(-1:0              ),
 				  errorLeft  => $masses->{'errorLow' }->($masses->{'order'}),
@@ -189,19 +183,19 @@ if ( exists($arguments{'plotFile'}) ) {
 				  style      => "point",
 				  symbol     => [6,7], 
 				  weight     => [3,1],
-				  color      => $PrettyPlots::colorPairs{'cornflowerBlue'},
+				  color      => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'},
 				  title      => "Observed"
 	);
-    &PrettyPlots::Prepare_Dataset(\$plot,
+    &GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 				  +$model->{'massStellar'           },
 				  +$model->{'massFunctionCumulative'}
 				  *$model->{'completeness'          },
 				  style      => "line",
 				  weight     => [3,1],
-				  color      => $PrettyPlots::colorPairs{'redYellow'},
+				  color      => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
 				  title      => "Galacticus"
        );
-    &PrettyPlots::Prepare_Dataset(\$plot,
+    &GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 				  +$model->{'massStellar'           },
 				  +(
 				      +     $model->{'massFunctionCumulative'        }
@@ -210,9 +204,9 @@ if ( exists($arguments{'plotFile'}) ) {
 				  *$model->{'completeness'          },
 				  style      => "line",
 				  weight     => [3,1],
-				  color      => $PrettyPlots::colorPairs{'redYellowFaint'}
+				  color      => $GnuPlot::PrettyPlots::colorPairs{'redYellowFaint'}
        );
-    &PrettyPlots::Prepare_Dataset(\$plot,
+    &GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 				  +$model->{'massStellar'           },
 				  +(
 				      +     $model->{'massFunctionCumulative'        }
@@ -221,9 +215,9 @@ if ( exists($arguments{'plotFile'}) ) {
 				  *$model->{'completeness'          },
 				  style      => "line",
 				  weight     => [3,1],
-				  color      => $PrettyPlots::colorPairs{'redYellowFaint'}
+				  color      => $GnuPlot::PrettyPlots::colorPairs{'redYellowFaint'}
        );
-    &PrettyPlots::Prepare_Dataset(\$plot,
+    &GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 				  +$model->{'massStellar'           },
 				  +(
 				      +     $model->{'massFunctionCumulative'}
@@ -232,9 +226,9 @@ if ( exists($arguments{'plotFile'}) ) {
 				  *$model->{'completeness'          },
 				  style      => "line",
 				  weight     => [3,1],
-				  color      => $PrettyPlots::colorPairs{'lightGoldenrod'}
+				  color      => $GnuPlot::PrettyPlots::colorPairs{'lightGoldenrod'}
        );
-    &PrettyPlots::Prepare_Dataset(\$plot,
+    &GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 				  +$model->{'massStellar'           },
 				  +(
 				      +     $model->{'massFunctionCumulative'}
@@ -243,11 +237,11 @@ if ( exists($arguments{'plotFile'}) ) {
 				  *$model->{'completeness'          },
 				  style      => "line",
 				  weight     => [3,1],
-				  color      => $PrettyPlots::colorPairs{'lightGoldenrod'}
+				  color      => $GnuPlot::PrettyPlots::colorPairs{'lightGoldenrod'}
        );
-    &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+    &GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
     close($gnuPlot);
-    &LaTeX::GnuPlot2PDF($plotFileEPS,margin => 1);
+    &GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS,margin => 1);
 }
 
 # Output the results to file if requested.

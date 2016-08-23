@@ -1,12 +1,6 @@
 #!/usr/bin/env perl
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use lib './perl';
 use strict;
 use warnings;
@@ -15,8 +9,8 @@ use Data::Dumper;
 use LaTeX::Encode;
 use Fcntl qw(SEEK_SET);
 use UNIVERSAL;
-require Fortran::Utils;
-require Galacticus::Doc::Parameters;
+use Fortran::Utils;
+use Galacticus::Doc::Parameters;
 
 # Scan Fortran90 source code and extract various useful data from "!@" lines.
 # Andrew Benson 12-Mar-2010
@@ -97,7 +91,7 @@ foreach my $fileName ( @fileNames ) {
 	    my $processedLine;
 	    my $bufferedComments;
 	    if ( $fileName =~ m/\.(F90|Inc)$/ ) {
-		&Fortran_Utils::Get_Fortran_Line($fileHandle,$rawLine,$processedLine,$bufferedComments);
+		&Fortran::Utils::Get_Fortran_Line($fileHandle,$rawLine,$processedLine,$bufferedComments);
 	    } else {
 		$rawLine = <$fileHandle>;
 	    }
@@ -221,7 +215,7 @@ foreach my $fileName ( @fileNames ) {
 		    } elsif ( $dataType eq "inputParameter" ) {
 			# Handle parameters defined as regular expressions.
 			if ( exists($contents->{'regEx'}) ) {
-			    $contents->{'name'} = "[regEx] ".latex_encode(&Parameters::ExpandRegEx($contents->{'regEx'},$sourceDir));
+			    $contents->{'name'} = "[regEx] ".latex_encode(&Galacticus::Doc::Parameters::ExpandRegEx($contents->{'regEx'},$sourceDir));
 			}
 			# Construct output data for this parameter.
 			(my $printName = $contents->{'name'}) =~ s/([^\\])_/$1\\_/g;

@@ -7,8 +7,8 @@ use PDL::NiceSlice;
 use PDL::IO::Misc;
 use PDL::Stats;
 use Data::Dumper;
-require Galacticus::Options;
-require Galacticus::Constraints::Parameters;
+use Galacticus::Options;
+use Galacticus::Constraints::Parameters;
 
 # Compute the Gelman & Rubin Rhat convergence statistic using a statelog
 # from the Bayesian Inference Engine. Based on Brooks & Gelman (1998;
@@ -28,17 +28,17 @@ my %arguments =
      randomSample     => "no" ,
      includePrevious  => "yes"
     );
-&Options::Parse_Options(\@ARGV,\%arguments);
+&Galacticus::Options::Parse_Options(\@ARGV,\%arguments);
 
 # Parse the constraint config file.
-my $config = &Parameters::Parse_Config($configFile);
+my $config = &Galacticus::Constraints::Parameters::Parse_Config($configFile);
 
 # Validate the config file.
 die("convergenceGelmanRubin.pl: workDirectory must be specified in config file")
     unless ( exists($config->{'likelihood'}->{'workDirectory' }) );
 
 # Compute the number of parallel chains.
-my $chainCount = &Parameters::Chains_Count($config,\%arguments);
+my $chainCount = &Galacticus::Constraints::Parameters::Chains_Count($config,\%arguments);
 print "Found ".$chainCount." chains\n";
 
 # Construct mask of outlier chains.
@@ -50,14 +50,14 @@ if ( exists($arguments{'outliers'}) ) {
 }
 
 # Determine the number of parameters.
-my $parameterCount = &Parameters::Parameters_Count($config,\%arguments);
+my $parameterCount = &Galacticus::Constraints::Parameters::Parameters_Count($config,\%arguments);
 print "Found ".$parameterCount." parameters\n";
 
 # Get the chain state matrix.
 my @chainData;
 for(my $i=0;$i<$chainCount;++$i) {
     $arguments{'selectChain'} = $i;
-    push(@chainData,&Parameters::Sample_Matrix($config,\%arguments));
+    push(@chainData,&Galacticus::Constraints::Parameters::Sample_Matrix($config,\%arguments));
 }
 
 # Detect outlier chains.

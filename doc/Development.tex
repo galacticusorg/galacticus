@@ -107,3 +107,43 @@ replacing the version number with whichever version you want. To get back to the
 \subsection{Bug Fixes In Releases}
 
 To make a bugfix in a release, simply {\normalfont \ttfamily hg update} to that release, fix the bug, and commit your changes. In many cases you'll want to fix the same bug in later releases and also in {\normalfont \ttfamily default}. To do that, just {\normalfont \ttfamily hg update} to each branch in turn, use {\normalfont \ttfamily hg merge fixedBranch} (where ``{\normalfont \ttfamily fixedBranch}'' is the name of the branch in which you fixed the branch, and then commit the merge. Once the bug has been fixed you can contribute the fix back to the \glc\ project using the methods described above.
+
+\section{The \glc\ Build System}
+
+\glc\ use a GNU Make-based build system. Dependencies are automatically discovered, and extensive meta-programming and preprocessing of source files is undertaken as part of the build. As a result, the build system is complicated. In this section the build system is described and detailed.
+
+\subsection{The Makefile}
+
+Files generated during the build (with the exception of final executables) are written to the directory specified by the {\normalfont \ttfamily BUILDPATH} environment variable. This is normally {\normalfont \ttfamily work/build/} (and is set by the {\normalfont \ttfamily Makefile}) unless a special build configuration is requested.
+
+\subsection{Automatic Discovery}
+
+\subsubsection{Executable Files}\index{files!executable}\index{executable files}\label{sec:buildExecutables}
+
+Files which produce executables (including the {\normalfont \ttfamily Galacticus.exe} executable) are discovered by the {\normalfont \ttfamily scripts/build/findExecutables.pl}\index{findExecutables.pl@{\normalfont \ttfamily findExecutables.pl}} script, which generates rules describing how these files should be built, along with all of their dependencies, and writes them to {\normalfont \ttfamily \$(BUILDPATH)/Makefile\_All\_Execs}\index{Makefile_All_Execs@{\normalfont \ttfamily Makefile\_All\_Execs}}. All Fortran files in the {\normalfont \ttfamily source} directory are parsed, and executable files are identified as those containing a {\normalfont \ttfamily program} statement. All executables so identified are also added to the list of objects that will be built by {\normalfont \ttfamily make all}.
+
+\subsubsection{Included Files}\index{files!include}\index{include files}\label{sec:buildIncludeDeps}
+
+Dependencies on files due to the use of ``{\normalfont \ttfamily include}'' statements (in both Fortran and C source files) are discovered by the {\normalfont \ttfamily scripts/build/includeDependencies.pl}\index{includeDependencies.pl@{\normalfont \ttfamily includeDependencies.pl}} script, which generates rules describing these dependencies and writes them to {\normalfont \ttfamily \$(BUILDPATH)/Makefile\_Include\_Deps}\index{Makefile_Include_Deps@{\normalfont \ttfamily Makefile\_Include\_Deps}}.
+
+All Fortran and C/C++ source files in the {\normalfont \ttfamily source} directory are parsed. Files specified in any include statement in a source file are added as a dependency of that source file if unless the source file is C/C++ and the named include file can be found in either {\normalfont \ttfamily source/}, a standard system include path, or in any include path specified in the {\normalfont \ttfamily GALACTICUS\_CFLAGS}\index{environment variables!GALACTICUS_CFLAGS@{\normalfont \ttfamily GALACTICUS\_CFLAGS}}\index{GALACTICUS_CFLAGS@{\normalfont \ttfamily GALACTICUS\_CFLAGS}} or {\normalfont \ttfamily GALACTICUS\_CPPFLAGS}\index{environment variables!GALACTICUS_CPPFLAGS@{\normalfont \ttfamily GALACTICUS\_CPPFLAGS}}\index{GALACTICUS_CPPFLAGS@{\normalfont \ttfamily GALACTICUS\_CPPFLAGS}} environment variables.
+
+\subsubsection{Parameter Dependencies}\index{parameters!dependencies}\label{sec:parameterDependencies}
+
+All runtime parameters upon which a given executable may depend are discovered by the {\normalfont \ttfamily scripts/build/parameterDependencies.pl}\index{parameterDependencies.pl@{\normalfont \ttfamily parameterDependencies.pl}} script, which generates XML files listing these parameters and writes them to {\normalfont \ttfamily \$(BUILDPATH)/\textless executableName\textgreater.parameters.xml}\index{*.parameters.xml@{\normalfont \ttfamily *.parameters.xml}}. All Fortran and C++ files in the {\normalfont \ttfamily source} directory are parsed, and embedded parameter definitions (i.e. embedded XML blocks in lines beginning ``!\@'' for Fortran or ``//\@'' for C++ with root element {\normalfont \ttfamily inputParameter}) are identified. Any files included into a source file are also searched. In the case of Fortran source files, {\normalfont \ttfamily source/*.F90}, the corresponding preprocessed file, {\normalfont \ttfamily \$(BUILDPATH)/*.p.F90}, will be searched for parameter dependencies.
+
+\subsection{Build Files}
+
+\begin{description}
+\item[{\normalfont \ttfamily scripts/build/includeDependencies.pl}\index{includeDependencies.pl@{\normalfont \ttfamily includeDependencies.pl}}:] Discovers (and generates rules for) dependencies between files arising from the use of ``{\normalfont \ttfamily include}'' statements (see \S\ref{sec:buildIncludeDeps});
+  
+  \item[{\normalfont \ttfamily \normalfont \ttfamily scripts/build/executableSize.pl\index{executableSize.pl@{\normalfont \ttfamily executableSize.pl}}}:] Generates a file containing details of the size of each generated executable which can be used at runtime for memory reporting (see \S\ref{sec:buildExecutables});
+
+\item[{\normalfont \ttfamily \normalfont \ttfamily scripts/build/findExecutables.pl\index{findExecutables.pl@{\normalfont \ttfamily findExecutables.pl}}}:] Discovers (and generates rules for) files which generate executables (see \S\ref{sec:buildExecutables});
+
+\item[{\normalfont \ttfamily \$(BUILDPATH)/Makefile\_Include\_Deps}\index{Makefile_Include_Deps@{\normalfont \ttfamily Makefile\_Include\_Deps}}:] Contains rules describing the dependencies of source file on files included via ``{\normalfont \ttfamily include}'' statements---generated by {\normalfont \ttfamily scripts/build/includeDependencies.pl}\index{includeDependencies.pl@{\normalfont \ttfamily includeDependencies.pl}} (see \S\ref{sec:buildIncludeDeps});
+
+\item[{\normalfont \ttfamily \$(BUILDPATH)/Makefile\_All\_Execs}\index{Makefile_All_Execs@{\normalfont \ttfamily Makefile\_All\_Execs}}:] Contains rules describing how to build the executable file for each distinct program---generated by {\normalfont \ttfamily scripts/build/findExecutables.pl}\index{findExecutables.pl@{\normalfont \ttfamily findExecutables.pl}} (see \S\ref{sec:buildExecutables});
+
+\item[{\normalfont \ttfamily \$(BUILDPATH)/*.size}\index{*.size files@{\normalfont \ttfamily *.size} files}:] Contain the size of each executable file built, and are used at runtime for memory reporting purposes---generated by {\normalfont \ttfamily scripts/build/executableSize.pl}\index{executableSize.pl@{\normalfont \ttfamily executableSize.pl}} (see \S\ref{sec:buildExecutables});
+\end{description}

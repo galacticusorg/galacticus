@@ -1,14 +1,9 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use XML::Simple;
 use PDL;
 use PDL::NiceSlice;
@@ -22,7 +17,7 @@ use Data::Dumper;
 
 # Read the parameters and their covariances.
 my $xml = new XML::Simple;
-my $data = $xml->XMLin($galacticusPath."data/cosmology/Cosmological_Parameters_WMAP-9.xml");
+my $data = $xml->XMLin(&galacticusPath()."data/cosmology/Cosmological_Parameters_WMAP-9.xml");
 my $parameterCount = 0;
 my %parameterMap;
 foreach my $parameter ( @{$data->{'parameter'}} ) {

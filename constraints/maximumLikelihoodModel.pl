@@ -10,8 +10,8 @@ use Fcntl qw(:DEFAULT :flock);
 use PDL;
 use PDL::IO::HDF5;
 use File::Slurp;
-require Galacticus::Constraints::Parameters;
-require Galacticus::Options;
+use Galacticus::Constraints::Parameters;
+use Galacticus::Options;
 
 # Run the current maximum likelihood model from a constraint run.
 # Andrew Benson (04-December-2012)
@@ -27,10 +27,10 @@ my %arguments = (
     fixedTrees => "config",
     chain      => "all"
     );
-&Options::Parse_Options(\@ARGV,\%arguments);
+&Galacticus::Options::Parse_Options(\@ARGV,\%arguments);
 
 # Parse the constraint config file.
-my $config = &Parameters::Parse_Config($configFile);
+my $config = &Galacticus::Constraints::Parameters::Parse_Config($configFile);
 
 # Validate the config file.
 die("maximumLikelihoodModel.pl: workDirectory must be specified in config file" ) 
@@ -51,7 +51,7 @@ my $logFileRoot = $config->{'simulation'}->{'logFileRoot'};
 my $maximumLikelihoodDirectory  = $mcmcDirectory."/".$arguments{'directory'}."/";
 
 # Get a hash of the parameter values.
-(my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'likelihood'}->{'compilation'},$config->{'likelihood'}->{'baseParameters'});
+(my $constraintsRef, my $parameters) = &Galacticus::Constraints::Parameters::Compilation($config->{'likelihood'}->{'compilation'},$config->{'likelihood'}->{'baseParameters'});
 my @constraints = @{$constraintsRef};
 
 # Set an output file name.
@@ -100,7 +100,7 @@ print "Maximum likelihood: ".$maximumLikelihood."\n";
 print "  Model parameters:\n".join("\t",@maximumLikelihoodParameters)."\n";
 
 # Convert these values into a parameter array.
-my $newParameters = &Parameters::Convert_Parameters_To_Galacticus($config,@maximumLikelihoodParameters);
+my $newParameters = &Galacticus::Constraints::Parameters::Convert_Parameters_To_Galacticus($config,@maximumLikelihoodParameters);
 
 # Apply to parameters.
 for my $newParameterName ( keys(%{$newParameters}) ) {
@@ -151,7 +151,7 @@ if ( $useFixedTrees eq "yes" ) {
 
 # Write the modified parameters to file.
 system("mkdir -p ".$maximumLikelihoodDirectory);
-&Parameters::Output($parameters,$maximumLikelihoodDirectory."/parameters.xml");
+&Galacticus::Constraints::Parameters::Output($parameters,$maximumLikelihoodDirectory."/parameters.xml");
 
 # Finish if we're not to run the model.
 exit
@@ -165,7 +165,7 @@ die("maximumLikelihoodModel.pl: failed to build Galacticus.exe")
 my $glcCommand;
 $glcCommand .= "time ./Galacticus.exe ".$maximumLikelihoodDirectory."/parameters.xml";
 my $logFile = $maximumLikelihoodDirectory."/galacticus.log";
-&SystemRedirect::tofile($glcCommand,$logFile);
+&System::Redirect::tofile($glcCommand,$logFile);
 die("maximumLikelihoodModel.pl: Galacticus model failed")
     unless ( $? == 0 );
 

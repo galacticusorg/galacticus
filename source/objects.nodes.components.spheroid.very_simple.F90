@@ -32,7 +32,7 @@ module Node_Component_Spheroid_Very_Simple
   !# <component>
   !#  <class>spheroid</class>
   !#  <name>verySimple</name>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>isInitialized</name>
@@ -70,10 +70,9 @@ module Node_Component_Spheroid_Very_Simple
   !#   </property>
   !#   <property>
   !#     <name>starFormationRate</name>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" createIfNeeded="true" />
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" createIfNeeded="true" isVirtual="true" />
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>true</isVirtual>
   !#     <output condition="[[spheroidOutputStarFormationRate]]" unitsInSI="massSolar/gigaYear" comment="Spheroid star formation rate."/>
   !#   </property>
   !#   <property>
@@ -91,10 +90,9 @@ module Node_Component_Spheroid_Very_Simple
   !#   </property>
   !#   <property>
   !#     <name>halfMassRadius</name>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>true</isVirtual>
   !#     <getFunction>Node_Component_Spheroid_Very_Simple_Half_Mass_Radius</getFunction>
   !#   </property>
   !#   <property>
@@ -337,18 +335,18 @@ contains
     use Histories
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode                    ), intent(inout), pointer :: node
-    logical                                       , intent(in   )          :: odeConverged
-    class           (nodeComponentSpheroid       )               , pointer :: spheroid
-    class           (nodeComponentHotHalo        )               , pointer :: hotHalo
-    logical                                       , intent(inout)          :: interrupt
-    procedure       (Interrupt_Procedure_Template), intent(inout), pointer :: interruptProcedureReturn
-    procedure       (Interrupt_Procedure_Template)               , pointer :: interruptProcedure
-    double precision                                                       :: stellarMassRate         , fuelMassRate         , &
-         &                                                                    massOutflowRate
-    type            (history                     )                         :: stellarHistoryRate
-    type            (abundances                  )                         :: fuelAbundancesRate      , stellarAbundancesRate, &
-         &                                                                    abundancesOutflowRate
+    type            (treeNode             ), intent(inout), pointer :: node
+    logical                                , intent(in   )          :: odeConverged
+    class           (nodeComponentSpheroid)               , pointer :: spheroid
+    class           (nodeComponentHotHalo )               , pointer :: hotHalo
+    logical                                , intent(inout)          :: interrupt
+    procedure       (interruptTask        ), intent(inout), pointer :: interruptProcedureReturn
+    procedure       (interruptTask        )               , pointer :: interruptProcedure
+    double precision                                                :: stellarMassRate         , fuelMassRate         , &
+         &                                                             massOutflowRate
+    type            (history              )                         :: stellarHistoryRate
+    type            (abundances           )                         :: fuelAbundancesRate      , stellarAbundancesRate, &
+         &                                                             abundancesOutflowRate
     !GCC$ attributes unused :: odeConverged
 
     ! Get a local copy of the interrupt procedure.

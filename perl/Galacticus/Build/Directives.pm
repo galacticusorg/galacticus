@@ -1,14 +1,6 @@
 # Contains a Perl module which implements processing of directives.
 
-package Directives;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+package Galacticus::Build::Directives;
 use strict;
 use warnings;
 

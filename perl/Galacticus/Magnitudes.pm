@@ -1,28 +1,23 @@
 # Contains a Perl module which implements magnitude calculations for Galacticus.
 
-package Magnitudes;
+package Galacticus::Magnitudes;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use Data::Dumper;
 use XML::Simple;
-require Galacticus::HDF5;
-require Galacticus::DustAttenuation;
-require Galacticus::Luminosities;
-require Galacticus::Survey;
+use Galacticus::HDF5;
+use Galacticus::DustAttenuation;
+use Galacticus::Luminosities;
+use Galacticus::Survey;
+use Galacticus::Path;
 
-%HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-    "^magnitude([^:]+):([^:]+):([^:]+):z([\\d\\.]+)(:dust[^:]+)?(:vega|:AB)?" => \&Magnitudes::Get_Magnitude                 ,
-    "^magnitude:.*(:vega|:AB)?"                                               => \&Magnitudes::Get_Generic_Magnitude         ,
-    "^apparentMagnitude:.*"                                                   => \&Magnitudes::Get_Generic_Apparent_Magnitude
+%Galacticus::HDF5::galacticusFunctions = ( %Galacticus::HDF5::galacticusFunctions,
+    "^magnitude([^:]+):([^:]+):([^:]+):z([\\d\\.]+)(:dust[^:]+)?(:vega|:AB)?" => \&Galacticus::Magnitudes::Get_Magnitude                 ,
+    "^magnitude:.*(:vega|:AB)?"                                               => \&Galacticus::Magnitudes::Get_Generic_Magnitude         ,
+    "^apparentMagnitude:.*"                                                   => \&Galacticus::Magnitudes::Get_Generic_Apparent_Magnitude
     );
 
 my %vegaOffsets;
@@ -49,13 +44,13 @@ sub Get_Magnitude {
 	}
 	# Construct the name of the corresponding luminosity property.
 	my $luminosityDataset = lc($component)."LuminositiesStellar:".$filter.":".$frame.":z".$redshift.$dustExtension;
-	&HDF5::Get_Dataset($dataSet,[$luminosityDataset]);
+	&Galacticus::HDF5::Get_Dataset($dataSet,[$luminosityDataset]);
 	my $dataSets = $dataSet->{'dataSets'};
 	$dataSets->{$dataSetName} = -2.5*log10($dataSets->{$luminosityDataset}+1.0e-40);
 	# If a Vega magnitude was requested, add the appropriate offset.
 	if ( $vegaMagnitude == 1 ) {
 	    unless ( exists($vegaOffsets{$filter}) ) {
-		my $filterPath = $galacticusPath."data/filters/".$filter.".xml";
+		my $filterPath = &galacticusPath()."data/filters/".$filter.".xml";
 		die("Get_Magnitudes(): can not find filter file for: ".$filter) unless ( -e $filterPath );
 		my $xml = new XML::Simple;
 		my $filterData = $xml->XMLin($filterPath);
@@ -80,13 +75,13 @@ sub Get_Generic_Magnitude {
     # Construct the name of the corresponding luminosity property.
     (my $luminosityDataset = $dataSetName) =~ s/^magnitude:/luminosity:/;
     $luminosityDataset =~ s/(:vega|:AB)$//;
-    &HDF5::Get_Dataset($dataSet,[$luminosityDataset]);
+    &Galacticus::HDF5::Get_Dataset($dataSet,[$luminosityDataset]);
     my $dataSets = $dataSet->{'dataSets'};
     $dataSets->{$dataSetName} = -2.5*log10($dataSets->{$luminosityDataset}+1.0e-40);
     # If a Vega magnitude was requested, add the appropriate offset.
     if ( $vegaMagnitude == 1 ) {
 	unless ( exists($vegaOffsets{$filter}) ) {
-	    my $filterPath = $galacticusPath."data/filters/".$filter.".xml";
+	    my $filterPath = &galacticusPath()."data/filters/".$filter.".xml";
 	    die("Get_Magnitudes(): can not find filter file for: ".$filter) unless ( -e $filterPath );
 	    my $xml = new XML::Simple;
 	    my $filterData = $xml->XMLin($filterPath);
@@ -107,7 +102,7 @@ sub Get_Generic_Apparent_Magnitude {
     my $dataSetName = $_[0];
     # Construct the name of the corresponding absolute magnitude property.
     (my $absoluteMagnitudeDataset = $dataSetName) =~ s/^apparentMagnitude:/magnitude:/;
-    &HDF5::Get_Dataset($dataSet,[$absoluteMagnitudeDataset,"distanceModulus"]);
+    &Galacticus::HDF5::Get_Dataset($dataSet,[$absoluteMagnitudeDataset,"distanceModulus"]);
     my $dataSets = $dataSet->{'dataSets'};
     $dataSets->{$dataSetName} = $dataSets->{$absoluteMagnitudeDataset}+$dataSets->{'distanceModulus'};
 }

@@ -1,14 +1,8 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 
 # Demangle the Galacticus bibliography to convert accents (and other symbols) to LaTeX syntax.
 # Andrew Benson (27 February 2011)
@@ -19,7 +13,7 @@ while ( my $line = <iHndl> ) {
 
     # Special cases.
     # zwaan_hipass_2005 title
-    $line =~ s/{\\\${\\textbackslash}Omega\\\$\\_{{\\textbackslash}rm} {HI}}/\$\\Omega_{\\rm HI}\$/;
+    $line =~ s/\{\\\$\{\\textbackslash\}Omega\\\$\\_\{\{\\textbackslash\}rm\} \{HI\}\}/\$\\Omega_{\\rm HI}\$/;
 
     # Percentages.
     $line =~ s/[^\\]%/\\%/g;

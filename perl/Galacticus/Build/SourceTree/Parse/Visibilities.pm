@@ -1,25 +1,19 @@
 # Contains a Perl module which implements parsing of visibilities in the Galacticus preprocessor system.
 
-package Visibilities;
+package Galacticus::Build::SourceTree::Parse::Visibilities;
 use strict;
 use warnings;
 use utf8;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Data::Dumper;
 use XML::Simple;
-require Fortran::Utils;
-require Galacticus::Build::SourceTree::Hooks;
-require Galacticus::Build::SourceTree;
+use Fortran::Utils;
+## AJB REMOVED use Galacticus::Build::SourceTree::Hooks;
+## AJB REMOVED use Galacticus::Build::SourceTree;
 
 # Insert hooks for our functions.
-$Hooks::parseHooks{'visibilities'} = \&Parse_Visibilities;
+$Galacticus::Build::SourceTree::Hooks::parseHooks{'visibilities'} = \&Parse_Visibilities;
 
 sub Parse_Visibilities {
     # Get the tree.
@@ -41,7 +35,7 @@ sub Parse_Visibilities {
 	    open(my $code,"<",\$node->{'content'});
 	    do {
 		# Get a line.
-		&Fortran_Utils::Get_Fortran_Line($code,my $rawLine, my $processedLine, my $bufferedComments);
+		&Fortran::Utils::Get_Fortran_Line($code,my $rawLine, my $processedLine, my $bufferedComments);
 		# Determine if line is a visibility line.
 		my $isVisibility = 0;
 		$isVisibility    = 1
@@ -109,10 +103,10 @@ sub Parse_Visibilities {
 	    # If we have a single code block, nothing needs to change.
 	    unless ( scalar(@newNodes) == 1 && $newNodes[0]->{'type'} eq "code" ) {
 		# New nodes created, insert them, replacing the old node.
-		&SourceTree::ReplaceNode($node,\@newNodes);
+		&Galacticus::Build::SourceTree::ReplaceNode($node,\@newNodes);
 	    }
 	}
-	$node = &SourceTree::Walk_Tree($node,\$depth);
+	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }    
 }
 

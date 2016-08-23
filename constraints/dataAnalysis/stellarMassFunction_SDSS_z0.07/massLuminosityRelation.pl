@@ -1,22 +1,17 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath  = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath  = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::Misc;
 use PDL::Fit::Polynomial;
 use Astro::Cosmology;
-require Stats::Percentiles;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
+use Stats::Percentiles;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
 
 # Determine the relation between stellar mass and SDSS r-band absolute magnitude using semi-analytic models from the Millennium
 # Database. Specifically, the DeLucia2006a models are used - these correspond to De Lucia & Blaizot (2007;
@@ -24,7 +19,7 @@ require GnuPlot::LaTeX;
 # Andrew Benson (10-July-2012)
 
 # Define a working directory.
-my $workDirectory = $galacticusPath."constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07/massLuminosityWork/";
+my $workDirectory = &galacticusPath()."constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07/massLuminosityWork/";
 system("mkdir -p ".$workDirectory);
 
 # Define little Hubble parameter for the Millennium Simulation.
@@ -87,7 +82,7 @@ for(my $iSnapshot=nelem($snapshotNumbers)-1;$iSnapshot>=0;--$iSnapshot) {
 
 	# Find the median magnitude as a function of mass.
 	my $percentiles = pdl ( 50.0 );
-	my $median      = &Percentiles::BinnedPercentiles($logMassBins,$logMass,$magnitude,$weight,$percentiles);
+	my $median      = &Stats::Percentiles::BinnedPercentiles($logMassBins,$logMass,$magnitude,$weight,$percentiles);
 
 	# Fit a polynomial to the results.
 	my $nonZeroBins = which($median->(:,(0)) < 0.0);
@@ -147,27 +142,27 @@ print $gnuPlot "set format x '\$10^{\%L}\$'\n";
 print $gnuPlot "set xrange [1.0e8:1.0e13]\n";
 print $gnuPlot "set yrange [0.0:0.5]\n";
 print $gnuPlot "set pointsize 2.0\n";
-&PrettyPlots::Prepare_Dataset(
+&GnuPlot::PrettyPlots::Prepare_Dataset(
     \$plot,
     10.0**$fitMass,
     $fitRedshift,
     style      => "line",
     weight     => [5,3],
-    color      => $PrettyPlots::colorPairs{'mediumSeaGreen'},
+    color      => $GnuPlot::PrettyPlots::colorPairs{'mediumSeaGreen'},
     title      => 'Fit'
     );
-&PrettyPlots::Prepare_Dataset(
+&GnuPlot::PrettyPlots::Prepare_Dataset(
     \$plot,
     10.0**$limitingMassTable,
     $redshiftTable,
     style      => "point",
     weight     => [5,3],
     symbol     => [6,7],
-    color      => $PrettyPlots::colorPairs{'redYellow'},
+    color      => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
     title      => 'De Lucia (2006) SAM'
     );
-&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF($plotFileEPS);
+&GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS);
 
 exit;

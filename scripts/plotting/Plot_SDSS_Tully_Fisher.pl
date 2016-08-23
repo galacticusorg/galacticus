@@ -1,27 +1,22 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use PDL::NiceSlice;
 use XML::Simple;
 use Math::SigFigs;
 use Data::Dumper;
 use Carp 'verbose';
-require Stats::Means;
-require Galacticus::HDF5;
-require Galacticus::Magnitudes;
-require Galacticus::Luminosities;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
-require XMP::MetaData;
+use Stats::Means;
+use Galacticus::HDF5;
+use Galacticus::Magnitudes;
+use Galacticus::Path;
+use Galacticus::Luminosities;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
+use XMP::MetaData;
 $SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
 
 # Get name of input and output files.
@@ -60,11 +55,11 @@ my $magnitudeBins   = pdl (0..$magnitudePoints-1)*$magnitudeBin+$magnitudeMin+0.
 my $dataSet;
 $dataSet->{'file'} = $galacticusFile;
 $dataSet->{'store'} = 0;
-&HDF5::Get_Parameters($dataSet);
-&HDF5::Count_Trees($dataSet);
-&HDF5::Select_Output($dataSet,0.1);
+&Galacticus::HDF5::Get_Parameters($dataSet);
+&Galacticus::HDF5::Count_Trees($dataSet);
+&Galacticus::HDF5::Select_Output($dataSet,0.1);
 $dataSet->{'tree'} = "all";
-&HDF5::Get_Dataset($dataSet,['mergerTreeWeight','magnitudeTotal:SDSS_i:observed:z0.1000:dustAtlas[faceOn]:AB','bulgeToTotalLuminosities:SDSS_i:observed:z0.1000:dustAtlas','diskVelocity']);
+&Galacticus::HDF5::Get_Dataset($dataSet,['mergerTreeWeight','magnitudeTotal:SDSS_i:observed:z0.1000:dustAtlas[faceOn]:AB','bulgeToTotalLuminosities:SDSS_i:observed:z0.1000:dustAtlas','diskVelocity']);
 my $dataSets     = $dataSet->{'dataSets'};
 my $magnitude    = $dataSets->{'magnitudeTotal:SDSS_i:observed:z0.1000:dustAtlas[faceOn]:AB'};
 my $bulgeToTotal = $dataSets->{'bulgeToTotalLuminosities:SDSS_i:observed:z0.1000:dustAtlas'};
@@ -78,11 +73,11 @@ my $magnitudeSelected = $magnitude->index($selection);
 my $velocitySelected  = $velocity ->index($selection);
 my $weightSelected    = $weight   ->index($selection);
 (my $velocityMeanGalacticus, my $velocityMeanErrorGalacticus, my $velocitySigmaGalacticus, my $velocitySigmaErrorGalacticus)
-    = &Means::BinnedMean($magnitudeBins,$magnitudeSelected,$velocitySelected,$weightSelected);
+    = &Stats::Means::BinnedMean($magnitudeBins,$magnitudeSelected,$velocitySelected,$weightSelected);
 
 # Read the XML data file.
 my $xml     = new XML::Simple;
-my $data    = $xml->XMLin($galacticusPath."data/observations/tullyFisherRelation/Tully_Fisher_SDSS_Pizagno_2007.xml");
+my $data    = $xml->XMLin(&galacticusPath()."data/observations/tullyFisherRelation/Tully_Fisher_SDSS_Pizagno_2007.xml");
 my $columns = $data->{'tullyFisher'}->{'columns'};
 my $x       = pdl @{$columns->{'magnitude'}->{'data'}};
 $x          = $x-5.0*log10($columns->{'magnitude'}->{'hubble'}/$dataSet->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'});
@@ -91,7 +86,7 @@ my $xError  = pdl @{$columns->{'magnitudeError'}->{'data'}};
 my $yError  = pdl @{$columns->{'diskVelocityError'}->{'data'}};
 my $yWeight = 1.0/$yError**2;
 (my $velocityMean, my $velocityMeanError, my $velocitySigma, my $velocitySigmaError)
-    = &Means::BinnedMean($magnitudeBins,$x,$y,$yWeight);
+    = &Stats::Means::BinnedMean($magnitudeBins,$x,$y,$yWeight);
 
 # Compute chi^2.
 my $nonZeroMeanError  = which ($velocityMeanError **2+$velocityMeanErrorGalacticus **2 > 0.0);
@@ -136,7 +131,7 @@ print $gnuPlot "set format y '\$10^{\%L}\$'\n";
 print $gnuPlot "set xrange [-24:-18]\n";
 print $gnuPlot "set yrange [30:400]\n";
 print $gnuPlot "set pointsize 2.0\n";
-&PrettyPlots::Prepare_Dataset(
+&GnuPlot::PrettyPlots::Prepare_Dataset(
     \$plot,
     $x,$y,
     errorLeft  => $xError,
@@ -147,10 +142,10 @@ print $gnuPlot "set pointsize 2.0\n";
     symbol     => [6,7],
     weight     => [5,3],
     pointSize  => 0.5,
-    color      => $PrettyPlots::colorPairs{'cornflowerBlue'},
+    color      => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'},
     title      => $data->{'tullyFisher'}->{'label'}
     );
-&PrettyPlots::Prepare_Dataset(
+&GnuPlot::PrettyPlots::Prepare_Dataset(
     \$plot,
     $magnitudeBins,$velocityMeanGalacticus,
     errorUp    => $velocitySigmaGalacticus,
@@ -159,12 +154,12 @@ print $gnuPlot "set pointsize 2.0\n";
     symbol     => [6,7],
     weight     => [5,3],
     pointSize  => 0.5,
-    color      => $PrettyPlots::colorPairs{'redYellow'},
+    color      => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
     title      => 'Galacticus (mean+dispersion)'
     );
-&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF($plotFileTeX);
-&MetaData::Write($plotFile,$galacticusFile,$self);
+&GnuPlot::LaTeX::GnuPlot2PDF($plotFileTeX);
+&XMP::MetaData::Write($plotFile,$galacticusFile,$self);
 
 exit;

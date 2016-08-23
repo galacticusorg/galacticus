@@ -1,26 +1,21 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use PDL;
 use PDL::NiceSlice;
 use XML::Simple;
 use Math::SigFigs;
 use Data::Dumper;
-require File::Which;
-require Galacticus::HDF5;
-require Galacticus::Magnitudes;
-require Stats::Histograms;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
-require XMP::MetaData;
+use File::Which;
+use Galacticus::HDF5;
+use Galacticus::Magnitudes;
+use Stats::Histograms;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
+use XMP::MetaData;
 
 # Option to control whether the morphological classification should be coarse-grained into just three bins.
 my $coarseGrain = 0;
@@ -57,13 +52,13 @@ if ( $outputTo =~ m/\.pdf$/ ) {
 my $dataSet;
 $dataSet->{'file'} = $galacticusFile;
 $dataSet->{'store'} = 0;
-&HDF5::Get_Parameters($dataSet);
-&HDF5::Count_Trees($dataSet);
-&HDF5::Select_Output($dataSet,0.0);
+&Galacticus::HDF5::Get_Parameters($dataSet);
+&Galacticus::HDF5::Count_Trees($dataSet);
+&Galacticus::HDF5::Select_Output($dataSet,0.0);
 
 # Read galaxy data.
 $dataSet->{'tree'} = "all";
-&HDF5::Get_Dataset($dataSet,[
+&Galacticus::HDF5::Get_Dataset($dataSet,[
 		       'mergerTreeWeight',
 		       'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega',
 		       'bulgeToTotalLuminosities:2MASS_Ks:observed:z0.0000:dustAtlas'
@@ -72,7 +67,7 @@ my $dataSets  = $dataSet->{'dataSets'};
 
 # Read the XML data file.
 my $xml     = new XML::Simple;
-my $data    = $xml->XMLin($galacticusPath."data/observations/luminosityFunctions/Morphological_Luminosity_Functions_2MASS_Devereux_2009.xml");
+my $data    = $xml->XMLin(&galacticusPath()."data/observations/luminosityFunctions/Morphological_Luminosity_Functions_2MASS_Devereux_2009.xml");
 
 # Estimate bulge-to-total ratio ranges for each morphological class.
 my $bulgeToTotal;
@@ -190,7 +185,7 @@ foreach my $morphology ( @{$data->{'morphology'}} ) {
 			   & ($dataSets->{'bulgeToTotalLuminosities:2MASS_Ks:observed:z0.0000:dustAtlas'} <= $bulgeToTotalMaximum)
 	    );
 
-	(my $yGalacticus, my $errorGalacticus) = &Histograms::Histogram($x,$magnitude,$weight,differential => 1);
+	(my $yGalacticus, my $errorGalacticus) = &Stats::Histograms::Histogram($x,$magnitude,$weight,differential => 1);
 	
         # Compute chi^2.
 	my $thisChiSquared        = sum(($yGalacticus-$y)**2/($errorGalacticus**2+$error**2));
@@ -225,7 +220,7 @@ foreach my $morphology ( @{$data->{'morphology'}} ) {
 	print $gnuPlot "set xrange [-26.0:-19.0]\n";
 	print $gnuPlot "set yrange [3.0e-6:3.0e-2]\n";
 	print $gnuPlot "set pointsize 2.0\n";
-	&PrettyPlots::Prepare_Dataset(
+	&GnuPlot::PrettyPlots::Prepare_Dataset(
 	    \$plot,
 	    $x,$y,
 	    errorUp    => $error,
@@ -233,10 +228,10 @@ foreach my $morphology ( @{$data->{'morphology'}} ) {
 	    style      => "point",
 	    symbol     => [6,7],
 	    weight     => [5,3],
-	    color      => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'slideSequence'}}[0]},
+	    color      => $GnuPlot::PrettyPlots::colorPairs{${$GnuPlot::PrettyPlots::colorPairSequences{'slideSequence'}}[0]},
 	    title      => $data->{'label'}.' [observed]'
 	    );
-	&PrettyPlots::Prepare_Dataset(
+	&GnuPlot::PrettyPlots::Prepare_Dataset(
 	    \$plot,
 	    $x,$yGalacticus,
 	    errorUp    => $errorGalacticus,
@@ -244,14 +239,14 @@ foreach my $morphology ( @{$data->{'morphology'}} ) {
 	    style      => "point",
 	    symbol     => [6,7],
 	    weight     => [5,3],
-	    color      => $PrettyPlots::colorPairs{'redYellow'},
+	    color      => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
 	    title      => 'Galacticus'
 	    );
-	&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+	&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 
         # Close the pipe to GnuPlot.
 	close($gnuPlot);
-	&LaTeX::GnuPlot2PDF($thisPlotEPS);
+	&GnuPlot::LaTeX::GnuPlot2PDF($thisPlotEPS);
 	(my $leafName = $thisPlot) =~ s/^.*\/([^\/]+)$/$1/;
 	push(@leafFiles,$leafName);
 	push(@plotFiles,$thisPlot);
@@ -259,8 +254,8 @@ foreach my $morphology ( @{$data->{'morphology'}} ) {
 }
 die("Plot_Morphological_Luminosity_Function.pl: 'pdfmerge' tool is required")
     unless ( &File::Which::which("pdfmerge") );
-&SystemRedirect::tofile("rm -f ".$outputFile."; cd ".$outputDir."; pdfmerge ".join(" ",@leafFiles)." tmp.pdf; cd -; mv ".$outputDir."/tmp.pdf ".$outputFile,"/dev/null");
-&MetaData::Write($outputFile,$galacticusFile,$self);
+&System::Redirect::tofile("rm -f ".$outputFile."; cd ".$outputDir."; pdfmerge ".join(" ",@leafFiles)." tmp.pdf; cd -; mv ".$outputDir."/tmp.pdf ".$outputFile,"/dev/null");
+&XMP::MetaData::Write($outputFile,$galacticusFile,$self);
 unlink(@plotFiles);
 
 # Output fit data.

@@ -1,24 +1,19 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
 use XML::Simple;
-require Galacticus::HDF5;
-require Galacticus::Magnitudes;
-require Stats::Histograms;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
-require XMP::MetaData;
+use Galacticus::HDF5;
+use Galacticus::Magnitudes;
+use Stats::Histograms;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
+use XMP::MetaData;
 
 # Get name of input and output files.
 die("luminosityFunction_K_z0.pl <galacticusFile> [options]")
@@ -41,13 +36,13 @@ my $outputFile;
 my $model;
 $model->{'file' } = $galacticusFile;
 $model->{'store'} = 0;
-&HDF5::Get_Parameters($model    );
-&HDF5::Count_Trees   ($model    );
-&HDF5::Select_Output ($model,0.0);
+&Galacticus::HDF5::Get_Parameters($model    );
+&Galacticus::HDF5::Count_Trees   ($model    );
+&Galacticus::HDF5::Select_Output ($model,0.0);
 
 # Read the XML data file.
 my $xml     = new XML::Simple;
-my $data    = $xml->XMLin($galacticusPath."data/observations/luminosityFunctions/K_Luminosity_Function_Cole_2001.xml");
+my $data    = $xml->XMLin(&galacticusPath()."data/observations/luminosityFunctions/K_Luminosity_Function_Cole_2001.xml");
 my $columns = $data->{'luminosityFunction'}->{'columns'};
 my $xBins   = pdl @{$columns->{'magnitude'}->{'data'}};
 my $x       = pdl @{$columns->{'magnitude'}->{'data'}};
@@ -67,11 +62,11 @@ $error = $error(-1:0);
 # Read galaxy data and construct mass function.
 my $xGalacticus = $xBins;
 $model->{'tree'} = "all";
-&HDF5::Get_Dataset($model,['mergerTreeWeight','magnitudeTotal:UKIRT_K:rest:z0.0000:dustAtlas:vega']);
+&Galacticus::HDF5::Get_Dataset($model,['mergerTreeWeight','magnitudeTotal:UKIRT_K:rest:z0.0000:dustAtlas:vega']);
 my $dataSets  = $model->{'dataSets'};
 my $magnitude = $dataSets->{'magnitudeTotal:UKIRT_K:rest:z0.0000:dustAtlas:vega'};
 my $weight    = $dataSets->{'mergerTreeWeight'};
-(my $yGalacticus, my $errorGalacticus) = &Histograms::Histogram($xGalacticus,$magnitude,$weight,differential => 1);
+(my $yGalacticus, my $errorGalacticus) = &Stats::Histograms::Histogram($xGalacticus,$magnitude,$weight,differential => 1);
 
 # Output the results to file if requested.
 if ( exists($arguments{'resultFile'}) ) {
@@ -123,30 +118,30 @@ if ( exists($arguments{'plotFile'}) ) {
     print $gnuPlot "set title 'K-band luminosity function at \$z=0\$'\n";
     print $gnuPlot "set xlabel '\$M_{\\rm K,Vega}\$ [dust-extinguished]'\n";
     print $gnuPlot "set ylabel '\${\\rm d}n/{\\rm d}M_{\\rm K,Vega}\$'\n";
-    &PrettyPlots::Prepare_Dataset(\$plot,
+    &GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 				  $x,$y,
 				  errorUp   => $error,
 				  errorDown => $error,
 				  style     => "point",
 				  symbol    => [6,7], 
 				  weight    => [5,3],
-				  color     => $PrettyPlots::colorPairs{'cornflowerBlue'},
+				  color     => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'},
 				  title     => $data->{'luminosityFunction'}->{'label'}
 	);
-    &PrettyPlots::Prepare_Dataset(\$plot,
+    &GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 				  $xGalacticus,$yGalacticus,
 				  errorUp   => $errorGalacticus,
 				  errorDown => $errorGalacticus,
 				  style     => "point",
 				  symbol    => [6,7], 
 				  weight    => [5,3],
-				  color     => $PrettyPlots::colorPairs{'redYellow'},
+				  color     => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
 				  title     => "Galacticus"
 	);
-    &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+    &GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
     close($gnuPlot);
-    &LaTeX::GnuPlot2PDF($plotFileEPS);
-    &MetaData::Write($arguments{'plotFile'},$galacticusFile,$self);
+    &GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS);
+    &XMP::MetaData::Write($arguments{'plotFile'},$galacticusFile,$self);
 }
 
 exit;

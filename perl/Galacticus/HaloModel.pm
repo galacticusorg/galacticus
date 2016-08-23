@@ -5,17 +5,9 @@
 #
 # Andrew Benson (01-September-2010)
 
-package HaloModel;
+package Galacticus::HaloModel;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use PDL::IO::HDF5;
 use PDL::IO::HDF5::Dataset;
@@ -77,7 +69,7 @@ sub Compute_Power_Spectrum {
     }
 
     # Open the file.
-    &HDF5::Open_File($dataBlock);
+    &Galacticus::HDF5::Open_File($dataBlock);
 
     # Read the linear power spectrum.
     my $waveNumber          = $dataBlock->{'hdf5File'}->group("haloModel")->dataset("wavenumber"   )->get;
@@ -93,7 +85,7 @@ sub Compute_Power_Spectrum {
     # Get galaxy data.
     my @properties = ('mergerTreeIndex','nodeIndex','isolatedHostIndex','mergerTreeWeight','nodeBias');
     if ( $redshiftSpace == 1 ) {push(@properties,'nodeVirialVelocity','nodeVirialRadius','basicMass')};
-    &HDF5::Get_Dataset($dataBlock,\@properties);
+    &Galacticus::HDF5::Get_Dataset($dataBlock,\@properties);
     my $dataSets = $dataBlock->{'dataSets'};
 
     # Check for the existance of halo profiles.

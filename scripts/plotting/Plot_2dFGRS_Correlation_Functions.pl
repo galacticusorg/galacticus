@@ -1,24 +1,19 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use PDL;
 use PDL::IO::HDF5;
 use PDL::IO::HDF5::Dataset;
 use XML::Simple;
 use Math::SigFigs;
 use Data::Dumper;
-require Galacticus::HDF5;
-require Galacticus::Magnitudes;
-require Galacticus::HaloModel;
-require XMP::MetaData;
+use Galacticus::HDF5;
+use Galacticus::Magnitudes;
+use Galacticus::HaloModel;
+use XMP::MetaData;
 
 # Compute and plot a 2-point correlation functions and compare to 2dFGRS observations.
 # Andrew Benson (30-Aug-2010)
@@ -53,17 +48,17 @@ my $dataSet;
 $dataSet->{'file'}  = $galacticusFile;
 $dataSet->{'store'} = 0;
 $dataSet->{'tree'}  = "all";
-&HDF5::Get_Parameters        ($dataSet    );
-&HDF5::Count_Trees           ($dataSet    );
-&HDF5::Get_Times             ($dataSet    );
-&HDF5::Select_Output         ($dataSet,0.1);
-&HDF5::Get_Datasets_Available($dataSet    );
-&HDF5::Get_Dataset   ($dataSet,['nodeBias','magnitudeTotal:bJ:observed:z0.1000:dustAtlas:vega']);
+&Galacticus::HDF5::Get_Parameters        ($dataSet    );
+&Galacticus::HDF5::Count_Trees           ($dataSet    );
+&Galacticus::HDF5::Get_Times             ($dataSet    );
+&Galacticus::HDF5::Select_Output         ($dataSet,0.1);
+&Galacticus::HDF5::Get_Datasets_Available($dataSet    );
+&Galacticus::HDF5::Get_Dataset   ($dataSet,['nodeBias','magnitudeTotal:bJ:observed:z0.1000:dustAtlas:vega']);
 my $dataSets         = $dataSet->{'dataSets'};
 
 # Read the file of observational data.
 my $xml     = new XML::Simple;
-my $data    = $xml->XMLin($galacticusPath."data/observations/largeScaleStructure/Correlation_Functions_2dFGRS_Norberg_2002.xml");
+my $data    = $xml->XMLin(&galacticusPath()."data/observations/largeScaleStructure/Correlation_Functions_2dFGRS_Norberg_2002.xml");
 
 # Open a pipe to GnuPlot.
 open(gnuPlot,"|gnuplot 1>/dev/null 2>&1");
@@ -99,14 +94,14 @@ foreach my $correlationFunction ( @{$data->{'correlationFunction'}} ) {
 	unless ( nelem($selected) == 0 ) {
 
 	    # Get the power spectrum for these galaxies.
-	    (my $waveNumber, my $linearPowerSpectrum, my $galaxyPowerSpectrum) = &HaloModel::Compute_Power_Spectrum($dataSet
+	    (my $waveNumber, my $linearPowerSpectrum, my $galaxyPowerSpectrum) = &Galacticus::HaloModel::Compute_Power_Spectrum($dataSet
 														    ,$selected
 														    ,space => "redshift");
 	    # Compute the two-point correlation functions.
 	    my $separationMinimum         = $separationData->index(0);
 	    my $separationMaximum         = $separationData->index(nelem($separationData)-1);
 	    my $separationPointsPerDecade = (nelem($separationData)-1)/log10($separationMaximum/$separationMinimum);
-	    (my $separations, my $galaxyCorrelationFunction) = &HaloModel::Compute_Correlation_Function( $waveNumber
+	    (my $separations, my $galaxyCorrelationFunction) = &Galacticus::HaloModel::Compute_Correlation_Function( $waveNumber
 													 ,$galaxyPowerSpectrum
 													 ,$separationMinimum
 													 ,$separationMaximum
@@ -151,7 +146,7 @@ close(gnuPlot);
 
 # Convert to PDF.
 system("ps2pdf tmp.ps ".$outputFile);
-&MetaData::Write($outputFile,$galacticusFile,$self);
+&XMP::MetaData::Write($outputFile,$galacticusFile,$self);
 
 # Clean up files.
 unlink("tmp.ps");
