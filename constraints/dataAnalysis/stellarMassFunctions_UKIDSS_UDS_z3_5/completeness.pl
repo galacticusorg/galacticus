@@ -1,20 +1,15 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use PDL;
 use PDL::NiceSlice;
 use Data::Dumper;
 use XML::Simple;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
 
 # Estimate completeness as a function of mass for the UKIDSS UDS survey of Caputi et al. (2011).
 # Andrew Benson (28-April-2014)
@@ -50,12 +45,12 @@ my @bins =
 
 # Load the existing data file.
 my $xml = new XML::Simple;
-my $observations = $xml->XMLin($galacticusPath."data/observations/massFunctionsStellar/Stellar_Mass_Functions_UKIDSS_UDS_2011.xml");
+my $observations = $xml->XMLin(&galacticusPath()."data/observations/massFunctionsStellar/Stellar_Mass_Functions_UKIDSS_UDS_2011.xml");
 
 # Begin constructing the plot.
 my $plot;
 my $gnuPlot;
-my $plotFile = $galacticusPath."constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/completeness.pdf";
+my $plotFile = &galacticusPath()."constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/completeness.pdf";
 (my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
 open($gnuPlot,"|gnuplot 1>/dev/null 2>&1");
 print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
@@ -99,14 +94,14 @@ foreach my $bin ( @bins ) {
     # Construct label.
     my $label = sprintf("\$%4.2f<z<%4.2f\$",$bin->{'redshiftMinimum'},$bin->{'redshiftMaximum'});
     # Plot the completeness.
-    &PrettyPlots::Prepare_Dataset(
+    &GnuPlot::PrettyPlots::Prepare_Dataset(
 	\$plot,
 	$mass,
 	$completeness,
 	style      => "line",
 	weight     => [5,3],
 	title      => $label,
-	color      => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'sequence1'}}[$iBin]}
+	color      => $GnuPlot::PrettyPlots::colorPairs{${$GnuPlot::PrettyPlots::colorPairSequences{'sequence1'}}[$iBin]}
 	);
     # Compute completeness in each observed mass bin.
     my $observedMass         = pdl @{${$observations->{'massFunction'}->{'columns'}}[$iBin]->{'mass'}->{'datum'}};
@@ -118,12 +113,12 @@ foreach my $bin ( @bins ) {
     ${$observations->{'massFunction'}->{'columns'}}[$iBin]->{'completeness'}->{'description'} = "Completeness in this mass bin.";
 }
 # Finalize plot.
-&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF($plotFileEPS);
+&GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS);
 
 # Write the augmented data back to file.
-open(my $outputFile,">".$galacticusPath."data/observations/massFunctionsStellar/Stellar_Mass_Functions_UKIDSS_UDS_2011.xml");
+open(my $outputFile,">".&galacticusPath()."data/observations/massFunctionsStellar/Stellar_Mass_Functions_UKIDSS_UDS_2011.xml");
 print $outputFile $xml->XMLout($observations,NoAttr=>1, RootName=>"dataSets");
 close($outputFile);
 

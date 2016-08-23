@@ -1,27 +1,22 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use PDL;
 use PDL::NiceSlice;
 use PDL::Fit::Polynomial;
 use PDL::IO::Misc;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
 
 # Fit stellar mass completeness limits from the ULTRAVISTA survey (Muzzin et al. 2013). Fits the tabulated results in the data file
 # downloaded from ULTRAVISTA web site.
 # Andrew Benson (13-August-2014)
 
 # Specify work directory.
-my $workDirectory = $galacticusPath."constraints/dataAnalysis/stellarMassFunctions_ULTRAVISTA_z0.2_4.0/";
+my $workDirectory = &galacticusPath()."constraints/dataAnalysis/stellarMassFunctions_ULTRAVISTA_z0.2_4.0/";
 
 # Get the data file if we do not already have it.
 system("wget http://www.strw.leidenuniv.nl/galaxyevolution/ULTRAVISTA/Mstar_redshift_completeness_emp_uvista_v4.1_95.dat -O ".$workDirectory."Mstar_redshift_completeness_emp_uvista_v4.1_95.dat")
@@ -74,27 +69,27 @@ for(my $i=0;$i<nelem($coeffs);++$i) {
     }
 }
 $fitRedshift .= $fitRedshift/(1.0-exp(($fitMass-11.24)/0.02));
-&PrettyPlots::Prepare_Dataset(
+&GnuPlot::PrettyPlots::Prepare_Dataset(
     \$plot,
     10.0**$fitMass,
     $fitRedshift,
     style      => "line",
     weight     => [3,1],
-    color      => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'sequence1'}}[0]},
+    color      => $GnuPlot::PrettyPlots::colorPairs{${$GnuPlot::PrettyPlots::colorPairSequences{'sequence1'}}[0]},
     title      => 'fit'
     );
-&PrettyPlots::Prepare_Dataset(
+&GnuPlot::PrettyPlots::Prepare_Dataset(
     \$plot,
     10.0**$mass,
     $redshift,
     style      => "line",
     weight     => [5,3],
     linePattern => 3,
-    color      => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'sequence1'}}[0]},
+    color      => $GnuPlot::PrettyPlots::colorPairs{${$GnuPlot::PrettyPlots::colorPairSequences{'sequence1'}}[0]},
     title      => 'observed'
     );    
-&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF($plotFileEPS);
+&GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS);
 
 exit;

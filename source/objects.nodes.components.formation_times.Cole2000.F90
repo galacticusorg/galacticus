@@ -29,7 +29,7 @@ module Node_Component_Formation_Times_Cole2000
   !# <component>
   !#  <class>formationTime</class>
   !#  <name>Cole2000</name>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>formationTime</name>
@@ -101,7 +101,7 @@ contains
     type     (treeNode                                              ), intent(inout), pointer :: thisNode
     logical                                                          , intent(in   )          :: odeConverged
     logical                                                          , intent(inout)          :: interrupt
-    procedure(Interrupt_Procedure_Template                          ), intent(inout), pointer :: interruptProcedure
+    procedure(interruptTask                          ), intent(inout), pointer :: interruptProcedure
     class    (nodeComponentFormationTime                            )               , pointer :: thisFormationTimeComponent
     class    (nodeComponentBasic                                    )               , pointer :: formationBasicComponent   , thisBasicComponent
     !GCC$ attributes unused :: odeConverged

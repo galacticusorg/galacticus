@@ -1,14 +1,16 @@
 # Contains a Perl module which implements total HI gas mass calculations for Galacticus.
 
-package HIGasMass;
+package Galacticus::HIGasMass;
 use strict;
 use warnings;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use Data::Dumper;
-require Galacticus::HDF5;
+use Galacticus::HDF5;
 
-%HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-    "hiGasMass" => \&HIGasMass::Get_HIGasMass
+%Galacticus::HDF5::galacticusFunctions = ( %Galacticus::HDF5::galacticusFunctions,
+    "hiGasMass" => \&Galacticus::HIGasMass::Get_HIGasMass
     );
 
 sub Get_HIGasMass {
@@ -19,7 +21,7 @@ sub Get_HIGasMass {
     my $hiMassFraction = pdl 0.54;
 
     # Get available datasets.
-    &HDF5::Get_Datasets_Available($model);
+    &Galacticus::HDF5::Get_Datasets_Available($model);
 
     # Decide which datasets to get.
     my @dataSetsRequired = ( "nodeIndex" );
@@ -31,7 +33,7 @@ sub Get_HIGasMass {
     push(@dataSetsRequired,@gasMassComponents);
 
     # Get the datasets.
-    &HDF5::Get_Dataset($model,\@dataSetsRequired);
+    &Galacticus::HDF5::Get_Dataset($model,\@dataSetsRequired);
 
     # Sum the stellar masses.
     $model->{'dataSets'}->{$dataSetName} = pdl zeroes(nelem($model->{'dataSets'}->{'nodeIndex'}));

@@ -1,16 +1,8 @@
 # Contains a Perl module which implements various useful functionality for handling Fortran source code.
 
-package Fortran_Utils;
+package Fortran::Utils;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
 use File::Copy;
 use Text::Balanced qw (extract_bracketed);
 use Text::Table;

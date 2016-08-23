@@ -151,7 +151,7 @@ contains
        ! Check that we found a converged solution.
        if (fitMeasure > adiabaticContractionSolutionTolerance) then
           call Galacticus_Display_Message('dumping node for which radii are currently being sought')
-          call thisNode%dump()
+          call thisNode%serializeASCII()
           call Galacticus_Error_Report('Galactic_Structure_Radii_Solve_Adiabatic','failed to find converged solution')
        end if
 
@@ -293,7 +293,7 @@ contains
 
        ! Catch unphysical states.
        if (radius <= 0.0d0) then
-          call thisNode%dump()
+          call thisNode%serializeASCII()
           message='radius has reached zero for node '
           message=message//thisNode%index()//' - report follows:'//char(10)
           write (label,'(e12.6)') specificAngularMomentum

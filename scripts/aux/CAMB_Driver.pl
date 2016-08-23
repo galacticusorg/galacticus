@@ -1,14 +1,9 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{'GALACTICUS_ROOT_V094'}) ) {
-    $galacticusPath = $ENV{'GALACTICUS_ROOT_V094'};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl");
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use XML::Simple;
 use Data::Dumper;
 use File::Copy;
@@ -34,7 +29,7 @@ die('CAMB_Driver.pl: this script supports file format version '.$fileFormatCurre
     unless ( $fileFormat == $fileFormatCurrent );
 
 # Download the code.
-unless ( -e $galacticusPath."aux/CAMB.tar.gz" ) {
+unless ( -e &galacticusPath()."aux/CAMB.tar.gz" ) {
     if (is_interactive()) {
 	print "Have you read and accepted the CAMB license at http://camb.info/CAMBsubmit.html ? (y/n)\n";
 	my $key = prompt('',-ty1);
@@ -43,25 +38,25 @@ unless ( -e $galacticusPath."aux/CAMB.tar.gz" ) {
     } else {
 	print "WARNING: About to download CAMB, note that you should have read accepted the CAMB license at http://camb.info/CAMBsubmit.html\n";
     }
-    system("wget http://camb.info/CAMB.tar.gz -O ".$galacticusPath."aux/CAMB.tar.gz");
+    system("wget http://camb.info/CAMB.tar.gz -O ".&galacticusPath()."aux/CAMB.tar.gz");
     die("CAMB_Driver.pl: unable to download CAMB")
-	unless ( -e $galacticusPath."aux/CAMB.tar.gz" );
+	unless ( -e &galacticusPath()."aux/CAMB.tar.gz" );
 }
 
 # Unpack the code.
-unless ( -e $galacticusPath."aux/CAMB" ) {
+unless ( -e &galacticusPath()."aux/CAMB" ) {
     print "CAMB_Driver.pl: unpacking CAMB code.\n";
-    system("tar -x -v -z -C ".$galacticusPath."aux -f ".$galacticusPath."aux/CAMB.tar.gz");
+    system("tar -x -v -z -C ".&galacticusPath()."aux -f ".&galacticusPath()."aux/CAMB.tar.gz");
     die("CAMB_Driver.pl: FATAL - failed to unpack CAMB code.")
-	unless ( -e $galacticusPath."aux/CAMB" );
+	unless ( -e &galacticusPath()."aux/CAMB" );
 }
 
 # Build the code.
-unless ( -e $galacticusPath."aux/CAMB/camb" ) {
+unless ( -e &galacticusPath()."aux/CAMB/camb" ) {
     print "CAMB_Driver.pl: compiling CAMB code.\n";
-    system("cd ".$galacticusPath."aux/CAMB/; sed -r -i~ s/\"ifortErr\\s*=.*\"/\"ifortErr = 1\"/ Makefile; sed -r -i~ s/\"gfortErr\\s*=.*\"/\"gfortErr = 0\"/ Makefile; sed -r -i~ s/\"^FFLAGS\\s*\\+=\\s*\\-march=native\"/\"FFLAGS+=\"/ Makefile; sed -r -i~ s/\"^FFLAGS\\s*=\\s*.*\"/\"FFLAGS = -Ofast -fopenmp\"/ Makefile; make -j1");
+    system("cd ".&galacticusPath()."aux/CAMB/; sed -r -i~ s/\"ifortErr\\s*=.*\"/\"ifortErr = 1\"/ Makefile; sed -r -i~ s/\"gfortErr\\s*=.*\"/\"gfortErr = 0\"/ Makefile; sed -r -i~ s/\"^FFLAGS\\s*\\+=\\s*\\-march=native\"/\"FFLAGS+=\"/ Makefile; sed -r -i~ s/\"^FFLAGS\\s*=\\s*.*\"/\"FFLAGS = -Ofast -fopenmp\"/ Makefile; make -j1");
     die("CAMB_Driver.pl: FATAL - failed to build CAMB code.")
-	unless ( -e $galacticusPath."aux/CAMB/camb" );
+	unless ( -e &galacticusPath()."aux/CAMB/camb" );
 }
 
 # Specify default parameters.
@@ -213,7 +208,7 @@ END
 close(cambInput);
 
    # Run CAMB.
-   system($galacticusPath."aux/CAMB/camb ".$transferFunctionFile.".inp");
+   system(&galacticusPath()."aux/CAMB/camb ".$transferFunctionFile.".inp");
    # Read in the tabulated data and output as an XML file.
    my @transferFunctionData;
    my %transferFunction;

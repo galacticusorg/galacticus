@@ -1,18 +1,12 @@
 #!/usr/bin/env perl
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use strict;
 use warnings;
 use Storable;
 use XML::Simple;
 use Data::Dumper;
-require Galacticus::Constraints::Parameters;
+use Galacticus::Constraints::Parameters;
 
 # Parse constraints configuration and store in a fast binary format for rapid reuse during MCMC simulation.
 # Andrew Benson (20-March-2014)
@@ -23,7 +17,7 @@ die("Usage: storeConfiguration.pl <configFile>")
 my $configFile = $ARGV[0];
 
 # Parse the configuration file.
-my $config = &Parameters::Parse_Config($configFile,useStored => 0);
+my $config = &Galacticus::Constraints::Parameters::Parse_Config($configFile,useStored => 0);
 
 # Store the configuration file.
 store($config,$configFile.".store");

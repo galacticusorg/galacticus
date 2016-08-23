@@ -1,16 +1,8 @@
 # Contains a Perl module which implements useful compression tools.
 
-package Simple;
+package IO::Compress::Simple;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
 use IO::Compress::Bzip2 qw(bzip2 $Bzip2Error);
 
 sub Compress_Directory {

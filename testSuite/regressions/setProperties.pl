@@ -1,17 +1,11 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
-require Galacticus::HDF5;
-require Galacticus::Inclination;
+use Galacticus::HDF5;
+use Galacticus::Inclination;
 
 # Run a test case for setting properties back to the HDF5 output file.
 # Andrew Benson (15-October-2014)
@@ -25,11 +19,11 @@ die("FAILED: setProperties.pl model failed to complete")
 my $dataSet;
 $dataSet->{'file'  } = "testSuite/outputs/test-set-properties.hdf5";
 $dataSet->{'store' } = 1;
-&HDF5::Get_Parameters($dataSet);
-&HDF5::Count_Trees($dataSet);
-&HDF5::Select_Output($dataSet,0.0);
+&Galacticus::HDF5::Get_Parameters($dataSet);
+&Galacticus::HDF5::Count_Trees($dataSet);
+&Galacticus::HDF5::Select_Output($dataSet,0.0);
 $dataSet->{'tree'} ="all";
-eval { &HDF5::Get_Dataset($dataSet,['inclination']) };
+eval { &Galacticus::HDF5::Get_Dataset($dataSet,['inclination']) };
 if ( $@ ) {
     print "FAILED: setProperties.pl unable to set property in HDF5 file\n";
 }

@@ -1,24 +1,19 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use PDL;
 use PDL::NiceSlice;
 use XML::Simple;
 use Math::SigFigs;
-require Galacticus::HDF5;
-require Galacticus::Magnitudes;
-require Stats::Percentiles;
-require XMP::MetaData;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
+use Galacticus::HDF5;
+use Galacticus::Magnitudes;
+use Stats::Percentiles;
+use XMP::MetaData;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
 
 # Get name of input and output files.
 die("Plot_SDSS_Gas_Metallicity.pl <galacticusFile> <outputDir/File> [<showFit>]")
@@ -60,11 +55,11 @@ my $degreesOfFreedom = 0;
 my $dataBlock;
 $dataBlock->{'file'}  = $galacticusFile;
 $dataBlock->{'store'} = 0;
-&HDF5::Get_Parameters($dataBlock    );
-&HDF5::Count_Trees   ($dataBlock    );
-&HDF5::Select_Output ($dataBlock,0.1);
+&Galacticus::HDF5::Get_Parameters($dataBlock    );
+&Galacticus::HDF5::Count_Trees   ($dataBlock    );
+&Galacticus::HDF5::Select_Output ($dataBlock,0.1);
 $dataBlock->{'tree'} = "all";
-&HDF5::Get_Dataset($dataBlock,['mergerTreeWeight'
+&Galacticus::HDF5::Get_Dataset($dataBlock,['mergerTreeWeight'
 			      ,'magnitudeTotal:SDSS_g:observed:z0.1000:dustAtlas[faceOn]:AB'
 			      ,'magnitudeTotal:SDSS_z:observed:z0.1000:AB'
 			      ,'diskMassStellar'
@@ -81,7 +76,7 @@ my $gasMetallicity = where(12.0+log10(($dataSets->{'diskAbundancesGasMetals'}+$d
 # Read the XML data file.
 my @tmpFiles;
 my $xml = new XML::Simple;
-my $data = $xml->XMLin($galacticusPath."data/observations/abundances/Gas_Phase_Metallicities_SDSS_Tremonti_2004.xml");
+my $data = $xml->XMLin(&galacticusPath()."data/observations/abundances/Gas_Phase_Metallicities_SDSS_Tremonti_2004.xml");
 my $iDataset = 0;
 foreach my $dataSet ( @{$data->{'gasMetallicity'}} ) {
     ++$iDataset;
@@ -100,7 +95,7 @@ foreach my $dataSet ( @{$data->{'gasMetallicity'}} ) {
     my $magnitude   = where($dataSets->{$property}     ,$gasFraction > $gasFractionMinimum);
     my $weight      = where($dataSets->{'mergerTreeWeight'},$gasFraction > $gasFractionMinimum);
     my $percentiles = pdl [2.5,16.0,50.0,84.0,97.5];
-    my $results     = &Percentiles::BinnedPercentiles(
+    my $results     = &Stats::Percentiles::BinnedPercentiles(
 	$x,
 	$magnitude,
 	$gasMetallicity,
@@ -147,80 +142,80 @@ foreach my $dataSet ( @{$data->{'gasMetallicity'}} ) {
     # Plot datasets.
     my $yLow1  = pdl @{$columns->{'distributionPercentile'}->[0]->{'data'}};
     my $yHigh1 = pdl @{$columns->{'distributionPercentile'}->[4]->{'data'}};
-    &PrettyPlots::Prepare_Dataset(
+    &GnuPlot::PrettyPlots::Prepare_Dataset(
 	\$plot,
 	$x,$yLow1,y2 => $yHigh1,
 	style      => "filledCurve",
 	symbol     => [6,7],
 	weight     => [5,3],
 	pointSize  => 0.5,
-	color      => $PrettyPlots::colorPairs{'lightSkyBlue'}
+	color      => $GnuPlot::PrettyPlots::colorPairs{'lightSkyBlue'}
 	);
     my $yLow2  = pdl @{$columns->{'distributionPercentile'}->[1]->{'data'}};
     my $yHigh2 = pdl @{$columns->{'distributionPercentile'}->[3]->{'data'}};
-    &PrettyPlots::Prepare_Dataset(
+    &GnuPlot::PrettyPlots::Prepare_Dataset(
 	\$plot,
 	$x,$yLow2,y2 => $yHigh2,
 	style      => "filledCurve",
 	symbol     => [6,7],
 	weight     => [5,3],
 	pointSize  => 0.5,
-	color      => $PrettyPlots::colorPairs{'cornflowerBlue'}
+	color      => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'}
 	);
     my $yMedian = pdl @{$columns->{'distributionPercentile'}->[2]->{'data'}};
-    &PrettyPlots::Prepare_Dataset(
+    &GnuPlot::PrettyPlots::Prepare_Dataset(
 	\$plot,
 	$x,$yMedian,
 	style      => "line",
 	symbol     => [6,7],
 	weight     => [5,3],
 	pointSize  => 0.5,
-	color      => $PrettyPlots::colorPairs{'darkSlateBlue'}
+	color      => $GnuPlot::PrettyPlots::colorPairs{'darkSlateBlue'}
 	);
     my $nonZero1         = which(($results(:,(0)) > 0.0) & ($results(:,(4)) > 0.0));
     my $yGalacticusLow1  = $results($nonZero1,(0));
     my $yGalacticusHigh1 = $results($nonZero1,(4));
-    &PrettyPlots::Prepare_Dataset(
+    &GnuPlot::PrettyPlots::Prepare_Dataset(
 	\$plot,
 	$x->($nonZero1),$yGalacticusLow1,y2 => $yGalacticusHigh1,
 	style        => "filledCurve",
 	symbol       => [6,7],
 	weight       => [5,3],
 	pointSize    => 0.5,
-	color        => $PrettyPlots::colorPairs{'salmon'},
+	color        => $GnuPlot::PrettyPlots::colorPairs{'salmon'},
 	transparency => 0.5
 	);
     my $nonZero2         = which(($results(:,(1)) > 0.0) & ($results(:,(3)) > 0.0));
     my $yGalacticusLow2  = $results($nonZero2,(1));
     my $yGalacticusHigh2 = $results($nonZero2,(3));
-    &PrettyPlots::Prepare_Dataset(
+    &GnuPlot::PrettyPlots::Prepare_Dataset(
 	\$plot,
 	$x->($nonZero2),$yGalacticusLow2,y2 => $yGalacticusHigh2,
 	style        => "filledCurve",
 	symbol       => [6,7],
 	weight       => [5,3],
 	pointSize    => 0.5,
-	color        => $PrettyPlots::colorPairs{'orange'},
+	color        => $GnuPlot::PrettyPlots::colorPairs{'orange'},
 	transparency => 0.5
 	);
     my $nonZero3         = which($results(:,(2)) > 0.0);
     my $yGalacticusMedian = $results($nonZero3,(2));
-    &PrettyPlots::Prepare_Dataset(
+    &GnuPlot::PrettyPlots::Prepare_Dataset(
 	\$plot,
 	$x->($nonZero3),$yGalacticusMedian,
 	style        => "line",
 	symbol       => [6,7],
 	weight       => [5,3],
 	pointSize    => 0.5,
-	color        => $PrettyPlots::colorPairs{'redYellow'},
+	color        => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
 	transparency => 0.5
 	);
     # Finalize plotting.
-    &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+    &GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
     # Close the pipe to GnuPlot.
     close($gnuPlot);
-    &LaTeX::GnuPlot2PDF($plotFileTeX);
-    &MetaData::Write($outputFile,$galacticusFile,$self);    
+    &GnuPlot::LaTeX::GnuPlot2PDF($plotFileTeX);
+    &XMP::MetaData::Write($outputFile,$galacticusFile,$self);    
 }
 
 # Display chi^2 information

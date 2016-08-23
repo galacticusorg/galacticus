@@ -1,27 +1,21 @@
 # Contains a Perl module which implements processing of generic directives.
 
-package Generics;
+package Galacticus::Build::SourceTree::Process::Generics;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Data::Dumper;
 use XML::Simple;
 use LaTeX::Encode;
 use Storable qw(dclone);
 use Scalar::Util qw(reftype);
-require List::ExtraUtils;
-require Galacticus::Build::SourceTree::Hooks;
-require Galacticus::Build::SourceTree;
+use List::ExtraUtils;
+## AJB HACK use Galacticus::Build::SourceTree::Hooks;
+## AJB HACK use Galacticus::Build::SourceTree;
 
 # Insert hooks for our functions.
-$Hooks::processHooks{'generics'} = \&Process_Generics;
+$Galacticus::Build::SourceTree::Hooks::processHooks{'generics'} = \&Process_Generics;
 
 sub Process_Generics {
     # Get the tree.
@@ -38,7 +32,7 @@ sub Process_Generics {
 	    while ( $sibling ) {
 		# Get a breadth-first stack of the tree.
 		my @stack = ();
-		@stack = &SourceTree::StackIt($sibling,\@stack,-1);		
+		@stack = &Galacticus::Build::SourceTree::StackIt($sibling,\@stack,-1);		
 		# Walk the tree, breadth first.
 		my $depthPrevious = 0;
 		while ( scalar(@stack) > 0 ) {
@@ -47,7 +41,7 @@ sub Process_Generics {
 			# Initialize copies of the subtree.
 			my @copies;
 			# Iterate over instances.
-			foreach my $instance ( &ExtraUtils::as_array($node->{'directive'}->{'instance'}) ) {
+			foreach my $instance ( &List::ExtraUtils::as_array($node->{'directive'}->{'instance'}) ) {
 			    # Make a copy.
 			    my $copy = dclone($subTreeNode->{'node'});
 			    $copy->{'parent' } = undef();
@@ -76,13 +70,13 @@ sub Process_Generics {
 				    $copyNode->{'content'} = $newCode;
 				}
 				# Move to the next node in the copied tree.
-				$copyNode = &SourceTree::Walk_Tree($copyNode,\$copyDepth);
+				$copyNode = &Galacticus::Build::SourceTree::Walk_Tree($copyNode,\$copyDepth);
 			    }
 			    # Push copy to list of copies.
 			    push(@copies,$copy);
 			}
 			# Replace the subtree with the array of copies.
-			&SourceTree::ReplaceNode($subTreeNode->{'node'},\@copies);
+			&Galacticus::Build::SourceTree::ReplaceNode($subTreeNode->{'node'},\@copies);
 			# Skip over entries in the stack that belonged to the subtree.
 			my $depthTarget = $subTreeNode->{'depth'};
 			do {
@@ -106,7 +100,7 @@ sub Process_Generics {
 			    while ( my $line = <$code> ) {
 				if ( $line =~ $genericRegEx ) {
 				    # Iterate over instances.
-				    foreach my $instance ( &ExtraUtils::as_array($node->{'directive'}->{'instance'}) ) {
+				    foreach my $instance ( &List::ExtraUtils::as_array($node->{'directive'}->{'instance'}) ) {
 					my $copiedLine = $line;
 					$copiedLine = &ReplaceGeneric($copiedLine,$node->{'directive'}->{'identifier'},$instance,$_)
 					    foreach ( keys(%{$instance}) );
@@ -125,7 +119,7 @@ sub Process_Generics {
 		$sibling = $sibling->{'sibling'};
 	    }
 	}
-	$node = &SourceTree::Walk_Tree($node,\$depth);
+	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }
 }
 

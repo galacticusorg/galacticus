@@ -2,19 +2,11 @@
 use strict;
 use warnings;
 use Cwd;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "../";
- $ENV{"GALACTICUS_ROOT_V094"} = getcwd()."/../";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/../perl';
 use PDL;
 use PDL::NiceSlice;
-require Galacticus::HDF5;
-require Stats::Histograms;
+use Galacticus::HDF5;
+use Stats::Histograms;
 
 # Run a default Galacticus model as an integration test.
 # Andrew Benson (05-December-2014)
@@ -30,15 +22,15 @@ my $dataSet;
 $dataSet->{'file' } = "outputs/test-model-integration/galacticus_0:1/galacticus.hdf5";
 $dataSet->{'store'} = 0;
 $dataSet->{'tree' } = "all";
-&HDF5::Get_Parameters($dataSet    );
-&HDF5::Get_Times     ($dataSet    );
-&HDF5::Select_Output ($dataSet,0.0);
-&HDF5::Count_Trees   ($dataSet    );
-&HDF5::Get_Dataset($dataSet,['mergerTreeWeight','diskMassStellar','spheroidMassStellar']);
+&Galacticus::HDF5::Get_Parameters($dataSet    );
+&Galacticus::HDF5::Get_Times     ($dataSet    );
+&Galacticus::HDF5::Select_Output ($dataSet,0.0);
+&Galacticus::HDF5::Count_Trees   ($dataSet    );
+&Galacticus::HDF5::Get_Dataset($dataSet,['mergerTreeWeight','diskMassStellar','spheroidMassStellar']);
 my $dataSets               = $dataSet->{'dataSets'};
 my $logarithmicMassStellar = log10($dataSets->{'diskMassStellar'}+$dataSets->{'spheroidMassStellar'});
 my $weight                 = $dataSets->{'mergerTreeWeight'};
-(my $massFunction, my $error) = &Histograms::Histogram($xBins,$logarithmicMassStellar,$weight,differential => 1);
+(my $massFunction, my $error) = &Stats::Histograms::Histogram($xBins,$logarithmicMassStellar,$weight,differential => 1);
 $massFunction /= log(10.0);
 $error        /= log(10.0);
 

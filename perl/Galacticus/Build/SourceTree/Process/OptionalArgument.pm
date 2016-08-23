@@ -1,25 +1,19 @@
 # Contains a Perl module which implements processing of optional argument directives.
 
-package OptionalArguments;
+package Galacticus::Build::SourceTree::Process::OptionalArgument;
 use strict;
 use warnings;
 use utf8;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Data::Dumper;
-require List::ExtraUtils;
-require Galacticus::Build::SourceTree::Hooks;
-require Galacticus::Build::SourceTree;
-require Galacticus::Build::SourceTree::Parse::Declarations;
+use List::ExtraUtils;
+## AJB HACK use Galacticus::Build::SourceTree::Hooks;
+## AJB HACK use Galacticus::Build::SourceTree;
+## AJB HACK use Galacticus::Build::SourceTree::Parse::Declarations;
 
 # Insert hooks for our functions.
-$Hooks::processHooks{'optionalArguments'} = \&Process_OptionalArguments;
+$Galacticus::Build::SourceTree::Hooks::processHooks{'optionalArguments'} = \&Process_OptionalArguments;
 
 sub Process_OptionalArguments {
     # Get the tree.
@@ -32,7 +26,7 @@ sub Process_OptionalArguments {
 	    # Record that node is processed.
 	    $node->{'processed'} = 1;
 	    # Generate declaration and setting code for the optional argument.
-	    my $declaration = &Declarations::GetDeclaration($node->{'parent'},$node->{'directive'}->{'name'});
+	    my $declaration = &Galacticus::Build::SourceTree::Parse::Declarations::GetDeclaration($node->{'parent'},$node->{'directive'}->{'name'});
 	    # Change the name of the declared variable, strip argument-based attributes.
 	    $declaration->{'variables'} = [ $node->{'directive'}->{'name'}."_" ];
 	    @{$declaration->{'attributes'}} =
@@ -49,7 +43,7 @@ sub Process_OptionalArguments {
 		    $_	 
 	    }
 	    @{$declaration->{'attributes'}};   
-	    &Declarations::AddDeclarations($node->{'parent'},[$declaration]);
+	    &Galacticus::Build::SourceTree::Parse::Declarations::AddDeclarations($node->{'parent'},[$declaration]);
 	    # Generate setting code for the optional argument.
 	    my $setter       = "   ! Auto-generated optional argument setter\n";
 	    $setter         .= "   ".$node->{'directive'}->{'name'}."_=".$node->{'directive'}->{'defaultsTo'}."\n";
@@ -63,9 +57,9 @@ sub Process_OptionalArguments {
 		firstChild => undef()
 	    };
 	    # Insert the node.
-	    &SourceTree::InsertAfterNode($node,[$setterNode]);
+	    &Galacticus::Build::SourceTree::InsertAfterNode($node,[$setterNode]);
 	}
-	$node = &SourceTree::Walk_Tree($node,\$depth);
+	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }
 }
 

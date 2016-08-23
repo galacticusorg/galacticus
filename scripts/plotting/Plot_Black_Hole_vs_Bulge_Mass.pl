@@ -1,14 +1,9 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use PDL;
 use PDL::NiceSlice;
 use XML::Simple;
@@ -16,12 +11,12 @@ use Math::SigFigs;
 use Data::Dumper;
 use Carp 'verbose';
 $SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
-require Stats::Means;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
-require Galacticus::HDF5;
-require Galacticus::Magnitudes;
-require XMP::MetaData;
+use Stats::Means;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
+use Galacticus::HDF5;
+use Galacticus::Magnitudes;
+use XMP::MetaData;
 
 # Get name of input and output files.
 die("Plot_Black_Hole_vs_Bulge_Mass.pl <galacticusFile> <outputDir/File> [<showFit>]")
@@ -59,11 +54,11 @@ my $logSpheroidMassBins   = pdl (0..$logSpheroidMassPoints-1)*$logSpheroidMassBi
 my $dataSet;
 $dataSet->{'file'} = $galacticusFile;
 $dataSet->{'store'} = 0;
-&HDF5::Get_Parameters($dataSet);
-&HDF5::Count_Trees($dataSet);
-&HDF5::Select_Output($dataSet,0.0);
+&Galacticus::HDF5::Get_Parameters($dataSet);
+&Galacticus::HDF5::Count_Trees($dataSet);
+&Galacticus::HDF5::Select_Output($dataSet,0.0);
 $dataSet->{'tree'} = "all";
-&HDF5::Get_Dataset($dataSet,['mergerTreeWeight','spheroidMassStellar','blackHoleMass']);
+&Galacticus::HDF5::Get_Dataset($dataSet,['mergerTreeWeight','spheroidMassStellar','blackHoleMass']);
 my $dataSets         = $dataSet->{'dataSets'};
 my $mergerTreeWeight     = where($dataSets->{'mergerTreeWeight'}       ,$dataSets->{'spheroidMassStellar'} > 3.0e8);
 my $spheroidMass     = where($dataSets->{'spheroidMassStellar'},$dataSets->{'spheroidMassStellar'} > 3.0e8);
@@ -86,7 +81,7 @@ unless (exists($dataSets->{'blackHoleMass'})) {
     my $logBlackHoleMassSigmaGalacticus;
     if ( nelem($logSpheroidMassGalacticus) > 0 ) {
 	($logBlackHoleMassMeanGalacticus, $logBlackHoleMassMeanErrorGalacticus, $logBlackHoleMassSigmaGalacticus, my $logBlackHoleMassSigmaErrorGalacticus)
-	    = &Means::BinnedMean($logSpheroidMassBins,$logSpheroidMassGalacticus,$logBlackHoleMassGalacticus,$weight);
+	    = &Stats::Means::BinnedMean($logSpheroidMassBins,$logSpheroidMassGalacticus,$logBlackHoleMassGalacticus,$weight);
     } else {
 	$logBlackHoleMassMeanGalacticus      = pdl zeroes(nelem($logSpheroidMassBins));
 	$logBlackHoleMassMeanErrorGalacticus = pdl zeroes(nelem($logSpheroidMassBins));
@@ -101,7 +96,7 @@ unless (exists($dataSets->{'blackHoleMass'})) {
     my $y      = pdl [];
     my $yError = pdl [];
     my $xml = new XML::Simple;
-    my $data = $xml->XMLin($galacticusPath."data/observations/blackHoles/Black_Hole_Mass_vs_Galaxy_Properties_Feoli_Mancini_2009.xml", KeyAttr => "");
+    my $data = $xml->XMLin(&galacticusPath()."data/observations/blackHoles/Black_Hole_Mass_vs_Galaxy_Properties_Feoli_Mancini_2009.xml", KeyAttr => "");
     my %cosmology;
     foreach my $parameter ( @{$data->{'cosmology'}->{'parameter'}} ) {
 	$cosmology{$parameter->{'name'}} = $parameter->{'value'};
@@ -125,7 +120,7 @@ unless (exists($dataSets->{'blackHoleMass'})) {
     my $logError         = $yError/$y/log(10.0);
     my $weights          = 1.0/$logError**2;
     (my $logBlackHoleMassMean, my $logBlackHoleMassMeanError, my $logBlackHoleMassSigma, my $logBlackHoleMassSigmaError)
-	= &Means::BinnedMean($logSpheroidMassBins,$logSpheroidMass,$logBlackHoleMass,$weights);
+	= &Stats::Means::BinnedMean($logSpheroidMassBins,$logSpheroidMass,$logBlackHoleMass,$weights);
 
     # Compute chi^2.
     my $degreesOfFreedom;
@@ -176,7 +171,7 @@ unless (exists($dataSets->{'blackHoleMass'})) {
     print $gnuPlot "set xrange [3.0e8:3.0e12]\n";
     print $gnuPlot "set yrange [1.0e5:1.0e10]\n";
     print $gnuPlot "set pointsize 2.0\n";
-    &PrettyPlots::Prepare_Dataset(
+    &GnuPlot::PrettyPlots::Prepare_Dataset(
 	\$plot,
 	$x,$y,
 	errorLeft  => $xError,
@@ -187,14 +182,14 @@ unless (exists($dataSets->{'blackHoleMass'})) {
 	symbol     => [6,7],
 	weight     => [5,3],
 	pointSize  => 0.5,
-	color      => $PrettyPlots::colorPairs{'cornflowerBlue'},
+	color      => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'},
 	title      => $data->{'label'}
 	);
     my $spheroidMassBins   =  10.0** $logSpheroidMassBins;
     my $blackHoleMassMean  =  10.0** $logBlackHoleMassMeanGalacticus;
     my $blackHoleMassUpper = +10.0**($logBlackHoleMassMeanGalacticus+$logBlackHoleMassSigmaGalacticus)-$blackHoleMassMean;
     my $blackHoleMassLower = -10.0**($logBlackHoleMassMeanGalacticus-$logBlackHoleMassSigmaGalacticus)+$blackHoleMassMean;
-    &PrettyPlots::Prepare_Dataset(
+    &GnuPlot::PrettyPlots::Prepare_Dataset(
 	\$plot,
 	$spheroidMassBins,$blackHoleMassMean,
 	errorDown  => $blackHoleMassLower,
@@ -203,13 +198,13 @@ unless (exists($dataSets->{'blackHoleMass'})) {
 	symbol     => [6,7],
 	weight     => [5,3],
 	pointSize  => 0.5,
-	color      => $PrettyPlots::colorPairs{'redYellow'},
+	color      => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
 	title      => 'Galacticus'
 	);
-    &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+    &GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
     close($gnuPlot);
-    &LaTeX::GnuPlot2PDF($plotFileTeX);
-    &MetaData::Write($plotFile,$galacticusFile,$self);
+    &GnuPlot::LaTeX::GnuPlot2PDF($plotFileTeX);
+    &XMP::MetaData::Write($plotFile,$galacticusFile,$self);
 }
 
 exit;

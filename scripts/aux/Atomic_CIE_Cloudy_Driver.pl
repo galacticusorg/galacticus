@@ -1,18 +1,12 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{'GALACTICUS_ROOT_V094'}) ) {
-    $galacticusPath = $ENV{'GALACTICUS_ROOT_V094'};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl");
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use XML::Simple;
 use Data::Dumper;
 use Fcntl qw (:flock);
-require Cloudy;
+use Cloudy;
 
 # Driver script for Cloudy.
 # Andrew Benson (26-Jan-2010)

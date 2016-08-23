@@ -1,24 +1,16 @@
 # Contains a Perl module which implements parsing of directives in the Galacticus preprocessor system.
 
-package Directives;
+package Galacticus::Build::SourceTree::Parse::Directives;
 use strict;
 use warnings;
 use utf8;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
 use Data::Dumper;
 use XML::Simple;
-require Galacticus::Build::SourceTree::Hooks;
-require Galacticus::Build::SourceTree;
+## AJB HACK use Galacticus::Build::SourceTree::Hooks;
+## AJB HACK use Galacticus::Build::SourceTree;
 
 # Insert hooks for our functions.
-$Hooks::parseHooks{'directives'} = \&Parse_Directives;
+$Galacticus::Build::SourceTree::Hooks::parseHooks{'directives'} = \&Parse_Directives;
 
 sub Parse_Directives {
     # Get the tree.
@@ -128,10 +120,10 @@ sub Parse_Directives {
 	    # If we have a single code block, nothing needs to change.
 	    unless ( scalar(@newNodes) == 1 && $newNodes[0]->{'type'} eq "code" ) {
 		# New nodes created, insert them, replacing the old node.
-		&SourceTree::ReplaceNode($node,\@newNodes);
+		&Galacticus::Build::SourceTree::ReplaceNode($node,\@newNodes);
 	    }
 	}
-	$node = &SourceTree::Walk_Tree($node,\$depth);
+	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }    
 }
 

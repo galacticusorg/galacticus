@@ -1,21 +1,15 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath  = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath  = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
 use XML::Simple;
 use Data::Dumper;
-require Galacticus::Options;
-require Galacticus::HDF5;
+use Galacticus::Options;
+use Galacticus::HDF5;
 
 # Compute likelihood based on the Carnegie Hubble Program constraint on H_0 (http://adsabs.harvard.edu/abs/2012ApJ...758...24F).
 # Andrew Benson (16-October-2014)
@@ -30,7 +24,7 @@ my %arguments =
     (
      quiet => 0
     );
-&Options::Parse_Options(\@ARGV,\%arguments);
+&Galacticus::Options::Parse_Options(\@ARGV,\%arguments);
   
 # Define the constraint.
 my $constraintValue            = 74.3;
@@ -41,7 +35,7 @@ my $constraintSystematicError  =  2.1;
 my $galacticus;
 $galacticus->{'file' } = $galacticusFile;
 $galacticus->{'store'} = 0;
-&HDF5::Get_Parameters($galacticus);
+&Galacticus::HDF5::Get_Parameters($galacticus);
 
 # Evaluate the model likelihood.
 if ( exists($arguments{'outputFile'}) ) {

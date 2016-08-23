@@ -1,12 +1,6 @@
 #!/usr/bin/env perl
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use strict;
 use warnings;
 use XML::Simple;
@@ -21,13 +15,13 @@ use PDL::IO::HDF5;
 use PDL::LinearAlgebra;
 use PDL::Matrix;
 use PDL::MatrixOps;
-require Galacticus::Options;
-require Galacticus::Constraints::Parameters;
-require Galacticus::Constraints::Covariances;
-require Galacticus::Launch::PBS;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
-require List::ExtraUtils;
+use Galacticus::Options;
+use Galacticus::Constraints::Parameters;
+use Galacticus::Constraints::Covariances;
+use Galacticus::Launch::PBS;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
+use List::ExtraUtils;
 
 # Run calculations to test the accuracy a Galacticus model for the given constraints compilation.
 # Andrew Benson (15-November-2012)
@@ -44,10 +38,10 @@ my %arguments =
      treesPerDecadeSteps     => 8,
      samplingAbundanceLimits => "yes"
     );
-&Options::Parse_Options(\@ARGV,\%arguments);
+&Galacticus::Options::Parse_Options(\@ARGV,\%arguments);
 
 # Parse the constraint config file.
-my $config = &Parameters::Parse_Config($configFile);
+my $config = &Galacticus::Constraints::Parameters::Parse_Config($configFile);
 
 # Validate the config file.
 die("testModelAccuracy.pl: workDirectory must be specified in config file" ) unless ( exists($config->{'likelihood'}->{'workDirectory' }) );
@@ -75,7 +69,7 @@ if ( $arguments{'make'} eq "yes" ) {
 }
 
 # Get a hash of the parameter values.
-(my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'likelihood'}->{'compilation'},$config->{'likelihood'}->{'baseParameters'});
+(my $constraintsRef, my $parameters) = &Galacticus::Constraints::Parameters::Compilation($config->{'likelihood'}->{'compilation'},$config->{'likelihood'}->{'baseParameters'});
 my @constraints = @{$constraintsRef};
 
 # Set an initial random number seed.
@@ -159,7 +153,7 @@ foreach my $accuracy ( @accuracies ) {
 	    unless ( -e $galacticusFileName ) {
 		# Generate the parameter file.
 		my $parameterFileName = $modelDirectory."/parameters.xml";
-		&Parameters::Output($currentParameters,$parameterFileName);
+		&Galacticus::Constraints::Parameters::Output($currentParameters,$parameterFileName);
 		# Create a PBS job.
 		my $command = "mpirun --bynode -np 1 /usr/bin/time --format='Time: %S %U' Galacticus.exe ".$parameterFileName."\n";
 		foreach my $constraint ( @constraints ) {
@@ -194,7 +188,7 @@ foreach my $accuracy ( @accuracies ) {
 	}
     }
     # Send jobs to PBS.
-    &PBS::SubmitJobs(\%arguments,reverse(@pbsStack))
+    &Galacticus::Launch::PBS::SubmitJobs(\%arguments,reverse(@pbsStack))
 	if ( scalar(@pbsStack) > 0 );
 }
 
@@ -307,7 +301,7 @@ foreach my $accuracy ( @accuracies ) {
 		my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
 		# Skip excluded constraints.
 		next
-		    if ( exists($arguments{'exclude'}) && grep {$_ eq $constraintDefinition->{'label'}} &ExtraUtils::as_array($arguments{'exclude'}) );
+		    if ( exists($arguments{'exclude'}) && grep {$_ eq $constraintDefinition->{'label'}} &List::ExtraUtils::as_array($arguments{'exclude'}) );
 		# Check if the accuracy data was reported. If not, assume this model just didn't complete
 		# in the available time.
 		my $resultFileName = $modelDirectory."/".$constraintDefinition->{'label'}.".hdf5";
@@ -342,7 +336,7 @@ foreach my $accuracy ( @accuracies ) {
 	    	);
 	}
 	# Add to the plot.	
-	&PrettyPlots::Prepare_Dataset
+	&GnuPlot::PrettyPlots::Prepare_Dataset
 	    (
 	     \$plot,
 	     $timing,
@@ -350,14 +344,14 @@ foreach my $accuracy ( @accuracies ) {
 	     style  => "point",
 	     symbol => [6,7],
 	     weight => [5,3],
-	     color  => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'sequence1'}}[$j]},
+	     color  => $GnuPlot::PrettyPlots::colorPairs{${$GnuPlot::PrettyPlots::colorPairSequences{'sequence1'}}[$j]},
 	     title  => $samplingMethod->{'label'}
 	    );
     }
     # Finalize the plot.
-    &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+    &GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
     close($gnuPlot);
-    &LaTeX::GnuPlot2PDF($outputFileEPS);    
+    &GnuPlot::LaTeX::GnuPlot2PDF($outputFileEPS);    
     # Write the accuracy report.
     open(my $report,">".$workDirectory."/accuracy/".$accuracy->{'parameter'}."Report.txt");
     print $report "Report on accuracy in Galacticus model\n\n";

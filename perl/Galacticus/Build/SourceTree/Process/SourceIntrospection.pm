@@ -1,24 +1,16 @@
 # Contains a Perl module which implements source code introspection.
 
-package SourceIntrospection;
+package Galacticus::Build::SourceTree::Process::SourceIntrospection;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
 use File::Slurp qw(slurp);
 use Data::Dumper;
 use XML::Simple;
-require Galacticus::Build::SourceTree::Hooks;
-require Galacticus::Build::SourceTree;
+## AJB HACK use Galacticus::Build::SourceTree::Hooks;
+## AJB HACK use Galacticus::Build::SourceTree;
 
 # Insert hooks for our functions.
-$Hooks::processHooks{'sourceIntrospection'} = \&Process_Source_Introspection;
+$Galacticus::Build::SourceTree::Hooks::processHooks{'sourceIntrospection'} = \&Process_Source_Introspection;
 
 sub ReadFile {
     # Read a file and add instrumentation to assist in source introspection.
@@ -74,7 +66,7 @@ sub Process_Source_Introspection {
 	    $node->{'content'} = $newCode;	    
 	}
 	# Move on to the next node.
-	$node = &SourceTree::Walk_Tree($node,\$depth);
+	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }
 }
 

@@ -61,7 +61,7 @@ function likelihoodProjectedCorrelationFunctionConstructor(haloMassMinimum,haloM
   likelihoodProjectedCorrelationFunctionConstructor%inverseCovariance=likelihoodProjectedCorrelationFunctionConstructor%covariance      %invert()
   call likelihoodProjectedCorrelationFunctionConstructor%inverseCovariance%makeSemiPositiveDefinite()
   ! Ensure the nodes objects are initialized.
-  call Galacticus_Nodes_Initialize                        ()
+  call nodeClassHierarchyInitialize                       ()
   call Node_Component_Dark_Matter_Profile_Scale_Initialize()
   return
 end function likelihoodProjectedCorrelationFunctionConstructor

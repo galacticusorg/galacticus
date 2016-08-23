@@ -2,22 +2,14 @@
 use strict;
 use warnings;
 use Cwd;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "../";
- $ENV{"GALACTICUS_ROOT_V094"} = getcwd()."/../";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/../perl';
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
-require Galacticus::HDF5;
-require Galacticus::SubMmFluxesHayward;
-require Galacticus::Grasil;
-require Galacticus::Survey;
+use Galacticus::HDF5;
+use Galacticus::SubMmFluxesHayward;
+use Galacticus::Grasil;
+use Galacticus::Survey;
 
 # Run simple Galacticus+Grasil calculations.
 # Andrew Benson (12-January-2013)
@@ -75,7 +67,7 @@ my $minimumFlux     = 1.0e-3;
 # Get available output times for this model.
 my $galacticus;
 $galacticus->{'file'} = "outputs/test-Grasil/galacticus_0:1/galacticus.hdf5";
-&HDF5::Get_Times ($galacticus);
+&Galacticus::HDF5::Get_Times ($galacticus);
 
 # Loop over all available redshifts.
 my $outputNumber = 0;
@@ -108,11 +100,11 @@ foreach my $outputRedshift ( $galacticus->{'outputs'}->{'redshift'}->list() ) {
     $galacticus->{'haywardSubMmFit'}->{'dustmassExponent'         } = pdl 0.68;
 
     # Read results from model.
-    &HDF5::Get_Parameters        ($galacticus                );
-    &HDF5::Select_Output         ($galacticus,$outputRedshift);
-    &HDF5::Get_Datasets_Available($galacticus                );
+    &Galacticus::HDF5::Get_Parameters        ($galacticus                );
+    &Galacticus::HDF5::Select_Output         ($galacticus,$outputRedshift);
+    &Galacticus::HDF5::Get_Datasets_Available($galacticus                );
     if ( exists($galacticus->{'dataSetsAvailable'}->{'nodeIndex'}) ) {
-	&HDF5::Get_Dataset($galacticus,
+	&Galacticus::HDF5::Get_Dataset($galacticus,
 			   [
 			    'nodeIndex'           ,
 			    'mergerTreeIndex'     ,
@@ -143,7 +135,7 @@ foreach my $outputRedshift ( $galacticus->{'outputs'}->{'redshift'}->list() ) {
 	print "At z=".$outputRedshift.", ".$numberSelected." galaxies were selected.\n";
 
 	# Process the galaxies through Grasil.
-	&HDF5::Get_Dataset($galacticus,
+	&Galacticus::HDF5::Get_Dataset($galacticus,
 	  		   [
 	  		    'grasilFlux850microns',
 	  		    'grasilFlux250microns',

@@ -1,18 +1,12 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Fcntl qw(SEEK_SET);
 use XML::Simple;
 use Data::Dumper;
-require System::Redirect;
+use System::Redirect;
 
 # Scans source code for "!#" directives and generates a Makefile.
 
@@ -211,7 +205,7 @@ foreach my $directive ( keys(%includeDirectives) ) {
     open(xmlHndl,">".$ENV{'BUILDPATH'}."/".$directive.".xml.tmp");
     print xmlHndl ${$includeDirectives{$directive}}{'xml'};
     close(xmlHndl);
-    &SystemRedirect::tofile("diff -q  ".$sourcedir."/".$ENV{'BUILDPATH'}."/".$directive.".xml.tmp ".$sourcedir."/".$ENV{'BUILDPATH'}."/".$directive.".xml","/dev/null");
+    &System::Redirect::tofile("diff -q  ".$sourcedir."/".$ENV{'BUILDPATH'}."/".$directive.".xml.tmp ".$sourcedir."/".$ENV{'BUILDPATH'}."/".$directive.".xml","/dev/null");
     if ( $? == 0 ) {
 	system("rm -f ".$sourcedir."/".$ENV{'BUILDPATH'}."/".$directive.".xml.tmp");
     } else {

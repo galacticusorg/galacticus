@@ -1,19 +1,13 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use XML::Simple;
 use Data::Dumper;
 use PDL;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
 
 # Make a plot of the specified transfer function file.
 # Andrew Benson (15-Dec-2009)
@@ -70,15 +64,15 @@ my $yMaximum = maximum($y)/0.9;
 print $gnuPlot "set xrange [".$xMinimum.":".$xMaximum."]\n";
 print $gnuPlot "set yrange [".$yMinimum.":".$yMaximum."]\n";
 print $gnuPlot "set pointsize 2.0\n";
-&PrettyPlots::Prepare_Dataset(
+&GnuPlot::PrettyPlots::Prepare_Dataset(
     \$plot,
     $x,$y,
     style  => "line",
     weight => [3,1],
-    color  => $PrettyPlots::colorPairs{'redYellow'}
+    color  => $GnuPlot::PrettyPlots::colorPairs{'redYellow'}
     );
-&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF($plotFileEPS, margin => 2);
+&GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS, margin => 2);
 
 exit;

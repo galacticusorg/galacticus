@@ -142,7 +142,7 @@ contains
        ! Build components.
        call nodeArray(i)%node%componentBuilder(nodeDefinition)
        ! Dump the node.
-       if (Galacticus_Verbosity_Level() > verbosityInfo) call nodeArray(i)%node%dump()
+       if (Galacticus_Verbosity_Level() > verbosityInfo) call nodeArray(i)%node%serializeASCII()
     end do
     ! Finished - destroy the XML document.
     !$omp critical (FoX_DOM_Access)

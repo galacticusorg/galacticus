@@ -159,7 +159,7 @@ contains
                & Node_Array_Position(thisNode%siblingMergee %uniqueID(),nodeIndices), &
                & Node_Array_Position(thisNode%formationNode %uniqueID(),nodeIndices)
           ! Store the node.
-          call thisNode%dumpRaw(fileUnit)
+          call thisNode%serializeRaw(fileUnit)
           ! Move to the next node in the tree.
           call Merger_Tree_State_Walk_Tree(thisNode,currentNodeInTree)
        end do
@@ -276,7 +276,7 @@ contains
        nodes(iNode)%node%siblingMergee  => Pointed_At_Node(siblingMergeeIndex ,nodes)
        nodes(iNode)%node%formationNode  => Pointed_At_Node(formationNodeIndex ,nodes)
        ! Read the node.
-       call nodes(iNode)%node%readRaw(treeDataUnit)
+       call nodes(iNode)%node%deserializeRaw(treeDataUnit)
        ! Find the highest uniqueID.
        nodeUniqueIDMaximum=max(nodeUniqueIDMaximum,nodeUniqueID)
     end do

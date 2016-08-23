@@ -1,21 +1,16 @@
 # Postprocess models.
 
-package PostProcess;
+package Galacticus::Launch::PostProcess;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use File::Copy;
 use File::Slurp;
 use MIME::Lite;
-require IO::Compress::Simple;
-require System::Redirect;
+use IO::Compress::Simple;
+use System::Redirect;
+use Galacticus::Path;
 
 sub Failed {
     # The run failed for some reason.
@@ -73,7 +68,7 @@ sub Analyze {
     if ( $launchScript->{'splitModels'} > 1 ) {
 	# We must merge the models before continuing.
 	system(
-	    $galacticusPath."scripts/aux/Merge_Models.pl ".
+	    &galacticusPath()."scripts/aux/Merge_Models.pl ".
 	    join(" ",map {$_."/galacticus.hdf5"} @{$launchScript->{'mergeGroups'}->{$job->{'mergeGroup'}}})
 	    ." ".
 	    ${$launchScript->{'mergeGroups'}->{$job->{'mergeGroup'}}}[0]."/galacticusMerged.hdf5"
@@ -97,7 +92,7 @@ sub Analyze {
 	open(my $analysisFile,">".$analysisScript);
 	print $analysisFile $job->{'analysis'};
 	close($analysisFile);
-	&SystemRedirect::tofile(
+	&System::Redirect::tofile(
 	    "chmod u=wrx ".$job->{'directory'}."/analysis.sh;".
 	    $job->{'directory'}."/analysis.sh",
 	    $job->{'directory'}."/analysis.out"
@@ -110,7 +105,7 @@ sub CleanUp {
     my $job          = shift();
     my $launchScript = shift();
     # Compress output if requested.
-    &Simple::Compress_Directory($job->{'directory'})
+    &IO::Compress::Simple::Compress_Directory($job->{'directory'})
 	if ( $launchScript->{'compressModels'} eq "yes" );
 }
 

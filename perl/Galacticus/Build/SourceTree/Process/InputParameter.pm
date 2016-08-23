@@ -1,28 +1,22 @@
 # Contains a Perl module which implements processing of input parameter directives.
 
-package InputParameters;
+package Galacticus::Build::SourceTree::Process::InputParameter;
 use strict;
 use warnings;
 use utf8;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Data::Dumper;
 use XML::Simple;
 use LaTeX::Encode;
-require List::ExtraUtils;
-require Fortran::Utils;
-require Galacticus::Build::Directives;
-require Galacticus::Build::SourceTree::Hooks;
-require Galacticus::Build::SourceTree;
+use List::ExtraUtils;
+use Fortran::Utils;
+## AJB HACK use Galacticus::Build::Directives;
+## AJB HACK use Galacticus::Build::SourceTree::Hooks;
+## AJB HACK use Galacticus::Build::SourceTree;
 
 # Insert hooks for our functions.
-$Hooks::processHooks{'inputParameters'} = \&Process_InputParameters;
+$Galacticus::Build::SourceTree::Hooks::processHooks{'inputParameters'} = \&Process_InputParameters;
 
 sub Process_InputParameters {
     # Get the tree.
@@ -55,7 +49,7 @@ sub Process_InputParameters {
 	}
     }
     # Get code directive locations.
-    my $directiveLocations = $xml->XMLin($galacticusPath.$ENV{'BUILDPATH'}."/Code_Directive_Locations.xml");
+    my $directiveLocations = $xml->XMLin($ENV{'BUILDPATH'}."/Code_Directive_Locations.xml");
     # Walk the tree, looking for code blocks.
     my $node  = $tree;
     my $depth = 0;
@@ -96,8 +90,8 @@ sub Process_InputParameters {
 		    my $parameterSuffix = $4;
 		    die('Process_InputParameter(): locations not found for directives')
 			unless ( exists($directiveLocations->{$directiveName}) );
-		    foreach my $fileName ( &ExtraUtils::as_array($directiveLocations->{$directiveName}->{'file'}) ) {
-			foreach ( &Directives::Extract_Directives($fileName,$directiveName) ) {
+		    foreach my $fileName ( &List::ExtraUtils::as_array($directiveLocations->{$directiveName}->{'file'}) ) {
+			foreach ( &Galacticus::Build::Directives::Extract_Directives($fileName,$directiveName) ) {
 			    (my $parameterName = $node->{'directive'}->{'iterator'}) =~ s/\(\#$directiveName\-\>$attributeName\)/$_->{$attributeName}/;
 			    # Generate code.
 			    $inputParameterSource .= "  call ";
@@ -136,7 +130,7 @@ sub Process_InputParameters {
 		firstChild => undef()
 	    };
 	    # Insert the node.
-	    &SourceTree::InsertAfterNode($node,[$newNode]);
+	    &Galacticus::Build::SourceTree::InsertAfterNode($node,[$newNode]);
 	    # Ensure input parameters module is used.
 	    my $usesNode =
 	    {
@@ -150,7 +144,7 @@ sub Process_InputParameters {
 		    }
 		}
 	    };
-	    &ModuleUses::AddUses($node->{'parent'},$usesNode);
+	    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
 	    # Construct list of executables which this parameter influences.
 	    (my $fileName = $tree->{'name'}) =~ s/\.F90$//
 		if ( $tree->{'type'} eq "file" );
@@ -227,7 +221,7 @@ sub Process_InputParameters {
 	    print $defHndl "{\\normalfont \\bfseries Used by:} ".join(", ",map {"\\hyperlink{".&replace($_,qr/\.exe$/s,".F90")."}{\\normalfont \\ttfamily ".latex_encode($_)."}"} @influencedExecutableNames)."\\\\\n\n";
 	    close($defHndl);
 	}
-	$node = &SourceTree::Walk_Tree($node,\$depth);
+	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }
 }
 

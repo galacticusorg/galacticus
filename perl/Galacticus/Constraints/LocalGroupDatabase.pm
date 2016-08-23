@@ -1,6 +1,6 @@
 # Contains a Perl module which provides an interface to the Local Group database file.
 
-package LocalGroup;
+package Galacticus::Constraints::LocalGroupDatabase;
 use strict;
 use warnings;
 use XML::Simple;

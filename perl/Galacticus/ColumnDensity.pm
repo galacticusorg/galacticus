@@ -2,22 +2,24 @@
 
 #+ Contributions to this file made by: Andrea Kulier, Andrew Benson.
 
-package ColumnDensity;
+package Galacticus::ColumnDensity;
 use strict;
 use warnings;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use PDL::IO::HDF5;
 use PDL::NiceSlice;
 use PDL::Constants qw(PI);
 use PDL::GSLSF::PSI;
 use PDL::Math;
-require Galacticus::HDF5;
-require Galacticus::Inclination;
+use Galacticus::HDF5;
+use Galacticus::Inclination;
 
-%HDF5::galacticusFunctions = 
+%Galacticus::HDF5::galacticusFunctions = 
     (
-     %HDF5::galacticusFunctions,
-     "columnDensity(Disk|Spheroid)??\$" => \&ColumnDensity::Get_Column_Density
+     %Galacticus::HDF5::galacticusFunctions,
+     "columnDensity(Disk|Spheroid)??\$" => \&Galacticus::ColumnDensity::Get_Column_Density
     );
 
 sub Get_Column_Density {
@@ -44,7 +46,7 @@ sub Get_Column_Density {
 	if ( $includeDisk     == 1 );
     push(@requiredDatasets,'spheroidMassGas', 'spheroidRadius')
 	if ( $includeSpheroid == 1 );
-    &HDF5::Get_Dataset($model,\@requiredDatasets);
+    &Galacticus::HDF5::Get_Dataset($model,\@requiredDatasets);
     my $dataSets = $model->{'dataSets'};
     # Compute spheroid column density if necessary.
     my $sigmaSpheroid = pdl zeroes(nelem($dataSets->{'nodeIndex'}));

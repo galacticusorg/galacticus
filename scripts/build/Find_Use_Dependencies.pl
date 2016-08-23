@@ -1,20 +1,14 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use List::Uniq ':all';
 use Data::Dumper;
 use XML::Simple;
-require Galacticus::Build::Directives;
-require Fortran::Utils;
-require List::ExtraUtils;
+use Galacticus::Build::Directives;
+use Fortran::Utils;
+use List::ExtraUtils;
 
 # Locate source files which have dependencies on modules.
 
@@ -177,10 +171,10 @@ foreach my $srcdir ( @sourcedirs ) {
 	    push(@scanfiles,$fullname);
 	    # Special handling for functionClass directives - add implementation files to the
 	    # list of files to scan.
-	    my @functionClassDirective  = &Directives::Extract_Directives($fullname,"functionClass" );
-	    my @inputParameterDirective = &Directives::Extract_Directives($fullname,"inputParameter");
-	    my @enumerationDirectives   = &Directives::Extract_Directives($fullname,"enumeration"   );
-	    &ExtraUtils::smart_push(\@scanfiles,$locations->{$functionClassDirective[0]->{'name'}}->{'file'})
+	    my @functionClassDirective  = &Galacticus::Build::Directives::Extract_Directives($fullname,"functionClass" );
+	    my @inputParameterDirective = &Galacticus::Build::Directives::Extract_Directives($fullname,"inputParameter");
+	    my @enumerationDirectives   = &Galacticus::Build::Directives::Extract_Directives($fullname,"enumeration"   );
+	    &List::ExtraUtils::smart_push(\@scanfiles,$locations->{$functionClassDirective[0]->{'name'}}->{'file'})
 		if ( @functionClassDirective );
 	    if ( @functionClassDirective || @inputParameterDirective ) {
 		push(@incfiles,$workDir."input_parameters.mod ");
@@ -311,7 +305,7 @@ foreach my $srcdir ( @sourcedirs ) {
 			    } elsif ( -e $workDir.$ifile ) {
 				push(@scanfiles,$workDir.$ifile);
 			    } elsif ( $ifile =~ m/(.*)\.type\.inc/ ) {
-				&ExtraUtils::smart_push(\@scanfiles,$locations->{$1}->{'file'});
+				&List::ExtraUtils::smart_push(\@scanfiles,$locations->{$1}->{'file'});
 			    }
 			}
 		    }

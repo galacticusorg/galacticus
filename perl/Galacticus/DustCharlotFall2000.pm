@@ -1,16 +1,18 @@
 # Contains a Perl module which implements dust attenuated luminosity calculations for Galacticus using the model of Charlot & Fall
 # (2000).
 
-package DustCharlotFall2000;
+package Galacticus::DustCharlotFall2000;
 use strict;
 use warnings;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use XML::Simple;
 use PDL;
 use PDL::NiceSlice;
-require Galacticus::HDF5;
+use Galacticus::HDF5;
 
-%HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-    "^(disk|spheroid)(LuminositiesStellar|CentralOpticalDepthISM|CentralOpticalDepthClouds):.*:dustCharlotFall2000\$" => \&DustCharlotFall2000::Get_Dust_Charlot_Fall_2000_Luminosity
+%Galacticus::HDF5::galacticusFunctions = ( %Galacticus::HDF5::galacticusFunctions,
+    "^(disk|spheroid)(LuminositiesStellar|CentralOpticalDepthISM|CentralOpticalDepthClouds):.*:dustCharlotFall2000\$" => \&Galacticus::DustCharlotFall2000::Get_Dust_Charlot_Fall_2000_Luminosity
     );
 
 sub Get_Dust_Charlot_Fall_2000_Luminosity {
@@ -73,7 +75,7 @@ sub Get_Dust_Charlot_Fall_2000_Luminosity {
 	unless ( $dataSetName =~ m/CentralOpticalDepth/ );
 
     # Get the datasets needed for our calculation.
-    &HDF5::Get_Dataset($model,\@propertyList);
+    &Galacticus::HDF5::Get_Dataset($model,\@propertyList);
     my $dataSets = $model->{'dataSets'};
 
     # Ensure we have an effective wavelength and a wavelength index for this filter.
