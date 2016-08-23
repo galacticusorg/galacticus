@@ -39,6 +39,7 @@ use Galacticus::Build::Components::Classes::Utils;
 use Galacticus::Build::Components::Implementations;
 use Galacticus::Build::Components::Implementations::Utils;
 use Galacticus::Build::Components::Implementations::Names;
+use Galacticus::Build::Components::Implementations::CreateDestroy;
 use Galacticus::Build::Components::Implementations::ODESolver;
 use Galacticus::Build::Components::Properties;
 use Galacticus::Build::Components::Properties::Set;
@@ -133,14 +134,8 @@ sub Components_Generate_Output {
 	    \&Generate_Component_Class_Dump_Functions                ,
 	    # Generate output functions for each component class.
 	    \&Generate_Component_Class_Output_Functions              ,
-	    # Generate component implementation destruction functions.
-	    \&Generate_Component_Implementation_Destruction_Functions,
 	    # Generate dump functions for each implementation.
 	    \&Generate_Implementation_Dump_Functions                 ,
-	    # Generate initializor functions for each implementation.
-	    \&Generate_Implementation_Initializor_Functions          ,
-	    # Generate builder functions for each implementation.
-	    \&Generate_Implementation_Builder_Functions              ,
 	    # Generate output functions for each implementation.
 	    \&Generate_Implementation_Output_Functions               ,
 	    # Generate component count methods.
@@ -1634,273 +1629,6 @@ sub Generate_Implementation_Dump_Functions {
 	push(
 	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 	    {type => "procedure", name => "readRaw", function => "Node_Component_".ucfirst($componentID)."_Read_Raw", description => "Read a binary dump of the {\\normalfont \\ttfamily nodeComponent} from the given {\\normalfont \\ttfamily fileHandle}.", returnType => "\\void", arguments => "\\intzero\\ fileHandle\\argin"},
-	    );
-    }
-}
-
-sub Generate_Implementation_Initializor_Functions {
-    # Generate initializor for each component implementation.
-    my $build = shift;
-    # Iterate over component implementations.
-    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
-	# Get the component.
-	my $component = $build->{'components'}->{$componentID};
-	# Initialize function code.
-	my $functionCode;
-	# Initialize data content.
-	my @dataContent =
-	    (
-	     {
-		 intrinsic  => "class",
-		 type       => "nodeComponent".ucfirst($componentID),
-		 attributes => [ "intent(inout)" ],
-		 variables  => [ "self" ]
-	     }
-	    );
-	# Generate the initialization code.
-	my %requiredComponents;
-	my $initializeCode = "";
-	foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
-	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
-	    if ( exists($property->{'linkedData'}) ) {
-		my $linkedDataName = $property->{'linkedData'};
-		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
-		# Set to a class default value if available.
-		if ( exists($property->{'classDefault'}) ) {
-		    my $default = $property->{'classDefault'}->{'code'};
-		    while ( $default =~ m/self([a-zA-Z]+)Component\s*%/ ) {
-			$requiredComponents{$1} = 1;
-			$default =~ s/self([a-zA-Z]+)Component\s*%//;
-		    }
-		    $default = $property->{'classDefault'}->{'code'};
-		    if ( exists($property->{'classDefault'}->{'count'}) ) {
-			$initializeCode .= "           call Alloc_Array(self%".&padLinkedData($linkedDataName,[0,0]).",[".$property->{'classDefault'}->{'count'}."])\n";
-		    }
-		    $initializeCode .= "            self%".&padLinkedData($linkedDataName,[0,0])."=".$default."\n";
-		} else {
-		    # Set to null.
-		    if    ( $linkedData->{'type'} eq"double" ) {
-			if ( $linkedData->{'rank'} == 0 ) {
-			    $initializeCode .= "            self%".&padLinkedData($linkedDataName,[0,0])."=0.0d0\n";
-			} else {
-			    $initializeCode .= "            call Alloc_Array(self%".&padLinkedData($linkedDataName,[0,0]).",[".join(",","0" x $linkedData->{'rank'})."])\n";
-			}
-		    }
-		    elsif ( $linkedData->{'type'} eq"integer"     ) {
-			$initializeCode .= "            self%".&padLinkedData($linkedDataName,[0,0])."=0\n";
-		    }
-		    elsif ( $linkedData->{'type'} eq"longInteger" ) {
-			$initializeCode .= "            self%".&padLinkedData($linkedDataName,[0,0])."=0_kind_int8\n";
-		    }
-		    elsif ( $linkedData->{'type'} eq"logical"     ) {
-			$initializeCode .= "            self%".&padLinkedData($linkedDataName,[0,0])."=.false.\n";
-		    }
-		    else {
-			$initializeCode .= "       call self%".&padLinkedData($linkedDataName,[0,0])."%reset()\n";			    
-		    }
-		}
-	    }
-	}
-	# Add pointers for each required component.
-	push(
-	    @dataContent,
-	    {
-		intrinsic  => "class",
-		type       => "nodeComponent".ucfirst($_),
-		attributes => [ "pointer" ],
-		variables  => [ "self".ucfirst($_)."Component" ]
-	    }
-	    )
-	    foreach ( &List::ExtraUtils::sortedKeys(\%requiredComponents) );
-	# Generate initializor function.
-	my $selfUsed     = 0;
-	my $functionBody = "";
-	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Initializor(self)\n";
-	$functionCode .= "    !% Initialize a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
-	$functionCode .= "    use Memory_Management\n";
-	# Insert any required modules.
-	my %requiredModules;
-	foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
-	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
-	    if ( exists($property->{'classDefault'}) && exists($property->{'classDefault'}->{'modules'}) ) {
-		foreach ( @{$property->{'classDefault'}->{'modules'}} ) {
-		    $requiredModules{$_} = 1;
-		}
-	    }
-	}
-	foreach ( &List::ExtraUtils::sortedKeys(\%requiredModules) ) {
-	    $functionCode .= "    use ".$_."\n";
-	}
-	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";	
-	unless ( $component->{'name'} eq "null" ) {
-	    # Initialize the parent type if necessary.
-	    if ( exists($component->{'extends'}) ) {
-		$functionBody .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%initialize()\n";
-		$selfUsed = 1;
-	    }
-	}
-	foreach my $requiredComponent ( &List::ExtraUtils::sortedKeys(\%requiredComponents) ) {
-	    $functionBody .= "     self".$requiredComponent."Component => self%hostNode%".lc($requiredComponent)."()\n";
-	    $selfUsed = 1;
-	}
-	$functionBody .= $initializeCode;
-	$functionBody .= "    return\n";
-	$functionBody .= "  end subroutine Node_Component_".ucfirst($componentID)."_Initializor\n";
-	$functionCode .= "  !GCC\$ attributes unused :: self\n"
-	    unless ( $selfUsed );
-	$functionCode .= $functionBody;
-	# Insert into the function list.
-	push(
-	    @{$build->{'code'}->{'functions'}},
-	    $functionCode
-	    );
-	# Insert a type-binding for this function into the implementation type.
-	push(
-	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-	    {type => "procedure", name => "initialize", function => "Node_Component_".ucfirst($componentID)."_Initializor"},
-	    );
-    }
-}
-
-sub Generate_Implementation_Builder_Functions {
-    # Generate builder for each component implementation.
-    my $build = shift;
-    # Iterate over component implementations.
-    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
-	# Get the component.
-	my $component = $build->{'components'}->{$componentID};
-	# Initialize function code.
-	my $functionCode;
-	# Initialize data content.
-	my @dataContent =
-	    (
-	     {
-		 intrinsic  => "class",
-		 type       => "nodeComponent".ucfirst($componentID),
-		 attributes => [ "intent(inout)" ],
-		 variables  => [ "self" ]
-	     },
-	     {
-		 intrinsic  => "type",
-		 type       => "node",
-		 attributes => [ "intent(in   )", "pointer" ],
-		 variables  => [ "componentDefinition" ]
-	     }
-	    );
-	unless ( $component->{'name'} eq "null" ) {
-	    push(
-		@dataContent,
-		{
-		    intrinsic  => "type",
-		    type       => "node",
-		    attributes => [ "pointer" ],
-		    variables  => [ "property" ]
-		},
-		{
-		    intrinsic  => "type",
-		    type       => "nodeList",
-		    attributes => [ "pointer" ],
-		    variables  => [ "propertyList" ]
-		}
-		);
-	    my $counterAdded = 0;
-	    foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
-		my $property = $component->{'properties'}->{'property'}->{$propertyName};
-		# Check if this property has any linked data in this component.
-		if ( exists($property->{'linkedData'}) ) {
-		    my $linkedDataName = $property->{'linkedData'};
-		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
-		    if ( $linkedData->{'rank'} == 1 && $counterAdded == 0 ) {
-			push(
-			    @dataContent,
-			    {
-				intrinsic  => "integer",
-				variables  => [ "i" ]
-			    }
-			    );
-			$counterAdded = 1;
-		    }
-		}
-	    }
-	}
-	# Generate builder function.
-	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Builder(self,componentDefinition)\n";
-	$functionCode .= "    !% Build a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
-	$functionCode .= "    use FoX_DOM\n";
-	$functionCode .= "    use Galacticus_Error\n";
-	$functionCode .= "    use Memory_Management\n";
-	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	$functionCode .= "    !GCC\$ attributes unused :: self, componentDefinition\n"
-	    if ( $component->{'name'} eq "null" );
-	unless ( $component->{'name'} eq "null" ) {
-	    # Initialize the component.
-	    $functionCode .= "    call self%initialize()\n";
-	    # Build the parent type if necessary.
-	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%builder(componentDefinition)\n"
-		if ( exists($component->{'extends'}) );
-	    # Enter critical section.
-	    $functionCode .= "    !\$omp critical (FoX_DOM_Access)\n";
-	    foreach my $propertyName ( sort(keys(%{$component->{'properties'}->{'property'}})) ) {
-		my $property = $component->{'properties'}->{'property'}->{$propertyName};
-		# Check if this property has any linked data in this component.
-		if ( exists($property->{'linkedData'}) ) {
-		    my $linkedDataName = $property->{'linkedData'};
-		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
-		    $functionCode .= "    propertyList => getElementsByTagName(componentDefinition,'".$propertyName."')\n";
-		    if ( $linkedData->{'rank'} == 0 ) {
-			$functionCode .= "    if (getLength(propertyList) > 1) call Galacticus_Error_Report('Node_Component_".ucfirst($componentID)."_Builder','scalar property must have precisely one value')\n";
-			$functionCode .= "    if (getLength(propertyList) == 1) then\n";
-			$functionCode .= "      property => item(propertyList,0)\n";
-			if (
-			    $linkedData->{'type'} eq "double"
-			    ||
-			    $linkedData->{'type'} eq "integer"
-			    ||
-			    $linkedData->{'type'} eq "logical"
-			    ) {
-			    $functionCode .= "      call extractDataContent(property,self%".&padLinkedData($linkedDataName,[0,0]).")\n";
-			} elsif ( $linkedData->{'type'} eq "longInteger" ) {
-			    $functionCode .= "      call Galacticus_Error_Report('Node_Component_".ucfirst($componentID)."_Builder','building of long integer properties currently not supported')\n";
-			}
-			else {
-			    $functionCode .= "      call self%".&padLinkedData($linkedDataName,[0,0])."%builder(property)\n";
-			}
-			$functionCode .= "    end if\n";
-		    } elsif ( $linkedData->{'rank'} == 1 ) {
-			$functionCode .= "    if (getLength(propertyList) >= 1) then\n";
-			if (&isIntrinsic($linkedData->{'type'})) {
-			    $functionCode .= "      call Alloc_Array(self%".$linkedDataName.",[getLength(propertyList)])\n";
-			    $functionCode .= "      do i=1,getLength(propertyList)\n";
-			    $functionCode .= "        property => item(propertyList,i-1)\n";
-			    $functionCode .= "        call extractDataContent(property,self%".$linkedDataName."(i))\n";
-			    $functionCode .= "      end do\n";
-			}
-			else {
-			    $functionCode .= "      allocate(self%".$linkedDataName."(getLength(propertyList)))\n";
-			    $functionCode .= "      do i=1,getLength(propertyList)\n";
-			    $functionCode .= "        property => item(propertyList,i-1)\n";
-			    $functionCode .= "        call self%".$linkedDataName."(i)%builder(property)\n";
-			    $functionCode .= "      end do\n";
-			}
-			$functionCode .= "    end if\n";
-		    }
-		}
-	    }
-	    $functionCode .= "    !\$omp end critical (FoX_DOM_Access)\n";
-	}
-	$functionCode .= "    return\n";
-	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Builder\n";
-	# Insert into the function list.
-	push(
-	    @{$build->{'code'}->{'functions'}},
-	    $functionCode
-	    );
-	# Insert a type-binding for this function into the implementation type.
-	push(
-	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-	    {type => "procedure", name => "builder", function => "Node_Component_".ucfirst($componentID)."_Builder"},
 	    );
     }
 }
@@ -4168,79 +3896,6 @@ sub Generate_Component_Class_Output_Functions {
     }
 }
 
-sub Generate_Component_Implementation_Destruction_Functions {
-    # Generate component implementation destruction functions.
-    my $build = shift;
-    # Initialize function code.
-    my $functionCode;
-    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
-	my $component = $build->{'components'}->{$componentID};
-	# Specify data content.
-	my @dataContent =
-	    (
-	     {
-		 intrinsic  => "class",
-		 type       => "nodeComponent".ucfirst($componentID),
-		 attributes => [ "intent(inout)" ],
-		 variables  => [ "self" ]
-	     }
-	    );
-	# Generate function code.
-  	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Destroy(self)\n";
-	$functionCode .= "    !% Destroy a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
-	$functionCode .= "    use Memory_Management\n";
-	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	# Iterate over properties.
-	my $selfUsed     = 0;
-	my $functionBody = "";
-	foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
-	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
-   	    # Check if this property has any linked data in this component.
-	    if ( exists($property->{'linkedData'}) ) {
-		# For each linked datum deallocate if necessary.
-		my $linkedDataName = $property->{'linkedData'};
-		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
-		if    ( $linkedData->{'type'} eq"double" ) {
-		    # Nothing to do in this case.
-		}
-		elsif ( $linkedData->{'type'} eq"integer"     ) {
-		    # Nothing to do in this case.
-		}
-		elsif ( $linkedData->{'type'} eq"longInteger" ) {
-		    # Nothing to do in this case.
-		}
-		elsif ( $linkedData->{'type'} eq"logical"     ) {
-		    # Nothing to do in this case.
-		}
-		else {
-		    $functionBody .= "    call self%".&padLinkedData($linkedDataName,[0,0])."%destroy()\n";
-		    $selfUsed = 1;
-		}
-		if ( $linkedData->{'rank'} > 0 ) {
-		    $functionCode .= "    if (allocated(self%".&padLinkedData($linkedDataName,[0,0]).")) call Dealloc_Array(self%".&padLinkedData($linkedDataName,[0,0]).")\n";
-		    $selfUsed = 1;
-		}
-	    }
-	}
-	$functionBody .= "    return\n";
-	$functionBody .= "  end subroutine Node_Component_".ucfirst($componentID)."_Destroy\n\n";
-	$functionCode .= "    !GCC\$ attributes unused :: self\n"
-	    unless ( $selfUsed );
-	$functionCode .= $functionBody;
-	# Insert into the function list.
-	push(
-	    @{$build->{'code'}->{'functions'}},
-	    $functionCode
-	    );
-	# Bind this function to the implementation type.
-	push(
-	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-	    {type => "procedure", name => "destroy", function => "Node_Component_".ucfirst($componentID)."_Destroy"}
-	    );    
-    }
-}
-
 sub Generate_Null_Binding_Functions {
     # Generate null binding functions.
     my $build = shift;
@@ -4520,7 +4175,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 			my $component2   = $build->{'components'}->{$component2ID};
 			if ( exists($component2->{'properties'}->{'property'}->{$propertyName}) ) {
 			    my $property2 = $component2->{'properties'}->{'property'}->{$propertyName};
-			    if ( exists($property2->{'classDefault'}) ) {
+			    if ( exists($property2->{'classDefault'}->{'code'}) ) {
 				$defaultLines .= "     if (nodeComponent".ucfirst($component2ID)."IsActiveValue) then\n";
 				my %selfComponents;
 				my $default = $property2->{'classDefault'}->{'code'};
