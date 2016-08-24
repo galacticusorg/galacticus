@@ -9,7 +9,7 @@ use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/pe
 use Text::Template 'fill_in_string';
 use Data::Dumper;
 use List::ExtraUtils;
-use Galacticus::Build::Components::Utils;
+use Galacticus::Build::Components::Utils qw(offsetName);
 use Galacticus::Build::Components::DataTypes;
 use Galacticus::Build::Components::Implementations::Utils;
 
@@ -25,7 +25,12 @@ use Galacticus::Build::Components::Implementations::Utils;
 	      \&Implementation_ODE_Serialize_Values  ,
 	      \&Implementation_ODE_Deserialize_Values,
 	      \&Implementation_ODE_Name_From_Index   ,
-	      \&Implementation_ODE_Offsets
+	      \&Implementation_ODE_Offsets           ,
+	      \&Implementation_ODE_Offset_Variables
+	     ],
+	 functions =>
+	     [
+	      \&Implementation_ODE_Rate_Variables
 	     ]
      }
     );
@@ -549,6 +554,44 @@ CODE
 	    type        => "procedure", 
 	    descriptor  => $function,
 	    name        => "serializationOffsets"
+	}
+	);
+}
+
+sub Implementation_ODE_Offset_Variables {
+    # Generate variables which store offsets into the ODE solver arrays.
+    my $build  = shift();
+    my $class  = shift();
+    my $member = shift();
+    # Iterate over non-virtual, evolving properties.
+    foreach my $property ( &Galacticus::Build::Components::Implementations::Utils::listRealEvolvers($member) ) {
+	my $offsetName = &offsetName($class->{'name'}.$member->{'name'},$property->{'name'});
+	push(
+	    @{$build->{'variables'}},
+	    {
+		intrinsic  => "integer",
+		ompPrivate => 1,
+		variables  => [ $offsetName ]
+	    }
+	    );
+    }
+}
+
+sub Implementation_ODE_Rate_Variables {
+    # Generate variables which store ODE solver variable rates and scales.
+    my $build = shift();
+    push(
+	@{$build->{'variables'}},
+	{
+	    intrinsic  => "integer",
+	    ompPrivate => 1,
+	    variables  => [ "nodeSerializationCount" ]
+	},
+	{
+	    intrinsic  => "double precision",
+	    attributes => [ "allocatable", "dimension(:)" ],
+	    ompPrivate => 1,
+	    variables  => [ "nodeScales", "nodeRates" ]
 	}
 	);
 }
