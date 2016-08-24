@@ -161,8 +161,6 @@ sub Components_Generate_Output {
 	    \&Generate_Default_Component_Sources                     ,
 	    # Generate records of which component implementations are selected.
 	    \&Generate_Active_Implementation_Records                 ,
-	    # Generate variables that record offsets for serialization.
-	    \&Generate_Serialization_Offset_Variables                ,
 	    # Generate deferred procedure pointers.
 	    \&Generate_Deferred_Procedure_Pointers                   ,
 	    # Generate deferred binding procedure pointers.
@@ -2127,61 +2125,6 @@ sub Generate_Implementation_Output_Functions {
 	    {type => "procedure", name => "outputNames", function => "Node_Component_".ucfirst($componentID)."_Output_Names"},
 	    );
     }
-}
-
-sub Generate_Serialization_Offset_Variables {
-    # Generate variables which store offsets into arrays for serialization.
-    my $build = shift;
-    # Create a table.
-    my $offsetTable = Text::Table->new(
-	{
-	    is_sep => 1,
-	    body   => "  integer :: "
-	},
-	{
-	    align  => "left"
-	}
-	);
-    my $privateTable = Text::Table->new(
-	{
-	    is_sep => 1,
-	    body   => "  !\$omp threadprivate("
-	},
-	{
-	    align  => "left"
-	},
-	{
-	    is_sep  => 1,
-	    body    => ")"
-	}
-	);
-    # Iterate over component implementations.
-    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
-	# Get the component.
-	my $component = $build->{'components'}->{$componentID};
-	# Iterate over properties.
-	foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
-	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
-   	    # Check if this property has any linked data in this component.
-	    if ( exists($property->{'linkedData'}) ) {
-		# For each linked datum count if necessary.
-		my $linkedDataName = $property->{'linkedData'};
-		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
-		if ( $linkedData->{'isEvolvable'} ) {
-		    my $offsetName = &offsetName($componentID,$propertyName);
-		    $offsetTable ->add($offsetName);
-		    $privateTable->add($offsetName);
-		}
-	    }
-	}
-    }
-    # Insert into the document.
-    $build->{'content'} .= "  ! Offsets into serialization arrays.\n";
-    $build->{'content'} .= $offsetTable ->table()."\n";
-    $build->{'content'} .= $privateTable->table()."\n";
-    $build->{'content'} .= " integer                                     :: nodeSerializationCount\n";
-    $build->{'content'} .= " double precision, allocatable, dimension(:) :: nodeScales, nodeRates\n";
-    $build->{'content'} .= " !\$omp threadprivate(nodeScales,nodeRates,nodeSerializationCount)\n";
 }
 
 sub Generate_Component_Count_Functions {

@@ -512,8 +512,20 @@ sub Format_Variable_Defintions {
 	    }
 	    );
     }
-    my $dataTable = Text::Table->new(@columnsDef);
-
+    my $dataTable       = Text::Table->new(@columnsDef);
+    my $ompPrivateTable = Text::Table->new(
+	{
+	    is_sep => 1,
+	    body   => "  !\$omp threadprivate("
+	},
+	{
+	    align  => "left"
+	},
+	{
+	    is_sep  => 1,
+	    body    => ")"
+	}
+	);
     # Iterate over all data content.
     foreach ( @{$variables} ) {
 	# Construct the type definition.
@@ -606,6 +618,9 @@ sub Format_Variable_Defintions {
 		$comment
 		);
 	}
+	# Add any OpenMP threadpriavte statement.
+	$ompPrivateTable->add(join(", ",@{$_->{'variables'}}))
+	    if ( exists($_->{'ompPrivate'}) && $_->{'ompPrivate'} );
 	# Add a comment after this row.
 	if ( exists($_->{'commentAfter'}) ) {
 	    push(@inlineComments,$_->{'commentAfter'});
@@ -613,7 +628,9 @@ sub Format_Variable_Defintions {
    	}
     }
     # Get the formatted table.
-    my $formattedVariables = $dataTable->table();
+    my $formattedVariables = 
+	$dataTable      ->table().
+	$ompPrivateTable->table();    
     # Reinsert inline comments.
     for(my $i=scalar(@inlineComments);$i>=1;--$i) {	
 	chomp($inlineComments[$i-1]);
