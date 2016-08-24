@@ -25,6 +25,7 @@ use Galacticus::Build::Components::Utils qw(@booleanLabel $implementationPropert
 use Galacticus::Build::Components::CodeGeneration;
 use Galacticus::Build::Components::Hierarchy;
 use Galacticus::Build::Components::Hierarchy::ODESolver;
+use Galacticus::Build::Components::Hierarchy::Utils;
 use Galacticus::Build::Components::TreeNodes;
 use Galacticus::Build::Components::TreeNodes::CreateDestroy;
 use Galacticus::Build::Components::TreeNodes::ODESolver;
@@ -128,8 +129,6 @@ sub Components_Generate_Output {
 	    \&Generate_Map_Functions                                 ,
 	    # Generate functions to output nodes.
 	    \&Generate_Node_Output_Functions                         ,
-	    # Generate component assignment function.
-	    \&Generate_Component_Assignment_Function                 ,
 	    # Generate dump functions for each component class.
 	    \&Generate_Component_Class_Dump_Functions                ,
 	    # Generate output functions for each component class.
@@ -3372,82 +3371,6 @@ sub Generate_GSR_Availability_Functions {
 		);
 	}
     }
-}
-
-sub Generate_Component_Assignment_Function {
-    # Generate a type name functions.
-    my $build = shift;
-    # Specify data content.
-    my @dataContent =
-	(
-	 {
-	     intrinsic  => "class",
-	     type       => "nodeComponent",
-	     attributes => [ "intent(  out)" ],
-	     variables  => [ "to" ]
-	 },
-	 {
-	     intrinsic  => "class",
-	     type       => "nodeComponent",
-	     attributes => [ "intent(in   )" ],
-	     variables  => [ "from" ]
-	 }
-	);
-    # Generate the function code.
-    my $functionCode;
-    # Component assignment functions.
-    $functionCode  = "  subroutine Node_Component_Assign(to,from)\n";
-    $functionCode .= "    !% Assign a node component to another node component.\n";
-    $functionCode .= "    implicit none\n";
-    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    $functionCode .= "    to%hostNode => from%hostNode\n";
-    $functionCode .= "    select type (to)\n";
-    foreach my $componentName ( @{$build->{'componentIdList'}} ) {
-	my $component = $build->{'components'}->{$componentName};
-	$functionCode .= "    type is (nodeComponent".&padFullyQualified($componentName,[0,0]).")\n";
-	$functionCode .= "       select type (from)\n";
-	$functionCode .= "       type is (nodeComponent".&padFullyQualified($componentName,[0,0]).")\n";
-	foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
-	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
-	    if ( exists($property->{'linkedData'}) ) {
-		my $linkedDataName = $property->{'linkedData'};		
-		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
-		if ( $linkedData->{'type'} eq"double" ) {
-		    # Deallocate if necessary.
-		    $functionCode .= "   if (allocated(to%".&padLinkedData($linkedDataName,[0,0]).")) call Dealloc_Array(to%".&padLinkedData($linkedDataName,[0,0]).") \n"
-			if ( $linkedData->{'rank'} > 0 );
-		}
-		elsif ( $linkedData->{'type'} eq"integer"     ) {
-		    # Nothing to do in this case.
-		}
-		elsif ( $linkedData->{'type'} eq"longInteger" ) {
-		    # Nothing to do in this case.
-		}
-		elsif ( $linkedData->{'type'} eq"logical"     ) {
-		    # Nothing to do in this case.
-		}
-		else {
-		    $functionCode .= "    call to%".&padLinkedData($linkedDataName,[0,0])."%destroy()\n";
-		}
-		$functionCode .= "          to%".&padLinkedData($linkedDataName,[0,0])."=from%".&padLinkedData($linkedDataName,[0,0])."\n";
-	    }
-	}
-	$functionCode .= "       end select\n";
-    }
-    $functionCode .= "    end select\n";
-    $functionCode .= "    return\n";
-    $functionCode .= "  end subroutine Node_Component_Assign\n\n";
-    # Insert into the function list.
-    push(
-	@{$build->{'code'}->{'functions'}},
-	$functionCode
-	);	
-    # Bind this function to the nodeComponent type.
-    push(
-	@{$build->{'types'}->{'nodeComponent'}->{'boundFunctions'}},
-	{type => "procedure", name => "assign"       , function => "Node_Component_Assign", description => "Assign a {\\normalfont \\ttfamily nodeComponent} to another {\\normalfont \\ttfamily nodeComponent}.", returnType => "\\textcolor{red}{\\textless class(nodeComponent)\\textgreater}", arguments => "\\textcolor{red}{\\textless class(nodeComponent)\\textgreater} from\\argin"},
-	{type => "generic"  , name => "assignment(=)", function => "assign" }
-	);
 }
 
 sub Generate_Component_Class_Dump_Functions {
