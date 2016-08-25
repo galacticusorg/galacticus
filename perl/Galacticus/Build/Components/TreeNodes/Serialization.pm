@@ -84,7 +84,7 @@ CODE
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})
-    call self%component{ucfirst($class->{'name'})}(i)%dump()
+    call self%component{ucfirst($class->{'name'})}(i)%serializeASCII()
   end do
 end if
 CODE
@@ -162,7 +162,7 @@ CODE
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})
-    call self%component{ucfirst($class->{'name'})}(i)%dumpXML(fileHandle)
+    call self%component{ucfirst($class->{'name'})}(i)%serializeXML(fileHandle)
   end do
 end if
 CODE
@@ -225,7 +225,7 @@ if (allocated(self%component{ucfirst($class->{'name'})})) then
   end select
   write (fileHandle) size(self%component{ucfirst($class->{'name'})})
   do i=1,size(self%component{ucfirst($class->{'name'})})
-    call self%component{ucfirst($class->{'name'})}(i)%dumpRaw(fileHandle)
+    call self%component{ucfirst($class->{'name'})}(i)%serializeRaw(fileHandle)
   end do
 end if
 CODE
@@ -295,7 +295,7 @@ if (isAllocated) then
     end do
   end select
   do i=1,componentCount
-    call self%component{ucfirst($class->{'name'})}(i)%readRaw(fileHandle)
+    call self%component{ucfirst($class->{'name'})}(i)%deserializeRaw(fileHandle)
   end do
 else
    if (allocated(self%component{ucfirst($class->{'name'})})) deallocate(self%component{ucfirst($class->{'name'})})

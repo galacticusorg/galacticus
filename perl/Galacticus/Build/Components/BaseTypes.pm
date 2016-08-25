@@ -77,7 +77,7 @@ sub Build_Node_Component_Class {
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
-	     name        => "readRaw"                                                                                              ,
+	     name        => "deserializeRaw"                                                                                              ,
 	     function    => "Node_Component_Read_Raw_Null"                                                                         ,
 	     description => "Read properties from raw file."                                                                       ,
 	     returnType  => "\\void"                                                                                               ,
@@ -109,7 +109,7 @@ sub Build_Node_Component_Class {
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
-	     name        => "dump"                                                                                                 ,
+	     name        => "serializeASCII"                                                                                       ,
 	     function    => "Node_Component_Dump_Null"                                                                             ,
 	     description => "Generate an ASCII dump of all properties."                                                            ,
 	     returnType  => "\\void"                                                                                               ,
@@ -117,7 +117,7 @@ sub Build_Node_Component_Class {
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
-	     name        => "dumpXML"                                                                                              ,
+	     name        => "serializeXML"                                                                                         ,
 	     function    => "Node_Component_Dump_XML_Null"                                                                         ,
 	     description => "Generate an XML dump of all properties."                                                              ,
 	     returnType  => "\\void"                                                                                               ,
@@ -125,7 +125,7 @@ sub Build_Node_Component_Class {
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
-	     name        => "dumpRaw"                                                                                              ,
+	     name        => "serializeRaw"                                                                                         ,
 	     function    => "Node_Component_Dump_Raw_Null"                                                                         ,
 	     description => "Generate a binary dump of all properties."                                                            ,
 	     returnType  => "\\void"                                                                                               ,
