@@ -19,14 +19,15 @@ use Galacticus::Build::Components::DataTypes;
      {
 	 classIteratedFunctions =>
 	     [
-	      \&Class_Creation    ,
-	      \&Class_Builder     ,
-	      \&Class_Finalization
+	      \&Class_Initialization     ,
+	      \&Class_Builder            ,
+	      \&Class_Finalization       ,
+	      \&Class_Create_By_Interrupt
 	     ]
      }
     );
 
-sub Class_Creation {
+sub Class_Initialization {
     # Generate a function to create/initialize component classes.
     my $build    = shift();
     $code::class = shift();
@@ -144,6 +145,74 @@ CODE
 	    name        => "builder", 
 	}
 	);
+}
+
+sub Class_Create_By_Interrupt {
+    # Generate a function to create a component of given class in a tree node via an ODE solver interrupt.
+    my $build    = shift();
+    $code::class = shift();
+    # A function is required for this class only if at least one member has at least one property with the "createIfNeeded" attribute.
+    my $functionRequired = 0;
+    foreach my $member ( @{$code::class->{'members'}} ) {
+	$functionRequired = 1
+	    if ( grep {$_->{'attributes'}->{'createIfNeeded'}} &List::ExtraUtils::hashList($member->{'properties'}->{'property'}) );	
+    }
+    return
+	unless ( $functionRequired );
+    # Create the function.
+    my $function =
+    {
+	type        => "void",
+	name        => $code::class->{'name'}."CreateByInterrupt",
+	description => "Create the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component of {\\normalfont \\ttfamily self} via an interrupt.",
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "type",
+		 type       => "treeNode",
+		 attributes => [ "pointer", "intent(inout)" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "class",
+		 type       => "nodeComponent".ucfirst($code::class->{'name'}),
+		 attributes => [ "pointer" ],
+		 variables  => [ $code::class->{'name'} ]
+	     }
+	    ]
+    };
+    $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
+{$class->{'name'}} => self%{$class->{'name'}}(autoCreate=.true.)
+CODE
+    # Iterate over class, and call custom create routines if necessary.
+    if ( grep {exists($_->{'createFunction'})}  @{$code::class->{'members'}} ) {
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+select type ({$class->{'name'}})
+CODE
+	foreach $code::member ( grep {exists($_->{'createFunction'})}  @{$code::class->{'members'}} ) {
+	    $code::createFunction = 
+		        $code::member->{'createFunction'}->{'isDeferred'} 
+	        ? 
+		$code::class->{'name'}.ucfirst($code::member->{'name'})."CreateFunction" 
+		: 
+		(
+		 exists($code::member->{'createFunction'}->{'content'   }) 
+		 ?
+		        $code::member->{'createFunction'}->{'content'   } 
+		 :
+		        $code::member->{'createFunction'}
+		);
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+type is (nodeComponent{ucfirst($code::class->{'name'}).ucfirst($code::member->{'name'})})
+   call {$createFunction}({$class->{'name'}})
+CODE
+	}
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+end select
+CODE
+    }
+    # Insert into the functions list.
+    push(@{$build->{'functions'}},$function);    
 }
 
 1;

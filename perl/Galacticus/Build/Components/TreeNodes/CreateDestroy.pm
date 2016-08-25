@@ -19,9 +19,14 @@ use Galacticus::Build::Components::DataTypes;
      {
 	 functions =>
 	     [
-	      \&Tree_Node_Creation    ,
-	      \&Tree_Node_Builder     ,
+	      \&Tree_Node_Creation         ,
+	      \&Tree_Node_Builder          ,
 	      \&Tree_Node_Finalization
+	      ],
+	 classIteratedFunctions =>
+	     [
+	      \&Tree_Node_Class_Creation   ,
+	      \&Tree_Node_Class_Destruction
 	     ]
      }
     );
@@ -266,5 +271,125 @@ CODE
 	$function
 	);
 }
+
+sub Tree_Node_Class_Creation {
+    # Generate a function to create component classes.
+    my $build    = shift();
+    $code::class = shift();
+    my $function =
+    {
+	type        => "void",
+	name        => "nodeComponent".ucfirst($code::class->{'name'})."Create",
+	description => "Create the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component of {\\normalfont \\ttfamily self}.",
+	modules     =>
+	    [
+	     "ISO_Varying_String",
+	     "Galacticus_Display",
+	     "Galacticus_Error",
+	     "String_Handling"
+  	    ],
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "class",
+		 type       => "treeNode",
+		 attributes => [ "target", "intent(inout)" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "class",
+		 type       => "nodeComponent".ucfirst($code::class->{'name'}),
+		 attributes => [ "intent(in   )", "optional" ],
+		 variables  => [ "template" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "varying_string",
+		 variables  => [ "message" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "i" ]
+	     }
+	    ]
+    };
+    $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
+if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+  message='Creating {$class->{'name'}} in node '
+  message=message//self%index()
+  call Galacticus_Display_Message(message,verbosityInfo)
+end if
+if (present(template)) then
+   allocate(self%component{ucfirst($class->{'name'})}(1),source=template)
+else
+   select type (default{ucfirst($class->{'name'})}Component)
+   type is (nodeComponent{ucfirst($class->{'name'})}Null)
+      call Galacticus_Error_Report('nodeComponent{$class->{'name'}}Create','refusing to create null instance')
+   class default
+      allocate(self%component{ucfirst($class->{'name'})}(1),source=default{ucfirst($class->{'name'})}Component)
+   end select
+end if
+select type (self)
+type is (treeNode)
+  do i=1,size(self%component{ucfirst($class->{'name'})})
+    self%component{ucfirst($class->{'name'})}(i)%hostNode => self
+    call self%component{ucfirst($class->{'name'})}(i)%initialize()
+  end do
+end select
+CODE
+    # Insert a type-binding for this function.
+    push(
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	{
+	    type        => "procedure",
+	    descriptor  => $function,
+	    name        => $code::class->{'name'}."Create", 
+	}
+	);
+}
+
+
+sub Tree_Node_Class_Destruction {
+    # Generate a function to destroy component classes.
+    my $build    = shift();
+    $code::class = shift();
+    my $function =
+    {
+	type        => "void",
+	name        => "nodeComponent".ucfirst($code::class->{'name'})."Destroy",
+	description => "Destroy the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component of {\\normalfont \\ttfamily self}",
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "class",
+		 type       => "treeNode",
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "i" ]
+	     }
+	    ]
+    };
+    $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
+if (allocated(self%component{ucfirst($class->{'name'})})) then
+  do i=1,size(self%component{ucfirst($class->{'name'})})
+    call self%component{ucfirst($class->{'name'})}(i)%destroy()
+  end do
+  deallocate (self%component{ucfirst($class->{'name'})})
+end if
+CODE
+     # Insert a type-binding for this function.
+    push(
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	{
+	    type        => "procedure",
+	    descriptor  => $function,
+	    name        => $code::class->{'name'}."Destroy", 
+	}
+	);
+}
+
 
 1;

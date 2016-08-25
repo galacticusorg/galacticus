@@ -19,9 +19,10 @@ use Galacticus::Build::Components::DataTypes;
      {
 	 implementationIteratedFunctions =>
 	     [
-	      \&Implementation_Creation    ,
-	      \&Implementation_Builder     ,
-	      \&Implementation_Finalization
+	      \&Implementation_Creation           ,
+	      \&Implementation_Builder            ,
+	      \&Implementation_Finalization       ,
+	      \&Implementation_Deferred_Create_Set
 	     ]
      }
     );
@@ -379,6 +380,35 @@ CODE
 	    name        => "builder", 
 	}
 	);
+}
+
+sub Implementation_Deferred_Create_Set {
+    # Generate a function to set the deferred implementation create function.
+    my $build     = shift();
+    $code::class  = shift();
+    $code::member = shift();
+    # If creation function is not deferred, we do not need to build a setter function.
+    return
+	unless ( $code::member->{'createFunction'}->{'isDeferred'} );
+    # Create the function.
+    my $function =
+    {
+	type        => "void",
+	name        => $code::class->{'name'}.ucfirst($code::member->{'name'})."CreateFunctionSet",
+	description => "Set the create function for the {\\normalfont \\ttfamily ".$code::member->{'name'}."} implementation of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component class.",
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "external",
+		 variables  => [ "createFunction" ]
+	     }
+	    ]
+    };
+    $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
+{$class->{'name'}.ucfirst($member->{'name'})}CreateFunction => createFunction
+CODE
+    # Insert into the functions list.
+    push(@{$build->{'functions'}},$function);    
 }
 
 1;
