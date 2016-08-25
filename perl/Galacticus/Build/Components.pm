@@ -28,6 +28,7 @@ use Galacticus::Build::Components::Hierarchy::ODESolver;
 use Galacticus::Build::Components::Hierarchy::Utils;
 use Galacticus::Build::Components::TreeNodes;
 use Galacticus::Build::Components::TreeNodes::CreateDestroy;
+use Galacticus::Build::Components::TreeNodes::Classes;
 use Galacticus::Build::Components::TreeNodes::ODESolver;
 use Galacticus::Build::Components::TreeNodes::Serialization;
 use Galacticus::Build::Components::TreeNodes::Utils;
@@ -135,14 +136,6 @@ sub Components_Generate_Output {
 	    \&Generate_Component_Class_Output_Functions              ,
 	    # Generate output functions for each implementation.
 	    \&Generate_Implementation_Output_Functions               ,
-	    # Generate component count methods.
-	    \&Generate_Component_Count_Functions                     ,
-	    # Generate component get methods.
-	    \&Generate_Component_Get_Functions                       ,
-	    # Generate component destruction functions.
-	    \&Generate_Component_Destruction_Functions               ,
-	    # Generate component creation functions.
-	    \&Generate_Component_Creation_Functions                  ,
 	    # Generate component class default value functions.
 	    \&Generate_Component_Class_Default_Value_Functions       ,
 	    # Generate functions for getting/setting/rating value via a deferred function.
@@ -1671,354 +1664,6 @@ sub Generate_Implementation_Output_Functions {
 	push(
 	    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 	    {type => "procedure", name => "outputNames", function => "Node_Component_".ucfirst($componentID)."_Output_Names"},
-	    );
-    }
-}
-
-sub Generate_Component_Count_Functions {
-    # Generate component count functions.
-    my $build = shift;
-    # Initialize function code.
-    my $functionCode;
-    # Initialize data content.
-    my @dataContent;
-    # Create methods to get components.
-    foreach my $componentClassName ( @{$build->{'componentClassList'}} ) {
-	# Specify data content for component get function.
-	@dataContent =
-	    (
-	     {
-		 intrinsic  => "class",
-		 type       => "treeNode",
-		 attributes => [ "intent(inout)", "target" ],
-		 variables  => [ "self" ]
-	     }
-	    );
-	# Generate code for the count function.
-    	$functionCode  = "  integer function ".$componentClassName."CountLinked(self)\n";
-	$functionCode .= "    !% Returns the number of {\\normalfont \\ttfamily ".$componentClassName."} components in {\\normalfont \\ttfamily self}.\n";
-    	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    	$functionCode .= "    select type (self)\n";
-    	$functionCode .= "    class is (treeNode)\n";
-	$functionCode .= "     if (allocated(self%component".ucfirst($componentClassName).")) then\n";
-	$functionCode .= "       select type (component => self%component".ucfirst($componentClassName)."(1))\n";
-	$functionCode .= "       type is (nodeComponent".ucfirst($componentClassName).")\n";
-	$functionCode .= "         ".$componentClassName."CountLinked=0\n";
-	$functionCode .= "       class default\n";
-	$functionCode .= "         ".$componentClassName."CountLinked=size(self%component".ucfirst($componentClassName).")\n";
-	$functionCode .= "       end select\n";
-	$functionCode .= "     else\n";
-	$functionCode .= "        ".$componentClassName."CountLinked=0\n";
-	$functionCode .= "     end if\n";
-	$functionCode .= "    class default\n";
-	$functionCode .= "     ".$componentClassName."CountLinked=0\n";
-	$functionCode .= "     call Galacticus_Error_Report('".$componentClassName."CountLinked\','treeNode of unknown class')\n";
-    	$functionCode .= "    end select\n";
-    	$functionCode .= "    return\n";
-    	$functionCode .= "  end function ".$componentClassName."CountLinked\n";
-	# Insert into the function list.
-	push(
-	    @{$build->{'code'}->{'functions'}},
-	    $functionCode
-	    );
-	# Bind this function to the treeNode type.
-	push(
-	    @{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	    {type => "procedure", name => $componentClassName."Count", function => $componentClassName."CountLinked", description => "Returns the number of {\\normalfont \\ttfamily ".$componentClassName."} components in the node.", returnType => "\\intzero", arguments => ""}
-	    );
-    }
-}
-
-sub Generate_Component_Get_Functions {
-    # Generate component get methods.
-    my $build = shift;
-    # Initialize function code.
-    my $functionCode;
-    # Initialize data content.
-    my @dataContent;
-    # Create methods to get components.
-    foreach my $componentClassName ( @{$build->{'componentClassList'}} ) {
-	# Specify data content for component get function.
-	@dataContent =
-	    (
-	     {
-		 intrinsic  => "class",
-		 type       => "nodeComponent".ucfirst($componentClassName),
-		 attributes => [ "pointer" ],
-		 variables  => [ $componentClassName."Get" ]
-	     },
-	     {
-		 intrinsic  => "class",
-		 type       => "treeNode",
-		 attributes => [ "intent(inout)", "target" ],
-		 variables  => [ "self" ]
-	     },
-	     {
-		 intrinsic  => "integer",
-		 attributes => [ "intent(in   )", "optional" ],
-		 variables  => [ "instance" ]
-	     },
-	     {
-		 intrinsic  => "logical",
-		 attributes => [ "intent(in   )", "optional" ],
-		 variables  => [ "autoCreate" ]
-	     },
-	     {
-		 intrinsic  => "integer",
-		 variables  => [ "instanceActual" ]
-	     },
-	     {
-		 intrinsic  => "logical",
-		 variables  => [ "autoCreateActual" ]
-	     }
-	    );
-	# Generate code for the get function.
-    	$functionCode  = "  recursive function ".$componentClassName."Get(self,instance,autoCreate)\n";
-	$functionCode .= "    !% Returns the {\\normalfont \\ttfamily ".$componentClassName."} component of {\\normalfont \\ttfamily self}.\n";
-	$functionCode .= "    use Galacticus_Error\n";   
- 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    	$functionCode .= "    instanceActual=1\n";
-    	$functionCode .= "    if (present(instance)) instanceActual=instance\n";
-    	$functionCode .= "    autoCreateActual=.false.\n";
-    	$functionCode .= "    if (present(autoCreate)) autoCreateActual=autoCreate\n";
-	$functionCode .= "    if (autoCreateActual.and.allocated(self%component".ucfirst($componentClassName).")) then\n";
-	# If we are allowed to autocreate the component and it still has generic type then deallocate it to
-	# force it to be created later.
-	$functionCode .= "      if (same_type_as(self%component".ucfirst($componentClassName)."(1),".ucfirst($componentClassName)."Class)) deallocate(self%component".ucfirst($componentClassName).")\n";
-	$functionCode .= "    end if\n";
-    	$functionCode .= "    if (.not.allocated(self%component".ucfirst($componentClassName).")) then\n";
-    	$functionCode .= "      if (autoCreateActual) then\n";
-	$functionCode .= "         call self%".lc($componentClassName)."Create"."()\n";
-	$functionCode .= "      else\n";
-	$functionCode .= "         call Galacticus_Error_Report('".$componentClassName."Get','component is not allocated')\n";
-	$functionCode .= "      end if\n";
-    	$functionCode .= "    end if\n";
-    	$functionCode .= "    ".$componentClassName."Get => self%component".ucfirst($componentClassName)."(instanceActual)\n";
-    	$functionCode .= "    return\n";
-    	$functionCode .= "  end function ".$componentClassName."Get\n";
-	# Insert into the function list.
-	push(
-	    @{$build->{'code'}->{'functions'}},
-	    $functionCode
-	    );
-	# Bind this function to the treeNode type.
-	push(
-	    @{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	    {type => "procedure", name => $componentClassName, function => $componentClassName."Get", description => "Return a ".$componentClassName." component member of the node. If no {\\normalfont \\ttfamily instance} is specified, return the first instance. If {\\normalfont \\ttfamily autoCreate} is {\\normalfont \\ttfamily true} then create a single instance of the component if none exists in the node.", returnType => "\\textcolor{red}{\\textless *class(nodeComponent".ucfirst($componentClassName).")\\textgreater}", arguments => "\\intzero\\ [instance]\\argin, \\logicalzero\\ [autoCreate]\\argin"}
-	    );
-	# Specify data content for create-by-interrupt function.
-	@dataContent =
-	    (
-	     {
-		 intrinsic  => "type",
-		 type       => "treeNode",
-		 attributes => [ "pointer", "intent(inout)" ],
-		 variables  => [ "self" ]
-	     },
-	     {
-		 intrinsic  => "class",
-		 type       => "nodeComponent".ucfirst($componentClassName),
-		 attributes => [ "pointer" ],
-		 variables  => [ $componentClassName ]
-	     }
-	    );
-	# Generate function to create component via an interrupt.
-	my $createIfNeeded = 0;
-	# Iterate over component implementations.
-	foreach my $implementationName ( @{$build->{'componentClasses'}->{$componentClassName}->{'memberNames'}} ) {
-	    my $implementationID = ucfirst($componentClassName).ucfirst($implementationName);
-	    my $component = $build->{'components'}->{$implementationID};
-	    # Iterate over properties.
-	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
-		my $property = $component->{'properties'}->{'property'}->{$propertyName};
-		$createIfNeeded = 1
-		    if ( $property->{'attributes'}->{'createIfNeeded'} );
-	    }
-	}
-	if ( $createIfNeeded ) {
-	    $functionCode  = "  subroutine ".$componentClassName."CreateByInterrupt(self)\n";
-	    $functionCode .= "    !% Create the {\\normalfont \\ttfamily ".$componentClassName."} component of {\\normalfont \\ttfamily self} via an interrupt.\n";
-	    $functionCode .= "    implicit none\n";
-	    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	    $functionCode .= "    ".$componentClassName." => self%".$componentClassName."(autoCreate=.true.)\n";
-	    # Loop over instances of this class, and call custom create routines if necessary.
-	    my $foundCreateFunctions = 0;
-    	foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'memberNames'}} ) {
-		my $componentID = ucfirst($componentClassName).ucfirst($componentName);
-	    my $component = $build->{'components'}->{$componentID};
-		if ( exists($component->{'createFunction'}) ) {
-		    if ( $foundCreateFunctions == 0 ) {
-			$functionCode .= "    select type (".$componentClassName.")\n";
-			$foundCreateFunctions = 1;
-		    }
-		$functionCode .= "    type is (nodeComponent".&padFullyQualified(ucfirst($componentID),[0,0]).")\n";
-		    my $createFunction = $component->{'createFunction'};
-		    $createFunction = $component->{'createFunction'}->{'content'}
-		    if ( exists($component->{'createFunction'}->{'content'}) );
-		    $createFunction = $componentID."CreateFunction"
-			if (
-			exists($component->{'createFunction'}->{'isDeferred'})
-			&&
-			$component->{'createFunction'}->{'isDeferred'}
-			);
-		    $functionCode .= "       call ".$createFunction."(".$componentClassName.")\n";
-		}
-	    }
-	    $functionCode .= "    end select\n"
-		unless ( $foundCreateFunctions == 0 );
-	    $functionCode .= "    return\n";
-	    $functionCode .= "  end subroutine ".$componentClassName."CreateByInterrupt\n";
-	    # Insert into the function list.
-	    push(
-	    @{$build->{'code'}->{'functions'}},
-		$functionCode
-		);
-	}
-	# If any create function is deferred, create a function to set it at runt time.
-    	foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'memberNames'}} ) {
-	    my $componentID = ucfirst($componentClassName).ucfirst($componentName);
-	    my $component = $build->{'components'}->{$componentID};
-	    if (
-		exists($component->{'createFunction'}                           ) && 
-		exists($component->{'createFunction'}->{'isDeferred'}           ) &&
-		$component->{'createFunction'}->{'isDeferred'}
-		) {
-		$functionCode  = "   subroutine ".$componentID."CreateFunctionSet(createFunction)\n";
-		$functionCode .= "     !% Set the create function for the {\\normalfont \\ttfamily ".$componentID."} component.\n";
-		$functionCode .= "     implicit none\n";
-		$functionCode .= "     external createFunction\n";
-		my $createFunction = $componentID."CreateFunction"; 
-		$functionCode .= "     ".$createFunction." => createFunction\n";
-		$functionCode .= "     return\n";
-		$functionCode .= "   end subroutine ".$componentID."CreateFunctionSet\n";
-		# Insert into the function list.
-		push(
-		    @{$build->{'code'}->{'functions'}},
-		    $functionCode
-		    );
-	    }
-	}
-    }
-}
-
-sub Generate_Component_Destruction_Functions {
-    # Generate component destruction functions.
-    my $build = shift;
-    # Iterate over component classes.
-    foreach my $componentClassName ( @{$build->{'componentClassList'}} ) {
-	my @dataContent =
-	    (
-	     {
-		 intrinsic  => "class",
-		 type       => "treeNode",
-		 attributes => [ "intent(inout)" ],
-		 variables  => [ "self" ]
-	     },
-	     {
-		 intrinsic  => "integer",
-		 variables  => [ "i" ]
-	     }
-	    );
-    	my $functionCode = "  subroutine ".$componentClassName."DestroyLinked(self)\n";
-	$functionCode   .= "    !% Destroy the {\\normalfont \\ttfamily ".$componentClassName."} component of {\\normalfont \\ttfamily self}.\n";
-    	$functionCode   .= "    implicit none\n";
-	$functionCode   .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    	$functionCode   .= "    if (allocated(self%component".ucfirst($componentClassName).")) then\n";
-	$functionCode   .= "      do i=1,size(self%component".ucfirst($componentClassName).")\n";
-	$functionCode   .= "        call        self%component".ucfirst($componentClassName)."(i)%destroy()\n";
-	$functionCode   .= "      end do\n";
-	$functionCode   .= "      deallocate (self%component".ucfirst($componentClassName).")\n";
-	$functionCode   .= "    end if\n";
-    	$functionCode   .= "    return\n";
-    	$functionCode   .= "  end subroutine ".$componentClassName."DestroyLinked\n\n";
-	# Insert into the function list.
-	push(
-	    @{$build->{'code'}->{'functions'}},
-	    $functionCode
-	    );
-	# Bind this function to the treeNode type.
-	push(
-	    @{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	    {type => "procedure", name => $componentClassName."Destroy" , function => $componentClassName."DestroyLinked", description => "Destroy the {\\normalfont \\ttfamily ".$componentClassName."} component(s) of the node.", returnType => "\\void", arguments => ""}
-	    );
-    }
-}
-
-sub Generate_Component_Creation_Functions {
-    # Generate component creation functions.
-    my $build = shift;
-    # Iterate over component classes.
-    foreach my $componentClassName ( @{$build->{'componentClassList'}} ) {
-	# Specify data content.
-	my @dataContent =
-	    (
-	     {
-		 intrinsic  => "class",
-		 type       => "treeNode",
-		 attributes => [ "target", "intent(inout)" ],
-		 variables  => [ "self" ]
-	     },
-	     {
-		 intrinsic  => "class",
-		 type       => "nodeComponent".ucfirst($componentClassName),
-		 attributes => [ "intent(in   )", "optional" ],
-		 variables  => [ "template" ]
-	     },
-	     {
-		 intrinsic  => "type",
-		 type       => "varying_string",
-		 variables  => [ "message" ]
-	     },
-	     {
-		 intrinsic  => "integer",
-		 variables  => [ "i" ]
-	     }
-	    );
-	# Generate function code.
-	my $functionCode;
-    	$functionCode .= "  subroutine ".$componentClassName."CreateLinked(self,template)\n";
-	$functionCode .= "    !% Create the {\\normalfont \\ttfamily ".$componentClassName."} component of {\\normalfont \\ttfamily self}.\n";
-	$functionCode .= "    use ISO_Varying_String\n";
-	$functionCode .= "    use Galacticus_Display\n";
-	$functionCode .= "    use Galacticus_Error\n";
-	$functionCode .= "    use String_Handling\n";
-    	$functionCode .= "    implicit none\n";
- 	$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	$functionCode .= "    if (Galacticus_Verbosity_Level() >= verbosityInfo) then\n";
-	$functionCode .= "      message='Creating ".$componentClassName." in node '\n";
-	$functionCode .= "      message=message//self%index()\n";
-	$functionCode .= "      call Galacticus_Display_Message(message,verbosityInfo)\n";
-	$functionCode .= "    end if\n";
-    	$functionCode .= "    if (present(template)) then\n";
-	$functionCode .= "       allocate(self%component".ucfirst($componentClassName)."(1),source=template)\n";
-    	$functionCode .= "    else\n";
-	$functionCode .= "       select type (default".ucfirst($componentClassName)."Component)\n";
-	$functionCode .= "       type is (nodeComponent".ucfirst($componentClassName)."Null)\n";
-	$functionCode .= "          call Galacticus_Error_Report('".$componentClassName."CreateLinked','refusing to create null instance')\n";
-	$functionCode .= "       class default\n";
-	$functionCode .= "          allocate(self%component".ucfirst($componentClassName)."(1),source="."default".ucfirst($componentClassName)."Component)\n";
-   	$functionCode .= "       end select\n";
-   	$functionCode .= "    end if\n";
-     	$functionCode .= "    select type (self)\n";
-	$functionCode .= "    type is (treeNode)\n";
-	$functionCode .= "      do i=1,size(self%component".ucfirst($componentClassName).")\n";
-	$functionCode .= "        self%component".ucfirst($componentClassName)."(i)%hostNode => self\n";
-	$functionCode .= "        call self%component".ucfirst($componentClassName)."(i)%initialize()\n";
-	$functionCode .= "      end do\n";
-    	$functionCode .= "    end select\n";
-    	$functionCode .= "    return\n";
-    	$functionCode .= "  end subroutine ".$componentClassName."CreateLinked\n\n";
-	# Insert into the function list.
-	push(
-	    @{$build->{'code'}->{'functions'}},
-	    $functionCode
-	    );
-	# Bind this function to the treeNode type.
-	push(
-	    @{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	    {type => "procedure", name => $componentClassName."Create" , function => $componentClassName."CreateLinked", description => "Create a {\\normalfont \\ttfamily ".$componentClassName."} component in the node. If no {\\normalfont \\ttfamily template} is specified use the active implementation of this class.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless class(nodeComponent".ucfirst($componentClassName).")\\textgreater}\\ [template]\\argin"}
 	    );
     }
 }
@@ -3890,15 +3535,24 @@ sub functionsSerialize {
 	my $form;
 	my $type;
 	my $result;
-	if ( $function->{'type'} =~ m/^([a-zA-Z0-9_\(\)\s]+)\s+=>\s+([a-zA-Z0-9_]+)/ ) {
-	    my $returnType  = $1;
-	    $result         = "result(".$2.")";
-	    $type           = "";
-	    $form           = "function";
-	    my $declaration =
+	if ( $function->{'type'} =~ m/^([a-zA-Z0-9_\(\),\s]+)\s+=>\s+([a-zA-Z0-9_]+)/ ) {
+	    my $returnDescriptor = $1;
+	    my $returnName       = $2;
+	    $result              = "result(".$2.")";
+	    $type                = "";
+	    $form                = "function";
+	    my @attributes;
+	    my $returnType;
+	    if ( $returnDescriptor =~ m/([a-zA-Z0-9_\(\)\s]+)\s*,\s*([a-zA-Z0-9_,\s]+)/ ) {
+		$returnType = $1;
+		@attributes = split(/\s*,\s*/,$2);
+	    } else {
+		$returnType = $returnDescriptor;
+	    }
+	    my $declaration      =
 	    {
-		attributes => [],
-		variables  => [ $2 ]
+		attributes => \@attributes,
+		variables  => [ $returnName ]
 	    };
 	    if ( $returnType =~ m/^(type|class)\s*\(\s*([a-zA-Z0-9_]+)\s*\)/ ) {
 		$declaration->{'intrinsic'} = $1;
@@ -3912,6 +3566,9 @@ sub functionsSerialize {
 	    $type   = $function->{'type'} eq "void" ? ""           : $function->{'type'};
 	    $result = "";
 	}
+	my @functionAttributes;
+	push(@functionAttributes,"recursive")
+	    if ( exists($function->{'recursive'}) && $function->{'recursive'} );
 	# Build a list of arguments.
 	my @arguments;
 	foreach my $variables ( @{$function->{'variables'}} ) {
@@ -3919,10 +3576,18 @@ sub functionsSerialize {
 		@arguments,
 		@{$variables->{'variables'}}
 		)
-		if ( exists($variables->{'attributes'}) && grep {$_ =~ m/^intent\s*\(\s*(in|inout|out)\s*\)/} @{$variables->{'attributes'}} );
+		if (
+		    (
+		     exists($variables->{'attributes'})
+		     && 
+		     grep {$_ =~ m/^intent\s*\(\s*(in|inout|out)\s*\)/} @{$variables->{'attributes'}}
+		    )
+		    ||
+		    $variables->{'intrinsic'} eq "external"
+		);
 	}
 	# Serialize function opener.
-	$build->{'content'} .= $type." ".$form." ".$function->{'name'}."(".join(",",@arguments).") ".$result."\n";
+	$build->{'content'} .= join(" ",@functionAttributes)." ".$type." ".$form." ".$function->{'name'}."(".join(",",@arguments).") ".$result."\n";
 	# Serialize description.
 	$build->{'content'} .= "   !% ".$function->{'description'}."\n";
 	# Serialize module uses.
