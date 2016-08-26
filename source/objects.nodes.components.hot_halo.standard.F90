@@ -1121,7 +1121,7 @@ contains
     implicit none
     class           (nodeComponentHotHaloStandard), intent(inout)          :: self
     logical                                       , intent(inout)          :: interrupt
-    procedure       (interruptTask), intent(inout), pointer :: interruptProcedure
+    procedure       (interruptTask               ), intent(inout), pointer :: interruptProcedure
     type            (treeNode                    )               , pointer :: selfNode
     class           (nodeComponentBasic          )               , pointer :: selfBasic
     class           (darkMatterHaloScaleClass    )               , pointer :: darkMatterHaloScale_
