@@ -643,6 +643,36 @@ sub Format_Variable_Defintions {
     return $formattedVariables;
 }
 
+sub Unformat_Variables {
+    # Given a Fortran-formatted variable string, decode it and return a standard variable structure.
+    my $variableString = shift();
+    # Iterate over intrinsic declaration regexes.
+    foreach my $intrinsicType ( keys(%intrinsicDeclarations) ) {
+	# Check for a match to an intrinsic declaration regex.
+	if ( my @matches = $variableString =~ m/$intrinsicDeclarations{$intrinsicType}->{"regEx"}/i ) {
+	    my $type               =  $matches[$intrinsicDeclarations{$intrinsicType}->{"type"      }];
+	    my $variablesString    =  $matches[$intrinsicDeclarations{$intrinsicType}->{"variables" }];
+	    my $attributesString   = $matches[$intrinsicDeclarations{$intrinsicType}->{"attributes"}];
+	    $type                  =~ s/^\((.*)\)$/$1/
+		if ( defined($type            ) );
+	    $attributesString      =~ s/^\s*,\s*//
+		if ( defined($attributesString) );
+	    my @variables          =  &Extract_Variables($variablesString ,keepQualifiers => 1,removeSpaces => 1);
+	    my @attributes         =  &Extract_Variables($attributesString,keepQualifiers => 1,removeSpaces => 1);
+	    my $variableDefinition =
+	    {
+		intrinsic => $intrinsicType,
+		variables => \@variables
+	    };
+	    $variableDefinition->{'type'      } = $type
+		if ( defined($type      )     );
+	    $variableDefinition->{'attributes'} = \@attributes
+		if ( scalar (@attributes) > 0 );
+	    return $variableDefinition;
+	}
+    }
+}
+
 sub Extract_Variables {
     # Given the post-"::" section of a variable declaration line, return an array of all variable names.
     my $variableList = shift;
