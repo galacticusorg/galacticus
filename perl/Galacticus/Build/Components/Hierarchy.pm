@@ -62,9 +62,9 @@ sub Hierarchy_Initialization {
 	    ],
     };
     $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
-if (.not.moduleIsInitialized) then
+if (.not.hierarchyInitialized) then
   !$omp critical (Node_Class_Hierarchy_Initialize)
-  if (.not.moduleIsInitialized) then
+  if (.not.hierarchyInitialized) then
     ! Parameters controlling output.
 CODE
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
@@ -158,7 +158,7 @@ CODE
     }
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
     ! Record that the module is now initialized.
-    moduleIsInitialized=.true.
+    hierarchyInitialized=.true.
   end if
   !$omp end critical (Node_Class_Hierarchy_Initialize)
 end if
@@ -182,7 +182,7 @@ sub Hierarchy_Finalization {
     };
     # Generate the function code.
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
-if (.not.moduleIsInitialized) return
+if (.not.hierarchyInitialized) return
 {join(" ",map {"deallocate(default".$_->{'name'}."Component)\n"} &List::ExtraUtils::hashList($build->{'componentClasses'}))}
 CODE
     # Add the function to the functions list.

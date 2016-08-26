@@ -18,9 +18,10 @@ use Galacticus::Build::Components::Utils;
 	     [
 	      \&Build_Node_Event_Class
 	     ],
-         functions =>
+         interfaces =>
 	     [
-	      \&Node_Event_Task_Interface
+	      \&Node_Event_Task_Interface,
+	      
 	     ]
      }
     );
