@@ -408,7 +408,17 @@ sub Implementation_Deferred_Create_Set {
 {$class->{'name'}.ucfirst($member->{'name'})}CreateFunction => createFunction
 CODE
     # Insert into the functions list.
-    push(@{$build->{'functions'}},$function);    
+    push(@{$build->{'functions'}},$function);
+    # Create the associated function pointer.
+    push(
+	@{$build->{'variables'}},
+	{
+	    intrinsic  => "procedure",
+	    type       => "",
+	    attributes => [ "pointer" ],
+	    variables  => [ $code::class->{'name'}.ucfirst($code::member->{'name'})."CreateFunction" ]
+	}
+	);
 }
 
 1;
