@@ -31,6 +31,7 @@ use Galacticus::Build::Components::TreeNodes;
 use Galacticus::Build::Components::TreeNodes::CreateDestroy;
 use Galacticus::Build::Components::TreeNodes::Classes;
 use Galacticus::Build::Components::TreeNodes::ODESolver;
+use Galacticus::Build::Components::TreeNodes::Map;
 use Galacticus::Build::Components::TreeNodes::Serialization;
 use Galacticus::Build::Components::TreeNodes::Utils;
 use Galacticus::Build::Components::NodeEvents;
@@ -131,8 +132,6 @@ sub Components_Generate_Output {
     # Iterate over all functions, calling them with the build data object.
     &{$_}($build)
 	foreach (
-	    # Generate functions to map other functions over components.
-	    \&Generate_Map_Functions                                 ,
 	    # Generate functions to output nodes.
 	    \&Generate_Node_Output_Functions                         ,
 	    # Generate output functions for each component class.
@@ -578,194 +577,6 @@ sub Generate_Deferred_Procedure_Pointers {
     }
     # Insert data content.
     $build->{'content'} .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent, indent => 2)."\n";
-}
-
-sub Generate_Map_Functions {
-    # Generate functions to map other functions over components.
-    my $build = shift;
-
-    # Function for mapping a void function.
-    # Generate variables.
-    my @dataContent =
-	(
-	 {
-	     intrinsic  => "class",
-	     type       => "treeNode",
-	     attributes => [ "intent(inout)" ],
-	     variables  => [ "self" ]
-	 },
-	 {
-	     intrinsic  => "procedure",
-	     type       => "Node_Component_Null_Void0_InOut",
-	     attributes => [ "pointer" ],
-	     variables  => [ "mapFunction" ]
-	 },
-	 {
-	     intrinsic  => "integer",
-	     variables  => [ "i" ]
-	 }
-	);
-    my $functionCode;
-    $functionCode .= "  subroutine mapComponentsVoid(self,mapFunction)\n";
-    $functionCode .= "    !% Map a void function over components.\n";
-    $functionCode .= "    implicit none\n";
-    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    foreach ( @{$build->{'componentClassList'}} ) {	    
-     	$functionCode .= "    if (allocated(self%component".&padClass(ucfirst($_),[19,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".&padClass(ucfirst($_),[19,0]).")\n";
-	$functionCode .= "        call mapFunction(self%component".&padClass(ucfirst($_),[19,0])."(i))\n";
-	$functionCode .= "      end do\n";
-	$functionCode .= "    end if\n";
-    }
-    $functionCode .= "    return\n";
-    $functionCode .= "  end subroutine mapComponentsVoid\n\n";
-    # Insert into the function list.
-    push(
-	@{$build->{'code'}->{'functions'}},
-	$functionCode
-	);
-    # Insert a type-binding for this function into the treeNode type.
-    push(
-	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "mapVoid", function => "mapComponentsVoid", description => "Map a void function over components.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless *function()\\textgreater} mapFunction"}
-	);
-
-    # Function for mapping a scalar double function.
-    @dataContent =
-	(
-	 {
-	     intrinsic  => "class",
-	     type       => "treeNode",
-	     attributes => [ "intent(inout)" ],
-	     variables  => [ "self" ]
-	 },
-	 {
-	     intrinsic  => "procedure",
-	     type       => "Node_Component_Null_Double0_InOut",
-	     attributes => [ "pointer" ],
-	     variables  => [ "mapFunction" ]
-	 },
-	 {
-	     intrinsic  => "integer",
-	     attributes => [ "intent(in   )" ],
-	     variables  => [ "reduction" ]
-	 },
-	 {
-	     intrinsic  => "integer",
-	     attributes => [ "intent(in   )", "optional" ],
-	     variables  => [ "optimizeFor" ]
-	 },
-	 {
-	     intrinsic  => "double precision",
-	     variables  => [ "componentValue" ]
-	 },
-	 {
-	     intrinsic  => "integer",
-	     variables  => [ "i" ]
-	 }
-	);
-    $functionCode  = "  double precision function mapComponentsDouble0(self,mapFunction,reduction,optimizeFor)\n";
-    $functionCode .= "    !% Map a scalar double function over components with a specified {\\normalfont \\ttfamily reduction}.\n";
-    $functionCode .= "    use Galacticus_Error\n";
-    $functionCode .= "    implicit none\n";
-    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    # Scan through available node component methods and find ones which are mappable. Create optimized versions of this function
-    # for them.
-    my $optimizationLabel      = -1;
-    my $optimizationsGenerated = 0;
-    foreach my $boundFunction ( @{$build->{'types'}->{'nodeComponent'}->{'boundFunctions'}} ) {
-	if ( exists($boundFunction->{'mappable'}) ) {
-	    my @reductions = split(/:/,$boundFunction->{'mappable'});
-	    foreach my $reduction ( @reductions ) {
-		# Record that optimized versions were generated.
-		$optimizationsGenerated = 1;
-		# Insert test for optimized case.
-		++$optimizationLabel;
-		$build->{'content'} .= "   integer, public, parameter :: optimizeFor".ucfirst($boundFunction->{'name'}).ucfirst($reduction)."=".$optimizationLabel."\n";
-		$functionCode .= "   ";
-		$functionCode .= "else"
-		    unless ( $optimizationLabel == 0 );
-		$functionCode .= "if (present(optimizeFor).and.optimizeFor == optimizeFor".ucfirst($boundFunction->{'name'}).ucfirst($reduction).") then\n";
-		# Initialize reduction.
-		if ( $reduction eq "summation" ) {
-		    $functionCode .= "      if (reduction /= reductionSummation) call Galacticus_Error_Report('mapComponentsDouble0','reduction mismatch')\n";
-		    $functionCode .= "      mapComponentsDouble0=0.0d0\n";
-		} elsif ( $reduction eq "product" ) {
-		    $functionCode .= "      if (reduction /= reductionProduct  ) call Galacticus_Error_Report('mapComponentsDouble0','reduction mismatch')\n";
-		    $functionCode .= "      mapComponentsDouble0=1.0d0\n";
-		} else {
-		    die("Generate_Map_Functions(): unrecognized reduction");
-		}
-		# Iterate over available types.
-		foreach my $type ( &List::ExtraUtils::sortedKeys($build->{'types'}) ) {
-		    if ( $type =~ m/^nodeComponent.+/  && grep {$_->{'name'} eq $boundFunction->{'name'}} @{$build->{'types'}->{$type}->{'boundFunctions'}} ) {
-			# Determine the class of this component.
-			my $baseClass = $type;
-			while ( exists($build->{'types'}->{$baseClass}->{'extends'}) && $build->{'types'}->{$baseClass}->{'extends'} ne "nodeComponent" ) {
-			    $baseClass = $build->{'types'}->{$baseClass}->{'extends'};
-			}
-			$baseClass =~ s/^nodeComponent//;
-			$baseClass = lc($baseClass);
-			# Construct code for this component.
-			$functionCode .= "    if (allocated(self%component".&padClass(ucfirst($baseClass),[0,0]).")) then\n";
-			$functionCode .= "      select type (c => self%component".&padClass(ucfirst($baseClass),[0,0]).")\n";
-			$functionCode .= "      type is (".$type.")\n";
-			$functionCode .= "         do i=1,size(self%component".&padClass(ucfirst($baseClass),[0,0]).")\n";
-			$functionCode .= "            mapComponentsDouble0=mapComponentsDouble0";
-			if ( $reduction eq "summation" ) {
-			    $functionCode .= "+";
-			} elsif ( $reduction eq "product" ) {
-			    $functionCode .= "*";
-			}
-			$functionCode .= "mapFunction(self%component".&padClass(ucfirst($baseClass),[0,0])."(i))\n";
-			$functionCode .= "         end do\n";
-			$functionCode .= "      end select\n";
-			$functionCode .= "    end if\n";
-		    }
-		}
-	    }
-	}
-    }
-    $build->{'content'} .= "\n";
-    # Generate the generic, unoptimized function.
-    $functionCode .= "    else\n"
-	if ( $optimizationsGenerated == 1 );
-    $functionCode .= "    select case (reduction)\n";
-    $functionCode .= "    case (reductionSummation)\n";
-    $functionCode .= "      mapComponentsDouble0=0.0d0\n";
-    $functionCode .= "    case (reductionProduct  )\n";
-    $functionCode .= "      mapComponentsDouble0=1.0d0\n";
-    $functionCode .= "    case default\n";
-    $functionCode .= "      mapComponentsDouble0=1.0d0\n";
-    $functionCode .= "      call Galacticus_Error_Report('mapComponentsDouble0','unknown reduction')\n";
-    $functionCode .= "    end select\n";
-    foreach ( @{$build->{'componentClassList'}} ) {	    
-     	$functionCode .= "    if (allocated(self%component".&padClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".&padClass(ucfirst($_),[0,0]).")\n";
-     	$functionCode .= "        componentValue=mapFunction(self%component".&padClass(ucfirst($_),[0,0])."(i))\n";
-     	$functionCode .= "        select case (reduction)\n";
-     	$functionCode .= "        case (reductionSummation)\n";
-     	$functionCode .= "          mapComponentsDouble0=mapComponentsDouble0+componentValue\n";
-     	$functionCode .= "        case (reductionProduct  )\n";
-     	$functionCode .= "          mapComponentsDouble0=mapComponentsDouble0*componentValue\n";
-     	$functionCode .= "        end select\n";
-	$functionCode .= "      end do\n";
-     	$functionCode .= "    end if\n";
-    }
-    $functionCode .= "    end if\n"
-	if ( $optimizationsGenerated == 1 );
-    $functionCode .= "    return\n";
-    $functionCode .= "  end function mapComponentsDouble0\n\n";
-    # Insert into the function list.
-    push(
-	@{$build->{'code'}->{'functions'}},
-	$functionCode
-	);
-    # Insert a type-binding for this function into the treeNode type.
-    push(
-	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "mapDouble0", function => "mapComponentsDouble0", description => "Map a scalar double function over components.", returnType => "\\doublezero", arguments => "\\textcolor{red}{\\textless *function()\\textgreater} mapFunction"}
-	);
 }
 
 sub Generate_Node_Output_Functions {
@@ -3348,12 +3159,23 @@ sub functionsSerialize {
 		@{$variables->{'variables'}}
 		)
 		if (
+		    # Regular variables with intent.
 		    (
 		     exists($variables->{'attributes'})
-		     && 
-		     grep {$_ =~ m/^intent\s*\(\s*(in|inout|out)\s*\)/} @{$variables->{'attributes'}}
+		     &&
+		     grep {$_ =~ m/^intent\s*\(\s*(in|inout|out)\s*\)/} @{$variables->{'attributes'}}		      
 		    )
 		    ||
+		    # Procedure pointers
+		    (
+		     $variables->{'intrinsic'} eq "procedure"
+		     &&
+		     exists($variables->{'attributes'})
+		     &&
+		     grep {$_ eq "pointer"} @{$variables->{'attributes'}}		      
+		    )
+		    ||
+		    # External variables.
 		    $variables->{'intrinsic'} eq "external"
 		);
 	}
