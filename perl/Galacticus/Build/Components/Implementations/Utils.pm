@@ -111,7 +111,7 @@ sub listRealEvolvers {
 }
 
 sub Implementation_Function_Iterator {
-    # Iterates over component classes and calls registered functions for each class.
+    # Iterates over component implementations and calls registered functions for each implementation.
     my $build = shift();
     my @hooks = &List::ExtraUtils::hashList(\%Galacticus::Build::Component::Utils::componentUtils, keyAs => 'name');
     foreach my $hook ( @hooks ) {
