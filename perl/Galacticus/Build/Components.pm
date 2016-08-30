@@ -39,6 +39,7 @@ use Galacticus::Build::Components::BaseTypes;
 use Galacticus::Build::Components::Classes;
 use Galacticus::Build::Components::Classes::Names;
 use Galacticus::Build::Components::Classes::CreateDestroy;
+use Galacticus::Build::Components::Classes::Defaults;
 use Galacticus::Build::Components::Classes::State;
 use Galacticus::Build::Components::Classes::Serialization;
 use Galacticus::Build::Components::Classes::Utils;
@@ -51,6 +52,7 @@ use Galacticus::Build::Components::Implementations::Serialization;
 use Galacticus::Build::Components::Implementations::ODESolver;
 use Galacticus::Build::Components::Properties;
 use Galacticus::Build::Components::Properties::Set;
+use Galacticus::Build::Components::Properties::Utils;
 use Galacticus::Build::Components::Attributes;
 use Galacticus::Build::Components::DataTypes;
 $SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
@@ -138,8 +140,6 @@ sub Components_Generate_Output {
 	    \&Generate_Component_Class_Output_Functions              ,
 	    # Generate output functions for each implementation.
 	    \&Generate_Implementation_Output_Functions               ,
-	    # Generate component class default value functions.
-	    \&Generate_Component_Class_Default_Value_Functions       ,
 	    # Generate functions for getting/setting/rating value via a deferred function.
 	    \&Generate_Deferred_GSR_Function                         ,
 	    # Generate functions for getting/setting/rating value directly.
@@ -1806,7 +1806,7 @@ sub Generate_GSR_Functions {
 			@{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 			\%typeDefinition
 			);
-		    if ( $property->{'attributes' }->{'makeGeneric'} eq "true" ) {
+		    if ( $property->{'attributes' }->{'makeGeneric'} ) {
 			# Create a version of this rate function which binds to the top-level class, and so is suitable for
 			# attaching to inter-component pipes.
 			# Specify the data content.		
@@ -2693,177 +2693,6 @@ sub Generate_Null_Binding_Functions {
     }
 }
 
-sub Generate_Component_Class_Default_Value_Functions {
-    # Generate component class default value functions.
-    my $build = shift;
-    # Iterate over component classes.
-    foreach my $componentClassName ( @{$build->{'componentClassList'}} ) {
-	# Initialize hash to track which property have been created already.
-	my %propertiesCreated;
-	# Iterate over implementations in this class.
-    	foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'memberNames'}} ) {
-	    # Get the component.
-	    my $componentID = ucfirst($componentClassName).ucfirst($componentName);
-	    my $component   = $build->{'components'}->{$componentID};
-	    # Iterate over the properties of this implementation.
-	    foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
-		# Get the property.
-		my $property = $component->{'properties'}->{'property'}->{$propertyName};
-		# Get the linked data.
-		my $linkedData;
-		if ( exists($property->{'linkedData'}) ) {
-		    my $linkedDataName = $property->{'linkedData'};
-		    $linkedData = $component->{'content'}->{'data'}->{$linkedDataName};
-		} else {
-		    $linkedData = $property;
-		}
-		# Specify required data content.
-		(my $dataDefinition, my $label ) = &Galacticus::Build::Components::DataTypes::dataObjectDefinition($linkedData);
-		push(@{$dataDefinition->{'variables' }},ucfirst($componentClassName).ucfirst($propertyName));
-		my @dataContent = (
-		    $dataDefinition,
-		    {
-			intrinsic  => "class",
-			type       => "nodeComponent".ucfirst($componentClassName),
-			attributes => [ "intent(inout)" ],
-			variables   => [ "self" ]
-		    }
-		    );
-		# Skip if this property has already been created.
-		unless ( exists($propertiesCreated{$propertyName}) ) {
-		    # Generate code for "isGettable" function.
-		    my $functionCode;
-		    $functionCode  = "   logical function ".ucfirst($componentClassName).ucfirst($propertyName)."IsGettable()\n";
-		    $functionCode .= "     !% Returns true if the {\\normalfont \\ttfamily ".$propertyName."} property is gettable for the {\\normalfont \\ttfamily ".$componentClassName."} component class.\n\n"; 
-		    $functionCode .= "     implicit none\n";
-		    $functionCode .= "     ".ucfirst($componentClassName).ucfirst($propertyName)."IsGettable=.false.\n";
-		    foreach my $componentName2 ( @{$build->{'componentClasses'}->{$componentClassName}->{'memberNames'}} ) {
-			my $component2ID = ucfirst($componentClassName).ucfirst($componentName2);
-			my $component2   = $build->{'components'}->{$component2ID};
-			$functionCode .= "     if (nodeComponent".ucfirst($component2ID)."IsActiveValue) ".ucfirst($componentClassName).ucfirst($propertyName)."IsGettable=.true.\n"
-			    if (
-				exists($component2->{'properties'}->{'property'}->{$propertyName}                  ) && 
-				exists($component2->{'properties'}->{'property'}->{$propertyName}->{'classDefault'})
-			    );
-		    }
-		    $functionCode .= "     return\n";
-		    $functionCode .= "   end function ".ucfirst($componentClassName).ucfirst($propertyName)."IsGettable\n";
-		    # Insert into the function list.
-		    push(
-			@{$build->{'code'}->{'functions'}},
-			$functionCode
-			);
-		    # Bind this function to the implementation type.
-		    push(
-			@{$build->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
-			{type => "procedure", pass => "nopass", name => $propertyName."IsGettable", function => ucfirst($componentClassName).ucfirst($propertyName)."IsGettable", description => "Get the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => &Galacticus::Build::Components::DataTypes::dataObjectDocName($property), arguments => ""}
-			);
-		    # Generate code for default value function.
-		    $functionCode  = "  function ".ucfirst($componentClassName).ucfirst($propertyName)."(self)\n";
-		    $functionCode .= "    !% Returns the default value for the {\\normalfont \\ttfamily ".$propertyName."} property for the {\\normalfont \\ttfamily ".$componentClassName."} component class.\n";
-		    # Insert any required modules.
-		    if ( exists($property->{'classDefault'}) && exists($property->{'classDefault'}->{'modules'}) ) {
-			foreach ( @{$property->{'classDefault'}->{'modules'}} ) {
-			    $functionCode .= "    use ".$_."\n";
-			}
-		    }
-		    $functionCode .= "    implicit none\n";
-		    # Build default value code, and accumulate which additional components are needed.
-		    my $defaultLines = "";
-		    my %requiredComponents;
-		    foreach my $componentName2 ( @{$build->{'componentClasses'}->{$componentClassName}->{'memberNames'}} ) {
-			my $component2ID = ucfirst($componentClassName).ucfirst($componentName2);
-			my $component2   = $build->{'components'}->{$component2ID};
-			if ( exists($component2->{'properties'}->{'property'}->{$propertyName}) ) {
-			    my $property2 = $component2->{'properties'}->{'property'}->{$propertyName};
-			    if ( exists($property2->{'classDefault'}->{'code'}) ) {
-				$defaultLines .= "     if (nodeComponent".ucfirst($component2ID)."IsActiveValue) then\n";
-				my %selfComponents;
-				my $default = $property2->{'classDefault'}->{'code'};
-				while ( $default =~ m/self([a-zA-Z]+)Component\s*%/ ) {
-				    $selfComponents{$1} = 1;
-				    $requiredComponents{$1} = 1;
-				    $default =~ s/self([a-zA-Z]+)Component\s*%//;
-				}
-				$defaultLines .= "    selfNode => self%host()\n" if ( scalar(keys(%selfComponents)) > 0 );
-				foreach my $selfComponent ( &List::ExtraUtils::sortedKeys(\%selfComponents) ) {
-				    $defaultLines .= "     self".$selfComponent."Component => selfNode%".lc($selfComponent)."()\n";
-				}
-				$defaultLines .= "       call Alloc_Array(".ucfirst($componentClassName).ucfirst($propertyName).",[".$property2->{'classDefault'}->{'count'}."])\n"
-				    if ( exists($property2->{'classDefault'}->{'count'}) );
-				$defaultLines .= "       ".ucfirst($componentClassName).ucfirst($propertyName)."=".$property2->{'classDefault'}->{'code'}."\n";
-				$defaultLines .= "       return\n";
-				$defaultLines .= "     end if\n";
-			    }
-			}
-		    }
-		    # Add a self node pointer if other components are required.
-		    push(
-			@dataContent,
-			{
-			    intrinsic  => "type",
-			    type       => "treeNode",
-			    attributes => [ "pointer" ],
-			    variables  => [ "selfNode" ]
-			}
-			) if ( scalar(keys(%requiredComponents)) > 0 );
-		    # Add pointers for each required component.
-		    push(
-			@dataContent,
-			{
-			    intrinsic  => "class",
-			    type       => "nodeComponent".ucfirst($_),
-			    attributes => [ "pointer" ],
-			    variables  => [ "self".ucfirst($_)."Component" ]
-			}
-			)
-			foreach ( &List::ExtraUtils::sortedKeys(\%requiredComponents) );
-		    # Insert data content.
-		    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
-		    $functionCode .= "   !GCC\$ attributes unused :: self\n";
-		    # Insert code to set required default.
-		    $functionCode .= $defaultLines;
-		    # Insert code to return zero values by default.
-		    if ( $linkedData->{'rank'} == 0 ) {
-			if    ( $linkedData->{'type'} eq"double" ) {
-			    $functionCode .= "    ".ucfirst($componentClassName).ucfirst($propertyName)."=0.0d0\n";
-			}
-			elsif ( $linkedData->{'type'} eq"integer"     ) {
-			    $functionCode .= "    ".ucfirst($componentClassName).ucfirst($propertyName)."=0\n";
-			}
-			elsif ( $linkedData->{'type'} eq"longInteger" ) {
-			    $functionCode .= "    ".ucfirst($componentClassName).ucfirst($propertyName)."=0_kind_int8\n";
-			}
-			elsif ( $linkedData->{'type'} eq"logical"     ) {
-			    $functionCode .= "    ".ucfirst($componentClassName).ucfirst($propertyName)."=.false.\n";
-			}
-			else {
-			    $functionCode .= "     call ".ucfirst($componentClassName).ucfirst($propertyName)."%reset()\n";
-			}
-		    } else {
-			$functionCode .= "    ".ucfirst($componentClassName).ucfirst($propertyName)."=null".$label.$linkedData->{'rank'}."d\n";
-		    }
-		    # Close the function.
-		    $functionCode .= "    return\n";
-		    $functionCode .= "  end function ".ucfirst($componentClassName).ucfirst($propertyName)."\n";
-		    # Insert into the function list.
-		    push(
-			@{$build->{'code'}->{'functions'}},
-			$functionCode
-			);
-		    # Bind this function to the implementation type.
-		    push(
-			@{$build->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
-			{type => "procedure", name => $propertyName, function => ucfirst($componentClassName).ucfirst($propertyName), description => "Get the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => &Galacticus::Build::Components::DataTypes::dataObjectDocName($property), arguments => ""}
-			);
-		    # Record that this property has been created.
-		    $propertiesCreated{$propertyName} = 1;
-		}
-	    }
-	}
-    }
-}
-
 sub boundFunctionTable {
     # Get the list of type-bound functions.
     my $objectName         = shift();
@@ -2906,7 +2735,7 @@ sub boundFunctionTable {
 	# Determine pass status.
 	my $pass = "";
 	$pass = ", ".$_->{'pass'}
-	    if ( exists($_->{'pass'}) );
+	   if ( exists($_->{'pass'}) );
 	# Determine the connector to use.
 	my $connector = "";
 	$connector = " => "
@@ -3117,7 +2946,7 @@ sub functionsSerialize {
 	my $form;
 	my $type;
 	my $result;
-	if ( $function->{'type'} =~ m/^([a-zA-Z0-9_\(\),\s]+)\s+=>\s+([a-zA-Z0-9_]+)/ ) {
+	if ( $function->{'type'} =~ m/^([a-zA-Z0-9_\(\),:=\s]+)\s+=>\s+([a-zA-Z0-9_]+)/ ) {
 	    my $returnDescriptor = $1;
 	    my $returnName       = $2;
 	    $result              = "result(".$2.")";
@@ -3125,7 +2954,7 @@ sub functionsSerialize {
 	    $form                = "function";
 	    my @attributes;
 	    my $returnType;
-	    if ( $returnDescriptor =~ m/([a-zA-Z0-9_\(\)\s]+)\s*,\s*([a-zA-Z0-9_,\s]+)/ ) {
+	    if ( $returnDescriptor =~ m/([a-zA-Z0-9_\(\)\s]+)\s*,\s*([a-zA-Z0-9_,\(\):=\s]+)/ ) {
 		$returnType = $1;
 		@attributes = split(/\s*,\s*/,$2);
 	    } else {
@@ -3179,6 +3008,7 @@ sub functionsSerialize {
 		    $variables->{'intrinsic'} eq "external"
 		);
 	}
+
 	# Serialize function opener.
 	$build->{'content'} .= join(" ",@functionAttributes)." ".$type." ".$form." ".$function->{'name'}."(".join(",",@arguments).") ".$result."\n";
 	# Serialize description.
