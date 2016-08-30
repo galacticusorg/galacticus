@@ -31,6 +31,7 @@ use Galacticus::Build::Components::TreeNodes;
 use Galacticus::Build::Components::TreeNodes::CreateDestroy;
 use Galacticus::Build::Components::TreeNodes::Classes;
 use Galacticus::Build::Components::TreeNodes::ODESolver;
+use Galacticus::Build::Components::TreeNodes::Output;
 use Galacticus::Build::Components::TreeNodes::Map;
 use Galacticus::Build::Components::TreeNodes::Serialization;
 use Galacticus::Build::Components::TreeNodes::Utils;
@@ -134,8 +135,6 @@ sub Components_Generate_Output {
     # Iterate over all functions, calling them with the build data object.
     &{$_}($build)
 	foreach (
-	    # Generate functions to output nodes.
-	    \&Generate_Node_Output_Functions                         ,
 	    # Generate output functions for each component class.
 	    \&Generate_Component_Class_Output_Functions              ,
 	    # Generate output functions for each implementation.
@@ -572,182 +571,6 @@ sub Generate_Deferred_Procedure_Pointers {
     }
     # Insert data content.
     $build->{'content'} .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent, indent => 2)."\n";
-}
-
-sub Generate_Node_Output_Functions {
-    # Generate functions to output node properties.
-    my $build = shift;
-
-    # Create an output count function.
-    my @dataContent =
-	(
-	 {
-	     intrinsic  => "class",
-	     type       => "treeNode",
-	     attributes => [ "intent(inout)" ],
-	     variables  => [ "self" ]
-	 },
-	 {
-	     intrinsic  => "integer",
-	     attributes => [ "intent(inout)" ],
-	     variables  => [ "integerPropertyCount", "doublePropertyCount" ]
-	 },
-	 {
-	     intrinsic  => "double precision",
-	     attributes => [ "intent(in   )" ],
-	     variables  => [ "time" ]
-	 },
-	 {
-	     intrinsic  => "integer",
-	     variables  => [ "i" ]
-	 }
-	);
-    my $functionCode;
-    $functionCode  = "  subroutine Node_Output_Count(self,integerPropertyCount,doublePropertyCount,time)\n";
-    $functionCode .= "    !% Increment the count of properties to output for this node.\n";
-    $functionCode .= "    implicit none\n";
-    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    # Iterate over all component classes
-    foreach ( @{$build->{'componentClassList'}} ) {	    
-	$functionCode .= "    if (allocated(self%component".&padClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".&padClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        call self%component".&padClass(ucfirst($_),[0,0])."(i)%outputCount(integerPropertyCount,doublePropertyCount,time,instance=i)\n";
-	$functionCode .= "      end do\n";
-	$functionCode .= "    end if\n";
-    }
-    $functionCode .= "    return\n";
-    $functionCode .= "  end subroutine Node_Output_Count\n";
-    # Insert into the function list.
-    push(
-	@{$build->{'code'}->{'functions'}},
-	$functionCode
-	);
-    # Insert a type-binding for this function into the treeNode type.
-    push(
-	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "outputCount", function => "Node_Output_Count", description => "Increment the count of properties to output for a node.", returnType => "\\void", arguments => "\\intzero\\ integerPropertyCount\\arginout, \\intzero\\ doublePropertyCount\\arginout, \\doublezero\\ time\\argin"}
-	);
-    # Create an output property names function.
-    @dataContent =
-	(
-	 {
-	     intrinsic  => "class",
-	     type       => "treeNode",
-	     attributes => [ "intent(inout)" ],
-	     variables  => [ "self" ]
-	 },
-	 {
-	     intrinsic  => "double precision",
-	     attributes => [ "intent(in   )" ], 
-	     variables  => [ "time" ]
-	 },
-	 {
-	     intrinsic  => "integer", 
-	     attributes => [ "intent(inout)" ], 
-	     variables  => [ "integerProperty", "doubleProperty" ]
-	 },
-	 {
-	     intrinsic  => "character",
-	     type       => "len=*",
-	     attributes => [ "intent(inout)", "dimension(:)" ], 
-	     variables  => [ "integerPropertyNames", "integerPropertyComments", "doublePropertyNames", "doublePropertyComments" ]
-	 },
-	 {
-	     intrinsic  => "double precision",
-	     attributes => [ "intent(inout)", "dimension(:)" ],
-	     variables  => [ "integerPropertyUnitsSI", "doublePropertyUnitsSI" ]
-	 },
-	 {
-	     intrinsic  => "integer",
-	     variables  => [ "i" ]
-	 }
-	);
-    undef($functionCode);
-    $functionCode  = "  subroutine Node_Output_Names(self,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)\n";
-    $functionCode .= "    !% Establish the names of properties to output for this node.\n";
-    $functionCode .= "    implicit none\n";
-    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    # Iterate over all component classes
-    foreach ( @{$build->{'componentClassList'}} ) {	    
-	$functionCode .= "    if (allocated(self%component".&padClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".&padClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        call self%component".&padClass(ucfirst($_),[0,0])."(i)%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance=i)\n";
-	$functionCode .= "      end do\n";
-	$functionCode .= "    end if\n";
-    }
-    $functionCode .= "    return\n";
-    $functionCode .= "  end subroutine Node_Output_Names\n";
-    # Insert into the function list.
-    push(
-	@{$build->{'code'}->{'functions'}},
-	$functionCode
-	);
-    # Insert a type-binding for this function into the treeNode type.
-    push(
-	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "outputNames", function => "Node_Output_Names", description => "Establish the names of properties to output for a node.", returnType  => "\\void", arguments   => "\\intzero\\ integerProperty\\arginout, \\textcolor{red}{\\textless char[*](:)\\textgreater} integerPropertyNames\\arginout, \\textcolor{red}{\\textless char[*](:)\\textgreater} integerPropertyComments\\arginout, \\doubleone\\ integerPropertyUnitsSI\\arginout, \\intzero\\ doubleProperty\\arginout, \\textcolor{red}{\\textless char[*](:)\\textgreater} doublePropertyNames\\arginout, \\textcolor{red}{\\textless char[*](:)\\textgreater} doublePropertyComments\\arginout, \\doubleone\\ doublePropertyUnitsSI\\arginout, \\doublezero\\ time\\argin"}
-	);
-    # Create an output function.
-    @dataContent =
-	(
-	 {
-	     intrinsic  => "class",
-	     type       => "treeNode",
-	     attributes => [ "intent(inout)" ],
-	     variables  => [ "self" ]
-	 },
-	 {
-	     intrinsic  => "double precision",
-	     attributes => [ "intent(in   )" ], 
-	     variables  => [ "time" ]
-	 },
-	 {
-	     intrinsic  => "integer", 
-	     attributes => [ "intent(inout)" ], 
-	     variables  => [ "integerProperty", "integerBufferCount", "doubleProperty", "doubleBufferCount" ]
-	 },
-	 {
-	     intrinsic  => "integer",
-	     type       => "kind=kind_int8",
-	     attributes => [ "intent(inout)", "dimension(:,:)" ],
-	     variables  => [ "integerBuffer" ]
-	 },
-	 {
-	     intrinsic  => "double precision",
-	     attributes => [ "intent(inout)", "dimension(:,:)" ],
-	     variables  => [ "doubleBuffer" ]
-	 },
-	 {
-	     intrinsic  => "integer",
-	     variables  => [ "i" ]
-	 }
-	);
-    undef($functionCode);
-    $functionCode  = "  subroutine Node_Output(self,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time)\n";
-    $functionCode .= "    ! Output properties for this node.\n";
-    $functionCode .= "    implicit none\n";
-    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    # Iterate over all component classes
-    foreach ( @{$build->{'componentClassList'}} ) {	    
-	$functionCode .= "    if (allocated(self%component".&padClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".&padClass(ucfirst($_),[0,0]).")\n";
-	$functionCode .= "        call self%component".&padClass(ucfirst($_),[0,0])."(i)%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time,instance=i)\n";
-	$functionCode .= "      end do\n";
-	$functionCode .= "    end if\n";
-    }
-    $functionCode .= "    return\n";
-    $functionCode .= "  end subroutine Node_Output\n";
-    # Insert into the function list.
-    push(
-	@{$build->{'code'}->{'functions'}},
-	$functionCode
-	);
-    # Insert a type-binding for this function into the treeNode type.
-    push(
-	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "output", function => "Node_Output", description => "Populate output buffers with properties for a node.", returnType  => "\\void", arguments   => "\\intzero\\ integerProperty\\arginout, \\intzero\\ integerBufferCount\\arginout, \\inttwo\\ integerBuffer\\arginout, \\intzero doubleProperty\\arginout, \\intzero\\ doubleBufferCount\\arginout, \\doubletwo\\ doubleBuffer\\arginout, \\doublezero\\ time\\argin"}
-	);
 }
 
 sub Generate_Implementation_Output_Functions {
