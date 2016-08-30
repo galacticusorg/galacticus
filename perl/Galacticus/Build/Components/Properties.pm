@@ -59,7 +59,7 @@ sub Property_Defaults {
 			 bindsTo        => "component"   ,
 			 createIfNeeded => "booleanFalse",
 			 isDeferred     => "false"       ,
-			 makeGeneric    => "false"
+			 makeGeneric    => "booleanFalse"
 		     }
 		 }
 	     }
