@@ -192,13 +192,8 @@ sub Components_Generate_Output {
     $build->{'content'} .= join("\n",@{$build->{'code'}->{'functions'}})."\n";
     
     # Insert include statements to bring in all functions associated with components.
-    my @includeDependencies;
-    foreach my $component ( @{$build->{'componentIdList'}} ) {
-     	if ( exists($build->{'components'}->{$component}->{'functions'}) ) {
-     	    $build->{'content'} .= "  include \"".$build->{'components'}->{$component}->{'functions'}."\"\n";
-     	    push(@includeDependencies,$build->{'components'}->{$component}->{'functions'});
-     	}
-    }
+    my @includeDependencies  = map {exists($_->{'functions'}) ? $_->{'functions'} : ()} &List::ExtraUtils::hashList($build->{'components'});
+    $build->{'content'}     .= join("\n",map {"  include \"".$_."\"\n"} @includeDependencies)."\n";
 
     # Create a Makefile to specify dependencies on these include files.
     open(makeFile,">".$ENV{'BUILDPATH'}."/Makefile_Component_Includes.tmp");
