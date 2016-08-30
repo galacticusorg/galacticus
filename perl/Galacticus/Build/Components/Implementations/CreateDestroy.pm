@@ -8,7 +8,7 @@ use Cwd;
 use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Text::Template 'fill_in_string';
 use List::ExtraUtils;
-use Galacticus::Build::Components::Utils qw(isIntrinsic);
+use Galacticus::Build::Components::Utils qw(&isIntrinsic %intrinsicNulls);
 use Galacticus::Build::Components::DataTypes;
 
 # Insert hooks for our functions.
@@ -125,13 +125,7 @@ call Alloc_Array(self%{$property->{'name'}}Data,[{join(",","0" x $property->{'da
 CODE
 	    }
 	    if (&isIntrinsic($code::property->{'data'}->{'type'})) {
-		%code::nullValues =
-		    (
-		     double      => "0.0d0",
-		     integer     => "0",
-		     longInteger => "0_kind_int8",
-		     logical     => ".false."
-		    );
+		%code::nullValues = %intrinsicNulls;
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 self%{$property->{'name'}}Data={$nullValues{$property->{'data'}->{'type'}}}
 CODE
