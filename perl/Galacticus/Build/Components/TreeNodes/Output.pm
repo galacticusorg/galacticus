@@ -172,42 +172,42 @@ sub Tree_Node_Output {
 	content     => "",
 	variables   =>
 	    [
-	 {
-	     intrinsic  => "class",
-	     type       => "treeNode",
-	     attributes => [ "intent(inout)" ],
-	     variables  => [ "self" ]
-	 },
-	 {
-	     intrinsic  => "integer", 
-	     attributes => [ "intent(inout)" ], 
-	     variables  => [ "integerProperty", "integerBufferCount" ]
-	 },
-	 {
-	     intrinsic  => "integer",
-	     type       => "kind=kind_int8",
-	     attributes => [ "intent(inout)", "dimension(:,:)" ],
-	     variables  => [ "integerBuffer" ]
-	 },
-	 {
-	     intrinsic  => "integer", 
-	     attributes => [ "intent(inout)" ], 
-	     variables  => [ "doubleProperty", "doubleBufferCount" ]
-	 },
-	 {
-	     intrinsic  => "double precision",
-	     attributes => [ "intent(inout)", "dimension(:,:)" ],
-	     variables  => [ "doubleBuffer" ]
-	 },
-	 {
-	     intrinsic  => "double precision",
-	     attributes => [ "intent(in   )" ], 
-	     variables  => [ "time" ]
-	 },
-	 {
-	     intrinsic  => "integer",
-	     variables  => [ "i" ]
-	 }
+	     {
+		 intrinsic  => "class",
+		 type       => "treeNode",
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "integer", 
+		 attributes => [ "intent(inout)" ], 
+		 variables  => [ "integerProperty", "integerBufferCount" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 type       => "kind=kind_int8",
+		 attributes => [ "intent(inout)", "dimension(:,:)" ],
+		 variables  => [ "integerBuffer" ]
+	     },
+	     {
+		 intrinsic  => "integer", 
+		 attributes => [ "intent(inout)" ], 
+		 variables  => [ "doubleProperty", "doubleBufferCount" ]
+	     },
+	     {
+		 intrinsic  => "double precision",
+		 attributes => [ "intent(inout)", "dimension(:,:)" ],
+		 variables  => [ "doubleBuffer" ]
+	     },
+	     {
+		 intrinsic  => "double precision",
+		 attributes => [ "intent(in   )" ], 
+		 variables  => [ "time" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "i" ]
+	     }
 	    ]
     };    
     # Iterate over all component classes

@@ -23,9 +23,13 @@ use Galacticus::Build::Components::Utils qw($linkedDataNameLengthMax applyDefaul
 	      \&Data_Validate
 	     ],
 	 default     =>
-	      [
-	       \&Property_Defaults,
-	       ],
+	     [
+	      \&Property_Defaults,
+	     ],
+	 validate    =>
+	     [
+	      \&Property_Output_Validate,
+	     ],
 	 gather      =>
 	     [
 	      \&Class_Defaults_Gather
@@ -99,6 +103,30 @@ sub Data_Validate {
     }
 }
 
+sub Property_Output_Validate {
+    # Validate output property attributes.
+    my $build = shift();
+    # Iterate over components.
+    foreach my $component ( &List::ExtraUtils::hashList($build->{'components'}) ) {
+	# Iterate over all properties belonging to this component.	
+	foreach my $property ( &List::ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' ) ) {
+	    die("Property_Output_Validate: non-gettable, virtual properties can not be output")
+		if ( $property->{'attributes'}->{'isVirtual'} && ! $property->{'attributes'}->{'isGettable'} );
+	    die("Property_Output_Validate: output of rank>0 objects requires a labels attribute")
+		if ( $property->{'data'}->{'rank'} > 0 && ! exists($property->{'output'}->{'labels'}) );
+	    die("Property_Output_Validate: no method to determine output size for rank-1 property")
+		unless ( $property->{'output'}->{'labels'} =~ m/^\[(.*)\]$/ || exists($property->{'output'}->{'count'}) );
+	    die("Property_Output_Validate: output of rank>1 arrays not supported")
+		unless ( $property->{'data'}->{'rank'} > 1 );
+	    # Strip whitespace from output label, and module lists.
+	    foreach ( 'labels', 'modules' ) {
+		$property->{'output'}->{$_} =~ s/\s//g
+		    if ( exists($property->{'output'}->{$_}) );
+	    }
+	}
+    }
+}
+    
 sub Class_Defaults_Validate {
     # Validate class default settings over all properties.
     my $build = shift();
