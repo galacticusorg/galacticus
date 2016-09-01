@@ -9,6 +9,7 @@ use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/pe
 use Data::Dumper;
 use List::ExtraUtils;
 use Galacticus::Build::Components::Utils qw($verbosityLevel);
+use Galacticus::Build::Components::NullFunctions qw(createNullFunction);
 use Galacticus::Build::Components::DataTypes;
 
 # Insert hooks for our functions.
@@ -93,30 +94,6 @@ sub Build_Component_Classes {
 		    # Get a fully-qualified type identfier for this property.
 		    (my $intrinsic,my $type,my $attributes) = &Galacticus::Build::Components::DataTypes::dataObjectPrimitiveName($property);
 		    $type .= $property->{'rank'}."InOut";
-		    # Record the null bindings needed.
-		    $build->{'nullProperties'}->{$className}->{$type} = 
-		    {
-			type   => $property->{'type'},
-			rank   => $property->{'rank'},
-			intent => "inout"
-		    };
-		    # # Create the "isSettable" function.
-		    # $functionName = $property->{'name'}."IsSettable";
-		    # unless ( exists($propertiesCreated{$functionName}) ) {
-		    # 	push(
-		    # 	    @typeBoundFunctions,
-		    # 	    {
-		    # 		type        => "procedure"    ,
-		    # 		pass        => "nopass"       ,
-		    # 		name        => $functionName  , 
-		    # 		function    => "Boolean_False",
-		    # 		returnType  => "\\logicalzero",
-		    # 		arguments   => ""             ,
-		    # 		description => "Specify whether the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$className."} component is settable."
-		    # 	    }
-		    # 	    );
-		    # 	$propertiesCreated{$functionName} = 1;
-		    # }
 		    # Handle set functions and related functions.
 		    if ( $property->{'attributes'}->{'isSettable'} ) {
 			# Create a "set" function if one does not already exist.
@@ -129,7 +106,7 @@ sub Build_Component_Classes {
 				$property->{'setFunction'}->{'content'}
 			        :
 				# Create a binding to a null function here. 
-				$className."NullBindingSet".$type;
+				&createNullFunction($build,{selfType => $className, attribute => "set", property => $property, intent => "inout"});
 			    push(
 				@typeBoundFunctions,
 				{
@@ -149,18 +126,12 @@ sub Build_Component_Classes {
 			# Create the "count" function.
 			$functionName = $property->{'name'}."Count";
 			unless ( exists($propertiesCreated{$functionName}) ) {
-			    $build->{'nullProperties'}->{$className}->{"Integer0In"} =
-			    {
-				type   => "integer",
-				rank   => 0        ,
-				intent => "in"
-			    };
 			    push(
 				@typeBoundFunctions,
 				{
 				    type        => "procedure"                       ,
 				    name        => $functionName                     ,
-				    function    => $className."NullBindingInteger0In",
+				    function    => &createNullFunction($build,{selfType => $className, attribute => "get", property => {type => "integer", rank => 0}, intent => "in"}),
 				    returnType  => "\\intzero"                       ,
 				    arguments   => ""                                ,
 				    description => "Compute the count of evolvable quantities in the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$implementationIdentifier."} component."
@@ -182,7 +153,7 @@ sub Build_Component_Classes {
 				    ?
 				    $className.ucfirst($property->{'name'})."Rate"
 				    :
-				    $className."NullBindingRate".$type;
+				    &createNullFunction($build,{selfType => $className, attribute => "rate", property => $property, intent => "inout"});
 				push(
 				    @typeBoundFunctions,
 				    {
@@ -201,7 +172,7 @@ sub Build_Component_Classes {
 				{
 				    type        => "procedure"                      ,
 				    name        => $property->{'name'}."Scale"      ,
-				    function    => $className."NullBindingSet".$type,
+				    function    => &createNullFunction($build,{selfType => $className, attribute => "set", property => $property, intent => "inout"}),
 				    returnType  => "\\void"                         ,
 				    arguments   => &Galacticus::Build::Components::DataTypes::dataObjectDocName($property)."\\ value",
 				    description => "Set the scale of the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$implementationIdentifier."} component."

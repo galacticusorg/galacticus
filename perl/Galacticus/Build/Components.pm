@@ -22,6 +22,7 @@ use Fortran::Utils;
 use Galacticus::Path;
 use Galacticus::Build::Hooks;
 use Galacticus::Build::Components::Utils qw(@booleanLabel $implementationPropertyNameLengthMax $fullyQualifiedNameLengthMax padClass padLinkedData padImplementationPropertyName padFullyQualified isIntrinsic isOutputIntrinsic offsetName);
+use Galacticus::Build::Components::NullFunctions qw(createNullFunction);
 use Galacticus::Build::Components::CodeGeneration;
 use Galacticus::Build::Components::Hierarchy;
 use Galacticus::Build::Components::Hierarchy::ODESolver;
@@ -149,9 +150,7 @@ sub Components_Generate_Output {
 	    # Generate deferred binding procedure pointers.
 	    \&Generate_Deferred_Binding_Procedure_Pointers           ,
 	    # Generate deferred binding procedure pointers.
-	    \&Generate_Deferred_Binding_Functions                    ,
-	    # Generate required null binding functions.
-	    \&Generate_Null_Binding_Functions
+	    \&Generate_Deferred_Binding_Functions
 	);
 
     # Insert all derived-type variable definitions.
@@ -533,13 +532,7 @@ sub Generate_Deferred_Procedure_Pointers {
 			&& ! exists($createdPointers{$functionLabel})
 			) {
 			# Construct the template function.
-			my $template = $selfType."NullBinding".ucfirst($_).$dataType."InOut";
-			if ( $_ eq "get" ) {
-			    $template = lcfirst($componentID).ucfirst($propertyName).ucfirst($_);
-			} else {
-			    # Record that a null binding function was used.
-			    $build->{'nullBindingsUsed'}->{lc($template)} = 1;
-			}
+			my $template = $_ eq "get" ? lcfirst($componentID).ucfirst($propertyName).ucfirst($_) : &createNullFunction($build,{selfType => $selfType, attribute => $_, property => $property, intent => "inout"});
 			# Generate the procedure pointer and a boolean to indicate if is has been attached.
 			push(
 			    @dataContent,
@@ -554,13 +547,6 @@ sub Generate_Deferred_Procedure_Pointers {
 				variables  => [ $functionLabel."IsAttachedValue=.false." ]
 			    },
 			    );
-			# Add the required null property to the list.
-			$build->{'nullProperties'}->{$selfType}->{$dataType."InOut"} =
-			{
-			    type   => $property->{'type'},
-			    rank   => $property->{'rank'},
-			    intent => "inout"
-			};
 			# Record that this procedure pointer has been created.
 			$createdPointers{$functionLabel} = 1;
 		    }		    
@@ -1097,9 +1083,7 @@ sub Generate_Deferred_Function_Attacher {
 	   unless ( $property->{'attributes'}->{'bindsTo'} eq "top" );
 	(my $dataObject, my $label) = &Galacticus::Build::Components::DataTypes::dataObjectDefinition($property);
 	my $dataType = $label.$property->{'rank'};
-	my $type = $selfType."NullBinding".ucfirst($gsr).$dataType."InOut";
-	$type = $componentName.ucfirst($propertyName).ucfirst($gsr)
-	    if ( $gsr eq "get" );
+	my $type = $gsr eq "get" ? $componentName.ucfirst($propertyName).ucfirst($gsr) : &createNullFunction($build,{selfType => $selfType, attribute => $gsr, property => $property, intent => "inout"});
 	my @dataContent =
 	    (
 	     {
@@ -1910,202 +1894,6 @@ sub Generate_GSR_Availability_Functions {
     }
 }
 
-sub Generate_Null_Binding_Functions {
-    # Generate null binding functions.
-    my $build = shift;
-    # Iterate over component classes.
-    foreach my $componentClassName ( &List::ExtraUtils::sortedKeys($build->{'nullProperties'}) ) {
-	# Get the null functions required for this component class.
-	my $componentClass = $build->{'nullProperties'}->{$componentClassName};
-	# Iterate over required null functions for this component class.
-	foreach my $nullFunctionName ( &List::ExtraUtils::sortedKeys($componentClass) ) {
-	    # Get the null function definition.
-	    my $nullFunction = $componentClass->{$nullFunctionName};
-	    # Construct a datatype for this null function.
-	    (my $dataDefinition, my $label) = &Galacticus::Build::Components::DataTypes::dataObjectDefinition($nullFunction,matchOnly => 1);
-	    my $labelRaw = $label;
-	    # Build a label describing the intrinsic type of the data.
-	    my $intrinsicType = $dataDefinition->{'intrinsic'};
-	    $intrinsicType .= $dataDefinition->{'type'}
-	    if ( exists($dataDefinition->{'type'}) );
-	    # Append rank to the label for this data.
-	    $label .= $nullFunction->{'rank'};
-	    # Extract the intent of the function.
-	    my $intent = $nullFunction->{'intent'};
-	    # Construct the type of "self" for this function.
-	    my $selfType = "nodeComponent";
-	    $selfType .= ucfirst($componentClassName)
-		unless ( $componentClassName eq "generic" );
-	    # Add an intent to the attributes of the datatype and specify the name of the input datatype.
-	    push(@{$dataDefinition->{'attributes'}},"intent(in   )");
-	    @{$dataDefinition->{'variables'}} = "setValue";
-	    # Build code for the null set function.
-	    my @dataContent =
-		(
-		 $dataDefinition,
-		 {
-		     intrinsic  => "class",
-		     type       => $selfType,
-		     attributes => [ "intent(".$intent.")" ],
-		     variables  => [ "self" ]
-		 }
-		);
-	    my $functionCode;
-	    my $nullBindingName = $componentClassName."NullBindingSet".$label.$intent;
-	    $functionCode  = "  subroutine ".$nullBindingName."(self,setValue)\n";
-	    $functionCode .= "    !% A null set function for rank ".$nullFunction->{'rank'}." ".latex_encode(lc($intrinsicType))."s.\n";
-	    $functionCode .= "    implicit none\n";
-	    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	    $functionCode .= "   !GCC\$ attributes unused :: ".join(", ",@{$_->{'variables'}})."\n"
-		foreach ( @dataContent );
-	    $functionCode .= "    return\n";
-	    $functionCode .= "  end subroutine ".$nullBindingName."\n";
-	    # Determine if this null rate function is actually used.
-	    my $nullBindingUsed = 0;
-	    foreach my $typeName ( keys(%{$build->{'types'}}) ) {
-		foreach my $typeBoundFunction ( @{$build->{'types'}->{$typeName}->{'boundFunctions'}} ) {
-		    if (
-			(
-			 exists($typeBoundFunction->{'function'})
-			 &&
-			 lc($typeBoundFunction->{'function'}) eq lc($nullBindingName) 
-			)
-			||
-			(
-			 exists($typeBoundFunction->{'descriptor'})
-			 &&
-			 lc($typeBoundFunction->{'descriptor'}->{'name'}) eq lc($nullBindingName) 
-			 )
-			) {
-			$nullBindingUsed = 1;
-			last;
-		    }
-		}
-		last
-		    if ( $nullBindingUsed );
-	    }
-	    $nullBindingUsed = grep {$_ eq lc($nullBindingName)} keys(%{$build->{'nullBindingsUsed'}})
-		unless ( $nullBindingUsed );
-	    # Insert into the function list.
-	    push(
-		@{$build->{'code'}->{'functions'}},
-		$functionCode
-		)
-		if ( $nullBindingUsed && $intent ne "in" );
-	    # Build code for the null rate function.
-	    @dataContent =
-		(
-		 $dataDefinition,
-		 {
-		     intrinsic  => "class",
-		     type       => $selfType,
-		     attributes => [ "intent(".$intent.")" ],
-		     variables  => [ "self" ]
-		 },
-		 {
-		     intrinsic  => "logical",
-		     attributes => [ "intent(inout)", "optional" ],
-		     variables  => [ "interrupt" ]
-		 },
-		 {
-		     intrinsic  => "procedure",
-		     type       => "interruptTask", 
-		     attributes => [ "intent(inout)", "optional", "pointer" ],
-		     variables  => [ "interruptProcedure" ]
-		 }
-		);
-	    $nullBindingName = $componentClassName."NullBindingRate".$label.$intent;
-	    $functionCode  = "  subroutine ".$nullBindingName."(self,setValue,interrupt,interruptProcedure)\n";
-	    $functionCode .= "    !% A null rate function for rank ".$nullFunction->{'rank'}." ".latex_encode(lc($intrinsicType))."s.\n";
-	    $functionCode .= "    implicit none\n";
-	    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	    $functionCode .= "   !GCC\$ attributes unused :: ".join(", ",@{$_->{'variables'}})."\n"
-		foreach ( @dataContent );
-	    $functionCode .= "    return\n";
-	    $functionCode .= "  end subroutine ".$nullBindingName."\n";
-	    # Determine if this null rate function is actually used.
-	    $nullBindingUsed = 0;
-	    foreach my $typeName ( keys(%{$build->{'types'}}) ) {
-		foreach my $typeBoundFunction ( @{$build->{'types'}->{$typeName}->{'boundFunctions'}} ) {
-		    if (
-			(
-			 exists($typeBoundFunction->{'function'})
-			 &&
-			 lc($typeBoundFunction->{'function'}) eq lc($nullBindingName) 
-			)
-			||
-			(
-			 exists($typeBoundFunction->{'descriptor'})
-			 &&
-			 lc($typeBoundFunction->{'descriptor'}->{'name'}) eq lc($nullBindingName) 
-			 )
-			) {
-			$nullBindingUsed = 1;
-			last;
-		    }
-		}
-		last
-		    if ( $nullBindingUsed );
-	    }
-	    $nullBindingUsed = grep {$_ eq lc($nullBindingName)} keys(%{$build->{'nullBindingsUsed'}})
-		unless ( $nullBindingUsed );
-	    # Insert into the function list (if it is used).
-	    push(
-		@{$build->{'code'}->{'functions'}},
-		$functionCode
-		)
-		if ( $nullBindingUsed && $intent ne "in" );
-	    # Build code for the null get function.
-	    pop(@{$dataDefinition->{'attributes'}});
-	    push(@{$dataDefinition->{'attributes'}},"allocatable")
-		if ( $nullFunction->{'rank'} > 0 );
-	    @{$dataDefinition->{'variables'}} = $componentClassName."NullBinding".$label.$intent;
-	    @dataContent =
-		(
-		 $dataDefinition,
-		 {
-		     intrinsic  => "class",
-		     type       => $selfType,
-		     attributes => [ "intent(".$intent.")" ],
-		     variables  => [ "self" ]
-		 }		 
-		);
-	    my $functionName = $componentClassName."NullBinding".$label.$intent;
-	    $functionCode  = "  function ".$functionName."(self)\n";
-	    $functionCode .= "    !% A null get function for rank ".$nullFunction->{'rank'}." ".latex_encode(lc($intrinsicType))."s.\n";
-	    $functionCode .= "    implicit none\n";
-	    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	    $functionCode .= "   !GCC\$ attributes unused :: self\n";
-	    if ( $nullFunction->{'rank'} == 0 ) {
-		if    ( $labelRaw eq "Double" ) {
-		    $functionCode .= "    ".$functionName."=0.0d0\n";
-		}
-		elsif ( $labelRaw eq "Integer"     ) {
-		    $functionCode .= "    ".$functionName."=0\n";
-		}
-		elsif ( $labelRaw eq "LongInteger" ) {
-		    $functionCode .= "    ".$functionName."=0_kind_int8\n";
-		}
-		elsif ( $labelRaw eq "Logical"     ) {
-		    $functionCode .= "    ".$functionName."=.false.\n";
-		}
-		else {
-		    $functionCode .= "     call ".$functionName."%reset()\n";
-		}
-	    } else {
-		$functionCode .= "    ".$functionName."=null".$labelRaw.$nullFunction->{'rank'}."d\n";
-	    }
-	    $functionCode .= "    return\n";
-	    $functionCode .= "  end function ".$functionName."\n\n";
-	    # Insert into the function list.
-	    push(
-		@{$build->{'code'}->{'functions'}},
-		$functionCode
-		);
-	}
-    }
-}
-
 sub boundFunctionTable {
     # Get the list of type-bound functions.
     my $objectName         = shift();
@@ -2121,27 +1909,11 @@ sub boundFunctionTable {
 	    is_sep => 1,
 	    body   => "     "
 	},
-	{
-	    align  => "left"
-	},
-	{
-	    align  => "left"
-	},
-	{
-	    align  => "left"
-	},
-	{
-	    align  => "left"
-	},
- 	{
-	    align  => "left"
-	},
-        {
-	    align  => "left"
-	},
-	{
-	    align  => "left"
-	}
+	(
+	 {
+	     align  => "left"
+	 }
+	) x 7
 	);
     # Iterate over type-bound functions and insert them into the table.
     foreach ( @typeBoundFunctions ) {
