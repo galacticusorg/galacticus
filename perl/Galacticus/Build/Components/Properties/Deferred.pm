@@ -10,6 +10,7 @@ use Data::Dumper;
 use List::ExtraUtils;
 use Galacticus::Build::Components::Utils;
 use Galacticus::Build::Components::NullFunctions qw(createNullFunction);
+use Galacticus::Build::Components::Properties::Utils;
 
 # Insert hooks for our functions.
 %Galacticus::Build::Component::Utils::componentUtils = 
@@ -40,20 +41,13 @@ sub Properties_Deferred_Pointers {
     my $selfType = $property->{'attributes'}->{'bindsTo'} eq "top" ? "generic"        : $class->{'name'}                           ;
     # Determine where to attach.
     my $attachTo = $property->{'attributes'}->{'bindsTo'} eq "top" ? $class->{'name'} : $class->{'name'}.ucfirst($member->{'name'});
-    # Adjectives for attributes.
-    my %attributeAdjective =
-	(
-	 get  => "isGettable" ,
-	 set  => "isSettable" ,
-	 rate => "isEvolvable"
-	);
     # Iterate over attributes.
     foreach my $attribute ( split(/:/,$property->{'attributes' }->{'isDeferred'}) ) {	
 	# Determine function name.
 	my $functionLabel = lcfirst($attachTo).ucfirst($property->{'name'}).ucfirst($attribute);
 	# Determine if this attribute is deferred and has not yet had a procedure pointer created.
 	next
-	    unless ( exists($attributeAdjective{$attribute}) && $property->{'attributes' }->{$attributeAdjective{$attribute}} && ! exists($createdPointers{$functionLabel}) );
+	    unless ( exists($Galacticus::Build::Components::Properties::Utils::attributeAdjective{$attribute}) && $property->{'attributes' }->{$Galacticus::Build::Components::Properties::Utils::attributeAdjective{$attribute}} && ! exists($createdPointers{$functionLabel}) );
 	# Construct the template function.
 	my $template =
 	    $attribute eq "get" 
