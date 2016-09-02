@@ -56,6 +56,7 @@ use Galacticus::Build::Components::Implementations::State;
 use Galacticus::Build::Components::Implementations::Serialization;
 use Galacticus::Build::Components::Implementations::ODESolver;
 use Galacticus::Build::Components::Properties;
+use Galacticus::Build::Components::Properties::Attributes;
 use Galacticus::Build::Components::Properties::Deferred;
 use Galacticus::Build::Components::Properties::Set;
 use Galacticus::Build::Components::Properties::Utils;
@@ -106,23 +107,20 @@ sub Components_Parse_Directive {
 sub Components_Generate_Output {
     # Generate output for a "component" directive.
     my $build = shift();
-
     # Sort hooks.
-    my @hooks = map
-    {{name => $_, hook => $Galacticus::Build::Component::Utils::componentUtils{$_}}}
-    &List::ExtraUtils::sortedKeys(\%Galacticus::Build::Component::Utils::componentUtils);
-
+    my @hooks =
+	map
+        {{name => $_, hook => $Galacticus::Build::Component::Utils::componentUtils{$_}}}
+        &List::ExtraUtils::sortedKeys(\%Galacticus::Build::Component::Utils::componentUtils);
     # Iterate over phases.
     print "--> Phase:\n";
     foreach my $phase ( "preValidate", "default", "gather", "scatter", "postValidate", "content", "types", "interfaces", "functions" ) {
 	print "   --> ".ucfirst($phase)."...\n";
-	foreach my $hook ( @hooks ) {	
-	    if ( exists($hook->{'hook'}->{$phase}) ) {
-		my @functions = &List::ExtraUtils::as_array($hook->{'hook'}->{$phase});
-		foreach my $function ( @functions ) {
-		    print "      --> ".$hook->{'name'}.(scalar(@functions) > 1 ? " {".sub_name($function)."}" : "")."\n";
-		    &{$function}($build);
-		}
+	foreach my $hook ( grep {exists($_->{'hook'}->{$phase})} @hooks ) {	
+	    my @functions = &List::ExtraUtils::as_array($hook->{'hook'}->{$phase});
+	    foreach my $function ( @functions ) {
+		print "      --> ".$hook->{'name'}.(scalar(@functions) > 1 ? " {".sub_name($function)."}" : "")."\n";
+		&{$function}($build);
 	    }
 	}
     }
@@ -134,9 +132,7 @@ sub Components_Generate_Output {
 	    # Generate functions for getting/setting/rating value via a deferred function.
 	    \&Generate_Deferred_GSR_Function                         ,
 	    # Generate functions for getting/setting/rating value directly.
-	    \&Generate_GSR_Functions                                 ,
-	    # Generate functions for returning which components support getting/setting/rating.
-	    \&Generate_GSR_Availability_Functions
+	    \&Generate_GSR_Functions
 	);
 
     # Insert all derived-type variable definitions.
@@ -177,14 +173,12 @@ sub Components_Generate_Output {
     # Insert include statements to bring in all functions associated with components.
     my @includeDependencies  = map {exists($_->{'functions'}) ? $_->{'functions'} : ()} &List::ExtraUtils::hashList($build->{'components'});
     $build->{'content'}     .= join("\n",map {"  include \"".$_."\"\n"} @includeDependencies)."\n";
-
     # Create a Makefile to specify dependencies on these include files.
     open(makeFile,">".$ENV{'BUILDPATH'}."/Makefile_Component_Includes.tmp");
     print makeFile $ENV{'BUILDPATH'}."/objects.nodes.o:".join("",map {" ".$ENV{'BUILDPATH'}."/".$_} @includeDependencies)
 	if ( scalar(@includeDependencies) > 0 );
     close(makeFile);
     &File::Changes::Update($ENV{'BUILDPATH'}."/Makefile_Component_Includes" ,$ENV{'BUILDPATH'}."/Makefile_Component_Includes.tmp" );
-
 }
 
 sub Generate_Implementation_Output_Functions {
@@ -942,7 +936,7 @@ sub Generate_Deferred_GSR_Function {
 			    $bindings{$bindingName} = 1;
 			}
 			# Generate an attacher function.
-		    &Generate_Deferred_Function_Attacher($component,$property,$build,"rate");
+			&Generate_Deferred_Function_Attacher($component,$property,$build,"rate");
 		    }
 		}
 	    }
@@ -1425,100 +1419,6 @@ sub Generate_GSR_Functions {
 			);
 		}
 	    }
-	}
-    }
-}
-
-sub Generate_GSR_Availability_Functions {
-    # Generate functions to return text described which components support setting/getting/rating of a particular property.
-    my $build = shift;
-    # Iterate over classes.
-    foreach my $componentClassName ( @{$build->{'componentClassList'}} ) {
-	# Initialize a structure of properties.
-	my $properties;
-	# Iterate over class members.
-	foreach my $componentName ( @{$build->{'componentClasses'}->{$componentClassName}->{'memberNames'}} ) {
-	    # Get the component.
-	    my $componentID = ucfirst($componentClassName).ucfirst($componentName);
-	    my $component   = $build->{'components'}->{$componentID};
-	    # Iterate over component and parents.
-	    while ( defined($component) ) {
-		# Iterate over the properties of this implementation.
-	        foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
-		    # Get the property.
-		    my $property = $component->{'properties'}->{'property'}->{$propertyName};
-		    # Record attributes.
-		    $properties->{$propertyName}->{$componentName}->{'set' } = $property->{'attributes'}->{'isSettable' }; 
-		    $properties->{$propertyName}->{$componentName}->{'get' } = $property->{'attributes'}->{'isGettable' }; 
-		    $properties->{$propertyName}->{$componentName}->{'rate'} = $property->{'attributes'}->{'isEvolvable'}; 
-		}
-		if ( exists($component->{'extends'}) ) {
-		    my $parentID = ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'});
-		    $component = $build->{'components'}->{$parentID};
-		} else {
-		    undef($component);
-		}
-	    }
-	}
-	# Iterate over properties, creating a function for each.
-	foreach my $propertyName ( &List::ExtraUtils::sortedKeys($properties) ) {
-	    my $property = $properties->{$propertyName};
-	    my $functionName = $componentClassName.ucfirst($propertyName)."AttributeMatch";
-	    my $functionCode;
-	    $functionCode  = "  function ".$functionName."(requireSettable,requireGettable,requireEvolvable)\n";
-	    $functionCode .= "   !% Return a text list of component implementations in the {\\normalfont \\ttfamily ".$componentClassName."} class that have the desired attributes for the {\\normalfont \\ttfamily ".$propertyName."} property\n";
-	    $functionCode .= "   use ISO_Varying_String\n";
-	    $functionCode .= "   implicit none\n";
-	    $functionCode .= "   type   (varying_string), allocatable  , dimension(:) :: ".$functionName."\n";
-	    $functionCode .= "   logical                , intent(in   ), optional     :: requireSettable      , requireGettable      , requireEvolvable\n";
-	    $functionCode .= "   logical                                              :: requireSettableActual, requireGettableActual, requireEvolvableActual\n";
-	    $functionCode .= "   type   (varying_string), allocatable  , dimension(:) :: temporaryList\n\n";
-	    $functionCode .= "   requireSettableActual =.false.\n";
-	    $functionCode .= "   requireGettableActual =.false.\n";
-	    $functionCode .= "   requireEvolvableActual=.false.\n";
-	    $functionCode .= "   if (present(requireSettable )) requireSettableActual =requireSettable\n";
-	    $functionCode .= "   if (present(requireGettable )) requireGettableActual =requireGettable\n";
-	    $functionCode .= "   if (present(requireEvolvable)) requireEvolvableActual=requireEvolvable\n";
-	    # Iterate over component implementations.
-	    foreach my $componentName ( &List::ExtraUtils::sortedKeys($property) ) {
-		my $component = $property->{$componentName};
-		my @logic;
-		push(@logic,".not.requireSettableActual" )
-		    unless ( $component->{'set' } );
-		push(@logic,".not.requireGettableActual" )
-		    unless ( $component->{'get' } );
-		push(@logic,".not.requireEvolvableActual")
-		    unless ( $component->{'rate'} );
-		my $logicCode;
-		if ( @logic ) {
-		    $logicCode .= "   if (".join(".and.",@logic).") then\n";
-		}
-		$functionCode .= $logicCode
-		    if ( defined($logicCode) );
-		$functionCode .= "    if (allocated(".$functionName.")) then\n";
-		$functionCode .= "     call Move_Alloc(".$functionName.",temporaryList)\n";
-		$functionCode .= "     allocate(".$functionName."(size(temporaryList)+1))\n";
-		$functionCode .= "     ".$functionName."(1:size(temporaryList))=temporaryList\n";
-		$functionCode .= "     deallocate(temporaryList)\n";
-		$functionCode .= "    else\n";
-		$functionCode .= "     allocate(".$functionName."(1))\n";
-		$functionCode .= "    end if\n";
-		$functionCode .= "    ".$functionName."(size(".$functionName."))='".$componentName."'\n";
-		$functionCode .= "   end if\n"
-		    if ( defined($logicCode) );
-	    }
-	    $functionCode .= "   return\n";
-	    $functionCode .= "  end function ".$functionName."\n\n";
-	    # Insert into the function list.
-	    push(
-		@{$build->{'code'}->{'functions'}},
-		$functionCode
-		);
-	    # Bind this function to the relevant type.
-	    push(
-		@{$build->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
-		{type => "procedure", pass => "nopass", name => $propertyName."AttributeMatch", function => $functionName, description => "Return a list of implementations that provide the given list off attributes for the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component", returnType => "\\textcolor{red}{\\textless type(varying\\_string)(:)\\textgreater}", arguments => "\\logicalzero [requireGettable]\\argin, \\logicalzero [requireSettable]\\argin, \\logicalzero [requireEvolvable]\\argin"}
-		);
 	}
     }
 }
