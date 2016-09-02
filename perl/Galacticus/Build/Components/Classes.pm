@@ -185,44 +185,17 @@ sub Build_Component_Classes {
 		    # Add any bindings which bind at the component class level.
 		    if ( exists($implementation->{'bindings'}) ) {
 			foreach ( @{$implementation->{'bindings'}->{'binding'}} ) {
-			    if ( $_->{'bindsTo'} eq "componentClass" ) {
+			    if ( $_->{'bindsTo'} eq "componentClass" && ! $_->{'isDeferred'} ) {
+				# Binding is not deferred, simply map to the given function. Deferred bindings will have a wrapper function attached later.
 				my %function = 
 				    (
 				     type => "procedure",
 				     name => $_->{'method'},
 				    );
-				if ( ! $_->{'isDeferred'} ) {
-				    # Binding is not deferred, simply map to the given function.
-				    $function{'function'} = $_->{'function'};
-				} else {
-				    # Binding is deferred, map to a suitable wrapper function.
-				    $function{'function'} = $className.ucfirst($_->{'method'});
-				    # Also add bindings to functions to set and test the deferred function.
-				    my %setFunction =
-					(
-					 type        => "procedure",
-					 pass        => "nopass",
-					 name        => $_->{'method'}."Function",
-					 function    => $className.$_->{'method'}."DeferredFunctionSet",
-					 returnType  => "\\void",
-					 arguments   => "procedure(".$className.$_->{'method'}."Interface) deferredFunction",
-					 description => "Set the function for the deferred {\\normalfont \\ttfamily ".$_->{'method'}."} propert of the {\\normalfont \\ttfamily ". $className."} component."
-					);
-				    my %testFunction =
-					(
-					 type        => "procedure",
-					 pass        => "nopass",
-					 name        => $_->{'method'}."FunctionIsSet",
-					 function    => $className.$_->{'method'}."DfrrdFnctnIsSet",
-					 returnType  => "\\logicalzero",
-					 arguments   => "",
-					 description => "Specify whether the deferred function for the {\\normalfont \\ttfamily ".$_->{'method'}."} propert of the {\\normalfont \\ttfamily ". $className."} component has been set."
-					);
-				    push(@typeBoundFunctions,\%setFunction,\%testFunction);
-				}
+				$function{'function'} = $_->{'function'};
 				foreach my $attribute ( "description", "returnType", "arguments" ) {
 				    $function{$attribute} = $_->{$attribute}
-				        if ( exists($_->{$attribute}) );
+				       if ( exists($_->{$attribute}) );
 				}
 				push(@typeBoundFunctions,\%function);
 			    }

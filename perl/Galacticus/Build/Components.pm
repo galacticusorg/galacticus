@@ -41,6 +41,7 @@ use Galacticus::Build::Components::BaseTypes;
 use Galacticus::Build::Components::Classes;
 use Galacticus::Build::Components::Classes::Names;
 use Galacticus::Build::Components::Classes::CreateDestroy;
+use Galacticus::Build::Components::Classes::Deferred;
 use Galacticus::Build::Components::Classes::Defaults;
 use Galacticus::Build::Components::Classes::Output;
 use Galacticus::Build::Components::Classes::State;
@@ -49,11 +50,13 @@ use Galacticus::Build::Components::Classes::Utils;
 use Galacticus::Build::Components::Implementations;
 use Galacticus::Build::Components::Implementations::Utils;
 use Galacticus::Build::Components::Implementations::Names;
+use Galacticus::Build::Components::Implementations::Deferred;
 use Galacticus::Build::Components::Implementations::CreateDestroy;
 use Galacticus::Build::Components::Implementations::State;
 use Galacticus::Build::Components::Implementations::Serialization;
 use Galacticus::Build::Components::Implementations::ODESolver;
 use Galacticus::Build::Components::Properties;
+use Galacticus::Build::Components::Properties::Deferred;
 use Galacticus::Build::Components::Properties::Set;
 use Galacticus::Build::Components::Properties::Utils;
 use Galacticus::Build::Components::Attributes;
@@ -70,17 +73,6 @@ $SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
 	 generate => \&Components_Generate_Output,
 	 validate => \&Components_Validate
      }
-    );
-
-# Include debugging code.
-my $debugging = 0;
-
-# Adjectives for attributes.
-my %attributeAdjective =
-    (
-     get  => "isGettable" ,
-     set  => "isSettable" ,
-     rate => "isEvolvable"
     );
 
 sub Components_Validate {
@@ -144,13 +136,7 @@ sub Components_Generate_Output {
 	    # Generate functions for getting/setting/rating value directly.
 	    \&Generate_GSR_Functions                                 ,
 	    # Generate functions for returning which components support getting/setting/rating.
-	    \&Generate_GSR_Availability_Functions                    ,
-	    # Generate deferred procedure pointers.
-	    \&Generate_Deferred_Procedure_Pointers                   ,
-	    # Generate deferred binding procedure pointers.
-	    \&Generate_Deferred_Binding_Procedure_Pointers           ,
-	    # Generate deferred binding procedure pointers.
-	    \&Generate_Deferred_Binding_Functions
+	    \&Generate_GSR_Availability_Functions
 	);
 
     # Insert all derived-type variable definitions.
@@ -199,363 +185,6 @@ sub Components_Generate_Output {
     close(makeFile);
     &File::Changes::Update($ENV{'BUILDPATH'}."/Makefile_Component_Includes" ,$ENV{'BUILDPATH'}."/Makefile_Component_Includes.tmp" );
 
-}
-
-sub Generate_Deferred_Binding_Procedure_Pointers {
-    # Generate deferred binding procedure pointers.
-    my $build = shift;
-    # Initialize data content.
-    my @dataContent;
-    # Initialize class pointers.
-    my %classPointers;
-    # Iterate over component implementations.
-    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
-	# Get the component.
-	my $component = $build->{'components'}->{$componentID};
-	# Iterate over bindings.
-	foreach my $binding ( @{$component->{'bindings'}->{'binding'}} ) {
-	    if ( $binding->{'isDeferred'} ) {
-		# Create a pointer for the component class level if needed.
-		my $classFunctionName = $component->{'class'}.ucfirst($binding->{'method'});
-		if ( $binding->{'bindsTo'} eq 'componentClass' && ! exists($classPointers{$classFunctionName}) ) {
-		    push(
-			@dataContent,
-			{
-			    intrinsic  => "procedure",
-			    type       => $component->{'class'}.ucfirst($binding->{'method'})."Interface",
-			    attributes => [ "pointer" ],
-			    variables  => [ $classFunctionName."Deferred" ]
-			},
-			{
-			    intrinsic  => "logical",
-			    variables  => [ $classFunctionName."IsSetValue=.false." ]
-			}
-			);
-		    $classPointers{$classFunctionName} = 1;
-		}
-		# Create a pointer for the component level.
-		my $componentFunctionName = $componentID.ucfirst($binding->{'method'});
-		push(
-		    @dataContent,
-		    {
-			intrinsic  => "procedure",
-			type       => $component->{'class'}.ucfirst($binding->{'method'})."Interface",
-			attributes => [ "pointer" ],
-			variables  => [ $componentFunctionName."Deferred" ]
-		    },
-		    {
-			intrinsic  => "logical",
-			variables  => [ $componentFunctionName."IsSetValue=.false." ]
-		    }
-		    );
-	    }
-	}
-    }
-    $build->{'content'} .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent, indent => 2)."\n";
-}
-
-sub Generate_Deferred_Binding_Functions {
-    # Generate deferred binding functions.
-    my $build = shift;
-    # Initialize class functions.
-    my %classFunctions;
-    # Initialize interfaces.
-    my %interfaces;
-    # Iterate over component implementations.
-    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
-	# Get the component.
-	my $component = $build->{'components'}->{$componentID};
-	# Iterate over bindings.
-	foreach my $binding ( @{$component->{'bindings'}->{'binding'}} ) {
-	    if ( $binding->{'isDeferred'} ) {
-		# Determine type and arguments of the function.
-		my $type = $binding->{'interface'}->{'type'};
-		($type, my $name, my $attributeList) = &Galacticus::Build::Components::DataTypes::dataObjectPrimitiveName($binding->{'interface'})
-		    unless ( $type eq "void" );
-		my $endType;
-		my $openType;
-		if ( $type eq "void" ) {
-		    $openType = "subroutine";
-		    $endType  = "subroutine";
-		} else {
-		    $openType = $type." function";
-		    $endType  = "function";
-		}
-		my @arguments;
-		my @selflessArguments;
-		my @selfishArguments;
-		if ( exists($binding->{'interface'}->{'argument'}) ) {
-		    foreach ( @{$binding->{'interface'}->{'argument'}} ) {
-			if ( $_ =~ m/::\s*([a-zA-Z0-9_,\s\(\):]+)\s*$/ ) {
-			    push(
-				@selflessArguments,
-				&Fortran::Utils::Extract_Variables($1)
-				);
-			} else {
-			    die "Generate_Deferred_Binding_Functions: unrecognized argument format"
-			}
-		    }
-		}
-		push(@arguments       ,"self",@selflessArguments);
-		push(@selfishArguments,"self"                   )
-		    if ( $binding->{'interface'}->{'self'}->{'pass'} eq "true" );
-		push(@selfishArguments       ,@selflessArguments);
-		# Find the highest level at which this method binds.
-		my $highLevel;
-		if ( $binding->{'bindsTo'} eq "componentClass" ) {
-		    $highLevel = $component->{'class'};
-		} else {
-		    $highLevel = $componentID;
-		    my $parentComponent = $component;
-		    while ( exists($parentComponent->{'extends'}) ) {
-			$highLevel = ucfirst($parentComponent->{'extends'}->{'class'}).ucfirst($parentComponent->{'extends'}->{'name'});
-			$parentComponent = $build->{'components'}->{$highLevel};
-		    }
-		}
-		# Create an abstract interface for the deferred function.
-		my $interfaceName = $component->{'class'}.ucfirst($binding->{'method'});
-		unless ( exists($build->{'interfaces'}->{$interfaceName}) ) {
-		    my @data;
-		    push
-			(
-			 @data,
-			 {
-			     intrinsic  => "class"                   ,
-			     type       => "nodeComponent".$highLevel,
-			     attributes => [ "intent(".$binding->{'interface'}->{'self'}->{'intent'}.")" ]       ,
-			     variables  => [ "self" ]
-			 }
-			)
-			if ( $binding->{'interface'}->{'self'}->{'pass'} eq "true" );
-		    push(@data,&Fortran::Utils::Unformat_Variables($_))
-			foreach ( @{$binding->{'interface'}->{'argument'}} );
-		    $build->{'interfaces'}->{$interfaceName} =
-		    {
-			name      => $interfaceName."Interface",
-			intrinsic => $type,
-			comment   => "Interface for deferred function for {\\normalfont \\ttfamily ".$binding->{'method'}."} method of the {\\normalfont \\ttfamily ".$component->{'class'}."} class."
-		    };
-		    $build->{'interfaces'}->{$interfaceName}->{'data'} = \@data
-			if ( scalar(@data) > 0 );
-		}
-		# Create functions for the component class level if needed.
-		my $classFunctionName = $component->{'class'}.ucfirst($binding->{'method'});
-		if ( $binding->{'bindsTo'} eq 'componentClass' && ! exists($classFunctions{$classFunctionName}) ) {
-		    my @dataContent =
-			(
-			 {
-			     intrinsic  => "procedure",
-			     type       => $component->{'class'}.ucfirst($binding->{'method'})."Interface",
-			     variables  => [ "deferredFunction" ]
-			 },
-			);
-		    my $functionCode;
-		    $functionCode  = "  subroutine ".$classFunctionName."DeferredFunctionSet(deferredFunction)\n";
-		    $functionCode .= "    !% Set the function to be used for the {\\normalfont \\ttfamily ".$binding->{'method'}."} method of the {\\normalfont \\ttfamily ".$component->{'class'}."} component class.\n";
-		    $functionCode .= "    implicit none\n";
-		    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
-		    $functionCode .= "    ".$classFunctionName."Deferred   => deferredFunction\n";
-		    $functionCode .= "    ".$classFunctionName."IsSetValue =  .true.\n";
-		    $functionCode .= "    return\n";
-		    $functionCode .= "  end subroutine ".$classFunctionName."DeferredFunctionSet\n";
-		    # Insert into the function list.
-		    push(
-			@{$build->{'code'}->{'functions'}},
-			$functionCode
-			);
-		    $functionCode  = "  logical function ".$classFunctionName."DfrrdFnctnIsSet()\n";
-		    $functionCode .= "    !% Return true if the deferred function for the {\\normalfont \\ttfamily ".$binding->{'method'}."} method of the {\\normalfont \\ttfamily ".$component->{'class'}."} component class has been set.\n";
-		    $functionCode .= "    implicit none\n";
-		    $functionCode .= "    ".$classFunctionName."DfrrdFnctnIsSet=".$classFunctionName."IsSetValue\n";
-		    $functionCode .= "    return\n";
-		    $functionCode .= "  end function ".$classFunctionName."DfrrdFnctnIsSet\n";
-		    # Insert into the function list.
-		    push(
-			@{$build->{'code'}->{'functions'}},
-			$functionCode
-			);
-		    # Create a function to call the deferred function.
-		    $functionCode  = "  ".$openType." ".$classFunctionName."(".join(",",@arguments).")\n";
-		    $functionCode .= "    !% Call the deferred function for the {\\normalfont \\ttfamily ".$binding->{'method'}."} method of the {\\normalfont \\ttfamily ".$component->{'class'}."} component class.\n";
-		    $functionCode .= "    use Galacticus_Error\n";
-		    $functionCode .= "    implicit none\n";
-		    $functionCode .= "    class(nodeComponent".ucfirst($component->{'class'})."), intent(".$binding->{'interface'}->{'self'}->{'intent'}.") :: self\n";
-		    $functionCode .= "    ".$_."\n"
-			foreach ( @{$binding->{'interface'}->{'argument'}} );
-		    $functionCode .= "    if (self%".$binding->{'method'}."FunctionIsSet()) then\n";
-		    if ( $openType eq "subroutine" ) {
-			$functionCode .= "       call ".$classFunctionName."Deferred(".join(",",@selfishArguments).")\n";
-		    } else {
-			$functionCode .= "       ".$classFunctionName."=".$classFunctionName."Deferred(".join(",",@selfishArguments).")\n";
-		    }
-		    $functionCode .= "    else\n";
-		    if ( $openType eq "double precision" ) {
-			$functionCode .= "       ".$classFunctionName."=0.0d0\n";
-		    }
-		    $functionCode .= "       call Galacticus_Error_Report('".$classFunctionName."','deferred function has not been assigned')\n";
-		    $functionCode .= "    end if\n";
-		    $functionCode .= "    return\n";
-		    $functionCode .= "  end ".$endType." ".$classFunctionName."\n";
-		    # Insert into the function list.
-		    push(
-			@{$build->{'code'}->{'functions'}},
-			$functionCode
-			);
-		    # Record that we have created functions for this class.
-		    $classFunctions{$classFunctionName} = 1;
-		}
-		# Create functions for the component level.
-		my $componentFunctionName = $componentID.ucfirst($binding->{'method'});
-		my @dataContent =
-		    (
-		     {
-			 intrinsic  => "procedure",
-			 type       => $component->{'class'}.ucfirst($binding->{'method'})."Interface",
-			 variables  => [ "deferredFunction" ]
-		     },
-		    );
-		my $functionCode;
-		$functionCode  = "  subroutine ".$componentFunctionName."DeferredFunctionSet(deferredFunction)\n";
-		$functionCode .= "    !% Set the function to be used for the {\\normalfont \\ttfamily ".$binding->{'method'}."} method of the {\\normalfont \\ttfamily ".$componentID."} component.\n";
-		$functionCode .= "    implicit none\n";
-		$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
-		$functionCode .= "    ".$componentFunctionName."Deferred   => deferredFunction\n";
-		$functionCode .= "    ".$componentFunctionName."IsSetValue =  .true.\n";
-		$functionCode .= "    return\n";
-		$functionCode .= "  end subroutine ".$componentFunctionName."DeferredFunctionSet\n";
-		# Insert into the function list.
-		push(
-		    @{$build->{'code'}->{'functions'}},
-		    $functionCode
-		    );
-		$functionCode  = "  logical function ".$componentFunctionName."DfrrdFnctnIsSet()\n";
-		$functionCode .= "    !% Return true if the deferred function for the {\\normalfont \\ttfamily ".$binding->{'method'}."} method of the {\\normalfont \\ttfamily ".$componentID."} component has been set.\n";
-		$functionCode .= "    implicit none\n";
-		$functionCode .= "    ".$componentFunctionName."DfrrdFnctnIsSet=".$componentFunctionName."IsSetValue\n";
-		$functionCode .= "    return\n";
-		$functionCode .= "  end function ".$componentFunctionName."DfrrdFnctnIsSet\n";
-		# Insert into the function list.
-		push(
-		    @{$build->{'code'}->{'functions'}},
-		    $functionCode
-		    );
-		# Create a function that calls the deferred function.
-		$functionCode  = "  ".$openType." ".$componentFunctionName."(".join(",",@arguments).")\n";
-		$functionCode .= "    !% Call the deferred function for the {\\normalfont \\ttfamily ".$binding->{'method'}."} method of the {\\normalfont \\ttfamily ".$componentID."} component.\n";
-		$functionCode .= "    use Galacticus_Error\n";
-		$functionCode .= "    implicit none\n";
-		$functionCode .= "    class(nodeComponent".ucfirst($componentID)."), intent(".$binding->{'interface'}->{'self'}->{'intent'}.") :: self\n";
-		$functionCode .= "    ".$_."\n"
-		    foreach ( @{$binding->{'interface'}->{'argument'}} );
-		$functionCode .= "    select type (self)\n";
-		$functionCode .= "    class is (nodeComponent".ucfirst($componentID).")\n";
-		$functionCode .= "       if (self%".$binding->{'method'}."FunctionIsSet()) then\n";
-		if ( $openType eq "subroutine" ) {
-		    $functionCode .= "          call ".$componentFunctionName."Deferred(".join(",",@selfishArguments).")\n";
-		} else {
-		    $functionCode .= "          ".$componentFunctionName."=".$componentFunctionName."Deferred(".join(",",@selfishArguments).")\n";
-		}
-		$functionCode .= "       else\n";
-		my $parentType;
-		if ( exists($component->{'extends'}) ) {
-		    $parentType = "nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'});
-		} elsif ( $binding->{'bindsTo'} eq "componentClass" ) {
-		    $parentType = "nodeComponent".ucfirst($component->{'class'});
-		}
-		if ( defined($parentType) ) {
-		    if ( $openType eq "subroutine" ) {
-			$functionCode .= "          call self%".$parentType."%".$binding->{'method'}."(".join(",",@selflessArguments).")\n";
-		    } else {
-			$functionCode .= "          ".$componentFunctionName."=self%".$parentType."%".$binding->{'method'}."(".join(",",@selflessArguments).")\n";
-		    }
-		} else {
-		    if ( $openType eq "double precision function" ) {
-			$functionCode .= "       ".$componentFunctionName."=0.0d0\n";
-		    }
-		    $functionCode .= "          call Galacticus_Error_Report('".$componentFunctionName."','deferred function has not been assigned')\n";
-		}
-		$functionCode .= "       end if\n";
-		$functionCode .= "    class default\n";
-		if ( $openType eq "double precision function" ) {
-		    $functionCode .= "       ".$componentFunctionName."=0.0d0\n";
-		}
-		$functionCode .= "       call Galacticus_Error_Report('".$componentFunctionName."','incorrect class - this should not happen')\n";
-		$functionCode .= "    end select\n";
-		$functionCode .= "    return\n";
-		$functionCode .= "  end ".$endType." ".$componentFunctionName."\n";
-		# Insert into the function list.
-		push(
-		    @{$build->{'code'}->{'functions'}},
-		    $functionCode
-		    );
-	    }
-	}
-    }
-}
-
-sub Generate_Deferred_Procedure_Pointers {
-    # Generate deferred procedure pointers.
-    my $build = shift;
-    # Initialize record of pointers which have been created.
-    my %createdPointers;
-    # Insert comment.
-    $build->{'content'} .= "  ! Procedure pointers for deferred custom functions.\n";
-    # Initialize data content.
-    my @dataContent;
-    # Iterate over component implementations.
-    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
-	# Get the component.
-	my $component = $build->{'components'}->{$componentID};
-	# Get the component class name.
-	my $componentClassName = $component->{'class'};
-	# Iterate over properties.
-	foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
-	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
-	    unless ( $property->{'attributes' }->{'isDeferred'} eq "" ) {
-		my $selfType = "generic";
-		$selfType = $component->{'class'}
-		   unless ( $property->{'attributes'}->{'bindsTo'} eq "top" );
-		(my $dataObject, my $label) = &Galacticus::Build::Components::DataTypes::dataObjectDefinition($property);
-		my $dataType = $label.$property->{'rank'};
-		# Determine where to attach.
-		my $attachTo = $componentID;
-		$attachTo = $componentClassName
-		    if ( $property->{'attributes'}->{'bindsTo'} eq "top" );
-		# Iterate over attributes.
-		foreach ( "get", "set", "rate" ) {		    
-		    # Determine function name.
-		    my $functionLabel = lcfirst($attachTo).ucfirst($propertyName).ucfirst($_);
-		    # Determine if this attribute is deferred and has not yet had a procedure pointer created.
-		    if (
-			$property->{'attributes' }->{'isDeferred'} =~ m/$_/ 
-			&& $property->{'attributes' }->{$attributeAdjective{$_}}
-			&& ! exists($createdPointers{$functionLabel})
-			) {
-			# Construct the template function.
-			my $template = $_ eq "get" ? lcfirst($componentID).ucfirst($propertyName).ucfirst($_) : &createNullFunction($build,{selfType => $selfType, attribute => $_, property => $property, intent => "inout"});
-			# Generate the procedure pointer and a boolean to indicate if is has been attached.
-			push(
-			    @dataContent,
-			    {
-				intrinsic  => "procedure",
-				type       => $template,
-				attributes => [ "pointer" ],
-				variables  => [ $functionLabel."Deferred" ]
-			    },
-			    {
-				intrinsic  => "logical",
-				variables  => [ $functionLabel."IsAttachedValue=.false." ]
-			    },
-			    );
-			# Record that this procedure pointer has been created.
-			$createdPointers{$functionLabel} = 1;
-		    }		    
-		}
-	    }
-	}
-    }
-    # Insert data content.
-    $build->{'content'} .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent, indent => 2)."\n";
 }
 
 sub Generate_Implementation_Output_Functions {
@@ -2166,34 +1795,7 @@ sub functionsSerialize {
 	push(@functionAttributes,"recursive")
 	    if ( exists($function->{'recursive'}) && $function->{'recursive'} );
 	# Build a list of arguments.
-	my @arguments;
-	foreach my $variables ( @{$function->{'variables'}} ) {
-	    push(
-		@arguments,
-		@{$variables->{'variables'}}
-		)
-		if (
-		    # Regular variables with intent.
-		    (
-		     exists($variables->{'attributes'})
-		     &&
-		     grep {$_ =~ m/^intent\s*\(\s*(in|inout|out)\s*\)/} @{$variables->{'attributes'}}		      
-		    )
-		    ||
-		    # Procedure pointers
-		    (
-		     $variables->{'intrinsic'} eq "procedure"
-		     &&
-		     exists($variables->{'attributes'})
-		     &&
-		     grep {$_ eq "pointer"} @{$variables->{'attributes'}}		      
-		    )
-		    ||
-		    # External variables.
-		    $variables->{'intrinsic'} eq "external"
-		);
-	}
-
+	my @arguments = &Galacticus::Build::Components::Utils::argumentList(@{$function->{'variables'}});
 	# Serialize function opener.
 	$build->{'content'} .= join(" ",@functionAttributes)." ".$type." ".$form." ".$function->{'name'}."(".join(",",@arguments).") ".$result."\n";
 	# Serialize description.

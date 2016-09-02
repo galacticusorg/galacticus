@@ -203,4 +203,47 @@ sub applyDefaults {
     }
 }
 
+sub argumentList {
+    # Return a list of all arguments extracted from a list of variable descriptors.
+    my @descriptors = @_;
+    my @arguments;
+    foreach my $descriptor ( @descriptors ) {
+	push(
+	    @arguments,
+	    @{$descriptor->{'variables'}}
+	    )
+	    if (
+		# Regular variables with intent.
+		(
+		 exists($descriptor->{'attributes'})
+		 &&
+		 grep {$_ =~ m/^intent\s*\(\s*(in|inout|out)\s*\)/} @{$descriptor->{'attributes'}}		      
+		)
+		||
+		# Procedure pointers
+		(
+		 $descriptor->{'intrinsic'} eq "procedure"
+		 &&
+		 (
+		  (
+		   exists($descriptor->{'attributes'})
+		   &&
+		   grep {$_ eq "pointer"} @{$descriptor->{'attributes'}}
+		  )
+		  ||
+		  (
+		   exists($descriptor->{'isArgument'})
+		   &&
+		   $descriptor->{'isArgument'}
+		  )
+		 )		 
+		)
+		||
+		# External variables.
+		$descriptor->{'intrinsic'} eq "external"
+	    );
+    }
+    return @arguments;
+}
+
 1;

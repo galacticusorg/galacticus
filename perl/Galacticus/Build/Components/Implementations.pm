@@ -69,7 +69,14 @@ sub Implementation_Defaults {
 	 {
 	     binding =>
 	     {
-		 isDeferred => "booleanFalse"
+		 isDeferred => "booleanFalse",
+		 interface =>
+		 {
+		     self =>
+		     {
+			 pass => "booleanFalse"
+		     }
+		 }
 	     }
 	 },
 	 createFunction =>
@@ -258,40 +265,14 @@ sub Build_Component_Implementations {
 		    name        => $_->{'method'}
 		    );
 		if ( ! $_->{'isDeferred'} ) {
-		    # Binding is not deferred, simply map to the given function.
+		    # Binding is not deferred, simply map to the given function. For deferred functions a suitable wrapper will be attached later.
 		    $function{'function'} = $_->{'function'};
-		} else {
-		    # Binding is deferred, map to a suitable wrapper function.
-		    $function{'function'   } = $implementation->{'fullyQualifiedName'}.$_->{'method'};
-		    $function{'returnType' } = &Galacticus::Build::Components::DataTypes::dataObjectDocName($_->{'interface'});
-		    $function{'arguments'  } = "";
-		    $function{'description'} = "Get the {\\normalfont \\ttfamily ".$_->{'method'}."} property of the {\\normalfont \\ttfamily ". $implementation->{'fullyQualifiedName'}."} component.";
-		    # Also add bindings to functions to set and test the deferred function.
-		    my %setFunction = (
-			type        => "procedure",
-			pass        => "nopass",
-			name        => $_->{'method'}."Function",
-			function    => $implementation->{'fullyQualifiedName'}.$_->{'method'}."DeferredFunctionSet",
-			returnType  => "\\void",
-			arguments   => "procedure(".$implementation->{'fullyQualifiedName'}.$_->{'method'}."Interface) deferredFunction",
-			description => "Set the function for the deferred {\\normalfont \\ttfamily ".$_->{'method'}."} propert of the {\\normalfont \\ttfamily ". $implementation->{'fullyQualifiedName'}."} component."
-			);
-		    my %testFunction = (
-			type        => "procedure",
-			pass        => "nopass",
-			name        => $_->{'method'}."FunctionIsSet",
-			function    => $implementation->{'fullyQualifiedName'}.$_->{'method'}."DfrrdFnctnIsSet",
-			returnType  => "\\logicalzero",
-			arguments   => "",
-			description => "Specify whether the deferred function for the {\\normalfont \\ttfamily ".$_->{'method'}."} property of the {\\normalfont \\ttfamily ". $implementation->{'fullyQualifiedName'}."} component has been set."
-			);
-		    push(@typeBoundFunctions,\%setFunction,\%testFunction);
-		}
-		foreach my $attribute ( "description", "returnType", "arguments" ) {
-		    $function{$attribute} = $_->{$attribute}
+		    foreach my $attribute ( "description", "returnType", "arguments" ) {
+			$function{$attribute} = $_->{$attribute}
 		        if ( exists($_->{$attribute}) );
+		    }
+		    push(@typeBoundFunctions,\%function);
 		}
-		push(@typeBoundFunctions,\%function);
 	    }
 	}
 	# Iterate over properties.
