@@ -135,13 +135,13 @@ module Tables
      !@     <description>Return the weights to be applied to the table to integrate (using the trapezium rule) between {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}.</description>
      !@   </objectMethod>
      !@   <objectMethod>
-     !@     <method>serialize</method>
+     !@     <method>serializeRaw</method>
      !@     <type>\void</type>
      !@     <arguments>\intzero\ fileUnit\argin</arguments>
      !@     <description>Serialize the table to binary file.</description>
      !@   </objectMethod>
      !@   <objectMethod>
-     !@     <method>deserialize</method>
+     !@     <method>deserializeRaw</method>
      !@     <type>\void</type>
      !@     <arguments>\intzero\ fileUnit\argin</arguments>
      !@     <description>Deserialize the table from binary file.</description>
