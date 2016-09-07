@@ -199,6 +199,7 @@ contains
          &                                                                parentBasic
     double precision                           , parameter             :: toleranceResolutionParent=1.0d-3
     double precision                           , parameter             :: toleranceResolutionSelf  =1.0d-6
+    double precision                           , parameter             :: toleranceDeltaCritical   =1.0d-6
     integer         (kind=kind_int8           )                        :: nodeIndex
     double precision                                                   :: accretionFraction         , baseNodeTime               , branchingProbability      , &
          &                                                                collapseTime              , deltaCritical              , deltaCritical1            , &
@@ -249,7 +250,7 @@ contains
                &   branchDeltaCriticalCurrent                  >= criticalOverdensity_%value(time=self%timeEarliest,mass=branchMassCurrent) &
                &  .or.                                                                                                                      &
                &   .not.self%shouldFollowBranch(tree,thisNode)                                                                              &
-               &) then
+               & ) then
              ! Branch should be terminated. If we have any accumulated accretion, terminate the branch with a final node.
              if (accretionFractionCumulative > 0.0d0) then
                 nodeIndex      =  nodeIndex+1
@@ -289,8 +290,21 @@ contains
                 nodeMass1          = massResolution
                 ! Compute the time corresponding to this event.
                 time               = criticalOverdensity_%timeOfCollapse(criticalOverdensity=branchDeltaCriticalCurrent,mass=branchMassCurrent)
-                ! Set properties of the new node.
+                ! Convert to a critical overdensity.
                 deltaCritical1     = criticalOverdensity_%value         (time               =time                      ,mass=nodeMass1        )
+                ! Ensure critical overdensity exceeds that of the current node.
+                if      (                                                                             &
+                     &    deltaCritical1 <  branchDeltaCriticalCurrent*(1.0d0-toleranceDeltaCritical) &
+                     &  ) then
+                   call Galacticus_Error_Report('cole2000Build','truncating to resolution, but resolution node exists after parent')
+                else if (                                                                             &
+                     &    deltaCritical1 >= branchDeltaCriticalCurrent*(1.0d0-toleranceDeltaCritical) &
+                     &   .and.                                                                        &
+                     &    deltaCritical1 <= branchDeltaCriticalCurrent*(1.0d0+toleranceDeltaCritical) &
+                     &  ) then
+                   deltaCritical1=branchDeltaCriticalCurrent*(1.0d0+toleranceDeltaCritical)
+                end if
+                ! Set properties of the new node.
                 call newBasic1%massSet(nodeMass1     )
                 call newBasic1%timeSet(deltaCritical1)
                 ! Create links from old to new node and vice-versa.
