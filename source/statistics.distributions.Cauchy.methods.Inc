@@ -29,6 +29,21 @@ function distributionCauchyConstructor(median,scale)
   return
 end function distributionCauchyConstructor
 
+function distributionCauchyLimitConstructor(median,limit,probability)
+  !% Constructor for Cauchy distribution class. In addition to the median, takes a {\normalfont \ttfamily limit}$=x^\prime$ and
+  !% {\normalfont \ttfamily probability}$=P^\prime$ and computes a scale parameter such that the probability that a random draw
+  !% from the distribution differs from the median by more than $x^\prime$ is $P^\prime$.
+  use Numerical_Constants_Math
+  implicit none
+  type            (distributionCauchy)                :: distributionCauchyLimitConstructor
+  double precision                    , intent(in   ) :: median                            , limit, &
+       &                                                 probability
+  
+  distributionCauchyLimitConstructor%median=median
+  distributionCauchyLimitConstructor%scale =limit/tan(0.5d0*Pi*(1.0d0-probability))
+  return
+end function distributionCauchyLimitConstructor
+
 double precision function distributionCauchyDensity(self,x)
   !% Return the density of a Cauchy distribution.
   use Numerical_Constants_Math

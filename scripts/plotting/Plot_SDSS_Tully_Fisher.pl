@@ -115,13 +115,13 @@ if ( $showFit == 1 ) {
 my $plot;
 my $gnuPlot;
 my $plotFile = $outputFile;
-(my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
+(my $plotFileTeX = $plotFile) =~ s/\.pdf$/.tex/;
 open($gnuPlot,"|gnuplot 1>/dev/null 2>&1");
-print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
-print $gnuPlot "set output '".$plotFileEPS."'\n";
-print $gnuPlot "set title 'SDSS Tully-Fisher Relation'\n";
-print $gnuPlot "set xlabel 'SDSS i-band absolute magnitude; \$^{0.1}M_{\\rm i}\$'\n";
-print $gnuPlot "set ylabel 'Disk rotation speed; \$V_{\\rm disk}\$ [km/s]'\n";
+print $gnuPlot "set terminal cairolatex pdf standalone color lw 2\n";
+print $gnuPlot "set output '".$plotFileTeX."'\n";
+print $gnuPlot "set title offset 0,-1 'SDSS Tully-Fisher Relation'\n";
+print $gnuPlot "set xlabel '\$^{0.1}M_\\mathrm{i}\$'\n";
+print $gnuPlot "set ylabel '\$V_\\mathrm{disk}\$ [km/s]'\n";
 print $gnuPlot "set lmargin screen 0.15\n";
 print $gnuPlot "set rmargin screen 0.95\n";
 print $gnuPlot "set bmargin screen 0.15\n";
@@ -146,8 +146,9 @@ print $gnuPlot "set pointsize 2.0\n";
     style      => "point",
     symbol     => [6,7],
     weight     => [5,3],
-    color      => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'slideSequence'}}[0]},
-    title      => $data->{'tullyFisher'}->{'label'}.' [observed]'
+    pointSize  => 0.5,
+    color      => $PrettyPlots::colorPairs{'cornflowerBlue'},
+    title      => $data->{'tullyFisher'}->{'label'}
     );
 &PrettyPlots::Prepare_Dataset(
     \$plot,
@@ -157,12 +158,13 @@ print $gnuPlot "set pointsize 2.0\n";
     style      => "point",
     symbol     => [6,7],
     weight     => [5,3],
+    pointSize  => 0.5,
     color      => $PrettyPlots::colorPairs{'redYellow'},
     title      => 'Galacticus (mean+dispersion)'
     );
 &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF($plotFileEPS);
+&LaTeX::GnuPlot2PDF($plotFileTeX);
 &MetaData::Write($plotFile,$galacticusFile,$self);
 
 exit;

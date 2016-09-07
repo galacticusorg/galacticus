@@ -122,7 +122,8 @@ module Root_Finder
      !@     <arguments></arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                            Root_Finder_Destroy
+     final     ::                            Root_Finder_Finalize
+     procedure :: destroy                 => Root_Finder_Destroy
      procedure :: rootFunction            => Root_Finder_Root_Function
      procedure :: rootFunctionDerivative  => Root_Finder_Root_Function_Derivative
      procedure :: type                    => Root_Finder_Type
@@ -160,18 +161,28 @@ contains
   subroutine Root_Finder_Destroy(self)
     !% Destroy a root finder object.
     implicit none
-    type(rootFinder), intent(inout) :: self
+    class(rootFinder), intent(inout) :: self
     
-    if (FGSL_Well_Defined(self%solver                )) then
-       call FGSL_Root_FSolver_Free  (self%solver                )
-       call FGSL_Function_Free      (self%fgslFunction          )
-    end if
-    if (FGSL_Well_Defined(self%solverDerivative      )) then
-       call FGSL_Root_FdFSolver_Free(self%solverDerivative      )
-       call FGSL_Function_FdF_Free  (self%fgslFunctionDerivative)
+    if (self%initialized) then
+       if (self%useDerivative) then
+          call FGSL_Root_FdFSolver_Free(self%solverDerivative      )
+          call FGSL_Function_FdF_Free  (self%fgslFunctionDerivative)
+       else
+          call FGSL_Root_FSolver_Free  (self%solver                )
+          call FGSL_Function_Free      (self%fgslFunction          )
+       end if
     end if
     return
   end subroutine Root_Finder_Destroy
+
+  subroutine Root_Finder_Finalize(self)
+    !% Finalize a root finder object.
+    implicit none
+    type(rootFinder), intent(inout) :: self
+    
+    call self%destroy()
+    return
+  end subroutine Root_Finder_Finalize
 
   logical function Root_Finder_Is_Initialized(self)
     !% Return whether a {\normalfont \ttfamily rootFinder} object is initalized.
@@ -188,19 +199,20 @@ contains
     use Galacticus_Display
     use ISO_Varying_String
     implicit none
-    class           (rootFinder    )              , intent(inout), target   :: self
-    real            (kind=c_double )              , intent(in   ), optional :: rootGuess
-    real            (kind=c_double ), dimension(2), intent(in   ), optional :: rootRange
-    integer                                       , intent(  out), optional :: status
-    class           (rootFinder    ), pointer                               :: previousFinder
-    integer                         , parameter                             :: iterationMaximum=1000
-    logical                                                                 :: rangeChanged         , rangeLowerAsExpected, rangeUpperAsExpected
-    integer                                                                 :: iteration            , statusActual
-    double precision                                                        :: xHigh                , xLow                , xRoot               , &
-         &                                                                     xRootPrevious
-    type            (c_ptr         )                                        :: parameterPointer
-    type            (varying_string)                                        :: message
-    character       (len= 30       )                                        :: label
+    class           (rootFinder          )              , intent(inout), target   :: self
+    real            (kind=c_double       )              , intent(in   ), optional :: rootGuess
+    real            (kind=c_double       ), dimension(2), intent(in   ), optional :: rootRange
+    integer                                             , intent(  out), optional :: status
+    class           (rootFinder          ), pointer                               :: previousFinder
+    integer                               , parameter                             :: iterationMaximum=1000
+    type            (fgsl_error_handler_t)                                        :: rootErrorHandler     , standardGslErrorHandler
+    logical                                                                       :: rangeChanged         , rangeLowerAsExpected   , rangeUpperAsExpected
+    integer                                                                       :: iteration            , statusActual
+    double precision                                                              :: xHigh                , xLow                   , xRoot               , &
+         &                                                                           xRootPrevious
+    type            (c_ptr               )                                        :: parameterPointer
+    type            (varying_string      )                                        :: message
+    character       (len= 30             )                                        :: label
 
     ! Store a pointer to the previous rootFinder object. This is necessary as this function can be called recursively, so we must
     ! be able to return state to its original form before exiting the function.
@@ -387,49 +399,71 @@ contains
        end do
        statusActual=FGSL_Root_fSolver_Set(self%solver,self%fgslFunction,xLow,xHigh)
     end if
+    ! Set error handler if necessary.
+    if (present(status)) then
+       rootErrorHandler       =FGSL_Error_Handler_Init(Root_Finder_GSL_Error_Handler)
+       standardGslErrorHandler=FGSL_Set_Error_Handler (rootErrorHandler             )
+       statusActual           =errorStatusSuccess
+    end if
     ! Find the root.
     if (statusActual /= FGSL_Success) then
        Root_Finder_Find=0.0d0
        if (present(status)) then
           status=statusActual
-          return
        else
           call Galacticus_Error_Report('Root_Finder_Find','failed to initialize solver')
        end if
-    end if
-    iteration=0
-    do
-       iteration=iteration+1
-       if (self%useDerivative) then
-          statusActual=FGSL_Root_fdfSolver_Iterate(self%solverDerivative)
-          if (statusActual /= FGSL_Success .or. iteration > iterationMaximum) exit
-          xRootPrevious=xRoot
-          xRoot        =FGSL_Root_fdfSolver_Root(self%solverDerivative)
-          statusActual =FGSL_Root_Test_Delta(xRoot,xRootPrevious,self%toleranceAbsolute,self%toleranceRelative)
+    else
+       iteration=0
+       do
+          iteration=iteration+1
+          if (self%useDerivative) then
+             statusActual=FGSL_Root_fdfSolver_Iterate(self%solverDerivative)
+             if (statusActual /= FGSL_Success .or. iteration > iterationMaximum) exit
+             xRootPrevious=xRoot
+             xRoot        =FGSL_Root_fdfSolver_Root(self%solverDerivative)
+             statusActual =FGSL_Root_Test_Delta(xRoot,xRootPrevious,self%toleranceAbsolute,self%toleranceRelative)
+          else
+             statusActual=FGSL_Root_fSolver_Iterate  (self%solver          )
+             if (statusActual /= FGSL_Success .or. iteration > iterationMaximum) exit
+             xRoot =FGSL_Root_fSolver_Root  (self%solver)
+             xLow  =FGSL_Root_fSolver_x_Lower(self%solver)
+             xHigh =FGSL_Root_fSolver_x_Upper(self%solver)
+             statusActual=FGSL_Root_Test_Interval(xLow,xHigh,self%toleranceAbsolute,self%toleranceRelative)
+          end if
+          if (statusActual == FGSL_Success) exit
+       end do
+       if (statusActual /= FGSL_Success) then
+          Root_Finder_Find=0.0d0
+          if (present(status)) then 
+             status=statusActual
+          else
+             call Galacticus_Error_Report('Root_Finder_Find','failed to find root')
+          end if
        else
-          statusActual=FGSL_Root_fSolver_Iterate  (self%solver          )
-          if (statusActual /= FGSL_Success .or. iteration > iterationMaximum) exit
-          xRoot =FGSL_Root_fSolver_Root  (self%solver)
-          xLow  =FGSL_Root_fSolver_x_Lower(self%solver)
-          xHigh =FGSL_Root_fSolver_x_Upper(self%solver)
-          statusActual=FGSL_Root_Test_Interval(xLow,xHigh,self%toleranceAbsolute,self%toleranceRelative)
-       end if 
-       if (statusActual == FGSL_Success) exit
-    end do
-    if (statusActual /= FGSL_Success) then
-       Root_Finder_Find=0.0d0
-       if (present(status)) then 
-          status=statusActual
-          return
-       else
-          call Galacticus_Error_Report('Root_Finder_Find','failed to find root')
+          if (present(status)) status=FGSL_Success
+          Root_Finder_Find=xRoot
        end if
     end if
-    if (present(status)) status=FGSL_Success
-    Root_Finder_Find=xRoot
+    ! Reset error handler.
+    if (present(status)) standardGslErrorHandler=FGSL_Set_Error_Handler(standardGslErrorHandler)
     ! Restore state.
     currentFinder => previousFinder
     return
+
+  contains
+    
+    subroutine Root_Finder_GSL_Error_Handler(reason,file,line,errorNumber) bind(c)
+      !% Handle errors from the GSL library during root finding.
+      use, intrinsic :: ISO_C_Binding
+      type   (c_ptr     ), value :: file       , reason
+      integer(kind=c_int), value :: errorNumber, line
+      !GCC$ attributes unused :: reason, file, line
+      
+      statusActual=errorNumber
+      return
+    end subroutine Root_Finder_GSL_Error_Handler
+    
   end function Root_Finder_Find
 
   subroutine Root_Finder_Root_Function(self,rootFunction)
@@ -438,9 +472,11 @@ contains
     class    (rootFinder          ), intent(inout) :: self
     procedure(rootFunctionTemplate)                :: rootFunction
 
+    call self%destroy()
     self%finderFunction => rootFunction
     self%initialized    =  .true.
     self%useDerivative  =  .false.
+    self%resetRequired  =  .true.
     return
   end subroutine Root_Finder_Root_Function
 
@@ -452,11 +488,13 @@ contains
     procedure(rootFunctionDerivativeTemplate)                :: rootFunctionDerivative
     procedure(rootFunctionBothTemplate      )                :: rootFunctionBoth
 
+    call self%destroy()
     self%finderFunction           => rootFunction
     self%finderFunctionDerivative => rootFunctionDerivative
     self%finderFunctionBoth       => rootFunctionBoth
     self%initialized              =  .true.
     self%useDerivative            =  .true.
+    self%resetRequired            =  .true.
     return
   end subroutine Root_Finder_Root_Function_Derivative
 

@@ -45,8 +45,8 @@ $massFunctionConfig->{'massMap'            } = \&ALFALFA_Mass_Map;
 $massFunctionConfig->{'massErrorRandomDex' } = \&ALFALFA_Mass_Error_Model;
 $massFunctionConfig->{'xRange'             } = "1.0e6:3.0e11";
 $massFunctionConfig->{'yRange'             } = "1.0e-6:1.0e0";
-$massFunctionConfig->{'xLabel'             } = "\$M_{\\rm HI}\$ [\$M_\\odot\$]";
-$massFunctionConfig->{'yLabel'             } = "\${\\rm d}n/{\\rm d}\\log M_{\\rm HI}\$ [Mpc\$^{-3}\$]";
+$massFunctionConfig->{'xLabel'             } = "\$M_\\mathrm{HI}\$ [\$\\mathrm{M}_\\odot\$]";
+$massFunctionConfig->{'yLabel'             } = "\$\\mathrm{d}n/\\mathrm{d}\\log M_\\mathrm{HI}\$ [Mpc\$^{-3}\$]";
 $massFunctionConfig->{'title'              } = "HI mass function at \$z\\approx 0.00\$";
 
 # Read the observed data.
@@ -70,10 +70,42 @@ $massFunctionConfig ->{'errorModel'                  }  = "logNormal"           
 
 exit;
 
+sub ALFALFA_Parameters {
+    my $config     = shift();
+    my $galacticus = shift();
+    # Check for existance of ALFALFA error model parameters.
+    my $parametersXML;
+    foreach my $parameterName 
+	(
+	 'alfalfaHiMassFunctionZ0.00MolecularFractionK'      ,
+	 'alfalfaHiMassFunctionZ0.00MolecularFractionfSigma' ,
+	 'alfalfaHiMassFunctionZ0.00MolecularFractionScatter',
+	 'alfalfaHiMassFunctionZ0.00MolecularFractionA1'     ,
+	 'alfalfaHiMassFunctionZ0.00MolecularFractionAlpha1' ,
+	 'alfalfaHiMassFunctionZ0.00MolecularFractionA2'     ,
+	 'alfalfaHiMassFunctionZ0.00MolecularFractionAlpha2'
+	) {
+	    unless ( exists($galacticus->{'parameters'}->{$parameterName}) ) {
+		unless ( defined($parametersXML) ) {
+		    (my $parameterFileName = $config->{'galacticusFile'}) =~ s/[^\/]+$/parameters.xml/;
+		    if ( -e $parameterFileName ) {
+			my $xml = new XML::Simple();
+			$parametersXML = $xml->XMLin($parameterFileName);
+		    } else {
+			die("ALFALFA_Mass_Map: no error model parameters available, and can not find parameter file");
+		    }
+		}
+		$galacticus->{'parameters'}->{$parameterName} = $parametersXML->{$parameterName};
+	    }
+    }
+}
+
 sub ALFALFA_Mass_Error_Model {
     # Return the error on log10(mass) for the ALFALFA 40% survey.
-    my $logarithmicMass = shift;
-    my $galacticus      = shift;
+    my $logarithmicMass = shift();
+    my $config          = shift();
+    my $galacticus      = shift();
+    &ALFALFA_Parameters($config,$galacticus);
     # Use a simple model fit to Fig. 19 of Haynes et al. (2011).
     # See constraints/dataAnalysis/hiMassFunction_ALFALFA_z0.00/alfalfaHIMassErrorModel.pl for details.
     my $a                                  = pdl $galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00ErrorA'}->{'value'};
@@ -83,6 +115,7 @@ sub ALFALFA_Mass_Error_Model {
     my $lowMasses                          = which($logarithmicMassLimited < 6.0);
     $logarithmicMassLimited->($lowMasses) .= 6.0;
     my $errorObserved                      = $a+exp(-($logarithmicMassLimited-$b)/$c);
+  #  print Dumper($galacticus->{'parameters'});
     my $errorModel                         = $galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionScatter'}->{'value'};
     my $error                              = sqrt($errorObserved**2+$errorModel**2);
     return $error;
@@ -95,6 +128,7 @@ sub ALFALFA_Mass_Map {
     my $hydrogenFractionByMassPrimordial        = pdl 0.778;
     my $megaParsec = pdl 3.086e22;
     my $massSolar = pdl 1.99e30;
+    &ALFALFA_Parameters($config,$galacticus);
     &HDF5::Get_Dataset($galacticus,['diskRadius','massStellar','nodeIndex']);
     # Compute central molecular ratio.
     my $molecularRatioCentral = 

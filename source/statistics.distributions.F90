@@ -127,12 +127,15 @@ contains
     implicit none
     class           (distribution), pointer                :: newDistribution
     type            (node        ), pointer, intent(in   ) :: definition
-    double precision                                       :: distributionMinimum         , distributionMaximum      , &
-         &                                                    distributionMean            , distributionVariance     , &
-         &                                                    distributionScale           , distributionMedian       , &
-         &                                                    distributionDegreesOfFreedom, distributionShape        , &
-         &                                                    distributionRate
-    logical                                                :: distributionMinimumExists   , distributionMaximumExists
+    double precision                                       :: distributionMinimum          , distributionMaximum      , &
+         &                                                    distributionMean             , distributionVariance     , &
+         &                                                    distributionScale            , distributionMedian       , &
+         &                                                    distributionDegreesOfFreedom , distributionShape        , &
+         &                                                    distributionRate             , distributionLimit        , &
+         &                                                    distributionProbability
+    logical                                                :: distributionMinimumExists    , distributionMaximumExists, &
+         &                                                    distributionScaleExists      , distributionLimitExists  , &
+         &                                                    distributionProbabilityExists
 
     select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"type"))))
     case ("uniform")
@@ -228,8 +231,20 @@ contains
        select type (newDistribution)
        type is (distributionCauchy)
           call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"median"),distributionMedian)
-          call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"scale" ),distributionScale )
-          newDistribution=distributionCauchy(distributionMedian,distributionScale)
+          distributionScaleExists      =XML_Path_Exists(definition,"scale"      )
+          distributionProbabilityExists=XML_Path_Exists(definition,"probability")
+          distributionLimitExists      =XML_Path_Exists(definition,"limit"      )
+          if (distributionScaleExists) then
+             if (distributionProbabilityExists.or.distributionLimitExists) call Galacticus_Error_Report('distributionNew','if "scale" is specified, "probability" and "limit" must be unspecified')
+             call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"scale" ),distributionScale )
+             newDistribution=distributionCauchy(distributionMedian,distributionScale)
+          else
+             if (.not.distributionProbabilityExists.or..not.distributionLimitExists) call Galacticus_Error_Report('distributionNew','if "scale" is not specified, both "probability" and "limit" must be specified')
+             if (distributionScaleExists                                           ) call Galacticus_Error_Report('distributionNew','if "probability" and "limit" are unspecified, "scale" must be unspecified')
+             call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"limit"      ),distributionLimit      )
+             call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"probability"),distributionProbability)
+             newDistribution=distributionCauchy(distributionMedian,distributionLimit,distributionProbability)
+          end if
        end select
     case ("StudentT")
        allocate(distributionStudentT :: newDistribution)
