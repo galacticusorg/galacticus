@@ -17,6 +17,8 @@ require Galacticus::HDF5;
 require Galacticus::Magnitudes;
 require Stats::Percentiles;
 require XMP::MetaData;
+require GnuPlot::PrettyPlots;
+require GnuPlot::LaTeX;
 
 # Get name of input and output files.
 die("Plot_SDSS_Gas_Metallicity.pl <galacticusFile> <outputDir/File> [<showFit>]")
@@ -76,11 +78,6 @@ my $dataSets = $dataBlock->{'dataSets'};
 my $gasFraction    = ($dataSets->{'diskMassGas'}+$dataSets->{'spheroidMassGas'})/($dataSets->{'diskMassGas'}+$dataSets->{'spheroidMassGas'}+$dataSets->{'diskStellarMass'}+$dataSets->{'spheroidMassStellar'});
 my $gasMetallicity = where(12.0+log10(($dataSets->{'diskAbundancesGasMetals'}+$dataSets->{'spheroidAbundancesGasMetals'})/($dataSets->{'diskMassGas'}+$dataSets->{'spheroidMassGas'}))-log10($solarMetallicity)+log10($solarOxygenAbundance),$gasFraction > $gasFractionMinimum);
 
-# Open a pipe to GnuPlot.
-open(gnuPlot,"|gnuplot 1>/dev/null 2>&1");
-print gnuPlot "set terminal postscript enhanced color lw 3 solid\n";
-print gnuPlot "set output \"tmp.ps\"\n";
-
 # Read the XML data file.
 my @tmpFiles;
 my $xml = new XML::Simple;
@@ -94,11 +91,11 @@ foreach my $dataSet ( @{$data->{'gasMetallicity'}} ) {
 
     # Compute the distribution of Galacticus galaxies.
     my $filter = $columns->{'magnitude'}->{'filter'};
-    my $dust   = $columns->{'magnitude'}->{'dust'};
+    my $dust   = $columns->{'magnitude'}->{'dust'  };
     my $dustLabel;
     if ( $dust eq "corrected" ) {$dustLabel = ""};
     if ( $dust eq "face-on" )   {$dustLabel = ":dustAtlas[faceOn]"};
-
+ 
     my $property    = "magnitudeTotal:".$filter.":observed:z0.1000".$dustLabel.":AB";
     my $magnitude   = where($dataSets->{$property}     ,$gasFraction > $gasFractionMinimum);
     my $weight      = where($dataSets->{'mergerTreeWeight'},$gasFraction > $gasFractionMinimum);
@@ -110,73 +107,121 @@ foreach my $dataSet ( @{$data->{'gasMetallicity'}} ) {
 	$weight,
 	$percentiles,
 	);
-
-    my $plotCommand = "";
-    my $joiner = "";
-    my $iPercentile = 0;
-    my $chiSquaredRange = 0.0;
+    # Make the plot.
+    my $plot;
+    (my $plotFileTeX = $outputFile) =~ s/\.pdf$/_$filter.tex/;
+    open(my $gnuPlot,"|gnuplot");
+    print $gnuPlot "set terminal cairolatex pdf standalone color lw 2\n";
+    print $gnuPlot "set output '".$plotFileTeX."'\n";
+    print $gnuPlot "set xlabel \"".$columns->{'magnitude'}->{'label'}."\"\n";
+    print $gnuPlot "set ylabel \"12+[O/H]\"\n";
+    print $gnuPlot "set title offset 0,-1 \"".$dataSet->{'title'}."\"\n";
+    print $gnuPlot "set lmargin screen 0.15\n";
+    print $gnuPlot "set rmargin screen 0.95\n";
+    print $gnuPlot "set bmargin screen 0.15\n";
+    print $gnuPlot "set tmargin screen 0.95\n";
+    print $gnuPlot "set key spacing 1.2\n";
+    print $gnuPlot "set key at screen 0.5,0.2\n";
+    print $gnuPlot "set key left\n";
+    print $gnuPlot "set key bottom\n";
+    print $gnuPlot "set mxtics 2\n";
+    print $gnuPlot "set mytics 2\n";
+    print $gnuPlot "set xrange [".($iDataset == 1 ? "-23:-16" : "-24:-17")."]\n";
+    print $gnuPlot "set yrange [7:10]\n";
+    print $gnuPlot "set pointsize 1.0\n";
+    my $iPercentile           = 0;
+    my $chiSquaredRange       = 0.0;
     my $degreesOfFreedomRange = 0;
     my $observationalError = pdl $dataSet->{'distributionError'};
     foreach my $percentile ( @{$columns->{'distributionPercentile'}} ) {
 	++$iPercentile;
-
 	# Compute chi^2.
-	my $yData       = pdl @{$percentile->{'data'}};
-	my $yGalacticus = $results(:,($iPercentile-1));
-	$chiSquaredRange += sum((($yData-$yGalacticus)/$observationalError)**2);
+	my $yData               = pdl @{$percentile->{'data'}};
+	my $yGalacticus         = $results(:,($iPercentile-1));
+	$chiSquaredRange       += sum((($yData-$yGalacticus)/$observationalError)**2);
 	$degreesOfFreedomRange += nelem($yData);
-
-	$plotCommand .= $joiner."'gnuplot".$iDataset.":".$iPercentile.".tmp' lt ".$iPercentile." pt 6 title \"".$dataSet->{'label'}." [".$percentile->{'percentile'}."%]\"";
-	$joiner = ", ";
-	push(@tmpFiles,"gnuplot".$iDataset.":".$iPercentile.".tmp");
-	open(tmpHndl,">gnuplot".$iDataset.":".$iPercentile.".tmp");
-	for (my $i=0;$i<nelem($x);++$i) {
-	    print tmpHndl $x->index($i)." ".$yData->index($i)."\n";
-	}
-	close(tmpHndl);
-	
-	if ( any($yGalacticus > 0.0) ) {
-	    $plotCommand .= $joiner."'gnuplot".$iDataset.":".$iPercentile."_glc.tmp' lt ".$iPercentile." pt 4 title \"Galacticus [".$percentile->{'percentile'}."%]\"";
-	    $joiner = ", ";
-	    push(@tmpFiles,"gnuplot".$iDataset.":".$iPercentile."_glc.tmp");
-	    open(tmpHndl,">gnuplot".$iDataset.":".$iPercentile."_glc.tmp");
-	    for (my $i=0;$i<nelem($x);++$i) {
-		if ( $yGalacticus->index($i) > 0.0 ) {print tmpHndl $x->index($i)." ".$yGalacticus->index($i)."\n"};
-	    }
-	    close(tmpHndl);
-	}	
     }
-    $plotCommand = "plot ".$plotCommand."\n";
-    $plotCommand = "set label \"{/Symbol c}^2=".FormatSigFigs($chiSquaredRange,4)." [".$degreesOfFreedomRange."]\" at screen 0.6, screen 0.2\n".$plotCommand;
-    $plotCommand = "unset label\n".$plotCommand;
-
     # Accumulate chi^2.
-    $chiSquared += $chiSquaredRange;
+    $chiSquared       += $chiSquaredRange;
     $degreesOfFreedom += $degreesOfFreedomRange;
-
-    # Make the plot.
-    print gnuPlot "set xlabel \"".$columns->{'magnitude'}->{'label'}."\"\n";
-    print gnuPlot "set ylabel \"12+[O/H]\"\n";
-    print gnuPlot "set title \"".$dataSet->{'title'}."\"\n";
-    print gnuPlot "set key left\n";
-    print gnuPlot "set key bottom\n";
-    print gnuPlot "set mxtics 2\n";
-    print gnuPlot "set mytics 2\n";
-    print gnuPlot "set yrange [7:10]\n";
-    print gnuPlot "set pointsize 1.0\n";
-    print gnuPlot $plotCommand;
-    
+    # Plot datasets.
+    my $yLow1  = pdl @{$columns->{'distributionPercentile'}->[0]->{'data'}};
+    my $yHigh1 = pdl @{$columns->{'distributionPercentile'}->[4]->{'data'}};
+    &PrettyPlots::Prepare_Dataset(
+	\$plot,
+	$x,$yLow1,y2 => $yHigh1,
+	style      => "filledCurve",
+	symbol     => [6,7],
+	weight     => [5,3],
+	pointSize  => 0.5,
+	color      => $PrettyPlots::colorPairs{'lightSkyBlue'}
+	);
+    my $yLow2  = pdl @{$columns->{'distributionPercentile'}->[1]->{'data'}};
+    my $yHigh2 = pdl @{$columns->{'distributionPercentile'}->[3]->{'data'}};
+    &PrettyPlots::Prepare_Dataset(
+	\$plot,
+	$x,$yLow2,y2 => $yHigh2,
+	style      => "filledCurve",
+	symbol     => [6,7],
+	weight     => [5,3],
+	pointSize  => 0.5,
+	color      => $PrettyPlots::colorPairs{'cornflowerBlue'}
+	);
+    my $yMedian = pdl @{$columns->{'distributionPercentile'}->[2]->{'data'}};
+    &PrettyPlots::Prepare_Dataset(
+	\$plot,
+	$x,$yMedian,
+	style      => "line",
+	symbol     => [6,7],
+	weight     => [5,3],
+	pointSize  => 0.5,
+	color      => $PrettyPlots::colorPairs{'darkSlateBlue'}
+	);
+    my $nonZero1         = which(($results(:,(0)) > 0.0) & ($results(:,(4)) > 0.0));
+    my $yGalacticusLow1  = $results($nonZero1,(0));
+    my $yGalacticusHigh1 = $results($nonZero1,(4));
+    &PrettyPlots::Prepare_Dataset(
+	\$plot,
+	$x->($nonZero1),$yGalacticusLow1,y2 => $yGalacticusHigh1,
+	style        => "filledCurve",
+	symbol       => [6,7],
+	weight       => [5,3],
+	pointSize    => 0.5,
+	color        => $PrettyPlots::colorPairs{'salmon'},
+	transparency => 0.5
+	);
+    my $nonZero2         = which(($results(:,(1)) > 0.0) & ($results(:,(3)) > 0.0));
+    my $yGalacticusLow2  = $results($nonZero2,(1));
+    my $yGalacticusHigh2 = $results($nonZero2,(3));
+    &PrettyPlots::Prepare_Dataset(
+	\$plot,
+	$x->($nonZero2),$yGalacticusLow2,y2 => $yGalacticusHigh2,
+	style        => "filledCurve",
+	symbol       => [6,7],
+	weight       => [5,3],
+	pointSize    => 0.5,
+	color        => $PrettyPlots::colorPairs{'orange'},
+	transparency => 0.5
+	);
+    my $nonZero3         = which($results(:,(2)) > 0.0);
+    my $yGalacticusMedian = $results($nonZero3,(2));
+    &PrettyPlots::Prepare_Dataset(
+	\$plot,
+	$x->($nonZero3),$yGalacticusMedian,
+	style        => "line",
+	symbol       => [6,7],
+	weight       => [5,3],
+	pointSize    => 0.5,
+	color        => $PrettyPlots::colorPairs{'redYellow'},
+	transparency => 0.5
+	);
+    # Finalize plotting.
+    &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+    # Close the pipe to GnuPlot.
+    close($gnuPlot);
+    &LaTeX::GnuPlot2PDF($plotFileTeX);
+    &MetaData::Write($outputFile,$galacticusFile,$self);    
 }
-
-# Close the pipe to GnuPlot.
-close(gnuPlot);
-
-# Convert to PDF.
-system("ps2pdf tmp.ps ".$outputFile);
-&MetaData::Write($outputFile,$galacticusFile,$self);
-
-# Clean up files.
-unlink("tmp.ps",@tmpFiles);
 
 # Display chi^2 information
 if ( $showFit == 1 ) {

@@ -9,7 +9,7 @@
     <columns>
       <magnitude>
 	<description>SDSS g-band AB magnitude, corrected to face-on extinction.</description>
-	<label>^{0.1}g (corrected to face-on extinction)</label>
+	<label>$^{0.1}M_\\mathrm{g}$ (corrected to face-on extinction)</label>
 	<units>magnitudes</units>
 	<hubble>70.0</hubble>
 	<scaling>linear</scaling>
@@ -148,7 +148,7 @@
     <columns>
       <magnitude>
 	<description>SDSS z-band AB magnitude, corrected for internal extinction</description>
-	<label>^{0.1}z (corrected for internal extinction)</label>
+	<label>$^{0.1}M_\\mathrm{z}$ (corrected for internal extinction)</label>
 	<units>magnitudes</units>
 	<hubble>70.0</hubble>
 	<scaling>linear</scaling>

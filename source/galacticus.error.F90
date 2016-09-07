@@ -52,11 +52,12 @@ module Galacticus_Error
 
   ! Public error codes. Where relevant these copy GSL error codes, otherwise values above 1024
   ! are used so as not to conflict with GSL error codes.
-  integer, parameter, public :: errorStatusSuccess    =FGSL_Success ! Success.
-  integer, parameter, public :: errorStatusFail       =FGSL_Failure ! Generic failure.
-  integer, parameter, public :: errorStatusInputDomain=FGSL_eDom    ! Input domain error.
-  integer, parameter, public :: errorStatusOutOfRange =FGSL_eRange  ! Output range error.
-  integer, parameter, public :: errorStatusXCPU       =1025         ! CPU time limit exceeded.
+  integer, parameter, public :: errorStatusSuccess     =FGSL_Success  ! Success.
+  integer, parameter, public :: errorStatusFail        =FGSL_Failure  ! Generic failure.
+  integer, parameter, public :: errorStatusInputDomain =FGSL_eDom     ! Input domain error.
+  integer, parameter, public :: errorStatusOutOfRange  =FGSL_eRange   ! Output range error.
+  integer, parameter, public :: errorStatusDivideByZero=FGSL_eZeroDiv ! Divide by zero.
+  integer, parameter, public :: errorStatusXCPU        =1025          ! CPU time limit exceeded.
 
   ! GSL error status.
   logical             :: abortOnErrorGSL=.true.

@@ -188,7 +188,8 @@ sub Get_Dust_Attenuated_Luminosity {
 	# Identify diskless galaxies and assign an arbitrary size. These will later have attenuation set to unity anyway, so the
 	# value here does not matter.
 	$diskless = which($dataSets->{'diskRadius'} <= 0.0);
-	$sizes->($diskless) .= 1.0;
+	$sizes->($diskless) .= 1.0
+	    if ( nelem($diskless) > 0 );
 	my $sizesLimited;
 	if ( $extrapolateInSize == 0 ) {
 	    my $sizeMinimum  = $spheroidSizes->index(0);
@@ -270,7 +271,8 @@ sub Get_Dust_Attenuated_Luminosity {
     } else{
  	die("Get_Dust_Attenuated_Luminosity(): unknown component");
     }
-    $attenuations->($diskless) .= 1.0;
+    $attenuations->($diskless) .= 1.0
+	if ( nelem($diskless) > 0 );
     $PDL::BIGPDL = 0;
     
     # Multiply luminosities by attenuations.
@@ -361,7 +363,7 @@ sub Load_Dust_Atlas {
 			    #print "    Processing optical depth ".$opticalDepthStruct->{'tau'}."\n";
 			    unless ( $spheroidPdlCreated == 1 ) {
 				$spheroidAttenuations = zeroes($spheroidSizesCount,$spheroidInclinationsCount,$spheroidOpticalDepthsCount,$wavelengthCount);
-				$spheroidAttenuations->(:,(0),:) .= 1.0;
+				$spheroidAttenuations->(:,:,(0),:) .= 1.0;
 				$spheroidPdlCreated = 1;
 			    }
 			    for(my $iAttenuation=0;$iAttenuation<=$#{$opticalDepthStruct->{'attenuation'}};++$iAttenuation) {
@@ -402,8 +404,9 @@ sub dustTableInterpolation {
 	$factors->((0),($i),:) .= 1.0-$factors->((1),($i),:);
     }
     # Perform the interpolation.
-    my $attenuations       = pdl zeroes($interpolationIndices->dim(1));
-    my $attenuationsMaxima = pdl zeroes($interpolationIndices->dim(1));
+    my $attenuationSmall   = pdl 1.0e-30;
+    my $attenuations       = pdl zeroes($interpolationIndices->dim(1))                       ;
+    my $attenuationsMaxima = pdl   ones($interpolationIndices->dim(1))*log($attenuationSmall);
     if ( $interpolationIndices->dim(0) == 3 ) {
 	for(my $j=0;$j<2;++$j) {
 	    for(my $k=0;$k<2;++$k) {
@@ -411,7 +414,7 @@ sub dustTableInterpolation {
 		    # Shift the indices to use in the dust tables according to out interpolation hyper-cube.
 		    my $indexInRangeShift    = $indexInRange+[$j,$k,$l];
 		    # Compute the attenuation at these indices. We use the logarithmic attenuation as that is what we want to interpolate in.
-		    my $attenuationTabulated = log($dustTable->indexND($indexInRangeShift));
+		    my $attenuationTabulated = log($dustTable->indexND($indexInRangeShift)+$attenuationSmall);
 		    $attenuations += 
 			+$attenuationTabulated
 			*$factors->(($j),(0),:)
@@ -431,7 +434,7 @@ sub dustTableInterpolation {
 		for(my $l=0;$l<2;++$l) {
 		    for(my $m=0;$m<2;++$m) {			
 			my $indexInRangeShift    = $indexInRange+[$j,$k,$l,$m];
-			my $attenuationTabulated = $dustTable->indexND($indexInRangeShift);
+			my $attenuationTabulated = log($dustTable->indexND($indexInRangeShift)+$attenuationSmall);
 			$attenuations += 
 			    +$attenuationTabulated
 			    *$factors->(($j),(0),:)
