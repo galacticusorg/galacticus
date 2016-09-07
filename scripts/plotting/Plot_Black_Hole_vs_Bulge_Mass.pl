@@ -153,19 +153,19 @@ unless (exists($dataSets->{'blackHoleMass'})) {
     my $plot;
     my $gnuPlot;
     my $plotFile = $outputFile;
-    (my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
-    open($gnuPlot,"|gnuplot 1>/dev/null 2>&1");
-    print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
-    print $gnuPlot "set output '".$plotFileEPS."'\n";
-    print $gnuPlot "set title 'Black Hole Mass vs. Bulge Stellar Mass \$z=0\$'\n";
-    print $gnuPlot "set xlabel 'Bulge stellar mass; \$M_{\\rm bulge} [M_\\odot]\$'\n";
-    print $gnuPlot "set ylabel 'Black hole mass; \$M_\\bullet [M_\\odot]\$'\n";
+    (my $plotFileTeX = $plotFile) =~ s/\.pdf$/.tex/;
+    open($gnuPlot,"|gnuplot");
+    print $gnuPlot "set terminal cairolatex pdf standalone color lw 2\n";
+    print $gnuPlot "set output '".$plotFileTeX."'\n";
+    print $gnuPlot "set title offset 0,-1 'Black Hole Mass vs. Bulge Stellar Mass \$z=0\$'\n";
+    print $gnuPlot "set xlabel '\$M_\\mathrm{\\star,bulge}\\,\\,[\\mathrm{M}_\\odot]\$'\n";
+    print $gnuPlot "set ylabel '\$M_\\bullet\\,\\,[\\mathrm{M}_\\odot]\$'\n";
     print $gnuPlot "set lmargin screen 0.15\n";
     print $gnuPlot "set rmargin screen 0.95\n";
     print $gnuPlot "set bmargin screen 0.15\n";
     print $gnuPlot "set tmargin screen 0.95\n";
     print $gnuPlot "set key spacing 1.2\n";
-    print $gnuPlot "set key at screen 0.275,0.16\n";
+    print $gnuPlot "set key at screen 0.18,0.79\n";
     print $gnuPlot "set key left\n";
     print $gnuPlot "set key bottom\n";
     print $gnuPlot "set logscale xy\n";
@@ -186,8 +186,9 @@ unless (exists($dataSets->{'blackHoleMass'})) {
 	style      => "point",
 	symbol     => [6,7],
 	weight     => [5,3],
-	color      => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'slideSequence'}}[0]},
-	title      => $data->{'label'}.' [observed]'
+	pointSize  => 0.5,
+	color      => $PrettyPlots::colorPairs{'cornflowerBlue'},
+	title      => $data->{'label'}
 	);
     my $spheroidMassBins   =  10.0** $logSpheroidMassBins;
     my $blackHoleMassMean  =  10.0** $logBlackHoleMassMeanGalacticus;
@@ -201,12 +202,13 @@ unless (exists($dataSets->{'blackHoleMass'})) {
 	style      => "point",
 	symbol     => [6,7],
 	weight     => [5,3],
+	pointSize  => 0.5,
 	color      => $PrettyPlots::colorPairs{'redYellow'},
 	title      => 'Galacticus'
 	);
     &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
     close($gnuPlot);
-    &LaTeX::GnuPlot2PDF($plotFileEPS);
+    &LaTeX::GnuPlot2PDF($plotFileTeX);
     &MetaData::Write($plotFile,$galacticusFile,$self);
 }
 

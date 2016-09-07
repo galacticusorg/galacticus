@@ -23,10 +23,12 @@ program Test_Root_Finding
   use Unit_Tests
   use Root_Finder
   use Test_Root_Finding_Functions
+  use Galacticus_Error
   implicit none
   type            (rootFinder)               :: finder1, finder2
   double precision                           :: xGuess , xRoot
   double precision            , dimension(2) :: xRange
+  integer                                    :: status
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Root finding")
@@ -77,6 +79,13 @@ program Test_Root_Finding
   call finder1%rootFunction(Root_Function_3)
   xRoot=finder1%find(rootGuess=xGuess)
   call Assert('root of f(x)=x × exp(-x) + 1; with bracketing + limit',xRoot,-0.567143d0,absTol=1.0d-6,relTol=1.0d-6)
+
+  ! Test root-finding of function with zero derivative using deriative based solver and error handling.
+  xRange=[-2.0d0,-1.5d0]
+  call finder1%tolerance(1.0d-6,1.0d-6)
+  call finder1%rootFunctionDerivative(Root_Function_4,Root_Function_4_Derivative,Root_Function_4_Both)
+  xRoot=finder1%find(rootRange=xRange,status=status)
+  call Assert('root of f(x)=1 for |x|>1, x otherwise; in range -2 < x <  -1.5 [using derivative; divide-by-zero error expected]',status,errorStatusDivideByZero)
 
   ! Test regressions.
   xRange=[+2.0d0,+4.0d0]

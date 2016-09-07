@@ -29,4 +29,5 @@
   interface distributionCauchy
      !% Constructors for the Cauchy distribution object.
      module procedure distributionCauchyConstructor
+     module procedure distributionCauchyLimitConstructor
   end interface distributionCauchy
