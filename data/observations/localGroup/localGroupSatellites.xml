@@ -5444,7 +5444,10 @@
         <value>13</value>
       </declinationArcMinutes>
       <declinationArcSeconds>
-        <value>12</value>
+        <value>19.47</value>
+	<error>12</error>
+        <reference>Collins et al.; 2016; arXiv:1608.05710</reference>
+        <referenceURL>http://adsabs.harvard.edu/abs/2016arXiv160805710C</referenceURL>
       </declinationArcSeconds>
       <declinationDegrees>
         <value>2</value>
@@ -5487,10 +5490,11 @@
         <value>16.0</value>
       </magnitudeApparentV>
       <massDynamicalHalfLightRadius>
-        <error>0.5</error>
-        <reference>Collins et al.; 2014; ApJl 783; 7</reference>
-        <referenceURL>http://adsabs.harvard.edu/abs/2014ApJ...783....7C</referenceURL>
-        <value>0.4</value>
+        <value>0.65</value>
+        <errorHigh>-0.78</errorHigh>
+	<errorLow>0.59</errorLow>
+        <reference>Collins et al.; 2016; arXiv:1608.05710</reference>
+        <referenceURL>http://adsabs.harvard.edu/abs/2016arXiv160805710C</referenceURL>
       </massDynamicalHalfLightRadius>
       <massNeutralHydrogen>
         <value>00.0</value>
@@ -5502,12 +5506,13 @@
         <value>G</value>
       </membership>
       <metallicityMeasurementTechnique>
-        <value>5</value>
+        <value>1</value>
       </metallicityMeasurementTechnique>
       <metallicityStellar>
-        <errorHigh>0.20</errorHigh>
-        <errorLow>0.20</errorLow>
-        <value>-2.00</value>
+        <value>-2.47</value>
+        <error>0.21</error>
+        <reference>Collins et al.; 2016; arXiv:1608.05710</reference>
+        <referenceURL>http://adsabs.harvard.edu/abs/2016arXiv160805710C</referenceURL>
       </metallicityStellar>
       <morphology>
         <value>dSph</value>
@@ -5521,8 +5526,10 @@
         <value>Belokurov et al. (2008)</value>
       </publication>
       <radiusHalfLight>
-        <error>32</error>
-        <value>135</value>
+        <error>70.9</error>
+        <value>27.6</value>
+        <reference>Collins et al.; 2016; arXiv:1608.05710</reference>
+        <referenceURL>http://adsabs.harvard.edu/abs/2016arXiv160805710C</referenceURL>
       </radiusHalfLight>
       <radiusHalfLightAngular>
         <errorHigh>0.60</errorHigh>
@@ -5538,13 +5545,16 @@
         <value>Belokurov et al. 2008</value>
       </referencesPositions>
       <rightAscensionHours>
-        <value>1</value>
+        <value>11</value>
       </rightAscensionHours>
       <rightAscensionMinutes>
         <value>31</value>
       </rightAscensionMinutes>
       <rightAscensionSeconds>
-        <value>9.6</value>
+        <value>8.8</value>
+	<error>1.6></error>
+        <reference>Collins et al.; 2016; arXiv:1608.05710</reference>
+        <referenceURL>http://adsabs.harvard.edu/abs/2016arXiv160805710C</referenceURL>
       </rightAscensionSeconds>
       <rotationVelocityMaximumNeutralHydrogen>
         <errorHigh>00.0</errorHigh>
@@ -5571,9 +5581,11 @@
         <value>00.0</value>
       </velocityDispersionNeutralHydrogen>
       <velocityDispersionStellar>
-        <errorHigh>2.3</errorHigh>
-        <errorLow>1.4</errorLow>
-        <value>3.7</value>
+        <errorHigh>3.3</errorHigh>
+        <errorLow>2.3</errorLow>
+        <value>4.0</value>
+        <reference>Collins et al.; 2016; arXiv:1608.05710</reference>
+        <referenceURL>http://adsabs.harvard.edu/abs/2016arXiv160805710C</referenceURL>
       </velocityDispersionStellar>
       <velocityLocalGroup>
         <value>-7</value>
@@ -5585,9 +5597,11 @@
         <value>59</value>
       </velocityMilkyWay>
       <velocityRadialHeliocentric>
-        <errorHigh>3.1</errorHigh>
-        <errorLow>3.1</errorLow>
-        <value>173.3</value>
+        <errorHigh>2.3</errorHigh>
+        <errorLow>2.1</errorLow>
+        <value>172.1</value>
+        <reference>Collins et al.; 2016; arXiv:1608.05710</reference>
+        <referenceURL>http://adsabs.harvard.edu/abs/2016arXiv160805710C</referenceURL>
       </velocityRadialHeliocentric>
     </galaxy>
     <galaxy>

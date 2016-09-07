@@ -70,6 +70,7 @@ contains
     double precision                                                   , intent(in   ) ::      endTime
     type            (treeNode                     )           , pointer                ::      lockNode                                  , nextNode            , &
          &                                                                                     parentNode                                , thisNode
+    type            (nodeEvent                    )           , pointer                ::      event
     double precision                               , parameter                         ::      timeTolerance                      =1.0d-5
     double precision                               , parameter                         ::      largeTime                          =1.0d10
     procedure       (interruptTask )           , pointer                ::      interruptProcedure
@@ -84,7 +85,7 @@ contains
     double precision                                                                   ::      earliestTimeInTree                        , endTimeThisNode     , &
          &                                                                                     finalTimeInTree
     logical                                                                            ::      didEvolve                                 , interrupted
-    character       (len=12                       )                                    ::      label
+    character       (len=24                       )                                    ::      label
     character       (len=35                       )                                    ::      message
     type            (varying_string               )                                    ::      lockType                                  , vMessage
     logical                                                                            ::      anyTreeExistsAtOutputTime
@@ -153,7 +154,29 @@ contains
                    call Galacticus_Error_Report('Merger_Tree_Evolve_To',vMessage)
                 end if
              else
-                ! Not exceeded by a significant factor (can happen due to approximation errors). Simply reset to actual time requested.
+                ! Not exceeded by a significant factor (can happen due to approximation errors). Unless there is an event
+                ! associated with this node at the current time, simply reset to actual time requested.
+                event => currentTree%baseNode%event
+                do while (associated(event))
+                   if (event%time == baseNodeBasicComponent%time()) then
+                      vMessage=          'requested time exceeds the final time in the tree by a small factor'  //char(10)
+                      vMessage=vMessage//'refusing to adjust the final time in the tree due to associated event'//char(10)
+                      write (label,'(e24.16)') endTime
+                      vMessage=vMessage//'  requested time: '//trim(label)//' Gyr'//char(10)
+                      write (label,'(e24.16)') baseNodeBasicComponent%time()
+                      vMessage=vMessage//'      final time: '//trim(label)//' Gyr'//char(10)
+                      write (label,'(e24.16)') event%time
+                      vMessage=vMessage//'      event time: '//trim(label)//' Gyr'//char(10)
+                      vMessage=vMessage//'      event ID  : '//event%ID           //char(10)
+                      vMessage=vMessage//' HELP: if you are reading merger trees from file and are attempting to'//char(10)
+                      vMessage=vMessage//'       output at a "snapshot time" consider setting:'                  //char(10)
+                      vMessage=vMessage//'           <mergerTreeReadOutputTimeSnapTolerance value="1.0e-3"/>'    //char(10)
+                      vMessage=vMessage//'       or similar in your parameter file to ensure that nodes exist'   //char(10)
+                      vMessage=vMessage//'       precisely at the output times you request'
+                      call Galacticus_Error_Report('Merger_Tree_Evolve_To',vMessage)
+                   end if
+                   event => event%next
+                end do
                 call baseNodeBasicComponent%timeSet(endTime)
                 anyTreeExistsAtOutputTime=.true.
              end if
@@ -231,7 +254,7 @@ contains
 
                    ! Get the basic component of the node.
                    thisBasicComponent => thisNode%basic()    
-                   
+
                    ! Count nodes in the tree.
                    nodesTotalCount=nodesTotalCount+1
                    
@@ -265,7 +288,7 @@ contains
                       
                       ! Flag that a node was evolved.
                       didEvolve=.true.
-                      
+
                       ! Update tree progress counter.
                       nodesEvolvedCount=nodesEvolvedCount+1
                       
@@ -358,7 +381,7 @@ contains
                          end if
                       end if
                    end if evolveCondition
-                   
+
                    ! Step to the next node to consider.
                    thisNode => nextNode
                    
