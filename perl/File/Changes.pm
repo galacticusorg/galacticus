@@ -7,7 +7,7 @@ use File::Copy;
 use File::Compare;
 
 sub Update {
-    # Checks if a file1 is different from file2 and, if it is, replaces file2 with file1. Otherwise, file1 is deleted.
+    # Checks if a file1 is different from file2 and, if it is, replaces file1 with file2. Otherwise, file2 is deleted.
 
     # Get file names.
     my $oldFile = $_[0];
