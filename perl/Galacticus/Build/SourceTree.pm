@@ -106,6 +106,7 @@ sub ProcessTree {
     # Run all defined processors on the tree.
     &{$Galacticus::Build::SourceTree::Hooks::processHooks{$_}}($tree,\%options)
 	foreach ( keys(%Galacticus::Build::SourceTree::Hooks::processHooks) );
+    return $tree;
 }
 
 sub Parse_Unit {
