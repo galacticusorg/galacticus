@@ -31,6 +31,7 @@ my %functionClasses;
 foreach my $srcdir ( @sourcedirs ) {
     opendir(my $indir,$srcdir) or die "Can't open the source directory: #!";
     while (my $fname = readdir $indir) {	
+		
 	if (
 	    ( $fname =~ m/\.[fF](90)??t??$/ || $fname =~ m/\.c(pp)??$/ || $fname =~ m/\.h$/ )
 	    && $fname !~ m/^\.\#/
@@ -49,6 +50,7 @@ foreach my $srcdir ( @sourcedirs ) {
 		# Open the file.
 		open(my $fileHandle,$fileNames[0]) or die "Can't open input file: #!";
 		seek($fileHandle,$filePositions[0],SEEK_SET) unless ( $filePositions[0] == -1 );
+
 
 		while (my $line = <$fileHandle>) {
 		    my $lineNumber = $.;
@@ -200,7 +202,7 @@ foreach my $directive ( keys(%includeDirectives) ) {
 	    if ( exists($otherDirectives->{$name}->{'dependency'}) );
     }
     print makefileHndl $fileName.": ".$ENV{'BUILDPATH'}."/".$directive.".xml".$extraDependencies." \$(BUILDPATH)/hdf5FCInterop.dat\n";
-    print makefileHndl "\t./scripts/build/Build_Include_File.pl ".$sourcedir." ".$ENV{'BUILDPATH'}."/".$directive.".xml\n";
+    print makefileHndl "\t./scripts/build/buildCode.pl ".$sourcedir." ".$ENV{'BUILDPATH'}."/".$directive.".xml\n";
     print makefileHndl "\n";
     open(xmlHndl,">".$ENV{'BUILDPATH'}."/".$directive.".xml.tmp");
     print xmlHndl ${$includeDirectives{$directive}}{'xml'};

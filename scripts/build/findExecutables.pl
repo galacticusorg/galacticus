@@ -49,7 +49,7 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 		unless ( $excludeFromMakeAll == 1 );
 	    print $outputFile fill_in_string(<<'MAKE', PACKAGE => 'make');
 {$fileNameRoot}.exe: {$workDirectoryName.$fileNameRoot}.o {$workDirectoryName.$fileNameRoot}.d $(MAKE_DEPS)
-	$(FCCOMPILER) `cat {$workDirectoryName.$fileNameRoot}.d` -o {$fileNameRoot}.exe $(FCFLAGS) `./scripts/build/Library_Dependencies.pl {$fileNameRoot}.exe $(FCFLAGS)`
+	$(FCCOMPILER) `cat {$workDirectoryName.$fileNameRoot}.d` -o {$fileNameRoot}.exe $(FCFLAGS) `./scripts/build/libraryDependencies.pl {$fileNameRoot}.exe $(FCFLAGS)`
 	./scripts/build/executableSize.pl {$fileNameRoot}.exe {$workDirectoryName.$fileNameRoot}.size
 	./scripts/build/parameterDependencies.pl `pwd` {$fileNameRoot}.exe
 

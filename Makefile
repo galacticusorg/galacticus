@@ -216,7 +216,7 @@ $(BUILDPATH)/%.m : ./source/%.F90
 # Executables (*.exe) are built by linking together all of the object files (*.o) specified in the associated dependency (*.d)
 # file.
 %.exe : $(BUILDPATH)/%.o $(BUILDPATH)/%.d `cat $(BUILDPATH)/$*.d` $(MAKE_DEPS)
-	 $(CONDORLINKER) $(FCCOMPILER) `cat $*.d` -o $*.exe $(FCFLAGS) `scripts/build/Library_Dependencies.pl $*.exe $(FCFLAGS)`
+	 $(CONDORLINKER) $(FCCOMPILER) `cat $*.d` -o $*.exe $(FCFLAGS) `scripts/build/libraryDependencies.pl $*.exe $(FCFLAGS)`
 	 ./scripts/build/executableSize.pl $*.exe $*.size
 	 ./scripts/build/parameterDependencies.pl `pwd` $*.exe
 
@@ -240,10 +240,10 @@ $(BUILDPATH)/%.m : ./source/%.F90
 -include $(BUILDPATH)/Makefile_Use_Deps
 
 # Rules for memory management routines.
-$(BUILDPATH)/Allocatable_Arrays.xml: ./scripts/build/Find_Allocatable_Arrays.pl source/*.[fF]90 $(wildcard source/*.Inc)
-	./scripts/build/Find_Allocatable_Arrays.pl `pwd`
+$(BUILDPATH)/allocatableArrays.xml: ./scripts/build/allocatableArrays.pl source/*.[fF]90 $(wildcard source/*.Inc)
+	./scripts/build/allocatableArrays.pl `pwd`
 
-$(BUILDPATH)/utility.memory_management.precontain.inc: ./scripts/build/Make_Memory_Usage_Routines.pl $(BUILDPATH)/Allocatable_Arrays.xml
+$(BUILDPATH)/utility.memory_management.precontain.inc: ./scripts/build/Make_Memory_Usage_Routines.pl $(BUILDPATH)/allocatableArrays.xml
 	./scripts/build/Make_Memory_Usage_Routines.pl
 
 $(BUILDPATH)/utility.memory_management.postcontain.inc:
@@ -300,9 +300,9 @@ $(BUILDPATH)/Makefile_Module_Deps: ./scripts/build/Find_Module_Dependencies.pl s
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/Find_Module_Dependencies.pl `pwd`
 
-$(BUILDPATH)/Makefile_Use_Deps: ./scripts/build/Find_Use_Dependencies.pl $(BUILDPATH)/Code_Directive_Locations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Deps source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp) $(wildcard source/*.Inc)
+$(BUILDPATH)/Makefile_Use_Deps: ./scripts/build/useDependencies.pl $(BUILDPATH)/Code_Directive_Locations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Deps source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp) $(wildcard source/*.Inc)
 	@mkdir -p $(BUILDPATH)
-	./scripts/build/Find_Use_Dependencies.pl `pwd` $(MAKE)
+	./scripts/build/useDependencies.pl `pwd`
 
 $(BUILDPATH)/Makefile_Directives: ./scripts/build/Code_Directive_Parser.pl source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp)
 	@mkdir -p $(BUILDPATH)
@@ -339,7 +339,7 @@ source/FFTlog/fftlog.f source/FFTlog/cdgamma.f source/FFTlog/drfftb.f source/FFT
 	 patch < ../drfftf.f.patch; \
 	 patch < ../drffti.f.patch; \
 	 cd -; \
-	 ./scripts/build/Find_Use_Dependencies.pl `pwd` $(MAKE); \
+	 ./scripts/build/useDependencies.pl `pwd` $(MAKE); \
 	fi
 	echo $(BUILDPATH)/FFTlog/cdgamma.o > $(BUILDPATH)/FFTlog/cdgamma.d
 	echo $(BUILDPATH)/FFTlog/drfftb.o  > $(BUILDPATH)/FFTlog/drfftb.d
@@ -347,17 +347,5 @@ source/FFTlog/fftlog.f source/FFTlog/cdgamma.f source/FFTlog/drfftb.f source/FFT
 	echo $(BUILDPATH)/FFTlog/drffti.o  > $(BUILDPATH)/FFTlog/drffti.d
 	echo $(BUILDPATH)/FFTlog/fftlog.o  > $(BUILDPATH)/FFTlog/fftlog.d
 
-$(BUILDPATH)/FFTlog/fftlog.o: ./source/FFTlog/fftlog.f Makefile
-	$(FCCOMPILER) -c $< -o $(BUILDPATH)/FFTlog/fftlog.o $(FCFLAGS)
-
-$(BUILDPATH)/FFTlog/cdgamma.o: ./source/FFTlog/cdgamma.f ./source/FFTlog/fftlog.f Makefile
-	$(FCCOMPILER) -c $< -o $(BUILDPATH)/FFTlog/cdgamma.o $(FCFLAGS)
-
-$(BUILDPATH)/FFTlog/drfftb.o: ./source/FFTlog/drfftb.f ./source/FFTlog/fftlog.f Makefile
-	$(FCCOMPILER) -c $< -o $(BUILDPATH)/FFTlog/drfftb.o $(FCFLAGS)
-
-$(BUILDPATH)/FFTlog/drfftf.o: ./source/FFTlog/drfftf.f ./source/FFTlog/fftlog.f Makefile
-	$(FCCOMPILER) -c $< -o $(BUILDPATH)/FFTlog/drfftf.o $(FCFLAGS)
-
-$(BUILDPATH)/FFTlog/drffti.o: ./source/FFTlog/drffti.f ./source/FFTlog/fftlog.f Makefile
-	$(FCCOMPILER) -c $< -o $(BUILDPATH)/FFTlog/drffti.o $(FCFLAGS)
+$(BUILDPATH)/FFTlog/%.o: ./source/FFTlog/%.f Makefile
+	$(FCCOMPILER) -c $< -o $(BUILDPATH)/FFTlog/$*.o $(FCFLAGS)
