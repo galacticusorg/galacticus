@@ -650,10 +650,12 @@ sub Unformat_Variables {
     foreach my $intrinsicType ( keys(%intrinsicDeclarations) ) {
 	# Check for a match to an intrinsic declaration regex.
 	if ( my @matches = $variableString =~ m/$intrinsicDeclarations{$intrinsicType}->{"regEx"}/i ) {
-	    my $type               =  $matches[$intrinsicDeclarations{$intrinsicType}->{"type"      }];
-	    my $variablesString    =  $matches[$intrinsicDeclarations{$intrinsicType}->{"variables" }];
+	    my $type               = $matches[$intrinsicDeclarations{$intrinsicType}->{"type"      }];
+	    my $variablesString    = $matches[$intrinsicDeclarations{$intrinsicType}->{"variables" }];
 	    my $attributesString   = $matches[$intrinsicDeclarations{$intrinsicType}->{"attributes"}];
 	    $type                  =~ s/^\((.*)\)$/$1/
+		if ( defined($type            ) );
+	    $type                  =~ s/\s//g
 		if ( defined($type            ) );
 	    $attributesString      =~ s/^\s*,\s*//
 		if ( defined($attributesString) );
@@ -661,7 +663,7 @@ sub Unformat_Variables {
 	    my @attributes         =  &Extract_Variables($attributesString,keepQualifiers => 1,removeSpaces => 1);
 	    my $variableDefinition =
 	    {
-		intrinsic => $intrinsicType,
+		intrinsic => $intrinsicDeclarations{$intrinsicType}->{'intrinsic'},
 		variables => \@variables
 	    };
 	    $variableDefinition->{'type'      } = $type
