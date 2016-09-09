@@ -1,23 +1,18 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use PDL;
 use XML::Simple;
 use Math::SigFigs;
 use Data::Dumper;
-require Galacticus::HDF5;
-require Stats::Histograms;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
-require XMP::MetaData;
+use Galacticus::HDF5;
+use Stats::Histograms;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
+use XMP::MetaData;
 
 # Get name of input and output files.
 die("Plot_HI_Gas_Mass_Function.pl <galacticusFile> <outputDir/File> [<showFit>]")
@@ -48,13 +43,13 @@ if ( $outputTo =~ m/\.pdf$/ ) {
 my $dataSet;
 $dataSet->{'file'} = $galacticusFile;
 $dataSet->{'store'} = 0;
-&HDF5::Get_Parameters($dataSet);
-&HDF5::Count_Trees($dataSet);
-&HDF5::Select_Output($dataSet,0.0);
+&Galacticus::HDF5::Get_Parameters($dataSet);
+&Galacticus::HDF5::Count_Trees($dataSet);
+&Galacticus::HDF5::Select_Output($dataSet,0.0);
 
 # Read the XML data file.
 my $xml = new XML::Simple;
-my $data = $xml->XMLin($galacticusPath."data/observations/massFunctionsHI/HI_Mass_Function_Zwaan_2005.xml");
+my $data = $xml->XMLin(&galacticusPath()."data/observations/massFunctionsHI/HI_Mass_Function_Zwaan_2005.xml");
 my $columns = $data->{'massFunction'}->{'columns'};
 my $xBins = pdl @{$columns->{'mass'}->{'data'}};
 my $x = pdl @{$columns->{'mass'}->{'data'}};
@@ -76,12 +71,12 @@ my $binMax = $xBins->index(nelem($xBins)-1)+0.5*$binStep;
 # Factor to convert cold gas mass to HI mass from Power, Baugh & Lacey (2009; http://adsabs.harvard.edu/abs/2009arXiv0908.1396P).
 my $gasMassToHIMassFactor = pdl 0.54;
 $dataSet->{'tree'} = "all";
-&HDF5::Get_Dataset($dataSet,['mergerTreeWeight','diskMassGas','spheroidMassGas']);
+&Galacticus::HDF5::Get_Dataset($dataSet,['mergerTreeWeight','diskMassGas','spheroidMassGas']);
 my $dataSets           = $dataSet->{'dataSets'};
 my $logarithmicMassGas = log10(($dataSets->{'diskMassGas'}+$dataSets->{'spheroidMassGas'})*$gasMassToHIMassFactor);
 my $weight             = $dataSets->{'mergerTreeWeight'};
 delete($dataSet->{'dataSets'});
-($yGalacticus, $errorGalacticus) = &Histograms::Histogram($xBins,$logarithmicMassGas,$weight,differential => 1);
+($yGalacticus, $errorGalacticus) = &Stats::Histograms::Histogram($xBins,$logarithmicMassGas,$weight,differential => 1);
 
 # Compute chi^2.
 my $chiSquared = sum(($yGalacticus-$y)**2/($errorGalacticus**2+(0.5*($errorUp-$errorDown))**2));
@@ -123,7 +118,7 @@ print $gnuPlot "set format y '\$10^{\%L}\$'\n";
 print $gnuPlot "set xrange [1.0e7:1.0e11]\n";
 print $gnuPlot "set yrange [1.0e-6:1.0e0]\n";
 print $gnuPlot "set pointsize 2.0\n";
-&PrettyPlots::Prepare_Dataset(
+&GnuPlot::PrettyPlots::Prepare_Dataset(
     \$plot,
     $x,$y,
     errorUp    => $errorUp,
@@ -131,10 +126,10 @@ print $gnuPlot "set pointsize 2.0\n";
     style      => "point",
     symbol     => [6,7],
     weight     => [5,3],
-    color      => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'slideSequence'}}[0]},
+    color      => $GnuPlot::PrettyPlots::colorPairs{${$GnuPlot::PrettyPlots::colorPairSequences{'slideSequence'}}[0]},
     title      => $data->{'massFunction'}->{'label'}.' [observed]'
     );
-&PrettyPlots::Prepare_Dataset(
+&GnuPlot::PrettyPlots::Prepare_Dataset(
     \$plot,
     $x,$yGalacticus,
     errorUp    => $errorGalacticus,
@@ -142,12 +137,12 @@ print $gnuPlot "set pointsize 2.0\n";
     style      => "point",
     symbol     => [6,7],
     weight     => [5,3],
-    color      => $PrettyPlots::colorPairs{'redYellow'},
+    color      => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
     title      => 'Galacticus'
     );
-&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF($plotFileEPS);
-&MetaData::Write($plotFile,$galacticusFile,$self);
+&GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS);
+&XMP::MetaData::Write($plotFile,$galacticusFile,$self);
 
 exit;

@@ -11,6 +11,9 @@
       <time>12.47</time>
       <mass>1.0e12</mass>
     </basic>
+    <spin>
+      <spin>0.035</spin>
+    </spin>
     <hotHalo>
       <mass>0.0</mass>
       <abundances>
@@ -37,5 +40,8 @@
       <time>13.47</time>
       <mass>1.0e12</mass>
     </basic>
+    <spin>
+      <spin>0.035</spin>
+    </spin>
   </node>
 </tree>

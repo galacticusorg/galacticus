@@ -1,20 +1,14 @@
 # Contains a Perl module which implements various useful functionality for extracting data on
 # parameters from Galacticus source code.
 
-package Parameters;
+package Galacticus::Doc::Parameters;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use XML::Simple;
 use Fcntl qw(SEEK_SET);
-require Fortran::Utils;
+use Fortran::Utils;
 
 sub ExpandRegEx {
     my $regEx           = shift;
@@ -71,7 +65,7 @@ sub ExpandRegEx {
 		    my $bufferedComments;
 		    if ( $codeType eq "fortran" ) {
 			# Get next line from the Fortran source.
-			&Fortran_Utils::Get_Fortran_Line($infile,$rawLine,$processedLine,$bufferedComments);
+			&Fortran::Utils::Get_Fortran_Line($infile,$rawLine,$processedLine,$bufferedComments);
 		    } elsif ( $codeType eq "c" ) {
 			# Get the next line from a C(++) source.
 			$processedLine = <$infile>;
@@ -97,7 +91,7 @@ sub ExpandRegEx {
 			    my $nextLine = "";
 			    until ( $nextLine =~ m/<\/$xmlTag>/ || eof($infile) ) {
 				if ( $codeType eq "fortran" ) {
-				    &Fortran_Utils::Get_Fortran_Line($infile,$nextLine,$processedLine,$bufferedComments);
+				    &Fortran::Utils::Get_Fortran_Line($infile,$nextLine,$processedLine,$bufferedComments);
 				} elsif ( $codeType eq "c" ) {
 				    $nextLine = <$infile>;
 				}

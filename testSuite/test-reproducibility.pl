@@ -65,7 +65,7 @@ my @tests =
 		  name              => "stellar metals"             ,
 		  output            => 1                            ,
 		  property          => "diskAbundancesStellarMetals",
-		  values            => pdl ( 2.8814957E9 )          ,
+		  values            => pdl ( 2.8814957e9 )          ,
 		  toleranceRelative => 1.0e-2
 	      }
 	     ]

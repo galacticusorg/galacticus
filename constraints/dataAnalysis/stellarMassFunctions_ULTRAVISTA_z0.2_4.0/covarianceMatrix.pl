@@ -1,14 +1,9 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 
 # Find the maximum likelihood estimate of the covariance matrix for the Muzzin et al. (2013) ULTRAVISTA stellar mass functions.
 # Andrew Benson (12-August-2014)
@@ -21,6 +16,6 @@ die("covarianceMatrix.pl: redshiftBin must be 0, 1, 2, 3, 4, 5, or 6")
     if ( $redshiftBin < 0 || $redshiftBin > 6 );
 
 # Simply run the generic script with our config file as argument.
-system($galacticusPath."constraints/dataAnalysis/scripts/covarianceMatrix.pl ".$galacticusPath."constraints/dataAnalysis/stellarMassFunctions_ULTRAVISTA_z0.2_4.0/covarianceMatrixControl.xml ".$redshiftBin);
+system(&galacticusPath()."constraints/dataAnalysis/scripts/covarianceMatrix.pl ".&galacticusPath()."constraints/dataAnalysis/stellarMassFunctions_ULTRAVISTA_z0.2_4.0/covarianceMatrixControl.xml ".$redshiftBin);
 
 exit;

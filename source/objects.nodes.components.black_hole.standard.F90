@@ -32,7 +32,7 @@ module Node_Component_Black_Hole_Standard
   !# <component>
   !#  <class>blackHole</class>
   !#  <name>standard</name>
-  !#  <isDefault>yes</isDefault>
+  !#  <isDefault>true</isDefault>
   !#  <output instances="first"/>
   !#  <properties>
   !#   <property>
@@ -68,31 +68,27 @@ module Node_Component_Black_Hole_Standard
   !#     <name>massSeed</name>
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
-  !#     <isVirtual>true</isVirtual>
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
   !#     <getFunction>Node_Component_Black_Hole_Standard_Seed_Mass</getFunction>
   !#   </property>
   !#   <property>
   !#     <name>spinSeed</name>
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
-  !#     <isVirtual>true</isVirtual>
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
   !#     <getFunction>Node_Component_Black_Hole_Standard_Seed_Spin</getFunction>
   !#   </property>
   !#   <property>
   !#     <name>accretionRate</name>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" />
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" isVirtual="true" />
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>true</isVirtual>
   !#   </property>
   !#   <property>
   !#     <name>radiativeEfficiency</name>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" />
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" isVirtual="true" />
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>true</isVirtual>
   !#   </property>
   !#  </properties>
   !#  <bindings>
@@ -334,7 +330,7 @@ contains
     type            (treeNode                                          )           , intent(inout), pointer :: thisNode
     logical                                                                        , intent(inout)          :: interrupt
     logical                                                                        , intent(in   )          :: odeConverged
-    procedure       (Interrupt_Procedure_Template                      )           , intent(inout), pointer :: interruptProcedure
+    procedure       (interruptTask                                     )           , intent(inout), pointer :: interruptProcedure
     class           (nodeComponentBlackHole                            )                          , pointer :: binaryBlackHoleComponent                                                                                                                          , centralBlackHoleComponent                                      , &
          &                                                                                                     thisBlackHoleComponent
     class           (nodeComponentSpheroid                             )                          , pointer :: thisSpheroidComponent

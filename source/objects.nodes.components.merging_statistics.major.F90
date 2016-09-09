@@ -30,7 +30,7 @@ module Node_Component_Merging_Statistics_Major
   !# <component>
   !#  <class>mergingStatistics</class>
   !#  <name>major</name>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>majorMergerTime</name>

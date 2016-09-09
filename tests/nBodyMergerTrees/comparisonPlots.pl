@@ -1,20 +1,14 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use PDL::IO::HDF5;
 use PDL::IO::HDF5::Dataset;
 use Data::Dumper;
-require Galacticus::HDF5;
-require Stats::Histograms;
+use Galacticus::HDF5;
+use Stats::Histograms;
 
 # Plot various statistics of galaxies computed with N-body and Monte Carlo merger trees for comparison.
 # Andrew Benson (4-October-2010).
@@ -56,8 +50,8 @@ foreach my $model ( @models ) {
     $dataSet->{'file' } = "tests/nBodyMergerTrees/models/galacticus_0:".$model->{'number'}."/galacticus.hdf5";
     $dataSet->{'store'} = 0;
     $dataSet->{'tree' } = "all";
-    &HDF5::Select_Output($dataSet,0.0);
-    &HDF5::Get_Dataset($dataSet,\@properties);
+    &Galacticus::HDF5::Select_Output($dataSet,0.0);
+    &Galacticus::HDF5::Get_Dataset($dataSet,\@properties);
     my $dataSets         = $dataSet->{'dataSets'};
     foreach my $property ( @properties ) {
 	${$modelValues[$iModel]}{$property} = $dataSets->{$property};
@@ -110,7 +104,7 @@ foreach my $plot ( @plots ) {
 	    $xBins = $bins;
 	}
 	my $w = $modelValue->{'mergerTreeWeight'};
-	(my $y, my $error) = &Histograms::Histogram($bins,$x,$w,differential => 1,normalized => 1);
+	(my $y, my $error) = &Stats::Histograms::Histogram($bins,$x,$w,differential => 1,normalized => 1);
 	for (my $i=0;$i<nelem($xBins);++$i) {
 	    print gnuPlot $xBins->index($i)." ".$y->index($i)." ".$error->index($i)."\n";
 	}

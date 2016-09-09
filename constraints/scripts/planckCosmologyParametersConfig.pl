@@ -1,21 +1,15 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use XML::Simple;
 use PDL;
 use PDL::NiceSlice;
 use PDL::LinearAlgebra;
 use PDL::IO::Misc;
 use PDL::MatrixOps;
-use UNIVERSAL 'isa';
 use Data::Dumper;
 
 # Generates a configuration for cosmological parameters based on the Planck covariance matrix and suitable for use with the
@@ -25,15 +19,15 @@ use Data::Dumper;
 # Andrew Benson (16-October-2014)
 
 # Download Planck MCMC chains data set.
-system("wget \"http://pla.esac.esa.int/pla-sl/data-action?COSMOLOGY.COSMOLOGY_OID=1200\" -O ".$galacticusPath."aux/COM_CosmoParams_base-plikHM-TT-lowTEB_R2.00.tar.gz")
-    unless ( -e $galacticusPath."aux/COM_CosmoParams_base-plikHM-TT-lowTEB_R2.00.tar.gz" );
+system("wget \"http://pla.esac.esa.int/pla-sl/data-action?COSMOLOGY.COSMOLOGY_OID=1200\" -O ".&galacticusPath()."aux/COM_CosmoParams_base-plikHM-TT-lowTEB_R2.00.tar.gz")
+    unless ( -e &galacticusPath()."aux/COM_CosmoParams_base-plikHM-TT-lowTEB_R2.00.tar.gz" );
 
 # Unpack Planck MCMC chains data set.
-system("cd ".$galacticusPath."aux; tar xvfz COM_CosmoParams_base-plikHM-TT-lowTEB_R2.00.tar.gz")
-    unless ( -e $galacticusPath."aux/base/plikHM_TT_lowTEB_lensing" );
+system("cd ".&galacticusPath()."aux; tar xvfz COM_CosmoParams_base-plikHM-TT-lowTEB_R2.00.tar.gz")
+    unless ( -e &galacticusPath()."aux/base/plikHM_TT_lowTEB_lensing" );
 
 # Specify Planck directory.
-my $planckDirectoryName = $galacticusPath."aux/base/plikHM_TT_lowTEB_lensing/";
+my $planckDirectoryName = &galacticusPath()."aux/base/plikHM_TT_lowTEB_lensing/";
 
 # Specify parameter names of interest.
 my %parameterMap = 

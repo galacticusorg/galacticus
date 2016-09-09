@@ -1,19 +1,13 @@
 #!/usr/bin/env perl
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use strict;
 use warnings;
 use Clone qw(clone);
-require Galacticus::Options;
-require Galacticus::Constraints::DiscrepancyModels;
-require Galacticus::Launch::PBS;
-require Galacticus::Constraints::Parameters;
+use Galacticus::Options;
+use Galacticus::Constraints::DiscrepancyModels;
+use Galacticus::Launch::PBS;
+use Galacticus::Constraints::Parameters;
 
 # Run calculations to determine the model discrepancy arising from the use of a cosmology-independent set of merger trees.
 # Andrew Benson (09-January-2014)
@@ -27,11 +21,11 @@ my %arguments =
      make => "yes",
      plot => "no"
     );
-&Options::Parse_Options(\@ARGV,\%arguments);
+&Galacticus::Options::Parse_Options(\@ARGV,\%arguments);
 
 # Parse the constraint config file.
 my $xml    = new XML::Simple;
-my $config = &Parameters::Parse_Config($configFile);
+my $config = &Galacticus::Constraints::Parameters::Parse_Config($configFile);
 
 # Determine base parameters to use.
 my $baseParameters = exists($arguments{'baseParameters'}) 
@@ -41,7 +35,7 @@ my $baseParameters = exists($arguments{'baseParameters'})
 	                    $config->{'likelihood'}->{'baseParameters'};
 
 # Get a hash of the parameter values.
-(my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'likelihood'}->{'compilation'},$baseParameters);
+(my $constraintsRef, my $parameters) = &Galacticus::Constraints::Parameters::Compilation($config->{'likelihood'}->{'compilation'},$baseParameters);
 my @constraints = @{$constraintsRef};
 
 # Determine the work directory.
@@ -141,7 +135,7 @@ $newParameters->{'mergerTreeBuildTreesPerDecade'}->{'value'} = $arguments{'trees
 unless ( -e $treeFile ) {
     system("mkdir -p ".$modelDirectory);
     my $parameterFileName = $modelDirectory."/parameters.xml";
-    &Parameters::Output($newParameters,$parameterFileName);
+    &Galacticus::Constraints::Parameters::Output($newParameters,$parameterFileName);
     # Create PBS job.
     my $command = "mpirun --bynode -np 1 Galacticus.exe ".$parameterFileName."\n";
     my %job =
@@ -158,7 +152,7 @@ unless ( -e $treeFile ) {
     # Queue the calculation.
     my @pbsStack = ( \%job );
     # Send jobs to PBS.
-    &PBS::SubmitJobs(\%arguments,@pbsStack);
+    &Galacticus::Launch::PBS::SubmitJobs(\%arguments,@pbsStack);
 }
 
 # Specify models to run.
@@ -191,7 +185,7 @@ my $models =
 };
 
 # Run the models.
-&DiscrepancyModels::RunModels(
+&Galacticus::Constraints::DiscrepancyModels::RunModels(
 	"fixedTreeCosmology"              ,
 	"use of fixed cosmology for trees",
 	$configFile                       ,

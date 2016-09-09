@@ -1,14 +1,9 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use PDL;
 use PDL::IO::HDF5;
 use PDL::IO::HDF5::Dataset;
@@ -210,7 +205,7 @@ foreach my $model ( @modelsToConvert ) {
 
 	# Create the HDF5 output file.
 	$IMF = ucfirst($IMF);
-	my $HDFfile = new PDL::IO::HDF5(">".$galacticusPath."data/stellarPopulations/SSP_Spectra_BC2003_".$resolutionLookup{$resolution}."_imf".$IMF.".hdf5");
+	my $HDFfile = new PDL::IO::HDF5(">".&galacticusPath()."data/stellarPopulations/SSP_Spectra_BC2003_".$resolutionLookup{$resolution}."_imf".$IMF.".hdf5");
 	$HDFfile->dataset("ages"         )->set($ageDataset       );
 	$HDFfile->dataset("wavelengths"  )->set($wavelengthDataset);
 	$HDFfile->dataset("metallicities")->set($metallicities    );

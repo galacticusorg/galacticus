@@ -1,16 +1,10 @@
 #!/usr/bin/env perl
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use strict;
 use warnings;
-require Galacticus::Options;
-require Galacticus::Constraints::DiscrepancyModels;
+use Galacticus::Options;
+use Galacticus::Constraints::DiscrepancyModels;
 
 # Run calculations to determine the model discrepancy arising from the use of less scatter in
 # the merging timescale for satellite galaxies in the Jiang2008 model than is recommended.
@@ -25,7 +19,7 @@ my %arguments =
      make => "yes",
      plot => "no"
     );
-&Options::Parse_Options(\@ARGV,\%arguments);
+&Galacticus::Options::Parse_Options(\@ARGV,\%arguments);
 
 # Specify models to run.
 my $models = 
@@ -62,7 +56,7 @@ my $models =
 };
 
 # Run the models.
-&DiscrepancyModels::RunModels(
+&Galacticus::Constraints::DiscrepancyModels::RunModels(
 	"jiang2008MergingTimeScatter"    ,
 	"use of scatterless merging time",
 	$configFile                      ,

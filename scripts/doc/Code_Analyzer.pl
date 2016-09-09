@@ -1,21 +1,15 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use File::Find;
 use Data::Dumper;
 use Cwd;
 use Text::Balanced qw (extract_bracketed);
 use LaTeX::Encode;
 use Fcntl qw(SEEK_SET);
-require Fortran::Utils;
+use Fortran::Utils;
 
 # Scan Fortran 90 source code and output a Latex file describing it.
 #
@@ -150,7 +144,7 @@ sub processFile {
 		  my $lineProcessed = 0;
 		  
 		  # Grab the next Fortran line.
-		  &Fortran_Utils::Get_Fortran_Line($fileHandle,my $rawLine,my $processedLine,my $bufferedComments);
+		  &Fortran::Utils::Get_Fortran_Line($fileHandle,my $rawLine,my $processedLine,my $bufferedComments);
 		  foreach my $unitID ( @unitIdList ) {
 		      ++$units{$unitID}->{"codeLines"};
 		  }
@@ -281,7 +275,7 @@ sub processFile {
 			  my $variablesList = lc($matches[$matchIndex-1]);
 			  # Get ID of unit.
 			  my $unitId = $unitIdList[-1];
-			  my @variables = &Fortran_Utils::Extract_Variables($variablesList);
+			  my @variables = &Fortran::Utils::Extract_Variables($variablesList);
 			  # Store the variable list.
 			  push(@{$units{$unitId}->{$intrinsicType}},@variables);
 			  # Mark line as processed.
@@ -294,7 +288,7 @@ sub processFile {
 		  if ( $processedLine =~ m/$derivedTypeRegex/i ) {
 		      my $derivedType = $1;
 		      my $variablesList = $3;
-		      my @variables = &Fortran_Utils::Extract_Variables($variablesList);		    
+		      my @variables = &Fortran::Utils::Extract_Variables($variablesList);		    
 		      my $unitId = $unitIdList[-1];
 		      push(@{$units{$unitId}->{"derivedTypesUsed"}->{$derivedType}},@variables);
 		      # Mark line as processed.

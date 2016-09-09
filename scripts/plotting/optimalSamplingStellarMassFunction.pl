@@ -70,22 +70,22 @@ print $gnuPlot "set title 'Optimal sampling density'\n";
 print $gnuPlot "set xlabel '\$M_{\\rm halo} [M_\\odot]\$'\n";
 print $gnuPlot "set ylabel '\$\\gamma(M_{\\rm halo})\$'\n";
 print $gnuPlot "set pointsize 2.0\n";
-&PrettyPlots::Prepare_Dataset(\$plot,
+&GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 			      $haloMass,$haloMF,
 			      style     => "line",
 			      weight    => [5,3],
-			      color     => $PrettyPlots::colorPairs{'cornflowerBlue'},
+			      color     => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'},
 			      title     => 'Halo mass function weight'
     );
-&PrettyPlots::Prepare_Dataset(\$plot,
+&GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 			      $haloMass,$gamma,
 			      style     => "line",
 			      weight    => [5,3],
-			      color     => $PrettyPlots::colorPairs{'redYellow'},
+			      color     => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
 			      title     => 'Optimal weight'
     );
-&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF($plotFileEPS);
+&GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS);
 
 exit;

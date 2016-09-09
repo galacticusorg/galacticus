@@ -1,8 +1,11 @@
 # Contains a Perl module which implements reading and writing of Galacticus metadata to the XMP data in PDF files.
 
-package MetaData;
+package XMP::MetaData;
 use strict;
 use warnings;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use Image::ExifTool qw(:Public);
 use File::Slurp;
 use PDL;
@@ -10,16 +13,7 @@ use PDL::IO::HDF5;
 use Text::Wrap;
 use XML::Simple;
 use Data::Dumper;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
- $ENV{"GALACTICUS_ROOT_V094"} = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
-require File::Which;
+use File::Which;
 
 # Define new XMP tags.
 my %sourceStruct = (
@@ -89,15 +83,6 @@ sub Write {
     my $galacticusFile = shift;
     my $scriptFile     = shift;
 
-    # Get the Galacticus input path.
-    my $galacticusPath;
-    if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-	$galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-	$galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-    } else {
-	$galacticusPath = "./";
-    }
-
     # Access the metadata of the plot file.
     my $exifTool = new Image::ExifTool;
     $exifTool->Options(Struct => 1,List => 1);
@@ -130,14 +115,14 @@ sub Write {
 
     my $hg =&File::Which::which("hg");
     unless ( $hg eq "" ) {
-	system("hg summary ".$galacticusPath." > /dev/null 2>&1");
+	system("hg summary ".&galacticusPath()." > /dev/null 2>&1");
 	my $isMercurialBranch = $?;
 	if ( $isMercurialBranch == 0 ) {
 	    my $cwd    = `pwd`;
 	    my $branch = `hg branch`;
 	    chomp($branch);
-	    system("cd ".$galacticusPath."; hg bundle -t none -t ".$branch." ".$cwd."/hgBundle.meta https://abensonca\@bitbucket.org/abensonca/galacticus");
-	    my $hgDiff   = `hg diff $galacticusPath`;
+	    system("cd ".&galacticusPath()."; hg bundle -t none -t ".$branch." ".$cwd."/hgBundle.meta https://abensonca\@bitbucket.org/abensonca/galacticus");
+	    my $hgDiff   = `hg diff &galacticusPath()`;
 	    my $hgBundle = read_file("hgBundle.meta");
 	    $metaData{'Source'} = {
 		hgDiff   => $hgDiff,

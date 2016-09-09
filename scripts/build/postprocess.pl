@@ -4,7 +4,7 @@ use warnings;
 use Data::Dumper;
 my $haveColor = eval
 {
-    require Term::ANSIColor;
+use Term::ANSIColor;
     Term::ANSIColor->import();
 };
 

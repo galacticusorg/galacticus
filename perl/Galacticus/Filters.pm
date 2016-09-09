@@ -2,25 +2,21 @@
 
 # Contributions to this file from: Andrew Benson; Christoph Behrens.
 
-package Filters;
+package Galacticus::Filters;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
 use utf8;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use XML::Simple;
+use Galacticus::Path;
 
 sub Load {
     # Get the name of the requested filter.
     my $filterName = shift;
     # Load a filter response from file.
-    my $filterFile        = $galacticusPath."data/filters/".$filterName.".xml";
+    my $filterFile        = &galacticusPath()."data/filters/".$filterName.".xml";
     my $xml               = new XML::Simple;
     my $filter            = $xml->XMLin($filterFile);
     my $filterWavelengths = pdl [];

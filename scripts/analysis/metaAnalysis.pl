@@ -1,18 +1,12 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use PDL::IO::HDF5;
-require GnuPlot::LaTeX;
-require GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
+use GnuPlot::PrettyPlots;
 use Data::Dumper;
 
 # Create plots of collected metadata on merger tree ODE evolver.
@@ -77,13 +71,13 @@ print $gnuPlot "set yrange [1.0e-6:1.0]\n";
 print $gnuPlot "set title 'Timestep distribution'\n";
 print $gnuPlot "set xlabel 'Timestep [Gyr]'\n";
 print $gnuPlot "set ylabel 'Frequency'\n";
-&PrettyPlots::Prepare_Dataset(\$plot,
+&GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 			      $timeSteps,$timeStepCount,
 			      style => "point", symbol => [6,7], weight => [5,3],
-			      color => $PrettyPlots::colorPairs{'cornflowerBlue'});
-&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+			      color => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'});
+&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF($outputFileEPS);
+&GnuPlot::LaTeX::GnuPlot2PDF($outputFileEPS);
 
 # Open a pipe to GnuPlot and make a plot of halo mass to stellar mass ratio vs. stellar mass.
 $outputFile = $outputFolder."/hitRates.pdf";
@@ -106,15 +100,15 @@ print $gnuPlot "set yrange [0:".$yExtent."]\n";
 print $gnuPlot "set title 'Hit Frequency'\n";
 print $gnuPlot "set xlabel 'Property'\n";
 print $gnuPlot "set ylabel 'Hit frequency [\\%]'\n";
-&PrettyPlots::Prepare_Dataset(\$plot,
+&GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 			      $propertyIndex,$propertyHitRate,
 			      style => "boxes", symbol => [6,7], weight => [5,3],
-			      color => $PrettyPlots::colorPairs{'cornflowerBlue'});
+			      color => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'});
 for (my $iProperty=0;$iProperty<nelem($propertyHitCount);++$iProperty) {
     print $gnuPlot "set label '".$propertyNames->atstr($iProperty)."' at ".$propertyIndex->index($iProperty).",0 front rotate by 90\n";
 }
-&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF($outputFileEPS);
+&GnuPlot::LaTeX::GnuPlot2PDF($outputFileEPS);
 
 exit;

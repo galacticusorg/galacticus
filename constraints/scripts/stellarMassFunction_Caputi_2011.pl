@@ -1,26 +1,21 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use PDL;
 use PDL::NiceSlice;
 use XML::Simple;
 use Astro::Cosmology;
 use Math::SigFigs;
 use Data::Dumper;
-require Galacticus::HDF5;
-require Galacticus::StellarMass;
-require Stats::Histograms;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
-require XMP::MetaData;
+use Galacticus::HDF5;
+use Galacticus::StellarMass;
+use Stats::Histograms;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
+use XMP::MetaData;
 
 # Compute likelihood (and make plots) for a Galacticus model given the stellar mass function data from Caputi et al. (2011;
 # http://adsabs.harvard.edu/abs/2011MNRAS.413..162C).
@@ -35,7 +30,7 @@ $plotFile          = $ARGV[2] if ( $#ARGV == 2 );
 
 # Read the XML data file.
 my $xml       = new XML::Simple;
-my $data      = $xml->XMLin($galacticusPath."data/observations/massFunctionsStellar/Stellar_Mass_Functions_Caputi_2011.xml");
+my $data      = $xml->XMLin(&galacticusPath()."data/observations/massFunctionsStellar/Stellar_Mass_Functions_Caputi_2011.xml");
 
 # Initialize the constraint data.
 my $constraint;
@@ -57,9 +52,9 @@ foreach my $dataset ( @{$data->{'dataset'}} ) {
     my $galacticus;
     $galacticus->{'file' } = $galacticusFile;
     $galacticus->{'store'} = 0;
-    &HDF5::Get_Parameters($galacticus          );
-    &HDF5::Count_Trees   ($galacticus          );
-    &HDF5::Select_Output ($galacticus,$redshift);
+    &Galacticus::HDF5::Get_Parameters($galacticus          );
+    &Galacticus::HDF5::Count_Trees   ($galacticus          );
+    &Galacticus::HDF5::Select_Output ($galacticus,$redshift);
 
     # Compute cosmology corrections.
     my $cosmologyData = Astro::Cosmology->new(
@@ -91,7 +86,7 @@ foreach my $dataset ( @{$data->{'dataset'}} ) {
 
     # Read galaxy data and construct mass function.
     $galacticus->{'tree'} = "all";
-    &HDF5::Get_Dataset($galacticus,['volumeWeight','massStellar']);
+    &Galacticus::HDF5::Get_Dataset($galacticus,['volumeWeight','massStellar']);
     my $dataSets               = $galacticus->{'dataSets'};
     my $logarithmicStellarMass = log10($dataSets->{'massStellar' });
     my $weight                 =       $dataSets->{'volumeWeight'};
@@ -100,7 +95,7 @@ foreach my $dataset ( @{$data->{'dataset'}} ) {
     # Construct the mass function. Assume 0.3 dex errors on stellar masses which is the dispersion in Delta M/M* reported by
     # Caputi et al. (2011).
     my $sigma = pdl ones(nelem($logarithmicStellarMass))*0.3;
-    (my $yGalacticus,my $errorGalacticus) = &Histograms::Histogram($xBins,$logarithmicStellarMass,$weight,differential => 1,gaussianSmooth => $sigma);
+    (my $yGalacticus,my $errorGalacticus) = &Stats::Histograms::Histogram($xBins,$logarithmicStellarMass,$weight,differential => 1,gaussianSmooth => $sigma);
 
     # Estimate reasonable errors for the stellar mass function. No covariance matrix is available.
     my $error              = 0.5*($errorUp+$errorDown);
@@ -142,30 +137,30 @@ foreach my $dataset ( @{$data->{'dataset'}} ) {
 	print $gnuPlot "set title 'Stellar mass function at \$z=".$redshift."\$'\n";
 	print $gnuPlot "set xlabel '\$M_\\star\$ [\$M_\\odot\$]'\n";
 	print $gnuPlot "set ylabel '\${\\rm d}n/{\\rm d}\\log_{10}M_\\star\$'\n";
-	&PrettyPlots::Prepare_Dataset(\$plot,
+	&GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 				      $x,$y,
 				      errorUp   => $errorUp,
 				      errorDown => $errorDown,
 				      style     => "point",
 				      symbol    => [6,7], 
 				      weight    => [5,3],
-				      color     => $PrettyPlots::colorPairs{'cornflowerBlue'},
+				      color     => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'},
 				      title     => $data->{'label'}
 	    );
-	&PrettyPlots::Prepare_Dataset(\$plot,
+	&GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 				      $x,$yGalacticus,
 				      errorUp   => $errorGalacticus,
 				      errorDown => $errorGalacticus,
 				      style     => "point",
 				      symbol    => [6,7], 
 				      weight    => [5,3],
-				      color     => $PrettyPlots::colorPairs{'redYellow'},
+				      color     => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
 				      title     => "Galacticus"
 	    );
-	&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+	&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 	close($gnuPlot);
-	&LaTeX::GnuPlot2PDF($plotFileEPS);
-	&MetaData::Write($thisFile,$galacticusFile,$self);
+	&GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS);
+	&XMP::MetaData::Write($thisFile,$galacticusFile,$self);
     }
 
 }

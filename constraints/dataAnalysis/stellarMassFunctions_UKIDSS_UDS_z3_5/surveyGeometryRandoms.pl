@@ -1,14 +1,9 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath  = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath  = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use DateTime;
 use PDL;
 use PDL::NiceSlice;
@@ -16,8 +11,8 @@ use PDL::IO::Misc;
 use PDL::IO::HDF5;
 use Carp 'verbose';
 $SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
 
 # Construct a set of random points that lie within the angular mask of the UKIDSS UDS sample used by Caputi et al. (2011;
 # http://adsabs.harvard.edu/abs/2011MNRAS.413..162C). The mask is defined by a set of boundaries, plus a set of rectangular
@@ -28,7 +23,7 @@ require GnuPlot::LaTeX;
 # Andrew Benson (23-August-2012)
 
 # Define a working directory.
-my $workDirectory = $galacticusPath."constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/";
+my $workDirectory = &galacticusPath()."constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/";
 
 # Read galaxy positions.
 (my $RA, my $dec) = rcols($workDirectory."data/surveyGeometry.txt",{EXCLUDE => '/#/'});
@@ -268,13 +263,13 @@ print $gnuPlot "set pointsize 2.0\n";
 foreach my $boundary ( @boundaries ) {
     my $sx = pdl ( $boundary->{'x1'}, $boundary->{'x2'} );
     my $sy = pdl ( $boundary->{'y1'}, $boundary->{'y2'} );
-    &PrettyPlots::Prepare_Dataset(
+    &GnuPlot::PrettyPlots::Prepare_Dataset(
 	\$plot,
 	$sx,
 	$sy,
 	style      => "line",
 	weight     => [1,1],
-	color      => $PrettyPlots::colorPairs{'indianRed'},
+	color      => $GnuPlot::PrettyPlots::colorPairs{'indianRed'},
 	);
 }
 # Add rectangles.
@@ -291,44 +286,44 @@ foreach my $rectangle ( @rectangles ) {
 	$rectangle->{'y'}+0.5*$rectangle->{'sizeY'}, 
 	$rectangle->{'y'}+0.5*$rectangle->{'sizeY'} 
 	);
-    &PrettyPlots::Prepare_Dataset(
+    &GnuPlot::PrettyPlots::Prepare_Dataset(
 	\$plot,
 	$sx->((0),:),
 	$syl->((0),:),,
 	y2         => $syu->((0),:),,
 	style      => "filledCurve",
 	weight     => [1,1],
-	color      => $PrettyPlots::colorPairs{'cornflowerBlue'},
+	color      => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'},
 	);
 }
 # Add galaxies.
 my $uniformRandom = random(nelem($RA));
 my $selection     = which($uniformRandom <= 1.0);
-&PrettyPlots::Prepare_Dataset(
+&GnuPlot::PrettyPlots::Prepare_Dataset(
     \$plot,
     $RA ->index($selection),
     $dec->index($selection),
     style      => "point",
     weight     => [1,1],
     symbol     => [0,0],
-    color      => $PrettyPlots::colorPairs{'mediumSeaGreen'},
+    color      => $GnuPlot::PrettyPlots::colorPairs{'mediumSeaGreen'},
     );
 # Add random points.
 my $uniformRandomRandom = random(nelem($randomAccept));
 my $selectionRandom     = which($uniformRandomRandom <= 0.1);
-&PrettyPlots::Prepare_Dataset(
+&GnuPlot::PrettyPlots::Prepare_Dataset(
     \$plot,
     $randomRA ->index($randomAccept->index($selectionRandom)),
     $randomDec->index($randomAccept->index($selectionRandom)),
     style      => "point",
     weight     => [1,1],
     symbol     => [0,0],
-    color      => $PrettyPlots::colorPairs{'redYellow'},
+    color      => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
     );
 # Finalize the plot.
-&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF($plotFileEPS);
+&GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS);
 
 exit;
 

@@ -1,21 +1,13 @@
 # Contains a Perl module which implements checking of whether a file has changed with respect to another version.
 
-package File_Changes;
+package File::Changes;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
 use File::Copy;
 use File::Compare;
 
 sub Update {
-    # Checks if a file1 is different from file2 and, if it is, replaces file2 with file1. Otherwise, file1 is deleted.
+    # Checks if a file1 is different from file2 and, if it is, replaces file1 with file2. Otherwise, file2 is deleted.
 
     # Get file names.
     my $oldFile = $_[0];

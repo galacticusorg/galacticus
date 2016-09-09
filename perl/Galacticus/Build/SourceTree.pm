@@ -1,42 +1,36 @@
 # Contains a Perl module which implements a tree-based preprocessor for Galacticus Fortran source files.
 
-package SourceTree;
+package Galacticus::Build::SourceTree;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl");
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Data::Dumper;
 use Scalar::Util qw(reftype);
-require Fortran::Utils;
-require Galacticus::Build::SourceTree::Hooks;
-require Galacticus::Build::SourceTree::Parse::Directives;
-require Galacticus::Build::SourceTree::Parse::Visibilities;
-require Galacticus::Build::SourceTree::Parse::ModuleUses;
-require Galacticus::Build::SourceTree::Parse::Declarations;
-require Galacticus::Build::SourceTree::Process::Enumeration;
-require Galacticus::Build::SourceTree::Process::InputParameter;
-require Galacticus::Build::SourceTree::Process::InputParameterList;
-require Galacticus::Build::SourceTree::Process::FunctionClass;
-require Galacticus::Build::SourceTree::Process::OptionalArgument;
-require Galacticus::Build::SourceTree::Process::Generics;
-require Galacticus::Build::SourceTree::Process::SourceDigest;
-require Galacticus::Build::SourceTree::Process::SourceIntrospection;
-require Galacticus::Build::SourceTree::Process::ObjectBuilder;
-require Galacticus::Build::SourceTree::Process::DebugHDF5;
-require Galacticus::Build::SourceTree::Process::GCCAttributes;
-require Galacticus::Build::SourceTree::Process::HDF5FCInterop;
+use Fortran::Utils;
+use Galacticus::Build::SourceTree::Hooks;
+use Galacticus::Build::SourceTree::Parse::Directives;
+use Galacticus::Build::SourceTree::Parse::Visibilities;
+use Galacticus::Build::SourceTree::Parse::ModuleUses;
+use Galacticus::Build::SourceTree::Parse::Declarations;
+use Galacticus::Build::SourceTree::Process::Enumeration;
+use Galacticus::Build::SourceTree::Process::InputParameter;
+use Galacticus::Build::SourceTree::Process::InputParameterList;
+use Galacticus::Build::SourceTree::Process::FunctionClass;
+use Galacticus::Build::SourceTree::Process::OptionalArgument;
+use Galacticus::Build::SourceTree::Process::Generics;
+use Galacticus::Build::SourceTree::Process::SourceDigest;
+use Galacticus::Build::SourceTree::Process::SourceIntrospection;
+use Galacticus::Build::SourceTree::Process::ObjectBuilder;
+use Galacticus::Build::SourceTree::Process::DebugHDF5;
+use Galacticus::Build::SourceTree::Process::GCCAttributes;
+use Galacticus::Build::SourceTree::Process::HDF5FCInterop;
 
-sub ParseFile {
+sub ParseFile {    
     # Grab the file name.
     my $fileName = shift();
     # Read the code.
-    my $code = &SourceIntrospection::ReadFile($fileName);
+    my $code = &Galacticus::Build::SourceTree::Process::SourceIntrospection::ReadFile($fileName);
     # Initialize root object.
     (my $fileRootName = $fileName) =~ s/^.*\/([^\/]+)$/$1/;
     my $tree =
@@ -94,8 +88,8 @@ sub BuildTree {
     # Run all defined parsers on the tree.
     my @unitParsers = ( "directives" );
     for(my $stage=0;$stage<2;++$stage) {
-	foreach my $parser ( keys(%Hooks::parseHooks) ) {
-	    &{$Hooks::parseHooks{$parser}}($tree)
+	foreach my $parser ( keys(%Galacticus::Build::SourceTree::Hooks::parseHooks) ) {
+	    &{$Galacticus::Build::SourceTree::Hooks::parseHooks{$parser}}($tree)
 		if ( 
 		    ( $stage == 0 &&   grep {$_ eq $parser} @unitParsers )
 		    ||
@@ -110,8 +104,9 @@ sub ProcessTree {
     my $tree      = shift();
     my (%options) = @_;
     # Run all defined processors on the tree.
-    &{$Hooks::processHooks{$_}}($tree,\%options)
-	foreach ( keys(%Hooks::processHooks) );
+    &{$Galacticus::Build::SourceTree::Hooks::processHooks{$_}}($tree,\%options)
+	foreach ( keys(%Galacticus::Build::SourceTree::Hooks::processHooks) );
+    return $tree;
 }
 
 sub Parse_Unit {
@@ -141,7 +136,7 @@ sub Build_Children {
     my $rawCode;
     my $rawLineNumber = $lineNumber+1;
     # Initialize custom openers;
-    my %unitOpeners = %Fortran_Utils::unitOpeners;
+    my %unitOpeners = %Fortran::Utils::unitOpeners;
     $unitOpeners{'contains'} = { unitName => -1, regEx => qr/^\s*contains\s*$/ };
     # Connect a file handle to the code text.
     open(my $code,"<",\$codeText);
@@ -149,7 +144,7 @@ sub Build_Children {
     do {
 	# Get a line.
 	my ($rawLine, $processedLine, $bufferedComments);
-	&Fortran_Utils::Get_Fortran_Line($code,$rawLine,$processedLine,$bufferedComments);
+	&Fortran::Utils::Get_Fortran_Line($code,$rawLine,$processedLine,$bufferedComments);
 	$lineNumber += $rawLine =~ tr/\n//;
 	# Check for unit opening.
 	my $unitFound;	
@@ -185,7 +180,7 @@ sub Build_Children {
 		if ( $unitType eq "contains" ) {
 		    $closerRegExp = qr/(?!)/; # Never match.
 		} else {
-		    $closerRegExp = $Fortran_Utils::unitClosers{$unitType}->{'regEx'};
+		    $closerRegExp = $Fortran::Utils::unitClosers{$unitType}->{'regEx'};
 		}
 		do {
 		    # Get the next line.
@@ -193,11 +188,11 @@ sub Build_Children {
 			$rawLine       = "";
 			$processedLine = "";
 		    } else {
-			&Fortran_Utils::Get_Fortran_Line($code,$rawLine, $processedLine, $bufferedComments);
+			&Fortran::Utils::Get_Fortran_Line($code,$rawLine, $processedLine, $bufferedComments);
 			$lineNumber += $rawLine =~ tr/\n//;
 		    }
 		    if ( ( $unitType eq "contains" && eof($code) ) || ( my @matches = ( $processedLine =~ $closerRegExp ) ) ) {
-			my $closeUnitName = $matches[$Fortran_Utils::unitClosers{$unitType}->{'unitName'}]
+			my $closeUnitName = $matches[$Fortran::Utils::unitClosers{$unitType}->{'unitName'}]
 			    unless ( $unitType eq "contains" );
 			if ( $unitType eq "contains" || ( defined($unitName) && $closeUnitName eq $unitName ) ) {
 			    # Matching unit closer has been found.

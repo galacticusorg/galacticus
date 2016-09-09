@@ -1,22 +1,17 @@
 # Launch models on Condor system.
 
-package Condor;
+package Galacticus::Launch::Condor;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Data::Dumper;
+use Galacticus::Path;
 
 # Insert hooks for our functions.
-%Hooks::moduleHooks = 
+%Galacticus::Launch::Hooks::moduleHooks = 
     (
-     %Hooks::moduleHooks,
+     %Galacticus::Launch::Hooks::moduleHooks,
      condor => {
 	 validate       => \&Validate        ,
 	 outputFileName => \&Output_File_Name,
@@ -30,12 +25,12 @@ sub Validate {
     # Set defaults.
     my %defaults = 
 	(
-	 galacticusDirectory     => "/home/condor/Galacticus/v0.9.3"                        ,
-	 universe                => "vanilla"                                               ,
-	 environment             => ""                                                      ,
-	 requirement             => []                                                      ,
-	 transferFiles           => [ $galacticusPath."/Galacticus.exe", "parameters.xml"  ],
-	 postSubmitSleepDuration =>  5                                                      ,
+	 galacticusDirectory     => "/home/condor/Galacticus/v0.9.4"                              ,
+	 universe                => "vanilla"                                                     ,
+	 environment             => ""                                                            ,
+	 requirement             => []                                                            ,
+	 transferFiles           => [ &galacticusPath()."/Galacticus.exe", "parameters.xml"  ],
+	 postSubmitSleepDuration =>  5                                                            ,
 	 jobWaitSleepDuration    => 10
 	);
     foreach ( keys(%defaults) ) {
@@ -134,8 +129,8 @@ sub Launch {
 	    foreach my $jobID ( keys(%condorJobs) ) {
 		unless ( exists($runningCondorJobs{$jobID}) ) {
 		    print " -> Condor job ".$jobID." has finished; post-processing....\n";
-		    &PostProcess::Analyze($condorJobs{$jobID}->{'job'},$launchScript);
-		    &PostProcess::CleanUp($condorJobs{$jobID}->{'job'},$launchScript);
+		    &Galacticus::Launch::PostProcess::Analyze($condorJobs{$jobID}->{'job'},$launchScript);
+		    &Galacticus::Launch::PostProcess::CleanUp($condorJobs{$jobID}->{'job'},$launchScript);
 		    # Remove any temporary files associated with this job.
 		    unlink(@{$condorJobs{$jobID}->{'temporaryFiles'}});
 		    # Remove the job ID from the list of active Condor jobs.

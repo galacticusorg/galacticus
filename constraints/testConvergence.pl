@@ -1,12 +1,6 @@
 #!/usr/bin/env perl
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use strict;
 use warnings;
 use XML::Simple;
@@ -20,11 +14,11 @@ use Data::Dumper;
 use Clone qw(clone);
 use Text::Table;
 use Math::SigFigs;
-require Galacticus::Constraints::Parameters;
-require Galacticus::Constraints::Covariances;
-require Galacticus::Launch::PBS;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
+use Galacticus::Constraints::Parameters;
+use Galacticus::Constraints::Covariances;
+use Galacticus::Launch::PBS;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
 
 # Run calculations to test the convergence of a Galacticus model for the given constraints compilation.
 # Andrew Benson (14-November-2012)
@@ -48,7 +42,7 @@ while ( $iArg < $#ARGV ) {
 }
 
 # Parse the constraint config file.
-my $config = &Parameters::Parse_Config($configFile);
+my $config = &Galacticus::Constraints::Parameters::Parse_Config($configFile);
 
 # Validate the config file.
 die("testConvergence.pl: workDirectory must be specified in config file" ) unless ( exists($config->{'likelihood'}->{'workDirectory' }) );
@@ -81,7 +75,7 @@ if ( $arguments{'make'} eq "yes" ) {
 }
 
 # Get a hash of the parameter values.
-(my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'likelihood'}->{'compilation'},$baseParameters);
+(my $constraintsRef, my $parameters) = &Galacticus::Constraints::Parameters::Compilation($config->{'likelihood'}->{'compilation'},$baseParameters);
 my @constraints = @{$constraintsRef};
 
 # Set an initial random number seed.
@@ -259,7 +253,7 @@ foreach my $convergence ( @convergences ) {
 	unless ( -e $galacticusFileName ) {
 	    # Generate the parameter file.
 	    my $parameterFileName = $modelDirectory."/parameters.xml";
-	    &Parameters::Output($currentParameters,$parameterFileName);
+	    &Galacticus::Constraints::Parameters::Output($currentParameters,$parameterFileName);
 	    # Create a PBS job.
 	    my $command = "mpirun --bynode -np 1 Galacticus.exe ".$parameterFileName."\n";
 	    foreach my $constraint ( @constraints ) {
@@ -293,7 +287,7 @@ foreach my $convergence ( @convergences ) {
     }
 }
 # Send jobs to PBS.
-&PBS::SubmitJobs(\%arguments,@pbsStack)
+&Galacticus::Launch::PBS::SubmitJobs(\%arguments,@pbsStack)
     if ( scalar(@pbsStack) > 0 );
 # Iterate over constraints.
 foreach my $constraint ( @constraints ) {
@@ -421,7 +415,7 @@ foreach my $constraint ( @constraints ) {
 	    } else {
 		# Evaluate the convergence measure.
 		$measure =
-		    &Covariances::ComputeLikelihood
+		    &Galacticus::Constraints::Covariances::ComputeLikelihood
 		    (
 		     $_         ->{'y'}->($nonEmpty),
 		     $optimal   ->{'y'}->($nonEmpty),
@@ -516,16 +510,16 @@ foreach my $constraint ( @constraints ) {
 	    $xTip = 0.65
 		if ( $convergence->{'ideal'} eq "largest" );
 	    print $gnuPlot "set arrow from graph 0.5, first 0.5477 to graph ".$xTip.", first 0.5477 ls 1 lw 5 filled lc rgbcolor \"#3CB371\"\n";
-	    &PrettyPlots::Prepare_Dataset
+	    &GnuPlot::PrettyPlots::Prepare_Dataset
 		(
 		 \$plot,
 		 $convergedX,
 		 $convergedY,
 		 style       => "line",
 		 weight      => [5,3],
-		 color       => $PrettyPlots::colorPairs{'redYellow'}
+		 color       => $GnuPlot::PrettyPlots::colorPairs{'redYellow'}
 		);
-	    &PrettyPlots::Prepare_Dataset
+	    &GnuPlot::PrettyPlots::Prepare_Dataset
 		(
 		 \$plot,
 		 $parameter,
@@ -535,9 +529,9 @@ foreach my $constraint ( @constraints ) {
 		 style       => "point",
 		 symbol      => [6,7],
 		 weight      => [5,3],
-		 color       => $PrettyPlots::colorPairs{'cornflowerBlue'}
+		 color       => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'}
 		);
-	    &PrettyPlots::Prepare_Dataset
+	    &GnuPlot::PrettyPlots::Prepare_Dataset
 		(
 		 \$plot,
 		 $usedValueX,
@@ -545,11 +539,11 @@ foreach my $constraint ( @constraints ) {
 		 style       => "point",
 		 symbol      => [6,7],
 		 weight      => [5,3],
-		 color       => $PrettyPlots::colorPairs{'indianRed'},
+		 color       => $GnuPlot::PrettyPlots::colorPairs{'indianRed'},
 		);
-	    &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+	    &GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 	    close($gnuPlot);
-	    &LaTeX::GnuPlot2PDF($outputFileEPS);
+	    &GnuPlot::LaTeX::GnuPlot2PDF($outputFileEPS);
 	    # Make a plot of the results.
 	    $plotFileName = $constraintDefinition->{'label'}."_".$convergence->{'parameter'}."_results";
 	    $plotFileName =~ s/\./_/g;
@@ -600,7 +594,7 @@ foreach my $constraint ( @constraints ) {
 	    foreach ( @results ) {
 		++$i;
 		my $fraction = $i/(scalar(@results)-1);
-		&PrettyPlots::Prepare_Dataset
+		&GnuPlot::PrettyPlots::Prepare_Dataset
 		    (
 		     \$plot,
 		     $_->{'x'},
@@ -609,16 +603,16 @@ foreach my $constraint ( @constraints ) {
 		     symbol => [6,7],
 		     weight => [5,3],
 		     color  => [
-			 &PrettyPlots::Color_Gradient($fraction,[0.0,1.0,0.5],[240.0,1.0,0.5]),
-			 &PrettyPlots::Color_Gradient($fraction,[0.0,1.0,0.5],[240.0,1.0,0.5])
+			 &GnuPlot::PrettyPlots::Color_Gradient($fraction,[0.0,1.0,0.5],[240.0,1.0,0.5]),
+			 &GnuPlot::PrettyPlots::Color_Gradient($fraction,[0.0,1.0,0.5],[240.0,1.0,0.5])
 		     ]
 		    );
 	    }
 	    print $gnuPlot "set xrange [".$xMinimum.":".$xMaximum."]\n";
 	    print $gnuPlot "set yrange [".$yMinimum.":".$yMaximum."]\n";
-	    &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+	    &GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 	    close($gnuPlot);
-	    &LaTeX::GnuPlot2PDF($outputFileEPS);
+	    &GnuPlot::LaTeX::GnuPlot2PDF($outputFileEPS);
 	}
     }
     # Write the convergence report.

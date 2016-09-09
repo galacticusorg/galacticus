@@ -37,7 +37,7 @@ module Node_Component_Spheroid_Standard
   !# <component>
   !#  <class>spheroid</class>
   !#  <name>standard</name>
-  !#  <isDefault>yes</isDefault>
+  !#  <isDefault>true</isDefault>
   !#  <createFunction isDeferred="true" />
   !#  <properties>
   !#   <property>
@@ -90,10 +90,9 @@ module Node_Component_Spheroid_Standard
   !#   </property>
   !#   <property>
   !#     <name>halfMassRadius</name>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>true</isVirtual>
   !#     <getFunction>Node_Component_Spheroid_Standard_Half_Mass_Radius</getFunction>
   !#   </property>
   !#   <property>
@@ -105,10 +104,9 @@ module Node_Component_Spheroid_Standard
   !#   </property>
   !#   <property>
   !#     <name>starFormationRate</name>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" createIfNeeded="true" />
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" createIfNeeded="true" makeGeneric="true" isVirtual="true" />
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>true</isVirtual>
   !#     <output condition="[[spheroidOutputStarFormationRate]]" unitsInSI="massSolar/gigaYear" comment="Star formation rate of the standard spheroid."/>
   !#   </property>
   !#   <property>
@@ -134,15 +132,13 @@ module Node_Component_Spheroid_Standard
   !#     <name>massGasSink</name>
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>true</isVirtual>
-  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
+  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" isVirtual="true" />
   !#   </property>
   !#   <property>
   !#     <name>energyGasInput</name>
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>true</isVirtual>
-  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
+  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" isVirtual="true" />
   !#   </property>
   !#  </properties>
   !#  <bindings>
@@ -456,7 +452,7 @@ contains
     implicit none
     class           (nodeComponentSpheroid       ), intent(inout)                    :: self
     logical                                       , intent(inout), optional          :: interrupt
-    procedure       (Interrupt_Procedure_Template), intent(inout), optional, pointer :: interruptProcedure
+    procedure       (interruptTask), intent(inout), optional, pointer :: interruptProcedure
     double precision                              , intent(in   )                    :: rate
     double precision                                                                 :: gasMass           , stellarMass
     !GCC$ attributes unused :: interrupt, interruptProcedure
@@ -489,7 +485,7 @@ contains
     implicit none
     class           (nodeComponentSpheroid        ), intent(inout)                    :: self
     logical                                        , intent(inout), optional          :: interrupt
-    procedure       (Interrupt_Procedure_Template ), intent(inout), optional, pointer :: interruptProcedure
+    procedure       (interruptTask ), intent(inout), optional, pointer :: interruptProcedure
     double precision                               , intent(in   )                    :: rate
     class           (nodeComponentHotHalo         )                         , pointer :: selfHotHaloComponent
     type            (treeNode                     )                         , pointer :: selfNode
@@ -719,7 +715,7 @@ contains
     class    (nodeComponentSpheroid        ), intent(inout)                    :: self
     type     (history                      ), intent(in   )                    :: rate
     logical                                 , intent(inout), optional          :: interrupt
-    procedure(Interrupt_Procedure_Template ), intent(inout), optional, pointer :: interruptProcedure
+    procedure(interruptTask ), intent(inout), optional, pointer :: interruptProcedure
     type     (history                      )                                   :: starFormationHistory
 
     ! Get the star formation history in the spheroid.

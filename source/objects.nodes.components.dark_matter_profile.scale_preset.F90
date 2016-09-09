@@ -29,13 +29,14 @@ module Node_Component_Dark_Matter_Profile_Scale_Preset
   !# <component>
   !#  <class>darkMatterProfile</class>
   !#  <name>scalePreset</name>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>scale</name>
   !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+  !#     <classDefault>-1.0d0</classDefault>
   !#     <output unitsInSI="megaParsec" comment="Scale radius of the dark matter profile [Mpc]."/>
   !#   </property>
   !#   <property>

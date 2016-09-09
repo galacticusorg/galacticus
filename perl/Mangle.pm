@@ -3,29 +3,24 @@
 package Mangle;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 
 sub Build {
     # Ensure that we have a compiled mangle.
-    unless ( -e $galacticusPath."aux/mangle/bin/ransack" ) {
+    unless ( -e &galacticusPath()."aux/mangle/bin/ransack" ) {
 	# Ensure that we have the mangle source.
-	unless ( -e $galacticusPath."aux/mangle" ) {	   
+	unless ( -e &galacticusPath()."aux/mangle" ) {	   
 	    # Clone mangle
-	    system("cd ".$galacticusPath."aux; git clone https://github.com/mollyswanson/mangle.git");
+	    system("cd ".&galacticusPath()."aux; git clone https://github.com/mollyswanson/mangle.git");
 	    die("Mangle::Build: failed to clone mangle")
-		unless ( $? == 0 && -e $galacticusPath."aux/mangle" );
+		unless ( $? == 0 && -e &galacticusPath()."aux/mangle" );
 	}
 	# Build mangle.
-	system("cd ".$galacticusPath."aux/mangle/src; ./configure; make cleanest; make");
+	system("cd ".&galacticusPath()."aux/mangle/src; ./configure; make cleanest; make");
 	die("Mangle::Build: failed to build mangle")
-	    unless ( $? == 0 && -e $galacticusPath."aux/mangle/bin/ransack" );
+	    unless ( $? == 0 && -e &galacticusPath()."aux/mangle/bin/ransack" );
     }
 }
 

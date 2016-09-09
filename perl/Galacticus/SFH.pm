@@ -1,15 +1,17 @@
 # Contains a Perl module which implements properties derived from star formation histories.
 
-package SFH;
+package Galacticus::SFH;
 use strict;
 use warnings;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
-require Galacticus::HDF5;
+use Galacticus::HDF5;
 
-%HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-			       "^peakSFR\$" => \&SFH::Get_Peak_SFR
+%Galacticus::HDF5::galacticusFunctions = ( %Galacticus::HDF5::galacticusFunctions,
+			       "^peakSFR\$" => \&Galacticus::SFH::Get_Peak_SFR
 			       );
 
 sub Get_Peak_SFR {
@@ -25,7 +27,7 @@ sub Get_Peak_SFR {
     if ( exists($model->{'SFH'}->{'stellarMassThreshold'}) );
 
     # Get required datasets.
-    &HDF5::Get_Dataset($model,[
+    &Galacticus::HDF5::Get_Dataset($model,[
 			       "nodeIndex"          ,
 			       "mergerTreeIndex"    ,
 			       "diskMassStellar"    ,

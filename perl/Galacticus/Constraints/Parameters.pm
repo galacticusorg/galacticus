@@ -1,17 +1,11 @@
 # Contains a Perl module which implements various useful functionality for constructing parameter files for
 # Galacticus when fitting to constraints.
 
-package Parameters;
+package Galacticus::Constraints::Parameters;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use XML::LibXML;
 use XML::Simple;
 use XML::Twig;
@@ -21,8 +15,8 @@ use Data::Dumper;
 use Clone qw(clone);
 use List::Util;
 use Storable;
-require List::ExtraUtils;
-require Galacticus::Launch::PBS;
+use List::ExtraUtils;
+use Galacticus::Launch::PBS;
 
 sub Parse_Config {
     # Get the config file name.
@@ -47,8 +41,8 @@ sub Parse_Config {
 	$config = $xml->XMLin($contentCommentless, KeyAttr => 0);
 	if ( UNIVERSAL::isa($config->{'parameters'},"ARRAY") ) {
 	    my @parameters;
-	    push(@parameters,&ExtraUtils::as_array($_->{'parameter'}))
-		foreach (  &ExtraUtils::as_array($config->{'parameters'}) );
+	    push(@parameters,&List::ExtraUtils::as_array($_->{'parameter'}))
+		foreach (  &List::ExtraUtils::as_array($config->{'parameters'}) );
 	    delete($config->{'parameters'});
 	    @{$config->{'parameters'}->{'parameter'}} = @parameters;
 	}
@@ -119,7 +113,7 @@ sub Compilation {
         :
 	undef();
     # Scan through all constraints.
-    my @constraints = exists($compilation->{'constraint'}) ? &ExtraUtils::as_array($compilation->{'constraint'}) : ();
+    my @constraints = exists($compilation->{'constraint'}) ? &List::ExtraUtils::as_array($compilation->{'constraint'}) : ();
     foreach my $constraint ( @constraints ) {
 	# Check we have a definition file.
 	die("Compilation(): compilation must specify a definition for each constraint")
@@ -133,14 +127,14 @@ sub Compilation {
 	    $xml->XMLin($constraint->{'definition'},KeyAttr => "");
 	# Extract any required output redshift.
 	if ( defined($constraintDefinition->{'outputRedshift'}) ) {
-	    foreach my $redshift ( &ExtraUtils::as_array($constraintDefinition->{'outputRedshift'}) ) {
+	    foreach my $redshift ( &List::ExtraUtils::as_array($constraintDefinition->{'outputRedshift'}) ) {
 		# Add each redshift (at a specific precision) to the list of output redshifts.
 		$outputRedshifts{&redshiftPrecision($redshift)} = 1;
 	    }
 	}
 	# Extract any filter definitions.
 	if ( defined($constraintDefinition->{'luminosity'}) ) {
-	    foreach my $luminosity ( &ExtraUtils::as_array($constraintDefinition->{'luminosity'}) ) {
+	    foreach my $luminosity ( &List::ExtraUtils::as_array($constraintDefinition->{'luminosity'}) ) {
 		# Encode the luminosity into a unique key.
 		my $key = join(":",($luminosity->{'filter'},sprintf("%6.4f",$luminosity->{'redshift'}),$luminosity->{'frame'}));
 		$outputLuminosities{$key} = 1;
@@ -163,11 +157,11 @@ sub Compilation {
 	}
 	# Accumulate any options that must be switched on.
 	if ( defined($constraintDefinition->{'optionOn'}) ) {
-	    for my $option ( &ExtraUtils::as_array($constraintDefinition->{'optionOn'}) ) {$optionsOn{$option} = 1};
+	    for my $option ( &List::ExtraUtils::as_array($constraintDefinition->{'optionOn'}) ) {$optionsOn{$option} = 1};
 	}    
 	# Accumulate any parameters that must be set.
 	if ( defined($constraintDefinition->{'parameter'}) ) {
-	    for my $parameter ( &ExtraUtils::as_array($constraintDefinition->{'parameter'}) ) {
+	    for my $parameter ( &List::ExtraUtils::as_array($constraintDefinition->{'parameter'}) ) {
 		my $name  = $parameter->{'name' };
 		my $value = $parameter->{'value'};
 		$value =~ s/^\s*(.*?)\s*$/$1/;
@@ -233,7 +227,7 @@ sub Convert_Parameters_To_Galacticus {
     my $config = shift;
     my @values = @_;
     # Extract parameters from config file.
-    my @parameters = &ExtraUtils::as_array($config->{'parameters'}->{'parameter'});
+    my @parameters = &List::ExtraUtils::as_array($config->{'parameters'}->{'parameter'});
     # Count active parameters.
     my $parameterCount = 0;
     for(my $i=0;$i<scalar(@parameters);++$i) {
@@ -417,7 +411,7 @@ sub Sample_Models {
     } else {
 	$compilationFile = $config->{'likelihood'}->{'compilation'};
     }
-    (my $constraintsRef, my $parameters) = &Parameters::Compilation($compilationFile,$config->{'likelihood'}->{'baseParameters'});
+    (my $constraintsRef, my $parameters) = &Galacticus::Constraints::Parameters::Compilation($compilationFile,$config->{'likelihood'}->{'baseParameters'});
     my @constraints = @{$constraintsRef};
     # Get a matrix of sampled states.
     my $sampleMatrix = &Sample_Matrix($config,\%arguments);
@@ -452,7 +446,7 @@ sub Sample_Models {
 	    # Construct the tasks to perform.
 	    my $command;
 	    if ( exists($config->{'likelihood'}->{'environment'}) ) {
-		foreach ( &ExtraUtils::as_array($config->{'likelihood'}->{'environment'}) ) {
+		foreach ( &List::ExtraUtils::as_array($config->{'likelihood'}->{'environment'}) ) {
 		    $command .= "export ".$_."\n";
 		}
 	    }
@@ -488,7 +482,7 @@ sub Sample_Models {
 	}
     }
     # Send jobs to PBS.
-    &PBS::SubmitJobs(\%arguments,@pbsStack)
+    &Galacticus::Launch::PBS::SubmitJobs(\%arguments,@pbsStack)
      	if ( scalar(@pbsStack) > 0 );
     # Return the number of models sampled.
     return ($sampleMatrix->dim(1), $sampleDirectory);
@@ -554,9 +548,9 @@ sub Convert_Parameter_Vector_To_Galacticus {
     my $config          = shift();
     my $parameterVector = shift();
     # Get a hash of the parameter values.
-    (my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'likelihood'}->{'compilation'},$config->{'likelihood'}->{'baseParameters'});
+    (my $constraintsRef, my $parameters) = &Galacticus::Constraints::Parameters::Compilation($config->{'likelihood'}->{'compilation'},$config->{'likelihood'}->{'baseParameters'});
     # Convert vector into a parameter array.
-    my $newParameters = &Parameters::Convert_Parameters_To_Galacticus($config,$parameterVector->list());
+    my $newParameters = &Galacticus::Constraints::Parameters::Convert_Parameters_To_Galacticus($config,$parameterVector->list());
     # Apply to parameters.
     &Apply_Parameters($parameters,$newParameters);
     return $parameters;

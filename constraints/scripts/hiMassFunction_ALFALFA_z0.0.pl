@@ -1,21 +1,16 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath  = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath  = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
 use Data::Dumper;
-require Galacticus::Options;
-require Galacticus::Constraints::MassFunctions;
-require Galacticus::StellarMass;
+use Galacticus::Options;
+use Galacticus::Constraints::MassFunctions;
+use Galacticus::StellarMass;
 
 # Compute likelihood (and make a plot) for a Galacticus model given the HI mass function data from Martin et al. (2010;
 # http://adsabs.harvard.edu/abs/2010ApJ...723.1359M),
@@ -33,7 +28,7 @@ my %arguments =
     (
      quiet => 0
     );
-&Options::Parse_Options(\@ARGV,\%arguments);
+&Galacticus::Options::Parse_Options(\@ARGV,\%arguments);
 
 # Specify the properties of this mass function.
 my $entry                                    = 0;
@@ -50,7 +45,7 @@ $massFunctionConfig->{'yLabel'             } = "\$\\mathrm{d}n/\\mathrm{d}\\log 
 $massFunctionConfig->{'title'              } = "HI mass function at \$z\\approx 0.00\$";
 
 # Read the observed data.
-my $observations                                        = new PDL::IO::HDF5($galacticusPath."data/observations/massFunctionsHI/HI_Mass_Function_ALFALFA_2010.hdf5");
+my $observations                                        = new PDL::IO::HDF5(&galacticusPath()."data/observations/massFunctionsHI/HI_Mass_Function_ALFALFA_2010.hdf5");
 $massFunctionConfig ->{'x'                           }  = $observations->dataset('mass'                )->get    (                  );
 $massFunctionConfig ->{'y'                           }  = $observations->dataset('massFunctionObserved')->get    (                  );
 $massFunctionConfig ->{'yIsPer'                      }  = "ln";
@@ -66,7 +61,7 @@ $massFunctionConfig ->{'errorModel'                  }  = "logNormal"           
 ($massFunctionConfig->{'cosmologyScalingMassFunction'}) = $observations->dataset('massFunction'        )->attrGet('cosmologyScaling');
 
 # Construct the mass function.
-&MassFunctions::Construct(\%arguments,$massFunctionConfig);
+&Galacticus::Constraints::MassFunctions::Construct(\%arguments,$massFunctionConfig);
 
 exit;
 
@@ -129,7 +124,7 @@ sub ALFALFA_Mass_Map {
     my $megaParsec = pdl 3.086e22;
     my $massSolar = pdl 1.99e30;
     &ALFALFA_Parameters($config,$galacticus);
-    &HDF5::Get_Dataset($galacticus,['diskRadius','massStellar','nodeIndex']);
+    &Galacticus::HDF5::Get_Dataset($galacticus,['diskRadius','massStellar','nodeIndex']);
     # Compute central molecular ratio.
     my $molecularRatioCentral = 
 	(

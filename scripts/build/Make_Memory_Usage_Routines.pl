@@ -1,17 +1,11 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use XML::Simple;
-require Fortran::Utils;
-require File::Changes;
+use Fortran::Utils;
+use File::Changes;
 
 # Script which builds the include files used by utility.memory_management.F90
 # Andrew Benson (24-Apr-2007)
@@ -23,12 +17,12 @@ require File::Changes;
 my $xml = new XML::Simple;
 
 # Load the data structure describing what types of allocatable array are needed.
-my $allocatables = $xml->XMLin($ENV{'BUILDPATH'}."/Allocatable_Arrays.xml");
+my $allocatables = $xml->XMLin($ENV{'BUILDPATH'}."/allocatableArrays.xml");
 
 # Find the longest name length.
 my $long_name = 0;
 foreach my $allocatable ( @{$allocatables->{'allocatable'}}  ) {
-    my $name = $allocatable->{'type'};
+    my $name = $allocatable->{'intrinsic'};
     if (length($name) > $long_name) {$long_name = length($name)};
 }
 
@@ -57,14 +51,9 @@ my @dimensionTypes = ( "", "kind_int8" );
 
 # Loop over all classes of allocatable variable and generate code for them.
 foreach my $allocatable ( @{$allocatables->{'allocatable'}}  ) {
-    my $typeName  = $allocatable->{'type'};      # Type of variable.
-    my $dimension = $allocatable->{'dimension'}; # Dimensionality.
-    my $kind;
-    unless ( UNIVERSAL::isa($allocatable->{'kind'}, "HASH") ) {
-	$kind    = $allocatable->{'kind'};      # Get kind number if present.
-    } else {
-	$kind = "";
-    }
+    my $typeName  = $allocatable->{'intrinsic'}; # Intrinsic type of variable.
+    my $dimension = $allocatable->{'rank'     }; # Rank.
+    my $kind      = exists($allocatable->{'type'}) ? $allocatable->{'type'} : "";
     my $type = $typeName;
     $type    =~ s/^(\w)/uc($1)/e;           # Capitalize first letter of word.
     $type    =~ s/([\s_])(\w)/$1.uc($2)/ge; # Capitalize first letter of each subsequent word.
@@ -214,8 +203,8 @@ close(postContainHandle);
 
 # Truncate lines and update old files..
 foreach my $file ( "utility.memory_management.precontain.inc", "utility.memory_management.postcontain.inc", "utility.memory_management.use.inc" ) {
-    &Fortran_Utils::Truncate_Fortran_Lines("".$ENV{'BUILDPATH'}."/".$file.".tmp");
-    &File_Changes::Update($ENV{'BUILDPATH'}."/".$file ,$ENV{'BUILDPATH'}."/".$file.".tmp" );
+    &Fortran::Utils::Truncate_Fortran_Lines("".$ENV{'BUILDPATH'}."/".$file.".tmp");
+    &File::Changes::Update($ENV{'BUILDPATH'}."/".$file ,$ENV{'BUILDPATH'}."/".$file.".tmp" );
 }
 
 exit;

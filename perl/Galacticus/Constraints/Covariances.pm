@@ -1,7 +1,7 @@
 # Contains a Perl module which implements various useful functionality for handling covariance matrices in
 # Galacticus when fitting to constraints.
 
-package Covariances;
+package Galacticus::Constraints::Covariances;
 use strict;
 use warnings;
 use PDL;

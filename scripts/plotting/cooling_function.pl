@@ -1,19 +1,13 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use XML::Simple;
 use Data::Dumper;
 use PDL;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
 
 # Make a plot of the specified transfer function file.
 # Andrew Benson (27-Jan-2009)
@@ -80,7 +74,7 @@ for (my $iCoolingFunction=0;$iCoolingFunction<scalar(@coolingFunctionsArray);++$
     my $x = pdl @{$coolingFunctionsArray[$iCoolingFunction]->{'temperature'}->{'datum'}};
     my $y = pdl @{$coolingFunctionsArray[$iCoolingFunction]->{'coolingRate'}->{'datum'}};
     my $cFrac = $iCoolingFunction/(scalar(@coolingFunctionsArray)-1);
-    &PrettyPlots::Prepare_Dataset(
+    &GnuPlot::PrettyPlots::Prepare_Dataset(
 	\$plot,
 	$x,$y,
 	style  => "line",
@@ -88,8 +82,8 @@ for (my $iCoolingFunction=0;$iCoolingFunction<scalar(@coolingFunctionsArray);++$
 	color  => ["palette frac ".$cFrac,"palette frac ".$cFrac]
 	);
 }
-&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF($plotFileEPS);
+&GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS);
 
 exit;

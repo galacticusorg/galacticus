@@ -1,26 +1,21 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use XML::Simple;
 use Data::Dumper;
 use Clone qw(clone);
 use Digest::MD5 qw(md5_hex);
 use Scalar::Util qw(reftype);
-require Galacticus::Options;
-require Galacticus::Launch::Hooks;
-require Galacticus::Launch::Local;
-require Galacticus::Launch::PBS;
-require Galacticus::Launch::MonolithicPBS;
-require Galacticus::Launch::Slurm;
-require List::ExtraUtils;
+use Galacticus::Options;
+use Galacticus::Launch::Hooks;
+use Galacticus::Launch::Local;
+use Galacticus::Launch::PBS;
+use Galacticus::Launch::MonolithicPBS;
+use Galacticus::Launch::Slurm;
+use List::ExtraUtils;
 
 # Script to launch sets of Galacticus models, iterating over sets of parameters and performing analysis
 # on the results. Supports launching on a variety of platforms via modules.
@@ -36,7 +31,7 @@ my %arguments =
     (
      instance => "1:1"
     );
-&Options::Parse_Options(\@ARGV,\%arguments);
+&Galacticus::Options::Parse_Options(\@ARGV,\%arguments);
 
 # Parse the launch script.
 my $launchScript          = &Parse_Launch_Script    ($launchFileName);
@@ -184,7 +179,7 @@ sub Construct_Models {
 		    my $analysisCode;
 		    if ( $launchScript->{'doAnalysis'} eq "yes" ) {
 			if ( $launchScript->{'analysisScript'} =~ m/\.xml$/ ) {
-			    $analysisCode = $galacticusPath."scripts/analysis/Galacticus_Compute_Fit.pl ".$galacticusOutputDirectory."/galacticus.hdf5 ".$galacticusOutputDirectory." ".$launchScript->{'analysisScript'}."\n";
+			    $analysisCode = &galacticusPath()."scripts/analysis/Galacticus_Compute_Fit.pl ".$galacticusOutputDirectory."/galacticus.hdf5 ".$galacticusOutputDirectory." ".$launchScript->{'analysisScript'}."\n";
 			} else {
 			    $analysisCode = $launchScript->{'analysisScript'}." ".$galacticusOutputDirectory."\n";
 			}
@@ -341,12 +336,12 @@ sub Parameters_To_Hash {
 	    unless ( reftype($parameters->{$name}) );
 	# Iterate over all subelements of this node.
 	my $elementCounter = -1;
-	foreach my $element ( &ExtraUtils::as_array($parameters->{$name}) ) {
+	foreach my $element ( &List::ExtraUtils::as_array($parameters->{$name}) ) {
 	    my $subParameters;
 	    ++$elementCounter;
 	    foreach my $subElementName ( keys(%{$element}) ) { 
 		if ( $subElementName eq "value" ) {
-		    foreach my $value ( &ExtraUtils::as_array($element->{'value'}) ) {
+		    foreach my $value ( &List::ExtraUtils::as_array($element->{'value'}) ) {
 			if ( UNIVERSAL::isa($value,"HASH") ) {
 			    # This value of the parameter contains a subtree. Get a hash representation by calling ourself recursively.
 			    push(
@@ -367,7 +362,7 @@ sub Parameters_To_Hash {
 			}
 		    }
 		} elsif ( $subElementName eq "modify" ) {
-		    foreach my $modify ( &ExtraUtils::as_array($element->{'modify'}) ) {
+		    foreach my $modify ( &List::ExtraUtils::as_array($element->{'modify'}) ) {
 			if ( exists($modify->{'parameter'}) ) {
 			    # This modify of the parameter contains a subtree. Get a hash representation by calling ourself recursively.
 			    push(
@@ -418,7 +413,7 @@ sub Parse_Launch_Script {
 	 baseParameters     => ""                                                                 ,
 	 doAnalysis         => "no"                                                               ,
 	 splitModels        => 1                                                                  ,
-	 analysisScript     => $galacticusPath."data/analyses/Galacticus_Compute_Fit_Analyses.xml"
+	 analysisScript     => &galacticusPath()."data/analyses/Galacticus_Compute_Fit_Analyses.xml"
 	);
     foreach ( keys(%defaults) ) {
 	$launchScript->{$_} = $defaults{$_}
@@ -431,10 +426,10 @@ sub Parse_Launch_Script {
 sub Parse_Galacticus_Config {
     # Parse any local configuration.
     my $config;
-    if ( -e $galacticusPath."galacticusConfig.xml" ) {
+    if ( -e &galacticusPath()."galacticusConfig.xml" ) {
 	# Load XML.
 	my $xml          = new XML::Simple;
-	$config = $xml->XMLin($galacticusPath."galacticusConfig.xml");
+	$config = $xml->XMLin(&galacticusPath()."galacticusConfig.xml");
     }
     # Return the config.
     return $config;

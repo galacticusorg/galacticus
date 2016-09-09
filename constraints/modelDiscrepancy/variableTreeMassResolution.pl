@@ -1,16 +1,10 @@
 #!/usr/bin/env perl
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use strict;
 use warnings;
-require Galacticus::Options;
-require Galacticus::Constraints::DiscrepancyModels;
+use Galacticus::Options;
+use Galacticus::Constraints::DiscrepancyModels;
 
 # Run calculations to determine the model discrepancy arising from the use of variable mass resolution when building trees.
 # Andrew Benson (28-January-2013)
@@ -24,16 +18,16 @@ my %arguments =
      make => "yes",
      plot => "no"
     );
-&Options::Parse_Options(\@ARGV,\%arguments);
+&Galacticus::Options::Parse_Options(\@ARGV,\%arguments);
 
 # Parse the constraint config file.
-my $config = &Parameters::Parse_Config($configFile);
+my $config = &Galacticus::Constraints::Parameters::Parse_Config($configFile);
 
 # Determine base parameters to use.
 my $baseParameters = exists($arguments{'baseParameters'}) ? $arguments{'baseParameters'} : $config->{'likelihood'}->{'baseParameters'};
 
 # Get a hash of the parameter values.
-(my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'likelihood'}->{'compilation'},$baseParameters);
+(my $constraintsRef, my $parameters) = &Galacticus::Constraints::Parameters::Compilation($config->{'likelihood'}->{'compilation'},$baseParameters);
 
 # Specify models to run.
 my $models = 
@@ -73,7 +67,7 @@ my $models =
 };
 
 # Run the models.
-&DiscrepancyModels::RunModels(
+&Galacticus::Constraints::DiscrepancyModels::RunModels(
 	"variableTreeMassResolution"          ,
 	"use of variable tree mass resolution",
 	$configFile                           ,

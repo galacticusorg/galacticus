@@ -1,18 +1,13 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath  = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath  = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use PDL;
 use PDL::IO::HDF5;
-require Galacticus::Options;
-require Galacticus::Constraints::FractionFunctions;
+use Galacticus::Options;
+use Galacticus::Constraints::FractionFunctions;
 
 # Compute likelihood (and make a plot) for a Galacticus model given the passive fraction
 # function data for z=0 used in the Cosmic CARNage workshop.
@@ -30,7 +25,7 @@ my %arguments =
     (
      quiet => 0
     );
-&Options::Parse_Options(\@ARGV,\%arguments);
+&Galacticus::Options::Parse_Options(\@ARGV,\%arguments);
 
 # Specify the properties of this fraction function.
 my $entry                                                     = 0;
@@ -43,7 +38,7 @@ $fractionFunctionConfig->{'yLabel'                          } = "\$f_{\\rm passi
 $fractionFunctionConfig->{'title'                           } = "Passive fraction function at \$z=0\$";
 
 # Read the observed data.
-my $observations = new PDL::IO::HDF5($galacticusPath."data/observations/cosmicCarnageWorkshop/passiveFractionZ0.hdf5");
+my $observations = new PDL::IO::HDF5(&galacticusPath()."data/observations/cosmicCarnageWorkshop/passiveFractionZ0.hdf5");
 $fractionFunctionConfig->{'x'                               }  = $observations->dataset('mass'            )->get    (                  );
 $fractionFunctionConfig->{'y'                               }  = $observations->dataset('fractionObserved')->get    (                  );
 $fractionFunctionConfig->{'xScaling'                        }  = "linear";
@@ -60,6 +55,6 @@ $fractionFunctionConfig->{'observationLabel'                } = "Constraint";
 $fractionFunctionConfig->{'constraintMassMinimum'           } = 3.0e8;
 
 # Construct the mass function.
-&FractionFunctions::Construct(\%arguments,$fractionFunctionConfig);
+&Galacticus::Constraints::FractionFunctions::Construct(\%arguments,$fractionFunctionConfig);
 
 exit;

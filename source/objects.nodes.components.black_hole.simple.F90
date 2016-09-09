@@ -31,7 +31,7 @@ module Node_Component_Black_Hole_Simple
   !# <component>
   !#  <class>blackHole</class>
   !#  <name>simple</name>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>mass</name>
@@ -45,9 +45,8 @@ module Node_Component_Black_Hole_Simple
   !#     <name>massSeed</name>
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
   !#     <getFunction>Node_Component_Black_Hole_Simple_Seed_Mass</getFunction>
-  !#     <isVirtual>true</isVirtual>
   !#   </property>
   !#  </properties>
   !#  <bindings>
@@ -227,7 +226,7 @@ contains
     type            (treeNode                                          )           , intent(inout), pointer :: thisNode
     logical                                                                        , intent(in   )          :: odeConverged
     logical                                                                        , intent(inout)          :: interrupt
-    procedure       (Interrupt_Procedure_Template                      )           , intent(inout), pointer :: interruptProcedure
+    procedure       (interruptTask                      )           , intent(inout), pointer :: interruptProcedure
     class           (nodeComponentBlackHole                            )                          , pointer :: thisBlackHoleComponent
     class           (nodeComponentSpheroid                             )                          , pointer :: thisSpheroidComponent
     class           (nodeComponentHotHalo                              )                          , pointer :: thisHotHaloComponent
