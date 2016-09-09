@@ -8,7 +8,7 @@ use Data::Dumper;
 use List::Util qw(max);
 use Exporter qw(import);
 our $VERSION = 1.00;
-our @EXPORT_OK = qw($verbosityLevel $workaround @booleanLabel %intrinsicTypes %intrinsicNulls $classNameLengthMax $implementationNameLengthMax $fullyQualifiedNameLengthMax $propertyNameLengthMax $implementationPropertyNameLengthMax $linkedDataNameLengthMax applyDefaults isIntrinsic isOutputIntrinsic offsetName padClass padImplementation padFullyQualified padPropertyName padImplementationPropertyName padLinkedData);
+our @EXPORT_OK = qw($verbosityLevel $workaround @booleanLabel %intrinsicTypes %intrinsicNulls %outputTypeMap $classNameLengthMax $implementationNameLengthMax $fullyQualifiedNameLengthMax $propertyNameLengthMax $implementationPropertyNameLengthMax $linkedDataNameLengthMax applyDefaults isIntrinsic isOutputIntrinsic offsetName padClass padImplementation padFullyQualified padPropertyName padImplementationPropertyName padLinkedData);
 
 # Define a hash into which modules can insert their hooks.
 %Galacticus::Build::Component::Utils::componentUtils = 
@@ -48,6 +48,14 @@ our %intrinsicNulls =
      "integer"     => "0",
      "longInteger" => "0_kind_int8",
      "logical"     => ".false."
+    );
+
+# Mapping for internal to output types.
+our %outputTypeMap =
+    (
+     "double"      => "double" ,
+     "integer"     => "integer",
+     "longInteger" => "integer"
     );
 
 # Maximum lengths of labels (used for formatting).
