@@ -1,6 +1,6 @@
 <localGroup>
   <compilationTime>2014-12-03T11:23:09.000-08:00</compilationTime>
-  <compiledBy>Andrew Benson &lt;abenson@obs.carnegiescience.edu&gt;</compiledBy>
+  <compiledBy>Andrew Benson &lt;abenson@carnegiescience.edu&gt;</compiledBy>
   <doi>doi:10.1088/0004-6256/144/1/4</doi>
   <galaxies>
     <galaxy>
@@ -1385,6 +1385,80 @@
       </publication>
       <publicationURL>
 	<value>http://adsabs.harvard.edu/abs/2015arXiv150302079K</value>
+      </publicationURL>
+    </galaxy>
+    <galaxy>
+      <name>Pictoris II</name>
+      <alias>
+	<value>PicII</value>
+	<value>MagLiteS J0664-5953</value>
+      </alias>
+      <rightAscensionDecimalDegrees>
+        <value>101.18</value>
+      </rightAscensionDecimalDegrees>
+      <declinationDecimalDegrees>
+        <value>-59.90</value>
+      </declinationDecimalDegrees>
+      <distanceModulus>
+        <value>18.3</value>
+	<errorHigh>0.12</errorHigh>
+	<errorLow>0.15</errorLow>
+	<errorSystematic>0.1</errorSystematic>
+      </distanceModulus>
+       <distanceHeliocentric>
+         <value>45</value>
+	 <errorHigh>5</errorHigh>
+	 <errorLow>4</errorLow>
+      </distanceHeliocentric>
+      <magnitudeAbsoluteV>
+        <value>-3.2</value>
+        <errorHigh>0.4</errorHigh>
+	<errorLow>0.5</errorLow>
+	<note>Error does not include uncertainty in distance</note>
+      </magnitudeAbsoluteV>
+      <radiusHalfLight>
+        <value>46e-3</value>
+        <errorHigh>15e-3</errorHigh>
+	<errorLow>11e-3</errorLow>
+      </radiusHalfLight>
+      <radiusHalfLightAngular>
+        <value>3.6</value>
+        <errorHigh>1.5</errorHigh>
+	<errorLow>1.0</errorLow>
+      </radiusHalfLightAngular>
+      <ellipticityProjected>
+        <value>0.13</value>
+	<errorHigh>0.22</errorHigh>
+	<errorLow>0.13</errorLow>
+      </ellipticityProjected>
+      <positionAngle>
+        <value>14</value>
+	<errorHigh>60</errorHigh>
+	<errorLow>66</errorLow>
+      </positionAngle>
+      <massStellar>
+        <value>1.6e-3</value>
+	<errorHigh>0.5e-3</errorHigh>
+	<errorLow>0.3e-3</errorLow>
+      </massStellar>
+      <surfaceBrightnessEffectiveV>
+        <value>28.5</value>
+        <error>1</error>
+      </surfaceBrightnessEffectiveV>
+      <ageStellar>
+	<value>10</value>
+	<errorHigh>1</errorHigh>
+	<errorLow>2</errorLow>
+      </ageStellar>
+      <metallicityStellar>
+	<value>-1.8</value>
+	<error>0.3</error>
+      </metallicityStellar>
+      <publication>
+	<value>Drlica-Wagner al. (2016; arXiv:1609.02148v1)</value>
+      </publication>
+      <publicationURL>
+	<value>http://adsabs.harvard.edu/abs/2016arXiv160902148D</value>
       </publicationURL>
     </galaxy>
     <galaxy>
