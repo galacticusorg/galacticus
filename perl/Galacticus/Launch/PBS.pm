@@ -1,30 +1,24 @@
 # Launch models on PBS system.
 
-package PBS;
+package Galacticus::Launch::PBS;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Data::Dumper;
 use Sys::CPU;
-require File::Which;
-require Galacticus::Options;
-require Galacticus::Launch::Hooks;
-require Galacticus::Launch::PostProcess;
-require Galacticus::Options;
-require System::Redirect;
-require List::ExtraUtils;
+use File::Which;
+use Galacticus::Options;
+use Galacticus::Launch::Hooks;
+use Galacticus::Launch::PostProcess;
+use Galacticus::Options;
+use System::Redirect;
+use List::ExtraUtils;
 
 # Insert hooks for our functions.
-%Hooks::moduleHooks = 
+%Galacticus::Launch::Hooks::moduleHooks = 
     (
-     %Hooks::moduleHooks,
+     %Galacticus::Launch::Hooks::moduleHooks,
      pbs => {
 	 validate       => \&Validate        ,
 	 outputFileName => \&Output_File_Name,
@@ -80,7 +74,7 @@ sub Launch {
     my @jobs         = @{shift()};
     my $launchScript =   shift() ;
     # Find localized configuration.
-    my $pbsConfig = &Options::Config("pbs");
+    my $pbsConfig = &Galacticus::Options::Config("pbs");
     # Iterate over jobs.
     my @modelQueue;
     foreach my $job ( @jobs ) {
@@ -125,7 +119,7 @@ sub Launch {
 	print $pbsFile " cd \$SLURM_SUBMIT_DIR\n";
 	print $pbsFile "fi\n";
 	print $pbsFile "export ".$_."\n"
-	    foreach ( &ExtraUtils::as_array($pbsConfig->{'environment'}) );
+	    foreach ( &List::ExtraUtils::as_array($pbsConfig->{'environment'}) );
 	if ( exists($launchScript->{'pbs'}->{'environment'}) ) {
 	    foreach my $environment ( @{$launchScript->{'pbs'}->{'environment'}} ) {
 		print $pbsFile "export ".$environment."\n";
@@ -149,7 +143,7 @@ sub Launch {
 	    print $pbsFile "mkdir -p ".$scratchPath."\n";
 	}
 	if ( exists($launchScript->{'pbs'}->{'preCommand'}) ) {
-	    foreach my $command ( &ExtraUtils::as_array($launchScript->{'pbs'}->{'preCommand'}) ) {
+	    foreach my $command ( &List::ExtraUtils::as_array($launchScript->{'pbs'}->{'preCommand'}) ) {
 		print $pbsFile $command."\n";
 	    }
 	}
@@ -194,9 +188,9 @@ sub Launch {
 	foreach my $jobID ( keys(%pbsJobs) ) {
 	    unless ( exists($runningPBSJobs{$jobID}) ) {
 		print " -> PBS job ".$jobID." has finished; post-processing....\n";
-		&PostProcess::Analyze($pbsJobs{$jobID}->{'job'},$launchScript)
+		&Galacticus::Launch::PostProcess::Analyze($pbsJobs{$jobID}->{'job'},$launchScript)
 		    unless ( $launchScript->{'pbs'}->{'analyze'} eq "yes" );
-		&PostProcess::CleanUp($pbsJobs{$jobID}->{'job'},$launchScript);
+		&Galacticus::Launch::PostProcess::CleanUp($pbsJobs{$jobID}->{'job'},$launchScript);
 		# Remove the job ID from the list of active PBS jobs.
 		delete($pbsJobs{$jobID});
 	    }
@@ -246,7 +240,7 @@ sub SubmitJobs {
     my @pbsStack  = @_;
     my %pbsJobs;
     # Find the appropriate PBS section.
-    my $pbsConfig = &Options::Config("pbs");
+    my $pbsConfig = &Galacticus::Options::Config("pbs");
     # Determine sleep times between jobs.
     my $submitSleepDuration = exists($arguments{'submitSleepDuration'}) ? $arguments{'submitSleepDuration'} :  5;
     my $waitSleepDuration   = exists($arguments{'waitSleepDuration'  }) ? $arguments{'waitSleepDuration'  } : 60;
@@ -347,7 +341,7 @@ sub SubmitJobs {
 		print $scriptFile " cd \$SLURM_SUBMIT_DIR\n";
 		print $scriptFile "fi\n";
 		print $scriptFile "export ".$_."\n"
-		    foreach ( &ExtraUtils::as_array($pbsConfig->{'environment'}) );
+		    foreach ( &List::ExtraUtils::as_array($pbsConfig->{'environment'}) );
 		print $scriptFile "ulimit -t unlimited\n";
 		print $scriptFile "ulimit -c unlimited\n";
 		print $scriptFile "export OMP_NUM_THREADS=".$ppn."\n";

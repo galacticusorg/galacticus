@@ -1,16 +1,8 @@
 # Contains a Perl module which implements various useful functionality for handling Fortran source code.
 
-package Fortran_Utils;
+package Fortran::Utils;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
 use File::Copy;
 use Text::Balanced qw (extract_bracketed);
 use Text::Table;
@@ -520,8 +512,20 @@ sub Format_Variable_Defintions {
 	    }
 	    );
     }
-    my $dataTable = Text::Table->new(@columnsDef);
-
+    my $dataTable       = Text::Table->new(@columnsDef);
+    my $ompPrivateTable = Text::Table->new(
+	{
+	    is_sep => 1,
+	    body   => "  !\$omp threadprivate("
+	},
+	{
+	    align  => "left"
+	},
+	{
+	    is_sep  => 1,
+	    body    => ")"
+	}
+	);
     # Iterate over all data content.
     foreach ( @{$variables} ) {
 	# Construct the type definition.
@@ -614,6 +618,9 @@ sub Format_Variable_Defintions {
 		$comment
 		);
 	}
+	# Add any OpenMP threadpriavte statement.
+	$ompPrivateTable->add(join(", ",@{$_->{'variables'}}))
+	    if ( exists($_->{'ompPrivate'}) && $_->{'ompPrivate'} );
 	# Add a comment after this row.
 	if ( exists($_->{'commentAfter'}) ) {
 	    push(@inlineComments,$_->{'commentAfter'});
@@ -621,7 +628,9 @@ sub Format_Variable_Defintions {
    	}
     }
     # Get the formatted table.
-    my $formattedVariables = $dataTable->table();
+    my $formattedVariables = 
+	$dataTable      ->table().
+	$ompPrivateTable->table();    
     # Reinsert inline comments.
     for(my $i=scalar(@inlineComments);$i>=1;--$i) {	
 	chomp($inlineComments[$i-1]);
@@ -632,6 +641,38 @@ sub Format_Variable_Defintions {
     $formattedVariables =~ s/\%BLANKLINE//g;
     # Return the table.
     return $formattedVariables;
+}
+
+sub Unformat_Variables {
+    # Given a Fortran-formatted variable string, decode it and return a standard variable structure.
+    my $variableString = shift();
+    # Iterate over intrinsic declaration regexes.
+    foreach my $intrinsicType ( keys(%intrinsicDeclarations) ) {
+	# Check for a match to an intrinsic declaration regex.
+	if ( my @matches = $variableString =~ m/$intrinsicDeclarations{$intrinsicType}->{"regEx"}/i ) {
+	    my $type               = $matches[$intrinsicDeclarations{$intrinsicType}->{"type"      }];
+	    my $variablesString    = $matches[$intrinsicDeclarations{$intrinsicType}->{"variables" }];
+	    my $attributesString   = $matches[$intrinsicDeclarations{$intrinsicType}->{"attributes"}];
+	    $type                  =~ s/^\((.*)\)$/$1/
+		if ( defined($type            ) );
+	    $type                  =~ s/\s//g
+		if ( defined($type            ) );
+	    $attributesString      =~ s/^\s*,\s*//
+		if ( defined($attributesString) );
+	    my @variables          =  &Extract_Variables($variablesString ,keepQualifiers => 1,removeSpaces => 1);
+	    my @attributes         =  &Extract_Variables($attributesString,keepQualifiers => 1,removeSpaces => 1);
+	    my $variableDefinition =
+	    {
+		intrinsic => $intrinsicDeclarations{$intrinsicType}->{'intrinsic'},
+		variables => \@variables
+	    };
+	    $variableDefinition->{'type'      } = $type
+		if ( defined($type      )     );
+	    $variableDefinition->{'attributes'} = \@attributes
+		if ( scalar (@attributes) > 0 );
+	    return $variableDefinition;
+	}
+    }
 }
 
 sub Extract_Variables {

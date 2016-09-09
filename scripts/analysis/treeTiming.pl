@@ -79,7 +79,7 @@ my $logTreeTimes  = log10($treeTimes );
 my $percentiles    = pdl [ 50.0 ];
 my $logTreeMassBin = sequence(40)*0.5;
 my $weight         = pdl ones(nelem($logTreeMasses));
-my $medians        = &Percentiles::BinnedPercentiles($logTreeMassBin,$logTreeMasses,$logTreeTimes,$weight,$percentiles);
+my $medians        = &Stats::Percentiles::BinnedPercentiles($logTreeMassBin,$logTreeMasses,$logTreeTimes,$weight,$percentiles);
 my $mediansFlat    = $medians(:,(0));
 my $nonzero        = which($mediansFlat != 0.0);
 
@@ -150,17 +150,17 @@ if ( exists($arguments{'plotFile'}) ) {
     print $gnuPlot "set title 'Tree processing times'\n";
     print $gnuPlot "set xlabel 'Tree mass \$[M_\\odot]\$'\n";
     print $gnuPlot "set ylabel 'Processing time [s]'\n";
-    &PrettyPlots::Prepare_Dataset(\$plot,
+    &GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 				  $treeMasses,$treeTimes,
 				  style => "point", symbol => [6,7], weight => [5,3],
-				  color => $PrettyPlots::colorPairs{'cornflowerBlue'});
-    &PrettyPlots::Prepare_Dataset(\$plot,
+				  color => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'});
+    &GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 				  $treeMass,$treeTime,
 				  style => "line", weight => [5,3],
-				  color => $PrettyPlots::colorPairs{'redYellow'});
-    &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+				  color => $GnuPlot::PrettyPlots::colorPairs{'redYellow'});
+    &GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
     close($gnuPlot);
-    &LaTeX::GnuPlot2PDF($outputFileEPS);
+    &GnuPlot::LaTeX::GnuPlot2PDF($outputFileEPS);
 }
 
 exit;

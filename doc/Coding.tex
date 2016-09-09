@@ -1,5 +1,92 @@
 \chapter{Coding \glc}
 
+\section{Node Class Hierarchy Builder}
+
+The hierarchy of classes describing a merger tree node and its galaxy (i.e. {\normalfont \ttfamily treeNode}, {\normalfont \ttfamily nodeComponent}, {\normalfont \ttfamily nodeComponentBasic}, {\normalfont \ttfamily nodeComponentBasicStandard}, etc.) are built automatically to realize the set of component implementations and properties specified in source files.
+
+\subsection{Variable Definitions}\label{sec:nodeBuilderVariableDefinitions}
+
+Throughout the node objects builder code, Fortran variables are defined using a common specification. This is a simple hash containing the following entries:
+\begin{description}
+  \item[intrinsic] a string specifying the intrinsic Fortran type ({\normalfont \ttfamily integer}, {\normalfont \ttfamily logical}, {\normalfont \ttfamily real}, {\normalfont \ttfamily double precision}, {\normalfont \ttfamily complex}, {\normalfont \ttfamily double complex}, {\normalfont \ttfamily type}, {\normalfont \ttfamily class}, {\normalfont \ttfamily procedure});
+  \item[type] \emph{[optional, except for {\normalfont \ttfamily type} and {\normalfont \ttfamily class} instrinics]} a string specifying the type of the variables;
+  \item[attributes] an array of strings specifying all attributes of the variables;
+  \item[variables] an array of strings giving the names of the variables.
+\end{description}
+For example, rank-1, long integer arguments which will not be modified in their function would be specified as:
+\begin{verbatim}
+{
+  intrinsic  => "integer", 
+  type       => "kind_int8",
+  attributes => [ "dimension(:)", "intent(in)" ],
+  variables  => [ "argument1", "argument2" ]
+}
+\end{verbatim}
+
+\subsection{The {\normalfont \ttfamily \$build} Data Structure}
+
+The {\normalfont \ttfamily \$build} data structure is used to accumulate all objects, variables, and functions needed to build the class hierarchy used to represent nodes and components in \glc. At the end of the node objects build process, this object is processed to generate the required Fortran code. The following subsections describe how to add information to this object.
+
+\subsubsection{Component Classes and Implementations}
+
+A reference to a hash of structures which define all component classes, keyed by class name, is provided as {\normalfont \ttfamily \$build->\{'componentClasses'\}}. Each component class structure has the form:
+\begin{verbatim}
+{
+ name    => <name of the class>,
+ members => <reference to a hash of structures which define all member implementation of the class>
+}
+\end{verbatim}
+Each member implementation structure has the form:
+\begin{verbatim}
+{
+ name       =>             <name of the implementation>,
+ properties => property => <reference to a hash of structures which define all properties of this implementation>
+}
+\end{verbatim}
+
+\subsubsection{Types}\label{sec:buildHierarchyTypes}
+
+Definitions of derived types are accumulated to the hash {\normalfont \ttfamily \$build->\{'types'\}}, with the key of each entry being the derived type's name. Each derived type structure has the form:
+\begin{verbatim}
+{
+ name           => <name of the derived type>
+ comment        => <a description of the type>
+ isPublic       => <1 if the class should have public visbility, 0 otherwise>
+ dataContent    => <variable list containing all data for this class>
+ boundFunctions => 
+  [
+   {
+    type        => <procedure|generic>
+    descriptor  => <a function descriptor data structure> [optional]
+    name        => <name of the bound method>
+    function    => <name of function to bind to> [optional; not required if descriptor is provided]
+    description => <LaTeX-syntax description of the method> [optional; not required if descriptor is provided]
+    returnType  => <LaTeX-syntax return type of the method> [optional; not required if descriptor is provided]
+    arguments   => <LaTeX-syntax definition of all arguments to the method> [optional; not required if descriptor is provided]
+   }
+  ]
+}
+\end{verbatim}
+The preferred approach is to provide a function descriptor (see \S\ref{sec:buildHierarchyFunctions}), and to omit the {\normalfont \ttfamily function}, {\normalfont \ttfamily description}, {\normalfont \ttfamily returnType}, and {\normalfont \ttfamily arguments} entries (which will be inferred from the function descriptor). The {\normalfont \ttfamily function}, {\normalfont \ttfamily description}, {\normalfont \ttfamily returnType}, and {\normalfont \ttfamily arguments} entries will eventually be deprecated in favor of the {\normalfont \ttfamily descriptor} entry.
+
+\subsubsection{Functions}\label{sec:buildHierarchyFunctions}
+
+Definitions of functions are accumulated either to the list {\normalfont \ttfamily \$build->\{'functions'\}} or are included as the {\normalfont \ttfamily descriptor} in a derived type structure (see \S\ref{sec:buildHierarchyTypes}). Each function structure has the form:
+\begin{verbatim}
+{
+ type        => <the type of function>
+ name        => <function name>
+ description => <LaTeX-syntax description of the function>
+ modules     => <list of names of modules required by the function> [optional]
+ variables   => <list of variables required by the function> [optional]
+ content     => <the code of the function (excluding opener, closer, and variable definitions)>
+}
+\end{verbatim}
+
+\subsubsection{Module-scope Variables}
+
+Any module-scope variables can be pushed to the array {\normalfont \ttfamily \@\{\$build->\{'variables'\}\}}, using the usual definition format described in \S\ref{sec:nodeBuilderVariableDefinitions}.
+
 \section{Galacticus Preprocessor Directives}
 
 \glc\ has its own preprocessor for Fortran source files. This preprocesses parses each source file into an internal tree representation, performs various manipulations on that tree, and then outputs the preprocessed file for compilation. The preprocessor is used to automate and standardize many common tasks, through the inclusion of directives into the source code. Directives are specified in comment lines beginning {\normalfont \ttfamily !\#}, and are written in XML. The remainder of this section describes the various preprocessor functionalities, and gives examples of their usage.
@@ -434,7 +521,7 @@ Finally, we use the {\normalfont \ttfamily find} method to return the value of t
 
 The function evaluating $f(x)$ must have a form compatible with that shown for {\normalfont \ttfamily myRootFunction} in the above example.
 
-\section{Computation Dependencies and Data Files}\index{depdencies, computation}\index{labels, unique}\index{unique labels}
+\section{Computation Dependencies and Data Files}\index{dependencies, computation}\index{labels, unique}\index{unique labels}
 
 In many situations, some module in \glc\ might want to perform a calculation and then store the results to a file so that they can be reused later. A good example is the {\normalfont \ttfamily CAMB} transfer function method (see \S\ref{sec:TransferFunction:CAMB}), which computes a transfer function using {\normalfont \scshape CAMB} and stores this function in a file so that it can be re-read next time, avoiding the need to recompute the transfer function. A problem arises in such cases as the calculation may depend on the values of parameters (in our example, the transfer function will depend on cosmological parameters for example). We would like to record which parameter values this calculation refers to, perhaps encoding these into the file name, so that we can reuse these data in a future run only if the parameter values are unchanged. Given the modular nature of \glc\ it is impossible to know in advance which parameters will be relevant (e.g. does the cosmological parameter implementation have a parameter that describes a time varying equation of state for dark energy?). 
 
@@ -491,7 +578,7 @@ The second feature accounts for the fact that the properties of a node will chan
 
 \section{Mixed Language Coding}\label{sec:MixedLanguageCoding}\index{coding!mixed language}\index{mixed language coding}\index{C (language) coding}
 
-It is possible to incorporate C or C++ code into \glc. The implementation of C++-integration into \glc\ is currently only partially complete---if there is a specific function or feature that you would like to be C++-interoperable \href{mailto:abenson@.carnegiescience.edu}{contact us}. For an example of the various C++ interoperability see the {\normalfont \ttfamily star\_formation.timescales.disks.Baugh2005.cpp} file.
+It is possible to incorporate C or C++ code into \glc. The implementation of C++-integration into \glc\ is currently only partially complete---if there is a specific function or feature that you would like to be C++-interoperable \href{mailto:abenson@carnegiescience.edu}{contact us}. For an example of the various C++ interoperability see the {\normalfont \ttfamily star\_formation.timescales.disks.Baugh2005.cpp} file.
 
 \subsection{Component Property Methods}
 
@@ -549,7 +636,7 @@ The usual embedded XML directives specifies that this function should be called 
 
 \section{Global Functions}
 
-In very exceptional circumstances it is necessary to subvert the module hierarchy used by \glc\ to permit one module to call a function in a higher level module\footnote{This usually arises because circular dependencies would arise if the called function were placed in a lower level module.}. Examples of where this approach is necessary usuually involve initial bootstrapping (i.e. to establish halo density contrasts, which requires knowledge of the halo density profile, which in turn requires knowledge of the halo density contrast\ldots).
+In very exceptional circumstances it is necessary to subvert the module hierarchy used by \glc\ to permit one module to call a function in a higher level module\footnote{This usually arises because circular dependencies would arise if the called function were placed in a lower level module.}. Examples of where this approach is necessary usually involve initial bootstrapping (i.e. to establish halo density contrasts, which requires knowledge of the halo density profile, which in turn requires knowledge of the halo density contrast\ldots).
 
 \glc\ provides for global functions which facilitate this---specifically, it is possible to generate function pointers to higher level functions which are accessible via a very low-level module. To create a globally callable copy of a function use add the follow prior to the function definition:
 \begin{verbatim}

@@ -1,22 +1,16 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
 use Data::Dumper;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
-require Galacticus::HDF5;
-require XMP::MetaData;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
+use Galacticus::HDF5;
+use XMP::MetaData;
 
 # Plot the rotation curve of a galaxy computed by Galacticus.
 # Andrew Benson (04-February-2013)
@@ -49,8 +43,8 @@ my $galacticus;
 $galacticus->{'file' } = $galacticusFile;
 $galacticus->{'store'} = 0;
 $galacticus->{'tree' } = "all";
-&HDF5::Get_Parameters($galacticus);
-&HDF5::Get_Times     ($galacticus);
+&Galacticus::HDF5::Get_Parameters($galacticus);
+&Galacticus::HDF5::Get_Times     ($galacticus);
 my $redshift;
 for(my $i=0;$i<nelem($galacticus->{'outputs'}->{'outputNumber'});++$i) {
     $redshift = $galacticus->{'outputs'}->{'redshift'}->(($i))
@@ -58,8 +52,8 @@ for(my $i=0;$i<nelem($galacticus->{'outputs'}->{'outputNumber'});++$i) {
 }
 die('plotRotationCurve.pl: unrecognized output number')
     unless ( defined($redshift) );
-&HDF5::Select_Output         ($galacticus,$redshift);
-&HDF5::Get_Datasets_Available($galacticus          );
+&Galacticus::HDF5::Select_Output         ($galacticus,$redshift);
+&Galacticus::HDF5::Get_Datasets_Available($galacticus          );
 
 # Define datasets to read.
 my @dataSets = ( 'nodeIndex', 'mergerTreeIndex' );
@@ -80,7 +74,7 @@ foreach ( keys(%{$galacticus->{'dataSetsAvailable'}}) ) {
 	);
 }
 push(@dataSets,@rotationCurveDataSets);
-&HDF5::Get_Dataset($galacticus,\@dataSets);
+&Galacticus::HDF5::Get_Dataset($galacticus,\@dataSets);
 
 # Locate the requested node.
 my $selectedNode = 
@@ -210,20 +204,20 @@ print $gnuPlot "set pointsize 2.0\n";
 foreach ( @toPlot ) {
     if ( any($rotationCurve->{$_->{'type'}}->{'velocity'} > 0.0) ) {
 	my $sortIndex = $rotationCurve->{$_->{'type'}}->{'radius'}->qsorti();
-	&PrettyPlots::Prepare_Dataset(
+	&GnuPlot::PrettyPlots::Prepare_Dataset(
 	    \$plot,
 	    $rotationCurve->{$_->{'type'}}->{'radius'  }->($sortIndex),
 	    $rotationCurve->{$_->{'type'}}->{'velocity'}->($sortIndex),
 	    title      => $_->{'label'},
 	    style      => "line",
 	    weight     => [3,1],
-	    color      => $PrettyPlots::colorPairs{$_->{'color'}},
+	    color      => $GnuPlot::PrettyPlots::colorPairs{$_->{'color'}},
 	    );
     }
 }
-&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF($plotFileEPS, margin => 2);
-&MetaData::Write($plotFile,$galacticusFile,$self);
+&GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS, margin => 2);
+&XMP::MetaData::Write($plotFile,$galacticusFile,$self);
 
 exit;

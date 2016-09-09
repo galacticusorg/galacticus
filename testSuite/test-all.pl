@@ -2,15 +2,7 @@
 use strict;
 use warnings;
 use Cwd;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
- $ENV{"GALACTICUS_ROOT_V094"} = getcwd()."/";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Date::Format;
 use XML::Simple;
 use MIME::Lite;
@@ -19,8 +11,8 @@ use Data::Dumper;
 use File::Slurp qw( slurp );
 use File::Find;
 use Term::ReadKey;
-require System::Redirect;
-require Galacticus::Launch::PBS;
+use System::Redirect;
+use Galacticus::Launch::PBS;
 
 # Run a suite of tests on the Galacticus code.
 # Andrew Benson (19-Aug-2010).
@@ -358,7 +350,7 @@ my %testBuildJob =
      }
     );
 push(@jobStack,\%testBuildJob);
-&PBS::SubmitJobs(\%pbsOptions,@jobStack);
+&Galacticus::Launch::PBS::SubmitJobs(\%pbsOptions,@jobStack);
 unlink("testSuite/compileTests.pbs");
 
 # Launch all executables.
@@ -391,7 +383,7 @@ foreach my $executable ( @executablesToRun ) {
 	push(@jobStack,\%job);
     }
 }
-&PBS::SubmitJobs(\%pbsOptions,@jobStack);
+&Galacticus::Launch::PBS::SubmitJobs(\%pbsOptions,@jobStack);
 unlink(@launchFiles);
 
 # Build Galacticus itself.
@@ -410,7 +402,7 @@ my %galacticusBuildJob =
      }
     );
 push(@jobStack,\%galacticusBuildJob);
-&PBS::SubmitJobs(\%pbsOptions,@jobStack);
+&Galacticus::Launch::PBS::SubmitJobs(\%pbsOptions,@jobStack);
 unlink("testSuite/compileGalacticus.pbs");
 my @launchPBS;
 my @launchLocal;
@@ -419,12 +411,12 @@ if ( -e "./Galacticus.exe" ) {
     my @testDirs = ( "testSuite" );
     find(\&runTestScript,@testDirs);
     # Run scripts that require us to launch them under PBS.
-    &PBS::SubmitJobs(\%pbsOptions,@launchPBS);
+    &Galacticus::Launch::PBS::SubmitJobs(\%pbsOptions,@launchPBS);
     # Run scripts that can launch themselves using PBS.
     foreach ( @launchLocal ) {
 	print           ":-> Running test script: ".$_."\n";
 	print lHndl "\n\n:-> Running test script: ".$_."\n";
-	&SystemRedirect::tofile("cd testSuite; ".$_,"testSuite/allTests.tmp");
+	&System::Redirect::tofile("cd testSuite; ".$_,"testSuite/allTests.tmp");
 	print lHndl slurp("testSuite/allTests.tmp");
 	unlink("testSuite/allTests.tmp");
     }

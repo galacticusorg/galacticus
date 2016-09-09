@@ -1,28 +1,22 @@
 # Contains a Perl module which provides tools for running models for discrepancy analysis.
 # Andrew Benson (15-March-2015)
 
-package DiscrepancyModels;
+package Galacticus::Constraints::DiscrepancyModels;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath  = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath  = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Clone qw(clone);
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
 use Data::Dumper;
-require List::ExtraUtils;
-require Galacticus::Constraints::Parameters;
-require Galacticus::Constraints::DiscrepancySystematics;
-require Galacticus::Launch::PBS;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
+use List::ExtraUtils;
+use Galacticus::Constraints::Parameters;
+use Galacticus::Constraints::DiscrepancySystematics;
+use Galacticus::Launch::PBS;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
 
 sub RunModels {
     # Get arguments.
@@ -71,7 +65,7 @@ sub RunModels {
     
     # Get a hash of the parameter values.
     (my $constraintsRef, my $parameters) = 
-	&Parameters::Compilation
+	&Galacticus::Constraints::Parameters::Compilation
 	(
 	 $config->{'likelihood'}->{'compilation'},
 	 $baseParameters
@@ -132,7 +126,7 @@ sub RunModels {
 	unless ( -e $galacticusFileName ) {
 	    # Generate the parameter file.
 	    my $parameterFileName = $modelDirectory."/parameters.xml";
-	    &Parameters::Output($newParameters,$parameterFileName);
+	    &Galacticus::Constraints::Parameters::Output($newParameters,$parameterFileName);
 	    # Create PBS job.
 	    my $command = "mpirun --bynode -np 1 Galacticus.exe ".$parameterFileName."\n";
 	    foreach my $constraint ( @constraints ) {
@@ -164,7 +158,7 @@ sub RunModels {
 	}
     }
     # Send jobs to PBS.
-    &PBS::SubmitJobs(\%options,@pbsStack)
+    &Galacticus::Launch::PBS::SubmitJobs(\%options,@pbsStack)
 	if ( scalar(@pbsStack) > 0 );
     # Iterate over constraints.
     unless ( exists($options{'analyze'}) && $options{'analyze'} eq "no" ) {
@@ -295,29 +289,29 @@ sub RunModels {
 		print $gnuPlot "set xlabel '\$x\$'\n";
 		print $gnuPlot "set ylabel '\$y\$'\n";	
 		print $gnuPlot "set title '".$constraintDefinition->{'label'}."'\n";
-		&PrettyPlots::Prepare_Dataset(\$plot,
+		&GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 					      $x,$alternateY,
 					      errorUp   => sqrt($alternateCovariance->diagonal(0,1)),
 					      errorDown => sqrt($alternateCovariance->diagonal(0,1)),
 					      style     => "point",
 					      symbol    => [6,7], 
 					      weight    => [5,3],
-					      color     => $PrettyPlots::colorPairs{'cornflowerBlue'},
+					      color     => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'},
 					      title     => $models->{'alternate'}->{'label'}
 		    );
-		&PrettyPlots::Prepare_Dataset(\$plot,
+		&GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 					      $x,$defaultY,
 					      errorUp   => sqrt($defaultCovariance->diagonal(0,1)),
 					      errorDown => sqrt($defaultCovariance->diagonal(0,1)),
 					      style     => "point",
 					      symbol    => [6,7], 
 					      weight    => [5,3],
-					      color     => $PrettyPlots::colorPairs{'mediumSeaGreen'},
+					      color     => $GnuPlot::PrettyPlots::colorPairs{'mediumSeaGreen'},
 					      title     => $models->{'default'}->{'label'}
 		    );
-		&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+		&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 		close($gnuPlot);
-		&LaTeX::GnuPlot2PDF($plotFileEPS,margin => 1);
+		&GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS,margin => 1);
 	    }
 	}
     }   

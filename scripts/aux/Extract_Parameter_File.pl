@@ -1,18 +1,12 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{'GALACTICUS_ROOT_V094'}) ) {
-    $galacticusPath = $ENV{'GALACTICUS_ROOT_V094'};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl");
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use Data::Dumper;
 use XML::Simple;
-require Galacticus::HDF5;
+use Galacticus::HDF5;
 
 # Extracts parameter values from a Galacticus output file and writes them to an XML file in a format suitable to re-use by Galacticus.
 # Andrew Benson (10-Mar-2010)
@@ -24,7 +18,7 @@ my $parametersFile = $ARGV[1];
 
 my $dataSet;
 $dataSet->{'file'} = $galacticusFile;
-&HDF5::Get_Parameters($dataSet);
+&Galacticus::HDF5::Get_Parameters($dataSet);
 
 my $outputData;
 my @stack = map {{name => $_, node => $dataSet->{'parameters'}->{$_}, to => \%{$outputData}}} keys(%{$dataSet->{'parameters'}});

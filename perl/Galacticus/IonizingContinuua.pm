@@ -6,19 +6,15 @@
 package IonizingContinuua;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use XML::Simple;
-require Galacticus::HDF5;
+use Galacticus::HDF5;
+use Galacticus::Path;
 
-%HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-    "^(disk|spheroid|total)(Lyman|Helium|Oxygen)ContinuumLuminosity:z[\\d\\.]+\$" => \&IonizingContinuua::Get_Ionizing_Luminosity
+%Galacticus::HDF5::galacticusFunctions = ( %Galacticus::HDF5::galacticusFunctions,
+    "^(disk|spheroid|total)(Lyman|Helium|Oxygen)ContinuumLuminosity:z[\\d\\.]+\$" => \&Galacticus::IonizingContinuua::Get_Ionizing_Luminosity
     );
 
 sub Get_Ionizing_Luminosity {
@@ -47,7 +43,7 @@ sub Get_Ionizing_Luminosity {
 	my $redshift      = $3;
 	# Read the relevant continuum filter.
 	my $xml       = new XML::Simple;
-	my $continuumFilter = $xml->XMLin($galacticusPath."data/filters/".$filterName{$continuumName}.".xml");
+	my $continuumFilter = $xml->XMLin(&galacticusPath()."data/filters/".$filterName{$continuumName}.".xml");
 	my $wavelengthMaximum = pdl 0.0;
 	my $wavelengthMinimum = pdl 1.0e30;
 	foreach my $datum ( @{$continuumFilter->{'response'}->{'datum'}} ) {
@@ -76,7 +72,7 @@ sub Get_Ionizing_Luminosity {
 		$component."LuminositiesStellar:".$filterName{$continuumName}.":rest:z".$redshift.$postprocessingChain
 		);
 	}
-	&HDF5::Get_Dataset($model,\@luminosityDatasets);
+	&Galacticus::HDF5::Get_Dataset($model,\@luminosityDatasets);
 	my $dataSets = $model->{'dataSets'};
 	foreach ( @luminosityDatasets ) {
 	    $dataSets->{$dataSetName} += $dataSets->{$_}*($luminosityAB/$plancksConstant/$continuumUnits)*log($wavelengthMaximum/$wavelengthMinimum);

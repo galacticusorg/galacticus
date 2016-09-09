@@ -89,7 +89,7 @@ contains
     ! Dump the node.
     !$omp critical (Merger_Tree_Dump_Evolution)
     if (mergerTreeEvolutionDump) then
-       if (thisNode%isOnMainBranch()) call thisNode%dumpXML(mergerTreeEvolutionDumpFileUnit)
+       if (thisNode%isOnMainBranch()) call thisNode%serializeXML(mergerTreeEvolutionDumpFileUnit)
     end if
     !$omp end critical (Merger_Tree_Dump_Evolution)
     return

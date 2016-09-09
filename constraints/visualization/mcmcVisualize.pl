@@ -1,12 +1,6 @@
 #!/usr/bin/env perl
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use strict;
 use warnings;
 use PDL;
@@ -14,8 +8,8 @@ use PDL::NiceSlice;
 use Data::Dumper;
 use XML::Simple;
 use List::Uniq ':all';
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
 
 # Visualize the posterior distribution from an MCMC simulation log file.
 # Andrew Benson (10-June-2012)
@@ -399,23 +393,23 @@ foreach my $fileRoot ( @fileRoots ) {
 	    my $selection = which($p <= $levels->(($i)));
 	    my $pLevel = $p->copy();
 	    $pLevel->index($selection) .= -1.0;
-	    &PrettyPlots::Prepare_Dataset(
+	    &GnuPlot::PrettyPlots::Prepare_Dataset(
 		\$plot,
 		$x,$pLevel,
 		style       => "filledCurve",
 		weight      => \@lineWeight,
-		color       => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'sequence1'}}[$i]},
+		color       => $GnuPlot::PrettyPlots::colorPairs{${$GnuPlot::PrettyPlots::colorPairSequences{'sequence1'}}[$i]},
 		filledCurve => "x1"
 		);
 	}
-	&PrettyPlots::Prepare_Dataset(
+	&GnuPlot::PrettyPlots::Prepare_Dataset(
 	    \$plot,
 	    $x,$p,
 	    style       => "line",
 	    weight      => \@lineWeight,
-	    color       => $PrettyPlots::colorPairs{'redYellow'},
+	    color       => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
 	    );
-	&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+	&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 	# Output data to file if required.
 	if ( exists($arguments{'data'}) ) {
 	    my $xml = new XML::Simple(RootName => "data", NoAttr => 1);
@@ -507,6 +501,6 @@ print $gnuPlot "unset multiplot\n"
 
 close($gnuPlot);
 unlink(uniq(sort(@tempFiles)));
-&LaTeX::GnuPlot2PDF($plotFileEPS, margin => 1);
+&GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS, margin => 1);
 
 exit;

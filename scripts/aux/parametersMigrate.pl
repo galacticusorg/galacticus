@@ -1,20 +1,15 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use Scalar::Util 'reftype';
 use XML::LibXML qw(:libxml);
 use XML::LibXML::PrettyPrint;
 use Data::Dumper;
-require Galacticus::Options;
-require List::ExtraUtils;
+use Galacticus::Options;
+use List::ExtraUtils;
 
 # Update a Galacticus parameter file from one version to a later version.
 # Andrew Benson (13-September-2014)
@@ -34,7 +29,7 @@ my %options =
      outputFormatVersion => 2
     );
 # Parse options.
-my %optionsDefined = &Options::Parse_Options(\@ARGV,\%options);
+my %optionsDefined = &Galacticus::Options::Parse_Options(\@ARGV,\%options);
 
 # Define translations.
 my @translations =
@@ -502,7 +497,7 @@ sub Translate {
 
     # Validate the parameter file.
     if ( $options{'validate'} eq "yes" ) {
-	system($galacticusPath."scripts/aux/validateParameters.pl ".$inputFileName);
+	system(&galacticusPath()."scripts/aux/validateParameters.pl ".$inputFileName);
 	die('input file "'.$inputFileName.'"is not a valid Galacticus parameter file')
 	    unless ( $? == 0 );
     }
@@ -586,7 +581,7 @@ sub Translate {
 				print "                                 ".$thisValue." --> ".$newValue->{'value'}."\n";
 				$thisValue = $newValue->{'value'};
 				if ( exists($newValue->{'new'}) ) {
-				    foreach my $newParameter ( &ExtraUtils::as_array($newValue->{'new'}) ) {
+				    foreach my $newParameter ( &List::ExtraUtils::as_array($newValue->{'new'}) ) {
 					print "      add parameter: ".$newParameter->{'name'}." = ".$newParameter->{'value'}."\n";
 					if ( $options{'inputFormatVersion'} <= 1 ) {
 					    my $parameterNode = $input->createElement (                "parameter" );

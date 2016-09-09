@@ -36,7 +36,7 @@ module Node_Component_Basic_Standard_Extended
   !#   <class>basic</class>
   !#   <name>standard</name>
   !#  </extends>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>massBertschinger</name>

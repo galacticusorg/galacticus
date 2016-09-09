@@ -1,25 +1,19 @@
 # Contains a Perl module which implements total luminosity calculations for Galacticus.
 
-package Luminosities;
+package Galacticus::Luminosities;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use Data::Dumper;
 use XML::Simple;
-require Galacticus::HDF5;
-require Galacticus::DustAttenuation;
+use Galacticus::HDF5;
+use Galacticus::DustAttenuation;
 
-%HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-    "^totalLuminositiesStellar:([^:]+):([^:]+):z([\\d\\.]+)(:dust[^:]+)?" => \&Luminosities::Get_Luminosity,
-    "^bulgeToTotalLuminosities:([^:]+):([^:]+):z([\\d\\.]+)(:dust[^:]+)?" => \&Luminosities::Get_BulgeToTotal
+%Galacticus::HDF5::galacticusFunctions = ( %Galacticus::HDF5::galacticusFunctions,
+    "^totalLuminositiesStellar:([^:]+):([^:]+):z([\\d\\.]+)(:dust[^:]+)?" => \&Galacticus::Luminosities::Get_Luminosity,
+    "^bulgeToTotalLuminosities:([^:]+):([^:]+):z([\\d\\.]+)(:dust[^:]+)?" => \&Galacticus::Luminosities::Get_BulgeToTotal
     );
 
 sub Get_Luminosity {
@@ -39,7 +33,7 @@ sub Get_Luminosity {
 	my @luminosityDataset;
 	$luminosityDataset[0] = "diskLuminositiesStellar:"    .$filter.":".$frame.":z".$redshift.$dustExtension;
 	$luminosityDataset[1] = "spheroidLuminositiesStellar:".$filter.":".$frame.":z".$redshift.$dustExtension;
-	&HDF5::Get_Dataset($dataSet,\@luminosityDataset);
+	&Galacticus::HDF5::Get_Dataset($dataSet,\@luminosityDataset);
 	my $dataSets = $dataSet->{'dataSets'};
 	$dataSets->{$dataSetName} = $dataSets->{$luminosityDataset[0]}+$dataSets->{$luminosityDataset[1]};
     } else {
@@ -62,7 +56,7 @@ sub Get_BulgeToTotal {
 	my @luminosityDataset;
 	$luminosityDataset[0] = "diskLuminositiesStellar:"    .$filter.":".$frame.":z".$redshift.$dustExtension;
 	$luminosityDataset[1] = "spheroidLuminositiesStellar:".$filter.":".$frame.":z".$redshift.$dustExtension;
-	&HDF5::Get_Dataset($dataSet,\@luminosityDataset);
+	&Galacticus::HDF5::Get_Dataset($dataSet,\@luminosityDataset);
 	my $dataSets = $dataSet->{'dataSets'};
 	$dataSets->{$dataSetName} = $dataSets->{$luminosityDataset[1]}/($dataSets->{$luminosityDataset[0]}+$dataSets->{$luminosityDataset[1]});
 	my $nonluminous                 = which($dataSets->{$luminosityDataset[0]}+$dataSets->{$luminosityDataset[1]} <= 0.0);

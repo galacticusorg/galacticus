@@ -1,12 +1,6 @@
 #!/usr/bin/env perl
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use strict;
 use warnings;
 use XML::Simple;
@@ -17,11 +11,11 @@ use PDL::MatrixOps;
 use PDL::IO::HDF5;
 use Data::Dumper;
 use UNIVERSAL;
-require Galacticus::Constraints::Parameters;
-require Galacticus::Constraints::Covariances;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
-require LaTeX::Format;
+use Galacticus::Constraints::Parameters;
+use Galacticus::Constraints::Covariances;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
+use LaTeX::Format;
 
 # Run calculations of posterior predictive checks on a constrained Galacticus model.
 # Andrew Benson (19-March-2013)
@@ -51,7 +45,7 @@ while ( $iArg < $#ARGV ) {
 }
 
 # Parse the constraint config file.
-my $config = &Parameters::Parse_Config($configFile);
+my $config = &Galacticus::Constraints::Parameters::Parse_Config($configFile);
 
 # Validate the config file.
 die("posteriorPredictiveChecks.pl: workDirectory must be specified in config file" ) unless ( exists($config->{'likelihood'}->{'workDirectory' }) );
@@ -70,12 +64,12 @@ if ( exists($arguments{'compilationOverride'}) ) {
 } else {
     $compilationFile = $config->{'likelihood'}->{'compilation'};
 }
-(my $constraintsRef, my $parameters) = &Parameters::Compilation($compilationFile,$config->{'likelihood'}->{'baseParameters'});
+(my $constraintsRef, my $parameters) = &Galacticus::Constraints::Parameters::Compilation($compilationFile,$config->{'likelihood'}->{'baseParameters'});
 my @constraints = @{$constraintsRef};
 
 # Generate a sample of models.
 print "Generating posterior model sample...\n";
-(my $sampleCount, my $sampleDirectory) = &Parameters::Sample_Models($config,\%arguments);
+(my $sampleCount, my $sampleDirectory) = &Galacticus::Constraints::Parameters::Sample_Models($config,\%arguments);
 
 # Begin building LaTeX table of p-values.
 system("mkdir -p ".$workDirectory."/posteriorPredictiveChecks");
@@ -139,7 +133,7 @@ foreach my $constraint ( @constraints ) {
     my $inverseCovariance;
     my $logCovarianceDeterminant;
     if ( nelem($covariance) > 1 ) {
-	($inverseCovariance, $logCovarianceDeterminant) = &Covariances::SVDInvert($covariance);
+	($inverseCovariance, $logCovarianceDeterminant) = &Galacticus::Constraints::Covariances::SVDInvert($covariance);
     } else {
 	$inverseCovariance = minv($covariance);
     }
@@ -213,18 +207,18 @@ foreach my $constraint ( @constraints ) {
     my $testStatisticSorted    = $testStatistic->qsort();
     my $cumulativeProbability  = pdl sequence(nelem($testStatistic));
     $cumulativeProbability    /= nelem($testStatistic);
-    &PrettyPlots::Prepare_Dataset
+    &GnuPlot::PrettyPlots::Prepare_Dataset
 	(
 	 \$plot,
 	 $testStatisticSorted,
 	 $cumulativeProbability,
 	 style       => "line",
 	 weight      => [5,3],
-	 color       => $PrettyPlots::colorPairs{'redYellow'}
+	 color       => $GnuPlot::PrettyPlots::colorPairs{'redYellow'}
 	);
-    &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+    &GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
     close($gnuPlot);
-    &LaTeX::GnuPlot2PDF($plotFileTeX);
+    &GnuPlot::LaTeX::GnuPlot2PDF($plotFileTeX);
 }
 print $pValueTable "\\hline\n";
 print $pValueTable "\\end{tabular}\n";

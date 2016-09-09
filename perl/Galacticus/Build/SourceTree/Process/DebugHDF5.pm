@@ -1,24 +1,18 @@
 # Contains a Perl module which implements debugging tools for the HDF5 interface.
 
-package DebugHDF5;
+package Galacticus::Build::SourceTree::Process::DebugHDF5;
 use strict;
 use warnings;
 use utf8;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Data::Dumper;
-require List::ExtraUtils;
-require Galacticus::Build::SourceTree::Hooks;
-require Galacticus::Build::SourceTree;
+use List::ExtraUtils;
+## AJB HACK use Galacticus::Build::SourceTree::Hooks;
+## AJB HACK use Galacticus::Build::SourceTree;
 
 # Insert hooks for our functions.
-$Hooks::processHooks{'debugHDF5'} = \&Process_DebugHDF5;
+$Galacticus::Build::SourceTree::Hooks::processHooks{'debugHDF5'} = \&Process_DebugHDF5;
 
 sub Process_DebugHDF5 {
     # Get the tree.
@@ -48,7 +42,7 @@ sub Process_DebugHDF5 {
 	    close($content);
 	    $node->{'content'} = $newContent;
 	}
-	$node = &SourceTree::Walk_Tree($node,\$depth);
+	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }
 }
 

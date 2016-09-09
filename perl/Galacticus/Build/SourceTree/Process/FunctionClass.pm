@@ -1,30 +1,24 @@
 # Contains a Perl module which implements processing of functionClass directives.
 
-package FunctionClass;
+package Galacticus::Build::SourceTree::Process::FunctionClass;
 use strict;
 use warnings;
 use utf8;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Data::Dumper;
 use XML::Simple;
 use Sort::Topological qw(toposort);
 use LaTeX::Encode;
 use Scalar::Util qw(reftype);
-require List::ExtraUtils;
-require Fortran::Utils;
-require Galacticus::Build::SourceTree::Hooks;
-require Galacticus::Build::SourceTree;
-require Galacticus::Build::SourceTree::Parse::ModuleUses;
+use List::ExtraUtils;
+use Fortran::Utils;
+## AJB HACK use Galacticus::Build::SourceTree::Hooks;
+## AJB HACK use Galacticus::Build::SourceTree;
+## AJB HACK use Galacticus::Build::SourceTree::Parse::ModuleUses;
 
 # Insert hooks for our functions.
-$Hooks::processHooks{'functionClass'} = \&Process_FunctionClass;
+$Galacticus::Build::SourceTree::Hooks::processHooks{'functionClass'} = \&Process_FunctionClass;
 
 sub Process_FunctionClass {
     # Get the tree.
@@ -44,7 +38,7 @@ sub Process_FunctionClass {
 	    # Extract the directive.
 	    my $directive = $node->{'directive'};
 	    # Get code directive locations if we do not have them.
-	    $directiveLocations = $xml->XMLin($galacticusPath.$ENV{'BUILDPATH'}."/Code_Directive_Locations.xml")
+	    $directiveLocations = $xml->XMLin($ENV{'BUILDPATH'}."/Code_Directive_Locations.xml")
 		unless ( $directiveLocations );	    
 	    # Find methods.
 	    my %methods;
@@ -56,14 +50,14 @@ sub Process_FunctionClass {
 		}
 	    }
 	    # Find class locations.
-	    my @classLocations = &ExtraUtils::as_array($directiveLocations->{$directive->{'name'}}->{'file'})
+	    my @classLocations = &List::ExtraUtils::as_array($directiveLocations->{$directive->{'name'}}->{'file'})
 		if ( exists($directiveLocations->{$directive->{'name'}}) );
 	    # Parse classes.
 	    my %dependencies;
 	    my %classes;
 	    foreach my $classLocation ( @classLocations ) {
-		my $classTree  = &SourceTree::ParseFile($classLocation);
-		&SourceTree::ProcessTree($classTree, errorTolerant => 1);
+		my $classTree  = &Galacticus::Build::SourceTree::ParseFile($classLocation);
+		&Galacticus::Build::SourceTree::ProcessTree($classTree, errorTolerant => 1);
 		my $classNode  = $classTree;
 		my $classDepth = 0;
 		my $className;
@@ -85,7 +79,7 @@ sub Process_FunctionClass {
 			    push(@{$dependencies{$extends}},$type);
 			}
 		    }
-		    $classNode = &SourceTree::Walk_Tree($classNode,\$classDepth);
+		    $classNode = &Galacticus::Build::SourceTree::Walk_Tree($classNode,\$classDepth);
 		}
 		# Store tree.
 		$class->{'tree'} = $classTree;
@@ -214,12 +208,12 @@ sub Process_FunctionClass {
 	    $preContains->[0]->{'content'} .= "   logical, private :: moduleInitialized=.false.\n\n";
 
 	    # Generate the base class.
-	    &SourceTree::SetVisibility($node->{'parent'},$directive->{'name'}."Class","public");
-	    &SourceTree::SetVisibility($node->{'parent'},$directive->{'name'}        ,"public");
+	    &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$directive->{'name'}."Class","public");
+	    &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$directive->{'name'}        ,"public");
 	    $preContains->[0]->{'content'} .= "   type :: ".$directive->{'name'}."Class\n";
 	    $preContains->[0]->{'content'} .= "    private\n";
 	    $preContains->[0]->{'content'} .= "    logical :: isDefault=.false.\n";
-	    foreach ( &ExtraUtils::as_array($directive->{'data'}) ) {
+	    foreach ( &List::ExtraUtils::as_array($directive->{'data'}) ) {
 		if ( reftype($_) ) {
 		    $_->{'scope'} = "self"
 			unless ( exists($_->{'scope'}) );
@@ -245,15 +239,15 @@ sub Process_FunctionClass {
 		}
 		my $separator = "";
 		foreach my $argument ( @arguments ) {
-		    foreach my $intrinsic ( keys(%Fortran_Utils::intrinsicDeclarations) ) {
-			my $declarator = $Fortran_Utils::intrinsicDeclarations{$intrinsic};
+		    foreach my $intrinsic ( keys(%Fortran::Utils::intrinsicDeclarations) ) {
+			my $declarator = $Fortran::Utils::intrinsicDeclarations{$intrinsic};
 			if ( my @matches = $argument =~ m/$declarator->{'regEx'}/ ) {
 			    my $intrinsicName =                          $declarator->{'intrinsic' }  ;
 			    my $type          =                 $matches[$declarator->{'type'      }] ;
 			    my $attributeList =                 $matches[$declarator->{'attributes'}] ;
 			    $attributeList =~ s/^\s*,?\s*//;
 			    $attributeList =~ s/\s*$//;
-			    my @attributes = &Fortran_Utils::Extract_Variables($attributeList, keepQualifiers => 1, removeSpaces => 1);
+			    my @attributes = &Fortran::Utils::Extract_Variables($attributeList, keepQualifiers => 1, removeSpaces => 1);
 			    my @variables     = split(/\s*,\s*/,$matches[$declarator->{'variables' }]);
 			    foreach my $variable ( @variables ) {
 				$argumentList .= $separator."\\textcolor{red}{\\textless ".$intrinsicName;
@@ -314,7 +308,7 @@ sub Process_FunctionClass {
 	    $preContains->[0]->{'content'} .= $methodTable->table();
 	    $preContains->[0]->{'content'} .= "   end type ".$directive->{'name'}."Class\n\n";
 	    # Insert any module-scope class content.
-	    foreach ( &ExtraUtils::as_array($directive->{'data'}) ) {
+	    foreach ( &List::ExtraUtils::as_array($directive->{'data'}) ) {
 		if ( reftype($_) ) {
 		    if ( exists($_->{'scope'}) && $_->{'scope'} eq "module" ) {
 			$preContains->[0]->{'content'} .= $_->{'content'}."\n";
@@ -345,7 +339,7 @@ sub Process_FunctionClass {
 		    }
 		}
 	    };
-	    &ModuleUses::AddUses($node->{'parent'},$usesNode);
+	    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
 	    if ( $tree->{'type'} eq "file" ) {
 		(my $fileName = $tree->{'name'}) =~ s/\.F90$/.p/;
 		open(my $parametersFile,">>".$ENV{'BUILDPATH'}."/".$fileName);
@@ -421,7 +415,7 @@ sub Process_FunctionClass {
 	    
 	    # Insert class code.
 	    foreach my $class ( @classes ) {
-		&SourceTree::SetVisibility($node->{'parent'},$class->{'type'},"public")	
+		&Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$class->{'type'},"public")	
 		    if ( grep {$_->{'type'} eq $class->{'type'}} @nonAbstractClasses );
 		my $classTree = $class->{'tree'};
 		my $classNode = $classTree->{'firstChild'};
@@ -439,7 +433,7 @@ sub Process_FunctionClass {
 				    $directive->{'name'}                                                                                  .
 				    "' is not default thread private, but composites other objects which may be default thread private.\n";
 			    }
-			    $subNode = &SourceTree::Walk_Tree($subNode);
+			    $subNode = &Galacticus::Build::SourceTree::Walk_Tree($subNode);
 			}
 		    }		    
 		    if ( $classNode->{'type'} eq "contains" ) {
@@ -450,7 +444,7 @@ sub Process_FunctionClass {
 			push(@{$postContains},$classNode);
 		    } else {
 			if ( $classNode->{'type'} eq "moduleUse" ) {
-			    &ModuleUses::AddUses($node->{'parent'},$classNode);
+			    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$classNode);
 			} else {			    
 			    push(@{$preContains },$classNode);
 			}
@@ -527,7 +521,7 @@ sub Process_FunctionClass {
 
 	    # Create global state store/restore functions.
 	    if ( exists($directive->{'stateful'}) && $directive->{'stateful'} eq "yes" ) {
-		&SourceTree::SetVisibility($node->{'parent'},$directive->{'name'}.$_,"public")
+		&Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$directive->{'name'}.$_,"public")
 		    foreach ( "DoStateStore", "DoStateRetrieve", "DoStateSnapshot" );
 		$postContains->[0]->{'content'} .= "  !# <galacticusStateStoreTask>\n";
 		$postContains->[0]->{'content'} .= "  !#  <unitName>".$directive->{'name'}."DoStateStore</unitName>\n";
@@ -572,7 +566,7 @@ sub Process_FunctionClass {
 	    
 	    # Create global calculation reset function.
 	    if ( exists($directive->{'calculationReset'}) && $directive->{'calculationReset'} eq "yes" ) {
-		&SourceTree::SetVisibility($node->{'parent'},$directive->{'name'}."DoCalculationReset","public");
+		&Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$directive->{'name'}."DoCalculationReset","public");
 		$postContains->[0]->{'content'} .= "  !# <calculationResetTask>\n";
 		$postContains->[0]->{'content'} .= "  !#  <unitName>".$directive->{'name'}."DoCalculationReset</unitName>\n";
 		$postContains->[0]->{'content'} .= "  !# </calculationResetTask>\n";
@@ -732,15 +726,15 @@ sub Process_FunctionClass {
 		    my $separator    = "";
 		    my $argumentList = "";
 		    foreach my $argument ( @arguments ) {
-			foreach my $intrinsic ( keys(%Fortran_Utils::intrinsicDeclarations) ) {
-			    my $declarator = $Fortran_Utils::intrinsicDeclarations{$intrinsic};
+			foreach my $intrinsic ( keys(%Fortran::Utils::intrinsicDeclarations) ) {
+			    my $declarator = $Fortran::Utils::intrinsicDeclarations{$intrinsic};
 			    if ( my @matches = $argument =~ m/$declarator->{'regEx'}/ ) {
 				my $intrinsicName =                          $declarator->{'intrinsic' }  ;
 				my $type          =                 $matches[$declarator->{'type'      }] ;
 				my $attributeList =                 $matches[$declarator->{'attributes'}] ;
 				$attributeList =~ s/^\s*,?\s*//;
 				$attributeList =~ s/\s*$//;
-				my @attributes = &Fortran_Utils::Extract_Variables($attributeList, keepQualifiers => 1, removeSpaces => 1);
+				my @attributes = &Fortran::Utils::Extract_Variables($attributeList, keepQualifiers => 1, removeSpaces => 1);
 				foreach my $attribute ( @attributes ) {
 				    die("Galacticus::Build::Functions::Functions_Generate_Output:  attribute not supported for C++-binding")
 					unless ( $attribute eq "intent(in)" );
@@ -801,15 +795,15 @@ sub Process_FunctionClass {
 			}
 		    }
 		    foreach my $argument ( @arguments ) {
-			foreach my $intrinsic ( keys(%Fortran_Utils::intrinsicDeclarations) ) {
-			    my $declarator = $Fortran_Utils::intrinsicDeclarations{$intrinsic};
+			foreach my $intrinsic ( keys(%Fortran::Utils::intrinsicDeclarations) ) {
+			    my $declarator = $Fortran::Utils::intrinsicDeclarations{$intrinsic};
 			    if ( my @matches = $argument =~ m/$declarator->{'regEx'}/ ) {
 				my $intrinsicName =                          $declarator->{'intrinsic' }  ;
 				my $type          =                 $matches[$declarator->{'type'      }] ;
 				my $attributeList =                 $matches[$declarator->{'attributes'}] ;
 				$attributeList =~ s/^\s*,?\s*//;
 				$attributeList =~ s/\s*$//;
-				my @attributes = &Fortran_Utils::Extract_Variables($attributeList, keepQualifiers => 1, removeSpaces => 1);
+				my @attributes = &Fortran::Utils::Extract_Variables($attributeList, keepQualifiers => 1, removeSpaces => 1);
 				foreach my $attribute ( @attributes ) {
 				    die("Galacticus::Build::Functions::Functions_Generate_Output:  attribute not supported for C++-binding")
 					unless ( $attribute eq "intent(in)" );
@@ -911,12 +905,12 @@ sub Process_FunctionClass {
 		my $separator    = "";
 		my @argumentDefinitions;
 		foreach my $argument ( @arguments ) {
-		    if ( $argument =~ $Fortran_Utils::variableDeclarationRegEx ) {
+		    if ( $argument =~ $Fortran::Utils::variableDeclarationRegEx ) {
 			my $intrinsic     = $1;
 			my $type          = $2;
 			my $attributeList = $3;
 			my $variableList  = $4;
-			my @variables  = &Fortran_Utils::Extract_Variables($variableList,keepQualifiers => 1,lowerCase => 0);
+			my @variables  = &Fortran::Utils::Extract_Variables($variableList,keepQualifiers => 1,lowerCase => 0);
 			my $declaration =
 			{
 			    intrinsic  => $intrinsic,
@@ -929,7 +923,7 @@ sub Process_FunctionClass {
 			}
 			if ( defined($attributeList) ) {
 			    $attributeList =~ s/^\s*,\s*//;
-			    my @attributes = &Fortran_Utils::Extract_Variables($attributeList,keepQualifiers => 1);
+			    my @attributes = &Fortran::Utils::Extract_Variables($attributeList,keepQualifiers => 1);
 			    $declaration->{'attributes'} = \@attributes;
 			}
 			push(@argumentDefinitions,$declaration);
@@ -954,7 +948,7 @@ sub Process_FunctionClass {
 		$documentation .= $argumentList
 		    unless ( $argumentList eq "" );
 		$documentation .= ")\n";
-		$documentation .= &Fortran_Utils::Format_Variable_Defintions(\@argumentDefinitions);
+		$documentation .= &Fortran::Utils::Format_Variable_Defintions(\@argumentDefinitions);
 		$documentation .= "   end ".$type.$category." myImplementation".ucfirst($methodName)."\n";
 		$documentation .= "\\end{lstlisting}\n\n";
 	    }
@@ -977,14 +971,14 @@ sub Process_FunctionClass {
 	    # we parse and process our generated code here, before serializing it back into the original node. Should we need to
 	    # retain this behavior permanently it would be cleaner to just generate the code as text (i.e. not in a node), then
 	    # parse into a tree and unshift() it to the start of the postcontains array.	    
-	    my $treeTmp = &SourceTree::ParseCode ($postContains->[0]->{'content'},'null');
-	    &SourceTree::ProcessTree($treeTmp);
-	    $postContains->[0]->{'content'} = &SourceTree::Serialize($treeTmp);
+	    my $treeTmp = &Galacticus::Build::SourceTree::ParseCode ($postContains->[0]->{'content'},'null');
+	    &Galacticus::Build::SourceTree::ProcessTree($treeTmp);
+	    $postContains->[0]->{'content'} = &Galacticus::Build::SourceTree::Serialize($treeTmp);
 	    # </workaround>
-	    &SourceTree::InsertPreContains ($node->{'parent'},$preContains );
-	    &SourceTree::InsertPostContains($node->{'parent'},$postContains);
+	    &Galacticus::Build::SourceTree::InsertPreContains ($node->{'parent'},$preContains );
+	    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},$postContains);
 	}
-	$node = &SourceTree::Walk_Tree($node,\$depth);
+	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }
 }
 

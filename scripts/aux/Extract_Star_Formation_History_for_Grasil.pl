@@ -1,22 +1,16 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use PDL::IO::HDF5;
 use PDL::IO::HDF5::Dataset;
 use PDL::NiceSlice;
 use Text::Table;
 use Math::SigFigs;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
 
 # Plot the star formation history of a galaxy split by metallicity and output the data in a form suitable for input to Grasil.
 # Andrew Benson (06-September-2010)
@@ -227,10 +221,10 @@ if ( defined($plotFile) && ( any($diskSFR > $sfrMinimum) || any($spheroidSFR > $
 		$metallicityHigh = FormatSigFigs($metallicities->index($i),2);
 	    }
 	    my $label = "\\\\small Spheroid: \$".$metallicityLow."<Z<".$metallicityHigh."\$";
-	    &PrettyPlots::Prepare_Dataset(\$plot,
+	    &GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 					  $spheroidTimeCentral, $spheroidSFR(:,($i)),
 					  style => "point", symbol => [4,5], weight => [5,3],
-					  color => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'sequence1'}}[$iColor]},
+					  color => $GnuPlot::PrettyPlots::colorPairs{${$GnuPlot::PrettyPlots::colorPairSequences{'sequence1'}}[$iColor]},
 					  title => $label);
 	}
     }
@@ -251,16 +245,16 @@ if ( defined($plotFile) && ( any($diskSFR > $sfrMinimum) || any($spheroidSFR > $
 		$metallicityHigh = FormatSigFigs($metallicities->index($i),2);
 	    }
 	    my $label = "\\\\small Disk: \$".$metallicityLow."<Z<".$metallicityHigh."\$";
-	    &PrettyPlots::Prepare_Dataset(\$plot,
+	    &GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 					  $diskTimeCentral, $diskSFR(:,($i)),
 					  style => "point", symbol => [6,7], weight => [5,3],
-					  color => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'sequence1'}}[$iColor]},
+					  color => $GnuPlot::PrettyPlots::colorPairs{${$GnuPlot::PrettyPlots::colorPairSequences{'sequence1'}}[$iColor]},
 					  title => $label);
 	}
     }
-    &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+    &GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
     close($gnuPlot);
-    &LaTeX::GnuPlot2PDF($outputFileEPS);
+    &GnuPlot::LaTeX::GnuPlot2PDF($outputFileEPS);
     
 }
 

@@ -2,15 +2,7 @@
 use strict;
 use warnings;
 use Cwd;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
- $ENV{"GALACTICUS_ROOT_V094"} = getcwd()."/";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use threads;
 
 # A simple wrapper script which launches multiple threads to process the input list of scripts.

@@ -1,24 +1,26 @@
 # Contains a Perl module which implements calculation of AGN luminosities.
 
-package AGNLuminosities;
+package Galacticus::AGNLuminosities;
 use strict;
 use warnings;
 use utf8;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
 use PDL::IO::Misc;
 use XML::Simple;
 use DateTime;
-require Galacticus::HDF5;
-require Galacticus::ColumnDensity;
-require Galacticus::ISMCrossSections;
-require Galacticus::Filters;
+use Galacticus::HDF5;
+use Galacticus::ColumnDensity;
+use Galacticus::ISMCrossSections;
+use Galacticus::Filters;
 
-%HDF5::galacticusFunctions = 
+%Galacticus::HDF5::galacticusFunctions = 
     (
-     %HDF5::galacticusFunctions,
-     "^agnLuminosity:[^:]+:[^:]+:z[\\d\\.]+(:noAbsorption)?(:alpha[0-9\\-\\+\\.]+)??\$" => \&AGNLuminosities::Get_AGN_Luminosity
+     %Galacticus::HDF5::galacticusFunctions,
+     "^agnLuminosity:[^:]+:[^:]+:z[\\d\\.]+(:noAbsorption)?(:alpha[0-9\\-\\+\\.]+)??\$" => \&Galacticus::AGNLuminosities::Get_AGN_Luminosity
     );
 
 # AGN SED data.
@@ -211,7 +213,7 @@ sub Get_AGN_Luminosity {
 	    unless ( defined($noAbsorption) );
 
 	# Get the AGN bolometric luminosities (in units of Solar luminosities).
-	&HDF5::Get_Dataset($model,['blackHoleAccretionRate','blackHoleRadiativeEfficiency', 'columnDensityDisk', 'columnDensitySpheroid', 'diskMassGas', 'diskAbundancesGasMetals', 'spheroidMassGas', 'spheroidAbundancesGasMetals' ]);
+	&Galacticus::HDF5::Get_Dataset($model,['blackHoleAccretionRate','blackHoleRadiativeEfficiency', 'columnDensityDisk', 'columnDensitySpheroid', 'diskMassGas', 'diskAbundancesGasMetals', 'spheroidMassGas', 'spheroidAbundancesGasMetals' ]);
 	my $dataSets = $model->{'dataSets'};
 	my $columnDensityDisk     = $dataSets->{'columnDensityDisk'    };
 	my $columnDensitySpheroid = $dataSets->{'columnDensitySpheroid'};
@@ -230,7 +232,7 @@ sub Get_AGN_Luminosity {
 	$bolometricLuminosity->index($zeroLuminosities) .= -10.0;
 
 	# Load the filter.
-	(my $filterWavelengths, my $filterResponse) = &Filters::Load($filterName);
+	(my $filterWavelengths, my $filterResponse) = &Galacticus::Filters::Load($filterName);
 	
 	# Make a joint set of filter and SED wavelengths.
 	my $jointWavelengths = $wavelengths->copy();
@@ -329,7 +331,7 @@ sub Get_AGN_Luminosity {
 			$model->{'agnLuminosities'}->{'useMetallicity'} == 1
 		    );
 		$crossSectionsDisk                  .=
-		    &ISMCrossSections::Cross_Sections
+		    &Galacticus::ISMCrossSections::Cross_Sections
 		    (
 		     $jointEnergies,
 		     %options
@@ -341,7 +343,7 @@ sub Get_AGN_Luminosity {
 			$model->{'agnLuminosities'}->{'useMetallicity'} == 1
 		    );
 		$crossSectionsSpheroid              .=
-		    &ISMCrossSections::Cross_Sections
+		    &Galacticus::ISMCrossSections::Cross_Sections
 		    (
 		     $jointEnergies,
 		     %options

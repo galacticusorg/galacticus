@@ -1,14 +1,8 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath  = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath  = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
@@ -16,13 +10,13 @@ use PDL::Constants qw(PI);
 use Astro::Cosmology;
 use XML::Simple;
 use Data::Dumper;
-require Galacticus::Options;
-require Galacticus::HDF5;
-require Galacticus::Constraints::Covariances;
-require Galacticus::Constraints::DiscrepancyModels;
-require Stats::Histograms;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
+use Galacticus::Options;
+use Galacticus::HDF5;
+use Galacticus::Constraints::Covariances;
+use Galacticus::Constraints::DiscrepancyModels;
+use Stats::Histograms;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
 
 # Compute likelihood (and make a plot) for a Galacticus model given the disk galaxy size data from Shen et al. (2003;
 # http://adsabs.harvard.edu/abs/2003MNRAS.343..978S).
@@ -38,7 +32,7 @@ my %arguments =
     (
      quiet => 0
     );
-&Options::Parse_Options(\@ARGV,\%arguments);
+&Galacticus::Options::Parse_Options(\@ARGV,\%arguments);
 
 # Define constants.
 my $megaParsec                    = pdl 3.08567758e+22;
@@ -64,7 +58,7 @@ my $model;
 $model->{'file' } = $galacticusFile;
 $model->{'store'} = 0;
 $model->{'tree' } = "all";
-&HDF5::Get_Parameters($model                );
+&Galacticus::HDF5::Get_Parameters($model                );
 # Construct cosmologies for data and model.
 my $cosmologyData = Astro::Cosmology->new(
     omega_matter => &assclr($dataCompilation->group('cosmology')->attrGet('Omega_Matter')),
@@ -186,9 +180,9 @@ if ( grep {$_ eq "analysis"} @rootGroups ) {
 # If no pre-computed size function was found, compute one now.
 unless ( $gotModelSizeFunction == 1 ) {
     # Read required datasets from model.
-    &HDF5::Count_Trees   ($model                );
-    &HDF5::Select_Output ($model,$sampleRedshift);
-    &HDF5::Get_Dataset
+    &Galacticus::HDF5::Count_Trees   ($model                );
+    &Galacticus::HDF5::Select_Output ($model,$sampleRedshift);
+    &Galacticus::HDF5::Get_Dataset
 	(
 	 $model,
 	 [
@@ -247,7 +241,7 @@ unless ( $gotModelSizeFunction == 1 ) {
 	 haloMassBinsMaximum   => 1.0e16
 	);
     ($model->{'radiusFunction'},$model->{'radiusFunctionError'},$model->{'covariance'}) 
-	= &Histograms::Histogram2D($radiusLogarithmicBins,$sizeData->{'massLogarithmic'},$model->{'dataSets'}->{'diskRadiusLogarithmic'},$model->{'dataSets'}->{'massLogarithmic'},$weight,%options);
+	= &Stats::Histograms::Histogram2D($radiusLogarithmicBins,$sizeData->{'massLogarithmic'},$model->{'dataSets'}->{'diskRadiusLogarithmic'},$model->{'dataSets'}->{'massLogarithmic'},$weight,%options);
 }
 
 # Evaluate the model likelihood.
@@ -285,7 +279,7 @@ if ( exists($arguments{'outputFile'}) ) {
 	my $modelCovarianceExcludedOriginal = $modelCovarianceExcluded               ->copy();
 	my $modelErrorExcluded              = $modelCovarianceExcluded->diagonal(0,1)->copy();
 	# Limit multiplicative covariances which can be too large due to noise.
-	&DiscrepancyModels::Apply_Discrepancies(
+	&Galacticus::Constraints::DiscrepancyModels::Apply_Discrepancies(
 	    "discrepancyDiskGalaxySizeZ0.07.hdf5"             ,
 	    $arguments                  {'modelDiscrepancies'},
 	    $modelRadiusFunctionExcluded                      ,
@@ -304,7 +298,7 @@ if ( exists($arguments{'outputFile'}) ) {
     my $inverseCovariance;
     my $jacobian;
     my $logLikelihood =
-	&Covariances::ComputeLikelihood
+	&Galacticus::Constraints::Covariances::ComputeLikelihood
 	(
 	 $dataRadiusFunctionExcluded                          ,
 	 $modelRadiusFunctionExcluded                         ,
@@ -415,14 +409,14 @@ if ( exists($arguments{'plotFile'}) ) {
 	    my $shortArrows                             = which($dataRadiusFunction->($upperLimits) < 0.6);
 	    $errorDown->($upperLimits)->($shortArrows) .= -$dataRadiusFunction->($upperLimits)->($shortArrows)+0.1;
 	}
-	&PrettyPlots::Prepare_Dataset(\$plot,
+	&GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 				      1.0e3*$sizeData->{'radius'}->(:,($i)),$dataRadiusFunction,
 				      errorUp   => $errorUp,
 				      errorDown => $errorDown,
 				      style     => "point",
 				      symbol    => [6,7], 
 				      weight    => [5,3],
-				      color     => $PrettyPlots::colorPairs{'cornflowerBlue'},
+				      color     => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'},
 				      title     => $sizeData->{'label'}
 	    );
 	my $errorModel = 
@@ -433,19 +427,19 @@ if ( exists($arguments{'plotFile'}) ) {
 		)
 		->diagonal(0,1)
 	    );
-	&PrettyPlots::Prepare_Dataset(\$plot,
+	&GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 				      1.0e3*$sizeData->{'radius'}->(:,($i)),$model->{'radiusFunction'}->(:,($i)),
 				      errorUp   => $errorModel,
 				      errorDown => $errorModel,
 				      style     => "point",
 				      symbol    => [6,7], 
 				      weight    => [5,3],
-				      color     => $PrettyPlots::colorPairs{'redYellow'},
+				      color     => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
 				      title     => "Galacticus"
 	    );
- 	&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+ 	&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
  	close($gnuPlot);
- 	&LaTeX::GnuPlot2PDF($plotFileEPS,margin => 1);
+ 	&GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS,margin => 1);
     }
 }
 

@@ -6,14 +6,14 @@
   <version>0.9.4</version>
 
   <!-- Component selection -->
-  <treeNodeMethodBasic             value="standard"   />
-  <treeNodeMethodHotHalo           value="verySimple" />
-  <treeNodeMethodBlackHole         value="null"       />
-  <treeNodeMethodDarkMatterProfile value="null"       />
-  <treeNodeMethodDisk              value="verySimple" />
-  <treeNodeMethodSatellite         value="null"       />
-  <treeNodeMethodSpheroid          value="null"       />
-  <treeNodeMethodSpin              value="null"       />
+  <treeNodeMethodBasic             value="standard"       />
+  <treeNodeMethodHotHalo           value="verySimple"     />
+  <treeNodeMethodBlackHole         value="null"           />
+  <treeNodeMethodDarkMatterProfile value="null"           />
+  <treeNodeMethodDisk              value="verySimpleSize" />
+  <treeNodeMethodSatellite         value="null"           />
+  <treeNodeMethodSpheroid          value="null"           />
+  <treeNodeMethodSpin              value="preset"         />
 
   <!-- Cosmological parameters and options -->
   <cosmologyFunctionsMethod  value="matterLambda"/>
@@ -56,6 +56,9 @@
   <!-- Hot halo model options -->
   <hotHaloMassDistributionMethod value="null" />
   <coolingRateMethod             value="zero" />
+
+  <!-- Galactic structure options -->
+  <galacticStructureRadiusSolverMethod value="fixed"/>
 
   <!-- Star formation rate -->
   <starFormationTimescaleDisksMethod         value="fixed" />

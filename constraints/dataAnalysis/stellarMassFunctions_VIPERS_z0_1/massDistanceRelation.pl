@@ -1,36 +1,31 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath  = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath  = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use PDL;
 use PDL::NiceSlice;
 use PDL::Fit::Polynomial;
 use XML::Simple;
 use Data::Dumper;
 use Astro::Cosmology;
-require Stats::Percentiles;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
+use Stats::Percentiles;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
 
 # Determine the relation between stellar mass and limiting distance for the VIPERS stellar mass functions.
 # Andrew Benson (04-June-2014)
 
 # Define a working directory.
-my $workDirectory = $galacticusPath."constraints/dataAnalysis/stellarMassFunctions_VIPERS_z0_1/";
+my $workDirectory = &galacticusPath()."constraints/dataAnalysis/stellarMassFunctions_VIPERS_z0_1/";
 
 # Define survey solid angle (computed from mangle polygons).
 my $solidAngle = pdl 0.003137; #0.004143678167878;
 
 # Read the stellar mass function.
 my $xml = new XML::Simple();
-my $stellarMassFunction = $xml->XMLin($galacticusPath."data/observations/massFunctionsStellar/Stellar_Mass_Functions_VIPERS_2013.xml");
+my $stellarMassFunction = $xml->XMLin(&galacticusPath()."data/observations/massFunctionsStellar/Stellar_Mass_Functions_VIPERS_2013.xml");
 
 # Construct cosmology.
 my $cosmologyObserved 
@@ -115,29 +110,29 @@ for my $columns ( @{$stellarMassFunction->{'massFunction'}->{'columns'}} ) {
 	    $closing .= ")";
 	}
     }
-    &PrettyPlots::Prepare_Dataset(
+    &GnuPlot::PrettyPlots::Prepare_Dataset(
 	\$plot,
 	10.0**$fitMass,
 	10.0**$fitDistance,
 	style      => "line",
 	weight     => [5,3],
-	color      => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'sequence2'}}[$redshiftBin]},
+	color      => $GnuPlot::PrettyPlots::colorPairs{${$GnuPlot::PrettyPlots::colorPairSequences{'sequence2'}}[$redshiftBin]},
 	title      => 'Fit ['.$redshiftLabel.']'
 	);
-    &PrettyPlots::Prepare_Dataset(
+    &GnuPlot::PrettyPlots::Prepare_Dataset(
 	\$plot,
 	10.0**$logarithmicMass,
 	10.0**$logarithmicDistance,
 	style      => "point",
 	weight     => [5,3],
 	symbol     => [6,7],
-	color      => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'sequence1'}}[$redshiftBin]},
+	color      => $GnuPlot::PrettyPlots::colorPairs{${$GnuPlot::PrettyPlots::colorPairSequences{'sequence1'}}[$redshiftBin]},
 	title      => 'VIPERS ['.$redshiftLabel.']'
 	);
 }
 
-&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF($plotFileEPS);
+&GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS);
 
 exit;

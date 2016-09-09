@@ -1,14 +1,16 @@
 # Contains a Perl module which implements calculations of 850um sub-mm fluxes using
 # the simple fitting formula from Hayward et al. (2011; http://adsabs.harvard.edu/abs/2011arXiv1101.0002H).
 
-package SubMmFluxesHayward;
+package Galacticus::SubMmFluxesHayward;
 use strict;
 use warnings;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
-require Galacticus::HDF5;
+use Galacticus::HDF5;
 
-%HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-			       "flux850micronHayward"   => \&SubMmFluxesHayward::Get_850micron,
+%Galacticus::HDF5::galacticusFunctions = ( %Galacticus::HDF5::galacticusFunctions,
+			       "flux850micronHayward"   => \&Galacticus::SubMmFluxesHayward::Get_850micron,
     );
 
 sub Get_850micron {
@@ -33,7 +35,7 @@ sub Get_850micron {
     }
 
     # Ensure that we have required datasets.
-    &HDF5::Get_Dataset($dataBlock,[
+    &Galacticus::HDF5::Get_Dataset($dataBlock,[
 			   "diskStarFormationRate"  ,"spheroidStarFormationRate"  ,
 			   "diskAbundancesGasMetals","spheroidAbundancesGasMetals"
 		       ]);

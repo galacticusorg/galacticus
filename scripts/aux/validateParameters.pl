@@ -1,12 +1,7 @@
 #!/usr/bin/env perl
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use strict;
 use warnings;
 use XML::SAX::ParserFactory;
@@ -14,7 +9,7 @@ use XML::Validator::Schema;
 use XML::Simple;
 use Scalar::Util 'reftype';
 use Data::Dumper;
-require List::ExtraUtils;
+use List::ExtraUtils;
 
 # Validate a Galacticus XML parameter file.
 # Andrew Benson (1-December-2013)
@@ -41,7 +36,7 @@ my $valid = 0;
 if ( $format == 1 ) {
     # Handle format version 1.
     # Validate the parameter file using XML schema.
-    my $validator = XML::Validator::Schema->new(file => $galacticusPath.'schema/parameters.xsd');
+    my $validator = XML::Validator::Schema->new(file => &galacticusPath().'schema/parameters.xsd');
     my $parser    = XML::SAX::ParserFactory->parser(Handler => $validator); 
     eval { $parser->parse_file($file) };
     die "Parameter file fails XML schema validation\n".$@
@@ -49,7 +44,7 @@ if ( $format == 1 ) {
     # Check for duplicated entries.
     my %names;
     ++$names{$_->{'name'}}
-        foreach ( &ExtraUtils::as_array($parameters->{'parameter'}) );
+        foreach ( &List::ExtraUtils::as_array($parameters->{'parameter'}) );
     foreach ( keys(%names) ) {
 	if ( $names{$_} > 1 ) {
 	    $valid = 1;

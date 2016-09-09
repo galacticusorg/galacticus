@@ -26,18 +26,20 @@ module Stellar_Astrophysics_Tracks_File
   public :: Stellar_Tracks_Initialize_File
 
   ! Variables to hold stellar track data.
-  double precision                   , allocatable :: stellarTrackAges                   (:,:,:)       , stellarTrackInitialMasses   (:,:  ), &
-       &                                              stellarTrackLogMetallicities       (:    )       , stellarTrackLuminosities    (:,:,:), &
-       &                                              stellarTrackTemperatures           (:,:,:)
-  integer                            , allocatable :: stellarTrackAgesCount              (:,:  )       , stellarTrackInitialMassCount(:    )
-  integer                                          :: stellarTrackMetallicityCount
+  double precision                   , allocatable, dimension(:    ) :: stellarTrackLogMetallicities
+  double precision                   , allocatable, dimension(:,:  ) :: stellarTrackInitialMasses 
+  double precision                   , allocatable, dimension(:,:,:) :: stellarTrackAges                          , stellarTrackLuminosities, &
+       &                                                                stellarTrackTemperatures    
+  integer                            , allocatable, dimension(:    ) :: stellarTrackInitialMassCount
+  integer                            , allocatable, dimension(:,:  ) :: stellarTrackAgesCount       
+  integer                                                            :: stellarTrackMetallicityCount
 
   ! Interpolation objects.
-  type            (fgsl_interp_accel)              :: interpolationAcceleratorMetallicity
-  logical                                          :: interpolationResetMetallicity             =.true.
+  type            (fgsl_interp_accel)                                :: interpolationAcceleratorMetallicity
+  logical                                                            :: interpolationResetMetallicity      =.true.
 
   ! The current file format version.
-  integer                            , parameter   :: fileFormatVersionCurrent                  =1
+  integer                            , parameter                     :: fileFormatVersionCurrent           =1
 
 contains
 

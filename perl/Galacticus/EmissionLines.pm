@@ -1,30 +1,25 @@
 # Contains a Perl module which implements calculation of emission line luminosities, based on
 # the methodology of Panuzzo et al. (2003; http://adsabs.harvard.edu/abs/2003A%26A...409...99P).
 
-package EmissionLines;
+package Galacticus::EmissionLines;
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
 use PDL::GSL::INTEG;
 use Data::Dumper;
-require Cloudy;
-require Galacticus::HDF5;
-require Galacticus::IonizingContinuua;
-require Galacticus::Launch::PBS;
+use Cloudy;
+use Galacticus::HDF5;
+use Galacticus::IonizingContinuua;
+use Galacticus::Launch::PBS;
+use Galacticus::Path;
 
-%HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-    "^(disk|spheroid)LineLuminosity:[^:]+(:[^:]+){0,2}:z[\\d\\.]+\$" => \&EmissionLines::Get_Line_Luminosity      ,
-    "^totalLineLuminosity:[^:]+(:[^:]+){0,2}:z[\\d\\.]+\$"           => \&EmissionLines::Get_Total_Line_Luminosity
+%Galacticus::HDF5::galacticusFunctions = ( %Galacticus::HDF5::galacticusFunctions,
+    "^(disk|spheroid)LineLuminosity:[^:]+(:[^:]+){0,2}:z[\\d\\.]+\$" => \&Galacticus::EmissionLines::Get_Line_Luminosity      ,
+    "^totalLineLuminosity:[^:]+(:[^:]+){0,2}:z[\\d\\.]+\$"           => \&Galacticus::EmissionLines::Get_Total_Line_Luminosity
     );
 
 # Module data.
@@ -72,7 +67,7 @@ sub Get_Total_Line_Luminosity {
     my $dataSetName = $_[0];
     (my $diskDataset     = $dataSetName) =~ s/^total/disk/;
     (my $spheroidDataset = $dataSetName) =~ s/^total/spheroid/;
-    &HDF5::Get_Dataset($model,[$diskDataset,$spheroidDataset]);
+    &Galacticus::HDF5::Get_Dataset($model,[$diskDataset,$spheroidDataset]);
     my $dataSets = $model->{'dataSets'};
     $dataSets->{$dataSetName} =
 	+$dataSets->{$diskDataset}
@@ -100,7 +95,7 @@ sub Get_Line_Luminosity {
         if ( exists($model->{'emissionLines'}->{'hiiRegion'}->{'lifetime'}) );
     # Read the emission lines file if necessary.
     unless ( defined($emissionLines) ) {
-	my $tableFileName = $galacticusPath."data/hiiRegions/emissionLines.hdf5";
+	my $tableFileName = &galacticusPath()."data/hiiRegions/emissionLines.hdf5";
 	&Generate_Tables($tableFileName,$model)
 	    unless ( -e $tableFileName );
 	$emissionLines->{'file'} = new PDL::IO::HDF5($tableFileName);
@@ -133,7 +128,7 @@ sub Get_Line_Luminosity {
 	    $component."Radius"                               ,
 	    $component."StarFormationRate"
 	    );
-	&HDF5::Get_Dataset($model,\@properties);
+	&Galacticus::HDF5::Get_Dataset($model,\@properties);
 	my $dataSets = $model->{'dataSets'};
 	my $properties;
 	# Compute the metallicity in Solar units.
@@ -535,7 +530,7 @@ sub Generate_Tables {
 	(
 	 pbsJobMaximum => 250
 	);
-    &PBS::SubmitJobs(\%arguments,@pbsStack);
+    &Galacticus::Launch::PBS::SubmitJobs(\%arguments,@pbsStack);
     # Write the line data to file.
     my $tableFile = new PDL::IO::HDF5(">".$tableFileName);
     # Write parameter grid points.

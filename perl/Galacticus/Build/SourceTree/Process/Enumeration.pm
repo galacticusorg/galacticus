@@ -1,26 +1,20 @@
 # Contains a Perl module which implements processing of enumeration directives.
 
-package Enumerations;
+package Galacticus::Build::SourceTree::Process::Enumeration;
 use strict;
 use warnings;
 use utf8;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Data::Dumper;
 use XML::Simple;
 use LaTeX::Encode;
-require List::ExtraUtils;
-require Galacticus::Build::SourceTree::Hooks;
-require Galacticus::Build::SourceTree;
+use List::ExtraUtils;
+## AJB HACK use Galacticus::Build::SourceTree::Hooks;
+## AJB HACK use Galacticus::Build::SourceTree;
 
 # Insert hooks for our functions.
-$Hooks::processHooks{'enumerations'} = \&Process_Enumerations;
+$Galacticus::Build::SourceTree::Hooks::processHooks{'enumerations'} = \&Process_Enumerations;
 
 sub Process_Enumerations {
     # Get the tree.
@@ -43,7 +37,7 @@ sub Process_Enumerations {
 	    my $i                 = -1;
 	    $enumerationSource .= "  ! Auto-generated enumeration\n";
 	    $enumerationSource .= "  integer, parameter, ".$visibility." :: ".$node->{'directive'}->{'name'}.ucfirst($_->{'label'})."=".++$i."\n"
-		foreach ( &ExtraUtils::as_array($node->{'directive'}->{'entry'}) );
+		foreach ( &List::ExtraUtils::as_array($node->{'directive'}->{'entry'}) );
 	    my $enumerationCount   = $i+1;
 	    if ( $validator eq "yes" ) {
 		$enumerationSource .= "  integer, parameter, ".$visibility." :: ".$node->{'directive'}->{'name'}."Min  =0\n";
@@ -59,7 +53,7 @@ sub Process_Enumerations {
 		firstChild => undef()
 	    };
 	    # Insert the node.
-	    &SourceTree::InsertAfterNode($node,[$newNode]);
+	    &Galacticus::Build::SourceTree::InsertAfterNode($node,[$newNode]);
 	    # Construct validator function as necessary.
 	    if ( $validator eq "yes" ) {
 		# Generate function code.
@@ -84,11 +78,11 @@ sub Process_Enumerations {
 		    source     => "Galacticus::Build::SourceTree::Process::Enumerations::Process_Enumerations",
 		    line       => 1
 		};
-		&SourceTree::BuildTree($newNode);
+		&Galacticus::Build::SourceTree::BuildTree($newNode);
 		# Insert into the module.
-		&SourceTree::InsertPostContains($node->{'parent'},[$newNode]);
+		&Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},[$newNode]);
 		# Set the visibility.
-		&SourceTree::SetVisibility($node->{'parent'},$functionName,$visibility);
+		&Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$functionName,$visibility);
 	    }
 	    # Construct encode functions as necessary.
 	    if ( exists($node->{'directive'}->{'encodeFunction'}) && $node->{'directive'}->{'encodeFunction'} eq "yes" ) {
@@ -115,7 +109,7 @@ sub Process_Enumerations {
 		    }
 		    $function .= "      select case (trim(name))\n";
 		    my $i = -1;
-		    foreach ( &ExtraUtils::as_array($node->{'directive'}->{'entry'}) ) {
+		    foreach ( &List::ExtraUtils::as_array($node->{'directive'}->{'entry'}) ) {
 			$function .= "      case ('";
 			if ( $j == 0 ) {
 			    $function .= $node->{'directive'}->{'name'}.ucfirst($_->{'label'});
@@ -151,7 +145,7 @@ sub Process_Enumerations {
 		    }
 		    my $i = -1;
 		    $function .= "    select case(enumerationValue)\n";
-		    foreach ( &ExtraUtils::as_array($node->{'directive'}->{'entry'}) ) {
+		    foreach ( &List::ExtraUtils::as_array($node->{'directive'}->{'entry'}) ) {
 			$function .= "    case (".++$i.")\n";
 			$function .= "       ".$decodeFunctionName."=".$decodeFunctionName."//'";
 			if ( $j == 0 ) {
@@ -178,12 +172,12 @@ sub Process_Enumerations {
 		    source     => "Galacticus::Build::SourceTree::Process::Enumerations::Process_Enumerations",
 		    line       => 1
 		};
-		&SourceTree::BuildTree($newNode);
+		&Galacticus::Build::SourceTree::BuildTree($newNode);
 		# Insert into the module.
-		&SourceTree::InsertPostContains($node->{'parent'},[$newNode]);
+		&Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},[$newNode]);
 		# Set the visibility.
-		&SourceTree::SetVisibility($node->{'parent'},$encodeFunctionName,$visibility);
-		&SourceTree::SetVisibility($node->{'parent'},$decodeFunctionName,$visibility);
+		&Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$encodeFunctionName,$visibility);
+		&Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$decodeFunctionName,$visibility);
 	    }
 	    # Create documentation.
 	    system("mkdir -p doc/enumerations/definitions");
@@ -199,7 +193,7 @@ sub Process_Enumerations {
 		print $defHndl "Provided by: & {\\normalfont \\ttfamily module} \\hyperlink{".$moduleNode->{'parent'}->{'name'}.":".lc($moduleNode->{'name'})."}{\\normalfont \\ttfamily ".latex_encode($moduleNode->{'name'})."} \\\\\n";
 	    }
 	    my $first = 1;
-	    foreach ( &ExtraUtils::as_array($node->{'directive'}->{'entry'}) ) {
+	    foreach ( &List::ExtraUtils::as_array($node->{'directive'}->{'entry'}) ) {
 		print $defHndl "Members:"
 		    if ( $first == 1 );
 		print $defHndl " & {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}.ucfirst($_->{'label'})."}\\\\\n";
@@ -212,7 +206,7 @@ sub Process_Enumerations {
 	    print $specHndl "\\def\\enum".ucfirst($node->{'directive'}->{'name'})."{\\textcolor{red}{\\hyperlink{ht:AutoEnumerations".ucfirst($node->{'directive'}->{'name'})."}{\\textless ".$node->{'directive'}->{'name'}."\\textgreater}}}\n";
 	    close($specHndl);
 	}
-	$node = &SourceTree::Walk_Tree($node,\$depth);
+	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }
 }
 

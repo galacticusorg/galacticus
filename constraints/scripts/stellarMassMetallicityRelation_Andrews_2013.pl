@@ -1,22 +1,17 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath  = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath  = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use Galacticus::Path;
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
 use PDL::LinearAlgebra;
-require Galacticus::Options;
-require Galacticus::HDF5;
-require Galacticus::StellarMass;
-require Galacticus::Constraints::Covariances;
+use Galacticus::Options;
+use Galacticus::HDF5;
+use Galacticus::StellarMass;
+use Galacticus::Constraints::Covariances;
 
 # Compute likelihood (and make a plot) for a Galacticus model given the stellar mass-gas-phase metallicity relation data for z=0 from
 # Andrews & Martini (2013).
@@ -30,14 +25,14 @@ my %arguments =
     (
      quiet => 0
     );
-&Options::Parse_Options(\@ARGV,\%arguments);
+&Galacticus::Options::Parse_Options(\@ARGV,\%arguments);
 
 # Define Galacticus unit system.
 my $massSolar        = pdl 1.989e30;
 my $metallicitySolar = pdl 10.0**8.86;
 
 # Read observational data.
-my  $observations                   = new PDL::IO::HDF5($galacticusPath."data/observations/abundances/gasPhaseMetallicityAndrews2013.hdf5");
+my  $observations                   = new PDL::IO::HDF5(&galacticusPath()."data/observations/abundances/gasPhaseMetallicityAndrews2013.hdf5");
 my  $massStellarObserved            = $observations->dataset('mass'                 )->get    (           );
 my  $metallicityMeanObserved        = $observations->dataset('metallicity'          )->get    (           );
 my  $metallicityCovarianceObserved  = $observations->dataset('metallicityCovariance')->get    (           );
@@ -96,7 +91,7 @@ if ( exists($arguments{'outputFile'}) ) {
     my $logDeterminant;
     my $offsets;
     my $inverseCovariance;    
-    my $logLikelihood = &Covariances::ComputeLikelihood($metallicityMeanObserved,$metallicityMeanModel,$fullCovariance, determinant => \$logDeterminant, inverseCovariance => \$inverseCovariance, offsets => \$offsets, quiet => $arguments{'quiet'}, inversionMethod => "eigendecomposition");
+    my $logLikelihood = &Galacticus::Constraints::Covariances::ComputeLikelihood($metallicityMeanObserved,$metallicityMeanModel,$fullCovariance, determinant => \$logDeterminant, inverseCovariance => \$inverseCovariance, offsets => \$offsets, quiet => $arguments{'quiet'}, inversionMethod => "eigendecomposition");
     $constraint->{'logLikelihood'} = $logLikelihood;
     # Find the Jacobian of the log-likelihood with respect to the model mass function.
     my $jacobian = pdl zeroes(1,nelem($metallicityMeanModel));
@@ -115,8 +110,8 @@ if ( exists($arguments{'outputFile'}) ) {
 
 # Make a plot if requested.
 if ( exists($arguments{'plotFile'}) ) {
-    require GnuPlot::PrettyPlots;
-    require GnuPlot::LaTeX;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
     # Declare variables for GnuPlot;
     my ($gnuPlot, $plotFileEPS, $plot);
     # Open a pipe to GnuPlot.
@@ -142,7 +137,7 @@ if ( exists($arguments{'plotFile'}) ) {
     print $gnuPlot "set xlabel 'Stellar mass; \$M_\\star\\ [{\\rm M}_\\odot]\$'\n";
     print $gnuPlot "set ylabel 'Metallicity; \$12 + \\log_{10}(\\hbox{O/H})\$'\n";
     print $gnuPlot "set pointsize 1.0\n";
-    &PrettyPlots::Prepare_Dataset(\$plot,
+    &GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
      				  $massStellarObserved,
      				  $metallicityMeanObserved,
 				  errorUp   => $metallicityErrorObserved,
@@ -150,10 +145,10 @@ if ( exists($arguments{'plotFile'}) ) {
 				  style     => "point",
 				  symbol    => [6,7],
      				  weight    => [3,1],
-     				  color     => $PrettyPlots::colorPairs{'cornflowerBlue'},
+     				  color     => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'},
      				  title     => "Andrews \\\\& Martini (2013)"
      	);
-    &PrettyPlots::Prepare_Dataset(\$plot,
+    &GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
      				  $massStellarModel,
      				  $metallicityMeanModel,
 				  errorUp   => $metallicityMeanErrorModel,
@@ -161,12 +156,12 @@ if ( exists($arguments{'plotFile'}) ) {
 				  style     => "point",
 				  symbol    => [6,7],
      				  weight    => [3,1],
-     				  color     => $PrettyPlots::colorPairs{'mediumSeaGreen'},
+     				  color     => $GnuPlot::PrettyPlots::colorPairs{'mediumSeaGreen'},
      				  title     => "Galacticus"
      	);
-    &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+    &GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
     close($gnuPlot);
-    &LaTeX::GnuPlot2PDF($plotFileEPS,margin => 1);
+    &GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS,margin => 1);
 }
 
 exit;

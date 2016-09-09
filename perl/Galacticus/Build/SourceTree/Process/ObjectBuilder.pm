@@ -1,24 +1,18 @@
 # Contains a Perl module which implements processing of object builder directives.
 
-package ObjectBuilder;
+package Galacticus::Build::SourceTree::Process::ObjectBuilder;
 use strict;
 use warnings;
 use utf8;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC, $galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Data::Dumper;
-require List::ExtraUtils;
-require Galacticus::Build::SourceTree::Hooks;
-require Galacticus::Build::SourceTree;
+use List::ExtraUtils;
+## AJB HACK use Galacticus::Build::SourceTree::Hooks;
+## AJB HACK use Galacticus::Build::SourceTree;
 
 # Insert hooks for our functions.
-$Hooks::processHooks{'objectBuilder'} = \&Process_ObjectBuilder;
+$Galacticus::Build::SourceTree::Hooks::processHooks{'objectBuilder'} = \&Process_ObjectBuilder;
 
 sub Process_ObjectBuilder {
     # Get the tree.
@@ -76,7 +70,7 @@ sub Process_ObjectBuilder {
 		firstChild => undef()
 	    };
 	    # Insert the node.
-	    &SourceTree::InsertAfterNode($node,[$newNode]);
+	    &Galacticus::Build::SourceTree::InsertAfterNode($node,[$newNode]);
 	    # Add new variables and attributes.
 	    unless ( exists($node->{'parent'}->{'objectBuilderDeclarations'}) ) {
 		my @declarations =
@@ -100,7 +94,7 @@ sub Process_ObjectBuilder {
 			 attributes => [ "pointer"           ]
 		     }
 		    );
-		&Declarations::AddDeclarations($node->{'parent'},\@declarations);
+		&Galacticus::Build::SourceTree::Parse::Declarations::AddDeclarations($node->{'parent'},\@declarations);
 		# Ensure error reporting module is used.
 		my $usesNode =
 		{
@@ -114,12 +108,12 @@ sub Process_ObjectBuilder {
 			}
 		    }
 		};
-		&ModuleUses::AddUses($node->{'parent'},$usesNode);
+		&Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
 		# Record that we have added the necessary declarations to the parent.
 		$node->{'parent'}->{'objectBuilderDeclarations'} = 1;
 	    }
 	    unless ( exists($node->{'parent'}->{'objectBuilderAttributes'}->{$node->{'directive'}->{'source'}}) ) {
-		&Declarations::AddAttributes($node->{'parent'},$node->{'directive'}->{'source'},["target"]);
+		&Galacticus::Build::SourceTree::Parse::Declarations::AddAttributes($node->{'parent'},$node->{'directive'}->{'source'},["target"]);
 		$node->{'parent'}->{'objectBuilderAttributes'}->{$node->{'directive'}->{'source'}} = 1;
 	    }
 	    # Mark the directive as processed.
@@ -144,12 +138,12 @@ sub Process_ObjectBuilder {
 		firstChild => undef()
 	    };
 	    # Insert the node.
-	    &SourceTree::InsertAfterNode($node,[$newNode]);
+	    &Galacticus::Build::SourceTree::InsertAfterNode($node,[$newNode]);
 	    # Mark the directive as processed.
 	    $node->{'directive'}->{'processed'} =  1;
 	}
 	# Walk to the next node in the tree.
-	$node = &SourceTree::Walk_Tree($node,\$depth);
+	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }
 }
 

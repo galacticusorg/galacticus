@@ -38,7 +38,7 @@ module Node_Component_Spin_Vitvitska
   !# <component>
   !#  <class>spin</class>
   !#  <name>vitvitska</name>
-  !#  <isDefault>no</isDefault>
+  !#  <isDefault>false</isDefault>
   !#  <properties>
   !#   <property>
   !#     <name>spin</name>
@@ -49,10 +49,9 @@ module Node_Component_Spin_Vitvitska
   !#   </property>
   !#   <property>
   !#     <name>spinGrowthRate</name>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>true</isVirtual>
   !#     <getFunction bindsTo="component">spinVitvitskaSpinGrowthRate</getFunction>
   !#   </property>
   !#  </properties>

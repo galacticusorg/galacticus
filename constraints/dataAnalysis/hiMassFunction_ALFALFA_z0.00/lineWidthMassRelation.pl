@@ -1,21 +1,15 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::Misc;
 use PDL::Fit::Polynomial;
-require Stats::Percentiles;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
+use Stats::Percentiles;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
 
 # Construct the median line-width vs. HI mass relation for the ALFALFA survey.
 # Andrew Benson (9-July-2013)
@@ -57,7 +51,7 @@ my $logarithmicMassBinCount = long($logarithmicMassCount/500);
 my $logarithmicMassBins     = pdl sequence($logarithmicMassBinCount->sclr())*($logarithmicMassMaximum-$logarithmicMassMinimum)/($logarithmicMassBinCount-1)+$logarithmicMassMinimum;
 my $percentiles             = pdl ( 50.0 );
 my $weight                  = 1.0/$errorW50**2;
-my $median                  = &Percentiles::BinnedPercentiles($logarithmicMassBins,$logarithmicMassHI->($usableGalaxies),log10($W50->($usableGalaxies)),$weight->($usableGalaxies),$percentiles);
+my $median                  = &Stats::Percentiles::BinnedPercentiles($logarithmicMassBins,$logarithmicMassHI->($usableGalaxies),log10($W50->($usableGalaxies)),$weight->($usableGalaxies),$percentiles);
 
 # Fit a polynomial to the relation.
 my $nonZeroBins = which($median->(:,(0)) > 0.0);
@@ -106,7 +100,7 @@ print $gnuPlot "set yrange [10.0:600.0]\n";
 print $gnuPlot "set pointsize 2.0\n";
 my $r             = pdl random(nelem($usableGalaxies));
 my $plotSelection = which($r < 0.01);
-&PrettyPlots::Prepare_Dataset(
+&GnuPlot::PrettyPlots::Prepare_Dataset(
     \$plot,
     10.0**$logarithmicMassHI->($usableGalaxies)->($plotSelection),
     $W50                    ->($usableGalaxies)->($plotSelection),
@@ -116,10 +110,10 @@ my $plotSelection = which($r < 0.01);
     weight     => [2,1],
     symbol     => [6,7],
     pointSize  => 0.1,
-    color      => $PrettyPlots::colorPairs{'redYellow'},
+    color      => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
     title      => '\$\\\\alpha.40\$'
     );
-&PrettyPlots::Prepare_Dataset(
+&GnuPlot::PrettyPlots::Prepare_Dataset(
     \$plot,
     10.0**$logarithmicMassBins,
     10.0**$median->(:,(0)),
@@ -127,20 +121,20 @@ my $plotSelection = which($r < 0.01);
     weight     => [5,3],
     symbol     => [6,7],
     pointSize  => 2.0,
-    color      => $PrettyPlots::colorPairs{'peachPuff'},
+    color      => $GnuPlot::PrettyPlots::colorPairs{'peachPuff'},
     title      => 'Median'
     );
-&PrettyPlots::Prepare_Dataset(
+&GnuPlot::PrettyPlots::Prepare_Dataset(
     \$plot,
     10.0**$logarithmicMassBins,
     10.0**$fitW50,
     style      => "line",
     weight     => [5,3],
-    color      => $PrettyPlots::colorPairs{'mediumSeaGreen'},
+    color      => $GnuPlot::PrettyPlots::colorPairs{'mediumSeaGreen'},
     title      => 'Fit'
     );
-&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF($plotFileEPS);
+&GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS);
 
 exit;

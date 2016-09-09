@@ -1,20 +1,14 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use PDL;
 use PDL::NiceSlice;
 use PDL::Fit::Polynomial;
 use XML::Simple;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
 
 # Construct a mass error model for the ALFALFA survey.
 # Andrew Benson (10-July-2013)
@@ -79,7 +73,7 @@ print $gnuPlot "set format x '\$10^{\%L}\$'\n";
 print $gnuPlot "set xrange [3.1e5:3.1e11]\n";
 print $gnuPlot "set yrange [0.0:0.8]\n";
 print $gnuPlot "set pointsize 2.0\n";
-&PrettyPlots::Prepare_Dataset(
+&GnuPlot::PrettyPlots::Prepare_Dataset(
     \$plot,
     10.0**$logarithmicMass,
     $logarithmicMassError,
@@ -87,20 +81,20 @@ print $gnuPlot "set pointsize 2.0\n";
     weight     => [5,3],
     symbol     => [6,7],
     pointSize  => 2.0,
-    color      => $PrettyPlots::colorPairs{'peachPuff'},
+    color      => $GnuPlot::PrettyPlots::colorPairs{'peachPuff'},
     title      => 'Haynes et al. (2011)'
     );
-&PrettyPlots::Prepare_Dataset(
+&GnuPlot::PrettyPlots::Prepare_Dataset(
     \$plot,
     10.0**$massFine,
     $fitFine,
     style      => "line",
     weight     => [5,3],
-    color      => $PrettyPlots::colorPairs{'mediumSeaGreen'},
+    color      => $GnuPlot::PrettyPlots::colorPairs{'mediumSeaGreen'},
     title      => 'Fit'
     );
-&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
-&LaTeX::GnuPlot2PDF($plotFileEPS);
+&GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS);
 
 exit;
