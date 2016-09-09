@@ -362,7 +362,7 @@ sub Get_Fortran_Line {
     $_[3] = $bufferedComments;
 }
 
-sub Format_Variable_Defintions {
+sub Format_Variable_Definitions {
     # Generate formatted variable definitions.
     my $variables = shift;
     my %options;

@@ -99,6 +99,9 @@ sub Data_Validate {
 		    )
 		    unless ( exists($property->{$requiredElement}) );
 	    }
+	    # Auto-creation of rank > 0 properties is not supported. Test for it.
+	    die("Data_Validate: auto-creation of rank > 0 properties is not supported")
+		if ( $property->{'rank'} > 0 && $property->{'attributes'}->{'createIfNeeded'} );
 	}
     }
 }

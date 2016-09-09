@@ -59,7 +59,9 @@ use Galacticus::Build::Components::Implementations::ODESolver;
 use Galacticus::Build::Components::Properties;
 use Galacticus::Build::Components::Properties::Attributes;
 use Galacticus::Build::Components::Properties::Deferred;
+use Galacticus::Build::Components::Properties::Get;
 use Galacticus::Build::Components::Properties::Set;
+use Galacticus::Build::Components::Properties::Evolve;
 use Galacticus::Build::Components::Properties::Utils;
 use Galacticus::Build::Components::Attributes;
 use Galacticus::Build::Components::DataTypes;
@@ -129,9 +131,7 @@ sub Components_Generate_Output {
     &{$_}($build)
 	foreach (
 	    # Generate functions for getting/setting/rating value via a deferred function.
-	    \&Generate_Deferred_GSR_Function                         ,
-	    # Generate functions for getting/setting/rating value directly.
-	    \&Generate_GSR_Functions
+	    \&Generate_Deferred_GSR_Function
 	);
 
     # Insert all derived-type variable definitions.
@@ -139,7 +139,7 @@ sub Components_Generate_Output {
     # Insert all interfaces.
     &interfacesSerialize  ($build);
     # Insert all module scope variables.
-    $build->{'content'} .= &Fortran::Utils::Format_Variable_Defintions($build->{'variables'})."\n";
+    $build->{'content'} .= &Fortran::Utils::Format_Variable_Definitions($build->{'variables'})."\n";
     # Insert the "contains" line.
     $build->{'content'} .= "contains\n\n";
     # Serialize all functions.
@@ -189,7 +189,7 @@ sub Generate_Deferred_Function_Attacher {
     my $gsrSuffix = "";
     $gsrSuffix = ucfirst($gsr)
 	unless ( $gsr eq "get" );
-    # Get the component fully-qualified, class and metho names.
+    # Get the component fully-qualified, class and method names.
     my $componentClassName = $component->{'class'             };
     my $componentName      = $component->{'fullyQualifiedName'};
     my $propertyName       = $property->{'name'};
@@ -222,7 +222,7 @@ sub Generate_Deferred_Function_Attacher {
 	$functionCode  = "  subroutine ".$functionName."(deferredFunction)\n";
 	$functionCode .= "    !% Set the function to be used for ".$gsr." of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$attachTo."} component class.\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran::Utils::Format_Variable_Definitions(\@dataContent)."\n";
 	$functionCode .= "    ".$functionLabel."Deferred       => deferredFunction\n";
 	$functionCode .= "    ".$functionLabel."IsAttachedValue=  .true.\n";
 	$functionCode .= "    return\n";
@@ -300,7 +300,7 @@ sub Generate_Deferred_GSR_Function {
 		if (
 		    $property->{'attributes' }->{'isDeferred'} =~ m/get/ &&
 		    $property->{'attributes' }->{'isGettable'}           &&
-		    $property->{'getFunction'}->{'build'     } eq "true"
+		    $property->{'getFunction'}->{'build'     }
 		    )
 		{
 		    # Define data content of this function.
@@ -319,7 +319,7 @@ sub Generate_Deferred_GSR_Function {
 		    $functionCode  = "  function ".$componentName.ucfirst($propertyName)."Get(self)\n";
 		    $functionCode .= "    !% Get the value of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentName."} component using a deferred function.\n";
 		    $functionCode .= "    implicit none\n";
-		    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
+		    $functionCode .= &Fortran::Utils::Format_Variable_Definitions(\@dataContent)."\n";
 		    $functionCode .= "    ".$componentName.ucfirst($propertyName)."Get=".$componentName.ucfirst($propertyName)."GetDeferred(self)\n";
 		    $functionCode .= "    return\n";
 		    $functionCode .= "  end function ".$componentName.ucfirst($propertyName)."Get\n";
@@ -342,7 +342,7 @@ sub Generate_Deferred_GSR_Function {
 		if (
 		    $property->{'attributes' }->{'isDeferred'} =~ m/set/
 		    && $property->{'attributes' }->{'isSettable'} 
-		    && $property->{'setFunction'}->{'build'     } eq "true"
+		    && $property->{'setFunction'}->{'build'     }
 		    )
 		{
 		    @{$dataDefinition->{'variables'}} = ( "setValue" );
@@ -359,7 +359,7 @@ sub Generate_Deferred_GSR_Function {
 		    $functionCode  = "  subroutine ".$componentName.ucfirst($propertyName)."Set(self,setValue)\n";
 		    $functionCode .= "    !% Set the value of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentName."} component using a deferred function.\n";
 		    $functionCode .= "    implicit none\n";
-		    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
+		    $functionCode .= &Fortran::Utils::Format_Variable_Definitions(\@dataContent)."\n";
 		    $functionCode .= "    call ".$componentName.ucfirst($propertyName)."SetDeferred(self,setValue)\n";
 		    $functionCode .= "    return\n";
 		    $functionCode .= "  end subroutine ".$componentName.ucfirst($propertyName)."Set\n\n";
@@ -419,7 +419,7 @@ sub Generate_Deferred_GSR_Function {
 			$functionCode  = "  subroutine ".$functionLabel."(self,setValue,interrupt,interruptProcedure)\n";
 			$functionCode .= "    !% Set the rate of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentName."} component using a deferred function.\n";
 			$functionCode .= "    implicit none\n";
-			$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
+			$functionCode .= &Fortran::Utils::Format_Variable_Definitions(\@dataContent)."\n";
 			$functionCode .= "    call ".$attachTo.ucfirst($propertyName)."RateDeferred(self,setValue,interrupt,interruptProcedure)\n";
 			$functionCode .= "    return\n";
 			$functionCode .= "  end subroutine ".$functionLabel."\n\n";
@@ -440,485 +440,6 @@ sub Generate_Deferred_GSR_Function {
 			# Generate an attacher function.
 			&Generate_Deferred_Function_Attacher($component,$property,$build,"rate");
 		    }
-		}
-	    }
-	}
-    }
-}
-
-sub Generate_GSR_Functions {
-    # Generate functions to get/set/rate the value of a property directly.
-    my $build = shift;
-    # Initialize function code.
-    my $functionCode;
-    # Initialize data content.
-    my @dataContent;
-    # Initialize records of functions created.
-    my %classRatesCreated;
-    my %deferredFunctionComponentClassMethodsMade;
-    # Iterate over component implementations.
-    foreach my $componentID ( @{$build->{'componentIdList'}} ) {
-	my $component = $build->{'components'}->{$componentID};
-	# Get the parent class.
-	my $componentClassName = $component->{'class'};
-	# Iterate over properties.
-	foreach my $propertyName ( &List::ExtraUtils::sortedKeys($component->{'properties'}->{'property'}) ) {
-	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
-	    # Handle cases where a get function is explicitly specified for a non-deferred virtual property.
-	    if (
-		$property->{'attributes' }->{'isGettable'}                &&
-		$property->{'getFunction'}->{'build'     } eq "false"     &&
-		$property->{'getFunction'}->{'bindsTo'   } eq "component" &&
-		$property->{'attributes' }->{'isDeferred'} !~ m/get/
-		) {
-		# No need to build the function - just insert a type-binding into the implementation type.
-		push(
-		    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-		    {type => "procedure", name => $propertyName, function => $property->{'getFunction'}->{'content'}}
-		    );
-	    }
-	    # Handle cases where a set function is explicitly specified for a non-deferred virtual property.
-	    if (
-		$property->{'attributes' }->{'isSettable'}                &&
-		$property->{'setFunction'}->{'build'     } eq "false"     &&
-		$property->{'setFunction'}->{'bindsTo'   } eq "component" &&
-		$property->{'attributes' }->{'isDeferred'} !~ m/set/
-		) {
-		# No need to build the function - just insert a type-binding into the implementation type.
-		push(
-		    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-		    {type => "procedure", name => $propertyName."Set", function => $property->{'setFunction'}->{'content'}}
-		    );	
-	    }
-   	    # Check if this property has any linked data in this component.
-	    if ( exists($property->{'linkedData'}) ) {
-		# Get the linked data.
-		my $linkedDataName = $property->{'linkedData'};
-		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
-		# Create a "get" function if the property is gettable.
-		if ( $property->{'attributes'}->{'isGettable'} ) {
-		    # Skip get function creation if a custom function which binds at the component level has been specified.
-		    unless (
-			$property->{'getFunction'}->{'build'  } eq "false"     &&
-			$property->{'getFunction'}->{'bindsTo'} eq "component"
-			)
-		    {
-			# Determine the suffix for this function.
-			my $suffix = "";
-			$suffix = "Value"
-			    if ( $property->{'attributes' }->{'isDeferred'} =~ m/get/ );
-			# Specify the data content.
-			(my $dataDefinition,my $label) = &Galacticus::Build::Components::DataTypes::dataObjectDefinition($linkedData);
-			push(@{$dataDefinition->{'variables'}},$componentID.ucfirst($propertyName)."Get".$suffix);
-			@dataContent = (
-			    $dataDefinition,
-			    {
-				intrinsic  => "class",
-				type       => "nodeComponent".ucfirst($componentID),
-				attributes => [ "intent(inout)" ],
-				variables  => [ "self" ]
-			    }
-			    );
-			# Generate the code.
-			$functionCode  = "  function ".$componentID.ucfirst($propertyName)."Get".$suffix."(self)\n";
-			$functionCode .= "    !% Return the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentID."} component implementation.\n";
-			$functionCode .= "    implicit none\n";
-			$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
-			$functionCode .= "    ".$componentID.$propertyName."Get".$suffix."=self%".$linkedDataName."\n";
-			$functionCode .= "    return\n";
-			$functionCode .= "  end function ".$componentID.ucfirst($propertyName)."Get".$suffix."\n\n";
-			# Insert into the function list.
-			push(
-			    @{$build->{'code'}->{'functions'}},
-			    $functionCode
-			    );
-			# Insert a type-binding for this function into the implementation type.
-			push(
-			    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-			    {type => "procedure", name => $propertyName.$suffix, function => $componentID.ucfirst($propertyName)."Get".$suffix, description => "Get the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => &Galacticus::Build::Components::DataTypes::dataObjectDocName($property), arguments => ""}
-			    );
-		    }
-		}
-		# Create a "set" method unless the property is not settable or a custom set function has been specified.
-		if ( $property->{'attributes' }->{'isSettable'} ) {
-		    if ( $property->{'setFunction'}->{'build'} eq "true" ) {
-			# Determine the suffix for this function.
-			my $suffix = "";
-			$suffix = "Value"
-			    if ( $property->{'attributes' }->{'isDeferred'} =~ m/set/ );
-			# Specify the data content.
-			(my $dataDefinition,my $label) = &Galacticus::Build::Components::DataTypes::dataObjectDefinition($linkedData,matchOnly => 1);
-			push(@{$dataDefinition->{'attributes'}},"intent(in   )");
-			push(@{$dataDefinition->{'variables' }},"setValue"     );
-			@dataContent = (
-			    $dataDefinition,
-			    {
-				intrinsic  => "class",
-				type       => "nodeComponent".ucfirst($componentID),
-				attributes => [ "intent(inout)" ],
-				variables  => [ "self" ]
-			    }
-			    );
-			# Generate the function code.
-			$functionCode  = "  subroutine ".$componentID.ucfirst($propertyName)."Set".$suffix."(self,setValue)\n";
-			$functionCode .= "    !% Set the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentID."} component implementation.\n";
-			$functionCode .= "    use Memory_Management\n";
-			$functionCode .= "    implicit none\n";
-			$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
-			# For non-real properties we also set the rate and scale content. This ensures that they get reallocated to
-			# the correct size.
-			if ( $linkedData->{'rank'} == 0 ) {
-			    $functionCode .= "    self%".$linkedDataName."=setValue\n";
-			}
-			elsif ( $linkedData->{'rank'} == 1 ) {
-			    $functionCode .= "    if (.not.allocated(self%".$linkedDataName.")) then\n";
-			    $functionCode .= "       call    Alloc_Array  (self%".$linkedDataName.",shape(setValue))\n";
-			    $functionCode .= "    else\n";
-			    $functionCode .= "       if (size(self%".$linkedDataName.") /= size(setValue)) then\n";
-			    $functionCode .= "          call Dealloc_Array(self%".$linkedDataName."                )\n";
-			    $functionCode .= "          call Alloc_Array  (self%".$linkedDataName.",shape(setValue))\n";
-			    $functionCode .= "       end if\n";
-			    $functionCode .= "    end if\n";
-			    $functionCode .= "    self%".$linkedDataName."=setValue\n";
-			}
-			$functionCode .= "    return\n";
-			$functionCode .= "  end subroutine ".$componentID.ucfirst($propertyName)."Set".$suffix."\n\n";
-			# Insert into the function list.
-			push(
-			    @{$build->{'code'}->{'functions'}},
-			    $functionCode
-			    );
-			# Insert a type-binding for this function into the implementation type.
-			push(
-			    @{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-			    {type => "procedure", name => $propertyName."Set".$suffix, function => $componentID.ucfirst($propertyName)."Set".$suffix, description => "Set the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => "\\void", arguments => &Galacticus::Build::Components::DataTypes::dataObjectDocName($property)."\\ value"}
-			    );
-		    }
-		}
-		# Create "count", "rate" and "scale" functions if the property is evolvable.
-		if ( $property->{'attributes'}->{'isEvolvable'} ) {
-		    # Specify the "count" function data content.
-		    @dataContent = (
-			{
-			    intrinsic  => "class",
-			    type       => "nodeComponent".ucfirst($componentID),
-			    attributes => [ "intent(in   )" ],
-			    variables  => [ "self" ]
-			}
-			);
-		    # Generate the "count" function code.
-		    my $selfUsed   = 0;
-		    $functionCode  = "  integer function ".$componentID.ucfirst($propertyName)."Count(self)\n";
-		    $functionCode .= "    !% Return a count of the number of scalar properties in the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".lcfirst($componentID)."} component implementation.\n";
-		    $functionCode .= "    implicit none\n";
-		    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
-		    my $functionBody = "";
-		    if ( $linkedData->{'rank'} ==  0 ) {
-			$functionBody .= "    ".$componentID.$propertyName."Count=1\n";
-		    }
-		    elsif ( $linkedData->{'rank'} == 1 ) {
-			$selfUsed      = 1;
-			$functionBody .= "    if (allocated(self%".$linkedDataName.")) then\n";
-			$functionBody .= "    ".$componentID.$propertyName."Count=size(self%".$linkedDataName.")\n";
-			$functionBody .= "    else\n";
-			$functionBody .= "    ".$componentID.$propertyName."Count=0\n";
-			$functionBody .= "    end if\n";
-		    }
-		    $functionBody .= "    return\n";
-		    $functionBody .= "  end function ".$componentID.ucfirst($propertyName)."Count\n\n";
-		    $functionCode .= "   !GCC\$ attributes unused :: self\n"
-			unless ( $selfUsed );
-		    $functionCode .= $functionBody;
-		    # Insert into the function list.
-		    push(
-			@{$build->{'code'}->{'functions'}},
-			$functionCode
-			);
-		    # Insert a type-binding for this function into the implementation type.
-		    push(
-			@{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-			{type => "procedure", name => $propertyName."Count", function => $componentID.ucfirst($propertyName)."Count"}
-			);
-		    # Get the data content for remaining functions.
-		    (my $dataDefinition,my $label) = &Galacticus::Build::Components::DataTypes::dataObjectDefinition($linkedData,matchOnly => 1);
-		    push(@{$dataDefinition->{'variables' }},"setValue"     );
-		    push(@{$dataDefinition->{'attributes'}},"intent(in   )");
-		    (my $currentDefinition,my $currentLabel) = &Galacticus::Build::Components::DataTypes::dataObjectDefinition($linkedData,matchOnly => 1);
-		    push(@{$currentDefinition->{'variables' }},"current"     );
-		    # If rate function is deferred, then create an intrinsic version.
-		    my $rateSuffix = "";
-		    $rateSuffix = "intrinsic"
-			if ( $property->{'attributes'}->{'isDeferred'} =~ m/rate/ );
-		    # Specify the "rate" function data content.
-		    @dataContent = (
-			$dataDefinition,
-			{
-			    intrinsic  => "class",
-			    type       => "nodeComponent".ucfirst($componentID),
-			    attributes => [ "intent(inout)" ],
-			    variables  => [ "self" ]
-			},
-			{
-			    intrinsic  => "logical",
-			    attributes => [ "optional", "intent(inout)" ],
-			    variables  => [ "interrupt" ]
-			},
-			{
-			    intrinsic  => "procedure",
-			    type       => "interruptTask",
-			    attributes => [ "optional", "intent(inout)", "pointer" ],
-			    variables  => [ "interruptProcedure" ]
-			}
-			);
-		    push(@dataContent,$currentDefinition)
-			unless ( $linkedData->{'type'} eq "double" );
-		    # Generate the rate function code.
-		    $functionCode  = "  subroutine ".$componentID.ucfirst($propertyName)."Rate".ucfirst($rateSuffix)."(self,setValue,interrupt,interruptProcedure)\n";
-		    $functionCode .= "    !% Accumulate to the {\\normalfont \\ttfamily ".$propertyName."} property rate of change of the {\\normalfont \\ttfamily ".$componentID."} component implementation.\n";
-		    $functionCode .= "    implicit none\n";
-		    my $rateSetCode;
-		    if ( $linkedData->{'type'} eq "double" ) {
-			if ( $linkedData->{'rank'} == 0 ) {
-			    $rateSetCode .= "    nodeRates(".&offsetName($componentID,$propertyName).")=nodeRates(".&offsetName($componentID,$propertyName).")+setValue\n";
-			} else {
-			    push(
-				@dataContent,
-				{
-				    intrinsic  => "integer",
-				    variables  => [ "count" ]
-				}				
-				);
-			    $rateSetCode .= "    count=size(setValue)\n";
-			    $rateSetCode .= "    nodeRates(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1)=nodeRates(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1)+setValue\n";
-			}
-		    } else {
-			push(
-			    @dataContent,
-			    {
-				intrinsic  => "integer",
-				variables  => [ "count" ]
-			    }				
-			    );
-			$rateSetCode .= "    count=self%".$propertyName."Data%serializeCount()\n";
-			$rateSetCode .= "    if (count > 0) then\n";
-			$rateSetCode .= "       current=self%".$propertyName."Data\n";
-			$rateSetCode .= "       call current%deserialize(nodeRates(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1))\n";
-			$rateSetCode .= "       call current%increment(setValue)\n";
-			$rateSetCode .= "       call current%serialize(nodeRates(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1))\n";
-			$rateSetCode .= "    end if\n";
-		    }
-		    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
-		    $functionCode .= "   !GCC\$ attributes unused :: self, interrupt, interruptProcedure\n";
-		    $functionCode .= $rateSetCode;
-		    $functionCode .= "    return\n";
-		    $functionCode .= "  end subroutine ".$componentID.ucfirst($propertyName)."Rate".ucfirst($rateSuffix)."\n\n";
-		    # Insert into the function list.
-		    push(
-			@{$build->{'code'}->{'functions'}},
-			$functionCode
-			);
-		    # Insert a type-binding for this function into the implementation type.
-		    my %typeDefinition = (
-			type     => "procedure",
-			name     => $propertyName."Rate".ucfirst($rateSuffix),
-			function => $componentID.ucfirst($propertyName)."Rate".ucfirst($rateSuffix)
-			);
-		    if ( $rateSuffix eq "intrinsic" ) {
-			$typeDefinition{'description'} = "Cumulate directly (i.e. circumventing any deferred function binding) to the rate of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentID."} component.";
-			$typeDefinition{'returnType' } = "\\void";
-			$typeDefinition{'arguments'  } = &Galacticus::Build::Components::DataTypes::dataObjectDocName($property)."\\ value";
-		    }
-		    push(
-			@{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-			\%typeDefinition
-			);
-		    if ( $property->{'attributes' }->{'makeGeneric'} ) {
-			# Create a version of this rate function which binds to the top-level class, and so is suitable for
-			# attaching to inter-component pipes.
-			# Specify the data content.		
-			@dataContent = (
-			    $dataDefinition,
-			    {
-				intrinsic  => "class",
-				type       => "nodeComponent",
-				attributes => [ "intent(inout)" ],
-				variables  => [ "self" ]
-			    },
-			    {
-				intrinsic  => "logical",
-				attributes => [ "optional", "intent(inout)" ],
-				variables  => [ "interrupt" ]
-			    },
-			    {
-				intrinsic  => "procedure",
-				type       => "interruptTask",
-				attributes => [ "optional", "intent(inout)", "pointer" ],
-				variables  => [ "interruptProcedure" ]
-			    },
-			    {
-				intrinsic  => "class",
-				type       => "nodeComponent".ucfirst($componentClassName),
-				attributes => [ "pointer" ],
-				variables  => [ "this".ucfirst($componentClassName) ]
-			    },
-			    {
-				intrinsic  => "type",
-				type       => "treeNode",
-				attributes => [ "pointer" ],
-				variables  => [ "thisNode" ]
-			    }
-			    );
-			# Generate the function code.
-			$functionCode  = "  subroutine ".$componentID.ucfirst($propertyName)."RateGeneric(self,setValue,interrupt,interruptProcedure)\n";
-			$functionCode .= "    !% Set the rate of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentID."} component via a generic {\\normalfont \\ttfamily nodeComponent}.\n";
-			$functionCode .= "    use Galacticus_Error\n"
-			    if ( $property->{'attributes'}->{'createIfNeeded'} );
-			$functionCode .= "    implicit none\n";
-			$functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
-			$functionCode .= "    thisNode => self%host()\n";
-			$functionCode .= "    this".ucfirst($componentClassName)." => thisNode%".$componentClassName."()\n";
-			if ( $property->{'attributes'}->{'createIfNeeded'} ) {
-			    $functionCode .= "    select type (this".ucfirst($componentClassName).")\n";
-			    $functionCode .= "    type is (nodeComponent".ucfirst($componentClassName).")\n";
-			    $functionCode .= "      ! No specific component exists, we must interrupt and create one.\n";
-			    if ( $linkedData->{'rank'} == 0 ) {
-				if    ( $linkedData->{'type'} eq "double" ) {
-				    $functionCode .= "   if (setValue == 0.0d0) return\n";
-				}
-				else {
-				    $functionCode .= "   if (setValue%isZero()) return\n";
-				}
-			    } else {
-				if    ( $linkedData->{'type'} eq "double" ) {
-				    $functionCode .= "   if (all(setValue == 0.0d0)) return\n";
-				}
-				else {
-				    die('auto-create of rank>0 objects not supported');
-				}
-			    }
-			    $functionCode .= "      if (.not.(present(interrupt).and.present(interruptProcedure))) call Galacticus_Error_Report('".$componentID.ucfirst($propertyName)."RateGeneric','interrupt required, but optional arguments missing')\n";
-			    $functionCode .= "      interrupt=.true.\n";
-			    $functionCode .= "      interruptProcedure => ".$componentClassName."CreateByInterrupt\n";
-			    $functionCode .= "      return\n";
-			    $functionCode .= "    end select\n";
-			}
-			$functionCode .= "    call this".ucfirst($componentClassName)."%".$propertyName."Rate(setValue,interrupt,interruptProcedure)\n";
-			$functionCode .= "    return\n";
-			$functionCode .= "  end subroutine ".$componentID.ucfirst($propertyName)."RateGeneric\n\n";
-			# Insert into the function list.
-			push(
-			    @{$build->{'code'}->{'functions'}},
-			    $functionCode
-			    );
-		    }
-		    if ( $property->{'attributes' }->{'createIfNeeded'} ) {
-			# Create a version of this rate function which binds to the component class, and so can auto-create the component as needed.
-			my $label = $componentClassName.ucfirst($propertyName);
-			unless ( exists($classRatesCreated{$label}) ) {
-			    $classRatesCreated{$label} = 1;
-			    # Specify the data content.		
-			    @dataContent = (
-				$dataDefinition,
-				{
-				    intrinsic  => "class",
-				    type       => "nodeComponent".ucfirst($componentClassName),
-				    attributes => [ "intent(inout)" ],
-				    variables  => [ "self" ]
-				},
-				{
-				    intrinsic  => "logical",
-				    attributes => [ "optional", "intent(inout)" ],
-				    variables  => [ "interrupt" ]
-				},
-				{
-				    intrinsic  => "procedure",
-				    type       => "interruptTask",
-				    attributes => [ "optional", "intent(inout)", "pointer" ],
-				    variables  => [ "interruptProcedure" ]
-				}
-				);
-			    # Generate the function code.
-			    $functionCode  = "  subroutine ".$componentClassName.ucfirst($propertyName)."Rate(self,setValue,interrupt,interruptProcedure)\n";
-			    $functionCode .= "    !% Accept a rate set for the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component class. Trigger an interrupt to create the component.\n";
-			    $functionCode .= "    use Galacticus_Error\n";
-			    $functionCode .= "    implicit none\n";
-			    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
-			    $functionCode .= "    !GCC\$ attributes unused :: self\n";
-			    $functionCode .= "    ! No specific component exists, so we must interrupt and create one unless the rate is zero.\n";
-			    if ( $linkedData->{'rank'} == 0 ) {
-				if    ( $linkedData->{'type'} eq"double" ) {
-				    $functionCode .= "   if (setValue == 0.0d0) return\n";
-				}
-				else {
-				    $functionCode .= "   if (setValue%isZero()) return\n";
-				}
-			    } else {
-				if    ( $linkedData->{'type'} eq"double" ) {
-				    $functionCode .= "   if (all(setValue == 0.0d0)) return\n";
-				}
-				else {
-				    die('auto-create of rank>0 objects not supported');
-				}
-			    }
-			    $functionCode .= "    if (.not.(present(interrupt).and.present(interruptProcedure))) call Galacticus_Error_Report('".$componentClassName.ucfirst($propertyName)."Rate','interrupt required, but optional arguments missing')\n";
-			    $functionCode .= "    interrupt=.true.\n";
-			    $functionCode .= "    interruptProcedure => ".$componentClassName."CreateByInterrupt\n";
-			    $functionCode .= "    return\n";
-			    $functionCode .= "  end subroutine ".$componentClassName.ucfirst($propertyName)."Rate\n\n";
-			    # Insert into the function list.
-			    push(
-				@{$build->{'code'}->{'functions'}},
-				$functionCode
-				);
-			}
-		    }
-		    # Specify the data content for the "scale" function.		
-		    @dataContent = (
-			$dataDefinition,
-			{
-			    intrinsic  => "class",
-			    type       => "nodeComponent".ucfirst($componentID),
-			    attributes => [ "intent(inout)" ],
-			    variables  => [ "self" ]
-			}
-			);
-		    # Generate a function to set the "scale".
-		    $functionCode  = "  subroutine ".$componentID.ucfirst($propertyName)."Scale(self,setValue)\n";
-		    $functionCode .= "    !% Set the {\\normalfont \\ttfamily ".$propertyName."} property scale of the {\\normalfont \\ttfamily ".$componentID."} component implementation.\n";
-		    $functionCode .= "    implicit none\n";
-		    my $scaleSetCode;
-		    if ( $linkedData->{'type'} eq "double" ) {
-			if ( $linkedData->{'rank'} == 0 ) {
-			    $scaleSetCode .= "    nodeScales(".&offsetName($componentID,$propertyName).")=setValue\n";
-			} else {
-			    $scaleSetCode .= "    nodeScales(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+size(setValue))=setValue\n";
-			}
-		    } else {
-			push(
-			    @dataContent,
-			    {
-				intrinsic  => "integer",
-				variables  => [ "count" ]
-			    }
-			    );
-			$scaleSetCode .= "    count=setValue%serializeCount()\n";
-			$scaleSetCode .= "    if (count > 0) call setValue%serialize(nodeScales(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1))\n";
-		    }
-		    $functionCode .= &Fortran::Utils::Format_Variable_Defintions(\@dataContent)."\n";
-		    $functionCode .= "    !GCC\$ attributes unused :: self\n";
-		    $functionCode .= $scaleSetCode;
-		    $functionCode .= "    return\n";
-		    $functionCode .= "  end subroutine ".$componentID.ucfirst($propertyName)."Scale\n\n";
-		    # Insert into the function list.
-		    push(
-			@{$build->{'code'}->{'functions'}},
-			$functionCode
-			);
-		    # Insert a type-binding for this function into the implementation type.
-		    push(
-			@{$build->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-			{type => "procedure", name => $propertyName."Scale", function => $componentID.ucfirst($propertyName)."Scale"}
-			);
 		}
 	    }
 	}
@@ -1106,7 +627,7 @@ sub derivedTypesSerialize {
 	# Declare contents private.
 	$build->{'content'} .= "    private\n";
 	# Process any data content.
-	$build->{'content'} .= &Fortran::Utils::Format_Variable_Defintions($type->{'dataContent'})
+	$build->{'content'} .= &Fortran::Utils::Format_Variable_Definitions($type->{'dataContent'})
 	    if ( exists($type->{'dataContent'}) );
 	# Generate and insert a type-bound function table.
 	if ( exists($type->{'boundFunctions'}) ) {
@@ -1132,7 +653,7 @@ sub interfacesSerialize {
 abstract interface
   {$interface->{'intrinsic'} eq "void" ? "subroutine" : $interface->{'intrinsic'}." function"} {$interface->{'name'}}({join(",",&Function_Arguments($interface->{'data'}))})
     {&Importables($interface->{'data'}) ? "import ".join(", ",&Importables($interface->{'data'})) : ""}
-{&Fortran::Utils::Format_Variable_Defintions($interface->{'data'}, indent => 4)}
+{&Fortran::Utils::Format_Variable_Definitions($interface->{'data'}, indent => 4)}
   end {$interface->{'intrinsic'} eq "void" ? "subroutine" : "function"} {$interface->{'name'}}
 end interface
 CODE
@@ -1207,7 +728,7 @@ sub functionsSerialize {
 	    foreach ( @{$function->{'modules'}} );
 	# Serialize variable definitions.
 	$build->{'content'} .= "   implicit none\n";
-	$build->{'content'} .= &Fortran::Utils::Format_Variable_Defintions($function->{'variables'})
+	$build->{'content'} .= &Fortran::Utils::Format_Variable_Definitions($function->{'variables'})
 	    if ( exists($function->{'variables'}) );
 	# Serialize content.
 	$build->{'content'} .= $function->{'content'};

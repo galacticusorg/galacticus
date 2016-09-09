@@ -116,7 +116,7 @@ sub Build_Component_Classes {
 				    returnType  => "\\void"     ,
 				    arguments   => &Galacticus::Build::Components::DataTypes::dataObjectDocName($property)."\\ value",
 				    description => "Set the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$className."} component."
-}
+				}
 				);
 			    $propertiesCreated{$functionName} = 1;
 			}
@@ -143,29 +143,26 @@ sub Build_Component_Classes {
 			$functionName = $property->{'name'}."Rate";
 			unless (  exists($propertiesCreated{$functionName}) ) {
 			    # Do not create a rate function if it is to be deferred, or if it binds at the top level.
-			    unless ( 
-				$property->{'attributes'}->{'isDeferred' } =~ m/rate/
-				&&
-				$property->{'attributes'}->{'bindsTo'    } eq "top"
-				) {
-				my $boundTo =
-				    $property->{'attributes'}->{'createIfNeeded'} 
-				    ?
-				    $className.ucfirst($property->{'name'})."Rate"
-				    :
-				    &createNullFunction($build,{selfType => $className, attribute => "rate", property => $property, intent => "inout"});
-				push(
-				    @typeBoundFunctions,
-				    {
-					type        => "procedure"  ,
-					name        => $functionName,
-					function    => $boundTo     , 
-					returnType  => "\\void"     ,
-					arguments   => &Galacticus::Build::Components::DataTypes::dataObjectDocName($property)."\\ value",
-					description => "Cumulate to the rate of the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$implementationIdentifier."} component."
-				    }
-				    );
-			    }
+			    push(
+				@typeBoundFunctions,
+				{
+				    type        => "procedure"  ,
+				    name        => $functionName,
+				    function    => &createNullFunction($build,{selfType => $className, attribute => "rate", property => $property, intent => "inout"}),
+				    returnType  => "\\void"     ,
+				    arguments   => &Galacticus::Build::Components::DataTypes::dataObjectDocName($property)."\\ value",
+				    description => "Cumulate to the rate of the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$implementationIdentifier."} component."
+				}
+				)
+				unless (
+				    (
+				     grep {$_ eq "rate"} split(":",$property->{'attributes'}->{'isDeferred'    })
+				     &&
+				                                   $property->{'attributes'}->{'bindsTo'       } eq "top"
+				    )
+				    ||
+				                                   $property->{'attributes'}->{'createIfNeeded'}
+				);
 			    # Create a "scale" function unless this is a virtual property.
 			    push(
 				@typeBoundFunctions,

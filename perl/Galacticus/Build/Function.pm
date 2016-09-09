@@ -998,7 +998,7 @@ sub Functions_Generate_Output {
 	$documentation .= $argumentList
 	    unless ( $argumentList eq "" );
 	$documentation .= ")\n";
-	$documentation .= &Fortran::Utils::Format_Variable_Defintions(\@argumentDefinitions);
+	$documentation .= &Fortran::Utils::Format_Variable_Definitions(\@argumentDefinitions);
 	$documentation .= "   end ".$type.$category." myImplementation".ucfirst($method->{'name'})."\n";
 	$documentation .= "\\end{lstlisting}\n\n";
     }
