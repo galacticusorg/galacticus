@@ -110,10 +110,15 @@ sub Property_Output_Validate {
     foreach my $component ( &List::ExtraUtils::hashList($build->{'components'}) ) {
 	# Iterate over all properties belonging to this component.	
 	foreach my $property ( &List::ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' ) ) {
+	    # Skip non-output properties.
+	    next
+		unless ( exists($property->{'output'}) );
 	    die("Property_Output_Validate: non-gettable, virtual properties can not be output")
 		if ( $property->{'attributes'}->{'isVirtual'} && ! $property->{'attributes'}->{'isGettable'} );
 	    die("Property_Output_Validate: output of rank>0 objects requires a labels attribute")
 		if ( $property->{'data'}->{'rank'} > 0 && ! exists($property->{'output'}->{'labels'}) );
+	    die("Property_Output_Validate: output of rank>0 objects requires parseable labels or explicit count")
+		if ( $property->{'data'}->{'rank'} > 0 && $property->{'output'}->{'labels'} !~ m/^\[(.*)\]$/ && ! exists($property->{'output'}->{'count'}) );
 	    die("Property_Output_Validate: no method to determine output size for rank-1 property")
 		unless ( $property->{'output'}->{'labels'} =~ m/^\[(.*)\]$/ || exists($property->{'output'}->{'count'}) );
 	    die("Property_Output_Validate: output of rank>1 arrays not supported")

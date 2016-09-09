@@ -82,6 +82,10 @@ sub Implementation_Defaults {
 	 createFunction =>
 	 {
 	     isDeferred => "booleanFalse"
+	 },
+	 output         =>
+	 {
+	     instances => "all"
 	 }
 	);
     # Iterate over implementations and apply all defaults.
