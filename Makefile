@@ -108,7 +108,7 @@ $(BUILDPATH)/%.o : $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUIL
 	 if [ -f $$mod~ ] ; then \
 	  file $$mod | grep -q ASCII ; \
 	  if [ $$? -eq 0 ]; then \
-	   if perl -w ./scripts/build/Compare_Module_Files.pl -compiler $(MODULETYPE) $$mod $$mod~ ; then \
+	   if perl -w ./scripts/build/compareModuleFiles.pl -compiler $(MODULETYPE) $$mod $$mod~ ; then \
 	    mv $$mod~ $$mod ; \
 	   else \
 	    rm $$mod~ ; \
@@ -116,7 +116,7 @@ $(BUILDPATH)/%.o : $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUIL
 	 else \
 	   gunzip -c $$mod > $$mod.gu ; \
 	   gunzip -c $$mod~ > $$mod~.gu ; \
-	   if perl -w ./scripts/build/Compare_Module_Files.pl -compiler $(MODULETYPE) $$mod.gu $$mod~.gu ; then \
+	   if perl -w ./scripts/build/compareModuleFiles.pl -compiler $(MODULETYPE) $$mod.gu $$mod~.gu ; then \
 	    mv $$mod~ $$mod ; \
 	   else \
 	    rm $$mod~ ; \
