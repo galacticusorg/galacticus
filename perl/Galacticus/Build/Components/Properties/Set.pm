@@ -9,6 +9,7 @@ use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/pe
 use Data::Dumper;
 use List::ExtraUtils;
 use Galacticus::Build::Components::Utils;
+use Text::Template 'fill_in_string';
 
 # Insert hooks for our functions.
 %Galacticus::Build::Component::Utils::componentUtils = 
@@ -18,13 +19,18 @@ use Galacticus::Build::Components::Utils;
      {
 	 functions =>
 	     [
-	      \&Build_Setters
+	      \&Build_Class_Setters
+	     ],
+	 propertyIteratedFunctions =>
+	     [
+	      \&Bind_Set_Functions ,
+	      \&Build_Set_Functions
 	     ]
      }
     );
 
-sub Build_Setters {
-    # Validate that data type can be determined for each property.
+sub Build_Class_Setters {
+    # Insert settability functions for each property into the associated component class.
     my $build = shift();
     # Iterate over components.
     foreach my $component ( &List::ExtraUtils::hashList($build->{'components'}) ) {
@@ -48,6 +54,98 @@ sub Build_Setters {
 	    }
 	}
     }
+}
+
+sub Bind_Set_Functions {
+    # Bind compile-time specified custom set functions which bind at the component level to the component implementation.
+    my $build    = shift();
+    my $class    = shift();
+    my $member   = shift();
+    my $property = shift();
+    push(
+	@{$build->{'types'}->{'nodeComponent'.ucfirst($class->{'name'}).ucfirst($member->{'name'})}->{'boundFunctions'}},
+	{type => "procedure", name => $property->{'name'}."Set", function => $property->{'setFunction'}->{'content'}}
+	)
+	if (
+	                                   $property->{'attributes' }->{'isGettable'}                &&
+	    !                              $property->{'setFunction'}->{'build'     }                &&
+	                                   $property->{'setFunction'}->{'bindsTo'   } eq "component" &&
+	    ! grep {$_ eq "set"} split(":",$property->{'attributes' }->{'isDeferred'})
+	)
+}
+
+sub Build_Set_Functions {
+    # Build set functions for non-deferred properties which bind at the component level.
+    my $build       = shift();
+    my $class       = shift();
+    my $member      = shift();
+    $code::property = shift();
+    # Skip this property if it is not settable, or if a compile-time custom get function was specified.
+    return
+	if
+	(
+	    $code::property->{'attributes' }->{'isVirtual' }
+	 ||
+	  ! $code::property->{'attributes' }->{'isSettable'}
+	 ||
+	  ! $code::property->{'setFunction'}->{'build'     }   
+	);
+    # Determine a suffix for the function and method names. If the set attribute of this property is deferred, a suffix of "Value"
+    # is used - this can then be accessed by the deferred functions if necessary.
+    my $suffix   = (grep {$_ eq "set"} split(":",$code::property->{'attributes' }->{'isDeferred'})) ? "Value" : "";
+    # Determine the type of the property.
+    (my $propertyTypeDescriptor) = &Galacticus::Build::Components::DataTypes::dataObjectDefinition($code::property->{'data'});
+    @{$propertyTypeDescriptor->{'variables' }} = ( "setValue"      );
+    @{$propertyTypeDescriptor->{'attributes'}} = ( "intent(in   )" );
+    push(@{$propertyTypeDescriptor->{'attributes'}},"dimension(".join(",",(":") x $code::property->{'data'}->{'rank'}).")")
+	if ( $code::property->{'data'}->{'rank'} > 0 );
+    # Build the function.
+    my $implementationTypeName = "nodeComponent".ucfirst($class->{'name'}).ucfirst($member->{'name'});
+    my $function =
+    {
+	type        => "void",
+	name        => $class->{'name'}.ucfirst($member->{'name'}).ucfirst($code::property->{'name'})."Set".$suffix,
+	description => "Set the {\\normalfont \\ttfamily ".$code::property->{'name'}."} property of an {\\normalfont \\ttfamily ".$member->{'name'}."} implementation of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class.",
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "class",
+		 type       => $implementationTypeName,
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "self" ]
+	     },
+	     $propertyTypeDescriptor
+	    ]
+    };
+    push(@{$function->{'modules'}},"Memory_Management")
+	if ( $code::property->{'data'}->{'rank'} > 0 );
+	     # Build the function.
+	     if ( $code::property->{'data'}->{'rank'} == 0 ) {
+		 $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
+self%{$property->{'name'}}Data=setValue
+CODE
+	     } elsif ( $code::property->{'data'}->{'rank'} == 1 ) {
+		 $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
+if (.not.allocated(self%{$property->{'name'}}Data)) then
+   call    Alloc_Array  (self%{$property->{'name'}}Data,shape(setValue))
+else
+   if (size(self%{$property->{'name'}}Data) /= size(setValue)) then
+      call Dealloc_Array(self%{$property->{'name'}}Data                )
+      call Alloc_Array  (self%{$property->{'name'}}Data,shape(setValue))
+   end if
+end if
+self%{$property->{'name'}}Data=setValue
+CODE
+	     }
+    # Insert a type-binding for this function into the relevant type.
+    push(
+	@{$build->{'types'}->{$implementationTypeName}->{'boundFunctions'}},
+	{
+	    type        => "procedure", 
+	    descriptor  => $function,
+	    name        => $code::property->{'name'}."Set".$suffix
+	}
+	);  
 }
 
 1;

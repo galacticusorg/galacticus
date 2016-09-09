@@ -948,7 +948,7 @@ sub Process_FunctionClass {
 		$documentation .= $argumentList
 		    unless ( $argumentList eq "" );
 		$documentation .= ")\n";
-		$documentation .= &Fortran::Utils::Format_Variable_Defintions(\@argumentDefinitions);
+		$documentation .= &Fortran::Utils::Format_Variable_Definitions(\@argumentDefinitions);
 		$documentation .= "   end ".$type.$category." myImplementation".ucfirst($methodName)."\n";
 		$documentation .= "\\end{lstlisting}\n\n";
 	    }

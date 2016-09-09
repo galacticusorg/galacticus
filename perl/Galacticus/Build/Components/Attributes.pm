@@ -157,7 +157,7 @@ sub Default_Functions {
 			};
 		    }
 		    # Since function was specified, we will not need to build a function.
-		    $property->{$_.'Function'}->{'build'} = "false";
+		    $property->{$_.'Function'}->{'build'} = 0;
 		} else {
 		    # No function element was specified, assign a default function and record that a function must be built.
 		    $property->{$_.'Function'} = 
@@ -167,7 +167,7 @@ sub Default_Functions {
 			    ucfirst($property           ->{'name'}).
 			    ucfirst($_                            ),
 			bindsTo => "component"                     ,
-			build   => "true"
+			build   => 1
 		    };
 		}
 	    }
