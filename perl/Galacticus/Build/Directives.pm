@@ -14,15 +14,15 @@ sub Extract_Directive {
     my $xmlText;
     my $matchedDirectiveName;
     my $commentRegEx = exists($options{'comment'}) ? $options{'comment'} : qr/^\s*\!#/;
-    my $xmlTagRegEx  = $directiveName eq "*" ? qr/^\s*<([a-zA-Z]+)[\s>]/ : qr/^\s*<($directiveName)[\s>]/;    
+    my $xmlTagRegEx  = $directiveName eq "*" ? qr/^\s*<([a-zA-Z]+).*>/ : qr/^\s*<($directiveName)(>|\s.*>)/;    
     while ( my $line = <$fileHandle> ) {
 	if ( $line =~ s/$commentRegEx// ) {
-	    if ( $line =~ $xmlTagRegEx ) {
-		$matchedDirectiveName = $1;
-		$xmlText              = "";
-	    }
 	    $xmlText .= $line;
-	    if ( $line =~ m/^\s*<\/$matchedDirectiveName[\s>]/ || $line =~ m/^\s*<$matchedDirectiveName\s.*\/>/ ) {
+	    if ( ! defined($matchedDirectiveName) && $line =~ $xmlTagRegEx ) {
+		$matchedDirectiveName = $1;
+		$xmlText              = $line;
+	    }
+	    if ( defined($matchedDirectiveName) && ( $line =~ m/^\s*<\/$matchedDirectiveName[\s>]/ || $line =~ m/^\s*<$matchedDirectiveName\s.*\/>/ ) ) {
 		# Parse the XML.
 		my $xml    = new XML::Simple();
 		$directive = $xml->XMLin($xmlText);
@@ -36,8 +36,14 @@ sub Extract_Directive {
 		}
 		last;
 	    }
+	} elsif ( defined($matchedDirectiveName) ) {
+	    $xmlText .= $line
 	}
     }
+    # Include the root element name if requested.
+    $directive->{'rootElementType'} = $matchedDirectiveName
+	if ( defined($matchedDirectiveName) && exists($options{'setRootElementType'}) && $options{'setRootElementType'} == 1 );
+    # Return the directive.
     return $directive;
 }
 

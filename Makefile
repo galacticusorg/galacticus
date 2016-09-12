@@ -68,8 +68,8 @@ CPPFLAGS += -g
 
 # Detect MPI compile.
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'MPI'
-FCFLAGS += -DUSEMPI
-CFLAGS += -DUSEMPI
+FCFLAGS  += -DUSEMPI
+CFLAGS   += -DUSEMPI
 CPPFLAGS += -DUSEMPI 
 endif
 
@@ -300,13 +300,13 @@ $(BUILDPATH)/Makefile_Module_Deps: ./scripts/build/Find_Module_Dependencies.pl s
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/Find_Module_Dependencies.pl `pwd`
 
-$(BUILDPATH)/Makefile_Use_Deps: ./scripts/build/useDependencies.pl $(BUILDPATH)/Code_Directive_Locations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Deps source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp) $(wildcard source/*.Inc)
+$(BUILDPATH)/Makefile_Use_Deps: ./scripts/build/useDependencies.pl $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Deps source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp) $(wildcard source/*.Inc)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/useDependencies.pl `pwd`
 
-$(BUILDPATH)/Makefile_Directives: ./scripts/build/Code_Directive_Parser.pl source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp)
+$(BUILDPATH)/Makefile_Directives: ./scripts/build/codeDirectivesParse.pl source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp)
 	@mkdir -p $(BUILDPATH)
-	./scripts/build/Code_Directive_Parser.pl `pwd`
+	./scripts/build/codeDirectivesParse.pl `pwd`
 
 $(BUILDPATH)/Makefile_Include_Deps: ./scripts/build/includeDependencies.pl source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp)
 	@mkdir -p $(BUILDPATH)
@@ -324,11 +324,10 @@ source/FFTlog/fftlog.f source/FFTlog/cdgamma.f source/FFTlog/drfftb.f source/FFT
 	mkdir -p $(BUILDPATH)/FFTlog
 	wget http://casa.colorado.edu/~ajsh/FFTLog/fftlog.tar.gz -O - | tar xvz -C source/FFTlog -f -
 	if [ ! -e source/FFTlog/fftlog.f ]; then \
-	 echo "      subroutine fhti(n,mu,q,dlnr,kr,kropt,wsave,ok)" > source/FFTlog/fftlog.f; \
-	 echo "      stop 'FFTlog was not downloaded - to try again remove the source/FFTlog directory'" >> source/FFTlog/fftlog.f; \
+	 echo "      subroutine fhti(n,mu,q,dlnr,kr,kropt,wsave,ok)" >  source/FFTlog/fftlog.f; \
 	 echo "      stop 'FFTlog was not downloaded - to try again" >> source/FFTlog/fftlog.f; \
-	 echo "     & remove the source/FFTlog directory'" >> source/FFTlog/fftlog.f; \
-	 echo "      end subroutine fhti" >> source/FFTlog/fftlog.f; \
+	 echo "     & remove the source/FFTlog directory'"           >> source/FFTlog/fftlog.f; \
+	 echo "      end subroutine fhti"                            >> source/FFTlog/fftlog.f; \
 	 touch source/FFTlog/cdgamma.f; \
 	 touch source/FFTlog/drfftb.f; \
 	 touch source/FFTlog/drfftf.f; \

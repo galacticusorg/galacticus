@@ -15,9 +15,9 @@ sub ExpandRegEx {
     my $sourceDirectory = shift;
     # Load the file of directive locations.
     my $locations;
-    if ( -e "./work/build/Code_Directive_Locations.xml" ) {
+    if ( -e "./work/build/directiveLocations.xml" ) {
 	my $xml    = new XML::Simple;
-	$locations = $xml->XMLin("./work/build/Code_Directive_Locations.xml");
+	$locations = $xml->XMLin("./work/build/directiveLocations.xml");
     }
     # Process the regEx until it no longer contains anything to expand.
     while ( $regEx =~ m/\(\#([a-zA-Z0-9]+)\-\>([a-zA-Z0-9]+)\)/ ) {
