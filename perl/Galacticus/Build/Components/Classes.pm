@@ -156,12 +156,12 @@ sub Build_Component_Classes {
 				)
 				unless (
 				    (
-				     grep {$_ eq "rate"} split(":",$property->{'attributes'}->{'isDeferred'    })
+				     (grep {$_ eq "rate"} split(":",$property->{'attributes'}->{'isDeferred'    }))
 				     &&
-				                                   $property->{'attributes'}->{'bindsTo'       } eq "top"
+				                                    $property->{'attributes'}->{'bindsTo'       } eq "top"
 				    )
 				    ||
-				                                   $property->{'attributes'}->{'createIfNeeded'}
+				                                    $property->{'attributes'}->{'createIfNeeded'}
 				);
 			    # Create a "scale" function unless this is a virtual property.
 			    push(
