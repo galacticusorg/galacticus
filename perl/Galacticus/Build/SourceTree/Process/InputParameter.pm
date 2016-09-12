@@ -49,7 +49,7 @@ sub Process_InputParameters {
 	}
     }
     # Get code directive locations.
-    my $directiveLocations = $xml->XMLin($ENV{'BUILDPATH'}."/Code_Directive_Locations.xml");
+    my $directiveLocations = $xml->XMLin($ENV{'BUILDPATH'}."/directiveLocations.xml");
     # Walk the tree, looking for code blocks.
     my $node  = $tree;
     my $depth = 0;

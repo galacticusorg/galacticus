@@ -38,7 +38,7 @@ sub Process_FunctionClass {
 	    # Extract the directive.
 	    my $directive = $node->{'directive'};
 	    # Get code directive locations if we do not have them.
-	    $directiveLocations = $xml->XMLin($ENV{'BUILDPATH'}."/Code_Directive_Locations.xml")
+	    $directiveLocations = $xml->XMLin($ENV{'BUILDPATH'}."/directiveLocations.xml")
 		unless ( $directiveLocations );	    
 	    # Find methods.
 	    my %methods;

@@ -54,7 +54,7 @@ my $sourceDirectory = $galacticusDirectory."/source";
 
 # Parse the code directive locations file.
 my $codeDirectiveLocationsXML = new XML::Simple;
-my $codeDirectiveLocations    = $codeDirectiveLocationsXML->XMLin($ENV{'BUILDPATH'}."/Code_Directive_Locations.xml");
+my $codeDirectiveLocations    = $codeDirectiveLocationsXML->XMLin($ENV{'BUILDPATH'}."/directiveLocations.xml");
 
 # Open the output file.
 open(my $functionHandle,">".$ENV{'BUILDPATH'}."/utility.input_parameters.unique_labels.inc"             );

@@ -35,7 +35,7 @@ my $componentsLoaded    = 0;
 # Get an XML parser.
 my $xml                 = new XML::Simple;
 # Load the file of directive locations if available.
-my $locations           = -e $ENV{'BUILDPATH'}."/Code_Directive_Locations.xml" ? $xml->XMLin($ENV{'BUILDPATH'}."/Code_Directive_Locations.xml") : undef();
+my $locations           = -e $ENV{'BUILDPATH'}."/directiveLocations.xml" ? $xml->XMLin($ENV{'BUILDPATH'}."/directiveLocations.xml") : undef();
 # Process the XML file.
 my $build               = $xml->XMLin($xmlFile, KeyAttr => []);
 # Initialize to be not inside any module.

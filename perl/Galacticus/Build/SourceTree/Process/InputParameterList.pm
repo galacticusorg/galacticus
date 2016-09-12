@@ -30,7 +30,7 @@ sub Process_InputParameterList {
     $fileName = $tree->{'name'}
         if ( $tree->{'type'} eq "file" );
     # Get code directive locations.
-    my $directiveLocations = $xml->XMLin($ENV{'BUILDPATH'}."/Code_Directive_Locations.xml");
+    my $directiveLocations = $xml->XMLin($ENV{'BUILDPATH'}."/directiveLocations.xml");
     # Initialize list of unlisted parameters.
     my @unlistedInputParameters;
     # Walk the tree, looking for input parameter list directives.
