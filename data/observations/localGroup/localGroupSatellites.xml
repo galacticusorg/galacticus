@@ -4,6 +4,64 @@
   <doi>doi:10.1088/0004-6256/144/1/4</doi>
   <galaxies>
     <galaxy>
+      <name>Virgo I</name>
+      <rightAscensionHours>
+        <value>12</value>
+      </rightAscensionHours>
+      <rightAscensionMinutes>
+        <value>00</value>
+      </rightAscensionMinutes>
+      <rightAscensionSeconds>
+        <value>09.6</value>
+      </rightAscensionSeconds>
+      <declinationDegrees>
+        <value>-0</value>
+      </declinationDegrees>
+      <declinationArcMinutes>
+        <value>40</value>
+      </declinationArcMinutes>
+      <declinationArcSeconds>
+        <value>48</value>
+      </declinationArcSeconds>
+      <distanceModulus>
+        <value>19.7</value>
+	<errorHigh>0.3</errorHigh>
+	<errorLow>0.2</errorLow>
+      </distanceModulus>
+       <distanceHeliocentric>
+         <value>87</value>
+	 <errorHigh>13</errorHigh>
+	 <errorLow>8</errorLow>
+      </distanceHeliocentric>
+      <magnitudeAbsoluteV>
+        <value>-0.8</value>
+        <error>0.9</error>
+      </magnitudeAbsoluteV>
+      <radiusHalfLight>
+        <value>38</value>
+        <errorHigh>12</errorHigh>
+        <errorLow>11</errorLow>
+      </radiusHalfLight>
+      <radiusHalfLightAngular>
+        <value>1.5</value>
+        <error>0.4</error>
+      </radiusHalfLightAngular>
+     <ellipticityProjected>
+	<value>0.44</value>
+	<errorHigh>0.14</errorHigh>
+	<errorLow>0.17</errorLow>
+      </ellipticityProjected>
+      <extinction>
+        <value>0.066</value>
+      </extinction>
+      <publication>
+	<value>Homma et al. (2016; arXiv:1609.04356)</value>
+      </publication>
+      <publicationURL>
+	<value>http://arxiv.org/abs/1609.04346</value>
+      </publicationURL>
+    </galaxy>
+    <galaxy>
       <name>Crater II</name>
       <alias>
 	<value>Cra II</value>
