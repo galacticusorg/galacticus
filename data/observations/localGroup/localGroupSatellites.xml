@@ -3187,6 +3187,18 @@
         <errorLow>3.4</errorLow>
         <value>262.2</value>
       </velocityRadialHeliocentric>
+      <properMotionWest>
+        <value>187.4</value>
+        <error>3.9</error>
+        <reference>van der marel &amp; Sahlmann (arXiv:1609.04395)</reference>
+        <referenceURL>http://arxiv.org/abs/1609.04395</referenceURL>
+      </properMotionWest>
+      <properMotionNorth>
+        <value>22.3</value>
+        <error>4.9</error>
+        <reference>van der marel &amp; Sahlmann (arXiv:1609.04395)</reference>
+        <referenceURL>http://arxiv.org/abs/1609.04395</referenceURL>
+      </properMotionNorth>
     </galaxy>
     <galaxy>
       <name>NGC 55</name>
@@ -17419,6 +17431,18 @@
         <errorLow>0.6</errorLow>
         <value>145.6</value>
       </velocityRadialHeliocentric>
+      <properMotionWest>
+        <value>87.6</value>
+        <error>6.0</error>
+        <reference>van der marel &amp; Sahlmann (arXiv:1609.04395)</reference>
+        <referenceURL>http://arxiv.org/abs/1609.04395</referenceURL>
+      </properMotionWest>
+      <properMotionNorth>
+        <value>122.7</value>
+        <error>4.2</error>
+        <reference>van der marel &amp; Sahlmann (arXiv:1609.04395)</reference>
+        <referenceURL>http://arxiv.org/abs/1609.04395</referenceURL>
+      </properMotionNorth>
     </galaxy>
     <galaxy>
       <name>KKR 25</name>
@@ -18472,6 +18496,18 @@
   <properties>
     <name>properMotionLongitude</name>
     <description>Proper motion in Galactic longitude.</description>
+    <units>milliarcseconds per century</units>
+    <unitsInSI>1.536e-18</unitsInSI>
+  </properties>
+  <properties>
+    <name>properMotionNorth</name>
+    <description>Proper motion in North direction.</description>
+    <units>milliarcseconds per century</units>
+    <unitsInSI>1.536e-18</unitsInSI>
+  </properties>
+  <properties>
+    <name>properMotionWest</name>
+    <description>Proper motion in West directoin.</description>
     <units>milliarcseconds per century</units>
     <unitsInSI>1.536e-18</unitsInSI>
   </properties>
