@@ -124,9 +124,9 @@ contains
           node                  => node                 %firstChild
        end do
        ! Allocate storage space.
-       call Alloc_Array(accretionHistoryNodeIndex,[int(accretionHistoryCount)])
-       call Alloc_Array(accretionHistoryNodeTime ,[int(accretionHistoryCount)])
-       call Alloc_Array(accretionHistoryNodeMass ,[int(accretionHistoryCount)])
+       call allocateArray(accretionHistoryNodeIndex,[int(accretionHistoryCount)])
+       call allocateArray(accretionHistoryNodeTime ,[int(accretionHistoryCount)])
+       call allocateArray(accretionHistoryNodeMass ,[int(accretionHistoryCount)])
        ! Extract accretion history.
        accretionHistoryCount =  0
        node                  => treeCurrent%baseNode
@@ -154,9 +154,9 @@ contains
        call treeGroup       %close         (                                                                                                                               )
        !$omp end critical (HDF5_Access)
        ! Deallocate storage space.
-       call Dealloc_Array(accretionHistoryNodeIndex)
-       call Dealloc_Array(accretionHistoryNodeTime )
-       call Dealloc_Array(accretionHistoryNodeMass )
+       call deallocateArray(accretionHistoryNodeIndex)
+       call deallocateArray(accretionHistoryNodeTime )
+       call deallocateArray(accretionHistoryNodeMass )
        ! Move to the next tree.
        treeCurrent => treeCurrent%nextTree
     end do    

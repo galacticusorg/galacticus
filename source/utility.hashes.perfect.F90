@@ -123,13 +123,13 @@ contains
 
     ! Allocate data structures.
     call hash%destroy()
-    call Alloc_Array(A     ,int([hash%rowSize,hash%rowSize]),lowerBounds=[0,0])
-    call Alloc_Array(hash%r,int([hash%rowSize             ]),lowerBounds=[0  ])
-    call Alloc_Array(hash%C,int([hashTableMax             ]),lowerBounds=[0  ])
+    call allocateArray(A     ,int([hash%rowSize,hash%rowSize]),lowerBounds=[0,0])
+    call allocateArray(hash%r,int([hash%rowSize             ]),lowerBounds=[0  ])
+    call allocateArray(hash%C,int([hashTableMax             ]),lowerBounds=[0  ])
     allocate(row(0:hash%rowSize-1))
     if (hash%hasValues) then
-       call Alloc_Array(B     ,int([hash%rowSize,hash%rowSize]),lowerBounds=[0,0])
-       call Alloc_Array(hash%v,int([hashTableMax             ]),lowerBounds=[0  ])
+       call allocateArray(B     ,int([hash%rowSize,hash%rowSize]),lowerBounds=[0,0])
+       call allocateArray(hash%v,int([hashTableMax             ]),lowerBounds=[0  ])
     end if
 
     ! Record that the hash has been created.
@@ -212,26 +212,26 @@ contains
    end do
 
    ! Deallocate data structures.
-   call Dealloc_Array(A)
-   if (allocated(B)) call Dealloc_Array(B)
+   call deallocateArray(A)
+   if (allocated(B)) call deallocateArray(B)
    deallocate(row)
 
    ! Reduce the size of stored arrays if possible.
    if (hash%hasInverseTable) then
       call Move_Alloc(hash%C,resizeTemp)
-      call Alloc_Array(hash%C,int([hash%hashSize]),lowerBounds=[0])
+      call allocateArray(hash%C,int([hash%hashSize]),lowerBounds=[0])
       hash%C=resizeTemp(0:hash%hashSize-1)
-      call Dealloc_Array(resizeTemp)
+      call deallocateArray(resizeTemp)
    end if
    if (hash%hasValues) then
       call Move_Alloc(hash%v,resizeTemp)
-      call Alloc_Array(hash%v,int([hash%hashSize]),lowerBounds=[0])
+      call allocateArray(hash%v,int([hash%hashSize]),lowerBounds=[0])
       hash%v=resizeTemp(0:hash%hashSize-1)
-      call Dealloc_Array(resizeTemp)
+      call deallocateArray(resizeTemp)
    end if
 
    ! Drop the inverse table if requested.
-   if (.not.hash%hasInverseTable) call Dealloc_Array(hash%C)
+   if (.not.hash%hasInverseTable) call deallocateArray(hash%C)
 
    return
  end subroutine Hash_Perfect_Create
@@ -243,9 +243,9 @@ contains
     class(hashPerfect), intent(inout) :: hash
 
     hash%created=.false.
-    if (allocated(hash%r)) call Dealloc_Array(hash%r)
-    if (allocated(hash%C)) call Dealloc_Array(hash%C)
-    if (allocated(hash%v)) call Dealloc_Array(hash%v)
+    if (allocated(hash%r)) call deallocateArray(hash%r)
+    if (allocated(hash%C)) call deallocateArray(hash%C)
+    if (allocated(hash%v)) call deallocateArray(hash%v)
     return
   end subroutine Hash_Perfect_Destroy
 

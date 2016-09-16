@@ -214,7 +214,7 @@ contains
     mpiSelf%hostName=trim(processorName(1))
     call mpiBarrier()
     ! Construct an array containing all ranks.
-    call Alloc_Array(mpiSelf%allRanks,[mpiSelf%countValue],[0])
+    call allocateArray(mpiSelf%allRanks,[mpiSelf%countValue],[0])
     forall(i=0:mpiSelf%countValue-1)
        mpiSelf%allRanks(i)=i
     end forall

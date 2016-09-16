@@ -98,9 +98,9 @@ contains
              if (fixedHalosCount == -1) fixedHalosCount=Get_Input_Parameter_Array_Size('haloMassSampleModifierFixedMassHalosRadius')
           end if
           if (fixedHalosCount == -1) fixedHalosCount=1
-          call Alloc_Array(haloMassSampleModifierFixedMassHalosMass  ,[fixedHalosCount])
-          call Alloc_Array(haloMassSampleModifierFixedMassHalosCount ,[fixedHalosCount])
-          call Alloc_Array(haloMassSampleModifierFixedMassHalosRadius,[fixedHalosCount])
+          call allocateArray(haloMassSampleModifierFixedMassHalosMass  ,[fixedHalosCount])
+          call allocateArray(haloMassSampleModifierFixedMassHalosCount ,[fixedHalosCount])
+          call allocateArray(haloMassSampleModifierFixedMassHalosRadius,[fixedHalosCount])
           !@ <inputParameter>
           !@   <name>haloMassSampleModifierFixedMassHalosMass</name>
           !@   <defaultValue>$10^{12}M_\odot$</defaultValue>
@@ -211,8 +211,8 @@ contains
     call node%destroy()
     ! Insert halos into sample.
     if (haloMassSampleModifierFixedMassHalosOverwrite) then
-       call Dealloc_Array(treeHaloMass                      )
-       call Alloc_Array  (treeHaloMass,[sum(self%haloCount)])
+       call deallocateArray(treeHaloMass                      )
+       call allocateArray  (treeHaloMass,[sum(self%haloCount)])
        indexStart=1
        do i=1,size(self%haloCount)
           treeHaloMass(indexStart:indexStart+self%haloCount(i)-1)=self%haloMass(i)
@@ -220,14 +220,14 @@ contains
        end do       
     else
        call Move_Alloc (treeHaloMass,      treeHaloMassTmp                     )
-       call Alloc_Array(treeHaloMass,shape(treeHaloMassTmp)+sum(self%haloCount))
+       call allocateArray(treeHaloMass,shape(treeHaloMassTmp)+sum(self%haloCount))
        treeHaloMass(                      1:size(treeHaloMassTmp))=treeHaloMassTmp
        indexStart=size(treeHaloMassTmp)+1
        do i=1,size(self%haloCount)
           treeHaloMass(indexStart:indexStart+self%haloCount(i)-1)=self%haloMass(i)
           indexStart=indexStart+self%haloCount(i)
        end do
-       call Dealloc_Array(treeHaloMassTmp)
+       call deallocateArray(treeHaloMassTmp)
     end if
     return
 

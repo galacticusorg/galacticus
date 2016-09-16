@@ -161,12 +161,18 @@ sub Implementation_Dependencies {
 	    push(@{$dependencies{$implementation->{'extends'}->{'name'}}},$implementationName)
 		if ( exists($implementation->{'extends'}) );
 	}
+	# Sort member names into parent->child order.
 	@{$build->{'componentClasses'}->{$className}->{'memberNames'}} =
 	    toposort
 	    (
 	     sub { @{$dependencies{$_[0]} || []}; },
 	     \@{$build->{'componentClasses'}->{$className}->{'memberNames'}}
 	    );
+	# Create the same ordering in the list of members.
+	my %members;
+	$members{$_->{'name'}} = $_
+	    foreach ( @{$build->{'componentClasses'}->{$className}->{'members'}} );
+	@{$build->{'componentClasses'}->{$className}->{'members'}} = map {$members{$_}} @{$build->{'componentClasses'}->{$className}->{'memberNames'}};
 	if ( $verbosityLevel >= 1 ) {
 	    print "            --> ".$className.":\n";
 	    print "               --> ".$_."\n"
@@ -242,25 +248,6 @@ sub Build_Component_Implementations {
     	}
 	# Create a list for type-bound functions.
 	my @typeBoundFunctions;
-	# Add binding for deferred create function set function.
-	push
-	    (
-	     @typeBoundFunctions,
-	     {
-		 type        => "procedure", 
-		 pass        => "nopass", 
-		 name        => "createFunctionSet", 
-		 function    => $implementation->{'fullyQualifiedName'}."CreateFunctionSet", 
-		 description => "Set the function used to create {\\normalfont \\ttfamily ".$implementation->{'fullyQualifiedName'}."} components.", 
-		 returnType  => "\\void", 
-		 arguments   => "\\textcolor{red}{\\textless function()\\textgreater}"
-	     }
-	    )
-	    if ( 
-		exists($implementation->{'createFunction'})
-		&&        
-		$implementation->{'createFunction'}->{'isDeferred'}
-	    );
      	# If this component has bindings defined, scan through them and create an appropriate method.
     	if ( exists($implementation->{'bindings'}) ) {
     	    foreach ( @{$implementation->{'bindings'}->{'binding'}} ) {

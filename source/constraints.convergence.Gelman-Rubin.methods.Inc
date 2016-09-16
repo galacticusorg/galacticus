@@ -30,7 +30,7 @@ function convergenceGelmanRubinConstructor(thresholdHatR,burnCount,testCount,out
        &                                                     outlierCountMaximum       , reportCount
   character       (len=*                 ), intent(in   ) :: logFileName
 
-  call Alloc_Array(convergenceGelmanRubinConstructor%chainMask,[mpiSelf%count()])
+  call allocateArray(convergenceGelmanRubinConstructor%chainMask,[mpiSelf%count()])
   convergenceGelmanRubinConstructor%thresholdHatR             =thresholdHatR
   convergenceGelmanRubinConstructor%burnCount                 =burnCount
   convergenceGelmanRubinConstructor%testCount                 =testCount
@@ -112,7 +112,7 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
   end if
   self%stepCount=0
   ! Allocate chain mask and Rhat arrays.
-  if (.not.allocated(self%correctedHatR)) call Alloc_Array(self%correctedHatR,[simulationState%dimension()])
+  if (.not.allocated(self%correctedHatR)) call allocateArray(self%correctedHatR,[simulationState%dimension()])
   ! Find outlier chains using a Grubb's outlier test.
   ! Initialize chain mask to all chains accepted.
   self%chainMask=.true.

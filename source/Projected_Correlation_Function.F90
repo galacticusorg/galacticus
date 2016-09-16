@@ -175,8 +175,8 @@ program Projected_Correlation_Function
   ! Get the default conditional mass function object.
   conditionalMassFunction_  => conditionalMassFunction()
   ! Generate binned separations.
-  call Alloc_Array(projectedSeparationBinned ,[projectedCorrelationFunctionSeparationCount])
-  call Alloc_Array(projectedCorrelationBinned,[projectedCorrelationFunctionSeparationCount])
+  call allocateArray(projectedSeparationBinned ,[projectedCorrelationFunctionSeparationCount])
+  call allocateArray(projectedCorrelationBinned,[projectedCorrelationFunctionSeparationCount])
   projectedSeparationBinned=Make_Range(projectedCorrelationFunctionSeparationMinimum,projectedCorrelationFunctionSeparationMaximum,projectedCorrelationFunctionSeparationCount,rangeTypeLogarithmic)
   ! Compute projected correlation function.
   call Halo_Model_Projected_Correlation(                                              &

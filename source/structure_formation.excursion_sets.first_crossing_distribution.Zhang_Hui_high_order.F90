@@ -110,23 +110,23 @@ contains
           varianceTableCountPrevious=-1
        end if
        ! Construct the table of variance on which we will solve for the first crossing distribution.
-       if (allocated(varianceTable                )) call Dealloc_Array(varianceTable                )
-       if (allocated(timeTable                    )) call Dealloc_Array(timeTable                    )
-       if (allocated(firstCrossingProbabilityTable)) call Dealloc_Array(firstCrossingProbabilityTable)
+       if (allocated(varianceTable                )) call deallocateArray(varianceTable                )
+       if (allocated(timeTable                    )) call deallocateArray(timeTable                    )
+       if (allocated(firstCrossingProbabilityTable)) call deallocateArray(firstCrossingProbabilityTable)
        varianceMaximum   =max(varianceMaximum,variance)
        varianceTableCount=int(varianceMaximum*dble(varianceTableNumberPerUnit))
        varianceMaximum   =dble(varianceTableCount)/dble(varianceTableNumberPerUnit)
        timeTableCount    =int(log10(timeMaximum/timeMinimum)*dble(timeTableNumberPerDecade))+1
-       call Alloc_Array(varianceTable                ,[1+varianceTableCount]                 ,lowerBounds=[0  ])
-       call Alloc_Array(timeTable                                           ,[timeTableCount]                  )
-       call Alloc_Array(firstCrossingProbabilityTable,[1+varianceTableCount , timeTableCount],lowerBounds=[0,1])
+       call allocateArray(varianceTable                ,[1+varianceTableCount]                 ,lowerBounds=[0  ])
+       call allocateArray(timeTable                                           ,[timeTableCount]                  )
+       call allocateArray(firstCrossingProbabilityTable,[1+varianceTableCount , timeTableCount],lowerBounds=[0,1])
        varianceTable    =Make_Range(0.0d0,varianceMaximum,varianceTableCount+1,rangeType=rangeTypeLinear)
        varianceTableStep=varianceTable(4)-varianceTable(0)
        timeTable        =Make_Range(timeMinimum,timeMaximum,timeTableCount,rangeType=rangeTypeLogarithmic)
 
        if (tableIsExtendable) then
           firstCrossingProbabilityTable(0:varianceTableCountPrevious,:)=firstCrossingProbabilityTablePrevious
-          call Dealloc_Array(firstCrossingProbabilityTablePrevious)
+          call deallocateArray(firstCrossingProbabilityTablePrevious)
        end if
 
        ! Loop through the table and solve for the first crossing distribution.

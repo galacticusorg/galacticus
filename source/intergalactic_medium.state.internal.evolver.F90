@@ -157,15 +157,15 @@
              &      )                                                   &
              &  +1
         ! Allocate arrays for all required IGM properties.
-        call Alloc_Array(temperature           ,[timeCount  ])
-        call Alloc_Array(densityHydrogen       ,[timeCount,2])
-        call Alloc_Array(densityHelium         ,[timeCount,3])
-        call Alloc_Array(time                  ,[timeCount  ])
-        call Alloc_Array(redshift              ,[timeCount  ])
-        call Alloc_Array(massFilteringComposite,[timeCount,2]) 
-        call Alloc_Array(clumpingFactor        ,[timeCount  ])
-        call Alloc_Array(opticalDepth          ,[timeCount  ])
-        call Alloc_Array(massFiltering         ,[timeCount  ])
+        call allocateArray(temperature           ,[timeCount  ])
+        call allocateArray(densityHydrogen       ,[timeCount,2])
+        call allocateArray(densityHelium         ,[timeCount,3])
+        call allocateArray(time                  ,[timeCount  ])
+        call allocateArray(redshift              ,[timeCount  ])
+        call allocateArray(massFilteringComposite,[timeCount,2]) 
+        call allocateArray(clumpingFactor        ,[timeCount  ])
+        call allocateArray(opticalDepth          ,[timeCount  ])
+        call allocateArray(massFiltering         ,[timeCount  ])
         ! Build grid of times.
         time                                                     &
              & =Make_Range(                                      &

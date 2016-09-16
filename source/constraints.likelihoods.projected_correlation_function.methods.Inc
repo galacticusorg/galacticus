@@ -49,13 +49,13 @@ function likelihoodProjectedCorrelationFunctionConstructor(haloMassMinimum,haloM
   if (projectedCorrelationFunctionFile%hasDataset("integralConstraint")) then
      call projectedCorrelationFunctionFile%readDataset("integralConstraint"               ,likelihoodProjectedCorrelationFunctionConstructor%integralConstraint                  )
   else
-     call Alloc_Array(likelihoodProjectedCorrelationFunctionConstructor%integralConstraint,shape(likelihoodProjectedCorrelationFunctionConstructor%projectedCorrelationFunctionObserved))
+     call allocateArray(likelihoodProjectedCorrelationFunctionConstructor%integralConstraint,shape(likelihoodProjectedCorrelationFunctionConstructor%projectedCorrelationFunctionObserved))
      likelihoodProjectedCorrelationFunctionConstructor%integralConstraint=1.0d0
   end if
   call projectedCorrelationFunctionFile%close()
   !$omp end critical(HDF5_Access)
   ! Allocate storage for the model projected correlation function.
-  call Alloc_Array(likelihoodProjectedCorrelationFunctionConstructor%projectedCorrelationFunction,[size(likelihoodProjectedCorrelationFunctionConstructor%separation),size(likelihoodProjectedCorrelationFunctionConstructor%massMinimum)])
+  call allocateArray(likelihoodProjectedCorrelationFunctionConstructor%projectedCorrelationFunction,[size(likelihoodProjectedCorrelationFunctionConstructor%separation),size(likelihoodProjectedCorrelationFunctionConstructor%massMinimum)])
   ! Find the inverse covariance matrix.
   likelihoodProjectedCorrelationFunctionConstructor%covariance       =likelihoodProjectedCorrelationFunctionConstructor%covarianceMatrix
   likelihoodProjectedCorrelationFunctionConstructor%inverseCovariance=likelihoodProjectedCorrelationFunctionConstructor%covariance      %invert()

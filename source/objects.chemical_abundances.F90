@@ -238,9 +238,9 @@ contains
           ! If tracking chemicals, read names of which ones to track.
           if (chemicalsCount > 0) then
              allocate(chemicalsToTrack(chemicalsCount))
-             call Alloc_Array(chemicalsIndices,[chemicalsCount])
-             call Alloc_Array(chemicalsCharges,[chemicalsCount])
-             call Alloc_Array(chemicalsMasses ,[chemicalsCount])
+             call allocateArray(chemicalsIndices,[chemicalsCount])
+             call allocateArray(chemicalsCharges,[chemicalsCount])
+             call allocateArray(chemicalsMasses ,[chemicalsCount])
              !@ <inputParameter>
              !@   <name>chemicalsToTrack</name>
              !@   <attachedTo>module</attachedTo>
@@ -263,8 +263,8 @@ contains
              end do
           end if
           ! Create zero and unit chemical abundances objects.
-          call Alloc_Array(zeroChemicalAbundances%chemicalValue,[propertyCount])
-          call Alloc_Array(unitChemicalAbundances%chemicalValue,[propertyCount])
+          call allocateArray(zeroChemicalAbundances%chemicalValue,[propertyCount])
+          call allocateArray(unitChemicalAbundances%chemicalValue,[propertyCount])
           zeroChemicalAbundances%chemicalValue=0.0d0
           unitChemicalAbundances%chemicalValue=1.0d0
           ! Flag that this module is now initialized.
@@ -554,7 +554,7 @@ contains
 
     read (fileHandle) isAllocated
     if (isAllocated) then
-       call Alloc_Array(chemicals%chemicalValue,[chemicalsCount])
+       call allocateArray(chemicals%chemicalValue,[chemicalsCount])
        read (fileHandle),chemicals%chemicalValue
     end if
     return
@@ -615,7 +615,7 @@ contains
     implicit none
     class(chemicalAbundances), intent(inout) :: chemicals
 
-    if (allocated(chemicals%chemicalValue)) call Dealloc_Array(chemicals%chemicalValue)
+    if (allocated(chemicals%chemicalValue)) call deallocateArray(chemicals%chemicalValue)
     return
   end subroutine Chemicals_Abundances_Destroy
 

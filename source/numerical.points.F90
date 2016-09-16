@@ -36,7 +36,7 @@ contains
     
     pointsCount=count(mask)
     call Move_Alloc(points,pointsTmp)
-    call Alloc_Array(points,[3,pointsCount])
+    call allocateArray(points,[3,pointsCount])
     pointsCount=0
     do i=1,size(pointsTmp,dim=2)
        if (mask(i)) then
@@ -44,7 +44,7 @@ contains
           points(:,pointsCount)=pointsTmp(:,i)
        end if
     end do
-    call Dealloc_Array(pointsTmp)
+    call deallocateArray(pointsTmp)
     return
   end subroutine Points_Prune
   
@@ -88,7 +88,7 @@ contains
     
     pointsCount=size(points,dim=2)
     call Move_Alloc(points,pointsTmp)
-    call Alloc_Array(points,[3,pointsCount*product(replicantEnd-replicantStart+1)])
+    call allocateArray(points,[3,pointsCount*product(replicantEnd-replicantStart+1)])
     replicationCount=0
     do i=replicantStart(1),replicantEnd(1)
        do j=replicantStart(2),replicantEnd(2)
@@ -101,7 +101,7 @@ contains
           end do
        end do
     end do
-    call Dealloc_Array(pointsTmp)
+    call deallocateArray(pointsTmp)
     return
   end subroutine Points_Replicate
   
@@ -176,7 +176,7 @@ contains
     call Galacticus_Display_Unindent('done')
     pointInclusionCount=count(pointInclusionMask)
     call Move_Alloc(points,pointsTmp)
-    call Alloc_Array(points,[3,pointInclusionCount])
+    call allocateArray(points,[3,pointInclusionCount])
     pointInclusionCount=0
     do iPoint=1,size(pointsTmp,dim=2)
        if (pointInclusionMask(iPoint)) then
@@ -184,7 +184,7 @@ contains
           points(:,pointInclusionCount)=pointsTmp(:,iPoint)
        end if
     end do
-    call Dealloc_Array(pointsTmp)
+    call deallocateArray(pointsTmp)
     return
   end subroutine Points_Survey_Geometry
   

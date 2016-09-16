@@ -31,27 +31,27 @@ subroutine Node_Component_Dynamics_Statistics_Bars_Record(self,time,barInstabili
   ! Expand the arrays as necessary.
   if (allocated(self%barInstabilityTimescaleData)) then
      call Move_Alloc (self%barInstabilityTimescaleData,        arrayTemporary  )
-     call Alloc_Array(self%barInstabilityTimescaleData,[1+size(arrayTemporary)])
+     call allocateArray(self%barInstabilityTimescaleData,[1+size(arrayTemporary)])
      self%barInstabilityTimescaleData(1:size(arrayTemporary))=arrayTemporary
-     call Dealloc_Array(arrayTemporary)
+     call deallocateArray(arrayTemporary)
   else
-     call Alloc_Array(self%barInstabilityTimescaleData,[1])
+     call allocateArray(self%barInstabilityTimescaleData,[1])
   end if
   if (allocated(self%adiabaticRatioData         )) then
      call Move_Alloc (self%adiabaticRatioData         ,        arrayTemporary  )
-     call Alloc_Array(self%adiabaticRatioData         ,[1+size(arrayTemporary)])
+     call allocateArray(self%adiabaticRatioData         ,[1+size(arrayTemporary)])
      self%adiabaticRatioData         (1:size(arrayTemporary))=arrayTemporary
-     call Dealloc_Array(arrayTemporary)
+     call deallocateArray(arrayTemporary)
   else
-     call Alloc_Array(self%barInstabilityTimescaleData,[1])
+     call allocateArray(self%barInstabilityTimescaleData,[1])
   end if
   if (allocated(self%timeData                   )) then
      call Move_Alloc (self%timeData                   ,        arrayTemporary  )
-     call Alloc_Array(self%timeData                   ,[1+size(arrayTemporary)])
+     call allocateArray(self%timeData                   ,[1+size(arrayTemporary)])
      self%timeData                   (1:size(arrayTemporary))=arrayTemporary
-     call Dealloc_Array(arrayTemporary)
+     call deallocateArray(arrayTemporary)
   else
-     call Alloc_Array(self%timeData                   ,[1])
+     call allocateArray(self%timeData                   ,[1])
   end if
   ! Find the current extent of the arrays.
   entryIndex=size(self%timeData)

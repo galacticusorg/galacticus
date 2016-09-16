@@ -157,8 +157,8 @@ contains
     end do
     regionSolidAngle=regionSolidAngle/regionSolidAngle(regionCount)
     ! Generate random points.
-    call Alloc_Array(self%randomTheta,[randomsCount])
-    call Alloc_Array(self%randomPhi  ,[randomsCount])
+    call allocateArray(self%randomTheta,[randomsCount])
+    call allocateArray(self%randomPhi  ,[randomsCount])
     do iRandom=1,randomsCount
        ! Select a region at random.
        uniformRandom=Pseudo_Random_Get(pseudoSequenceObject,reset)

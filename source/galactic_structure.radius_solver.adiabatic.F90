@@ -101,8 +101,8 @@ contains
     implicit none
     type            (treeNode                ), intent(inout), pointer :: thisNode
     integer                                   , parameter              :: iterationMaximum       =100
-    procedure       (Structure_Get_Template  )               , pointer :: Radius_Get             =>null(), Velocity_Get=>null()
-    procedure       (Structure_Set_Template  )               , pointer :: Radius_Set             =>null(), Velocity_Set=>null()
+    procedure       (Radius_Solver_Get_Template  )               , pointer :: Radius_Get             =>null(), Velocity_Get=>null()
+    procedure       (Radius_Solver_Set_Template  )               , pointer :: Radius_Set             =>null(), Velocity_Set=>null()
     !$omp threadprivate(Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
     class           (nodeComponentBasic      )               , pointer :: thisBasicComponent
     class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
@@ -173,8 +173,8 @@ contains
     implicit none
     type            (treeNode              ), intent(inout) , pointer           :: thisNode
     double precision                        , intent(in   )                     :: specificAngularMomentum
-    procedure       (Structure_Get_Template), intent(in   ) , pointer           :: Radius_Get                        , Velocity_Get
-    procedure       (Structure_Set_Template), intent(in   ) , pointer           :: Radius_Set                        , Velocity_Set
+    procedure       (Radius_Solver_Get_Template), intent(in   ) , pointer           :: Radius_Get                        , Velocity_Get
+    procedure       (Radius_Solver_Set_Template), intent(in   ) , pointer           :: Radius_Set                        , Velocity_Set
     class           (darkMatterProfileClass)                , pointer           :: darkMatterProfile_
     double precision                        , dimension(:,:), allocatable, save :: radiusHistory
     !$omp threadprivate(radiusHistory)
@@ -248,15 +248,15 @@ contains
        endif
        ! Ensure that the radius history array is sufficiently sized.
        if (.not.allocated(radiusHistory)) then
-          call Alloc_Array(radiusHistory,[2,activeComponentCount+activeComponentMaximumIncrement])
+          call allocateArray(radiusHistory,[2,activeComponentCount+activeComponentMaximumIncrement])
           radiusHistory=-1.0d0
        else if (size(radiusHistory,dim=2) < activeComponentCount) then
           activeComponentMaximumCurrent=size(radiusHistory,dim=2)
           call Move_Alloc(radiusHistory,radiusHistoryTemporary)
-          call Alloc_Array(radiusHistory,[2,activeComponentCount+activeComponentMaximumIncrement])
+          call allocateArray(radiusHistory,[2,activeComponentCount+activeComponentMaximumIncrement])
           radiusHistory(:,                              1:                     activeComponentMaximumCurrent  )=radiusHistoryTemporary
           radiusHistory(:,activeComponentMaximumCurrent+1:activeComponentCount+activeComponentMaximumIncrement)=-1.0d0
-          call Dealloc_Array(radiusHistoryTemporary)
+          call deallocateArray(radiusHistoryTemporary)
        end if
        ! Detect oscillations in the radius solver. Only do this after a few bisection iterations have passed as we don't want to
        ! declare a true oscillation until the solver has had time to "burn in".

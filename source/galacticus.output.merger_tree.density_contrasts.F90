@@ -103,7 +103,7 @@ contains
           if (outputDensityContrastData) then
              densityContrastCount=Get_Input_Parameter_Array_Size('outputDensityContrastValues')
              densityContrastPropertyCount=2*densityContrastCount
-             call Alloc_Array(outputDensityContrastValues,[densityContrastCount])
+             call allocateArray(outputDensityContrastValues,[densityContrastCount])
              !@ <inputParameter>
              !@   <name>outputDensityContrastValues</name>
              !@   <attachedTo>module</attachedTo>

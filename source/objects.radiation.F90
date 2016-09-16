@@ -125,12 +125,12 @@ contains
     integer                    , dimension(:), intent(in   ) :: radiationTypes
 
     ! Allocate the array of radiation types to the correct size.
-    if (allocated(radiation%radiationType)) call Dealloc_Array(radiation%radiationType)
+    if (allocated(radiation%radiationType)) call deallocateArray(radiation%radiationType)
     if (allocated(radiation%components   )) then
        deallocate(radiation%components)
        call Memory_Usage_Record(sizeof(radiation%components),addRemove=-1)
     end if
-    call Alloc_Array(radiation%radiationType,shape(radiationTypes))
+    call allocateArray(radiation%radiationType,shape(radiationTypes))
     allocate(radiation%components(size(radiationTypes)))
     call Memory_Usage_Record(sizeof(radiation%components))
 

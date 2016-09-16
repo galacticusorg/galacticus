@@ -121,8 +121,8 @@ contains
              thisNode => thisNode%walkTree()
           end do
           ! Allocate storage space.
-          call Alloc_Array(nodeIndex   ,[nodeCount])
-          call Alloc_Array(nodeProperty,[nodeCount])
+          call allocateArray(nodeIndex   ,[nodeCount])
+          call allocateArray(nodeProperty,[nodeCount])
           ! Create a group for this tree structure.
           groupName   ='mergerTree'
           groupName   =groupName//currentTree%index
@@ -254,8 +254,8 @@ contains
           !$omp end critical(HDF5_Access)
 
           ! Deallocate storage space.
-          call Dealloc_Array(nodeIndex   )
-          call Dealloc_Array(nodeProperty)
+          call deallocateArray(nodeIndex   )
+          call deallocateArray(nodeProperty)
           ! Move to the next tree.
           currentTree => currentTree%nextTree
        end do

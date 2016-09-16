@@ -401,7 +401,7 @@ contains
     end forall
   
     ! Destroy temporary array.
-    call Dealloc_Array(timeSteps)
+    call deallocateArray(timeSteps)
 
     return
   end subroutine Star_Formation_History_Scales_In_Situ

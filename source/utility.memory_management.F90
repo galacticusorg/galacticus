@@ -26,7 +26,7 @@ module Memory_Management
   use Galacticus_Error
   implicit none
   private
-  public :: Memory_Usage_Report,Code_Memory_Usage,Alloc_Array,Dealloc_Array,Memory_Usage_Record
+  public :: Memory_Usage_Report,Code_Memory_Usage,allocateArray,deallocateArray,Memory_Usage_Record
 #ifdef PROCPS
   public :: Memory_Usage_Get
 #endif
@@ -79,7 +79,7 @@ module Memory_Management
 #endif
 
   ! Include automatically generated inferfaces.
-  include 'utility.memory_management.precontain.inc'
+  include 'utility.memory_management.preContain.inc'
 
 contains
 
@@ -276,7 +276,7 @@ contains
     return
   end subroutine Memory_Usage_Record
 
-  include 'utility.memory_management.postcontain.inc'
+  include 'utility.memory_management.postContain.inc'
 
 #ifdef PROCPS
   function Memory_Usage_Get()

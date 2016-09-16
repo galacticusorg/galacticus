@@ -540,8 +540,8 @@ contains
        call Move_Alloc(self%ageTableTime           ,ageTableTimeTemporary           )
        call Move_Alloc(self%ageTableExpansionFactor,ageTableExpansionFactorTemporary)
        ! Allocate the arrays to current required size.
-       call Alloc_Array(self%ageTableTime,           [self%ageTableNumberPoints])
-       call Alloc_Array(self%ageTableExpansionFactor,[self%ageTableNumberPoints])
+       call allocateArray(self%ageTableTime,           [self%ageTableNumberPoints])
+       call allocateArray(self%ageTableExpansionFactor,[self%ageTableNumberPoints])
        ! Create set of grid points in time variable.
        self%ageTableTime=Make_Range(self%ageTableTimeMinimum,self%ageTableTimeMaximum,self%ageTableNumberPoints,rangeTypeLogarithmic)
        ! Set the expansion factors to a negative value to indicate they are not yet computed.
@@ -550,12 +550,12 @@ contains
        self%ageTableTime           (prefixPointCount+1:prefixPointCount+size(ageTableTimeTemporary))=ageTableTimeTemporary
        self%ageTableExpansionFactor(prefixPointCount+1:prefixPointCount+size(ageTableTimeTemporary))=ageTableExpansionFactorTemporary
        ! Deallocate the temporary arrays.
-       call Dealloc_Array(ageTableTimeTemporary           )
-       call Dealloc_Array(ageTableExpansionFactorTemporary)
+       call deallocateArray(ageTableTimeTemporary           )
+       call deallocateArray(ageTableExpansionFactorTemporary)
     else
        ! Allocate the arrays to current required size.
-       call Alloc_Array(self%ageTableTime,           [self%ageTableNumberPoints])
-       call Alloc_Array(self%ageTableExpansionFactor,[self%ageTableNumberPoints])
+       call allocateArray(self%ageTableTime,           [self%ageTableNumberPoints])
+       call allocateArray(self%ageTableExpansionFactor,[self%ageTableNumberPoints])
        ! Create set of grid points in time variable.
        self%ageTableTime=Make_Range(self%ageTableTimeMinimum,self%ageTableTimeMaximum,self%ageTableNumberPoints,rangeTypeLogarithmic)
        ! Set the expansion factors to a negative value to indicate they are not yet computed.
@@ -619,8 +619,8 @@ contains
              call Move_Alloc(self%ageTableTime           ,ageTableTimeTemporary           )
              call Move_Alloc(self%ageTableExpansionFactor,ageTableExpansionFactorTemporary)
              self%ageTableNumberPoints=self%iTableTurnaround
-             call Alloc_Array(self%ageTableTime,           [self%ageTableNumberPoints])
-             call Alloc_Array(self%ageTableExpansionFactor,[self%ageTableNumberPoints])
+             call allocateArray(self%ageTableTime,           [self%ageTableNumberPoints])
+             call allocateArray(self%ageTableExpansionFactor,[self%ageTableNumberPoints])
              self%ageTableTime           =ageTableTimeTemporary           (1:self%ageTableNumberPoints)
              self%ageTableExpansionFactor=ageTableExpansionFactorTemporary(1:self%ageTableNumberPoints)
              exit

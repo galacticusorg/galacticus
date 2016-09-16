@@ -186,7 +186,7 @@ contains
        call Memory_Usage_Record(sizeof(atoms))
        ! Allocate abundance pattern array for elements.
        do iAtom=1,getLength(elementList)
-          call Alloc_Array(atoms(iAtom)%abundanceByMass,[abundancePatternCount])
+          call allocateArray(atoms(iAtom)%abundanceByMass,[abundancePatternCount])
           atoms(iAtom)%abundanceByMass=0.0d0
        end do
        ! Get atom properties.
@@ -202,13 +202,13 @@ contains
        atomicNumberMaximum=maxval(atoms%atomicNumber)
 
        ! Allocate space for atomic number lookup array.
-       call Alloc_Array(atomicNumberIndex,[atomicNumberMaximum])
+       call allocateArray(atomicNumberIndex,[atomicNumberMaximum])
        ! Create lookup array by atomic number.
        forall(iAtom=1:size(atoms))
           atomicNumberIndex(atoms(iAtom)%atomicNumber)=iAtom
        end forall
        ! Allocate metal mass normalizations array.
-       call Alloc_Array(metalMassNormalization,[abundancePatternCount])
+       call allocateArray(metalMassNormalization,[abundancePatternCount])
        ! Load tables of abundance patterns.
        do iAbundancePattern=1,abundancePatternCount
 

@@ -404,13 +404,13 @@ contains
     if (allocated(self%imfLookup)) then
        if (size(self%imfLookup) < imfIndex) then
           call Move_Alloc(self%imfLookup,imfLookupTemporary)
-          call Alloc_Array(self%imfLookup,[imfIndex])
+          call allocateArray(self%imfLookup,[imfIndex])
           self%imfLookup(                         1:size(     imfLookupTemporary))=imfLookupTemporary
           self%imfLookup(size(imfLookupTemporary)+1:size(self%imfLookup         ))=0
-          call Dealloc_Array(imfLookupTemporary)
+          call deallocateArray(imfLookupTemporary)
        end if
     else
-       call Alloc_Array(self%imfLookup,[imfIndex])
+       call allocateArray(self%imfLookup,[imfIndex])
        self%imfLookup=0
     end if
     ! If this IMF has not already been read, then assign it a lookup index and expand the spectra array appropriately.
@@ -475,8 +475,8 @@ contains
     imfLookupIndex    =self%imfLookup(imfIndex)
     agesCount         =self%spectra(imfLookupIndex)%agesCount
     metallicitiesCount=self%spectra(imfLookupIndex)%metallicityCount
-    call Alloc_Array(ages       ,[agesCount         ])
-    call Alloc_Array(metallicity,[metallicitiesCount])
+    call allocateArray(ages       ,[agesCount         ])
+    call allocateArray(metallicity,[metallicitiesCount])
     ages              =         self%spectra(imfLookupIndex)%ages
     metallicity       =(10.0d0**self%spectra(imfLookupIndex)%metallicities)*metallicitySolar
     return

@@ -424,10 +424,10 @@ contains
 
     integerPropertyCountMaximum=size(integerBuffer,dim=2)
     call Move_Alloc   (integerBuffer, integerBufferTemporary                                            )
-    call Alloc_Array  (integerBuffer,[integerBufferSize+bufferSizeIncrement,integerPropertyCountMaximum])
+    call allocateArray  (integerBuffer,[integerBufferSize+bufferSizeIncrement,integerPropertyCountMaximum])
     integerBuffer(1:integerBufferSize,:)=integerBufferTemporary
     integerBufferSize=integerBufferSize+bufferSizeIncrement
-    call Dealloc_Array(               integerBufferTemporary                                            )
+    call deallocateArray(               integerBufferTemporary                                            )
     return
   end subroutine Integer_Buffer_Extend
 
@@ -440,10 +440,10 @@ contains
 
     doublePropertyCountMaximum=size(doubleBuffer,dim=2)
     call Move_Alloc   (doubleBuffer, doubleBufferTemporary                                           )
-    call Alloc_Array  (doubleBuffer,[doubleBufferSize+bufferSizeIncrement,doublePropertyCountMaximum])
+    call allocateArray  (doubleBuffer,[doubleBufferSize+bufferSizeIncrement,doublePropertyCountMaximum])
     doubleBuffer(1:doubleBufferSize,:)=doubleBufferTemporary
     doubleBufferSize=doubleBufferSize+bufferSizeIncrement
-    call Dealloc_Array(              doubleBufferTemporary                                           )
+    call deallocateArray(              doubleBufferTemporary                                           )
     return
   end subroutine Double_Buffer_Extend
 
@@ -509,27 +509,27 @@ contains
 
     if (integerPropertyCount > 0 .and. (.not.allocated(integerBuffer) .or. integerPropertyCount > size(integerPropertyNames)) ) then
        if (allocated(integerBuffer)) then
-          call Dealloc_Array(integerBuffer          )
-          call Dealloc_Array(integerPropertyNames   )
-          call Dealloc_Array(integerPropertyComments)
-          call Dealloc_Array(integerPropertyUnitsSI )
+          call deallocateArray(integerBuffer          )
+          call deallocateArray(integerPropertyNames   )
+          call deallocateArray(integerPropertyComments)
+          call deallocateArray(integerPropertyUnitsSI )
        end if
-       call Alloc_Array(integerBuffer          ,[integerBufferSize,integerPropertyCount])
-       call Alloc_Array(integerPropertyNames                      ,[integerPropertyCount])
-       call Alloc_Array(integerPropertyComments                   ,[integerPropertyCount])
-       call Alloc_Array(integerPropertyUnitsSI                    ,[integerPropertyCount])
+       call allocateArray(integerBuffer          ,[integerBufferSize,integerPropertyCount])
+       call allocateArray(integerPropertyNames                      ,[integerPropertyCount])
+       call allocateArray(integerPropertyComments                   ,[integerPropertyCount])
+       call allocateArray(integerPropertyUnitsSI                    ,[integerPropertyCount])
     end if
     if (doublePropertyCount  > 0 .and. (.not.allocated(doubleBuffer ) .or. doublePropertyCount  > size(doublePropertyNames ))) then
        if (allocated(doubleBuffer )) then
-          call Dealloc_Array(doubleBuffer           )
-          call Dealloc_Array(doublePropertyNames    )
-          call Dealloc_Array(doublePropertyComments )
-          call Dealloc_Array(doublePropertyUnitsSI  )
+          call deallocateArray(doubleBuffer           )
+          call deallocateArray(doublePropertyNames    )
+          call deallocateArray(doublePropertyComments )
+          call deallocateArray(doublePropertyUnitsSI  )
        end if
-       call Alloc_Array(doubleBuffer           ,[doubleBufferSize,doublePropertyCount])
-       call Alloc_Array(doublePropertyNames                      ,[doublePropertyCount])
-       call Alloc_Array(doublePropertyComments                   ,[doublePropertyCount])
-       call Alloc_Array(doublePropertyUnitsSI                    ,[doublePropertyCount])
+       call allocateArray(doubleBuffer           ,[doubleBufferSize,doublePropertyCount])
+       call allocateArray(doublePropertyNames                      ,[doublePropertyCount])
+       call allocateArray(doublePropertyComments                   ,[doublePropertyCount])
+       call allocateArray(doublePropertyUnitsSI                    ,[doublePropertyCount])
     end if
     ! Allocate datasets.
     if (.not.allocated(outputGroups(iOutput)%integerDataset)) allocate(outputGroups(iOutput)%integerDataset(integerPropertyCount))

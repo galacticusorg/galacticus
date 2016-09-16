@@ -109,11 +109,11 @@ contains
     ! Read expansion factors from the file.
     call self%snapshots%readTable('Snap','a',snapshotExpansionFactors)
     ! Convert expansion factors to times.
-    call Alloc_Array(self%snapshotTimes,shape(snapshotExpansionFactors))
+    call allocateArray(self%snapshotTimes,shape(snapshotExpansionFactors))
     do i=1,size(snapshotExpansionFactors)
        self%snapshotTimes(i)=cosmologyFunctions_%cosmicTime(dble(snapshotExpansionFactors(i)))
     end do
-    call Dealloc_Array(snapshotExpansionFactors)
+    call deallocateArray(snapshotExpansionFactors)
     ! Read cosmological parameters.
     call self%file%readAttribute('OmegaBaryon',fileOmegaBaryon,allowPseudoScalar=.true.)
     call self%file%readAttribute('OmegaCDM'   ,fileOmegaCDM   ,allowPseudoScalar=.true.)
@@ -379,11 +379,11 @@ contains
     end forall
     ! Determine indices, ranks, and locations.
     nodeCountTrees=size(self%nodes)
-    call Alloc_Array(nodeIncomplete         ,[nodeCountTrees])
-    call Alloc_Array(nodeSelfIndices        ,[nodeCountTrees])
-    call Alloc_Array(nodeIndexRanks         ,[nodeCountTrees])
-    call Alloc_Array(nodeDescendentLocations,[nodeCountTrees])
-    call Alloc_Array(nodeTreeIndices        ,[nodeCountTrees])
+    call allocateArray(nodeIncomplete         ,[nodeCountTrees])
+    call allocateArray(nodeSelfIndices        ,[nodeCountTrees])
+    call allocateArray(nodeIndexRanks         ,[nodeCountTrees])
+    call allocateArray(nodeDescendentLocations,[nodeCountTrees])
+    call allocateArray(nodeTreeIndices        ,[nodeCountTrees])
     nodeSelfIndices=self%nodes%nodeIndex
     nodeTreeIndices=-1
     nodeIndexRanks =Sort_Index_Do(nodeSelfIndices)
@@ -407,8 +407,8 @@ contains
           self%nodes(iHalo)%descendentIndex=mergerTreeHaloIndices(mergerTreeDescendentIndices(i)+1-haloIndexOffset)
        end if
     end do
-    call Dealloc_Array(mergerTreeHaloIndices      )
-    call Dealloc_Array(mergerTreeDescendentIndices)
+    call deallocateArray(mergerTreeHaloIndices      )
+    call deallocateArray(mergerTreeDescendentIndices)
     call Galacticus_Display_Counter_Clear(       verbosityWorking)
     call Galacticus_Display_Unindent     ('done',verbosityWorking)    
     call Galacticus_Display_Indent ('Locating descendants',verbosityWorking)

@@ -37,7 +37,7 @@ use Galacticus::Build::Components::TreeNodes::Map;
 use Galacticus::Build::Components::TreeNodes::Serialization;
 use Galacticus::Build::Components::TreeNodes::Utils;
 use Galacticus::Build::Components::NodeEvents;
-use Galacticus::Build::Components::BaseTypes;
+use Galacticus::Build::Components::Components;
 use Galacticus::Build::Components::Classes;
 use Galacticus::Build::Components::Classes::Names;
 use Galacticus::Build::Components::Classes::CreateDestroy;
@@ -246,7 +246,7 @@ sub boundFunctionTable {
 			    foreach ( @{$declaration->{'variables'}} ) {
 				push(
 				    @arguments,
-				    "\\textcolor{red}{\\textless ".$type."\\textgreater} ".($optional ? "[" : "").$_.($optional ? "]" : "")."\\arg".$intent
+				    "\\textcolor{red}{\\textless ".latex_encode($type)."\\textgreater} ".($optional ? "[" : "").$_.($optional ? "]" : "")."\\arg".$intent
 				    )
 				    unless ( $_ eq "self" );
 			    }

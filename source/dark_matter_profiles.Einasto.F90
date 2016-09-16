@@ -708,12 +708,12 @@ contains
                &*dble(einastoAngularMomentumTableAlphaPointsPerUnit   ))+1
           self%angularMomentumTableRadiusCount=int(log10(self%angularMomentumTableRadiusMaximum/self%angularMomentumTableRadiusMinimum)&
                &*dble(einastoAngularMomentumTableRadiusPointsPerDecade))+1
-          if (allocated(self%angularMomentumTableAlpha )) call Dealloc_Array(self%angularMomentumTableAlpha )
-          if (allocated(self%angularMomentumTableRadius)) call Dealloc_Array(self%angularMomentumTableRadius)
-          if (allocated(self%angularMomentumTable      )) call Dealloc_Array(self%angularMomentumTable      )
-          call Alloc_Array(self%angularMomentumTableAlpha ,[                                self%angularMomentumTableAlphaCount])
-          call Alloc_Array(self%angularMomentumTableRadius,[self%angularMomentumTableRadiusCount                               ])
-          call Alloc_Array(self%angularMomentumTable      ,[self%angularMomentumTableRadiusCount,self%angularMomentumTableAlphaCount])
+          if (allocated(self%angularMomentumTableAlpha )) call deallocateArray(self%angularMomentumTableAlpha )
+          if (allocated(self%angularMomentumTableRadius)) call deallocateArray(self%angularMomentumTableRadius)
+          if (allocated(self%angularMomentumTable      )) call deallocateArray(self%angularMomentumTable      )
+          call allocateArray(self%angularMomentumTableAlpha ,[                                self%angularMomentumTableAlphaCount])
+          call allocateArray(self%angularMomentumTableRadius,[self%angularMomentumTableRadiusCount                               ])
+          call allocateArray(self%angularMomentumTable      ,[self%angularMomentumTableRadiusCount,self%angularMomentumTableAlphaCount])
           ! Create ranges of alpha and radius.
           self%angularMomentumTableAlpha =Make_Range(self%angularMomentumTableAlphaMinimum ,self%angularMomentumTableAlphaMaximum &
                &,self%angularMomentumTableAlphaCount ,rangeType=rangeTypeLinear     )
@@ -926,12 +926,12 @@ contains
             &*dble(einastoEnergyTableAlphaPointsPerUnit          ))+1
        self%energyTableConcentrationCount=int(log10(self%energyTableConcentrationMaximum/self%energyTableConcentrationMinimum) &
             &*dble(einastoEnergyTableConcentrationPointsPerDecade))+1
-       if (allocated(self%energyTableAlpha        )) call Dealloc_Array(self%energyTableAlpha        )
-       if (allocated(self%energyTableConcentration)) call Dealloc_Array(self%energyTableConcentration)
-       if (allocated(self%energyTable             )) call Dealloc_Array(self%energyTable             )
-       call Alloc_Array(self%energyTableAlpha        ,[                              self%energyTableAlphaCount])
-       call Alloc_Array(self%energyTableConcentration,[self%energyTableConcentrationCount                      ])
-       call Alloc_Array(self%energyTable             ,[self%energyTableConcentrationCount,self%energyTableAlphaCount])
+       if (allocated(self%energyTableAlpha        )) call deallocateArray(self%energyTableAlpha        )
+       if (allocated(self%energyTableConcentration)) call deallocateArray(self%energyTableConcentration)
+       if (allocated(self%energyTable             )) call deallocateArray(self%energyTable             )
+       call allocateArray(self%energyTableAlpha        ,[                              self%energyTableAlphaCount])
+       call allocateArray(self%energyTableConcentration,[self%energyTableConcentrationCount                      ])
+       call allocateArray(self%energyTable             ,[self%energyTableConcentrationCount,self%energyTableAlphaCount])
        ! Create ranges of alpha and concentration.
        self%energyTableAlpha        =Make_Range(self%energyTableAlphaMinimum        ,self%energyTableAlphaMaximum         &
             &,self%energyTableAlphaCount        ,rangeType=rangeTypeLinear     )
@@ -1206,14 +1206,14 @@ contains
             &*dble(einastoFourierProfileTableConcentrationPointsPerDecade))+1
        self%fourierProfileTableWavenumberCount   =int(log10(self%fourierProfileTableWavenumberMaximum   /self%fourierProfileTableWavenumberMinimum   ) &
             &*dble(einastoFourierProfileTableWavenumberPointsPerDecade   ))+1
-       if (allocated(self%fourierProfileTableAlpha        )) call Dealloc_Array(self%fourierProfileTableAlpha        )
-       if (allocated(self%fourierProfileTableConcentration)) call Dealloc_Array(self%fourierProfileTableConcentration)
-       if (allocated(self%fourierProfileTableWavenumber   )) call Dealloc_Array(self%fourierProfileTableWavenumber   )
-       if (allocated(self%fourierProfileTable             )) call Dealloc_Array(self%fourierProfileTable             )
-       call Alloc_Array(self%fourierProfileTableAlpha        ,[                                                                         self%fourierProfileTableAlphaCount])
-       call Alloc_Array(self%fourierProfileTableConcentration,[                                   self%fourierProfileTableConcentrationCount                              ])
-       call Alloc_Array(self%fourierProfileTableWavenumber   ,[self%fourierProfileTableWavenumberCount                                                                    ])
-       call Alloc_Array(self%fourierProfileTable             ,[self%fourierProfileTableWavenumberCount,self%fourierProfileTableConcentrationCount,self%fourierProfileTableAlphaCount])
+       if (allocated(self%fourierProfileTableAlpha        )) call deallocateArray(self%fourierProfileTableAlpha        )
+       if (allocated(self%fourierProfileTableConcentration)) call deallocateArray(self%fourierProfileTableConcentration)
+       if (allocated(self%fourierProfileTableWavenumber   )) call deallocateArray(self%fourierProfileTableWavenumber   )
+       if (allocated(self%fourierProfileTable             )) call deallocateArray(self%fourierProfileTable             )
+       call allocateArray(self%fourierProfileTableAlpha        ,[                                                                         self%fourierProfileTableAlphaCount])
+       call allocateArray(self%fourierProfileTableConcentration,[                                   self%fourierProfileTableConcentrationCount                              ])
+       call allocateArray(self%fourierProfileTableWavenumber   ,[self%fourierProfileTableWavenumberCount                                                                    ])
+       call allocateArray(self%fourierProfileTable             ,[self%fourierProfileTableWavenumberCount,self%fourierProfileTableConcentrationCount,self%fourierProfileTableAlphaCount])
        ! Create ranges of alpha and wavenumber.
        self%fourierProfileTableAlpha        =Make_Range(self%fourierProfileTableAlphaMinimum        ,self%fourierProfileTableAlphaMaximum         &
             &,self%fourierProfileTableAlphaCount        ,rangeType=rangeTypeLinear     )
@@ -1474,13 +1474,13 @@ contains
        self%freefallRadiusTableRadiusCount=int(log10(self%freefallRadiusTableRadiusMaximum/self%freefallRadiusTableRadiusMinimum)*dble(einastoFreefallRadiusTableRadiusPointsPerDecade))+1
        self%freefallRadiusTableAlphaCount =int(      (self%freefallRadiusTableAlphaMaximum -self%freefallRadiusTableAlphaMinimum )*dble(einastoFreefallRadiusTableAlphaPointsPerUnit   ))+1
        if (allocated(self%freefallRadiusTableRadius)) then
-          call Dealloc_Array(self%freefallRadiusTableAlpha )
-          call Dealloc_Array(self%freefallRadiusTableRadius)
-          call Dealloc_Array(self%freefallRadiusTable      )
+          call deallocateArray(self%freefallRadiusTableAlpha )
+          call deallocateArray(self%freefallRadiusTableRadius)
+          call deallocateArray(self%freefallRadiusTable      )
        end if
-       call Alloc_Array(self%freefallRadiusTableAlpha ,[                               self%freefallRadiusTableAlphaCount])
-       call Alloc_Array(self%freefallRadiusTableRadius,[self%freefallRadiusTableRadiusCount                              ])
-       call Alloc_Array(self%freefallRadiusTable      ,[self%freefallRadiusTableRadiusCount,self%freefallRadiusTableAlphaCount])
+       call allocateArray(self%freefallRadiusTableAlpha ,[                               self%freefallRadiusTableAlphaCount])
+       call allocateArray(self%freefallRadiusTableRadius,[self%freefallRadiusTableRadiusCount                              ])
+       call allocateArray(self%freefallRadiusTable      ,[self%freefallRadiusTableRadiusCount,self%freefallRadiusTableAlphaCount])
        ! Create a range of radii and alpha.
        self%freefallRadiusTableAlpha =Make_Range(self%freefallRadiusTableAlphaMinimum ,self%freefallRadiusTableAlphaMaximum ,self%freefallRadiusTableAlphaCount ,rangeType=rangeTypeLinear     )
        self%freefallRadiusTableRadius=Make_Range(self%freefallRadiusTableRadiusMinimum,self%freefallRadiusTableRadiusMaximum,self%freefallRadiusTableRadiusCount,rangeType=rangeTypeLogarithmic)

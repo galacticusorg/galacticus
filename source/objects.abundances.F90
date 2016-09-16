@@ -305,8 +305,8 @@ contains
           propertyCount=elementsCount+1
           ! If tracking elements, read names of which ones to track.
           if (elementsCount > 0) then
-             call Alloc_Array(elementsToTrack,[elementsCount])
-             call Alloc_Array(elementsIndices,[elementsCount])
+             call allocateArray(elementsToTrack,[elementsCount])
+             call allocateArray(elementsIndices,[elementsCount])
              !@ <inputParameter>
              !@   <name>elementsToTrack</name>
              !@   <attachedTo>module</attachedTo>
@@ -323,8 +323,8 @@ contains
              end do
           end if
           ! Create zero and unit abundances objects.
-          call Alloc_Array(zeroAbundances%elementalValue,[elementsCount])
-          call Alloc_Array(unitAbundances%elementalValue,[elementsCount])
+          call allocateArray(zeroAbundances%elementalValue,[elementsCount])
+          call allocateArray(unitAbundances%elementalValue,[elementsCount])
           zeroAbundances%metallicityValue=0.0d0
           zeroAbundances%  elementalValue=0.0d0
           unitAbundances%metallicityValue=1.0d0
@@ -343,7 +343,7 @@ contains
     implicit none
     class(abundances), intent(inout) :: self
 
-    if (allocated(self%elementalValue)) call Dealloc_Array(self%elementalValue)
+    if (allocated(self%elementalValue)) call deallocateArray(self%elementalValue)
     return
   end subroutine Abundances_Destroy
 
@@ -659,7 +659,7 @@ contains
     implicit none
     type(abundances), intent(inout) :: self
 
-    if (.not.allocated(self%elementalValue)) call Alloc_Array(self%elementalValue,[elementsCount])
+    if (.not.allocated(self%elementalValue)) call allocateArray(self%elementalValue,[elementsCount])
     return
   end subroutine Abundances_Allocate_Elemental_Values
 

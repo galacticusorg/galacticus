@@ -138,17 +138,17 @@ contains
              !@ </inputParameter>
              call Get_Input_Parameter('timestepHistorySteps',timestepHistorySteps,defaultValue=30         )
              ! Allocate storage arrays.
-             call Alloc_Array(historyTime                     ,[timestepHistorySteps])
-             call Alloc_Array(historyExpansion                ,[timestepHistorySteps])
-             call Alloc_Array(historyStarFormationRate        ,[timestepHistorySteps])
-             call Alloc_Array(historyDiskStarFormationRate    ,[timestepHistorySteps])
-             call Alloc_Array(historySpheroidStarFormationRate,[timestepHistorySteps])
-             call Alloc_Array(historyStellarDensity           ,[timestepHistorySteps])
-             call Alloc_Array(historyDiskStellarDensity       ,[timestepHistorySteps])
-             call Alloc_Array(historySpheroidStellarDensity   ,[timestepHistorySteps])
-             call Alloc_Array(historyGasDensity               ,[timestepHistorySteps])
-             call Alloc_Array(historyHotGasDensity            ,[timestepHistorySteps])
-             call Alloc_Array(historyNodeDensity              ,[timestepHistorySteps])
+             call allocateArray(historyTime                     ,[timestepHistorySteps])
+             call allocateArray(historyExpansion                ,[timestepHistorySteps])
+             call allocateArray(historyStarFormationRate        ,[timestepHistorySteps])
+             call allocateArray(historyDiskStarFormationRate    ,[timestepHistorySteps])
+             call allocateArray(historySpheroidStarFormationRate,[timestepHistorySteps])
+             call allocateArray(historyStellarDensity           ,[timestepHistorySteps])
+             call allocateArray(historyDiskStellarDensity       ,[timestepHistorySteps])
+             call allocateArray(historySpheroidStellarDensity   ,[timestepHistorySteps])
+             call allocateArray(historyGasDensity               ,[timestepHistorySteps])
+             call allocateArray(historyHotGasDensity            ,[timestepHistorySteps])
+             call allocateArray(historyNodeDensity              ,[timestepHistorySteps])
              ! Initialize arrays.
              historyTime=Make_Range(timestepHistoryBegin,timestepHistoryEnd,timestepHistorySteps,rangeTypeLogarithmic)
              do timeIndex=1,timestepHistorySteps

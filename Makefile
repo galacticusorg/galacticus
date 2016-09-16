@@ -79,7 +79,7 @@ endif
 # endif
 
 # List of additional Makefiles which contain dependency information
-MAKE_DEPS = $(BUILDPATH)/Makefile_Module_Deps $(BUILDPATH)/Makefile_Use_Deps $(BUILDPATH)/Makefile_Include_Deps
+MAKE_DEPS = $(BUILDPATH)/Makefile_Module_Dependencies $(BUILDPATH)/Makefile_Use_Dependencies $(BUILDPATH)/Makefile_Include_Dependencies
 
 # Get versions of build tools.
 FCCOMPILER_VERSION = `$(FCCOMPILER) -v 2>&1`
@@ -127,10 +127,13 @@ $(BUILDPATH)/%.o : $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUIL
 	done
 
 # Rules for building HDF5 C interoperability types data file.
-$(BUILDPATH)/hdf5FCInterop.dat : $(BUILDPATH)/hdf5FCInterop.exe
-	$(BUILDPATH)/hdf5FCInterop.exe > $(BUILDPATH)/hdf5FCInterop.dat
-$(BUILDPATH)/hdf5FCInterop.exe : source/hdf5FCInterop.F90
+$(BUILDPATH)/hdf5FCInterop.dat  : $(BUILDPATH)/hdf5FCInterop.exe $(BUILDPATH)/hdf5FCInteropC.exe
+	$(BUILDPATH)/hdf5FCInterop.exe  >  $(BUILDPATH)/hdf5FCInterop.dat
+	$(BUILDPATH)/hdf5FCInteropC.exe >> $(BUILDPATH)/hdf5FCInterop.dat
+$(BUILDPATH)/hdf5FCInterop.exe  : source/hdf5FCInterop.F90
 	$(FCCOMPILER) source/hdf5FCInterop.F90 -o $(BUILDPATH)/hdf5FCInterop.exe $(FCFLAGS)
+$(BUILDPATH)/hdf5FCInteropC.exe : source/hdf5FCInteropC.c
+	$(CCOMPILER) source/hdf5FCInteropC.c -o $(BUILDPATH)/hdf5FCInteropC.exe $(CFLAGS)
 
 # Object (*.o) files are built by compiling C (*.c) source files.
 vpath %.c source
@@ -164,7 +167,7 @@ $(BUILDPATH)/%.inc : $(BUILDPATH)/%.Inc Makefile
 	mv -f $(BUILDPATH)/$*.tmp $(BUILDPATH)/$*.inc
 
 # Dependency files (*.d) are created as empty files by default. Normally this rule is overruled by a specific set of rules in the
-# Makefile_Use_Deps Makefile_Module_Deps files, but this acts as a fallback rule.
+# Makefile_Use_Dependencies Makefile_Module_Dependencies files, but this acts as a fallback rule.
 $(BUILDPATH)/%.d : ./source/%.F90
 	@echo $(BUILDPATH)/$*.o > $(BUILDPATH)/$*.d
 $(BUILDPATH)/%.d : ./source/%.f
@@ -181,7 +184,7 @@ $(BUILDPATH)/%.d : ./source/%.cpp
 
 
 # Library files (*.fl) are created as empty files by default. Normally this rule is overruled by a specific set of rules in the
-# Makefile_Use_Deps file, but this acts as a fallback rule.
+# Makefile_Use_Dependencies file, but this acts as a fallback rule.
 $(BUILDPATH)/%.fl : ./source/%.F90
 	@touch $(BUILDPATH)/$*.fl
 $(BUILDPATH)/%.fl : ./source/%.f
@@ -192,7 +195,7 @@ $(BUILDPATH)/%.fl : ./source/%.cpp
 	@touch $(BUILDPATH)/$*.fl
 
 # GraphViz files (*.gv) are created with just a node entry by default. Normally this rule is overruled by a specific set of rules in the
-# Makefile_Use_Deps Makefile_Module_Deps files, but this acts as a fallback rule.
+# Makefile_Use_Dependencies Makefile_Module_Dependencies files, but this acts as a fallback rule.
 $(BUILDPATH)/%.F90.gv : ./source/%.F90
 	@echo \"$*.F90\" > $(BUILDPATH)/$*.F90.gv
 $(BUILDPATH)/%.c.gv : ./source/%.c
@@ -201,15 +204,15 @@ $(BUILDPATH)/%.cpp.gv : ./source/%.cpp
 	@echo \"$*.cpp\" > $(BUILDPATH)/$*.cpp.gv
 
 # Create a PostScript files showing tree diagrams of source file dependencies.
-%.tps : $(BUILDPATH)/%.gv
+%.tpdf : $(BUILDPATH)/%.gv
 	@echo digraph Tree \{ > $*.dot
 	@cat $(BUILDPATH)/$*.gv >> $*.dot
 	@echo \} >> $*.dot
-	dot -Tps $*.dot -o $*.tps
+	dot -Tpdf $*.dot -o $*.pdf
 	@rm $*.dot
 
 # Module list files are created empty by default. Normally this rule is overruled by a specific set of rules in the
-# Makefile_Module_Deps files, but this acts as a fallback rule.
+# Makefile_Module_Dependencies files, but this acts as a fallback rule.
 $(BUILDPATH)/%.m : ./source/%.F90
 	@touch $(BUILDPATH)/$*.m
 
@@ -227,27 +230,27 @@ $(BUILDPATH)/%.m : ./source/%.F90
 .SUFFIXES:
 
 # Include depenencies on "include" files.
--include $(BUILDPATH)/Makefile_Include_Deps 
+-include $(BUILDPATH)/Makefile_Include_Dependencies 
 
 # Include module dependencies.
--include $(BUILDPATH)/Makefile_Module_Deps
+-include $(BUILDPATH)/Makefile_Module_Dependencies
 
 # Include rules to build include files generated from directives.
 -include $(BUILDPATH)/Makefile_Directives
 
 # Include module use dependencies. Include this after Makefile_Directives, as Makefile_Directives will
-# specify dependencies for Makefile_Use_Deps
--include $(BUILDPATH)/Makefile_Use_Deps
+# specify dependencies for Makefile_Use_Dependencies
+-include $(BUILDPATH)/Makefile_Use_Dependencies
 
 # Rules for memory management routines.
 $(BUILDPATH)/allocatableArrays.xml: ./scripts/build/allocatableArrays.pl source/*.[fF]90 $(wildcard source/*.Inc)
 	./scripts/build/allocatableArrays.pl `pwd`
 
-$(BUILDPATH)/utility.memory_management.precontain.inc: ./scripts/build/Make_Memory_Usage_Routines.pl $(BUILDPATH)/allocatableArrays.xml
-	./scripts/build/Make_Memory_Usage_Routines.pl
+$(BUILDPATH)/utility.memory_management.preContain.inc: ./scripts/build/memoryManagementFunctions.pl $(BUILDPATH)/allocatableArrays.xml
+	./scripts/build/memoryManagementFunctions.pl
 
-$(BUILDPATH)/utility.memory_management.postcontain.inc:
-	@touch $(BUILDPATH)/utility.memory_management.postcontain.inc
+$(BUILDPATH)/utility.memory_management.postContain.inc:
+	@touch $(BUILDPATH)/utility.memory_management.postContain.inc
 
 # Rules for version routines.
 $(BUILDPATH)/galacticus.output.version.revision.inc: $(wildcard .hg/branch)
@@ -275,7 +278,7 @@ mfiles := $(patsubst source/%.F90,$(BUILDPATH)/%.m,$(wildcard source/*.F90))
 $(BUILDPATH)/utility.input_parameters.unique_labels.inc:
 	@touch $(BUILDPATH)/utility.input_parameters.unique_labels.inc
 $(BUILDPATH)/utility.input_parameters.unique_labels.visibilities.inc: $(dfiles) $(mfiles)
-	./scripts/build/Make_Unique_Label_Functions.pl `pwd`
+	./scripts/build/uniqueLabelFunctions.pl `pwd`
 
 # Rules for changeset creation.
 Galacticus.exe: $(BUILDPATH)/galacticus.hg.patch $(BUILDPATH)/galacticus.hg.bundle
@@ -296,11 +299,11 @@ tidy:
 all: deps $(all_exes)
 
 # Rules for building dependency Makefiles.
-$(BUILDPATH)/Makefile_Module_Deps: ./scripts/build/Find_Module_Dependencies.pl source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp) $(wildcard source/*.Inc)
+$(BUILDPATH)/Makefile_Module_Dependencies: ./scripts/build/moduleDependencies.pl source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp) $(wildcard source/*.Inc)
 	@mkdir -p $(BUILDPATH)
-	./scripts/build/Find_Module_Dependencies.pl `pwd`
+	./scripts/build/moduleDependencies.pl `pwd`
 
-$(BUILDPATH)/Makefile_Use_Deps: ./scripts/build/useDependencies.pl $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Deps source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp) $(wildcard source/*.Inc)
+$(BUILDPATH)/Makefile_Use_Dependencies: ./scripts/build/useDependencies.pl $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp) $(wildcard source/*.Inc)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/useDependencies.pl `pwd`
 
@@ -308,7 +311,7 @@ $(BUILDPATH)/Makefile_Directives: ./scripts/build/codeDirectivesParse.pl source/
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/codeDirectivesParse.pl `pwd`
 
-$(BUILDPATH)/Makefile_Include_Deps: ./scripts/build/includeDependencies.pl source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp)
+$(BUILDPATH)/Makefile_Include_Dependencies: ./scripts/build/includeDependencies.pl source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/includeDependencies.pl `pwd`
 

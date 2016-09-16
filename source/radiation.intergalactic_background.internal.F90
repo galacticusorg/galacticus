@@ -178,13 +178,13 @@ contains
             &             )                                            &
             &      )                                                   &
             &  +1
-       call Alloc_Array(backgroundRadiationWavelength,[backgroundRadiationWavelengthCount                             ]                  )
-       call Alloc_Array(backgroundRadiationSpectrum  ,[backgroundRadiationWavelengthCount                             ]                  )
-       call Alloc_Array(backgroundRadiationTime      ,[                                   backgroundRadiationTimeCount]                  )
-       call Alloc_Array(backgroundRadiationRedshift  ,[                                   backgroundRadiationTimeCount]                  )
-       call Alloc_Array(backgroundRadiationEmissivity,[backgroundRadiationWavelengthCount,backgroundRadiationTimeCount]                  )
-       call Alloc_Array(backgroundRadiationFlux      ,[backgroundRadiationWavelengthCount,backgroundRadiationTimeCount]                  )
-       call Alloc_Array(emissivity                   ,[backgroundRadiationWavelengthCount,2                           ],lowerBounds=[1,0])
+       call allocateArray(backgroundRadiationWavelength,[backgroundRadiationWavelengthCount                             ]                  )
+       call allocateArray(backgroundRadiationSpectrum  ,[backgroundRadiationWavelengthCount                             ]                  )
+       call allocateArray(backgroundRadiationTime      ,[                                   backgroundRadiationTimeCount]                  )
+       call allocateArray(backgroundRadiationRedshift  ,[                                   backgroundRadiationTimeCount]                  )
+       call allocateArray(backgroundRadiationEmissivity,[backgroundRadiationWavelengthCount,backgroundRadiationTimeCount]                  )
+       call allocateArray(backgroundRadiationFlux      ,[backgroundRadiationWavelengthCount,backgroundRadiationTimeCount]                  )
+       call allocateArray(emissivity                   ,[backgroundRadiationWavelengthCount,2                           ],lowerBounds=[1,0])
        backgroundRadiationWavelength                            &
             & =Make_Range(                                      &
             &             backgroundRadiationWavelengthMinimum, &
@@ -214,9 +214,9 @@ contains
        ! Initialize the emissivity to zero.
        backgroundRadiationEmissivity=0.0d0
        ! Construct tables of photoionization cross-sections.
-       call Alloc_Array(crossSectionNeutralHydrogen    ,[backgroundRadiationWavelengthCount])
-       call Alloc_Array(crossSectionNeutralHelium      ,[backgroundRadiationWavelengthCount])
-       call Alloc_Array(crossSectionSinglyIonizedHelium,[backgroundRadiationWavelengthCount])
+       call allocateArray(crossSectionNeutralHydrogen    ,[backgroundRadiationWavelengthCount])
+       call allocateArray(crossSectionNeutralHelium      ,[backgroundRadiationWavelengthCount])
+       call allocateArray(crossSectionSinglyIonizedHelium,[backgroundRadiationWavelengthCount])
        do iWavelength=1,backgroundRadiationWavelengthCount
           crossSectionNeutralHydrogen    (iWavelength)=Atomic_Cross_Section_Ionization_Photo(1,1,1,backgroundRadiationWavelength(iWavelength))
           crossSectionNeutralHelium      (iWavelength)=Atomic_Cross_Section_Ionization_Photo(2,1,1,backgroundRadiationWavelength(iWavelength))
@@ -599,7 +599,7 @@ contains
     double precision, allocatable, dimension(:), intent(inout) :: radiationProperties
     
     ! Ensure that the properties array is allocated.
-    if (.not.allocated(radiationProperties)) call Alloc_Array(radiationProperties,[1])
+    if (.not.allocated(radiationProperties)) call allocateArray(radiationProperties,[1])
     ! Store the time for the radiation field.
     radiationProperties(1)=time
     return

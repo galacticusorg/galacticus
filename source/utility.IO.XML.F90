@@ -101,7 +101,7 @@ contains
     integer                                                                       :: i
 
     arrayElements => getElementsByTagName(xmlElement,arrayElementName)
-    call Alloc_Array(column1,[getLength(arrayElements)])
+    call allocateArray(column1,[getLength(arrayElements)])
     do i=1,getLength(arrayElements)
        arrayElement => item(arrayElements,i-1)
        call extractDataContent(arrayELement,dataValues)
@@ -124,8 +124,8 @@ contains
     integer                                                                       :: i
 
     arrayElements => getElementsByTagName(xmlElement,arrayElementName)
-    call Alloc_Array(column1,[getLength(arrayElements)])
-    call Alloc_Array(column2,[getLength(arrayElements)])
+    call allocateArray(column1,[getLength(arrayElements)])
+    call allocateArray(column2,[getLength(arrayElements)])
     do i=1,getLength(arrayElements)
        arrayElement => item(arrayElements,i-1)
        call extractDataContent(arrayELement,dataValues)
@@ -147,7 +147,7 @@ contains
     double precision                       , dimension(1)                         :: dataValues
     integer                                                                       :: i
 
-    call Alloc_Array(column1,[getLength(xmlElements)])
+    call allocateArray(column1,[getLength(xmlElements)])
     do i=1,getLength(xmlElements)
        xmlElement   => item                             (xmlElements,i-1             )
        arrayElement => XML_Get_First_Element_By_Tag_Name(xmlElement ,arrayElementName)

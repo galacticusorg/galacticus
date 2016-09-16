@@ -530,7 +530,7 @@ contains
               
        ! Get array of output times.
        outputTimesCount=Galacticus_Output_Time_Count()
-       call Alloc_Array(outputTimes,[outputTimesCount])
+       call allocateArray(outputTimes,[outputTimesCount])
        do iOutput=1,outputTimesCount
           outputTimes(iOutput)=Galacticus_Output_Time(iOutput)
        end do
@@ -1167,25 +1167,25 @@ contains
        call Scan_for_Branch_Jumps(nodes,thisNodeList)
        
        ! Allocate arrays for history building.
-       if (allocated(position)) call Dealloc_Array(position)
-       if (allocated(velocity)) call Dealloc_Array(velocity)
-       call Alloc_Array(historyTime,[int(historyCountMaximum)])
+       if (allocated(position)) call deallocateArray(position)
+       if (allocated(velocity)) call deallocateArray(velocity)
+       call allocateArray(historyTime,[int(historyCountMaximum)])
        if (mergerTreeReadPresetSubhaloIndices                             ) then
-          call Alloc_Array(historyIndex,[  int(historyCountMaximum)])
+          call allocateArray(historyIndex,[  int(historyCountMaximum)])
        else
-          call Alloc_Array(historyIndex,[                        0 ])
+          call allocateArray(historyIndex,[                        0 ])
        end if
        if (mergerTreeReadPresetSubhaloMasses                              ) then
-          call Alloc_Array(historyMass ,[  int(historyCountMaximum)])
+          call allocateArray(historyMass ,[  int(historyCountMaximum)])
        else
-          call Alloc_Array(historyMass ,[                        0 ])
+          call allocateArray(historyMass ,[                        0 ])
        end if
        if (mergerTreeReadPresetPositions    .or.mergerTreeReadPresetOrbits) then
-          call Alloc_Array(position    ,[3,int(historyCountMaximum)])
-          call Alloc_Array(velocity    ,[3,int(historyCountMaximum)])
+          call allocateArray(position    ,[3,int(historyCountMaximum)])
+          call allocateArray(velocity    ,[3,int(historyCountMaximum)])
        else
-          call Alloc_Array(position    ,[0,                      0 ])
-          call Alloc_Array(velocity    ,[0,                      0 ])
+          call allocateArray(position    ,[0,                      0 ])
+          call allocateArray(velocity    ,[0,                      0 ])
        end if
        
        ! Build subhalo mass histories if required.
@@ -1195,11 +1195,11 @@ contains
        call Assign_UniqueIDs_To_Clones(thisNodeList)
        
        ! Deallocate history building arrays.
-       if (allocated(historyTime)) call Dealloc_Array(historyTime )
-       if (allocated(historyMass)) call Dealloc_Array(historyIndex)
-       if (allocated(historyMass)) call Dealloc_Array(historyMass )
-       if (allocated(position   )) call Dealloc_Array(position    )
-       if (allocated(velocity   )) call Dealloc_Array(velocity    )
+       if (allocated(historyTime)) call deallocateArray(historyTime )
+       if (allocated(historyMass)) call deallocateArray(historyIndex)
+       if (allocated(historyMass)) call deallocateArray(historyMass )
+       if (allocated(position   )) call deallocateArray(position    )
+       if (allocated(velocity   )) call deallocateArray(velocity    )
        
        ! Deallocate the temporary arrays.
        call Memory_Usage_Record(sizeof(nodes       ),addRemove=-1)
@@ -1225,10 +1225,10 @@ contains
     type   (varying_string)                              :: message 
     
     ! Build a sorted list of node indices with an index into the original arrays.
-    call Alloc_Array(nodeLocations          ,shape(nodes))
-    call Alloc_Array(nodeIndicesSorted      ,shape(nodes))
-    call Alloc_Array(descendentLocations    ,shape(nodes))
-    call Alloc_Array(descendentIndicesSorted,shape(nodes))
+    call allocateArray(nodeLocations          ,shape(nodes))
+    call allocateArray(nodeIndicesSorted      ,shape(nodes))
+    call allocateArray(descendentLocations    ,shape(nodes))
+    call allocateArray(descendentIndicesSorted,shape(nodes))
     nodeLocations      =Sort_Index_Do(nodes%nodeIndex      )
     descendentLocations=Sort_Index_Do(nodes%descendentIndex)
     forall (iNode=1:size(nodes))
@@ -1278,10 +1278,10 @@ contains
     use Memory_Management
     implicit none
 
-    if (allocated(nodeLocations          )) call Dealloc_Array(nodeLocations          )
-    if (allocated(nodeIndicesSorted      )) call Dealloc_Array(nodeIndicesSorted      )
-    if (allocated(descendentLocations    )) call Dealloc_Array(descendentLocations    )
-    if (allocated(descendentIndicesSorted)) call Dealloc_Array(descendentIndicesSorted)
+    if (allocated(nodeLocations          )) call deallocateArray(nodeLocations          )
+    if (allocated(nodeIndicesSorted      )) call deallocateArray(nodeIndicesSorted      )
+    if (allocated(descendentLocations    )) call deallocateArray(descendentLocations    )
+    if (allocated(descendentIndicesSorted)) call deallocateArray(descendentIndicesSorted)
     return
   end subroutine Destroy_Node_Indices
 
@@ -1543,7 +1543,7 @@ contains
     ! Allocate nodes.
     allocate(nodeList(isolatedNodeCount+initialSatelliteCount))
     call Memory_Usage_Record(sizeof(nodeList))
-    call Alloc_Array(childIsSubhalo,[isolatedNodeCount+initialSatelliteCount])
+    call allocateArray(childIsSubhalo,[isolatedNodeCount+initialSatelliteCount])
 
     ! Create the nodes.
     iIsolatedNode          =0
@@ -1719,7 +1719,7 @@ contains
           end if
        end if
     end do
-    call Dealloc_Array(childIsSubhalo)
+    call deallocateArray(childIsSubhalo)
     return
   end subroutine Build_Child_and_Sibling_Links
 
@@ -3197,15 +3197,15 @@ contains
     if (allocated(timingTimes)) then
        call Move_Alloc   (timingTimes ,      timingTimesTmp    )
        call Move_Alloc   (timingLabels,      timingLabelsTmp   )
-       call Alloc_Array  (timingTimes ,shape(timingTimesTmp )+1)
-       call Alloc_Array  (timingLabels,shape(timingLabelsTmp)+1)
+       call allocateArray  (timingTimes ,shape(timingTimesTmp )+1)
+       call allocateArray  (timingLabels,shape(timingLabelsTmp)+1)
        timingTimes (1:size(timingTimesTmp ))=timingTimesTmp
        timingLabels(1:size(timingLabelsTmp))=timingLabelsTmp
-       call Dealloc_Array(                   timingTimesTmp    )
-       call Dealloc_Array(                   timingLabelsTmp   )
+       call deallocateArray(                   timingTimesTmp    )
+       call deallocateArray(                   timingLabelsTmp   )
     else
-       call Alloc_Array(timingTimes ,[1])
-       call Alloc_Array(timingLabels,[1])
+       call allocateArray(timingTimes ,[1])
+       call allocateArray(timingLabels,[1])
     end if
     timingTimes (size(timingTimes ))=timeNow
     timingLabels(size(timingLabels))=trim(label)

@@ -293,20 +293,20 @@ contains
           call Move_Alloc(galaxyMass    ,galaxyMassTmp    )
           call Move_Alloc(galaxyPosition,galaxyPositionTmp)
           call Move_Alloc(galaxyVelocity,galaxyVelocityTmp)
-          call Alloc_Array(galaxyMass    ,[  2*(galaxyCount-1)])
-          call Alloc_Array(galaxyPosition,[3,2*(galaxyCount-1)])
-          call Alloc_Array(galaxyVelocity,[3,2*(galaxyCount-1)])
+          call allocateArray(galaxyMass    ,[  2*(galaxyCount-1)])
+          call allocateArray(galaxyPosition,[3,2*(galaxyCount-1)])
+          call allocateArray(galaxyVelocity,[3,2*(galaxyCount-1)])
           galaxyMass    (  1:galaxyCount-1)=galaxyMassTmp
           galaxyPosition(:,1:galaxyCount-1)=galaxyPositionTmp
           galaxyVelocity(:,1:galaxyCount-1)=galaxyVelocityTmp
-          call Dealloc_Array(galaxyMassTmp    )
-          call Dealloc_Array(galaxyPositionTmp)
-          call Dealloc_Array(galaxyVelocityTmp)
+          call deallocateArray(galaxyMassTmp    )
+          call deallocateArray(galaxyPositionTmp)
+          call deallocateArray(galaxyVelocityTmp)
        end if
     else
-       call Alloc_Array(galaxyMass    ,[  galaxyBufferSizeMinimum])
-       call Alloc_Array(galaxyPosition,[3,galaxyBufferSizeMinimum])
-       call Alloc_Array(galaxyVelocity,[3,galaxyBufferSizeMinimum])
+       call allocateArray(galaxyMass    ,[  galaxyBufferSizeMinimum])
+       call allocateArray(galaxyPosition,[3,galaxyBufferSizeMinimum])
+       call allocateArray(galaxyVelocity,[3,galaxyBufferSizeMinimum])
     end if
     ! Store the galaxy.
     galaxyMass    (  galaxyCount)=mass

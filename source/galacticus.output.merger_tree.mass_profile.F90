@@ -64,7 +64,7 @@ contains
           ! Read radii if necessary.
           if (outputMassProfileData) then
              massProfilePropertyCount=Get_Input_Parameter_Array_Size('outputMassProfileRadii')
-             call Alloc_Array(outputMassProfileRadii,[massProfilePropertyCount])
+             call allocateArray(outputMassProfileRadii,[massProfilePropertyCount])
              !@ <inputParameter>
              !@   <name>outputMassProfileRadii</name>
              !@   <attachedTo>module</attachedTo>

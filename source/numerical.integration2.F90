@@ -351,9 +351,9 @@ contains
     ! Choose order.
     select case (order)
     case (15) ! 15-point Kronrod rule.
-       call Alloc_Array(self%xKronrod,[8])
-       call Alloc_Array(self%wKronrod,[8])
-       call Alloc_Array(self%wGauss  ,[4])
+       call allocateArray(self%xKronrod,[8])
+       call allocateArray(self%wKronrod,[8])
+       call allocateArray(self%wGauss  ,[4])
        self%xKronrod =[                                       &
             &          0.991455371120812639206854697526329d0, &
             &          0.949107912342758524526189684047851d0, &
@@ -381,9 +381,9 @@ contains
             &          0.209482141084727828012999174891714d0  &
             &        ]
     case (61) ! 61-point Kronrod rule.
-       call Alloc_Array(self%xKronrod,[31])
-       call Alloc_Array(self%wKronrod,[31])
-       call Alloc_Array(self%wGauss  ,[15])
+       call allocateArray(self%xKronrod,[31])
+       call allocateArray(self%wKronrod,[31])
+       call allocateArray(self%wGauss  ,[15])
        self%xKronrod =[                                       &
             &          0.999484410050490637571325895705811d0, &
             &          0.996893484074649540271630050918695d0, &
@@ -679,9 +679,9 @@ contains
     ! Choose order.
     select case (order)
     case (15) ! 15-point Kronrod rule.
-       call Alloc_Array(self%xKronrod,[8])
-       call Alloc_Array(self%wKronrod,[8])
-       call Alloc_Array(self%wGauss  ,[4])
+       call allocateArray(self%xKronrod,[8])
+       call allocateArray(self%wKronrod,[8])
+       call allocateArray(self%wGauss  ,[4])
        self%xKronrod =[                                       &
             &          0.991455371120812639206854697526329d0, &
             &          0.949107912342758524526189684047851d0, &
@@ -709,9 +709,9 @@ contains
             &          0.209482141084727828012999174891714d0  &
             &        ]
     case (61) ! 61-point Kronrod rule.
-       call Alloc_Array(self%xKronrod,[31])
-       call Alloc_Array(self%wKronrod,[31])
-       call Alloc_Array(self%wGauss  ,[15])
+       call allocateArray(self%xKronrod,[31])
+       call allocateArray(self%wKronrod,[31])
+       call allocateArray(self%wGauss  ,[15])
        self%xKronrod =[                                       &
             &          0.999484410050490637571325895705811d0, &
             &          0.996893484074649540271630050918695d0, &
@@ -1141,7 +1141,7 @@ contains
          &                             )
     self%iterationsMaximum=iterationsMaximum
     workspaceSize=2**iterationsMaximum
-    call Alloc_Array(self%d,[workspaceSize])
+    call allocateArray(self%d,[workspaceSize])
     self%d(1:2)=[0.0d0,1.0d0]
     do i=2,iterationsMaximum
        n=2**i

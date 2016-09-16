@@ -48,7 +48,7 @@ program Test_Perfect_Hashes
   call hash%create(keys,values)
 
   ! Allocate arrays.
-  call Alloc_Array(bucketCount,int([hash%size()]),lowerBounds=[0])
+  call allocateArray(bucketCount,int([hash%size()]),lowerBounds=[0])
 
   ! Look up indices and presence.
   bucketCount=0

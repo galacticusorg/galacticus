@@ -1014,7 +1014,7 @@ contains
           forall(iNode=1:nodeCount(1))
              nodes(iNode)%angularMomentum=Vector_Magnitude(angularMomentum3D(:,iNode))
           end forall
-          call Dealloc_Array(angularMomentum3D)
+          call deallocateArray(angularMomentum3D)
        else if (self%angularMomentaIsScalar) then
           call self%forestHalos%readDatasetStatic("angularMomentum",nodes%angularMomentum,[firstNodeIndex(1)],[nodeCount(1)])
        else
@@ -1033,7 +1033,7 @@ contains
           forall(iNode=1:nodeCount(1))
              nodes(iNode)%spin=Vector_Magnitude(spin3D(:,iNode))
           end forall
-          call Dealloc_Array(spin3D)
+          call deallocateArray(spin3D)
        else if (self%spinIsScalar) then
           call self%forestHalos%readDatasetStatic("spin",nodes%spin,[firstNodeIndex(1)],[nodeCount(1)])
        else
@@ -1047,7 +1047,7 @@ contains
        forall(iNode=1:nodeCount(1))
           nodes(iNode)%spin3D=spin3D(:,iNode)
        end forall
-       call Dealloc_Array(spin3D)
+       call deallocateArray(spin3D)
     end if
     select type (nodes)
     type is (nodeDataGalacticus)
@@ -1115,7 +1115,7 @@ contains
        forall(iNode=1:nodeCount(1))
           nodes(iNode)%angularMomentum3D=angularMomentum3D(:,iNode)
        end forall
-       call Dealloc_Array(angularMomentum3D)
+       call deallocateArray(angularMomentum3D)
     end if
     if (present(requirePositions).and.requirePositions) then
        position=importerUnitConvert(position,nodes%nodeTime,self%  lengthUnit,megaParsec)
@@ -1125,8 +1125,8 @@ contains
           nodes(iNode)%position=position(:,iNode)
           nodes(iNode)%velocity=velocity(:,iNode)
        end forall
-       call Dealloc_Array(position)
-       call Dealloc_Array(velocity)
+       call deallocateArray(position)
+       call deallocateArray(velocity)
     end if
     return
   end subroutine galacticusImport

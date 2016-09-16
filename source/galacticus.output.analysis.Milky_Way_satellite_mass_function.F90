@@ -254,10 +254,10 @@ contains
                   &                             )
              ! Construct mass bins.
              massBinsCount=int(log10(massMaximum/massMinimum)*dble(massFunctionBinsPerDecade))+1
-             call Alloc_Array(massBins                      ,[massBinsCount                   ])
-             call Alloc_Array(massFunctionCumulative        ,[massBinsCount,centralGalaxyCount])
-             call Alloc_Array(massFunctionSquaredCumulative ,[massBinsCount,centralGalaxyCount])
-             call Alloc_Array(massFunctionCumulativeVariance,[massBinsCount,centralGalaxyCount])
+             call allocateArray(massBins                      ,[massBinsCount                   ])
+             call allocateArray(massFunctionCumulative        ,[massBinsCount,centralGalaxyCount])
+             call allocateArray(massFunctionSquaredCumulative ,[massBinsCount,centralGalaxyCount])
+             call allocateArray(massFunctionCumulativeVariance,[massBinsCount,centralGalaxyCount])
              massBins=Make_Range(massMinimum,massMaximum,massBinsCount,rangeTypeLogarithmic)
              massFunctionHaloCount         =0.0d0
              massFunctionHaloRadius        =0.0d0
@@ -278,7 +278,7 @@ contains
     if (iOutput /= outputPresentDay) return
     ! Initialize mass function count array if necessary.
     if (.not.workArraysInitialized) then
-       call Alloc_Array(massFunctionCumulativeHalo,[massBinsCount,centralGalaxyCount])
+       call allocateArray(massFunctionCumulativeHalo,[massBinsCount,centralGalaxyCount])
        massFunctionCumulativeHalo= 0.0d0
        treeActive                =.false.
        treeFirstSubhaloMass      = 0.0d0   

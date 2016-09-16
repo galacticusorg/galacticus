@@ -519,8 +519,8 @@ contains
     !$omp critical(IMF_Recycling_Rate_NonInstantaneous_Initialize)
     ! Check that flag and index arrays exist.
     if (.not.allocated(recycledFractionTabulated)) then
-       call Alloc_Array(recycledFractionTabulated,[imfSelected],file=__FILE__,line=__LINE__)
-       call Alloc_Array(recycledFractionIndex    ,[imfSelected],file=__FILE__,line=__LINE__)
+       call allocateArray(recycledFractionTabulated,[imfSelected],file=__FILE__,line=__LINE__)
+       call allocateArray(recycledFractionIndex    ,[imfSelected],file=__FILE__,line=__LINE__)
        recycledFractionTabulated=.false.
        recycledFractionIndex    =0
     end if
@@ -529,14 +529,14 @@ contains
     if (size(recycledFractionTabulated) < imfSelected) then
        call Move_Alloc (recycledFractionTabulated,recycledFractionTabulatedTemporary)
        call Move_Alloc (recycledFractionIndex    ,recycledFractionIndexTemporary    )
-       call Alloc_Array(recycledFractionTabulated,[imfSelected],file=__FILE__,line=__LINE__)
-       call Alloc_Array(recycledFractionIndex    ,[imfSelected],file=__FILE__,line=__LINE__)
+       call allocateArray(recycledFractionTabulated,[imfSelected],file=__FILE__,line=__LINE__)
+       call allocateArray(recycledFractionIndex    ,[imfSelected],file=__FILE__,line=__LINE__)
        recycledFractionTabulated(1:size(recycledFractionTabulatedTemporary))            =recycledFractionTabulatedTemporary
        recycledFractionIndex    (1:size(recycledFractionIndexTemporary    ))            =recycledFractionIndexTemporary
        recycledFractionTabulated(  size(recycledFractionTabulatedTemporary):imfSelected)=.false.
        recycledFractionIndex    (  size(recycledFractionTabulatedTemporary):imfSelected)=0
-       call Dealloc_Array(recycledFractionTabulatedTemporary,file=__FILE__,line=__LINE__)
-       call Dealloc_Array(recycledFractionIndexTemporary    ,file=__FILE__,line=__LINE__)
+       call deallocateArray(recycledFractionTabulatedTemporary,file=__FILE__,line=__LINE__)
+       call deallocateArray(recycledFractionIndexTemporary    ,file=__FILE__,line=__LINE__)
     end if
 
     ! Tabulate the recycled fraction for this IMF if it has not already been computed.
@@ -546,19 +546,19 @@ contains
        if (allocated(recycledFractionTable)) then
           imfCount=size(recycledFractionTable,dim=3)
           call Move_Alloc(recycledFractionTable,recycledFractionTableTemporary)
-          call Alloc_Array(recycledFractionTable,[recycledFractionTableAgeCount,recycledFractionTableMetallicityCount,imfCount],file=__FILE__,line=__LINE__)
+          call allocateArray(recycledFractionTable,[recycledFractionTableAgeCount,recycledFractionTableMetallicityCount,imfCount],file=__FILE__,line=__LINE__)
           recycledFractionTable(:,:,1:imfCount)=recycledFractionTableTemporary
-          call Dealloc_Array(recycledFractionTableTemporary,file=__FILE__,line=__LINE__)
+          call deallocateArray(recycledFractionTableTemporary,file=__FILE__,line=__LINE__)
        else
-          call Alloc_Array(recycledFractionTableAge        ,[recycledFractionTableAgeCount        ],file=__FILE__,line=__LINE__)
-          call Alloc_Array(recycledFractionTableMetallicity,[recycledFractionTableMetallicityCount],file=__FILE__,line=__LINE__)
+          call allocateArray(recycledFractionTableAge        ,[recycledFractionTableAgeCount        ],file=__FILE__,line=__LINE__)
+          call allocateArray(recycledFractionTableMetallicity,[recycledFractionTableMetallicityCount],file=__FILE__,line=__LINE__)
           recycledFractionTableAge                                                 =Make_Range(recycledFractionTableAgeMinimum&
                &,recycledFractionTableAgeMaximum,recycledFractionTableAgeCount,rangeType=rangeTypeLogarithmic)
           recycledFractionTableMetallicity(1)                                      =0.0d0
           recycledFractionTableMetallicity(2:recycledFractionTableMetallicityCount)&
                &=Make_Range(recycledFractionTableMetallicityMinimum,recycledFractionTableMetallicityMaximum&
                &,recycledFractionTableMetallicityCount-1,rangeType=rangeTypeLogarithmic)
-          call Alloc_Array(recycledFractionTable,[recycledFractionTableAgeCount,recycledFractionTableMetallicityCount,1],file=__FILE__,line=__LINE__)
+          call allocateArray(recycledFractionTable,[recycledFractionTableAgeCount,recycledFractionTableMetallicityCount,1],file=__FILE__,line=__LINE__)
        end if
 
        ! Record the index in the array where this IMF will be stored.
@@ -891,8 +891,8 @@ contains
     !$omp critical(IMF_Remnant_Production_Rate_NonInstantaneous_Initialize)
     ! Check that flag and index arrays exist.
     if (.not.allocated(remnantFractionTabulated)) then
-       call Alloc_Array(remnantFractionTabulated,[imfSelected],file=__FILE__,line=__LINE__)
-       call Alloc_Array(remnantFractionIndex    ,[imfSelected],file=__FILE__,line=__LINE__)
+       call allocateArray(remnantFractionTabulated,[imfSelected],file=__FILE__,line=__LINE__)
+       call allocateArray(remnantFractionIndex    ,[imfSelected],file=__FILE__,line=__LINE__)
        remnantFractionTabulated=.false.
        remnantFractionIndex    =0
     end if
@@ -901,14 +901,14 @@ contains
     if (size(remnantFractionTabulated) < imfSelected) then
        call Move_Alloc (remnantFractionTabulated,remnantFractionTabulatedTemporary)
        call Move_Alloc (remnantFractionIndex    ,remnantFractionIndexTemporary    )
-       call Alloc_Array(remnantFractionTabulated,[imfSelected],file=__FILE__,line=__LINE__)
-       call Alloc_Array(remnantFractionIndex    ,[imfSelected],file=__FILE__,line=__LINE__)
+       call allocateArray(remnantFractionTabulated,[imfSelected],file=__FILE__,line=__LINE__)
+       call allocateArray(remnantFractionIndex    ,[imfSelected],file=__FILE__,line=__LINE__)
        remnantFractionTabulated(1:size(remnantFractionTabulatedTemporary))            =remnantFractionTabulatedTemporary
        remnantFractionIndex    (1:size(remnantFractionIndexTemporary    ))            =remnantFractionIndexTemporary
        remnantFractionTabulated(  size(remnantFractionTabulatedTemporary):imfSelected)=.false.
        remnantFractionIndex    (  size(remnantFractionTabulatedTemporary):imfSelected)=0
-       call Dealloc_Array(remnantFractionTabulatedTemporary,file=__FILE__,line=__LINE__)
-       call Dealloc_Array(remnantFractionIndexTemporary    ,file=__FILE__,line=__LINE__)
+       call deallocateArray(remnantFractionTabulatedTemporary,file=__FILE__,line=__LINE__)
+       call deallocateArray(remnantFractionIndexTemporary    ,file=__FILE__,line=__LINE__)
     end if
 
     ! Tabulate the recycled fraction for this IMF if it has not already been computed.
@@ -918,19 +918,19 @@ contains
        if (allocated(remnantFractionTable)) then
           imfCount=size(remnantFractionTable,dim=3)
           call Move_Alloc(remnantFractionTable,remnantFractionTableTemporary)
-          call Alloc_Array(remnantFractionTable,[remnantFractionTableAgeCount,remnantFractionTableMetallicityCount,imfCount],file=__FILE__,line=__LINE__)
+          call allocateArray(remnantFractionTable,[remnantFractionTableAgeCount,remnantFractionTableMetallicityCount,imfCount],file=__FILE__,line=__LINE__)
           remnantFractionTable(:,:,1:imfCount)=remnantFractionTableTemporary
-          call Dealloc_Array(remnantFractionTableTemporary,file=__FILE__,line=__LINE__)
+          call deallocateArray(remnantFractionTableTemporary,file=__FILE__,line=__LINE__)
        else
-          call Alloc_Array(remnantFractionTableAge        ,[remnantFractionTableAgeCount        ],file=__FILE__,line=__LINE__)
-          call Alloc_Array(remnantFractionTableMetallicity,[remnantFractionTableMetallicityCount],file=__FILE__,line=__LINE__)
+          call allocateArray(remnantFractionTableAge        ,[remnantFractionTableAgeCount        ],file=__FILE__,line=__LINE__)
+          call allocateArray(remnantFractionTableMetallicity,[remnantFractionTableMetallicityCount],file=__FILE__,line=__LINE__)
           remnantFractionTableAge                                                 =Make_Range(remnantFractionTableAgeMinimum&
                &,remnantFractionTableAgeMaximum,remnantFractionTableAgeCount,rangeType=rangeTypeLogarithmic)
           remnantFractionTableMetallicity(1)                                      =0.0d0
           remnantFractionTableMetallicity(2:remnantFractionTableMetallicityCount)&
                &=Make_Range(remnantFractionTableMetallicityMinimum,remnantFractionTableMetallicityMaximum&
                &,remnantFractionTableMetallicityCount-1,rangeType=rangeTypeLogarithmic)
-          call Alloc_Array(remnantFractionTable,[remnantFractionTableAgeCount,remnantFractionTableMetallicityCount,1],file=__FILE__,line=__LINE__)
+          call allocateArray(remnantFractionTable,[remnantFractionTableAgeCount,remnantFractionTableMetallicityCount,1],file=__FILE__,line=__LINE__)
        end if
 
        ! Record the index in the array where this IMF will be stored.
@@ -1282,8 +1282,8 @@ contains
     !$omp critical(IMF_Metal_Yield_Rate_NonInstantaneous_Initialize)
     ! Check that flag and index arrays exist.
     if (.not.allocated(metalYieldTabulated)) then
-       call Alloc_Array(metalYieldTabulated,[imfSelected],file=__FILE__,line=__LINE__)
-       call Alloc_Array(metalYieldIndex    ,[imfSelected],file=__FILE__,line=__LINE__)
+       call allocateArray(metalYieldTabulated,[imfSelected],file=__FILE__,line=__LINE__)
+       call allocateArray(metalYieldIndex    ,[imfSelected],file=__FILE__,line=__LINE__)
        metalYieldTabulated=.false.
        metalYieldIndex    =0
     end if
@@ -1292,14 +1292,14 @@ contains
     if (size(metalYieldTabulated) < imfSelected) then
        call Move_Alloc (metalYieldTabulated,metalYieldTabulatedTemporary)
        call Move_Alloc (metalYieldIndex    ,metalYieldIndexTemporary    )
-       call Alloc_Array(metalYieldTabulated,[imfSelected],file=__FILE__,line=__LINE__)
-       call Alloc_Array(metalYieldIndex    ,[imfSelected],file=__FILE__,line=__LINE__)
+       call allocateArray(metalYieldTabulated,[imfSelected],file=__FILE__,line=__LINE__)
+       call allocateArray(metalYieldIndex    ,[imfSelected],file=__FILE__,line=__LINE__)
        metalYieldTabulated(1:size(metalYieldTabulatedTemporary))            =metalYieldTabulatedTemporary
        metalYieldIndex    (1:size(metalYieldIndexTemporary    ))            =metalYieldIndexTemporary
        metalYieldTabulated(  size(metalYieldTabulatedTemporary):imfSelected)=.false.
        metalYieldIndex    (  size(metalYieldTabulatedTemporary):imfSelected)=0
-       call Dealloc_Array(metalYieldTabulatedTemporary,file=__FILE__,line=__LINE__)
-       call Dealloc_Array(metalYieldIndexTemporary    ,file=__FILE__,line=__LINE__)
+       call deallocateArray(metalYieldTabulatedTemporary,file=__FILE__,line=__LINE__)
+       call deallocateArray(metalYieldIndexTemporary    ,file=__FILE__,line=__LINE__)
     end if
 
     ! Tabulate the metal yield for this IMF if it has not already been computed.
@@ -1309,19 +1309,19 @@ contains
        if (allocated(metalYieldTable)) then
           imfCount=size(metalYieldTable,dim=4)
           call Move_Alloc(metalYieldTable,metalYieldTableTemporary)
-          call Alloc_Array(metalYieldTable,[metalYieldTableAgeCount,metalYieldTableMetallicityCount,elementCount+1,imfCount],file=__FILE__,line=__LINE__)
+          call allocateArray(metalYieldTable,[metalYieldTableAgeCount,metalYieldTableMetallicityCount,elementCount+1,imfCount],file=__FILE__,line=__LINE__)
           metalYieldTable(:,:,:,1:imfCount)=metalYieldTableTemporary
-          call Dealloc_Array(metalYieldTableTemporary)
+          call deallocateArray(metalYieldTableTemporary)
        else
-          call Alloc_Array(metalYieldTableAge        ,[metalYieldTableAgeCount        ],file=__FILE__,line=__LINE__)
-          call Alloc_Array(metalYieldTableMetallicity,[metalYieldTableMetallicityCount],file=__FILE__,line=__LINE__)
+          call allocateArray(metalYieldTableAge        ,[metalYieldTableAgeCount        ],file=__FILE__,line=__LINE__)
+          call allocateArray(metalYieldTableMetallicity,[metalYieldTableMetallicityCount],file=__FILE__,line=__LINE__)
           metalYieldTableAge                                           =Make_Range(metalYieldTableAgeMinimum&
                &,metalYieldTableAgeMaximum,metalYieldTableAgeCount,rangeType=rangeTypeLogarithmic)
           metalYieldTableMetallicity(1)                                =0.0d0
           metalYieldTableMetallicity(2:metalYieldTableMetallicityCount)&
                &=Make_Range(metalYieldTableMetallicityMinimum,metalYieldTableMetallicityMaximum&
                &,metalYieldTableMetallicityCount-1,rangeType=rangeTypeLogarithmic)
-          call Alloc_Array(metalYieldTable,[metalYieldTableAgeCount,metalYieldTableMetallicityCount,elementCount+1,1],file=__FILE__,line=__LINE__)
+          call allocateArray(metalYieldTable,[metalYieldTableAgeCount,metalYieldTableMetallicityCount,elementCount+1,1],file=__FILE__,line=__LINE__)
        end if
 
        ! Record the index in the array where this IMF will be stored.
@@ -1734,8 +1734,8 @@ contains
     !$omp critical(IMF_Energy_Input_Rate_NonInstantaneous_Initialize)
     ! Check that flag and index arrays exist.
     if (.not.allocated(energyInputTabulated)) then
-       call Alloc_Array(energyInputTabulated,[imfSelected],file=__FILE__,line=__LINE__)
-       call Alloc_Array(energyInputIndex    ,[imfSelected],file=__FILE__,line=__LINE__)
+       call allocateArray(energyInputTabulated,[imfSelected],file=__FILE__,line=__LINE__)
+       call allocateArray(energyInputIndex    ,[imfSelected],file=__FILE__,line=__LINE__)
        energyInputTabulated=.false.
        energyInputIndex    =0
     end if
@@ -1744,14 +1744,14 @@ contains
     if (size(energyInputTabulated) < imfSelected) then
        call Move_Alloc (energyInputTabulated,energyInputTabulatedTemporary)
        call Move_Alloc (energyInputIndex    ,energyInputIndexTemporary    )
-       call Alloc_Array(energyInputTabulated,[imfSelected],file=__FILE__,line=__LINE__)
-       call Alloc_Array(energyInputIndex    ,[imfSelected],file=__FILE__,line=__LINE__)
+       call allocateArray(energyInputTabulated,[imfSelected],file=__FILE__,line=__LINE__)
+       call allocateArray(energyInputIndex    ,[imfSelected],file=__FILE__,line=__LINE__)
        energyInputTabulated(1:size(energyInputTabulatedTemporary))=energyInputTabulatedTemporary
        energyInputIndex    (1:size(energyInputIndexTemporary    ))=energyInputIndexTemporary
        energyInputTabulated(  size(energyInputTabulatedTemporary):imfSelected)=.false.
        energyInputIndex    (  size(energyInputTabulatedTemporary):imfSelected)=0
-       call Dealloc_Array(energyInputTabulatedTemporary,file=__FILE__,line=__LINE__)
-       call Dealloc_Array(energyInputIndexTemporary    ,file=__FILE__,line=__LINE__)
+       call deallocateArray(energyInputTabulatedTemporary,file=__FILE__,line=__LINE__)
+       call deallocateArray(energyInputIndexTemporary    ,file=__FILE__,line=__LINE__)
     end if
 
     ! Tabulate the cumulative energy input for this IMF if it has not already been computed.
@@ -1761,19 +1761,19 @@ contains
        if (allocated(energyInputTable)) then
           imfCount=size(energyInputTable,dim=3)
           call Move_Alloc(energyInputTable,energyInputTableTemporary)
-          call Alloc_Array(energyInputTable,[energyInputTableAgeCount,energyInputTableMetallicityCount,imfCount],file=__FILE__,line=__LINE__)
+          call allocateArray(energyInputTable,[energyInputTableAgeCount,energyInputTableMetallicityCount,imfCount],file=__FILE__,line=__LINE__)
           energyInputTable(:,:,1:imfCount)=energyInputTableTemporary
-          call Dealloc_Array(energyInputTableTemporary,file=__FILE__,line=__LINE__)
+          call deallocateArray(energyInputTableTemporary,file=__FILE__,line=__LINE__)
        else
-          call Alloc_Array(energyInputTableAge        ,[energyInputTableAgeCount        ],file=__FILE__,line=__LINE__)
-          call Alloc_Array(energyInputTableMetallicity,[energyInputTableMetallicityCount],file=__FILE__,line=__LINE__)
+          call allocateArray(energyInputTableAge        ,[energyInputTableAgeCount        ],file=__FILE__,line=__LINE__)
+          call allocateArray(energyInputTableMetallicity,[energyInputTableMetallicityCount],file=__FILE__,line=__LINE__)
           energyInputTableAge=Make_Range(energyInputTableAgeMinimum&
                &,energyInputTableAgeMaximum,energyInputTableAgeCount,rangeType=rangeTypeLogarithmic)
           energyInputTableMetallicity(1)=0.0d0
           energyInputTableMetallicity(2:energyInputTableMetallicityCount)&
                &=Make_Range(energyInputTableMetallicityMinimum,energyInputTableMetallicityMaximum&
                &,energyInputTableMetallicityCount-1,rangeType=rangeTypeLogarithmic)
-          call Alloc_Array(energyInputTable,[energyInputTableAgeCount,energyInputTableMetallicityCount,1],file=__FILE__,line=__LINE__)
+          call allocateArray(energyInputTable,[energyInputTableAgeCount,energyInputTableMetallicityCount,1],file=__FILE__,line=__LINE__)
        end if
 
        ! Record the index in the array where this IMF will be stored.

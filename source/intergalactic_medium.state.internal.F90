@@ -376,8 +376,8 @@ contains
     class           (intergalacticMediumStateInternal), intent(inout)               :: self
     double precision                                  , intent(in   ), dimension(:) :: times
 
-    if (allocated(self%time)) call Dealloc_Array(self%time)
-    call Alloc_Array(self%time,shape(times))
+    if (allocated(self%time)) call deallocateArray(self%time)
+    call allocateArray(self%time,shape(times))
     self%time=times
     return
   end subroutine internalTimeSet
@@ -389,8 +389,8 @@ contains
     class           (intergalacticMediumStateInternal), intent(inout)               :: self
     double precision                                  , intent(in   ), dimension(:) :: temperatures
 
-    if (allocated(self%temperatureIGM)) call Dealloc_Array(self%temperatureIGM)
-    call Alloc_Array(self%temperatureIGM,shape(temperatures))
+    if (allocated(self%temperatureIGM)) call deallocateArray(self%temperatureIGM)
+    call allocateArray(self%temperatureIGM,shape(temperatures))
     self%temperatureIGM=temperatures
     return
   end subroutine internalTemperatureSet
@@ -402,8 +402,8 @@ contains
     class           (intergalacticMediumStateInternal), intent(inout)               :: self
     double precision                                  , intent(in   ), dimension(:) :: densityHydrogen1
 
-    if (allocated(self%densityHydrogen1)) call Dealloc_Array(self%densityHydrogen1)
-    call Alloc_Array(self%densityHydrogen1,shape(densityHydrogen1))
+    if (allocated(self%densityHydrogen1)) call deallocateArray(self%densityHydrogen1)
+    call allocateArray(self%densityHydrogen1,shape(densityHydrogen1))
     self%densityHydrogen1=densityHydrogen1
     return
   end subroutine internalDensityHydrogen1Set
@@ -415,8 +415,8 @@ contains
     class           (intergalacticMediumStateInternal), intent(inout)               :: self
     double precision                                  , intent(in   ), dimension(:) :: densityHydrogen2
 
-    if (allocated(self%densityHydrogen2)) call Dealloc_Array(self%densityHydrogen2)
-    call Alloc_Array(self%densityHydrogen2,shape(densityHydrogen2))
+    if (allocated(self%densityHydrogen2)) call deallocateArray(self%densityHydrogen2)
+    call allocateArray(self%densityHydrogen2,shape(densityHydrogen2))
     self%densityHydrogen2=densityHydrogen2
     return
   end subroutine internalDensityHydrogen2Set
@@ -428,8 +428,8 @@ contains
     class           (intergalacticMediumStateInternal), intent(inout)               :: self
     double precision                                  , intent(in   ), dimension(:) :: densityHelium1
 
-    if (allocated(self%densityHelium1)) call Dealloc_Array(self%densityHelium1)
-    call Alloc_Array(self%densityHelium1,shape(densityHelium1))
+    if (allocated(self%densityHelium1)) call deallocateArray(self%densityHelium1)
+    call allocateArray(self%densityHelium1,shape(densityHelium1))
     self%densityHelium1=densityHelium1
     return
   end subroutine internalDensityHelium1Set
@@ -441,8 +441,8 @@ contains
     class           (intergalacticMediumStateInternal), intent(inout)               :: self
     double precision                                  , intent(in   ), dimension(:) :: densityHelium2
 
-    if (allocated(self%densityHelium2)) call Dealloc_Array(self%densityHelium2)
-    call Alloc_Array(self%densityHelium2,shape(densityHelium2))
+    if (allocated(self%densityHelium2)) call deallocateArray(self%densityHelium2)
+    call allocateArray(self%densityHelium2,shape(densityHelium2))
     self%densityHelium2=densityHelium2
     return
   end subroutine internalDensityHelium2Set
@@ -454,8 +454,8 @@ contains
     class           (intergalacticMediumStateInternal), intent(inout)               :: self
     double precision                                  , intent(in   ), dimension(:) :: densityHelium3
 
-    if (allocated(self%densityHelium3)) call Dealloc_Array(self%densityHelium3)
-    call Alloc_Array(self%densityHelium3,shape(densityHelium3))
+    if (allocated(self%densityHelium3)) call deallocateArray(self%densityHelium3)
+    call allocateArray(self%densityHelium3,shape(densityHelium3))
     self%densityHelium3=densityHelium3
     return
   end subroutine internalDensityHelium3Set
@@ -467,8 +467,8 @@ contains
     class           (intergalacticMediumStateInternal), intent(inout)               :: self
     double precision                                  , intent(in   ), dimension(:) :: massFiltering
 
-    if (allocated(self%massFiltering)) call Dealloc_Array(self%massFiltering)
-    call Alloc_Array(self%massFiltering,shape(massFiltering))
+    if (allocated(self%massFiltering)) call deallocateArray(self%massFiltering)
+    call allocateArray(self%massFiltering,shape(massFiltering))
     self%massFiltering=massFiltering
     return
   end subroutine internalMassFilteringSet

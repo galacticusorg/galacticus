@@ -169,7 +169,7 @@ contains
     regridTimesConstructorInternal%dumpTrees    =dumpTrees
     regridTimesConstructorInternal%snapTolerance=snapTolerance
     ! Construct array of grid expansion factors.
-    call Alloc_Array(regridTimesConstructorInternal%timeGrid,[regridCount])
+    call allocateArray(regridTimesConstructorInternal%timeGrid,[regridCount])
     cosmologyFunctions_  => cosmologyFunctions ()
     criticalOverdensity_ => criticalOverdensity()
     select case (snapshotSpacing)

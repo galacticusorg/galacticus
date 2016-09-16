@@ -53,16 +53,16 @@ function likelihoodMassFunctionConstructor(haloMassMinimum,haloMassMaximum,redsh
   call massFunctionFile%readDataset("massFunctionObserved",likelihoodMassFunctionConstructor%massFunctionObserved)
   call massFunctionFile%readDataset("covariance"          ,likelihoodMassFunctionConstructor%covarianceMatrix    )
   ! Compute mass bin limits.
-  call Alloc_Array(likelihoodMassFunctionConstructor%massFunction,shape(likelihoodMassFunctionConstructor%mass))
-  call Alloc_Array(likelihoodMassFunctionConstructor%massMinimum ,shape(likelihoodMassFunctionConstructor%mass))
-  call Alloc_Array(likelihoodMassFunctionConstructor%massMaximum ,shape(likelihoodMassFunctionConstructor%mass))
+  call allocateArray(likelihoodMassFunctionConstructor%massFunction,shape(likelihoodMassFunctionConstructor%mass))
+  call allocateArray(likelihoodMassFunctionConstructor%massMinimum ,shape(likelihoodMassFunctionConstructor%mass))
+  call allocateArray(likelihoodMassFunctionConstructor%massMaximum ,shape(likelihoodMassFunctionConstructor%mass))
   if (massFunctionFile%hasDataset("massWidthObserved")) then
      call massFunctionFile%readDataset("massWidthObserved",massBinWidth)
      do i=1,size(likelihoodMassFunctionConstructor%mass)
         likelihoodMassFunctionConstructor%massMinimum(i)=likelihoodMassFunctionConstructor%mass(i)/sqrt(massBinWidth(i))
         likelihoodMassFunctionConstructor%massMaximum(i)=likelihoodMassFunctionConstructor%mass(i)*sqrt(massBinWidth(i))
      end do
-     call Dealloc_Array(massBinWidth)
+     call deallocateArray(massBinWidth)
   else
      do i=1,size(likelihoodMassFunctionConstructor%mass)
         if (i ==                                            1) then

@@ -25,7 +25,7 @@ For example, rank-1, long integer arguments which will not be modified in their 
 
 \subsection{The {\normalfont \ttfamily \$build} Data Structure}
 
-The {\normalfont \ttfamily \$build} data structure is used to accumulate all objects, variables, and functions needed to build the class hierarchy used to represent nodes and components in \glc. At the end of the node objects build process, this object is processed to generate the required Fortran code. The following subsections describe how to add information to this object.
+The {\normalfont \ttfamily \$build} data structure is used to accumulate all objects, variables, interfaces, and functions needed to build the class hierarchy used to represent nodes and components in \glc. At the end of the node objects build process, this object is processed to generate the required Fortran code. The following subsections describe how to add information to this object.
 
 \subsubsection{Component Classes and Implementations}
 
@@ -69,9 +69,20 @@ Definitions of derived types are accumulated to the hash {\normalfont \ttfamily 
 \end{verbatim}
 The preferred approach is to provide a function descriptor (see \S\ref{sec:buildHierarchyFunctions}), and to omit the {\normalfont \ttfamily function}, {\normalfont \ttfamily description}, {\normalfont \ttfamily returnType}, and {\normalfont \ttfamily arguments} entries (which will be inferred from the function descriptor). The {\normalfont \ttfamily function}, {\normalfont \ttfamily description}, {\normalfont \ttfamily returnType}, and {\normalfont \ttfamily arguments} entries will eventually be deprecated in favor of the {\normalfont \ttfamily descriptor} entry.
 
+\subsubsection{Interfaces}\label{sec:buildHierarchyInterfaces}
+
+Definitions of interfaces are accumulated to the hash {\normalfont \ttfamily \$build->\{interfaces\}}, with the key of each entry being the interfaces name. Each interface structure has the form:
+\begin{verbatim}
+{
+ name           => <name of the interface>
+ comment        => <a description of the interface>
+ intrinsic      => <the intrinsic type of the function (or "void" for a subroutine)> 
+ data           => <variable list containing all arguments for this interface>
+\end{verbatim}
+
 \subsubsection{Functions}\label{sec:buildHierarchyFunctions}
 
-Definitions of functions are accumulated either to the list {\normalfont \ttfamily \$build->\{'functions'\}} or are included as the {\normalfont \ttfamily descriptor} in a derived type structure (see \S\ref{sec:buildHierarchyTypes}). Each function structure has the form:
+Definitions of functions are accumulated either to the list {\normalfont \ttfamily \$build->\{'functions'\}} or are included as the {\normalfont \ttfamily descriptor} in a derived type structure (this is the prefered method for functions that \emph{are} bound to a derived type; see \S\ref{sec:buildHierarchyTypes}). Each function structure has the form:
 \begin{verbatim}
 {
  type        => <the type of function>
@@ -87,7 +98,7 @@ Definitions of functions are accumulated either to the list {\normalfont \ttfami
 
 Any module-scope variables can be pushed to the array {\normalfont \ttfamily \@\{\$build->\{'variables'\}\}}, using the usual definition format described in \S\ref{sec:nodeBuilderVariableDefinitions}.
 
-\section{Galacticus Preprocessor Directives}
+\section{Galacticus Preprocessor Directives}\label{sec:sourceTreePreprocessor}
 
 \glc\ has its own preprocessor for Fortran source files. This preprocesses parses each source file into an internal tree representation, performs various manipulations on that tree, and then outputs the preprocessed file for compilation. The preprocessor is used to automate and standardize many common tasks, through the inclusion of directives into the source code. Directives are specified in comment lines beginning {\normalfont \ttfamily !\#}, and are written in XML. The remainder of this section describes the various preprocessor functionalities, and gives examples of their usage.
 
@@ -521,7 +532,7 @@ Finally, we use the {\normalfont \ttfamily find} method to return the value of t
 
 The function evaluating $f(x)$ must have a form compatible with that shown for {\normalfont \ttfamily myRootFunction} in the above example.
 
-\section{Computation Dependencies and Data Files}\index{dependencies, computation}\index{labels, unique}\index{unique labels}
+\section{Computation Dependencies and Data Files}\label{sec:codeUniqueLabels}\index{dependencies, computation}\index{labels, unique}\index{unique labels}
 
 In many situations, some module in \glc\ might want to perform a calculation and then store the results to a file so that they can be reused later. A good example is the {\normalfont \ttfamily CAMB} transfer function method (see \S\ref{sec:TransferFunction:CAMB}), which computes a transfer function using {\normalfont \scshape CAMB} and stores this function in a file so that it can be re-read next time, avoiding the need to recompute the transfer function. A problem arises in such cases as the calculation may depend on the values of parameters (in our example, the transfer function will depend on cosmological parameters for example). We would like to record which parameter values this calculation refers to, perhaps encoding these into the file name, so that we can reuse these data in a future run only if the parameter values are unchanged. Given the modular nature of \glc\ it is impossible to know in advance which parameters will be relevant (e.g. does the cosmological parameter implementation have a parameter that describes a time varying equation of state for dark energy?). 
 

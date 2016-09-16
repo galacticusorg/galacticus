@@ -732,8 +732,8 @@ contains
          &  .or. rate%time(size(rate%time)) > starFormationHistory%time(size(starFormationHistory%time)) &
          & ) then
        ! It does not, so interrupt evolution and extend the history.
-       if (allocated(starFormationHistoryTemplate)) call Dealloc_Array(starFormationHistoryTemplate)
-       call Alloc_Array(starFormationHistoryTemplate,shape(rate%time))
+       if (allocated(starFormationHistoryTemplate)) call deallocateArray(starFormationHistoryTemplate)
+       call allocateArray(starFormationHistoryTemplate,shape(rate%time))
        starFormationHistoryTemplate=rate%time
        interrupt=.true.
        interruptProcedure => Node_Component_Spheroid_Standard_Star_Formation_History_Extend

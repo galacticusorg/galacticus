@@ -81,7 +81,7 @@ contains
           ! For OpenMP runs, create an array of indentation levels.
           maxThreads=1
           !$ maxThreads=omp_get_max_threads()
-          ! Do not use Alloc_Array() routines here as they may trigger recursive calls to this module which can lead to unbreakable
+          ! Do not use allocateArray() routines here as they may trigger recursive calls to this module which can lead to unbreakable
           ! parallel locks.
           allocate(indentationLevel          (maxThreads))
           allocate(indentationFormat         (maxThreads))

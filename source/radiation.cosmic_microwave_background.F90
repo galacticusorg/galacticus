@@ -51,7 +51,7 @@ contains
     if (.not.componentMatched) return
 
     ! Ensure that the properties array is allocated.
-    if (.not.allocated(radiationProperties)) call Alloc_Array(radiationProperties,[1])
+    if (.not.allocated(radiationProperties)) call allocateArray(radiationProperties,[1])
 
     ! Get the default cosmology functions object.
     cosmologyFunctionsDefault => cosmologyFunctions()
@@ -80,7 +80,7 @@ contains
     if (.not.componentMatched) return
 
     ! Ensure that the properties array is allocated.
-    if (.not.allocated(radiationProperties)) call Alloc_Array(radiationProperties,[1])
+    if (.not.allocated(radiationProperties)) call allocateArray(radiationProperties,[1])
 
     ! Get the default cosmology functions object.
     cosmologyFunctionsDefault => cosmologyFunctions()

@@ -446,23 +446,23 @@ contains
                          call sizeDataset      %close()
                          call distributionGroup%close()
                          ! Construct arrays.
-                         call Alloc_Array(sizeFunctions(currentAnalysis)%masses                        ,[                                          sizeFunctions(currentAnalysis)%massesCount                                       ])
-                         call Alloc_Array(sizeFunctions(currentAnalysis)%massesLogarithmic             ,[                                          sizeFunctions(currentAnalysis)%massesCount                                       ])
-                         call Alloc_Array(sizeFunctions(currentAnalysis)%massesLogarithmicMinimum      ,[                                          sizeFunctions(currentAnalysis)%massesCount                                       ])
-                         call Alloc_Array(sizeFunctions(currentAnalysis)%massesLogarithmicMaximum      ,[                                          sizeFunctions(currentAnalysis)%massesCount                                       ])
-                         call Alloc_Array(sizeFunctions(currentAnalysis)%radii                         ,[sizeFunctions(currentAnalysis)%radiiCount,sizeFunctions(currentAnalysis)%massesCount                                       ])
-                         call Alloc_Array(sizeFunctions(currentAnalysis)%radiiLogarithmic              ,[sizeFunctions(currentAnalysis)%radiiCount,sizeFunctions(currentAnalysis)%massesCount                                       ])
-                         call Alloc_Array(sizeFunctions(currentAnalysis)%radiiLogarithmicMinimum       ,[sizeFunctions(currentAnalysis)%radiiCount,sizeFunctions(currentAnalysis)%massesCount                                       ])
-                         call Alloc_Array(sizeFunctions(currentAnalysis)%radiiLogarithmicMaximum       ,[sizeFunctions(currentAnalysis)%radiiCount,sizeFunctions(currentAnalysis)%massesCount                                       ])
-                         call Alloc_Array(sizeFunctions(currentAnalysis)%sizeFunction                  ,[sizeFunctions(currentAnalysis)%radiiCount,sizeFunctions(currentAnalysis)%massesCount                                       ])
-                         call Alloc_Array(sizeFunctions(currentAnalysis)%sizeFunctionWeights           ,[                                          sizeFunctions(currentAnalysis)%massesCount                                       ])
-                         call Alloc_Array(sizeFunctions(currentAnalysis)%sizeFunctionCovariance        ,[                                                                                                                             &
+                         call allocateArray(sizeFunctions(currentAnalysis)%masses                        ,[                                          sizeFunctions(currentAnalysis)%massesCount                                       ])
+                         call allocateArray(sizeFunctions(currentAnalysis)%massesLogarithmic             ,[                                          sizeFunctions(currentAnalysis)%massesCount                                       ])
+                         call allocateArray(sizeFunctions(currentAnalysis)%massesLogarithmicMinimum      ,[                                          sizeFunctions(currentAnalysis)%massesCount                                       ])
+                         call allocateArray(sizeFunctions(currentAnalysis)%massesLogarithmicMaximum      ,[                                          sizeFunctions(currentAnalysis)%massesCount                                       ])
+                         call allocateArray(sizeFunctions(currentAnalysis)%radii                         ,[sizeFunctions(currentAnalysis)%radiiCount,sizeFunctions(currentAnalysis)%massesCount                                       ])
+                         call allocateArray(sizeFunctions(currentAnalysis)%radiiLogarithmic              ,[sizeFunctions(currentAnalysis)%radiiCount,sizeFunctions(currentAnalysis)%massesCount                                       ])
+                         call allocateArray(sizeFunctions(currentAnalysis)%radiiLogarithmicMinimum       ,[sizeFunctions(currentAnalysis)%radiiCount,sizeFunctions(currentAnalysis)%massesCount                                       ])
+                         call allocateArray(sizeFunctions(currentAnalysis)%radiiLogarithmicMaximum       ,[sizeFunctions(currentAnalysis)%radiiCount,sizeFunctions(currentAnalysis)%massesCount                                       ])
+                         call allocateArray(sizeFunctions(currentAnalysis)%sizeFunction                  ,[sizeFunctions(currentAnalysis)%radiiCount,sizeFunctions(currentAnalysis)%massesCount                                       ])
+                         call allocateArray(sizeFunctions(currentAnalysis)%sizeFunctionWeights           ,[                                          sizeFunctions(currentAnalysis)%massesCount                                       ])
+                         call allocateArray(sizeFunctions(currentAnalysis)%sizeFunctionCovariance        ,[                                                                                                                             &
                               &                                                                          sizeFunctions(currentAnalysis)%radiiCount*sizeFunctions(currentAnalysis)%massesCount,                                        &
                               &                                                                          sizeFunctions(currentAnalysis)%radiiCount*sizeFunctions(currentAnalysis)%massesCount                                         &
                               &                                                                         ]                                                                                                                             &
                               &          )
-                         call Alloc_Array(sizeFunctions(currentAnalysis)%mainBranchGalaxyWeights       ,[sizeFunctions(currentAnalysis)%radiiCount,sizeFunctions(currentAnalysis)%massesCount,analysisSizeFunctionsHaloMassBinsCount])
-                         call Alloc_Array(sizeFunctions(currentAnalysis)%mainBranchGalaxyWeightsSquared,[sizeFunctions(currentAnalysis)%radiiCount,sizeFunctions(currentAnalysis)%massesCount,analysisSizeFunctionsHaloMassBinsCount])
+                         call allocateArray(sizeFunctions(currentAnalysis)%mainBranchGalaxyWeights       ,[sizeFunctions(currentAnalysis)%radiiCount,sizeFunctions(currentAnalysis)%massesCount,analysisSizeFunctionsHaloMassBinsCount])
+                         call allocateArray(sizeFunctions(currentAnalysis)%mainBranchGalaxyWeightsSquared,[sizeFunctions(currentAnalysis)%radiiCount,sizeFunctions(currentAnalysis)%massesCount,analysisSizeFunctionsHaloMassBinsCount])
                          ! Read datasets.
                          jDistribution=0
                          iDistribution=0
@@ -544,9 +544,9 @@ contains
                          call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins','unknown size function')
                       end select
                       ! Get cosmological conversion factors.
-                      call Alloc_Array(sizeFunctions(currentAnalysis)%cosmologyConversionMass        ,[Galacticus_Output_Time_Count()])
-                      call Alloc_Array(sizeFunctions(currentAnalysis)%cosmologyConversionSize        ,[Galacticus_Output_Time_Count()])
-                      call Alloc_Array(sizeFunctions(currentAnalysis)%cosmologyConversionSizeFunction,[Galacticus_Output_Time_Count()])
+                      call allocateArray(sizeFunctions(currentAnalysis)%cosmologyConversionMass        ,[Galacticus_Output_Time_Count()])
+                      call allocateArray(sizeFunctions(currentAnalysis)%cosmologyConversionSize        ,[Galacticus_Output_Time_Count()])
+                      call allocateArray(sizeFunctions(currentAnalysis)%cosmologyConversionSizeFunction,[Galacticus_Output_Time_Count()])
                       do jOutput=1,Galacticus_Output_Time_Count()
                          redshift=                                                                                      &
                               &   cosmologyFunctionsModel %redshiftFromExpansionFactor(                                 &
@@ -568,7 +568,7 @@ contains
                       end do
                       nullify(cosmologyParametersObserved)
                       ! Compute output weights for mass function.
-                      call Alloc_Array(sizeFunctions(currentAnalysis)%outputWeight,[int(sizeFunctions(currentAnalysis)%massesCount,kind=c_size_t),Galacticus_Output_Time_Count()])
+                      call allocateArray(sizeFunctions(currentAnalysis)%outputWeight,[int(sizeFunctions(currentAnalysis)%massesCount,kind=c_size_t),Galacticus_Output_Time_Count()])
                       sizeFunctions(currentAnalysis)%outputWeight=0.0d0
                       do k=1,sizeFunctions(currentAnalysis)%massesCount
                          do jOutput=1,Galacticus_Output_Time_Count()
@@ -676,8 +676,8 @@ contains
        ! Cycle if this size function receives no contribution from this output number.
        if (all(sizeFunctions(i)%outputWeight(:,iOutput) <= 0.0d0)) cycle
        ! Allocate workspace.
-       if (.not.allocated(thisGalaxy(i)%sizeFunction       )) call Alloc_Array(thisGalaxy(i)%sizeFunction       ,[sizeFunctions(i)%radiiCount,sizeFunctions(i)%massesCount])
-       if (.not.allocated(thisGalaxy(i)%sizeFunctionWeights)) call Alloc_Array(thisGalaxy(i)%sizeFunctionWeights,[                            sizeFunctions(i)%massesCount])
+       if (.not.allocated(thisGalaxy(i)%sizeFunction       )) call allocateArray(thisGalaxy(i)%sizeFunction       ,[sizeFunctions(i)%radiiCount,sizeFunctions(i)%massesCount])
+       if (.not.allocated(thisGalaxy(i)%sizeFunctionWeights)) call allocateArray(thisGalaxy(i)%sizeFunctionWeights,[                            sizeFunctions(i)%massesCount])
        ! Get the galactic mass.
        mass=                                                                                                                                            &
             &  Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeDisk    ,massType=sizeFunctions(i)%descriptor%massType) &

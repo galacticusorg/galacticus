@@ -508,15 +508,15 @@ contains
                          call dataFile%readDataset("metallicityPercentile16",metallicities)
                          metallicityMinimum=min(metallicityMinimum,minval(metallicities))
                          metallicityMaximum=max(metallicityMaximum,maxval(metallicities))
-                         call Dealloc_Array(metallicities)
+                         call deallocateArray(metallicities)
                          call dataFile%readDataset("metallicityPercentile50",metallicities)
                          metallicityMinimum=min(metallicityMinimum,minval(metallicities))
                          metallicityMaximum=max(metallicityMaximum,maxval(metallicities))
-                         call Dealloc_Array(metallicities)
+                         call deallocateArray(metallicities)
                          call dataFile%readDataset("metallicityPercentile84",metallicities)
                          metallicityMinimum=min(metallicityMinimum,minval(metallicities))
                          metallicityMaximum=max(metallicityMaximum,maxval(metallicities))
-                         call Dealloc_Array(metallicities)                         
+                         call deallocateArray(metallicities)                         
                          metallicityDataset=dataFile%openDataset("metallicityPercentile50")
                          call metallicityDataset%readAttribute("scaling"  ,scaling  )
                          call metallicityDataset%readAttribute("unitsInSI",unitsInSI)
@@ -541,21 +541,21 @@ contains
                               &                                                             metallicityDistributions(currentAnalysis)%metallicitiesCount, &
                               &                                                             rangeTypeLogarithmic                                          &
                               &                                                            )
-                         call Alloc_Array(metallicityDistributions(currentAnalysis)%       massesLogarithmic         ,[                                                             metallicityDistributions(currentAnalysis)%massesCount                                                  ])
-                         call Alloc_Array(metallicityDistributions(currentAnalysis)%       massesLogarithmicMinimum  ,[                                                             metallicityDistributions(currentAnalysis)%massesCount                                                  ])
-                         call Alloc_Array(metallicityDistributions(currentAnalysis)%       massesLogarithmicMaximum  ,[                                                             metallicityDistributions(currentAnalysis)%massesCount                                                  ])
-                         call Alloc_Array(metallicityDistributions(currentAnalysis)%metallicitiesLogarithmic         ,[metallicityDistributions(currentAnalysis)%metallicitiesCount                                                                                                        ])
-                         call Alloc_Array(metallicityDistributions(currentAnalysis)%metallicitiesLogarithmicMinimum  ,[metallicityDistributions(currentAnalysis)%metallicitiesCount                                                                                                        ])
-                         call Alloc_Array(metallicityDistributions(currentAnalysis)%metallicitiesLogarithmicMaximum  ,[metallicityDistributions(currentAnalysis)%metallicitiesCount                                                                                                        ])
-                         call Alloc_Array(metallicityDistributions(currentAnalysis)%metallicityDistribution          ,[metallicityDistributions(currentAnalysis)%metallicitiesCount,metallicityDistributions(currentAnalysis)%massesCount                                                  ])
-                         call Alloc_Array(metallicityDistributions(currentAnalysis)%metallicityDistributionWeights   ,[                                                             metallicityDistributions(currentAnalysis)%massesCount                                                  ])
-                         call Alloc_Array(metallicityDistributions(currentAnalysis)%metallicityDistributionCovariance,[                                                                                                                                                                       &
+                         call allocateArray(metallicityDistributions(currentAnalysis)%       massesLogarithmic         ,[                                                             metallicityDistributions(currentAnalysis)%massesCount                                                  ])
+                         call allocateArray(metallicityDistributions(currentAnalysis)%       massesLogarithmicMinimum  ,[                                                             metallicityDistributions(currentAnalysis)%massesCount                                                  ])
+                         call allocateArray(metallicityDistributions(currentAnalysis)%       massesLogarithmicMaximum  ,[                                                             metallicityDistributions(currentAnalysis)%massesCount                                                  ])
+                         call allocateArray(metallicityDistributions(currentAnalysis)%metallicitiesLogarithmic         ,[metallicityDistributions(currentAnalysis)%metallicitiesCount                                                                                                        ])
+                         call allocateArray(metallicityDistributions(currentAnalysis)%metallicitiesLogarithmicMinimum  ,[metallicityDistributions(currentAnalysis)%metallicitiesCount                                                                                                        ])
+                         call allocateArray(metallicityDistributions(currentAnalysis)%metallicitiesLogarithmicMaximum  ,[metallicityDistributions(currentAnalysis)%metallicitiesCount                                                                                                        ])
+                         call allocateArray(metallicityDistributions(currentAnalysis)%metallicityDistribution          ,[metallicityDistributions(currentAnalysis)%metallicitiesCount,metallicityDistributions(currentAnalysis)%massesCount                                                  ])
+                         call allocateArray(metallicityDistributions(currentAnalysis)%metallicityDistributionWeights   ,[                                                             metallicityDistributions(currentAnalysis)%massesCount                                                  ])
+                         call allocateArray(metallicityDistributions(currentAnalysis)%metallicityDistributionCovariance,[                                                                                                                                                                       &
                               &                                                                                        metallicityDistributions(currentAnalysis)%metallicitiesCount*metallicityDistributions(currentAnalysis)%massesCount,                                                    &
                               &                                                                                        metallicityDistributions(currentAnalysis)%metallicitiesCount*metallicityDistributions(currentAnalysis)%massesCount                                                     &
                               &                                                                                       ]                                                                                                                                                                       &
                               &          )
-                         call Alloc_Array(metallicityDistributions(currentAnalysis)%mainBranchGalaxyWeights          ,[metallicityDistributions(currentAnalysis)%metallicitiesCount,metallicityDistributions(currentAnalysis)%massesCount,analysisMetallicityDistributionsHaloMassBinsCount])
-                         call Alloc_Array(metallicityDistributions(currentAnalysis)%mainBranchGalaxyWeightsSquared   ,[metallicityDistributions(currentAnalysis)%metallicitiesCount,metallicityDistributions(currentAnalysis)%massesCount,analysisMetallicityDistributionsHaloMassBinsCount])
+                         call allocateArray(metallicityDistributions(currentAnalysis)%mainBranchGalaxyWeights          ,[metallicityDistributions(currentAnalysis)%metallicitiesCount,metallicityDistributions(currentAnalysis)%massesCount,analysisMetallicityDistributionsHaloMassBinsCount])
+                         call allocateArray(metallicityDistributions(currentAnalysis)%mainBranchGalaxyWeightsSquared   ,[metallicityDistributions(currentAnalysis)%metallicitiesCount,metallicityDistributions(currentAnalysis)%massesCount,analysisMetallicityDistributionsHaloMassBinsCount])
                          metallicityDistributions              (currentAnalysis)%       massesLogarithmic  &
                               & =log10(metallicityDistributions(currentAnalysis)%       masses)
                          metallicityDistributions              (currentAnalysis)%metallicitiesLogarithmic  &
@@ -673,18 +673,18 @@ contains
                               & /massSolar
                          metallicityDistributions(currentAnalysis)%massesCount       =size(metallicityDistributions(currentAnalysis)%masses)
                          metallicityDistributions(currentAnalysis)%metallicitiesCount=2
-                         call Alloc_Array(metallicityDistributions(currentAnalysis)%       massesLogarithmic         ,[                                                             metallicityDistributions(currentAnalysis)%massesCount                                                  ])
-                         call Alloc_Array(metallicityDistributions(currentAnalysis)%       massesLogarithmicMinimum  ,[                                                             metallicityDistributions(currentAnalysis)%massesCount                                                  ])
-                         call Alloc_Array(metallicityDistributions(currentAnalysis)%       massesLogarithmicMaximum  ,[                                                             metallicityDistributions(currentAnalysis)%massesCount                                                  ])
-                         call Alloc_Array(metallicityDistributions(currentAnalysis)%metallicityDistribution          ,[metallicityDistributions(currentAnalysis)%metallicitiesCount,metallicityDistributions(currentAnalysis)%massesCount                                                  ])
-                         call Alloc_Array(metallicityDistributions(currentAnalysis)%metallicityDistributionWeights   ,[                                                             metallicityDistributions(currentAnalysis)%massesCount                                                  ])
-                         call Alloc_Array(metallicityDistributions(currentAnalysis)%metallicityDistributionCovariance,[                                                                                                                                                                       &
+                         call allocateArray(metallicityDistributions(currentAnalysis)%       massesLogarithmic         ,[                                                             metallicityDistributions(currentAnalysis)%massesCount                                                  ])
+                         call allocateArray(metallicityDistributions(currentAnalysis)%       massesLogarithmicMinimum  ,[                                                             metallicityDistributions(currentAnalysis)%massesCount                                                  ])
+                         call allocateArray(metallicityDistributions(currentAnalysis)%       massesLogarithmicMaximum  ,[                                                             metallicityDistributions(currentAnalysis)%massesCount                                                  ])
+                         call allocateArray(metallicityDistributions(currentAnalysis)%metallicityDistribution          ,[metallicityDistributions(currentAnalysis)%metallicitiesCount,metallicityDistributions(currentAnalysis)%massesCount                                                  ])
+                         call allocateArray(metallicityDistributions(currentAnalysis)%metallicityDistributionWeights   ,[                                                             metallicityDistributions(currentAnalysis)%massesCount                                                  ])
+                         call allocateArray(metallicityDistributions(currentAnalysis)%metallicityDistributionCovariance,[                                                                                                                                                                       &
                               &                                                                                        metallicityDistributions(currentAnalysis)%metallicitiesCount*metallicityDistributions(currentAnalysis)%massesCount,                                                    &
                               &                                                                                        metallicityDistributions(currentAnalysis)%metallicitiesCount*metallicityDistributions(currentAnalysis)%massesCount                                                     &
                               &                                                                                       ]                                                                                                                                                                       &
                               &          )
-                         call Alloc_Array(metallicityDistributions(currentAnalysis)%mainBranchGalaxyWeights          ,[metallicityDistributions(currentAnalysis)%metallicitiesCount,metallicityDistributions(currentAnalysis)%massesCount,analysisMetallicityDistributionsHaloMassBinsCount])
-                         call Alloc_Array(metallicityDistributions(currentAnalysis)%mainBranchGalaxyWeightsSquared   ,[metallicityDistributions(currentAnalysis)%metallicitiesCount,metallicityDistributions(currentAnalysis)%massesCount,analysisMetallicityDistributionsHaloMassBinsCount])
+                         call allocateArray(metallicityDistributions(currentAnalysis)%mainBranchGalaxyWeights          ,[metallicityDistributions(currentAnalysis)%metallicitiesCount,metallicityDistributions(currentAnalysis)%massesCount,analysisMetallicityDistributionsHaloMassBinsCount])
+                         call allocateArray(metallicityDistributions(currentAnalysis)%mainBranchGalaxyWeightsSquared   ,[metallicityDistributions(currentAnalysis)%metallicitiesCount,metallicityDistributions(currentAnalysis)%massesCount,analysisMetallicityDistributionsHaloMassBinsCount])
                          metallicityDistributions              (currentAnalysis)%       massesLogarithmic  &
                               & =log10(metallicityDistributions(currentAnalysis)%       masses)
                          do k=1,metallicityDistributions(currentAnalysis)%massesCount
@@ -748,7 +748,7 @@ contains
                          call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_Met_Dstrbtins','unknown metallicity function')
                       end select
                       ! Get cosmological conversion factors.
-                      call Alloc_Array(metallicityDistributions(currentAnalysis)%cosmologyConversionMass,[Galacticus_Output_Time_Count()])
+                      call allocateArray(metallicityDistributions(currentAnalysis)%cosmologyConversionMass,[Galacticus_Output_Time_Count()])
                       do jOutput=1,Galacticus_Output_Time_Count()
                          redshift=                                                                                      &
                               &   cosmologyFunctionsModel %redshiftFromExpansionFactor(                                 &
@@ -766,7 +766,7 @@ contains
                       end do
                       nullify(cosmologyParametersObserved)
                       ! Compute output weights for metallicity distribution.
-                      call Alloc_Array(metallicityDistributions(currentAnalysis)%outputWeight,[int(metallicityDistributions(currentAnalysis)%massesCount,kind=c_size_t),Galacticus_Output_Time_Count()])
+                      call allocateArray(metallicityDistributions(currentAnalysis)%outputWeight,[int(metallicityDistributions(currentAnalysis)%massesCount,kind=c_size_t),Galacticus_Output_Time_Count()])
                       metallicityDistributions(currentAnalysis)%outputWeight=0.0d0
                       do k=1,metallicityDistributions(currentAnalysis)%massesCount
                          do jOutput=1,Galacticus_Output_Time_Count()
@@ -890,8 +890,8 @@ contains
        ! Cycle if this metallicity distribution receives no contribution from this output.
        if (all(metallicityDistributions(i)%outputWeight(:,iOutput) <= 0.0d0)) cycle
        ! Allocate workspace.
-       if (.not.allocated(thisGalaxy(i)%metallicityDistribution       )) call Alloc_Array(thisGalaxy(i)%metallicityDistribution       ,[metallicityDistributions(i)%metallicitiesCount,metallicityDistributions(i)%massesCount])
-       if (.not.allocated(thisGalaxy(i)%metallicityDistributionWeights)) call Alloc_Array(thisGalaxy(i)%metallicityDistributionWeights,[                                               metallicityDistributions(i)%massesCount])
+       if (.not.allocated(thisGalaxy(i)%metallicityDistribution       )) call allocateArray(thisGalaxy(i)%metallicityDistribution       ,[metallicityDistributions(i)%metallicitiesCount,metallicityDistributions(i)%massesCount])
+       if (.not.allocated(thisGalaxy(i)%metallicityDistributionWeights)) call allocateArray(thisGalaxy(i)%metallicityDistributionWeights,[                                               metallicityDistributions(i)%massesCount])
        ! Filter the galaxy.
        if (.not.metallicityDistributions(i)%descriptor%filter%passes(thisNode)) cycle
        ! Get the galactic mass.
@@ -1148,10 +1148,10 @@ contains
           covarianceMatrix         =metallicityDistributions(k)%metallicityDistributionCovariance          
           metallicityMeanCovariance=jacobianMatrix*(covarianceMatrix*jacobianMatrix%transpose())
           ! Assign mean metallicities.
-          call Dealloc_Array(metallicityDistributions(k)%metallicityDistribution                                                                                                          )
-          call Dealloc_Array(metallicityDistributions(k)%metallicityDistributionCovariance                                                                                                )
-          call Alloc_Array  (metallicityDistributions(k)%metallicityDistribution          ,[1                                      ,metallicityDistributions(k)%massesCount])
-          call Alloc_Array  (metallicityDistributions(k)%metallicityDistributionCovariance,[metallicityDistributions(k)%massesCount,metallicityDistributions(k)%massesCount])
+          call deallocateArray(metallicityDistributions(k)%metallicityDistribution                                                                                                          )
+          call deallocateArray(metallicityDistributions(k)%metallicityDistributionCovariance                                                                                                )
+          call allocateArray  (metallicityDistributions(k)%metallicityDistribution          ,[1                                      ,metallicityDistributions(k)%massesCount])
+          call allocateArray  (metallicityDistributions(k)%metallicityDistributionCovariance,[metallicityDistributions(k)%massesCount,metallicityDistributions(k)%massesCount])
           metallicityDistributions(k)%metallicityDistribution          (1,:)=metallicityMean
           metallicityDistributions(k)%metallicityDistributionCovariance(:,:)=metallicityMeanCovariance
           deallocate(metallicityMean          )

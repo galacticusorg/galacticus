@@ -263,7 +263,7 @@ contains
 
     cosmologyFunctions_ => cosmologyFunctions()
     if (present(timeSnapshots)) then
-       call Alloc_Array(augmentConstructorInternal%timeSnapshots,shape(timeSnapshots))
+       call allocateArray(augmentConstructorInternal%timeSnapshots,shape(timeSnapshots))
        augmentConstructorInternal%timeSnapshots=timeSnapshots
        call Sort_Do(augmentConstructorInternal%timeSnapshots)
        augmentConstructorInternal%timeEarliest=min(                                                                  &
@@ -1366,14 +1366,14 @@ contains
     if (galacticusOutputFile%hasGroup('augmentStatistics')) then
        ! Our group does exist. Read existing histogram, add them to our own, then write back to file.
        augmentStatisticsGroup=galacticusOutputFile%openGroup('augmentStatistics','Statistics of merger tree augmentation.',objectsOverwritable=.true.,overwriteOverride=.true.)
-       call Alloc_Array(retryHistogram,shape(self%retryHistogram))
-       call Alloc_Array(trialCount    ,shape(self%trialCount    ))
+       call allocateArray(retryHistogram,shape(self%retryHistogram))
+       call allocateArray(trialCount    ,shape(self%trialCount    ))
        call augmentStatisticsGroup%readDataset('retryHistogram',retryHistogram)
        call augmentStatisticsGroup%readDataset('trialCount'    ,trialCount    )
        self%retryHistogram=self%retryHistogram+retryHistogram
        self%trialCount    =self%trialCount    +trialCount
-       call Dealloc_Array(retryHistogram)
-       call Dealloc_Array(trialCount    )
+       call deallocateArray(retryHistogram)
+       call deallocateArray(trialCount    )
     else
        ! Our group does not already exist. Simply write the data.
        augmentStatisticsGroup=galacticusOutputFile%openGroup('augmentStatistics','Statistics of merger tree augmentation.',objectsOverwritable=.true.,overwriteOverride=.true.)

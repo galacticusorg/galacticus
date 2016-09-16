@@ -125,9 +125,9 @@ foreach my $directive ( keys(%{$includeDirectives}) ) {
 # source files incorporated into them via the source tree preprocessor.
 foreach my $directiveName ( keys(%{$functionClasses}) ) {
     print $directivesMakefile $ENV{'BUILDPATH'}."/".$functionClasses->{$directiveName}.": ".join(" ",keys(%{$nonIncludeDirectives->{$directiveName}->{'files'}}))."\n\n";
-    # Include explicit dependencies for Makefile_Use_Deps to ensure that module dependencies get rebuilt
+    # Include explicit dependencies for Makefile_Use_Dependencies to ensure that module dependencies get rebuilt
     # after these directive include files are constructed.
-    print $directivesMakefile $ENV{'BUILDPATH'}."/Makefile_Use_Deps: ".join(" ",map {(my $fileName = $includeDirectives->{$_}->{'fileName'}) =~ s/\.inc$/\.Inc/; $fileName} keys(%{$includeDirectives}))."\n\n";
+    print $directivesMakefile $ENV{'BUILDPATH'}."/Makefile_Use_Dependencies: ".join(" ",map {(my $fileName = $includeDirectives->{$_}->{'fileName'}) =~ s/\.inc$/\.Inc/; $fileName} keys(%{$includeDirectives}))."\n\n";
 }
 # Include a rule for including Makefile_Component_Includes. This has to go here since Makefile_Component_Includes depends on
 # objects.nodes.components.Inc for which Makefile_Directive contains the build rule.

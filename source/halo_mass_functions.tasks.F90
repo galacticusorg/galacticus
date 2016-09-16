@@ -143,13 +143,13 @@ contains
 
     ! Get the requested output redshifts.
     outputCount=max(Get_Input_Parameter_Array_Size('outputRedshifts'),1)
-    call Alloc_Array(outputTimes                ,[outputCount])
-    call Alloc_Array(outputRedshifts            ,[outputCount])
-    call Alloc_Array(outputExpansionFactors     ,[outputCount])
-    call Alloc_Array(outputGrowthFactors        ,[outputCount])
-    call Alloc_Array(outputCriticalOverdensities,[outputCount])
-    call Alloc_Array(outputVirialDensityContrast,[outputCount])
-    call Alloc_Array(outputCharacteristicMass   ,[outputCount])
+    call allocateArray(outputTimes                ,[outputCount])
+    call allocateArray(outputRedshifts            ,[outputCount])
+    call allocateArray(outputExpansionFactors     ,[outputCount])
+    call allocateArray(outputGrowthFactors        ,[outputCount])
+    call allocateArray(outputCriticalOverdensities,[outputCount])
+    call allocateArray(outputVirialDensityContrast,[outputCount])
+    call allocateArray(outputCharacteristicMass   ,[outputCount])
     !@ <inputParameter>
     !@   <name>outputRedshifts</name>
     !@   <defaultValue>0</defaultValue>
@@ -225,23 +225,23 @@ contains
     end do
 
     ! Allocate arrays for halo mass functions.
-    call Alloc_Array(haloMassFunction_Mass             ,[haloMassFunctionsCount,outputCount])
-    call Alloc_Array(haloMassFunction_dndM             ,[haloMassFunctionsCount,outputCount])
-    call Alloc_Array(haloMassFunction_dndlnM           ,[haloMassFunctionsCount,outputCount])
-    call Alloc_Array(haloMassFunction_dndlnMBinAveraged,[haloMassFunctionsCount,outputCount])
-    call Alloc_Array(haloMassFunction_cumulative       ,[haloMassFunctionsCount,outputCount])
-    call Alloc_Array(haloMassFunction_cumulativeSubhalo,[haloMassFunctionsCount,outputCount])
-    call Alloc_Array(haloMassFunction_massFraction     ,[haloMassFunctionsCount,outputCount])
-    call Alloc_Array(haloMassFunction_bias             ,[haloMassFunctionsCount,outputCount])
-    call Alloc_Array(haloMassFunction_sigma            ,[haloMassFunctionsCount,outputCount])
-    call Alloc_Array(haloMassFunction_alpha            ,[haloMassFunctionsCount,outputCount])
-    call Alloc_Array(haloMassFunction_nu               ,[haloMassFunctionsCount,outputCount])
-    call Alloc_Array(haloMassFunction_nuFnu            ,[haloMassFunctionsCount,outputCount])
-    call Alloc_Array(haloMassFunction_virialVelocity   ,[haloMassFunctionsCount,outputCount])
-    call Alloc_Array(haloMassFunction_virialTemperature,[haloMassFunctionsCount,outputCount])
-    call Alloc_Array(haloMassFunction_virialRadius     ,[haloMassFunctionsCount,outputCount])
-    call Alloc_Array(haloMassFunction_scaleRadius      ,[haloMassFunctionsCount,outputCount])
-    call Alloc_Array(haloMassFunction_velocityMaximum  ,[haloMassFunctionsCount,outputCount])
+    call allocateArray(haloMassFunction_Mass             ,[haloMassFunctionsCount,outputCount])
+    call allocateArray(haloMassFunction_dndM             ,[haloMassFunctionsCount,outputCount])
+    call allocateArray(haloMassFunction_dndlnM           ,[haloMassFunctionsCount,outputCount])
+    call allocateArray(haloMassFunction_dndlnMBinAveraged,[haloMassFunctionsCount,outputCount])
+    call allocateArray(haloMassFunction_cumulative       ,[haloMassFunctionsCount,outputCount])
+    call allocateArray(haloMassFunction_cumulativeSubhalo,[haloMassFunctionsCount,outputCount])
+    call allocateArray(haloMassFunction_massFraction     ,[haloMassFunctionsCount,outputCount])
+    call allocateArray(haloMassFunction_bias             ,[haloMassFunctionsCount,outputCount])
+    call allocateArray(haloMassFunction_sigma            ,[haloMassFunctionsCount,outputCount])
+    call allocateArray(haloMassFunction_alpha            ,[haloMassFunctionsCount,outputCount])
+    call allocateArray(haloMassFunction_nu               ,[haloMassFunctionsCount,outputCount])
+    call allocateArray(haloMassFunction_nuFnu            ,[haloMassFunctionsCount,outputCount])
+    call allocateArray(haloMassFunction_virialVelocity   ,[haloMassFunctionsCount,outputCount])
+    call allocateArray(haloMassFunction_virialTemperature,[haloMassFunctionsCount,outputCount])
+    call allocateArray(haloMassFunction_virialRadius     ,[haloMassFunctionsCount,outputCount])
+    call allocateArray(haloMassFunction_scaleRadius      ,[haloMassFunctionsCount,outputCount])
+    call allocateArray(haloMassFunction_velocityMaximum  ,[haloMassFunctionsCount,outputCount])
 
     ! Get required objects.
     darkMatterHaloScale_      => darkMatterHaloScale     ()

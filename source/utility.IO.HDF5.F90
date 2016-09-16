@@ -399,7 +399,9 @@ module IO_HDF5
      procedure :: copy               =>IO_HDF5_Copy 
   end type hdf5Object
 
-  ! Interfaces to functions in the HDF5 C API that are required due to the limited datatypes supported by the Fortran API.
+  ! Interfaces to functions in the HDF5 C API that are required due to the limited datatypes supported by the Fortran API. For
+  ! example, h5dread_f() can not read a scalar dataset region reference, so we are forced to go through the h5dread() C function
+  ! for this purpose.
   interface
      function H5T_C_S1_Get() bind(c,name='H5T_C_S1_Get')
        !% Template for a C function that returns the H5T_C_S1 datatype ID.
@@ -409,37 +411,37 @@ module IO_HDF5
      function H5Awrite(attr_id,mem_type_id,buf) bind(c, name='H5Awrite')
        !% Template for the HDF5 C API attribute write function.
        import
-       integer(kind=c_int)        :: H5Awrite
-       integer(kind=c_int), value :: attr_id , mem_type_id
-       type   (c_ptr     ), value :: buf
+       integer(kind=herr_t)        :: H5Awrite
+       integer(kind=hid_t ), value :: attr_id , mem_type_id
+       type   (c_ptr      ), value :: buf
      end function H5Awrite
      function H5Aread(attr_id,mem_type_id,buf) bind(c, name='H5Aread')
        !% Template for the HDF5 C API attribute read function.
        import
-       integer(kind=c_int)        :: H5Aread
-       integer(kind=c_int), value :: attr_id, mem_type_id
-       type   (c_ptr     ), value :: buf
+       integer(kind=herr_t)        :: H5Aread
+       integer(kind=hid_t ), value :: attr_id, mem_type_id
+       type   (c_ptr      ), value :: buf
      end function H5Aread
      function H5Dwrite(dataset_id,mem_type_id,mem_space_id,file_space_id,xfer_plist_id,buf) bind(c, name='H5Dwrite')
        !% Template for the HDF5 C API dataset write function.
        import
-       integer(kind=c_int)        :: H5Dwrite
-       integer(kind=c_int), value :: dataset_id   , file_space_id, mem_space_id, mem_type_id, &
-            &                        xfer_plist_id
-       type   (c_ptr     ), value :: buf
+       integer(kind=herr_t)        :: H5Dwrite
+       integer(kind=hid_t ), value :: dataset_id   , file_space_id, mem_space_id, mem_type_id, &
+            &                         xfer_plist_id
+       type   (c_ptr      ), value :: buf
      end function H5Dwrite
      function H5Dread(dataset_id,mem_type_id,mem_space_id,file_space_id,xfer_plist_id,buf) bind(c, name='H5Dread')
        !% Template for the HDF5 C API dataset read function.
        import
-       integer(kind=c_int)        :: H5Dread
-       integer(kind=c_int), value :: dataset_id   , file_space_id, mem_space_id, mem_type_id, &
-            &                        xfer_plist_id
-       type   (c_ptr     ), value :: buf
+       integer(kind=herr_t)        :: H5Dread
+       integer(kind=hid_t ), value :: dataset_id   , file_space_id, mem_space_id, mem_type_id, &
+            &                         xfer_plist_id
+       type   (c_ptr      ), value :: buf
      end function H5Dread
      function H5TBread_fields_name(loc_id,table_name,field_names,start,nrecords,type_size,field_offset,dst_sizes,data) bind(c, name='H5TBread_fields_name')
        !% Template for the HDF5 C API table read fields by name function.
        import
-       integer  (kind=c_int  )               :: H5TBread_fields_name
+       integer  (kind=herr_t )               :: H5TBread_fields_name
        integer  (kind=hid_t  ), value        :: loc_id
        character(kind=c_char )               :: table_name          , field_names(*)
        integer  (kind=hsize_t), value        :: start               , nrecords      , type_size
@@ -1503,7 +1505,7 @@ contains
     ! Write the attribute.
     ! We're forced to make a copy of attributeValue here because we can't pass attributeValue itself to c_loc()
     ! since it is of assumed shape.
-    call Alloc_Array(attributeValueContiguous,shape(attributeValue))
+    call allocateArray(attributeValueContiguous,shape(attributeValue))
     attributeValueContiguous=attributeValue
     dataBuffer=c_loc(attributeValueContiguous)
     errorCode=H5Awrite(attributeObject%objectID,H5T_NATIVE_INTEGER_8,dataBuffer)
@@ -1511,7 +1513,7 @@ contains
        message="unable to write attribute '"//attributeNameActual//"' in object '"//thisObject%objectName//"'"
        call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Integer8_1D',message)
     end if
-    call Dealloc_Array(attributeValueContiguous)
+    call deallocateArray(attributeValueContiguous)
 
     ! Close the attribute unless this was an attribute object.
     if (thisObject%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
@@ -2084,8 +2086,8 @@ contains
     end if
 
     ! Allocate the array to the appropriate size.
-    if (allocated(attributeValue)) call Dealloc_Array(attributeValue)
-    call Alloc_Array(attributeValue,int(attributeDimensions))
+    if (allocated(attributeValue)) call deallocateArray(attributeValue)
+    call allocateArray(attributeValue,int(attributeDimensions))
 
     ! Read the attribute.
     call h5aread_f(attributeObject%objectID,H5T_NATIVE_INTEGER,attributeValue,attributeDimensions&
@@ -2392,8 +2394,8 @@ contains
     end if
 
     ! Allocate the array to the appropriate size.
-    if (allocated(attributeValue)) call Dealloc_Array(attributeValue)
-    call Alloc_Array(attributeValue,int(attributeDimensions))
+    if (allocated(attributeValue)) call deallocateArray(attributeValue)
+    call allocateArray(attributeValue,int(attributeDimensions))
 
     ! Read the attribute.
     dataBuffer=c_loc(attributeValue)
@@ -2498,7 +2500,7 @@ contains
     ! Read the attribute.
     ! We're forced to make a copy of attributeValue here because we can't pass attributeValue itself to c_loc()
     ! since it is of assumed shape.
-    call Alloc_Array(attributeValueContiguous,shape(attributeValue))
+    call allocateArray(attributeValueContiguous,shape(attributeValue))
     dataBuffer=c_loc(attributeValueContiguous)
     errorCode=H5Aread(attributeObject%objectID,H5T_NATIVE_INTEGER_8,dataBuffer)
     if (errorCode /= 0) then
@@ -2706,8 +2708,8 @@ contains
     end if
 
     ! Allocate the array to the appropriate size.
-    if (allocated(attributeValue)) call Dealloc_Array(attributeValue)
-    call Alloc_Array(attributeValue,int(attributeDimensions))
+    if (allocated(attributeValue)) call deallocateArray(attributeValue)
+    call allocateArray(attributeValue,int(attributeDimensions))
 
     ! Read the attribute.
     call h5aread_f(attributeObject%objectID,H5T_NATIVE_DOUBLE,attributeValue,attributeDimensions&
@@ -3030,8 +3032,8 @@ contains
     end if
 
     ! Allocate the array to the appropriate size.
-    if (allocated(attributeValue)) call Dealloc_Array(attributeValue)
-    call Alloc_Array(attributeValue,int(attributeDimensions))
+    if (allocated(attributeValue)) call deallocateArray(attributeValue)
+    call allocateArray(attributeValue,int(attributeDimensions))
 
     ! Read the attribute.
     call h5aread_f(attributeObject%objectID,dataTypeID(1),attributeValue,attributeDimensions&
@@ -3381,7 +3383,7 @@ contains
     allocate(attributeValue(size(temporaryBuffer)))
     call Memory_Usage_Record(sizeof(attributeValue))
     attributeValue=temporaryBuffer
-    call Dealloc_Array(temporaryBuffer)
+    call deallocateArray(temporaryBuffer)
 
     return
   end subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Allocatable_Do_Read
@@ -4250,7 +4252,7 @@ contains
     type     (hdf5Object       )                                        :: datasetObject
     type     (varying_string   )                                        :: datasetNameActual , message
     type     (c_ptr            )                                        :: dataBuffer
-
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -4754,8 +4756,8 @@ contains
     end if
 
     ! Allocate the array to the appropriate size.
-    if (allocated(datasetValue)) call Dealloc_Array(datasetValue)
-    call Alloc_Array(datasetValue,int(datasetDimensions))
+    if (allocated(datasetValue)) call deallocateArray(datasetValue)
+    call allocateArray(datasetValue,int(datasetDimensions))
     ! Read the dataset.
     call h5dread_f(datasetObject%objectID,H5T_NATIVE_INTEGER,datasetValue,int(shape(datasetValue),kind=hsize_t),errorCode&
          &,memorySpaceID,datasetDataspaceID)
@@ -4940,7 +4942,7 @@ contains
     end if
 
     ! Write the dataset.
-    call Alloc_Array(datasetValueContiguous,shape(datasetValue))
+    call allocateArray(datasetValueContiguous,shape(datasetValue))
     datasetValueContiguous=datasetValue
     dataBuffer=c_loc(datasetValueContiguous)
     errorCode=h5dwrite(datasetObject%objectID,H5T_NATIVE_INTEGER_8,newDataspaceID,dataspaceID,H5P_DEFAULT_F,dataBuffer)
@@ -4948,7 +4950,7 @@ contains
        message="unable to write dataset '"//datasetNameActual//"' in object '"//thisObject%objectName//"'"
        call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Integer8_1D',message)
     end if
-    call Dealloc_Array(datasetValueContiguous)
+    call deallocateArray(datasetValueContiguous)
 
     ! Close the dataspaces.
     call h5sclose_f(dataspaceID,errorCode)
@@ -5220,7 +5222,7 @@ contains
     end if
 
     ! Read the dataset.
-    call Alloc_Array(datasetValueContiguous,shape(datasetValue))
+    call allocateArray(datasetValueContiguous,shape(datasetValue))
     dataBuffer=c_loc(datasetValueContiguous)
     errorCode=h5dread(datasetObject%objectID,H5T_NATIVE_INTEGER_8,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
@@ -5228,7 +5230,7 @@ contains
        call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Integer8_1D_Array_Static',message)
     end if
     datasetValue=datasetValueContiguous
-    call Dealloc_Array(datasetValueContiguous)
+    call deallocateArray(datasetValueContiguous)
 
     ! Close the dataspace.
     call h5sclose_f(datasetDataspaceID,errorCode)
@@ -5506,8 +5508,8 @@ contains
     end if
 
     ! Allocate the array to the appropriate size.
-    if (allocated(datasetValue)) call Dealloc_Array(datasetValue)
-    call Alloc_Array(datasetValue,int(datasetDimensions))
+    if (allocated(datasetValue)) call deallocateArray(datasetValue)
+    call allocateArray(datasetValue,int(datasetDimensions))
 
     ! Read the dataset.
     dataBuffer=c_loc(datasetValue)
@@ -6248,8 +6250,8 @@ contains
     end if
 
     ! Allocate the array to the appropriate size.
-    if (allocated(datasetValue)) call Dealloc_Array(datasetValue)
-    call Alloc_Array(datasetValue,int(datasetDimensions))
+    if (allocated(datasetValue)) call deallocateArray(datasetValue)
+    call allocateArray(datasetValue,int(datasetDimensions))
 
     ! Read the dataset.
     call h5dread_f(datasetObject%objectID,H5T_NATIVE_DOUBLE,datasetValue,int(shape(datasetValue),kind=hsize_t),errorCode&
@@ -6999,8 +7001,8 @@ contains
     end if
 
     ! Allocate the array to the appropriate size.
-    if (allocated(datasetValue)) call Dealloc_Array(datasetValue)
-    call Alloc_Array(datasetValue,int(datasetDimensions))
+    if (allocated(datasetValue)) call deallocateArray(datasetValue)
+    call allocateArray(datasetValue,int(datasetDimensions))
 
     ! Read the dataset.
     call h5dread_f(datasetObject%objectID,H5T_NATIVE_DOUBLE,datasetValue,int(shape(datasetValue),kind=hsize_t),errorCode&
@@ -7750,8 +7752,8 @@ contains
     end if
 
     ! Allocate the array to the appropriate size.
-    if (allocated(datasetValue)) call Dealloc_Array(datasetValue)
-    call Alloc_Array(datasetValue,int(datasetDimensions))
+    if (allocated(datasetValue)) call deallocateArray(datasetValue)
+    call allocateArray(datasetValue,int(datasetDimensions))
 
     ! Read the dataset.
     call h5dread_f(datasetObject%objectID,H5T_NATIVE_DOUBLE,datasetValue,int(shape(datasetValue),kind=hsize_t),errorCode&
@@ -8501,8 +8503,8 @@ contains
     end if
 
     ! Allocate the array to the appropriate size.
-    if (allocated(datasetValue)) call Dealloc_Array(datasetValue)
-    call Alloc_Array(datasetValue,int(datasetDimensions))
+    if (allocated(datasetValue)) call deallocateArray(datasetValue)
+    call allocateArray(datasetValue,int(datasetDimensions))
 
     ! Read the dataset.
     call h5dread_f(datasetObject%objectID,H5T_NATIVE_DOUBLE,datasetValue,int(shape(datasetValue),kind=hsize_t),errorCode&
@@ -9251,8 +9253,8 @@ contains
     end if
 
     ! Allocate the array to the appropriate size.
-    if (allocated(datasetValue)) call Dealloc_Array(datasetValue)
-    call Alloc_Array(datasetValue,int(datasetDimensions))
+    if (allocated(datasetValue)) call deallocateArray(datasetValue)
+    call allocateArray(datasetValue,int(datasetDimensions))
 
     ! Read the dataset.
     call h5dread_f(datasetObject%objectID,H5T_NATIVE_DOUBLE,datasetValue,int(shape(datasetValue),kind=hsize_t),errorCode&
@@ -10044,8 +10046,8 @@ contains
     end if
 
     ! Allocate the array to the appropriate size.
-    if (allocated(datasetValue)) call Dealloc_Array(datasetValue)
-    call Alloc_Array(datasetValue,int(datasetDimensions))
+    if (allocated(datasetValue)) call deallocateArray(datasetValue)
+    call allocateArray(datasetValue,int(datasetDimensions))
     ! Read the dataset.
     call h5dread_f(datasetObject%objectID,dataTypeID(1),datasetValue,int(shape(datasetValue),kind=hsize_t),errorCode&
          &,memorySpaceID,datasetDataspaceID)
@@ -10207,7 +10209,7 @@ contains
     allocate(datasetValue(size(temporaryBuffer)))
     call Memory_Usage_Record(sizeof(datasetValue))
     datasetValue=temporaryBuffer
-    call Dealloc_Array(temporaryBuffer)
+    call deallocateArray(temporaryBuffer)
 
     return
   end subroutine IO_HDF5_Read_Dataset_VarString_1D_Array_Allocatable_Do_Read
@@ -10383,8 +10385,8 @@ contains
        readCountActual=recordCount
     end if
     ! Allocate the array to the appropriate size.
-    if (allocated(datasetValue)) call Dealloc_Array(datasetValue)
-    call Alloc_Array(datasetValue,[readCountActual])
+    if (allocated(datasetValue)) call deallocateArray(datasetValue)
+    call allocateArray(datasetValue,[readCountActual])
 
     ! Read the column.
     call h5tget_size_f(H5T_NATIVE_REAL,recordTypeSize,errorCode)
@@ -10463,8 +10465,8 @@ contains
        readCountActual=recordCount
     end if
     ! Allocate the array to the appropriate size.
-    if (allocated(datasetValue)) call Dealloc_Array(datasetValue)
-    call Alloc_Array(datasetValue,[readCountActual])
+    if (allocated(datasetValue)) call deallocateArray(datasetValue)
+    call allocateArray(datasetValue,[readCountActual])
     ! Read the column.
     call h5tget_size_f(H5T_NATIVE_REAL,recordTypeSize,errorCode)
     if (errorCode /= 0) then
@@ -10544,8 +10546,8 @@ contains
        readCountActual=recordCount
     end if
     ! Allocate the array to the appropriate size.
-    if (allocated(datasetValue)) call Dealloc_Array(datasetValue)
-    call Alloc_Array(datasetValue,[readCountActual])
+    if (allocated(datasetValue)) call deallocateArray(datasetValue)
+    call allocateArray(datasetValue,[readCountActual])
     ! Read the column.
     call h5tget_size_f(H5T_NATIVE_INTEGER_8,recordTypeSize,errorCode)
     if (errorCode /= 0) then
@@ -10625,8 +10627,8 @@ contains
        readCountActual=recordCount
     end if
     ! Allocate the array to the appropriate size.
-    if (allocated(datasetValue)) call Dealloc_Array(datasetValue)
-    call Alloc_Array(datasetValue,[readCountActual])
+    if (allocated(datasetValue)) call deallocateArray(datasetValue)
+    call allocateArray(datasetValue,[readCountActual])
     ! Read the column.
     recordTypeSize=len(datasetValue(1))
     call h5tbread_field_name_f(thisObject%objectID,tableName,columnName,readBeginActual,readCountActual,recordTypeSize,datasetValue,errorCode) 
@@ -10657,9 +10659,8 @@ contains
     integer  (kind=HSIZE_T     ), dimension(1), intent(in   )         :: referenceCount   , referenceStart
     integer  (kind=HSIZE_T     ), dimension(1)                        :: datasetDimensions, hyperslabCount, hyperslabStart
     type     (hdset_reg_ref_t_f)                             , target :: dataReference
-    integer                                                           :: errorCode
-    integer  (kind=HID_T       )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID, &
-         &                                                               datasetRank
+    integer                                                           :: errorCode        , datasetRank
+    integer  (kind=HID_T       )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID
     type     (varying_string   )                                      :: message
     type     (c_ptr            )                                      :: dataBuffer
 
@@ -10771,9 +10772,8 @@ contains
     integer  (kind=HSIZE_T     ), dimension(2), intent(in   )         :: referenceCount   , referenceStart
     integer  (kind=HSIZE_T     ), dimension(2)                        :: datasetDimensions, hyperslabCount, hyperslabStart
     type     (hdset_reg_ref_t_f)                             , target :: dataReference
-    integer                                                           :: errorCode
-    integer  (kind=HID_T       )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID, &
-         &                                                               datasetRank
+    integer                                                           :: errorCode        , datasetRank
+    integer  (kind=HID_T       )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID
     type     (varying_string   )                                      :: message
     type     (c_ptr            )                                      :: dataBuffer
 
@@ -10885,9 +10885,8 @@ contains
     integer  (kind=HSIZE_T     ), dimension(3), intent(in   )         :: referenceCount   , referenceStart
     integer  (kind=HSIZE_T     ), dimension(3)                        :: datasetDimensions, hyperslabCount, hyperslabStart
     type     (hdset_reg_ref_t_f)                             , target :: dataReference
-    integer                                                           :: errorCode
-    integer  (kind=HID_T       )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID, &
-         &                                                               datasetRank
+    integer                                                           :: errorCode        , datasetRank
+    integer  (kind=HID_T       )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID
     type     (varying_string   )                                      :: message
     type     (c_ptr            )                                      :: dataBuffer
 
@@ -10999,9 +10998,8 @@ contains
     integer  (kind=HSIZE_T     ), dimension(4), intent(in   )         :: referenceCount   , referenceStart
     integer  (kind=HSIZE_T     ), dimension(4)                        :: datasetDimensions, hyperslabCount, hyperslabStart
     type     (hdset_reg_ref_t_f)                             , target :: dataReference
-    integer                                                           :: errorCode
-    integer  (kind=HID_T       )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID, &
-         &                                                               datasetRank
+    integer                                                           :: errorCode        , datasetRank
+    integer  (kind=HID_T       )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID
     type     (varying_string   )                                      :: message
     type     (c_ptr            )                                      :: dataBuffer
 
@@ -11113,9 +11111,8 @@ contains
     integer  (kind=HSIZE_T     ), dimension(5), intent(in   )         :: referenceCount   , referenceStart
     integer  (kind=HSIZE_T     ), dimension(5)                        :: datasetDimensions, hyperslabCount, hyperslabStart
     type     (hdset_reg_ref_t_f)                             , target :: dataReference
-    integer                                                           :: errorCode
-    integer  (kind=HID_T       )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID, &
-         &                                                               datasetRank
+    integer                                                           :: errorCode        , datasetRank
+    integer  (kind=HID_T       )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID
     type     (varying_string   )                                      :: message
     type     (c_ptr            )                                      :: dataBuffer
 

@@ -83,9 +83,9 @@ function likelihoodHaloMassFunctionConstructor(fileName,redshift,massRangeMinimu
      massCountReduced=massCountReduced+1
   end do
   if (massCountReduced == 0) call Galacticus_Error_Report('likelihoodHaloMassFunctionConstructor','no usable bins in mass function')  
-  call Alloc_Array(likelihoodHaloMassFunctionConstructor%mass            ,[massCountReduced                 ])
-  call Alloc_Array(likelihoodHaloMassFunctionConstructor%massFunction    ,[massCountReduced                 ])
-  call Alloc_Array(likelihoodHaloMassFunctionConstructor%covarianceMatrix,[massCountReduced,massCountReduced])
+  call allocateArray(likelihoodHaloMassFunctionConstructor%mass            ,[massCountReduced                 ])
+  call allocateArray(likelihoodHaloMassFunctionConstructor%massFunction    ,[massCountReduced                 ])
+  call allocateArray(likelihoodHaloMassFunctionConstructor%covarianceMatrix,[massCountReduced,massCountReduced])
   ii=0
   do i=1,size(massOriginal)
      if (     massFunctionOriginal          (i  )  <= 0.0d0                                              ) cycle
@@ -112,8 +112,8 @@ function likelihoodHaloMassFunctionConstructor(fileName,redshift,massRangeMinimu
        &                        +size(massOriginal)              &
        &                        -1                               &
        &                       )
-  call Alloc_Array(likelihoodHaloMassFunctionConstructor%massMinimum,shape(likelihoodHaloMassFunctionConstructor%mass))
-  call Alloc_Array(likelihoodHaloMassFunctionConstructor%massMaximum,shape(likelihoodHaloMassFunctionConstructor%mass))
+  call allocateArray(likelihoodHaloMassFunctionConstructor%massMinimum,shape(likelihoodHaloMassFunctionConstructor%mass))
+  call allocateArray(likelihoodHaloMassFunctionConstructor%massMaximum,shape(likelihoodHaloMassFunctionConstructor%mass))
   do i=1,size(likelihoodHaloMassFunctionConstructor%mass)
      likelihoodHaloMassFunctionConstructor%massMinimum(i)=likelihoodHaloMassFunctionConstructor%mass(i)*exp(-0.5d0*massIntervalLogarithmic)
      likelihoodHaloMassFunctionConstructor%massMaximum(i)=likelihoodHaloMassFunctionConstructor%mass(i)*exp(+0.5d0*massIntervalLogarithmic)

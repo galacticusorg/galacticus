@@ -111,7 +111,7 @@ CODE
 	if ( exists($code::property->{'classDefault'}->{'code'}) ) {
 	    if ( exists($code::property->{'classDefault'}->{'count'}) ) {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-call Alloc_Array(self%{$property->{'name'}}Data,[{$property->{'classDefault'}->{'count'}}])
+call allocateArray(self%{$property->{'name'}}Data,[{$property->{'classDefault'}->{'count'}}])
 CODE
 	    }
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -121,7 +121,7 @@ CODE
 	    # Set to appropriate null value.
 	    if ( $code::property->{'data'}->{'type'} eq "double" && $code::property->{'data'}->{'rank'} == 1 ){
 	    	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-call Alloc_Array(self%{$property->{'name'}}Data,[{join(",","0" x $property->{'data'}->{'rank'})}])
+call allocateArray(self%{$property->{'name'}}Data,[{join(",","0" x $property->{'data'}->{'rank'})}])
 CODE
 	    }
 	    if (&isIntrinsic($code::property->{'data'}->{'type'})) {
@@ -204,7 +204,7 @@ CODE
 	}
 	if ( $code::property->{'data'}->{'rank'} > 0 ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (allocated(self%{$property->{'name'}}Data)) call Dealloc_Array(self%{$property->{'name'}}Data)
+if (allocated(self%{$property->{'name'}}Data)) call deallocateArray(self%{$property->{'name'}}Data)
 CODE
 	}
     }
@@ -341,7 +341,7 @@ if (getLength(propertyList) >= 1) then
 CODE
 		if (&isIntrinsic($code::property->{'data'}->{'type'})) {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-  call Alloc_Array(self%{$property->{'name'}}Data,[getLength(propertyList)])
+  call allocateArray(self%{$property->{'name'}}Data,[getLength(propertyList)])
   do i=1,getLength(propertyList)
     property => item(propertyList,i-1)
     call extractDataContent(property,self%{$property->{'name'}}Data(i))
@@ -401,8 +401,16 @@ sub Implementation_Deferred_Create_Set {
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 {$class->{'name'}.ucfirst($member->{'name'})}CreateFunction => createFunction
 CODE
-    # Insert into the functions list.
-    push(@{$build->{'functions'}},$function);
+    # Insert a type-binding for this function.
+    push(
+	@{$build->{'types'}->{"nodeComponent".ucfirst($code::class->{'name'}).ucfirst($code::member->{'name'})}->{'boundFunctions'}},
+	{
+	    type        => "procedure",
+	    descriptor  => $function,
+	    name        => "createFunctionSet",
+	    pass        => "nopass"
+	}
+	);
     # Create the associated function pointer.
     push(
 	@{$build->{'variables'}},

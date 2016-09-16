@@ -203,18 +203,18 @@ contains
              else
                 call Move_Alloc (luminosityTables(imfIndex)%isTabulated,isTabulatedTemporary)
                 call Move_Alloc (luminosityTables(imfIndex)%luminosity ,luminosityTemporary )
-                call Alloc_Array(luminosityTables(imfIndex)%isTabulated,[luminosityIndexMaximum])
-                call Alloc_Array(luminosityTables(imfIndex)%luminosity ,[luminosityIndexMaximum&
+                call allocateArray(luminosityTables(imfIndex)%isTabulated,[luminosityIndexMaximum])
+                call allocateArray(luminosityTables(imfIndex)%luminosity ,[luminosityIndexMaximum&
                      &,luminosityTables(imfIndex)%agesCount,luminosityTables(imfIndex)%metallicitiesCount])
                 luminosityTables(imfIndex)%isTabulated(1:size(isTabulatedTemporary)    )=isTabulatedTemporary
                 luminosityTables(imfIndex)%isTabulated(  size(isTabulatedTemporary)+1:luminosityIndexMaximum)=.false.
                 luminosityTables(imfIndex)%luminosity (1:size(isTabulatedTemporary),:,:)=luminosityTemporary
-                call Dealloc_Array(isTabulatedTemporary)
-                call Dealloc_Array(luminosityTemporary)
+                call deallocateArray(isTabulatedTemporary)
+                call deallocateArray(luminosityTemporary)
                 computeTable=.true.
              end if
           else
-             call Alloc_Array(luminosityTables(imfIndex)%isTabulated,[luminosityIndexMaximum])
+             call allocateArray(luminosityTables(imfIndex)%isTabulated,[luminosityIndexMaximum])
              luminosityTables(imfIndex)%isTabulated=.false.
              ! Since we have not yet tabulated any luminosities yet for this IMF, we need to get a list of suitable metallicities and
              ! ages at which to tabulate.
@@ -227,7 +227,7 @@ contains
              elsewhere
                 luminosityTables(imfIndex)%metallicity=logMetallicityZero
              end where
-             call Alloc_Array(luminosityTables(imfIndex)%luminosity,[luminosityIndexMaximum&
+             call allocateArray(luminosityTables(imfIndex)%luminosity,[luminosityIndexMaximum&
                   &,luminosityTables(imfIndex)%agesCount ,luminosityTables(imfIndex)%metallicitiesCount])
              computeTable=.true.
           end if
@@ -565,8 +565,8 @@ contains
        hMetallicity=Interpolate_Linear_Generate_Factors(luminosityTables(imfIndex)%metallicity ,iMetallicity,metallicity)
     end if
     ! Allocate arrays for ages and luminosities.
-    call Alloc_Array(ages        ,[luminosityTables(imfIndex)%agesCount                      ])
-    call Alloc_Array(luminosities,[luminosityTables(imfIndex)%agesCount,size(luminosityIndex)])
+    call allocateArray(ages        ,[luminosityTables(imfIndex)%agesCount                      ])
+    call allocateArray(luminosities,[luminosityTables(imfIndex)%agesCount,size(luminosityIndex)])
     ! Assign ages.
     ages=luminosityTables(imfIndex)%age
     ! Do the interpolation.

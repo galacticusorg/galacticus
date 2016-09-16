@@ -127,13 +127,13 @@ contains
        end do
 
        ! Allocate storage space for data.
-       call Alloc_Array(stellarTrackLogMetallicities,[                                        metallicityCountMaximum])
-       call Alloc_Array(stellarTrackInitialMassCount,[                                        metallicityCountMaximum])
-       call Alloc_Array(stellarTrackInitialMasses   ,[                initialMassCountMaximum,metallicityCountMaximum])
-       call Alloc_Array(stellarTrackAgesCount       ,[                initialMassCountMaximum,metallicityCountMaximum])
-       call Alloc_Array(stellarTrackAges            ,[ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum])
-       call Alloc_Array(stellarTrackLuminosities    ,[ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum])
-       call Alloc_Array(stellarTrackTemperatures    ,[ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum])
+       call allocateArray(stellarTrackLogMetallicities,[                                        metallicityCountMaximum])
+       call allocateArray(stellarTrackInitialMassCount,[                                        metallicityCountMaximum])
+       call allocateArray(stellarTrackInitialMasses   ,[                initialMassCountMaximum,metallicityCountMaximum])
+       call allocateArray(stellarTrackAgesCount       ,[                initialMassCountMaximum,metallicityCountMaximum])
+       call allocateArray(stellarTrackAges            ,[ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum])
+       call allocateArray(stellarTrackLuminosities    ,[ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum])
+       call allocateArray(stellarTrackTemperatures    ,[ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum])
 
        ! Read in all data.
        do stellarTrackMetallicityCount=1,metallicityCountMaximum

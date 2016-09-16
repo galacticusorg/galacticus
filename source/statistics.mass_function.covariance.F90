@@ -150,20 +150,20 @@ contains
     timeBinCount=int(log10(timeMaximum/timeMinimum)*dble(timePointsPerDecade))+1
 
     ! Allocate arrays.
-    call Alloc_Array(mass             ,[massBinCount             ])
-    call Alloc_Array(logMassBinCenter ,[massBinCount             ])
-    call Alloc_Array(log10MassBinWidth,[massBinCount             ])
-    call Alloc_Array(logMassBinWidth  ,[massBinCount             ])
-    call Alloc_Array(massFunction     ,[massBinCount             ])
-    call Alloc_Array(volume           ,[massBinCount,fieldCount  ])
-    call Alloc_Array(covariance       ,[massBinCount,massBinCount])
-    call Alloc_Array(covariancePoisson,[massBinCount,massBinCount])
-    call Alloc_Array(covarianceHalo   ,[massBinCount,massBinCount])
-    call Alloc_Array(covarianceLSS    ,[massBinCount,massBinCount])
-    call Alloc_Array(correlation      ,[massBinCount,massBinCount])
-    call Alloc_Array(varianceLSS      ,[massBinCount,massBinCount])
-    call Alloc_Array(timeTable        ,[timeBinCount             ])
-    call Alloc_Array(biasTable        ,[timeBinCount,massBinCount])
+    call allocateArray(mass             ,[massBinCount             ])
+    call allocateArray(logMassBinCenter ,[massBinCount             ])
+    call allocateArray(log10MassBinWidth,[massBinCount             ])
+    call allocateArray(logMassBinWidth  ,[massBinCount             ])
+    call allocateArray(massFunction     ,[massBinCount             ])
+    call allocateArray(volume           ,[massBinCount,fieldCount  ])
+    call allocateArray(covariance       ,[massBinCount,massBinCount])
+    call allocateArray(covariancePoisson,[massBinCount,massBinCount])
+    call allocateArray(covarianceHalo   ,[massBinCount,massBinCount])
+    call allocateArray(covarianceLSS    ,[massBinCount,massBinCount])
+    call allocateArray(correlation      ,[massBinCount,massBinCount])
+    call allocateArray(varianceLSS      ,[massBinCount,massBinCount])
+    call allocateArray(timeTable        ,[timeBinCount             ])
+    call allocateArray(biasTable        ,[timeBinCount,massBinCount])
 
     ! Create time bins.
     timeTable=Make_Range(timeMinimum,timeMaximum,timeBinCount,rangeType=rangeTypeLogarithmic)
@@ -430,9 +430,9 @@ contains
     end do
 
     ! Deallocate arrays.
-    call Dealloc_Array(logMassBinCenter    )
-    call Dealloc_Array(volume              )
-    call Dealloc_Array(varianceLSS         )
+    call deallocateArray(logMassBinCenter    )
+    call deallocateArray(volume              )
+    call deallocateArray(varianceLSS         )
 
     return
   end subroutine Mass_Function_Covariance_Matrix
@@ -931,12 +931,12 @@ contains
           ! wavenumber, that means that each cell of the FFT has side of length 2π/L.
           variance=0.0d0
           !$omp parallel private (u,v,w,waveNumberU,waveNumberV,waveNumberW,multiplier,normalizationI,normalizationJ,powerSpectrumI,powerSpectrumJ,powerSpectrum,iField)
-          call Alloc_Array(volumeNormalizationI,[fieldCount])
-          call Alloc_Array(volumeNormalizationJ,[fieldCount])
-          call Alloc_Array(timeMinimumI        ,[fieldCount])
-          call Alloc_Array(timeMinimumJ        ,[fieldCount])
-          call Alloc_Array(timeMaximumI        ,[fieldCount])
-          call Alloc_Array(timeMaximumJ        ,[fieldCount])
+          call allocateArray(volumeNormalizationI,[fieldCount])
+          call allocateArray(volumeNormalizationJ,[fieldCount])
+          call allocateArray(timeMinimumI        ,[fieldCount])
+          call allocateArray(timeMinimumJ        ,[fieldCount])
+          call allocateArray(timeMaximumI        ,[fieldCount])
+          call allocateArray(timeMaximumJ        ,[fieldCount])
           call Compute_Volume_Normalizations(                         &
                &                             logMassBinCenter    (i), &
                &                             surveyGeometry_        , &
@@ -1022,12 +1022,12 @@ contains
              end do
           end do
           !$omp end do
-          call Dealloc_Array(volumeNormalizationI)
-          call Dealloc_Array(volumeNormalizationJ)
-          call Dealloc_Array(timeMinimumI        )
-          call Dealloc_Array(timeMinimumJ        )
-          call Dealloc_Array(timeMaximumI        )
-          call Dealloc_Array(timeMaximumJ        )
+          call deallocateArray(volumeNormalizationI)
+          call deallocateArray(volumeNormalizationJ)
+          call deallocateArray(timeMinimumI        )
+          call deallocateArray(timeMinimumJ        )
+          call deallocateArray(timeMaximumI        )
+          call deallocateArray(timeMaximumJ        )
           !$omp end parallel
           ! Normalize the variance. We multiply by (2π/L)³ to account for the volume of each FFT
           ! cell, and divide by (2π)³ as defined in eqn. (66) of Smith (2012; MNRAS; 426; 531).
@@ -1069,12 +1069,12 @@ contains
     do i=1,massBinCount
        ! Allocate arrays for times and volume normalizations.
        if (.not.allocated(volumeNormalizationI)) then
-          call Alloc_Array(volumeNormalizationI,[fieldCount])
-          call Alloc_Array(volumeNormalizationJ,[fieldCount])
-          call Alloc_Array(timeMinimumI        ,[fieldCount])
-          call Alloc_Array(timeMinimumJ        ,[fieldCount])
-          call Alloc_Array(timeMaximumI        ,[fieldCount])
-          call Alloc_Array(timeMaximumJ        ,[fieldCount])
+          call allocateArray(volumeNormalizationI,[fieldCount])
+          call allocateArray(volumeNormalizationJ,[fieldCount])
+          call allocateArray(timeMinimumI        ,[fieldCount])
+          call allocateArray(timeMinimumJ        ,[fieldCount])
+          call allocateArray(timeMaximumI        ,[fieldCount])
+          call allocateArray(timeMaximumJ        ,[fieldCount])
        end if
        binI=i
        call Compute_Volume_Normalizations(                        &
@@ -1136,12 +1136,12 @@ contains
        end do
        ! Allocate arrays for times and volume normalizations.
        if (allocated(volumeNormalizationI)) then
-          call Dealloc_Array(volumeNormalizationI)
-          call Dealloc_Array(volumeNormalizationJ)
-          call Dealloc_Array(timeMinimumI        )
-          call Dealloc_Array(timeMinimumJ        )
-          call Dealloc_Array(timeMaximumI        )
-          call Dealloc_Array(timeMaximumJ        )
+          call deallocateArray(volumeNormalizationI)
+          call deallocateArray(volumeNormalizationJ)
+          call deallocateArray(timeMinimumI        )
+          call deallocateArray(timeMinimumJ        )
+          call deallocateArray(timeMaximumI        )
+          call deallocateArray(timeMaximumJ        )
        end if
     end do
     !$omp end parallel do

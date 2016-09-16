@@ -72,13 +72,13 @@ contains
     end do
 
     ! Allocate arrays for temporary storage.
-    call Alloc_Array(nodeIndex      ,[  nodesInTree])
-    call Alloc_Array(parentIndex    ,[  nodesInTree])
-    call Alloc_Array(childIndex     ,[  nodesInTree])
-    call Alloc_Array(time           ,[  nodesInTree])
-    call Alloc_Array(expansionFactor,[  nodesInTree])
-    call Alloc_Array(radiusVirial   ,[  nodesInTree])
-    call Alloc_Array(position       ,[3,nodesInTree])
+    call allocateArray(nodeIndex      ,[  nodesInTree])
+    call allocateArray(parentIndex    ,[  nodesInTree])
+    call allocateArray(childIndex     ,[  nodesInTree])
+    call allocateArray(time           ,[  nodesInTree])
+    call allocateArray(expansionFactor,[  nodesInTree])
+    call allocateArray(radiusVirial   ,[  nodesInTree])
+    call allocateArray(position       ,[3,nodesInTree])
 
     ! Populate arrays with data.
     thisNode => thisTree%baseNode
@@ -121,13 +121,13 @@ contains
     call fileObject%close()
 
     ! Deallocate temporary arrays.
-    call Dealloc_Array(nodeIndex      )
-    call Dealloc_Array(parentIndex    )
-    call Dealloc_Array(childIndex     )
-    call Dealloc_Array(time           )
-    call Dealloc_Array(expansionFactor)
-    call Dealloc_Array(radiusVirial   )
-    call Dealloc_Array(position       )
+    call deallocateArray(nodeIndex      )
+    call deallocateArray(parentIndex    )
+    call deallocateArray(childIndex     )
+    call deallocateArray(time           )
+    call deallocateArray(expansionFactor)
+    call deallocateArray(radiusVirial   )
+    call deallocateArray(position       )
 
     return
   end subroutine Merger_Trees_Render_Dump

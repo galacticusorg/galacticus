@@ -164,7 +164,7 @@ CODE
 	    }
 	    if ( exists($code::implementationProperty->{'classDefault'}->{'count'}) ) {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-   call Alloc_Array(classDefault,[{$implementationProperty->{'classDefault'}->{'count'}}])
+   call allocateArray(classDefault,[{$implementationProperty->{'classDefault'}->{'count'}}])
 CODE
 	    }
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');

@@ -111,7 +111,7 @@ contains
        ! Check if specific metallicities were given.
        if (Input_Parameter_Is_Present('starFormationHistoryMetallicityBoundaries')) then
           starFormationHistoryMetallicityCount=Get_Input_Parameter_Array_Size('starFormationHistoryMetallicityBoundaries')
-          call Alloc_Array(metallicityTable,[starFormationHistoryMetallicityCount+1])
+          call allocateArray(metallicityTable,[starFormationHistoryMetallicityCount+1])
           !@ <inputParameter>
           !@   <name>starFormationHistoryMetallicityBoundaries</name>
           !@   <attachedTo>module</attachedTo>
@@ -169,7 +169,7 @@ contains
           case (:-1,1)
              call Galacticus_Error_Report('Star_Formation_Histories_Metallicity_Split_Initialize','number of bins must be 0, or greater than 1')
           case default
-             call Alloc_Array(metallicityTable,[starFormationHistoryMetallicityCount+1])
+             call allocateArray(metallicityTable,[starFormationHistoryMetallicityCount+1])
              if (starFormationHistoryMetallicityCount > 1) then
                 metallicityTable(1:starFormationHistoryMetallicityCount)=Make_Range(starFormationHistoryMetallicityMinimum&
                      &,starFormationHistoryMetallicityMaximum ,starFormationHistoryMetallicityCount,rangeType=rangeTypeLogarithmic)
@@ -498,7 +498,7 @@ contains
     end forall
 
     ! Destroy temporary array.
-    call Dealloc_Array(timeSteps)
+    call deallocateArray(timeSteps)
 
     return
   end subroutine Star_Formation_History_Scales_Metallicity_Split

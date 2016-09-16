@@ -153,22 +153,22 @@ contains
        !$omp critical (Meta_Tree_Timing_Pre_Construct_Record)
        ! Ensure that record arrays are sufficiently sized.
        if (.not.allocated(treeMasses)) then
-          call Alloc_Array(treeMasses        ,[                 treeArrayIncreaseSize])
-          call Alloc_Array(treeConstructTimes,[                 treeArrayIncreaseSize])
-          call Alloc_Array(treeEvolveTimes   ,[                 treeArrayIncreaseSize])
+          call allocateArray(treeMasses        ,[                 treeArrayIncreaseSize])
+          call allocateArray(treeConstructTimes,[                 treeArrayIncreaseSize])
+          call allocateArray(treeEvolveTimes   ,[                 treeArrayIncreaseSize])
        else if (treesRecordedCount >= size(treeMasses)) then
           call Move_Alloc(treeMasses        ,treeMassesTemporary        )
           call Move_Alloc(treeConstructTimes,treeConstructTimesTemporary)
           call Move_Alloc(treeEvolveTimes   ,treeEvolveTimesTemporary   )
-          call Alloc_Array(treeMasses        ,[size(treeMassesTemporary)+treeArrayIncreaseSize])
-          call Alloc_Array(treeConstructTimes,[size(treeMassesTemporary)+treeArrayIncreaseSize])
-          call Alloc_Array(treeEvolveTimes   ,[size(treeMassesTemporary)+treeArrayIncreaseSize])
+          call allocateArray(treeMasses        ,[size(treeMassesTemporary)+treeArrayIncreaseSize])
+          call allocateArray(treeConstructTimes,[size(treeMassesTemporary)+treeArrayIncreaseSize])
+          call allocateArray(treeEvolveTimes   ,[size(treeMassesTemporary)+treeArrayIncreaseSize])
           treeMasses        (1:size(treeMassesTemporary))=treeMassesTemporary
           treeConstructTimes(1:size(treeMassesTemporary))=treeConstructTimesTemporary
           treeEvolveTimes   (1:size(treeMassesTemporary))=treeEvolveTimesTemporary
-          call Dealloc_Array(treeMassesTemporary        )
-          call Dealloc_Array(treeConstructTimesTemporary)
-          call Dealloc_Array(treeEvolveTimesTemporary   )
+          call deallocateArray(treeMassesTemporary        )
+          call deallocateArray(treeConstructTimesTemporary)
+          call deallocateArray(treeEvolveTimesTemporary   )
        end if
        ! Store the timing data.
        treesRecordedCount=treesRecordedCount+1

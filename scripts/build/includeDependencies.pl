@@ -31,9 +31,9 @@ foreach my $environmentVariable ( "GALACTICUS_CFLAGS", "GALACTICUS_CPPFLAGS" ) {
 }
 
 # Open an output file
-open(my $makeFile,">".$ENV{'BUILDPATH'}."/Makefile_Include_Deps");
+open(my $makeFile,">".$ENV{'BUILDPATH'}."/Makefile_Include_Dependencies");
 
-# Initialize a list of files on which Makefile_Use_Deps will depend.
+# Initialize a list of files on which Makefile_Use_Dependencies will depend.
 my @dependencyFileNames;
 
 # Scan the source directory.
@@ -81,7 +81,7 @@ while ( my $fileName = readdir($sourceDirectory) ) {
     (my $objectFileName = $fileName)  =~ s/\.[^\.]+$/.o/;
     print $makeFile $ENV{'BUILDPATH'}."/".$objectFileName.": ".join(" ",sort(map {$ENV{'BUILDPATH'}."/".$_->{'fileName'}} @includedFiles))."\n\n"
 	if ( scalar(@includedFiles) > 0 );
-    # Generate a list of include files on which Makefile_Use_Deps will depend. This is the unpreprocessed include file in the
+    # Generate a list of include files on which Makefile_Use_Dependencies will depend. This is the unpreprocessed include file in the
     # source directory if such exists, or the raw include file in the build directory otherwise.
     foreach my $includedFile ( @includedFiles ) {
 	(my $fileNameUnpreprocessed = $includedFile->{'fileName'}) =~ s/\.inc$/.Inc/;
@@ -90,9 +90,9 @@ while ( my $fileName = readdir($sourceDirectory) ) {
     }
 }
 closedir($sourceDirectory);
-# Add dependencies for Makefile_Use_Deps, such that it will be regenerated after any automatically-built include files are
+# Add dependencies for Makefile_Use_Dependencies, such that it will be regenerated after any automatically-built include files are
 # created. This will ensure that any module "uses" in the automatically-generated include files will be discovered.
-print $makeFile "\n".$ENV{'BUILDPATH'}."/Makefile_Use_Deps: ".join(" ",map {$ENV{'BUILDPATH'}."/".$_} sort(@dependencyFileNames))."\n";
+print $makeFile "\n".$ENV{'BUILDPATH'}."/Makefile_Use_Dependencies: ".join(" ",map {$ENV{'BUILDPATH'}."/".$_} sort(@dependencyFileNames))."\n";
 close($makeFile);
 
 exit;
