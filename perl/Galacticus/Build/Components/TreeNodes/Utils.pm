@@ -50,11 +50,11 @@ sub Tree_Node_Copy {
 	     {
 		 intrinsic  => "logical",
 		 attributes => [ "intent(in   )", "optional" ],
-		 variables  => [ "skipFormationNode" ]
+		 variables  => [ "skipFormationNode", "skipEvent" ]
 	     },
 	     {
 		 intrinsic  => "logical",
-		 variables  => [ "skipFormationNodeActual" ]
+		 variables  => [ "skipFormationNodeActual", "skipEventActual" ]
 	     },
 	     {
 		 intrinsic  => "integer",
@@ -64,10 +64,13 @@ sub Tree_Node_Copy {
     };    
     $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
 skipFormationNodeActual=.false.
+skipEventActual        =.false.
 if (present(skipFormationNode)) skipFormationNodeActual=skipFormationNode
+if (present(skipEvent        )) skipEventActual        =skipEvent
 {join("",map {"targetNode%".$_." =  self%".$_."\n"} ( "uniqueIdValue", "indexValue", "timeStepValue" ))}
-{join("",map {"targetNode%".$_." => self%".$_."\n"} ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "event", "hostTree" ))}
-if (.not.skipFormationNodeActual) targetNode%formationNode => self%formationNode
+{join("",map {"targetNode%".$_." => self%".$_."\n"} ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "event", "formationNode", "hostTree" ))}
+if (skipFormationNodeActual) targetNode%formationNode => null()
+if (skipEventActual        ) targetNode%event         => null()
 CODE
     # Loop over all component classes
     if ( $workaround == 1 ) { # Workaround "Assignment to an allocatable polymorphic variable is not yet supported"
