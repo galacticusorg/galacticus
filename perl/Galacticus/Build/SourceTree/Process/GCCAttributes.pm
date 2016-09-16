@@ -9,7 +9,6 @@ use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/pe
 use Data::Dumper;
 use List::ExtraUtils;
 use Galacticus::Build::SourceTree::Hooks;
-use Galacticus::Build::SourceTree;
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::processHooks{'gccAttributes'} = \&Process_GCCAttributes;
