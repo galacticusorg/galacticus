@@ -434,6 +434,9 @@ while ( my $line = <lHndl> ) {
     if ( $line =~ m/FAILED/ ) {
 	push(@failLines,$lineNumber);
     }
+    if ( $line =~ m/SKIPPED/ ) {
+	push(@failLines,$lineNumber);
+    }
 }
 close(lHndl);
 open(lHndl,">>".$logFile);
