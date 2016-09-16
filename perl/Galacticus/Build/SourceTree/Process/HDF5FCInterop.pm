@@ -1,4 +1,4 @@
-# Contains a Perl module which converts HF5 Fortran types into C-interoperable types to silence compiler warnings.
+# Contains a Perl module which converts HDF5 Fortran types into C-interoperable types to silence compiler warnings.
 
 package Galacticus::Build::SourceTree::Process::HDF5FCInterop;
 use strict;
@@ -8,10 +8,6 @@ use Cwd;
 use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Data::Dumper;
 use List::ExtraUtils;
-## AJB HACK use Galacticus::Build::SourceTree::Hooks;
-## AJB HACK use Galacticus::Build::SourceTree;
-## AJB HACK use Galacticus::Build::SourceTree::Parse::Declarations;
-## AJB HACK use Galacticus::Build::SourceTree::Parse::ModuleUses;
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::processHooks{'hdf5FCInterop'} = \&Process_HDF5FCInterop;

@@ -187,18 +187,18 @@ contains
        end do
        call mergerTrees%nodeCountSet(nodeCount)
        ! Allocate arrays for serialization.
-       call Alloc_Array(treeIndex      ,[nodeCount])
-       call Alloc_Array(treeWeight     ,[nodeCount])
-       call Alloc_Array(nodeIndex      ,[nodeCount])
-       call Alloc_Array(descendentIndex,[nodeCount])
-       call Alloc_Array(nodeMass       ,[nodeCount])
-       call Alloc_Array(nodeRedshift   ,[nodeCount])
-       if (self%snapshotsRequired                               ) call Alloc_Array(nodeSnapshot,[nodeCount  ])
-       if (defaultPositionComponent%positionIsGettable()) call Alloc_Array(nodePosition,[nodeCount,3])
-       if (defaultPositionComponent%velocityIsGettable()) call Alloc_Array(nodeVelocity,[nodeCount,3])
+       call allocateArray(treeIndex      ,[nodeCount])
+       call allocateArray(treeWeight     ,[nodeCount])
+       call allocateArray(nodeIndex      ,[nodeCount])
+       call allocateArray(descendentIndex,[nodeCount])
+       call allocateArray(nodeMass       ,[nodeCount])
+       call allocateArray(nodeRedshift   ,[nodeCount])
+       if (self%snapshotsRequired                               ) call allocateArray(nodeSnapshot,[nodeCount  ])
+       if (defaultPositionComponent%positionIsGettable()) call allocateArray(nodePosition,[nodeCount,3])
+       if (defaultPositionComponent%velocityIsGettable()) call allocateArray(nodeVelocity,[nodeCount,3])
        ! Find "snapshot" numbers for nodes - relevant only for IRATE output format.
        if (self%snapshotsRequired) then
-          call Alloc_Array(snapshotTime,[snapshotCountIncrement])
+          call allocateArray(snapshotTime,[snapshotCountIncrement])
           node           => treeCurrent%baseNode
           basic => node%basic()
           snapshotCount=1
@@ -209,9 +209,9 @@ contains
                 snapshotCount=snapshotCount+1
                 if (snapshotCount > size(snapshotTime)) then
                    call Move_Alloc(snapshotTime,snapshotTimeTemp)
-                   call Alloc_Array(snapshotTime,[size(snapshotTimeTemp)+snapshotCountIncrement])
+                   call allocateArray(snapshotTime,[size(snapshotTimeTemp)+snapshotCountIncrement])
                    snapshotTime(1:size(snapshotTimeTemp))=snapshotTimeTemp
-                   call Dealloc_Array(snapshotTimeTemp)
+                   call deallocateArray(snapshotTimeTemp)
                 end if
                 snapshotTime(snapshotCount)=basic%time()
              end if
@@ -273,14 +273,14 @@ contains
        call mergerTrees%export(char(self%outputFileName),self%exportFormat,hdfChunkSize,hdfCompressionLevel,append=.true.)
        !$omp end critical (Merger_Tree_Write)       
        ! Deallocate arrays.
-       call Dealloc_Array(treeIndex      )
-       call Dealloc_Array(treeWeight     )
-       call Dealloc_Array(nodeIndex      )
-       call Dealloc_Array(descendentIndex)
-       call Dealloc_Array(nodeMass       )
-       call Dealloc_Array(nodeRedshift   )
-       if (defaultPositionComponent%positionIsGettable()) call Dealloc_Array(nodePosition)
-       if (defaultPositionComponent%velocityIsGettable()) call Dealloc_Array(nodeVelocity)
+       call deallocateArray(treeIndex      )
+       call deallocateArray(treeWeight     )
+       call deallocateArray(nodeIndex      )
+       call deallocateArray(descendentIndex)
+       call deallocateArray(nodeMass       )
+       call deallocateArray(nodeRedshift   )
+       if (defaultPositionComponent%positionIsGettable()) call deallocateArray(nodePosition)
+       if (defaultPositionComponent%velocityIsGettable()) call deallocateArray(nodeVelocity)
        ! Move to the next tree.
        treeCurrent => treeCurrent%nextTree
     end do    

@@ -63,10 +63,10 @@ program Tests_Halo_Mass_Function_Tinker
 
   ! Determine number of masses in reference data file and allocate arrays.
   massCount=Count_Lines_In_File('testSuite/data/haloMassFunction/tinker.txt')
-  call Alloc_Array(mass              ,[massCount])
-  call Alloc_Array(massFunction      ,[massCount])
-  call Alloc_Array(massFunctionTinker,[massCount])
-  call Alloc_Array(success           ,[massCount])
+  call allocateArray(mass              ,[massCount])
+  call allocateArray(massFunction      ,[massCount])
+  call allocateArray(massFunctionTinker,[massCount])
+  call allocateArray(success           ,[massCount])
 
   ! Ensure that critical density and critical overdensity for collapse are consistent with values used in our input file to
   ! Tinker's code.
@@ -95,10 +95,10 @@ program Tests_Halo_Mass_Function_Tinker
   call Input_Parameters_File_Close
 
   ! Clean up memory.
-  call Dealloc_Array(mass              )
-  call Dealloc_Array(massFunction      )
-  call Dealloc_Array(massFunctionTinker)
-  call Dealloc_Array(success           )
+  call deallocateArray(mass              )
+  call deallocateArray(massFunction      )
+  call deallocateArray(massFunctionTinker)
+  call deallocateArray(success           )
 
   ! End unit tests.
   call Unit_Tests_End_Group()

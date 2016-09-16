@@ -47,64 +47,51 @@ use File::Match;
 # Andrew Benson (10-April-2012)
 
 # Get the source directory.
-die('Usage: Make_Unique_Label_Functions.pl <galacticusDirectory>')
+die('Usage: uniqueLabelFunctions.pl <galacticusDirectory>')
     unless ( scalar(@ARGV) == 1 );
 (my $galacticusDirectory = $ARGV[0]) =~ s/\/$//;
 my $sourceDirectory = $galacticusDirectory."/source";
-
 # Parse the code directive locations file.
-my $codeDirectiveLocationsXML = new XML::Simple;
+my $codeDirectiveLocationsXML = new XML::Simple();
 my $codeDirectiveLocations    = $codeDirectiveLocationsXML->XMLin($ENV{'BUILDPATH'}."/directiveLocations.xml");
-
 # Open the output file.
 open(my $functionHandle,">".$ENV{'BUILDPATH'}."/utility.input_parameters.unique_labels.inc"             );
-open(my $scopeHandle,">".$ENV{'BUILDPATH'}."/utility.input_parameters.unique_labels.visibilities.inc");
-
+open(my $scopeHandle   ,">".$ENV{'BUILDPATH'}."/utility.input_parameters.unique_labels.visibilities.inc");
 # Store for default parameter values.
 my %defaultValues;
-
 # Stores for the structure of new-style method implementations, and which files implement those methods.
 my $methodStructure;
 my $methodFiles;
-
 # Extract C-include directories from the Makefile.
-my $cFlags = $ENV{'GALACTICUS_CFLAGS'};
-open(my $make,&galacticusPath()."Makefile");
-while ( my $line = <$make> ) {
-    if ( $line =~ m/^\s*CFLAGS\s*\+??=\s*(.*)$/ ) {
-	$cFlags .= " ".$1;
-    }
-}
-close($make);
+my @cFlags = ( $ENV{'GALACTICUS_CFLAGS'} );
+open(my $makeFile,&galacticusPath()."Makefile");
+push(@cFlags,map {$_ =~ m/^\s*CFLAGS\s*\+??=\s*(.*)$/ ? split(" ",$1) : ()} <$makeFile>);
+close($makeFile);
 # Extract include directories from flags.
 my $installPath = &galacticusPath();
 my @includeDirectories;
-while ( $cFlags =~ m/\-I(\S+)/ ) {
-    my $path = $1;
-    $path =~ s/^\.\//$installPath/;
-    if ( $path =~ m/\$\((.*)\)/ ) {
-	my $variable = $1;
-	$path = $ENV{$variable}
-	   if ( exists($ENV{$variable}) );
-    }
+foreach ( @cFlags ) {
+    next
+	unless ( defined($_) && $_ =~ m/\-I(\S+)/ );
+    (my $path = $1) =~ s/^\.\//$installPath/;
+    $path = $ENV{$1}
+        if ( $path =~ m/\$\((.*)\)/ && exists($ENV{$1}) );
     push(@includeDirectories,$path);
-    $cFlags =~ s/\-I(\S+)//;
 }
-
 # Iterate over all files containing unique label directives.
 foreach my $fileName ( @{$codeDirectiveLocations->{'uniqueLabel'}->{'file'}} ) {
     # Get the equivalent object file.
-    (my $objectFile = $fileName) =~ s/\.F90$/.o/;
+    (my $objectFileName     = $fileName      ) =~ s/\.F90$/.o/;
     # Get the name of the dependencies for this file.
-    (my $depFile = $objectFile) =~ s/source\/(.*)\.o$/$ENV{'BUILDPATH'}\/$1.d/;
+    (my $dependencyFileName = $objectFileName) =~ s/source\/(.*)\.o$/$ENV{'BUILDPATH'}\/$1.d/;
     # Extract the function name and any parameters to ignore.
-    my ($labelFunction, %ignoreParameters, @ignorePatterns, @hashFiles);
-    foreach my $uniqueLabel ( &Galacticus::Build::Directives::Extract_Directives($fileName,"uniqueLabel") ) {
-	$labelFunction = $uniqueLabel->{'function'};
-	map { $ignoreParameters{$_} = 1 } &List::ExtraUtils::as_array($uniqueLabel->{'ignore'});
-	&List::ExtraUtils::smart_push(\@ignorePatterns,$uniqueLabel->{'ignoreRegex'});
-	@hashFiles = &List::ExtraUtils::as_array($uniqueLabel->{'hashFile'});
-    }
+    my (%ignoreParameters, @ignorePatterns);
+    (my $uniqueLabel) = &Galacticus::Build::Directives::Extract_Directives($fileName,"uniqueLabel");
+    my $labelFunction = $uniqueLabel->{'function'};
+    my @hashFiles     = &List::ExtraUtils::as_array($uniqueLabel->{'hashFile'});
+    &List::ExtraUtils::smart_push(\@ignorePatterns,$uniqueLabel->{'ignoreRegex'});
+    $ignoreParameters{$_} = 1
+	foreach ( &List::ExtraUtils::as_array($uniqueLabel->{'ignore'}) );
     # Begin creating the function for the definition.
     my $definitionCode =
 <<CODE;
@@ -120,14 +107,14 @@ CODE
     # Scan dependencies for default parameter values, while also accumulating a full list of dependency files.
     my @directives;
     my @dependencyFileList;
-    my @dependencyFileStack = map {s/$ENV{'BUILDPATH'}\/(.*)\.o$/$1/; $_;} split("\n",read_file($depFile));
+    my @dependencyFileStack = map {s/$ENV{'BUILDPATH'}\/(.*)\.o$/$1/; $_;} split("\n",read_file($dependencyFileName));
     while ( scalar(@dependencyFileStack) > 0 ) {
-	my $depName = pop(@dependencyFileStack);
-	push(@dependencyFileList,$depName);
-	$depName =~ s/$ENV{'BUILDPATH'}\/(.*)\.o$/$1/;       
+	my $dependencyFileName = pop(@dependencyFileStack);
+	push(@dependencyFileList,$dependencyFileName);
+	$dependencyFileName =~ s/$ENV{'BUILDPATH'}\/(.*)\.o$/$1/;       
 	# Scan the file for default parameter values.
-	my $sourceFile = $sourceDirectory."/".$depName.".F90";	
-	unless ( $depName eq "utility.input_parameters" ) {
+	my $sourceFile = $sourceDirectory."/".$dependencyFileName.".F90";	
+	unless ( $dependencyFileName eq "utility.input_parameters" ) {
 	    # Extract default values for all parameters defined in this file.
 	    map {
 		$_->{'submatches'}->[1] =~ s/^\s*//;
@@ -257,7 +244,7 @@ CODE
 		    } elsif ( exists($directive->{'iterator'}) ) {
 			$directive->{'name'} = $directive->{'iterator'};
 		    } else {
-			die('Make_Unique_Label_Functions.pl: parameter has no name');
+			die('uniqueLabelFunctions.pl: parameter has no name');
 		    }
 		}
 		# Extract default value.
@@ -301,16 +288,16 @@ CODE
 		}
 	    }
 	    # Add a source MD5 digest for this file.
-	    my $ctx = Digest::MD5->new();
-	    $ctx->add(&Fortran::Utils::read_file($sourceFile,state => "raw", followIncludes => 1, includeLocations => [ "../source", ".".$ENV{'BUILDPATH'} ], stripRegEx => qr/^\s*![^\#\@].*$/, stripLeading => 1, stripTrailing => 1));
+	    my $hasher = Digest::MD5->new();
+	    $hasher->add(&Fortran::Utils::read_file($sourceFile,state => "raw", followIncludes => 1, includeLocations => [ "../source", ".".$ENV{'BUILDPATH'} ], stripRegEx => qr/^\s*![^\#\@].*$/, stripLeading => 1, stripTrailing => 1));
 	    # Search for use on any files from the data directory by this source file.
 	    &Hash_Data_Files(
-		$ctx,
+		$hasher,
 		map 
 		{$_->{'submatches'}->[0]} 
 		&Fortran::Utils::Get_Matching_Lines($sourceFile,qr/[\"\'](data\/[a-zA-Z0-9_\.\-\/]+\.(xml|hdf5))[\"\']/)
 		);
-	    my $sourceCodeDigest = $ctx->b64digest();
+	    my $sourceCodeDigest = $hasher->b64digest();
 	    $moduleCode .= "  if (present(includeSourceDigest)) then\n";
 	    $moduleCode .= "    if (includeSourceDigest) ".$labelFunction."=".$labelFunction."//'_source:".$dependencyFile."[".$sourceCodeDigest."]'\n";
 	    $moduleCode .= "  end if\n";
@@ -345,8 +332,8 @@ CODE
 		    $testMethodParameter = 1;
 		}
 	    }
-	    if ( $hasParameters == 1 ) {
-		if ( $testMethodParameter == 1 ) {
+	    if ( $hasParameters ) {
+		if ( $testMethodParameter ) {
 		    my $defaultValue  = exists($defaultValues{$methodParameter}) ? $defaultValues{$methodParameter} : "";
  		    $definitionCode  .=
 <<CODE;
@@ -363,7 +350,7 @@ CODE
 	    foreach my $suffix ( ".c", ".cpp" ) {
 		my $sourceFile = $sourceDirectory."/".$dependencyFile.$suffix;
 		if ( -e $sourceFile ) {
-		    my $ctx = Digest::MD5->new();
+		    my $hasher = Digest::MD5->new();
 		    my $sourceHandle;
 		    if ( $suffix eq ".c" || $suffix eq ".cpp" ) {
 			# For C and C++ files, run them through the preprocessor to have any include files included.
@@ -371,18 +358,18 @@ CODE
 			open($sourceHandle,"cpp -I".$galacticusDirectory."/source/ -I".$ENV{'BUILDPATH'}."/ ".$includeOptions." ".$sourceFile."|");
 		    } else {
 			# For other files, simply read the file directly.
-			open($sourceHandle,       $sourceFile    );
+			open($sourceHandle,                                                                                       $sourceFile    );
 		    }
-		    $ctx->addfile($sourceHandle);
+		    $hasher->addfile($sourceHandle);
 		    close($sourceHandle);
 		    # Search for use on any files from the data directory by this source file.
 		    &Hash_Data_Files(
-			$ctx,
+			$hasher,
 			map 
 			{$_->{'submatches'}->[0]} 
 			&File::Match::Get_Matching_Lines($sourceFile,qr/\"(data\/[a-zA-Z0-9_\.\-\/]+\.(xml|hdf5))\"/)
 			);
-		    my $sourceCodeDigest = $ctx->b64digest();
+		    my $sourceCodeDigest = $hasher->b64digest();
 		    $definitionCode .=
 <<CODE;
   if (present(includeSourceDigest)) then
@@ -395,9 +382,9 @@ CODE
     }  
     # Add a hash of any other files which we were explicitly instructed to include as dependencies.
     if ( scalar(@hashFiles) > 0 ) {
-	my $ctx = Digest::MD5->new();
-	&Hash_Data_Files($ctx,@hashFiles);
-	my $sourceCodeDigest = $ctx->b64digest();
+	my $hasher = Digest::MD5->new();
+	&Hash_Data_Files($hasher,@hashFiles);
+	my $sourceCodeDigest = $hasher->b64digest();
 	$definitionCode .=
 <<CODE;
   if (present(includeSourceDigest)) then
@@ -427,20 +414,20 @@ CODE
 }
 # Close the output files.
 close($functionHandle);
-close($scopeHandle);
+close($scopeHandle   );
 # Done.
-exit;
+exit 0;
 
 sub Hash_Data_Files {
     # Run a supplied list of files through a supplied MD5 hash object.
-    my $ctx   = shift;
-    my @files = @_;
+    my $hasher = shift();
+    my @files  = @_;
     foreach ( @files ) {
     	# Run each data file through the MD5 hash.
     	my $dataFileName = $galacticusDirectory."/".$_;
     	if ( -e $dataFileName ) {
     	    open(my $dataHandle,$dataFileName);
-    	    $ctx->addfile($dataHandle);
+    	    $hasher->addfile($dataHandle);
     	    close($dataHandle);
     	}
     }

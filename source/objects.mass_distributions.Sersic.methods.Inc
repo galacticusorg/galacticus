@@ -285,15 +285,15 @@ subroutine Sersic_Profile_Tabulate(radius)
         sersicTableCount=int(log10(sersicTableRadiusMaximum/sersicTableRadiusMinimum)*dble(sersicTablePointsPerDecade))+1
         ! Allocate arrays for storing the tables.
         if (allocated(sersicTableRadius)) then
-           call Dealloc_Array(sersicTableRadius      )
-           call Dealloc_Array(sersicTableDensity     )
-           call Dealloc_Array(sersicTableEnclosedMass)
-           call Dealloc_Array(sersicTablePotential   )
+           call deallocateArray(sersicTableRadius      )
+           call deallocateArray(sersicTableDensity     )
+           call deallocateArray(sersicTableEnclosedMass)
+           call deallocateArray(sersicTablePotential   )
         end if
-        call Alloc_Array(sersicTableRadius      ,[sersicTableCount])
-        call Alloc_Array(sersicTableDensity     ,[sersicTableCount])
-        call Alloc_Array(sersicTableEnclosedMass,[sersicTableCount])
-        call Alloc_Array(sersicTablePotential   ,[sersicTableCount])
+        call allocateArray(sersicTableRadius      ,[sersicTableCount])
+        call allocateArray(sersicTableDensity     ,[sersicTableCount])
+        call allocateArray(sersicTableEnclosedMass,[sersicTableCount])
+        call allocateArray(sersicTablePotential   ,[sersicTableCount])
         ! Create an array of logarithmically distributed radii.
         sersicTableRadius=Make_Range(sersicTableRadiusMinimum,sersicTableRadiusMaximum,sersicTableCount,rangeType=rangeTypeLogarithmic)
         ! Compute the coefficient appearing in the Sérsic profile.

@@ -1,6 +1,6 @@
 # Contains a Perl module which handles building the base types of the class hierarchy during build.
 
-package Galacticus::Build::Components::BaseTypes;
+package Galacticus::Build::Components::Components;
 use strict;
 use warnings;
 use utf8;

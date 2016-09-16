@@ -522,8 +522,8 @@ contains
     read (fileHandle) isAllocated
     if (isAllocated) then
        read (fileHandle) historyShape
-       call Alloc_Array(self%time,[historyShape(1)])
-       call Alloc_Array(self%data, historyShape    )
+       call allocateArray(self%time,[historyShape(1)])
+       call allocateArray(self%data, historyShape    )
        read (fileHandle) self%time
        read (fileHandle) self%data
     end if
@@ -594,8 +594,8 @@ contains
     read (fileHandle) isAllocated
     if (isAllocated) then
        read (fileHandle) historyShape
-       call Alloc_Array(self%time,[historyShape(1)])
-       call Alloc_Array(self%data, historyShape    )
+       call allocateArray(self%time,[historyShape(1)])
+       call allocateArray(self%data, historyShape    )
        read (fileHandle) self%time
        read (fileHandle) self%data
     end if
@@ -636,14 +636,14 @@ contains
     class(history), intent(inout) :: self
     type (history), intent(in   ) :: historyToClone
 
-    if (allocated(self%time)) call Dealloc_Array(self%time,memoryType=memoryTypeNodes)
-    if (allocated(self%data)) call Dealloc_Array(self%data,memoryType=memoryTypeNodes)
+    if (allocated(self%time)) call deallocateArray(self%time,memoryType=memoryTypeNodes)
+    if (allocated(self%data)) call deallocateArray(self%data,memoryType=memoryTypeNodes)
     if (allocated(historyToClone%time)) then
-       call Alloc_Array(self%time,shape(historyToClone%time),memoryType=memoryTypeNodes)
+       call allocateArray(self%time,shape(historyToClone%time),memoryType=memoryTypeNodes)
        self%time=historyToClone%time
     end if
     if (allocated(historyToClone%data)) then
-       call Alloc_Array(self%data,shape(historyToClone%data),memoryType=memoryTypeNodes)
+       call allocateArray(self%data,shape(historyToClone%data),memoryType=memoryTypeNodes)
        self%data=historyToClone%data
     end if
     self%rangeType=historyToClone%rangeType
@@ -666,14 +666,14 @@ contains
     class(longIntegerHistory), intent(inout) :: self
     type (longIntegerHistory), intent(in   ) :: historyToClone
 
-    if (allocated(self%time)) call Dealloc_Array(self%time,memoryType=memoryTypeNodes)
-    if (allocated(self%data)) call Dealloc_Array(self%data,memoryType=memoryTypeNodes)
+    if (allocated(self%time)) call deallocateArray(self%time,memoryType=memoryTypeNodes)
+    if (allocated(self%data)) call deallocateArray(self%data,memoryType=memoryTypeNodes)
     if (allocated(historyToClone%time)) then
-       call Alloc_Array(self%time,shape(historyToClone%time),memoryType=memoryTypeNodes)
+       call allocateArray(self%time,shape(historyToClone%time),memoryType=memoryTypeNodes)
        self%time=historyToClone%time
     end if
     if (allocated(historyToClone%data)) then
-       call Alloc_Array(self%data,shape(historyToClone%data),memoryType=memoryTypeNodes)
+       call allocateArray(self%data,shape(historyToClone%data),memoryType=memoryTypeNodes)
        self%data=historyToClone%data
     end if
     self%rangeType=historyToClone%rangeType
@@ -1268,7 +1268,7 @@ contains
     integer                                                             :: iTime
     double precision                                                    :: ratio
 
-    call Alloc_Array(timeSteps,shape(thisHistory%time),memoryType=memoryTypeNodes)
+    call allocateArray(timeSteps,shape(thisHistory%time),memoryType=memoryTypeNodes)
     select case (thisHistory%rangeType)
     case (rangeTypeLogarithmic)
        ratio=thisHistory%time(2)/thisHistory%time(1)

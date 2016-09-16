@@ -87,14 +87,14 @@ program Tests_Excursion_Sets
   time=cosmologyFunctions_%cosmicTime(1.0d0)
 
   ! Allocate arrays.
-  call Alloc_Array(haloMass                    ,[massCount          ])
-  call Alloc_Array(variance                    ,[massCount          ])
-  call Alloc_Array(barrier                     ,[massCount          ])
-  call Alloc_Array(firstCrossingProbability    ,[massCount          ])
-  call Alloc_Array(haloMassFunctionDifferential,[massCount          ])
-  call Alloc_Array(wavenumber                  ,[massCount          ])
-  call Alloc_Array(powerSpectrumValue          ,[massCount          ])
-  call Alloc_Array(firstCrossingRate           ,[massCount,massCount])
+  call allocateArray(haloMass                    ,[massCount          ])
+  call allocateArray(variance                    ,[massCount          ])
+  call allocateArray(barrier                     ,[massCount          ])
+  call allocateArray(firstCrossingProbability    ,[massCount          ])
+  call allocateArray(haloMassFunctionDifferential,[massCount          ])
+  call allocateArray(wavenumber                  ,[massCount          ])
+  call allocateArray(powerSpectrumValue          ,[massCount          ])
+  call allocateArray(firstCrossingRate           ,[massCount,massCount])
 
   ! Create a grid of masses.
   haloMass=Make_Range(massMinimum,massMaximum,massCount,rangeType=rangeTypeLogarithmic)

@@ -197,10 +197,10 @@ contains
        call System_Command_Do(Galacticus_Input_Path()//"scripts/aux/Cosmic_Emu_Driver.pl "//parameterFile//" "//powerSpectrumFile)
        ! Read the data file.
        self%wavenumberCount=Count_Lines_In_File(powerSpectrumFile,"#")
-       if (allocated(self%wavenumberTable   )) call Dealloc_Array(self%wavenumberTable   )
-       if (allocated(self%powerSpectrumTable)) call Dealloc_Array(self%powerSpectrumTable)
-       call Alloc_Array(self%wavenumberTable   ,[self%wavenumberCount])
-       call Alloc_Array(self%powerSpectrumTable,[self%wavenumberCount])
+       if (allocated(self%wavenumberTable   )) call deallocateArray(self%wavenumberTable   )
+       if (allocated(self%powerSpectrumTable)) call deallocateArray(self%powerSpectrumTable)
+       call allocateArray(self%wavenumberTable   ,[self%wavenumberCount])
+       call allocateArray(self%powerSpectrumTable,[self%wavenumberCount])
        open(newunit=powerSpectrumUnit,file=char(powerSpectrumFile),status='old',form='formatted')
        iWavenumber=0
        do while (iWavenumber < self%wavenumberCount)

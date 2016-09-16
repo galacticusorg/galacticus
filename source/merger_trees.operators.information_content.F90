@@ -145,17 +145,17 @@ contains
        informationContent=(logPossibleBifurcations-logPermittedBifurcations)/log(2.0d0)
        ! Ensure arrays are large enough to store this tree.
        if (.not.allocated(self%treeIndex)) then
-          call Alloc_Array(self%treeIndex         ,[treeCountIncrement])
-          call Alloc_Array(self%informationContent,[treeCountIncrement])
+          call allocateArray(self%treeIndex         ,[treeCountIncrement])
+          call allocateArray(self%informationContent,[treeCountIncrement])
        else if (self%treeCount >= size(self%treeIndex)) then
           call Move_Alloc (self%treeIndex         ,      treeIndexTmp                             )
           call Move_Alloc (self%informationContent,      informationContentTmp                    )
-          call Alloc_Array(self%treeIndex         ,shape(treeIndexTmp         )+treeCountIncrement)
-          call Alloc_Array(self%informationContent,shape(informationContentTmp)+treeCountIncrement)
+          call allocateArray(self%treeIndex         ,shape(treeIndexTmp         )+treeCountIncrement)
+          call allocateArray(self%informationContent,shape(informationContentTmp)+treeCountIncrement)
           self%treeIndex         (1:size(treeIndexTmp         ))=treeIndexTmp
           self%informationContent(1:size(informationContentTmp))=informationContentTmp
-          call Dealloc_Array(treeIndexTmp         )
-          call Dealloc_Array(informationContentTmp)
+          call deallocateArray(treeIndexTmp         )
+          call deallocateArray(informationContentTmp)
        end if
        ! Store the information content.
        self%treeCount                         =self              %treeCount+1

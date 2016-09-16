@@ -115,11 +115,11 @@ contains
     powerSpectraCount=int(log10(powerSpectraWavenumberMaximum/powerSpectraWavenumberMinimum)*dble(powerSpectraPointsPerDecade))+1
 
     ! Allocate arrays for power spectra.
-    call Alloc_Array(powerSpectrum_Wavenumber   ,[powerSpectraCount])
-    call Alloc_Array(powerSpectrum_Power        ,[powerSpectraCount])
-    call Alloc_Array(powerSpectrum_Mass         ,[powerSpectraCount])
-    call Alloc_Array(powerSpectrum_sigma        ,[powerSpectraCount])
-    call Alloc_Array(powerSpectrum_sigmaGradient,[powerSpectraCount])
+    call allocateArray(powerSpectrum_Wavenumber   ,[powerSpectraCount])
+    call allocateArray(powerSpectrum_Power        ,[powerSpectraCount])
+    call allocateArray(powerSpectrum_Mass         ,[powerSpectraCount])
+    call allocateArray(powerSpectrum_sigma        ,[powerSpectraCount])
+    call allocateArray(powerSpectrum_sigmaGradient,[powerSpectraCount])
 
     ! Build a range of wavenumbers.
     powerSpectrum_Wavenumber(:)=Make_Range(powerSpectraWavenumberMinimum,powerSpectraWavenumberMaximum,powerSpectraCount,rangeTypeLogarithmic)

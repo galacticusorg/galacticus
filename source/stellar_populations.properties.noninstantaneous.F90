@@ -231,7 +231,7 @@ contains
     thisHistory   %data(:,energyInputRateIndex                    )=max(stellarMass                          ,stellarMassMinimum      )*feedbackEnergyInputAtInfinityCanonical/timeSteps
 
     ! Destroy temporary array.
-    call Dealloc_Array(timeSteps)
+    call deallocateArray(timeSteps)
 
     return
   end subroutine Stellar_Population_Properties_Scales_Noninstantaneous

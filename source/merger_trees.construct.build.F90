@@ -233,8 +233,8 @@ contains
        case ("quasi","random","uniform")
           ! Generate a randomly sampled set of halo masses.
           treeCount=max(2,int(log10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*mergerTreeBuildTreesPerDecade))
-          call Alloc_Array(treeHaloMass,[treeCount])
-          call Alloc_Array(treeWeight  ,[treeCount])
+          call allocateArray(treeHaloMass,[treeCount])
+          call allocateArray(treeWeight  ,[treeCount])
 
           ! Create a distribution of halo masses.
           select case (char(mergerTreeBuildTreesHaloMassDistribution))
@@ -260,9 +260,9 @@ contains
           end select
           ! Create a cumulative probability for sampling halo masses.
           massFunctionSampleCount=max(2,int(log10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*massFunctionSamplePerDecade))
-          call Alloc_Array(massFunctionSampleLogMass         ,[massFunctionSampleCount])
-          call Alloc_Array(massFunctionSampleLogMassMonotonic,[massFunctionSampleCount])
-          call Alloc_Array(massFunctionSampleProbability     ,[massFunctionSampleCount])
+          call allocateArray(massFunctionSampleLogMass         ,[massFunctionSampleCount])
+          call allocateArray(massFunctionSampleLogMassMonotonic,[massFunctionSampleCount])
+          call allocateArray(massFunctionSampleProbability     ,[massFunctionSampleCount])
           massFunctionSampleLogMass=Make_Range(log10(mergerTreeBuildHaloMassMinimum),log10(mergerTreeBuildHaloMassMaximum),massFunctionSampleCount,rangeType=rangeTypeLinear)
           massFunctionSampleLogPrevious=log10(mergerTreeBuildHaloMassMinimum)
           jSample=0
@@ -305,15 +305,15 @@ contains
           end do
           treeHaloMass=10.0d0**treeHaloMass
           call Interpolate_Done(interpolationObject,interpolationAccelerator,interpolationReset)
-          call Dealloc_Array(massFunctionSampleLogMass         )
-          call Dealloc_Array(massFunctionSampleProbability     )
-          call Dealloc_Array(massFunctionSampleLogMassMonotonic)
+          call deallocateArray(massFunctionSampleLogMass         )
+          call deallocateArray(massFunctionSampleProbability     )
+          call deallocateArray(massFunctionSampleLogMassMonotonic)
           ! Allow modification of the halo mass sample.
           massFunctionSamplingModifier_ => massFunctionSamplingModifier()
           call massFunctionSamplingModifier_%modify(treeHaloMass,mergerTreeBuildTreesBaseTime)
           call Sort_Do(treeHaloMass)
           treeCount=size(treeHaloMass)
-          call Alloc_Array(treeWeight,[treeCount])
+          call allocateArray(treeWeight,[treeCount])
        case ("read")
           ! Read masses from a file.
           ! Detect file type.
@@ -325,7 +325,7 @@ contains
              call XML_Array_Read(doc,"treeRootMass",treeHaloMass)
              ! Allocate array for tree weights.
              treeCount=size(treeHaloMass)
-             call Alloc_Array(treeWeight,[treeCount])
+             call allocateArray(treeWeight,[treeCount])
              ! Extract tree weights if available.
              rootNode => getDocumentElement(doc)
              if (XML_Path_Exists(rootNode,"treeWeight")) then
@@ -344,7 +344,7 @@ contains
                 call treeFile%readDataset('treeWeight',treeWeight)
                 computeTreeWeights=.false.
              else
-                call Alloc_Array(treeWeight,shape(treeHaloMass))
+                call allocateArray(treeWeight,shape(treeHaloMass))
                 computeTreeWeights=.true.
              end if
              call treeFile%close()

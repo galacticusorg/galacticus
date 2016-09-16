@@ -124,9 +124,9 @@ contains
     ! Generate wavenumber range.
     wavenumberCount=int(log10(wavenumberMaximum/wavenumberMinimum)*dble(wavenumberCountPerDecade))+1
     wavenumber     =Make_Range(wavenumberMinimum,wavenumberMaximum,wavenumberCount,rangeTypeLogarithmic)
-    call Alloc_Array(powerSpectrumTotal  ,[wavenumberCount])
-    call Alloc_Array(powerSpectrumOneHalo,[wavenumberCount])
-    call Alloc_Array(powerSpectrumTwoHalo,[wavenumberCount])
+    call allocateArray(powerSpectrumTotal  ,[wavenumberCount])
+    call allocateArray(powerSpectrumOneHalo,[wavenumberCount])
+    call allocateArray(powerSpectrumTwoHalo,[wavenumberCount])
     ! Initialize.
     volume              =0.0d0
     galaxyDensity       =0.0d0
@@ -218,8 +218,8 @@ contains
                &                          /galaxyDensity                                 **2
        end do
        ! Fourier transform to get the correlation function.
-       call Alloc_Array(correlation,shape(wavenumber))
-       call Alloc_Array(separation ,shape(wavenumber))
+       call allocateArray(correlation,shape(wavenumber))
+       call allocateArray(separation ,shape(wavenumber))
        call FFTLog(                     &
             &      wavenumber         , &
             &      separation         , &
@@ -233,7 +233,7 @@ contains
             &     )
        correlation=correlation/separation
        ! Project the correlation function.
-       call Alloc_Array(projectedCorrelation,shape(wavenumber))
+       call allocateArray(projectedCorrelation,shape(wavenumber))
        call correlationTable%create(separation(1),separation(wavenumberCount),wavenumberCount,extrapolationTypeExtrapolate)
        integrandWeightFunction => projectionIntegrandWeight
        do iSeparation=1,wavenumberCount

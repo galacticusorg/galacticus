@@ -126,7 +126,7 @@ contains
        call Get_Input_Parameter('nodeRecentMajorMergerFromInfall',nodeRecentMajorMergerFromInfall,defaultValue=.false.)
        ! Determine the number of output times.
        outputCount=Galacticus_Output_Time_Count()
-       call Alloc_Array(zeroCount,[outputCount])
+       call allocateArray(zeroCount,[outputCount])
        zeroCount=0
        ! Record that the module is now initialized.
        moduleInitialized=.true.

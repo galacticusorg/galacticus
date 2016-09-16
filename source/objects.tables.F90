@@ -482,8 +482,8 @@ contains
     implicit none
     class(table1D), intent(inout) :: self
 
-    if (allocated(self%xv)) call Dealloc_Array(self%xv)
-    if (allocated(self%yv)) call Dealloc_Array(self%yv)
+    if (allocated(self%xv)) call deallocateArray(self%xv)
+    if (allocated(self%yv)) call deallocateArray(self%yv)
     return
   end subroutine Table_1D_Destroy
 
@@ -694,8 +694,8 @@ contains
     if (present(tableCount)) tableCountActual=tableCount
     ! Allocate arrays and construct the x-range.
     self%xCount=size(x)
-    call Alloc_Array(self%xv,[size(x)                 ])
-    call Alloc_Array(self%yv,[size(x),tableCountActual])
+    call allocateArray(self%xv,[size(x)                 ])
+    call allocateArray(self%yv,[size(x),tableCountActual])
     self%xv   =x
     self%reset=.true.
     ! Set interpoaltion type.
@@ -818,8 +818,8 @@ contains
     if (present(tableCount)) tableCountActual=tableCount
     ! Allocate arrays and construct the x-range.
     self%xCount=xCount
-    call Alloc_Array(self%xv,[xCount                 ])
-    call Alloc_Array(self%yv,[xCount,tableCountActual])
+    call allocateArray(self%xv,[xCount                 ])
+    call allocateArray(self%yv,[xCount,tableCountActual])
     self%xv            =Make_Range(xMinimum,xMaximum,xCount,rangeType=rangeTypeLinear)
     self%inverseDeltaX =1.0d0/(self%xv(2)-self%xv(1))
     self%tablePrevious =-1
@@ -878,17 +878,17 @@ contains
     read (fileUnit) self%xCount,self%extrapolationType
     read (fileUnit) self%dxPrevious,self%dyPrevious,self%inverseDeltaX,self%xPrevious,self%yPrevious,self%dTablePrevious,self%tablePrevious
     read (fileUnit) isAllocated
-    if (allocated(self%xv)) call Dealloc_Array(self%xv)
+    if (allocated(self%xv)) call deallocateArray(self%xv)
     if (isAllocated) then
        read (fileUnit) shapeAllocated(1:1)
-       call Alloc_Array(self%xv,shapeAllocated(1:1))
+       call allocateArray(self%xv,shapeAllocated(1:1))
        read (fileUnit) self%xv
     end if
     read (fileUnit) isAllocated
-    if (allocated(self%yv)) call Dealloc_Array(self%yv)
+    if (allocated(self%yv)) call deallocateArray(self%yv)
     if (isAllocated) then
        read (fileUnit) shapeAllocated(1:2)
-       call Alloc_Array(self%yv,shapeAllocated(1:2))
+       call allocateArray(self%yv,shapeAllocated(1:2))
        read (fileUnit) self%yv
     end if
     return
@@ -1261,13 +1261,13 @@ contains
     if (present(tableCount)) tableCountActual=tableCount
     ! Allocate arrays and construct the x-range.
     self%xCount=xCount
-    call Alloc_Array(self%xv,[xCount                   ])
-    call Alloc_Array(self%yv,[xCount  ,tableCountActual])
-    call Alloc_Array(self%sv,[xCount  ,tableCountActual])
-    call Alloc_Array(self%av,[xCount-1,tableCountActual])
-    call Alloc_Array(self%bv,[xCount-1,tableCountActual])
-    call Alloc_Array(self%cv,[xCount-1,tableCountActual])
-    call Alloc_Array(self%dv,[xCount-1,tableCountActual])
+    call allocateArray(self%xv,[xCount                   ])
+    call allocateArray(self%yv,[xCount  ,tableCountActual])
+    call allocateArray(self%sv,[xCount  ,tableCountActual])
+    call allocateArray(self%av,[xCount-1,tableCountActual])
+    call allocateArray(self%bv,[xCount-1,tableCountActual])
+    call allocateArray(self%cv,[xCount-1,tableCountActual])
+    call allocateArray(self%dv,[xCount-1,tableCountActual])
     self%xv            =Make_Range(xMinimum,xMaximum,xCount,rangeType=rangeTypeLinear)
     self%       deltaX =self%xv(2)-self%xv(1)
     self%inverseDeltaX =1.0d0/self%deltaX
@@ -1293,11 +1293,11 @@ contains
     class(table1DLinearCSpline), intent(inout) :: self
 
     call Table_1D_Destroy(self)
-    if (allocated(self%sv)) call Dealloc_Array(self%sv)
-    if (allocated(self%av)) call Dealloc_Array(self%av)
-    if (allocated(self%bv)) call Dealloc_Array(self%bv)
-    if (allocated(self%cv)) call Dealloc_Array(self%cv)
-    if (allocated(self%dv)) call Dealloc_Array(self%dv)
+    if (allocated(self%sv)) call deallocateArray(self%sv)
+    if (allocated(self%av)) call deallocateArray(self%av)
+    if (allocated(self%bv)) call deallocateArray(self%bv)
+    if (allocated(self%cv)) call deallocateArray(self%cv)
+    if (allocated(self%dv)) call deallocateArray(self%dv)
     return
   end subroutine Table_Linear_CSpline_1D_Destroy
 
@@ -1720,9 +1720,9 @@ contains
     ! Allocate arrays and construct the ranges.
     self%xCount=xCount
     self%yCount=yCount
-    call Alloc_Array(self%xv,[xCount                        ])
-    call Alloc_Array(self%yv,[       yCount                 ])
-    call Alloc_Array(self%zv,[xCount,yCount,tableCountActual])
+    call allocateArray(self%xv,[xCount                        ])
+    call allocateArray(self%yv,[       yCount                 ])
+    call allocateArray(self%zv,[xCount,yCount,tableCountActual])
     self%xv                  =Make_Range(log(xMinimum),log(xMaximum),xCount,rangeType=rangeTypeLinear)
     self%yv                  =Make_Range(log(yMinimum),log(yMaximum),yCount,rangeType=rangeTypeLinear)
     self%inverseDeltaX       =1.0d0/(self%xv(2)-self%xv(1))
@@ -2001,9 +2001,9 @@ contains
     implicit none
     class(table2DLogLogLin), intent(inout) :: self
 
-    if (allocated(self%xv)) call Dealloc_Array(self%xv)
-    if (allocated(self%yv)) call Dealloc_Array(self%yv)
-    if (allocated(self%zv)) call Dealloc_Array(self%zv)
+    if (allocated(self%xv)) call deallocateArray(self%xv)
+    if (allocated(self%yv)) call deallocateArray(self%yv)
+    if (allocated(self%zv)) call deallocateArray(self%zv)
     return
   end subroutine Table_2DLogLogLin_Destroy
 
@@ -2034,11 +2034,11 @@ contains
     if (present(tableCount)) tableCountActual=tableCount
     ! Allocate arrays and construct the x-range.
     self%xCount=xCount
-    call Alloc_Array(self%xv,[xCount                   ])
-    call Alloc_Array(self%yv,[xCount  ,tableCountActual])
-    call Alloc_Array(self%av,[xCount  ,tableCountActual])
-    call Alloc_Array(self%bv,[xCount-1,tableCountActual])
-    call Alloc_Array(self%cv,[xCount-1,tableCountActual])
+    call allocateArray(self%xv,[xCount                   ])
+    call allocateArray(self%yv,[xCount  ,tableCountActual])
+    call allocateArray(self%av,[xCount  ,tableCountActual])
+    call allocateArray(self%bv,[xCount-1,tableCountActual])
+    call allocateArray(self%cv,[xCount-1,tableCountActual])
     self%xv           =Make_Range(xMinimum,xMaximum,xCount,rangeType=rangeTypeLinear)
     self%       deltaX=self%xv(2)-self%xv(1)
     self%inverseDeltaX=1.0d0/self%deltaX
@@ -2061,9 +2061,9 @@ contains
     class(table1DLinearMonotoneCSpline), intent(inout) :: self
 
     call Table_1D_Destroy(self)
-    if (allocated(self%av)) call Dealloc_Array(self%av)
-    if (allocated(self%bv)) call Dealloc_Array(self%bv)
-    if (allocated(self%cv)) call Dealloc_Array(self%cv)
+    if (allocated(self%av)) call deallocateArray(self%av)
+    if (allocated(self%bv)) call deallocateArray(self%bv)
+    if (allocated(self%cv)) call deallocateArray(self%cv)
     return
   end subroutine Table_Linear_Monotone_CSpline_1D_Destroy
 

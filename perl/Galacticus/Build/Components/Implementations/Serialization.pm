@@ -497,7 +497,7 @@ if (isAllocated) then
 CODE
 	    if ( &isIntrinsic($code::property->{'data'}->{'type'}) ) {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-   call Alloc_Array(self%{$property->{'name'}}Data,[arraySize])
+   call allocateArray(self%{$property->{'name'}}Data,[arraySize])
    read (fileHandle) self%{$property->{'name'}}Data
 CODE
 	    } else {

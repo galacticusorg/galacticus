@@ -121,9 +121,9 @@ contains
     implicit none
     type(accretionDiskSpectraFile), intent(inout) :: self
 
-    if (allocated(self%wavelength)) call Dealloc_Array(self%wavelength)
-    if (allocated(self%luminosity)) call Dealloc_Array(self%luminosity)
-    if (allocated(self%SED       )) call Dealloc_Array(self%SED       )
+    if (allocated(self%wavelength)) call deallocateArray(self%wavelength)
+    if (allocated(self%luminosity)) call deallocateArray(self%luminosity)
+    if (allocated(self%SED       )) call deallocateArray(self%SED       )
     call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorWavelength,reset=self%resetWavelength)
     call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorLuminosity,reset=self%resetLuminosity)
     return

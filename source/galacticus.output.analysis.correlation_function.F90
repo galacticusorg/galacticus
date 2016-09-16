@@ -390,23 +390,23 @@ contains
                               &                                                    )
                          ! Allocate wavenumbers.
                          massCount=size(correlationFunctions(currentAnalysis)%massMinimum)
-                         call Alloc_Array(correlationFunctions(currentAnalysis)%wavenumber           ,[wavenumberCount                                                                 ])
-                         call Alloc_Array(correlationFunctions(currentAnalysis)%meanDensity          ,[                massCount                                                       ])
-                         call Alloc_Array(correlationFunctions(currentAnalysis)%meanDensityMainBranch,[                massCount,analysisProjectedCorrelationFunctionsHaloMassBinsCount])
-                         call Alloc_Array(correlationFunctions(currentAnalysis)%countMainBranch      ,[                          analysisProjectedCorrelationFunctionsHaloMassBinsCount])
-                         call Alloc_Array(correlationFunctions(currentAnalysis)%oneHaloTermMainBranch,[wavenumberCount,massCount,analysisProjectedCorrelationFunctionsHaloMassBinsCount])
-                         call Alloc_Array(correlationFunctions(currentAnalysis)%twoHaloTermMainBranch,[wavenumberCount,massCount,analysisProjectedCorrelationFunctionsHaloMassBinsCount])
-                         call Alloc_Array(correlationFunctions(currentAnalysis)%oneHaloTerm          ,[wavenumberCount,massCount                                                       ])
-                         call Alloc_Array(correlationFunctions(currentAnalysis)%twoHaloTerm          ,[wavenumberCount,massCount                                                       ])
-                         call Alloc_Array(correlationFunctions(currentAnalysis)%termCovariance       ,[massCount*(2*wavenumberCount+1),massCount*(2*wavenumberCount+1)                 ])
+                         call allocateArray(correlationFunctions(currentAnalysis)%wavenumber           ,[wavenumberCount                                                                 ])
+                         call allocateArray(correlationFunctions(currentAnalysis)%meanDensity          ,[                massCount                                                       ])
+                         call allocateArray(correlationFunctions(currentAnalysis)%meanDensityMainBranch,[                massCount,analysisProjectedCorrelationFunctionsHaloMassBinsCount])
+                         call allocateArray(correlationFunctions(currentAnalysis)%countMainBranch      ,[                          analysisProjectedCorrelationFunctionsHaloMassBinsCount])
+                         call allocateArray(correlationFunctions(currentAnalysis)%oneHaloTermMainBranch,[wavenumberCount,massCount,analysisProjectedCorrelationFunctionsHaloMassBinsCount])
+                         call allocateArray(correlationFunctions(currentAnalysis)%twoHaloTermMainBranch,[wavenumberCount,massCount,analysisProjectedCorrelationFunctionsHaloMassBinsCount])
+                         call allocateArray(correlationFunctions(currentAnalysis)%oneHaloTerm          ,[wavenumberCount,massCount                                                       ])
+                         call allocateArray(correlationFunctions(currentAnalysis)%twoHaloTerm          ,[wavenumberCount,massCount                                                       ])
+                         call allocateArray(correlationFunctions(currentAnalysis)%termCovariance       ,[massCount*(2*wavenumberCount+1),massCount*(2*wavenumberCount+1)                 ])
                          correlationFunctions(currentAnalysis)%wavenumber=Make_Range(wavenumberMinimum,wavenumberMaximum,wavenumberCount,rangeTypeLogarithmic)
                       case default
                          massCount=0
                          call Galacticus_Error_Report('Galacticus_Output_Analysis_Correlation_Functions','unknown size function')
                       end select
                       ! Get cosmological conversion factors.
-                      call Alloc_Array(correlationFunctions(currentAnalysis)%cosmologyConversionMass,[Galacticus_Output_Time_Count()])
-                      call Alloc_Array(correlationFunctions(currentAnalysis)%cosmologyConversionSize,[Galacticus_Output_Time_Count()])
+                      call allocateArray(correlationFunctions(currentAnalysis)%cosmologyConversionMass,[Galacticus_Output_Time_Count()])
+                      call allocateArray(correlationFunctions(currentAnalysis)%cosmologyConversionSize,[Galacticus_Output_Time_Count()])
                       do jOutput=1,Galacticus_Output_Time_Count()
                          redshift=                                                                                      &
                               &   cosmologyFunctionsModel %redshiftFromExpansionFactor(                                 &
@@ -426,8 +426,8 @@ contains
                       end do
                       nullify(cosmologyParametersObserved)
                       ! Compute output weights for correlation function. We assume a volume limited survey at the minimum mass.
-                      call Alloc_Array(correlationFunctions(currentAnalysis)%linearGrowthFactor,[    massCount                                              ])
-                      call Alloc_Array(correlationFunctions(currentAnalysis)%outputWeight      ,[int(massCount,kind=c_size_t),Galacticus_Output_Time_Count()])
+                      call allocateArray(correlationFunctions(currentAnalysis)%linearGrowthFactor,[    massCount                                              ])
+                      call allocateArray(correlationFunctions(currentAnalysis)%outputWeight      ,[int(massCount,kind=c_size_t),Galacticus_Output_Time_Count()])
                       correlationFunctions(currentAnalysis)%outputWeight      =0.0d0
                       correlationFunctions(currentAnalysis)%linearGrowthFactor=0.0d0
                       do k=1,massCount
@@ -589,8 +589,8 @@ contains
     hostIndex=hostNode%uniqueID()
     ! Allocate arrays.
     if (.not.thisHalo%initialized) then
-       call Alloc_Array(thisHalo%centralProbability,[size(thisCorrelationFunction%massMinimumLogarithmic)])
-       call Alloc_Array(thisHalo%fourierProfile    ,[size(thisCorrelationFunction%wavenumber            )])
+       call allocateArray(thisHalo%centralProbability,[size(thisCorrelationFunction%massMinimumLogarithmic)])
+       call allocateArray(thisHalo%fourierProfile    ,[size(thisCorrelationFunction%wavenumber            )])
        allocate  (thisHalo%satelliteProbability(0,0))
        deallocate(thisHalo%satelliteProbability     )
        thisHalo%propertiesSet     =.false.
@@ -637,12 +637,12 @@ contains
                 satelliteIncluded=.true.
                 thisHalo%satelliteCount=thisHalo%satelliteCount+1
                 if (.not.allocated(thisHalo%satelliteProbability)) then
-                   call Alloc_Array(thisHalo%satelliteProbability,[satelliteCountMinimum,size(thisCorrelationFunction%massMinimumLogarithmic)])
+                   call allocateArray(thisHalo%satelliteProbability,[satelliteCountMinimum,size(thisCorrelationFunction%massMinimumLogarithmic)])
                 else if (size(thisHalo%satelliteProbability,dim=1) < thisHalo%satelliteCount) then
                    call Move_Alloc(thisHalo%satelliteProbability,satelliteProbabilityTmp)
-                   call Alloc_Array(thisHalo%satelliteProbability,[2*size(satelliteProbabilityTmp,dim=1),size(thisCorrelationFunction%massMinimumLogarithmic)])
+                   call allocateArray(thisHalo%satelliteProbability,[2*size(satelliteProbabilityTmp,dim=1),size(thisCorrelationFunction%massMinimumLogarithmic)])
                    thisHalo%satelliteProbability(1:size(satelliteProbabilityTmp,dim=1),:)=satelliteProbabilityTmp
-                   call Dealloc_Array(satelliteProbabilityTmp)
+                   call deallocateArray(satelliteProbabilityTmp)
                 end if
                 thisHalo%satelliteProbability(thisHalo%satelliteCount,:)=0.0d0
              end if
@@ -1022,8 +1022,8 @@ contains
           end do
        end do
        ! Normalize one- and two-halo terms.
-       call Alloc_Array(jacobian            ,[massCount*(2*wavenumberCount),massCount*(2*wavenumberCount+1)])
-       call Alloc_Array(oneTwoHaloCovariance,[massCount*(2*wavenumberCount),massCount*(2*wavenumberCount  )])
+       call allocateArray(jacobian            ,[massCount*(2*wavenumberCount),massCount*(2*wavenumberCount+1)])
+       call allocateArray(oneTwoHaloCovariance,[massCount*(2*wavenumberCount),massCount*(2*wavenumberCount  )])
        ! One-halo term.
        jacobian=0.0d0
        do n=1,massCount
@@ -1054,9 +1054,9 @@ contains
              correlationFunctions(k)%twoHaloTerm(:,n)=correlationFunctions(k)%twoHaloTerm(:,n)/correlationFunctions(k)%meanDensity(n)
           end if
        end do
-       call Dealloc_Array(jacobian) 
+       call deallocateArray(jacobian) 
        ! Square the two halo term, and multiply by the linear theory power spectrum.
-       call Alloc_Array(jacobian            ,[massCount*(2*wavenumberCount),massCount*(2*wavenumberCount)])
+       call allocateArray(jacobian            ,[massCount*(2*wavenumberCount),massCount*(2*wavenumberCount)])
        jacobian=0.0d0
        do n=1,massCount
           do i=1,wavenumberCount
@@ -1077,11 +1077,11 @@ contains
                   &                                   *                     correlationFunctions(k)%linearGrowthFactor(  n) **2
           end do
        end do
-       call Dealloc_Array(jacobian)
+       call deallocateArray(jacobian)
        ! Construct the final power spectra.
-       call Alloc_Array(powerSpectrumValue     ,[          wavenumberCount,massCount                    ])
-       call Alloc_Array(powerSpectrumCovariance,[massCount*wavenumberCount,massCount*   wavenumberCount ])
-       call Alloc_Array(jacobian               ,[massCount*wavenumberCount,massCount*(2*wavenumberCount)])
+       call allocateArray(powerSpectrumValue     ,[          wavenumberCount,massCount                    ])
+       call allocateArray(powerSpectrumCovariance,[massCount*wavenumberCount,massCount*   wavenumberCount ])
+       call allocateArray(jacobian               ,[massCount*wavenumberCount,massCount*(2*wavenumberCount)])
        jacobian=0.0d0
        do n=1,massCount
           do i=1,wavenumberCount
@@ -1095,11 +1095,11 @@ contains
        do n=1,massCount
           powerSpectrumValue(:,n)=correlationFunctions(k)%oneHaloTerm(:,n)+correlationFunctions(k)%twoHaloTerm(:,n)
        end do
-       call Dealloc_Array(jacobian            )
-       call Dealloc_Array(oneTwoHaloCovariance)
+       call deallocateArray(jacobian            )
+       call deallocateArray(oneTwoHaloCovariance)
        ! Allocate correlation function and separation arrays.
-       call Alloc_Array(correlation,shape(powerSpectrumValue))
-       call Alloc_Array(separation ,[wavenumberCount])
+       call allocateArray(correlation,shape(powerSpectrumValue))
+       call allocateArray(separation ,[wavenumberCount])
        ! Fourier transform the power spectrum to get the correlation function.
        do n=1,massCount
           call FFTLog(                                    &
@@ -1116,8 +1116,8 @@ contains
           correlation(:,n)=correlation(:,n)/separation
        end do
        ! Compute the covariance of the correlation function.
-       call Alloc_Array(covarianceTmp        ,[massCount*wavenumberCount,massCount*wavenumberCount])
-       call Alloc_Array(correlationCovariance,[massCount*wavenumberCount,massCount*wavenumberCount])
+       call allocateArray(covarianceTmp        ,[massCount*wavenumberCount,massCount*wavenumberCount])
+       call allocateArray(correlationCovariance,[massCount*wavenumberCount,massCount*wavenumberCount])
        ! Apply wavenumber weighting to the power spectrum covariance.
        do n=1,massCount
           do m=1,massCount
@@ -1177,13 +1177,13 @@ contains
              end do
           end do
        end do
-       call Dealloc_Array(covarianceTmp)       
+       call deallocateArray(covarianceTmp)       
        ! Construct correlation table.
        call correlationTable%create(separation(1),separation(wavenumberCount),size(separation),extrapolationTypeExtrapolate)
        ! Project the correlation function.
-       call Alloc_Array(jacobian                      ,[massCount*wavenumberCount,massCount*wavenumberCount])
-       call Alloc_Array(projectedCorrelationCovariance,[massCount*wavenumberCount,massCount*wavenumberCount])
-       call Alloc_Array(projectedCorrelation          ,[wavenumberCount,massCount                ])
+       call allocateArray(jacobian                      ,[massCount*wavenumberCount,massCount*wavenumberCount])
+       call allocateArray(projectedCorrelationCovariance,[massCount*wavenumberCount,massCount*wavenumberCount])
+       call allocateArray(projectedCorrelation          ,[wavenumberCount,massCount                ])
        jacobian=0.0d0
        integrandWeightFunction => projectionIntegrandWeight
        do i=1,wavenumberCount
@@ -1204,7 +1204,7 @@ contains
        jacobianMatrix                =jacobian
        covarianceMatrix              =correlationCovariance
        projectedCorrelationCovariance=jacobianMatrix*(covarianceMatrix*jacobianMatrix%transpose())
-       call Dealloc_Array(jacobian)
+       call deallocateArray(jacobian)
        ! If the integral was taken over the half range, 0<pi<pi_max, rather than the full range, -pi_max<pi<pi_max, then divide
        ! the projected correlation function by two.
        if (correlationFunctions(k)%descriptor%halfIntegral) then
@@ -1212,9 +1212,9 @@ contains
           projectedCorrelationCovariance=projectedCorrelationCovariance/2.0d0**2
        end if
        ! Integrate the projected correlation function over bins.
-       call Alloc_Array(binnedProjectedCorrelation          ,[          size(correlationFunctions(k)%separation),massCount                                         ])
-       call Alloc_Array(binnedProjectedCorrelationCovariance,[massCount*size(correlationFunctions(k)%separation),massCount*size(correlationFunctions(k)%separation)])
-       call Alloc_Array(jacobian                            ,[massCount*size(correlationFunctions(k)%separation),massCount*wavenumberCount                         ])
+       call allocateArray(binnedProjectedCorrelation          ,[          size(correlationFunctions(k)%separation),massCount                                         ])
+       call allocateArray(binnedProjectedCorrelationCovariance,[massCount*size(correlationFunctions(k)%separation),massCount*size(correlationFunctions(k)%separation)])
+       call allocateArray(jacobian                            ,[massCount*size(correlationFunctions(k)%separation),massCount*wavenumberCount                         ])
        jacobian=0.0d0
        integrandWeightFunction => binningIntegrandWeight
        binWidthLogarithmic=log(correlationFunctions(k)%separation(2)/correlationFunctions(k)%separation(1))
@@ -1239,7 +1239,7 @@ contains
        jacobianMatrix                      =jacobian
        covarianceMatrix                    =projectedCorrelationCovariance
        binnedProjectedCorrelationCovariance=jacobianMatrix*(covarianceMatrix*jacobianMatrix%transpose())
-       call Dealloc_Array(jacobian)
+       call deallocateArray(jacobian)
        call correlationTable%destroy()
        ! Apply the integral constraint.
        binnedProjectedCorrelation=binnedProjectedCorrelation/correlationFunctions(k)%integralConstraint
@@ -1259,8 +1259,8 @@ contains
        call correlationFunctionGroup%close         (                                                                                                                                   )
        call analysisGroup           %close         (                                                                                                                                   )
        !$omp end critical(HDF5_Access)
-       call Dealloc_Array(binnedProjectedCorrelation          )
-       call Dealloc_Array(binnedProjectedCorrelationCovariance)
+       call deallocateArray(binnedProjectedCorrelation          )
+       call deallocateArray(binnedProjectedCorrelationCovariance)
     end do
     return
     

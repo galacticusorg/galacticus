@@ -824,8 +824,8 @@ contains
        call Move_Alloc(self%ageTableTime           ,ageTableTimeTemporary           )
        call Move_Alloc(self%ageTableExpansionFactor,ageTableExpansionFactorTemporary)
        ! Allocate the arrays to current required size.
-       call Alloc_Array(self%ageTableTime,           [self%ageTableNumberPoints])
-       call Alloc_Array(self%ageTableExpansionFactor,[self%ageTableNumberPoints])
+       call allocateArray(self%ageTableTime,           [self%ageTableNumberPoints])
+       call allocateArray(self%ageTableExpansionFactor,[self%ageTableNumberPoints])
        ! Create set of grid points in time variable.
        self%ageTableTime=Make_Range(self%ageTableTimeMinimum,self%ageTableTimeMaximum,self%ageTableNumberPoints,rangeTypeLogarithmic)
        ! Set the expansion factors to a negative value to indicate they are not yet computed.
@@ -834,12 +834,12 @@ contains
        self%ageTableTime           (prefixPointCount+1:prefixPointCount+size(ageTableTimeTemporary))=ageTableTimeTemporary
        self%ageTableExpansionFactor(prefixPointCount+1:prefixPointCount+size(ageTableTimeTemporary))=ageTableExpansionFactorTemporary
        ! Deallocate the temporary arrays.
-       call Dealloc_Array(ageTableTimeTemporary           )
-       call Dealloc_Array(ageTableExpansionFactorTemporary)
+       call deallocateArray(ageTableTimeTemporary           )
+       call deallocateArray(ageTableExpansionFactorTemporary)
     else
        ! Allocate the arrays to current required size.
-       call Alloc_Array(self%ageTableTime,           [self%ageTableNumberPoints])
-       call Alloc_Array(self%ageTableExpansionFactor,[self%ageTableNumberPoints])
+       call allocateArray(self%ageTableTime,           [self%ageTableNumberPoints])
+       call allocateArray(self%ageTableExpansionFactor,[self%ageTableNumberPoints])
        ! Create set of grid points in time variable.
        self%ageTableTime=Make_Range(self%ageTableTimeMinimum,self%ageTableTimeMaximum,self%ageTableNumberPoints,rangeTypeLogarithmic)
        ! Set the expansion factors to a negative value to indicate they are not yet computed.
@@ -1081,15 +1081,15 @@ contains
     ! Determine number of points to tabulate.
     self%distanceTableNumberPoints=int(log10(self%distanceTableTimeMaximum/self%distanceTableTimeMinimum)*dble(matterLambdaDistanceTableNPointsPerDecade))+1
     ! Deallocate arrays if currently allocated.
-    if (allocated(self%distanceTableTime                     )) call Dealloc_Array(self%distanceTableTime                     )
-    if (allocated(self%distanceTableComovingDistance         )) call Dealloc_Array(self%distanceTableComovingDistance         )
-    if (allocated(self%distanceTableComovingDistanceNegated  )) call Dealloc_Array(self%distanceTableComovingDistanceNegated  )
-    if (allocated(self%distanceTableLuminosityDistanceNegated)) call Dealloc_Array(self%distanceTableLuminosityDistanceNegated)
+    if (allocated(self%distanceTableTime                     )) call deallocateArray(self%distanceTableTime                     )
+    if (allocated(self%distanceTableComovingDistance         )) call deallocateArray(self%distanceTableComovingDistance         )
+    if (allocated(self%distanceTableComovingDistanceNegated  )) call deallocateArray(self%distanceTableComovingDistanceNegated  )
+    if (allocated(self%distanceTableLuminosityDistanceNegated)) call deallocateArray(self%distanceTableLuminosityDistanceNegated)
     ! Allocate the arrays to current required size.
-    call Alloc_Array(self%distanceTableTime                     ,[self%distanceTableNumberPoints])
-    call Alloc_Array(self%distanceTableComovingDistance         ,[self%distanceTableNumberPoints])
-    call Alloc_Array(self%distanceTableComovingDistanceNegated  ,[self%distanceTableNumberPoints])
-    call Alloc_Array(self%distanceTableLuminosityDistanceNegated,[self%distanceTableNumberPoints])
+    call allocateArray(self%distanceTableTime                     ,[self%distanceTableNumberPoints])
+    call allocateArray(self%distanceTableComovingDistance         ,[self%distanceTableNumberPoints])
+    call allocateArray(self%distanceTableComovingDistanceNegated  ,[self%distanceTableNumberPoints])
+    call allocateArray(self%distanceTableLuminosityDistanceNegated,[self%distanceTableNumberPoints])
     ! Create the range of times.
     self% distanceTableTime=Make_Range(self%distanceTableTimeMinimum,self%distanceTableTimeMaximum,self%distanceTableNumberPoints,rangeTypeLogarithmic)
     ! Integrate to get the comoving distance.
@@ -1188,18 +1188,18 @@ contains
     
     ! Read the tabulations.
     read (stateFile) self%ageTableNumberPoints,self%ageTableTimeMinimum,self%ageTableTimeMaximum
-    if (allocated(self%ageTableTime           )) call Dealloc_Array(self%ageTableTime           )
-    if (allocated(self%ageTableExpansionFactor)) call Dealloc_Array(self%ageTableExpansionFactor)
-    call Alloc_Array(self%ageTableTime           ,[self%ageTableNumberPoints])
-    call Alloc_Array(self%ageTableExpansionFactor,[self%ageTableNumberPoints])
+    if (allocated(self%ageTableTime           )) call deallocateArray(self%ageTableTime           )
+    if (allocated(self%ageTableExpansionFactor)) call deallocateArray(self%ageTableExpansionFactor)
+    call allocateArray(self%ageTableTime           ,[self%ageTableNumberPoints])
+    call allocateArray(self%ageTableExpansionFactor,[self%ageTableNumberPoints])
     read (stateFile) self%ageTableTime,self%ageTableExpansionFactor
     read (stateFile) self%distanceTableNumberPoints,self%distanceTableTimeMinimum,self%distanceTableTimeMaximum
-    if (allocated(self%distanceTableTime                   )) call Dealloc_Array(self%distanceTableTime                   )
-    if (allocated(self%distanceTableComovingDistance       )) call Dealloc_Array(self%distanceTableComovingDistance       )
-    if (allocated(self%distanceTableComovingDistanceNegated)) call Dealloc_Array(self%distanceTableComovingDistanceNegated)
-    call Alloc_Array(self%distanceTableTime                   ,[self%distanceTableNumberPoints])
-    call Alloc_Array(self%distanceTableComovingDistance       ,[self%distanceTableNumberPoints])
-    call Alloc_Array(self%distanceTableComovingDistanceNegated,[self%distanceTableNumberPoints])
+    if (allocated(self%distanceTableTime                   )) call deallocateArray(self%distanceTableTime                   )
+    if (allocated(self%distanceTableComovingDistance       )) call deallocateArray(self%distanceTableComovingDistance       )
+    if (allocated(self%distanceTableComovingDistanceNegated)) call deallocateArray(self%distanceTableComovingDistanceNegated)
+    call allocateArray(self%distanceTableTime                   ,[self%distanceTableNumberPoints])
+    call allocateArray(self%distanceTableComovingDistance       ,[self%distanceTableNumberPoints])
+    call allocateArray(self%distanceTableComovingDistanceNegated,[self%distanceTableNumberPoints])
     read (stateFile) self%distanceTableTime,self%distanceTableComovingDistance,self%distanceTableComovingDistanceNegated
     ! Ensure that interpolation objects will get reset.
     self%resetInterpolation               =.true.

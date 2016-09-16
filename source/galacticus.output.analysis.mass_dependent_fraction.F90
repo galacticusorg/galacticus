@@ -359,18 +359,18 @@ contains
                          call massDataset%readAttribute("cosmologyScaling",cosmologyScalingMass)
                          call massDataset%close        (                                       )
                          fractionFunctions(currentAnalysis)%massesCount=size(fractionFunctions(currentAnalysis)%masses)
-                         call Alloc_Array(fractionFunctions(currentAnalysis)%massesLogarithmic         ,[fractionFunctions(currentAnalysis)%massesCount])
-                         call Alloc_Array(fractionFunctions(currentAnalysis)%massesLogarithmicMinimum  ,[fractionFunctions(currentAnalysis)%massesCount])
-                         call Alloc_Array(fractionFunctions(currentAnalysis)%massesLogarithmicMaximum  ,[fractionFunctions(currentAnalysis)%massesCount])
-                         call Alloc_Array(fractionFunctions(currentAnalysis)%fractionFunction          ,[fractionFunctions(currentAnalysis)%massesCount])
-                         call Alloc_Array(fractionFunctions(currentAnalysis)%fractionFunctionWeights   ,[fractionFunctions(currentAnalysis)%massesCount])
-                         call Alloc_Array(fractionFunctions(currentAnalysis)%fractionFunctionCovariance,[                                                &
+                         call allocateArray(fractionFunctions(currentAnalysis)%massesLogarithmic         ,[fractionFunctions(currentAnalysis)%massesCount])
+                         call allocateArray(fractionFunctions(currentAnalysis)%massesLogarithmicMinimum  ,[fractionFunctions(currentAnalysis)%massesCount])
+                         call allocateArray(fractionFunctions(currentAnalysis)%massesLogarithmicMaximum  ,[fractionFunctions(currentAnalysis)%massesCount])
+                         call allocateArray(fractionFunctions(currentAnalysis)%fractionFunction          ,[fractionFunctions(currentAnalysis)%massesCount])
+                         call allocateArray(fractionFunctions(currentAnalysis)%fractionFunctionWeights   ,[fractionFunctions(currentAnalysis)%massesCount])
+                         call allocateArray(fractionFunctions(currentAnalysis)%fractionFunctionCovariance,[                                                &
                               &                                                                          fractionFunctions(currentAnalysis)%massesCount, &
                               &                                                                          fractionFunctions(currentAnalysis)%massesCount  &
                               &                                                                         ]                                                &
                               &          )
-                         call Alloc_Array(fractionFunctions(currentAnalysis)%mainBranchGalaxyWeights       ,[fractionFunctions(currentAnalysis)%massesCount,analysisFractionFunctionsHaloMassBinsCount])
-                         call Alloc_Array(fractionFunctions(currentAnalysis)%mainBranchGalaxyWeightsSquared,[fractionFunctions(currentAnalysis)%massesCount,analysisFractionFunctionsHaloMassBinsCount])
+                         call allocateArray(fractionFunctions(currentAnalysis)%mainBranchGalaxyWeights       ,[fractionFunctions(currentAnalysis)%massesCount,analysisFractionFunctionsHaloMassBinsCount])
+                         call allocateArray(fractionFunctions(currentAnalysis)%mainBranchGalaxyWeightsSquared,[fractionFunctions(currentAnalysis)%massesCount,analysisFractionFunctionsHaloMassBinsCount])
                          fractionFunctions              (currentAnalysis)%       massesLogarithmic  &
                               & =log10(fractionFunctions(currentAnalysis)%       masses)
                          do k=1,fractionFunctions(currentAnalysis)%massesCount
@@ -434,7 +434,7 @@ contains
                          call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_Fractions','unknown size function')
                       end select
                       ! Get cosmological conversion factors.
-                      call Alloc_Array(fractionFunctions(currentAnalysis)%cosmologyConversionMass,[Galacticus_Output_Time_Count()])
+                      call allocateArray(fractionFunctions(currentAnalysis)%cosmologyConversionMass,[Galacticus_Output_Time_Count()])
                       do jOutput=1,Galacticus_Output_Time_Count()
                          redshift=                                                                                      &
                               &   cosmologyFunctionsModel %redshiftFromExpansionFactor(                                 &
@@ -452,7 +452,7 @@ contains
                       end do
                       nullify(cosmologyParametersObserved)
                       ! Compute output weights for metallicity distribution.
-                      call Alloc_Array(fractionFunctions(currentAnalysis)%outputWeight,[int(fractionFunctions(currentAnalysis)%massesCount,kind=c_size_t),Galacticus_Output_Time_Count()])
+                      call allocateArray(fractionFunctions(currentAnalysis)%outputWeight,[int(fractionFunctions(currentAnalysis)%massesCount,kind=c_size_t),Galacticus_Output_Time_Count()])
                       fractionFunctions(currentAnalysis)%outputWeight=0.0d0
                       do k=1,fractionFunctions(currentAnalysis)%massesCount
                          do jOutput=1,Galacticus_Output_Time_Count()
@@ -521,8 +521,8 @@ contains
        ! Cycle if this fraction function receives no contribution from this output.
        if (all(fractionFunctions(i)%outputWeight(:,iOutput) <= 0.0d0)) cycle
        ! Allocate workspace.
-       if (.not.allocated(thisGalaxy(i)%fractionFunction       )) call Alloc_Array(thisGalaxy(i)%fractionFunction       ,[fractionFunctions(i)%massesCount])
-       if (.not.allocated(thisGalaxy(i)%fractionFunctionWeights)) call Alloc_Array(thisGalaxy(i)%fractionFunctionWeights,[fractionFunctions(i)%massesCount])
+       if (.not.allocated(thisGalaxy(i)%fractionFunction       )) call allocateArray(thisGalaxy(i)%fractionFunction       ,[fractionFunctions(i)%massesCount])
+       if (.not.allocated(thisGalaxy(i)%fractionFunctionWeights)) call allocateArray(thisGalaxy(i)%fractionFunctionWeights,[fractionFunctions(i)%massesCount])
        ! Get the galactic mass.
        mass=                                                                                                                                                &
             &  Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeDisk    ,massType=fractionFunctions(i)%descriptor%massType) &

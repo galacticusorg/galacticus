@@ -654,20 +654,20 @@ contains
     thisTemperature        => XML_Get_First_Element_By_Tag_Name(thisChemicalState,"temperature")
     self%temperatureCount  =  XML_Array_Length                 (thisTemperature  ,"datum"      )
     ! Allocate space for the table.
-    if (allocated(self%metallicities        )) call Dealloc_Array(self%metallicities        )
-    if (allocated(self%temperatures         )) call Dealloc_Array(self%temperatures         )
-    if (allocated(self%densityElectron      )) call Dealloc_Array(self%densityElectron      )
-    if (allocated(self%densityHydrogenAtomic)) call Dealloc_Array(self%densityHydrogenAtomic)
-    if (allocated(self%densityHydrogenCation)) call Dealloc_Array(self%densityHydrogenCation)
-    call Alloc_Array(self%metallicities  ,[                      self%metallicityCount])
-    call Alloc_Array(self%temperatures   ,[self%temperatureCount                      ])
-    call Alloc_Array(self%densityElectron,[self%temperatureCount,self%metallicityCount])
+    if (allocated(self%metallicities        )) call deallocateArray(self%metallicities        )
+    if (allocated(self%temperatures         )) call deallocateArray(self%temperatures         )
+    if (allocated(self%densityElectron      )) call deallocateArray(self%densityElectron      )
+    if (allocated(self%densityHydrogenAtomic)) call deallocateArray(self%densityHydrogenAtomic)
+    if (allocated(self%densityHydrogenCation)) call deallocateArray(self%densityHydrogenCation)
+    call allocateArray(self%metallicities  ,[                      self%metallicityCount])
+    call allocateArray(self%temperatures   ,[self%temperatureCount                      ])
+    call allocateArray(self%densityElectron,[self%temperatureCount,self%metallicityCount])
     ! Allocate space for atomic hydrogen density, if such data is included.
     self%gotHydrogenAtomic=(XML_Array_Length(doc,"hiDensity" ) > 0)
-    if (self%gotHydrogenAtomic) call Alloc_Array(self%densityHydrogenAtomic,[self%temperatureCount,self%metallicityCount])
+    if (self%gotHydrogenAtomic) call allocateArray(self%densityHydrogenAtomic,[self%temperatureCount,self%metallicityCount])
     ! Allocate space for ionized hydrogen density, if such data is included.
     self%gotHydrogenCation=(XML_Array_Length(doc,"hiiDensity") > 0)
-    if (self%gotHydrogenCation) call Alloc_Array(self%densityHydrogenCation,[self%temperatureCount,self%metallicityCount])
+    if (self%gotHydrogenCation) call allocateArray(self%densityHydrogenCation,[self%temperatureCount,self%metallicityCount])
     ! Extract data from the chemical states and populate metallicity and temperature arrays.
     allocate(temperaturesReference(0))
     do iChemicalState=0,self%metallicityCount-1

@@ -91,13 +91,13 @@ program Optimal_Sampling_SMF
   haloMassTableCount   =int(log10(   haloMassMaximum/   haloMassMinimum)*dble(   haloMassPointsPerDecade)+1.0d0)
 
   ! Allocate arrays.
-  call Alloc_Array(stellarMassTableMass           ,[stellarMassTableCount])
-  call Alloc_Array(stellarMassTableMassFunction   ,[stellarMassTableCount])
-  call Alloc_Array(   haloMassTableMass           ,[   haloMassTableCount])
-  call Alloc_Array(   haloMassTableXi             ,[   haloMassTableCount])
-  call Alloc_Array(   haloMassFunctionDifferential,[   haloMassTableCount])
-  call Alloc_Array(samplingDensity                ,[   haloMassTableCount])
-  call Alloc_Array(treeTiming                     ,[   haloMassTableCount])
+  call allocateArray(stellarMassTableMass           ,[stellarMassTableCount])
+  call allocateArray(stellarMassTableMassFunction   ,[stellarMassTableCount])
+  call allocateArray(   haloMassTableMass           ,[   haloMassTableCount])
+  call allocateArray(   haloMassTableXi             ,[   haloMassTableCount])
+  call allocateArray(   haloMassFunctionDifferential,[   haloMassTableCount])
+  call allocateArray(samplingDensity                ,[   haloMassTableCount])
+  call allocateArray(treeTiming                     ,[   haloMassTableCount])
 
   ! Create mass tabulations.
   stellarMassTableMass=Make_Range(stellarMassMinimum,stellarMassMaximum,stellarMassTableCount,rangeType=rangeTypeLogarithmic)

@@ -219,7 +219,7 @@ contains
                &                              'mangleAngularPower'                                 , &
                &                              'power spectra do not span expected range of degrees'  &
                &                             )
-          call Alloc_Array(self%angularPowerSpectra,[self%angularPowerMaximumDegree()+1,self%fieldCount()*(self%fieldCount()+1)])
+          call allocateArray(self%angularPowerSpectra,[self%angularPowerMaximumDegree()+1,self%fieldCount()*(self%fieldCount()+1)])
           do m=1,self%fieldCount()
              do n=m,self%fieldCount()
                 datasetName="Cl_"

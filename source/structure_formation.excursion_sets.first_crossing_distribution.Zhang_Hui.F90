@@ -83,9 +83,9 @@ contains
     makeTable=.not.tableInitialized.or.(variance > varianceMaximum).or.(time < timeMinimum).or.(time > timeMaximum)
     if (makeTable) then
        ! Construct the table of variance on which we will solve for the first crossing distribution.
-       if (allocated(varianceTable                )) call Dealloc_Array(varianceTable                )
-       if (allocated(timeTable                    )) call Dealloc_Array(timeTable                    )
-       if (allocated(firstCrossingProbabilityTable)) call Dealloc_Array(firstCrossingProbabilityTable)
+       if (allocated(varianceTable                )) call deallocateArray(varianceTable                )
+       if (allocated(timeTable                    )) call deallocateArray(timeTable                    )
+       if (allocated(firstCrossingProbabilityTable)) call deallocateArray(firstCrossingProbabilityTable)
        varianceMaximum   =max(varianceMaximum,variance)
        varianceTableCount=int(varianceMaximum*dble(varianceTableNumberPerUnit))
        if (tableInitialized) then
@@ -96,9 +96,9 @@ contains
           timeMaximum=2.0d0*time
        end if
        timeTableCount=int(log10(timeMaximum/timeMinimum)*dble(timeTableNumberPerDecade))+1
-       call Alloc_Array(varianceTable                ,[1+varianceTableCount]                 ,lowerBounds=[0  ])
-       call Alloc_Array(timeTable                                           ,[timeTableCount]                  )
-       call Alloc_Array(firstCrossingProbabilityTable,[1+varianceTableCount , timeTableCount],lowerBounds=[0,1])
+       call allocateArray(varianceTable                ,[1+varianceTableCount]                 ,lowerBounds=[0  ])
+       call allocateArray(timeTable                                           ,[timeTableCount]                  )
+       call allocateArray(firstCrossingProbabilityTable,[1+varianceTableCount , timeTableCount],lowerBounds=[0,1])
        varianceTable    =Make_Range(0.0d0,varianceMaximum,varianceTableCount+1,rangeType=rangeTypeLinear)
        varianceTableStep=varianceTable(1)-varianceTable(0)
        timeTable        =Make_Range(timeMinimum,timeMaximum,timeTableCount,rangeType=rangeTypeLogarithmic)

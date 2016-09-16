@@ -253,14 +253,14 @@ contains
                    currentAnalysis=currentAnalysis+1
                    massFunctions(currentAnalysis)%label=mergerTreeAnalyses(i)
                    ! Allocate arrays.
-                   call Alloc_Array(massFunctions(currentAnalysis)%masses                      ,[analysisHaloMassFunctionsMassBinsCount                                           ])
-                   call Alloc_Array(massFunctions(currentAnalysis)%massesLogarithmic           ,[analysisHaloMassFunctionsMassBinsCount                                           ])
-                   call Alloc_Array(massFunctions(currentAnalysis)%massesLogarithmicMinimum    ,[analysisHaloMassFunctionsMassBinsCount                                           ])
-                   call Alloc_Array(massFunctions(currentAnalysis)%massesLogarithmicMaximum    ,[analysisHaloMassFunctionsMassBinsCount                                           ])
-                   call Alloc_Array(massFunctions(currentAnalysis)%massFunction                ,[analysisHaloMassFunctionsMassBinsCount                                           ])
-                   call Alloc_Array(massFunctions(currentAnalysis)%massFunctionCovariance      ,[analysisHaloMassFunctionsMassBinsCount,analysisHaloMassFunctionsMassBinsCount    ])
-                   call Alloc_Array(massFunctions(currentAnalysis)%mainBranchHaloWeights       ,[analysisHaloMassFunctionsMassBinsCount,analysisHaloMassFunctionsHaloMassBinsCount])
-                   call Alloc_Array(massFunctions(currentAnalysis)%mainBranchHaloWeightsSquared,[analysisHaloMassFunctionsMassBinsCount,analysisHaloMassFunctionsHaloMassBinsCount])
+                   call allocateArray(massFunctions(currentAnalysis)%masses                      ,[analysisHaloMassFunctionsMassBinsCount                                           ])
+                   call allocateArray(massFunctions(currentAnalysis)%massesLogarithmic           ,[analysisHaloMassFunctionsMassBinsCount                                           ])
+                   call allocateArray(massFunctions(currentAnalysis)%massesLogarithmicMinimum    ,[analysisHaloMassFunctionsMassBinsCount                                           ])
+                   call allocateArray(massFunctions(currentAnalysis)%massesLogarithmicMaximum    ,[analysisHaloMassFunctionsMassBinsCount                                           ])
+                   call allocateArray(massFunctions(currentAnalysis)%massFunction                ,[analysisHaloMassFunctionsMassBinsCount                                           ])
+                   call allocateArray(massFunctions(currentAnalysis)%massFunctionCovariance      ,[analysisHaloMassFunctionsMassBinsCount,analysisHaloMassFunctionsMassBinsCount    ])
+                   call allocateArray(massFunctions(currentAnalysis)%mainBranchHaloWeights       ,[analysisHaloMassFunctionsMassBinsCount,analysisHaloMassFunctionsHaloMassBinsCount])
+                   call allocateArray(massFunctions(currentAnalysis)%mainBranchHaloWeightsSquared,[analysisHaloMassFunctionsMassBinsCount,analysisHaloMassFunctionsHaloMassBinsCount])
                    ! Initialize arrays.                                    
                    massFunctions(currentAnalysis)%masses                      =Make_Range(                                                                                                               &
                         &                                                                 analysisHaloMassFunctionsMassMinimum  *10.0**(+0.5d0/analysisHaloMassFunctionsMassIntervalLogarithmicInverse), &
@@ -337,8 +337,8 @@ contains
        end if
        ! Allocate workspace.
        if (.not.allocated(thisHalo(i)%massFunction)) then
-          call Alloc_Array(thisHalo(i)%massFunction,[analysisHaloMassFunctionsMassBinsCount])
-          call Alloc_Array(thisHalo(i)%covariance  ,[                                         &
+          call allocateArray(thisHalo(i)%massFunction,[analysisHaloMassFunctionsMassBinsCount])
+          call allocateArray(thisHalo(i)%covariance  ,[                                         &
                &                                     analysisHaloMassFunctionsMassBinsCount,  &
                &                                     analysisHaloMassFunctionsMassBinsCount   &
                &                                    ]                                         &

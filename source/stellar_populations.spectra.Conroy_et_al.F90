@@ -73,13 +73,13 @@ contains
     if (allocated(imfRead)) then
        if (size(imfRead) < imfIndex) then
           call Move_Alloc(imfRead,imfReadTemporary)
-          call Alloc_Array(imfRead,[imfIndex])
+          call allocateArray(imfRead,[imfIndex])
           imfRead(1:size(imfReadTemporary))=imfReadTemporary
           imfRead(size(imfReadTemporary)+1:size(imfRead))=.false.
-          call Dealloc_Array(imfReadTemporary)
+          call deallocateArray(imfReadTemporary)
        end if
     else
-       call Alloc_Array(imfRead,[imfIndex])
+       call allocateArray(imfRead,[imfIndex])
        imfRead=.false.
     end if
 

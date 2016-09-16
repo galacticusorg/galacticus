@@ -252,7 +252,7 @@ program Mocks_Correlation_Functions
   case (mockCorrelationFunctionRandomSampleCountMultiplicative)
      randomPointCount=int(mockCorrelationFunctionRandomSampleCountValue*dble(size(galaxyPosition,dim=2)))
   end select
-  call Alloc_Array(randomPosition,[3,randomPointCount])
+  call allocateArray(randomPosition,[3,randomPointCount])
   do i=1,3
      do j=1,randomPointCount
         randomPosition(i,j)=randomSequence%sample()*simulationBoxSize
@@ -303,8 +303,8 @@ program Mocks_Correlation_Functions
   case (mockCorrelationFunctionRandomSampleCountMultiplicative)
      randomPointCount=int(mockCorrelationFunctionRandomSampleCountValue*dble(replicatedGalaxyCount))
   end select
-  call Dealloc_Array(randomPosition                     )
-  call Alloc_Array  (randomPosition,[3,randomPointCount])
+  call deallocateArray(randomPosition                     )
+  call allocateArray  (randomPosition,[3,randomPointCount])
   do i=1,3
      do j=1,randomPointCount
         randomPosition(i,j)=(randomSequence%sample()-0.5d0)*dble(2*replications+1)*simulationBoxSize

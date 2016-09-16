@@ -109,8 +109,8 @@ contains
             &/stellarAstrophysics/Stellar_Properties_Compilation.xml')
 
        ! Allocate array to store number of entries in file for yield of each element.
-       call Alloc_Array(elementYieldCount,[Atomic_Data_Atoms_Count()])
-       call Alloc_Array(atomIndexMap     ,[Atomic_Data_Atoms_Count()])
+       call allocateArray(elementYieldCount,[Atomic_Data_Atoms_Count()])
+       call allocateArray(atomIndexMap     ,[Atomic_Data_Atoms_Count()])
 
        !$omp critical (FoX_DOM_Access)
        ! Open the XML file containing stellar properties.
@@ -174,18 +174,18 @@ contains
        end do
 
        ! Allocate arrays to store stellar properties.
-       call Alloc_Array(stellarLifetime           ,[lifetimeCount                        ])
-       call Alloc_Array(stellarLifetimeMass       ,[lifetimeCount                        ])
-       call Alloc_Array(stellarLifetimeMetallicity,[lifetimeCount                        ])
-       call Alloc_Array(ejectedMass               ,[ejectedMassCount                     ])
-       call Alloc_Array(ejectedMassMass           ,[ejectedMassCount                     ])
-       call Alloc_Array(ejectedMassMetallicity    ,[ejectedMassCount                     ])
-       call Alloc_Array(metalYield                ,[metalYieldCount                      ])
-       call Alloc_Array(metalYieldMass            ,[metalYieldCount                      ])
-       call Alloc_Array(metalYieldMetallicity     ,[metalYieldCount                      ])
-       call Alloc_Array(elementYield              ,[elementYieldCountMaximum,elementCount])
-       call Alloc_Array(elementYieldMass          ,[elementYieldCountMaximum,elementCount])
-       call Alloc_Array(elementYieldMetallicity   ,[elementYieldCountMaximum,elementCount])
+       call allocateArray(stellarLifetime           ,[lifetimeCount                        ])
+       call allocateArray(stellarLifetimeMass       ,[lifetimeCount                        ])
+       call allocateArray(stellarLifetimeMetallicity,[lifetimeCount                        ])
+       call allocateArray(ejectedMass               ,[ejectedMassCount                     ])
+       call allocateArray(ejectedMassMass           ,[ejectedMassCount                     ])
+       call allocateArray(ejectedMassMetallicity    ,[ejectedMassCount                     ])
+       call allocateArray(metalYield                ,[metalYieldCount                      ])
+       call allocateArray(metalYieldMass            ,[metalYieldCount                      ])
+       call allocateArray(metalYieldMetallicity     ,[metalYieldCount                      ])
+       call allocateArray(elementYield              ,[elementYieldCountMaximum,elementCount])
+       call allocateArray(elementYieldMass          ,[elementYieldCountMaximum,elementCount])
+       call allocateArray(elementYieldMetallicity   ,[elementYieldCountMaximum,elementCount])
 
        ! Loop over stars to process their properties.
        lifetimeCount    =0

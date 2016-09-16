@@ -49,13 +49,13 @@ function likelihoodPosteriorPriorConstructor(wrappedLikelihoodDefinition,chainBa
   likelihoodPosteriorPriorConstructor%neighborCount             =  neighborCount
   likelihoodPosteriorPriorConstructor%initialized               =  .false.
   if (present(exclusions)) then
-     call Alloc_Array(likelihoodPosteriorPriorConstructor%exclusions,shape(exclusions))    
+     call allocateArray(likelihoodPosteriorPriorConstructor%exclusions,shape(exclusions))    
      likelihoodPosteriorPriorConstructor%exclusions=exclusions
   else
-     call Alloc_Array(likelihoodPosteriorPriorConstructor%exclusions,[0])
+     call allocateArray(likelihoodPosteriorPriorConstructor%exclusions,[0])
   end if
-  call Alloc_Array(likelihoodPosteriorPriorConstructor%neighborIndices  ,[neighborCount])
-  call Alloc_Array(likelihoodPosteriorPriorConstructor%neighborDistances,[neighborCount])
+  call allocateArray(likelihoodPosteriorPriorConstructor%neighborIndices  ,[neighborCount])
+  call allocateArray(likelihoodPosteriorPriorConstructor%neighborDistances,[neighborCount])
   ! Read MCMC chains.
   iChain=-1
   do while (iChain < 10000)
@@ -70,7 +70,7 @@ function likelihoodPosteriorPriorConstructor(wrappedLikelihoodDefinition,chainBa
         open(newUnit=chainUnit,file=char(chainFileName),status='old',form='formatted',iostat=ioStatus)
         read (chainUnit,'(a)') line
         likelihoodPosteriorPriorConstructor%dimCount=String_Count_Words(line)-5
-        call Alloc_Array(likelihoodPosteriorPriorConstructor%included,[likelihoodPosteriorPriorConstructor%dimCount])
+        call allocateArray(likelihoodPosteriorPriorConstructor%included,[likelihoodPosteriorPriorConstructor%dimCount])
         likelihoodPosteriorPriorConstructor%dimCount=likelihoodPosteriorPriorConstructor%dimCount-size(likelihoodPosteriorPriorConstructor%exclusions)
         close(chainUnit)
      end if
@@ -97,8 +97,8 @@ function likelihoodPosteriorPriorConstructor(wrappedLikelihoodDefinition,chainBa
         close(chainUnit)
         ! Allocate storage for all converged points.
         likelihoodPosteriorPriorConstructor%convergedStateCount=likelihoodPosteriorPriorConstructor%convergedStateCount*chainCount
-        call Alloc_Array(likelihoodPosteriorPriorConstructor%states,     [likelihoodPosteriorPriorConstructor%convergedStateCount,likelihoodPosteriorPriorConstructor%dimCount])
-        call Alloc_Array(                                    state ,shape(                                                        likelihoodPosteriorPriorConstructor%included))
+        call allocateArray(likelihoodPosteriorPriorConstructor%states,     [likelihoodPosteriorPriorConstructor%convergedStateCount,likelihoodPosteriorPriorConstructor%dimCount])
+        call allocateArray(                                    state ,shape(                                                        likelihoodPosteriorPriorConstructor%included))
      end if
      open(newUnit=chainUnit,file=char(chainFileName),status='old',form='formatted',iostat=ioStatus)
      do while (ioStatus == 0)
@@ -137,9 +137,9 @@ subroutine likelihoodPosteriorPriorInitialize(self,parameterMappings)
      end do
   end do
   ! Estimate variance in each dimension.
-  call Alloc_Array(mean             ,[self%dimCount])
-  call Alloc_Array(meanSquared      ,[self%dimCount])
-  call Alloc_Array(self%rootVariance,[self%dimCount])
+  call allocateArray(mean             ,[self%dimCount])
+  call allocateArray(meanSquared      ,[self%dimCount])
+  call allocateArray(self%rootVariance,[self%dimCount])
   mean             =sum(self%states   ,dim=1)/dble(self%convergedStateCount)
   meanSquared      =sum(self%states**2,dim=1)/dble(self%convergedStateCount)
   self%rootVariance=sqrt(meanSquared-mean**2)  

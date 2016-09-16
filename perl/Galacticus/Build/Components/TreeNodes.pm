@@ -90,30 +90,6 @@ sub Build_Tree_Node_Class {
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
-	     name        => "initialize"                                                                                                      ,
-	     function    => "treeNodeInitialize"                                                                                              ,
-	     description => "Initialize this node (assigns a unique identifier, creates generic components)."                                 ,
-	     returnType  => "\\void"                                                                                                          ,
-	     arguments   => "\\textcolor{red}{\\textless integer(kind\\_int8)\\textgreater} index\\argin"
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "destroy"                                                                                                         ,
-	     function    => "treeNodeDestroy"                                                                                                 ,
-	     description => "Destroy this node."                                                                                              ,
-	     returnType  => "\\void"                                                                                                          ,
-	     arguments   => ""
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "componentBuilder"                                                                                                ,
-	     function    => "treeNodeComponentBuilder"                                                                                        ,
-	     description => "Build components in this node given an XML description of their properties."                                     ,
-	     returnType  => "\\void"                                                                                                          ,
-	     arguments   => "\\textcolor{red}{\\textless *type(node)\\textgreater} nodeDefinition\\argin"
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
 	     name        => "removeFromHost"                                                                                                  ,
 	     function    => "Tree_Node_Remove_From_Host"                                                                                      ,
 	     description => "Remove this node from the satellite population of its host halo."                                                ,

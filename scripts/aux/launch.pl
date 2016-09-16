@@ -51,14 +51,14 @@ if ( $arguments{"instance"} =~ m/(\d+):(\d+)/ ) {
 
 # Validate the launch method.
 die("launch.pl: unrecognized launch method")
-    unless ( exists($Hooks::moduleHooks{$launchScript->{'launchMethod'}}) );
-&{$Hooks::moduleHooks{$launchScript->{'launchMethod'}}->{'validate'}}($launchScript);
+    unless ( exists($Galacticus::Launch::Hooks::moduleHooks{$launchScript->{'launchMethod'}}) );
+&{$Galacticus::Launch::Hooks::moduleHooks{$launchScript->{'launchMethod'}}->{'validate'}}($launchScript);
 
 # Construct models.
 my @jobs = &Construct_Models($launchScript);
 
 # Launch models.
-&{$Hooks::moduleHooks{$launchScript->{'launchMethod'}}->{'launch'}}
+&{$Galacticus::Launch::Hooks::moduleHooks{$launchScript->{'launchMethod'}}->{'launch'}}
 		      (\@jobs,$launchScript);
 
 exit;
@@ -144,7 +144,7 @@ sub Construct_Models {
 		    }
 		    # Set the output file name.
 		    $parameters->{'galacticusOutputFileName'}->[0]->{'value'} 
-		        = &{$Hooks::moduleHooks{$launchScript->{'launchMethod'}}->{'outputFileName'}}
+		        = &{$Galacticus::Launch::Hooks::moduleHooks{$launchScript->{'launchMethod'}}->{'outputFileName'}}
 		           ($galacticusOutputFile,$launchScript);
 		    # Set the random seed.
 		    $parameters->{'randomSeed'}->[0]->{'value'} = $randomSeed 

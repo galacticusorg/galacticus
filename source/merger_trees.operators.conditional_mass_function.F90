@@ -257,7 +257,7 @@ contains
     !#   <type>logical</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
-    call Alloc_Array(parentRedshifts    ,[max(1,parameters%count('parentRedshifts'    ,zeroIfNotPresent=.true.))])
+    call allocateArray(parentRedshifts    ,[max(1,parameters%count('parentRedshifts'    ,zeroIfNotPresent=.true.))])
     !# <inputParameter>
     !#   <name>parentRedshifts</name>
     !#   <source>parameters</source>
@@ -266,7 +266,7 @@ contains
     !#   <type>real</type>
     !#   <cardinality>1..</cardinality>
     !# </inputParameter>
-    call Alloc_Array(progenitorRedshifts,[max(1,parameters%count('progenitorRedshifts',zeroIfNotPresent=.true.))])
+    call allocateArray(progenitorRedshifts,[max(1,parameters%count('progenitorRedshifts',zeroIfNotPresent=.true.))])
     !# <inputParameter>
     !#   <name>progenitorRedshifts</name>
     !#   <source>parameters</source>
@@ -390,20 +390,20 @@ contains
          &                                )                                                                                                                    &
          &      )     
     ! Allocate arrays.
-    call Alloc_Array(conditionalMFConstructorInternal%parentRedshifts    ,[conditionalMFConstructorInternal%timeCount        ])
-    call Alloc_Array(conditionalMFConstructorInternal%progenitorRedshifts,[conditionalMFConstructorInternal%timeCount        ])
-    call Alloc_Array(conditionalMFConstructorInternal%timeProgenitors    ,[conditionalMFConstructorInternal%timeCount        ])
-    call Alloc_Array(conditionalMFConstructorInternal%timeParents        ,[conditionalMFConstructorInternal%timeCount        ])
-    call Alloc_Array(conditionalMFConstructorInternal%massParents        ,[conditionalMFConstructorInternal%parentMassCount+1])
-    call Alloc_Array(conditionalMFConstructorInternal%massRatios         ,[conditionalMFConstructorInternal%massRatioCount +1])
-    call Alloc_Array(                                                                      &
+    call allocateArray(conditionalMFConstructorInternal%parentRedshifts    ,[conditionalMFConstructorInternal%timeCount        ])
+    call allocateArray(conditionalMFConstructorInternal%progenitorRedshifts,[conditionalMFConstructorInternal%timeCount        ])
+    call allocateArray(conditionalMFConstructorInternal%timeProgenitors    ,[conditionalMFConstructorInternal%timeCount        ])
+    call allocateArray(conditionalMFConstructorInternal%timeParents        ,[conditionalMFConstructorInternal%timeCount        ])
+    call allocateArray(conditionalMFConstructorInternal%massParents        ,[conditionalMFConstructorInternal%parentMassCount+1])
+    call allocateArray(conditionalMFConstructorInternal%massRatios         ,[conditionalMFConstructorInternal%massRatioCount +1])
+    call allocateArray(                                                                      &
          &            conditionalMFConstructorInternal%normalization                     , &
          &           [                                                                     &
          &            conditionalMFConstructorInternal%timeCount                         , &
          &            conditionalMFConstructorInternal%parentMassCount                     &
          &           ]                                                                     &
          &          )
-    call Alloc_Array(                                                                      &
+    call allocateArray(                                                                      &
          &            conditionalMFConstructorInternal%conditionalMassFunction           , &
          &           [                                                                     &
          &            conditionalMFConstructorInternal%timeCount                         , &
@@ -411,7 +411,7 @@ contains
          &            conditionalMFConstructorInternal%massRatioCount                      &
          &           ]                                                                     &
          &          )
-    call Alloc_Array(                                                                      &
+    call allocateArray(                                                                      &
          &            conditionalMFConstructorInternal%conditionalMassFunctionError      , &
          &           [                                                                     &
          &            conditionalMFConstructorInternal%timeCount                         , &
@@ -420,13 +420,13 @@ contains
          &           ]                                                                     &
          &          )
     if (conditionalMFConstructorInternal%extendedStatistics) then
-       call Alloc_Array(                                                                      &
+       call allocateArray(                                                                      &
             &            conditionalMFConstructorInternal%normalizationSubhaloMassFunction  , &
             &           [                                                                     &
             &            conditionalMFConstructorInternal%parentMassCount                     &
             &           ]                                                                     &
             &          )
-       call Alloc_Array(                                                                      &
+       call allocateArray(                                                                      &
             &            conditionalMFConstructorInternal%primaryProgenitorMassFunction     , &
             &           [                                                                     &
             &            conditionalMFConstructorInternal%timeCount                         , &
@@ -435,7 +435,7 @@ contains
             &            conditionalMFConstructorInternal%primaryProgenitorDepth              &
             &           ]                                                                     &
             &          )
-       call Alloc_Array(                                                                      &
+       call allocateArray(                                                                      &
             &            conditionalMFConstructorInternal%primaryProgenitorMassFunctionError, &
             &           [                                                                     &
             &            conditionalMFConstructorInternal%timeCount                         , &
@@ -444,7 +444,7 @@ contains
             &            conditionalMFConstructorInternal%primaryProgenitorDepth              &
             &           ]                                                                     &
             &          )
-       call Alloc_Array(                                                                      &
+       call allocateArray(                                                                      &
             &            conditionalMFConstructorInternal%formationRateFunction             , &
             &           [                                                                     &
             &            conditionalMFConstructorInternal%timeCount                         , &
@@ -453,7 +453,7 @@ contains
             &            2                                                                    &
             &           ]                                                                     &
             &          )
-       call Alloc_Array(                                                                      &
+       call allocateArray(                                                                      &
             &            conditionalMFConstructorInternal%formationRateFunctionError        , &
             &           [                                                                     &
             &            conditionalMFConstructorInternal%timeCount                         , &
@@ -462,7 +462,7 @@ contains
             &            2                                                                    &
             &           ]                                                                     &
             &          )
-       call Alloc_Array(                                                                      &
+       call allocateArray(                                                                      &
             &            conditionalMFConstructorInternal%subhaloMassFunction               , &
             &           [                                                                     &
             &            conditionalMFConstructorInternal%parentMassCount                   , &
@@ -470,7 +470,7 @@ contains
             &            conditionalMFConstructorInternal%subhaloHierarchyDepth               &
             &           ]                                                                     &
             &          )
-       call Alloc_Array(                                                                      &
+       call allocateArray(                                                                      &
             &            conditionalMFConstructorInternal%subhaloMassFunctionError          , &
             &           [                                                                     &
             &            conditionalMFConstructorInternal%parentMassCount                   , &
@@ -1415,20 +1415,20 @@ contains
     if (galacticusOutputFile%hasGroup(char(self%outputGroupName))) then
        ! Our group does exist. Read existing mass functions, add them to our own, then write back to file.
        conditionalMassFunctionGroup=galacticusOutputFile%openGroup(char(self%outputGroupName),'Conditional mass functions of merger trees.',objectsOverwritable=.true.,overwriteOverride=.true.)
-       call Alloc_Array(normalization               ,shape(self%normalization               ))
-       call Alloc_Array(conditionalMassFunction     ,shape(self%conditionalMassFunction     ))
-       call Alloc_Array(conditionalMassFunctionError,shape(self%conditionalMassFunctionError))
+       call allocateArray(normalization               ,shape(self%normalization               ))
+       call allocateArray(conditionalMassFunction     ,shape(self%conditionalMassFunction     ))
+       call allocateArray(conditionalMassFunctionError,shape(self%conditionalMassFunctionError))
        call conditionalMassFunctionGroup%readDataset('normalization'               ,normalization               )
        call conditionalMassFunctionGroup%readDataset('conditionalMassFunction'     ,conditionalMassFunction     )
        call conditionalMassFunctionGroup%readDataset('conditionalMassFunctionError',conditionalMassFunctionError)
        if (self%extendedStatistics) then
-          call Alloc_Array(normalizationSubhaloMassFunction  ,shape(self%normalizationSubhaloMassFunction  ))
-          call Alloc_Array(primaryProgenitorMassFunction     ,shape(self%primaryProgenitorMassFunction     ))
-          call Alloc_Array(primaryProgenitorMassFunctionError,shape(self%primaryProgenitorMassFunctionError))
-          call Alloc_Array(formationRateFunction             ,shape(self%formationRateFunction             ))
-          call Alloc_Array(formationRateFunctionError        ,shape(self%formationRateFunctionError        ))
-          call Alloc_Array(subhaloMassFunction               ,shape(self%subhaloMassFunction               ))
-          call Alloc_Array(subhaloMassFunctionError          ,shape(self%subhaloMassFunctionError          ))
+          call allocateArray(normalizationSubhaloMassFunction  ,shape(self%normalizationSubhaloMassFunction  ))
+          call allocateArray(primaryProgenitorMassFunction     ,shape(self%primaryProgenitorMassFunction     ))
+          call allocateArray(primaryProgenitorMassFunctionError,shape(self%primaryProgenitorMassFunctionError))
+          call allocateArray(formationRateFunction             ,shape(self%formationRateFunction             ))
+          call allocateArray(formationRateFunctionError        ,shape(self%formationRateFunctionError        ))
+          call allocateArray(subhaloMassFunction               ,shape(self%subhaloMassFunction               ))
+          call allocateArray(subhaloMassFunctionError          ,shape(self%subhaloMassFunctionError          ))
           call conditionalMassFunctionGroup%readDataset('normalizationSubhaloMassFunction'  ,normalizationSubhaloMassFunction  )
           call conditionalMassFunctionGroup%readDataset('primaryProgenitorMassFunction'     ,primaryProgenitorMassFunction     )
           call conditionalMassFunctionGroup%readDataset('primaryProgenitorMassFunctionError',primaryProgenitorMassFunctionError)
@@ -1468,17 +1468,17 @@ contains
        ! Accumulate normalizations.
        self                             %normalization                   =self%normalization                   +normalization
        if (self%extendedStatistics) self%normalizationSubhaloMassFunction=self%normalizationSubhaloMassFunction+normalizationSubhaloMassFunction
-       call    Dealloc_Array(normalization                     )
-       call    Dealloc_Array(conditionalMassFunction           )
-       call    Dealloc_Array(conditionalMassFunctionError      )
+       call    deallocateArray(normalization                     )
+       call    deallocateArray(conditionalMassFunction           )
+       call    deallocateArray(conditionalMassFunctionError      )
        if (self%extendedStatistics) then
-          call Dealloc_Array(normalizationSubhaloMassFunction  )
-          call Dealloc_Array(primaryProgenitorMassFunction     )
-          call Dealloc_Array(primaryProgenitorMassFunctionError)
-          call Dealloc_Array(formationRateFunction             )
-          call Dealloc_Array(formationRateFunctionError        )
-          call Dealloc_Array(subhaloMassFunction               )
-          call Dealloc_Array(subhaloMassFunctionError          )
+          call deallocateArray(normalizationSubhaloMassFunction  )
+          call deallocateArray(primaryProgenitorMassFunction     )
+          call deallocateArray(primaryProgenitorMassFunctionError)
+          call deallocateArray(formationRateFunction             )
+          call deallocateArray(formationRateFunctionError        )
+          call deallocateArray(subhaloMassFunction               )
+          call deallocateArray(subhaloMassFunctionError          )
        end if
     else
        ! Our group does not already exist. Simply write the data.
@@ -1493,12 +1493,12 @@ contains
        call conditionalMassFunctionGroup%writeDataset  (self%progenitorRedshifts               ,"redshiftProgenitor"                ,"Redshift of progenitor node []"                                        )
     end if
     ! Create weight datasets.
-    call    Alloc_Array(conditionalMassFunctionWeight      ,shape(self%conditionalMassFunction      ))
+    call    allocateArray(conditionalMassFunctionWeight      ,shape(self%conditionalMassFunction      ))
     conditionalMassFunctionWeight         =0.0d0
     if (self%extendedStatistics) then
-       call Alloc_Array(primaryProgenitorMassFunctionWeight,shape(self%primaryProgenitorMassFunction))
-       call Alloc_Array(formationRateFunctionWeight        ,shape(self%formationRateFunction        ))
-       call Alloc_Array(subhaloMassFunctionWeight          ,shape(self%subhaloMassFunction          ))
+       call allocateArray(primaryProgenitorMassFunctionWeight,shape(self%primaryProgenitorMassFunction))
+       call allocateArray(formationRateFunctionWeight        ,shape(self%formationRateFunction        ))
+       call allocateArray(subhaloMassFunctionWeight          ,shape(self%subhaloMassFunction          ))
        primaryProgenitorMassFunctionWeight=0.0d0
        formationRateFunctionWeight        =0.0d0
        subhaloMassFunctionWeight          =0.0d0
@@ -1555,11 +1555,11 @@ contains
     call galacticusOutputFile        %flush         (                                                                                                                                                     )
     !$omp end critical(HDF5_Access)
     ! Deallocate weight arrays.
-    call Dealloc_Array(conditionalMassFunctionWeight      )
+    call deallocateArray(conditionalMassFunctionWeight      )
     if (self%extendedStatistics) then
-       call Dealloc_Array(primaryProgenitorMassFunctionWeight)
-       call Dealloc_Array(formationRateFunctionWeight        )
-       call Dealloc_Array(subhaloMassFunctionWeight          )
+       call deallocateArray(primaryProgenitorMassFunctionWeight)
+       call deallocateArray(formationRateFunctionWeight        )
+       call deallocateArray(subhaloMassFunctionWeight          )
     end if
     return
   end subroutine conditionalMFFinalize

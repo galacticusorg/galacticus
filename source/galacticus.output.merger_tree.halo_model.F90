@@ -257,8 +257,8 @@ contains
        wavenumberCount=int(log10(haloModelWavenumberMaximum/haloModelWavenumberMinimum)*dble(haloModelWavenumberPointsPerDecade))+1
 
        ! Allocate arrays for power spectrum.
-       call Alloc_Array(wavenumber        ,[wavenumberCount])
-       call Alloc_Array(powerSpectrumValue,[wavenumberCount])
+       call allocateArray(wavenumber        ,[wavenumberCount])
+       call allocateArray(powerSpectrumValue,[wavenumberCount])
 
        ! Build a grid of wavenumbers.
        wavenumber=Make_Range(haloModelWavenumberMinimum,haloModelWavenumberMaximum,wavenumberCount,rangeType=rangeTypeLogarithmic)
@@ -296,7 +296,7 @@ contains
        !$omp end critical (HDF5_Access)
 
        ! Deallocate arrays.
-       call Dealloc_Array(powerSpectrumValue)
+       call deallocateArray(powerSpectrumValue)
 
        ! Close the halo model group.
        !$omp critical (HDF5_Access)
@@ -392,7 +392,7 @@ contains
     nodeExistsInOutput=treeGroup%hasDataset(char(dataSetName))
     if (.not.nodeExistsInOutput) then
        ! Allocate array to store profile.
-       call Alloc_Array(fourierProfile,[wavenumberCount])
+       call allocateArray(fourierProfile,[wavenumberCount])
        ! Get the basic component.
        thisBasicComponent => hostNode%basic()
        ! Get the default cosmology functions object.
@@ -407,7 +407,7 @@ contains
        ! Write dataset to the group.
        call treeGroup%writeDataset(fourierProfile,char(dataSetName),"The Fourier-space density profile.")
        ! Deallocate profile array.
-       call Dealloc_Array(fourierProfile)
+       call deallocateArray(fourierProfile)
     end if
     ! Close the profile group.
     call treeGroup    %close()

@@ -439,17 +439,17 @@ contains
                               &                                                             blackHoleDistributions(currentAnalysis)%blackHoleMassesCount, &
                               &                                                             rangeTypeLogarithmic                                          &
                               &                                                            )                         
-                         call Alloc_Array(blackHoleDistributions(currentAnalysis)%         massesLogarithmic         ,[                                                             blackHoleDistributions(currentAnalysis)%massesCount                                                    ])
-                         call Alloc_Array(blackHoleDistributions(currentAnalysis)%         massesLogarithmicMinimum  ,[                                                             blackHoleDistributions(currentAnalysis)%massesCount                                                    ])
-                         call Alloc_Array(blackHoleDistributions(currentAnalysis)%         massesLogarithmicMaximum  ,[                                                             blackHoleDistributions(currentAnalysis)%massesCount                                                    ])
-                         call Alloc_Array(blackHoleDistributions(currentAnalysis)%blackHoleMassesLogarithmic         ,[blackHoleDistributions(currentAnalysis)%blackHoleMassesCount                                                                                                        ])
-                         call Alloc_Array(blackHoleDistributions(currentAnalysis)%blackHoleMassesLogarithmicMinimum  ,[blackHoleDistributions(currentAnalysis)%blackHoleMassesCount                                                                                                        ])
-                         call Alloc_Array(blackHoleDistributions(currentAnalysis)%blackHoleMassesLogarithmicMaximum  ,[blackHoleDistributions(currentAnalysis)%blackHoleMassesCount                                                                                                        ])
-                         call Alloc_Array(blackHoleDistributions(currentAnalysis)%blackHoleMassDistribution          ,[blackHoleDistributions(currentAnalysis)%blackHoleMassesCount,blackHoleDistributions(currentAnalysis)%massesCount                                                    ])
-                         call Alloc_Array(blackHoleDistributions(currentAnalysis)%blackHoleMassDistributionWeights   ,[                                                             blackHoleDistributions(currentAnalysis)%massesCount                                                    ])
-                         call Alloc_Array(blackHoleDistributions(currentAnalysis)%mainBranchGalaxyWeights            ,[blackHoleDistributions(currentAnalysis)%blackHoleMassesCount,blackHoleDistributions(currentAnalysis)%massesCount,analysisBlackHoleMassDistributionsHaloMassBinsCount])
-                         call Alloc_Array(blackHoleDistributions(currentAnalysis)%mainBranchGalaxyWeightsSquared     ,[blackHoleDistributions(currentAnalysis)%blackHoleMassesCount,blackHoleDistributions(currentAnalysis)%massesCount,analysisBlackHoleMassDistributionsHaloMassBinsCount])
-                         call Alloc_Array(blackHoleDistributions(currentAnalysis)%blackHoleMassDistributionCovariance,[                                                                                                                                                                       &
+                         call allocateArray(blackHoleDistributions(currentAnalysis)%         massesLogarithmic         ,[                                                             blackHoleDistributions(currentAnalysis)%massesCount                                                    ])
+                         call allocateArray(blackHoleDistributions(currentAnalysis)%         massesLogarithmicMinimum  ,[                                                             blackHoleDistributions(currentAnalysis)%massesCount                                                    ])
+                         call allocateArray(blackHoleDistributions(currentAnalysis)%         massesLogarithmicMaximum  ,[                                                             blackHoleDistributions(currentAnalysis)%massesCount                                                    ])
+                         call allocateArray(blackHoleDistributions(currentAnalysis)%blackHoleMassesLogarithmic         ,[blackHoleDistributions(currentAnalysis)%blackHoleMassesCount                                                                                                        ])
+                         call allocateArray(blackHoleDistributions(currentAnalysis)%blackHoleMassesLogarithmicMinimum  ,[blackHoleDistributions(currentAnalysis)%blackHoleMassesCount                                                                                                        ])
+                         call allocateArray(blackHoleDistributions(currentAnalysis)%blackHoleMassesLogarithmicMaximum  ,[blackHoleDistributions(currentAnalysis)%blackHoleMassesCount                                                                                                        ])
+                         call allocateArray(blackHoleDistributions(currentAnalysis)%blackHoleMassDistribution          ,[blackHoleDistributions(currentAnalysis)%blackHoleMassesCount,blackHoleDistributions(currentAnalysis)%massesCount                                                    ])
+                         call allocateArray(blackHoleDistributions(currentAnalysis)%blackHoleMassDistributionWeights   ,[                                                             blackHoleDistributions(currentAnalysis)%massesCount                                                    ])
+                         call allocateArray(blackHoleDistributions(currentAnalysis)%mainBranchGalaxyWeights            ,[blackHoleDistributions(currentAnalysis)%blackHoleMassesCount,blackHoleDistributions(currentAnalysis)%massesCount,analysisBlackHoleMassDistributionsHaloMassBinsCount])
+                         call allocateArray(blackHoleDistributions(currentAnalysis)%mainBranchGalaxyWeightsSquared     ,[blackHoleDistributions(currentAnalysis)%blackHoleMassesCount,blackHoleDistributions(currentAnalysis)%massesCount,analysisBlackHoleMassDistributionsHaloMassBinsCount])
+                         call allocateArray(blackHoleDistributions(currentAnalysis)%blackHoleMassDistributionCovariance,[                                                                                                                                                                       &
                               &                                                                                        blackHoleDistributions(currentAnalysis)%blackHoleMassesCount*blackHoleDistributions(currentAnalysis)%massesCount,                                                      &
                               &                                                                                        blackHoleDistributions(currentAnalysis)%blackHoleMassesCount*blackHoleDistributions(currentAnalysis)%massesCount                                                       &
                               &                                                                                       ]                                                                                                                                                                       &
@@ -547,8 +547,8 @@ contains
                          call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_BH_Dstrbtins','unknown black hole mass function')
                       end select
                       ! Get cosmological conversion factors.
-                      call Alloc_Array(blackHoleDistributions(currentAnalysis)%cosmologyConversionMass         ,[Galacticus_Output_Time_Count()])
-                      call Alloc_Array(blackHoleDistributions(currentAnalysis)%cosmologyConversionBlackHoleMass,[Galacticus_Output_Time_Count()])
+                      call allocateArray(blackHoleDistributions(currentAnalysis)%cosmologyConversionMass         ,[Galacticus_Output_Time_Count()])
+                      call allocateArray(blackHoleDistributions(currentAnalysis)%cosmologyConversionBlackHoleMass,[Galacticus_Output_Time_Count()])
                       do jOutput=1,Galacticus_Output_Time_Count()
                          redshift=                                                                                      &
                               &   cosmologyFunctionsModel %redshiftFromExpansionFactor(                                 &
@@ -573,7 +573,7 @@ contains
                       end do
                       nullify(cosmologyParametersObserved)
                       ! Compute output weights for black hole mass distribution.
-                      call Alloc_Array(blackHoleDistributions(currentAnalysis)%outputWeight,[int(blackHoleDistributions(currentAnalysis)%massesCount,kind=c_size_t),Galacticus_Output_Time_Count()])
+                      call allocateArray(blackHoleDistributions(currentAnalysis)%outputWeight,[int(blackHoleDistributions(currentAnalysis)%massesCount,kind=c_size_t),Galacticus_Output_Time_Count()])
                       blackHoleDistributions(currentAnalysis)%outputWeight=0.0d0
                       do k=1,blackHoleDistributions(currentAnalysis)%massesCount
                          do jOutput=1,Galacticus_Output_Time_Count()
@@ -664,8 +664,8 @@ contains
        ! Cycle if this black hole mass distribution receives no contribution from this output.
        if (all(blackHoleDistributions(i)%outputWeight(:,iOutput) <= 0.0d0)) cycle
        ! Allocate workspace.
-       if (.not.allocated(thisGalaxy(i)%blackHoleMassDistribution       )) call Alloc_Array(thisGalaxy(i)%blackHoleMassDistribution       ,[blackHoleDistributions(i)%blackHoleMassesCount,blackHoleDistributions(i)%massesCount])
-       if (.not.allocated(thisGalaxy(i)%blackHoleMassDistributionWeights)) call Alloc_Array(thisGalaxy(i)%blackHoleMassDistributionWeights,[                                               blackHoleDistributions(i)%massesCount])
+       if (.not.allocated(thisGalaxy(i)%blackHoleMassDistribution       )) call allocateArray(thisGalaxy(i)%blackHoleMassDistribution       ,[blackHoleDistributions(i)%blackHoleMassesCount,blackHoleDistributions(i)%massesCount])
+       if (.not.allocated(thisGalaxy(i)%blackHoleMassDistributionWeights)) call allocateArray(thisGalaxy(i)%blackHoleMassDistributionWeights,[                                               blackHoleDistributions(i)%massesCount])
        ! Filter the galaxy.
        if (.not.blackHoleDistributions(i)%descriptor%filter%passes(thisNode)) cycle
        ! Get the spheroid hole mass.

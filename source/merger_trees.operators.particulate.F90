@@ -355,9 +355,9 @@ contains
              ! Determine the actual number of particles to use to represent the node.
              particleCountActual=Poisson_Random_Get(pseudoSequenceObject,particleCountMean,pseudoSequenceReset)
              ! Allocate space for particle data.
-             call Alloc_Array(particlePosition,[3,particleCountActual])
-             call Alloc_Array(particleVelocity,[3,particleCountActual])
-             call Alloc_Array(particleIDs     ,[  particleCountActual])
+             call allocateArray(particlePosition,[3,particleCountActual])
+             call allocateArray(particleVelocity,[3,particleCountActual])
+             call allocateArray(particleIDs     ,[  particleCountActual])
              ! Get required components.
              position  => node%position ()
              satellite => node%satellite()
@@ -524,9 +524,9 @@ contains
              call particleGroup%writeDataset(particleVelocity,'Velocities' ,'Particle velocities' ,appendTo=.true.,appendDimension=2)
              call particleGroup%writeDataset(particleIDs     ,'ParticleIDs','Particle IDs'        ,appendTo=.true.                  )
              call particleGroup%close()
-             call Dealloc_Array(particlePosition)
-             call Dealloc_Array(particleVelocity)
-             call Dealloc_Array(particleIDs     )
+             call deallocateArray(particlePosition)
+             call deallocateArray(particleVelocity)
+             call deallocateArray(particleIDs     )
              ! Update particle counts.
              particleCounts(2)=particleCounts(2)+particleCountActual
              call header%writeAttribute(particleCounts,'NumPart_ThisFile')

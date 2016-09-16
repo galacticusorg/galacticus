@@ -69,7 +69,7 @@ close($makefile);
 # Extract any preprocessor directives specified via the GALACTICUS_FCFLAGS environment variable.
 push(@preprocessorDirectives,map {$_ =~ m/\-D([0-9A-Z]+)/ ? $1 : ()} split(" ",$ENV{"GALACTICUS_FCFLAGS"}));
 # Open the output dependencies file
-open(my $dependenciesFile,">".$workDirectoryName."Makefile_Use_Deps");
+open(my $dependenciesFile,">".$workDirectoryName."Makefile_Use_Dependencies");
 # Build a list of source directories (including all sub-directories of the main directory).
 my @sourceDirectoryNames  = ( $rootSourceDirectoryName."/source" );
 if ( -e $sourceDirectoryNames[0] ) {

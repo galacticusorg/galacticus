@@ -118,13 +118,49 @@ Files generated during the build (with the exception of final executables) are w
 
 \subsection{Automatic Discovery}
 
+Interdependencies between source files, together with requirements for auto-generated code are automatically discovered during the build process by processing of source files. All such automatic discovery is described below.
+
+\subsubsection{Code Directive Parsing}\label{sec:buildDiscoveryDirectives}
+
+The modular nature of \glc\ is enabled through the use of directives embedded within the source code (XML documents embedded as comment lines starting with a special tag) which instruct the build system how to link together the various functions. Parsing of these directives is handled by the {\normalfont \ttfamily codeDirectivesParse.pl}\index{codeDirectivesParse.pl@{\normalfont \ttfamily codeDirectivesParse.pl}} script.
+
+For {\normalfont \ttfamily include} directives (which generate files that get included into the source), the script generates {\normalfont \ttfamily \$(BUILDPATH)/*.xml} files which describe the directive, and {\normalfont \ttfamily \$(BUILDPATH)/Makefile\_Directives} which contains rules for building those include files.
+
+The script also outputs a file {\normalfont \ttfamily \$(BUILDPATH)/directiveLocations.xml} which provides list of files that contain each directive. This is used by other scripts to permit rapid processing of files associated with each directive.
+
+\subsubsection{Allocatable Arrays}\label{sec:buildDiscoverAllocatables}
+
+Types and ranks of allocatable arrays required by the \glc\ are discovered by the {\normalfont \ttfamily allocatableArrays.pl}\index{allocatableArrays.pl@{\normalfont \ttfamily allocatableArrays.pl}} script. Source files are parsed for dimensionful, allocatable intrinsic types. All such combinations of type and rank are stored to a file {\normalfont \ttfamily \$(BUILDPATH)/allocatableArrays.xml}. The content of this file is later used to build appropriate memory allocation and deallocation functions (see \S\ref{sec:buildGenerationMemory}).
+
 \subsubsection{Executable Files}\index{files!executable}\index{executable files}\label{sec:buildExecutables}
 
 Files which produce executables (including the {\normalfont \ttfamily Galacticus.exe} executable) are discovered by the {\normalfont \ttfamily scripts/build/findExecutables.pl}\index{findExecutables.pl@{\normalfont \ttfamily findExecutables.pl}} script, which generates rules describing how these files should be built, along with all of their dependencies, and writes them to {\normalfont \ttfamily \$(BUILDPATH)/Makefile\_All\_Execs}\index{Makefile_All_Execs@{\normalfont \ttfamily Makefile\_All\_Execs}}. All Fortran files in the {\normalfont \ttfamily source} directory are parsed, and executable files are identified as those containing a {\normalfont \ttfamily program} statement. All executables so identified are also added to the list of objects that will be built by {\normalfont \ttfamily make all}.
 
+\subsubsection{Modules Provided}\index{modules!provided}\index{provided modules}\label{sec:buildModulesProvided}
+
+Determination of which files provide which Fortran modules is carried out by the {\normalfont \ttfamily scripts/build/moduleDependencies.pl}\index{moduleDependencies.pl@{\normalfont \ttfamily moduleDependencies.pl}} script, which generates rules describing these dependencies (and how to build the module file by compiling the corresponding source file) and writes them to {\normalfont \ttfamily \$(BUILDPATH)/Makefile\_Module\_Dependencies}\index{Makefile_Module_Dependencies@{\normalfont \ttfamily Makefile\_Module\_Dependencies}}.
+
+Additionally, rules are generated which describe how to build the following classes of file:
+\begin{description}
+\item[{\normalfont \ttfamily *.mod.d}] Contains a list of all object files upon which the module depends. Used in constructing the final set of objects which must be linked to build an executable.
+\item[{\normalfont \ttfamily *.mod.gv}] Contains a list of all source files upon which the module depends. Used in constructing \gls{graphviz} visualizations of dependencies.
+\item[{\normalfont \ttfamily *.m}] Contains a list of all modules provided by the corresponding object file. Used when building object files to test whether corresponding module files have been changed---allows avoidance of recompilation cascades if modules do not need to be updated (i.e. if the modules do not differ as judged by the {\normalfont \ttfamily scripts/build/compareModules.pl}\index{findExecutables.pl@{\normalfont \ttfamily compareModules.pl}} script).
+\end{description}
+
+\subsubsection{Modules Used}\index{modules!used}\index{used modules}\label{sec:buildModulesUsed}
+
+Determination of which files use which Fortran modules is carried out by the {\normalfont \ttfamily scripts/build/useDependencies.pl}\index{useDependencies.pl@{\normalfont \ttfamily useDependencies.pl}} script, which generates rules describing these dependencies and writes them to {\normalfont \ttfamily \$(BUILDPATH)/Makefile\_Use\_Dependencies}\index{Makefile_Use_Dependencies@{\normalfont \ttfamily Makefile\_Use\_Dependencies}}.
+
+Additionally, rules are generated which describe how to build the following classes of file:
+\begin{description}
+\item[{\normalfont \ttfamily *.d}] Contains a list of all object files upon which each object file depends. Used in constructing the final set of objects which must be linked to build an executable.
+\item[{\normalfont \ttfamily *.gv}] Contains a list of all source files upon which each file depends by virtue of {\normalfont \ttfamily use} statements. Used in constructing \gls{graphviz} visualizations of dependencies.
+\item[{\normalfont \ttfamily *.fl}] Contains a list of libraries upon which each object file depends. Used in constructing the final set of libraries which must be linked with the executable.
+\end{description}
+
 \subsubsection{Included Files}\index{files!include}\index{include files}\label{sec:buildIncludeDeps}
 
-Dependencies on files due to the use of ``{\normalfont \ttfamily include}'' statements (in both Fortran and C source files) are discovered by the {\normalfont \ttfamily scripts/build/includeDependencies.pl}\index{includeDependencies.pl@{\normalfont \ttfamily includeDependencies.pl}} script, which generates rules describing these dependencies and writes them to {\normalfont \ttfamily \$(BUILDPATH)/Makefile\_Include\_Deps}\index{Makefile_Include_Deps@{\normalfont \ttfamily Makefile\_Include\_Deps}}.
+Dependencies on files due to the use of ``{\normalfont \ttfamily include}'' statements (in both Fortran and C source files) are discovered by the {\normalfont \ttfamily scripts/build/includeDependencies.pl}\index{includeDependencies.pl@{\normalfont \ttfamily includeDependencies.pl}} script, which generates rules describing these dependencies and writes them to {\normalfont \ttfamily \$(BUILDPATH)/Makefile\_Include\_Dependencies}\index{Makefile_Include_Dependencies@{\normalfont \ttfamily Makefile\_Include\_Dependencies}}.
 
 All Fortran and C/C++ source files in the {\normalfont \ttfamily source} directory are parsed. Files specified in any include statement in a source file are added as a dependency of that source file if unless the source file is C/C++ and the named include file can be found in either {\normalfont \ttfamily source/}, a standard system include path, or in any include path specified in the {\normalfont \ttfamily GALACTICUS\_CFLAGS}\index{environment variables!GALACTICUS_CFLAGS@{\normalfont \ttfamily GALACTICUS\_CFLAGS}}\index{GALACTICUS_CFLAGS@{\normalfont \ttfamily GALACTICUS\_CFLAGS}} or {\normalfont \ttfamily GALACTICUS\_CPPFLAGS}\index{environment variables!GALACTICUS_CPPFLAGS@{\normalfont \ttfamily GALACTICUS\_CPPFLAGS}}\index{GALACTICUS_CPPFLAGS@{\normalfont \ttfamily GALACTICUS\_CPPFLAGS}} environment variables.
 
@@ -132,18 +168,120 @@ All Fortran and C/C++ source files in the {\normalfont \ttfamily source} directo
 
 All runtime parameters upon which a given executable may depend are discovered by the {\normalfont \ttfamily scripts/build/parameterDependencies.pl}\index{parameterDependencies.pl@{\normalfont \ttfamily parameterDependencies.pl}} script, which generates XML files listing these parameters and writes them to {\normalfont \ttfamily \$(BUILDPATH)/\textless executableName\textgreater.parameters.xml}\index{*.parameters.xml@{\normalfont \ttfamily *.parameters.xml}}. All Fortran and C++ files in the {\normalfont \ttfamily source} directory are parsed, and embedded parameter definitions (i.e. embedded XML blocks in lines beginning ``!\@'' for Fortran or ``//\@'' for C++ with root element {\normalfont \ttfamily inputParameter}) are identified. Any files included into a source file are also searched. In the case of Fortran source files, {\normalfont \ttfamily source/*.F90}, the corresponding preprocessed file, {\normalfont \ttfamily \$(BUILDPATH)/*.p.F90}, will be searched for parameter dependencies.
 
+\subsection{Code Generation}
+
+During build, code is generated automatically. Much of this is to link together functions within \glc\ (thereby permitting the modular nature of \glc), but also includes generation of various utility functions. All code generation is described below.
+
+\subsubsection{Memory Management Functions}\label{sec:buildGenerationMemory}
+
+Functions for allocation and deallocation of intrinsic-type arrays are generated by the {\normalfont \ttfamily memoryManagementFunctions.pl}\index{memoryManagementFunctions.pl@{\normalfont \ttfamily memoryManagementFunctions.pl}} script. Utilizing the list of such types in the {\normalfont \ttfamily \$(BUILDPATH)/allocatableArrays.xml} file (see \S\ref{sec:buildDiscoverAllocatables}) overloaded functions are created for each type. These memory management functions keep track of the total amount of memory allocated.
+
+{\normalfont \ttfamily memoryManagementFunctions.pl}\index{memoryManagementFunctions.pl@{\normalfont \ttfamily memoryManagementFunctions.pl}}
+ 
+\subsubsection{Unique Label Functions}
+
+Construction of functions which provide unique labelling (see \S\ref{sec:codeUniqueLabels}) is carried out by the {\normalfont \ttfamily uniqueLabelFunctions.pl}\index{uniqueLabelFunctions.pl@{\normalfont \ttfamily uniqueLabelFunctions.pl}} script. One such function is constructed for every instance of a {\normalfont \ttfamily uniqueLabel} directive embedded in the source code. This function is constructed as follows:
+\begin{enumerate}
+\item Find all files on which the file with the embedded {\normalfont \ttfamily uniqueLabel} depends. (These are the ``dependent files''.)
+\item Scan those files for instances of input parameters being read in.
+\item Append the name of that parameter and its value (or default value) to the return value of the function on the following conditions:
+\begin{enumerate}
+ \item For parameters not part of a Galacticus method, always append the parameter;
+ \item For parameters part of an old-style Galacticus method, append the parameter only if the specific implementation of the method to which it belongs is selected at run time;
+ \item For parameters part of a new-style Galacticus method, append the parameter only if the specific implementation:
+\begin{enumerate}
+  \item is directly used by any dependent file;
+  \item is used indirectly by virtue of being extended by some other implementation that is directly or indirectly used by any dependent file;
+  \item if any dependent file uses the default implementation, and the appropriate implementation to which the parameter belongs is selected at run time.
+\end{enumerate}
+\end{enumerate}
+\item Additionally, when appending parameters from a file, also append an MD5 digest of the file (with included files included inline, comments and leading/trailing whitespace stripped) if the appropriate option is selected in the function  call. Include in this digest any XML or HDF5 file in the data/ directory that the file accesses. Also append an MD5 digest of any other files explicitly requested in the {\normalfont \ttfamily uniqueLabel} directive.
+\end{enumerate}
+
+\subsubsection{Directives}\label{sec:codeBuildIncludeDirectives}
+
+Generation of code to implement the functionality of {\normalfont \ttfamily include} directives is carried out by the {\normalfont \ttfamily buildCode.pl}\index{buildCode.pl@{\normalfont \ttfamily buildCode.pl}} script. This script simply reads an XML file generated by the {\normalfont \ttfamily codeDirectivesParse.pl} (see \S\ref{sec:buildDiscoveryDirectives}), calls the appropriate function to generate the necessary code, passes this through the preprocessor (see \S\ref{sec:sourceTreePreprocessor}), and outputs the result to the appropriate include file.
+
+\subsubsection{Pre- and Post-processing}\label{sec:codeBuildPrePostProcess}
+
+Before being compiled, all Fortran source files are passed through a tree-based preprocessor. The functionality of this preprocessor is described in \S\ref{sec:sourceTreePreprocessor}. The preprocessor is invoked on each source file by the {\normalfont \ttfamily preprocess.pl}\index{preprocess.pl@{\normalfont \ttfamily preprocess.pl}} script, which takes a {\normalfont \ttfamily source/*.F90} file as input and outputs a preprocessed file {\normalfont \ttfamily \$(BUILDPATH)/*.p.F90}.
+
+Output from the {\normalfont \ttfamily gfortran} compiler is directed through the {\normalfont \ttfamily postprocess.pl}\index{postprocess.pl@{\normalfont \ttfamily postprocess.pl}} script. This script currently performs the following functions:
+\begin{itemize}
+\item Builds a map from line numbers in the preprocessed source file back to line numbers in the unpreprocessed source, and translates line numbers in any error or warnings messages from the compiler into line numbers in the unpreprocessed source;
+\item Filters out incorrect warning messages about the lack of scalar finalizers (see GCC \href{https://gcc.gnu.org/bugzilla/show_bug.cgi?id=58175}{PR58175});
+\item Checks for unused function attributes in the source and filters out warnings about these unused functions.
+\end{itemize}
+
 \subsection{Build Files}
 
+All files involved in the build process are summarized below.
+
 \begin{description}
+
+\item[{\normalfont \ttfamily scripts/build/allocatableArrays.pl}\index{allocatableArrays.pl@{\normalfont \ttfamily allocatableArrays.pl}}:] Discovers dimensionful, allocatable, intrinsic-typed arrays in the source code, and generates a summary of their types and ranks to the file {\normalfont \ttfamily \$(BUILDPATH)/allocatableArrays.xml} (see \S\ref{sec:buildDiscoverAllocatables});
+  
+\item[{\normalfont \ttfamily scripts/build/buildCode.pl}\index{buildCode.pl@{\normalfont \ttfamily buildCode.pl}}:] Acts upon {\normalfont \ttfamily include} directives embedded in the source code and generates the corresponding include file (see \S\ref{sec:codeBuildIncludeDirectives});
+
+\item[{\normalfont \ttfamily scripts/build/codeDirectivesParse.pl}\index{codeDirectivesParse.pl@{\normalfont \ttfamily codeDirectivesParse.pl}}:] Discovers and parses directives embedded in source files. Generates {\normalfont \ttfamily make} rules for the resulting dependencies, a file providing a mapping of which files contain each directive, and rule files describing how to build each include file resulting from a {\normalfont \ttfamily include} directive;
+
+\item[{\normalfont \ttfamily scripts/build/compareModuleFiles.pl}\index{compareModuleFiles.pl@{\normalfont \ttfamily compareModuleFiles.pl}}:] Tests whether two Fortran module files are identical (ignoring timestamp information). Used to avoid updating modules when not necessary and so avoids recompilation cascades;
+
 \item[{\normalfont \ttfamily scripts/build/includeDependencies.pl}\index{includeDependencies.pl@{\normalfont \ttfamily includeDependencies.pl}}:] Discovers (and generates rules for) dependencies between files arising from the use of ``{\normalfont \ttfamily include}'' statements (see \S\ref{sec:buildIncludeDeps});
   
-  \item[{\normalfont \ttfamily \normalfont \ttfamily scripts/build/executableSize.pl\index{executableSize.pl@{\normalfont \ttfamily executableSize.pl}}}:] Generates a file containing details of the size of each generated executable which can be used at runtime for memory reporting (see \S\ref{sec:buildExecutables});
+\item[{\normalfont \ttfamily \normalfont \ttfamily scripts/build/executableSize.pl\index{executableSize.pl@{\normalfont \ttfamily executableSize.pl}}}:] Generates a file containing details of the size of each generated executable which can be used at runtime for memory reporting (see \S\ref{sec:buildExecutables});
 
 \item[{\normalfont \ttfamily \normalfont \ttfamily scripts/build/findExecutables.pl\index{findExecutables.pl@{\normalfont \ttfamily findExecutables.pl}}}:] Discovers (and generates rules for) files which generate executables (see \S\ref{sec:buildExecutables});
 
-\item[{\normalfont \ttfamily \$(BUILDPATH)/Makefile\_Include\_Deps}\index{Makefile_Include_Deps@{\normalfont \ttfamily Makefile\_Include\_Deps}}:] Contains rules describing the dependencies of source file on files included via ``{\normalfont \ttfamily include}'' statements---generated by {\normalfont \ttfamily scripts/build/includeDependencies.pl}\index{includeDependencies.pl@{\normalfont \ttfamily includeDependencies.pl}} (see \S\ref{sec:buildIncludeDeps});
+\item[{\normalfont \ttfamily scripts/build/libraryDependencies.pl}\index{libraryDependencies.pl@{\normalfont \ttfamily libraryDependencies.pl}}:] Determines the set of libraries that must be linked with each executable, and ensures they are ordered correctly for static linking;
 
+\item[{\normalfont \ttfamily scripts/build/memoryManagementFunctions.pl}\index{memoryManagementFunctions.pl@{\normalfont \ttfamily memoryManagementFunctions.pl}}:] Generates memory allocation/deallocation functions for allocatable intrinsic arrays (see \S\ref{sec:buildGenerationMemory});
+
+\item[{\normalfont \ttfamily scripts/build/moduleDependencies.pl}\index{moduleDependencies.pl@{\normalfont \ttfamily moduleDependencies.pl}}:] Discovers (and generates rules for) dependencies of module files on their source file statements (see \S\ref{sec:buildModulesProvided});
+
+\item[{\normalfont \ttfamily scripts/build/parameterDependencies.pl}\index{parameterDependencies.pl@{\normalfont \ttfamily parameterDependencies.pl}}:] Determines all parameters upon which a given executable depends (see \S\ref{sec:parameterDependencies});
+
+\item[{\normalfont \ttfamily scripts/build/postprocess.pl}\index{postprocess.pl@{\normalfont \ttfamily postprocess.pl}}:] Postprocesses the output of the {\normalfont \ttfamily gfortran} compiler to remove spurious warnings and provide line numbers in warning/error reports that point into the unpreprocessed source files (see \S\ref{sec:codeBuildPrePostProcess});
+
+\item[{\normalfont \ttfamily scripts/build/preprocess.pl}\index{preprocess.pl@{\normalfont \ttfamily preprocess.pl}}:] Preprocesses Fortran source code to provide various extended functionality (see \S\ref{sec:codeBuildPrePostProcess});
+
+\item[{\normalfont \ttfamily scripts/build/uniqueLabelFunctions.pl}\index{uniqueLabelFunctions.pl@{\normalfont \ttfamily uniqueLabelFunctions.pl}}:] Builds functions which provide unique labelling of source files (see \S\ref{sec:codeUniqueLabels});
+
+\item[{\normalfont \ttfamily scripts/build/useDependencies.pl}\index{useDependencies.pl@{\normalfont \ttfamily useDependencies.pl}}:] Discovers (and generates rules for) dependencies between files originating from module {\normalfont \ttfamily use} statements (see \S\ref{sec:buildModulesUsed});
+  
 \item[{\normalfont \ttfamily \$(BUILDPATH)/Makefile\_All\_Execs}\index{Makefile_All_Execs@{\normalfont \ttfamily Makefile\_All\_Execs}}:] Contains rules describing how to build the executable file for each distinct program---generated by {\normalfont \ttfamily scripts/build/findExecutables.pl}\index{findExecutables.pl@{\normalfont \ttfamily findExecutables.pl}} (see \S\ref{sec:buildExecutables});
 
-\item[{\normalfont \ttfamily \$(BUILDPATH)/*.size}\index{*.size files@{\normalfont \ttfamily *.size} files}:] Contain the size of each executable file built, and are used at runtime for memory reporting purposes---generated by {\normalfont \ttfamily scripts/build/executableSize.pl}\index{executableSize.pl@{\normalfont \ttfamily executableSize.pl}} (see \S\ref{sec:buildExecutables});
+\item[{\normalfont \ttfamily \$(BUILDPATH)/Makefile\_Component\_Includes}\index{Makefile_Component_Includes@{\normalfont \ttfamily Makefile\_Component\_Includes}}:] Describes dependencies on the {\normalfont \ttfamily nodeComponent} class hierarchy module on include files which implement specific functionality for individual node component implementations;
+  
+\item[{\normalfont \ttfamily \$(BUILDPATH)/Makefile\_Directives}\index{Makefile_Directives@{\normalfont \ttfamily Makefile\_Directives}}:] Describes rules for building include files for {\normalfont \ttfamily include} directives;
+
+\item[{\normalfont \ttfamily \$(BUILDPATH)/Makefile\_Include\_Dependencies}\index{Makefile_Include_Dependencies@{\normalfont \ttfamily Makefile\_Include\_Dependencies}}:] Contains rules describing the dependencies of source file on files included via ``{\normalfont \ttfamily include}'' statements---generated by {\normalfont \ttfamily scripts/build/includeDependencies.pl}\index{includeDependencies.pl@{\normalfont \ttfamily includeDependencies.pl}} (see \S\ref{sec:buildIncludeDeps});
+
+\item[{\normalfont \ttfamily \$(BUILDPATH)/Makefile\_Module\_Dependencies}\index{Makefile_Module_Dependencies@{\normalfont \ttfamily Makefile\_Module\_Dependencies}}:] Contains rules which describe how to build module files from their source files (see \S\ref{sec:buildModulesProvided});
+
+\item[{\normalfont \ttfamily \$(BUILDPATH)/Makefile\_Use\_Dependencies}\index{Makefile_Use_Dependencies@{\normalfont \ttfamily Makefile\_Use\_Dependencies}}:] Contains rules which describe dependencies between source file originating from module {\normalfont \ttfamily use} statements (see \S\ref{sec:buildModulesUsed});
+
+\item[{\normalfont \ttfamily \$(BUILDPATH)/allocatableArrays.xml}\index{allocatableArrays.xml files@{\normalfont \ttfamily allocatableArrays.xml} files}:] Contains a summary of the types and ranks of dimensionful, allocatable, intrinsic-type arrays for which memory allocation/deallocation functions will be generated (see \label{sec:buildDiscoverAllocatables});
+
+\item[{\normalfont \ttfamily \$(BUILDPATH)/directiveLocations.xml}\index{directiveLocations.xml files@{\normalfont \ttfamily directiveLocations.xml} files}:] Contains a map of which files contain each code directive (see \S\ref{sec:buildDiscoveryDirectives});
+
+\item[{\normalfont \ttfamily \$(BUILDPATH)/*.xml}\index{*.xml files@{\normalfont \ttfamily *.xml} files}:] Contain rules for building files for {\normalfont \ttfamily include} files (see \S\ref{sec:buildDiscoveryDirectives});
+
+\item[{\normalfont \ttfamily \$(BUILDPATH)/*.d}\index{*.d files@{\normalfont \ttfamily *.d} files}:] Contain lists of dependencies on object files, and are accumulated to find the final set of files which must be linked to build each executable (see \S\ref{sec:buildModulesProvided} \& \S\ref{sec:buildModulesUsed});
+
+\item[{\normalfont \ttfamily \$(BUILDPATH)/*.m}\index{*.m files@{\normalfont \ttfamily *.m} files}:] Contain lists of modules provided by each object file, and are used during testing whether modules have been updated (see \S\ref{sec:buildModulesProvided});
+
+\item[{\normalfont \ttfamily \$(BUILDPATH)/*.fl}\index{*.fl files@{\normalfont \ttfamily *.fl} files}:] Contain lists of libraries upon which each object file dependes, and are used to determine the final set of libraries which must be linked with each executable (see \S\ref{sec:buildModulesUsed});
+
+\item[{\normalfont \ttfamily \$(BUILDPATH)/*.gv}\index{*.gv files@{\normalfont \ttfamily *.gv} files}:] Contain lists of source files upon which each file depends and are used in the construction of \gls{graphviz} representations of file dependencies (see \S\ref{sec:buildModulesProvided} \& \S\ref{sec:buildModulesUsed});
+
+\item[{\normalfont \ttfamily \$(BUILDPATH)/*.Inc}\index{*.Inc files@{\normalfont \ttfamily *.Inc} files}:] Unpreprocessed include files generated from {\normalfont \ttfamily include} dependencies (see \S\ref{sec:buildDiscoveryDirectives});
+
+\item[{\normalfont \ttfamily \$(BUILDPATH)/*.inc}\index{*.inc files@{\normalfont \ttfamily *.inc} files}:] Preprocessed include files generated from {\normalfont \ttfamily include} dependencies (see \S\ref{sec:buildDiscoveryDirectives});
+
+\item[{\normalfont \ttfamily \$(BUILDPATH)/*.p.F90}\index{*.p.F90 files@{\normalfont \ttfamily *.p.F90} files}:] Preprocessed Fortran source files (see \S\ref{sec:codeBuildPrePostProcess});
+
+\item[{\normalfont \ttfamily \$(BUILDPATH)/*.parameters.xml}\index{*.parameters.xml files@{\normalfont \ttfamily *.parameters.xml} files}:] Contain lists of parameters upon which an executable depends (see \S\ref{sec:parameterDependencies});
+
+\item[{\normalfont \ttfamily \$(BUILDPATH)/*.size}\index{*.size files@{\normalfont \ttfamily *.size} files}:] Contain the size of each executable file built, and are used at runtime for memory reporting purposes---generated by {\normalfont \ttfamily scripts/build/executableSize.pl}\index{executableSize.pl@{\normalfont \ttfamily executableSize.pl}} (see \S\ref{sec:buildExecutables}).
 \end{description}

@@ -143,8 +143,8 @@ contains
        filterResponses(filterIndex)%vegaOffsetAvailable=.false.
        filterResponses(filterIndex)%vegaOffset         =0.0d0
        filterResponses(filterIndex)%nPoints            =4
-       call Alloc_Array(filterResponses(filterIndex)%wavelength,[4])
-       call Alloc_Array(filterResponses(filterIndex)%response  ,[4])
+       call allocateArray(filterResponses(filterIndex)%wavelength,[4])
+       call allocateArray(filterResponses(filterIndex)%response  ,[4])
        filterResponses(filterIndex)%wavelength         =                                                                &
             & [                                                                                                         &
             &  centralWavelength*(sqrt(4.0d0*resolution**2+1.0d0)-1.0d0)/2.0d0/resolution/(1.0+1.0d0/cutOffResolution), &

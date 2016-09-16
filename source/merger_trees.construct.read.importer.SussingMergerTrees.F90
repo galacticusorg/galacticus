@@ -372,8 +372,8 @@ contains
     implicit none
     class(mergerTreeImporterSussing), intent(inout) :: self
 
-    if (allocated(self%treeIndices)) call Dealloc_Array(self%treeIndices)
-    if (allocated(self%treeSizes  )) call Dealloc_Array(self%treeSizes  )
+    if (allocated(self%treeIndices)) call deallocateArray(self%treeIndices)
+    if (allocated(self%treeSizes  )) call deallocateArray(self%treeSizes  )
     return
   end subroutine sussingDestroy
 
@@ -864,9 +864,9 @@ contains
     message='Found '
     message=message//self%treesCount//' trees'
     call Galacticus_Display_Message(message,verbosityWorking)
-    call Alloc_Array(self%treeIndices,[self%treesCount])
-    call Alloc_Array(self%treeSizes  ,[self%treesCount])
-    call Alloc_Array(self%treeBegins ,[self%treesCount])
+    call allocateArray(self%treeIndices,[self%treesCount])
+    call allocateArray(self%treeSizes  ,[self%treesCount])
+    call allocateArray(self%treeBegins ,[self%treesCount])
     treeIndexPrevious=-1
     j                = 0
     self%treeSizes   = 0
@@ -891,9 +891,9 @@ contains
        self%nodes%velocity          (i)=importerUnitConvert(self%nodes%velocity          (i),self%nodes%nodeTime,velocityUnits,kilo      )
     end do
     ! Destroy temporary workspace.
-    call Dealloc_Array(nodeSelfIndices        )
-    call Dealloc_Array(nodeTreeIndices        )
-    call Dealloc_Array(nodeDescendentLocations)
+    call deallocateArray(nodeSelfIndices        )
+    call deallocateArray(nodeTreeIndices        )
+    call deallocateArray(nodeDescendentLocations)
     ! Write completion message.
     call Galacticus_Display_Unindent('done',verbosityWorking)
    return

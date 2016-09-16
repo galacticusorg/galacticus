@@ -86,10 +86,14 @@ self%uniqueIdValue=uniqueIDCount
 ! Assign a timestep.
 self%timeStepValue=-1.0d0
 CODE
-    # Add the function to the functions list.
+    # Insert a type-binding for this function.
     push(
-	@{$build->{'functions'}},
-	$function
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	{
+	    type        => "procedure",
+	    descriptor  => $function,
+	    name        => "initialize"
+	}
 	);
 }
 
@@ -194,10 +198,14 @@ CODE
   call componentIndex%destroy()
 end select
 CODE
-    # Add the function to the functions list.
+    # Insert a type-binding for this function.
     push(
-	@{$build->{'functions'}},
-	$function
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	{
+	    type        => "procedure",
+	    descriptor  => $function,
+	    name        => "componentBuilder"
+	}
 	);
 }
 
@@ -265,10 +273,14 @@ do while (associated(thisEvent))
     thisEvent => nextEvent
 end do
 CODE
-    # Add the function to the functions list.
+     # Insert a type-binding for this function.
     push(
-	@{$build->{'functions'}},
-	$function
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	{
+	    type        => "procedure",
+	    descriptor  => $function,
+	    name        => "destroy"
+	}
 	);
 }
 

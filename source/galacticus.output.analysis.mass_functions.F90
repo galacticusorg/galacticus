@@ -1226,8 +1226,8 @@ contains
                          call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Functions','unknown mass function "'//trim(massFunctionLabels(j))//'"')
                       end select
                       ! Get cosmological conversion factors.
-                      call Alloc_Array(massFunctions(currentAnalysis)%cosmologyConversionMass        ,[Galacticus_Output_Time_Count()])
-                      call Alloc_Array(massFunctions(currentAnalysis)%cosmologyConversionMassFunction,[Galacticus_Output_Time_Count()])
+                      call allocateArray(massFunctions(currentAnalysis)%cosmologyConversionMass        ,[Galacticus_Output_Time_Count()])
+                      call allocateArray(massFunctions(currentAnalysis)%cosmologyConversionMassFunction,[Galacticus_Output_Time_Count()])
                       do jOutput=1,Galacticus_Output_Time_Count()
                          redshift=                                                                                      &
                               &   cosmologyFunctionsModel %redshiftFromExpansionFactor(                                 &
@@ -1257,7 +1257,7 @@ contains
                    end if
                 end do
                 ! Compute output weights for mass function.
-                call Alloc_Array(massFunctions(currentAnalysis)%outputWeight,[int(massFunctions(currentAnalysis)%massesCount,kind=c_size_t),Galacticus_Output_Time_Count()])
+                call allocateArray(massFunctions(currentAnalysis)%outputWeight,[int(massFunctions(currentAnalysis)%massesCount,kind=c_size_t),Galacticus_Output_Time_Count()])
                 massFunctions(currentAnalysis)%outputWeight=0.0d0
                 do k=1,massFunctions(currentAnalysis)%massesCount
                    do jOutput=1,Galacticus_Output_Time_Count()
@@ -1318,7 +1318,7 @@ contains
                         &         )                                                                                                                                                   &
                         &    )                                                                                                                                                        &
                         & +1
-                   call Alloc_Array(massFunctions(i)%lensingTransfer                 ,[                                                                                      &
+                   call allocateArray(massFunctions(i)%lensingTransfer                 ,[                                                                                      &
                         &                                                              int(massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount,kind=c_size_t), &
                         &                                                              int(massFunctions(i)%massesCount                                     ,kind=c_size_t), &
                         &                                                              Galacticus_Output_Time_Count()                                                        &
@@ -1328,8 +1328,8 @@ contains
                    massFunctions(i)%massesBufferCount=0
                 end if
                 ! Construct buffered arrays of masses.
-                call Alloc_Array(massFunctions(i)%massesLogarithmicMinimumBuffered,[massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount])
-                call Alloc_Array(massFunctions(i)%massesLogarithmicMaximumBuffered,[massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount])
+                call allocateArray(massFunctions(i)%massesLogarithmicMinimumBuffered,[massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount])
+                call allocateArray(massFunctions(i)%massesLogarithmicMaximumBuffered,[massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount])
                 if (massFunctions(i)%massesBufferCount > 0) then
                    do j=1,massFunctions(i)%massesBufferCount
                       massFunctions           (i)%massesLogarithmicMinimumBuffered(j                                      )  &
@@ -1437,8 +1437,8 @@ contains
        if (all(massFunctions(i)%outputWeight(:,iOutput) <= 0.0d0)) cycle
        ! Allocate workspace.
        if (.not.allocated(thisGalaxy(i)%massFunction)) then
-          call Alloc_Array(thisGalaxy(i)%massFunction,[massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount])
-          call Alloc_Array(thisGalaxy(i)%covariance  ,[                                                                   &
+          call allocateArray(thisGalaxy(i)%massFunction,[massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount])
+          call allocateArray(thisGalaxy(i)%covariance  ,[                                                                   &
                &                                       massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount, &
                &                                       massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount  &
                &                                      ]                                                                   &
@@ -2058,7 +2058,7 @@ contains
        !$omp critical(Mass_Error_PRIMUS_Stellar_Mass_Function_Weights)
        if (.not.weightsComputed) then
           primusGeometry=surveyGeometryMoustakas2013PRIMUS(1) ! Choice of redshift bin is irrelevant.
-          call Alloc_Array(fieldWeight,[primusGeometry%fieldCount()])
+          call allocateArray(fieldWeight,[primusGeometry%fieldCount()])
           do i=1,primusGeometry%fieldCount()
              fieldWeight(i)=primusGeometry%solidAngle(i)
           end do
@@ -2195,13 +2195,13 @@ contains
     end if
     ! Construct mass function array.
     thisMassFunction%massesCount=size(thisMassFunction%masses)
-    call Alloc_Array(thisMassFunction%massesLogarithmic             ,[thisMassFunction%massesCount                                       ])
-    call Alloc_Array(thisMassFunction%massesLogarithmicMinimum      ,[thisMassFunction%massesCount                                       ])
-    call Alloc_Array(thisMassFunction%massesLogarithmicMaximum      ,[thisMassFunction%massesCount                                       ])
-    call Alloc_Array(thisMassFunction%massFunction                  ,[thisMassFunction%massesCount                                       ])
-    call Alloc_Array(thisMassFunction%massFunctionCovariance        ,[thisMassFunction%massesCount,thisMassFunction%massesCount          ])
-    call Alloc_Array(thisMassFunction%mainBranchGalaxyWeights       ,[thisMassFunction%massesCount,analysisMassFunctionsHaloMassBinsCount])
-    call Alloc_Array(thisMassFunction%mainBranchGalaxyWeightsSquared,[thisMassFunction%massesCount,analysisMassFunctionsHaloMassBinsCount])
+    call allocateArray(thisMassFunction%massesLogarithmic             ,[thisMassFunction%massesCount                                       ])
+    call allocateArray(thisMassFunction%massesLogarithmicMinimum      ,[thisMassFunction%massesCount                                       ])
+    call allocateArray(thisMassFunction%massesLogarithmicMaximum      ,[thisMassFunction%massesCount                                       ])
+    call allocateArray(thisMassFunction%massFunction                  ,[thisMassFunction%massesCount                                       ])
+    call allocateArray(thisMassFunction%massFunctionCovariance        ,[thisMassFunction%massesCount,thisMassFunction%massesCount          ])
+    call allocateArray(thisMassFunction%mainBranchGalaxyWeights       ,[thisMassFunction%massesCount,analysisMassFunctionsHaloMassBinsCount])
+    call allocateArray(thisMassFunction%mainBranchGalaxyWeightsSquared,[thisMassFunction%massesCount,analysisMassFunctionsHaloMassBinsCount])
     thisMassFunction%massesLogarithmic             =log10(thisMassFunction%masses)
     thisMassFunction%massFunction                  =0.0d0
     thisMassFunction%massFunctionCovariance        =0.0d0

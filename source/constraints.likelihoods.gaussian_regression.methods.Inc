@@ -160,16 +160,16 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
                 &  ']'
            call Galacticus_Error_Report('likelihoodGaussianRegressionEvaluate',message)
         end if
-        call Alloc_Array(self%polynomialCoefficient,    [self%polynomialCoefficientCount                                ] )
-        call Alloc_Array(self%likelihoodSums       ,    [self%polynomialCoefficientCount                                ] )
-        call Alloc_Array(self%stateSums            ,    [self%polynomialCoefficientCount,self%polynomialCoefficientCount] )
-        call Alloc_Array(self%coefficients         ,    [self%polynomialCoefficientCount                                ] )
-        call Alloc_Array(self%regressionMatrix     ,int([self%regressionMatrixSize      ,self%regressionMatrixSize      ]))
-        call Alloc_Array(self%stateOffset          ,int([self%regressionMatrixSize                                      ]))
-        call Alloc_Array(self%weight               ,int([self%regressionMatrixSize                                      ]))
-        call Alloc_Array(self%likelihoodResiduals  ,    [self%emulatorRebuildCount                                      ] )
-        call Alloc_Array(self%statesCombined       ,    [simulationState%dimension()    ,self%emulatorRebuildCount      ] )
-        call Alloc_Array(self%stateScales          ,    [simulationState%dimension()                                    ] )
+        call allocateArray(self%polynomialCoefficient,    [self%polynomialCoefficientCount                                ] )
+        call allocateArray(self%likelihoodSums       ,    [self%polynomialCoefficientCount                                ] )
+        call allocateArray(self%stateSums            ,    [self%polynomialCoefficientCount,self%polynomialCoefficientCount] )
+        call allocateArray(self%coefficients         ,    [self%polynomialCoefficientCount                                ] )
+        call allocateArray(self%regressionMatrix     ,int([self%regressionMatrixSize      ,self%regressionMatrixSize      ]))
+        call allocateArray(self%stateOffset          ,int([self%regressionMatrixSize                                      ]))
+        call allocateArray(self%weight               ,int([self%regressionMatrixSize                                      ]))
+        call allocateArray(self%likelihoodResiduals  ,    [self%emulatorRebuildCount                                      ] )
+        call allocateArray(self%statesCombined       ,    [simulationState%dimension()    ,self%emulatorRebuildCount      ] )
+        call allocateArray(self%stateScales          ,    [simulationState%dimension()                                    ] )
         self%initialized=.true.
      end if
      ! Gather the simulator state and likelihood from other chains.
@@ -321,8 +321,8 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
   self%evaluationCount=self%evaluationCount+1
   ! Ensure arrays are allocated.
   if (.not.allocated(self%simulatorLikelihood)) then
-     call Alloc_Array(self%simulatorLikelihood,[                            self%emulatorRebuildCount])
-     call Alloc_Array(self%simulationState    ,[simulationState%dimension(),self%emulatorRebuildCount])
+     call allocateArray(self%simulatorLikelihood,[                            self%emulatorRebuildCount])
+     call allocateArray(self%simulationState    ,[simulationState%dimension(),self%emulatorRebuildCount])
   end if
   likelihoodIsSimulated=.false.
   if (self%initialized.and..not.self%regressionMatrixIsSingular) then
@@ -583,7 +583,7 @@ function polynomialIteratorConstructor(order,rank)
   type   (polynomialIterator)                :: polynomialIteratorConstructor
   integer                    , intent(in   ) :: order                        , rank
 
-  call Alloc_Array(polynomialIteratorConstructor%indices,[order])
+  call allocateArray(polynomialIteratorConstructor%indices,[order])
   polynomialIteratorConstructor     %order=order
   polynomialIteratorConstructor     %rank =rank
   call polynomialIteratorConstructor%reset()
@@ -681,16 +681,16 @@ subroutine likelihoodGaussianRegressionFunctionChanged(self)
   self%emulatorCheckCount   =0
   self%emulatorFailCount    =0
   ! Free allocated space.
-  if (allocated(self%polynomialCoefficient)) call Dealloc_Array(self%polynomialCoefficient)
-  if (allocated(self%likelihoodSums       )) call Dealloc_Array(self%likelihoodSums       )
-  if (allocated(self%stateSums            )) call Dealloc_Array(self%stateSums            )
-  if (allocated(self%coefficients         )) call Dealloc_Array(self%coefficients         )
-  if (allocated(self%regressionMatrix     )) call Dealloc_Array(self%regressionMatrix     )
-  if (allocated(self%stateOffset          )) call Dealloc_Array(self%stateOffset          )
-  if (allocated(self%weight               )) call Dealloc_Array(self%weight               )
-  if (allocated(self%likelihoodResiduals  )) call Dealloc_Array(self%likelihoodResiduals  )
-  if (allocated(self%statesCombined       )) call Dealloc_Array(self%statesCombined       )
-  if (allocated(self%stateScales          )) call Dealloc_Array(self%stateScales          )
+  if (allocated(self%polynomialCoefficient)) call deallocateArray(self%polynomialCoefficient)
+  if (allocated(self%likelihoodSums       )) call deallocateArray(self%likelihoodSums       )
+  if (allocated(self%stateSums            )) call deallocateArray(self%stateSums            )
+  if (allocated(self%coefficients         )) call deallocateArray(self%coefficients         )
+  if (allocated(self%regressionMatrix     )) call deallocateArray(self%regressionMatrix     )
+  if (allocated(self%stateOffset          )) call deallocateArray(self%stateOffset          )
+  if (allocated(self%weight               )) call deallocateArray(self%weight               )
+  if (allocated(self%likelihoodResiduals  )) call deallocateArray(self%likelihoodResiduals  )
+  if (allocated(self%statesCombined       )) call deallocateArray(self%statesCombined       )
+  if (allocated(self%stateScales          )) call deallocateArray(self%stateScales          )
   ! Let the simulator know that the likelihood function may have changed.
   call self%simulatorLikelihoodFunction%functionChanged()
   return

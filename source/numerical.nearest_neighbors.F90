@@ -179,10 +179,10 @@ contains
     neighborCount=nearestNeighborsSearchFixedRadiusC(self%ANNkd_tree,point,radiusSquared,arraySize,neighborIndex,neighborDistance,tolerance)    
     ! Resize arrays if necessary.
     if (neighborCount > arraySize) then
-       if (allocated(neighborIndex   )) call Dealloc_Array(neighborIndex   )
-       if (allocated(neighborDistance)) call Dealloc_Array(neighborDistance)
-       call Alloc_Array(neighborIndex   ,[neighborCount])
-       call Alloc_Array(neighborDistance,[neighborCount])
+       if (allocated(neighborIndex   )) call deallocateArray(neighborIndex   )
+       if (allocated(neighborDistance)) call deallocateArray(neighborDistance)
+       call allocateArray(neighborIndex   ,[neighborCount])
+       call allocateArray(neighborDistance,[neighborCount])
        ! Call again to get all neighbors.
        neighborCount=nearestNeighborsSearchFixedRadiusC(self%ANNkd_tree,point,radiusSquared,neighborCount,neighborIndex,neighborDistance,tolerance)
     end if

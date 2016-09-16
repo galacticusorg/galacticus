@@ -127,11 +127,11 @@ CODE
 	     } elsif ( $code::property->{'data'}->{'rank'} == 1 ) {
 		 $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 if (.not.allocated(self%{$property->{'name'}}Data)) then
-   call    Alloc_Array  (self%{$property->{'name'}}Data,shape(setValue))
+   call    allocateArray  (self%{$property->{'name'}}Data,shape(setValue))
 else
    if (size(self%{$property->{'name'}}Data) /= size(setValue)) then
-      call Dealloc_Array(self%{$property->{'name'}}Data                )
-      call Alloc_Array  (self%{$property->{'name'}}Data,shape(setValue))
+      call deallocateArray(self%{$property->{'name'}}Data                )
+      call allocateArray  (self%{$property->{'name'}}Data,shape(setValue))
    end if
 end if
 self%{$property->{'name'}}Data=setValue

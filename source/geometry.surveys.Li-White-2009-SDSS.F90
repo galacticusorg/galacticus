@@ -175,8 +175,8 @@ contains
        if (.not.File_Exists(Galacticus_Input_Path()//"data/surveyGeometry/lss_random-0.dr72.dat")) call Galacticus_Error_Report('liWhite2009SDSSWindowFunctions','unable to download SDSS survey geometry randoms file')
     end if
     randomsCount=Count_Lines_In_File(Galacticus_Input_Path()//"data/surveyGeometry/lss_random-0.dr72.dat")
-    call Alloc_Array(self%randomTheta,[randomsCount])
-    call Alloc_Array(self%randomPhi  ,[randomsCount])
+    call allocateArray(self%randomTheta,[randomsCount])
+    call allocateArray(self%randomPhi  ,[randomsCount])
     open(newUnit=randomUnit,file=char(Galacticus_Input_Path()//"data/surveyGeometry/lss_random-0.dr72.dat"),status="old",form="formatted")
     j=0
     do i=1,randomsCount
@@ -197,13 +197,13 @@ contains
     close(randomUnit)
     randomsCount=j
     call Move_Alloc   (self%randomTheta,angleTmp      )
-    call Alloc_Array  (self%randomTheta,[randomsCount])
+    call allocateArray  (self%randomTheta,[randomsCount])
     self%randomTheta=angleTmp(1:randomsCount)
-    call Dealloc_Array(angleTmp                       )
+    call deallocateArray(angleTmp                       )
     call Move_Alloc   (self%randomPhi  ,angleTmp      )
-    call Alloc_Array  (self%randomPhi  ,[randomsCount])
+    call allocateArray  (self%randomPhi  ,[randomsCount])
     self%randomPhi  =angleTmp(1:randomsCount)
-    call Dealloc_Array(angleTmp                       )
+    call deallocateArray(angleTmp                       )
     message="Read "
     message=message//randomsCount//" random points and kept "//randomsCount//" of them"
     call Galacticus_Display_Message(message)

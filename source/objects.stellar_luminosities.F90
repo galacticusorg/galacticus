@@ -340,9 +340,9 @@ contains
           end if
 
           if (luminosityCount > 0) then
-             call Alloc_Array(luminosityMap                     ,[luminosityCount])
-             call Alloc_Array(luminosityRedshift                ,[luminosityCount])
-             call Alloc_Array(luminosityBandRedshift            ,[luminosityCount])
+             call allocateArray(luminosityMap                     ,[luminosityCount])
+             call allocateArray(luminosityRedshift                ,[luminosityCount])
+             call allocateArray(luminosityBandRedshift            ,[luminosityCount])
              allocate(luminosityFilter        (luminosityCount))
              allocate(luminosityType          (luminosityCount))
              allocate(luminosityPostprocessSet(luminosityCount))
@@ -432,11 +432,11 @@ contains
              luminosityCount=size(luminosityRedshift)
              ! Allocate remaining required arrays.
              allocate(luminosityName(luminosityCount))
-             call Alloc_Array(luminosityFilterIndex             ,[luminosityCount])
-             call Alloc_Array(luminosityIndex                   ,[luminosityCount])
-             call Alloc_Array(luminosityPostprocessingChainIndex,[luminosityCount])
-             call Alloc_Array(luminosityCosmicTime              ,[luminosityCount])
-             call Alloc_Array(luminosityTimeIndex               ,[luminosityCount])
+             call allocateArray(luminosityFilterIndex             ,[luminosityCount])
+             call allocateArray(luminosityIndex                   ,[luminosityCount])
+             call allocateArray(luminosityPostprocessingChainIndex,[luminosityCount])
+             call allocateArray(luminosityCosmicTime              ,[luminosityCount])
+             call allocateArray(luminosityTimeIndex               ,[luminosityCount])
              ! Get the default cosmology functions object.
              cosmologyFunctionsDefault => cosmologyFunctions()
              ! Process the list of luminosities.
@@ -484,8 +484,8 @@ contains
              call Sort_By_Index(luminosityRedshift                ,luminosityTimeIndex)
              call Sort_By_Index(luminosityBandRedshift            ,luminosityTimeIndex)             
              ! Allocate unit and zero stellar abundance objects.
-             call Alloc_Array(unitStellarLuminosities%luminosityValue,[luminosityCount])
-             call Alloc_Array(zeroStellarLuminosities%luminosityValue,[luminosityCount])
+             call allocateArray(unitStellarLuminosities%luminosityValue,[luminosityCount])
+             call allocateArray(zeroStellarLuminosities%luminosityValue,[luminosityCount])
              unitStellarLuminosities%luminosityValue=1.0d0
              zeroStellarLuminosities%luminosityValue=0.0d0
           end if
@@ -502,7 +502,7 @@ contains
     implicit none
     type(stellarLuminosities), intent(inout) :: self
 
-    if (allocated(self%luminosityValue)) call Dealloc_Array(self%luminosityValue)
+    if (allocated(self%luminosityValue)) call deallocateArray(self%luminosityValue)
     return
   end subroutine Stellar_Luminosities_Destructor
 
@@ -512,7 +512,7 @@ contains
     implicit none
     class(stellarLuminosities), intent(inout) :: self
 
-    if (allocated(self%luminosityValue)) call Dealloc_Array(self%luminosityValue)
+    if (allocated(self%luminosityValue)) call deallocateArray(self%luminosityValue)
     return
   end subroutine Stellar_Luminosities_Destroy
 
@@ -594,8 +594,8 @@ contains
     if (luminosityCount > 0) then
        call Stellar_Luminosities_Create(self)
        read (fileHandle) luminosityActiveCount
-       call Dealloc_Array(self%luminosityValue                        )
-       call Alloc_Array  (self%luminosityValue,[luminosityActiveCount])
+       call deallocateArray(self%luminosityValue                        )
+       call allocateArray  (self%luminosityValue,[luminosityActiveCount])
        read (fileHandle) self%luminosityValue
     end if
     return
@@ -887,7 +887,7 @@ contains
     implicit none
     type(stellarLuminosities), intent(inout) :: self
 
-    if (.not.allocated(self%luminosityValue)) call Alloc_Array(self%luminosityValue,[luminosityCount])
+    if (.not.allocated(self%luminosityValue)) call allocateArray(self%luminosityValue,[luminosityCount])
     return
   end subroutine Stellar_Luminosities_Create
 
@@ -961,9 +961,9 @@ contains
              if (Stellar_Luminosities_Is_Output(i,time,luminosityOutputOptionPresent)) &
                   & luminosityRemainingCount=luminosityRemainingCount-1
           end do          
-          call Alloc_Array(self%luminosityValue,[luminosityRemainingCount])
+          call allocateArray(self%luminosityValue,[luminosityRemainingCount])
           self%luminosityValue=luminosityTmp(1:luminosityRemainingCount)
-          call Dealloc_Array(luminosityTmp)
+          call deallocateArray(luminosityTmp)
        end select
     end if
     return
@@ -1188,9 +1188,9 @@ contains
           deallocate        (luminosityFilterTmp        )
           deallocate        (luminosityTypeTmp          )
           deallocate        (luminosityPostprocessSetTmp)     
-          call Dealloc_Array(luminosityMapTmp           )
-          call Dealloc_Array(luminosityRedshiftTmp      )
-          call Dealloc_Array(luminosityBandRedshiftTmp  )
+          call deallocateArray(luminosityMapTmp           )
+          call deallocateArray(luminosityRedshiftTmp      )
+          call deallocateArray(luminosityBandRedshiftTmp  )
        end if
        ! Arrays of top-hat filters.
        if (extract(luminosityFilter(i),1,12) == "topHatArray_") then
@@ -1253,9 +1253,9 @@ contains
           deallocate        (luminosityFilterTmp        )
           deallocate        (luminosityTypeTmp          )
           deallocate        (luminosityPostprocessSetTmp)     
-          call Dealloc_Array(luminosityMapTmp           )
-          call Dealloc_Array(luminosityRedshiftTmp      )
-          call Dealloc_Array(luminosityBandRedshiftTmp  )
+          call deallocateArray(luminosityMapTmp           )
+          call deallocateArray(luminosityRedshiftTmp      )
+          call deallocateArray(luminosityBandRedshiftTmp  )
        end if
        ! Next luminosity.
        i=i+1
@@ -1308,9 +1308,9 @@ contains
     allocate        (luminosityFilter         (size(luminosityFilterTmp        )+expandCount-1))
     allocate        (luminosityType           (size(luminosityTypeTmp          )+expandCount-1))
     allocate        (luminosityPostprocessSet (size(luminosityPostprocessSetTmp)+expandCount-1))
-    call Alloc_Array(luminosityMap           ,[size(luminosityRedshiftTmp      )+expandCount-1])
-    call Alloc_Array(luminosityRedshift      ,[size(luminosityRedshiftTmp      )+expandCount-1])
-    call Alloc_Array(luminosityBandRedshift  ,[size(luminosityBandRedshiftTmp  )+expandCount-1])
+    call allocateArray(luminosityMap           ,[size(luminosityRedshiftTmp      )+expandCount-1])
+    call allocateArray(luminosityRedshift      ,[size(luminosityRedshiftTmp      )+expandCount-1])
+    call allocateArray(luminosityBandRedshift  ,[size(luminosityBandRedshiftTmp  )+expandCount-1])
     if (expandFrom > 1              ) then
        luminosityMap           (1            :expandFrom                          -1)=luminosityMapTmp           (1  :expandFrom-1            )
        luminosityRedshiftText  (1            :expandFrom                          -1)=luminosityRedshiftTextTmp  (1  :expandFrom-1            )
@@ -1385,13 +1385,13 @@ contains
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
     ! Allocate new array.
-    call Alloc_Array(parametersMapped,[luminosityCount])
+    call allocateArray(parametersMapped,[luminosityCount])
     ! Map from the old array.
     do i=1,luminosityCount
        parametersMapped(i)=parameters(luminosityMap(i))
     end do
     ! Copy the new array.
-    call Dealloc_Array(parameters)
+    call deallocateArray(parameters)
     call Move_Alloc(parametersMapped,parameters)
     return
   end subroutine Stellar_Luminosities_Parameter_Map_Double

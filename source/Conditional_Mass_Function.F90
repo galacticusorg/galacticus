@@ -184,10 +184,10 @@ program Conditional_Mass_Function
   !@ </inputParameter>
   call Get_Input_Parameter('conditionalMassFunctionHaloMassMaximum',conditionalMassFunctionHaloMassMaximum,defaultValue=1.0d16)
   ! Compute bin masses and widths.
-  call Alloc_Array(mass                             ,[conditionalMassFunctionMassCount])
-  call Alloc_Array(thisConditionalMassFunction      ,[conditionalMassFunctionMassCount])
-  call Alloc_Array(conditionalMassFunctionIncomplete,[conditionalMassFunctionMassCount])
-  call Alloc_Array(massLogarithmDelta               ,[conditionalMassFunctionMassCount])
+  call allocateArray(mass                             ,[conditionalMassFunctionMassCount])
+  call allocateArray(thisConditionalMassFunction      ,[conditionalMassFunctionMassCount])
+  call allocateArray(conditionalMassFunctionIncomplete,[conditionalMassFunctionMassCount])
+  call allocateArray(massLogarithmDelta               ,[conditionalMassFunctionMassCount])
   if (Input_Parameter_Is_Present('conditionalMassFunctionMassBinCenters')) then
      ! Read masses directly.
      if (.not.Input_Parameter_Is_Present('conditionalMassFunctionMassBinWidths')) call Galacticus_Error_Report('Conditional_Mass_Function','[conditionalMassFunctionMassBinWidths] must be present')

@@ -134,10 +134,10 @@ contains
              !@ </inputParameter>
              call Get_Input_Parameter('timestepRecordEvolutionSteps',timestepRecordEvolutionSteps,defaultValue=100        )
              ! Allocate storage arrays.
-             call Alloc_Array(evolutionTime       ,[timestepRecordEvolutionSteps])
-             call Alloc_Array(evolutionExpansion  ,[timestepRecordEvolutionSteps])
-             call Alloc_Array(evolutionStellarMass,[timestepRecordEvolutionSteps])
-             call Alloc_Array(evolutionTotalMass  ,[timestepRecordEvolutionSteps])
+             call allocateArray(evolutionTime       ,[timestepRecordEvolutionSteps])
+             call allocateArray(evolutionExpansion  ,[timestepRecordEvolutionSteps])
+             call allocateArray(evolutionStellarMass,[timestepRecordEvolutionSteps])
+             call allocateArray(evolutionTotalMass  ,[timestepRecordEvolutionSteps])
              ! Initialize arrays.
              evolutionTime=Make_Range(timestepRecordEvolutionBegin,timestepRecordEvolutionEnd,timestepRecordEvolutionSteps,rangeTypeLogarithmic)
              do timeIndex=1,timestepRecordEvolutionSteps

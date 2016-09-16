@@ -82,20 +82,20 @@ contains
        radialLogarithmicMinimum    = 0.0d0
     end if
     ! Allocate arrays.
-    if (allocated(separation )) call Dealloc_Array(separation )
-    if (allocated(correlation)) call Dealloc_Array(correlation)
-    call Alloc_Array(separation              ,[separationCount               ])
-    call Alloc_Array(correlation             ,[separationCount               ])
-    call Alloc_Array(separationSquaredMinimum,[separationCount               ])
-    call Alloc_Array(separationSquaredMaximum,[separationCount               ])
-    call Alloc_Array(dataDataCount           ,[separationCount,radialBinCount])
-    call Alloc_Array(randomRandomCount       ,[separationCount,radialBinCount])
-    call Alloc_Array(dataRandomCount         ,[separationCount,radialBinCount])
-    call Alloc_Array(pairCount               ,[separationCount,radialBinCount])
-    call Alloc_Array(dataData                ,[separationCount,radialBinCount])
-    call Alloc_Array(randomRandom            ,[separationCount,radialBinCount])
-    call Alloc_Array(dataRandom              ,[separationCount,radialBinCount])
-    call Alloc_Array(correlationTmp          ,[separationCount,radialBinCount])
+    if (allocated(separation )) call deallocateArray(separation )
+    if (allocated(correlation)) call deallocateArray(correlation)
+    call allocateArray(separation              ,[separationCount               ])
+    call allocateArray(correlation             ,[separationCount               ])
+    call allocateArray(separationSquaredMinimum,[separationCount               ])
+    call allocateArray(separationSquaredMaximum,[separationCount               ])
+    call allocateArray(dataDataCount           ,[separationCount,radialBinCount])
+    call allocateArray(randomRandomCount       ,[separationCount,radialBinCount])
+    call allocateArray(dataRandomCount         ,[separationCount,radialBinCount])
+    call allocateArray(pairCount               ,[separationCount,radialBinCount])
+    call allocateArray(dataData                ,[separationCount,radialBinCount])
+    call allocateArray(randomRandom            ,[separationCount,radialBinCount])
+    call allocateArray(dataRandom              ,[separationCount,radialBinCount])
+    call allocateArray(correlationTmp          ,[separationCount,radialBinCount])
     ! Initialize counts.
     dataDataCount    =0
     randomRandomCount=0
@@ -249,16 +249,16 @@ contains
        correlation=correlationTmp(:,1)
     end if
     ! Deallocate.
-    call Dealloc_Array(separationSquaredMinimum)
-    call Dealloc_Array(separationSquaredMaximum)
-    call Dealloc_Array(dataDataCount           )
-    call Dealloc_Array(randomRandomCount       )
-    call Dealloc_Array(dataRandomCount         )
-    call Dealloc_Array(pairCount               )
-    call Dealloc_Array(dataData                )
-    call Dealloc_Array(randomRandom            )
-    call Dealloc_Array(dataRandom              )
-    call Dealloc_Array(correlationTmp          )
+    call deallocateArray(separationSquaredMinimum)
+    call deallocateArray(separationSquaredMaximum)
+    call deallocateArray(dataDataCount           )
+    call deallocateArray(randomRandomCount       )
+    call deallocateArray(dataRandomCount         )
+    call deallocateArray(pairCount               )
+    call deallocateArray(dataData                )
+    call deallocateArray(randomRandom            )
+    call deallocateArray(dataRandom              )
+    call deallocateArray(correlationTmp          )
     return
   end subroutine Statistics_Points_Correlation
 

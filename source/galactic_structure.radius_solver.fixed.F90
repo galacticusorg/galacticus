@@ -102,8 +102,8 @@ contains
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     implicit none
     type            (treeNode              ), intent(inout), pointer :: thisNode
-    procedure       (Structure_Get_Template)               , pointer :: Radius_Get                     => null(), Velocity_Get => null()
-    procedure       (Structure_Set_Template)               , pointer :: Radius_Set                     => null(), Velocity_Set => null()
+    procedure       (Radius_Solver_Get_Template)               , pointer :: Radius_Get                     => null(), Velocity_Get => null()
+    procedure       (Radius_Solver_Set_Template)               , pointer :: Radius_Set                     => null(), Velocity_Set => null()
     !$omp threadprivate(Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
     logical                                 , parameter              :: specificAngularMomentumRequired=  .false.
     logical                                                          :: componentActive
@@ -125,8 +125,8 @@ contains
     implicit none
     type            (treeNode                ), intent(inout), pointer :: thisNode
     double precision                          , intent(in   )          :: specificAngularMomentum
-    procedure       (Structure_Get_Template  ), intent(in   ), pointer :: Radius_Get             , Velocity_Get
-    procedure       (Structure_Set_Template  ), intent(in   ), pointer :: Radius_Set             , Velocity_Set
+    procedure       (Radius_Solver_Get_Template  ), intent(in   ), pointer :: Radius_Get             , Velocity_Get
+    procedure       (Radius_Solver_Set_Template  ), intent(in   ), pointer :: Radius_Set             , Velocity_Set
     class           (nodeComponentSpin       )               , pointer :: thisSpinComponent
     class           (nodeComponentBasic      )               , pointer :: basic
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_

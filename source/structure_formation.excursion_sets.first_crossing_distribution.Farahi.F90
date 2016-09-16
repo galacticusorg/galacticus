@@ -151,9 +151,9 @@ contains
     makeTable=.not.tableInitialized.or.(variance > varianceMaximum*(1.0d0+varianceTableTolerance)).or.(time < timeMinimum).or.(time > timeMaximum)
     if (makeTable) then
        ! Construct the table of variance on which we will solve for the first crossing distribution.
-       if (allocated(varianceTable                )) call Dealloc_Array(varianceTable                )
-       if (allocated(timeTable                    )) call Dealloc_Array(timeTable                    )
-       if (allocated(firstCrossingProbabilityTable)) call Dealloc_Array(firstCrossingProbabilityTable)
+       if (allocated(varianceTable                )) call deallocateArray(varianceTable                )
+       if (allocated(timeTable                    )) call deallocateArray(timeTable                    )
+       if (allocated(firstCrossingProbabilityTable)) call deallocateArray(firstCrossingProbabilityTable)
        varianceMaximum   =max(varianceMaximum,variance)
        varianceTableCount=int(varianceMaximum*dble(varianceTableNumberPerUnitProbability))
        if (tableInitialized) then
@@ -164,9 +164,9 @@ contains
           timeMaximum=2.0d0*time
        end if
        timeTableCount=max(2,int(log10(timeMaximum/timeMinimum)*dble(timeTableNumberPerDecade))+1)
-       call Alloc_Array(varianceTable                ,[1+varianceTableCount               ],lowerBounds=[0  ])
-       call Alloc_Array(timeTable                    ,[                     timeTableCount]                  )
-       call Alloc_Array(firstCrossingProbabilityTable,[1+varianceTableCount,timeTableCount],lowerBounds=[0,1])
+       call allocateArray(varianceTable                ,[1+varianceTableCount               ],lowerBounds=[0  ])
+       call allocateArray(timeTable                    ,[                     timeTableCount]                  )
+       call allocateArray(firstCrossingProbabilityTable,[1+varianceTableCount,timeTableCount],lowerBounds=[0,1])
        varianceTable    =Make_Range(0.0d0,varianceMaximum,varianceTableCount+1,rangeType=rangeTypeLinear)
        varianceTableStep=varianceTable(1)-varianceTable(0)
        timeTable        =Make_Range(timeMinimum,timeMaximum,timeTableCount,rangeType=rangeTypeLogarithmic)
@@ -311,11 +311,11 @@ contains
     makeTable=.not.tableInitializedRate.or.(varianceProgenitor > varianceMaximumRate*(1.0d0+varianceTolerance)).or.(time < timeMinimumRate).or.(time > timeMaximumRate)
     if (makeTable) then
        ! Construct the table of variance on which we will solve for the first crossing distribution.
-       if (allocated(varianceTableRate     )) call Dealloc_Array(varianceTableRate     )
-       if (allocated(varianceTableRateBase )) call Dealloc_Array(varianceTableRateBase )
-       if (allocated(timeTableRate         )) call Dealloc_Array(timeTableRate         )
-       if (allocated(firstCrossingTableRate)) call Dealloc_Array(firstCrossingTableRate)
-       if (allocated(nonCrossingTableRate  )) call Dealloc_Array(nonCrossingTableRate  )
+       if (allocated(varianceTableRate     )) call deallocateArray(varianceTableRate     )
+       if (allocated(varianceTableRateBase )) call deallocateArray(varianceTableRateBase )
+       if (allocated(timeTableRate         )) call deallocateArray(timeTableRate         )
+       if (allocated(firstCrossingTableRate)) call deallocateArray(firstCrossingTableRate)
+       if (allocated(nonCrossingTableRate  )) call deallocateArray(nonCrossingTableRate  )
        if (tableInitializedRate) then
           timeMinimumRate   =min(timeMinimumRate,0.5d0*time)
           timeMaximumRate   =max(timeMaximumRate,2.0d0*time)
@@ -338,12 +338,12 @@ contains
        varianceMaximumRate       =max(varianceMaximumRate,varianceProgenitor)
        varianceTableCountRate    =int(log10(varianceMaximumRate/varianceMinimumRate)*dble(varianceTableNumberPerDecade))+1
        varianceTableCountRateBase=int(varianceMaximumRate*dble(varianceTableNumberPerUnit))
-       call Alloc_Array(varianceTableRate     ,[1+varianceTableCountRate                                                ],lowerBounds=[0    ])
-       call Alloc_Array(varianceTableRateBase ,[                         1+varianceTableCountRateBase                   ],lowerBounds=[0    ])
-       call Alloc_Array(timeTableRate         ,[                                                      timeTableCountRate]                    )
-       call Alloc_Array(firstCrossingTableRate,[1+varianceTableCountRate,1+varianceTableCountRateBase,timeTableCountRate],lowerBounds&
+       call allocateArray(varianceTableRate     ,[1+varianceTableCountRate                                                ],lowerBounds=[0    ])
+       call allocateArray(varianceTableRateBase ,[                         1+varianceTableCountRateBase                   ],lowerBounds=[0    ])
+       call allocateArray(timeTableRate         ,[                                                      timeTableCountRate]                    )
+       call allocateArray(firstCrossingTableRate,[1+varianceTableCountRate,1+varianceTableCountRateBase,timeTableCountRate],lowerBounds&
             &=[0,0,1])
-       call Alloc_Array(nonCrossingTableRate  ,[                         1+varianceTableCountRateBase,timeTableCountRate],lowerBounds&
+       call allocateArray(nonCrossingTableRate  ,[                         1+varianceTableCountRateBase,timeTableCountRate],lowerBounds&
             &=[  0,1])
        ! For the variance table, the zeroth point is always zero, higher points are distributed uniformly in variance.
        varianceTableRate    (0                           )=0.0d0
@@ -678,9 +678,9 @@ contains
     ! Check if the standard table is populated.
     if (dataFile%hasGroup('probability')) then
        ! Deallocate arrays if necessary.
-       if (allocated(varianceTable                )) call Dealloc_Array(varianceTable                )
-       if (allocated(timeTable                    )) call Dealloc_Array(timeTable                    )
-       if (allocated(firstCrossingProbabilityTable)) call Dealloc_Array(firstCrossingProbabilityTable)
+       if (allocated(varianceTable                )) call deallocateArray(varianceTable                )
+       if (allocated(timeTable                    )) call deallocateArray(timeTable                    )
+       if (allocated(firstCrossingProbabilityTable)) call deallocateArray(firstCrossingProbabilityTable)
        ! Read the datasets.
        dataGroup=dataFile%openGroup("probability")
        call dataGroup%readDataset('variance'                ,varianceTableTemporary       )
@@ -691,9 +691,9 @@ contains
        varianceTableCount=size(varianceTableTemporary)-1
        timeTableCount    =size(timeTable      )
        ! Transfer to variance table.
-       call Alloc_Array(varianceTable,[1+varianceTableCount],lowerBounds=[0])
+       call allocateArray(varianceTable,[1+varianceTableCount],lowerBounds=[0])
        varianceTable(0:varianceTableCount)=varianceTableTemporary(1:varianceTableCount+1)
-       call Dealloc_Array(varianceTableTemporary)
+       call deallocateArray(varianceTableTemporary)
        ! Set table limits.
        varianceMaximum   =varianceTable(varianceTableCount)
        varianceTableStep =varianceTable(1)-varianceTable(0)
@@ -709,11 +709,11 @@ contains
     ! Check if the rate table is populated.
     if (dataFile%hasGroup('rate')) then
        ! Deallocate arrays if necessary.
-       if (allocated(varianceTableRate     )) call Dealloc_Array(varianceTableRate     )
-       if (allocated(varianceTableRateBase )) call Dealloc_Array(varianceTableRateBase )
-       if (allocated(timeTableRate         )) call Dealloc_Array(timeTableRate         )
-       if (allocated(firstCrossingTableRate)) call Dealloc_Array(firstCrossingTableRate)
-       if (allocated(nonCrossingTableRate  )) call Dealloc_Array(nonCrossingTableRate  )
+       if (allocated(varianceTableRate     )) call deallocateArray(varianceTableRate     )
+       if (allocated(varianceTableRateBase )) call deallocateArray(varianceTableRateBase )
+       if (allocated(timeTableRate         )) call deallocateArray(timeTableRate         )
+       if (allocated(firstCrossingTableRate)) call deallocateArray(firstCrossingTableRate)
+       if (allocated(nonCrossingTableRate  )) call deallocateArray(nonCrossingTableRate  )
        ! Read the datasets.
        dataGroup=dataFile%openGroup("rate")
        call dataGroup%readDataset('variance'         ,varianceTableTemporary    )
@@ -727,12 +727,12 @@ contains
        varianceTableCountRateBase=size(varianceTableBaseTemporary)-1
        timeTableCountRate        =size(timeTableRate             )
        ! Transfer to variance table.
-       call Alloc_Array(varianceTableRate    ,[1+varianceTableCountRate    ],lowerBounds=[0])
-       call Alloc_Array(varianceTableRateBase,[1+varianceTableCountRateBase],lowerBounds=[0])
+       call allocateArray(varianceTableRate    ,[1+varianceTableCountRate    ],lowerBounds=[0])
+       call allocateArray(varianceTableRateBase,[1+varianceTableCountRateBase],lowerBounds=[0])
        varianceTableRate    (0:varianceTableCountRate    )=varianceTableTemporary    (1:varianceTableCountRate    +1)
        varianceTableRateBase(0:varianceTableCountRateBase)=varianceTableBaseTemporary(1:varianceTableCountRateBase+1)
-       call Dealloc_Array(varianceTableTemporary    )
-       call Dealloc_Array(varianceTableBaseTemporary)
+       call deallocateArray(varianceTableTemporary    )
+       call deallocateArray(varianceTableBaseTemporary)
        ! Set table limits.
        varianceMaximumRate =varianceTableRate(varianceTableCountRate)
        timeMinimumRate     =timeTableRate    (                     1)

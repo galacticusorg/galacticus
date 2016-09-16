@@ -59,8 +59,8 @@ contains
           else
              outputCount=1
           end if
-          call Alloc_Array(outputRedshifts,[outputCount])
-          call Alloc_Array(outputTimes    ,[outputCount])
+          call allocateArray(outputRedshifts,[outputCount])
+          call allocateArray(outputTimes    ,[outputCount])
           ! Get the default cosmology functions object.
           cosmologyFunctionsDefault => cosmologyFunctions()
           if (Input_Parameter_Is_Present('outputTimes')) then

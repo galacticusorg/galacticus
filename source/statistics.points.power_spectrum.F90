@@ -63,10 +63,10 @@ double precision :: mag, wavemin, wavemax, a
 integer :: j
 
     ! Allocate arrays.
-    if (allocated(wavenumber   )) call Dealloc_Array(wavenumber   )
-    if (allocated(powerSpectrum)) call Dealloc_Array(powerSpectrum)
-    call Alloc_Array(wavenumber        ,[wavenumberCount])
-    call Alloc_Array(powerSpectrum     ,[wavenumberCount])
+    if (allocated(wavenumber   )) call deallocateArray(wavenumber   )
+    if (allocated(powerSpectrum)) call deallocateArray(powerSpectrum)
+    call allocateArray(wavenumber        ,[wavenumberCount])
+    call allocateArray(powerSpectrum     ,[wavenumberCount])
     allocate        (powerSpectrumCount (wavenumberCount))
     ! Generate the array of wavenumbers.
     wavenumber                       =Make_Range(wavenumberMinimum,wavenumberMaximum,wavenumberCount,rangeType=rangeTypeLogarithmic)

@@ -206,8 +206,8 @@ contains
              call Galacticus_Error_Report('Galacticus_Merger_Tree_Output_Filter_Lightcone','either neither or both of "minimumDistance" and "maximumDistance" must be specified in the lightcone geometry file')
           else
              ! Neither is given, compute intervals instead.
-             call Alloc_Array(lightconeMinimumDistance,shape(lightconeTime))
-             call Alloc_Array(lightconeMaximumDistance,shape(lightconeTime))
+             call allocateArray(lightconeMinimumDistance,shape(lightconeTime))
+             call allocateArray(lightconeMaximumDistance,shape(lightconeTime))
              do iOutput=1,size(lightconeTime)
                 if (iOutput == 1                  ) then
                    redshiftMinimum=0.0d0
@@ -253,12 +253,12 @@ contains
              lightconeTimeTemp           =lightConeTime           (getLength(itemList))
              lightconeMinimumDistanceTemp=lightconeMinimumDistance(getLength(itemList))
              lightconeMaximumDistanceTemp=lightconeMaximumDistance(                  1)
-             call Dealloc_Array(lightconeTime           )
-             call Dealloc_Array(lightconeMinimumDistance)
-             call Dealloc_Array(lightconeMaximumDistance)
-             call Alloc_Array(lightconeTime           ,[1])
-             call Alloc_Array(lightconeMinimumDistance,[1])
-             call Alloc_Array(lightconeMaximumDistance,[1])
+             call deallocateArray(lightconeTime           )
+             call deallocateArray(lightconeMinimumDistance)
+             call deallocateArray(lightconeMaximumDistance)
+             call allocateArray(lightconeTime           ,[1])
+             call allocateArray(lightconeMinimumDistance,[1])
+             call allocateArray(lightconeMaximumDistance,[1])
              lightConeTime           (1)=lightconeTimeTemp
              lightConeMinimumDistance(1)=lightconeMinimumDistanceTemp
              lightConeMaximumDistance(1)=lightconeMaximumDistanceTemp

@@ -210,7 +210,7 @@ contains
     end do
     close(fileUnit)
     ! Read the snapshots times file.
-    call Alloc_Array(self%snapshotTimes,[snapshotFileCount])
+    call allocateArray(self%snapshotTimes,[snapshotFileCount])
     open(newUnit=fileUnit,file=char(snapshotTimesFile),status='old',form='formatted',ioStat=ioStat)
     if (ioStat /= 0) call Galacticus_Error_Report('sussingASCIIOpen','can not open file "'//char(snapshotTimesFile)//'"')
     read (fileUnit,*)
@@ -380,11 +380,11 @@ contains
     forestSnapshotHaloCountLast =0
     if (mergerTreeImportSussingUseForestFile) then
        forestCount=Count_Lines_in_File(mergerTreeImportSussingForestFile,'#')
-       call Alloc_Array(forestSnapshotHaloCount     ,                                                                        shape(self%snapshotFileName) )
-       call Alloc_Array(forestSnapshotHaloCountFirst,                                                                        shape(self%snapshotFileName) )
-       call Alloc_Array(forestSnapshotHaloCountLast ,                                                                        shape(self%snapshotFileName) )
-       call Alloc_Array(forestSnapshotHaloCounts    ,[mergerTreeImportSussingForestLast-mergerTreeImportSussingForestFirst+1,size (self%snapshotFileName)])
-       call Alloc_Array(forestID                    ,[mergerTreeImportSussingForestLast-mergerTreeImportSussingForestFirst+1                             ])
+       call allocateArray(forestSnapshotHaloCount     ,                                                                        shape(self%snapshotFileName) )
+       call allocateArray(forestSnapshotHaloCountFirst,                                                                        shape(self%snapshotFileName) )
+       call allocateArray(forestSnapshotHaloCountLast ,                                                                        shape(self%snapshotFileName) )
+       call allocateArray(forestSnapshotHaloCounts    ,[mergerTreeImportSussingForestLast-mergerTreeImportSussingForestFirst+1,size (self%snapshotFileName)])
+       call allocateArray(forestID                    ,[mergerTreeImportSussingForestLast-mergerTreeImportSussingForestFirst+1                             ])
        j          =0
        forestFirst=mergerTreeImportSussingForestFirst
        forestLast =mergerTreeImportSussingForestLast
@@ -405,7 +405,7 @@ contains
           end if
        end do
        close(fileUnit)
-       call Dealloc_Array(forestSnapshotHaloCount)
+       call deallocateArray(forestSnapshotHaloCount)
        ! Reverse order of forest snapshots to match the order of snapshot files if necessary.
        if (mergerTreeImportSussingForestReverseSnapshotOrder) then
           forestSnapshotHaloCountFirst=Array_Reverse(forestSnapshotHaloCountFirst)
@@ -449,8 +449,8 @@ contains
     end if
     ! Allocate storage for list of nodes in subvolume.
     nodeCountSubVolume=int(dble(nodeCount)/dble(self%subvolumeCount)**3,kind=c_size_t)+1
-    call Alloc_Array(nodesInSubvolume,[nodeCountSubVolume])
-    call Alloc_Array(hostsInSubvolume,[nodeCountSubVolume])
+    call allocateArray(nodesInSubvolume,[nodeCountSubVolume])
+    call allocateArray(hostsInSubvolume,[nodeCountSubVolume])
     ! Read snapshot halo catalogs.
     call Galacticus_Display_Indent('Finding halos in subvolume from AHF format snapshot halo catalogs',verbosityWorking)
     j                 =0
@@ -756,13 +756,13 @@ contains
              nodeCountSubvolume=nodeCountSubvolume+1
              if (nodeCountSubvolume > size(nodesInSubvolume)) then
                 call Move_Alloc(nodesInSubvolume,nodesTmp)
-                call Alloc_Array(nodesInSubvolume,int(dble(shape(nodesTmp))*1.4d0)+1)
+                call allocateArray(nodesInSubvolume,int(dble(shape(nodesTmp))*1.4d0)+1)
                 nodesInSubvolume(1:size(nodesTmp))=nodesTmp
-                call Dealloc_Array(nodesTmp)
+                call deallocateArray(nodesTmp)
                 call Move_Alloc(hostsInSubvolume,nodesTmp)
-                call Alloc_Array(hostsInSubvolume,int(dble(shape(nodesTmp))*1.4d0)+1)
+                call allocateArray(hostsInSubvolume,int(dble(shape(nodesTmp))*1.4d0)+1)
                 hostsInSubvolume(1:size(nodesTmp))=nodesTmp
-                call Dealloc_Array(nodesTmp)
+                call deallocateArray(nodesTmp)
              end if
              nodesInSubvolume(nodeCountSubvolume)=ID
              if (hostHalo <= 0) then
@@ -786,7 +786,7 @@ contains
     message=message//nodeCountSubvolume//' nodes in subvolume [from '//nodeCount//' total nodes]'
     call Galacticus_Display_Message(message,verbosityWorking)
     ! Allocate workspaces for merger trees.
-    call Alloc_Array(nodeSelfIndices,[nodeCountSubvolume])
+    call allocateArray(nodeSelfIndices,[nodeCountSubvolume])
     ! Read node indices.
     call Galacticus_Display_Message("Reading node indices",verbosityWorking)
     i     =0
@@ -837,13 +837,13 @@ contains
        message=message//nodeCountTrees//' nodes in subvolume trees [from '//nodeCountSubvolume//' total nodes in subvolume]'
        call Galacticus_Display_Message(message,verbosityWorking)
        call Move_Alloc(nodeSelfIndices,nodesTmp)       
-       call Alloc_Array(nodeSelfIndices,[nodeCountTrees])
+       call allocateArray(nodeSelfIndices,[nodeCountTrees])
        nodeSelfIndices(1:nodeCountTrees)=nodesTmp(1:nodeCountTrees)
-       call Dealloc_Array(nodesTmp)
+       call deallocateArray(nodesTmp)
     end if
     ! Allocate workspaces for merger trees.
-    call Alloc_Array(nodeDescendentLocations,[nodeCountTrees])
-    call Alloc_Array(nodeIncomplete         ,[nodeCountTrees])
+    call allocateArray(nodeDescendentLocations,[nodeCountTrees])
+    call allocateArray(nodeIncomplete         ,[nodeCountTrees])
     ! Get a sorted index into the list of nodes.
     call Galacticus_Display_Message('Building node index',verbosityWorking)
     nodeIndexRanks=Sort_Index_Do(nodeSelfIndices)
@@ -931,17 +931,17 @@ contains
                             call Galacticus_Display_Message(message,verbosityWorking)
                             ! Expand arrays.
                             call Move_Alloc   (nodeSelfIndices        ,nodesTmp          )
-                            call Alloc_Array  (nodeSelfIndices        ,[nodeCountTrees+1])
+                            call allocateArray  (nodeSelfIndices        ,[nodeCountTrees+1])
                             nodeSelfIndices        (1:nodeCountTrees)=nodesTmp
-                            call Dealloc_Array(nodesTmp                                  )
+                            call deallocateArray(nodesTmp                                  )
                             call Move_Alloc   (nodeDescendentLocations,nodesTmp          )
-                            call Alloc_Array  (nodeDescendentLocations,[nodeCountTrees+1])
+                            call allocateArray  (nodeDescendentLocations,[nodeCountTrees+1])
                             nodeDescendentLocations(1:nodeCountTrees)=nodesTmp
-                            call Dealloc_Array(nodesTmp                                  )
+                            call deallocateArray(nodesTmp                                  )
                             call Move_Alloc   (nodeIncomplete         ,nodeIncompleteTmp )
-                            call Alloc_Array  (nodeIncomplete         ,[nodeCountTrees+1])
+                            call allocateArray  (nodeIncomplete         ,[nodeCountTrees+1])
                             nodeIncomplete         (1:nodeCountTrees)=nodeIncompleteTmp
-                            call Dealloc_Array(nodeIncompleteTmp                         )
+                            call deallocateArray(nodeIncompleteTmp                         )
                             ! Increment the number of halos in trees.
                             nodeCountTrees=nodeCountTrees+1
                             ! Insert the new halo, assigning the same descendent as its hosted halo.
@@ -965,7 +965,7 @@ contains
        iCount=iCount+1
        if (mergerTreeImportSussingUseForestFile .and. iCount == forestHaloCountLast) exit
     end do
-    call Dealloc_Array(hostsInSubvolume)
+    call deallocateArray(hostsInSubvolume)
     ! Close the merger tree file.
     close(fileUnit)
     ! Clear counter.
@@ -983,7 +983,7 @@ contains
     end do
     ! Read snapshot halo catalogs.
     call Galacticus_Display_Indent('Parsing AHF format snapshot halo catalogs',verbosityWorking)
-    call Alloc_Array(nodeTreeIndices,[nodeCountTrees])
+    call allocateArray(nodeTreeIndices,[nodeCountTrees])
     j=0
     do i=1,size(self%snapshotFileName)
        call Galacticus_Display_Message(self%snapshotFileName(i),verbosityWorking)
@@ -1285,7 +1285,7 @@ contains
        end do
        close(snapshotUnit)
     end do
-    call Dealloc_Array(nodesInSubvolume)
+    call deallocateArray(nodesInSubvolume)
     ! Record whether tree indices were assigned.
     treeIndicesAssigned    =     mergerTreeImportSussingUseForestFile
     ! Record whether branch jump checks are required.

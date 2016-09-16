@@ -72,8 +72,8 @@ contains
                &                                 'fluxFilterAbsoluteMagnitudeThreshold(Minima|Maxima) input arrays '                                          &
                &                               //'must have same dimension as other luminosity arrays'                                                        &
                &                              )
-          call Alloc_Array(fluxFilterAbsoluteMagnitudeThresholdMinima,[unitStellarLuminosities%luminosityCount(unmapped=.true.)])
-          call Alloc_Array(fluxFilterAbsoluteMagnitudeThresholdMaxima,[unitStellarLuminosities%luminosityCount(unmapped=.true.)])
+          call allocateArray(fluxFilterAbsoluteMagnitudeThresholdMinima,[unitStellarLuminosities%luminosityCount(unmapped=.true.)])
+          call allocateArray(fluxFilterAbsoluteMagnitudeThresholdMaxima,[unitStellarLuminosities%luminosityCount(unmapped=.true.)])
           ! Get the magnitude limits.
           !@ <inputParameter>
           !@   <name>fluxFilterAbsoluteMagnitudeThresholdMinima</name>

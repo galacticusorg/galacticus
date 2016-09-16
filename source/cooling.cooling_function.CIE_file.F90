@@ -467,12 +467,12 @@ contains
     thisTemperature       => XML_Get_First_Element_By_Tag_Name(thisCoolingFunction,"temperature")
     self%temperatureCount =  XML_Array_Length                 (thisTemperature    ,"datum"      )
     ! Allocate space for the table.
-    if (allocated(self%metallicities       )) call Dealloc_Array(self%metallicities       )
-    if (allocated(self%temperatures        )) call Dealloc_Array(self%temperatures        )
-    if (allocated(self%coolingFunctionTable)) call Dealloc_Array(self%coolingFunctionTable)
-    call Alloc_Array(self%metallicities       ,[                      self%metallicityCount])
-    call Alloc_Array(self%temperatures        ,[self%temperatureCount                      ])
-    call Alloc_Array(self%coolingFunctionTable,[self%temperatureCount,self%metallicityCount])
+    if (allocated(self%metallicities       )) call deallocateArray(self%metallicities       )
+    if (allocated(self%temperatures        )) call deallocateArray(self%temperatures        )
+    if (allocated(self%coolingFunctionTable)) call deallocateArray(self%coolingFunctionTable)
+    call allocateArray(self%metallicities       ,[                      self%metallicityCount])
+    call allocateArray(self%temperatures        ,[self%temperatureCount                      ])
+    call allocateArray(self%coolingFunctionTable,[self%temperatureCount,self%metallicityCount])
     ! Extract data from the cooling functions and populate metallicity and temperature arrays.
     allocate(temperaturesReference(0))
     do iCoolingFunction=0,self%metallicityCount-1
