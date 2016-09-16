@@ -1,8 +1,66 @@
 <localGroup>
   <compilationTime>2014-12-03T11:23:09.000-08:00</compilationTime>
-  <compiledBy>Andrew Benson &lt;abenson@obs.carnegiescience.edu&gt;</compiledBy>
+  <compiledBy>Andrew Benson &lt;abenson@carnegiescience.edu&gt;</compiledBy>
   <doi>doi:10.1088/0004-6256/144/1/4</doi>
   <galaxies>
+    <galaxy>
+      <name>Virgo I</name>
+      <rightAscensionHours>
+        <value>12</value>
+      </rightAscensionHours>
+      <rightAscensionMinutes>
+        <value>00</value>
+      </rightAscensionMinutes>
+      <rightAscensionSeconds>
+        <value>09.6</value>
+      </rightAscensionSeconds>
+      <declinationDegrees>
+        <value>-0</value>
+      </declinationDegrees>
+      <declinationArcMinutes>
+        <value>40</value>
+      </declinationArcMinutes>
+      <declinationArcSeconds>
+        <value>48</value>
+      </declinationArcSeconds>
+      <distanceModulus>
+        <value>19.7</value>
+	<errorHigh>0.3</errorHigh>
+	<errorLow>0.2</errorLow>
+      </distanceModulus>
+       <distanceHeliocentric>
+         <value>87</value>
+	 <errorHigh>13</errorHigh>
+	 <errorLow>8</errorLow>
+      </distanceHeliocentric>
+      <magnitudeAbsoluteV>
+        <value>-0.8</value>
+        <error>0.9</error>
+      </magnitudeAbsoluteV>
+      <radiusHalfLight>
+        <value>38</value>
+        <errorHigh>12</errorHigh>
+        <errorLow>11</errorLow>
+      </radiusHalfLight>
+      <radiusHalfLightAngular>
+        <value>1.5</value>
+        <error>0.4</error>
+      </radiusHalfLightAngular>
+     <ellipticityProjected>
+	<value>0.44</value>
+	<errorHigh>0.14</errorHigh>
+	<errorLow>0.17</errorLow>
+      </ellipticityProjected>
+      <extinction>
+        <value>0.066</value>
+      </extinction>
+      <publication>
+	<value>Homma et al. (2016; arXiv:1609.04356)</value>
+      </publication>
+      <publicationURL>
+	<value>http://arxiv.org/abs/1609.04346</value>
+      </publicationURL>
+    </galaxy>
     <galaxy>
       <name>Crater II</name>
       <alias>
@@ -1385,6 +1443,80 @@
       </publication>
       <publicationURL>
 	<value>http://adsabs.harvard.edu/abs/2015arXiv150302079K</value>
+      </publicationURL>
+    </galaxy>
+    <galaxy>
+      <name>Pictoris II</name>
+      <alias>
+	<value>PicII</value>
+	<value>MagLiteS J0664-5953</value>
+      </alias>
+      <rightAscensionDecimalDegrees>
+        <value>101.18</value>
+      </rightAscensionDecimalDegrees>
+      <declinationDecimalDegrees>
+        <value>-59.90</value>
+      </declinationDecimalDegrees>
+      <distanceModulus>
+        <value>18.3</value>
+	<errorHigh>0.12</errorHigh>
+	<errorLow>0.15</errorLow>
+	<errorSystematic>0.1</errorSystematic>
+      </distanceModulus>
+       <distanceHeliocentric>
+         <value>45</value>
+	 <errorHigh>5</errorHigh>
+	 <errorLow>4</errorLow>
+      </distanceHeliocentric>
+      <magnitudeAbsoluteV>
+        <value>-3.2</value>
+        <errorHigh>0.4</errorHigh>
+	<errorLow>0.5</errorLow>
+	<note>Error does not include uncertainty in distance</note>
+      </magnitudeAbsoluteV>
+      <radiusHalfLight>
+        <value>46e-3</value>
+        <errorHigh>15e-3</errorHigh>
+	<errorLow>11e-3</errorLow>
+      </radiusHalfLight>
+      <radiusHalfLightAngular>
+        <value>3.6</value>
+        <errorHigh>1.5</errorHigh>
+	<errorLow>1.0</errorLow>
+      </radiusHalfLightAngular>
+      <ellipticityProjected>
+        <value>0.13</value>
+	<errorHigh>0.22</errorHigh>
+	<errorLow>0.13</errorLow>
+      </ellipticityProjected>
+      <positionAngle>
+        <value>14</value>
+	<errorHigh>60</errorHigh>
+	<errorLow>66</errorLow>
+      </positionAngle>
+      <massStellar>
+        <value>1.6e-3</value>
+	<errorHigh>0.5e-3</errorHigh>
+	<errorLow>0.3e-3</errorLow>
+      </massStellar>
+      <surfaceBrightnessEffectiveV>
+        <value>28.5</value>
+        <error>1</error>
+      </surfaceBrightnessEffectiveV>
+      <ageStellar>
+	<value>10</value>
+	<errorHigh>1</errorHigh>
+	<errorLow>2</errorLow>
+      </ageStellar>
+      <metallicityStellar>
+	<value>-1.8</value>
+	<error>0.3</error>
+      </metallicityStellar>
+      <publication>
+	<value>Drlica-Wagner al. (2016; arXiv:1609.02148v1)</value>
+      </publication>
+      <publicationURL>
+	<value>http://adsabs.harvard.edu/abs/2016arXiv160902148D</value>
       </publicationURL>
     </galaxy>
     <galaxy>
@@ -3055,6 +3187,18 @@
         <errorLow>3.4</errorLow>
         <value>262.2</value>
       </velocityRadialHeliocentric>
+      <properMotionWest>
+        <value>187.4</value>
+        <error>3.9</error>
+        <reference>van der marel &amp; Sahlmann (arXiv:1609.04395)</reference>
+        <referenceURL>http://arxiv.org/abs/1609.04395</referenceURL>
+      </properMotionWest>
+      <properMotionNorth>
+        <value>22.3</value>
+        <error>4.9</error>
+        <reference>van der marel &amp; Sahlmann (arXiv:1609.04395)</reference>
+        <referenceURL>http://arxiv.org/abs/1609.04395</referenceURL>
+      </properMotionNorth>
     </galaxy>
     <galaxy>
       <name>NGC 55</name>
@@ -17287,6 +17431,18 @@
         <errorLow>0.6</errorLow>
         <value>145.6</value>
       </velocityRadialHeliocentric>
+      <properMotionWest>
+        <value>87.6</value>
+        <error>6.0</error>
+        <reference>van der marel &amp; Sahlmann (arXiv:1609.04395)</reference>
+        <referenceURL>http://arxiv.org/abs/1609.04395</referenceURL>
+      </properMotionWest>
+      <properMotionNorth>
+        <value>122.7</value>
+        <error>4.2</error>
+        <reference>van der marel &amp; Sahlmann (arXiv:1609.04395)</reference>
+        <referenceURL>http://arxiv.org/abs/1609.04395</referenceURL>
+      </properMotionNorth>
     </galaxy>
     <galaxy>
       <name>KKR 25</name>
@@ -18340,6 +18496,18 @@
   <properties>
     <name>properMotionLongitude</name>
     <description>Proper motion in Galactic longitude.</description>
+    <units>milliarcseconds per century</units>
+    <unitsInSI>1.536e-18</unitsInSI>
+  </properties>
+  <properties>
+    <name>properMotionNorth</name>
+    <description>Proper motion in North direction.</description>
+    <units>milliarcseconds per century</units>
+    <unitsInSI>1.536e-18</unitsInSI>
+  </properties>
+  <properties>
+    <name>properMotionWest</name>
+    <description>Proper motion in West directoin.</description>
     <units>milliarcseconds per century</units>
     <unitsInSI>1.536e-18</unitsInSI>
   </properties>

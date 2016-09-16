@@ -121,6 +121,12 @@ module Root_Finder
      !@     <type>\logicalzero</type>
      !@     <arguments></arguments>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>destroy</method>
+     !@     <description>Destroy the {\normalfont \ttfamily rootFinder} object.</description>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
      final     ::                            Root_Finder_Finalize
      procedure :: destroy                 => Root_Finder_Destroy
