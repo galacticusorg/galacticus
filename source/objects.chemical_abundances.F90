@@ -540,7 +540,7 @@ contains
     integer                    , intent(in   ) :: fileHandle
 
     write (fileHandle) allocated(chemicals%chemicalValue)
-    if (allocated(chemicals%chemicalValue)) write (fileHandle),chemicals%chemicalValue
+    if (allocated(chemicals%chemicalValue)) write (fileHandle) chemicals%chemicalValue
     return
   end subroutine Chemicals_Dump_Raw
 
@@ -555,7 +555,7 @@ contains
     read (fileHandle) isAllocated
     if (isAllocated) then
        call allocateArray(chemicals%chemicalValue,[chemicalsCount])
-       read (fileHandle),chemicals%chemicalValue
+       read (fileHandle) chemicals%chemicalValue
     end if
     return
   end subroutine Chemicals_Read_Raw
