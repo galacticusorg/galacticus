@@ -711,7 +711,7 @@ sub Process_Through_Grasil {
     }
     # Launch the jobs.
     $dataSet->{'grasilOptions'}->{'allowThreads'} = 0;
-    &{$Hooks::moduleHooks{$launchMethod}->{'jobArrayLaunch'}}($dataSet->{'grasilOptions'},@submitQueue);
+    &{$Galacticus::Launch::Hooks::moduleHooks{$launchMethod}->{'jobArrayLaunch'}}($dataSet->{'grasilOptions'},@submitQueue);
 }
 
 sub grasilPostProcess {
