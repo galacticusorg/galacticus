@@ -310,10 +310,10 @@ sub Node_Event_Serialize_Raw {
 	    }
 	    )
 	    if ( $code::class->{'name'} eq "nodeEvent" );
-	++$code::classCounter;
+	++$code::classCount;
 	$function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 ! Write an integer indicating the type of this event if requested.
-if (.not.present(includeType).or.includeType) write (fileUnit) {$classCounter}
+if (.not.present(includeType).or.includeType) write (fileUnit) {$classCount}
 CODE
 	if ( exists($code::class->{'extends'}) ) {
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
