@@ -380,7 +380,7 @@ CODE
 	    if      ( $code::property->{'data'}->{'rank'} == 0 ) {
 		$code::count = 1;
 	    } elsif ( $code::property->{'data'}->{'rank'} == 1 ) {
-		$code::count = (my @matches = $code::property->{'output'}->{'labels'} =~ m/^\[(.*)\]$/) ? ($1 =~ tr/,//) : $code::property->{'output'}->{'count'};
+		$code::count = (my @matches = $code::property->{'output'}->{'labels'} =~ m/^\[(.*)\]$/) ? ($1 =~ tr/,//)+1 : $code::property->{'output'}->{'count'};
 	    }
 	    # Determine which output buffer type to use.
 	    $code::bufferType = $intrinsicTypeMap{$code::property->{'data'}->{'type'}}->{'label'};
