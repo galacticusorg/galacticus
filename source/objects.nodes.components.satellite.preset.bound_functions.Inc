@@ -64,21 +64,28 @@ double precision function SatellitePresetMergeBoundMass(self)
   type   (history                     )                :: boundMassHistory
   type   (fgsl_interp_accel           )                :: interpolationAccelerator
 
-  ! It does, so get the preset bound mass history.
-  boundMassHistory=self%boundMassHistory()
-  ! Check if the history exists.
-  if (boundMassHistory%exists()) then
-     ! It does, so find the preset time closest to the present one and return the mass at that time.
-     selfNode           => self    %host ()
-     selfBasicComponent => selfNode%basic()
-     interpolationReset=.true.
-     iTime=Interpolate_Locate(boundMassHistory%time,interpolationAccelerator&
-          &,selfBasicComponent%time(),reset=interpolationReset,closest=.true.)
-     SatellitePresetMergeBoundMass=boundMassHistory%data(iTime,1)
-     call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)
+  ! Get the hosting node and the basic component.
+  selfNode           => self    %host ()
+  selfBasicComponent => selfNode%basic()
+  ! Determine if this is a satellite node or not.
+  if (selfNode%isSatellite()) then
+     ! Node is a satellite, so get the preset bound mass history.
+     boundMassHistory=self%boundMassHistory()
+     ! Check if the history exists.
+     if (boundMassHistory%exists()) then
+        ! It does, so find the preset time closest to the present one and return the mass at that time.
+        interpolationReset=.true.
+        iTime=Interpolate_Locate(boundMassHistory%time,interpolationAccelerator&
+             &,selfBasicComponent%time(),reset=interpolationReset,closest=.true.)
+        SatellitePresetMergeBoundMass=boundMassHistory%data(iTime,1)
+        call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)
+     else
+        ! It does not, so return the basic mass.
+        SatellitePresetMergeBoundMass=selfBasicComponent%mass()
+     end if
   else
-     ! It does not, so return zero.
-     SatellitePresetMergeBoundMass=0.0d0
+     ! Node is not a satellite, return the basic mass of the halo.
+     SatellitePresetMergeBoundMass=selfBasicComponent%mass()
   end if
   call boundMassHistory%destroy()
   return
