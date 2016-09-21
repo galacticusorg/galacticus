@@ -115,8 +115,8 @@ sub Get_Line_Luminosity {
 	unless ( exists($emissionLines->{'lines'}->{$lineLabel}) ) {
 	    die("Galacticus::EmissionLines: unable to find line '".$lineLabel."' in database")
 		unless ( grep {$_ eq $lineLabel} @{$emissionLines->{'lineNames'}} );
-	    $emissionLines->{'lines'}->{$lineLabel}->{'luminosity'} = $emissionLines->{'file'}->group('lines')->dataset($lineLabel)->get();
-	    $emissionLines->{'lines'}->{$lineLabel}->{'wavelength'} = $emissionLines->{'file'}->group('lines')->dataset($lineLabel)->attrGet('wavelength');
+	    $emissionLines ->{'lines'}->{$lineLabel}->{'luminosity'}  = $emissionLines->{'file'}->group('lines')->dataset($lineLabel)->get();
+	    ($emissionLines->{'lines'}->{$lineLabel}->{'wavelength'}) = $emissionLines->{'file'}->group('lines')->dataset($lineLabel)->attrGet('wavelength');
 	}
 	# Construct the name of the corresponding luminosity property.
 	my @properties = (
@@ -200,7 +200,7 @@ sub Get_Line_Luminosity {
 		$response    = append($response   ,$columns[1]);
 	    }
 	    # Check if the line lies within the extent of the filter.
-	    my $observedWavelength = $emissionLines->{'lines'}->{$lineLabel}->{'wavelength'};
+	    my $observedWavelength = $emissionLines->{'lines'}->{$lineLabel}->{'wavelength'}->copy();
 	    $observedWavelength *= (1.0+$redshift) if ( $frame eq "observed" );
 	    if ( $observedWavelength >= $wavelengths((0)) && $observedWavelength <= $wavelengths((-1)) ) {
 		# Interpolate the transmission to the line wavelength.
