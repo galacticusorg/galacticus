@@ -69,22 +69,6 @@ sub Get_Dust_Attenuated_Luminosity {
     # Get the name of the unattenuated luminosity dataset.
     (my $luminosityDataSet = $dataSetName) =~ s/:dustAtlas(\[faceOn\])?//;
 
-    # List of properties to read.
-    my @propertyList = ("diskAbundancesGasMetals","diskRadius","spheroidRadius",$luminosityDataSet);
-
-    # Check if a face-on magnitude is required.
-    my $faceOn;
-    if ( $dataSetName =~ m/\[faceOn\]/ ) {
-	$faceOn = 1;
-    } else {
-	$faceOn = 0;
-	push(@propertyList,"inclination");
-    }
-
-    # Get the datasets needed for our calculation.
-    &Galacticus::HDF5::Get_Dataset($dataSet,\@propertyList);
-    my $dataSets = $dataSet->{'dataSets'};
-
     # Load the dust atlas data.
     &Load_Dust_Atlas($dataSet);
 
@@ -130,6 +114,24 @@ sub Get_Dust_Attenuated_Luminosity {
     } else {
  	$filterLabel = $filter.":observed:z".$redshift;
     }
+
+    # List of properties to read.
+    my @propertyList = ("diskAbundancesGasMetals","diskRadius",$luminosityDataSet);
+    push(@propertyList,"spheroidRadius")
+	if ( $component eq "spheroid" );
+    
+    # Check if a face-on magnitude is required.
+    my $faceOn;
+    if ( $dataSetName =~ m/\[faceOn\]/ ) {
+	$faceOn = 1;
+    } else {
+	$faceOn = 0;
+	push(@propertyList,"inclination");
+    }
+
+    # Get the datasets needed for our calculation.
+    &HDF5::Get_Dataset($dataSet,\@propertyList);
+    my $dataSets = $dataSet->{'dataSets'};
 
     # Ensure we have an effective wavelength and a wavelength index for this filter.
     unless ( exists($effectiveWavelength{$filterLabel}) ) {
