@@ -3,7 +3,7 @@
 
 # Contributions to this file from: Andrew Benson; Christoph Behrens.
 
-package IonizingContinuua;
+package Galacticus::IonizingContinuua;
 use strict;
 use warnings;
 use Cwd;
