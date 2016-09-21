@@ -145,7 +145,7 @@ sub Components_Generate_Output {
     print makeFile $ENV{'BUILDPATH'}."/objects.nodes.o:".join("",map {" ".$ENV{'BUILDPATH'}."/".$_} @includeDependencies)
 	if ( scalar(@includeDependencies) > 0 );
     close(makeFile);
-    &File::Changes::Update($ENV{'BUILDPATH'}."/Makefile_Component_Includes" ,$ENV{'BUILDPATH'}."/Makefile_Component_Includes.tmp" );
+    &File::Changes::Update($ENV{'BUILDPATH'}."/Makefile_Component_Includes" ,$ENV{'BUILDPATH'}."/Makefile_Component_Includes.tmp" ); 
 }
 
 sub boundFunctionTable {
@@ -426,8 +426,11 @@ sub functionsSerialize {
 	# Serialize description.
 	$build->{'content'} .= "   !% ".$function->{'description'}."\n";
 	# Serialize module uses.
-	$build->{'content'} .= "   use ".$_."\n"
-	    foreach ( @{$function->{'modules'}} );
+	my @intrinsicModules = ( "iso_c_binding" );
+	foreach my $module ( @{$function->{'modules'}} ) {
+	    my $intrinsic = (grep {lc($module) eq $_} @intrinsicModules) ? ", intrinsic" : "";
+	    $build->{'content'} .= "   use".$intrinsic." :: ".$module."\n";
+	}
 	# Serialize variable definitions.
 	$build->{'content'} .= "   implicit none\n";
 	$build->{'content'} .= &Fortran::Utils::Format_Variable_Definitions($function->{'variables'})
