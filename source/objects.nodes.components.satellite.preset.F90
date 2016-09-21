@@ -25,7 +25,7 @@ module Node_Component_Satellite_Preset
   use Galacticus_Nodes
   implicit none
   private
-  public :: Node_Component_Satellite_Preset_Promote
+  public :: Node_Component_Satellite_Preset_Promote, Node_Component_Satellite_Preset_Inter_Tree_Attach
 
   !# <component>
   !#  <class>satellite</class>
@@ -106,5 +106,61 @@ contains
     call thisnode%parent%satelliteMove(thisNode,overwrite=.true.)
     return
   end subroutine Node_Component_Satellite_Preset_Promote
+  
+  !# <interTreeSatelliteAttach>
+  !#  <unitName>Node_Component_Satellite_Preset_Inter_Tree_Attach</unitName>
+  !# </interTreeSatelliteAttach>
+  subroutine Node_Component_Satellite_Preset_Inter_Tree_Attach(node)
+    !% A satellite node is being moved between trees. Ensure that preset satellite properties are correctly handled.
+    use Histories
+    implicit none
+    type (treeNode              ), intent(inout), pointer :: node
+    class(nodeComponentSatellite)               , pointer :: pullSatellite   , attachSatellite
+    class(nodeComponentBasic    )               , pointer :: attachBasic
+    type (longIntegerHistory    )                         :: pullHistoryIndex, attachHistoryIndex
+    type (history               )                         :: pullHistory     , attachHistory
+
+    ! Return immediately if the preset satellite implementation is not active.
+    if (.not.defaultSatelliteComponent%presetIsActive()) return
+    ! Get the node index histories attached to both the pulled node and its parent.
+    pullSatellite   => node                  %satellite       ()
+    attachSatellite => node           %parent%satellite       ()
+    ! Combined node index histories.
+    pullHistoryIndex     =  pullSatellite         %nodeIndexHistory()
+    attachHistoryIndex   =  attachSatellite       %nodeIndexHistory()
+    ! Combine the histories.
+    if (attachHistoryIndex%exists()) then
+       ! The node has a history - combined it with our own.
+       call pullHistoryIndex%append(attachHistoryIndex)
+    else
+       ! The node attached to has no node index history. But we must still add itself as an entry at the end of the pulled node's
+       ! history.
+       attachBasic => node%parent%basic()
+       call pullHistoryIndex%append(attachBasic%time(),[attachSatellite%nodeIndex()])
+    end if
+    ! Set this history in both the pulled node and the attachment node. This ensures that the history will persist after the
+    ! pulled node is promoted to the attachment node.
+    call pullSatellite  %nodeIndexHistorySet(pullHistoryIndex)
+    call attachSatellite%nodeIndexHistorySet(pullHistoryIndex)    
+    ! Combined bound mass histories.
+    pullHistory     =  pullSatellite         %boundMassHistory()
+    attachHistory   =  attachSatellite       %boundMassHistory()
+    ! Combine the histories.
+    if (attachHistory%exists()) then
+       ! The node has a history - combined it with our own.
+       call pullHistory%append(attachHistory)
+    else
+       ! The node attached to has no history. But we must still add itself as an entry at the end of the pulled node's history.
+       attachBasic => node%parent%basic()
+       call pullHistory%append(attachBasic%time(),[attachSatellite%boundMass()])
+    end if
+    ! Set this history in both the pulled node and the attachment node. This ensures that the history will persist after the
+    ! pulled node is promoted to the attachment node.
+    call pullSatellite  %boundMassHistorySet(pullHistory)
+    call attachSatellite%boundMassHistorySet(pullHistory)
+    ! The merge time for the pulled node is reset to that of the attachment node.
+    call attachSatellite%timeOfMergingSet(pullSatellite%timeOfMerging())
+    return
+  end subroutine Node_Component_Satellite_Preset_Inter_Tree_Attach
   
 end module Node_Component_Satellite_Preset
