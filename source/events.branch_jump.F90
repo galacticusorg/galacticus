@@ -34,12 +34,13 @@ contains
     use ISO_Varying_String
     use String_Handling
     implicit none
-    class  (nodeEvent     ), intent(in   )          :: thisEvent
-    type   (treeNode      ), intent(inout), pointer :: thisNode
-    integer                , intent(inout)          :: deadlockStatus
-    type   (treeNode      )               , pointer :: lastSatellite , newHost
-    type   (varying_string)                         :: message
-
+    class    (nodeEvent     ), intent(in   )          :: thisEvent
+    type     (treeNode      ), intent(inout), pointer :: thisNode
+    integer                  , intent(inout)          :: deadlockStatus
+    type     (treeNode      )               , pointer :: lastSatellite , newHost
+    type     (varying_string)                         :: message
+    character(len=12        )                         :: label
+    
     ! If the node is not yet a satellite, wait until it is before peforming this task.
     if (.not.thisNode%isSatellite()) then
        Node_Branch_Jump=.false.
@@ -48,8 +49,9 @@ contains
        Node_Branch_Jump=.true.
     end if
     ! Report.
+    write (label,'(f12.6)') thisEvent%time
     message='Node ['
-    message=message//thisNode%index()//'] jumping branch to ['//thisEvent%node%index()//']'
+    message=message//thisNode%index()//'] jumping branch to host ['//thisEvent%node%index()//'] at time '//label//' Gyr'
     call Galacticus_Display_Message(message,verbosityInfo)
     ! Remove the satellite from its current host.
     call thisNode%removeFromHost()
