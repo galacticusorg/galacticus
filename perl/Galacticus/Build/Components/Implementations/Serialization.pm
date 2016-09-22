@@ -360,7 +360,6 @@ CODE
 	    if ( &isIntrinsic($code::property->{'data'}->{'type'}) ) {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 write (fileHandle) self%{$property->{'name'}}Data
-write (fileHandle) self%{$property->{'name'}}Data
 CODE
 	    } else {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
