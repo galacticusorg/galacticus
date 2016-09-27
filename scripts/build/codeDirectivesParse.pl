@@ -124,7 +124,7 @@ foreach my $directive ( keys(%{$includeDirectives}) ) {
 # Add additional dependencies for object files of source files that contain functionClass directives. These source files get other
 # source files incorporated into them via the source tree preprocessor.
 foreach my $directiveName ( keys(%{$functionClasses}) ) {
-    print $directivesMakefile $ENV{'BUILDPATH'}."/".$functionClasses->{$directiveName}.": ".join(" ",keys(%{$nonIncludeDirectives->{$directiveName}->{'files'}}))."\n\n";
+    print $directivesMakefile $functionClasses->{$directiveName}.": ".join(" ",keys(%{$nonIncludeDirectives->{$directiveName}->{'files'}}))."\n\n";
     # Include explicit dependencies for Makefile_Use_Dependencies to ensure that module dependencies get rebuilt
     # after these directive include files are constructed.
     print $directivesMakefile $ENV{'BUILDPATH'}."/Makefile_Use_Dependencies: ".join(" ",map {(my $fileName = $includeDirectives->{$_}->{'fileName'}) =~ s/\.inc$/\.Inc/; $fileName} keys(%{$includeDirectives}))."\n\n";
