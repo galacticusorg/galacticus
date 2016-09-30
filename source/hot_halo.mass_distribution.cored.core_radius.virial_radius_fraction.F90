@@ -84,9 +84,9 @@ contains
     !% Return the core radius of the hot halo mass distribution.
     use Dark_Matter_Halo_Scales
     implicit none
-    class           (hotHaloMassDistributionCoreRadiusVirialFraction), intent(inout)          :: self
-    type            (treeNode                                       ), intent(inout), pointer :: node
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    class           (hotHaloMassDistributionCoreRadiusVirialFraction), intent(inout) :: self
+    type            (treeNode                                       ), intent(inout) :: node
+    class           (darkMatterHaloScaleClass                       ), pointer       :: darkMatterHaloScale_
 
     darkMatterHaloScale_ => darkMatterHaloScale()
     virialFractionRadius=self%coreRadiusOverVirialRadius*darkMatterHaloScale_%virialRadius(node)

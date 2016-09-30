@@ -38,7 +38,7 @@ module Hot_Halo_Mass_Distributions_Core_Radii
   !#   <description>Return the core radius of the hot halo mass distribution.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
   !#  </method>
   include 'hotHaloMassDistributionCoreRadius.type.inc'
   !# </include>

@@ -42,7 +42,7 @@ module Dark_Matter_Halo_Scales
   !#   <description>The virial velocity of a dark matter halo</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), pointer, intent(inout) :: thisNode</argument>
+  !#   <argument>type(treeNode), intent(inout) :: thisNode</argument>
   !#  </method>
   !#  <method name="virialVelocityGrowthRate" >
   !#   <description>The growth rate of the virial velocity of a dark matter halo.</description>
@@ -54,13 +54,13 @@ module Dark_Matter_Halo_Scales
   !#   <description>The virial temperature of a dark matter halo</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), pointer, intent(inout) :: thisNode</argument>
+  !#   <argument>type(treeNode), intent(inout) :: thisNode</argument>
   !#  </method>
   !#  <method name="virialRadius" >
   !#   <description>The virial radius of a dark matter halo.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), pointer, intent(inout) :: thisNode</argument>
+  !#   <argument>type(treeNode), intent(inout) :: thisNode</argument>
   !#  </method>
   !#  <method name="virialRadiusGradientLogarithmicMass" >
   !#   <description>The logarithmic gradient of virial radius of a dark matter halo with halo mass at fixed epoch.</description>
@@ -78,7 +78,7 @@ module Dark_Matter_Halo_Scales
   !#   <description>The mean density of a dark matter halo.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), pointer, intent(inout) :: thisNode</argument>
+  !#   <argument>type(treeNode), intent(inout) :: thisNode</argument>
   !#  </method>
   !#  <method name="meanDensityGrowthRate" >
   !#   <description>The growth rate of the mean density of a dark matter halo.</description>

@@ -39,7 +39,7 @@ contains
     include 'galactic_structure.rotation_curve.tasks.modules.inc'
     !# </include>
     implicit none
-    type            (treeNode                ), intent(inout)          , pointer :: thisNode
+    type            (treeNode                ), intent(inout)                    :: thisNode
     integer                                   , intent(in   ), optional          :: componentType                 , massType
     logical                                   , intent(in   ), optional          :: haloLoaded
     double precision                          , intent(in   )                    :: radius

@@ -330,7 +330,7 @@ contains
     !% Reset the dark matter profile calculation.
     implicit none
     class(darkMatterProfileEinasto), intent(inout)          :: self
-    type (treeNode                ), intent(inout), pointer :: thisNode
+    type (treeNode                ), intent(inout) :: thisNode
 
     call self%scale%calculationReset(thisNode)
     return
@@ -341,13 +341,13 @@ contains
     !% in units of Mpc).
     use Dark_Matter_Halo_Scales
     implicit none
-    class           (darkMatterProfileEinasto      ), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
-    double precision                                , intent(in   )          :: radius
-    class           (nodeComponentBasic            )               , pointer :: thisBasicComponent
-    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
-    double precision                                                         :: alpha                         , radiusOverScaleRadius      , &
-         &                                                                      scaleRadius                   , virialRadiusOverScaleRadius
+    class           (darkMatterProfileEinasto      ), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , intent(in   ) :: radius
+    class           (nodeComponentBasic            ), pointer       :: thisBasicComponent
+    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
+    double precision                                                :: alpha                         , radiusOverScaleRadius      , &
+         &                                                             scaleRadius                   , virialRadiusOverScaleRadius
 
     ! Get components.
     thisBasicComponent             => node%basic            (                 )
@@ -456,13 +456,13 @@ contains
     !% units of Mpc).
     use Dark_Matter_Halo_Scales
     implicit none
-    class           (darkMatterProfileEinasto      ), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
-    double precision                                , intent(in   )          :: radius
-    class           (nodeComponentBasic            )               , pointer :: thisBasicComponent
-    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
-    double precision                                                         :: alpha                         , radiusOverScaleRadius      , &
-         &                                                                      scaleRadius                   , virialRadiusOverScaleRadius
+    class           (darkMatterProfileEinasto      ), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , intent(in   ) :: radius
+    class           (nodeComponentBasic            ), pointer       :: thisBasicComponent
+    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
+    double precision                                                :: alpha                         , radiusOverScaleRadius      , &
+         &                                                             scaleRadius                   , virialRadiusOverScaleRadius
 
     ! Get components.
     thisBasicComponent             => node%basic            (                 )

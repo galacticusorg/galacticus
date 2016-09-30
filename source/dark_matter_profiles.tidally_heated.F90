@@ -172,7 +172,7 @@ contains
     !% Reset the dark matter profile calculation.
     implicit none
     class(darkMatterProfileTidallyHeated), intent(inout)          :: self
-    type (treeNode                      ), intent(inout), pointer :: thisNode
+    type (treeNode                      ), intent(inout) :: thisNode
 
     call self%unheatedProfile%calculationReset(thisNode)
     return
@@ -194,12 +194,12 @@ contains
     use Numerical_Constants_Math
     use Numerical_Constants_Physical
     implicit none
-    class           (darkMatterProfileTidallyHeated), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
-    double precision                                , intent(in   )          :: radius
-    class           (nodeComponentSatellite        )               , pointer :: satellite
-    double precision                                                         :: radiusInitial , massEnclosed, &
-         &                                                                      densityInitial, jacobian
+    class           (darkMatterProfileTidallyHeated), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , intent(in   ) :: radius
+    class           (nodeComponentSatellite        ), pointer       :: satellite
+    double precision                                                :: radiusInitial , massEnclosed, &
+         &                                                             densityInitial, jacobian
     
     satellite => node%satellite()
     if (satellite%tidalHeatingNormalized() <= 0.0d0) then
@@ -318,10 +318,10 @@ contains
     !% units of Mpc).
     use Galacticus_Display
     implicit none
-    class           (darkMatterProfileTidallyHeated), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
-    double precision                                , intent(in   )          :: radius
-    class           (nodeComponentSatellite        )               , pointer :: satellite
+    class           (darkMatterProfileTidallyHeated), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , intent(in   ) :: radius
+    class           (nodeComponentSatellite        ), pointer       :: satellite
 
     satellite => node%satellite()
     if (satellite%tidalHeatingNormalized() <= 0.0d0) then
@@ -339,7 +339,7 @@ contains
     use Root_Finder
     implicit none
     class           (darkMatterProfileTidallyHeated), intent(inout), target  :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
+    type            (treeNode                      ), intent(inout), target  :: node
     double precision                                , intent(in   )          :: radiusFinal
     class           (nodeComponentSatellite        )               , pointer :: satellite
     double precision                                , parameter              :: toleranceAbsolute     =0.0d0, toleranceRelative=1.0d-6

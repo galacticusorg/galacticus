@@ -37,9 +37,9 @@ contains
   double precision function nullDensity(self,node,radius)
     !% Return the density in a null hot halo mass distribution.
     implicit none
-    class           (hotHaloMassDistributionNull), intent(inout)          :: self
-    type            (treeNode                   ), intent(inout), pointer :: node
-    double precision                             , intent(in   )          :: radius
+    class           (hotHaloMassDistributionNull), intent(inout) :: self
+    type            (treeNode                   ), intent(inout) :: node
+    double precision                             , intent(in   ) :: radius
     !GCC$ attributes unused :: self, node, radius
     
     nullDensity=0.0d0
@@ -61,9 +61,9 @@ contains
   double precision function nullEnclosedMass(self,node,radius)
     !% Return the mass enclosed in the hot halo at the given {\normalfont \ttfamily radius}.
     implicit none
-    class           (hotHaloMassDistributionNull), intent(inout)          :: self
-    type            (treeNode                   ), intent(inout), pointer :: node
-    double precision                             , intent(in   )          :: radius
+    class           (hotHaloMassDistributionNull), intent(inout)         :: self
+    type            (treeNode                   ), intent(inout), target :: node
+    double precision                             , intent(in   )         :: radius
     !GCC$ attributes unused :: self, node, radius
 
     nullEnclosedMass=0.0d0

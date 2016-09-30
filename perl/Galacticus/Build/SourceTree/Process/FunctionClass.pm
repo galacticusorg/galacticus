@@ -140,7 +140,7 @@ sub Process_FunctionClass {
 		    description => "Reset the calculation state of the object.",
 		    type        => "void",
 		    pass        => "yes",
-		    argument    => [ "type(treeNode), intent(inout), pointer :: thisNode" ],
+		    argument    => [ "type(treeNode), intent(inout) :: thisNode" ],
 		    code        => join("",map {"if (sizeof(".$_.")<0.and.sizeof(".$_.")>0) then\nend if\n"} ('self','thisNode') )
 		};
 	    }
@@ -573,7 +573,7 @@ sub Process_FunctionClass {
 		$postContains->[0]->{'content'} .= "  subroutine ".$directive->{'name'}."DoCalculationReset(thisNode)\n";
 		$postContains->[0]->{'content'} .= "    !% Store the state to file.\n";
 		$postContains->[0]->{'content'} .= "    implicit none\n";
-		$postContains->[0]->{'content'} .= "    type (treeNode), pointer, intent(inout) :: thisNode\n";
+		$postContains->[0]->{'content'} .= "    type (treeNode), intent(inout) :: thisNode\n";
 		$postContains->[0]->{'content'} .= "    class(".$directive->{'name'}."Class), pointer :: default\n\n";
 		$postContains->[0]->{'content'} .= "    default => ".$directive->{'name'}."()\n";
 		$postContains->[0]->{'content'} .= "    call default%calculationReset(thisNode)\n";

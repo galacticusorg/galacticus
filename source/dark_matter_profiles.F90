@@ -39,8 +39,8 @@ module Dark_Matter_Profiles
   !#   <description>Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout), pointer :: node</argument>
-  !#   <argument>double precision          , intent(in   )          :: radius</argument>
+  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
+  !#   <argument>double precision          , intent(in   ) :: radius</argument>
   !#  </method>
   !#  <method name="densityLogSlope" >
   !#   <description>Returns the logarithmic slope of the density profile in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
@@ -107,8 +107,8 @@ module Dark_Matter_Profiles
   !#   <description>Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc). for the given {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout), pointer :: node</argument>
-  !#   <argument>double precision          , intent(in   )          :: radius</argument>
+  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
+  !#   <argument>double precision          , intent(in   ) :: radius</argument>
   !#  </method>
   !#  <method name="kSpace" >
   !#   <description>Returns the normalized Fourier space density profile of the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily waveNumber} (given in units of Mpc$^{-1}$).</description>

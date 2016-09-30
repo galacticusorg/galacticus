@@ -172,7 +172,7 @@ sub Functions_Generate_Output {
 		description => "Reset the calculation state of the object.",
 		type        => "void",
 		pass        => "yes",
-		argument    => [ "type(treeNode), intent(inout), pointer :: thisNode" ],
+		argument    => [ "type(treeNode), intent(inout) :: thisNode" ],
 		code        => "!GCC\$ attributes unused :: self, thisNode\n"
 	    },
 	    )
@@ -608,7 +608,7 @@ sub Functions_Generate_Output {
 	$buildData->{'content'} .= "  subroutine ".$directive."DoCalculationReset(thisNode)\n";
 	$buildData->{'content'} .= "    !% Store the state to file.\n";
 	$buildData->{'content'} .= "    implicit none\n";
-	$buildData->{'content'} .= "    type (treeNode), pointer, intent(inout) :: thisNode\n";
+	$buildData->{'content'} .= "    type (treeNode), intent(inout) :: thisNode\n";
 	$buildData->{'content'} .= "    class(".$directive."Class), pointer :: default\n\n";
 	$buildData->{'content'} .= "    default => ".$directive."()\n";
 	$buildData->{'content'} .= "    call default%calculationReset(thisNode)\n";

@@ -40,7 +40,7 @@ contains
     use Numerical_Constants_Physical
     use Black_Hole_Fundamentals
     implicit none
-    type            (treeNode              ), intent(inout), pointer  :: thisNode
+    type            (treeNode              ), intent(inout)           :: thisNode
     integer                                 , intent(in   )           :: componentType         , massType
     double precision                        , intent(in   )           :: radius
     logical                                 , intent(in   ), optional :: haloLoaded
@@ -116,7 +116,7 @@ contains
     use Numerical_Constants_Physical
     use Black_Hole_Fundamentals
     implicit none
-    type            (treeNode              ), intent(inout), pointer  :: thisNode
+    type            (treeNode              ), intent(inout)           :: thisNode
     integer                                 , intent(in   )           :: componentType         , massType
     double precision                        , intent(in   )           :: radius
     logical                                 , intent(in   ), optional :: haloLoaded

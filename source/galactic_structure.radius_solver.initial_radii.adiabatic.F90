@@ -114,10 +114,10 @@ contains
     include 'galactic_structure.radius_solver.initial_radii.adiabatic.enclosed_mass.tasks.modules.inc'
     !# </include>
     implicit none
-    type            (treeNode                         ), intent(inout), pointer :: thisNode
+    type            (treeNode                         ), intent(inout), target  :: thisNode
     double precision                                   , intent(in   )          :: radius
     logical                                            , intent(in   )          :: computeGradientFactors
-    type            (treeNode                         )               , pointer :: currentNode
+    type            (treeNode                         )               , pointer :: currentNode                           , hostNode
     class           (nodeComponentBasic               )               , pointer :: thisBasic
     double precision                                   , parameter              :: toleranceAbsolute               =0.0d0, toleranceRelative   =1.0d-3
     procedure       (Component_Enclosed_Mass          )               , pointer :: componentEnclosedMass
@@ -160,6 +160,7 @@ contains
     baryonicMassTotal     =  0.0d0
     baryonicMassSelfTotal =  0.0d0
     currentNode           => thisNode
+    hostNode              => thisNode
     do while (associated(currentNode))
        componentEnclosedMass => Component_Enclosed_Mass
        baryonicMassTotal=baryonicMassTotal+currentNode%mapDouble0(componentEnclosedMass,reductionSummation,optimizeFor=optimizeForEnclosedMassSummation)
@@ -169,12 +170,12 @@ contains
        !#  <onReturn>baryonicMassTotal=baryonicMassTotal+componentMass</onReturn>
        include 'galactic_structure.radius_solver.initial_radii.adiabatic.enclosed_mass.tasks.inc'
        !# </include>
-       if (associated(currentNode,thisNode)) then
+       if (associated(currentNode,hostNode)) then
           baryonicMassSelfTotal=baryonicMassTotal
           do while (associated(currentNode%firstSatellite))
              currentNode => currentNode%firstSatellite
           end do
-          if (associated(currentNode,thisNode)) currentNode => null()
+          if (associated(currentNode,hostNode)) currentNode => null()
        else
           if (associated(currentNode%sibling)) then
              currentNode => currentNode%sibling
@@ -208,13 +209,13 @@ contains
     use Dark_Matter_Halo_Scales
     use Root_Finder
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: thisNode
-    double precision                          , intent(in   )          :: radius
-    double precision                          , parameter              :: toleranceAbsolute   =0.0d0, toleranceRelative=1.0d-3
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    type            (rootFinder              ), save                   :: finder
+    type            (treeNode                ), intent(inout) :: thisNode
+    double precision                          , intent(in   ) :: radius
+    double precision                          , parameter     :: toleranceAbsolute   =0.0d0, toleranceRelative=1.0d-3
+    class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
+    type            (rootFinder              ), save          :: finder
     !$omp threadprivate(finder)
-    integer                                                            :: i, j
+    integer                                                   :: i                         , j
 
     ! Reset stored solutions if the node has changed.
     if (thisNode%uniqueID() /= uniqueIDPrevious) call Galactic_Structure_Initial_Radii_Adiabatic_Reset(thisNode)
@@ -296,10 +297,10 @@ contains
     !% \cite{gnedin_response_2004}.
     use Root_Finder
     implicit none
-    type            (treeNode  ), intent(inout), pointer :: thisNode
-    double precision            , intent(in   )          :: radius
-    double precision            , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
-    type            (rootFinder), save                   :: finder
+    type            (treeNode  ), intent(inout) :: thisNode
+    double precision            , intent(in   ) :: radius
+    double precision            , parameter     :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
+    type            (rootFinder), save          :: finder
     !$omp threadprivate(finder)
     
     ! Initialize our root finder.
@@ -476,7 +477,7 @@ contains
   subroutine Galactic_Structure_Initial_Radii_Adiabatic_Reset(thisNode)
     !% Remove memory of stored computed values as we're about to begin computing derivatives anew.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
 
     uniqueIDPrevious          =thisNode%uniqueID()
     radiusPreviousIndex       = 0

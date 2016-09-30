@@ -49,8 +49,8 @@ contains
   double precision function Galactic_Structure_Radius_Initial_Static(thisNode,radius)
     !% Compute the initial radius in the dark matter halo assuming the halo is static.
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: radius
+    type            (treeNode), intent(inout) :: thisNode
+    double precision          , intent(in   ) :: radius
     !GCC$ attributes unused :: thisNode, radius
 
     Galactic_Structure_Radius_Initial_Static=radius
@@ -60,8 +60,8 @@ contains
   double precision function Galactic_Structure_Radius_Initial_Derivative_Static(thisNode,radius)
     !% Compute the derivative of the initial radius in the dark matter halo assuming the halo is static.
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: radius
+    type            (treeNode), intent(inout) :: thisNode
+    double precision          , intent(in   ) :: radius
     !GCC$ attributes unused :: thisNode, radius
     
     Galactic_Structure_Radius_Initial_Derivative_Static=1.0d0

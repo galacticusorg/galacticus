@@ -35,10 +35,10 @@ contains
     !% Return the density in a {\normalfont \ttfamily virial} hot halo mass distribution.
     use Dark_Matter_Halo_Scales
     implicit none
-    class           (hotHaloTemperatureProfileVirial), intent(inout)          :: self
-    type            (treeNode                       ), intent(inout), pointer :: node
-    double precision                                 , intent(in   )          :: radius
-    class           (darkMatterHaloScaleClass       )               , pointer :: darkMatterHaloScale_ 
+    class           (hotHaloTemperatureProfileVirial), intent(inout) :: self
+    type            (treeNode                       ), intent(inout) :: node
+    double precision                                 , intent(in   ) :: radius
+    class           (darkMatterHaloScaleClass       ), pointer       :: darkMatterHaloScale_ 
     !GCC$ attributes unused :: self, radius
     
     darkMatterHaloScale_ => darkMatterHaloScale                   (    )

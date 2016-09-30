@@ -41,12 +41,12 @@ contains
     include 'galactic_structure.rotation_curve.gradient.tasks.modules.inc'
     !# </include>
     implicit none
-    type            (treeNode                         ), intent(inout)          , pointer :: thisNode
-    integer                                            , intent(in   ), optional          :: componentType                         , massType
-    logical                                            , intent(in   ), optional          :: haloLoaded
-    double precision                                   , intent(in   )                    :: radius
-    procedure       (Component_Rotation_Curve_Gradient)                         , pointer :: componentRotationCurveGradientFunction
-    double precision                                                                      :: componentRotationCurveGradient
+    type            (treeNode                         ), intent(inout)           :: thisNode
+    integer                                            , intent(in   ), optional :: componentType                         , massType
+    logical                                            , intent(in   ), optional :: haloLoaded
+    double precision                                   , intent(in   )           :: radius
+    procedure       (Component_Rotation_Curve_Gradient)               , pointer  :: componentRotationCurveGradientFunction
+    double precision                                                             :: componentRotationCurveGradient
 
     ! Determine which component type to use.
     if (present(componentType)) then

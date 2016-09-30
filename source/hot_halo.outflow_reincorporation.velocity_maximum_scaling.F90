@@ -176,8 +176,8 @@ contains
   subroutine velocityMaximumScalingCalculationReset(self,thisNode)
     !% Reset the halo scales calculation.
     implicit none
-    class(hotHaloOutflowReincorporationVelocityMaximumScaling), intent(inout)          :: self
-    type (treeNode                                           ), intent(inout), pointer :: thisNode
+    class(hotHaloOutflowReincorporationVelocityMaximumScaling), intent(inout) :: self
+    type (treeNode                                           ), intent(inout) :: thisNode
 
     self%velocityMaximumComputed=.false.
     self%expansionFactorComputed=.false.

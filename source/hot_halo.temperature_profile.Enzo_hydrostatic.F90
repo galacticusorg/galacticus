@@ -41,11 +41,11 @@ contains
     use Numerical_Constants_Prefixes
     use Dark_Matter_Profiles
     implicit none
-    class           (hotHaloTemperatureProfileEnzoHydrostatic), intent(inout)          :: self
-    type            (treeNode                                ), intent(inout), pointer :: node
-    double precision                                          , intent(in   )          :: radius
-    class           (darkMatterProfileClass                  )               , pointer :: darkMatterProfile_
-    double precision                                                                   :: enclosedMass
+    class           (hotHaloTemperatureProfileEnzoHydrostatic), intent(inout) :: self
+    type            (treeNode                                ), intent(inout) :: node
+    double precision                                          , intent(in   ) :: radius
+    class           (darkMatterProfileClass                  ), pointer       :: darkMatterProfile_
+    double precision                                                          :: enclosedMass
     !GCC$ attributes unused :: self
     
     if (radius == 0.0d0) then
