@@ -10,8 +10,6 @@ use Data::Dumper;
 use XML::Simple;
 use LaTeX::Encode;
 use List::ExtraUtils;
-## AJB HACK use Galacticus::Build::SourceTree::Hooks;
-## AJB HACK use Galacticus::Build::SourceTree;
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::processHooks{'enumerations'} = \&Process_Enumerations;

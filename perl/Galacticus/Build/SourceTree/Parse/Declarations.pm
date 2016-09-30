@@ -9,8 +9,6 @@ use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/pe
 use Data::Dumper;
 use Storable qw(dclone);
 use Fortran::Utils;
-## AJB HACK use Galacticus::Build::SourceTree::Hooks;
-## AJB HACK use Galacticus::Build::SourceTree;
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::parseHooks{'declarations'} = \&Parse_Declarations;
