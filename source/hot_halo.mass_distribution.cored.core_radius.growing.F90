@@ -130,16 +130,16 @@ contains
     use Cosmology_Parameters
     use Dark_Matter_Halo_Scales
     implicit none
-    class           (hotHaloMassDistributionCoreRadiusGrowing), intent(inout)          :: self
-    type            (treeNode                                ), intent(inout), pointer :: node
-    class           (nodeComponentBasic                      )               , pointer :: basicComponent
-    class           (nodeComponentHotHalo                    )               , pointer :: hotHaloComponent
-    class           (nodeComponentDarkMatterProfile          )               , pointer :: darkMatterProfileComponent
-    class           (cosmologyParametersClass                )               , pointer :: cosmologyParameters_
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                                                                   :: hotGasFraction                   , coreRadiusOverVirialRadius, &
-         &                                                                                coreRadiusOverVirialRadiusInitial, targetValue
-    logical                                                                            :: makeTable
+    class           (hotHaloMassDistributionCoreRadiusGrowing), intent(inout) :: self
+    type            (treeNode                                ), intent(inout) :: node
+    class           (nodeComponentBasic                      ), pointer       :: basicComponent
+    class           (nodeComponentHotHalo                    ), pointer       :: hotHaloComponent
+    class           (nodeComponentDarkMatterProfile          ), pointer       :: darkMatterProfileComponent
+    class           (cosmologyParametersClass                ), pointer       :: cosmologyParameters_
+    class           (darkMatterHaloScaleClass)                , pointer       :: darkMatterHaloScale_
+    double precision                                                          :: hotGasFraction                   , coreRadiusOverVirialRadius, &
+         &                                                                       coreRadiusOverVirialRadiusInitial, targetValue
+    logical                                                                   :: makeTable
 
     ! Get components.
     basicComponent             => node%basic            ()

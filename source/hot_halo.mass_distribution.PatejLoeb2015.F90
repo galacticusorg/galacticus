@@ -137,15 +137,15 @@ contains
     use Dark_Matter_Halo_Scales
     use Dark_Matter_Profiles
     implicit none
-    class           (hotHaloMassDistributionPatejLoeb2015), intent(inout)          :: self
-    type            (treeNode                            ), intent(inout), pointer :: node
-    double precision                                      , intent(in   )          :: radius
-    class           (darkMatterHaloScaleClass            )               , pointer :: darkMatterHaloScale_
-    class           (darkMatterProfileClass              )               , pointer :: darkMatterProfile_
-    class           (nodeComponentHotHalo                )               , pointer :: hotHalo
-    class           (nodeComponentDarkMatterProfile      )               , pointer :: darkMatterHaloProfile
-    double precision                                                               :: radiusShock          , densityNormalization, &
-         &                                                                            radiusOuter          , radiusDarkMatter
+    class           (hotHaloMassDistributionPatejLoeb2015), intent(inout) :: self
+    type            (treeNode                            ), intent(inout) :: node
+    double precision                                      , intent(in   ) :: radius
+    class           (darkMatterHaloScaleClass            ), pointer       :: darkMatterHaloScale_
+    class           (darkMatterProfileClass              ), pointer       :: darkMatterProfile_
+    class           (nodeComponentHotHalo                ), pointer       :: hotHalo
+    class           (nodeComponentDarkMatterProfile      ), pointer       :: darkMatterHaloProfile
+    double precision                                                      :: radiusShock          , densityNormalization, &
+         &                                                                   radiusOuter          , radiusDarkMatter
 
     ! Get required objects.
     darkMatterHaloScale_  => darkMatterHaloScale                  ()
@@ -222,7 +222,7 @@ contains
     use Dark_Matter_Profiles
     implicit none
     class           (hotHaloMassDistributionPatejLoeb2015), intent(inout)          :: self
-    type            (treeNode                            ), intent(inout), pointer :: node
+    type            (treeNode                            ), intent(inout), target  :: node
     double precision                                      , intent(in   )          :: radius
     class           (darkMatterHaloScaleClass            )               , pointer :: darkMatterHaloScale_
     class           (darkMatterProfileClass              )               , pointer :: darkMatterProfile_
@@ -326,8 +326,7 @@ contains
     implicit none
     class(hotHaloMassDistributionPatejLoeb2015), intent(inout)          :: self
     type (treeNode                            ), intent(inout), pointer :: node
-
-    class(nodeComponentHotHalo              )               , pointer :: hotHalo
+    class(nodeComponentHotHalo                )               , pointer :: hotHalo
 
     hotHalo                           => node%hotHalo()
     patejLoeb2015RotationNormalization=                         &

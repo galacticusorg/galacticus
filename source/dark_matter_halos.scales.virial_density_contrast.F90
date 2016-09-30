@@ -119,8 +119,8 @@ contains
   subroutine virialDensityContrastDefinitionCalculationReset(self,thisNode)
     !% Reset the halo scales calculation.
     implicit none
-    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)          :: self
-    type (treeNode                                          ), intent(inout), pointer :: thisNode
+    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
+    type (treeNode                                          ), intent(inout) :: thisNode
 
     self%virialRadiusComputed      =.false.
     self%virialTemperatureComputed =.false.
@@ -155,9 +155,9 @@ contains
     !% Returns the virial velocity scale for {\normalfont \ttfamily thisNode}.
     use Numerical_Constants_Physical
     implicit none
-    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)          :: self
-    type (treeNode                                          ), intent(inout), pointer :: thisNode
-    class(nodeComponentBasic                                )               , pointer :: thisBasic
+    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
+    type (treeNode                                          ), intent(inout) :: thisNode
+    class(nodeComponentBasic                                ), pointer       :: thisBasic
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= self%lastUniqueID) call self%calculationReset(thisNode)
@@ -202,8 +202,8 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     implicit none
-    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)          :: self
-    type (treeNode                                          ), intent(inout), pointer :: thisNode
+    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
+    type (treeNode                                          ), intent(inout) :: thisNode
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= self%lastUniqueID) call self%calculationReset(thisNode)
@@ -222,9 +222,9 @@ contains
     !% Returns the virial radius scale for {\normalfont \ttfamily thisNode}.
     use Numerical_Constants_Math
     implicit none
-    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)          :: self
-    type (treeNode                                          ), intent(inout), pointer :: thisNode
-    class(nodeComponentBasic                                )               , pointer :: thisBasic
+    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
+    type (treeNode                                          ), intent(inout) :: thisNode
+    class(nodeComponentBasic                                ), pointer       :: thisBasic
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= self%lastUniqueID) call self%calculationReset(thisNode)
@@ -276,7 +276,7 @@ contains
     use Cosmology_Functions
     implicit none
     class           (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)          :: self
-    type            (treeNode                                          ), intent(inout), pointer :: thisNode
+    type            (treeNode                                          ), intent(inout) :: thisNode
     class           (nodeComponentBasic                                )               , pointer :: thisBasic
     class           (cosmologyParametersClass                          )               , pointer :: thisCosmologyParameters
     class           (cosmologyFunctionsClass                           )               , pointer :: cosmologyFunctionsDefault

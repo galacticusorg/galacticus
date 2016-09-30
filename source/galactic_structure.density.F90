@@ -43,15 +43,15 @@ contains
     include 'galactic_structure.density.tasks.modules.inc'
     !# </include>
     implicit none
-    type            (treeNode         ), intent(inout)          , pointer :: thisNode
-    integer                            , intent(in   ), optional          :: componentType              , coordinateSystem, &
-         &                                                                   massType                   , weightBy        , &
-         &                                                                   weightIndex
-    logical                            , intent(in   ), optional          :: haloLoaded
-    double precision                   , intent(in   )                    :: position                (3)
-    procedure       (Component_Density)                         , pointer :: componentDensityFunction
-    integer                                                               :: coordinateSystemActual
-    double precision                                                      :: componentDensity
+    type            (treeNode         ), intent(inout)           :: thisNode
+    integer                            , intent(in   ), optional :: componentType              , coordinateSystem, &
+         &                                                          massType                   , weightBy        , &
+         &                                                          weightIndex
+    logical                            , intent(in   ), optional :: haloLoaded
+    double precision                   , intent(in   )           :: position                (3)
+    procedure       (Component_Density), pointer                 :: componentDensityFunction
+    integer                                                      :: coordinateSystemActual
+    double precision                                             :: componentDensity
 
     ! Determine position in spherical coordinate system to use.
     if (present(coordinateSystem)) then

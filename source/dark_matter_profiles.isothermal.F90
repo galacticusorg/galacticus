@@ -89,7 +89,7 @@ contains
     !% Reset the dark matter profile calculation.
     implicit none
     class(darkMatterProfileIsothermal), intent(inout)          :: self
-    type (treeNode                   ), intent(inout), pointer :: thisNode
+    type (treeNode                   ), intent(inout) :: thisNode
 
     call self%scale%calculationReset(thisNode)
     return
@@ -102,10 +102,10 @@ contains
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Math
     implicit none
-    class           (darkMatterProfileIsothermal), intent(inout)          :: self
-    type            (treeNode                   ), intent(inout), pointer :: node
-    double precision                             , intent(in   )          :: radius
-    class           (nodeComponentBasic         )               , pointer :: thisBasicComponent
+    class           (darkMatterProfileIsothermal), intent(inout) :: self
+    type            (treeNode                   ), intent(inout) :: node
+    double precision                             , intent(in   ) :: radius
+    class           (nodeComponentBasic         ), pointer       :: thisBasicComponent
 
     thisBasicComponent   => node%basic         ()
     isothermalDensity=thisBasicComponent%mass()/4.0d0/Pi/self%scale%virialRadius(node)/radius**2
@@ -175,10 +175,10 @@ contains
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    class           (darkMatterProfileIsothermal), intent(inout)          :: self
-    type            (treeNode                   ), intent(inout), pointer :: node
-    double precision                             , intent(in   )          :: radius
-    class           (nodeComponentBasic         )               , pointer :: thisBasicComponent
+    class           (darkMatterProfileIsothermal), intent(inout) :: self
+    type            (treeNode                   ), intent(inout) :: node
+    double precision                             , intent(in   ) :: radius
+    class           (nodeComponentBasic         ), pointer       :: thisBasicComponent
 
     thisBasicComponent   => node%basic     ()
     isothermalEnclosedMass=thisBasicComponent%mass()*(radius/self%scale%virialRadius(node))
@@ -355,7 +355,7 @@ contains
     double precision                             , intent(in   )          :: time
     !GCC$ attributes unused :: time
     
-    isothermalFreefallRadiusIncreaseRate=sqrt(2.0d0/Pi)*self%scale%virialVelocity(node)&
-         &/Mpc_per_km_per_s_To_Gyr
+    isothermalFreefallRadiusIncreaseRate=sqrt(2.0d0/Pi)*self%scale%virialVelocity(node) &
+         & /Mpc_per_km_per_s_To_Gyr
     return
   end function isothermalFreefallRadiusIncreaseRate

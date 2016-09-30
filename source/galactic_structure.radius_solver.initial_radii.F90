@@ -94,8 +94,8 @@ contains
   double precision function Galactic_Structure_Radius_Initial(thisNode,radius)
     !% Find the initial radius in the dark matter halo of {\normalfont \ttfamily thisNode} corresponding to the given final {\normalfont \ttfamily radius}.
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: radius
+    type            (treeNode), intent(inout) :: thisNode
+    double precision          , intent(in   ) :: radius
 
     ! Ensure that the module is initialized.
     call Galactic_Structure_Radius_Initial_Initialize()
@@ -108,8 +108,8 @@ contains
     !% Find the derivative of the initial radius in the dark matter halo of {\normalfont \ttfamily thisNode} with respect to the final radius
     !% corresponding to the given final {\normalfont \ttfamily radius}.
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: radius
+    type            (treeNode), intent(inout) :: thisNode
+    double precision          , intent(in   ) :: radius
 
     ! Ensure that the module is initialized.
     call Galactic_Structure_Radius_Initial_Initialize()

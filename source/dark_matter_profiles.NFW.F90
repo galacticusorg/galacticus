@@ -231,7 +231,7 @@ contains
     !% Reset the dark matter profile calculation.
     implicit none
     class(darkMatterProfileNFW), intent(inout)          :: self
-    type (treeNode            ), intent(inout), pointer :: thisNode
+    type (treeNode            ), intent(inout) :: thisNode
 
     self%specificAngularMomentumScalingsComputed=.false.
     self%maximumVelocityComputed                =.false.
@@ -329,13 +329,13 @@ contains
     !% in units of Mpc).
     use Dark_Matter_Halo_Scales
     implicit none
-    class           (darkMatterProfileNFW          ), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
-    double precision                                , intent(in   )          :: radius
-    class           (nodeComponentBasic            )               , pointer :: thisBasicComponent
-    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
-    double precision                                                         :: radiusOverScaleRadius         , scaleRadius, &
-         &                                                                      virialRadiusOverScaleRadius
+    class           (darkMatterProfileNFW          ), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , intent(in   ) :: radius
+    class           (nodeComponentBasic            ), pointer       :: thisBasicComponent
+    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
+    double precision                                                :: radiusOverScaleRadius         , scaleRadius, &
+         &                                                             virialRadiusOverScaleRadius
 
     thisBasicComponent             => node%basic            (                 )
     thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
@@ -447,13 +447,13 @@ contains
     !% units of Mpc).
     use Dark_Matter_Halo_Scales
     implicit none
-    class           (darkMatterProfileNFW          ), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
-    double precision                                , intent(in   )          :: radius
-    class           (nodeComponentBasic            )               , pointer :: thisBasicComponent
-    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
-    double precision                                                         :: radiusOverScaleRadius         , scaleRadius, &
-         &                                                                      virialRadiusOverScaleRadius
+    class           (darkMatterProfileNFW          ), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , intent(in   ) :: radius
+    class           (nodeComponentBasic            ), pointer       :: thisBasicComponent
+    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
+    double precision                                                :: radiusOverScaleRadius         , scaleRadius, &
+         &                                                             virialRadiusOverScaleRadius
 
     thisBasicComponent             => node%basic            (                 )
     thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)

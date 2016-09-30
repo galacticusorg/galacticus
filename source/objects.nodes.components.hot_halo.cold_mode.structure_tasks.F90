@@ -42,7 +42,7 @@ contains
     use Galacticus_Nodes
     use Hot_Halo_Cold_Mode_Density_Cored_Isothermal_Core_Radii
     implicit none
-    type            (treeNode            ), intent(inout), pointer  :: thisNode
+    type            (treeNode            ), intent(inout)           :: thisNode
     integer                               , intent(in   )           :: componentType, massType   , &
          &                                                             weightBy     , weightIndex
     double precision                      , intent(in   )           :: radius
@@ -86,7 +86,7 @@ contains
     use Numerical_Constants_Physical
     use Galacticus_Nodes
     implicit none
-    type            (treeNode), intent(inout), pointer  :: thisNode
+    type            (treeNode), intent(inout)           :: thisNode
     integer                   , intent(in   )           :: componentType, massType
     double precision          , intent(in   )           :: radius
     logical                   , intent(in   ), optional :: haloLoaded
@@ -112,7 +112,7 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Math
     implicit none
-    type            (treeNode), intent(inout), pointer  :: thisNode
+    type            (treeNode), intent(inout)           :: thisNode
     integer                   , intent(in   )           :: componentType   , massType
     double precision          , intent(in   )           :: radius
     logical                   , intent(in   ), optional :: haloLoaded
@@ -143,7 +143,7 @@ contains
     use Hot_Halo_Cold_Mode_Density_Cored_Isothermal_Core_Radii
     use Galacticus_Error
     implicit none
-    type            (treeNode            ), intent(inout), pointer  :: thisNode
+    type            (treeNode            ), intent(inout)           :: thisNode
     integer                               , intent(in   )           :: componentType       , massType   , &
          &                                                             weightBy            , weightIndex
     double precision                      , intent(in   )           :: positionSpherical(3)

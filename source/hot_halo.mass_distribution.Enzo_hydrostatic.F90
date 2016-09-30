@@ -56,7 +56,7 @@ contains
     use Hot_Halo_Mass_Distributions_Core_Radii
     implicit none
     class           (hotHaloMassDistributionEnzoHydrostatic), intent(inout)          :: self
-    type            (treeNode                              ), intent(inout), pointer :: node
+    type            (treeNode                              ), intent(inout), target  :: node
     class           (nodeComponentHotHalo                  )               , pointer :: hotHalo
     class           (hotHaloMassDistributionCoreRadiusClass)               , pointer :: hotHaloMassDistributionCoreRadius_
     double precision                                        , parameter              :: toleranceRelative   =1.0d-3
@@ -123,13 +123,13 @@ contains
     use Hot_Halo_Mass_Distributions_Core_Radii
     use Hot_Halo_Temperature_Profiles
     implicit none
-    class           (hotHaloMassDistributionEnzoHydrostatic), intent(inout)          :: self
-    type            (treeNode                              ), intent(inout), pointer :: node
-    double precision                                        , intent(in   )          :: radius
-    class           (hotHaloTemperatureProfileClass        )               , pointer :: hotHaloTemperatureProfile_
-    class           (hotHaloMassDistributionCoreRadiusClass)               , pointer :: hotHaloMassDistributionCoreRadius_
-    double precision                                                                 :: temperature                       , radiusScale, &
-         &                                                                              radiusEffective
+    class           (hotHaloMassDistributionEnzoHydrostatic), intent(inout) :: self
+    type            (treeNode                              ), intent(inout) :: node
+    double precision                                        , intent(in   ) :: radius
+    class           (hotHaloTemperatureProfileClass        ), pointer       :: hotHaloTemperatureProfile_
+    class           (hotHaloMassDistributionCoreRadiusClass), pointer       :: hotHaloMassDistributionCoreRadius_
+    double precision                                                        :: temperature                       , radiusScale, &
+         &                                                                     radiusEffective
     !GCC$ attributes unused :: self
     
     hotHaloMassDistributionCoreRadius_ => hotHaloMassDistributionCoreRadius             (                    )
@@ -176,7 +176,7 @@ contains
     use Hot_Halo_Mass_Distributions_Core_Radii
     implicit none
     class           (hotHaloMassDistributionEnzoHydrostatic), intent(inout)          :: self
-    type            (treeNode                              ), intent(inout), pointer :: node
+    type            (treeNode                              ), intent(inout), target  :: node
     double precision                                        , intent(in   )          :: radius 
     class           (hotHaloMassDistributionCoreRadiusClass)               , pointer :: hotHaloMassDistributionCoreRadius_
     double precision                                        , parameter              :: toleranceRelative   =1.0d-3

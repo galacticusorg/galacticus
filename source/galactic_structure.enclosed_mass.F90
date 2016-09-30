@@ -42,7 +42,7 @@ contains
     include 'galactic_structure.enclosed_mass.tasks.modules.inc'
     !# </include>
     implicit none
-    type            (treeNode               ), intent(inout)          , pointer :: thisNode
+    type            (treeNode               ), intent(inout)  :: thisNode
     integer                                  , intent(in   ), optional          :: componentType        , massType, weightBy, &
          &                                                                         weightIndex
     double precision                         , intent(in   ), optional          :: radius

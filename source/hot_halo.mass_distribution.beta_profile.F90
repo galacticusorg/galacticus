@@ -119,12 +119,12 @@ contains
     !% Initialize the $\beta$-profile hot halo density profile for the given {\normalfont \ttfamily node}.
     use Hot_Halo_Mass_Distributions_Core_Radii
     implicit none
-    class           (hotHaloMassDistributionBetaProfile    ), intent(inout)          :: self
-    type            (treeNode                              ), intent(inout), pointer :: node
-    class           (nodeComponentHotHalo                  )               , pointer :: hotHalo
-    class           (hotHaloMassDistributionCoreRadiusClass)               , pointer :: hotHaloMassDistributionCoreRadius_
-    double precision                                                                 :: radiusScale, radiusOuter, &
-         &                                                                              mass
+    class           (hotHaloMassDistributionBetaProfile    ), intent(inout) :: self
+    type            (treeNode                              ), intent(inout) :: node
+    class           (nodeComponentHotHalo                  ), pointer       :: hotHalo
+    class           (hotHaloMassDistributionCoreRadiusClass), pointer       :: hotHaloMassDistributionCoreRadius_
+    double precision                                                        :: radiusScale, radiusOuter, &
+         &                                                                     mass
 
     hotHaloMassDistributionCoreRadius_ => hotHaloMassDistributionCoreRadius             (    )
     radiusScale                        =  hotHaloMassDistributionCoreRadius_%radius     (node)
@@ -151,10 +151,10 @@ contains
     !% Return the density in a single-betaProfile hot halo mass distribution.
     use Coordinates
     implicit none
-    class           (hotHaloMassDistributionBetaProfile), intent(inout)          :: self
-    type            (treeNode                          ), intent(inout), pointer :: node
-    double precision                                    , intent(in   )          :: radius
-    type            (coordinateSpherical               )                         :: position
+    class           (hotHaloMassDistributionBetaProfile), intent(inout) :: self
+    type            (treeNode                          ), intent(inout) :: node
+    double precision                                    , intent(in   ) :: radius
+    type            (coordinateSpherical               )                :: position
 
     call self%initialize(node)
     position              =[radius,0.0d0,0.0d0]
@@ -181,7 +181,7 @@ contains
     !% Return the mass enclosed in the hot halo at the given {\normalfont \ttfamily radius}.
     implicit none
     class           (hotHaloMassDistributionBetaProfile), intent(inout)          :: self
-    type            (treeNode                          ), intent(inout), pointer :: node
+    type            (treeNode                          ), intent(inout), target  :: node
     double precision                                    , intent(in   )          :: radius
     class           (nodeComponentHotHalo              )               , pointer :: hotHalo
 

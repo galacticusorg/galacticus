@@ -38,7 +38,7 @@ contains
     use Cosmology_Parameters
     use Galactic_Structure_Initial_Radii
     implicit none
-    type            (treeNode                ), intent(inout), pointer  :: thisNode
+    type            (treeNode                ), intent(inout)           :: thisNode
     integer                                   , intent(in   )           :: componentType          , massType     , &
          &                                                                 weightBy               , weightIndex
     double precision                          , intent(in   )           :: radius
@@ -95,7 +95,7 @@ contains
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     implicit none
-    type            (treeNode), intent(inout), pointer  :: thisNode
+    type            (treeNode), intent(inout)           :: thisNode
     integer                   , intent(in   )           :: componentType, massType
     double precision          , intent(in   )           :: radius
     logical                   , intent(in   ), optional :: haloLoaded
@@ -123,7 +123,7 @@ contains
     use Galactic_Structure_Initial_Radii
     use Cosmology_Parameters
     implicit none
-    type            (treeNode                ), intent(inout), pointer  :: thisNode
+    type            (treeNode                ), intent(inout)           :: thisNode
     integer                                   , intent(in   )           :: componentType             , massType     , &
          &                                                                 weightBy                  , weightIndex
     double precision                          , intent(in   )           :: positionSpherical      (3)
@@ -176,7 +176,7 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Math
     implicit none
-    type            (treeNode), intent(inout), pointer  :: thisNode
+    type            (treeNode), intent(inout)           :: thisNode
     integer                   , intent(in   )           :: componentType   , massType
     double precision          , intent(in   )           :: radius
     logical                   , intent(in   ), optional :: haloLoaded

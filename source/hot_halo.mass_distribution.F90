@@ -37,8 +37,8 @@ module Hot_Halo_Mass_Distributions
   !#   <description>Return the density of the hot halo at the given {\normalfont \ttfamily radius}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout), pointer :: node</argument>
-  !#   <argument>double precision          , intent(in   )          :: radius</argument>
+  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
+  !#   <argument>double precision          , intent(in   ) :: radius</argument>
   !#  </method>
   !#  <method name="densityLogSlope" >
   !#   <description>Return the logarithmic slope of the density of the hot halo at the given {\normalfont \ttfamily radius}.</description>
@@ -51,8 +51,8 @@ module Hot_Halo_Mass_Distributions
   !#   <description>Return the mass enclosed in the hot halo at the given {\normalfont \ttfamily radius}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout), pointer :: node</argument>
-  !#   <argument>double precision          , intent(in   )          :: radius</argument>
+  !#   <argument>type            (treeNode), intent(inout), target :: node</argument>
+  !#   <argument>double precision          , intent(in   )         :: radius</argument>
   !#  </method>
   !#  <method name="radialMoment" >
   !#   <description>Return the density of the hot halo at the given {\normalfont \ttfamily radius}.</description>
@@ -77,7 +77,7 @@ module Hot_Halo_Mass_Distributions
     !% Computes the mass within a given radius for a dark matter profile.
     use Galactic_Structure_Options
     implicit none
-    type            (treeNode                    ), intent(inout), pointer  :: thisNode
+    type            (treeNode                    ), intent(inout)  :: thisNode
     integer                                       , intent(in   )           :: componentType, massType, weightBy, weightIndex
     double precision                              , intent(in   )           :: radius
     logical                                       , intent(in   ), optional :: haloLoaded
@@ -103,7 +103,7 @@ module Hot_Halo_Mass_Distributions
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     implicit none
-    type            (treeNode), intent(inout), pointer  :: thisNode
+    type            (treeNode), intent(inout)  :: thisNode
     integer                   , intent(in   )           :: componentType, massType
     double precision          , intent(in   )           :: radius
     logical                   , intent(in   ), optional :: haloLoaded
@@ -129,7 +129,7 @@ module Hot_Halo_Mass_Distributions
     use Numerical_Constants_Physical
     use Numerical_Constants_Math
     implicit none
-    type            (treeNode                    ), intent(inout), pointer  :: thisNode
+    type            (treeNode                    ), intent(inout)  :: thisNode
     integer                                       , intent(in   )           :: componentType   , massType
     double precision                              , intent(in   )           :: radius
     logical                                       , intent(in   ), optional :: haloLoaded
@@ -159,7 +159,7 @@ module Hot_Halo_Mass_Distributions
     !% Computes the density at a given position for a dark matter profile.
     use Galactic_Structure_Options
     implicit none
-    type            (treeNode                    ), intent(inout), pointer  :: thisNode
+    type            (treeNode                    ), intent(inout)           :: thisNode
     integer                                       , intent(in   )           :: componentType       , massType, weightBy, &
          &                                                                     weightIndex
     double precision                              , intent(in   )           :: positionSpherical(3)

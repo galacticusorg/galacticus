@@ -66,7 +66,7 @@ contains
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    type (treeNode                ), intent(inout), pointer :: thisNode
+    type (treeNode                ), intent(inout) :: thisNode
     class(darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
 
     ! Compute the core radius.

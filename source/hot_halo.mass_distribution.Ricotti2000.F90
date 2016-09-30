@@ -94,16 +94,16 @@ contains
     !% radius are taken from section 2.1 of \cite{ricotti_feedback_2000}.
     use Dark_Matter_Halo_Scales
     implicit none
-    class           (hotHaloMassDistributionRicotti2000    ), intent(inout)          :: self
-    type            (treeNode                              ), intent(inout), pointer :: node
-    class           (nodeComponentHotHalo                  )               , pointer :: hotHalo
-    class           (nodeComponentDarkMatterProfile        )               , pointer :: darkMatterProfile
-    class           (darkMatterHaloScaleClass              )               , pointer :: darkMatterHaloScale_
-    double precision                                        , parameter              :: virialToGasTemperatureRatio=1.0d0
-    double precision                                                                 :: mass                             , radiusOuter  , &
-         &                                                                              radiusScale                      , radiusVirial , &
-         &                                                                              radiusCore                       , concentration, &
-         &                                                                              b                                , beta
+    class           (hotHaloMassDistributionRicotti2000    ), intent(inout) :: self
+    type            (treeNode                              ), intent(inout) :: node
+    class           (nodeComponentHotHalo                  ), pointer       :: hotHalo
+    class           (nodeComponentDarkMatterProfile        ), pointer       :: darkMatterProfile
+    class           (darkMatterHaloScaleClass              ), pointer       :: darkMatterHaloScale_
+    double precision                                        , parameter     :: virialToGasTemperatureRatio=1.0d0
+    double precision                                                        :: mass                             , radiusOuter  , &
+         &                                                                     radiusScale                      , radiusVirial , &
+         &                                                                     radiusCore                       , concentration, &
+         &                                                                     b                                , beta
     
     ! Compute parameters of the profile.
     darkMatterHaloScale_ => darkMatterHaloScale                   (    )
