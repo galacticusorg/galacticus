@@ -25,6 +25,7 @@ use Galacticus::Build::SourceTree::Process::ObjectBuilder;
 use Galacticus::Build::SourceTree::Process::DebugHDF5;
 use Galacticus::Build::SourceTree::Process::GCCAttributes;
 use Galacticus::Build::SourceTree::Process::HDF5FCInterop;
+use Galacticus::Build::SourceTree::Process::Constructors;
 
 sub ParseFile {    
     # Grab the file name.
