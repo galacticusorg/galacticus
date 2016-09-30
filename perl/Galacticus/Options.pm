@@ -8,6 +8,7 @@ use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/pe
 use Galacticus::Path;
 use Scalar::Util 'reftype';
 use XML::Simple;
+use List::ExtraUtils;
 
 sub Config {
     # Return a section of the Galacticus config file for the current host.
