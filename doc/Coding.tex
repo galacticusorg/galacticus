@@ -168,6 +168,20 @@ This directive can (and should) be used to destroy objects built by the {\normal
   end subroutine simpleDestructor
 \end{lstlisting}
 
+\subsection{Constructor Assignments}
+
+A common requirement in object constructors is to assign the values of arguments to the constructor to corresponding entries in the object. The {\normalfont \ttfamily constructorAssign} directive performs this assignment for a list of comma-separated variables. For example:
+\begin{lstlisting}  
+ function stellarMassConstructorInternal(massThreshold)
+    implicit none
+    type            (galacticFilterStellarMass)                :: stellarMassConstructorInternal
+    double precision                           , intent(in   ) :: massThreshold
+    !# <constructorAssign variables="massThreshold"/>
+    return
+  end function stellarMassConstructorInternal
+\end{lstlisting}
+will cause the value of the {\normalfont \ttfamily massThreshold} argument to {\normalfont \ttfamily stellarMassConstructorInternal\%massThreshold}.
+
 \subsection{Optional Arguments}
 
 Fortran supports optional arguments to functions, but does not provide for a default value if those arguments are not present. The {\normalfont \ttfamily optionalArgument} directive allows a default value to be specified. In the following example, a default value is defined for the {\normalfont \ttfamily units} argument:
