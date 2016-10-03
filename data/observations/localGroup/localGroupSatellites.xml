@@ -7834,6 +7834,12 @@
         <errorLow>1.5</errorLow>
         <value>24.0</value>
       </velocityRadialHeliocentric>
+      <starFormationHistoryCumulative>
+	<epoch time="12.0" fraction="0.04"/>
+	<epoch time="8.0"  fraction="0.11"/>
+	<reference>Cole et al.; 2014; ApJ; 795; 54</reference>
+        <referenceURL>http://adsabs.harvard.edu/abs/2014ApJ...795...54C</referenceURL>
+      </starFormationHistoryCumulative>
     </galaxy>
     <galaxy>
       <name>The Galaxy</name>
@@ -13965,9 +13971,12 @@
         <value>45</value>
       </declinationDegrees>
       <distanceHeliocentric>
-        <error>81</error>
-        <value>1355</value>
-      </distanceHeliocentric>
+        <errorHigh>60</errorHigh>
+	<errorLow>90</errorLow>
+        <value>1330</value>
+	<reference>Makarova et al.; 2016; arXiv:1609.09706</reference>
+        <referenceURL>https://arxiv.org/abs/1609.09706</referenceURL>
+       </distanceHeliocentric>
       <distanceLocalGroup>
         <value>969</value>
       </distanceLocalGroup>
@@ -13978,14 +13987,16 @@
         <value>1358</value>
       </distanceMilkyWay>
       <distanceModulus>
-        <errorHigh>0.07</errorHigh>
-        <errorLow>0.08</errorLow>
-        <value>25.42</value>
-      </distanceModulus>
+        <errorHigh>0.09</errorHigh>
+        <errorLow>0.17</errorLow>
+        <value>25.62</value>
+	<reference>Makarova et al.; 2016; arXiv:1609.09706</reference>
+        <referenceURL>https://arxiv.org/abs/1609.09706</referenceURL>
+       </distanceModulus>
       <ellipticityProjected>
-        <errorHigh>?</errorHigh>
-        <errorLow>?</errorLow>
-        <value>?</value>
+        <value>0.01</value>
+ 	<reference>Makarova et al.; 2016; arXiv:1609.09706</reference>
+        <referenceURL>https://arxiv.org/abs/1609.09706</referenceURL>
       </ellipticityProjected>
       <extinction>
         <value>0.106</value>
@@ -13997,10 +14008,17 @@
         <value>113.9</value>
       </longitudeGalactic>
       <magnitudeApparentV>
-        <errorHigh>?</errorHigh>
-        <errorLow>?</errorLow>
-        <value>16.0</value>
+        <error>0.24</error>
+        <value>15.50</value>
+	<reference>Makarova et al.; 2016; arXiv:1609.09706</reference>
+        <referenceURL>https://arxiv.org/abs/1609.09706</referenceURL>
       </magnitudeApparentV>
+      <magnitudeApparentI>
+        <error>0.15</error>
+        <value>14.68</value>
+	<reference>Makarova et al.; 2016; arXiv:1609.09706</reference>
+        <referenceURL>https://arxiv.org/abs/1609.09706</referenceURL>
+      </magnitudeApparentI>
       <massDynamicalHalfLightRadius>
         <error>5</error>
         <reference>Collins et al.; 2014; ApJl 783; 7</reference>
@@ -14011,8 +14029,11 @@
         <value>?</value>
       </massNeutralHydrogen>
       <massStellar>
-        <value>0.63</value>
-      </massStellar>
+        <value>4.2</value>
+	<error>0.3</error>
+	<reference>Makarova et al.; 2016; arXiv:1609.09706</reference>
+        <referenceURL>https://arxiv.org/abs/1609.09706</referenceURL>
+       </massStellar>
       <membership>
         <value>L</value>
       </membership>
@@ -14044,6 +14065,18 @@
         <errorLow>0.06</errorLow>
         <value>0.92</value>
       </radiusHalfLightAngular>
+      <radiusExponentialScaleLengthV>
+        <error>0.0067</error>
+        <value>0.4367</value>
+	<reference>Makarova et al.; 2016; arXiv:1609.09706</reference>
+        <referenceURL>https://arxiv.org/abs/1609.09706</referenceURL>
+      </radiusExponentialScaleLengthV>
+      <radiusExponentialScaleLengthI>
+        <error>0.0067</error>
+        <value>0.4467</value>
+	<reference>Makarova et al.; 2016; arXiv:1609.09706</reference>
+        <referenceURL>https://arxiv.org/abs/1609.09706</referenceURL>
+      </radiusExponentialScaleLengthI>
       <referencesPositions>
         <value>McConnachie et al. 2008</value>
       </referencesPositions>
@@ -14068,10 +14101,17 @@
         <value>15.3</value>
       </rotationVelocityMaximumStellar>
       <surfaceBrightnessCentralV>
-        <errorHigh>?</errorHigh>
-        <errorLow>?</errorLow>
-        <value>25.6</value>
+        <error>0.02</error>
+        <value>23.96</value>
+	<reference>Makarova et al.; 2016; arXiv:1609.09706</reference>
+        <referenceURL>https://arxiv.org/abs/1609.09706</referenceURL>
       </surfaceBrightnessCentralV>
+      <surfaceBrightnessCentralI>
+        <error>0.02</error>
+        <value>23.14</value>
+	<reference>Makarova et al.; 2016; arXiv:1609.09706</reference>
+        <referenceURL>https://arxiv.org/abs/1609.09706</referenceURL>
+      </surfaceBrightnessCentralI>
       <surfaceBrightnessEffectiveV>
         <value>26.7</value>
       </surfaceBrightnessEffectiveV>
@@ -14099,6 +14139,12 @@
         <errorLow>2.7</errorLow>
         <value>-332.1</value>
       </velocityRadialHeliocentric>
+      <starFormationHistoryCumulative>
+	<epoch time="12.0" fraction="0.34"/>
+	<epoch time="8.0"  fraction="0.34"/>
+	<reference>Makarova et al.; 2016; arXiv:1609.09706</reference>
+        <referenceURL>https://arxiv.org/abs/1609.09706</referenceURL>
+      </starFormationHistoryCumulative>
     </galaxy>
     <galaxy>
       <name>UGC 8508</name>
@@ -15774,6 +15820,10 @@
       <rightAscensionSeconds>
         <value>44.4</value>
       </rightAscensionSeconds>
+      <starFormationHistoryCumulative>
+	<epoch time="12.0" fraction="0.74"/>
+	<epoch time="8.0"  fraction="0.74"/>
+      </starFormationHistoryCumulative>
     </galaxy>
     <galaxy>
       <name>Andromeda XXVII</name>
@@ -17589,6 +17639,12 @@
         <errorLow>15.0</errorLow>
         <value>-65.0</value>
       </velocityRadialHeliocentric>
+      <starFormationHistoryCumulative>
+	<epoch time="12.0" fraction="0.62"/>
+	<epoch time="8.0"  fraction="0.62"/>
+	<reference>Makarov et al.; 2012; MNRAS; 425; 709</reference>
+        <referenceURL>http://adsabs.harvard.edu/abs/2012MNRAS.425..709M</referenceURL>
+      </starFormationHistoryCumulative>
     </galaxy>
     <galaxy>
       <name>Andromeda XXIV</name>
@@ -18357,6 +18413,12 @@
         <errorLow>2.1</errorLow>
         <value>-137.7</value>
       </velocityRadialHeliocentric>
+      <starFormationHistoryCumulative>
+	<epoch time="12.0" fraction="0.10"/>
+	<epoch time="8.0"  fraction="0.24"/>
+	<reference>Cole et al.; 2014; ApJ; 795; 54</reference>
+        <referenceURL>http://adsabs.harvard.edu/abs/2014ApJ...795...54C</referenceURL>
+      </starFormationHistoryCumulative>
     </galaxy>
   </galaxies>
   <properties>
@@ -18524,6 +18586,18 @@
   <properties>
     <name>radiusHalfLightAngular</name>
     <description>Half-light radius measured on major axis, rh(arcmins)</description>
+    <units>arcminutes</units>
+    <unitsInSI>0.000290888212962963</unitsInSI>
+  </properties>
+  <properties>
+    <name>radiusExponentialScaleLengthV</name>
+    <description>Radial exponential scale length in V-band, reV(arcmins)</description>
+    <units>arcminutes</units>
+    <unitsInSI>0.000290888212962963</unitsInSI>
+  </properties>
+  <properties>
+    <name>radiusExponentialScaleLengthI</name>
+    <description>Radial exponential scale length in I-band, reI(arcmins)</description>
     <units>arcminutes</units>
     <unitsInSI>0.000290888212962963</unitsInSI>
   </properties>
