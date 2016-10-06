@@ -216,7 +216,6 @@ module Galacticus_Nodes
     class(nodeEvent), intent(inout), pointer :: newEvent
     class(nodeEvent)               , pointer :: thisEvent
 
-    allocate(newEvent)
     nullify(newEvent%next)
     !$omp atomic
     eventID=eventID+1
