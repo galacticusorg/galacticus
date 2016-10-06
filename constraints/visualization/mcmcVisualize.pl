@@ -264,6 +264,9 @@ foreach my $fileRoot ( @fileRoots ) {
 	close(iHndl);
 	$iChainBegin = $chainLength+1-$arguments{'ngood'};
     }
+    # Initialize maximum likelihood state.
+    my $likelihoodMaximum           = pdl -1.0e60;
+    my @likelihoodMaximumParameters;
     # Read chains.
     open(oHndl,">".$kdeFileName);
     for(my $iChain=0; -e $fileRoot."_".sprintf("%4.4d",$iChain).".log";++$iChain) {
@@ -279,6 +282,7 @@ foreach my $fileRoot ( @fileRoots ) {
 	open(iHndl,$fileRoot."_".sprintf("%4.4d",$iChain).".log");
 	my $i = -1;
 	while ( my $line = <iHndl> ) {
+	    ++$i;
 	    my $lineCopy = $line;
 	    $lineCopy =~ s/^\s*//;
 	    $lineCopy =~ s/\s*$//;
@@ -286,11 +290,17 @@ foreach my $fileRoot ( @fileRoots ) {
 	    my $include = 1;
 	    $include = 0
 		if ( $columns[3] eq "F" && ( ! exists($arguments{'useUnconverged'}) || $arguments{'useUnconverged'} eq "no" ) );
+	    # Check for maximum likelihood parameters.
+	    if ( $columns[4] > $likelihoodMaximum ) {
+		$likelihoodMaximum = $columns[4];
+		@likelihoodMaximumParameters = @columns;
+	    }
 	    $include = 0
 		if ( exists($arguments{'minimumLogL'}) && $columns[4] < $arguments{'minimumLogL'} );
-	    $skip = 1
+	    $include = 0
 		if ( $i < $iChainBegin );
 	    if ( exists($arguments{'range'}) ) {
+		my $dog = 1;
 		foreach my $range ( @{$arguments{'range'}} ) {
 		    $include = 0
 			if (
@@ -346,6 +356,31 @@ foreach my $fileRoot ( @fileRoots ) {
     my $excludedFraction = 1.0-$confidence;
     (my $levels, my $error) = interpolate($excludedFraction,$pCumulant,$pSorted);
 
+    # Find span of confident regions.
+    my @spanLowerX;
+    my @spanLowerY;
+    my @spanUpperX;
+    my @spanUpperY;
+    for(my $i=0;$i<nelem($confidence);++$i) {
+	my $selected = which($p > $levels->(($i)));
+	if ( nelem($selected) > 0 ) {
+	    my $indexX   = $x->($selected)->qsorti();
+	    my $indexY   = $y->($selected)->qsorti()
+		if ( $dimensions == 2 );
+	    push(@spanLowerX,$x->($selected)->($indexX)->(( 0))->sclr());
+	    push(@spanLowerY,$y->($selected)->($indexY)->(( 0))->sclr())
+		if ( $dimensions == 2 );
+	    push(@spanUpperX,$x->($selected)->($indexX)->((-1))->sclr());
+	    push(@spanUpperY,$y->($selected)->($indexY)->((-1))->sclr())
+		if ( $dimensions == 2 );
+	} else {
+	    push(@spanLowerX,"undef");
+	    push(@spanLowerY,"undef");
+	    push(@spanUpperX,"undef");
+	    push(@spanUpperY,"undef");
+	}
+    }
+    
     # Convert axes with logarithmic scaling.
     $x = exp($x)
 	if ( $xScale eq "logarithmic" );
@@ -414,14 +449,17 @@ foreach my $fileRoot ( @fileRoots ) {
 	if ( exists($arguments{'data'}) ) {
 	    my $xml = new XML::Simple(RootName => "data", NoAttr => 1);
 	    my $data;
-	    @{$data->{'x'         }} = $x         ->list();
-	    @{$data->{'p'         }} = $p         ->list();
-	    @{$data->{'confidence'}} = $levels    ->list();
-	    @{$data->{'levels'    }} = $confidence->list();
-	    $data  ->{'xProperty' }  = $arguments{'xProperty'};
-	    $data  ->{'xLabel'    }  = $xLabel;
-	    $data  ->{'pLabel'    }  = $zLabel;
-	    $data  ->{'xScale'    }  = $xScale;
+	    @{$data->{'x'                      }} = $x         ->list();
+	    @{$data->{'p'                      }} = $p         ->list();
+	    @{$data->{'confidence'             }} = $levels    ->list();
+	    @{$data->{'levels'                 }} = $confidence->list();
+	    @{$data->{'spanLowerX'             }} = @spanLowerX;
+	    @{$data->{'spanUpperX'             }} = @spanUpperX;
+	    $data  ->{'maximumLikelihoodValueX'}  = $likelihoodMaximumParameters[$xColumn];
+	    $data  ->{'xProperty'              }  = $arguments{'xProperty'};
+	    $data  ->{'xLabel'                 }  = $xLabel;
+	    $data  ->{'pLabel'                 }  = $zLabel;
+	    $data  ->{'xScale'                 }  = $xScale;
 	    open(my $oHndl,">".$arguments{'data'});
 	    print $oHndl $xml->XMLout($data);
 	    close($oHndl);
@@ -454,7 +492,7 @@ foreach my $fileRoot ( @fileRoots ) {
 	print $gnuPlot "set log cb\n"
 	    if ( $zScale eq "logarithmic" );
 	if ( $iFileRoot == 0 ) {
-	    print $gnuPlot "set cbrange ".$pMin.":".$pMax."\n";
+	    print $gnuPlot "set cbrange [".$pMin.":".$pMax."]\n";
 	} elsif ( $iFileRoot == 1 ) {
 	    print $gnuPlot "unset colorbox\n"
 		unless ( $colorbox == 0 );
@@ -478,17 +516,23 @@ foreach my $fileRoot ( @fileRoots ) {
 	if ( exists($arguments{'data'}) ) {
 	    my $xml = new XML::Simple(RootName => "data", NoAttr => 1);
 	    my $data;
-	    @{$data->{'x'         }} = $x         ->list();
-	    @{$data->{'y'         }} = $y         ->list();
-	    @{$data->{'p'         }} = $p         ->list();
-	    @{$data->{'confidence'}} = $levels    ->list();
-	    @{$data->{'levels'    }} = $confidence->list();
-	    $data  ->{'xProperty' }  = $arguments{'xProperty'};
-	    $data  ->{'yProperty' }  = $arguments{'yProperty'};
-	    $data  ->{'xLabel'    }  = $xLabel;
-	    $data  ->{'yLabel'    }  = $yLabel;
-	    $data  ->{'xScale'    }  = $xScale;
-	    $data  ->{'yScale'    }  = $yScale;
+	    @{$data->{'x'                      }} = $x         ->list();
+	    @{$data->{'y'                      }} = $y         ->list();
+	    @{$data->{'p'                      }} = $p         ->list();
+	    @{$data->{'confidence'             }} = $levels    ->list();
+	    @{$data->{'levels'                 }} = $confidence->list();	    
+	    @{$data->{'spanLowerX'             }} = @spanLowerX;
+	    @{$data->{'spanUpperX'             }} = @spanUpperX;
+	    @{$data->{'spanLowerY'             }} = @spanLowerY;
+	    @{$data->{'spanUpperY'             }} = @spanUpperY;
+	    $data  ->{'maximumLikelihoodValueX'}  = $likelihoodMaximumParameters[$xColumn];
+	    $data  ->{'maximumLikelihoodValueY'}  = $likelihoodMaximumParameters[$yColumn];
+	    $data  ->{'xProperty'              }  = $arguments{'xProperty'};
+	    $data  ->{'yProperty'              }  = $arguments{'yProperty'};
+	    $data  ->{'xLabel'                 }  = $xLabel;
+	    $data  ->{'yLabel'                 }  = $yLabel;
+	    $data  ->{'xScale'                 }  = $xScale;
+	    $data  ->{'yScale'                 }  = $yScale;
 	    open(my $oHndl,">".$arguments{'data'});
 	    print $oHndl $xml->XMLout($data);
 	    close($oHndl);
