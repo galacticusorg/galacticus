@@ -23,6 +23,7 @@ use File::NFSLock;
 use System::Redirect;
 use Galacticus::Constraints::Parameters;
 use List::ExtraUtils;
+use Sys::CPU;
 my $useThreads = 0;
 if ( $^V gt v5.10.0 && $Config{useithreads} ) {
     $useThreads = 1;
@@ -111,7 +112,7 @@ if ( exists($config->{'likelihood'}->{'cpulimit'}) ) {
     if ( exists($config->{'likelihood'}->{'threads'}) ) { 
 	$cpuLimit *= $config->{'likelihood'}->{'threads'};
     } else {
-	$cpuLimit *= Sys::CPU::cpu_count();
+	$cpuLimit *= &Sys::CPU::cpu_count();
     }
 }
 
@@ -274,7 +275,7 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
 		        if ( exists($config->{'likelihood'}->{'coredumpsize'}) );
 		    $treeCommand .= "ulimit -c ".$coreDumpSize."; export GFORTRAN_ERROR_DUMPCORE=".$coredump."; ulimit -a; date; ./Galacticus.exe ".$config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml";
 		    my $treeLog = $config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".log";
-		    SystemRedirect::tofile($treeCommand,$treeLog);
+		    &System::Redirect::tofile($treeCommand,$treeLog);
 		    unless ( $? == 0 ) {
 			system("mv ".$treeLog." ".$treeLog.".failed.".$$);
 			die("constrainGalacticus.pl: Galacticus model failed");		
@@ -354,7 +355,7 @@ $glcCommand .= " ./Galacticus.exe ".$scratchDirectory."/constrainGalacticusParam
 my $logFile = $scratchDirectory."/constrainGalacticusParameters".$mpiRank.".log";
 push(@temporaryFiles,$logFile);
 # my $timeGalacticusStart = [gettimeofday];
-SystemRedirect::tofile($glcCommand,$logFile);
+&System::Redirect::tofile($glcCommand,$logFile);
 unless ( $? == 0 ) {
     # Since a failure occurred, post to the semaphore to avoid blocking other jobs.
     &semaphorePost($config->{'likelihood'}->{'threads'},$semaphoreName);
@@ -382,7 +383,7 @@ unless ( $? == 0 ) {
 	# Try running the model again - in case this was a random error.
 	if ( exists($config->{'likelihood'}->{'rerunOnError'}) && $config->{'likelihood'}->{'rerunOnError'} eq "yes" ) {
 	    print "ERROR: Galacticus model failed to complete - retrying\n";
-	    SystemRedirect::tofile($glcCommand,$logFile);
+	    &System::Redirect::tofile($glcCommand,$logFile);
 	    unless ( $? == 0 ) {
 		# Since a failure occurred, post to the semaphore to avoid blocking other jobs.
 		&semaphorePost($config->{'likelihood'}->{'threads'},$semaphoreName);
