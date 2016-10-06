@@ -534,9 +534,14 @@ sub Prepare_Dataset {
 	} elsif ( $style eq "point" ) {
 	    # Check if we are asked to plot just a single level.
 	    if ( exists($phaseRules{$phase}->{'level'}) ) {
+		# If transparency is requested, adjust point color.
+		my $currentLineColor = $lineColor{$phaseRules{$phase}->{'level'}};
+		if ( exists($options{'transparency'}) && $currentLineColor =~ m/rgbcolor "\#(.*)"/ ) {
+		    $currentLineColor = " lc rgbcolor \"#".sprintf("%2X",int(255*$options{'transparency'})).$1."\"";
+		}
 		# Plot just a single level, no real data.
 		${$plot}->{$phase}->{'command'} .= ${$plot}->{$phase}->{'prefix'}." '-'"
-		    .$pointType{$phaseRules{$phase}->{'level'}}.$pointSize{$phaseRules{$phase}->{'level'}}.$lineColor{$phaseRules{$phase}->{'level'}}.$lineWeight{$phaseRules{$phase}->{'level'}}.$title;
+		    .$pointType{$phaseRules{$phase}->{'level'}}.$pointSize{$phaseRules{$phase}->{'level'}}.$currentLineColor.$lineWeight{$phaseRules{$phase}->{'level'}}.$title;
 		${$plot}->{$phase}->{'data'   } .= $dummyPoint;
 		${$plot}->{$phase}->{'data'   } .= $endPoint;
 		${$plot}->{$phase}->{'prefix'} = ",";
@@ -613,35 +618,45 @@ sub Prepare_Dataset {
 		    # Add arrows.
 		    my $arrows      = "";
 		    my $clearArrows = "";
+		    # If transparency is requested, adjust line color.
+		    my $currentLineColor = $lineColor{'lower'};
+		    if ( exists($options{'transparency'}) && $currentLineColor =~ m/rgbcolor "\#(.*)"/ ) {
+			$currentLineColor = " lc rgbcolor \"#".sprintf("%2X",int(255*$options{'transparency'})).$1."\"";
+		    }
 		    if ( exists($options{'errorLeft'}) && $options{'errorLeft'}->index($iPoint) < 0.0 ) {
 			my $tipX = $x->index($iPoint)+$options{'errorLeft'}->index($iPoint);
 			$arrows .= "set arrow from first ".$x->index($iPoint).",".$y->index($iPoint)." to first "
-			    .$tipX.",".$y->index($iPoint)." filled back ".$lineColor{'lower'}.$lineWeight{'upper'}."\n";
+			    .$tipX.",".$y->index($iPoint)." filled back ".$currentLineColor.$lineWeight{'upper'}."\n";
 			$clearArrows = "unset arrow\n";
 		    }
 		    if ( exists($options{'errorRight'}) && $options{'errorRight'}->index($iPoint) < 0.0 ) {
 			my $tipX = $x->index($iPoint)-$options{'errorRight'}->index($iPoint);
 			$arrows .= "set arrow from first ".$x->index($iPoint).",".$y->index($iPoint)." to first "
-			    .$tipX.",".$y->index($iPoint)." filled back ".$lineColor{'lower'}.$lineWeight{'upper'}."\n";
+			    .$tipX.",".$y->index($iPoint)." filled back ".$currentLineColor.$lineWeight{'upper'}."\n";
 			$clearArrows = "unset arrow\n";
 		    }
 		    if ( exists($options{'errorDown'}) && $options{'errorDown'}->index($iPoint) < 0.0 ) {
 			my $tipY = $y->index($iPoint)+$options{'errorDown'}->index($iPoint);
 			$arrows .= "set arrow from first ".$x->index($iPoint).",".$y->index($iPoint)." to first "
-			    .$x->index($iPoint).",".$tipY." filled back ".$lineColor{'lower'}.$lineWeight{'upper'}."\n";
+			    .$x->index($iPoint).",".$tipY." filled back ".$currentLineColor.$lineWeight{'upper'}."\n";
 			$clearArrows = "unset arrow\n";
 		    }
 		    if ( exists($options{'errorUp'}) && $options{'errorUp'}->index($iPoint) < 0.0 ) {
 			my $tipY = $y->index($iPoint)-$options{'errorUp'}->index($iPoint);
 			$arrows .= "set arrow from first ".$x->index($iPoint).",".$y->index($iPoint)." to first "
-			    .$x->index($iPoint).",".$tipY." filled back ".$lineColor{'lower'}.$lineWeight{'upper'}."\n";
+			    .$x->index($iPoint).",".$tipY." filled back ".$currentLineColor.$lineWeight{'upper'}."\n";
 			$clearArrows = "unset arrow\n";
 		    }
 		    
 		    # Output the point.
 		    foreach my $level ( 'lower', 'upper' ) {
 			${$plot}->{$phase}->{'data'} .= $arrows if ( $level eq "lower" );
-			${$plot}->{$phase}->{'data'} .= "plot '-'".$errorCommand.$pointType{$level}.$pointSize{$level}.$lineColor{$level}.$lineWeight{$level}." notitle\n";
+			# If transparency is requested, adjust point color.
+			my $currentLineColor = $lineColor{$level};
+			if ( exists($options{'transparency'}) && $currentLineColor =~ m/rgbcolor "\#(.*)"/ ) {
+			    $currentLineColor = " lc rgbcolor \"#".sprintf("%2X",int(255*$options{'transparency'})).$1."\"";
+			}
+			${$plot}->{$phase}->{'data'} .= "plot '-'".$errorCommand.$pointType{$level}.$pointSize{$level}.$currentLineColor.$lineWeight{$level}." notitle\n";
 			${$plot}->{$phase}->{'data'} .= $x->index($iPoint)." ".$y->index($iPoint).$errors."\n";
 			${$plot}->{$phase}->{'data'} .= $endPoint;
 			${$plot}->{$phase}->{'data'} .= $clearArrows if ( $level eq "lower" );
