@@ -70,7 +70,7 @@ sub Properties_Deferred_Pointers {
 	    },
 	    {
 		intrinsic  => "logical",
-		variables  => [ $functionLabel."IsAttachedValue=.false." ]
+		variables  => [ $functionLabel."IsAttchdVl=.false." ]
 	    },
 	    );
 	# Record that this procedure pointer has been created.
@@ -294,7 +294,7 @@ sub Generate_Deferred_Function_Attacher {
     };
     $attachFunction->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 {$functionLabel}Deferred        => deferredFunction
-{$functionLabel}IsAttachedValue =  .true.
+{$functionLabel}IsAttchdVl =  .true.
 CODE
     # Construct the attachment status function.
     my $attachStatusFunction =
@@ -304,7 +304,7 @@ CODE
 	description => "Return true if the deferred function used to ".$method." the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$attachTo."} component class has been attached.",
     };
     $attachStatusFunction->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
-{$functionLabel}IsAttached={$functionLabel}IsAttachedValue
+{$functionLabel}IsAttached={$functionLabel}IsAttchdVl
 CODE
     # Bind this function to the relevant type.
     push(
