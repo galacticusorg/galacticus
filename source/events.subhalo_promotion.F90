@@ -35,13 +35,14 @@ contains
     use Galacticus_Display
     use Merger_Trees_Evolve_Node
     implicit none
-    class  (nodeEvent                     ), intent(in   )          :: thisEvent
-    type   (treeNode                      ), intent(inout), pointer :: thisNode
-    integer                                , intent(inout)          :: deadlockStatus
-    type   (treeNode                      )               , pointer :: promotionNode
-    class  (nodeComponentBasic            )               , pointer :: parentBasic
-    class  (nodeComponentMergingStatistics)               , pointer :: mergingStatistics
-    type   (varying_string                )                         :: message
+    class    (nodeEvent                     ), intent(in   )          :: thisEvent
+    type     (treeNode                      ), intent(inout), pointer :: thisNode
+    integer                                  , intent(inout)          :: deadlockStatus
+    type     (treeNode                      )               , pointer :: promotionNode
+    class    (nodeComponentBasic            )               , pointer :: parentBasic
+    class    (nodeComponentMergingStatistics)               , pointer :: mergingStatistics
+    type     (varying_string                )                         :: message
+    character(len=12                        )                         :: label
     
     ! Find the node to promote to.
     promotionNode => thisEvent%node
@@ -52,8 +53,9 @@ contains
        return
     end if
     ! Report.
+    write (label,'(f12.6)') thisEvent%time
     message='Satellite node ['
-    message=message//thisNode%index()//'] promoting to isolated node ['//thisEvent%node%index()//']'
+    message=message//thisNode%index()//'] promoting to isolated node ['//thisEvent%node%index()//'] at time '//trim(label)//' Gyr'
     call Galacticus_Display_Message(message,verbosityInfo)
     ! Remove the subhalo from its host.
     call thisNode%removeFromHost()
