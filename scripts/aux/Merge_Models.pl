@@ -8,9 +8,13 @@ use PDL::IO::HDF5::Dataset;
 use PDL::IO::HDF5::Group;
 use Data::UUID;
 use Data::Dumper;
+use Scalar::Util qw(reftype);
 
 # Merges Galacticus models.
 # Andrew Benson (8-July-2010)
+
+# Storage for weight datasets.
+my $weights;
 
 die("Usage: Merge_Models.pl <model1> ...... <outputModel>")
     unless ( scalar(@ARGV) > 1 );
@@ -108,7 +112,7 @@ if ( grep {$_ eq "Outputs"} @rootGroups ) {
 							 parent  => $newNodeDataGroup,
 							 fileObj => $outputFile
 		);
-	# Write the new dataset back to the output file.
+	    # Write the new dataset back to the output file.
 	    $newDataset->set($newDatasetValues);
 	    
 	    # Copy any attributes to the new dataset.
@@ -255,20 +259,24 @@ my %outputRules = (
 	"^isolatedHaloMassFunctionZ[\\d\\.]+\\/massFunctionCovariance\$" => "cumulate",	
     },
     conditionalMassFunction => {
-	"^normalization\$"                      => "cumulate"                 ,
-	"^normalizationSubhaloMassFunction\$"   => "cumulate"                 ,
-	"^massParent\$"                         => "singleCopy"               ,
-	"^massRatio\$"                          => "singleCopy"               ,
-	"^redshiftParent\$"                     => "singleCopy"               ,
-	"^redshiftProgenitor\$"                 => "singleCopy"               ,
-	"^conditionalMassFunction\$"            => "averageWeighted"          ,
-	"^conditionalMassFunctionError\$"       => "averageWeightedQuadrature",
-	"^primaryProgenitorMassFunction\$"      => "averageWeighted"          ,
-	"^primaryProgenitorMassFunctionError\$" => "averageWeightedQuadrature",
-	"^formationRateFunction\$"              => "averageWeighted"          ,
-	"^formationRateFunctionError\$"         => "averageWeightedQuadrature",
-	"^subhaloMassFunction\$"                => "averageWeighted"          ,
-	"^subhaloMassFunctionError\$"           => "averageWeightedQuadrature"
+	"^normalization\$"                         => "cumulate"                         ,
+	"^normalizationError\$"                    => "cumulateQuadrature"               ,
+	"^normalizationCovariance\$"               => "cumulate"                         ,
+	"^normalizationSubhaloMassFunction\$"      => "cumulate"                         ,
+	"^normalizationSubhaloMassFunctionError\$" => "cumulateQuadrature"               ,
+	"^massParent\$"                            => "singleCopy"                       ,
+	"^massRatio\$"                             => "singleCopy"                       ,
+	"^redshiftParent\$"                        => "singleCopy"                       ,
+	"^redshiftProgenitor\$"                    => "singleCopy"                       ,
+	"^conditionalMassFunction\$"               => \&conditionalMassFunction          ,
+	"^conditionalMassFunctionError\$"          => \&conditionalMassFunctionError     ,
+	"^conditionalMassFunctionCovariance\$"     => \&conditionalMassFunctionCovariance,
+	"^primaryProgenitorMassFunction\$"         => \&conditionalMassFunction          ,
+	"^primaryProgenitorMassFunctionError\$"    => \&conditionalMassFunctionError     ,
+	"^formationRateFunction\$"                 => \&conditionalMassFunction          ,
+	"^formationRateFunctionError\$"            => \&conditionalMassFunctionError     ,
+	"^subhaloMassFunction\$"                   => \&conditionalMassFunction          ,
+	"^subhaloMassFunctionError\$"              => \&conditionalMassFunctionError
     }    
     );
 my %availableGroupNames;
@@ -328,13 +336,17 @@ foreach my $outputGroup ( keys(%outputRules) ) {
 			$foundGroup = 1;
 			# Check for a match to an instruction.
 			my %instructions = %{$outputRules{$outputGroup}};
-			my $action = "";
+			my $action;
 			(my $fullPath = $thisGroup) =~ s/^$outputGroup//;
 			($fullPath .= "/".$dataset) =~ s/^\///;
 			foreach my $instruction ( keys(%instructions) ) {
 			    $action = $instructions{$instruction} if ( $fullPath =~ m/$instruction/ );
 			}
-			if ( $action eq "singleCopy" ) {
+			next
+			    unless ( defined($action) );
+			if ( reftype($action) && reftype($action) eq "CODE" ) {
+			    &{$action}($thisGroup,$dataset,$isFirstFile,$isLastFile,$outputFile,$mergeFile);
+			} elsif ( $action eq "singleCopy" ) {
 			    if ( $isFirstFile == 1 ) {
 				my $thisGroupObject = $outputFile->group($thisGroup);
 				my $newDataset = new PDL::IO::HDF5::Dataset( name    => $dataset,
@@ -535,4 +547,239 @@ sub Copy_Attributes {
 	my @attrValue = $objectFrom->attrGet($attribute);
 	$objectTo->attrSet($attribute => $attrValue[0]);
     }
+}
+
+sub conditionalMassFunction {
+    # Accumulate conditional mass function (or similar), weighting by the relevant normalization.
+    my $group       = shift();
+    my $dataset     = shift();
+    my $isFirstFile = shift();
+    my $isLastFile  = shift();
+    my $outputFile  = shift();
+    my $mergeFile   = shift();
+    # Determine the normalization dataset.
+    my $normalizationName = $dataset =~ m/subhalo/ ? "normalizationSubhaloMassFunction" : "normalization";
+    # Read the dataset and normalization.
+    my $values        = $mergeFile->group($group)->dataset($dataset          )->get();
+    my $normalization = $mergeFile->group($group)->dataset($normalizationName)->get();
+    # Scale by the normalization.
+    my @order       = 0..$values->ndims()-1;
+    my @reorder     = reverse(@order);
+    my @postOrder   = 0..$normalization->ndims()-1;
+    my @postReorder = reverse(@postOrder);
+    my $iterator    = pdl zeroes($values->ndims()-$normalization->ndims());
+    my $shape       = $values->reorder(@reorder)->shape();
+    do {
+	$values->reorder(@reorder)->range($iterator)->reorder(@postReorder) *= $normalization;
+    } until ( &iteratorUpdate($iterator,$shape) );
+    # Read the current cumulated result if necessary, and accumulate the normalization.
+    if ( $isFirstFile == 1 ) {
+	$weights->{$group.":".$dataset} = $normalization;
+    } else {
+	my $valuesPrevious = $outputFile->group($group)->dataset($dataset)->get();
+	$values                         += $valuesPrevious;
+	$weights->{$group.":".$dataset} += $normalization;
+    }
+    # If this is the final file, normalize the result.
+    if ( $isLastFile == 1 ) {
+	$iterator .= 0;
+	do {
+	    my $nonZero = which($weights->{$group.":".$dataset} > 0.0);
+	    $values->reorder(@reorder)->range($iterator)->reorder(@postReorder)->flat()->($nonZero) /= $weights->{$group.":".$dataset}->flat()->($nonZero);
+	} until ( &iteratorUpdate($iterator,$shape) );
+    }
+    # Store the dataset back to the output file.
+    $outputFile->group($group)->dataset($dataset)->set($values);
+}
+
+sub conditionalMassFunctionError {
+    # Accumulate conditional mass function (or similar) error, weighting by the relevant normalization.
+    my $group       = shift();
+    my $dataset     = shift();
+    my $isFirstFile = shift();
+    my $isLastFile  = shift();
+    my $outputFile  = shift();
+    my $mergeFile   = shift();
+    # Determine the normalization dataset.
+    my $normalizationName = $dataset =~ m/subhalo/ ? "normalizationSubhaloMassFunction" : "normalization";
+    # Determine base dataset.
+    (my $baseName = $dataset) =~ s/Error$//;
+    # Read the dataset and normalization.
+    my $values             = $mergeFile->group($group)->dataset($dataset                  )->get();
+    my $base               = $mergeFile->group($group)->dataset($baseName                 )->get();
+    my $normalization      = $mergeFile->group($group)->dataset($normalizationName        )->get();
+    my $normalizationError = $mergeFile->group($group)->dataset($normalizationName."Error")->get();
+    # Scale by the normalization.
+    my @order       = 0..$values->ndims()-1;
+    my @reorder     = reverse(@order);
+    my @postOrder   = 0..$normalization->ndims()-1;
+    my @postReorder = reverse(@postOrder);
+    my $iterator    = pdl zeroes($values->ndims()-$normalization->ndims());
+    my $shape       = $values->reorder(@reorder)->shape();
+    do {
+	my $baseRange   = $base  ->reorder(@reorder)->range($iterator)->reorder(@postReorder);
+	my $valuesRange = $values->reorder(@reorder)->range($iterator)->reorder(@postReorder);
+	my $nonZero = which($normalization > 0.0);
+	$valuesRange->flat()->($nonZero) .= 
+	    +(
+	      +(
+	        +$valuesRange       ->flat()->($nonZero)
+	        *$normalization     ->flat()->($nonZero)
+	       )**2
+	      -(
+		+$normalizationError->flat()->($nonZero)
+		*$baseRange         ->flat()->($nonZero)
+	       )**2
+	     );
+ 	$baseRange->flat()->($nonZero) *= $normalization->flat()->($nonZero);
+    } until ( &iteratorUpdate($iterator,$shape) );
+    # Read the current cumulated result if necessary, and accumulate the normalization.
+    if ( $isFirstFile == 1 ) {
+	$weights->{$group.":".$dataset        } =  $normalization;
+	$weights->{$group.":".$dataset."Error"} =  $normalizationError**2;
+	$weights->{$group.":".$dataset."Base" } =  $base;
+    } else {
+	my $valuesPrevious = $outputFile->group($group)->dataset($dataset)->get();
+	$values                                 +=  $valuesPrevious;
+	$weights->{$group.":".$dataset        } +=  $normalization;
+	$weights->{$group.":".$dataset."Error"} +=  $normalizationError**2;
+	$weights->{$group.":".$dataset."Base" } +=  $base;
+    }
+    # If this is the final file, normalize the result.
+    if ( $isLastFile == 1 ) {
+    	$iterator .= 0;
+    	do {
+    	    my $nonZero = which($weights->{$group.":".$dataset} > 0.0);
+    	    my $baseRange   = $weights->{$group.":".$dataset."Base" }->reorder(@reorder)->range($iterator)->reorder(@postReorder);
+    	    my $valuesRange = $values                                ->reorder(@reorder)->range($iterator)->reorder(@postReorder);
+    	    $valuesRange->flat()->($nonZero) .= 
+    		+sqrt(
+    		      +$valuesRange                               ->flat()->($nonZero)
+    		      +$weights    ->{$group.":".$dataset."Error"}->flat()->($nonZero)
+    		      /$weights    ->{$group.":".$dataset        }->flat()->($nonZero)**2
+     		      *$baseRange                                 ->flat()->($nonZero)**2
+   		     )
+		/      $weights    ->{$group.":".$dataset        }->flat()->($nonZero);
+	} until ( &iteratorUpdate($iterator,$shape) );
+    }
+    # Store the dataset back to the output file.
+    $outputFile->group($group)->dataset($dataset)->set($values);
+}
+
+sub conditionalMassFunctionCovariance {
+    # Accumulate conditional mass function (or similar) covariance, weighting by the relevant normalization.
+    my $group       = shift();
+    my $dataset     = shift();
+    my $isFirstFile = shift();
+    my $isLastFile  = shift();
+    my $outputFile  = shift();
+    my $mergeFile   = shift();
+    # Determine the normalization dataset.
+    my $normalizationName = $dataset =~ m/subhalo/ ? "normalizationSubhaloMassFunction" : "normalization";
+    # Determine base dataset.
+    (my $baseName = $dataset) =~ s/Covariance$//;
+    # Read the dataset and normalization.
+    my $values                  = $mergeFile->group($group)->dataset($dataset                       )->get();
+    my $base                    = $mergeFile->group($group)->dataset($baseName                      )->get();
+    my $normalization           = $mergeFile->group($group)->dataset($normalizationName             )->get();
+    my $normalizationCovariance = $mergeFile->group($group)->dataset($normalizationName."Covariance")->get();
+    # Scale by the normalization.
+    my @order       = 0..$base->ndims()-1;
+    my @reorder     = reverse(@order);
+    my @postOrder   = 0..$normalization->ndims()-1;
+    my @postReorder = reverse(@postOrder);
+    my $shape       = $base->reorder(@reorder)->shape();
+    my @orderCov    = 0..$values->ndims()-1;
+    my @reorderCov  = reverse(@orderCov);
+    my $shape1      = $base->shape();
+    my $iterator1   = pdl zeroes($base->ndims());
+    do {
+    	# Extract base and normalization values corresponding to iterator #1.
+     	my $base1                        = $base                   ->indexND($iterator1                               );
+    	my $normalization1               = $normalization          ->indexND($iterator1->(0:$normalization->ndims()-1));
+    	if ( $normalization1 > 0.0 ) {
+    	    my $normalizationCovariance1 = $normalizationCovariance->range  ($iterator1->(0:$normalization->ndims()-1));
+    	    my $values1                  = $values                 ->range  ($iterator1                               );
+    	    my $iterator                 = pdl zeroes($base->ndims()-$normalization->ndims());
+    	    do {
+    		my $baseRange   = $base   ->reorder(@reorder)->range($iterator)->reorder(@postReorder);
+    		my $valuesRange = $values1->reorder(@reorder)->range($iterator)->reorder(@postReorder);
+    		my $index       = $iterator1->((0));
+    		$valuesRange->(($index),:) .= 
+    		    +$valuesRange             ->(($index),:)
+    		    *$normalization1
+    		    *$normalization           ->(($index),:)   
+    		    -$normalizationCovariance1->(($index),:)
+    		    *$base1
+    		    *$baseRange               ->(($index),:);
+    	    } until ( &iteratorUpdate($iterator,$shape) );
+    	}
+    } until ( &iteratorUpdate($iterator1,$shape1) );
+    # Multiply the base values by the normalization.
+    my $iterator = pdl zeroes($base->ndims()-$normalization->ndims());
+    do {
+	my $baseRange = $base->reorder(@reorder)->range($iterator)->reorder(@postReorder);
+	my $nonZero   = which($normalization > 0.0);
+ 	$baseRange->flat()->($nonZero) *= $normalization->flat()->($nonZero);
+    } until ( &iteratorUpdate($iterator,$shape) );
+    # Read the current cumulated result if necessary, and accumulate the normalization.
+    if ( $isFirstFile == 1 ) {
+	$weights->{$group.":".$dataset             } =  $normalization;
+	$weights->{$group.":".$dataset."Covariance"} =  $normalizationCovariance;
+	$weights->{$group.":".$dataset."Base"      } =  $base;
+    } else {
+	my $valuesPrevious = $outputFile->group($group)->dataset($dataset)->get();
+	$values                                      +=  $valuesPrevious;
+	$weights->{$group.":".$dataset             } +=  $normalization;
+	$weights->{$group.":".$dataset."Covariance"} +=  $normalizationCovariance;
+	$weights->{$group.":".$dataset."Base"      } +=  $base;
+    }
+    # If this is the final file, normalize the result.
+    if ( $isLastFile == 1 ) {
+	$iterator1 .= 0;
+	do {
+	    # Extract base and normalization values corresponding to iterator #1.
+	    my $base1                        = $weights->{$group.":".$dataset."Base"      }->indexND($iterator1                               );
+	    my $normalization1               = $weights->{$group.":".$dataset             }->indexND($iterator1->(0:$normalization->ndims()-1));
+	    if ( $normalization1 > 0.0 ) {
+		my $normalizationCovariance1 = $weights->{$group.":".$dataset."Covariance"}->range  ($iterator1->(0:$normalization->ndims()-1));
+		my $values1                  = $values                                     ->range  ($iterator1                               );
+		my $iterator                 = pdl zeroes($base->ndims()-$normalization->ndims());
+		do {
+		    my $baseRange   = $weights->{$group.":".$dataset."Base"}->reorder(@reorder)->range($iterator)->reorder(@postReorder);
+		    my $valuesRange = $values1                              ->reorder(@reorder)->range($iterator)->reorder(@postReorder);
+		    my $index       = $iterator1->((0));
+		    my $nonZero     = which($weights->{$group.":".$dataset}->(($index),:) > 0.0);
+		    $valuesRange->(($index),$nonZero) .=
+			+$valuesRange                                    ->(($index),$nonZero)
+			/$normalization1
+			/$weights                 ->{$group.":".$dataset}->(($index),$nonZero)
+			+$normalizationCovariance1                       ->(($index),$nonZero)
+			*$base1
+			*$baseRange                                      ->(($index),$nonZero)
+			/$normalization1                                                      **2
+			/$weights                 ->{$group.":".$dataset}->(($index),$nonZero)**2;
+		} until ( &iteratorUpdate($iterator,$shape) );
+	    }
+	} until ( &iteratorUpdate($iterator1,$shape1) );
+    }
+    # Store the dataset back to the output file.
+    $outputFile->group($group)->dataset($dataset)->set($values);
+}
+
+sub iteratorUpdate {
+    my $iterator = shift();
+    my $shape    = shift();
+    my $dim      = $iterator->dim(0);
+    while ( $dim > -1 ) {
+	--$dim;
+	$iterator->(($dim)) += 1;
+	if ( $dim > 0 && $iterator->(($dim)) >= $shape->(($dim)) ) {
+	    $iterator->(($dim)) .= 0;
+	} else {
+	    last;
+	}
+    }
+    my $result = $iterator->((0)) >= $shape->((0)) ? 1 : 0;
+    return $result;
 }
