@@ -36,13 +36,15 @@ sub Parse_ModuleUses {
 		# Determine if line is a module use line.
 		my $isModuleUse = 0;
 		$isModuleUse    = 1
-		    if ( $processedLine =~ m/^\s*use\s*(,\s*intrinsic)?\s*(::)?\s*([a-zA-Z0-9_]+)\s*(,\s*only\s*:)?\s*([a-zA-Z0-9_,\s]+)?\s*$/ );
+		    if ( $processedLine =~ m/^\s*(!\$)?\s*use\s*(,\s*intrinsic)?\s*(::)?\s*([a-zA-Z0-9_]+)\s*(,\s*only\s*:)?\s*([a-zA-Z0-9_,\s]+)?\s*$/ );
 		# Accumulate raw text.
 		if ( $isModuleUse == 1 ) {
 		    $rawModuleUse .= $rawLine;
-		    my $isIntrinsic = $1;
-		    my $moduleName  = $3;
-		    my $only        = $5;
+		    my $isOpenMP    = $1;
+		    my $isIntrinsic = $2;
+		    my $moduleName  = $4;
+		    my $only        = $6;
+		    $moduleUses->{$moduleName}->{'openMP'} = $isOpenMP ? 1 : 0;
 		    if ( $isIntrinsic ) {
 			$moduleUses->{$moduleName}->{'intrinsic'} = 1;
 		    } else {
@@ -150,6 +152,7 @@ sub AddUses {
     }
     # Merge the module usages.
     foreach my $moduleName ( keys(%{$moduleUses->{'moduleUse'}}) ) {
+	$usesNode->{'moduleUse'}->{$moduleName}->{'openMP'   } = $moduleUses->{'moduleUse'}->{$moduleName}->{'openMP'   };
 	$usesNode->{'moduleUse'}->{$moduleName}->{'intrinsic'} = $moduleUses->{'moduleUse'}->{$moduleName}->{'intrinsic'};
 	unless ( exists($usesNode->{'moduleUse'}->{$moduleName}->{'all'}) ) {
 	    if ( exists($moduleUses->{'moduleUse'}->{$moduleName}->{'all'}) ) {
@@ -164,7 +167,10 @@ sub AddUses {
     # Update the contained code.
     $usesNode->{'firstChild'}->{'content'} = undef();
     foreach my $moduleName ( keys(%{$usesNode->{'moduleUse'}}) ) {
-	$usesNode->{'firstChild'}->{'content'} .= "   use";
+	$usesNode->{'firstChild'}->{'content'} .= "   ";
+	$usesNode->{'firstChild'}->{'content'} .= "!\$ "
+	    if ( $usesNode->{'moduleUse'}->{$moduleName}->{'openMP'} );
+	$usesNode->{'firstChild'}->{'content'} .= "use";
 	$usesNode->{'firstChild'}->{'content'} .= ", intrinsic"
 	    if ( $usesNode->{'moduleUse'}->{$moduleName}->{'intrinsic'} );
 	$usesNode->{'firstChild'}->{'content'} .= " :: ".$moduleName;
