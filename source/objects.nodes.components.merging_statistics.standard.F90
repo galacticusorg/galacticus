@@ -25,7 +25,7 @@ module Node_Component_Merging_Statistics_Standard
   private
   public :: Node_Component_Merging_Statistics_Standard_Merger_Tree_Init, Node_Component_Merging_Statistics_Standard_Node_Merger      , &
        &    Node_Component_Merging_Statistics_Standard_Node_Promotion  , Node_Component_Merging_Statistics_Standard_Satellite_Merging, &
-       &    Node_Component_Merging_Statistics_Standard_Reset_Hierarchy
+       &    Node_Component_Merging_Statistics_Standard_Reset_Hierarchy , Node_Component_Merging_Statistics_Standard_Initialize
 
   !# <component>
   !#  <class>mergingStatistics</class>
@@ -60,15 +60,17 @@ module Node_Component_Merging_Statistics_Standard
   !#     <name>nodeHierarchyLevel</name>
   !#     <type>integer</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" isDeferred="get" />
   !#     <output unitsInSI="0.0d0" comment="Initial level of the node in the tree hierarchy."/>
+  !#     <classDefault>-1.0d0</classDefault>
   !#   </property>
   !#   <property>
   !#     <name>nodeHierarchyLevelMaximum</name>
   !#     <type>integer</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" isDeferred="get" />
   !#     <output unitsInSI="0.0d0" comment="Maximum level of the node in the tree hierarchy."/>
+  !#     <classDefault>-1.0d0</classDefault>
   !#   </property>
   !#   <property>
   !#     <name>massWhenFirstIsolated</name>
@@ -80,14 +82,20 @@ module Node_Component_Merging_Statistics_Standard
   !# </component>
 
   ! Parameters controlling the statistics gathered.
-  double precision :: nodeFormationMassFraction        , nodeMajorMergerFraction, &
-       &              hierarchyLevelResetFactor
+  double precision                                         :: nodeFormationMassFraction        , nodeMajorMergerFraction, &
+       &                                                      hierarchyLevelResetFactor
 
   ! Record of whether this module has been initialized.
-  logical          :: moduleInitialized        =.false.
+  logical                                                  :: moduleInitialized        =.false.
+
+  ! Queriable merging statistics object.
+  type            (nodeComponentMergingStatisticsStandard) :: mergingStatistics
 
 contains
 
+  !# <nodeComponentInitializationTask>
+  !#  <unitName>Node_Component_Merging_Statistics_Standard_Initialize</unitName>
+  !# </nodeComponentInitializationTask>
   subroutine Node_Component_Merging_Statistics_Standard_Initialize()
     !% Initializes the standard merging statistics component.
     use Input_Parameters
@@ -129,12 +137,93 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('hierarchyLevelResetFactor',hierarchyLevelResetFactor,defaultValue=1.0d30)
+       ! Bind the hierarchy level get functions.
+       call mergingStatistics%nodeHierarchyLevelFunction       (Node_Component_Merging_statistics_Standard_Hierarchy_Level)
+       call mergingStatistics%nodeHierarchyLevelMaximumFunction(Node_Component_Merging_statistics_Standard_HLM            )
        ! Record that the module is now initialized.
        moduleInitialized=.true.
     end if
     !$omp end critical (Node_Component_Merging_Statistics_Standard_Initialize)
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Initialize
+
+  integer function Node_Component_Merging_Statistics_Standard_Hierarchy_Level(self)
+    !% Return the hierarchy level of a node, computing it if necessary.
+    implicit none
+    class  (nodeComponentMergingStatisticsStandard), intent(inout) :: self
+    type   (treeNode                              ), pointer       :: hostNode
+    integer                                                        :: nodeHierarchyLevel
+
+    if (self%nodeHierarchyLevelValue() < 0.0d0) then
+       nodeHierarchyLevel =  0
+       hostNode       => self%hostNode
+       do while (hostNode%isSatellite())
+          nodeHierarchyLevel =  nodeHierarchyLevel       +1
+          hostNode           => hostNode          %parent
+       end do
+       call self%nodeHierarchyLevelSet(nodeHierarchyLevel)
+    end if
+    Node_Component_Merging_statistics_Standard_Hierarchy_Level=self%nodeHierarchyLevelValue()
+    return
+  end function Node_Component_Merging_Statistics_Standard_Hierarchy_Level
+
+  integer function Node_Component_Merging_Statistics_Standard_HLM(self)
+    !% Return the maximum hierarchy level of a node, computing it if necessary.
+    implicit none
+    class  (nodeComponentMergingStatisticsStandard), intent(inout) :: self
+    class  (nodeComponentMergingStatistics        ), pointer       :: mergingStatisticsProgenitor
+    class  (nodeEvent                             ), pointer       :: event
+    type   (treeNode                              ), pointer       :: nodeProgenitor
+    class  (nodeComponentBasic                    ), pointer       :: basicSelf                  , basicProgenitor
+    integer                                                        :: nodeHierarchyLevel         , nodeHierarchyLevelProgenitor
+
+    if (self%nodeHierarchyLevelMaximumValue() < 0.0d0) then
+       ! Get current hierarchy level.
+       nodeHierarchyLevel=self%nodeHierarchyLevel()
+       ! Check for a subhalo promotion event to this node.
+       nodeHierarchyLevelProgenitor =  -1
+       event                        => self%hostNode%event
+       do while (associated(event))
+          ! Select only subhalo promotion events.
+          select type (event)
+          class is (nodeEventSubhaloPromotion)           
+             ! If the event task is not associated, this indicates that our node is the node being promoted to (not the node
+             ! being promoted). Select these cases, as in these instances we want to propagate the maximum hierarchy level of
+             ! the node being promoted.
+             if (.not.associated(event%task)) then
+                ! We have a subhalo promotion. Set the progenitor maximum hierarchy level to the greater of the progenitor's
+                ! maximum hierarchy level and 1 (since we know it is a subhalo prior to promotion to our node).
+                mergingStatisticsProgenitor  => event   %node%mergingStatistics(autoCreate=.true.)
+                nodeHierarchyLevelProgenitor =  max(mergingStatisticsProgenitor%nodeHierarchyLevelMaximum(),1)
+             end if
+          end select
+          event => event%next
+       end do
+       ! If no subhalo promotion event found, check for a direct, primary progenitor.
+       if (nodeHierarchyLevelProgenitor < 0) then
+          if (associated(self%hostNode%firstChild)) then
+             ! Found a direct, primary progenitor. Our maximum hierarchy level is just equal to that of our progenitor.
+             mergingStatisticsProgenitor  => self                       %hostNode%firstChild%mergingStatistics        (autoCreate=.true.)
+             nodeHierarchyLevelProgenitor =  mergingStatisticsProgenitor                    %nodeHierarchyLevelMaximum(                 )
+          else
+             ! No progenitor found, set maximum hierarchy level to zero.
+             nodeHierarchyLevelProgenitor =  0
+          end if
+       end if
+       ! Check for cases where a node has grown sufficiently in mass that its maximum hierarchy level should be reset.
+       nodeProgenitor => self%hostNode
+       do while (associated(nodeProgenitor%firstChild))
+          nodeProgenitor => nodeProgenitor%firstChild
+       end do
+       basicProgenitor => nodeProgenitor         %basic()
+       basicSelf       => self          %hostNode%basic()
+       if (basicSelf%mass() > hierarchyLevelResetFactor*basicProgenitor%mass()) nodeHierarchyLevelProgenitor=nodeHierarchyLevel
+       ! Assign the computed maximum hierarchy level.
+       call self%nodeHierarchyLevelMaximumSet(max(nodeHierarchyLevel,nodeHierarchyLevelProgenitor))       
+    end if
+    Node_Component_Merging_statistics_Standard_HLM=self%nodeHierarchyLevelMaximumValue()
+    return
+  end function Node_Component_Merging_Statistics_Standard_HLM
 
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Merging_Statistics_Standard_Merger_Tree_Init</unitName>
@@ -147,7 +236,7 @@ contains
     type   (treeNode                      )               , pointer :: hostNode
     class  (nodeComponentMergingStatistics)               , pointer :: thisMergingStatistics
     class  (nodeComponentBasic            )               , pointer :: thisBasic
-    integer                                                         :: hierarchyLevel
+    integer                                                         :: nodeHierarchyLevel
 
     ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%standardIsActive()) return
@@ -155,18 +244,18 @@ contains
     ! Ensure that the module is initialized.
     call Node_Component_Merging_Statistics_Standard_Initialize()
     ! Find the initial hierarchy level.
-    hierarchyLevel =  0
+    nodeHierarchyLevel =  0
     hostNode       => thisNode
     do while (hostNode%isSatellite())
-       hierarchyLevel =  hierarchyLevel       +1
-       hostNode       => hostNode      %parent
+       nodeHierarchyLevel =  nodeHierarchyLevel       +1
+       hostNode           => hostNode          %parent
     end do    
     ! Create a merger statistics component and initialize it. 
     thisMergingStatistics => thisNode%mergingStatistics(autoCreate=.true.)
     thisBasic             => thisNode%basic            (                 )
-    call thisMergingStatistics%       nodeHierarchyLevelSet(hierarchyLevel  )
-    call thisMergingStatistics%nodeHierarchyLevelMaximumSet(hierarchyLevel  )
-    call thisMergingStatistics%          massWhenFirstIsolatedSet(thisBasic%mass())
+    call thisMergingStatistics%       nodeHierarchyLevelSet(nodeHierarchyLevel  )
+    call thisMergingStatistics%nodeHierarchyLevelMaximumSet(nodeHierarchyLevel  )
+    call thisMergingStatistics%    massWhenFirstIsolatedSet(thisBasic%mass())
     call thisMergingStatistics%    galaxyMajorMergerTimeSet(        -1.0d0  )
     call thisMergingStatistics%      nodeMajorMergerTimeSet(        -1.0d0  )
     call thisMergingStatistics%        nodeFormationTimeSet(Dark_Matter_Halo_Formation_Time(thisNode,nodeFormationMassFraction))
