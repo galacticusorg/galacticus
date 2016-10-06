@@ -21,6 +21,7 @@
 
 module Galacticus_Nodes
   !% Implements an object hierarchy for nodes in merger trees and all of their constituent physical components.
+  use, intrinsic :: ISO_C_Binding
   use Galacticus_Error
   use Memory_Management
   use ISO_Varying_String
@@ -34,7 +35,7 @@ module Galacticus_Nodes
   use IO_HDF5
   use Pseudo_Random
   private
-  public :: nodeClassHierarchyInitialize, nodeClassHierarchyFinalize, Galacticus_Nodes_Unique_ID_Set, interruptTask
+  public :: nodeClassHierarchyInitialize, nodeClassHierarchyFinalize, Galacticus_Nodes_Unique_ID_Set, interruptTask, nodeEventBuildFromRaw
 
   type, public :: treeNodeList
      !% Type to give a list of treeNodes.
@@ -216,10 +217,10 @@ module Galacticus_Nodes
     class(nodeEvent), intent(inout), pointer :: newEvent
     class(nodeEvent)               , pointer :: thisEvent
 
-    nullify(newEvent%next)
     !$omp atomic
-    eventID=eventID+1
-    newEvent%ID=eventID
+    eventID       =  eventID+1
+    newEvent%ID   =  eventID
+    newEvent%next => null()
     if (associated(self%event)) then
        thisEvent => self%event
        do while (associated(thisEvent%next))
