@@ -66,29 +66,30 @@ contains
     include 'merger_trees.evolve.threadInitialize.moduleUse.inc'
     !# </include>
     implicit none
-    type            (mergerTree                   )                    , intent(inout) , target::                         thisTree
-    double precision                                                   , intent(in   ) ::      endTime
-    type            (treeNode                     )           , pointer                ::      lockNode                                  , nextNode            , &
-         &                                                                                     parentNode                                , thisNode
+    type            (mergerTree                   )           , target , intent(inout) :: thisTree
+    double precision                                                   , intent(in   ) :: endTime
+    type            (treeNode                     )           , pointer                :: lockNode                          , nextNode            , &
+         &                                                                                parentNode                        , thisNode
     type            (nodeEvent                    )           , pointer                ::      event
-    double precision                               , parameter                         ::      timeTolerance                      =1.0d-5
-    double precision                               , parameter                         ::      largeTime                          =1.0d10
-    procedure       (interruptTask )           , pointer                ::      interruptProcedure
-    procedure       (End_Of_Timestep_Task_Template)           , pointer                ::      End_Of_Timestep_Task
-    integer                                        , parameter                         ::      verbosityLevel                     =3
-    class           (nodeComponentBasic           )           , pointer                ::      baseNodeBasicComponent                    , parentBasicComponent, &
-         &                                                                                     thisBasicComponent
-    type            (mergerTree                   )           , pointer                ::      currentTree
-    integer                                                                            ::      deadlockStatus                            , nodesEvolvedCount   , &
-         &                                                                                     nodesTotalCount                           , treeWalkCount       , &
-         &                                                                                     treeWalkCountPreviousOutput
-    double precision                                                                   ::      earliestTimeInTree                        , endTimeThisNode     , &
-         &                                                                                     finalTimeInTree
-    logical                                                                            ::      didEvolve                                 , interrupted
-    character       (len=24                       )                                    ::      label
-    character       (len=35                       )                                    ::      message
-    type            (varying_string               )                                    ::      lockType                                  , vMessage
-    logical                                                                            ::      anyTreeExistsAtOutputTime
+    double precision                               , parameter                         :: timeTolerance              =1.0d-5
+    double precision                               , parameter                         :: largeTime                  =1.0d10
+    procedure       (interruptTask                )           , pointer                :: interruptProcedure
+    procedure       (End_Of_Timestep_Task_Template)           , pointer                :: End_Of_Timestep_Task
+    integer                                        , parameter                         :: verbosityLevel             =3
+    class           (nodeComponentBasic           )           , pointer                :: baseNodeBasicComponent            , parentBasicComponent, &
+         &                                                                                thisBasicComponent
+    type            (mergerTree                   )           , pointer                :: currentTree
+    class           (nodeEvent                    )           , pointer                :: thisEvent
+    integer                                                                            :: deadlockStatus                    , nodesEvolvedCount   , &
+         &                                                                                nodesTotalCount                   , treeWalkCount       , &
+         &                                                                                treeWalkCountPreviousOutput
+    double precision                                                                   :: earliestTimeInTree                , endTimeThisNode     , &
+         &                                                                                finalTimeInTree
+    logical                                                                            :: didEvolve                         , interrupted
+    character       (len=24                       )                                    :: label
+    character       (len=35                       )                                    :: message
+    type            (varying_string               )                                    :: lockType                          , vMessage
+    logical                                                                            :: anyTreeExistsAtOutputTime         , hasEventAtEndTime
     
     ! Check if this routine is initialized.
     if (.not.mergerTreeEvolveToInitialized) then
@@ -260,30 +261,47 @@ contains
                    
                    ! Find the next node that we will process.
                    nextNode => thisNode%walkTreeWithSatellites()
-
+                   
+                   ! Detect if the node has an event which occurs precisely at the end time. If so, we will let it evolve even if
+                   ! it is already at the end time so that the event can occur.
+                   thisEvent         => thisNode%event
+                   hasEventAtEndTime =  .false.
+                   do while (associated(thisEvent).and..not.hasEventAtEndTime)
+                      hasEventAtEndTime =  (thisEvent%time == endTime)
+                      thisEvent         =>  thisEvent%next
+                   end do
+                     
                    ! Evolve this node if it has a parent, exists before the output time, has no children
                    ! (i.e. they've already all been processed), and either exists before the final time
                    ! in its tree, or exists precisely at that time and has some attached event yet to occur.
-                   evolveCondition: if (                                                 &
-                        &                     associated(thisNode%parent      )          &
-                        &               .and.                                            &
-                        &                .not.associated(thisNode%firstChild  )          &
-                        &               .and.                                            &
-                        &                   thisBasicComponent%time() <  endTime         &
-                        &               .and.                                            &
-                        &                (                                               &
-                        &                   thisBasicComponent%time() <  finalTimeInTree &
-                        &                .or.                                            &
-                        &                 (                                              &
-                        &                  (                                             &
-                        &                     associated(thisNode%event      )           &
-                        &                   .or.                                         &
-                        &                     associated(thisNode%mergeTarget)           &
-                        &                  )                                             &
-                        &                  .and.                                         &
-                        &                   thisBasicComponent%time() <= finalTimeInTree &
-                        &                 )                                              &
-                        &                )                                               &
+                   evolveCondition: if (                                                  &
+                        &                     associated(thisNode%parent      )           &
+                        &               .and.                                             &
+                        &                .not.associated(thisNode%firstChild  )           &
+                        &               .and.                                             &
+                        &                (                                                &
+                        &                    thisBasicComponent%time() <   endTime        &
+                        &                 .or.                                            &
+                        &                  (                                              &
+                        &                    hasEventAtEndTime                            &
+                        &                   .and.                                         &
+                        &                    thisBasicComponent%time() == endTime         &
+                        &                  )                                              &
+                        &                )                                                &
+                        &               .and.                                             &
+                        &                (                                                &
+                        &                    thisBasicComponent%time() <  finalTimeInTree &
+                        &                .or.                                             &
+                        &                 (                                               &
+                        &                  (                                              &
+                        &                     associated(thisNode%event      )            &
+                        &                   .or.                                          &
+                        &                     associated(thisNode%mergeTarget)            &
+                        &                  )                                              &
+                        &                  .and.                                          &
+                        &                    thisBasicComponent%time() <= finalTimeInTree &
+                        &                 )                                               &
+                        &                )                                                &
                         &              ) then
                       
                       ! Flag that a node was evolved.
