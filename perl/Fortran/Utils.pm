@@ -332,7 +332,8 @@ sub Get_Fortran_Line {
 		if ( $char eq "{" );
 	    --$inBraces
 		if ( $char eq "}" );
-	    if ( $commentPosition == -1 && $char eq "!" && $inDoubleQuotes == 0 && $inSingleQuotes == 0 && $inBraces == 0 ) {$commentPosition = $iChar};
+	    # Detect comments. Exclude comment characters within quotes, or which begin an OpenMP directive.
+	    if ( $commentPosition == -1 && $char eq "!" && ($iChar == length($tmpLine)-1 || substr($tmpLine,$iChar+1,1) ne "\$") && $inDoubleQuotes == 0 && $inSingleQuotes == 0 && $inBraces == 0 ) {$commentPosition = $iChar};
 	}
 	$rawLine .= $line;
 	chomp($processedLine);
