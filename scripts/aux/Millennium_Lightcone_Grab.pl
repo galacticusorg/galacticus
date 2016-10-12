@@ -393,8 +393,6 @@ unless ( -e $dataDirectory."/treeIDs.data" ) {
     close(tHndl);
 }
 
-# Download merger trees from the Millennium Database.
-
 # Read in the list of tree IDs.
 print "Reading tree IDs from file...\n";
 my %treeIDs;
