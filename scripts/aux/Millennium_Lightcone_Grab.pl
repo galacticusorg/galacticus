@@ -359,7 +359,7 @@ unless ( -e $dataDirectory."/treeIDs.data" ) {
 			    # Construct SQL query.
 			    $condition =~ s/\+/%2B/g;
 			    $condition =~ s/\//%2F/g;
-			    my $sqlQuery = "http://gavo.mpa-garching.mpg.de/MyMillennium?action=doQuery&SQL=select treeId,snapNum,x,y,z from MPAHaloTrees..MHalo ".$condition;
+			    my $sqlQuery = "http://gavo.mpa-garching.mpg.de/MyMillennium?action=doQuery&SQL=select treeId,snapNum,x,y,z from MPAHaloTrees..MR ".$condition;
 			    my $outputFile = "tmp.data";
 			    my $getCommand = "wget --http-user=".$sqlUser." --http-passwd=".$sqlPassword." \"".$sqlQuery."\" -O ".$outputFile;
 			    system($getCommand);
@@ -409,7 +409,7 @@ system("make Millennium_Merger_Tree_File_Maker.exe");
 for(my $iTree=0;$iTree<scalar(@treeIDs);$iTree+=$treeBlockCount) {
     my $jTree = $iTree+$treeBlockCount-1;
     if ( $jTree > scalar(@treeIDs)-1 ) {$jTree = scalar(@treeIDs)-1};
-    my $select = "root.treeId in (".join(",",@treeIDs[$iTree..$jTree]).")";
+    my $select = " node.treeId in (".join(",",@treeIDs[$iTree..$jTree]).")";
     
     # Define the name of the tree file.
     my $treeFile = $dataDirectory."/Lightcone_Trees_".$iTree.":".$jTree.".hdf5";
@@ -424,7 +424,7 @@ for(my $iTree=0;$iTree<scalar(@treeIDs);$iTree+=$treeBlockCount) {
 	close(oHndl);
 
 	# Run the script to grab the trees.
-	system("scripts/aux/Millennium_Trees_Grab.pl --user ".$sqlUser." --password ".$sqlPassword." --table MPAHaloTrees..MHalo --traceParticles no --selectFile sqlSelect.txt --output ".$temporaryFile);
+	system("scripts/aux/Millennium_Trees_Grab.pl --user ".$sqlUser." --password ".$sqlPassword." --table MPAHaloTrees..MR --traceParticles no --selectFile sqlSelect.txt --output ".$temporaryFile);
 	
 	# Process into Galacticus format.
 	system("./Millennium_Merger_Tree_File_Maker.exe ".$temporaryFile." none ".$treeFile." galacticus 1");
