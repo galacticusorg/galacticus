@@ -110,7 +110,6 @@ sub ALFALFA_Mass_Error_Model {
     my $lowMasses                          = which($logarithmicMassLimited < 6.0);
     $logarithmicMassLimited->($lowMasses) .= 6.0;
     my $errorObserved                      = $a+exp(-($logarithmicMassLimited-$b)/$c);
-  #  print Dumper($galacticus->{'parameters'});
     my $errorModel                         = $galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionScatter'}->{'value'};
     my $error                              = sqrt($errorObserved**2+$errorModel**2);
     return $error;
