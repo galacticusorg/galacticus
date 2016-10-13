@@ -390,14 +390,15 @@ sub Construct {
 	    &GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 					  $config->{'x'},
 					  $yGalacticus[0],
-					  errorUp   => $errorGalacticus[0],
-					  errorDown => $errorGalacticus[0],
-					  style     => "point",
-					  symbol    => [6,7], 
-					  weight    => [5,3],
-					  pointSize => 0.5,
-					  color     => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
-					  title     => "Galacticus"
+					  errorUp      => $errorGalacticus[0],
+					  errorDown    => $errorGalacticus[0],
+					  style        => "point",
+					  symbol       => [6,7], 
+					  weight       => [5,3],
+					  pointSize    => 0.5,
+					  transparency => 0.5,
+					  color        => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
+					  title        => "Galacticus"
 		);
 	} else {
 	    # Plot multiple models. 
