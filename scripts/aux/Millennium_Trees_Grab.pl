@@ -176,7 +176,8 @@ $getCommandBase   .= " --http-user="  .$sqlUser     unless ( $sqlUser     eq "" 
 $getCommandBase   .= " --http-passwd=".$sqlPassword unless ( $sqlPassword eq "" );
 
 # Build the SQL query to retrieve basic node data. We convert quantities containing a physical length into comoving units.
-my $sqlQuery = $databaseURL."select ".$indexNode.".".$treeId.", ".$indexNode.".".$haloId.", ".$indexNode.".".$descendantId.", node.firstHaloInFOFgroupId, node.snapNum, node.redshift, node.".$mass.", node.np, node.x, node.y, node.z, node.velX, node.velY, node.velZ, node.spinX*(1.0+node.redshift), node.spinY*(1.0+node.redshift), node.spinZ*(1.0+node.redshift), node.".$halfMassRadius."*(1.0+node.redshift), node.mostBoundID, node.vMax, node.".$velocityDispersion." from ".$table." node";
+my $plus = "%2b";
+my $sqlQuery = $databaseURL."select ".$indexNode.".".$treeId.", ".$indexNode.".".$haloId.", ".$indexNode.".".$descendantId.", node.firstHaloInFOFgroupId, node.snapNum, node.redshift, node.".$mass.", node.np, node.x, node.y, node.z, node.velX, node.velY, node.velZ, node.spinX*(1.0".$plus."node.redshift), node.spinY*(1.0".$plus."node.redshift), node.spinZ*(1.0".$plus."node.redshift), node.".$halfMassRadius."*(1.0".$plus."node.redshift), node.mostBoundID, node.vMax, node.".$velocityDispersion." from ".$table." node";
 # Add the root node if it is used in the selection.
 $sqlQuery .= ", ".$table." root"
     if ( $selection =~ m/root\./ );
