@@ -23,8 +23,9 @@
           &                                                        reportCount                    , logFlushCount
      double precision                                           :: accelerationCoefficientPersonal, accelerationCoefficientGlobal, &
           &                                                        inertiaWeight                  , velocityCoefficient
-     logical                                                    :: isInteractive
-     type            (varying_string   )                        :: logFileRoot                    , interactionRoot
+     logical                                                    :: isInteractive                  , resume
+     type            (varying_string   )                        :: logFileRoot                    , interactionRoot              , &
+          &                                                        logFilePreviousRoot
      type            (prior            ), pointer, dimension(:) :: parameterPriors
      type            (mappingList      ), pointer, dimension(:) :: parameterMappings
      class           (likelihood       ), pointer               :: modelLikelihood
