@@ -248,12 +248,17 @@ contains
                          doubleProperty=0
                          doubleBufferCount=doubleBufferCount+1
                       end if
-                      ! Establish all other properties.
-                      call thisNode%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time)
+                      ! Populate the output buffers with properties. We first populate with any "extra" properites that may be
+                      ! being computed, and then call the standard treeNode output method to populate with all "standard"
+                      ! properties. This order of operation is chosen because the treeNode output method will perform some clean
+                      ! up (e.g. removing stellar luminosities no longer needed after this output). These quantities may be
+                      ! required by the "extra" property calculations, thus requiring the extra property calculations to be
+                      ! carried out first.                      
                       !# <include directive="mergerTreeOutputTask" type="functionCall" functionType="void">
                       !#  <functionArgs>thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time</functionArgs>
                       include 'galacticus.output.merger_tree.tasks.inc'
                       !# </include>
+                      call thisNode%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time)
                       ! If buffer is full, dump it to file.
                       if (integerBufferCount == integerBufferSize) call Integer_Buffer_Extend()
                       if (doubleBufferCount  ==  doubleBufferSize) call Double_Buffer_Extend ()
@@ -492,11 +497,11 @@ contains
 
     integerPropertyCount=0
     doublePropertyCount =0
-    call thisNode%outputCount(integerPropertyCount,doublePropertyCount,time)
     !# <include directive="mergerTreeOutputPropertyCount" type="functionCall" functionType="void">
     !#  <functionArgs>thisNode,integerPropertyCount,doublePropertyCount,time</functionArgs>
     include 'galacticus.output.merger_tree.property_count.inc'
     !# </include>
+    call thisNode%outputCount(integerPropertyCount,doublePropertyCount,time)
     return
   end subroutine Count_Properties
 
@@ -550,12 +555,11 @@ contains
 
     integerProperty=0
     doubleProperty =0
-    call thisNode%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !# <include directive="mergerTreeOutputNames" type="functionCall" functionType="void">
     !#  <functionArgs>thisNode,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time</functionArgs>
     include 'galacticus.output.merger_tree.names.inc'
     !# </include>
-
+    call thisNode%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     return
   end subroutine Establish_Property_Names
 
