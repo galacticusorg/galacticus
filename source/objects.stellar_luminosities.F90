@@ -954,7 +954,10 @@ contains
        ! Test if we can prune luminosities.
        select case (luminosityOutputOption)
        case (luminosityOutputOptionFuture,luminosityOutputOptionPresent)
-          ! Luminosities from this and earlier outputs no longer needed, so prune them.
+          ! Luminosities from this and earlier outputs no longer needed, so prune them. This is somewhat inefficient if there are
+          ! luminosities computed which do not correspond to any output. They will never be pruned and so will continue to use
+          ! memory and be evolved along with the galaxy. In principle such luminosities could be needed internally so we do not
+          ! remove them.
           call Move_Alloc(self%luminosityValue,luminosityTmp)
           luminosityRemainingCount=size(luminosityTmp)
           do i=1,luminosityCount
