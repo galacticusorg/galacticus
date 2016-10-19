@@ -581,6 +581,7 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
+    <outputRedshifts value="0.0 0.1"/>
     <outputHalfLightData value="true"/>
     <luminosityFilter value="RGO_I SDSS_g SDSS_r SDSS_i"/> 
     <luminosityType value="rest observed observed observed"/> 
