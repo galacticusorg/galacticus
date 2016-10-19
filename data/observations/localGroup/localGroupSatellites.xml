@@ -282,6 +282,41 @@
       <rightAscensionSeconds>
         <value>35</value>
       </rightAscensionSeconds>
+
+      <velocityRadialHeliocentric>
+        <value>-102.3</value>
+        <error>0.4</error>
+	<errorSystematic>2.0</errorSystematic>
+        <reference>Simon et al. (arXiv:1610.05301)</reference>
+        <referenceURL>https://arxiv.org/abs/1610.05301</referenceURL>
+      </velocityRadialHeliocentric>
+      <velocityDispersionStellar>
+	<value>0.1</value>
+	<errorHigh>0.7</errorHigh>
+	<errorLow>0.1</errorLow>
+        <limit confidenceLevel="90.0%" type="upper">1.2</limit>
+        <limit confidenceLevel="95.5%" type="upper">1.5</limit>
+        <limit confidenceLevel="99.7%" type="upper">2.3</limit>
+        <reference>Simon et al. (arXiv:1610.05301)</reference>
+        <referenceURL>https://arxiv.org/abs/1610.05301</referenceURL>
+      </velocityDispersionStellar>
+      <metallicityMeasurementTechnique>
+	<value>1</value>
+        <reference>Simon et al. (arXiv:1610.05301)</reference>
+        <referenceURL>https://arxiv.org/abs/1610.05301</referenceURL>
+      </metallicityMeasurementTechnique>
+      <metallicityStellar>
+	<value>-2.42</value>
+	<errorHigh>0.07</errorHigh>
+	<errorLow>0.08</errorLow>
+        <reference>Simon et al. (arXiv:1610.05301)</reference>
+        <referenceURL>https://arxiv.org/abs/1610.05301</referenceURL>
+      </metallicityStellar>
+      <metallicityDispersionStellar>
+        <limit confidenceLevel="95.5%" type="upper">0.19</limit>
+        <reference>Simon et al. (arXiv:1610.05301)</reference>
+        <referenceURL>https://arxiv.org/abs/1610.05301</referenceURL>
+      </metallicityDispersionStellar>
     </galaxy>
     <galaxy>
       <name>DES J0531−2801</name>
@@ -1023,13 +1058,19 @@
         <value>1.7</value>
       </radiusHalfLightAngular>
       <rightAscensionHours>
-        <value>12</value>
+        <value>23</value>
+        <reference>Simon et al. (arXiv:1610.05301)</reference>
+        <referenceURL>https://arxiv.org/abs/1610.05301</referenceURL>
       </rightAscensionHours>
       <rightAscensionMinutes>
-        <value>21</value>
+        <value>56</value>
+        <reference>Simon et al. (arXiv:1610.05301)</reference>
+        <referenceURL>https://arxiv.org/abs/1610.05301</referenceURL>
       </rightAscensionMinutes>
       <rightAscensionSeconds>
-        <value>42.1</value>
+        <value>36</value>
+        <reference>Simon et al. (arXiv:1610.05301)</reference>
+        <referenceURL>https://arxiv.org/abs/1610.05301</referenceURL>
       </rightAscensionSeconds>
       <velocityDispersionStellar>
         <limit confidenceLevel="90%" type="upper">3.6</limit>
