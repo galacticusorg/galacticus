@@ -79,15 +79,16 @@ contains
     use ISO_Varying_String
     use String_Handling
     implicit none
-    type            (treeNode      ), intent(inout), pointer  :: thisNode
-    integer                         , intent(in   ), optional :: componentType , massType, weightBy, weightIndex
-    double precision                , intent(in   ), optional :: fractionalMass, mass
-    logical                         , intent(in   ), optional :: haloLoaded
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    type            (rootFinder    ), save                    :: finder
+    type            (treeNode                ), intent(inout), pointer  :: thisNode
+    integer                                   , intent(in   ), optional :: componentType       , massType   , &
+         &                                                                 weightBy            , weightIndex
+    double precision                          , intent(in   ), optional :: fractionalMass      , mass
+    logical                                   , intent(in   ), optional :: haloLoaded
+    class           (darkMatterHaloScaleClass)               , pointer  :: darkMatterHaloScale_
+    type            (rootFinder              ), save                    :: finder
     !$omp threadprivate(finder)
-    type            (varying_string)                          :: message
-    character       (len=11        )                          :: massLabel
+    type            (varying_string          )                          :: message
+    character       (len=11                  )                          :: massLabel
 
     ! Set default options.
     call Galactic_Structure_Enclosed_Mass_Defaults(componentType,massType,weightBy,weightIndex,haloLoaded)
