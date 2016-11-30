@@ -169,7 +169,7 @@ sub Build_Component_Classes {
 				{
 				    type        => "procedure"                      ,
 				    name        => $property->{'name'}."Scale"      ,
-				    function    => &createNullFunction($build,{selfType => $className, attribute => "set", property => $property, intent => "inout"}),
+				    function    => &createNullFunction($build,{selfType => $className, attribute => "scale", property => $property, intent => "inout"}),
 				    returnType  => "\\void"                         ,
 				    arguments   => &Galacticus::Build::Components::DataTypes::dataObjectDocName($property)."\\ value",
 				    description => "Set the scale of the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$implementationIdentifier."} component."
