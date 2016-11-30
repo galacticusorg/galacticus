@@ -195,8 +195,8 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 	    if ( $conditionallyCompile == 1 ) {
 		# Locate any lines which use the "use" statement and extract the name of the file they use. Any externally
 		# provided modules are excluded.
-		if ( $line =~ m/^\s*use\s+([a-zA-Z0-9_]+)/i ) {
-		    my $usedModule = $1;
+		if ( $line =~ m/^\s*use\s*(::|\s)\s*([a-zA-Z0-9_]+)/i ) {
+		    my $usedModule = $2;
 		    # Add any library dependency for this module.
 		    $libraryDependencies{$moduleLibararies{lc($usedModule)}} = 1
 			if ( exists($moduleLibararies{lc($usedModule)}) );
