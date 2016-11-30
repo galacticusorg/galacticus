@@ -68,14 +68,15 @@ subroutine deallocateArray_{$functionLabel}(thisArray,memoryType,file,line)
   integer                  , intent(in   ), optional                                     :: line
   type     (varying_string)                                                              :: message
   integer                                                                                :: memoryTypeActual
+  integer  (kind_int8     )                                                              :: accumulation
   if (present(memoryType)) then
      memoryTypeActual=memoryType
   else
      memoryTypeActual=memoryTypeMisc
   end if
-  !$omp critical(Memory_Management_Usage)
-  usedMemory%memoryType(memoryTypeActual)%usage=usedMemory%memoryType(memoryTypeActual)%usage-sizeof(thisArray)-allocationOverhead
-  !$omp end critical(Memory_Management_Usage)
+  accumulation=sizeof(thisArray)+allocationOverhead
+  !$omp atomic
+  usedMemory%memoryType(memoryTypeActual)%usage=usedMemory%memoryType(memoryTypeActual)%usage-accumulation
   deallocate(thisArray)
   if (Galacticus_Verbosity_Level() >= verbosityDebug) then
      if (present(file).and.present(line)) then
@@ -107,6 +108,7 @@ subroutine allocateArray_{$functionLabel.$suffix}(thisArray,dimensions,lowerBoun
   integer                                , intent(in   ), optional                                     :: line
   type                    (varying_string)                                                             :: message
   integer                                                                                              :: memoryTypeActual
+  integer                 (kind_int8     )                                                             :: accumulation
   if (allocated(thisArray)) call deallocateArray_{$functionLabel}(thisArray,memoryType)
   if (present(lowerBounds)) then
      allocate(thisArray({join(",",map {"lowerBounds(".$_."):lowerBounds(".$_.")+dimensions(".$_.")-1"} 1..$rank)}))
@@ -118,9 +120,9 @@ subroutine allocateArray_{$functionLabel.$suffix}(thisArray,dimensions,lowerBoun
   else
      memoryTypeActual=memoryTypeMisc
   end if
-  !$omp critical(Memory_Management_Usage)
-  usedMemory%memoryType(memoryTypeActual)%usage=usedMemory%memoryType(memoryTypeActual)%usage+sizeof(thisArray)+allocationOverhead
-  !$omp end critical(Memory_Management_Usage)
+  accumulation=sizeof(thisArray)+allocationOverhead
+  !$omp atomic
+  usedMemory%memoryType(memoryTypeActual)%usage=usedMemory%memoryType(memoryTypeActual)%usage+accumulation
   if (Galacticus_Verbosity_Level() >= verbosityDebug) then
      if (present(file).and.present(line)) then
       message='memory allocate: '
