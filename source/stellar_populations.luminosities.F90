@@ -20,10 +20,11 @@
 
 module Stellar_Population_Luminosities
   !% Implements calculations of stellar population luminosities in the AB magnitude system.
-  use FGSL
   use, intrinsic :: ISO_C_Binding
-  use Abundances_Structure
-  use ISO_Varying_String
+  use            :: FGSL
+  use            :: Abundances_Structure
+  use            :: ISO_Varying_String
+  use            :: Locks
   implicit none
   private
   public :: Stellar_Population_Luminosity, Stellar_Population_Luminosity_Track
@@ -64,6 +65,9 @@ module Stellar_Population_Luminosities
   ! Option controlling behavior when maximum age of stellar populations is exceeded.
   logical                                                      :: stellarPopulationLuminosityMaximumAgeExceededIsFatal
 
+  ! Read/write lock used to control access to luminosity tables.
+  type            (ompReadWriteLock)                           :: luminosityTableLock
+ 
 contains
 
   subroutine Stellar_Population_Luminosity_Tabulate(luminosityIndex,filterIndex,postprocessingChainIndex,imfIndex,redshift)
@@ -110,309 +114,331 @@ contains
     type            (hdf5Object                   )                                                               :: luminositiesFile
     
     ! Determine if we have created space for this IMF yet.
-    !$omp critical (Luminosity_Tables_Initialize)
     if (.not.moduleInitialized) then
-       ! Read the parameter controlling integration tolerance.
-       !@ <inputParameter>
-       !@   <name>stellarPopulationLuminosityIntegrationToleranceRelative</name>
-       !@   <defaultValue>$2 \times 10^{-3}$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The relative tolerance used when integrating the flux of stellar populations through filters.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('stellarPopulationLuminosityIntegrationToleranceRelative',stellarPopulationLuminosityIntegrationToleranceRelative,defaultValue=2.0d-3)
-       !@ <inputParameter>
-       !@   <name>stellarPopulationLuminosityIntegrationToleranceDegrade</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    If {\normalfont \ttfamily true}, automatically degrade the relative tolerance used when integrating the flux of stellar populations through filters to ensure convergence.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('stellarPopulationLuminosityIntegrationToleranceDegrade',stellarPopulationLuminosityIntegrationToleranceDegrade,defaultValue=.false.)
-       ! Read parameters controlling storing luminosities to file.
-       !@ <inputParameter>
-       !@   <name>stellarPopulationLuminosityStoreToFile</name>
-       !@   <defaultValue>true</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Specifies whether or not stellar populations luminosities (integrated under a filter) should be stored to file for rapid reuse.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('stellarPopulationLuminosityStoreToFile',stellarPopulationLuminosityStoreToFile,defaultValue=.true.)
-       !@ <inputParameter>
-       !@   <name>stellarPopulationLuminosityStoreDirectory</name>
-       !@   <defaultValue>{\normalfont \ttfamily \$GALACTICUS\_ROOT\_V094/data/stellarPopulations}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Specifies the directory to which stellar populations luminosities (integrated under a filter) should be stored to file for rapid reuse.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('stellarPopulationLuminosityStoreDirectory',stellarPopulationLuminosityStoreDirectory,defaultValue=char(Galacticus_Input_Path()//"data/stellarPopulations"))
-       ! Read the parameter controlling behavior if maximum age of stellar populations are exceeded.
-       !@ <inputParameter>
-       !@   <name>stellarPopulationLuminosityMaximumAgeExceededIsFatal</name>
-       !@   <defaultValue>true</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Specifies whether or not exceeding the maximum available age of the stellar population is fatal.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('stellarPopulationLuminosityMaximumAgeExceededIsFatal',stellarPopulationLuminosityMaximumAgeExceededIsFatal,defaultValue=.true.)
-       ! Flag that this module is now initialized.
-       moduleInitialized=.true.
-    end if
-
-    if (allocated(luminosityTables)) then
-       if (size(luminosityTables) < imfIndex) then
-          call Move_Alloc(luminosityTables,luminosityTablesTemporary)
-          allocate(luminosityTables(imfIndex))
-          luminosityTables(1:size(luminosityTablesTemporary))=luminosityTablesTemporary
-          luminosityTables(size(luminosityTablesTemporary)+1:imfIndex)%isTabulatedMaximum=0
-          deallocate(luminosityTablesTemporary)
-          call Memory_Usage_Record(sizeof(luminosityTables(1)),blockCount=0)
+       !$omp critical (Luminosity_Tables_Initialize)
+       if (.not.moduleInitialized) then
+          ! Read the parameter controlling integration tolerance.
+          !@ <inputParameter>
+          !@   <name>stellarPopulationLuminosityIntegrationToleranceRelative</name>
+          !@   <defaultValue>$2 \times 10^{-3}$</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The relative tolerance used when integrating the flux of stellar populations through filters.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('stellarPopulationLuminosityIntegrationToleranceRelative',stellarPopulationLuminosityIntegrationToleranceRelative,defaultValue=2.0d-3)
+          !@ <inputParameter>
+          !@   <name>stellarPopulationLuminosityIntegrationToleranceDegrade</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    If {\normalfont \ttfamily true}, automatically degrade the relative tolerance used when integrating the flux of stellar populations through filters to ensure convergence.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('stellarPopulationLuminosityIntegrationToleranceDegrade',stellarPopulationLuminosityIntegrationToleranceDegrade,defaultValue=.false.)
+          ! Read parameters controlling storing luminosities to file.
+          !@ <inputParameter>
+          !@   <name>stellarPopulationLuminosityStoreToFile</name>
+          !@   <defaultValue>true</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    Specifies whether or not stellar populations luminosities (integrated under a filter) should be stored to file for rapid reuse.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('stellarPopulationLuminosityStoreToFile',stellarPopulationLuminosityStoreToFile,defaultValue=.true.)
+          !@ <inputParameter>
+          !@   <name>stellarPopulationLuminosityStoreDirectory</name>
+          !@   <defaultValue>{\normalfont \ttfamily \$GALACTICUS\_ROOT\_V094/data/stellarPopulations}</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    Specifies the directory to which stellar populations luminosities (integrated under a filter) should be stored to file for rapid reuse.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('stellarPopulationLuminosityStoreDirectory',stellarPopulationLuminosityStoreDirectory,defaultValue=char(Galacticus_Input_Path()//"data/stellarPopulations"))
+          ! Read the parameter controlling behavior if maximum age of stellar populations are exceeded.
+          !@ <inputParameter>
+          !@   <name>stellarPopulationLuminosityMaximumAgeExceededIsFatal</name>
+          !@   <defaultValue>true</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    Specifies whether or not exceeding the maximum available age of the stellar population is fatal.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('stellarPopulationLuminosityMaximumAgeExceededIsFatal',stellarPopulationLuminosityMaximumAgeExceededIsFatal,defaultValue=.true.)
+          ! Initialize the luminosity table lock.
+          luminosityTableLock=ompReadWriteLock()
+          ! Flag that this module is now initialized.
+          moduleInitialized=.true.
        end if
-    else
-       allocate(luminosityTables(imfIndex))
-       luminosityTables%isTabulatedMaximum=0
-       call Memory_Usage_Record(sizeof(luminosityTables))
+       !$omp end critical (Luminosity_Tables_Initialize)
     end if
 
+    ! Obtain a read lock on the luminosity tables.
+    call luminosityTableLock%setRead()
+    
+    ! Allocate table storage. First test if the tables must be resized (or allocated).
+    if (.not.allocated(luminosityTables).or.size(luminosityTables) < imfIndex) then
+       ! A resize or allocation is required. Obtain a write lock on the tables and then re-test if resizing is required (as
+       ! another thread could potentially have alreaedy done this while we waited for the write lock).
+       call luminosityTableLock%setWrite(haveReadLock=.true.)
+       if (allocated(luminosityTables)) then
+          if (size(luminosityTables) < imfIndex) then
+             call Move_Alloc(luminosityTables,luminosityTablesTemporary)
+             allocate(luminosityTables(imfIndex))
+             luminosityTables(1:size(luminosityTablesTemporary))=luminosityTablesTemporary
+             luminosityTables(size(luminosityTablesTemporary)+1:imfIndex)%isTabulatedMaximum=0
+             deallocate(luminosityTablesTemporary)
+             call Memory_Usage_Record(sizeof(luminosityTables(1)),blockCount=0)
+          end if
+       else
+          allocate(luminosityTables(imfIndex))
+          luminosityTables%isTabulatedMaximum=0
+          call Memory_Usage_Record(sizeof(luminosityTables))
+       end if
+       call luminosityTableLock%unsetWrite(haveReadLock=.true.)
+    end if
     ! Determine if we have tabulated luminosities for this luminosityIndex in this IMF yet.
     luminosityIndexMaximum=maxval(luminosityIndex)    
     if (.not.allocated(luminosityTables(imfIndex)%isTabulated) .or. luminosityTables(imfIndex)%isTabulatedMaximum < luminosityIndexMaximum) then
-       call File_Lock_Initialize(lockFileDescriptor)
-       stellarLuminositiesUniqueLabelConstructed = .false.
-       stellarPopulationSpectra_                 => null()
-       luminosityIndexMaximum                    =  maxval(luminosityIndex)
-       do iLuminosity=1,size(luminosityIndex)
-          if (allocated(luminosityTables(imfIndex)%isTabulated)) then
-             if (size(luminosityTables(imfIndex)%isTabulated) >= luminosityIndex(iLuminosity)) then
-                computeTable=.not.luminosityTables(imfIndex)%isTabulated(luminosityIndex(iLuminosity))
+       ! Tabulation is required. Obtain a write lock on the luminosity tables and then retest if tabulation is required (as
+       ! another thread may have tabulated while we waited for the write lock).
+       call luminosityTableLock%setWrite(haveReadLock=.true.)
+       luminosityIndexMaximum=maxval(luminosityIndex)    
+       if (.not.allocated(luminosityTables(imfIndex)%isTabulated) .or. luminosityTables(imfIndex)%isTabulatedMaximum < luminosityIndexMaximum) then
+          call File_Lock_Initialize(lockFileDescriptor)
+          stellarLuminositiesUniqueLabelConstructed = .false.
+          stellarPopulationSpectra_                 => null()
+          luminosityIndexMaximum                    =  maxval(luminosityIndex)
+          do iLuminosity=1,size(luminosityIndex)
+             if (allocated(luminosityTables(imfIndex)%isTabulated)) then
+                if (size(luminosityTables(imfIndex)%isTabulated) >= luminosityIndex(iLuminosity)) then
+                   computeTable=.not.luminosityTables(imfIndex)%isTabulated(luminosityIndex(iLuminosity))
+                else
+                   call Move_Alloc (luminosityTables(imfIndex)%isTabulated,isTabulatedTemporary)
+                   call Move_Alloc (luminosityTables(imfIndex)%luminosity ,luminosityTemporary )
+                   call allocateArray(luminosityTables(imfIndex)%isTabulated,[luminosityIndexMaximum])
+                   call allocateArray(luminosityTables(imfIndex)%luminosity ,[luminosityIndexMaximum&
+                        &,luminosityTables(imfIndex)%agesCount,luminosityTables(imfIndex)%metallicitiesCount])
+                   luminosityTables(imfIndex)%isTabulated(1:size(isTabulatedTemporary)    )=isTabulatedTemporary
+                   luminosityTables(imfIndex)%isTabulated(  size(isTabulatedTemporary)+1:luminosityIndexMaximum)=.false.
+                   luminosityTables(imfIndex)%luminosity (1:size(isTabulatedTemporary),:,:)=luminosityTemporary
+                   call deallocateArray(isTabulatedTemporary)
+                   call deallocateArray(luminosityTemporary)
+                   computeTable=.true.
+                end if
              else
-                call Move_Alloc (luminosityTables(imfIndex)%isTabulated,isTabulatedTemporary)
-                call Move_Alloc (luminosityTables(imfIndex)%luminosity ,luminosityTemporary )
                 call allocateArray(luminosityTables(imfIndex)%isTabulated,[luminosityIndexMaximum])
-                call allocateArray(luminosityTables(imfIndex)%luminosity ,[luminosityIndexMaximum&
-                     &,luminosityTables(imfIndex)%agesCount,luminosityTables(imfIndex)%metallicitiesCount])
-                luminosityTables(imfIndex)%isTabulated(1:size(isTabulatedTemporary)    )=isTabulatedTemporary
-                luminosityTables(imfIndex)%isTabulated(  size(isTabulatedTemporary)+1:luminosityIndexMaximum)=.false.
-                luminosityTables(imfIndex)%luminosity (1:size(isTabulatedTemporary),:,:)=luminosityTemporary
-                call deallocateArray(isTabulatedTemporary)
-                call deallocateArray(luminosityTemporary)
+                luminosityTables(imfIndex)%isTabulated=.false.
+                ! Since we have not yet tabulated any luminosities yet for this IMF, we need to get a list of suitable metallicities and
+                ! ages at which to tabulate.
+                if (.not.associated(stellarPopulationSpectra_)) stellarPopulationSpectra_ => stellarPopulationSpectra()
+                call stellarPopulationSpectra_%tabulation(imfIndex,luminosityTables(imfIndex)%agesCount &
+                     &,luminosityTables(imfIndex)%metallicitiesCount,luminosityTables(imfIndex)%age&
+                     &,luminosityTables(imfIndex)%metallicity)
+                where (luminosityTables(imfIndex)%metallicity > 0.0d0)
+                   luminosityTables(imfIndex)%metallicity=log10(luminosityTables(imfIndex)%metallicity/metallicitySolar)
+                elsewhere
+                   luminosityTables(imfIndex)%metallicity=logMetallicityZero
+                end where
+                call allocateArray(luminosityTables(imfIndex)%luminosity,[luminosityIndexMaximum&
+                     &,luminosityTables(imfIndex)%agesCount ,luminosityTables(imfIndex)%metallicitiesCount])
                 computeTable=.true.
              end if
-          else
-             call allocateArray(luminosityTables(imfIndex)%isTabulated,[luminosityIndexMaximum])
-             luminosityTables(imfIndex)%isTabulated=.false.
-             ! Since we have not yet tabulated any luminosities yet for this IMF, we need to get a list of suitable metallicities and
-             ! ages at which to tabulate.
-             if (.not.associated(stellarPopulationSpectra_)) stellarPopulationSpectra_ => stellarPopulationSpectra()
-             call stellarPopulationSpectra_%tabulation(imfIndex,luminosityTables(imfIndex)%agesCount &
-                  &,luminosityTables(imfIndex)%metallicitiesCount,luminosityTables(imfIndex)%age&
-                  &,luminosityTables(imfIndex)%metallicity)
-             where (luminosityTables(imfIndex)%metallicity > 0.0d0)
-                luminosityTables(imfIndex)%metallicity=log10(luminosityTables(imfIndex)%metallicity/metallicitySolar)
-             elsewhere
-                luminosityTables(imfIndex)%metallicity=logMetallicityZero
-             end where
-             call allocateArray(luminosityTables(imfIndex)%luminosity,[luminosityIndexMaximum&
-                  &,luminosityTables(imfIndex)%agesCount ,luminosityTables(imfIndex)%metallicitiesCount])
-             computeTable=.true.
-          end if
 
-          ! If we haven't, do so now.
-          if (computeTable) then
+             ! If we haven't, do so now.
+             if (computeTable) then
 
-             ! Determine if we can read the required luminosity from file.
-             calculateLuminosity=.true.
-             if (stellarPopulationLuminosityStoreToFile) then
-                ! Construct name of the file to which this would be stored.
-                !# <uniqueLabel>
-                !#  <function>Stellar_Population_Luminosities_Label</function>
-                !#  <ignoreRegex>^stellarPopulationSpectraPostprocess.*</ignoreRegex>
-                !#  <ignoreRegex>^starFormationImf.*</ignoreRegex>
-                !#  <ignoreRegex>^imf.*</ignoreRegex>
-                !#  <ignoreRegex>^stellarAstrophysics.*</ignoreRegex>
-                !#  <ignoreRegex>^stellarFeedback.*</ignoreRegex>
-                !#  <ignoreRegex>^stellarProperties.*</ignoreRegex>
-                !#  <ignoreRegex>^stellarWinds.*</ignoreRegex>
-                !#  <ignoreRegex>^stellarTracks.*</ignoreRegex>
-                !#  <ignoreRegex>^supernovae.*Method$</ignoreRegex>
-                !#  <ignore>supernovaEnergy</ignore>
-                !#  <ignore>initialMassForSupernovaeTypeII</ignore>
-                !#  <ignore>elementsToTrack</ignore>
-                !#  <ignore>stellarPopulationLuminosityStoreDirectory</ignore>
-                !# </uniqueLabel>
-                if (.not.stellarLuminositiesUniqueLabelConstructed) then
-                   stellarLuminositiesUniqueLabel=Stellar_Population_Luminosities_Label(includeSourceDigest=.true.,asHash=.true.)
-                   stellarLuminositiesUniqueLabelConstructed=.true.
-                end if
-                luminositiesFileName=stellarPopulationLuminosityStoreDirectory                                                   // &
-                     &               "/stellarLuminosities::IMF:"                                                                // &
-                     &               IMF_Name                                             (imfIndex                             )// &
-                     &               "::filter:"                                                                                 // &
-                     &               Filter_Name                                          (filterIndex             (iLuminosity))// &
-                     &               "::postprocessing:"                                                                         // &
-                     &               Stellar_Population_Spectrum_Postprocess_Chain_Methods(postprocessingChainIndex(iLuminosity))// &
-                     &               "::dependencies:"                                                                           // &
-                     &               stellarLuminositiesUniqueLabel                                                              // &
-                     &               ".hdf5"
-                if (File_Exists(luminositiesFileName)) then
-                   ! Construct the dataset name.
-                   write (redshiftLabel,'(f7.4)') redshift(iLuminosity)
-                   datasetName="redshift"//adjustl(trim(redshiftLabel))
-                   ! Open the file and check for the required dataset.
-                   !$omp critical (HDF5_Access)
-                   call File_Lock(char(luminositiesFileName),lockFileDescriptor,lockIsShared=.true.)
-                   call luminositiesFile%openFile(char(luminositiesFileName),readOnly=.true.)
-                   if (luminositiesFile%hasDataset(trim(datasetName))) then
-                      ! Read the dataset.
-                      call luminositiesFile%readDatasetStatic(trim(datasetName),luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),:,:))
-                      ! We do not need to calculate this luminosity.
-                      calculateLuminosity=.false.
+                ! Determine if we can read the required luminosity from file.
+                calculateLuminosity=.true.
+                if (stellarPopulationLuminosityStoreToFile) then
+                   ! Construct name of the file to which this would be stored.
+                   !# <uniqueLabel>
+                   !#  <function>Stellar_Population_Luminosities_Label</function>
+                   !#  <ignoreRegex>^stellarPopulationSpectraPostprocess.*</ignoreRegex>
+                   !#  <ignoreRegex>^starFormationImf.*</ignoreRegex>
+                   !#  <ignoreRegex>^imf.*</ignoreRegex>
+                   !#  <ignoreRegex>^stellarAstrophysics.*</ignoreRegex>
+                   !#  <ignoreRegex>^stellarFeedback.*</ignoreRegex>
+                   !#  <ignoreRegex>^stellarProperties.*</ignoreRegex>
+                   !#  <ignoreRegex>^stellarWinds.*</ignoreRegex>
+                   !#  <ignoreRegex>^stellarTracks.*</ignoreRegex>
+                   !#  <ignoreRegex>^supernovae.*Method$</ignoreRegex>
+                   !#  <ignore>supernovaEnergy</ignore>
+                   !#  <ignore>initialMassForSupernovaeTypeII</ignore>
+                   !#  <ignore>elementsToTrack</ignore>
+                   !#  <ignore>stellarPopulationLuminosityStoreDirectory</ignore>
+                   !# </uniqueLabel>
+                   if (.not.stellarLuminositiesUniqueLabelConstructed) then
+                      stellarLuminositiesUniqueLabel=Stellar_Population_Luminosities_Label(includeSourceDigest=.true.,asHash=.true.)
+                      stellarLuminositiesUniqueLabelConstructed=.true.
                    end if
-                   call luminositiesFile%close()
-                   call File_Unlock(lockFileDescriptor)
-                   !$omp end critical (HDF5_Access)
+                   luminositiesFileName=stellarPopulationLuminosityStoreDirectory                                                   // &
+                        &               "/stellarLuminosities::IMF:"                                                                // &
+                        &               IMF_Name                                             (imfIndex                             )// &
+                        &               "::filter:"                                                                                 // &
+                        &               Filter_Name                                          (filterIndex             (iLuminosity))// &
+                        &               "::postprocessing:"                                                                         // &
+                        &               Stellar_Population_Spectrum_Postprocess_Chain_Methods(postprocessingChainIndex(iLuminosity))// &
+                        &               "::dependencies:"                                                                           // &
+                        &               stellarLuminositiesUniqueLabel                                                              // &
+                        &               ".hdf5"
+                   if (File_Exists(luminositiesFileName)) then
+                      ! Construct the dataset name.
+                      write (redshiftLabel,'(f7.4)') redshift(iLuminosity)
+                      datasetName="redshift"//adjustl(trim(redshiftLabel))
+                      ! Open the file and check for the required dataset.
+                      !$omp critical (HDF5_Access)
+                      call File_Lock(char(luminositiesFileName),lockFileDescriptor,lockIsShared=.true.)
+                      call luminositiesFile%openFile(char(luminositiesFileName),readOnly=.true.)
+                      if (luminositiesFile%hasDataset(trim(datasetName))) then
+                         ! Read the dataset.
+                         call luminositiesFile%readDatasetStatic(trim(datasetName),luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),:,:))
+                         ! We do not need to calculate this luminosity.
+                         calculateLuminosity=.false.
+                      end if
+                      call luminositiesFile%close()
+                      call File_Unlock(lockFileDescriptor)
+                      !$omp end critical (HDF5_Access)
+                   end if
                 end if
-             end if
 
-             ! Compute the luminosity if necessary.
-             if (calculateLuminosity) then
-                ! Display a message and counter.
-                message='Tabulating stellar luminosities for '//char(IMF_Name(imfIndex))//' IMF, luminosity '
-                write (redshiftLabel,'(f6.3)') redshift(iLuminosity)
-                message=message                                                                                     // &
-                     &  Filter_Name                                          (filterIndex             (iLuminosity))// &
-                     &  ":"                                                                                         // &
-                     &  Stellar_Population_Spectrum_Postprocess_Chain_Methods(postprocessingChainIndex(iLuminosity))// &
-                     &  ":z"                                                                                        // &
-                     &  trim(adjustl(redshiftLabel))                                                                // &
-                     &  " "                                                                                         // &
-                     &                                                                                 iLuminosity  // &
-                     &  " of "                                                                                      // &
-                     &  size(luminosityIndex)
-                call Galacticus_Display_Indent (message,verbosityWorking)
-                call Galacticus_Display_Counter(0,.true.,verbosityWorking)             
-                ! Get stellar population spectra object if necessary.
-                if (.not.associated(stellarPopulationSpectra_)) stellarPopulationSpectra_ => stellarPopulationSpectra()
-                ! Get wavelength extent of the filter.
-                wavelengthRange=Filter_Extent(filterIndex(iLuminosity))
-                ! Integrate over the wavelength range.
-                filterIndexTabulate             =filterIndex             (iLuminosity)
-                postprocessingChainIndexTabulate=postprocessingChainIndex(iLuminosity)
-                redshiftTabulate                =redshift                (iLuminosity)
-                imfIndexTabulate                =imfIndex
-                loopCountMaximum                =luminosityTables(imfIndex)%metallicitiesCount*luminosityTables(imfIndex)%agesCount
-                loopCount                       =0
-                !$omp parallel do private(iAge,iMetallicity,integrandFunction,integrationWorkspace,toleranceRelative,errorStatus) copyin(filterIndexTabulate,postprocessingChainIndexTabulate,redshiftTabulate,imfIndexTabulate)
-                do iAge=1,luminosityTables(imfIndex)%agesCount
-                   ageTabulate=luminosityTables(imfIndex)%age(iAge)
-                   do iMetallicity=1,luminosityTables(imfIndex)%metallicitiesCount
-                      ! Update the counter.
-                      !$omp atomic
-                      loopCount=loopCount+1
-                      call Galacticus_Display_Counter(int(100.0d0*dble(loopCount)/dble(loopCountMaximum)),.false.,verbosityWorking)
-                      call abundancesTabulate%metallicitySet(luminosityTables(imfIndex)%metallicity(iMetallicity) &
-                           &,metallicityType=metallicityTypeLogarithmicByMassSolar)
-                      toleranceRelative=stellarPopulationLuminosityIntegrationToleranceRelative
-                      errorStatus      =errorStatusFail
-                      do while (errorStatus /= errorStatusSuccess)
-                         luminosityTables(imfIndex)%luminosity(                              &
-                              &                                luminosityIndex(iLuminosity), &
-                              &                                iAge                        , &
-                              &                                iMetallicity                  &
-                              &                               )                              &
-                              & =Integrate(                                                  &
-                              &            wavelengthRange(1)                              , &
-                              &            wavelengthRange(2)                              , &
-                              &            Filter_Luminosity_Integrand                     , &
-                              &            integrandFunction                               , &
-                              &            integrationWorkspace                            , &
-                              &            toleranceAbsolute          =0.0d0               , &
-                              &            toleranceRelative          =toleranceRelative   , &
-                              &            integrationRule            =FGSL_Integ_Gauss15  , &
-                              &            maxIntervals               =10000               , &
-                              &            errorStatus                =errorStatus           &
-                              &           )
-                         call Integrate_Done(integrandFunction,integrationWorkspace)
-                         if (errorStatus /= errorStatusSuccess) then
-                            if (stellarPopulationLuminosityIntegrationToleranceDegrade.and.toleranceRelative < 1.0d0) then
-                               toleranceRelative=2.0d0*toleranceRelative
-                               write (label,'(e9.3)') 2.0d0*stellarPopulationLuminosityIntegrationToleranceRelative
-                               message=         "WARNING: increasing relative tolerance for stellar population luminosities to"          //char(10)
-                               message=message//trim(adjustl(label))//" and retrying integral"//{introspection:location}
-                               call Galacticus_Warn(message)
-                            else if (stellarPopulationLuminosityIntegrationToleranceDegrade) then
-                               message="integration of stellar populations failed"
-                               call Galacticus_Error_Report('Stellar_Population_Luminosity',message)
-                            else
-                               write (label,'(e9.3)') 2.0d0*stellarPopulationLuminosityIntegrationToleranceRelative
-                               message=         "integration of stellar populations failed"                                              //char(10)
-                               message=message//"HELP: consider increasing the [stellarPopulationLuminosityIntegrationToleranceRelative]"//char(10)
-                               message=message//"      parameter to "//trim(adjustl(label))//" to reduce the integration tolerance"      //char(10)
-                               message=message//"      required if your can accept this lower accuracy."
-                               call Galacticus_Error_Report('Stellar_Population_Luminosity',message)
+                ! Compute the luminosity if necessary.
+                if (calculateLuminosity) then
+                   ! Display a message and counter.
+                   message='Tabulating stellar luminosities for '//char(IMF_Name(imfIndex))//' IMF, luminosity '
+                   write (redshiftLabel,'(f6.3)') redshift(iLuminosity)
+                   message=message                                                                                     // &
+                        &  Filter_Name                                          (filterIndex             (iLuminosity))// &
+                        &  ":"                                                                                         // &
+                        &  Stellar_Population_Spectrum_Postprocess_Chain_Methods(postprocessingChainIndex(iLuminosity))// &
+                        &  ":z"                                                                                        // &
+                        &  trim(adjustl(redshiftLabel))                                                                // &
+                        &  " "                                                                                         // &
+                        &                                                                                 iLuminosity  // &
+                        &  " of "                                                                                      // &
+                        &  size(luminosityIndex)
+                   call Galacticus_Display_Indent (message,verbosityWorking)
+                   call Galacticus_Display_Counter(0,.true.,verbosityWorking)             
+                   ! Get stellar population spectra object if necessary.
+                   if (.not.associated(stellarPopulationSpectra_)) stellarPopulationSpectra_ => stellarPopulationSpectra()
+                   ! Get wavelength extent of the filter.
+                   wavelengthRange=Filter_Extent(filterIndex(iLuminosity))
+                   ! Integrate over the wavelength range.
+                   filterIndexTabulate             =filterIndex             (iLuminosity)
+                   postprocessingChainIndexTabulate=postprocessingChainIndex(iLuminosity)
+                   redshiftTabulate                =redshift                (iLuminosity)
+                   imfIndexTabulate                =imfIndex
+                   loopCountMaximum                =luminosityTables(imfIndex)%metallicitiesCount*luminosityTables(imfIndex)%agesCount
+                   loopCount                       =0
+                   !$omp parallel do private(iAge,iMetallicity,integrandFunction,integrationWorkspace,toleranceRelative,errorStatus) copyin(filterIndexTabulate,postprocessingChainIndexTabulate,redshiftTabulate,imfIndexTabulate)
+                   do iAge=1,luminosityTables(imfIndex)%agesCount
+                      ageTabulate=luminosityTables(imfIndex)%age(iAge)
+                      do iMetallicity=1,luminosityTables(imfIndex)%metallicitiesCount
+                         ! Update the counter.
+                         !$omp atomic
+                         loopCount=loopCount+1
+                         call Galacticus_Display_Counter(int(100.0d0*dble(loopCount)/dble(loopCountMaximum)),.false.,verbosityWorking)
+                         call abundancesTabulate%metallicitySet(luminosityTables(imfIndex)%metallicity(iMetallicity) &
+                              &,metallicityType=metallicityTypeLogarithmicByMassSolar)
+                         toleranceRelative=stellarPopulationLuminosityIntegrationToleranceRelative
+                         errorStatus      =errorStatusFail
+                         do while (errorStatus /= errorStatusSuccess)
+                            luminosityTables(imfIndex)%luminosity(                              &
+                                 &                                luminosityIndex(iLuminosity), &
+                                 &                                iAge                        , &
+                                 &                                iMetallicity                  &
+                                 &                               )                              &
+                                 & =Integrate(                                                  &
+                                 &            wavelengthRange(1)                              , &
+                                 &            wavelengthRange(2)                              , &
+                                 &            Filter_Luminosity_Integrand                     , &
+                                 &            integrandFunction                               , &
+                                 &            integrationWorkspace                            , &
+                                 &            toleranceAbsolute          =0.0d0               , &
+                                 &            toleranceRelative          =toleranceRelative   , &
+                                 &            integrationRule            =FGSL_Integ_Gauss15  , &
+                                 &            maxIntervals               =10000               , &
+                                 &            errorStatus                =errorStatus           &
+                                 &           )
+                            call Integrate_Done(integrandFunction,integrationWorkspace)
+                            if (errorStatus /= errorStatusSuccess) then
+                               if (stellarPopulationLuminosityIntegrationToleranceDegrade.and.toleranceRelative < 1.0d0) then
+                                  toleranceRelative=2.0d0*toleranceRelative
+                                  write (label,'(e9.3)') 2.0d0*stellarPopulationLuminosityIntegrationToleranceRelative
+                                  message=         "WARNING: increasing relative tolerance for stellar population luminosities to"          //char(10)
+                                  message=message//trim(adjustl(label))//" and retrying integral"//{introspection:location}
+                                  call Galacticus_Warn(message)
+                               else if (stellarPopulationLuminosityIntegrationToleranceDegrade) then
+                                  message="integration of stellar populations failed"
+                                  call Galacticus_Error_Report('Stellar_Population_Luminosity',message)
+                               else
+                                  write (label,'(e9.3)') 2.0d0*stellarPopulationLuminosityIntegrationToleranceRelative
+                                  message=         "integration of stellar populations failed"                                              //char(10)
+                                  message=message//"HELP: consider increasing the [stellarPopulationLuminosityIntegrationToleranceRelative]"//char(10)
+                                  message=message//"      parameter to "//trim(adjustl(label))//" to reduce the integration tolerance"      //char(10)
+                                  message=message//"      required if your can accept this lower accuracy."
+                                  call Galacticus_Error_Report('Stellar_Population_Luminosity',message)
+                               end if
                             end if
-                         end if
+                         end do
                       end do
                    end do
-                end do
-                !$omp end parallel do
-                ! Clear the counter and write a completion message.
-                call Galacticus_Display_Counter_Clear(           verbosityWorking)
-                call Galacticus_Display_Unindent     ('finished',verbosityWorking)
-                ! Get the normalization by integrating a zeroth magnitude (AB) source through the filter.
-                normalization=Integrate(wavelengthRange(1),wavelengthRange(2),Filter_Luminosity_Integrand_AB &
-                     &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative&
-                     &=stellarPopulationLuminosityIntegrationToleranceRelative)
-                call Integrate_Done(integrandFunction,integrationWorkspace)
-                ! Normalize the luminosity.
-                luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),:,:) &
-                     &=luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),:,:)/normalization
-                ! Store the luminosities to file.
-                if (stellarPopulationLuminosityStoreToFile) then
-                   ! Construct the dataset name.
-                   write (redshiftLabel,'(f7.4)') redshift(iLuminosity)
-                   datasetName="redshift"//adjustl(trim(redshiftLabel))
-                   ! Open the file.
-                   !$omp critical (HDF5_Access)
-                   call File_Lock(char(luminositiesFileName),lockFileDescriptor,lockIsShared=.false.)
-                   call luminositiesFile%openFile(char(luminositiesFileName))
-                   ! Write the dataset.
-                   if (.not.luminositiesFile%hasDataset(trim(datasetName))) &
-                        & call luminositiesFile%writeDataset(luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),:,:),datasetName=trim(datasetName),commentText="Tabulated luminosities at redshift z="//adjustl(trim(redshiftLabel)))
-                   ! Close the file.
-                   call luminositiesFile%close()
-                   call File_Unlock(lockFileDescriptor)
-                   !$omp end critical (HDF5_Access)
+                   !$omp end parallel do
+                   ! Clear the counter and write a completion message.
+                   call Galacticus_Display_Counter_Clear(           verbosityWorking)
+                   call Galacticus_Display_Unindent     ('finished',verbosityWorking)
+                   ! Get the normalization by integrating a zeroth magnitude (AB) source through the filter.
+                   normalization=Integrate(wavelengthRange(1),wavelengthRange(2),Filter_Luminosity_Integrand_AB &
+                        &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative&
+                        &=stellarPopulationLuminosityIntegrationToleranceRelative)
+                   call Integrate_Done(integrandFunction,integrationWorkspace)
+                   ! Normalize the luminosity.
+                   luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),:,:) &
+                        &=luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),:,:)/normalization
+                   ! Store the luminosities to file.
+                   if (stellarPopulationLuminosityStoreToFile) then
+                      ! Construct the dataset name.
+                      write (redshiftLabel,'(f7.4)') redshift(iLuminosity)
+                      datasetName="redshift"//adjustl(trim(redshiftLabel))
+                      ! Open the file.
+                      !$omp critical (HDF5_Access)
+                      call File_Lock(char(luminositiesFileName),lockFileDescriptor,lockIsShared=.false.)
+                      call luminositiesFile%openFile(char(luminositiesFileName))
+                      ! Write the dataset.
+                      if (.not.luminositiesFile%hasDataset(trim(datasetName))) &
+                           & call luminositiesFile%writeDataset(luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),:,:),datasetName=trim(datasetName),commentText="Tabulated luminosities at redshift z="//adjustl(trim(redshiftLabel)))
+                      ! Close the file.
+                      call luminositiesFile%close()
+                      call File_Unlock(lockFileDescriptor)
+                      !$omp end critical (HDF5_Access)
+                   end if
+                end if
+                ! Flag that calculations have been performed for this filter.
+                luminosityTables(imfIndex)%isTabulated(luminosityIndex(iLuminosity))=.true.
+                if (luminosityIndex(iLuminosity) > luminosityTables(imfIndex)%isTabulatedMaximum) then
+                   jLuminosity=luminosityTables(imfIndex)%isTabulatedMaximum
+                   do while (jLuminosity < size(luminosityTables(imfIndex)%isTabulated) .and. luminosityTables(imfIndex)%isTabulated(min(jLuminosity+1,size(luminosityTables(imfIndex)%isTabulated))))
+                      jLuminosity=jLuminosity+1
+                   end do
+                   luminosityTables(imfIndex)%isTabulatedMaximum=jLuminosity
                 end if
              end if
-             ! Flag that calculations have been performed for this filter.
-             luminosityTables(imfIndex)%isTabulated(luminosityIndex(iLuminosity))=.true.
-             if (luminosityIndex(iLuminosity) > luminosityTables(imfIndex)%isTabulatedMaximum) then
-                jLuminosity=luminosityTables(imfIndex)%isTabulatedMaximum
-                do while (jLuminosity < size(luminosityTables(imfIndex)%isTabulated) .and. luminosityTables(imfIndex)%isTabulated(min(jLuminosity+1,size(luminosityTables(imfIndex)%isTabulated))))
-                   jLuminosity=jLuminosity+1
-                end do
-                luminosityTables(imfIndex)%isTabulatedMaximum=jLuminosity
-             end if
-          end if
-       end do
+          end do
+       end if
+       call luminosityTableLock%unsetWrite(haveReadLock=.true.)
     end if
-    !$omp end critical (Luminosity_Tables_Initialize)
+    ! Release our read lock on the luminosity tables.
+    call luminosityTableLock%unsetRead()
     return
 
   contains
@@ -473,6 +499,8 @@ contains
 
     ! Tabulate the luminosities.
     call Stellar_Population_Luminosity_Tabulate(luminosityIndex,filterIndex,postprocessingChainIndex,imfIndex,redshift)
+    ! Obtain a read lock on the luminosity tables.
+    call luminosityTableLock%setRead()
     ! Get interpolation in metallicity.
     metallicity=Abundances_Get_Metallicity(abundancesStellar,metallicityType=metallicityTypeLogarithmicByMassSolar)
     if (metallicity == logMetallicityZero .or. metallicity < luminosityTables(imfIndex)%metallicity(1)) then
@@ -491,7 +519,6 @@ contains
     ! Do the interpolation.
     Stellar_Population_Luminosity(:)= 0.0d0
     ageLast                         =-1.0d0
-    !$omp critical (Luminosity_Tables_Initialize)
     do iLuminosity=1,size(luminosityIndex)
        ! Only compute luminosities for entries with positive age (negative age implies that the luminosity required is for a
        ! population observed prior to the formation of this population).
@@ -523,7 +550,7 @@ contains
           end do
        end if
     end do
-    !$omp end critical (Luminosity_Tables_Initialize)
+    call luminosityTableLock%unsetRead()
     ! Prevent interpolation from returning negative fluxes.
     Stellar_Population_Luminosity=max(Stellar_Population_Luminosity,0.0d0)
     return
@@ -548,6 +575,8 @@ contains
          &                                                                                        jMetallicity
     double precision                                                                           :: metallicity
 
+    ! Obtain a read lock on the luminosity tables.
+    call luminosityTableLock%setRead()
     ! Tabulate the luminosities.
     call Stellar_Population_Luminosity_Tabulate(luminosityIndex,filterIndex,postprocessingChainIndex,imfIndex,redshift)
     ! Get interpolation in metallicity.
@@ -571,7 +600,6 @@ contains
     ages=luminosityTables(imfIndex)%age
     ! Do the interpolation.
     luminosities(:,:)=0.0d0
-    !$omp critical (Luminosity_Tables_Initialize)
     do iLuminosity=1,size(luminosityIndex)
        do jMetallicity=0,1
           luminosities                                 (:,                iLuminosity                             )= &
@@ -580,7 +608,8 @@ contains
                & *hMetallicity                         (                                              jMetallicity)
        end do
     end do
-    !$omp end critical (Luminosity_Tables_Initialize)
+    ! Release the read lock on the luminosity tables.
+    call luminosityTableLock%setRead()
     ! Prevent interpolation from returning negative fluxes.
     luminosities=max(luminosities,0.0d0)
     return
