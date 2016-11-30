@@ -27,7 +27,7 @@ sub createNullFunction {
     my $fingerprint = join(":",map {$descriptor->{$_}} ('selfType','attribute','intent')).":".join(":",map {$descriptor->{'property'}->{$_}} ('type','rank'));
     # Create a name for the function.
     my $functionName = 
-	"newNull"                                                                                .
+	"null"                                                                                   .
 	join("",map {ucfirst($descriptor              ->{$_})} ('selfType','attribute','intent')).
 	join("",map {ucfirst($descriptor->{'property'}->{$_})} ('type'    ,'rank'              ));
     # If a null function with this fingerprint has already been created, we are done. Otherwise, record the fingerprint.
@@ -46,6 +46,7 @@ sub createNullFunction {
     }
     # Construct variables needed.
     my @variables;
+    my @modules;
     my $returnType;
     if ( $descriptor->{'attribute'} eq "rate" ) {
 	$propertyDescriptor->{'variables' } = [ "setValue" ];
@@ -72,7 +73,7 @@ sub createNullFunction {
 		 variables  => [ "interruptProcedure" ]
 	     }
 	    );
-    } elsif ( $descriptor->{'attribute'} eq "set" ) {
+    } elsif ( $descriptor->{'attribute'} eq "set" || $descriptor->{'attribute'} eq "scale" ) {
 	$propertyDescriptor->{'variables' } = [ "setValue" ];
 	$propertyDescriptor->{'attributes'} = [ "intent(in   )", ($descriptor->{'property'}->{'rank'} > 0 ? "dimension(".join(",",(":") x $descriptor->{'property'}->{'rank'}).")" : ()) ];
 	$returnType = "void";
@@ -86,6 +87,7 @@ sub createNullFunction {
 	     },
 	     $propertyDescriptor
 	    );
+	@modules = ( "Galacticus_Error" );
     } elsif ( $descriptor->{'attribute'} eq "get" ) {
 	$propertyDescriptor->{'variables' } = [ "setValue" ];
 	$propertyDescriptor->{'attributes'} = [ "intent(in   )", ($descriptor->{'property'}->{'rank'} > 0 ? "dimension(".join(",",(":") x $descriptor->{'property'}->{'rank'}).")" : ()) ];
@@ -114,6 +116,9 @@ sub createNullFunction {
 	variables   => \@variables,
 	content     => "!GCC\$ attributes unused :: ".join(", ",map {@{$_->{'variables'}}} @variables)."\n"
     };
+    # Add modules if any required.
+    $function->{'modules'} = \@modules
+	if ( @modules );
     # Add null return value for get functions.
     if ( $descriptor->{'attribute'} eq "get" ) {
 	$function->{'content'} .=
@@ -127,7 +132,10 @@ sub createNullFunction {
 	    ).
 	    "\n";
     }
-    # Insert into the function list (if it is used).
+    # Add error for set functions.
+    if ( $descriptor->{'attribute'} eq "set" ) {
+	$function->{'content'} .= "call Galacticus_Error_Report('".$functionName."','attempt to set value in null component')\n";
+    }    # Insert into the function list (if it is used).
     push(
 	@{$build->{'functions'}},
 	$function

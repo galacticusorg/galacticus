@@ -432,10 +432,10 @@ CODE
 if ({$condition}) then
 CODE
 		}
-		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 output{ucfirst($property->{'data'}->{'type'})}=self%{$property->{'name'}}()
 call output{ucfirst($property->{'data'}->{'type'})}%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time)
-call self%{$property->{'name'}}Set(output{ucfirst($property->{'data'}->{'type'})})
+if (.not.same_type_as(self,{$class->{'name'}}Class)) call self%{$property->{'name'}}Set(output{ucfirst($property->{'data'}->{'type'})})
 CODE
 		if ( exists($code::property->{'output'}->{'condition'}) ) {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
