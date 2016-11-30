@@ -17,7 +17,7 @@ my $sourceDirectoryName = $ARGV[0];
 # Intrinsics to be excluded.
 my @excludedIntrinsics = ( "type", "class" );
 # Types to be excluded.
-my @excludedTypes = ( "hid", "hsize_t", "c_size_t", "c_char" );
+my @excludedTypes = ( "hid", "hsize_t", "c_size_t", "c_char", "omp_lock_kind" );
 # Initialize record of allocatable classes.
 my %allocatableClasses;
 # Open the source directorys and scan
