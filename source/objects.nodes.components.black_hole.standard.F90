@@ -623,7 +623,7 @@ contains
        ! If the separation is non-positive, assume that the black holes merge instantaneously.
        if (radiusInitial <= 0.0d0) then
           ! Get the central black hole of the host galaxy.
-          hostCentralBlackHoleComponent => hostNode%blackHole(instance=1)
+          hostCentralBlackHoleComponent => hostNode%blackHole(instance=1,autoCreate=.true.)
           ! Loop over all black holes in the satellite galaxy.
           do instance=1,thisNode%blackHoleCount()
              ! Get the black hole.
