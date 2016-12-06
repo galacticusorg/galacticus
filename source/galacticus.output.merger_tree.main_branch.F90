@@ -129,10 +129,11 @@ contains
   !#  <sortName>Galacticus_Output_Tree_Main_Branch</sortName>
   !# </mergerTreeOutputTask>
   subroutine Galacticus_Output_Tree_Main_Branch(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store mainBranch properties in the \glc\ output file buffers.
     use Galacticus_Nodes
     use Kind_Numbers
+    use Multi_Counters
     implicit none
     double precision                , intent(in   )          :: time
     type            (treeNode      ), intent(inout), pointer :: thisNode
@@ -140,7 +141,8 @@ contains
          &                                                      integerProperty
     integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
     double precision                , intent(inout)          :: doubleBuffer     (:,:)
-    !GCC$ attributes unused :: time, doubleProperty, doubleBufferCount, doubleBuffer
+    type            (multiCounter  ), intent(inout)          :: instance
+    !GCC$ attributes unused :: time, doubleProperty, doubleBufferCount, doubleBuffer, instance
     
     ! Ensure the module is initialized.
     call Galacticus_Output_Tree_Main_Branch_Initalize

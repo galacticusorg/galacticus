@@ -209,9 +209,10 @@ contains
   !#  <sortName>Cooling_Radius_Hot_Halo_Output</sortName>
   !# </mergerTreeOutputTask>
   subroutine Cooling_Radius_Hot_Halo_Output(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store hot halo properties in the \glc\ output file buffers.
     use Kind_Numbers
+    use Multi_Counters
     implicit none
     double precision                , intent(in   )          :: time
     type            (treeNode      ), intent(inout), pointer :: thisNode
@@ -219,7 +220,8 @@ contains
          &                                                      integerProperty
     integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
     double precision                , intent(inout)          :: doubleBuffer     (:,:)
-    !GCC$ attributes unused :: integerBufferCount, integerProperty, integerBuffer, time
+    type            (multiCounter  ), intent(inout)          :: instance
+    !GCC$ attributes unused :: integerBufferCount, integerProperty, integerBuffer, time, instance
     
     ! Initialize the module.
     call Cooling_Radius_Output_Initialize()

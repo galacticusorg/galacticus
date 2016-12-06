@@ -142,10 +142,11 @@ contains
   !#  <sortName>Galacticus_Output_Tree_Descendents</sortName>
   !# </mergerTreeOutputTask>
   subroutine Galacticus_Output_Tree_Descendents(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store descendent properties in the \glc\ output file buffers.
     use Kind_Numbers
     use Galacticus_Output_Times
+    use Multi_Counters
     implicit none
     double precision                        , intent(in   )          :: time
     type            (treeNode              ), intent(inout), pointer :: thisNode
@@ -153,12 +154,13 @@ contains
          &                                                              integerProperty
     integer         (kind=kind_int8        ), intent(inout)          :: integerBuffer         (:,:)
     double precision                        , intent(inout)          :: doubleBuffer          (:,:)
+    type            (multiCounter          ), intent(inout)          :: instance
     type            (treeNode              )               , pointer :: descendentNode
     class           (nodeComponentBasic    )               , pointer :: thisBasicComponent
     class           (nodeComponentSatellite)               , pointer :: thisSatelliteComponent
     double precision                                                 :: outputTimeNext
     logical                                                          :: foundDescendent
-    !GCC$ attributes unused :: doubleBuffer, doubleBufferCount, doubleProperty
+    !GCC$ attributes unused :: doubleBuffer, doubleBufferCount, doubleProperty, instance
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Descendents_Initialize()

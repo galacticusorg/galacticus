@@ -200,19 +200,21 @@ module Accretion_Halos
   !#  <sortName>Accretion_Halos_Hot_Halo_Output</sortName>
   !# </mergerTreeOutputTask>
   subroutine Accretion_Halos_Hot_Halo_Output(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store hot halo properties in the \glc\ output file buffers.
     use Kind_Numbers
+    use Multi_Counters
     implicit none
     double precision                    , intent(in   )          :: time
     type            (treeNode          ), intent(inout), pointer :: thisNode
-    integer                             , intent(inout)          :: doubleBufferCount     , doubleProperty, integerBufferCount, &
-         &                                                          integerProperty
+    integer                             , intent(inout)          :: doubleBufferCount     , doubleProperty    , &
+         &                                                          integerBufferCount    , integerProperty
     integer         (kind=kind_int8    ), intent(inout)          :: integerBuffer    (:,:)
     double precision                    , intent(inout)          :: doubleBuffer     (:,:)
+    type            (multiCounter      ), intent(inout)          :: instance
     class           (accretionHaloClass)               , pointer :: accretionHalo_
-    double precision                                             :: accretionRateHot      ,accretionRateTotal
-    !GCC$ attributes unused :: time, integerBufferCount, integerProperty, integerBuffer
+    double precision                                             :: accretionRateHot      , accretionRateTotal
+    !GCC$ attributes unused :: time, integerBufferCount, integerProperty, integerBuffer, instance
     
     ! Initialize the module.
     call Accretion_Halos_Output_Initialize()

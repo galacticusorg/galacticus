@@ -127,10 +127,11 @@ contains
   !#  <sortName>Galacticus_Output_Tree_Hosts</sortName>
   !# </mergerTreeOutputTask>
   subroutine Galacticus_Output_Tree_Hosts(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store host properties in the \glc\ output file buffers.
     use Kind_Numbers
     use Galacticus_Output_Times
+    use Multi_Counters
     implicit none
     double precision                , intent(in   )          :: time
     type            (treeNode      ), intent(inout), pointer :: thisNode
@@ -138,8 +139,9 @@ contains
          &                                                      integerBufferCount    , integerProperty
     integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
     double precision                , intent(inout)          :: doubleBuffer     (:,:)
+    type            (multiCounter  ), intent(inout)          :: instance
     type            (treeNode      )               , pointer :: hostNode
-    !GCC$ attributes unused :: time, doubleProperty, doubleBufferCount, doubleBuffer
+    !GCC$ attributes unused :: time, doubleProperty, doubleBufferCount, doubleBuffer, instance
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Hosts_Initialize()

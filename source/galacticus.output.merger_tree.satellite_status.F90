@@ -151,11 +151,12 @@ contains
   !#  <sortName>Galacticus_Output_Tree_Satellite_Status</sortName>
   !# </mergerTreeOutputTask>
   subroutine Galacticus_Output_Tree_Satellite_Status(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store satellite host halo properties in the \glc\ output file buffers.
     use Galacticus_Nodes
     use Kind_Numbers
     use Histories
+    use Multi_Counters
     implicit none
     double precision                        , intent(in   )          :: time
     type            (treeNode              ), intent(inout), pointer :: thisNode
@@ -163,11 +164,12 @@ contains
          &                                                              integerProperty
     integer         (kind=kind_int8        ), intent(inout)          :: integerBuffer    (:,:)
     double precision                        , intent(inout)          :: doubleBuffer     (:,:)
+    type            (multiCounter          ), intent(inout)          :: instance
     class           (nodeComponentBasic    )               , pointer :: thisBasic
     class           (nodeComponentSatellite)               , pointer :: thisSatellite
     type            (history               )                         :: boundMassHistory
     integer         (kind=kind_int8        )                         :: status
-    !GCC$ attributes unused :: time, doubleBufferCount, doubleProperty, doubleBuffer
+    !GCC$ attributes unused :: time, doubleBufferCount, doubleProperty, doubleBuffer, instance
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Satellite_Status_Initialize

@@ -319,10 +319,11 @@ contains
   !#  <sortName>Node_Component_Merging_Statistics_Recent_Output</sortName>
   !# </mergerTreeOutputTask>
   subroutine Node_Component_Merging_Statistics_Recent_Output(thisNode,integerProperty,integerBufferCount,integerBuffer&
-       &,doubleProperty ,doubleBufferCount,doubleBuffer,time)
+       &,doubleProperty ,doubleBufferCount,doubleBuffer,time,instance)
     !% Store black hole properties in the \glc\ output file buffers.
     use Kind_Numbers
     use Galacticus_Output_Times
+    use Multi_Counters
     implicit none
     double precision                                , intent(in   )                   :: time
     type            (treeNode                      ), intent(inout)         , pointer :: thisNode
@@ -330,9 +331,10 @@ contains
          &                                                                               integerProperty
     integer         (kind=kind_int8                ), intent(inout)                   :: integerBuffer        (:,:)
     double precision                                , intent(inout)                   :: doubleBuffer         (:,:)
+    type            (multiCounter                  ), intent(inout)                   :: instance
     class           (nodeComponentMergingStatistics)                        , pointer :: thisMergingStatistics
     integer                                         , dimension(outputCount)          :: mergerIncrement
-    !GCC$ attributes unused :: doubleBufferCount, doubleProperty, doubleBuffer
+    !GCC$ attributes unused :: doubleBufferCount, doubleProperty, doubleBuffer, instance
 
     if (Node_Component_Merging_Statistics_Recent_Matches(thisNode)) then
        ! Store the properties.

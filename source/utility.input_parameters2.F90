@@ -1120,7 +1120,7 @@ contains
     implicit none
     type(inputParameterList) :: inputParameterListConstructor
 
-    inputParameterListConstructor=inputParameterList()
+    inputParameterListConstructor%count=0
     return
   end function inputParameterListConstructor
 

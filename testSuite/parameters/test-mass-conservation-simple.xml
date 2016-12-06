@@ -137,8 +137,10 @@
       <massResolutionFractional value="0.00005" />
       <massResolutionMinimum value="1.0e7" />
     </mergerTreeMassResolutionMethod>
-    <mergerTreeOutput value="true" />
-    <mergerTreeOutputReferences value="false" />
+    <mergerTreeOutput>
+      <outputMergerTrees value="true"/>
+      <outputReferences value="false"/>
+    </mergerTreeOutput>
     <mergerTreePruneBaryons value="true" />
     <mergerTreeReadFixedThreadAssignment value="true" />
     <mergerTreeReadPresetMergerNodes value="false" />

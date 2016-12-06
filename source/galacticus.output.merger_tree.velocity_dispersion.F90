@@ -353,7 +353,7 @@ contains
   !#  <sortName>Galacticus_Output_Tree_Velocity_Dispersion</sortName>
   !# </mergerTreeOutputTask>
   subroutine Galacticus_Output_Tree_Velocity_Dispersion(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store velocity dispersion properties in the \glc\ output file buffers.
     use Kind_Numbers
     use Galactic_Structure_Velocity_Dispersions
@@ -362,6 +362,7 @@ contains
     use Numerical_Integration
     use Galactic_Structure_Options
     use Galactic_Structure_Enclosed_Masses
+    use Multi_Counters
     implicit none
     double precision                                , intent(in   )          :: time
     type            (treeNode                      ), intent(inout), pointer :: thisNode
@@ -369,6 +370,7 @@ contains
          &                                                                      integerBufferCount               , integerProperty
     integer         (kind=kind_int8                ), intent(inout)          :: integerBuffer        (:,:)
     double precision                                , intent(inout)          :: doubleBuffer         (:,:)
+    type            (multiCounter                  ), intent(inout)          :: instance
     class           (nodeComponentDisk             )               , pointer :: thisDisk
     class           (nodeComponentSpheroid         )               , pointer :: thisSpheroid
     class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfile
@@ -383,7 +385,7 @@ contains
          &                                                                      radiusZero                       , velocityDensityIntegrand, &
          &                                                                      numerator                        , denominator             , &
          &                                                                      massDisk                         , massSpheroid
-    !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer
+    !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer, instance
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Velocity_Dispersion_Initialize

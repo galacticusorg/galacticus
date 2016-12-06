@@ -71,7 +71,9 @@
 
   <!-- Output options -->
   <outputRedshifts>0.00 0.0001</outputRedshifts>
-  <mergerTreeOutputReferences value="false"/>
+  <mergerTreeOutput>
+    <outputReferences value="false"/>
+  </mergerTreeOutput>
   <outputRotationCurveData value="true"/>
   <outputRotationCurveRadii value="spheroidRadius:all:all:loaded:1.0 spheroidRadius:darkHalo:dark:loaded:1.0 spheroidRadius:spheroid:baryonic:loaded:1.0"/>
   <outputVirialData value="true"/>

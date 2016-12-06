@@ -190,11 +190,12 @@ contains
   !#  <sortName>Galacticus_Output_Halo_Model</sortName>
   !# </mergerTreeOutputTask>
   subroutine Galacticus_Output_Halo_Model(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store halo model properties in the \glc\ output file buffers.
     use Galacticus_Nodes
     use Dark_Matter_Halo_Biases
     use Kind_Numbers
+    use Multi_Counters
     implicit none
     double precision                , intent(in   )          :: time
     type            (treeNode      ), intent(inout), pointer :: thisNode
@@ -202,8 +203,9 @@ contains
          &                                                      integerProperty
     integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
     double precision                , intent(inout)          :: doubleBuffer     (:,:)
+    type            (multiCounter  ), intent(inout)          :: instance
     type            (treeNode      )               , pointer :: isolatedNode
-    !GCC$ attributes unused :: time
+    !GCC$ attributes unused :: time, instance
     
     ! Initialize the module.
     call Galacticus_Output_Halo_Model_Initialize

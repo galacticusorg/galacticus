@@ -1,0 +1,81 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014 Andrew Benson <abenson@obs.carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+!% Contains a module which implements an inverting filter.
+
+  !# <galacticFilter name="galacticFilterNot" defaultThreadPrivate="yes">
+  !#  <description>A filter which simply inverts the result of another filter.</description>
+  !# </galacticFilter>
+  type, extends(galacticFilterClass) :: galacticFilterNot
+     !% A galactic filter which simply inverts the result of another filter.
+     private
+     class(galacticFilterClass), pointer :: galacticFilter_
+   contains
+     final     ::           notDestructor
+     procedure :: passes => notPasses
+  end type galacticFilterNot
+
+  interface galacticFilterNot
+     !% Constructors for the ``not'' galactic filter class.
+     module procedure notConstructorParameters
+     module procedure notConstructorInternal
+  end interface galacticFilterNot
+
+contains
+
+  function notConstructorParameters(parameters)
+    !% Constructor for the ``not'' galactic filter class which takes a parameter set as input.
+    use Input_Parameters2
+    implicit none
+    type(galacticFilterNot)                :: notConstructorParameters
+    type(inputParameters  ), intent(inout) :: parameters
+    !# <inputParameterList label="allowedParameterNames" />
+
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <objectBuilder class="galacticFilter" name="notConstructorParameters%galacticFilter_" source="parameters"/>
+    return
+  end function notConstructorParameters
+
+  function notConstructorInternal(galacticFilter_)
+    !% Internal constructor for the ``not'' galactic filter class.
+    implicit none
+    type (galacticFilterNot  )                        :: notConstructorInternal
+    class(galacticFilterClass), intent(in   ), target :: galacticFilter_
+
+    notConstructorInternal%galacticFilter_ => galacticFilter_
+    return
+  end function notConstructorInternal
+
+  subroutine notDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily not} galactic filter class.
+    implicit none
+    type(galacticFilterNot), intent(inout) :: self
+    
+    !# <objectDestructor name="self%galacticFilter_"/>
+    return
+  end subroutine notDestructor
+
+  logical function notPasses(self,node)
+    !% Implement a not galactic filter.
+    implicit none
+    class(galacticFilterNot), intent(inout) :: self
+    type (treeNode         ), intent(inout) :: node
+
+    notPasses=.not.self%galacticFilter_%passes(node)
+    return
+  end function notPasses

@@ -305,7 +305,7 @@ contains
   !#  <sortName>Galacticus_Output_Tree_Projected_Density</sortName>
   !# </mergerTreeOutputTask>
   subroutine Galacticus_Output_Tree_Projected_Density(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store projected density properties in the \glc\ output file buffers.
     use FGSL
     use Numerical_Integration
@@ -315,6 +315,7 @@ contains
     use Dark_Matter_Halo_Scales
     use Galactic_Structure_Options
     use Galactic_Structure_Enclosed_Masses
+    use Multi_Counters
     implicit none
     double precision                                , intent(in   )          :: time
     type            (treeNode                      ), intent(inout), pointer :: node
@@ -322,6 +323,7 @@ contains
          &                                                                      integerProperty
     integer         (kind=kind_int8                ), intent(inout)          :: integerBuffer        (:,:)
     double precision                                , intent(inout)          :: doubleBuffer         (:,:)
+    type            (multiCounter                  ), intent(inout)          :: instance
     class           (nodeComponentDisk             )               , pointer :: disk
     class           (nodeComponentSpheroid         )               , pointer :: spheroid
     class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
@@ -330,7 +332,7 @@ contains
     double precision                                                         :: radiusProjected           , radiusOuter   , radiusVirial
     type            (fgsl_function                 )                         :: integrandFunction
     type            (fgsl_integration_workspace    )                         :: integrationWorkspace
-    !GCC$ attributes unused :: node, time, integerProperty, integerBufferCount, integerBuffer
+    !GCC$ attributes unused :: node, time, integerProperty, integerBufferCount, integerBuffer, instance
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Projected_Density_Initialize()

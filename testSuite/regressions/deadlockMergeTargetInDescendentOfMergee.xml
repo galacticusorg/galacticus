@@ -13,7 +13,9 @@
   </cosmologyParametersMethod>
   <sigma_8 value="0.8228"/>
   <accretionHaloMethod value="null"/>
-  <mergerTreeOutputReferences value="false"/>
+  <mergerTreeOutput>
+    <outputReferences value="false"/>
+  </mergerTreeOutput>
   <mergerTreeConstructMethod value="read"/>
   <mergerTreeReadPresetMergerNodes value="true"/>
   <mergerTreeReadPresetMergerTimes value="true"/>

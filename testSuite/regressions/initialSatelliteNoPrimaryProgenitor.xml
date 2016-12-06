@@ -118,7 +118,9 @@
   <conditionalMassFunctionBehrooziAlphaSatellite value="0.981019943414"/>
   <conditionalMassFunctionBehrooziLog10M1 value="12.1440055417"/>
   <imfSelectionMethod value="fixed"/>
-  <mergerTreeOutputReferences value="false"/>
+  <mergerTreeOutput>
+    <outputReferences value="false"/>
+  </mergerTreeOutput>
   <timePerTreeFitFileName value="projects/constraints2/verySimplisticToStellarMassFunction/data/treeTiming.xml"/>
   <reionizationSuppressionVelocity value="35.0"/>
   <stellarPopulationPropertiesMethod value="instantaneous"/>

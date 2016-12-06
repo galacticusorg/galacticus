@@ -306,7 +306,7 @@ contains
   !#  <sortName>Galacticus_Output_Tree_Rotation_Curve</sortName>
   !# </mergerTreeOutputTask>
   subroutine Galacticus_Output_Tree_Rotation_Curve(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store rotation curve properties in the \glc\ output file buffers.
     use Galacticus_Nodes
     use Kind_Numbers
@@ -314,6 +314,7 @@ contains
     use Dark_Matter_Halo_Scales
     use Galactic_Structure_Options
     use Galactic_Structure_Enclosed_Masses
+    use Multi_Counters
     implicit none
     double precision                                , intent(in   )          :: time
     type            (treeNode                      ), intent(inout), pointer :: thisNode
@@ -321,13 +322,14 @@ contains
          &                                                                      integerProperty
     integer         (kind=kind_int8                ), intent(inout)          :: integerBuffer        (:,:)
     double precision                                , intent(inout)          :: doubleBuffer         (:,:)
+    type            (multiCounter                  ), intent(inout)          :: instance
     class           (nodeComponentDisk             )               , pointer :: thisDisk
     class           (nodeComponentSpheroid         )               , pointer :: thisSpheroid
     class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfile
     class           (darkMatterHaloScaleClass      )               , pointer :: darkMatterHaloScale_
     integer                                                                  :: i
     double precision                                                         :: radius                    , radiusVirial
-    !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer
+    !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer, instance
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Rotation_Curve_Initialize
