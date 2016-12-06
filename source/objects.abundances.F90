@@ -928,8 +928,9 @@ contains
   end function Abundances_Helium_Number_Fraction
 
   subroutine Abundances_Output(self,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount&
-       &,doubleBuffer,time)
+       &,doubleBuffer,time,outputInstance)
     !% Store an abundances object in the output buffers.
+    use Multi_Counters
     implicit none
     class           (abundances    )                , intent(in   ) :: self
     double precision                                , intent(in   ) :: time
@@ -937,7 +938,8 @@ contains
          &                                                             integerProperty
     integer         (kind=kind_int8), dimension(:,:), intent(inout) :: integerBuffer
     double precision                , dimension(:,:), intent(inout) :: doubleBuffer
-    !GCC$ attributes unused :: time, integerBufferCount, integerProperty, integerBuffer
+    type            (multiCounter  )                , intent(in   ) :: outputInstance
+    !GCC$ attributes unused :: time, integerBufferCount, integerProperty, integerBuffer, outputInstance
     
     doubleProperty=doubleProperty+1
     doubleBuffer(doubleBufferCount,doubleProperty)=self%metallicityValue

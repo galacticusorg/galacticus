@@ -956,8 +956,9 @@ module Galacticus_Nodes
   end subroutine Node_Component_Output_Names_Null
 
   subroutine Node_Component_Output_Null(self,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time,instance)
+       &,doubleBufferCount,doubleBuffer,time,outputInstance,instance)
     !% Dump a generic tree node component.
+    use Multi_Counters
     implicit none
     class           (nodeComponent    ), intent(inout) :: self
     double precision                   , intent(in   ) :: time
@@ -965,8 +966,9 @@ module Galacticus_Nodes
          &                                                integerProperty
     integer         (kind=kind_int8   ), intent(inout) :: integerBuffer    (:,:)
     double precision                   , intent(inout) :: doubleBuffer     (:,:)
+    type            (multiCounter     ), intent(in   ) :: outputInstance
     integer                            , intent(in   ) :: instance
-    !GCC$ attributes unused :: self, integerProperty, integerBufferCount, integerBuffer, doubleProperty, doubleBufferCount, doubleBuffer, time, instance
+    !GCC$ attributes unused :: self, integerProperty, integerBufferCount, integerBuffer, doubleProperty, doubleBufferCount, doubleBuffer, time, outputInstance, instance
 
     return
   end subroutine Node_Component_Output_Null
