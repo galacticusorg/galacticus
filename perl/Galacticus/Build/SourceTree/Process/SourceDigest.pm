@@ -11,9 +11,6 @@ use Digest::MD5 qw(md5_base64);
 use Fortran::Utils;
 use List::ExtraUtils;
 use Galacticus::Path;
-## AJB HACK use Galacticus::Build::SourceTree::Hooks;
-## AJB HACK use Galacticus::Build::SourceTree;
-## AJB HACK use Galacticus::Build::SourceTree::Parse::Declarations;
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::processHooks{'sourceDigests'} = \&Process_SourceDigests;

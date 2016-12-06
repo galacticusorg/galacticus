@@ -11,8 +11,6 @@ use LaTeX::Encode;
 use Storable qw(dclone);
 use Scalar::Util qw(reftype);
 use List::ExtraUtils;
-## AJB HACK use Galacticus::Build::SourceTree::Hooks;
-## AJB HACK use Galacticus::Build::SourceTree;
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::processHooks{'generics'} = \&Process_Generics;
