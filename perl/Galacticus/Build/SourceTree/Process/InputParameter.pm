@@ -11,9 +11,6 @@ use XML::Simple;
 use LaTeX::Encode;
 use List::ExtraUtils;
 use Fortran::Utils;
-## AJB HACK use Galacticus::Build::Directives;
-## AJB HACK use Galacticus::Build::SourceTree::Hooks;
-## AJB HACK use Galacticus::Build::SourceTree;
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::processHooks{'inputParameters'} = \&Process_InputParameters;

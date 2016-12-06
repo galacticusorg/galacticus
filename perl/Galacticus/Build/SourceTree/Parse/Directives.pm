@@ -6,8 +6,6 @@ use warnings;
 use utf8;
 use Data::Dumper;
 use XML::Simple;
-## AJB HACK use Galacticus::Build::SourceTree::Hooks;
-## AJB HACK use Galacticus::Build::SourceTree;
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::parseHooks{'directives'} = \&Parse_Directives;
