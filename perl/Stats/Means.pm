@@ -10,33 +10,41 @@ sub AdaptiveBinnedMean {
     # Compute the mean of data binned into bins containing equal numbers of points.
 
     # Get the arguments.
-    my $x           = shift;
-    my $y           = shift;
-    my $countPerBin = shift;
+    my $x           = shift();
+    my $y           = shift();
+    my $countPerBin = shift();
+    my %options     = @_;
 
     # Construct output arrays.
     my $binCount    = int(nelem($x)/$countPerBin);
     ++$binCount
 	unless ( nelem($x) % $countPerBin == 0 );
-    my $xMean       = pdl zeroes($binCount);
-    my $yMean       = pdl zeroes($binCount);
-    my $yScatter    = pdl zeroes($binCount);
+    my $xMean       = pdl [];
+    my $yMean       = pdl [];
+    my $yScatter    = pdl [];
 
     # Order the x values.
     my $xIndex      = $x->qsorti();
 
     # Iterate through bins, computing the means.
-    for(my $i=0;$i<$binCount;++$i) {
+    my $jMinimum = -1;
+    my $jMaximum = -1;
+    while ($jMaximum < nelem($x)-1) {
 	# Find minimum and maximum indices to include in this bin.
-	my $jMinimum =  $i   *$countPerBin  ;
-	my $jMaximum = ($i+1)*$countPerBin-1;
-	$jMaximum    = nelem($x)-1
+	$jMinimum = $jMaximum+1;
+	$jMaximum = $jMinimum+$countPerBin-1;
+	$jMaximum = nelem($x)-1
 	    if ( $jMaximum > nelem($x)-1 );
+	if ( exists($options{'binWidthMinimum'}) && $jMinimum > 0 ) {
+	    while ( $jMaximum < nelem($x)-1 && $x->($xIndex)->(($jMaximum))-$x->($xIndex)->(($jMinimum)) < $options{'binWidthMinimum'} ) {
+		++$jMaximum;	 
+	    }
+	}
 	# Compute the means.
-	$xMean   ->(($i)) .= $x->($xIndex)->($jMinimum:$jMaximum)->average();
-	$yMean   ->(($i)) .= $y->($xIndex)->($jMinimum:$jMaximum)->average();
+	$xMean    = $xMean   ->append($x->($xIndex)->($jMinimum:$jMaximum)->average());
+	$yMean    = $yMean   ->append($y->($xIndex)->($jMinimum:$jMaximum)->average());
 	# Compute the root-variance.
-	$yScatter->(($i)) .= sqrt(average(($y->($xIndex)->($jMinimum:$jMaximum)-$yMean->(($i)))**2));
+	$yScatter = $yScatter->append(sqrt(average(($y->($xIndex)->($jMinimum:$jMaximum)-$yMean->((-1)))**2)));
     }
 
     # Return the results.
