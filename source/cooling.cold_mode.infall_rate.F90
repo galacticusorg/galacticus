@@ -182,9 +182,10 @@ contains
   !#  <sortName>Cooling_Cold_Mode_Infall_Output</sortName>
   !# </mergerTreeOutputTask>
   subroutine Cooling_Cold_Mode_Infall_Output(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store cold mode infall rate properties in the \glc\ output file buffers.
     use Kind_Numbers
+    use Multi_Counters
     implicit none
     double precision                , intent(in   )          :: time
     type            (treeNode      ), intent(inout), pointer :: thisNode
@@ -192,7 +193,8 @@ contains
          &                                                      integerProperty
     integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
     double precision                , intent(inout)          :: doubleBuffer     (:,:)
-    !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer
+    type            (multiCounter  ), intent(inout)          :: instance
+    !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer, instance
     
     ! Initialize the module.
     call Cooling_Cold_Mode_Infall_Output_Initialize()

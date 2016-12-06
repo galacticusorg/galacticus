@@ -141,20 +141,22 @@ contains
   !#  <sortName>Galacticus_Output_Tree_Virial</sortName>
   !# </mergerTreeOutputTask>
   subroutine Galacticus_Output_Tree_Virial(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store virial properties in the \glc\ output file buffers.
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Kind_Numbers
+    use Multi_Counters
     implicit none
-    double precision                , intent(in   )          :: time
-    type            (treeNode      ), intent(inout), pointer :: thisNode
-    integer                         , intent(inout)          :: doubleBufferCount     , doubleProperty, integerBufferCount, &
-         &                                                      integerProperty
-    integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
-    double precision                , intent(inout)          :: doubleBuffer     (:,:)
+    double precision                          , intent(in   )          :: time
+    type            (treeNode                ), intent(inout), pointer :: thisNode
+    integer                                   , intent(inout)          :: doubleBufferCount     , doubleProperty, integerBufferCount, &
+         &                                                                integerProperty
+    integer         (kind=kind_int8          ), intent(inout)          :: integerBuffer    (:,:)
+    double precision                          , intent(inout)          :: doubleBuffer     (:,:)
+    type            (multiCounter            ), intent(inout)          :: instance
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer
+    !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer, instance
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Virial_Initialize

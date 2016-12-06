@@ -927,10 +927,11 @@ contains
   end subroutine Stellar_Luminosities_Serialize
 
   subroutine Stellar_Luminosities_Output(self,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount&
-       &,doubleBuffer,time)
+       &,doubleBuffer,time,outputInstance)
     !% Store a {\normalfont \ttfamily stellarLuminosities} object in the output buffers.
     use Kind_Numbers
     use Memory_Management
+    use Multi_Counters
     implicit none
     class           (stellarLuminosities)                , intent(inout) :: self
     double precision                                     , intent(in   ) :: time
@@ -938,6 +939,7 @@ contains
          &                                                                  integerProperty
     integer         (kind=kind_int8     ), dimension(:,:), intent(inout) :: integerBuffer
     double precision                     , dimension(:,:), intent(inout) :: doubleBuffer
+    type            (multiCounter       )                , intent(in   ) :: outputInstance
     double precision                     , dimension(:  ), allocatable   :: luminosityTmp
     integer                                                              :: i                , luminosityRemainingCount
     !GCC$ attributes unused :: integerProperty, integerBufferCount, integerBuffer
@@ -952,22 +954,24 @@ contains
           end if
        end do
        ! Test if we can prune luminosities.
-       select case (luminosityOutputOption)
-       case (luminosityOutputOptionFuture,luminosityOutputOptionPresent)
-          ! Luminosities from this and earlier outputs no longer needed, so prune them. This is somewhat inefficient if there are
-          ! luminosities computed which do not correspond to any output. They will never be pruned and so will continue to use
-          ! memory and be evolved along with the galaxy. In principle such luminosities could be needed internally so we do not
-          ! remove them.
-          call Move_Alloc(self%luminosityValue,luminosityTmp)
-          luminosityRemainingCount=size(luminosityTmp)
-          do i=1,luminosityCount
-             if (Stellar_Luminosities_Is_Output(i,time,luminosityOutputOptionPresent)) &
-                  & luminosityRemainingCount=luminosityRemainingCount-1
-          end do          
-          call allocateArray(self%luminosityValue,[luminosityRemainingCount])
-          self%luminosityValue=luminosityTmp(1:luminosityRemainingCount)
-          call deallocateArray(luminosityTmp)
-       end select
+       if (outputInstance%isFinal()) then
+          select case (luminosityOutputOption)
+          case (luminosityOutputOptionFuture,luminosityOutputOptionPresent)
+             ! Luminosities from this and earlier outputs no longer needed, so prune them. This is somewhat inefficient if there are
+             ! luminosities computed which do not correspond to any output. They will never be pruned and so will continue to use
+             ! memory and be evolved along with the galaxy. In principle such luminosities could be needed internally so we do not
+             ! remove them.
+             call Move_Alloc(self%luminosityValue,luminosityTmp)
+             luminosityRemainingCount=size(luminosityTmp)
+             do i=1,luminosityCount
+                if (Stellar_Luminosities_Is_Output(i,time,luminosityOutputOptionPresent)) &
+                     & luminosityRemainingCount=luminosityRemainingCount-1
+             end do
+             call allocateArray(self%luminosityValue,[luminosityRemainingCount])
+             self%luminosityValue=luminosityTmp(1:luminosityRemainingCount)
+             call deallocateArray(luminosityTmp)
+          end select
+       end if
     end if
     return
   end subroutine Stellar_Luminosities_Output

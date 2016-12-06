@@ -126,11 +126,12 @@ contains
   !#  <sortName>Galacticus_Output_Tree_Velocity_Maximum</sortName>
   !# </mergerTreeOutputTask>
   subroutine Galacticus_Output_Tree_Velocity_Maximum(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store velocityMaximum properties in the \glc\ output file buffers.
     use Galacticus_Nodes
     use Dark_Matter_Profiles
     use Kind_Numbers
+    use Multi_Counters
     implicit none
     double precision                        , intent(in   )                 :: time
     type            (treeNode              ), intent(inout), pointer        :: node
@@ -138,8 +139,9 @@ contains
          &                                                                     integerBufferCount, integerProperty
     integer         (kind=kind_int8        ), intent(inout), dimension(:,:) :: integerBuffer    
     double precision                        , intent(inout), dimension(:,:) :: doubleBuffer     
+    type            (multiCounter          ), intent(inout)                 :: instance
     class           (darkMatterProfileClass)               , pointer        :: darkMatterProfile_
-    !GCC$ attributes unused :: time, integerProperty, integerBuffer, integerBufferCount
+    !GCC$ attributes unused :: time, integerProperty, integerBuffer, integerBufferCount, instance
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Velocity_Maximum_Initialize()

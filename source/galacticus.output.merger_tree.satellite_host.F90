@@ -132,12 +132,13 @@ contains
   !#  <sortName>Galacticus_Output_Tree_Satellite_Host</sortName>
   !# </mergerTreeOutputTask>
   subroutine Galacticus_Output_Tree_Satellite_Host(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store satellite host halo properties in the \glc\ output file buffers.
     use Galacticus_Nodes
     use Kind_Numbers
     use Kepler_Orbits
     use Satellite_Orbits
+    use Multi_Counters
     implicit none
     double precision                    , intent(in   )          :: time
     type            (treeNode          ), intent(inout), pointer :: thisNode
@@ -145,10 +146,11 @@ contains
          &                                                          integerProperty
     integer         (kind=kind_int8    ), intent(inout)          :: integerBuffer    (:,:)
     double precision                    , intent(inout)          :: doubleBuffer     (:,:)
+    type            (multiCounter      ), intent(inout)          :: instance
     type            (treeNode          )               , pointer :: hostNode
     class           (nodeComponentBasic)               , pointer :: hostBasic
     double precision                                             :: hostMass
-    !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer
+    !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer, instance
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Satellite_Host_Initialize

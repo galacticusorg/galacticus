@@ -131,10 +131,11 @@ contains
   !#  <sortName>Galacticus_Output_Redshifts</sortName>
   !# </mergerTreeOutputTask>
   subroutine Galacticus_Output_Redshifts(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store link properties in the \glc\ output file buffers.
     use Kind_Numbers
     use Cosmology_Functions
+    use Multi_Counters
     implicit none
     double precision                         , intent(in   )          :: time
     type            (treeNode               ), intent(inout), pointer :: thisNode
@@ -142,9 +143,10 @@ contains
          &                                                               integerBufferCount           , integerProperty
     integer         (kind=kind_int8         ), intent(inout)          :: integerBuffer           (:,:)
     double precision                         , intent(inout)          :: doubleBuffer            (:,:)
+    type            (multiCounter           ), intent(inout)          :: instance
     class           (nodeComponentBasic     )               , pointer :: thisBasic
     class           (cosmologyFunctionsClass)               , pointer :: cosmologyFunctionsDefault
-    !GCC$ attributes unused :: integerProperty, integerBufferCount, integerBuffer, time
+    !GCC$ attributes unused :: integerProperty, integerBufferCount, integerBuffer, time, instance
     
     call Galacticus_Output_Redshifts_Initalize()
     if (timeLastIsolatedIsAvailable) then

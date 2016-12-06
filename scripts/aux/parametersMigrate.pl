@@ -241,7 +241,7 @@ my @translations =
 	 outputVersion => "0.9.4",
 	 names         =>
 	 {
-	     "hotHaloTemperatureMethod"                                       => "hotHaloTemperatureProfileMethod"                                   ,
+	     "hotHaloTemperatureMethod"                                       => "hotHaloTemperatureProfileMethod"                                                ,
 	     "mergerTreeBuildMethod"                                          => "mergerTreeBuilderMethod"                                                        ,
 	     "darkMatterShapeMethod"                                          => "darkMatterProfileShapeMethod"                                                   ,
 	     "H_0"                                                            => "cosmologyParametersMethod--HubbleConstant"                                      ,
@@ -342,7 +342,11 @@ my @translations =
 	     "spinDistributionBett2007Alpha"	                              => "haloSpinDistributionMethod.bett2007.--alpha"                                    ,
 	     "lognormalSpinDistributionMedian"                                => "haloSpinDistributionMethod.logNormal.--median"                                  ,
 	     "lognormalSpinDistributionSigma"	                              => "haloSpinDistributionMethod.logNormal.--sigma"                                   ,
-	     "deltaFunctionSpinDistributionSpin"	                      => "haloSpinDistributionMethod.deltaFunction.--spin"
+	     "deltaFunctionSpinDistributionSpin"	                      => "haloSpinDistributionMethod.deltaFunction.--spin"                                ,
+	     "stellarMassFilterThreshold"                                     => "mergerTreeOutput--galacticFilterMethod.stellarMass.--massThreshold"             ,
+	     "mergerTreeOutput"                                               => "mergerTreeOutput--outputMergerTrees"                                            ,
+	     "mergerTreeOutputReferences"                                     => "mergerTreeOutput--outputReferences"                                             ,
+	     "mergerTreeAnalyses"                                             => "mergerTreeOutput--analyses"
 	 },
  	 values        =>
          {

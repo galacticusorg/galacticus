@@ -144,11 +144,12 @@ contains
   !#  <sortName>Galacticus_Output_Tree_Mass_Profile</sortName>
   !# </mergerTreeOutputTask>
   subroutine Galacticus_Output_Tree_Mass_Profile(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store density contrast properties in the \glc\ output file buffers.
     use Kind_Numbers
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
+    use Multi_Counters
     implicit none
     double precision                , intent(in   )          :: time
     type            (treeNode      ), intent(inout), pointer :: thisNode
@@ -156,9 +157,10 @@ contains
          &                                                      integerProperty
     integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
     double precision                , intent(inout)          :: doubleBuffer     (:,:)
+    type            (multiCounter  ), intent(inout)          :: instance
     integer                                                  :: iRadius
     double precision                                         :: massEnclosed
-    !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer
+    !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer, instance
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Mass_Profile_Initialize

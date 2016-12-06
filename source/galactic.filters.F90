@@ -36,4 +36,9 @@ module Galactic_Filters
   !#  </method>
   !# </functionClass>
   
+  type, public :: filterList
+     class(galacticFilterClass), pointer :: filter_
+     type (filterList         ), pointer :: next    => null()
+  end type filterList
+
 end module Galactic_Filters

@@ -199,13 +199,14 @@ contains
   !#  <sortName>Galacticus_Output_Tree_Density_Contrast</sortName>
   !# </mergerTreeOutputTask>
   subroutine Galacticus_Output_Tree_Density_Contrast(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store density contrast properties in the \glc\ output file buffers.
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     use Dark_Matter_Halo_Scales
     use Kind_Numbers
     use Root_Finder
+    use Multi_Counters
     implicit none
     double precision                          , intent(in   )          :: time
     type            (treeNode                ), intent(inout), pointer :: thisNode
@@ -213,13 +214,14 @@ contains
          &                                                                integerBufferCount           , integerProperty
     integer         (kind=kind_int8          ), intent(inout)          :: integerBuffer     (:,:)
     double precision                          , intent(inout)          :: doubleBuffer      (:,:)
+    type            (multiCounter            ), intent(inout)          :: instance
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                          , parameter              :: toleranceAbsolute      =0.0d0, toleranceRelative=1.0d-3
     type            (rootFinder              ), save                   :: finder
     !$omp threadprivate(finder)
     integer                                                            :: iDensity
     double precision                                                   :: enclosedMass                 , radius
-    !GCC$ attributes unused :: time, integerBufferCount, integerProperty, integerBuffer
+    !GCC$ attributes unused :: time, integerBufferCount, integerProperty, integerBuffer, instance
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Density_Contrast_Initialize

@@ -1,0 +1,70 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+!% Contains a module which implements lightcone geometries.
+
+module Geometry_Lightcones
+  !% Implements geometries of lightcones.
+  use, intrinsic :: ISO_C_Binding
+  use               Galacticus_Nodes
+  private
+  
+  !# <functionClass>
+  !#  <name>geometryLightcone</name>
+  !#  <descriptiveName>Lightcone Geometries</descriptiveName>
+  !#  <description>Class providing geometries of lightcones.</description>
+  !#  <default>square</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <calculationReset>yes</calculationReset>
+  !#  <stateful>no</stateful>
+  !#  <method name="isInLightcone" >
+  !#   <description>Returns true if the provided node lies within the lightcone.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type   (treeNode), intent(inout)           :: node</argument>
+  !#   <argument>logical          , intent(in   ), optional :: atPresentEpoch</argument>
+  !#  </method>
+  !#  <method name="replicationCount" >
+  !#   <description>Returns the number of times the given nodes appears in the lightone .</description>
+  !#   <type>integer(c_size_t)</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type   (treeNode), intent(inout) :: node</argument>
+  !#   <argument>integer(c_size_t), intent(in   ) :: output</argument>
+  !#  </method>
+  !#  <method name="solidAngle" >
+  !#   <description>Returns the solid angle subtended by the lightcone (in units of steradians).</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="position" >
+  !#   <description>Returns the position vector of a {\normalfont \ttfamily node} (in units of Mpc) in the lightcone coordinate system.</description>
+  !#   <type>double precision, dimension(3)</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type   (treeNode), intent(inout) :: node</argument>
+  !#   <argument>integer(c_size_t), intent(in   ) :: instance</argument>
+  !#  </method>
+  !#  <method name="velocity" >
+  !#   <description>Returns the velocity vector of a {\normalfont \ttfamily node} (in units of km/s) in the lightcone coordinate system.</description>
+  !#   <type>double precision, dimension(3)</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type   (treeNode), intent(inout) :: node</argument>
+  !#   <argument>integer(c_size_t), intent(in   ) :: instance</argument>
+  !#  </method>
+  !# </functionClass>
+
+end module Geometry_Lightcones

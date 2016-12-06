@@ -116,7 +116,9 @@
   <conditionalMassFunctionBehrooziAlphaSatellite value="0.981019943414"/>
   <conditionalMassFunctionBehrooziLog10M1 value="12.1440055417"/>
   <imfSelectionMethod value="fixed"/>
-  <mergerTreeOutputReferences value="false"/>
+  <mergerTreeOutput>
+    <outputReferences value="false"/>
+  </mergerTreeOutput>
   <reionizationSuppressionVelocity value="35.0"/>
   <stellarPopulationPropertiesMethod value="instantaneous"/>
   <galacticusOutputFileName value="testSuite/outputs/regressions/mergerAtFinalTimeInTree.hdf5"/>

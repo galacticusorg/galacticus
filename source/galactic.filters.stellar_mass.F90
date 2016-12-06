@@ -1,0 +1,89 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014 Andrew Benson <abenson@obs.carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+!% Contains a module which implements a galactic high-pass filter for total stellar mass.
+
+  !# <galacticFilter name="galacticFilterStellarMass">
+  !#  <description>
+  !#  A galactic high-pass filter for stellar mass. Galaxies with a combined disk plus spheroid stellar mass greater than or equal
+  !#  to a fixed threshold, $M_{\star,0}=${\normalfont \ttfamily [massThreshold]}.
+  !#  </description>
+  !# </galacticFilter>
+  type, extends(galacticFilterClass) :: galacticFilterStellarMass
+     !% A galactic high-pass filter class for stellar mass.
+     private
+     double precision :: massThreshold
+   contains
+     procedure :: passes => stellarMassPasses
+  end type galacticFilterStellarMass
+
+  interface galacticFilterStellarMass
+     !% Constructors for the ``stellarMass'' galactic filter class.
+     module procedure stellarMassConstructorParameters
+     module procedure stellarMassConstructorInternal
+  end interface galacticFilterStellarMass
+
+contains
+
+  function stellarMassConstructorParameters(parameters)
+    !% Constructor for the ``stellarMass'' galactic filter class which takes a parameter set as input.
+    use Input_Parameters2
+    implicit none
+    type(galacticFilterStellarMass)                :: stellarMassConstructorParameters
+    type(inputParameters          ), intent(inout) :: parameters
+    !# <inputParameterList label="allowedParameterNames" />
+
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>massThreshold</name>
+    !#   <source>parameters</source>
+    !#   <variable>stellarMassConstructorParameters%massThreshold</variable>
+    !#   <description>The parameter $M_0$ (in units of $M_\odot$) appearing in the stellar mass threshold for the stellar mass galactic filter class.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    return
+  end function stellarMassConstructorParameters
+
+  function stellarMassConstructorInternal(massThreshold)
+    !% Internal constructor for the ``stellarMass'' galactic filter class.
+    implicit none
+    type            (galacticFilterStellarMass)                :: stellarMassConstructorInternal
+    double precision                           , intent(in   ) :: massThreshold
+    !# <constructorAssign variables="massThreshold"/>
+    return
+  end function stellarMassConstructorInternal
+
+  logical function stellarMassPasses(self,node)
+    !% Implement an stellarMass-pass galactic filter.
+    implicit none
+    class           (galacticFilterStellarMass), intent(inout) :: self
+    type            (treeNode                 ), intent(inout) :: node
+    class           (nodeComponentDisk        ), pointer       :: disk
+    class           (nodeComponentSpheroid    ), pointer       :: spheroid
+    double precision                                           :: stellarMass
+
+    disk              => node    %disk       ()
+    spheroid          => node    %spheroid   ()
+    stellarMass       = +disk    %massStellar() &
+         &              +spheroid%massStellar()
+    stellarMassPasses =  stellarMass            &
+         &              >=                      &
+         &               self%massThreshold
+    return
+  end function stellarMassPasses

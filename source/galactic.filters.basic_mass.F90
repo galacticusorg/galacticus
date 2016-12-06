@@ -1,0 +1,84 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014 Andrew Benson <abenson@obs.carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+!% Contains a module which implements a galactic high-pass filter for total stellar mass.
+
+  !# <galacticFilter name="galacticFilterBasicMass">
+  !#  <description>
+  !#  A high-pass filter for basic mass. Halos with a basic mass mass greater than or equal to a fixed threshold,
+  !#  $M_0=${\normalfont \ttfamily [massThreshold]}.
+  !#  </description>
+  !# </galacticFilter>
+  type, extends(galacticFilterClass) :: galacticFilterBasicMass
+     !% A galactic high-pass filter class for basic mass.
+     private
+     double precision :: massThreshold
+   contains
+     procedure :: passes => basicMassPasses
+  end type galacticFilterBasicMass
+
+  interface galacticFilterBasicMass
+     !% Constructors for the ``basicMass'' galactic filter class.
+     module procedure basicMassConstructorParameters
+     module procedure basicMassConstructorInternal
+  end interface galacticFilterBasicMass
+
+contains
+
+  function basicMassConstructorParameters(parameters)
+    !% Constructor for the ``basicMass'' galactic filter class which takes a parameter set as input.
+    use Input_Parameters2
+    implicit none
+    type(galacticFilterBasicMass)                :: basicMassConstructorParameters
+    type(inputParameters        ), intent(inout) :: parameters
+    !# <inputParameterList label="allowedParameterNames" />
+
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>massThreshold</name>
+    !#   <source>parameters</source>
+    !#   <variable>basicMassConstructorParameters%massThreshold</variable>
+    !#   <description>The parameter $M_0$ (in units of $M_\odot$) appearing in the basic mass threshold for the basic mass galactic filter class.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    return
+  end function basicMassConstructorParameters
+
+  function basicMassConstructorInternal(massThreshold)
+    !% Internal constructor for the ``basicMass'' galactic filter class.
+    implicit none
+    type            (galacticFilterBasicMass)                :: basicMassConstructorInternal
+    double precision                         , intent(in   ) :: massThreshold
+    !# <constructorAssign variables="massThreshold"/>
+    return
+  end function basicMassConstructorInternal
+
+  logical function basicMassPasses(self,node)
+    !% Implement a  basic mass high-pass galactic filter.
+    implicit none
+    class(galacticFilterBasicMass), intent(inout) :: self
+    type (treeNode               ), intent(inout) :: node
+    class(nodeComponentBasic     ), pointer       :: basic
+
+    basic           => node %basic        ()
+    basicMassPasses =  basic%mass         () &
+         &             >=                    &
+         &             self %massThreshold
+    return
+  end function basicMassPasses

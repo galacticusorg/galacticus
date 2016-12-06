@@ -330,23 +330,46 @@ The script generates multiple SQL queries to the Millennium database in order to
 Each of the merger tree files created can then be run through \glc\ in the usual way (see \S\ref{sec:nBodyRun}).  Outputs should be requested at every Millennium snapshot (up to the largest redshift to be considered), and the {\normalfont \ttfamily lightcone} filter should be used to cause only those galaxies which intersect the lightcone to be output---for example:
 \begin{verbatim}
 <!-- Set output redshifts to the snapshots in the milliMillennium. -->
-<outputRedshifts
-  <value>
-    0.0000 0.0199 0.0414 0.0645 0.0893 0.1159 0.1444 0.1749 0.2075 0.2425
+<outputRedshifts value=
+   "0.0000 0.0199 0.0414 0.0645 0.0893 0.1159 0.1444 0.1749 0.2075 0.2425
     0.2798 0.3197 0.3623 0.4079 0.4566 0.5086 0.5642 0.6236 0.6871 0.7550
     0.8277 0.9055 0.9887 1.0779 1.1734 1.2758 1.3857 1.5036 1.6303 1.7663
     1.9126 2.0700 2.2395 2.4220 2.6189 2.8312 3.0604 3.3081 3.5759 3.8657
-    4.1795 4.5196 4.8884 5.2888 5.7239 6.1968
-  </value>
-</outputRedshifts>
+    4.1795 4.5196 4.8884 5.2888 5.7239 6.1968"
+/>
 
 <!-- Add a lightcone filter with the required geometry -->
-<mergerTreeOutputFilters         value="lightcone"                     />
-<filterLightconeGeometryFileName value="lightconeDirectory/geometry.xml/>
-\end{verbatim}
-where the {\normalfont \ttfamily geometry.xml} file will have been automatically created within the {\normalfont \ttfamily \textless lightconeDirectory\textgreater} directory.
+<mergerTreeOutput>
+  <galacticFilterMethod value="lightcone"/>
+</mergerTreeOutput>
 
-Selecting the lightcone filter automatically causes lightcone coordinate information (i.e. the position and velocity of each galaxy in a coordinate system with axes aligned along the line of sight of the lightcone and parallel to the two edges of the square field of view) to be output (see \S\ref{sec:OutputLightcone}). The redshift of each galaxy is also output.
+<!-- Switch on output of lightcone data -->
+<outputLightconeData value="true"/>
+
+<!-- Prune away trees not appearing in the lightcone -->
+<mergerTreeOperatorMethod value="pruneLightcone"/>
+
+<!-- Specify lightcone geometry -->
+<geometryLightconeMethod value="square">
+  <origin value="0 0 0"/>
+  <unitVector1 value=" 1 1  1"/>
+  <unitVector2 value=" 0 1 -1"/>
+  <unitVector3 value="-2 1  1"/>
+  <lengthReplication value="500"/>
+  <lengthHubbleExponent value="-1"/>
+  <lengthUnitsInSI value="3.08567758135e22"/>
+  <angularSize value="0.5"/>
+  <timeEvolvesAlongLightcone value="true"/>
+  <redshift value=
+   "0.0000 0.0199 0.0414 0.0645 0.0893 0.1159 0.1444 0.1749 0.2075 0.2425
+    0.2798 0.3197 0.3623 0.4079 0.4566 0.5086 0.5642 0.6236 0.6871 0.7550
+    0.8277 0.9055 0.9887 1.0779 1.1734 1.2758 1.3857 1.5036 1.6303 1.7663
+    1.9126 2.0700 2.2395 2.4220 2.6189 2.8312 3.0604 3.3081 3.5759 3.8657
+    4.1795 4.5196 4.8884 5.2888 5.7239 6.1968"
+  />
+</geometryLightconeMethod>
+\end{verbatim}
+In the above {\normalfont \ttfamily [outputLightconeData]} causes lightcone coordinate information (i.e. the position and velocity of each galaxy in a coordinate system with axes aligned along the line of sight of the lightcone and parallel to the two edges of the square field of view, along with the redshift) to be output (see \S\ref{sec:OutputLightcone}), and {\normalfont \ttfamily [mergerTreeOperatorMethod]} is set to {\normalfont \ttfamily pruneLightcone} to cause any merger trees which have no nodes within the lightcone volume to be pruned away (as there is no need to process them). Finally, the {\normalfont \ttfamily geometryLightconeMethod} parameter describes the geometry of the lightcone to be used---see \S\ref{sec:methodsGeometryLightcone} for details.
 
 \section{Using the Instantaneous Recycling Approximation}\index{recycling!instantaneous}\index{instantaneous recycling approximation}
 

@@ -125,10 +125,11 @@ contains
   !#  <sortName>Galacticus_Output_Most_Massive_Progenitor</sortName>
   !# </mergerTreeOutputTask>
   subroutine Galacticus_Output_Most_Massive_Progenitor(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store link properties in the \glc\ output file buffers.
     use Galacticus_Nodes
     use Kind_Numbers
+    use Multi_Counters
     implicit none
     double precision                          , intent(in   )          :: time
     type            (treeNode          )      , intent(inout), pointer :: thisNode
@@ -136,13 +137,14 @@ contains
          &                                                                integerBufferCount                   , integerProperty
     integer         (kind=kind_int8    )      , intent(inout)          :: integerBuffer            (:,:)
     double precision                          , intent(inout)          :: doubleBuffer             (:,:)
+    type            (multiCounter      )      , intent(inout)          :: instance
     double precision                    , save                         :: timePrevious                  =-1.0d0
     integer         (kind=kind_int8    ), save                         :: uniqueIdMatched                      , uniqueIdPrevious=-1
     !$omp threadprivate(timePrevious,uniqueIdPrevious,uniqueIdMatched)
     type            (treeNode          )                     , pointer :: currentNode
     class           (nodeComponentBasic)                     , pointer :: currentBasicComponent
     double precision                                                   :: mostMassiveProgenitorMass
-    !GCC$ attributes unused :: doubleBufferCount, doubleProperty, doubleBuffer
+    !GCC$ attributes unused :: doubleBufferCount, doubleProperty, doubleBuffer, instance
     
     ! Ensure the module is initialized.
     call Galacticus_Output_Most_Massive_Progenitor_Initialize()

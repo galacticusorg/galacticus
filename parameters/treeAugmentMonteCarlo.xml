@@ -89,8 +89,10 @@
   <timestepSimpleRelative value="0.1"/>
 
   <!-- Output options -->
-  <mergerTreeOutputReferences value="false"/>
-
+  <mergerTreeOutput>
+    <outputReferences value="false"/>
+  </mergerTreeOutput>
+  
   <!-- Merger tree operations -->
   <mergerTreeOperatorMethod value="sequence">
     <mergerTreeOperatorMethod value="conditionalMF">
