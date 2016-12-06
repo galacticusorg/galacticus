@@ -67,8 +67,10 @@ if ( $format == 1 ) {
 	    if ( $element->{'name'} =~ m/\-\>/ ) { # Duplicates are allowed only in subparameters.
 		foreach my $node ( @{$element->{'node'}} ) {
 		    if ( ! exists($node->{'value'}) ) {
-			$valid = 1;
-			print "Parameter '".$element->{'name'}."' has no value\n";
+			unless ( %{$node} ) {
+			    $valid = 1;
+			    print "Parameter '".$element->{'name'}."' has no value\n";
+			}
 		    } elsif ( reftype($node->{'value'}) && reftype($node->{'value'}) eq "ARRAY" ) {
 			$valid = 1;
 			print "Parameter '".$element->{'name'}."' has multiple values\n";
@@ -85,8 +87,10 @@ if ( $format == 1 ) {
 	    }
 	} else {
 	    if ( ! exists($element->{'node'}->{'value'}) ) {
-		$valid = 1;
-		print "Parameter '".$element->{'name'}."' has no value\n";
+		unless ( %{$element->{'node'}} ) {
+		    $valid = 1;
+		    print "Parameter '".$element->{'name'}."' has no value\n";
+		}
 	    } elsif ( reftype($element->{'node'}->{'value'}) && reftype($element->{'node'}->{'value'}) eq "ARRAY" ) {
 		$valid = 1;
 		print "Parameter '".$element->{'name'}."' has multiple values\n";

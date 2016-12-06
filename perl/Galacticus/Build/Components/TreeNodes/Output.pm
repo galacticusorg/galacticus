@@ -170,6 +170,10 @@ sub Tree_Node_Output {
 	name        => "treeNodeOutput",
 	description => "Populate output buffers with properties to output for a {\\normalfont \\ttfamily treeNode}.",
 	content     => "",
+	modules     =>
+	    [
+	     "Multi_Counters"
+	    ],
 	variables   =>
 	    [
 	     {
@@ -205,6 +209,12 @@ sub Tree_Node_Output {
 		 variables  => [ "time" ]
 	     },
 	     {
+		 intrinsic  => "type",
+		 type       => "multiCounter",
+		 attributes => [ "intent(in   )" ], 
+		 variables  => [ "outputInstance" ]
+	     },
+	     {
 		 intrinsic  => "integer",
 		 variables  => [ "i" ]
 	     }
@@ -215,7 +225,7 @@ sub Tree_Node_Output {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})
-    call self%component{ucfirst($class->{'name'})}(i)%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time,instance=i)
+    call self%component{ucfirst($class->{'name'})}(i)%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time,outputInstance,instance=i)
   end do
 end if
 CODE

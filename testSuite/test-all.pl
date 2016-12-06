@@ -202,6 +202,10 @@ my @executablesToRun = (
 	valgrind => 0
     },
     {
+	name     => "tests.multi_counters.exe",                                           # Tests of multi-counters.
+	valgrind => 0
+    },
+    {
 	name     => "tests.tensors.exe",                                                  # Tests of tensor functions.
 	valgrind => 0
     },
