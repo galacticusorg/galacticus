@@ -212,7 +212,7 @@ contains
     double precision                                                               :: parentMassMinimum                 , parentMassMaximum    , &
          &                                                                            massRatioMinimum                  , massRatioMaximum     , &
          &                                                                            formationRateTimeFraction
-    logical                                                                           alwaysIsolatedHalosOnly           , extendedStatistics   , &
+    logical                                                                        :: alwaysIsolatedHalosOnly           , extendedStatistics   , &
          &                                                                            computeCovariances
     type            (varying_string                 )                              :: outputGroupName
     !# <inputParameterList label="allowedParameterNames" />
