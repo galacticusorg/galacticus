@@ -32,6 +32,45 @@ module Multi_Counters
      !% an arbitrary range.
      integer(c_size_t), allocatable, dimension(:) :: ranges, values
    contains
+     !@ <objectMethods>
+     !@   <object>multiCounter</object>
+     !@   <objectMethod>
+     !@     <method>reset</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Reset the multi-counter back to its initial count state, such that the next increment will return the first count.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>count</method>
+     !@     <type>\intzero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return the number of counters configured in this multi-counter.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>append</method>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ range\argin</arguments>
+     !@     <description>Append a new counter to the multi-counter, with the specified {\normalfont \ttfamily range}.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>increment</method>
+     !@     <type>\logicalzero</type>
+     !@     <arguments></arguments>
+     !@     <description>Increment the state of the multi-counter. Return {\normalfont \ttfamily .false.} if incrementing was not possible (i.e. counter was in the final state), {\normalfont \ttfamily .true.} otherwise.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>isFinal</method>
+     !@     <type>\logicalzero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return {\normalfont \ttfamily .true.} if the counter is in its final state, {\normalfont \ttfamily .false.} otherwise.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>state</method>
+     !@     <type>\intzero</type>
+     !@     <arguments>\intzero\ i\argin</arguments>
+     !@     <description>Return the state of the {\normalfont \ttfamily i}$^{\rm th}$ counter.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      final     ::              multiCounterDestructor
      procedure :: append    => multiCounterAppend
      procedure :: reset     => multiCounterReset
@@ -85,10 +124,11 @@ contains
     return
   end subroutine multiCounterReset
 
-  integer(c_size_t) function multiCounterCount(self)
+  function multiCounterCount(self)
     !% Return the number of counters in the multi-counter.
     use Galacticus_Error
     implicit none
+    integer(c_size_t    )                :: multiCounterCount
     class  (multiCounter), intent(inout) :: self
 
     ! Validate input.
@@ -98,10 +138,11 @@ contains
     return
   end function multiCounterCount
 
-  integer(c_size_t) function multiCounterState(self,i)
+  function multiCounterState(self,i)
     !% Return the state of the multi-counter.
     use Galacticus_Error
     implicit none
+    integer(c_size_t    )                :: multiCounterState
     class  (multiCounter), intent(inout) :: self
     integer(c_size_t    ), intent(in   ) :: i
 

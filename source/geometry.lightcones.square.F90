@@ -79,6 +79,19 @@
      !@     <arguments>\intzero\ output\argin, \textcolor{red}{\textless double(3)\textgreater} nodePosition\argin, \logicalzero\ [positionFound]\argout</arguments>
      !@     <description>Returns the position of a point, {\normalfont \ttfamily nodePosition} (given in physical coordinates within the primary replicant volume), in comoving coordinates in the replicant volume in which it appears in the lightcone. If the point is \emph{not} in the lightcone the returned position is set to the largest possible negative number in each coordinate. If the optional {\normalfont \ttfamily positionFound} argument is given it will be set to true or false to indicate whether or not the point was found in the lightcone volume.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>replicants</method>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ output\argin, \textcolor{red}{\textless double(3)\textgreater} nodePosition\argin, \enumReplicantAction\ action\argin, \intzero\ [count]\argout, \logicalzero\ [isInLightcone],\intzero\ [instance]\argin, \textcolor{red}{\textless double(3)\textgreater} [position]\argout</arguments>
+     !@     <description>
+     !@      Performs various actions related to replicants of nodes appearing in lightcone output, depending on the value of the {\normalfont \ttfamily action} argument:
+     !@      \begin{description}
+     !@      \item[{\normalfont \ttfamily replicantActionCount}] returns in {\normalfont \ttfamily count} the number of replicants in which the node appears in the lightcone;
+     !@      \item[{\normalfont \ttfamily replicantActionAny}] returns true in {\normalfont \ttfamily isInLightcone} is the given position appears in \emph{any} replicant in the lightcone;
+     !@      \item[{\normalfont \ttfamily replicantActionInstance}] returns in {\normalfont \ttfamily position} the position in the {\normalfont \ttfamily instance}$^{\rm th}$ replicant in which this position appears in the lightcone.
+     !@      \end{description}
+     !@     </description>
+     !@   </objectMethod>
      !@ </objectMethods>
      final     ::                     squareDestructor
      procedure :: isInLightcone    => squareIsInLightcone
@@ -390,11 +403,12 @@ contains
     return
   end subroutine squareDestructor
 
-  integer(c_size_t) function squareReplicationCount(self,node,output)
+  function squareReplicationCount(self,node,output)
     !% Determine the number of times {\normalfont \ttfamily node} appears in the lightcone.
     use, intrinsic :: ISO_C_Binding
     use               Galacticus_Nodes
     implicit none
+    integer(c_size_t               )                :: squareReplicationCount
     class  (geometryLightconeSquare), intent(inout) :: self
     type   (treeNode               ), intent(inout) :: node
     integer(c_size_t               ), intent(in   ) :: output

@@ -29,6 +29,33 @@ module Locks
      !% OpenMP lock type which supports read/write locking.
      integer(omp_lock_kind), allocatable, dimension(:) :: locks
    contains
+     !@ <objectMethods>
+     !@   <object>ompReadWriteLock</object>
+     !@   <objectMethod>
+     !@     <method>setRead</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Obtain a read (non-blocking) lock on the object.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>unsetRead</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Release a read (non-blocking) lock on the object.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>setWrite</method>
+     !@     <type>\void</type>
+     !@     <arguments>\logicalzero\ [haveReadLock]\argin</arguments>
+     !@     <description>Obtain a write (blocking) lock on the object. The lock will block until all other read/write locks on the object are released and while held will prevent any read locks from being obtained. If the thread requesting the write lock already has a read lock it should set {\normalfont \ttfamily haveReadLock=.true.} when calling this function.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>unsetWrite</method>
+     !@     <type>\void</type>
+     !@     <arguments>\logicalzero\ [haveReadLock]\argin</arguments>
+     !@     <description>Release a write (blocking) lock on the object. If the thread releasing the write lock already had a read lock it should set {\normalfont \ttfamily haveReadLock=.true.} when calling this function to ensure that read locked is retained.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      final     ::               ompReadWriteLockDestructor
      procedure :: setRead    => ompReadWriteLockSetRead
      procedure :: unsetRead  => ompReadWriteLockUnsetRead
