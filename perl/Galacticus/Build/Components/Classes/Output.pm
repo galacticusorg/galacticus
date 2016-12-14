@@ -386,7 +386,7 @@ CODE
 if (default{ucfirst($class->{'name'})}Component%{$member->{'name'}}IsActive() {(exists($member->{'output'}->{'instances'}) && $member->{'output'}->{'instances'} eq "first") ? " .and. instance == 1" : ""}) then
 CODE
 	# Iterate over all properties belonging to this member which are to be output.
-	foreach $code::property ( grep {exists($_->{'output'})} &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}, keyAs => 'name' ) ) {
+	foreach $code::property ( grep {exists($_->{'output'}) && ! $_->{'definedInParent'} } &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}, keyAs => 'name' ) ) {
 	    # Determine output count.
 	    if      ( $code::property->{'data'}->{'rank'} == 0 ) {
 		$code::count = 1;

@@ -107,9 +107,9 @@ CODE
     %code::fixedSizeCount = ( integer => 0, double => 0 );
     # Iterate over properties, generating code to increment output counts appropriately.
     foreach $code::property ( &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) ) {
-	# Skip properties with no output.
+	# Skip properties with no output or which are defined in their parent implementation.
 	next
-	    unless ( exists($code::property->{'output'}) );
+	    unless ( exists($code::property->{'output'}) && ! $code::property->{'definedInParent'} );
 	# Determine any condition for output.
 	($code::condition = exists($code::property->{'output'}->{'condition'}) ? "if (".$code::property->{'output'}->{'condition'}.")" : "") =~ s/\[\[([^\]]+)\]\]/$1/g;
 	# Detect whether intrinsic or not.
@@ -282,9 +282,9 @@ CODE
     }
     # Iterate over properties, generating code to set names appropriately.
     foreach $code::property ( &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) ) {
-	# Skip properties with no output.
+	# Skip properties with no output or which are defined in their parent implementation.
 	next
-	    unless ( exists($code::property->{'output'}) );
+	    unless ( exists($code::property->{'output'}) && ! $code::property->{'definedInParent'} );
 	# Determine any condition for output.
 	($code::conditionOpen = exists($code::property->{'output'}->{'condition'}) ? "if (".$code::property->{'output'}->{'condition'}.") then\n" : "") =~ s/\[\[([^\]]+)\]\]/$1/g;
 	$code::conditionClose = exists($code::property->{'output'}->{'condition'}) ? "end if\n"                                                   : ""                            ;
@@ -369,9 +369,9 @@ sub Implementation_Output_Common_Tasks {
     my @modulesRequired;
     my @typesRequired;
     foreach my $property ( &List::ExtraUtils::hashList($member->{'properties'}->{'property'}) ) {
-	# Skip properties with no output.
+	# Skip properties with no output or which are defined in their parent implementation.
 	next
-	    unless ( exists($property->{'output'}) );
+	    unless ( exists($property->{'output'}) && ! $code::property->{'definedInParent'} );
 	# Extract modules required.
 	if ( exists($property->{'output'}->{'modules'}) ) {	    
 	    (my $moduleList = $property->{'output'}->{'modules'}) =~ s/\s//g;
