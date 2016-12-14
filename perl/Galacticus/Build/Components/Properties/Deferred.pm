@@ -94,7 +94,7 @@ sub Properties_Deferred_Get_Functions {
 	                                  $code::property->{'getFunction'}->{'build'     }
 	);
     # Get properties of the data type needed.
-    (my $functionTypeDescriptor) = &Galacticus::Build::Components::DataTypes::dataObjectDefinition($code::property,matchOnly => 1);
+    (my $functionTypeDescriptor) = &Galacticus::Build::Components::DataTypes::dataObjectDefinition($code::property);
     my $functionType = 
 	                                                                    $functionTypeDescriptor->{'intrinsic' }            .
 	(exists($functionTypeDescriptor->{'type'      }) ? "(" .            $functionTypeDescriptor->{'type'      }  .")" : "").
