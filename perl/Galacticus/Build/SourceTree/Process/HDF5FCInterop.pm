@@ -58,7 +58,7 @@ sub Process_HDF5FCInterop {
 				intrinsic => 1,
 				only      => \%typesAdded
 			    };
-			    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($sibling,$moduleUses);
+			    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$moduleUses);
 			}
 			last;
 		    }
