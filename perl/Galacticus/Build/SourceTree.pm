@@ -23,6 +23,7 @@ use Galacticus::Build::SourceTree::Process::SourceDigest;
 use Galacticus::Build::SourceTree::Process::SourceIntrospection;
 use Galacticus::Build::SourceTree::Process::ObjectBuilder;
 use Galacticus::Build::SourceTree::Process::DebugHDF5;
+use Galacticus::Build::SourceTree::Process::ProfileOpenMP;
 use Galacticus::Build::SourceTree::Process::GCCAttributes;
 use Galacticus::Build::SourceTree::Process::HDF5FCInterop;
 use Galacticus::Build::SourceTree::Process::Constructors;
@@ -106,7 +107,7 @@ sub ProcessTree {
     my (%options) = @_;
     # Run all defined processors on the tree.
     &{$Galacticus::Build::SourceTree::Hooks::processHooks{$_}}($tree,\%options)
-	foreach ( keys(%Galacticus::Build::SourceTree::Hooks::processHooks) );
+	foreach ( sort(keys(%Galacticus::Build::SourceTree::Hooks::processHooks)) );
     return $tree;
 }
 
