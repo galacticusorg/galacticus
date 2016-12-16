@@ -27,6 +27,7 @@ sub Parse_ModuleUses {
 	    my $rawCode;
 	    my $rawModuleUse;
 	    my $moduleUses;
+	    my @preprocessorStack;
 	    open(my $code,"<",\$node->{'content'});
 	    do {
 		# Get a line.
@@ -53,9 +54,26 @@ sub Parse_ModuleUses {
 			map {$moduleUses->{$moduleName}->{'only'}->{$_} = 1} split(/\s*,\s*/,$only);
 		    } else {
 			$moduleUses->{$moduleName}->{'all'} = 1;
-		    }   
+		    }
+		    @{$moduleUses->{$moduleName}->{'conditions'}} = @preprocessorStack
+			if ( scalar(@preprocessorStack) > 0 );
+		} elsif ( $processedLine =~ m/^#/ && $rawModuleUse ) {
+		    $isModuleUse = 1;
+		    $rawModuleUse .= $rawLine
 		} else {
 		    $rawCode      .= $rawLine;
+		}
+		# Handle preprocessor lines.
+		push(@preprocessorStack,{name => $1, invert => 0})
+		    if ( $processedLine =~ m/^#ifdef\s+([A-Z0-9]+)/ );
+		push(@preprocessorStack,{name => $1, invert => 1})
+		    if ( $processedLine =~ m/^#ifndef\s+([A-Z0-9]+)/ );
+		pop(@preprocessorStack)
+		    if ( $processedLine =~ m/^#endif/ );
+		if ( $processedLine =~ m/^#else/ ) {
+		    my $descriptor = pop(@preprocessorStack);
+		    $descriptor->{'invert'} = 1-$descriptor->{'invert'};
+		    push(@preprocessorStack,$descriptor);
 		}
 		# Process code and module use blocks as necessary.		
 		if ( ( $isModuleUse == 1 || eof($code) ) && $rawCode      ) {
@@ -157,7 +175,7 @@ sub AddUses {
 		$usesNode->{'moduleUse'}->{$moduleName}->{'all'} = 1;
 		delete($usesNode->{'moduleUse'}->{$moduleName}->{'only'});
 	    } else {
-		$usesNode->{'moduleUse'}->{$moduleName}->{'only'}->{$_} = 1
+		$usesNode->{'moduleUse'}->{$moduleName}->{'only'}->{$_} = 1x2
 		    foreach ( keys(%{$moduleUses->{'moduleUse'}->{$moduleName}->{'only'}}) );
 	    }
 	}
@@ -165,6 +183,11 @@ sub AddUses {
     # Update the contained code.
     $usesNode->{'firstChild'}->{'content'} = undef();
     foreach my $moduleName ( keys(%{$usesNode->{'moduleUse'}}) ) {
+	if ( exists($usesNode->{'moduleUse'}->{$moduleName}->{'conditions'}) ) {
+	    foreach ( @{$usesNode->{'moduleUse'}->{$moduleName}->{'conditions'}} ) {
+		$usesNode->{'firstChild'}->{'content'} .= ($_->{'invert'} ? "#ifndef" : "#ifdef")." ".$_->{'name'}."\n";
+	    }
+	}
 	$usesNode->{'firstChild'}->{'content'} .= "   ";
 	$usesNode->{'firstChild'}->{'content'} .= "!\$ "
 	    if ( $usesNode->{'moduleUse'}->{$moduleName}->{'openMP'} );
@@ -175,6 +198,11 @@ sub AddUses {
 	$usesNode->{'firstChild'}->{'content'} .= ", only : ".join(", ",keys(%{$usesNode->{'moduleUse'}->{$moduleName}->{'only'}}))
 	    if ( $usesNode->{'moduleUse'}->{$moduleName}->{'only'} );
   	$usesNode->{'firstChild'}->{'content'} .= "\n";
+	if ( exists($usesNode->{'moduleUse'}->{$moduleName}->{'conditions'}) ) {
+	    foreach ( @{$usesNode->{'moduleUse'}->{$moduleName}->{'conditions'}} ) {
+		$usesNode->{'firstChild'}->{'content'} .= "#endif\n";
+	    }
+	}
     }
 }
 
