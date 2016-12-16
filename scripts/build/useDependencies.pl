@@ -203,6 +203,9 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 		    push(@modulesUsed,$workDirectoryName.lc($usedModule).".mod")
 			unless ( grep {$_ eq lc($usedModule)} @externalModules );
 		}
+		# Find any OpenMP critical directives - these require a dependence on the OpenMP utilities data module.
+		push(@modulesUsed,$workDirectoryName."openmp_utilities_data.mod")
+		    if ( $line =~ m/^\s*\!\$omp\s+critical\s*\([a-z0-9_]+\)/i );
 		# Locate explicit dependencies.
 		push(@dependenciesExplicit,split(" ",$2))
 		    if ( $line =~ m/^\s*(\!|\/\/):\s*(.*)$/ );
