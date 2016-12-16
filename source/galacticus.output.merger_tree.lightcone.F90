@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -212,16 +212,32 @@ contains
     use               Galacticus_Nodes
     use               Multi_Counters
     use               Geometry_Lightcones
+    use               Galacticus_Error
+    use               String_Handling
+    use               ISO_Varying_String
     implicit none
-    type   (treeNode               ), intent(inout), pointer :: node
-    integer(c_size_t               ), intent(in   )          :: output
-    type   (multiCounter           ), intent(inout)          :: instance
-    class  (geometryLightconeClass )               , pointer :: geometryLightcone_
-
+    type     (treeNode              ), intent(inout), pointer :: node
+    integer  (c_size_t              ), intent(in   )          :: output
+    type     (multiCounter          ), intent(inout)          :: instance
+    class    (geometryLightconeClass)               , pointer :: geometryLightcone_
+    integer  (c_size_t              )                         :: replicationCount
+    type     (varying_string        )                         :: message
+    character(len=5                 )                         :: label
+    
     call Galacticus_Output_Lightcone_Initialize()
     if (outputLightconeData) then
        geometryLightcone_  => geometryLightcone ()
-       call instance%append(geometryLightcone_%replicationCount(node,output))
+       replicationCount=geometryLightcone_%replicationCount(node,output)
+       if (replicationCount < 1_c_size_t) then
+          if (geometryLightcone_%isInLightcone(node)) then
+             label="true"
+          else
+             label="false"
+          end if
+          message=var_str("Node ")//node%index()//" appears in "//replicationCount//"(<1) replicants - this should not happen - lightcone intersection reports '"//trim(label)//"'"
+          call Galacticus_Error_Report('Galacticus_Output_Tree_Lightcone_Instances',message)
+       end if
+       call instance%append(replicationCount)
        instanceIndex=instance%count()
     end if
     return
