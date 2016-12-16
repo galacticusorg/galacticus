@@ -80,7 +80,7 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Math
     use Error_Functions
-    use COsmology_Parameters
+    use Cosmology_Parameters
     use Galactic_Structure_Densities
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Rotation_Curves

@@ -103,6 +103,9 @@ sub Components_Parse_Directive {
 	unless ( exists($build->{'currentDocument'}->{'class'}) );
     # Construct an ID for this component.
     my $componentID = ucfirst($build->{'currentDocument'}->{'class'}).ucfirst($build->{'currentDocument'}->{'name'});    
+    # Check for pre-existing component with identical name.
+    die("Galacticus::Build::Components::Components_Parse_Directive: multiple components with ID '".$componentID."'")
+	if ( exists($build->{'components'}->{$componentID}) );
     # Store a copy of the component's defining document.
     $build->{'components'}->{$componentID} = $build->{'currentDocument'};
 }
