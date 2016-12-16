@@ -340,8 +340,7 @@ contains
        squareConstructorInternal%solidAngleSubtended=angularSize**2
     else
        tanHalfAngle=tan(angularSize/2.0d0)
-       squareConstructorInternal%solidAngleSubtended=                                           &
-            &                                        +2.0d0                                     &
+       squareConstructorInternal%solidAngleSubtended=+2.0d0                                     &
             &                                        *Pi                                        &
             &                                        *(                                         &
             &                                          +3.0d0                                   &
@@ -419,7 +418,7 @@ contains
     return
   end function squareReplicationCount
   
-  logical function squareIsInLightcone(self,node,atPresentEpoch)
+  logical function squareIsInLightcone(self,node,atPresentEpoch,radiusBuffer)
     !% Determine if the given {\normalfont \ttfamily node} lies within the lightcone.
     use, intrinsic :: ISO_C_Binding
     use               Arrays_Search
@@ -433,6 +432,7 @@ contains
     class           (geometryLightconeSquare), intent(inout)               :: self
     type            (treeNode               ), intent(inout)               :: node
     logical                                  , intent(in   ) , optional    :: atPresentEpoch
+    double precision                         , intent(in   ) , optional    :: radiusBuffer
     class           (nodeComponentBasic     )                , pointer     :: basic               , basicParent
     class           (nodeComponentPosition  )                , pointer     :: position
     class           (nodeComponentSatellite )                , pointer     :: satellite
@@ -458,7 +458,7 @@ contains
     ! Check that we can get the position of a node.
     if (.not.self%positionGettableChecked) then
        self%positionGettableChecked=.true.
-       if (.not.defaultPositionComponent%positionHistoryIsGettable())                                                                   &
+       if (.not.defaultPositionComponent%positionIsGettable())                                                                          &
             & call Galacticus_Error_Report                                                                                              &
             &      (                                                                                                                    &
             &       'squareIsInLightcone'                                                                                             , &
@@ -485,29 +485,29 @@ contains
        outputMaximum=outputMinimum
     else
        ! We need to test if the node is in the lightcone at any point during its existance. Determine for how long this node will
-       ! persist. This requires that the merging time be defined. To perform the test also requires that a position history exists.
-       ! Check that we can get the time of merging and the position history of a node.
+       ! persist. This requires that the merging time be defined. To perform the test also requires that a position exists.  Check
+       ! that we can get the time of merging and the position of a node.
        if (.not.self%mergeTimeGettableChecked) then
           self%mergeTimeGettableChecked=.true.
-          if (.not.defaultSatelliteComponent%timeOfMergingIsGettable())                                                                                 &
-               & call Galacticus_Error_Report                                                                                                           &
-               &      (                                                                                                                                 &
-               &       'squareIsInLightcone'                                                                                                          , &
-               &       'testing if a node is ever in the lightcone requires that the timeOfMerging property of the satellite component be gettable'  // &
-               &       Galacticus_Component_List(                                                                                                       &
-               &                                 'satellite'                                                                                          , &
-               &                                  defaultSatelliteComponent%timeOfMergingAttributeMatch  (requireGettable=.true.)                       &
-               &                                )                                                                                                       &
+          if (.not.defaultSatelliteComponent%timeOfMergingIsGettable())                                                                               &
+               & call Galacticus_Error_Report                                                                                                         &
+               &      (                                                                                                                               &
+               &       'squareIsInLightcone'                                                                                                        , &
+               &       'testing if a node is ever in the lightcone requires that the timeOfMerging property of the satellite component be gettable'// &
+               &       Galacticus_Component_List(                                                                                                     &
+               &                                 'satellite'                                                                                        , &
+               &                                  defaultSatelliteComponent%timeOfMergingAttributeMatch(requireGettable=.true.)                       &
+               &                                )                                                                                                     &
                &      )
-          if (.not.defaultPositionComponent%positionIsGettable())                                                                                       &
-               & call Galacticus_Error_Report                                                                                                           &
-               &      (                                                                                                                                 &
-               &       'squareIsInLightcone'                                                                                                          , &
-               &       'testing if a node is ever in the lightcone requires that the position history property of the position component be gettable'// &
-               &       Galacticus_Component_List(                                                                                                       &
-               &                                 'position'                                                                                           , &
-               &                                  defaultPositionComponent %positionHistoryAttributeMatch(requireGettable=.true.)                       &
-               &                                )                                                                                                       &
+          if (.not.defaultPositionComponent%positionIsGettable())                                                                                     &
+               & call Galacticus_Error_Report                                                                                                         &
+               &      (                                                                                                                               &
+               &       'squareIsInLightcone'                                                                                                        , &
+               &       'testing if a node is ever in the lightcone requires that the position property of the position component be gettable'      // &
+               &       Galacticus_Component_List(                                                                                                     &
+               &                                 'position'                                                                                         , &
+               &                                  defaultPositionComponent %positionAttributeMatch     (requireGettable=.true.)                       &
+               &                                )                                                                                                     &
                &      )
        end if
        ! Ensure minimum output time is after when the node exists.
@@ -586,7 +586,7 @@ contains
           nodePosition =  nodePositionHistory(:,output-outputMinimum+1)
        end if
        ! Find the position (if possible) of the node in the lightcone for this output.
-       call self%replicants(output,nodePosition,replicantActionAny,isInLightcone=squareIsInLightcone)
+       call self%replicants(output,nodePosition,replicantActionAny,isInLightcone=squareIsInLightcone,radiusBuffer=radiusBuffer)
        ! Return as soon as we find that the node is in the lightcone.
        if (squareIsInLightcone) return
     end do
@@ -659,7 +659,7 @@ contains
     return
   end function squareVelocity
 
-  subroutine squareReplicants(self,output,nodePosition,action,count,isInLightcone,instance,position)
+  subroutine squareReplicants(self,output,nodePosition,action,count,isInLightcone,radiusBuffer,instance,position)
     !% Compute quantities related to the number of replicants in which a node appears.
     use, intrinsic :: ISO_C_Binding
     use               Galacticus_Nodes
@@ -673,14 +673,17 @@ contains
     integer         (c_size_t               ), intent(  out)                , optional :: count
     integer         (c_size_t               ), intent(in   )                , optional :: instance
     logical                                  , intent(  out)                , optional :: isInLightcone
+    double precision                         , intent(in   )                , optional :: radiusBuffer
     double precision                                        , dimension(3  ), optional :: position
-    double precision                                        , dimension(3  )           :: nodePositionComoving, nodePositionReplicant
+    double precision                                        , dimension(3  )           :: nodePositionComoving, nodePositionReplicant, &
+         &                                                                                origin
     integer                                                 , dimension(3,2)           :: periodicRange
     integer                                                                            :: i                   , j                    , &
          &                                                                                k                   , iAxis                , &
          &                                                                                replicantCount
     logical                                                                            :: isInFieldOfView     , found
-    double precision                                                                   :: distanceRadial
+    double precision                                                                   :: distanceRadial      , lengthOffsetOrigin   , &
+         &                                                                                distanceMinimum     , distanceMaximum
     
     ! Validate input.
     select case (action)
@@ -694,9 +697,42 @@ contains
     case default
        call Galacticus_Error_Report('squareReplicants','unknown action')
     end select
+    ! If a buffer radius (i.e. a point is to be considered to be inside the lightcone if it is within that distance from an edge
+    ! of the cone) is being specified then adjust origin. We shift the origin backward along the lightcone principal axis such
+    ! that the cone is effectively broadened by the desired radius. In the diagram below, the inner cone is the true lightcone
+    ! geometry, the outer cone is shifted back by a distance L, such that the edge of the outer cone is offset from the inner cone
+    ! by the desired buffer radius, R. From the geometry it is clear that L=R/sin(θ/2):
+    !
+    !  \ \         / /
+    !   \ \       /R/
+    !    \ \     /⤡/
+    !     \ \ ∡θ/ /      L=R/sin(θ/2)
+    !      \ \ / /
+    !       \ ↑L/
+    !        \↓/
+    !
+    ! The minimum and maximum distances for this section of the cone must then be offset by +L to counteract the shift in
+    ! origin. Finally, the minimum/maximum distance is decreased/increased by R such that the caps of the cone section are
+    ! buffered by a distance R also.
+    if (present(radiusBuffer).and.radiusBuffer > 0.0d0) then
+       lengthOffsetOrigin=+radiusBuffer               &
+            &             /sin(                       &
+            &                  +0.5d0                 &
+            &                  *self%angularSize      &
+            &                 )
+       origin            =+self%origin                &
+            &             -self%unitVector      (:,1) &
+            &             *lengthOffsetOrigin
+       distanceMinimum   =+self%distanceMinimum(output)+lengthOffsetOrigin-radiusBuffer
+       distanceMaximum   =+self%distanceMaximum(output)+lengthOffsetOrigin+radiusBuffer
+    else
+       origin            =+self%origin
+       distanceMinimum   =+self%distanceMinimum(output)
+       distanceMaximum   =+self%distanceMaximum(output)
+    end if    
     ! Determine range of possible replicants of this galaxy which could be in the lightcone.
-    periodicRange(:,1)=floor  ((self%origin+self%distanceMinimum(output)*self%unitVector(:,1))/self%lengthReplication)-1
-    periodicRange(:,2)=ceiling((self%origin+self%distanceMaximum(output)*self%unitVector(:,1))/self%lengthReplication)+0
+    periodicRange(:,1)=floor  ((origin+self%distanceMinimum(output)*self%unitVector(:,1))/self%lengthReplication)-1
+    periodicRange(:,2)=ceiling((origin+self%distanceMaximum(output)*self%unitVector(:,1))/self%lengthReplication)+0
     ! Get comoving position.
     nodePositionComoving=nodePosition/self%cosmologyFunctions_%expansionFactor(self%outputTimes(output))
     ! Iterate over all replicants.
@@ -716,9 +752,9 @@ contains
                   & abs(atan2(nodePositionReplicant(3),nodePositionReplicant(1))) < 0.5d0*self%angularsize
              ! Test if node lies within appropriate radial range.
              distanceRadial=Vector_Magnitude(nodePositionReplicant)
-             found  =      isInFieldOfView                                &
-                  &  .and. distanceRadial >  self%distanceMinimum(output) &
-                  &  .and. distanceRadial <= self%distanceMaximum(output)             
+             found  =      isInFieldOfView                          &
+                  &  .and. distanceRadial >  distanceMinimum        &
+                  &  .and. distanceRadial <= distanceMaximum
              if (found) then
                 if (action == replicantActionAny) then
                    ! If we are just testing for presence in the lightcone, then we can return right now.

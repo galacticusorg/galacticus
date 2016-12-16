@@ -36,8 +36,9 @@ module Geometry_Lightcones
   !#   <description>Returns true if the provided node lies within the lightcone.</description>
   !#   <type>logical</type>
   !#   <pass>yes</pass>
-  !#   <argument>type   (treeNode), intent(inout)           :: node</argument>
-  !#   <argument>logical          , intent(in   ), optional :: atPresentEpoch</argument>
+  !#   <argument>type            (treeNode), intent(inout)           :: node</argument>
+  !#   <argument>logical                   , intent(in   ), optional :: atPresentEpoch</argument>
+  !#   <argument>double precision          , intent(in   ), optional :: radiusBuffer</argument>
   !#  </method>
   !#  <method name="replicationCount" >
   !#   <description>Returns the number of times the given nodes appears in the lightone .</description>
