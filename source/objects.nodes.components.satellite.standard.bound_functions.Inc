@@ -49,3 +49,21 @@ double precision function Node_Component_Satellite_Standard_Time_Of_Merging(self
   end if
   return
 end function Node_Component_Satellite_Standard_Time_Of_Merging
+
+subroutine Node_Component_Satellite_Standard_Time_Of_Merging_Set(self,setValue)
+  !% Set the {\normalfont \ttfamily timeOfMerging} property of the {\normalfont \ttfamily satelliteStandard} component.
+  implicit none
+  class           (nodeComponentSatelliteStandard), intent(inout) :: self
+  double precision                                , intent(in   ) :: setValue
+  type            (treeNode                      ), pointer       :: selfNode
+  class           (nodeComponentBasic            ), pointer       :: selfBasicComponent
+
+  selfNode           => self    %host ()
+  selfBasicComponent => selfNode%basic()
+  if (setValue >= 0.0d0) then
+     self%mergeTimeData=setValue-selfBasicComponent%time()
+  else
+     self%mergeTimeData=-1.0d0
+  end if
+  return
+end subroutine Node_Component_Satellite_Standard_Time_Of_Merging_Set
