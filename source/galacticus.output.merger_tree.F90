@@ -76,7 +76,8 @@ module Galacticus_Output_Merger_Tree
   type            (outputAnalyses      )          , dimension(:),   allocatable  :: outputAnalysisList
 
   ! Filter to apply to output.
-  class           (galacticFilterClass ), pointer                                :: outputFilter
+  class           (galacticFilterClass ), pointer                                :: outputFilter => null()
+  !$omp threadprivate(outputFilter)
 
 contains
 
@@ -102,24 +103,30 @@ contains
     !# <include directive="mergerTreeAnalysisTask" type="moduleUse">
     include 'galacticus.output.merger_tree.analysis.modules.inc'
     !# </include>
+    ! Define two inputParameter ojbects here, even though they are both used to access the same "mergerTreeOutput" parameter
+    ! block. This is necessary to trigger automatic finalization of the objects when this function is exited. That finalization
+    ! cleans up (e.g. closes the associated HDF5 group). Otherwise we could do this manually, but it's easier to simply have it
+    ! done automatically. They are defined on separate lines as, currently, the "objectBuilder" preprocessor directive is
+    ! insufficiently intelligent to modify the attributes of these variables if they are on a single line.
     implicit none
     type            (mergerTree        )              , intent(inout), target   :: thisTree
     integer         (c_size_t          )              , intent(in   )           :: iOutput
     double precision                                  , intent(in   )           :: time
     logical                                           , intent(in   ), optional :: isLastOutput
-    type            (treeNode          ), pointer                               :: thisNode          , nextNode
-    integer         (kind=HSIZE_T      ), dimension(1)                          :: referenceLength   , referenceStart
+    type            (treeNode          ), pointer                               :: thisNode              , nextNode
+    integer         (kind=HSIZE_T      ), dimension(1)                          :: referenceLength       , referenceStart
     class           (nodeComponentBasic), pointer                               :: thisBasicComponent
     type            (mergerTree        ), pointer                               :: currentTree
-    integer                                                                     :: doubleProperty    , nodeStatus     , &
-         &                                                                         iProperty         , integerProperty, &
-         &                                                                         i                 , analysisCount
+    integer                                                                     :: doubleProperty        , nodeStatus     , &
+         &                                                                         iProperty             , integerProperty, &
+         &                                                                         i                     , analysisCount
     integer         (c_size_t          )                                        :: iGroup
-    logical                                                                     :: nodePassesFilter  , finished
+    logical                                                                     :: nodePassesFilter      , finished
     type            (hdf5Object        )                                        :: toDataset
     type            (inputParameters   )                                        :: outputParameters
+    type            (inputParameters   )                                        :: outputParametersFilter
     type            (multiCounter      )                                        :: instance
-
+    
     ! Initialize if necessary.
     if (.not.mergerTreeOutputInitialized) then
        !$omp critical(Merger_Tree_Output_Initialization)
@@ -161,13 +168,22 @@ contains
              !#   <cardinality>1</cardinality>
              !# </inputParameter>
           end if
-          !# <objectBuilder class="galacticFilter" name="outputFilter" source="outputParameters"/>          
           ! Flag that the module is now initialized.
           mergerTreeOutputInitialized=.true.
        end if
        !$omp end critical(Merger_Tree_Output_Initialization)
     end if
-
+    ! Get a galactic filter for determining which nodes are to be output. Note that this is done separately from the parameter
+    ! reading above, as we need to get a per-thread object here, such that it matches up precisely with any per-thread objects
+    ! used later in the output process. Failure to do this can lead to problems. For example, in lightcone output, the output
+    ! filter here checks for presence of a node in the lightcone via the lightcone geometry object. Later, the same lightcone
+    ! geometry object is used to find the position of the node within the lightcone. If two different objects are used then there
+    ! can be numerical errors (e.g. differences in the distance-redshift relation) which cause a node to pass this filter but to
+    ! not be found in the lightcone when attempting to find its position.
+    if (.not.associated(outputFilter)) then
+       outputParametersFilter=globalParameters%subParameters('mergerTreeOutput',requirePresent=.false.,requireValue=.false.)
+       !# <objectBuilder class="galacticFilter" name="outputFilter" source="outputParametersFilter"/>          
+    end if    
     ! Analysis block.
     ! Iterate over trees.
     currentTree => thisTree
