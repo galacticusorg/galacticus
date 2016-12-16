@@ -80,6 +80,6 @@ contains
     class(galacticFilterLightcone), intent(inout) :: self
     type (treeNode               ), intent(inout) :: node
 
-    lightconePasses=self%geometryLightcone_%isInLightcone(node)
+    lightconePasses=self%geometryLightcone_%isInLightcone(node,atPresentEpoch=.true.)
     return
   end function lightconePasses
