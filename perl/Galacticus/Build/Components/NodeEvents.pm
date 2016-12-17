@@ -3,10 +3,12 @@
 package Galacticus::Build::Components::NodeEvents;
 use strict;
 use warnings;
+no warnings 'once';
 use utf8;
 use Cwd;
 use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Galacticus::Build::Components::Utils;
+use Text::Template 'fill_in_string';
 
 # Insert hooks for our functions.
 %Galacticus::Build::Component::Utils::componentUtils = 
@@ -20,8 +22,13 @@ use Galacticus::Build::Components::Utils;
 	     ],
          interfaces =>
 	     [
-	      \&Node_Event_Task_Interface,
-	      
+	      \&Node_Event_Task_Interface	      
+	     ],
+	 functions =>
+	     [
+	      \&Node_Event_Serialize_Raw              ,
+	      \&Node_Event_Deserialize_Raw            ,
+	      \&Node_Event_Deserialize_Raw_Polymorphic
 	     ]
      }
     );
@@ -29,62 +36,120 @@ use Galacticus::Build::Components::Utils;
 sub Build_Node_Event_Class {
     # Build the "nodeEvent" class.
     my $build = shift();
-    # Add data content.
-    my @dataContent =
+    # Define the node event classes.
+    @{$build->{'nodeEventClasses'}} =
 	(
 	 {
-	     intrinsic  => "integer",
-	     type       => "kind=kind_int8",
-	     attributes => [ "public" ],
-	     variables  => [ "ID" ]
+	     name        => "nodeEvent",
+	     description => "Base class for events attached to nodes.",
+	     data        =>
+		 [
+		  {
+		      intrinsic  => "integer",
+		      type       => "kind=kind_int8",
+		      attributes => [ "public" ],
+		      variables  => [ "ID" ]
+		  },
+		  {
+		      intrinsic  => "type",
+		      type       => "treeNode",
+		      attributes => [ "pointer", "public" ],
+		      variables  => [ "node => null()" ]
+		  },
+		  {
+		      intrinsic  => "double precision",
+		      attributes => [ "public" ],
+		      variables  => [ "time" ]
+		  },
+		  {
+		      intrinsic  => "class",
+		      type       => "nodeEvent",
+		      attributes => [ "public", "pointer" ],
+		      variables  => [ "next => null()" ]
+		  },
+		  {
+		      intrinsic  => "procedure",
+		      type       => "nodeEventTask",
+		      attributes => [ "public", "pointer" ],
+		      variables  => [ "task" ]
+		  }
+		 ]
 	 },
 	 {
-	     intrinsic  => "type",
-	     type       => "treeNode",
-	     attributes => [ "pointer", "public" ],
-	     variables  => [ "node" ]
+	     name        => "nodeEventBranchJump",
+	     description => "Class for branch jump events attached to nodes.",
+	     extends     => "nodeEvent",
+	     data        => []
 	 },
 	 {
-	     intrinsic  => "double precision",
-	     attributes => [ "public" ],
-	     variables  => [ "time" ]
+	     name        => "nodeEventSubhaloPromotion",
+	     description => "Class for subhalo promotion events attached to nodes.",
+	     extends     => "nodeEvent",
+	     data        => []
 	 },
 	 {
-	     intrinsic  => "class",
-	     type       => "nodeEvent",
-	     attributes => [ "public", "pointer" ],
-	     variables  => [ "next" ]
+	     name        => "nodeEventBranchJumpInterTree",
+	     description => "Class for inter-tree branch jump events attached to nodes.",
+	     extends     => "nodeEvent",
+	     data        =>
+		 [
+		  {
+		      intrinsic  => "integer",
+		      type       => "kind=c_size_t",
+		      attributes => [ "public" ],
+		      variables  => [ "splitForestUniqueID" ]
+		  },
+		  {
+		      intrinsic  => "integer",
+		      type       => "kind=kind_int8",
+		      attributes => [ "public" ],
+		      variables  => [ "pairedNodeID" ]
+		  },
+		  {
+		      intrinsic  => "logical",
+		      attributes => [ "public" ],
+		      variables  => [ "isPrimary" ]
+		  }
+		 ]
 	 },
 	 {
-	     intrinsic  => "procedure",
-	     type       => "nodeEventTask",
-	     attributes => [ "public", "pointer" ],
-	     variables  => [ "task" ]
+	     name        => "nodeEventSubhaloPromotionInterTree",
+	     description => "Class for inter-tree subhalo promotion events attached to nodes.",
+	     extends     => "nodeEvent",
+	     data        =>
+		 [
+		  {
+		      intrinsic  => "integer",
+		      type       => "kind=c_size_t",
+		      attributes => [ "public" ],
+		      variables  => [ "splitForestUniqueID" ]
+		  },
+		  {
+		      intrinsic  => "integer",
+		      type       => "kind=kind_int8",
+		      attributes => [ "public" ],
+		      variables  => [ "pairedNodeID" ]
+		  },
+		  {
+		      intrinsic  => "logical",
+		      attributes => [ "public" ],
+		      variables  => [ "isPrimary" ]
+		  }
+		 ]
 	 }
 	);
-    # Create the tree node class.
-    $build->{'types'}->{'nodeEvent'} = {
-	name           => "nodeEvent",
-	comment        => "Type for events attached to nodes.",
-	isPublic       => 1,
-	dataContent    => \@dataContent
-    };
-    # Add sub-classes.
-    my @emptyDataContent =();
-    $build->{'types'}->{'nodeEventBranchJump'} = {
-	name           => "nodeEventBranchJump",
-	extends        => "nodeEvent",
-	comment        => "Type for branch jump events attached to nodes.",
-	isPublic       => "true",
-	dataContent    => \@emptyDataContent
-    };
-    $build->{'types'}->{'nodeEventSubhaloPromotion'} = {
-	name           => "nodeEventSubhaloPromotion",
-	extends        => "nodeEvent",
-	comment        => "Type for subhalo promotion events attached to nodes.",
-	isPublic       => "true",
-	dataContent    => \@emptyDataContent
-    };
+    # Build the classes.
+    foreach my $class ( @{$build->{'nodeEventClasses'}} ) {
+	# Create the type.
+	$build->{'types'}->{$class->{'name'}} = {
+	    name           => $class->{'name'       },
+	    comment        => $class->{'description'},
+	    isPublic       => "true",
+	    dataContent    => $class->{'data'       },
+	};
+	$build->{'types'}->{$class->{'name'}}->{'extends'} = $class->{'extends'}
+	    if ( exists($class->{'extends'}) );
+    }
 }
 
 sub Node_Event_Task_Interface {
@@ -117,6 +182,221 @@ sub Node_Event_Task_Interface {
 	     }
 	    ]		
     };
+}
+
+sub Node_Event_Deserialize_Raw {
+    # Deserialize a nodeEvent object from a raw (binary) file.
+    my $build = shift();
+    # Iterate over node event classes.
+    foreach $code::class ( @{$build->{'nodeEventClasses'}} ) {
+	# Build the function.
+	my $function =
+	{
+	    type        => "void",
+	    name        => $code::class->{'name'}."DeserializeRaw",
+	    description => "Deserialize a {\\normalfont \ttfamily ".$code::class->{'name'}." object from raw file.",
+	    content     => "",
+	    modules     =>
+		[
+		 "ISO_C_Binding"
+		],
+	    variables   =>
+		[
+		 {
+		     intrinsic  => "class",
+		     type       => $code::class->{'name'},
+		     variables  => [ "self" ],
+		     attributes => [ "intent(inout)" ]
+		 },
+		 {
+		     intrinsic  => "integer",
+		     variables  => [ "fileUnit" ],
+		     attributes => [ "intent(in   )" ]
+		 }
+		]
+	};
+	push(
+	    @{$function->{'variables'}},
+	    {
+		intrinsic  => "integer",
+		variables  => [ "pointerAssociated" ]
+	    },
+	    {
+		intrinsic  => "type",
+		type       => "c_funptr",
+		variables  => [ "functionLocation" ]
+	    }
+	    )
+	    if ( $code::class->{'name'} eq "nodeEvent" );
+	if ( exists($code::class->{'extends'}) ) {
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+! Read the parent class.
+call self%{$class->{'extends'}}%deserializeRaw(fileUnit)
+CODE
+	}
+	foreach $code::data ( @{$code::class->{'data'}} ) {
+	    unless ( grep {$_ eq "pointer" } @{$code::data->{'attributes'}} ) {
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+read (fileUnit) {join(",",map {"self%".$_} @{$data->{'variables'}})}
+CODE
+	    }
+	}
+	# The task function pointer is handled by transfering the memory address to an integer array.
+	if ( $code::class->{'name'} eq "nodeEvent" ) {
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+read (fileUnit) pointerAssociated
+if (pointerAssociated == 1) then
+   read (fileUnit) functionLocation
+   call c_f_ProcPointer(functionLocation,self%task)
+else
+   self%task => null()
+end if
+CODE
+	}
+	# Insert a type-binding for this function.
+	push(
+	    @{$build->{'types'}->{$code::class->{'name'}}->{'boundFunctions'}},
+	    {
+		type        => "procedure",
+		descriptor  => $function,
+		name        => "deserializeRaw"
+	    }
+	    );
+    }
+}
+
+sub Node_Event_Serialize_Raw {
+    # Serialize a nodeEvent object to a raw (binary) file.
+    my $build = shift();
+    # Iterate over node event classes.
+    $code::classCount = -1;
+    foreach $code::class ( @{$build->{'nodeEventClasses'}} ) {
+	# Build the function.
+	my $function =
+	{
+	    type        => "void",
+	    name        => $code::class->{'name'}."SerializeRaw",
+	    description => "Serialize a {\\normalfont \ttfamily ".$code::class->{'name'}." object to raw file.",
+	    modules     =>
+		[
+		 "ISO_C_Binding"
+		],
+	    variables   =>
+		[
+		 {
+		     intrinsic  => "class",
+		     type       => $code::class->{'name'},
+		     variables  => [ "self" ],
+		     attributes => [ "intent(in   )" ]
+		 },
+		 {
+		     intrinsic  => "integer",
+		     variables  => [ "fileUnit" ],
+		     attributes => [ "intent(in   )" ]
+		 },
+		 {
+		     intrinsic  => "logical",
+		     variables  => [ "includeType" ],
+		     attributes => [ "intent(in   ), optional" ]
+		 }
+		]
+	};
+	push(
+	    @{$function->{'variables'}},
+	    {
+		intrinsic  => "type",
+		type       => "c_funptr",
+		variables  => [ "functionLocation" ]
+	    }
+	    )
+	    if ( $code::class->{'name'} eq "nodeEvent" );
+	++$code::classCount;
+	$function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
+! Write an integer indicating the type of this event if requested.
+if (.not.present(includeType).or.includeType) write (fileUnit) {$classCount}
+CODE
+	if ( exists($code::class->{'extends'}) ) {
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+! Serialize the parent class.
+call self%{$class->{'extends'}}%serializeRaw(fileUnit,.false.)
+CODE
+	}
+	foreach $code::data ( @{$code::class->{'data'}} ) {
+	    unless ( grep {$_ eq "pointer" } @{$code::data->{'attributes'}} ) {
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+write (fileUnit) {join(",",map {"self%".$_} @{$data->{'variables'}})}
+CODE
+	    }
+	}
+	# The task function pointer is handled by transfering the memory address to an integer array.
+	if ( $code::class->{'name'} eq "nodeEvent" ) {
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (associated(self%task)) then
+   functionLocation=c_FunLoc(self%task)
+   write (fileUnit) 1
+   write (fileUnit) functionLocation
+else
+   write (fileUnit) 0
+end if
+CODE
+	}
+	# Insert a type-binding for this function.
+	push(
+	    @{$build->{'types'}->{$code::class->{'name'}}->{'boundFunctions'}},
+	    {
+		type        => "procedure",
+		descriptor  => $function,
+		name        => "serializeRaw", 
+	    }
+	    );
+    }
+}
+
+sub Node_Event_Deserialize_Raw_Polymorphic {
+    # Deserialize a polymorphic nodeEvent object from a raw (binary) file.
+    my $build = shift();
+    # Build the function.
+    my $function =
+    {
+	type        => "class(nodeEvent), pointer => event",
+	name        => "nodeEventBuildFromRaw",
+	description => "Build a {\\normalfont \ttfamily nodeEvent} class object from a raw dump file.",
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "fileUnit" ],
+		 attributes => [ "intent(in   )" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "classType" ]
+	     }
+	    ]
+    };
+    $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
+read (fileUnit) classType
+select case (classType)
+CODE
+    $code::classCount = -1;
+    foreach $code::class ( @{$build->{'nodeEventClasses'}} ) {
+	++$code::classCount;
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+case ({$classCount})
+  allocate({$class->{'name'}} :: event)
+CODE
+    }
+    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+case default
+   call Galacticus_Error_Report('nodeEventBuildFromRaw','unknown class type')
+end select
+call event%deserializeRaw(fileUnit)
+CODE
+    # Insert into the function list.
+    push(
+	@{$build->{'functions'}},
+	$function
+	);
 }
 
 1;

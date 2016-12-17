@@ -25,7 +25,7 @@ module Merger_Trees_State_Store
   use ISO_Varying_String
   implicit none
   private
-  public :: Merger_Tree_State_Store, Merger_Tree_State_Store_Initialize
+  public :: Merger_Tree_State_Store, Merger_Tree_State_From_File, Merger_Tree_State_Store_Initialize
 
   ! File name from which stored trees should be read.
   type   (varying_string) :: mergerTreeStateStoreFile
@@ -67,24 +67,31 @@ contains
     return
   end subroutine Merger_Tree_State_Store_Initialize
 
-  subroutine Merger_Tree_State_Store(tree,storeFile)
+  subroutine Merger_Tree_State_Store(tree,storeFile,snapshot)
     !% Store the complete internal state of a merger tree to file.
     use Galacticus_Nodes
     use Galacticus_State
+    use Galacticus_Error
     implicit none
     type     (mergerTree    ), intent(in   ), target       :: tree
     character(len=*         ), intent(in   )               :: storeFile
+    logical                  , intent(in   ), optional     :: snapshot
     type     (mergerTree    ), pointer                     :: treeCurrent
     type     (treeNode      ), pointer                     :: currentNodeInTree, thisNode
+    class    (nodeEvent     ), pointer                     :: event
     integer  (kind=kind_int8), allocatable  , dimension(:) :: nodeIndices
     integer                  , allocatable  , dimension(:) :: nodeCountTree
     type     (varying_string), save                        :: storeFilePrevious
     integer                                                :: fileUnit         , nodeCount, &
-         &                                                    treeCount        , iTree
+         &                                                    treeCount        , iTree    , &
+         &                                                    eventCount
+    !# <optionalArgument name="snapshot" defaultsTo=".true." />
 
     ! Take a snapshot of the internal state and store it.
-    call Galacticus_State_Snapshot()
-    call Galacticus_State_Store   ()
+    if (snapshot_) then
+       call Galacticus_State_Snapshot()
+       call Galacticus_State_Store   ()
+    end if
     ! Open an output file. (Append to the old file if the file name has not changed.)
     if (trim(storeFile) == storeFilePrevious) then
        open(newunit=fileUnit,file=trim(storeFile),status='old'    ,form='unformatted',access='append')
@@ -92,10 +99,11 @@ contains
        storeFilePrevious=trim(storeFile)
        open(newunit=fileUnit,file=trim(storeFile),status='unknown',form='unformatted'                )
     end if    
-    ! Count trees.
+    ! Count trees and check for events attached to trees.
     treeCount   =  0
     treeCurrent => tree
     do while (associated(treeCurrent))
+       if (associated(treeCurrent%event)) call Galacticus_Error_Report('Merger_Tree_State_Store','tree events not current supported')
        treeCount   =  treeCount           +1
        treeCurrent => treeCurrent%nextTree
     end do
@@ -160,6 +168,24 @@ contains
                & Node_Array_Position(thisNode%formationNode %uniqueID(),nodeIndices)
           ! Store the node.
           call thisNode%serializeRaw(fileUnit)
+          ! Store any events attached to the node.
+          eventCount =  0
+          event      => thisNode%event
+          do while (associated(event))
+             eventCount =  eventCount+1
+             event      => event%next
+          end do
+          write (fileUnit) eventCount
+          event => thisNode%event
+          do while (associated(event))
+             call event%serializeRaw(fileUnit)
+             if (associated(event%node)) then
+                write (fileUnit) Node_Array_Position(event%node%uniqueID(),nodeIndices)
+             else
+                write (fileUnit) -1
+             end if
+             event => event%next
+          end do
           ! Move to the next node in the tree.
           call Merger_Tree_State_Walk_Tree(thisNode,currentNodeInTree)
        end do
@@ -205,101 +231,18 @@ contains
     use Galacticus_Error
     use String_Handling
     implicit none
-    type   (mergerTree    ), intent(inout), target       :: tree
-    logical                , intent(in   )               :: skipTree
-    type   (mergerTree    )               , pointer      :: treeCurrent        , treeNext
-    type   (treeNodeList  ), allocatable  , dimension(:) :: nodes
-    integer                , allocatable  , dimension(:) :: nodeCountTree
-    integer                                              :: fileStatus         , firstChildIndex   , firstMergeeIndex   , &
-         &                                                  firstSatelliteIndex, formationNodeIndex, iNode              , &
-         &                                                  mergeTargetIndex   , nodeArrayIndex    , nodeCount          , &
-         &                                                  parentIndex        , siblingIndex      , siblingMergeeIndex , &
-         &                                                  treeCount          , iTree             , iNodeTree
-    integer(kind=kind_int8)                              :: nodeIndex          , nodeUniqueID      , nodeUniqueIDMaximum
-    type   (varying_string)                              :: message
+    type   (mergerTree    ), intent(inout), target  :: tree
+    logical                , intent(in   )          :: skipTree
+    type   (mergerTree    )               , pointer :: treeCurrent, treeNext
 
     ! Retrieve stored internal state if possible.
     call Galacticus_State_Retrieve()
-    ! Read number of trees.
-    read (treeDataUnit,iostat=fileStatus) treeCount
-    if (fileStatus < 0) then
-       close(treeDataUnit)
-       return
-    end if
-    ! Create trees
-    if (treeCount > 1) then
-       treeCurrent => tree
-       do iTree=2,treeCount
-          allocate(treeCurrent%nextTree)
-          treeCurrent => treeCurrent%nextTree
-       end do
-    end if
-    ! Read number of nodes.
-    allocate(nodeCountTree(treeCount))
-    read (treeDataUnit) nodeCountTree
-    nodeCount=sum(nodeCountTree)
-    ! Allocate a list of nodes.
-    allocate(nodes(nodeCount))
-    ! Iterate over trees.
-    treeCurrent => tree
-    iNode       =  0
-    do iTree=1,treeCount
-       ! Read basic tree information.
-       read (treeDataUnit,iostat=fileStatus) treeCurrent%index,treeCurrent%volumeWeight,treeCurrent%initializedUntil,nodeArrayIndex
-       ! Create nodes.
-       do iNodeTree=1,nodeCountTree(iTree)
-          iNode             =  iNode                         +1
-          nodes(iNode)%node => treeNode(hostTree=treeCurrent)
-       end do
-       ! Assign the tree base node.
-       if (.not.skipTree) treeCurrent%baseNode => nodes(nodeArrayIndex)%node
-       ! Move to the next tree.
-       treeCurrent => treeCurrent%nextTree
-    end do
-    ! Loop over all nodes.
-    nodeUniqueIDMaximum=-1
-    do iNode=1,nodeCount
-       ! Read all node information.
-       ! Indices.
-       read (treeDataUnit) nodeIndex,nodeUniqueID
-       call nodes(iNode)%node%indexSet   (nodeIndex   )
-       call nodes(iNode)%node%uniqueIDSet(nodeUniqueID)
-       ! Pointers to other nodes.
-       read (treeDataUnit) parentIndex,firstChildIndex,siblingIndex,firstSatelliteIndex,mergeTargetIndex,firstMergeeIndex&
-            &,siblingMergeeIndex,formationNodeIndex
-       nodes(iNode)%node%parent         => Pointed_At_Node(parentIndex        ,nodes)
-       nodes(iNode)%node%firstChild     => Pointed_At_Node(firstChildIndex    ,nodes)
-       nodes(iNode)%node%sibling        => Pointed_At_Node(siblingIndex       ,nodes)
-       nodes(iNode)%node%firstSatellite => Pointed_At_Node(firstSatelliteIndex,nodes)
-       nodes(iNode)%node%mergeTarget    => Pointed_At_Node(mergeTargetIndex   ,nodes)
-       nodes(iNode)%node%firstMergee    => Pointed_At_Node(firstMergeeIndex   ,nodes)
-       nodes(iNode)%node%siblingMergee  => Pointed_At_Node(siblingMergeeIndex ,nodes)
-       nodes(iNode)%node%formationNode  => Pointed_At_Node(formationNodeIndex ,nodes)
-       ! Read the node.
-       call nodes(iNode)%node%deserializeRaw(treeDataUnit)
-       ! Find the highest uniqueID.
-       nodeUniqueIDMaximum=max(nodeUniqueIDMaximum,nodeUniqueID)
-    end do
-    ! Set the global maximum unique ID to the maximum found.
-    call Galacticus_Nodes_Unique_ID_Set(nodeUniqueIDMaximum)
-    ! Perform sanity checks.
-    do iNode=1,nodeCount
-       if (associated(nodes(iNode)%node%firstChild)) then
-          if (.not.associated(nodes(iNode)%node,nodes(iNode)%node%firstChild%parent)) then
-             message="child's parent is not self"
-             message=message//char(10)//" -> self                : "//nodes(iNode)%node                  %uniqueID()
-             message=message//char(10)//" -> self->child         : "//nodes(iNode)%node%firstChild       %uniqueID()
-             message=message//char(10)//" -> self->child->parent : "//nodes(iNode)%node%firstChild%parent%uniqueID()
-             call Galacticus_Error_Report('Merger_Tree_State_Restore',message)
-          end if
-       end if
-    end do
-    ! Destroy the list of nodes.
-    deallocate(nodes)
+    ! Read the tree(s).
+    call Merger_Tree_State_From_Unit(tree,skipTree,treeDataUnit)
     ! If the tree is to be skipped, destroy it.
     if (skipTree) then
        treeCurrent => tree
-       do iTree=1,treeCount
+       do while (associated(treeCurrent))
           treeNext    => treeCurrent%nextTree
           call treeCurrent%destroy()
           treeCurrent%baseNode => null()
@@ -343,4 +286,148 @@ contains
     return
   end subroutine Merger_Tree_State_Walk_Tree
 
+  subroutine Merger_Tree_State_From_File(tree,fileName,deleteAfterRead)
+    !% Read the state of a merger tree from file.
+    use Galacticus_Nodes
+    use Galacticus_Error
+    implicit none
+    type     (mergerTree), intent(inout)           :: tree
+    character(len=*     ), intent(in   )           :: fileName
+    logical              , intent(in   ), optional :: deleteAfterRead
+    integer                                        :: treeUnit      , ioStatus
+    !# <optionalArgument name="deleteAfterRead" defaultsTo=".false." />
+
+    ! Open the file.
+    open(newUnit=treeUnit,file=fileName,status='old',form='unformatted',iostat=ioStatus)
+    if (ioStatus /= 0) call Galacticus_Error_Report('Merger_Tree_State_From_File','unable to open file "'//trim(fileName)//'"')
+    ! Read the tree(s).
+    call Merger_Tree_State_From_Unit(tree,skipTree=.false.,unit=treeUnit)
+    ! Close the file.
+    if (deleteAfterRead_) then
+       close(treeUnit,status='delete')
+    else
+       close(treeUnit                )
+    end if
+    return
+  end subroutine Merger_Tree_State_From_File
+
+  subroutine Merger_Tree_State_From_Unit(tree,skipTree,unit)
+    !% Restores the state of a merger tree from file.
+    use Galacticus_Nodes
+    use Galacticus_Error
+    use String_Handling
+    implicit none
+    type   (mergerTree    ), intent(inout), target       :: tree
+    logical                , intent(in   )               :: skipTree
+    integer                , intent(in   )               :: unit
+    type   (mergerTree    )               , pointer      :: treeCurrent
+    type   (treeNodeList  ), allocatable  , dimension(:) :: nodes
+    integer                , allocatable  , dimension(:) :: nodeCountTree
+    class  (nodeEvent     ), pointer                     :: event              , eventPrevious
+    integer                                              :: fileStatus         , firstChildIndex   , firstMergeeIndex   , &
+         &                                                  firstSatelliteIndex, formationNodeIndex, iNode              , &
+         &                                                  mergeTargetIndex   , nodeArrayIndex    , nodeCount          , &
+         &                                                  parentIndex        , siblingIndex      , siblingMergeeIndex , &
+         &                                                  treeCount          , iTree             , iNodeTree          , &
+         &                                                  eventCount         , iEvent            , eventNodeIndex
+    integer(kind=kind_int8)                              :: nodeIndex          , nodeUniqueID      , nodeUniqueIDMaximum
+    type   (varying_string)                              :: message
+
+    ! Read number of trees.
+    read (unit,iostat=fileStatus) treeCount
+    if (fileStatus < 0) then
+       close(unit)
+       return
+    end if
+    ! Create trees
+    if (treeCount > 1) then
+       treeCurrent => tree
+       do iTree=2,treeCount
+          allocate(treeCurrent%nextTree)
+          treeCurrent => treeCurrent%nextTree
+       end do
+    end if
+    ! Read number of nodes.
+    allocate(nodeCountTree(treeCount))
+    read (unit) nodeCountTree
+    nodeCount=sum(nodeCountTree)
+    ! Allocate a list of nodes.
+    allocate(nodes(nodeCount))
+    ! Iterate over trees.
+    treeCurrent => tree
+    iNode       =  0
+    do iTree=1,treeCount
+       ! Read basic tree information.
+       read (unit,iostat=fileStatus) treeCurrent%index,treeCurrent%volumeWeight,treeCurrent%initializedUntil,nodeArrayIndex
+       ! Create nodes.
+       do iNodeTree=1,nodeCountTree(iTree)
+          iNode             =  iNode                         +1
+          nodes(iNode)%node => treeNode(hostTree=treeCurrent)
+       end do
+       ! Assign the tree base node.
+       if (.not.skipTree) treeCurrent%baseNode => nodes(nodeArrayIndex)%node
+       ! Move to the next tree.
+       treeCurrent => treeCurrent%nextTree
+    end do
+    ! Loop over all nodes.
+    nodeUniqueIDMaximum=-1
+    do iNode=1,nodeCount
+       ! Read all node information.
+       ! Indices.
+       read (unit) nodeIndex,nodeUniqueID
+       call nodes(iNode)%node%indexSet   (nodeIndex   )
+       call nodes(iNode)%node%uniqueIDSet(nodeUniqueID)
+       ! Pointers to other nodes.
+       read (unit) parentIndex,firstChildIndex,siblingIndex,firstSatelliteIndex,mergeTargetIndex,firstMergeeIndex&
+            &,siblingMergeeIndex,formationNodeIndex
+       nodes(iNode)%node%parent         => Pointed_At_Node(parentIndex        ,nodes)
+       nodes(iNode)%node%firstChild     => Pointed_At_Node(firstChildIndex    ,nodes)
+       nodes(iNode)%node%sibling        => Pointed_At_Node(siblingIndex       ,nodes)
+       nodes(iNode)%node%firstSatellite => Pointed_At_Node(firstSatelliteIndex,nodes)
+       nodes(iNode)%node%mergeTarget    => Pointed_At_Node(mergeTargetIndex   ,nodes)
+       nodes(iNode)%node%firstMergee    => Pointed_At_Node(firstMergeeIndex   ,nodes)
+       nodes(iNode)%node%siblingMergee  => Pointed_At_Node(siblingMergeeIndex ,nodes)
+       nodes(iNode)%node%formationNode  => Pointed_At_Node(formationNodeIndex ,nodes)
+       ! Read the node.
+       call nodes(iNode)%node%deserializeRaw(treeDataUnit)
+       ! Find the highest uniqueID.
+       nodeUniqueIDMaximum=max(nodeUniqueIDMaximum,nodeUniqueID)
+       ! Read any events attached to the node.
+       eventPrevious => null()
+       read (unit) eventCount
+       do iEvent=1,eventCount
+          ! Build an event of the correct type from the file.
+          event => nodeEventBuildFromRaw(unit)
+          ! Read and assign any node pointer that the event may have.
+          read (unit) eventNodeIndex
+          event%node => Pointed_At_Node(eventNodeIndex,nodes)
+          ! Link the event to the node.
+          if (iEvent == 1) then
+             nodes(iNode)%node%event => event
+          else
+             eventPrevious%next => event
+          end if
+          eventPrevious => event
+          event         => null()
+       end do
+    end do    
+    ! Set the global maximum unique ID to the maximum found.
+    call Galacticus_Nodes_Unique_ID_Set(nodeUniqueIDMaximum)
+    ! Perform sanity checks.
+    do iNode=1,nodeCount
+       if (associated(nodes(iNode)%node%firstChild)) then
+          if (.not.associated(nodes(iNode)%node,nodes(iNode)%node%firstChild%parent)) then
+             message="child's parent is not self"
+             message=message//char(10)//" -> self                : "//nodes(iNode)%node                  %uniqueID()
+             message=message//char(10)//" -> self->child         : "//nodes(iNode)%node%firstChild       %uniqueID()
+             message=message//char(10)//" -> self->child->parent : "//nodes(iNode)%node%firstChild%parent%uniqueID()
+             call Galacticus_Error_Report('Merger_Tree_State_Restore',message)
+          end if
+       end if
+    end do
+    ! Destroy the list of nodes.
+    deallocate(nodes)
+    return
+  end subroutine Merger_Tree_State_From_Unit
+  
 end module Merger_Trees_State_Store
