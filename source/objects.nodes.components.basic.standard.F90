@@ -37,7 +37,7 @@ module Node_Component_Basic_Standard
   !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#     <output unitsInSI="massSolar" comment="Total mass of the node, assuming univeral baryon fraction."/>
+  !#     <output unitsInSI="massSolar" comment="Total mass of the node, assuming universal baryon fraction."/>
   !#   </property>
   !#   <property>
   !#     <name>time</name>
