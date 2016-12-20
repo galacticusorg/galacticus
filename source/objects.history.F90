@@ -117,6 +117,12 @@ module Histories
      !@     <arguments>\doublezero\ currentTime\argin, \intzero\ [minimumPointsToRemove]\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>trimForward</method>
+     !@     <description>Removes any times in a history \emph{after} the given time. Optionally returns a history object with the removed history.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ currentTime\argin, \textcolor{red}{\textless type(history)\textgreater} [removedHistory]\argout</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>increment</method>
      !@     <description>Adds two histories, possibly with different time series.</description>
      !@     <type>\void</type>
@@ -194,6 +200,7 @@ module Histories
      procedure :: clone         => History_Clone
      procedure :: destroy       => History_Destroy
      procedure :: trim          => History_Trim
+     procedure :: trimForward   => History_Trim_Forward
      procedure :: extend        => History_Extend
      procedure :: increment     => History_Increment
      procedure :: combine       => History_Combine
@@ -267,6 +274,12 @@ module Histories
      !@     <arguments>\doublezero\ currentTime\argin, \intzero\ [minimumPointsToRemove]\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>trimForward</method>
+     !@     <description>Removes any times in a history \emph{after} the given time. Optionally returns a history object with the removed history.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ currentTime\argin, \textcolor{red}{\textless type(longIntegerHistory)\textgreater} [removedHistory]\argout</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>reset</method>
      !@     <description>Resets all entries in a history to zero.</description>
      !@     <type>\void</type>
@@ -287,6 +300,7 @@ module Histories
      procedure :: clone         => History_Long_Integer_Clone
      procedure :: destroy       => History_Long_Integer_Destroy
      procedure :: trim          => History_Long_Integer_Trim
+     procedure :: trimForward   => History_Long_Integer_Trim_Forward
      procedure :: reset         => History_Long_Integer_Reset
      procedure :: exists        => History_Long_Integer_Exists
      procedure ::                  History_Long_Integer_Append_History
@@ -855,6 +869,52 @@ contains
     return
   end subroutine History_Trim
 
+  subroutine History_Trim_Forward(self,time,removedHistory)
+    !% Removes all points in a history after the given {\normalfont \ttfamily time}. Optionally, the removed history can be
+    !% returned as {\normalfont \ttfamily removedHistory}.
+    use, intrinsic :: ISO_C_Binding
+    use               Memory_Management
+    use               Arrays_Search
+    implicit none
+    class           (history ), intent(inout)           :: self
+    double precision          , intent(in   )           :: time
+    type            (history ), intent(inout), optional :: removedHistory
+    type            (history )                          :: temporaryHistory
+    integer         (c_size_t)                          :: trimAt          , trimCount
+
+    ! Ensure the removed history to be returned is initialized.
+    if (present(removedHistory).and.allocated(removedHistory%time)) then
+       call deallocateArray(removedHistory%time)
+       call deallocateArray(removedHistory%data)
+    end if
+    ! Return if no history exists or if the final time is prior to the trim time.
+    if (.not.allocated(self%time).or.self%time(size(self%time)) <= time) return
+    ! Find where to trim and number of trimmed points.
+    trimAt   =Search_Array(self%time,time)+1
+    trimCount=size(self%time)-trimAt+1
+    ! Transfer data to a temporary history.
+    call Move_Alloc(self%time,temporaryHistory%time)
+    call Move_Alloc(self%data,temporaryHistory%data)
+    ! Reallocate history to trimmed size and populate.
+    if (trimAt > 1) then
+       call allocateArray(self%time,[trimAt-1                                                ])
+       call allocateArray(self%data,[trimAt-1,size(temporaryHistory%data,dim=2,kind=c_size_t)])
+       self%time=temporaryHistory%time(1:trimAt-1  )
+       self%data=temporaryHistory%data(1:trimAt-1,:)
+    end if
+    ! If the trimmed history is to be returned, allocate the arrays and populate.
+    if (present(removedHistory)) then
+       call allocateArray(removedHistory%time,[trimCount                                                ])
+       call allocateArray(removedHistory%data,[trimCount,size(temporaryHistory%data,dim=2,kind=c_size_t)])
+       removedHistory%time=temporaryHistory%time(trimAt:trimAt+trimCount-1  )
+       removedHistory%data=temporaryHistory%data(trimAt:trimAt+trimCount-1,:)
+    end if
+    ! Clean up temporary history.
+    call deallocateArray(temporaryHistory%time)
+    call deallocateArray(temporaryHistory%data)
+    return
+  end subroutine History_Trim_Forward
+  
   subroutine History_Long_Integer_Trim(thisHistory,currentTime,minimumPointsToRemove)
     !% Removes outdated information from ``future histories'' (i.e. histories that store data for future reference). Removes all
     !% but one entry prior to the given {\normalfont \ttfamily currentTime} (this allows for interpolation of the history to the current
@@ -920,6 +980,52 @@ contains
     return
   end subroutine History_Long_Integer_Trim
 
+  subroutine History_Long_Integer_Trim_Forward(self,time,removedHistory)
+    !% Removes all points in a history after the given {\normalfont \ttfamily time}. Optionally, the removed history can be
+    !% returned as {\normalfont \ttfamily removedHistory}.
+    use, intrinsic :: ISO_C_Binding
+    use               Memory_Management
+    use               Arrays_Search
+    implicit none
+    class           (longIntegerHistory), intent(inout)           :: self
+    double precision                    , intent(in   )           :: time
+    type            (longIntegerHistory), intent(inout), optional :: removedHistory
+    type            (longIntegerHistory)                          :: temporaryHistory
+    integer         (c_size_t          )                          :: trimAt          , trimCount
+
+    ! Ensure the removed history to be returned is initialized.
+    if (present(removedHistory).and.allocated(removedHistory%time)) then
+       call deallocateArray(removedHistory%time)
+       call deallocateArray(removedHistory%data)
+    end if
+    ! Return if no history exists or if the final time is prior to the trim time.
+    if (.not.allocated(self%time).or.self%time(size(self%time)) <= time) return
+    ! Find where to trim and number of trimmed points.
+    trimAt   =Search_Array(self%time,time)+1
+    trimCount=size(self%time)-trimAt+1
+    ! Transfer data to a temporary history.
+    call Move_Alloc(self%time,temporaryHistory%time)
+    call Move_Alloc(self%data,temporaryHistory%data)
+    ! Reallocate history to trimmed size and populate.
+    if (trimAt > 1) then
+       call allocateArray(self%time,[trimAt-1                                                ])
+       call allocateArray(self%data,[trimAt-1,size(temporaryHistory%data,dim=2,kind=c_size_t)])
+       self%time=temporaryHistory%time(1:trimAt-1  )
+       self%data=temporaryHistory%data(1:trimAt-1,:)
+    end if
+    ! If the trimmed history is to be returned, allocate the arrays and populate.
+    if (present(removedHistory)) then
+       call allocateArray(removedHistory%time,[trimCount                                                ])
+       call allocateArray(removedHistory%data,[trimCount,size(temporaryHistory%data,dim=2,kind=c_size_t)])
+       removedHistory%time=temporaryHistory%time(trimAt:trimAt+trimCount-1  )
+       removedHistory%data=temporaryHistory%data(trimAt:trimAt+trimCount-1,:)
+    end if
+    ! Clean up temporary history.
+    call deallocateArray(temporaryHistory%time)
+    call deallocateArray(temporaryHistory%data)
+    return
+  end subroutine History_Long_Integer_Trim_Forward
+  
   subroutine History_Long_Integer_Append_History(self,append)
     !% Append a history to a long integer history.
     use Memory_Management
