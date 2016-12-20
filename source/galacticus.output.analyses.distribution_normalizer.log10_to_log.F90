@@ -40,6 +40,7 @@ contains
     implicit none
     type(outputAnalysisDistributionNormalizerLog10ToLog)                :: self
     type(inputParameters                               ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
 
     self=outputAnalysisDistributionNormalizerLog10ToLog()
     return
@@ -52,7 +53,7 @@ contains
     double precision                                                , intent(in   ), dimension(:)                          :: distribution
     double precision                                                , intent(in   ), dimension(:)                          :: propertyValueMinimum, propertyValueMaximum
     double precision                                                               , dimension(size(propertyValueMinimum)) :: log10ToLogNormalize
-    !GCC$ attributes unused :: self
+    !GCC$ attributes unused :: self, propertyValueMaximum
 
     log10ToLogNormalize=+distribution &
          &              /log(10.0d0)

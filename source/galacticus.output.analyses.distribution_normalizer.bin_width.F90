@@ -40,7 +40,8 @@ contains
     implicit none
     type(outputAnalysisDistributionNormalizerBinWidth)                :: self
     type(inputParameters                             ), intent(inout) :: parameters
-
+    !GCC$ attributes unused :: parameters
+    
     self=outputAnalysisDistributionNormalizerBinWidth()
     return
   end function binWidthConstructorParameters
