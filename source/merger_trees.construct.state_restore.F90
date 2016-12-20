@@ -67,25 +67,27 @@ contains
     return
   end subroutine Merger_Tree_State_Store_Initialize
 
-  subroutine Merger_Tree_State_Store(tree,storeFile,snapshot)
+  subroutine Merger_Tree_State_Store(tree,storeFile,snapshot,append)
     !% Store the complete internal state of a merger tree to file.
-    use Galacticus_Nodes
-    use Galacticus_State
-    use Galacticus_Error
+    use, intrinsic :: ISO_C_Binding
+    use               Galacticus_Nodes
+    use               Galacticus_State
+    use               Galacticus_Error
     implicit none
     type     (mergerTree    ), intent(in   ), target       :: tree
     character(len=*         ), intent(in   )               :: storeFile
-    logical                  , intent(in   ), optional     :: snapshot
+    logical                  , intent(in   ), optional     :: snapshot         , append
     type     (mergerTree    ), pointer                     :: treeCurrent
     type     (treeNode      ), pointer                     :: currentNodeInTree, thisNode
     class    (nodeEvent     ), pointer                     :: event
     integer  (kind=kind_int8), allocatable  , dimension(:) :: nodeIndices
     integer                  , allocatable  , dimension(:) :: nodeCountTree
     type     (varying_string), save                        :: storeFilePrevious
-    integer                                                :: fileUnit         , nodeCount, &
-         &                                                    treeCount        , iTree    , &
-         &                                                    eventCount
+    integer  (c_size_t      )                              :: nodeCount
+    integer                                                :: fileUnit         , eventCount, &
+         &                                                    treeCount        , iTree
     !# <optionalArgument name="snapshot" defaultsTo=".true." />
+    !# <optionalArgument name="append"   defaultsTo=".true." />
 
     ! Take a snapshot of the internal state and store it.
     if (snapshot_) then
@@ -93,12 +95,14 @@ contains
        call Galacticus_State_Store   ()
     end if
     ! Open an output file. (Append to the old file if the file name has not changed.)
-    if (trim(storeFile) == storeFilePrevious) then
+    !$omp critical (mergerTreeStateStore)
+    if (append_ .and. trim(storeFile) == storeFilePrevious) then
        open(newunit=fileUnit,file=trim(storeFile),status='old'    ,form='unformatted',access='append')
     else
        storeFilePrevious=trim(storeFile)
        open(newunit=fileUnit,file=trim(storeFile),status='unknown',form='unformatted'                )
     end if    
+    !$omp end critical (mergerTreeStateStore)
     ! Count trees and check for events attached to trees.
     treeCount   =  0
     treeCurrent => tree
@@ -358,7 +362,7 @@ contains
     iNode       =  0
     do iTree=1,treeCount
        ! Read basic tree information.
-       read (unit,iostat=fileStatus) treeCurrent%index,treeCurrent%volumeWeight,treeCurrent%initializedUntil,nodeArrayIndex
+       read (unit,iostat=fileStatus) treeCurrent%index,treeCurrent%volumeWeight,treeCurrent%initializedUntil,nodeArrayIndex       
        ! Create nodes.
        do iNodeTree=1,nodeCountTree(iTree)
           iNode             =  iNode                         +1
@@ -366,6 +370,8 @@ contains
        end do
        ! Assign the tree base node.
        if (.not.skipTree) treeCurrent%baseNode => nodes(nodeArrayIndex)%node
+       ! Ensure tree events are nullified.
+       treeCurrent%event => null()
        ! Move to the next tree.
        treeCurrent => treeCurrent%nextTree
     end do
@@ -389,7 +395,7 @@ contains
        nodes(iNode)%node%siblingMergee  => Pointed_At_Node(siblingMergeeIndex ,nodes)
        nodes(iNode)%node%formationNode  => Pointed_At_Node(formationNodeIndex ,nodes)
        ! Read the node.
-       call nodes(iNode)%node%deserializeRaw(treeDataUnit)
+       call nodes(iNode)%node%deserializeRaw(unit)
        ! Find the highest uniqueID.
        nodeUniqueIDMaximum=max(nodeUniqueIDMaximum,nodeUniqueID)
        ! Read any events attached to the node.
