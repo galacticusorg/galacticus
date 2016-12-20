@@ -193,6 +193,7 @@ contains
              call growthFactor%populate(growthFactorODEVariables(1),i)
              growthFactorDerivative=growthFactorODEVariables(2)
           end do
+          call ODE_Solver_Free(odeStepper,odeController,odeEvolver,odeSystem)
           ! Normalize to growth factor of unity at present day.
           linearGrowthFactorPresent=growthFactor%interpolate(timePresent)
           call growthFactor%populate(reshape(growthFactor%ys(),[growthTableNumberPoints])/linearGrowthFactorPresent)
