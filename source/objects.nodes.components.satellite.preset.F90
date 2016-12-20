@@ -25,7 +25,8 @@ module Node_Component_Satellite_Preset
   use Galacticus_Nodes
   implicit none
   private
-  public :: Node_Component_Satellite_Preset_Promote, Node_Component_Satellite_Preset_Inter_Tree_Attach
+  public :: Node_Component_Satellite_Preset_Promote, Node_Component_Satellite_Preset_Inter_Tree_Attach, &
+       &    Node_Component_Satellite_Preset_Inter_Tree_Insert
 
   !# <component>
   !#  <class>satellite</class>
@@ -106,12 +107,59 @@ contains
     call thisnode%parent%satelliteMove(thisNode,overwrite=.true.)
     return
   end subroutine Node_Component_Satellite_Preset_Promote
+
+  !# <interTreeSatelliteInsert>
+  !#  <unitName>Node_Component_Satellite_Preset_Inter_Tree_Insert</unitName>
+  !# </interTreeSatelliteInsert>
+  subroutine Node_Component_Satellite_Preset_Inter_Tree_Insert(node,replaceNode)
+    !% A satellite node is being moved between trees, and being added as a new satellite. Its (future-)histories will have been
+    !% assigned to the {\normalfont \ttfamily replaceNode} so must be transferred.
+    use Histories
+    implicit none
+    type (treeNode              ), intent(inout), pointer :: node            , replaceNode
+    class(nodeComponentSatellite)               , pointer :: satellite       , replaceSatellite
+    class(nodeComponentBasic    )               , pointer :: basic
+    type (longIntegerHistory    )                         :: historyIndex    , replaceHistoryIndex, &
+         &                                                   moveHistoryIndex
+    type (history               )                         :: historyMass     , replaceHistoryMass , &
+         &                                                   moveHistoryMass
+
+    ! Return immediately if the preset satellite implementation is not active.
+    if (.not.defaultSatelliteComponent%presetIsActive()) return
+    ! Get the basic component of the pulled node.
+    basic               =>            node%basic            ()
+    ! Get the node index histories attached to both the pulled node and its parent.
+    satellite           =>            node%satellite        ()
+    replaceSatellite    =>     replaceNode%satellite        ()
+    ! Transfer node index history.
+    historyIndex        =         satellite%nodeIndexHistory()
+    replaceHistoryIndex =  replaceSatellite%nodeIndexHistory()
+    ! Cut off history in node being replaced subsequent to current time.
+    call replaceHistoryIndex%trimForward(basic%time(),moveHistoryIndex)
+    ! Append removed history to pulled node.
+    call historyIndex       %append     (             moveHistoryIndex)
+    ! Set the histories.
+    call        satellite%nodeIndexHistorySet(       historyIndex)
+    call replaceSatellite%nodeIndexHistorySet(replaceHistoryIndex)    
+    ! Transfer subhalo mass history.
+    historyMass         =         satellite%boundMassHistory()
+    replaceHistoryMass  =  replaceSatellite%boundMassHistory()
+    ! Cut off history in node being replaced subsequent to current time.
+    call replaceHistoryMass %trimForward(basic%time(),moveHistoryMass )
+    ! Append removed history to pulled node.
+    call historyMass        %append     (             moveHistoryMass )
+    ! Set the histories.
+    call        satellite%boundMassHistorySet(       historyMass )
+    call replaceSatellite%boundMassHistorySet(replaceHistoryMass ) 
+    return
+  end subroutine Node_Component_Satellite_Preset_Inter_Tree_Insert
   
   !# <interTreeSatelliteAttach>
   !#  <unitName>Node_Component_Satellite_Preset_Inter_Tree_Attach</unitName>
   !# </interTreeSatelliteAttach>
   subroutine Node_Component_Satellite_Preset_Inter_Tree_Attach(node)
-    !% A satellite node is being moved between trees. Ensure that preset satellite properties are correctly handled.
+    !% A satellite node is being moved between trees and attached as the primary progenitor of an existing satellite node. Ensure
+    !% that preset satellite properties are correctly handled.
     use Histories
     implicit none
     type (treeNode              ), intent(inout), pointer :: node
