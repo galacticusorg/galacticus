@@ -108,7 +108,7 @@ sub Build_Node_Event_Class {
 		  {
 		      intrinsic  => "logical",
 		      attributes => [ "public" ],
-		      variables  => [ "isPrimary" ]
+		      variables  => [ "isPrimary", "hasSecondary" ]
 		  }
 		 ]
 	 },
@@ -194,7 +194,7 @@ sub Node_Event_Deserialize_Raw {
 	{
 	    type        => "void",
 	    name        => $code::class->{'name'}."DeserializeRaw",
-	    description => "Deserialize a {\\normalfont \ttfamily ".$code::class->{'name'}." object from raw file.",
+	    description => "Deserialize a {\\normalfont \\ttfamily ".$code::class->{'name'}." object from raw file.",
 	    content     => "",
 	    modules     =>
 		[
@@ -276,7 +276,7 @@ sub Node_Event_Serialize_Raw {
 	{
 	    type        => "void",
 	    name        => $code::class->{'name'}."SerializeRaw",
-	    description => "Serialize a {\\normalfont \ttfamily ".$code::class->{'name'}." object to raw file.",
+	    description => "Serialize a {\\normalfont \\ttfamily ".$code::class->{'name'}." object to raw file.",
 	    modules     =>
 		[
 		 "ISO_C_Binding"
@@ -360,7 +360,7 @@ sub Node_Event_Deserialize_Raw_Polymorphic {
     {
 	type        => "class(nodeEvent), pointer => event",
 	name        => "nodeEventBuildFromRaw",
-	description => "Build a {\\normalfont \ttfamily nodeEvent} class object from a raw dump file.",
+	description => "Build a {\\normalfont \\ttfamily nodeEvent} class object from a raw dump file.",
 	variables   =>
 	    [
 	     {
