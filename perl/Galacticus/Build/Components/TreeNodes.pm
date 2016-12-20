@@ -246,7 +246,7 @@ sub Build_Tree_Node_Class {
 	     function    => "Tree_Node_Remove_Paired_Event"                                                                                   ,
 	     description => "Remove a paired {\\normalfont \\ttfamily nodeEvent} from this node."                                             ,
 	     returnType  => "\\void"                                                                                                          ,
-	     arguments   => "\\textcolor{red}{\\textless type(nodeEvent)\\textgreater} event\\argin"
+	     arguments   => "\\textcolor{red}{\\textless class(nodeEvent)\\textgreater} event\\argin"
 	 }
 	);
     # Add data content.
@@ -273,7 +273,7 @@ sub Build_Tree_Node_Class {
 	     variables  => [ "isPhysicallyPlausible" ]
 	 },
 	 {
-	     intrinsic  => "type",
+	     intrinsic  => "class",
 	     type       => "nodeEvent",
 	     attributes => [ "public", "pointer" ],
 	     variables  => [ "event" ]
