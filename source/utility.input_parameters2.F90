@@ -97,6 +97,7 @@ module Input_Parameters2
      !@     <description>Set a pointer to the object corresponding to this parameter.</description>
      !@   </objectMethod>
      !@ </objectMethods>
+     final     ::                  inputParameterFinalize
      procedure :: isParameter   => inputParameterIsParameter
      procedure :: objectCreated => inputParameterObjectCreated
      procedure :: objectGet     => inputParameterObjectGet
@@ -105,12 +106,12 @@ module Input_Parameters2
 
   type :: inputParameters
      private
-     type   (node           ), pointer, public :: document
-     type   (node           ), pointer         :: rootNode
+     type   (node           ), pointer, public :: document         => null()
+     type   (node           ), pointer         :: rootNode         => null()
      type   (hdf5Object     )                  :: outputParameters
-     type   (inputParameter ), pointer         :: parameters
-     type   (inputParameters), pointer, public :: parent
-     logical                                   :: global
+     type   (inputParameter ), pointer         :: parameters       => null()
+     type   (inputParameters), pointer, public :: parent           => null()
+     logical                                   :: global                     , isNull
    contains
      !@ <objectMethods>
      !@   <object>inputParameters</object>
@@ -307,6 +308,7 @@ contains
     inputParametersConstructorNull%rootNode   => getDocumentElement(inputParametersConstructorNull%document)
     inputParametersConstructorNull%parameters => null()
     inputParametersConstructorNull%global     = .false.
+    inputParametersConstructorNull%isNull     = .true.
     call setLiveNodeLists(inputParametersConstructorNull%document,.true.)
     return
   end function inputParametersConstructorNull
@@ -390,6 +392,7 @@ contains
     type     (varying_string )                                        :: message
 
     inputParametersConstructorNode%global   =  .false.
+    inputParametersConstructorNode%isNull   =  .false.
     inputParametersConstructorNode%document => getOwnerDocument(parametersNode)    
     inputParametersConstructorNode%rootNode =>                  parametersNode
     inputParametersConstructorNode%parent   => null            (              )
@@ -510,6 +513,7 @@ contains
     !$omp critical (FoX_DOM_Access)
     call destroy(self%document)
     !$omp end critical (FoX_DOM_Access)
+    nullify(self%document)
     call inputParametersFinalize(self)
     return
   end subroutine inputParametersDestroy
@@ -518,6 +522,10 @@ contains
     !% Finalizer for the {\normalfont \ttfamily inputParameters} class.
     type(inputParameters), intent(inout) :: self
 
+    !$omp critical (FoX_DOM_Access)
+    if (self%isNull) call destroy(self%document)
+    !$omp end critical (FoX_DOM_Access)
+    if (associated(self%parameters)) deallocate(self%parameters)
     nullify(self%document  )
     nullify(self%rootNode  )
     nullify(self%parameters)
@@ -527,6 +535,23 @@ contains
     !$omp end critical(HDF5_Access)
     return
   end subroutine inputParametersFinalize
+  
+  recursive subroutine inputParameterFinalize(self)
+    !% Finalizer for the {\normalfont \ttfamily inputParameter} class.
+    type(inputParameter), intent(inout) :: self
+    type(inputParameter), pointer       :: child, childNext
+
+    ! We do not destroy the XML node content here as it may be used elsewhere.
+    ! Destroy all children - this will trigger recursive destruction of all grandchildren, etc.
+    child => self%firstChild
+    do while (associated(child))
+       childNext => child%sibling
+       deallocate(child)
+       child => childNext
+    end do
+    nullify(self%firstChild)
+    return
+  end subroutine inputParameterFinalize
   
   logical function inputParameterIsParameter(self)
     !% Return true if this is a valid parameter.
