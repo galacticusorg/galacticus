@@ -2,25 +2,17 @@
 use strict;
 use warnings;
 use Cwd;
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
-    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
-    $galacticusPath = getcwd()."/../";
-    $ENV{'GALACTICUS_ROOT_V094'} = $galacticusPath;
-}
-unshift(@INC,$galacticusPath."perl"); 
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/../perl';
 use PDL;
 use PDL::IO::HDF5;
 use PDL::NiceSlice;
-require Galacticus::Options;
+use Galacticus::Options;
 
 # Run a set of merger trees with forests split and not split. Compare the results which should be identical.
 # Andrew Benson (19-May-2016)
 
 # Find the location of the Millennium Database data.
-my $millenniumDatabaseConfig = &Options::Config('millenniumDB');
+my $millenniumDatabaseConfig = &Galacticus::Options::Config('millenniumDB');
 if ( defined($millenniumDatabaseConfig) ) {
     if ( exists($millenniumDatabaseConfig->{'path'}) ) {
 	print $millenniumDatabaseConfig->{'path'}."\n";
@@ -47,24 +39,24 @@ my @types = ( 'split', 'unsplit' );
 system("mkdir -p outputs/test-splitForests");
 
 # Locate a scratch directory.
-my $scratchConfig = &Options::Config('scratch');
+my $scratchConfig = &Galacticus::Options::Config('scratch');
 
 # Iterate over models, running them, reading in their data, and generating sort indices into the node indices.
 my $data;
 foreach ( @types ) {
-    unless ( -e $_.'.hdf5' ) {
+    unless ( -e "outputs/test-splitForests/".$_.'.hdf5' ) {
 	print "Running ".$_." model...\n";
 	# Read and modify parameter file.
 	my $xml        = new XML::Simple(RootName => "parameters");
 	my $parameters = $xml->XMLin("parameters/test-splitForests-".$_.".xml");
 	$parameters->{'mergerTreeReadFileName'}->{'value'} = $millenniumDatabaseConfig->{'path'}."/milliMillennium/milliMillennium.hdf5";
 	$parameters->{'treeEvolveSuspendPath' }->{'value'} = defined($scratchConfig) ? $scratchConfig->{'path'} : ".";
-	my $outputFileName = "outputs/test-splitForests/".$_.".xml";
-	open(my $outputFile,">".$outputFileName);
-	print $outputFile $xml->XMLout($parameters);
-	close($outputFile);
+	my $parameterFileName = "outputs/test-splitForests/".$_.".xml";
+	open(my $parameterFile,">".$parameterFileName);
+	print $parameterFile $xml->XMLout($parameters);
+	close($parameterFile);
 	# Run the model.
-	system("cd ..; ./Galacticus.exe testSuite/".$outputFileName);
+	system("cd ..; ./Galacticus.exe testSuite/".$parameterFileName);
 	unless ( $? == 0 ) { 
 	    print "FAILED: model '".$_."' did not complete\n";
 	    exit;
@@ -76,6 +68,10 @@ foreach ( @types ) {
 	$data->{$_}->{'properties'}->{$property} = $data->{$_}->{'nodes'}->dataset($property)->get();
     }
     $data->{$_}->{'rank'} = $data->{$_}->{'properties'}->{'nodeIndex'}->qsorti();
+    # Get tree indices.
+    foreach my $treeDatasetName ( "mergerTreeIndex", "mergerTreeStartIndex", "mergerTreeCount" ) {
+	$data->{$_}->{$treeDatasetName} = $data->{$_}->{'file'}->dataset("Outputs/Output1/".$treeDatasetName)->get();
+    }
 }
 
 # Test for equal numbers of nodes.
@@ -101,7 +97,14 @@ foreach my $property ( @properties ) {
 	my $js = $data->{  'split'}->{'rank'}->(($i));
 	my $ju = $data->{'unsplit'}->{'rank'}->(($i));
 	unless ( $data->{'split'}->{'properties'}->{$property}->(($js)) == $data->{'unsplit'}->{'properties'}->{$property}->(($ju)) ) {
-	    print $i."\t".$data->{'split'}->{'properties'}->{'nodeIndex'}->(($js))."\t".$data->{'unsplit'}->{'properties'}->{'nodeIndex'}->(($ju))."\t:\t".$data->{'split'}->{'properties'}->{$property}->(($js))."\t".$data->{'unsplit'}->{'properties'}->{$property}->(($ju))."\t:\t".$data->{'split'}->{'properties'}->{'nodeIsIsolated'}->(($js))."\t".$data->{'unsplit'}->{'properties'}->{'nodeIsIsolated'}->(($ju))."\n";
+	    # Identify to which tree the problem node belongs.
+	    my $nodeCount = 0;
+	    my $iTree = 0;
+	    while ( $data->{'split'}->{'mergerTreeStartIndex'}->(($iTree))+$data->{'split'}->{'mergerTreeCount'}->(($iTree)) < $js ) {
+		++$iTree;
+	    }
+	    # Report on the problem.
+	    print $i."\t".$data->{'split'}->{'properties'}->{'nodeIndex'}->(($js))."\t".$data->{'unsplit'}->{'properties'}->{'nodeIndex'}->(($ju))."\t:\t".$data->{'split'}->{'properties'}->{$property}->(($js))."\t".$data->{'unsplit'}->{'properties'}->{$property}->(($ju))."\t:\t".$data->{'split'}->{'properties'}->{'nodeIsIsolated'}->(($js))."\t".$data->{'unsplit'}->{'properties'}->{'nodeIsIsolated'}->(($ju))." : ".$data->{'split'}->{'mergerTreeIndex'}->(($iTree))."\n";
 	    print "FAILED: '".$property."' mismatch\n";
 	    exit;
 	}
