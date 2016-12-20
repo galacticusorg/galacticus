@@ -182,7 +182,10 @@ contains
     type   (fgsl_file            ), intent(in   ) :: fgslStateFile
     
     write (stateFile) self%resetSequenceSnapshot
-    if (.not.self%resetSequenceSnapshot) call Pseudo_Random_Store(self%clonedPseudoSequenceObject,fgslStateFile)
+    if (.not.self%resetSequenceSnapshot) then
+       call Pseudo_Random_Store(self%clonedPseudoSequenceObject,fgslStateFile)
+       call Pseudo_Random_Free (self%clonedPseudoSequenceObject              )
+    end if
     return
   end subroutine benson2005StateStore
 
