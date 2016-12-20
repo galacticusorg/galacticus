@@ -53,10 +53,12 @@ contains
        return
     end if
     ! Report.
-    write (label,'(f12.6)') thisEvent%time
-    message='Satellite node ['
-    message=message//thisNode%index()//'] promoting to isolated node ['//thisEvent%node%index()//'] at time '//trim(label)//' Gyr'
-    call Galacticus_Display_Message(message,verbosityInfo)
+    if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+       write (label,'(f12.6)') thisEvent%time
+       message='Satellite node ['
+       message=message//thisNode%index()//'] promoting to isolated node ['//thisEvent%node%index()//'] at time '//trim(label)//' Gyr'
+       call Galacticus_Display_Message(message)
+    end if
     ! Remove the subhalo from its host.
     call thisNode%removeFromHost()
     ! Make thisNode the primary progenitor of the target node.
