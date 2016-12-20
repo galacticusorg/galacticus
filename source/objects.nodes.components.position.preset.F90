@@ -23,8 +23,8 @@ module Node_Component_Position_Preset
   use Galacticus_Nodes
   implicit none
   private
-  public :: Node_Component_Position_Preset_Node_Promotion, Node_Component_Position_Preset_Initialize, &
-  &         Node_Component_Position_Preset_Move
+  public :: Node_Component_Position_Preset_Node_Promotion, Node_Component_Position_Preset_Initialize       , &
+  &         Node_Component_Position_Preset_Move          , Node_Component_Position_Preset_Inter_Tree_Insert
 
   !# <component>
   !#  <class>position</class>
@@ -154,5 +154,39 @@ contains
     call position%velocitySet(positionHost%velocity())    
     return
   end subroutine Node_Component_Position_Preset_Move
-  
+
+  !# <interTreePositionInsert>
+  !#  <unitName>Node_Component_Position_Preset_Inter_Tree_Insert</unitName>
+  !# </interTreePositionInsert>
+  subroutine Node_Component_Position_Preset_Inter_Tree_Insert(node,replaceNode)
+    !% A satellite node is being moved between trees, and being added as a new satellite. Its (future-)histories will have been
+    !% assigned to the {\normalfont \ttfamily replaceNode} so must be transferred.
+    use Histories
+    implicit none
+    type (treeNode             ), intent(inout), pointer :: node               , replaceNode
+    class(nodeComponentPosition)               , pointer :: position           , replacePosition
+    class(nodeComponentBasic   )               , pointer :: basic
+    type (history              )                         :: historyPosition    , replaceHistoryPosition, &
+         &                                                  moveHistoryPosition
+
+    ! Return immediately if the preset position implementation is not active.
+    if (.not.defaultPositionComponent%presetIsActive()) return
+    ! Get the basic component of the pulled node.
+    basic                  =>           node%basic          ()
+    ! Get the position components to both nodes.
+    position               =>           node%position       ()
+    replacePosition        =>    replaceNode%position       ()
+     ! Transfer subhalo mass history.
+    historyPosition        =        position%positionHistory()
+    replaceHistoryPosition = replacePosition%positionHistory()
+    ! Cut off history in node being replaced subsequent to current time.
+    call replaceHistoryPosition%trimForward       (basic%time(),   moveHistoryPosition)
+    ! Append removed history to pulled node.
+    call historyPosition       %append            (                moveHistoryPosition)
+    ! Set the histories.
+    call        position       %positionHistorySet(                    historyPosition)
+    call replacePosition       %positionHistorySet(             replaceHistoryPosition) 
+    return
+  end subroutine Node_Component_Position_Preset_Inter_Tree_Insert
+    
 end module Node_Component_Position_Preset

@@ -100,7 +100,7 @@ contains
          &                                                           treeIsFinished                  , evolutionIsEventLimited, &
          &                                                           success                         , removeTree             , &
          &                                                           suspendTree                     , treesDidEvolve         , &
-         &                                                           treeDidEvolve
+         &                                                           treeDidEvolve                   , deadlockReport
     type            (mergerTree             ), pointer     , save :: currentTree                     , previousTree           , &
          &                                                           nextTree
     !$omp threadprivate(currentTree,previousTree)
@@ -256,8 +256,9 @@ contains
     !# </include>
 
     ! Initialize tree counter and record that we are not finished processing trees.
-    finished=.false.
-    iTree   =0
+    deadlockReport=.false.
+    finished      =.false.
+    iTree         =0
 
     ! Create a semaphore if threads are being locked.
     if (treeEvolveThreadLock) galacticusMutex => Semaphore_Open("/"//char(treeEvolveThreadLockName),treeEvolveThreadsMaximum)
@@ -372,8 +373,9 @@ contains
                 end do
                 !$omp end critical(universeTransform)
                 ! Evolve the tree to the computed time.
-                call Merger_Tree_Evolve_To(thisTree,evolveToTime,treeDidEvolve,suspendTree)
+                call Merger_Tree_Evolve_To(thisTree,evolveToTime,treeDidEvolve,suspendTree,deadlockReport)
                 !$omp critical (universeStatus)
+                ! Record that evolution of the universe of trees occurred if this tree evolved and was not suspended.
                 if (treeDidEvolve) treesDidEvolve=.true.
                 !$omp end critical (universeStatus)                
                 ! If tree was marked to be suspended, record that evolution is limited by this suspension event.
@@ -417,6 +419,7 @@ contains
                       else
                          previousTree%nextTree => currentTree%nextTree
                          call currentTree%destroy()
+                         deallocate(currentTree)
                          currentTree => previousTree%nextTree
                       end if
                    else
@@ -427,16 +430,19 @@ contains
                 ! Check that tree reached required time. If it did not, we can evolve it no further.
                 treeTimeEarliest=thisTree%earliestTimeEvolving()
                 treeTimeLatest  =thisTree%  latestTime        ()
-                if     (                                                                        &
-                     &   treeTimeLatest   > evolveToTime                                        &
-                     &  .and.                                                                   &
-                     &   treeTimeEarliest < evolveToTime                                        &
-                     &  .and.                                                                   &
-                     &   .not.evolutionIsEventLimited                                           &
-                     & ) call Galacticus_Error_Report(                                          &
-                     &                                'Galacticus_Task_Evolve_Tree'           , &
-                     &                                'failed to evolve tree to required time'  &
-                     &                               )
+                if     (                                 &
+                     &   treeTimeLatest   > evolveToTime &
+                     &  .and.                            &
+                     &   treeTimeEarliest < evolveToTime &
+                     &  .and.                            &
+                     &   .not.evolutionIsEventLimited    &
+                     & ) then
+                   if (deadlockReport) exit
+                   call Galacticus_Error_Report(                                          &
+                        &                       'Galacticus_Task_Evolve_Tree'           , &
+                        &                       'failed to evolve tree to required time'  &
+                        &                      )
+                end if
                 ! Determine what limited evolution.
                 if (evolutionIsEventLimited) then
                    ! Tree evolution was limited by a universal event. Therefore it can evolve no further
@@ -474,7 +480,7 @@ contains
              currentTree => thisTree
              do while (associated(currentTree))
                 previousTree => currentTree
-                currentTree => currentTree%nextTree
+                currentTree  => currentTree%nextTree
                 call previousTree%destroy()
                 ! Deallocate the tree.
                 call Memory_Usage_Record(sizeof(previousTree),addRemove=-1,memoryType=memoryTypeNodes)
@@ -500,23 +506,29 @@ contains
           !$omp barrier
           !$omp single
           ! Check whether any tree evolution occurred. If it did not, we have a universe-level deadlock.
-          if (.not.treesDidEvolve) then
-             message="Universe appears to be deadlocked"//char(10)
-             !$omp critical(universeTransform)
-             treeCount=0
-             if (associated(universeProcessed%trees)) then
-                do while (associated(universeProcessed%trees))
-                   thisTree => universeProcessed%popTree()
-                   treeCount=treeCount+1
-                end do
-                message=message//" --> There are "//treeCount//" trees pending further processing"
+          if (.not.treesDidEvolve.or.deadlockReport) then
+             ! If we already did the deadlock reporting pass it's now time to finish that report and exit. Otherwise, set deadlock
+             ! reporting status to true and continue for one more pass through the universe.
+             if (deadlockReport) then
+                message="Universe appears to be deadlocked"//char(10)
+                !$omp critical(universeTransform)
+                treeCount=0
+                if (associated(universeProcessed%trees)) then
+                   do while (associated(universeProcessed%trees))
+                      thisTree => universeProcessed%popTree()
+                      treeCount=treeCount+1
+                   end do
+                   message=message//" --> There are "//treeCount//" trees pending further processing"
+                else
+                   message=message//" --> There are no trees pending further processing"
+                end if
+                !$omp end critical(universeTransform)
+                call Galacticus_Display_Message(message)
+                call Inter_Tree_Event_Post_Evolve()
+                call Galacticus_Error_Report('Galacticus_Task_Evolve_Tree','exiting')
              else
-                message=message//" --> There are no trees pending further processing"
+                deadlockReport=.true.
              end if
-             !$omp end critical(universeTransform)
-             call Galacticus_Display_Message(message)
-             call Inter_Tree_Event_Post_Evolve()
-             call Galacticus_Error_Report('Galacticus_Task_Evolve_Tree','exiting')
           end if
           treesDidEvolve=.false.
           !$omp critical(universeTransform)
@@ -538,11 +550,11 @@ contains
              end do
              ! Mark that there is more work to do.
              finished=.false.
+             call Galacticus_Display_Message('Finished universe evolution pass')
           end if
           !$omp end critical(universeTransform)
           !$omp end single copyprivate(finished)
        end if
-
     end do
     ! Finalize any merger tree operator.
     call mergerTreeOperator_%finalize()
@@ -595,6 +607,7 @@ contains
     use ISO_Varying_String
     implicit none
     type   (mergerTree    ), pointer, intent(inout) :: tree
+    type   (mergerTree    ), pointer                :: treeCurrent     , treeNext
     integer(kind_int8     )                         :: baseNodeUniqueID
     type   (varying_string)                         :: fileName
     
@@ -605,9 +618,14 @@ contains
        ! Generate a suitable file name.
        fileName=treeEvolveSuspendPath//'/suspendedTree_'//baseNodeUniqueID
        ! Store the tree to file.
-       call Merger_Tree_State_Store(tree,char(fileName),snapshot=.false.)
-       ! Destroy the tree.
-       call tree%destroy()
+       call Merger_Tree_State_Store(tree,char(fileName),snapshot=.false.,append=.false.)
+       ! Destroy the tree(s).
+       treeCurrent => tree
+       do while (associated(treeCurrent))
+          treeNext => treeCurrent%nextTree
+          call treeCurrent%destroy()
+          treeCurrent => treeNext
+       end do
        ! Set the tree index to the base node unique ID so that we can resume from the correct file.
        tree%index=baseNodeUniqueID
     end if

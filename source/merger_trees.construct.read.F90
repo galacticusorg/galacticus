@@ -21,11 +21,12 @@
 module Merger_Tree_Read
   !% Implements reading of merger trees from a file.
   use, intrinsic :: ISO_C_Binding
-  use Galacticus_Nodes
-  use ISO_Varying_String
-  use Kind_Numbers
-  use Merger_Tree_Read_Importers
-  use Dark_Matter_Profiles_Concentration
+  use            :: OMP_Lib
+  use            :: Galacticus_Nodes
+  use            :: ISO_Varying_String
+  use            :: Kind_Numbers
+  use            :: Merger_Tree_Read_Importers
+  use            :: Dark_Matter_Profiles_Concentration
   implicit none
   private
   public :: Merger_Tree_Read_Initialize, Merger_Tree_Read_Close
@@ -108,17 +109,16 @@ module Merger_Tree_Read
   !$omp threadprivate(descendentLocations,nodeLocations,descendentIndicesSorted,nodeIndicesSorted)
 
   ! Split forest data.
+  integer         (omp_lock_kind                      )                                                :: splitForestLock
   integer                                                                                              :: splitForestActiveForest
-  integer         (c_size_t                           )                                                :: splitForestNextTree                              , splitForestUniqueIDGlobal=0, &
-       &                                                                                                  splitForestUniqueID
-  integer         (c_size_t                           ), allocatable, dimension(:)                     :: splitForestTreeSize                              , splitForestTreeStart                               , &
+  integer         (c_size_t                           )                                                :: splitForestNextTree                              , splitForestUniqueID
+  integer         (c_size_t                           ), allocatable, dimension(:)                     :: splitForestTreeSize                              , splitForestTreeStart, &
        &                                                                                                  splitForestMapIndex
   integer         (kind=kind_int8                     ), allocatable, dimension(:)                     :: splitForestPushTo                                , splitForestPullFrom
   integer                                              , allocatable, dimension(:)                     :: splitForestPushType
   double precision                                     , allocatable, dimension(:)                     :: splitForestPushTime
-  logical                                              , allocatable, dimension(:)                     :: splitForestIsPrimary                             , splitForestPushDone        , &
+  logical                                              , allocatable, dimension(:)                     :: splitForestIsPrimary                             , splitForestPushDone , &
        &                                                                                                  splitForestPullDone
-  !$omp threadprivate(splitForestActiveForest,splitForestTreeStart,splitForestTreeSize,splitForestPushTo,splitForestPullFrom,splitForestPushType,splitForestNextTree,splitForestMapIndex,splitForestUniqueID,splitForestPushTime,splitForestIsPrimary,splitForestPushDone,splitForestPullDone)
 
   ! Enumeration of cross-tree event types.
   !# <enumeration>
@@ -126,7 +126,6 @@ module Merger_Tree_Read
   !#  <description>Cross-type event type enumeration.</description>
   !#  <entry label="branchJump"               />
   !#  <entry label="subhaloPromotion"         />
-  !#  <entry label="subhaloPromotionAndMerge" />
   !# </enumeration>
   
   ! Effective infinity for merging times.
@@ -137,6 +136,7 @@ module Merger_Tree_Read
   
   ! Record of warnings issued.
   logical                                                                                              :: warningNestedHierarchyIssued             =.false.                                            
+  logical                                                                                              :: warningSplitForestNestedHierarchyIssued  =.false.                                            
 
   ! Timing data.
   real                                                 , allocatable, dimension(:)                     :: timingTimes
@@ -732,6 +732,8 @@ contains
             &                              char(10)                                                                 // &
             &                              " [mergerTreeReadPresetSpins3D]=false"                                      &
             &                             )
+       ! Create an OpenMP lock that will allow threads to coordinate access to split forest data.
+       call OMP_Init_Lock(splitForestLock)
     end if
     return
   end subroutine Merger_Tree_Read_Initialize
@@ -784,6 +786,8 @@ contains
     type            (varying_string                )                                                     :: message
     integer                                                                                              :: nextTreeToReadActual
 
+    ! Obtain a lock on split forest data if necessary.
+    if (mergerTreeReadForestSizeMaximum > 0) call OMP_Set_Lock(splitForestLock)
     ! Enter loop which suspends threads when a new tree file is needed.
     newTreeFileRequired=.true.
     treeFile : do while (newTreeFileRequired)
@@ -879,7 +883,13 @@ contains
              ! Initialize no events.
              thisTree%event => null()
              ! Check if the size of this forest exceeds the maximum allowed.
-             if (.not.returnSplitForest.and.defaultImporter%nodeCount(nextTreeToRead) > mergerTreeReadForestSizeMaximum) then
+             if     (                                                                             &
+                  &   .not.returnSplitForest                                                      &
+                  &  .and.                                                                        &
+                  &   defaultImporter%nodeCount(nextTreeToRead) > mergerTreeReadForestSizeMaximum &
+                  &  .and.                                                                        &
+                  &   0                                         < mergerTreeReadForestSizeMaximum &
+                  & ) then
                 ! Check if the importer supports reading subsets of halos from a forest.
                 if (.not.defaultImporter%canReadSubsets()) call Galacticus_Error_Report('Merger_Tree_Read_Do','forest exceeds maximum allowed size but importer cannot read subsets of halos')
                 ! Import nodes, and keep only the minimally required data to map the tree structure.
@@ -1079,7 +1089,7 @@ contains
 
           ! Now build child and sibling links.
           call Build_Child_and_Sibling_Links(nodes,thisNodeList,childIsSubhalo)
-
+          
           ! Assign split forest events.
           call Assign_Split_Forest_Events(nodes,thisNodeList)
           
@@ -1237,6 +1247,20 @@ contains
           ! Scan subhalos to determine when and how they merge.
           call Scan_For_Mergers(nodes,thisNodeList,historyCountMaximum)
 
+          ! If a split forest was used, but all trees from it have now been processed, remove the split forest data as we no
+          ! longer need it at this point.
+          if (returnSplitForest .and. splitForestNextTree == size(splitForestTreeStart)) then
+             call deallocateArray(splitForestTreeSize )
+             call deallocateArray(splitForestTreeStart)
+             call deallocateArray(splitForestPushTo   )
+             call deallocateArray(splitForestPullFrom )
+             call deallocateArray(splitForestPushType )
+             call deallocateArray(splitForestMapIndex )
+          end if
+          ! Release the lock on split forest data if necessary as we're finished using it. This allows other threads to begin
+          ! using the split forest data.
+          if (mergerTreeReadForestSizeMaximum > 0) call OMP_Unset_Lock(splitForestLock)
+
           ! Search for any nodes which were flagged as merging with another node and assign appropriate pointers.
           call Assign_Mergers(nodes,thisNodeList)
 
@@ -1247,27 +1271,27 @@ contains
           call Scan_for_Branch_Jumps(nodes,thisNodeList)
 
           ! Allocate arrays for history building.
-       if (allocated(position)) call deallocateArray(position)
-       if (allocated(velocity)) call deallocateArray(velocity)
-       call allocateArray(historyTime,[int(historyCountMaximum)])
-       if (mergerTreeReadPresetSubhaloIndices                             ) then
+          if (allocated(position)) call deallocateArray(position)
+          if (allocated(velocity)) call deallocateArray(velocity)
+          call allocateArray(historyTime,[int(historyCountMaximum)])
+          if (mergerTreeReadPresetSubhaloIndices                             ) then
           call allocateArray(historyIndex,[  int(historyCountMaximum)])
-       else
+          else
           call allocateArray(historyIndex,[                        0 ])
-       end if
-       if (mergerTreeReadPresetSubhaloMasses                              ) then
+          end if
+          if (mergerTreeReadPresetSubhaloMasses                              ) then
           call allocateArray(historyMass ,[  int(historyCountMaximum)])
-       else
+          else
           call allocateArray(historyMass ,[                        0 ])
-       end if
-       if (mergerTreeReadPresetPositions    .or.mergerTreeReadPresetOrbits) then
+          end if
+          if (mergerTreeReadPresetPositions    .or.mergerTreeReadPresetOrbits) then
           call allocateArray(position    ,[3,int(historyCountMaximum)])
           call allocateArray(velocity    ,[3,int(historyCountMaximum)])
-       else
+          else
           call allocateArray(position    ,[0,                      0 ])
           call allocateArray(velocity    ,[0,                      0 ])
           end if
-
+          
           ! Build subhalo mass histories if required.
           call Build_Subhalo_Mass_Histories(nodes,thisNodeList,historyCountMaximum,historyTime,historyIndex,historyMass,position,velocity)
 
@@ -1275,12 +1299,12 @@ contains
           call Assign_UniqueIDs_To_Clones(thisNodeList)
 
           ! Deallocate history building arrays.
-       if (allocated(historyTime)) call deallocateArray(historyTime )
-       if (allocated(historyMass)) call deallocateArray(historyIndex)
-       if (allocated(historyMass)) call deallocateArray(historyMass )
-       if (allocated(position   )) call deallocateArray(position    )
-       if (allocated(velocity   )) call deallocateArray(velocity    )
-
+          if (allocated(historyTime)) call deallocateArray(historyTime )
+          if (allocated(historyMass)) call deallocateArray(historyIndex)
+          if (allocated(historyMass)) call deallocateArray(historyMass )
+          if (allocated(position   )) call deallocateArray(position    )
+          if (allocated(velocity   )) call deallocateArray(velocity    )
+          
           ! Deallocate the temporary arrays.
           call Memory_Usage_Record(sizeof(thisNodeList),addRemove=-1)
           deallocate(thisNodeList)
@@ -1293,15 +1317,9 @@ contains
        ! Deallocate nodes.
        call Memory_Usage_Record(sizeof(nodes),addRemove=-1)
        deallocate(nodes)
-       ! If a split forest was used, but all trees from it have now been processed, remove the split forest data.
-       if (returnSplitForest .and. splitForestNextTree == size(splitForestTreeStart)) then
-          call deallocateArray(splitForestTreeSize )
-          call deallocateArray(splitForestTreeStart)
-          call deallocateArray(splitForestPushTo   )
-          call deallocateArray(splitForestPullFrom )
-          call deallocateArray(splitForestPushType )
-          call deallocateArray(splitForestMapIndex )
-       end if
+    else
+       ! Release lock on split forest data if necessary.
+       if (mergerTreeReadForestSizeMaximum > 0) call OMP_Unset_Lock(splitForestLock)
     end if
     return
   end subroutine Merger_Tree_Read_Do
@@ -2975,25 +2993,47 @@ contains
     class    (nodeData      ), pointer                               :: thisNode              
     integer                                                          :: fileUnit      , iNode 
     character(len=20        )                                        :: color         , style 
-    logical                                                          :: outputNode                
+    logical                                                          :: outputNode
+    integer  (kind=kind_int8)                                        :: branchRootHost
+    
     ! Open an output file and write the GraphViz opening.
     open(newunit=fileUnit,file='mergerTreeConstructReadTree.gv',status='unknown',form='formatted')
     write (fileUnit,*) 'digraph Tree {'
 
+    ! Identify the host of the branch root.
+    if (present(branchRoot)) then
+       branchRootHost =  branchRoot
+       thisNode       => null()
+       do iNode=1,size(nodes)
+          if (nodes(iNode)%nodeIndex == branchRootHost) thisNode => nodes(iNode)
+       end do
+       if (associated(thisNode)) then
+          do while (associated(thisNode%host).and..not.associated(thisNode%host,thisNode))
+             thisNode => thisNode%host
+          end do
+          branchRootHost=thisNode%nodeIndex
+       end if
+    else
+       branchRootHost=-1_kind_int8
+    end if
+    
     ! Loop over all nodes.
     do iNode=1,size(nodes)
        ! Determine if node is in the branch to be output.
        if (present(branchRoot)) then
           outputNode=.false.
           thisNode => nodes(iNode)
-          do while (associated(thisNode%descendent))
-             if (thisNode%nodeIndex == branchRoot) then
-                outputNode=.true.
-                exit
-             end if
-             thisNode => thisNode%descendent
+          do while (associated(thisNode%host).and..not.associated(thisNode%host,thisNode))
+             thisNode => thisNode%host
           end do
-          outputNode=outputNode.or.(thisNode%nodeIndex == branchRoot)
+          outputNode=thisNode%nodeIndex == branchRootHost
+          do while (.not.outputNode.and.associated(thisNode%descendent))
+             thisNode => thisNode%descendent
+             do while (associated(thisNode%host).and..not.associated(thisNode%host,thisNode))                
+                thisNode => thisNode%host
+             end do
+             outputNode=thisNode%nodeIndex == branchRootHost
+          end do
        else
           outputNode=.true.
        end if
@@ -3376,7 +3416,8 @@ contains
     integer(kind=kind_int8    ), dimension(size(nodes))                :: rootAffinity
     integer(c_size_t          )                                        :: i                , j                       , &
          &                                                                treeCount        , pushCount               , &
-         &                                                                k                , progenitorLocation
+         &                                                                k                , progenitorLocation      , &
+         &                                                                forestSizeI      , forestSizeJ
     integer(kind=kind_int8    )                                        :: treeIndexPrevious, treeStartPrevious       , &
          &                                                                progenitorIndex
     type   (varying_string    )                                        :: message
@@ -3384,10 +3425,7 @@ contains
          &                                                                nodeIsPrimary
 
     ! Get a unique ID for this split forest.
-    !$omp critical (splitForestUniqueID)
-    splitForestUniqueIDGlobal=splitForestUniqueIDGlobal+1
-    splitForestUniqueID      =splitForestUniqueIDGlobal
-    !$omp end critical (splitForestUniqueID)
+    splitForestUniqueID=splitForestUniqueID+1
     ! Build sorted indices into nodes.
     call Create_Node_Indices(nodes)
     ! Initialize root affinities to impossible value.
@@ -3410,6 +3448,31 @@ contains
        end do
        ! Store root affinity.
        rootAffinity(i)=nodes(j)%nodeIndex
+    end do
+    ! Search for nodes which have a descendent or host with different root affinity and attempt to regroup trees into subforests
+    ! of the original forest.
+    do i=1,size(nodes)
+       ! Process only nodes with a descendent.       
+       if (nodes(i)%descendentIndex >= 0) then
+          ! Check for different root affinity in descendent.
+          do k=1,2
+             select case (k)
+             case (1)
+                j=Node_Location(nodes(i)%descendentIndex)
+             case (2)
+                j=Node_Location(nodes(i)%      hostIndex)
+             end select
+             if (rootAffinity(i) /= rootAffinity(j)) then
+                forestSizeI=count(rootAffinity == rootAffinity(i))
+                if (forestSizeI             >= mergerTreeReadForestSizeMaximum) cycle                
+                forestSizeJ=count(rootAffinity == rootAffinity(j))
+                if (forestSizeI+forestSizeJ >  mergerTreeReadForestSizeMaximum) cycle
+                where (rootAffinity == rootAffinity(j))
+                   rootAffinity=rootAffinity(i)
+                end where
+              end if
+          end do
+       end if
     end do
     ! Get a sorted index into the root node affinities.
     call allocateArray(splitForestMapIndex,shape(nodes))
@@ -3441,14 +3504,14 @@ contains
           splitForestTreeSize(i)=splitForestTreeStart(i+1)-splitForestTreeStart(i)
        end do
     end if
-    splitForestTreeSize(treeCount)=size(nodes)+1-splitForestTreeStart(treeCount)
+    splitForestTreeSize(treeCount)=size(nodes)+1-splitForestTreeStart(treeCount)   
     ! Report.
-    call Galacticus_Display_Indent('Breaking forest into trees:') !! AJB HACK ,verbosityInfo)
+    call Galacticus_Display_Indent('Breaking forest into trees:',verbosityInfo)
     do i=1,treeCount
        message="Tree "
        message=message//i//" of "//treeCount//" contains "//splitForestTreeSize(i)//" node"
        if (splitForestTreeSize(i) > 1) message=message//"s"
-       call Galacticus_Display_Message(message) !! AJB HACK ,verbosityInfo)
+       call Galacticus_Display_Message(message,verbosityInfo)
     end do
     ! Search for nodes which have a descendent with different root affinity.
     pushCount=0
@@ -3471,7 +3534,7 @@ contains
     end do
     message="Found "
     message=message//pushCount//" links between trees"
-    call Galacticus_Display_Message(message) !! AJB HACK ,verbosityInfo)
+    call Galacticus_Display_Message(message,verbosityInfo)
     ! Build a list of push and pull links.
     call allocateArray(splitForestPushTo   ,[pushCount])
     call allocateArray(splitForestPullFrom ,[pushCount])
@@ -3487,11 +3550,11 @@ contains
           ! Check for different root affinity in descendent.
           j=Node_Location(nodes(i)%descendentIndex)
           ! Test for an inter-tree event. These are identified by a node having a different initial root affinity than its descendent.
-          if (rootAffinity(i) /= rootAffinity(j)) then
+          if (rootAffinity(i) /= rootAffinity(j)) then     
              ! Determine if our node is the primary progenitor and if an isolated progenitor exists.
              isolatedProgenitorExists=.false.
              nodeIsMostMassive       =.true.
-             progenitorIndex  =Descendent_Node_Sort_Index(nodes(i)%descendentIndex)
+             progenitorIndex         =Descendent_Node_Sort_Index(nodes(i)%descendentIndex)
              if (progenitorIndex > 0 .and. progenitorIndex <= size(nodes)) then
                 progenitorLocation=descendentLocations(progenitorIndex)
                 do while (nodes(progenitorLocation)%descendentIndex == nodes(i)%descendentIndex)
@@ -3528,20 +3591,35 @@ contains
                 splitForestPushDone (pushCount)=.false.
                 splitForestPullDone (pushCount)=.false.
              else
+                ! For non-primary progenitors, detect nested subhalo hierarchy. The descendent node is a subhalo. As nested hierarchies are not currently
+                ! handled, we must instead find the isolated host of the descendent and push to that node instead.
+                if (.not.nodeIsPrimary) then
+                   if (.not.warningSplitForestNestedHierarchyIssued) then
+                      message='nested hierarchy in split forests detected [node '
+                      message=message//nodes(j)%nodeIndex//']'
+                      message=message//char(10)//'ignoring as not currently supported'
+                      message=message//char(10)//'warning will not be issued again'
+                      call Galacticus_Display_Message(message,verbosityWarn)
+                      warningSplitForestNestedHierarchyIssued=.true.
+                   end if
+                   do while (nodes(j)%nodeIndex /= nodes(j)%hostIndex)
+                      j=Node_Location(nodes(j)%hostIndex)
+                   end do
+                end if
                 ! Inter-tree branch jump.
-                k                              =Node_Location(nodes(i)%      hostIndex)
-                splitForestPushTime (pushCount)=              nodes(k)%      nodeTime
-                splitForestPushTo   (pushCount)=              nodes(i)%      nodeIndex
-                splitForestPullFrom (pushCount)=              nodes(i)%descendentIndex
+                k                              =Node_Location(nodes(i)%hostIndex)
+                splitForestPushTime (pushCount)=              nodes(k)%nodeTime
+                splitForestPushTo   (pushCount)=              nodes(i)%nodeIndex
+                splitForestPullFrom (pushCount)=              nodes(j)%nodeIndex
                 splitForestIsPrimary(pushCount)=nodeIsPrimary
                 splitForestPushType (pushCount)=pushTypeBranchJump
                 splitForestPushDone (pushCount)=.false.
-                splitForestPullDone (pushCount)=.false.               
+                splitForestPullDone (pushCount)=.false.
              end if
           end if
        end if
     end do
-    call Galacticus_Display_Unindent('done') !! AJB HACK ,verbosityInfo)
+    call Galacticus_Display_Unindent('done',verbosityInfo)
     return
   end subroutine Root_Node_Affinities_Initial
 
@@ -3644,13 +3722,10 @@ contains
     type            (varying_string    )                                      :: message
     character       (len=12            )                                      :: label
     logical                                                                   :: nodeIsMostMassive
-
-
-    !! AJB HACK
-    ! HANDLE CASES WHERE BRANCH JUMPS OR SUBHALO PROMOTIONS ARE NOT ALLOWED???
-
     
-    call Galacticus_Display_Indent('Assigning inter-tree events') !! AJB HACK ,verbosityInfo)
+    !! TODO: Handle cases where branch jumps and/or subhalo promotions are disallowed.
+    
+    call Galacticus_Display_Indent('Assigning inter-tree events',verbosityInfo)
     do iNode=1,size(nodes)
        ! Process only isolated nodes.
        if (nodes(iNode)%isolatedNodeIndex == nodeIsUnreachable) cycle
@@ -3683,7 +3758,7 @@ contains
                 write (label,'(f12.8)') splitForestPushTime(pushListIndex(thisNode))
                 message="Attaching push event ["
                 message=message//newEvent%ID//"] to node "//thisNode%nodeIndex//" [-->"//splitForestPullFrom(pushListIndex(thisNode))//"] {ref:"//splitForestPushTo(pushListIndex(thisNode))//"} at time "//label//" Gyr"
-                call Galacticus_Display_Message(message) !! AJB HACK ,verbosityInfo)             
+                call Galacticus_Display_Message(message,verbosityInfo)             
              end if
           end if
           if (isOnPullList(thisNode)) then             
@@ -3694,35 +3769,36 @@ contains
                       allocate(nodeEventSubhaloPromotionInterTree :: newEvent)
                    case (pushTypeBranchJump      )
                       allocate(nodeEventBranchJumpInterTree       :: newEvent)
+                   case default
+                      call Galacticus_Error_Report('Assign_Split_Forest_Events','unknown push type')
                    end select
                    iIsolatedNode=nodes(iNode)%isolatedNodeIndex
                    if (splitForestIsPrimary(pullListIndex(thisNode,iPull))) then
-                      ! For a primary progenitor, create a temporary primary progenitor node to which we attach the event. This
-                      ! will later be replaced with our node.
-                      allocate                                    (newNode)
-
-!!                      AJB: WE NEED TO BE ABLE TO SET THE PROPERTIES OF THIS NEW NODE TO THOSE OF THE NODE THAT WILL BE PULLED IN ORDER TO BE ABLE TO SET ORBITS/MERGING TIMES
-!!                      WOULD NEED TO STORE THESE IN SPLIT FOREST DATA AND SET THEM HERE. BUT OF COURSE WE DON'T HAVE THAT INFORMATION AVAILABLE IN NODEDATAMINIMAL.......
-
-                      
-                      call nodeList(iIsolatedNode)%node%copyNodeTo(newNode)
-                      newNode%sibling                         => nodeList(iIsolatedNode)%node%firstChild
-                      newNode%parent                          => nodeList(iIsolatedNode)%node
-                      newNode%firstChild                      => null()
-                      newNode%mergeTarget                     => null()
-                      newNode%siblingMergee                   => null()
-                      nodeList(iIsolatedNode)%node%firstChild => newNode
-                      newBasic                                => newNode%basic()
-                      call newBasic%timeSet(newBasic%time()*(1.0d0-1.0d-6))
-                      ! Events remain attached to the original and we do not want to duplicate them.
-                      newNode%event => null()
-                      ! Any satellites are now attached to the copy.
-                      nodeList(iIsolatedNode)%node%firstSatellite => null()
-                      satellite => newNode%firstSatellite
-                      do while (associated(satellite))
-                         satellite%parent => newNode
-                         satellite        => satellite%sibling
-                      end do
+                      ! For a subhalo promotion primary progenitor, create a temporary primary progenitor node (unless we have
+                      ! previously done so) to which we attach the event. This will later be replaced with our node.
+                      if (splitForestPushType(pullListIndex(thisNode,iPull)) == pushTypeBranchJump) then
+                         newNode => nodeList(iIsolatedNode)%node
+                      else
+                         allocate                                    (newNode)
+                         call nodeList(iIsolatedNode)%node%copyNodeTo(newNode)
+                         newNode%sibling                         => nodeList(iIsolatedNode)%node%firstChild
+                         newNode%parent                          => nodeList(iIsolatedNode)%node
+                         newNode%firstChild                      => null()
+                         newNode%mergeTarget                     => null()
+                         newNode%siblingMergee                   => null()
+                         nodeList(iIsolatedNode)%node%firstChild => newNode
+                         newBasic                                => newNode%basic()
+                         call newBasic%timeSet(newBasic%time()*(1.0d0-1.0d-6))
+                         ! Events remain attached to the original and we do not want to duplicate them.
+                         newNode%event => null()
+                         ! Any satellites are now attached to the copy.
+                         nodeList(iIsolatedNode)%node%firstSatellite => null()
+                         satellite => newNode%firstSatellite
+                         do while (associated(satellite))
+                            satellite%parent => newNode
+                            satellite        => satellite%sibling
+                         end do
+                      end if
                       call newNode%attachEvent(newEvent)
                    else
                       ! For a non-primary progenitor, attach the event to the primary progenitor of the node, such that our node
@@ -3730,7 +3806,7 @@ contains
                       if (.not.associated(nodeList(iIsolatedNode)%node%firstChild)) then
                          allocate                                    (newNode)
                          call nodeList(iIsolatedNode)%node%copyNodeTo(newNode)
-                         newNode%parent                          => nodeList(iIsolatedNode)%node 
+                         newNode%parent                          => nodeList(iIsolatedNode)%node
                          newNode%sibling                         => null()
                          newNode%firstChild                      => null()
                          newNode%mergeTarget                     => null()
@@ -3749,6 +3825,10 @@ contains
                          end do
                       end if
                       call nodeList(iIsolatedNode)%node%firstChild%attachEvent(newEvent)
+                      
+                      !! TODO: we should set any merge target here - otherwise the target could evolve past the merging time prior
+                      !! to the branch jump happening.
+
                    end if
                    newEvent%time =  splitForestPushTime(pullListIndex(thisNode,iPull))
                    newEvent%node => null()
@@ -3756,12 +3836,12 @@ contains
                    select type (newEvent)
                    type is (nodeEventSubhaloPromotionInterTree)
                       newEvent%splitForestUniqueID=splitForestUniqueID
-                      newEvent%pairedNodeID       =splitForestPushTo   (pullListIndex(thisNode,iPull))
-                      newEvent%isPrimary          =splitForestIsPrimary(pullListIndex(thisNode,iPull))
+                      newEvent%pairedNodeID       =splitForestPushTo      (pullListIndex(thisNode,iPull))
+                      newEvent%isPrimary          =splitForestIsPrimary   (pullListIndex(thisNode,iPull))
                    type is (nodeEventBranchJumpInterTree      )
                       newEvent%splitForestUniqueID=splitForestUniqueID
-                      newEvent%pairedNodeID       =splitForestPushTo   (pullListIndex(thisNode,iPull))
-                      newEvent%isPrimary          =splitForestIsPrimary(pullListIndex(thisNode,iPull))
+                      newEvent%pairedNodeID       =splitForestPushTo      (pullListIndex(thisNode,iPull))
+                      newEvent%isPrimary          =splitForestIsPrimary   (pullListIndex(thisNode,iPull))
                    class default
                       call Galacticus_Error_Report('Assign_Split_Forest_Events','unknown event type')
                    end select
@@ -3769,7 +3849,7 @@ contains
                    write (label,'(f12.8)') splitForestPushTime(pullListIndex(thisNode,iPull))
                    message="Attaching pull event ["
                    message=message//newEvent%ID//"] to node "//thisNode%nodeIndex//" [<--"//splitForestPushTo(pullListIndex(thisNode,iPull))//"] {ref:"//splitForestPushTo(pullListIndex(thisNode,iPull))//"} at time "//label//" Gyr"
-                   call Galacticus_Display_Message(message) !! AJB HACK ,verbosityInfo)                
+                   call Galacticus_Display_Message(message,verbosityInfo)
                 end if
              end do
           end if
@@ -3804,7 +3884,7 @@ contains
           end if
        end do
     end do
-    call Galacticus_Display_Unindent('done') !! AJB HACK ,verbosityInfo)   
+    call Galacticus_Display_Unindent('done',verbosityInfo)   
     return
   end subroutine Assign_Split_Forest_Events
   
