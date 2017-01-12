@@ -126,12 +126,12 @@ contains
     use Cosmology_Functions
     use Kepler_Orbits
     implicit none
-    class           (satelliteMergingTimescalesVillalobos2013 ), intent(inout)          :: self
-    type            (treeNode                                 ), intent(inout), pointer :: thisNode
-    type            (keplerOrbit                              ), intent(inout)          :: thisOrbit
-    class           (nodeComponentBasic                       )               , pointer :: thisBasic
-    class           (cosmologyFunctionsClass                  )               , pointer :: cosmologyFunctionsDefault
-    double precision                                                                    :: expansionFactor
+    class           (satelliteMergingTimescalesVillalobos2013 ), intent(inout) :: self
+    type            (treeNode                                 ), intent(inout) :: thisNode
+    type            (keplerOrbit                              ), intent(inout) :: thisOrbit
+    class           (nodeComponentBasic                       ), pointer       :: thisBasic
+    class           (cosmologyFunctionsClass                  ), pointer       :: cosmologyFunctionsDefault
+    double precision                                                           :: expansionFactor
 
     ! Get the default cosmology functions object.
     cosmologyFunctionsDefault => cosmologyFunctions()

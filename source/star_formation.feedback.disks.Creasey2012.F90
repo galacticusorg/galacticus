@@ -32,6 +32,7 @@ module Star_Formation_Feedback_Disks_Creasey2012
   ! Pointer to active node used in integral functions, plus variables needed by integral function.
   type            (treeNode), pointer :: activeNode
   !$omp threadprivate(activeNode)
+
 contains
 
   !# <starFormationFeedbackDisksMethod>
@@ -102,15 +103,15 @@ contains
     use Stellar_Feedback
     use Numerical_Integration
     implicit none
-    type            (treeNode                  ), intent(inout), pointer :: thisNode
-    class           (nodeComponentDisk         )               , pointer :: thisDiskComponent
-    double precision                            , intent(in   )          :: energyInputRate               , starFormationRate
-    double precision                            , parameter              :: radiusInnerDimensionless=0.0d0, radiusOuterDimensionless=10.0d0
-    double precision                                                     :: diskScaleRadius               , gasMass                        , &
-         &                                                                  radiusInner                   , radiusOuter                    , &
-         &                                                                  stellarMass
-    type            (fgsl_function             )                         :: integrandFunction
-    type            (fgsl_integration_workspace)                         :: integrationWorkspace
+    type            (treeNode                  ), intent(inout), target :: thisNode
+    class           (nodeComponentDisk         ), pointer               :: thisDiskComponent
+    double precision                            , intent(in   )         :: energyInputRate               , starFormationRate
+    double precision                            , parameter             :: radiusInnerDimensionless=0.0d0, radiusOuterDimensionless=10.0d0
+    double precision                                                    :: diskScaleRadius               , gasMass                        , &
+         &                                                                 radiusInner                   , radiusOuter                    , &
+         &                                                                 stellarMass
+    type            (fgsl_function             )                        :: integrandFunction
+    type            (fgsl_integration_workspace)                        :: integrationWorkspace
 
     ! Get the disk properties.
     thisDiskComponent => thisNode         %disk       ()
@@ -146,7 +147,7 @@ contains
        call Integrate_Done(integrandFunction,integrationWorkspace)
     return
   end function Star_Formation_Feedback_Disk_Outflow_Rate_Creasey2012
-
+  
   double precision function Star_Formation_Feedback_Disk_Outflow_Rate_Creasey2012_Integrand(radius)
     !% Integrand function for the ``Creasey et al. (2012)'' supernovae feedback calculation.
     use Galactic_Structure_Surface_Densities
@@ -178,5 +179,5 @@ contains
          & *radius
     return
   end function Star_Formation_Feedback_Disk_Outflow_Rate_Creasey2012_Integrand
-
+  
 end module Star_Formation_Feedback_Disks_Creasey2012

@@ -63,7 +63,7 @@ contains
     !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\normalfont \ttfamily thisNode}, assuming a fixed timecale.
     use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout), target :: thisNode
     !GCC$ attributes unused :: thisNode
 
     ! Return the timescale.

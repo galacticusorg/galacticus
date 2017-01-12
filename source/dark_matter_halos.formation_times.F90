@@ -32,12 +32,12 @@ contains
     use Galacticus_Nodes
     use Dark_Matter_Halo_Mass_Accretion_Histories
     implicit none
-    type            (treeNode                               ), intent(inout), pointer :: thisNode
-    double precision                                         , intent(in   )          :: formationMassFraction
-    type            (treeNode                               )               , pointer :: formationNode                      , workNode
-    class           (nodeComponentBasic                     )               , pointer :: parentBasicComponent               , thisBasicComponent, workBasicComponent
-    class           (darkMatterHaloMassAccretionHistoryClass),                pointer :: darkMatterHaloMassAccretionHistory_
-    double precision                                                                  :: massNode                           , timeNode
+    type            (treeNode                               ), intent(inout), target :: thisNode
+    double precision                                         , intent(in   )         :: formationMassFraction
+    type            (treeNode                               ), pointer               :: formationNode                      , workNode
+    class           (nodeComponentBasic                     ), pointer               :: parentBasicComponent               , thisBasicComponent, workBasicComponent
+    class           (darkMatterHaloMassAccretionHistoryClass), pointer               :: darkMatterHaloMassAccretionHistory_
+    double precision                                                                 :: massNode                           , timeNode
 
     ! Get the basic component.
     thisBasicComponent => thisNode%basic()

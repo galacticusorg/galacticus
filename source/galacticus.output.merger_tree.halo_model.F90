@@ -120,12 +120,12 @@ contains
     !% Set the names of halo model properties to be written to the \glc\ output file.
     use Galacticus_Nodes
     implicit none
-    type            (treeNode)              , intent(inout), pointer :: thisNode
-    double precision                        , intent(in   )          :: time
-    integer                                 , intent(inout)          :: doubleProperty         , integerProperty
-    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
-         &                                                              integerPropertyComments, integerPropertyNames
-    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+    type            (treeNode)              , intent(inout) :: thisNode
+    double precision                        , intent(in   ) :: time
+    integer                                 , intent(inout) :: doubleProperty         , integerProperty
+    character       (len=*   ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
+         &                                                     integerPropertyComments, integerPropertyNames
+    double precision          , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     !GCC$ attributes unused :: thisNode, time
     
     ! Initialize the module.
@@ -169,9 +169,9 @@ contains
     !% Account for the number of halo model properties to be written to the \glc\ output file.
     use Galacticus_Nodes
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: time
-    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
+    type            (treeNode), intent(inout) :: thisNode
+    double precision          , intent(in   ) :: time
+    integer                   , intent(inout) :: doublePropertyCount, integerPropertyCount
     !GCC$ attributes unused :: thisNode, time
     
     ! Initialize the module.
@@ -197,14 +197,14 @@ contains
     use Kind_Numbers
     use Multi_Counters
     implicit none
-    double precision                , intent(in   )          :: time
-    type            (treeNode      ), intent(inout), pointer :: thisNode
-    integer                         , intent(inout)          :: doubleBufferCount     , doubleProperty, integerBufferCount, &
-         &                                                      integerProperty
-    integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
-    double precision                , intent(inout)          :: doubleBuffer     (:,:)
-    type            (multiCounter  ), intent(inout)          :: instance
-    type            (treeNode      )               , pointer :: isolatedNode
+    double precision                , intent(in   )         :: time
+    type            (treeNode      ), intent(inout), target :: thisNode
+    integer                         , intent(inout)         :: doubleBufferCount     , doubleProperty, integerBufferCount, &
+         &                                                     integerProperty
+    integer         (kind=kind_int8), intent(inout)         :: integerBuffer    (:,:)
+    double precision                , intent(inout)         :: doubleBuffer     (:,:)
+    type            (multiCounter  ), intent(inout)         :: instance
+    type            (treeNode      ), pointer               :: isolatedNode
     !GCC$ attributes unused :: time, instance
     
     ! Initialize the module.

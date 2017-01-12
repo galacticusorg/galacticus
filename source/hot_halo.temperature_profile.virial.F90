@@ -50,9 +50,9 @@ contains
     !% Return the logarithmic slope of the density profile in a {\normalfont \ttfamily virial} hot halo mass
     !% distribution.
     implicit none
-    class           (hotHaloTemperatureProfileVirial), intent(inout)          :: self
-    type            (treeNode                       ), intent(inout), pointer :: node
-    double precision                                 , intent(in   )          :: radius
+    class           (hotHaloTemperatureProfileVirial), intent(inout) :: self
+    type            (treeNode                       ), intent(inout) :: node
+    double precision                                 , intent(in   ) :: radius
     !GCC$ attributes unused :: self, node, radius
     
     virialTemperatureLogSlope=0.0d0

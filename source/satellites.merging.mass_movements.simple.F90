@@ -88,11 +88,11 @@ contains
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    integer                   , intent(  out)          :: gasMovesTo   , hostGasMovesTo, hostStarsMoveTo, starsMoveTo
-    logical                   , intent(  out)          :: mergerIsMajor
-    type            (treeNode)               , pointer :: hostNode
-    double precision                                   :: hostMass     , satelliteMass
+    type            (treeNode), intent(inout) :: thisNode
+    integer                   , intent(  out) :: gasMovesTo   , hostGasMovesTo, hostStarsMoveTo, starsMoveTo
+    logical                   , intent(  out) :: mergerIsMajor
+    type            (treeNode), pointer       :: hostNode
+    double precision                          :: hostMass     , satelliteMass
 
     ! Find the node to merge with.
     hostNode => thisNode%mergesWith()

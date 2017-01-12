@@ -64,8 +64,8 @@ contains
     !% host and satellite spheroids.
     use Galacticus_Nodes
     implicit none
-    type (treeNode             ), intent(inout), pointer :: hostNode             , thisNode
-    class(nodeComponentSpheroid)               , pointer :: hostSpheroidComponent, thisSpheroidComponent
+    type (treeNode             ), intent(inout), target :: hostNode             , thisNode
+    class(nodeComponentSpheroid), pointer               :: hostSpheroidComponent, thisSpheroidComponent
 
     ! Get the spheroid components.
     thisSpheroidComponent => thisNode%spheroid()

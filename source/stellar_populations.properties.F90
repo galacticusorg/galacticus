@@ -89,15 +89,15 @@ contains
     !% Return an array of stellar population property rates of change given a star formation rate and fuel abundances.
     use Stellar_Luminosities_Structure
     implicit none
-    double precision                     , intent(  out)          :: energyInputRate         , fuelMassRate           , &
-         &                                                           stellarMassRate
-    type            (abundances         ), intent(inout)          :: fuelAbundancesRates     , stellarAbundancesRates
-    type            (stellarLuminosities), intent(  out)          :: stellarLuminositiesRates
-    double precision                     , intent(in   )          :: starFormationRate
-    type            (abundances         ), intent(in   )          :: fuelAbundances
-    integer                              , intent(in   )          :: component
-    type            (treeNode           ), intent(inout), pointer :: thisNode
-    type            (history            ), intent(inout)          :: thisHistory
+    double precision                     , intent(  out) :: energyInputRate         , fuelMassRate           , &
+         &                                                  stellarMassRate
+    type            (abundances         ), intent(inout) :: fuelAbundancesRates     , stellarAbundancesRates
+    type            (stellarLuminosities), intent(  out) :: stellarLuminositiesRates
+    double precision                     , intent(in   ) :: starFormationRate
+    type            (abundances         ), intent(in   ) :: fuelAbundances
+    integer                              , intent(in   ) :: component
+    type            (treeNode           ), intent(inout) :: thisNode
+    type            (history            ), intent(inout) :: thisHistory
 
     ! Ensure module is initialized.
     call Stellar_Population_Properties_Rates_Initialize
@@ -139,8 +139,8 @@ contains
   subroutine Stellar_Population_Properties_History_Create(thisNode,thisHistory)
     !% Create any history required for storing stellar population properties.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-    type(history ), intent(inout)          :: thisHistory
+    type(treeNode), intent(inout) :: thisNode
+    type(history ), intent(inout) :: thisHistory
 
     ! Ensure module is initialized.
     call Stellar_Population_Properties_Rates_Initialize

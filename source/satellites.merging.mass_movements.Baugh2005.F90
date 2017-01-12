@@ -111,12 +111,12 @@ contains
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    integer                   , intent(  out)          :: gasMovesTo   , hostGasMovesTo, hostStarsMoveTo , starsMoveTo
-    logical                   , intent(  out)          :: mergerIsMajor
-    type            (treeNode)               , pointer :: hostNode
-    logical                                            :: triggersBurst
-    double precision                                   :: hostGasMass  , hostMass      , hostSpheroidMass, satelliteMass
+    type            (treeNode), intent(inout) :: thisNode
+    integer                   , intent(  out) :: gasMovesTo   , hostGasMovesTo, hostStarsMoveTo , starsMoveTo
+    logical                   , intent(  out) :: mergerIsMajor
+    type            (treeNode), pointer       :: hostNode
+    logical                                   :: triggersBurst
+    double precision                          :: hostGasMass  , hostMass      , hostSpheroidMass, satelliteMass
 
     ! Find the node to merge with.
    hostNode => thisNode%mergesWith()

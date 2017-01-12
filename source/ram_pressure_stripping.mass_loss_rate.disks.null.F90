@@ -44,7 +44,7 @@ contains
     !% Computes the mass loss rate from disks due to ram pressure stripping. Always returns zero.
     use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
     !GCC$ attributes unused :: thisNode
     
     Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Null=0.0d0

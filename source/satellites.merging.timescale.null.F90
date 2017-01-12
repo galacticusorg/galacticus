@@ -47,9 +47,9 @@ contains
     use Galacticus_Nodes
     use Kepler_Orbits
     implicit none
-    class(satelliteMergingTimescalesNull), intent(inout)          :: self
-    type (treeNode                      ), intent(inout), pointer :: thisNode
-    type (keplerOrbit                   ), intent(inout)          :: thisOrbit
+    class(satelliteMergingTimescalesNull), intent(inout) :: self
+    type (treeNode                      ), intent(inout) :: thisNode
+    type (keplerOrbit                   ), intent(inout) :: thisOrbit
     !GCC$ attributes unused :: self, thisNode, thisOrbit
     
     nullTimeUntilMerging=0.0d0

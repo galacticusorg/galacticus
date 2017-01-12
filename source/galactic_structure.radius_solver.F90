@@ -33,13 +33,7 @@ module Galactic_Structure_Radii
   type     (varying_string                         )          :: galacticStructureRadiusSolverMethod
 
   ! Pointer to the function that actually does the calculation.
-  procedure(Galactic_Structure_Radii_Solve_Template), pointer :: Galactic_Structure_Radii_Solve_Do       =>null()
-  abstract interface
-     subroutine Galactic_Structure_Radii_Solve_Template(thisNode)
-       import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode
-     end subroutine Galactic_Structure_Radii_Solve_Template
-  end interface
+  procedure(Galactic_Structure_Radii_Solve), pointer :: Galactic_Structure_Radii_Solve_Do       =>null()
 
 contains
 
@@ -54,7 +48,7 @@ contains
     include 'galactic_structure.radius_solver.modules.inc'
     !# </include>
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout), target :: thisNode
 
     ! Initialize if necessary.
     if (.not.galacticStructureRadiusSolverInitialized) then

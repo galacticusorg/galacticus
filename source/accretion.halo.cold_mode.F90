@@ -152,9 +152,9 @@ contains
     !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     implicit none
-    class  (accretionHaloColdMode), intent(inout)          :: self
-    type   (treeNode             ), intent(inout), pointer :: node
-    integer                       , intent(in   )          :: accretionMode
+    class  (accretionHaloColdMode), intent(inout) :: self
+    type   (treeNode             ), intent(inout) :: node
+    integer                       , intent(in   ) :: accretionMode
 
     coldModeAccretionRate=                                                     &
          &  self%accretionHaloSimple%accretionRate   (node,accretionModeTotal) &
@@ -166,9 +166,9 @@ contains
     !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     implicit none
-    class  (accretionHaloColdMode), intent(inout)          :: self
-    type   (treeNode             ), intent(inout), pointer :: node
-    integer                       , intent(in   )          :: accretionMode
+    class  (accretionHaloColdMode), intent(inout) :: self
+    type   (treeNode             ), intent(inout) :: node
+    integer                       , intent(in   ) :: accretionMode
 
     coldModeAccretedMass=                                                      &
          &  self%accretionHaloSimple%accretedMass    (node,accretionModeTotal) &
@@ -180,9 +180,9 @@ contains
     !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     implicit none
-    class  (accretionHaloColdMode), intent(inout)          :: self
-    type   (treeNode             ), intent(inout), pointer :: node
-    integer                       , intent(in   )          :: accretionMode
+    class  (accretionHaloColdMode), intent(inout) :: self
+    type   (treeNode             ), intent(inout) :: node
+    integer                       , intent(in   ) :: accretionMode
 
     coldModeFailedAccretionRate=                                                  &
          &  self%accretionHaloSimple%failedAccretionRate(node,accretionModeTotal) &
@@ -194,9 +194,9 @@ contains
     !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     implicit none
-    class  (accretionHaloColdMode), intent(inout)          :: self
-    type   (treeNode             ), intent(inout), pointer :: node
-    integer                       , intent(in   )          :: accretionMode
+    class  (accretionHaloColdMode), intent(inout) :: self
+    type   (treeNode             ), intent(inout) :: node
+    integer                       , intent(in   ) :: accretionMode
 
     coldModeFailedAccretedMass=                                                  &
          &  self%accretionHaloSimple%failedAccretedMass(node,accretionModeTotal) &
@@ -208,10 +208,10 @@ contains
     !% Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
     use Galacticus_Nodes
     implicit none
-    type  (abundances           )                         :: coldModeAccretionRateMetals
-    class (accretionHaloColdMode), intent(inout)          :: self
-    type  (treeNode             ), intent(inout), pointer :: node
-    integer                      , intent(in   )          :: accretionMode
+    type  (abundances           )                :: coldModeAccretionRateMetals
+    class (accretionHaloColdMode), intent(inout) :: self
+    type  (treeNode             ), intent(inout) :: node
+    integer                      , intent(in   ) :: accretionMode
     
     coldModeAccretionRateMetals=                                             &
          &  self%accretionHaloSimple%accretionRateMetals(node,accretionMode) &
@@ -223,10 +223,10 @@ contains
     !% Computes the mass of abundances accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
     use Galacticus_Nodes
     implicit none
-    type   (abundances           )                         :: coldModeAccretedMassMetals
-    class  (accretionHaloColdMode), intent(inout)          :: self
-    type   (treeNode             ), intent(inout), pointer :: node
-    integer                       , intent(in   )          :: accretionMode
+    type   (abundances           )                :: coldModeAccretedMassMetals
+    class  (accretionHaloColdMode), intent(inout) :: self
+    type   (treeNode             ), intent(inout) :: node
+    integer                       , intent(in   ) :: accretionMode
 
     coldModeAccretedMassMetals=                                             &
          &  self%accretionHaloSimple%accretedMassMetals(node,accretionMode) &
@@ -241,11 +241,11 @@ contains
     use Galacticus_Nodes
     use Chemical_Abundances_Structure
     implicit none
-    type            (chemicalAbundances   )                         :: coldModeAccretionRateChemicals
-    class           (accretionHaloColdMode), intent(inout)          :: self
-    type            (treeNode             ), intent(inout), pointer :: node
-    integer                                , intent(in   )          :: accretionMode
-    double precision                                                :: massAccretionRate
+    type            (chemicalAbundances   )                :: coldModeAccretionRateChemicals
+    class           (accretionHaloColdMode), intent(inout) :: self
+    type            (treeNode             ), intent(inout) :: node
+    integer                                , intent(in   ) :: accretionMode
+    double precision                                       :: massAccretionRate
 
     ! Ensure that chemicals are reset to zero.
     call coldModeAccretionRateChemicals%reset()
@@ -263,11 +263,11 @@ contains
     use Galacticus_Nodes
     use Chemical_Abundances_Structure
     implicit none
-    type            (chemicalAbundances   )                         :: coldModeAccretedMassChemicals
-    class           (accretionHaloColdMode), intent(inout)          :: self
-    type            (treeNode             ), intent(inout), pointer :: node
-    integer                                , intent(in   )          :: accretionMode
-    double precision                                                :: massAccreted
+    type            (chemicalAbundances   )                :: coldModeAccretedMassChemicals
+    class           (accretionHaloColdMode), intent(inout) :: self
+    type            (treeNode             ), intent(inout) :: node
+    integer                                , intent(in   ) :: accretionMode
+    double precision                                       :: massAccreted
 
     ! Ensure that chemicals are reset to zero.
     call coldModeAccretedMassChemicals%reset()
@@ -291,23 +291,23 @@ contains
     use Chemical_Reaction_Rates_Utilities
     use Intergalactic_Medium_State
     implicit none
-    type            (chemicalAbundances           )                         :: coldModeChemicalMasses
-    class           (accretionHaloColdMode        ), intent(inout)          :: self
-    type            (treeNode                     ), intent(inout), pointer :: node
-    double precision                               , intent(in   )          :: massAccreted
-    integer                                        , intent(in   )          :: accretionMode
-    class           (nodeComponentBasic           )               , pointer :: thisBasicComponent
-    class           (cosmologyParametersClass     )               , pointer :: thisCosmologyParameters
-    class           (intergalacticMediumStateClass)               , pointer :: intergalacticMediumState_
-    class           (darkMatterHaloScaleClass     )               , pointer :: darkMatterHaloScale_
-    class           (chemicalStateClass           )               , pointer :: chemicalState_
-    type            (chemicalAbundances           ), save                   :: chemicalDensities      , chemicalDensitiesHot , &
-         &                                                                     chemicalDensitiesCold
+    type            (chemicalAbundances           )                :: coldModeChemicalMasses
+    class           (accretionHaloColdMode        ), intent(inout) :: self
+    type            (treeNode                     ), intent(inout) :: node
+    double precision                               , intent(in   ) :: massAccreted
+    integer                                        , intent(in   ) :: accretionMode
+    class           (nodeComponentBasic           ), pointer       :: thisBasicComponent
+    class           (cosmologyParametersClass     ), pointer       :: thisCosmologyParameters
+    class           (intergalacticMediumStateClass), pointer       :: intergalacticMediumState_
+    class           (darkMatterHaloScaleClass     ), pointer       :: darkMatterHaloScale_
+    class           (chemicalStateClass           ), pointer       :: chemicalState_
+    type            (chemicalAbundances           ), save          :: chemicalDensities      , chemicalDensitiesHot , &
+         &                                                            chemicalDensitiesCold
     !$omp threadprivate(chemicalDensities,chemicalDensitiesCold,chemicalDensitiesHot)
-    double precision                                                        :: massToDensityConversion, numberDensityHydrogen, &
-         &                                                                     temperature            , temperatureHot       , &
-         &                                                                     temperatureCold        , fractionCold         , &
-         &                                                                     fractionHot
+    double precision                                               :: massToDensityConversion, numberDensityHydrogen, &
+         &                                                            temperature            , temperatureHot       , &
+         &                                                            temperatureCold        , fractionCold         , &
+         &                                                            fractionHot
 
     ! Get required objects.
     thisCosmologyParameters => cosmologyParameters()
@@ -363,24 +363,24 @@ contains
     use Chemical_Reaction_Rates_Utilities
     use Cooling_Functions
     implicit none
-    class           (accretionHaloColdMode   ), intent(inout)          :: self
-    type            (treeNode                ), intent(inout), pointer :: node
-    integer                                   , intent(in   )          :: accretionMode
-    double precision                          , parameter              :: adiabaticIndex             =5.0d0/3.0d0  
-    double precision                          , parameter              :: perturbationInitialExponent=0.0d0
-    double precision                          , parameter              :: logStabilityRatioMaximum   =60.0d0
-    class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
-    class           (nodeComponentBasic      )               , pointer :: thisBasic
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    class           (chemicalStateClass      )               , pointer :: chemicalState_
-    class           (coolingFunctionClass    )               , pointer :: coolingFunction_
-    type            (chemicalAbundances      ), save                   :: chemicalDensities
+    class           (accretionHaloColdMode   ), intent(inout) :: self
+    type            (treeNode                ), intent(inout) :: node
+    integer                                   , intent(in   ) :: accretionMode
+    double precision                          , parameter     :: adiabaticIndex             =5.0d0/3.0d0  
+    double precision                          , parameter     :: perturbationInitialExponent=0.0d0
+    double precision                          , parameter     :: logStabilityRatioMaximum   =60.0d0
+    class           (cosmologyParametersClass), pointer       :: thisCosmologyParameters
+    class           (nodeComponentBasic      ), pointer       :: thisBasic
+    class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
+    class           (chemicalStateClass      ), pointer       :: chemicalState_
+    class           (coolingFunctionClass    ), pointer       :: coolingFunction_
+    type            (chemicalAbundances      ), save          :: chemicalDensities
     !$omp threadprivate(chemicalDensities)
-    double precision                                                   :: shockStability       , coldFraction        , &
-         &                                                                radiusShock          , coolingFunctionValue, &
-         &                                                                densityPreShock      , densityPostShock    , &
-         &                                                                numberDensityHydrogen, temperaturePostShock, &
-         &                                                                velocityPreShock     , stabilityRatio
+    double precision                                          :: shockStability       , coldFraction        , &
+         &                                                       radiusShock          , coolingFunctionValue, &
+         &                                                       densityPreShock      , densityPostShock    , &
+         &                                                       numberDensityHydrogen, temperaturePostShock, &
+         &                                                       velocityPreShock     , stabilityRatio
 
     select case (accretionMode)
     case (accretionModeTotal)

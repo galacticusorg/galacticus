@@ -141,16 +141,16 @@ contains
     !% Computes the mass cooling rate in a hot gas halo assuming a fixed timescale for cooling.
     use Cosmology_Functions
     implicit none
-    type            (treeNode               ), intent(inout), pointer :: thisNode
-    double precision                         , parameter              :: expArgumentMaximum       =100.0d0
-    class           (nodeComponentBasic     )               , pointer :: thisBasicComponent
-    class           (nodeComponentHotHalo   )               , pointer :: thisHotHaloComponent
-    class           (cosmologyFunctionsClass)               , pointer :: cosmologyFunctionsDefault
-    double precision                         , save                   :: expansionFactorPrevious  =-1.0d0 , massBasicPrevious=-1.0d0, &
-         &                                                               coolingRate
+    type            (treeNode               ), intent(inout) :: thisNode
+    double precision                         , parameter     :: expArgumentMaximum       =100.0d0
+    class           (nodeComponentBasic     ), pointer       :: thisBasicComponent
+    class           (nodeComponentHotHalo   ), pointer       :: thisHotHaloComponent
+    class           (cosmologyFunctionsClass), pointer       :: cosmologyFunctionsDefault
+    double precision                         , save          :: expansionFactorPrevious  =-1.0d0 , massBasicPrevious=-1.0d0, &
+         &                                                      coolingRate
     !$omp threadprivate(expansionFactorPrevious,massBasicPrevious,coolingRate)
-    double precision                                                  :: expFactor                          , expansionFactor, &
-         &                                                               expArgument
+    double precision                                         :: expFactor                          , expansionFactor, &
+         &                                                      expArgument
 
     ! Get the default cosmology functions object.
     cosmologyFunctionsDefault => cosmologyFunctions()

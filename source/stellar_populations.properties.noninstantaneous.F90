@@ -110,25 +110,25 @@ contains
     use FGSL
     use, intrinsic :: ISO_C_Binding
     implicit none
-    double precision                     , intent(  out)                     :: energyInputRate          , fuelMassRate          , &
-         &                                                                      stellarMassRate
-    type            (abundances         ), intent(inout)                     :: fuelAbundancesRates      , stellarAbundancesRates
-    type            (stellarLuminosities), intent(  out)                     :: stellarLuminositiesRates
-    double precision                     , intent(in   )                     :: starFormationRate
-    type            (abundances        ) , intent(in   )                     :: fuelAbundances
-    integer                              , intent(in   )                     :: component
-    type            (treeNode          ) , intent(inout)           , pointer :: thisNode
-    type            (history           ) , intent(inout)                     :: thisHistory
-    class           (nodeComponentBasic)                           , pointer :: thisBasicComponent
-    double precision                     , dimension(elementsCount)          :: fuelMetallicity          , fuelMetalsRateOfChange, &
-         &                                                                      metalReturnRate          , metalYieldRate        , &
-         &                                                                      stellarMetalsRateOfChange
-    integer                                                                  :: iElement                 , imfSelected
-    integer         (c_size_t          )                                     :: iHistory
-    double precision                                                         :: ageMaximum               , ageMinimum            , &
-         &                                                                      currentTime              , recyclingRate
-    type            (fgsl_interp_accel )                                     :: interpolationAccelerator
-    logical                                                                  :: interpolationReset
+    double precision                     , intent(  out)            :: energyInputRate          , fuelMassRate          , &
+         &                                                             stellarMassRate
+    type            (abundances         ), intent(inout)            :: fuelAbundancesRates      , stellarAbundancesRates
+    type            (stellarLuminosities), intent(  out)            :: stellarLuminositiesRates
+    double precision                     , intent(in   )            :: starFormationRate
+    type            (abundances         ), intent(in   )            :: fuelAbundances
+    integer                              , intent(in   )            :: component
+    type            (treeNode           ), intent(inout)            :: thisNode
+    type            (history            ), intent(inout)            :: thisHistory
+    class           (nodeComponentBasic ), pointer                  :: thisBasicComponent
+    double precision                     , dimension(elementsCount) :: fuelMetallicity          , fuelMetalsRateOfChange, &
+         &                                                             metalReturnRate          , metalYieldRate        , &
+         &                                                             stellarMetalsRateOfChange
+    integer                                                         :: iElement                 , imfSelected
+    integer         (c_size_t           )                           :: iHistory
+    double precision                                                :: ageMaximum               , ageMinimum            , &
+         &                                                             currentTime              , recyclingRate
+    type            (fgsl_interp_accel  )                           :: interpolationAccelerator
+    logical                                                         :: interpolationReset
 
     ! Get the current time.
     thisBasicComponent => thisNode%basic()
@@ -242,10 +242,10 @@ contains
     use Numerical_Ranges
     use Galacticus_Nodes
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    type            (history           ), intent(inout)          :: thisHistory
-    class           (nodeComponentBasic)               , pointer :: thisBasicComponent
-    double precision                                             :: timeBegin         , timeEnd
+    type            (treeNode          ), intent(inout) :: thisNode
+    type            (history           ), intent(inout) :: thisHistory
+    class           (nodeComponentBasic), pointer       :: thisBasicComponent
+    double precision                                    :: timeBegin         , timeEnd
 
     ! Decide on start and end times for the history.
     thisBasicComponent => thisNode%basic()

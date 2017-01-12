@@ -722,12 +722,14 @@ module Galacticus_Nodes
     implicit none
     type (treeNode)               , pointer :: treeNodeWalkBranch
     class(treeNode), intent(inout), target  :: self
-    type (treeNode), intent(inout), pointer :: startNode
-    type (treeNode)               , pointer :: workNode          , selfNode
+    type (treeNode), intent(inout), target  :: startNode
+    type (treeNode)               , pointer :: workNode          , selfNode, &
+         &                                     branchTip
 
-    selfNode => self
-    workNode => self
-    if (associated(selfNode,startNode)) then
+    selfNode  => self
+    workNode  => self
+    branchTip => startNode
+    if (associated(selfNode,branchTip)) then
        do while (associated(workNode%firstChild))
           workNode => workNode%firstChild
        end do
@@ -741,7 +743,7 @@ module Galacticus_Nodes
        else
           workNode => workNode%parent
           ! Terminate when back at starting node.
-          if (associated(workNode,startNode)) workNode => null()
+          if (associated(workNode,branchTip)) workNode => null()
        end if
     end if
     treeNodeWalkBranch => workNode

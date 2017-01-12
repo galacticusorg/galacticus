@@ -134,8 +134,8 @@ contains
     !% Returns the dynamical timescale for {\normalfont \ttfamily thisNode}.
     use Numerical_Constants_Astronomical
     implicit none
-    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)          :: self
-    type (treeNode                                          ), intent(inout), pointer :: thisNode
+    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
+    type (treeNode                                          ), intent(inout) :: thisNode
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= self%lastUniqueID) call self%calculationReset(thisNode)

@@ -72,12 +72,12 @@ contains
     !% Set the names of link properties to be written to the \glc\ output file.
     use Galacticus_Nodes
     implicit none
-    type            (treeNode)              , intent(inout), pointer :: thisNode
-    double precision                        , intent(in   )          :: time
-    integer                                 , intent(inout)          :: doubleProperty         , integerProperty
-    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames    , &
-         &                                                              integerPropertyComments, integerPropertyNames
-    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+    type            (treeNode)              , intent(inout) :: thisNode
+    double precision                        , intent(in   ) :: time
+    integer                                 , intent(inout) :: doubleProperty         , integerProperty
+    character       (len=*   ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames    , &
+         &                                                     integerPropertyComments, integerPropertyNames
+    double precision          , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     !GCC$ attributes unused :: doubleProperty, doublePropertyNames, doublePropertyComments, doublePropertyUnitsSI, thisNode, time
     
     ! Ensure the module is initialized.
@@ -108,9 +108,9 @@ contains
     !% Account for the number of link properties to be written to the \glc\ output file.
     use Galacticus_Nodes
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: time
-    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
+    type            (treeNode), intent(inout) :: thisNode
+    double precision          , intent(in   ) :: time
+    integer                   , intent(inout) :: doublePropertyCount, integerPropertyCount
     !GCC$ attributes unused :: thisNode, time, doublePropertyCount
     
     ! Ensure the module is initialized.
@@ -131,19 +131,19 @@ contains
     use Kind_Numbers
     use Multi_Counters
     implicit none
-    double precision                          , intent(in   )          :: time
-    type            (treeNode          )      , intent(inout), pointer :: thisNode
-    integer                                   , intent(inout)          :: doubleBufferCount                    , doubleProperty      , &
-         &                                                                integerBufferCount                   , integerProperty
-    integer         (kind=kind_int8    )      , intent(inout)          :: integerBuffer            (:,:)
-    double precision                          , intent(inout)          :: doubleBuffer             (:,:)
-    type            (multiCounter      )      , intent(inout)          :: instance
-    double precision                    , save                         :: timePrevious                  =-1.0d0
-    integer         (kind=kind_int8    ), save                         :: uniqueIdMatched                      , uniqueIdPrevious=-1
+    double precision                    , intent(in   )         :: time
+    type            (treeNode          ), intent(inout), target :: thisNode
+    integer                             , intent(inout)         :: doubleBufferCount                    , doubleProperty      , &
+         &                                                         integerBufferCount                   , integerProperty
+    integer         (kind=kind_int8    ), intent(inout)         :: integerBuffer            (:,:)
+    double precision                    , intent(inout)         :: doubleBuffer             (:,:)
+    type            (multiCounter      ), intent(inout)         :: instance
+    double precision                    , save                  :: timePrevious                  =-1.0d0
+    integer         (kind=kind_int8    ), save                  :: uniqueIdMatched                      , uniqueIdPrevious=-1
     !$omp threadprivate(timePrevious,uniqueIdPrevious,uniqueIdMatched)
-    type            (treeNode          )                     , pointer :: currentNode
-    class           (nodeComponentBasic)                     , pointer :: currentBasicComponent
-    double precision                                                   :: mostMassiveProgenitorMass
+    type            (treeNode          ), pointer               :: currentNode
+    class           (nodeComponentBasic), pointer               :: currentBasicComponent
+    double precision                                            :: mostMassiveProgenitorMass
     !GCC$ attributes unused :: doubleBufferCount, doubleProperty, doubleBuffer, instance
     
     ! Ensure the module is initialized.

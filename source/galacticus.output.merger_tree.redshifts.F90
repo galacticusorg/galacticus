@@ -83,12 +83,12 @@ contains
        &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of link properties to be written to the \glc\ output file.
     implicit none
-    type            (treeNode)              , intent(inout), pointer :: thisNode
-    double precision                        , intent(in   )          :: time
-    integer                                 , intent(inout)          :: doubleProperty         , integerProperty
-    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
-         &                                                              integerPropertyComments, integerPropertyNames
-    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+    type            (treeNode)              , intent(inout) :: thisNode
+    double precision                        , intent(in   ) :: time
+    integer                                 , intent(inout) :: doubleProperty         , integerProperty
+    character       (len=*   ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
+         &                                                     integerPropertyComments, integerPropertyNames
+    double precision          , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     !GCC$ attributes unused :: thisNode, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI, time
     
     call Galacticus_Output_Redshifts_Initalize()
@@ -116,9 +116,9 @@ contains
   subroutine Galacticus_Output_Redshifts_Property_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of link properties to be written to the \glc\ output file.
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: time
-    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
+    type            (treeNode), intent(inout) :: thisNode
+    double precision          , intent(in   ) :: time
+    integer                   , intent(inout) :: doublePropertyCount, integerPropertyCount
     !GCC$ attributes unused :: thisNode, time, integerPropertyCount
     
     call Galacticus_Output_Redshifts_Initalize()
@@ -137,15 +137,15 @@ contains
     use Cosmology_Functions
     use Multi_Counters
     implicit none
-    double precision                         , intent(in   )          :: time
-    type            (treeNode               ), intent(inout), pointer :: thisNode
-    integer                                  , intent(inout)          :: doubleBufferCount            , doubleProperty , &
-         &                                                               integerBufferCount           , integerProperty
-    integer         (kind=kind_int8         ), intent(inout)          :: integerBuffer           (:,:)
-    double precision                         , intent(inout)          :: doubleBuffer            (:,:)
-    type            (multiCounter           ), intent(inout)          :: instance
-    class           (nodeComponentBasic     )               , pointer :: thisBasic
-    class           (cosmologyFunctionsClass)               , pointer :: cosmologyFunctionsDefault
+    double precision                         , intent(in   ) :: time
+    type            (treeNode               ), intent(inout) :: thisNode
+    integer                                  , intent(inout) :: doubleBufferCount            , doubleProperty , &
+         &                                                      integerBufferCount           , integerProperty
+    integer         (kind=kind_int8         ), intent(inout) :: integerBuffer           (:,:)
+    double precision                         , intent(inout) :: doubleBuffer            (:,:)
+    type            (multiCounter           ), intent(inout) :: instance
+    class           (nodeComponentBasic     ), pointer       :: thisBasic
+    class           (cosmologyFunctionsClass), pointer       :: cosmologyFunctionsDefault
     !GCC$ attributes unused :: integerProperty, integerBufferCount, integerBuffer, time, instance
     
     call Galacticus_Output_Redshifts_Initalize()

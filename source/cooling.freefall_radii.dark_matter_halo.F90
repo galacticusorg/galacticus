@@ -52,9 +52,9 @@ contains
     use Cooling_Freefall_Times_Available
     use Dark_Matter_Profiles
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode
-    class           (darkMatterProfileClass)               , pointer :: darkMatterProfile_
-    double precision                                                 :: timeAvailable     , timeAvailableIncreaseRate
+    type            (treeNode              ), intent(inout) :: thisNode
+    class           (darkMatterProfileClass), pointer       :: darkMatterProfile_
+    double precision                                        :: timeAvailable     , timeAvailableIncreaseRate
 
     ! Get required objects.
     darkMatterProfile_ => darkMatterProfile()
@@ -77,9 +77,9 @@ contains
     use Cooling_Freefall_Times_Available
     use Dark_Matter_Profiles
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode
-    class           (darkMatterProfileClass)               , pointer :: darkMatterProfile_
-    double precision                                                 :: timeAvailable
+    type            (treeNode              ), intent(inout) :: thisNode
+    class           (darkMatterProfileClass), pointer       :: darkMatterProfile_
+    double precision                                        :: timeAvailable
 
     ! Get required objects.
     darkMatterProfile_ => darkMatterProfile()

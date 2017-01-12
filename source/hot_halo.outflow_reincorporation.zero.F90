@@ -35,8 +35,8 @@ contains
     use Cosmology_Functions
     use Dark_Matter_Profiles
     implicit none
-    class(hotHaloOutflowReincorporationZero), intent(inout)          :: self
-    type (treeNode                         ), intent(inout), pointer :: node
+    class(hotHaloOutflowReincorporationZero), intent(inout) :: self
+    type (treeNode                         ), intent(inout) :: node
     !GCC$ attributes unused :: self, node
     
     zeroRate=0.0d0

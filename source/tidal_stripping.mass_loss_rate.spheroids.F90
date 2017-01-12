@@ -43,8 +43,8 @@ contains
     include 'tidal_stripping.mass_loss_rate.spheroids.modules.inc'
     !# </include>
     implicit none
-    type(treeNode      ), intent(inout), pointer :: thisNode
-    type(varying_string)                         :: tidalStrippingMassLossRateSpheroidsMethod
+    type(treeNode      ), intent(inout) :: thisNode
+    type(varying_string)                :: tidalStrippingMassLossRateSpheroidsMethod
 
     ! Initialize if necessary.
     if (.not.moduleInitialized) then

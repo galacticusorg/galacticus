@@ -100,16 +100,16 @@ contains
     use Cosmology_Functions
     use Dark_Matter_Profiles
     implicit none
-    type            (treeNode               ), intent(inout), pointer :: node
-    double precision                         , intent(in   )          :: energyInputRate                , starFormationRate
-    class           (nodeComponentBasic     )               , pointer :: basic
-    double precision                         , save                   :: velocityPrevious       =-1.0d0, velocityFactorPrevious       =-1.0d0
+    type            (treeNode               ), intent(inout) :: node
+    double precision                         , intent(in   ) :: energyInputRate                , starFormationRate
+    class           (nodeComponentBasic     ), pointer       :: basic
+    double precision                         , save          :: velocityPrevious       =-1.0d0, velocityFactorPrevious       =-1.0d0
     !$omp threadprivate(velocityPrevious,velocityFactorPrevious)
-    class           (cosmologyFunctionsClass)               , pointer :: cosmologyFunctions_
-    class           (darkMatterProfileClass )               , pointer :: darkMatterProfile_
-    double precision                         , save                   :: expansionFactorPrevious=-1.0d0, expansionFactorFactorPrevious=-1.0d0
+    class           (cosmologyFunctionsClass), pointer       :: cosmologyFunctions_
+    class           (darkMatterProfileClass ), pointer       :: darkMatterProfile_
+    double precision                         , save          :: expansionFactorPrevious=-1.0d0, expansionFactorFactorPrevious=-1.0d0
     !$omp threadprivate(expansionFactorPrevious,expansionFactorFactorPrevious)
-    double precision                                                  :: expansionFactor                , velocityMaximum
+    double precision                                         :: expansionFactor                , velocityMaximum
     !GCC$ attributes unused :: starFormationRate
     
     ! Get the default cosmology functions object.

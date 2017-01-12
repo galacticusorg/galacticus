@@ -40,8 +40,8 @@ module Satellite_Merging_Timescales
   !#   <description>Return the time (in Gyr) until the satellite will merge with its host given the current orbit.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode   ), intent(inout), pointer :: thisNode</argument>
-  !#   <argument>type(keplerOrbit), intent(inout)          :: thisOrbit</argument>
+  !#   <argument>type(treeNode   ), intent(inout) :: thisNode</argument>
+  !#   <argument>type(keplerOrbit), intent(inout) :: thisOrbit</argument>
   !#  </method>
   include 'satelliteMergingTimescales.type.inc'
   !# </include>

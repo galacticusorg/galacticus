@@ -72,9 +72,9 @@ contains
     !% Computes the mass cooling rate in a hot gas halo assuming a fixed timescale for cooling.
     use Dark_Matter_Halo_Scales
     implicit none
-    type (treeNode                ), intent(inout), pointer :: thisNode
-    class(nodeComponentHotHalo    )               , pointer :: thisHotHalo
-    class(darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    type (treeNode                ), intent(inout) :: thisNode
+    class(nodeComponentHotHalo    ), pointer       :: thisHotHalo
+    class(darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
 
     thisHotHalo                                  => thisNode%hotHalo   ()
     darkMatterHaloScale_                         => darkMatterHaloScale()

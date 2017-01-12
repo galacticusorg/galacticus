@@ -29,20 +29,14 @@ module Cooling_Times_Available
   public :: Cooling_Time_Available, Cooling_Time_Available_Increase_Rate
 
   ! Flag to indicate if this module has been initialized.
-  logical                                                 :: coolingTimeAvailableInitialized         =.false.
+  logical                                                  :: coolingTimeAvailableInitialized         =.false.
 
   ! Name of cooling time available method used.
-  type     (varying_string                     )          :: coolingTimeAvailableMethod
+  type     (varying_string                      )          :: coolingTimeAvailableMethod
 
   ! Pointer to the function that actually does the calculation.
-  procedure(Cooling_Time_Available_Get_Template), pointer :: Cooling_Time_Available_Get              =>null()
-  procedure(Cooling_Time_Available_Get_Template), pointer :: Cooling_Time_Available_Increase_Rate_Get=>null()
-  interface Cooling_Time_Available_Get_Template
-     double precision function Cooling_Time_Available_Get_Template(thisNode)
-       import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode
-     end function Cooling_Time_Available_Get_Template
-  end interface Cooling_Time_Available_Get_Template
+  procedure(Cooling_Time_Available              ), pointer :: Cooling_Time_Available_Get              =>null()
+  procedure(Cooling_Time_Available_Increase_Rate), pointer :: Cooling_Time_Available_Increase_Rate_Get=>null()
 
 contains
 
@@ -85,7 +79,7 @@ contains
   double precision function Cooling_Time_Available(thisNode)
     !% Return the time available for cooling in {\normalfont \ttfamily thisNode}.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
 
     ! Initialize if necessary.
     call Cooling_Time_Available_Initialize
@@ -99,7 +93,7 @@ contains
   double precision function Cooling_Time_Available_Increase_Rate(thisNode)
     !% Return the rate at which the time available for cooling increases in {\normalfont \ttfamily thisNode}.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
 
     ! Initialize if necessary.
     call Cooling_Time_Available_Initialize

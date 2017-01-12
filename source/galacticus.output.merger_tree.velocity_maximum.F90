@@ -73,12 +73,12 @@ contains
     use Galacticus_Nodes
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode)              , intent(inout), pointer :: node
-    double precision                        , intent(in   )          :: time
-    integer                                 , intent(inout)          :: doubleProperty         , integerProperty
-    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
-         &                                                              integerPropertyComments, integerPropertyNames
-    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+    type            (treeNode)              , intent(inout) :: node
+    double precision                        , intent(in   ) :: time
+    integer                                 , intent(inout) :: doubleProperty         , integerProperty
+    character       (len=*   ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
+         &                                                     integerPropertyComments, integerPropertyNames
+    double precision          , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     !GCC$ attributes unused :: node, time, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI
     
     ! Initialize the module.
@@ -109,9 +109,9 @@ contains
     !% Account for the number of velocityMaximum properties to be written to the \glc\ output file.
     use Galacticus_Nodes
     implicit none
-    type            (treeNode), intent(inout), pointer :: node
-    double precision          , intent(in   )          :: time
-    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
+    type            (treeNode), intent(inout) :: node
+    double precision          , intent(in   ) :: time
+    integer                   , intent(inout) :: doublePropertyCount, integerPropertyCount
     !GCC$ attributes unused :: node, integerPropertyCount, time
     
     ! Initialize the module.
@@ -134,7 +134,7 @@ contains
     use Multi_Counters
     implicit none
     double precision                        , intent(in   )                 :: time
-    type            (treeNode              ), intent(inout), pointer        :: node
+    type            (treeNode              ), intent(inout)                 :: node
     integer                                 , intent(inout)                 :: doubleBufferCount , doubleProperty , &
          &                                                                     integerBufferCount, integerProperty
     integer         (kind=kind_int8        ), intent(inout), dimension(:,:) :: integerBuffer    

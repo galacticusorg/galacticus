@@ -99,16 +99,16 @@ contains
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: thisNode
-    integer                                   , parameter              :: iterationMaximum       =100
-    procedure       (Radius_Solver_Get_Template  )               , pointer :: Radius_Get             =>null(), Velocity_Get=>null()
-    procedure       (Radius_Solver_Set_Template  )               , pointer :: Radius_Set             =>null(), Velocity_Set=>null()
+    type            (treeNode                  ), intent(inout), target :: thisNode
+    integer                                     , parameter             :: iterationMaximum       =100
+    procedure       (Radius_Solver_Get_Template), pointer               :: Radius_Get             =>null(), Velocity_Get=>null()
+    procedure       (Radius_Solver_Set_Template), pointer               :: Radius_Set             =>null(), Velocity_Set=>null()
     !$omp threadprivate(Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
-    class           (nodeComponentBasic      )               , pointer :: thisBasicComponent
-    class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
-    logical                                   , parameter              :: specificAngularMomentumRequired=.true.
-    logical                                                            :: componentActive
-    double precision                                                   :: specificAngularMomentum
+    class           (nodeComponentBasic        ), pointer               :: thisBasicComponent
+    class           (cosmologyParametersClass  ), pointer               :: thisCosmologyParameters
+    logical                                     , parameter             :: specificAngularMomentumRequired=.true.
+    logical                                                             :: componentActive
+    double precision                                                    :: specificAngularMomentum
 
     ! Check that the galaxy is physical plausible. If not, do not try to solve for its structure.
     thisNode%isPhysicallyPlausible=.true.
@@ -171,23 +171,23 @@ contains
     use String_Handling
     use Memory_Management
     implicit none
-    type            (treeNode              ), intent(inout) , pointer           :: thisNode
-    double precision                        , intent(in   )                     :: specificAngularMomentum
+    type            (treeNode                  ), intent(inout)                     :: thisNode
+    double precision                            , intent(in   )                     :: specificAngularMomentum
     procedure       (Radius_Solver_Get_Template), intent(in   ) , pointer           :: Radius_Get                        , Velocity_Get
     procedure       (Radius_Solver_Set_Template), intent(in   ) , pointer           :: Radius_Set                        , Velocity_Set
-    class           (darkMatterProfileClass)                , pointer           :: darkMatterProfile_
-    double precision                        , dimension(:,:), allocatable, save :: radiusHistory
+    class           (darkMatterProfileClass    )                , pointer           :: darkMatterProfile_
+    double precision                            , dimension(:,:), allocatable, save :: radiusHistory
     !$omp threadprivate(radiusHistory)
-    double precision                        , dimension(:,:), allocatable       :: radiusHistoryTemporary
-    integer                                 , parameter                         :: iterationsForBisectionMinimum  =10
-    integer                                 , parameter                         :: activeComponentMaximumIncrement= 2
-    integer                                                                     :: activeComponentMaximumCurrent
-    character       (len=14                )                                    :: label
-    type            (varying_string        )                                    :: message
-    double precision                                                            :: baryonicVelocitySquared           , darkMatterMassFinal, &
-         &                                                                         darkMatterVelocitySquared         , haloMassInitial    , &
-         &                                                                         radius                            , radiusInitial      , &
-         &                                                                         radiusNew                         , velocity
+    double precision                            , dimension(:,:), allocatable       :: radiusHistoryTemporary
+    integer                                     , parameter                         :: iterationsForBisectionMinimum  =10
+    integer                                     , parameter                         :: activeComponentMaximumIncrement= 2
+    integer                                                                         :: activeComponentMaximumCurrent
+    character       (len=14                    )                                    :: label
+    type            (varying_string            )                                    :: message
+    double precision                                                                :: baryonicVelocitySquared           , darkMatterMassFinal, &
+         &                                                                             darkMatterVelocitySquared         , haloMassInitial    , &
+         &                                                                             radius                            , radiusInitial      , &
+         &                                                                             radiusNew                         , velocity
 
     ! Get required objects.
     darkMatterProfile_ => darkMatterProfile()

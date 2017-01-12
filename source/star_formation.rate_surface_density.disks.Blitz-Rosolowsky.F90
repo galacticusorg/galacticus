@@ -51,7 +51,7 @@ contains
   subroutine Star_Formation_Rate_Surface_Density_Disks_BR_Reset(thisNode)
     !% Reset the extended Schmidt relation calculation.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
 
     factorsComputed=.false.
     lastUniqueID   =thisNode%uniqueID()
@@ -179,13 +179,13 @@ contains
     use Galactic_Structure_Surface_Densities
     use Galactic_Structure_Options
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode
-    double precision                   , intent(in   )          :: radius
-    class           (nodeComponentDisk)               , pointer :: thisDiskComponent
-    type            (abundances       ), save                   :: fuelAbundances
+    type            (treeNode         ), intent(inout) :: thisNode
+    double precision                   , intent(in   ) :: radius
+    class           (nodeComponentDisk), pointer       :: thisDiskComponent
+    type            (abundances       ), save          :: fuelAbundances
     !$omp threadprivate(fuelAbundances)
-    double precision                                            :: molecularFraction , pressureRatio, surfaceDensityGas, &
-         &                                                         surfaceDensityStar
+    double precision                                   :: molecularFraction , pressureRatio, surfaceDensityGas, &
+         &                                                surfaceDensityStar
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Star_Formation_Rate_Surface_Density_Disks_BR_Reset(thisNode)

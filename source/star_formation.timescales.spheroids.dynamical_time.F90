@@ -98,10 +98,10 @@ contains
     use Galacticus_Nodes
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: thisNode
-    class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
-    double precision                       , parameter              :: velocityZeroPoint    =200.0d0                   !   (km/s)
-    double precision                                                :: dynamicalTime                , spheroidVelocity
+    type            (treeNode             ), intent(inout) :: thisNode
+    class           (nodeComponentSpheroid), pointer       :: thisSpheroidComponent
+    double precision                       , parameter     :: velocityZeroPoint    =200.0d0                   !   (km/s)
+    double precision                                       :: dynamicalTime                , spheroidVelocity
 
     ! Get spheroid circular velocity.
     thisSpheroidComponent => thisNode%spheroid()

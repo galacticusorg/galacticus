@@ -239,7 +239,7 @@ contains
     use Galacticus_Nodes
     implicit none
     class(accretionHaloSimple), intent(inout)          :: self
-    type (treeNode           ), intent(inout), pointer :: node
+    type (treeNode           ), intent(inout), target  :: node
     type (treeNode           )               , pointer :: branchNode
 
     simpleBranchHasBaryons=.false.
@@ -259,14 +259,14 @@ contains
     use Galacticus_Nodes
     use Cosmology_Parameters
     implicit none
-    class           (accretionHaloSimple     ), intent(inout)          :: self
-    type            (treeNode                ), intent(inout), pointer :: node
-    integer                                   , intent(in   )          :: accretionMode
-    class           (nodeComponentBasic      )               , pointer :: thisBasicComponent
-    class           (nodeComponentHotHalo    )               , pointer :: thisHotHaloComponent
-    class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
-    double precision                                                   :: growthRate             , unaccretedMass, &
-         &                                                                failedFraction
+    class           (accretionHaloSimple     ), intent(inout) :: self
+    type            (treeNode                ), intent(inout) :: node
+    integer                                   , intent(in   ) :: accretionMode
+    class           (nodeComponentBasic      ), pointer       :: thisBasicComponent
+    class           (nodeComponentHotHalo    ), pointer       :: thisHotHaloComponent
+    class           (cosmologyParametersClass), pointer       :: thisCosmologyParameters
+    double precision                                          :: growthRate             , unaccretedMass, &
+         &                                                       failedFraction
 
     simpleAccretionRate=0.0d0
     if (accretionMode      == accretionModeCold) return
@@ -300,12 +300,12 @@ contains
     use Galacticus_Nodes
     use Cosmology_Parameters
     implicit none
-    class          (accretionHaloSimple     ), intent(inout)          :: self
-    type           (treeNode                ), intent(inout), pointer :: node
-    integer                                  , intent(in   )          :: accretionMode
-    class          (nodeComponentBasic      )               , pointer :: thisBasicComponent
-    class          (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
-    double precision                                                  :: failedFraction
+    class          (accretionHaloSimple     ), intent(inout) :: self
+    type           (treeNode                ), intent(inout) :: node
+    integer                                  , intent(in   ) :: accretionMode
+    class          (nodeComponentBasic      ), pointer       :: thisBasicComponent
+    class          (cosmologyParametersClass), pointer       :: thisCosmologyParameters
+    double precision                                         :: failedFraction
 
     simpleAccretedMass=0.0d0
     if (accretionMode      == accretionModeCold) return
@@ -325,14 +325,14 @@ contains
     use Cosmology_Parameters
     use Dark_Matter_Halo_Scales
     implicit none
-    class           (accretionHaloSimple     ), intent(inout)          :: self
-    type            (treeNode                ), intent(inout), pointer :: node
-    integer                                   , intent(in   )          :: accretionMode
-    class           (nodeComponentBasic      )               , pointer :: thisBasicComponent
-    class           (nodeComponentHotHalo    )               , pointer :: thisHotHaloComponent
-    class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
-    double precision                                                   :: growthRate             , unaccretedMass, &
-         &                                                                failedFraction
+    class           (accretionHaloSimple     ), intent(inout) :: self
+    type            (treeNode                ), intent(inout) :: node
+    integer                                   , intent(in   ) :: accretionMode
+    class           (nodeComponentBasic      ), pointer       :: thisBasicComponent
+    class           (nodeComponentHotHalo    ), pointer       :: thisHotHaloComponent
+    class           (cosmologyParametersClass), pointer       :: thisCosmologyParameters
+    double precision                                          :: growthRate             , unaccretedMass, &
+         &                                                       failedFraction
 
     simpleFailedAccretionRate=0.0d0
     if (accretionMode          == accretionModeCold) return
@@ -365,12 +365,12 @@ contains
     use Cosmology_Parameters
     use Dark_Matter_Halo_Scales
     implicit none
-    class           (accretionHaloSimple     ), intent(inout)          :: self
-    type            (treeNode                ), intent(inout), pointer :: node
-    integer                                   , intent(in   )          :: accretionMode
-    class           (nodeComponentBasic      )               , pointer :: thisBasicComponent
-    class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
-    double precision                                                   :: failedFraction
+    class           (accretionHaloSimple     ), intent(inout) :: self
+    type            (treeNode                ), intent(inout) :: node
+    integer                                   , intent(in   ) :: accretionMode
+    class           (nodeComponentBasic      ), pointer       :: thisBasicComponent
+    class           (cosmologyParametersClass), pointer       :: thisCosmologyParameters
+    double precision                                          :: failedFraction
 
     simpleFailedAccretedMass=0.0d0
     if (accretionMode      == accretionModeCold) return
@@ -388,10 +388,10 @@ contains
     !% Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
     use Galacticus_Nodes
     implicit none
-    type  (abundances         )                         :: simpleAccretionRateMetals
-    class (accretionHaloSimple), intent(inout)          :: self
-    type  (treeNode           ), intent(inout), pointer :: node
-    integer                    , intent(in   )          :: accretionMode
+    type  (abundances         )                :: simpleAccretionRateMetals
+    class (accretionHaloSimple), intent(inout) :: self
+    type  (treeNode           ), intent(inout) :: node
+    integer                    , intent(in   ) :: accretionMode
     !GCC$ attributes unused :: self, node, accretionMode
     
     ! Assume zero metallicity.
@@ -403,10 +403,10 @@ contains
     !% Computes the mass of abundances accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
     use Galacticus_Nodes
     implicit none
-    type   (abundances         )                         :: simpleAccretedMassMetals
-    class  (accretionHaloSimple), intent(inout)          :: self
-    type   (treeNode           ), intent(inout), pointer :: node
-    integer                     , intent(in   )          :: accretionMode
+    type   (abundances         )                :: simpleAccretedMassMetals
+    class  (accretionHaloSimple), intent(inout) :: self
+    type   (treeNode           ), intent(inout) :: node
+    integer                     , intent(in   ) :: accretionMode
     !GCC$ attributes unused :: self, node, accretionMode
 
     ! Assume zero metallicity.
@@ -421,11 +421,11 @@ contains
     use Galacticus_Nodes
     use Chemical_Abundances_Structure
     implicit none
-    type            (chemicalAbundances )                         :: simpleAccretionRateChemicals
-    class           (accretionHaloSimple), intent(inout)          :: self
-    type            (treeNode           ), intent(inout), pointer :: node
-    integer                              , intent(in   )          :: accretionMode
-    double precision                                              :: massAccretionRate
+    type            (chemicalAbundances )                :: simpleAccretionRateChemicals
+    class           (accretionHaloSimple), intent(inout) :: self
+    type            (treeNode           ), intent(inout) :: node
+    integer                              , intent(in   ) :: accretionMode
+    double precision                                     :: massAccretionRate
 
     ! Ensure that chemicals are reset to zero.
     call simpleAccretionRateChemicals%reset()
@@ -443,11 +443,11 @@ contains
     use Galacticus_Nodes
     use Chemical_Abundances_Structure
     implicit none
-    type            (chemicalAbundances )                         :: simpleAccretedMassChemicals
-    class           (accretionHaloSimple), intent(inout)          :: self
-    type            (treeNode           ), intent(inout), pointer :: node
-    integer                              , intent(in   )          :: accretionMode
-    double precision                                              :: massAccreted
+    type            (chemicalAbundances )                :: simpleAccretedMassChemicals
+    class           (accretionHaloSimple), intent(inout) :: self
+    type            (treeNode           ), intent(inout) :: node
+    integer                              , intent(in   ) :: accretionMode
+    double precision                                     :: massAccreted
 
 
     ! Ensure that chemicals are reset to zero.
@@ -471,18 +471,18 @@ contains
     use Chemical_Abundances_Structure
     use Chemical_Reaction_Rates_Utilities
     implicit none
-    class           (accretionHaloSimple     ), intent(inout)          :: self
-    type            (chemicalAbundances      )                         :: simpleChemicalMasses
-    type            (treeNode                ), intent(inout), pointer :: node
-    double precision                          , intent(in   )          :: massAccreted
-    class           (nodeComponentBasic      )               , pointer :: thisBasicComponent
-    class           (cosmologyParametersClass)               , pointer :: cosmologyParameters_
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    class           (chemicalStateClass      )               , pointer :: chemicalState_
-    type            (chemicalAbundances      ), save                   :: chemicalDensities
+    class           (accretionHaloSimple     ), intent(inout) :: self
+    type            (chemicalAbundances      )                :: simpleChemicalMasses
+    type            (treeNode                ), intent(inout) :: node
+    double precision                          , intent(in   ) :: massAccreted
+    class           (nodeComponentBasic      ), pointer       :: thisBasicComponent
+    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
+    class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
+    class           (chemicalStateClass      ), pointer       :: chemicalState_
+    type            (chemicalAbundances      ), save          :: chemicalDensities
     !$omp threadprivate(chemicalDensities)
-    double precision                                                   :: massToDensityConversion, numberDensityHydrogen, &
-         &                                                                temperature
+    double precision                                          :: massToDensityConversion, numberDensityHydrogen, &
+         &                                                       temperature
 
     ! Get required objects.
     cosmologyParameters_ => cosmologyParameters()
@@ -510,9 +510,9 @@ contains
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    class(accretionHaloSimple     ), intent(inout)          :: self
-    type (treeNode                ), intent(inout), pointer :: node
-    class(darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    class(accretionHaloSimple     ), intent(inout) :: self
+    type (treeNode                ), intent(inout) :: node
+    class(darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
     !GCC$ attributes unused :: self
 
     darkMatterHaloScale_ => darkMatterHaloScale                (    )
@@ -524,9 +524,9 @@ contains
     !% Returns the total accretion rate from the \gls{igm} onto a halo (including dark matter).
     use Galacticus_Nodes
     implicit none
-    class(accretionHaloSimple     ), intent(inout)          :: self
-    type (treeNode                ), intent(inout), pointer :: node
-    class(nodeComponentBasic      )               , pointer :: basic
+    class(accretionHaloSimple     ), intent(inout) :: self
+    type (treeNode                ), intent(inout) :: node
+    class(nodeComponentBasic      ), pointer       :: basic
     !GCC$ attributes unused :: self
 
     basic                    => node %basic        ()
@@ -538,9 +538,9 @@ contains
     !% Returns the total node mass.
     use Galacticus_Nodes
     implicit none
-    class(accretionHaloSimple     ), intent(inout)          :: self
-    type (treeNode                ), intent(inout), pointer :: node
-    class(nodeComponentBasic      )               , pointer :: basic
+    class(accretionHaloSimple     ), intent(inout) :: self
+    type (treeNode                ), intent(inout) :: node
+    class(nodeComponentBasic      ), pointer       :: basic
     !GCC$ attributes unused :: self
 
     basic           => node %basic()
@@ -552,9 +552,9 @@ contains
     !% Returns the fraction of potential accretion onto a halo from the \gls{igm} which fails.
     use Galacticus_Nodes
     implicit none
-    class(accretionHaloSimple), intent(inout)          :: self
-    type (treeNode           ), intent(inout), pointer :: node
-    class(nodeComponentBasic )               , pointer :: basic
+    class(accretionHaloSimple), intent(inout) :: self
+    type (treeNode           ), intent(inout) :: node
+    class(nodeComponentBasic ), pointer       :: basic
 
     basic => node%basic()
     if     (                                                                 &

@@ -56,15 +56,15 @@ contains
     use Hot_Halo_Ram_Pressure_Forces
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode                    ), intent(inout), pointer :: thisNode
-    class           (nodeComponentHotHalo        )               , pointer :: thisHotHalo
-    type            (treeNode                    )               , pointer :: hostNode
-    class           (hotHaloMassDistributionClass)               , pointer :: defaultHotHaloMassDistribution
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                              , parameter              :: timescaleInfinite       =1.0d30
-    double precision                              , parameter              :: velocityStrippingMaximum=1.0d01
-    double precision                                                       :: outerRadius                   , densityAtOuterRadius       , &
-         &                                                                    forceRamPressure              , surfaceDensityAtOuterRadius
+    type            (treeNode                    ), intent(inout) :: thisNode
+    class           (nodeComponentHotHalo        ), pointer       :: thisHotHalo
+    type            (treeNode                    ), pointer       :: hostNode
+    class           (hotHaloMassDistributionClass), pointer       :: defaultHotHaloMassDistribution
+    class           (darkMatterHaloScaleClass)    , pointer       :: darkMatterHaloScale_
+    double precision                              , parameter     :: timescaleInfinite       =1.0d30
+    double precision                              , parameter     :: velocityStrippingMaximum=1.0d01
+    double precision                                              :: outerRadius                   , densityAtOuterRadius       , &
+         &                                                           forceRamPressure              , surfaceDensityAtOuterRadius
 
     ! Get the hot halo mass distribution.
     defaultHotHaloMassDistribution => hotHaloMassDistribution()

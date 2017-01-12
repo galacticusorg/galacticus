@@ -70,9 +70,9 @@ contains
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    class(nodeComponentBasic)               , pointer :: thisBasicComponent
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    type (treeNode                ), intent(inout) :: thisNode
+    class(nodeComponentBasic      ), pointer       :: thisBasicComponent
+    class(darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
 
     ! Get the basic component.
     thisBasicComponent => thisNode%basic()
@@ -98,7 +98,7 @@ contains
     !% of 1, even though technically it can depend on halo properties.
     use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
     !GCC$ attributes unused :: thisNode
     
     ! Simply return unit rate.

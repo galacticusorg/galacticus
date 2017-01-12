@@ -185,13 +185,13 @@ contains
     use Dark_Matter_Halo_Scales
     use Dark_Matter_Profiles
     implicit none
-    class           (hotHaloMassDistributionPatejLoeb2015), intent(inout)          :: self
-    type            (treeNode                            ), intent(inout), pointer :: node
-    double precision                                      , intent(in   )          :: radius
-    class           (darkMatterHaloScaleClass            )               , pointer :: darkMatterHaloScale_
-    class           (darkMatterProfileClass              )               , pointer :: darkMatterProfile_
-    class           (nodeComponentDarkMatterProfile      )               , pointer :: darkMatterHaloProfile
-    double precision                                                               :: radiusShock
+    class           (hotHaloMassDistributionPatejLoeb2015), intent(inout) :: self
+    type            (treeNode                            ), intent(inout) :: node
+    double precision                                      , intent(in   ) :: radius
+    class           (darkMatterHaloScaleClass            ), pointer       :: darkMatterHaloScale_
+    class           (darkMatterProfileClass              ), pointer       :: darkMatterProfile_
+    class           (nodeComponentDarkMatterProfile      ), pointer       :: darkMatterHaloProfile
+    double precision                                                      :: radiusShock
 
     ! Get required objects.
     darkMatterHaloScale_  => darkMatterHaloScale                  ()
@@ -278,16 +278,16 @@ contains
     use Dark_Matter_Halo_Scales
     use Dark_Matter_Profiles
     implicit none
-    class           (hotHaloMassDistributionPatejLoeb2015), intent(inout)          :: self
-    type            (treeNode                            ), intent(inout), pointer :: node
-    double precision                                      , intent(in   )          :: moment               , radius
-    class           (darkMatterHaloScaleClass            )               , pointer :: darkMatterHaloScale_
-    class           (darkMatterProfileClass              )               , pointer :: darkMatterProfile_
-    class           (nodeComponentHotHalo                )               , pointer :: hotHalo
-    class           (nodeComponentDarkMatterProfile      )               , pointer :: darkMatterHaloProfile
-    double precision                                                               :: radiusShock          , densityNormalization, &
-         &                                                                            radiusOuter          , radiusScale         , &
-         &                                                                            radiusDarkMatter
+    class           (hotHaloMassDistributionPatejLoeb2015), intent(inout) :: self
+    type            (treeNode                            ), intent(inout) :: node
+    double precision                                      , intent(in   ) :: moment               , radius
+    class           (darkMatterHaloScaleClass            ), pointer       :: darkMatterHaloScale_
+    class           (darkMatterProfileClass              ), pointer       :: darkMatterProfile_
+    class           (nodeComponentHotHalo                ), pointer       :: hotHalo
+    class           (nodeComponentDarkMatterProfile      ), pointer       :: darkMatterHaloProfile
+    double precision                                                      :: radiusShock          , densityNormalization, &
+         &                                                                   radiusOuter          , radiusScale         , &
+         &                                                                   radiusDarkMatter
 
     ! Get required objects.
     darkMatterHaloScale_  => darkMatterHaloScale                  ()
@@ -324,9 +324,9 @@ contains
     !% rotation velocity that is constant in radius) for {\normalfont \ttfamily node}. Specifically, the
     !% normalization, $A$, returned is such that $V_{\mathrm rot} = A J/M$.
     implicit none
-    class(hotHaloMassDistributionPatejLoeb2015), intent(inout)          :: self
-    type (treeNode                            ), intent(inout), pointer :: node
-    class(nodeComponentHotHalo                )               , pointer :: hotHalo
+    class(hotHaloMassDistributionPatejLoeb2015), intent(inout) :: self
+    type (treeNode                            ), intent(inout) :: node
+    class(nodeComponentHotHalo                ), pointer       :: hotHalo
 
     hotHalo                           => node%hotHalo()
     patejLoeb2015RotationNormalization=                         &

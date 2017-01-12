@@ -48,8 +48,8 @@ contains
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    type (treeNode                ), intent(inout), target :: thisNode
+    class(darkMatterHaloScaleClass), pointer               :: darkMatterHaloScale_
 
     darkMatterHaloScale_ => darkMatterHaloScale()
     Hot_Halo_Ram_Pressure_Stripping_Virial_Radius=darkMatterHaloScale_%virialRadius(thisNode)
