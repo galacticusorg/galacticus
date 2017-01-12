@@ -1183,9 +1183,9 @@ contains
   subroutine Node_Component_Spheroid_Standard_Radius_Solver_Plausibility(thisNode,galaxyIsPhysicallyPlausible)
     !% Determines whether the spheroid is physically plausible for radius solving tasks. Require that it have non-zero mass and angular momentum.
     implicit none
-    type   (treeNode             ), intent(inout), pointer :: thisNode
-    logical                       , intent(inout)          :: galaxyIsPhysicallyPlausible
-    class  (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
+    type   (treeNode             ), intent(inout) :: thisNode
+    logical                       , intent(inout) :: galaxyIsPhysicallyPlausible
+    class  (nodeComponentSpheroid), pointer       :: thisSpheroidComponent
 
     ! Return immediately if our method is not selected.
     if (.not.defaultSpheroidComponent%standardIsActive()) return
@@ -1209,8 +1209,8 @@ contains
   double precision function Node_Component_Spheroid_Standard_Radius_Solve(thisNode)
     !% Return the circular radius of the standard spheroid.
     implicit none
-    type (treeNode             ), intent(inout), pointer :: thisNode
-    class(nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
+    type (treeNode             ), intent(inout) :: thisNode
+    class(nodeComponentSpheroid), pointer       :: thisSpheroidComponent
 
     thisSpheroidComponent => thisNode%spheroid()
     Node_Component_Spheroid_Standard_Radius_Solve=thisSpheroidComponent%radius()
@@ -1220,8 +1220,8 @@ contains
   double precision function Node_Component_Spheroid_Standard_Velocity_Solve(thisNode)
     !% Return the circular velocity of the standard spheroid.
     implicit none
-    type (treeNode             ), intent(inout), pointer :: thisNode
-    class(nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
+    type (treeNode             ), intent(inout) :: thisNode
+    class(nodeComponentSpheroid), pointer       :: thisSpheroidComponent
 
     thisSpheroidComponent => thisNode%spheroid()
     Node_Component_Spheroid_Standard_Velocity_Solve=thisSpheroidComponent%velocity()
@@ -1231,9 +1231,9 @@ contains
   subroutine Node_Component_Spheroid_Standard_Radius_Solve_Set(thisNode,radius)
     !% Set the scale radius of the standard spheroid.
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: thisNode
-    double precision                       , intent(in   )          :: radius
-    class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
+    type            (treeNode             ), intent(inout) :: thisNode
+    double precision                       , intent(in   ) :: radius
+    class           (nodeComponentSpheroid), pointer       :: thisSpheroidComponent
 
     thisSpheroidComponent => thisNode%spheroid()
     call thisSpheroidComponent%radiusSet(max(radius,0.0d0))
@@ -1243,9 +1243,9 @@ contains
   subroutine Node_Component_Spheroid_Standard_Velocity_Solve_Set(thisNode,velocity)
     !% Set the scale velocity of the standard spheroid.
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: thisNode
-    double precision                       , intent(in   )          :: velocity
-    class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
+    type            (treeNode             ), intent(inout) :: thisNode
+    double precision                       , intent(in   ) :: velocity
+    class           (nodeComponentSpheroid), pointer       :: thisSpheroidComponent
 
     thisSpheroidComponent => thisNode%spheroid()
     call thisSpheroidComponent%velocitySet(max(velocity,0.0d0))
@@ -1259,15 +1259,15 @@ contains
        &,Velocity_Set)
     !% Interface for the size solver algorithm.
     implicit none
-    type            (treeNode                                                              ), intent(inout), pointer :: thisNode
-    logical                                                                                 , intent(  out)          :: componentActive
-    logical                                                                                 , intent(in   )          :: specificAngularMomentumRequired
-    double precision                                                                        , intent(  out)          :: specificAngularMomentum
-    procedure       (Node_Component_Spheroid_Standard_Radius_Solve_Set                     ), intent(  out), pointer :: Radius_Set             , Velocity_Set
-    procedure       (Node_Component_Spheroid_Standard_Radius_Solve                         ), intent(  out), pointer :: Radius_Get             , Velocity_Get
-    class           (nodeComponentSpheroid                                                 )               , pointer :: thisSpheroidComponent
-    double precision                                                                                                 :: angularMomentum        , specificAngularMomentumMean, &
-         &                                                                                                              spheroidMass
+    type            (treeNode                                         ), intent(inout)          :: thisNode
+    logical                                                            , intent(  out)          :: componentActive
+    logical                                                            , intent(in   )          :: specificAngularMomentumRequired
+    double precision                                                   , intent(  out)          :: specificAngularMomentum
+    procedure       (Node_Component_Spheroid_Standard_Radius_Solve_Set), intent(  out), pointer :: Radius_Set             , Velocity_Set
+    procedure       (Node_Component_Spheroid_Standard_Radius_Solve    ), intent(  out), pointer :: Radius_Get             , Velocity_Get
+    class           (nodeComponentSpheroid                            )               , pointer :: thisSpheroidComponent
+    double precision                                                                            :: angularMomentum        , specificAngularMomentumMean, &
+         &                                                                                         spheroidMass
 
     ! Determine if thisNode has an active disk component supported by this module.
     componentActive=.false.

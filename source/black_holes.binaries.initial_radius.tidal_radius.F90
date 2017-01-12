@@ -31,6 +31,7 @@ module Black_Hole_Binary_Initial_Radii_Tidal_Radius
   double precision                    :: massHalf  , radiusHalfMass
   type            (treeNode), pointer :: activeNode
   !$omp threadprivate(radiusHalfMass,massHalf,activeNode)
+
 contains
 
   !# <blackHoleBinaryInitialRadiiMethod>
@@ -53,10 +54,11 @@ contains
     use Root_Finder
     use Galactic_Structure_Enclosed_Masses
     implicit none
-    type (treeNode              ), intent(inout), pointer :: hostNode              , thisNode
-    class(nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent
-    type (rootFinder            ), save                   :: finder
+    type (treeNode              ), intent(inout), target :: hostNode              , thisNode
+    class(nodeComponentBlackHole), pointer               :: thisBlackHoleComponent
+    type (rootFinder            ), save                  :: finder
     !$omp threadprivate(finder)
+
     ! Assume zero separation by default.
     Black_Hole_Binary_Initial_Radius_Tidal_Radius=0.0d0
     ! Get the black hole component.
@@ -93,7 +95,7 @@ contains
          &  )
     return
   end function Black_Hole_Binary_Initial_Radius_Tidal_Radius
-
+  
   double precision function Tidal_Radius_Root(radius)
     !% Root function used in solving for the radius of tidal disruption of a satellite galaxy.
     use Galactic_Structure_Enclosed_Masses
@@ -103,7 +105,7 @@ contains
 
     ! Evaluate the root function.
     Tidal_Radius_Root= Galactic_Structure_Enclosed_Mass(activeNode,radius,massType=massTypeGalactic)/massHalf &
-       &              -(radius/radiusHalfMass)**3
+         &              -(radius/radiusHalfMass)**3
     return
   end function Tidal_Radius_Root
 

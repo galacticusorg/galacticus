@@ -126,14 +126,14 @@ contains
     use Cosmology_Functions
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode               ), intent(inout), pointer :: thisNode
-    class           (nodeComponentBasic     )               , pointer :: thisBasicComponent
-    class           (cosmologyFunctionsClass)               , pointer :: cosmologyFunctionsDefault
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                         , parameter              :: virialVelocityNormalization=200.0d0
-    double precision                         , save                   :: velocityPrevious           =-1.0d0, velocityFactorPrevious       =-1.0d0
+    type            (treeNode                ), intent(inout), target :: thisNode
+    class           (nodeComponentBasic      ), pointer               :: thisBasicComponent
+    class           (cosmologyFunctionsClass ), pointer               :: cosmologyFunctionsDefault
+    class           (darkMatterHaloScaleClass), pointer               :: darkMatterHaloScale_
+    double precision                          , parameter             :: virialVelocityNormalization=200.0d0
+    double precision                          , save                  :: velocityPrevious           =-1.0d0 , velocityFactorPrevious       =-1.0d0
     !$omp threadprivate(velocityPrevious,velocityFactorPrevious)
-    double precision                         , save                   :: expansionFactorPrevious    =-1.0d0, expansionFactorFactorPrevious=-1.0d0
+    double precision                          , save                  :: expansionFactorPrevious    =-1.0d0 , expansionFactorFactorPrevious=-1.0d0
     !$omp threadprivate(expansionFactorPrevious,expansionFactorFactorPrevious)
     double precision                                                  :: expansionFactor                    , virialVelocity
 
@@ -186,7 +186,7 @@ contains
   subroutine Star_Formation_Timescale_Disks_Halo_Scaling_Reset(thisNode)
     !% Reset the halo scaling disk star formation timescale calculation.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
 
     timescaleComputed=.false.
     lastUniqueID     =thisNode%uniqueID()

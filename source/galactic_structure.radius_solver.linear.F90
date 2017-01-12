@@ -48,13 +48,13 @@ contains
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode
+    type            (treeNode                  ), intent(inout), target  :: thisNode
     procedure       (Radius_Solver_Get_Template)               , pointer :: Radius_Get             =>null(), Velocity_Get=>null()
     procedure       (Radius_Solver_Set_Template)               , pointer :: Radius_Set             =>null(), Velocity_Set=>null()
     !$omp threadprivate(Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
-    logical                                 , parameter              :: specificAngularMomentumRequired=.true.
-    logical                                                          :: componentActive
-    double precision                                                 :: specificAngularMomentum
+    logical                                     , parameter              :: specificAngularMomentumRequired=.true.
+    logical                                                              :: componentActive
+    double precision                                                     :: specificAngularMomentum
 
     ! Check that the galaxy is physical plausible. In this linear solver, we don't act on this.
     thisNode%isPhysicallyPlausible=.true.
@@ -68,12 +68,12 @@ contains
     !% Solve for the equilibrium radius of the given component.
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: thisNode
-    double precision                          , intent(in   )          :: specificAngularMomentum
-    procedure       (Radius_Solver_Get_Template  ), intent(in   ), pointer :: Radius_Get             , Velocity_Get
-    procedure       (Radius_Solver_Set_Template  ), intent(in   ), pointer :: Radius_Set             , Velocity_Set
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                                                   :: radius                 , velocity
+    type            (treeNode                  ), intent(inout), target  :: thisNode
+    double precision                            , intent(in   )          :: specificAngularMomentum
+    procedure       (Radius_Solver_Get_Template), intent(in   ), pointer :: Radius_Get             , Velocity_Get
+    procedure       (Radius_Solver_Set_Template), intent(in   ), pointer :: Radius_Set             , Velocity_Set
+    class           (darkMatterHaloScaleClass  )               , pointer :: darkMatterHaloScale_
+    double precision                                                     :: radius                 , velocity
     !GCC$ attributes unused :: Radius_Get, Velocity_Get
     
     ! Return immediately if the specific angular momentum is zero.

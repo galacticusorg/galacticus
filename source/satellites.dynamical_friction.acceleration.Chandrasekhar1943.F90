@@ -73,13 +73,13 @@ contains
     use Vectors
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode                ), pointer     , intent(inout) :: thisNode
-    double precision                          , dimension(3)                :: Satellite_Dynamical_Friction_Acceleration_Chandrasekhar
-    class           (nodeComponentSatellite  ), pointer                     :: thisSatellite
-    type            (treeNode                ), pointer                     :: hostNode
-    class           (darkMatterHaloScaleClass), pointer                     :: darkMatterHaloScale_
-    double precision                          , dimension(3)                :: position,velocity
-    double precision                                                        :: satelliteMass,parentDensity,velocityMagnitude,velocityDispersion,Xv
+    type            (treeNode                ), intent(inout) :: thisNode
+    double precision                          , dimension(3)  :: Satellite_Dynamical_Friction_Acceleration_Chandrasekhar
+    class           (nodeComponentSatellite  ), pointer       :: thisSatellite
+    type            (treeNode                ), pointer       :: hostNode
+    class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
+    double precision                          , dimension(3)  :: position,velocity
+    double precision                                          :: satelliteMass,parentDensity,velocityMagnitude,velocityDispersion,Xv
 
     darkMatterHaloScale_ => darkMatterHaloScale()
     hostNode             => thisNode     %mergesWith()

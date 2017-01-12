@@ -124,7 +124,7 @@ contains
     !% Reset the specific angular momentum of cooling gas calculation.
     use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
 
     coolingSpecificAngularMomentumComputed=.false.
     lastUniqueID                          =thisNode%uniqueID()
@@ -139,14 +139,14 @@ contains
     use Hot_Halo_Mass_Distributions
     use Numerical_Constants_Physical
     implicit none
-    type            (treeNode                    ), intent(inout), pointer :: thisNode
-    double precision                              , intent(in   )          :: radius
-    class           (nodeComponentBasic          )               , pointer :: thisBasicComponent
-    class           (nodeComponentSpin           )               , pointer :: thisSpinComponent
-    class           (nodeComponentHotHalo        )               , pointer :: thisHotHaloComponent
-    class           (hotHaloMassDistributionClass)               , pointer :: defaultHotHaloMassDistribution
-    class           (darkMatterProfileClass      )               , pointer :: darkMatterProfile_
-    double precision                                                       :: meanSpecificAngularMomentum   , rotationNormalization
+    type            (treeNode                    ), intent(inout) :: thisNode
+    double precision                              , intent(in   ) :: radius
+    class           (nodeComponentBasic          ), pointer       :: thisBasicComponent
+    class           (nodeComponentSpin           ), pointer       :: thisSpinComponent
+    class           (nodeComponentHotHalo        ), pointer       :: thisHotHaloComponent
+    class           (hotHaloMassDistributionClass), pointer       :: defaultHotHaloMassDistribution
+    class           (darkMatterProfileClass      ), pointer       :: darkMatterProfile_
+    double precision                                              :: meanSpecificAngularMomentum   , rotationNormalization
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Cooling_Specific_AM_Constant_Rotation_Reset(thisNode)

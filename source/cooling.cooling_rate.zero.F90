@@ -44,7 +44,7 @@ contains
     !% Returns a zero mass cooling rate in a hot gas halos.
     use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
     !GCC$ attributes unused :: thisNode
 
     Cooling_Rate_Zero=0.0d0

@@ -43,8 +43,8 @@ contains
     include 'tidal_stripping.mass_loss_rate.disks.modules.inc'
     !# </include>
     implicit none
-    type(treeNode      ), intent(inout), pointer :: thisNode
-    type(varying_string)                         :: tidalStrippingMassLossRateDisksMethod
+    type(treeNode      ), intent(inout) :: thisNode
+    type(varying_string)                :: tidalStrippingMassLossRateDisksMethod
 
     ! Initialize if necessary.
     if (.not.moduleInitialized) then

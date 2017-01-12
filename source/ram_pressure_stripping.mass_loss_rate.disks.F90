@@ -43,8 +43,8 @@ contains
     include 'ram_pressure_stripping.mass_loss_rate.disks.modules.inc'
     !# </include>
     implicit none
-    type(treeNode      ), intent(inout), pointer :: thisNode
-    type(varying_string)                         :: ramPressureStrippingMassLossRateDisksMethod
+    type(treeNode      ), intent(inout) :: thisNode
+    type(varying_string)                :: ramPressureStrippingMassLossRateDisksMethod
 
     ! Initialize if necessary.
     if (.not.moduleInitialized) then

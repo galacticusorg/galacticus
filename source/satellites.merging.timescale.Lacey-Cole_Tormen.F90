@@ -72,14 +72,14 @@ contains
     use Kepler_Orbits
     use Gaussian_Random
     implicit none
-    class           (satelliteMergingTimescalesLaceyCole1993Tormen)           , intent(inout)          :: self
-    type            (treeNode                                     )           , intent(inout), pointer :: thisNode
-    type            (keplerOrbit                                  )           , intent(inout)          :: thisOrbit
-    type            (treeNode                                     )                          , pointer :: hostNode
-    double precision                                               , parameter                         :: orbitalFactorDistributionSigma=0.26d0                          !   Cole et al. (2000).
-    double precision                                               , parameter                         :: orbitalFactorDistributionMean =-0.14d0                         !   Cole et al. (2000).
-    double precision                                                                                   :: log10OrbitalFactor                          , randomDeviate, &
-         &                                                                                                orbitalFactor
+    class           (satelliteMergingTimescalesLaceyCole1993Tormen), intent(inout) :: self
+    type            (treeNode                                     ), intent(inout) :: thisNode
+    type            (keplerOrbit                                  ), intent(inout) :: thisOrbit
+    type            (treeNode                                     ), pointer       :: hostNode
+    double precision                                               , parameter     :: orbitalFactorDistributionSigma=0.26d0                          !   Cole et al. (2000).
+    double precision                                               , parameter     :: orbitalFactorDistributionMean =-0.14d0                         !   Cole et al. (2000).
+    double precision                                                               :: log10OrbitalFactor                          , randomDeviate, &
+         &                                                                            orbitalFactor
     !GCC$ attributes unused :: thisOrbit
     
     ! Find the host node.

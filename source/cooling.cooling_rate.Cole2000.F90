@@ -49,12 +49,12 @@ contains
     use Numerical_Constants_Math
     use Hot_Halo_Mass_Distributions
     implicit none
-    type            (treeNode                    ), intent(inout), pointer :: thisNode
-    class           (nodeComponentBasic          )               , pointer :: formationBasicComponent
-    class           (nodeComponentHotHalo        )               , pointer :: formationHotHaloComponent
-    class           (hotHaloMassDistributionClass)               , pointer :: defaultHotHaloMassDistribution
-    double precision                                                       :: infallDensity            , infallRadius, &
-         &                                                                    infallRadiusGrowthRate   , outerRadius
+    type            (treeNode                    ), intent(inout) :: thisNode
+    class           (nodeComponentBasic          ), pointer       :: formationBasicComponent
+    class           (nodeComponentHotHalo        ), pointer       :: formationHotHaloComponent
+    class           (hotHaloMassDistributionClass), pointer       :: defaultHotHaloMassDistribution
+    double precision                                              :: infallDensity            , infallRadius, &
+         &                                                           infallRadiusGrowthRate   , outerRadius
 
     ! Get node components.
     formationBasicComponent   => thisNode%formationNode%basic  ()

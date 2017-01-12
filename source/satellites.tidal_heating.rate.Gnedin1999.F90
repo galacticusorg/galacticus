@@ -89,21 +89,21 @@ contains
     use Tensors
     use Dark_Matter_Halo_Scales
     implicit none
-    class           (nodeComponentSatellite        ), pointer                     :: thisSatellite
-    type            (treeNode                      ), pointer     , intent(inout) :: thisNode
-    type            (treeNode                      ), pointer                     :: hostNode
-    class           (cosmologyParametersClass      ), pointer                     :: cosmologyParameters_
-    class           (darkMatterHaloScaleClass      ), pointer                     :: darkMatterHaloScale_
-    class           (nodeComponentBasic            ), pointer                     :: basic
-    double precision                                , dimension(3)                :: position                 , velocity
-    double precision                                                              :: satelliteMass            , parentDensity            , &
-         &                                                                           parentEnclosedMass       , velocityCircularSatellite, &
-         &                                                                           radius                   , speed                    , &
-         &                                                                           timescaleShock           , heatingRateNormalized    , &
-         &                                                                           orbitalFrequencySatellite, radiusHalfMassSatellite  , &
-         &                                                                           satelliteHalfMass        , darkMatterFraction
-    type            (tensorRank2Dimension3Symmetric)                              :: tidalTensor              , tidalTensorPathIntegrated, &
-         &                                                                           positionTensor
+    class           (nodeComponentSatellite        ), pointer       :: thisSatellite
+    type            (treeNode                      ), intent(inout) :: thisNode
+    type            (treeNode                      ), pointer       :: hostNode
+    class           (cosmologyParametersClass      ), pointer       :: cosmologyParameters_
+    class           (darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_
+    class           (nodeComponentBasic            ), pointer       :: basic
+    double precision                                , dimension(3)  :: position                 , velocity
+    double precision                                                :: satelliteMass            , parentDensity            , &
+         &                                                             parentEnclosedMass       , velocityCircularSatellite, &
+         &                                                             radius                   , speed                    , &
+         &                                                             timescaleShock           , heatingRateNormalized    , &
+         &                                                             orbitalFrequencySatellite, radiusHalfMassSatellite  , &
+         &                                                             satelliteHalfMass        , darkMatterFraction
+    type            (tensorRank2Dimension3Symmetric)                :: tidalTensor              , tidalTensorPathIntegrated, &
+         &                                                             positionTensor
     
     ! Construct required properties of satellite and host.
     hostNode                  => thisNode     %mergesWith               ()

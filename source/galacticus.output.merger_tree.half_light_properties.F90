@@ -80,13 +80,13 @@ contains
     use Numerical_Constants_Astronomical
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode)              , intent(inout), pointer :: thisNode
-    double precision                        , intent(in   )          :: time
-    integer                                 , intent(inout)          :: doubleProperty         , integerProperty
-    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
-         &                                                              integerPropertyComments, integerPropertyNames
-    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    integer                                                          :: iLuminosity
+    type            (treeNode)              , intent(inout) :: thisNode
+    double precision                        , intent(in   ) :: time
+    integer                                 , intent(inout) :: doubleProperty         , integerProperty
+    character       (len=*   ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
+         &                                                     integerPropertyComments, integerPropertyNames
+    double precision          , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+    integer                                                 :: iLuminosity
     !GCC$ attributes unused :: thisNode, integerProperty, integerPropertyComments, integerPropertyNames, integerPropertyUnitsSI
     
     ! Initialize the module.
@@ -134,9 +134,9 @@ contains
     !% Account for the number of half-light properties to be written to the \glc\ output file.
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: time
-    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
+    type            (treeNode), intent(inout) :: thisNode
+    double precision          , intent(in   ) :: time
+    integer                   , intent(inout) :: doublePropertyCount, integerPropertyCount
     !GCC$ attributes unused :: thisNode, integerPropertyCount
     
     ! Initialize the module.
@@ -160,15 +160,15 @@ contains
     use Stellar_Luminosities_Structure
     use Multi_Counters
     implicit none
-    double precision                , intent(in   )          :: time
-    type            (treeNode      ), intent(inout), pointer :: thisNode
-    integer                         , intent(inout)          :: doubleBufferCount     , doubleProperty, integerBufferCount, &
-         &                                                      integerProperty
-    integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
-    double precision                , intent(inout)          :: doubleBuffer     (:,:)
-    type            (multiCounter  ), intent(inout)          :: instance
-    integer                                                  :: iLuminosity
-    double precision                                         :: halfLightRadius       , massEnclosed
+    double precision                , intent(in   ) :: time
+    type            (treeNode      ), intent(inout) :: thisNode
+    integer                         , intent(inout) :: doubleBufferCount     , doubleProperty, integerBufferCount, &
+         &                                             integerProperty
+    integer         (kind=kind_int8), intent(inout) :: integerBuffer    (:,:)
+    double precision                , intent(inout) :: doubleBuffer     (:,:)
+    type            (multiCounter  ), intent(inout) :: instance
+    integer                                         :: iLuminosity
+    double precision                                :: halfLightRadius       , massEnclosed
     !GCC$ attributes unused :: integerProperty, integerBufferCount, integerBuffer, instance
     
     ! Initialize the module.

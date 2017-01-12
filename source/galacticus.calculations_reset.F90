@@ -33,7 +33,7 @@ contains
     include 'galacticus.calculation_reset.tasks.modules.inc'
     !# </include>
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
 
     !# <include directive="calculationResetTask" type="functionCall" functionType="void">
     !#  <functionArgs>thisNode</functionArgs>

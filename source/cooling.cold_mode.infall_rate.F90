@@ -81,13 +81,12 @@ contains
   double precision function Cooling_Cold_Mode_Infall_Rate(thisNode)
     !% Return the cold mode infall rate for {\normalfont \ttfamily thisNode} (in units of $M_\odot$ Gyr$^{-1}$).
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
 
     ! Initialize the module.
     call Cooling_Cold_Mode_Infall_Rate_Initialize()
     ! Get the cooling rate using the selected method.
     Cooling_Cold_Mode_Infall_Rate=Cooling_Cold_Mode_Infall_Rate_Get(thisNode)
-
     return
   end function Cooling_Cold_Mode_Infall_Rate
 
@@ -128,12 +127,12 @@ contains
     !% Set names of cold mode infall rate properties to be written to the \glc\ output file.
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode            )              , intent(inout), pointer :: thisNode
-    double precision                                    , intent(in   )          :: time
-    integer                                             , intent(inout)          :: doubleProperty         , integerProperty
-    character       (len=*               ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
-         &                                                                          integerPropertyComments, integerPropertyNames
-    double precision                      , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+    type            (treeNode            )              , intent(inout) :: thisNode
+    double precision                                    , intent(in   ) :: time
+    integer                                             , intent(inout) :: doubleProperty         , integerProperty
+    character       (len=*               ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
+         &                                                                 integerPropertyComments, integerPropertyNames
+    double precision                      , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     !GCC$ attributes unused :: thisNode, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI, time
     
     ! Initialize the module.
@@ -164,10 +163,10 @@ contains
   subroutine Cooling_Cold_Mode_Infall_Output_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of cold mode infall rate properties to be written to the the \glc\ output file.
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode
-    double precision                      , intent(in   )          :: time
-    integer                               , intent(inout)          :: doublePropertyCount  , integerPropertyCount
-    integer                               , parameter              :: propertyCount      =1
+    type            (treeNode            ), intent(inout) :: thisNode
+    double precision                      , intent(in   ) :: time
+    integer                               , intent(inout) :: doublePropertyCount  , integerPropertyCount
+    integer                               , parameter     :: propertyCount      =1
     !GCC$ attributes unused :: thisNode, integerPropertyCount, time
     
     ! Initialize the module.
@@ -187,13 +186,13 @@ contains
     use Kind_Numbers
     use Multi_Counters
     implicit none
-    double precision                , intent(in   )          :: time
-    type            (treeNode      ), intent(inout), pointer :: thisNode
-    integer                         , intent(inout)          :: doubleBufferCount     , doubleProperty, integerBufferCount, &
-         &                                                      integerProperty
-    integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
-    double precision                , intent(inout)          :: doubleBuffer     (:,:)
-    type            (multiCounter  ), intent(inout)          :: instance
+    double precision                , intent(in   ) :: time
+    type            (treeNode      ), intent(inout) :: thisNode
+    integer                         , intent(inout) :: doubleBufferCount     , doubleProperty, integerBufferCount, &
+         &                                             integerProperty
+    integer         (kind=kind_int8), intent(inout) :: integerBuffer    (:,:)
+    double precision                , intent(inout) :: doubleBuffer     (:,:)
+    type            (multiCounter  ), intent(inout) :: instance
     !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer, instance
     
     ! Initialize the module.

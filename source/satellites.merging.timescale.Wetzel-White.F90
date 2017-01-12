@@ -51,14 +51,14 @@ contains
     use Cosmology_Functions
     use Kepler_Orbits
     implicit none
-    class           (satelliteMergingTimescalesWetzelWhite2010), intent(inout)          :: self
-    type            (treeNode                                 ), intent(inout), pointer :: thisNode
-    type            (keplerOrbit                              ), intent(inout)          :: thisOrbit
-    type            (treeNode                                 )               , pointer :: hostNode
-    class           (nodeComponentBasic                       )               , pointer :: hostBasic                , thisBasic
-    class           (cosmologyFunctionsClass                  )               , pointer :: cosmologyFunctionsDefault
-    double precision                                           , parameter              :: timeScaleNormalization   =0.2d0      !   C_dyn from Wetzel & White (2010).
-    double precision                                                                    :: massRatio
+    class           (satelliteMergingTimescalesWetzelWhite2010), intent(inout) :: self
+    type            (treeNode                                 ), intent(inout) :: thisNode
+    type            (keplerOrbit                              ), intent(inout) :: thisOrbit
+    type            (treeNode                                 ), pointer       :: hostNode
+    class           (nodeComponentBasic                       ), pointer       :: hostBasic                , thisBasic
+    class           (cosmologyFunctionsClass                  ), pointer       :: cosmologyFunctionsDefault
+    double precision                                           , parameter     :: timeScaleNormalization   =0.2d0      !   C_dyn from Wetzel & White (2010).
+    double precision                                                           :: massRatio
     !GCC$ attributes unused :: self, thisOrbit
     
     ! Get the default cosmology functions object.

@@ -52,22 +52,22 @@ contains
     use Kepler_Orbits
     use Satellite_Orbits
     implicit none
-    class           (satelliteMergingTimescalesBoylanKolchin2008)           , intent(inout)          :: self
-    type            (treeNode                                   )           , intent(inout), pointer :: thisNode
-    type            (keplerOrbit                                )           , intent(inout)          :: thisOrbit
-    type            (treeNode                                   )                          , pointer :: hostNode
-    class           (nodeComponentBasic                         )                          , pointer :: hostBasic                            , thisBasic
-    class           (darkMatterHaloScaleClass                  )                           , pointer :: darkMatterHaloScale_
-    class           (darkMatterProfileClass                    )                           , pointer :: darkMatterProfile_
-    logical                                                      , parameter                         :: acceptUnboundOrbits          =.false.
-    double precision                                             , parameter                         :: expArgumentMaximum           =100.0d0
-    double precision                                             , parameter                         :: timeInfinite                 =1.0d30
-    double precision                                             , parameter                         :: A                            =0.216d0, b                 =1.3d0, &  !   Fitting parameters from eqn. (6) of Boylan-Kolchin et al.
-         &                                                                                              c                            =1.9d0  , d                 =1.0d0
-    double precision                                                                                 :: equivalentCircularOrbitRadius        , massRatio               , &
-         &                                                                                              orbitalCircularity                   , radialScale             , &
-         &                                                                                              velocityScale                        , expArgument
-    integer                                                                                          :: errorCode
+    class           (satelliteMergingTimescalesBoylanKolchin2008), intent(inout) :: self
+    type            (treeNode                                   ), intent(inout) :: thisNode
+    type            (keplerOrbit                                ), intent(inout) :: thisOrbit
+    type            (treeNode                                   ), pointer       :: hostNode
+    class           (nodeComponentBasic                         ), pointer       :: hostBasic                            , thisBasic
+    class           (darkMatterHaloScaleClass                   ), pointer       :: darkMatterHaloScale_
+    class           (darkMatterProfileClass                     ), pointer       :: darkMatterProfile_
+    logical                                                      , parameter     :: acceptUnboundOrbits          =.false.
+    double precision                                             , parameter     :: expArgumentMaximum           =100.0d0
+    double precision                                             , parameter     :: timeInfinite                 =1.0d30
+    double precision                                             , parameter     :: A                            =0.216d0, b                 =1.3d0, &  !   Fitting parameters from eqn. (6) of Boylan-Kolchin et al.
+         &                                                                          c                            =1.9d0  , d                 =1.0d0
+    double precision                                                             :: equivalentCircularOrbitRadius        , massRatio               , &
+         &                                                                          orbitalCircularity                   , radialScale             , &
+         &                                                                          velocityScale                        , expArgument
+    integer                                                                      :: errorCode
     !GCC$ attributes unused :: self
     
     ! Get required objects.

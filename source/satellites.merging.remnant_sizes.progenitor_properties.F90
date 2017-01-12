@@ -47,12 +47,12 @@ contains
     include 'satellites.merging.remnant_sizes.progenitor_propeties.modules.inc'
     !# </include>
     implicit none
-    type            (treeNode), intent(inout), pointer :: hostNode                 , satelliteNode
-    double precision          , intent(  out)          :: angularMomentumFactor    , hostMass              , &
-         &                                                hostRadius               , hostSpheroidMass      , &
-         &                                                hostSpheroidMassPreMerger, remnantSpheroidGasMass, &
-         &                                                remnantSpheroidMass      , satelliteMass         , &
-         &                                                satelliteRadius          , satelliteSpheroidMass
+    type            (treeNode), intent(inout), target :: hostNode                 , satelliteNode
+    double precision          , intent(  out)         :: angularMomentumFactor    , hostMass              , &
+         &                                               hostRadius               , hostSpheroidMass      , &
+         &                                               hostSpheroidMassPreMerger, remnantSpheroidGasMass, &
+         &                                               remnantSpheroidMass      , satelliteMass         , &
+         &                                               satelliteRadius          , satelliteSpheroidMass
 
     if (.not.satelliteMergingRemnantProgenitorPropertiesInitialized) then
        !$omp critical(satelliteMergingRemnantProgenitorPropertiesInitialize)
