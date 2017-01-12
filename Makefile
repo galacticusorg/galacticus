@@ -346,7 +346,7 @@ source/FFTlog/fftlog.f source/FFTlog/cdgamma.f source/FFTlog/drfftb.f source/FFT
 	 patch < ../drfftf.f.patch; \
 	 patch < ../drffti.f.patch; \
 	 cd -; \
-	 ./scripts/build/useDependencies.pl `pwd` $(MAKE); \
+	 ./scripts/build/useDependencies.pl `pwd`; \
 	fi
 	echo $(BUILDPATH)/FFTlog/cdgamma.o > $(BUILDPATH)/FFTlog/cdgamma.d
 	echo $(BUILDPATH)/FFTlog/drfftb.o  > $(BUILDPATH)/FFTlog/drfftb.d
