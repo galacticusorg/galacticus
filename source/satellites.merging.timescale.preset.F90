@@ -47,10 +47,10 @@ contains
     use Galacticus_Nodes
     use Kepler_Orbits
     implicit none
-    class(satelliteMergingTimescalesPreset), intent(inout)          :: self
-    type (treeNode                        ), intent(inout), pointer :: thisNode
-    type (keplerOrbit                     ), intent(inout)          :: thisOrbit
-    class(nodeComponentSatellite          )               , pointer :: thisSatellite
+    class(satelliteMergingTimescalesPreset), intent(inout) :: self
+    type (treeNode                        ), intent(inout) :: thisNode
+    type (keplerOrbit                     ), intent(inout) :: thisOrbit
+    class(nodeComponentSatellite          ), pointer       :: thisSatellite
     !GCC$ attributes unused :: self, thisOrbit
     
     ! Simply return the current time until merging as, by definition, this has been preset if this method is being used.

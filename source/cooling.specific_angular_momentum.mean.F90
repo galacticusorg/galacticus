@@ -68,9 +68,9 @@ contains
     !% Return the specific angular momentum of cooling gas in the mean model.
     use Galacticus_Nodes
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode
-    double precision                      , intent(in   )          :: radius
-    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
+    type            (treeNode            ), intent(inout) :: thisNode
+    double precision                      , intent(in   ) :: radius
+    class           (nodeComponentHotHalo), pointer       :: thisHotHaloComponent
     !GCC$ attributes unused :: radius
     
     ! Compute mean specific angular momentum from the hot halo component.

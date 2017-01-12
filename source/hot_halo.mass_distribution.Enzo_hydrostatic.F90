@@ -149,12 +149,12 @@ contains
     use Hot_Halo_Mass_Distributions_Core_Radii
     use Hot_Halo_Temperature_Profiles
     implicit none
-    class           (hotHaloMassDistributionEnzoHydrostatic), intent(inout)          :: self
-    type            (treeNode                              ), intent(inout), pointer :: node
-    double precision                                        , intent(in   )          :: radius
-    class           (hotHaloTemperatureProfileClass        )               , pointer :: hotHaloTemperatureProfile_
-    class           (hotHaloMassDistributionCoreRadiusClass)               , pointer :: hotHaloMassDistributionCoreRadius_
-    double precision                                                                 :: radiusScale
+    class           (hotHaloMassDistributionEnzoHydrostatic), intent(inout) :: self
+    type            (treeNode                              ), intent(inout) :: node
+    double precision                                        , intent(in   ) :: radius
+    class           (hotHaloTemperatureProfileClass        ), pointer       :: hotHaloTemperatureProfile_
+    class           (hotHaloMassDistributionCoreRadiusClass), pointer       :: hotHaloMassDistributionCoreRadius_
+    double precision                                                        :: radiusScale
     !GCC$ attributes unused :: self
 
     hotHaloMassDistributionCoreRadius_ => hotHaloMassDistributionCoreRadius             (           )
@@ -221,18 +221,18 @@ contains
     use Numerical_Integration
     use Hot_Halo_Mass_Distributions_Core_Radii
     implicit none
-    class           (hotHaloMassDistributionEnzoHydrostatic), intent(inout)          :: self
-    type            (treeNode                              ), intent(inout), pointer :: node
-    double precision                                        , intent(in   )          :: moment                                   , radius
-    class           (nodeComponentHotHalo                  )               , pointer :: hotHalo
-    class           (hotHaloTemperatureProfileClass        )               , pointer :: hotHaloTemperatureProfile_
-    class           (hotHaloMassDistributionCoreRadiusClass)               , pointer :: hotHaloMassDistributionCoreRadius_
-    double precision                                        , parameter              :: toleranceRelative                 =1.0d-3
-    type            (fgsl_function                         )                         :: integrandFunction
-    type            (fgsl_integration_workspace            )                         :: integrationWorkspace
-    logical                                                                          :: integrationReset
-    double precision                                                                 :: radiusInner                              , radiusOuter, &
-         &                                                                              radiusScale
+    class           (hotHaloMassDistributionEnzoHydrostatic), intent(inout) :: self
+    type            (treeNode                              ), intent(inout) :: node
+    double precision                                        , intent(in   ) :: moment                                   , radius
+    class           (nodeComponentHotHalo                  ), pointer       :: hotHalo
+    class           (hotHaloTemperatureProfileClass        ), pointer       :: hotHaloTemperatureProfile_
+    class           (hotHaloMassDistributionCoreRadiusClass), pointer       :: hotHaloMassDistributionCoreRadius_
+    double precision                                        , parameter     :: toleranceRelative                 =1.0d-3
+    type            (fgsl_function                         )                :: integrandFunction
+    type            (fgsl_integration_workspace            )                :: integrationWorkspace
+    logical                                                                 :: integrationReset
+    double precision                                                        :: radiusInner                              , radiusOuter, &
+         &                                                                     radiusScale
     !GCC$ attributes unused :: self
 
     hotHaloMassDistributionCoreRadius_ => hotHaloMassDistributionCoreRadius          (    )
@@ -287,9 +287,9 @@ contains
     !% rotation velocity that is constant in radius) for {\normalfont \ttfamily node}. Specifically, the
     !% normalization, $A$, returned is such that $V_{\mathrm rot} = A J/M$.
     implicit none
-    class(hotHaloMassDistributionEnzoHydrostatic), intent(inout)          :: self
-    type (treeNode                              ), intent(inout), pointer :: node
-    class(nodeComponentHotHalo                  )               , pointer :: hotHalo
+    class(hotHaloMassDistributionEnzoHydrostatic), intent(inout) :: self
+    type (treeNode                              ), intent(inout) :: node
+    class(nodeComponentHotHalo                  ), pointer       :: hotHalo
     !GCC$ attributes unused :: self
 
     hotHalo                             => node%hotHalo()

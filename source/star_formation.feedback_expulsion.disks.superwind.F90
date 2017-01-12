@@ -88,10 +88,10 @@ contains
     use Galacticus_Nodes
     use Stellar_Feedback
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode
-    class           (nodeComponentDisk)               , pointer :: thisDiskComponent
-    double precision                   , intent(in   )          :: energyInputRate  , starFormationRate
-    double precision                                            :: diskVelocity     , outflowRateToStarFormationRate
+    type            (treeNode         ), intent(inout) :: thisNode
+    class           (nodeComponentDisk), pointer       :: thisDiskComponent
+    double precision                   , intent(in   ) :: energyInputRate  , starFormationRate
+    double precision                                   :: diskVelocity     , outflowRateToStarFormationRate
     !GCC$ attributes unused :: starFormationRate
     
     ! Get the disk.

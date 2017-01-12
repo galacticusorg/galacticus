@@ -36,7 +36,7 @@ module Dark_Matter_Halo_Scales
   !#   <description>The characteristic dynamical timescale of a dark matter halo.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), pointer, intent(inout) :: thisNode</argument>
+  !#   <argument>type(treeNode), intent(inout) :: thisNode</argument>
   !#  </method>
   !#  <method name="virialVelocity" >
   !#   <description>The virial velocity of a dark matter halo</description>

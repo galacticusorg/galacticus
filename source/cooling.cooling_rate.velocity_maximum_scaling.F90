@@ -176,18 +176,18 @@ contains
     use Cosmology_Functions
     use Dark_Matter_Profiles
     implicit none
-    type            (treeNode               ), intent(inout), pointer :: thisNode
-    double precision                         , parameter              :: expArgumentMaximum       =100.0d0
-    double precision                         , parameter              :: velocityNormalization    =200.0d0
-    class           (nodeComponentBasic     )               , pointer :: thisBasicComponent
-    class           (nodeComponentHotHalo   )               , pointer :: thisHotHaloComponent
-    class           (cosmologyFunctionsClass)               , pointer :: cosmologyFunctions_
-    class           (darkMatterProfileClass )               , pointer :: darkMatterProfile_
-    double precision                         , save                   :: expansionFactorPrevious  =-1.0d0 , velocityMaximumPrevious=-1.0d0, &
-         &                                                               coolingRate
+    type            (treeNode               ), intent(inout) :: thisNode
+    double precision                         , parameter     :: expArgumentMaximum       =100.0d0
+    double precision                         , parameter     :: velocityNormalization    =200.0d0
+    class           (nodeComponentBasic     ), pointer       :: thisBasicComponent
+    class           (nodeComponentHotHalo   ), pointer       :: thisHotHaloComponent
+    class           (cosmologyFunctionsClass), pointer       :: cosmologyFunctions_
+    class           (darkMatterProfileClass ), pointer       :: darkMatterProfile_
+    double precision                         , save          :: expansionFactorPrevious  =-1.0d0 , velocityMaximumPrevious=-1.0d0, &
+         &                                                      coolingRate
     !$omp threadprivate(expansionFactorPrevious,velocityMaximumPrevious,coolingRate)
-    double precision                                                  :: expFactor                        , expansionFactor               , &
-         &                                                               expArgument                      , velocityMaximum  
+    double precision                                         :: expFactor                        , expansionFactor               , &
+         &                                                      expArgument                      , velocityMaximum  
     
     ! Get the default cosmology functions object.
     cosmologyFunctions_  => cosmologyFunctions                         (                         )

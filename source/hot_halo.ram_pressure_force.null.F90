@@ -44,7 +44,7 @@ contains
     !% Computes the ram pressure force from the hot halo in the {\normalfont \ttfamily null} implementation. Always returns zero.
     use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
     !GCC$ attributes unused :: thisNode
     
     Hot_Halo_Ram_Pressure_Force_Null_Get=0.0d0

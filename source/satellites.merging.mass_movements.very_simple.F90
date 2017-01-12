@@ -45,9 +45,9 @@ contains
     !% Determine where stars and gas move as the result of a merger event using a simple algorithm.
     use Galacticus_Nodes
     implicit none
-    type   (treeNode), intent(inout), pointer :: thisNode
-    integer          , intent(  out)          :: gasMovesTo   , hostGasMovesTo, hostStarsMoveTo, starsMoveTo
-    logical          , intent(  out)          :: mergerIsMajor
+    type   (treeNode), intent(inout) :: thisNode
+    integer          , intent(  out) :: gasMovesTo   , hostGasMovesTo, hostStarsMoveTo, starsMoveTo
+    logical          , intent(  out) :: mergerIsMajor
     !GCC$ attributes unused :: thisNode
     
     mergerIsMajor  =.false.

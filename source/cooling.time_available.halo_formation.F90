@@ -65,9 +65,9 @@ contains
     !% Compute the time available for cooling using the \cite{cole_hierarchical_2000} method. Specifically, the time available is
     !% assumed to be the time since the halo formation event.
     implicit none
-    type (treeNode                  ), intent(inout), pointer :: thisNode
-    class(nodeComponentBasic        )               , pointer :: thisBasicComponent
-    class(nodeComponentFormationTime)               , pointer :: thisFormationTimeComponent
+    type (treeNode                  ), intent(inout) :: thisNode
+    class(nodeComponentBasic        ), pointer       :: thisBasicComponent
+    class(nodeComponentFormationTime), pointer       :: thisFormationTimeComponent
 
     thisBasicComponent         => thisNode%basic        ()
     thisFormationTimeComponent => thisNode%formationTime()
@@ -80,7 +80,7 @@ contains
     !% Compute the rate of increase of the time available for cooling using the \cite{cole_hierarchical_2000} method. We return a rate
     !% of 1.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
     !GCC$ attributes unused :: thisNode
     
     ! Simply return unit rate.

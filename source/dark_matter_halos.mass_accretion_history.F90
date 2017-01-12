@@ -37,8 +37,8 @@ module Dark_Matter_Halo_Mass_Accretion_Histories
   !#   <description>Returns the time at which the given halo mass was reached.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout), pointer :: node</argument>
-  !#   <argument>double precision          , intent(in   )          :: mass</argument>
+  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
+  !#   <argument>double precision          , intent(in   ) :: mass</argument>
   !#  </method>
   include 'darkMatterHaloMassAccretionHistory.type.inc'
   !# </include>

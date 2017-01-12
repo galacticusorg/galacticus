@@ -46,8 +46,8 @@ contains
     !% Return a null acceleration for satellites due to dynamical friction.
     use Galacticus_Nodes
     implicit none
-    double precision          , dimension(3)                :: Satellite_Dynamical_Friction_Acceleration_Null
-    type            (treeNode), pointer     , intent(inout) :: thisNode
+    double precision          , dimension(3)  :: Satellite_Dynamical_Friction_Acceleration_Null
+    type            (treeNode), intent(inout) :: thisNode
     !GCC$ attributes unused :: thisNode
     
     Satellite_Dynamical_Friction_Acceleration_Null=[0.0d0,0.0d0,0.0d0]

@@ -464,7 +464,7 @@ contains
   subroutine Node_Component_Hot_Halo_Standard_Reset(thisNode)
     !% Remove memory of stored computed values as we're about to begin computing derivatives anew.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
 
     uniqueIDPrevious             =thisNode%uniqueID()
     gotCoolingRate               =.false.
@@ -688,6 +688,7 @@ contains
     use Cooling_Specific_Angular_Momenta
     use Abundances_Structure
     use Node_Component_Hot_Halo_Standard_Data
+    use Galacticus_Error
     implicit none
     type            (treeNode                    ), intent(inout)          , pointer :: thisNode
     double precision                              , intent(in   )                    :: massRate
@@ -722,6 +723,9 @@ contains
              coolingFromNode => thisNode
           case (formationNode)
              coolingFromNode => thisNode%formationNode
+          case default
+             coolingFromNode => null()
+             call Galacticus_Error_Report('Node_Component_Hot_Halo_Standard_Push_To_Cooling_Pipes','unknown "hotHaloCoolingFromNode" - this should not happen')
           end select
           infallRadius=Infall_Radius(thisNode)
           angularMomentumCoolingRate=massRate*Cooling_Specific_Angular_Momentum(coolingFromNode,infallRadius)

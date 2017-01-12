@@ -37,13 +37,7 @@ module Cooling_Rates
   logical                                       :: outputHotHaloCoolingRates
 
   ! Pointer to the function that actually does the calculation.
-  procedure(Cooling_Rate_Get_Template), pointer :: Cooling_Rate_Get            =>null()
-  abstract interface
-     double precision function Cooling_Rate_Get_Template(thisNode)
-       import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode
-     end function Cooling_Rate_Get_Template
-  end interface
+  procedure(Cooling_Rate), pointer :: Cooling_Rate_Get =>null()
 
 contains
 
@@ -120,7 +114,7 @@ contains
     include 'cooling.cooling_rate.modifier.modules.inc'
     !# </include>
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
 
     ! Initialize the module.
     call Cooling_Rate_Initialize()
@@ -146,12 +140,12 @@ contains
     !% Set names of hot halo properties to be written to the \glc\ output file.
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode            )              , intent(inout), pointer :: thisNode
-    double precision                                    , intent(in   )          :: time
-    integer                                             , intent(inout)          :: doubleProperty         , integerProperty
-    character       (len=*               ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
-         &                                                                          integerPropertyComments, integerPropertyNames
-    double precision                      , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+    type            (treeNode            )              , intent(inout) :: thisNode
+    double precision                                    , intent(in   ) :: time
+    integer                                             , intent(inout) :: doubleProperty         , integerProperty
+    character       (len=*               ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
+         &                                                                 integerPropertyComments, integerPropertyNames
+    double precision                      , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     !GCC$ attributes unused :: thisNode, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI, time
     
     ! Initialize the module.
@@ -182,10 +176,10 @@ contains
   subroutine Cooling_Rate_Hot_Halo_Output_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of hot halo cooling properties to be written to the the \glc\ output file.
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode
-    double precision                      , intent(in   )          :: time
-    integer                               , intent(inout)          :: doublePropertyCount  , integerPropertyCount
-    integer                               , parameter              :: propertyCount      =1
+    type            (treeNode            ), intent(inout) :: thisNode
+    double precision                      , intent(in   ) :: time
+    integer                               , intent(inout) :: doublePropertyCount  , integerPropertyCount
+    integer                               , parameter     :: propertyCount      =1
     !GCC$ attributes unused :: thisNode, integerPropertyCount, time
     
     ! Initialize the module.
@@ -205,13 +199,13 @@ contains
     use Kind_Numbers
     use Multi_Counters
     implicit none
-    double precision                , intent(in   )          :: time
-    type            (treeNode      ), intent(inout), pointer :: thisNode
-    integer                         , intent(inout)          :: doubleBufferCount     , doubleProperty, integerBufferCount, &
-         &                                                      integerProperty
-    integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
-    double precision                , intent(inout)          :: doubleBuffer     (:,:)
-    type            (multiCounter  ), intent(inout)          :: instance
+    double precision                , intent(in   ) :: time
+    type            (treeNode      ), intent(inout) :: thisNode
+    integer                         , intent(inout) :: doubleBufferCount     , doubleProperty, integerBufferCount, &
+         &                                             integerProperty
+    integer         (kind=kind_int8), intent(inout) :: integerBuffer    (:,:)
+    double precision                , intent(inout) :: doubleBuffer     (:,:)
+    type            (multiCounter  ), intent(inout) :: instance
     !GCC$ attributes unused :: integerProperty, integerBufferCount, integerBuffer, time, instance
     
     ! Initialize the module.

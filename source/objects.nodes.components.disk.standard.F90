@@ -354,7 +354,7 @@ contains
     !% Reset standard disk structure calculations.
     use Node_Component_Disk_Standard_Data
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
 
     call Node_Component_Disk_Standard_Reset(thisNode%uniqueID())
     return
@@ -1058,11 +1058,11 @@ contains
     !% Determines whether the disk is physically plausible for radius solving tasks. Require that it have non-zero mass and angular momentum.
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: thisNode
-    logical                                   , intent(inout)          :: galaxyIsPhysicallyPlausible
-    class           (nodeComponentDisk       )               , pointer :: thisDiskComponent
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                                                   :: angularMomentumScale
+    type            (treeNode                ), intent(inout) :: thisNode
+    logical                                   , intent(inout) :: galaxyIsPhysicallyPlausible
+    class           (nodeComponentDisk       ), pointer       :: thisDiskComponent
+    class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
+    double precision                                          :: angularMomentumScale
 
     ! Return immediately if our method is not selected.
     if (.not.defaultDiskComponent%standardIsActive()) return
@@ -1111,8 +1111,8 @@ contains
   double precision function Node_Component_Disk_Standard_Radius_Solve(thisNode)
     !% Return the radius of the standard disk used in structure solvers.
     implicit none
-    type (treeNode         ), intent(inout), pointer :: thisNode
-    class(nodeComponentDisk)               , pointer :: thisDiskComponent
+    type (treeNode         ), intent(inout) :: thisNode
+    class(nodeComponentDisk), pointer       :: thisDiskComponent
 
     thisDiskComponent => thisNode%disk()
     Node_Component_Disk_Standard_Radius_Solve=thisDiskComponent%radius()*diskStructureSolverRadius
@@ -1122,9 +1122,9 @@ contains
   subroutine Node_Component_Disk_Standard_Radius_Solve_Set(thisNode,radius)
     !% Set the radius of the standard disk used in structure solvers.
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode
-    double precision                   , intent(in   )          :: radius
-    class           (nodeComponentDisk)               , pointer :: thisDiskComponent
+    type            (treeNode         ), intent(inout) :: thisNode
+    double precision                   , intent(in   ) :: radius
+    class           (nodeComponentDisk), pointer       :: thisDiskComponent
 
     thisDiskComponent => thisNode%disk()
     call thisDiskComponent%radiusSet(max(radius,0.0d0)/diskStructureSolverRadius)
@@ -1134,8 +1134,8 @@ contains
   double precision function Node_Component_Disk_Standard_Velocity(thisNode)
     !% Return the circular velocity of the standard disk.
     implicit none
-    type (treeNode         ), intent(inout), pointer :: thisNode
-    class(nodeComponentDisk)               , pointer :: thisDiskComponent
+    type (treeNode         ), intent(inout) :: thisNode
+    class(nodeComponentDisk), pointer       :: thisDiskComponent
 
     thisDiskComponent => thisNode%disk()
     Node_Component_Disk_Standard_Velocity=thisDiskComponent%velocity()
@@ -1145,9 +1145,9 @@ contains
   subroutine Node_Component_Disk_Standard_Velocity_Set(thisNode,velocity)
     !% Set the circular velocity of the standard disk.
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode
-    double precision                   , intent(in   )          :: velocity
-    class           (nodeComponentDisk)               , pointer :: thisDiskComponent
+    type            (treeNode         ), intent(inout) :: thisNode
+    double precision                   , intent(in   ) :: velocity
+    class           (nodeComponentDisk), pointer       :: thisDiskComponent
 
     thisDiskComponent => thisNode%disk()
     call thisDiskComponent%velocitySet(velocity)
@@ -1164,7 +1164,7 @@ contains
     use Node_Component_Disk_Standard_Data
     use Numerical_Constants_Physical
     implicit none
-    type            (treeNode                                     ), intent(inout), pointer :: thisNode
+    type            (treeNode                                     ), intent(inout)          :: thisNode
     logical                                                        , intent(  out)          :: componentActive
     logical                                                        , intent(in   )          :: specificAngularMomentumRequired
     double precision                                               , intent(  out)          :: specificAngularMomentum

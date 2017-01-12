@@ -95,13 +95,13 @@ contains
     !% Set the names of half-light properties to be written to the \glc\ output file.
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode)              , intent(inout), pointer :: thisNode
-    double precision                        , intent(in   )          :: time
-    integer                                 , intent(inout)          :: doubleProperty         , integerProperty
-    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
-         &                                                              integerPropertyComments, integerPropertyNames
-    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    integer                                                          :: iRadius
+    type            (treeNode)              , intent(inout) :: thisNode
+    double precision                        , intent(in   ) :: time
+    integer                                 , intent(inout) :: doubleProperty         , integerProperty
+    character       (len=*   ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
+         &                                                     integerPropertyComments, integerPropertyNames
+    double precision          , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+    integer                                                 :: iRadius
     !GCC$ attributes unused :: thisNode, time, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI
     
     ! Initialize the module.
@@ -126,9 +126,9 @@ contains
   subroutine Galacticus_Output_Tree_Mass_Profile_Property_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of half-light properties to be written to the \glc\ output file.
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: time
-    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
+    type            (treeNode), intent(inout) :: thisNode
+    double precision          , intent(in   ) :: time
+    integer                   , intent(inout) :: doublePropertyCount, integerPropertyCount
     !GCC$ attributes unused :: thisNode, time, integerPropertyCount
     
     ! Initialize the module.
@@ -151,15 +151,15 @@ contains
     use Galactic_Structure_Options
     use Multi_Counters
     implicit none
-    double precision                , intent(in   )          :: time
-    type            (treeNode      ), intent(inout), pointer :: thisNode
-    integer                         , intent(inout)          :: doubleBufferCount     , doubleProperty, integerBufferCount, &
-         &                                                      integerProperty
-    integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
-    double precision                , intent(inout)          :: doubleBuffer     (:,:)
-    type            (multiCounter  ), intent(inout)          :: instance
-    integer                                                  :: iRadius
-    double precision                                         :: massEnclosed
+    double precision                , intent(in   ) :: time
+    type            (treeNode      ), intent(inout) :: thisNode
+    integer                         , intent(inout) :: doubleBufferCount     , doubleProperty, integerBufferCount, &
+         &                                             integerProperty
+    integer         (kind=kind_int8), intent(inout) :: integerBuffer    (:,:)
+    double precision                , intent(inout) :: doubleBuffer     (:,:)
+    type            (multiCounter  ), intent(inout) :: instance
+    integer                                         :: iRadius
+    double precision                                :: massEnclosed
     !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer, instance
     
     ! Initialize the module.

@@ -42,7 +42,7 @@ contains
     use Galactic_Structure_Options
     use Galactic_Structure_Densities
     use Galactic_Structure_Enclosed_Masses
-    type            (treeNode                  ), intent(inout), pointer  :: thisNode
+    type            (treeNode                  ), intent(inout), target   :: thisNode
     double precision                            , intent(in   )           :: radius              , radiusOuter
     integer                                     , intent(in   )           :: componentType       , massType
     logical                                     , intent(in   ), optional :: haloLoaded
