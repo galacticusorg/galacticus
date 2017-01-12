@@ -77,12 +77,12 @@ contains
     use Galacticus_Nodes
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode)              , intent(inout), pointer :: thisNode
-    double precision                        , intent(in   )          :: time
-    integer                                 , intent(inout)          :: doubleProperty         , integerProperty
-    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
-         &                                                              integerPropertyComments, integerPropertyNames
-    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+    type            (treeNode)              , intent(inout) :: thisNode
+    double precision                        , intent(in   ) :: time
+    integer                                 , intent(inout) :: doubleProperty         , integerProperty
+    character       (len=*   ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
+         &                                                     integerPropertyComments, integerPropertyNames
+    double precision          , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     !GCC$ attributes unused :: thisNode, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI, time
     
     ! Initialize the module.
@@ -114,9 +114,9 @@ contains
     !% Account for the number of satellite host properties to be written to the \glc\ output file.
     use Galacticus_Nodes
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: time
-    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
+    type            (treeNode), intent(inout) :: thisNode
+    double precision          , intent(in   ) :: time
+    integer                   , intent(inout) :: doublePropertyCount, integerPropertyCount
     !GCC$ attributes unused :: thisNode, time, integerPropertyCount
     
     ! Initialize the module.
@@ -140,16 +140,16 @@ contains
     use Satellite_Orbits
     use Multi_Counters
     implicit none
-    double precision                    , intent(in   )          :: time
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    integer                             , intent(inout)          :: doubleBufferCount     , doubleProperty , integerBufferCount, &
-         &                                                          integerProperty
-    integer         (kind=kind_int8    ), intent(inout)          :: integerBuffer    (:,:)
-    double precision                    , intent(inout)          :: doubleBuffer     (:,:)
-    type            (multiCounter      ), intent(inout)          :: instance
-    type            (treeNode          )               , pointer :: hostNode
-    class           (nodeComponentBasic)               , pointer :: hostBasic
-    double precision                                             :: hostMass
+    double precision                    , intent(in   ) :: time
+    type            (treeNode          ), intent(inout) :: thisNode
+    integer                             , intent(inout) :: doubleBufferCount     , doubleProperty , integerBufferCount, &
+         &                                                 integerProperty
+    integer         (kind=kind_int8    ), intent(inout) :: integerBuffer    (:,:)
+    double precision                    , intent(inout) :: doubleBuffer     (:,:)
+    type            (multiCounter      ), intent(inout) :: instance
+    type            (treeNode          ), pointer       :: hostNode
+    class           (nodeComponentBasic), pointer       :: hostBasic
+    double precision                                    :: hostMass
     !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer, instance
     
     ! Initialize the module.

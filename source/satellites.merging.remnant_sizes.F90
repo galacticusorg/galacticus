@@ -49,7 +49,7 @@ contains
     include 'satellites.merging.remnant_sizes.modules.inc'
     !# </include>
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
 
     if (.not.satelliteMergingRemnantSizeInitialized) then
        !$omp critical(satelliteMergingRemnantSizeInitialize)

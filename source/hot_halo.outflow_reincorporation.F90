@@ -38,7 +38,7 @@ module Hot_Halo_Outflows_Reincorporations
   !#   <description>Return the rate at which outflowed mass is being reincorporated into the hot halo.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
   !#  </method>
   include 'hotHaloOutflowReincorporation.type.inc'
   !# </include>

@@ -52,10 +52,11 @@ contains
     use Freefall_Radii
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                                   :: coolingRadius         , freefallRadius, virialRadius
-    logical                                            :: infallIsCoolingLimited
+    type            (treeNode                ), intent(inout) :: thisNode
+    class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
+    double precision                                          :: coolingRadius         , freefallRadius, &
+         &                                                       virialRadius
+    logical                                                   :: infallIsCoolingLimited
 
     ! Get the virial radius.
     darkMatterHaloScale_ => darkMatterHaloScale()
@@ -84,10 +85,11 @@ contains
     use Freefall_Radii
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                                   :: coolingRadius         , freefallRadius, virialRadius
-    logical                                            :: infallIsCoolingLimited
+    type            (treeNode                ), intent(inout) :: thisNode
+    class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
+    double precision                                          :: coolingRadius         , freefallRadius, &
+         &                                                       virialRadius
+    logical                                                   :: infallIsCoolingLimited
 
     ! Get the virial radius.
     darkMatterHaloScale_ => darkMatterHaloScale()

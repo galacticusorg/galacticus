@@ -185,9 +185,9 @@ contains
   subroutine Node_Component_Dark_Matter_Profile_Scale_Plausibility(thisNode,galaxyIsPhysicallyPlausible)
     !% Determines whether the dark matter profile is physically plausible for radius solving tasks.
     implicit none
-    type   (treeNode                      ), intent(inout), pointer :: thisNode
-    logical                                , intent(inout)          :: galaxyIsPhysicallyPlausible
-    class  (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
+    type   (treeNode                      ), intent(inout) :: thisNode
+    logical                                , intent(inout) :: galaxyIsPhysicallyPlausible
+    class  (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
 
     ! Get the dark matter profile component.
     thisDarkMatterProfileComponent => thisNode%darkMatterProfile()

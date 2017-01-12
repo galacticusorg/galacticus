@@ -69,11 +69,11 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Math
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode
-    type            (treeNode              )               , pointer :: hostNode
-    class           (nodeComponentSatellite)               , pointer :: thisSatellite
-    type            (keplerOrbit           )                         :: thisOrbit
-    double precision                                                 :: densityHost  , enclosedMassHost, orbitalRadius, orbitalVelocity
+    type            (treeNode              ), intent(inout) :: thisNode
+    type            (treeNode              ), pointer       :: hostNode
+    class           (nodeComponentSatellite), pointer       :: thisSatellite
+    type            (keplerOrbit           )                :: thisOrbit
+    double precision                                        :: densityHost  , enclosedMassHost, orbitalRadius, orbitalVelocity
 
     ! For isolated halos, always return zero tidal field.
     if (thisNode%isSatellite()) then

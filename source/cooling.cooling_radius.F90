@@ -31,24 +31,18 @@ module Cooling_Radii
        & Cooling_Radius_Hot_Halo_Output_Count
 
   ! Flag to indicate if this module has been initialized.
-  logical                                         :: coolingRadiusInitialized      =.false.
-  logical                                         :: coolingRadiusOutputInitialized=.false.
+  logical                                        :: coolingRadiusInitialized      =.false.
+  logical                                        :: coolingRadiusOutputInitialized=.false.
 
   ! Name of cooling radius available method used.
-  type     (varying_string             )          :: coolingRadiusMethod
+  type     (varying_string            )          :: coolingRadiusMethod
 
   ! Option controlling whether cooling radii are output.
-  logical                                         :: outputHotHaloCoolingRadii
+  logical                                        :: outputHotHaloCoolingRadii
 
   ! Pointer to the function that actually does the calculation.
-  procedure(Cooling_Radius_Get_Template), pointer :: Cooling_Radius_Get            =>null()
-  procedure(Cooling_Radius_Get_Template), pointer :: Cooling_Radius_Growth_Rate_Get=>null()
-  abstract interface
-     double precision function Cooling_Radius_Get_Template(thisNode)
-       import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode
-     end function Cooling_Radius_Get_Template
-  end interface
+  procedure(Cooling_Radius            ), pointer :: Cooling_Radius_Get            =>null()
+  procedure(Cooling_Radius_Growth_Rate), pointer :: Cooling_Radius_Growth_Rate_Get=>null()
 
 contains
 
@@ -121,7 +115,7 @@ contains
   double precision function Cooling_Radius(thisNode)
     !% Return the cooling radius for {\normalfont \ttfamily thisNode} (in units of Mpc).
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout), target :: thisNode
 
     ! Initialize the module.
     call Cooling_Radius_Initialize
@@ -135,7 +129,7 @@ contains
   double precision function Cooling_Radius_Growth_Rate(thisNode)
     !% Return the rate at which the cooling radius grows for {\normalfont \ttfamily thisNode} (in units of Mpc/Gyr).
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
 
     ! Initialize the module.
     call Cooling_Radius_Initialize
@@ -155,12 +149,12 @@ contains
     !% Set names of hot halo properties to be written to the \glc\ output file.
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode            )              , intent(inout), pointer :: thisNode
-    double precision                                    , intent(in   )          :: time
-    integer                                             , intent(inout)          :: doubleProperty         , integerProperty
-    character       (len=*               ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
-         &                                                                          integerPropertyComments, integerPropertyNames
-    double precision                      , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+    type            (treeNode            )              , intent(inout) :: thisNode
+    double precision                                    , intent(in   ) :: time
+    integer                                             , intent(inout) :: doubleProperty         , integerProperty
+    character       (len=*               ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
+         &                                                                 integerPropertyComments, integerPropertyNames
+    double precision                      , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     !GCC$ attributes unused :: integerProperty, integerPropertyComments, integerPropertyNames, integerPropertyUnitsSI, time, thisNode
 
     ! Initialize the module.
@@ -191,10 +185,10 @@ contains
   subroutine Cooling_Radius_Hot_Halo_Output_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of hot halo cooling properties to be written to the the \glc\ output file.
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode
-    double precision                      , intent(in   )          :: time
-    integer                               , intent(inout)          :: doublePropertyCount  , integerPropertyCount
-    integer                               , parameter              :: propertyCount      =1
+    type            (treeNode            ), intent(inout) :: thisNode
+    double precision                      , intent(in   ) :: time
+    integer                               , intent(inout) :: doublePropertyCount  , integerPropertyCount
+    integer                               , parameter     :: propertyCount      =1
     !GCC$ attributes unused :: thisNode, time, integerPropertyCount
 
     ! Initialize the module.
@@ -214,13 +208,13 @@ contains
     use Kind_Numbers
     use Multi_Counters
     implicit none
-    double precision                , intent(in   )          :: time
-    type            (treeNode      ), intent(inout), pointer :: thisNode
-    integer                         , intent(inout)          :: doubleBufferCount     , doubleProperty, integerBufferCount, &
-         &                                                      integerProperty
-    integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
-    double precision                , intent(inout)          :: doubleBuffer     (:,:)
-    type            (multiCounter  ), intent(inout)          :: instance
+    double precision                , intent(in   ) :: time
+    type            (treeNode      ), intent(inout) :: thisNode
+    integer                         , intent(inout) :: doubleBufferCount     , doubleProperty, integerBufferCount, &
+         &                                             integerProperty
+    integer         (kind=kind_int8), intent(inout) :: integerBuffer    (:,:)
+    double precision                , intent(inout) :: doubleBuffer     (:,:)
+    type            (multiCounter  ), intent(inout) :: instance
     !GCC$ attributes unused :: integerBufferCount, integerProperty, integerBuffer, time, instance
     
     ! Initialize the module.

@@ -101,13 +101,13 @@ contains
     !% Find the radii of galactic components in {\normalfont \ttfamily thisNode} using the ``fixed'' method.
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode
-    procedure       (Radius_Solver_Get_Template)               , pointer :: Radius_Get                     => null(), Velocity_Get => null()
-    procedure       (Radius_Solver_Set_Template)               , pointer :: Radius_Set                     => null(), Velocity_Set => null()
+    type            (treeNode                  ), intent(inout), target :: thisNode
+    procedure       (Radius_Solver_Get_Template), pointer               :: Radius_Get                     => null(), Velocity_Get => null()
+    procedure       (Radius_Solver_Set_Template), pointer               :: Radius_Set                     => null(), Velocity_Set => null()
     !$omp threadprivate(Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
-    logical                                 , parameter              :: specificAngularMomentumRequired=  .false.
-    logical                                                          :: componentActive
-    double precision                                                 :: specificAngularMomentum
+    logical                                     , parameter             :: specificAngularMomentumRequired=  .false.
+    logical                                                             :: componentActive
+    double precision                                                    :: specificAngularMomentum
 
     ! Assume that the node is physically plausible, since in this fixed solver, we don't act on this.
     thisNode%isPhysicallyPlausible=.true.
@@ -123,15 +123,15 @@ contains
     use Dark_Matter_Halo_Scales
     use Dark_Matter_Profiles
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: thisNode
-    double precision                          , intent(in   )          :: specificAngularMomentum
-    procedure       (Radius_Solver_Get_Template  ), intent(in   ), pointer :: Radius_Get             , Velocity_Get
-    procedure       (Radius_Solver_Set_Template  ), intent(in   ), pointer :: Radius_Set             , Velocity_Set
-    class           (nodeComponentSpin       )               , pointer :: thisSpinComponent
-    class           (nodeComponentBasic      )               , pointer :: basic
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    class           (darkMatterProfileClass  )               , pointer :: darkMatterProfile_
-    double precision                                                   :: radius                 , velocity
+    type            (treeNode                  ), intent(inout)          :: thisNode
+    double precision                            , intent(in   )          :: specificAngularMomentum
+    procedure       (Radius_Solver_Get_Template), intent(in   ), pointer :: Radius_Get             , Velocity_Get
+    procedure       (Radius_Solver_Set_Template), intent(in   ), pointer :: Radius_Set             , Velocity_Set
+    class           (nodeComponentSpin         )               , pointer :: thisSpinComponent
+    class           (nodeComponentBasic        )               , pointer :: basic
+    class           (darkMatterHaloScaleClass  )               , pointer :: darkMatterHaloScale_
+    class           (darkMatterProfileClass    )               , pointer :: darkMatterProfile_
+    double precision                                                     :: radius                 , velocity
     !GCC$ attributes unused :: Radius_Get, Velocity_Get, specificAngularMomentum
     
     ! Find the radius of the component, assuming radius is a fixed fraction of radius times spin parameter.

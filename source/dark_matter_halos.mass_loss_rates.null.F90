@@ -44,7 +44,7 @@ contains
     !% Returns the a zero rate of mass loss from dark matter halos.
     use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
     !GCC$ attributes unused :: thisNode
     
     Dark_Matter_Halos_Mass_Loss_Rate_Null=0.0d0

@@ -27,19 +27,13 @@ module Star_Formation_Timescales_Spheroids
   public :: Star_Formation_Timescale_Spheroid
 
   ! Flag to indicate if this module has been initialized.
-  logical                                                        :: starFormationTimescaleSpheroidsInitialized=.false.
+  logical                                               :: starFormationTimescaleSpheroidsInitialized=.false.
 
   ! Name of cooling rate available method used.
-  type     (varying_string                            )          :: starFormationTimescaleSpheroidsMethod
+  type     (varying_string                   )          :: starFormationTimescaleSpheroidsMethod
 
   ! Pointer to the function that actually does the calculation.
-  procedure(Star_Formation_Timescale_Spheroid_Template), pointer :: Star_Formation_Timescale_Spheroid_Get     =>null()
-  abstract interface
-     double precision function Star_Formation_Timescale_Spheroid_Template(thisNode)
-       import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode
-     end function Star_Formation_Timescale_Spheroid_Template
-  end interface
+  procedure(Star_Formation_Timescale_Spheroid), pointer :: Star_Formation_Timescale_Spheroid_Get     =>null()
 
 contains
 
@@ -86,7 +80,7 @@ contains
   double precision function Star_Formation_Timescale_Spheroid(thisNode)
     !% Returns the timescale (in Gyr) for star formation in the spheroid component of {\normalfont \ttfamily thisNode}.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
 
     ! Initialize the module.
     call Star_Formation_Timescale_Spheroids_Initialize

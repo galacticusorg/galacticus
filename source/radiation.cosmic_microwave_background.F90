@@ -41,11 +41,11 @@ contains
     use Memory_Management
     use Cosmology_Functions
     implicit none
-    logical                                                             , intent(in   )          :: componentMatched
-    type            (treeNode               )                           , intent(inout), pointer :: thisNode
-    double precision                         , allocatable, dimension(:), intent(inout)          :: radiationProperties
-    class           (nodeComponentBasic     )             , pointer                              :: thisBasicComponent
-    class           (cosmologyFunctionsClass)             , pointer                              :: cosmologyFunctionsDefault
+    logical                                                             , intent(in   ) :: componentMatched
+    type            (treeNode               )                           , intent(inout) :: thisNode
+    double precision                         , allocatable, dimension(:), intent(inout) :: radiationProperties
+    class           (nodeComponentBasic     )             , pointer                     :: thisBasicComponent
+    class           (cosmologyFunctionsClass)             , pointer                     :: cosmologyFunctionsDefault
 
     ! Return immediately if this component was not matched.
     if (.not.componentMatched) return

@@ -45,7 +45,7 @@ contains
     include 'satellites.tidal_fields.modules.inc'
     !# </include>
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
 
     ! Initialize if necessary.
     if (.not.satellitesTidalFieldInitialized) then

@@ -78,11 +78,11 @@ contains
     use Numerical_Constants_Math
     use Dark_Matter_Profiles
     implicit none
-    class           (hotHaloTemperatureProfileEnzoHydrostatic), intent(inout)          :: self
-    type            (treeNode                                ), intent(inout), pointer :: node
-    double precision                                          , intent(in   )          :: radius
-    class           (darkMatterProfileClass                  )               , pointer :: darkMatterProfile_
-    double precision                                                                   :: enclosedMass, density
+    class           (hotHaloTemperatureProfileEnzoHydrostatic), intent(inout) :: self
+    type            (treeNode                                ), intent(inout) :: node
+    double precision                                          , intent(in   ) :: radius
+    class           (darkMatterProfileClass                  ), pointer       :: darkMatterProfile_
+    double precision                                                          :: enclosedMass      , density
     !GCC$ attributes unused :: self
     
     if (self%temperature(node,radius) <= enzoHydrostaticTemperatureMinimum) then

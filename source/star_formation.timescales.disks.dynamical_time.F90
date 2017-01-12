@@ -118,10 +118,10 @@ contains
     use Galacticus_Nodes
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode
-    class           (nodeComponentDisk)               , pointer :: thisDiskComponent
-    double precision                   , parameter              :: velocityZeroPoint=200.0d0                !   (km/s)
-    double precision                                            :: diskVelocity             , dynamicalTime
+    type            (treeNode         ), intent(inout), target :: thisNode
+    class           (nodeComponentDisk), pointer               :: thisDiskComponent
+    double precision                   , parameter             :: velocityZeroPoint=200.0d0                !   (km/s)
+    double precision                                           :: diskVelocity             , dynamicalTime
 
     ! Get the disk.
     thisDiskComponent => thisNode%disk()

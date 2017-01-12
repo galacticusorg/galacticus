@@ -45,7 +45,7 @@ contains
     include 'hot_halo.ram_pressure_stripping.timescale.modules.inc'
     !# </include>
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
 
     ! Initialize if necessary.
     if (.not.hotHaloRamPressureStrippingTimescaleInitialized) then

@@ -88,10 +88,10 @@ contains
     use Galacticus_Nodes
     use Stellar_Feedback
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: thisNode
-    double precision                       , intent(in   )          :: energyInputRate               , starFormationRate
-    class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
-    double precision                                                :: outflowRateToStarFormationRate, spheroidVelocity
+    type            (treeNode             ), intent(inout) :: thisNode
+    double precision                       , intent(in   ) :: energyInputRate               , starFormationRate
+    class           (nodeComponentSpheroid), pointer       :: thisSpheroidComponent
+    double precision                                       :: outflowRateToStarFormationRate, spheroidVelocity
     !GCC$ attributes unused :: starFormationRate
     
     ! Get spheroid circular velocity.

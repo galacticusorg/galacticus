@@ -43,8 +43,8 @@ contains
     include 'ram_pressure_stripping.mass_loss_rate.spheroids.modules.inc'
     !# </include>
     implicit none
-    type(treeNode      ), intent(inout), pointer :: thisNode
-    type(varying_string)                         :: ramPressureStrippingMassLossRateSpheroidsMethod
+    type(treeNode      ), intent(inout) :: thisNode
+    type(varying_string)                :: ramPressureStrippingMassLossRateSpheroidsMethod
 
     ! Initialize if necessary.
     if (.not.moduleInitialized) then

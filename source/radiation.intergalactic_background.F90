@@ -121,10 +121,10 @@ contains
   subroutine Radiation_Set_Intergalactic_Background(componentMatched,thisNode,radiationProperties)
     !% Property setting routine for the radiation component from file method.
     implicit none
-    logical                                                        , intent(in   )          :: componentMatched
-    type            (treeNode          )                           , intent(inout), pointer :: thisNode
-    double precision                    , allocatable, dimension(:), intent(inout)          :: radiationProperties
-    class           (nodeComponentBasic)                                          , pointer :: thisBasic
+    logical                                                        , intent(in   ) :: componentMatched
+    type            (treeNode          )                           , intent(inout) :: thisNode
+    double precision                    , allocatable, dimension(:), intent(inout) :: radiationProperties
+    class           (nodeComponentBasic), pointer                                  :: thisBasic
 
     ! Return immediately if this component was not matched.
     if (.not.componentMatched) return

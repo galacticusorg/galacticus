@@ -74,10 +74,10 @@ contains
     use Numerical_Constants_Physical
     use Dark_Matter_Profiles
     implicit none
-    type (treeNode              ), intent(inout), pointer :: thisNode
-    class(nodeComponentBasic    )               , pointer :: thisBasicComponent
-    class(nodeComponentSpin     )               , pointer :: thisSpinComponent
-    class(darkMatterProfileClass)               , pointer :: darkMatterProfile_
+    type (treeNode              ), intent(inout) :: thisNode
+    class(nodeComponentBasic    ), pointer       :: thisBasicComponent
+    class(nodeComponentSpin     ), pointer       :: thisSpinComponent
+    class(darkMatterProfileClass), pointer       :: darkMatterProfile_
 
     ! Ensure that the module is initialized.
     call Dark_Matter_Halo_Spins_Initialize

@@ -35,9 +35,9 @@ contains
     !% Property setting routine for null radiation component.
     use Galacticus_Nodes
     implicit none
-    logical                                              , intent(in   )          :: componentMatched
-    type            (treeNode)                           , intent(inout), pointer :: thisNode
-    double precision          , allocatable, dimension(:), intent(inout)          :: radiationProperties
+    logical                                              , intent(in   ) :: componentMatched
+    type            (treeNode)                           , intent(inout) :: thisNode
+    double precision          , allocatable, dimension(:), intent(inout) :: radiationProperties
     !GCC$ attributes unused :: componentMatched, thisNode, radiationProperties
     
     return

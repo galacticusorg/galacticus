@@ -61,13 +61,13 @@ contains
     use Virial_Density_Contrast
     use Cosmology_Functions
     implicit none
-    type            (treeNode                  ), intent(inout), pointer :: thisNode
-    class           (nodeComponentBasic        )               , pointer :: parentBasic              , thisBasic
-    class           (nodeComponentSatellite    )               , pointer :: thisSatellite
-    class           (cosmologyFunctionsClass   )               , pointer :: cosmologyFunctionsDefault
-    class           (virialDensityContrastClass)               , pointer :: virialDensityContrast_
-    double precision                                                     :: massLossTimescale        , satelliteBoundMass, &
-         &                                                                  satelliteHostMassRatio   , satelliteTime
+    type            (treeNode                  ), intent(inout) :: thisNode
+    class           (nodeComponentBasic        ), pointer       :: parentBasic              , thisBasic
+    class           (nodeComponentSatellite    ), pointer       :: thisSatellite
+    class           (cosmologyFunctionsClass   ), pointer       :: cosmologyFunctionsDefault
+    class           (virialDensityContrastClass), pointer       :: virialDensityContrast_
+    double precision                                            :: massLossTimescale        , satelliteBoundMass, &
+         &                                                         satelliteHostMassRatio   , satelliteTime
 
     thisSatellite      => thisNode     %satellite()
     satelliteBoundMass =  thisSatellite%boundMass()

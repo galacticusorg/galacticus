@@ -49,7 +49,7 @@ contains
     use Galacticus_Nodes
     use Cooling_Radii
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
 
     Infall_Radius_Cooling_Radius=Cooling_Radius(thisNode)
     return
@@ -60,7 +60,7 @@ contains
     use Galacticus_Nodes
     use Cooling_Radii
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
 
     Infall_Radius_Growth_Rate_Cooling_Radius=Cooling_Radius_Growth_Rate(thisNode)
     return

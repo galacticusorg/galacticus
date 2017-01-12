@@ -45,7 +45,7 @@ contains
     include 'black_holes.binary.initial_radius.modules.inc'
     !# </include>
     implicit none
-    type(treeNode), intent(inout), pointer :: hostNode, thisNode
+    type(treeNode), intent(inout), target :: hostNode, thisNode
 
     if (.not.blackHoleBinaryInitialRadiiInitialized) then
        !$omp critical(blackHoleBinaryInitialRadiiInitialize)

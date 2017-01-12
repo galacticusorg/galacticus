@@ -58,13 +58,13 @@ contains
     use Kepler_Orbits
     use Dark_Matter_Halo_Scales
     implicit none
-    class           (satelliteMergingTimescalesLaceyCole1993), intent(inout)          :: self
-    type            (treeNode                               ), intent(inout), pointer :: thisNode
-    type            (keplerOrbit                            ), intent(inout)          :: thisOrbit
-    type            (treeNode                               )               , pointer :: hostNode
-    class           (darkMatterHaloScaleClass               )               , pointer :: darkMatterHaloScale_
-    double precision                                                                  :: equivalentCircularOrbitRadius, orbitalCircularity, &
-         &                                                                               radialScale                  , velocityScale
+    class           (satelliteMergingTimescalesLaceyCole1993), intent(inout) :: self
+    type            (treeNode                               ), intent(inout) :: thisNode
+    type            (keplerOrbit                            ), intent(inout) :: thisOrbit
+    type            (treeNode                               ), pointer       :: hostNode
+    class           (darkMatterHaloScaleClass               ), pointer       :: darkMatterHaloScale_
+    double precision                                                         :: equivalentCircularOrbitRadius, orbitalCircularity, &
+         &                                                                      radialScale                  , velocityScale
 
     ! Find the host node.
     hostNode => thisNode%parent
@@ -90,13 +90,13 @@ contains
     use Dark_Matter_Halo_Scales
     use Dynamical_Friction_Timescale_Utilities
     implicit none
-    class           (satelliteMergingTimescalesLaceyCole1993), intent(inout)          :: self
-    type            (treeNode                               ), intent(inout), pointer :: thisNode
-    type            (treeNode                               )               , pointer :: hostNode
-    class           (nodeComponentBasic                     )               , pointer :: hostBasic                 , thisBasic
-    class           (darkMatterHaloScaleClass               )               , pointer :: darkMatterHaloScale_
-    double precision                                         , parameter              :: inverseTwoB1=1.169335453d0            !  1/2/B(1).
-    double precision                                                                  :: massRatio
+    class           (satelliteMergingTimescalesLaceyCole1993), intent(inout) :: self
+    type            (treeNode                               ), intent(inout) :: thisNode
+    type            (treeNode                               ), pointer       :: hostNode
+    class           (nodeComponentBasic                     ), pointer       :: hostBasic                 , thisBasic
+    class           (darkMatterHaloScaleClass               ), pointer       :: darkMatterHaloScale_
+    double precision                                         , parameter     :: inverseTwoB1=1.169335453d0            !  1/2/B(1).
+    double precision                                                         :: massRatio
     !GCC$ attributes unused :: self
     
     ! Find the host node.

@@ -81,11 +81,11 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: thisNode
-    class           (nodeComponentSpheroid)               , pointer :: thisSpheroid
-    double precision                                                :: forceGravitational, forceTidal, massLossRateFractional, &
-         &                                                             radiusHalfMass    , tidalField, timeDynamical         , &
-         &                                                             velocityRotation
+    type            (treeNode             ), intent(inout) :: thisNode
+    class           (nodeComponentSpheroid), pointer       :: thisSpheroid
+    double precision                                       :: forceGravitational, forceTidal, massLossRateFractional, &
+         &                                                    radiusHalfMass    , tidalField, timeDynamical         , &
+         &                                                    velocityRotation
 
     ! Assume no mass loss rate due to tidal by default.
     Tidal_Stripping_Mass_Loss_Rate_Spheroid_Simple=0.0d0

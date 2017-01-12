@@ -51,13 +51,13 @@ contains
     use Satellite_Orbits
     use Hot_Halo_Mass_Distributions
     implicit none
-    type            (treeNode                    ), intent(inout), pointer :: thisNode
-    class           (nodeComponentSatellite      )               , pointer :: thisSatellite
+    type            (treeNode                    ), intent(inout) :: thisNode
+    class           (nodeComponentSatellite      ), pointer       :: thisSatellite
 
-    type            (treeNode                    )               , pointer :: hostNode
-    type            (keplerOrbit                 )                         :: thisOrbit
-    class           (hotHaloMassDistributionClass)               , pointer :: hotHaloMassDistribution_
-    double precision                                                       :: densityHotHaloHost      , orbitalRadius, orbitalVelocity
+    type            (treeNode                    ), pointer       :: hostNode
+    type            (keplerOrbit                 )                :: thisOrbit
+    class           (hotHaloMassDistributionClass), pointer       :: hotHaloMassDistribution_
+    double precision                                              :: densityHotHaloHost      , orbitalRadius, orbitalVelocity
     
     ! Find the host node.
     hostNode      => thisNode%parent

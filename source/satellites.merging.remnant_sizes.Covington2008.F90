@@ -87,25 +87,25 @@ contains
     use Satellite_Merging_Remnant_Sizes_Progenitors
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode      ), intent(inout), pointer :: thisNode
-    type            (treeNode      )               , pointer :: hostNode
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                , parameter              :: bindingEnergyFormFactor             =0.5d+00
-    double precision                , parameter              :: absoluteMassTolerance               =1.0d-06
-    double precision                , parameter              :: relativeMassTolerance               =1.0d-09
-    double precision                , parameter              :: specificAngularMomentumFractionSmall=1.0d-12
-    double precision                                         :: angularMomentumFactor                       , finalEnergy        , &
-         &                                                      gasFractionInitial                          , hostMass           , &
-         &                                                      hostRadius                                  , hostSpheroidMass   , &
-         &                                                      hostSpheroidMassPreMerger                   , progenitorsEnergy  , &
-         &                                                      radiatedEnergy                              , radiusVirial       , &
-         &                                                      remnantSpheroidGasMass                      , remnantSpheroidMass, &
-         &                                                      satelliteMass                               , satelliteRadius    , &
-         &                                                      satelliteSpheroidMass                       , velocityVirial
-    character       (len= 3        )                         :: joinString
-    character       (len=70        )                         :: dataString
-    type            (varying_string)                         :: message
-    logical                                                  :: errorCondition
+    type            (treeNode                ), intent(inout) :: thisNode
+    type            (treeNode                ), pointer       :: hostNode
+    class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
+    double precision                          , parameter     :: bindingEnergyFormFactor             =0.5d+00
+    double precision                          , parameter     :: absoluteMassTolerance               =1.0d-06
+    double precision                          , parameter     :: relativeMassTolerance               =1.0d-09
+    double precision                          , parameter     :: specificAngularMomentumFractionSmall=1.0d-12
+    double precision                                          :: angularMomentumFactor                       , finalEnergy        , &
+         &                                                       gasFractionInitial                          , hostMass           , &
+         &                                                       hostRadius                                  , hostSpheroidMass   , &
+         &                                                       hostSpheroidMassPreMerger                   , progenitorsEnergy  , &
+         &                                                       radiatedEnergy                              , radiusVirial       , &
+         &                                                       remnantSpheroidGasMass                      , remnantSpheroidMass, &
+         &                                                       satelliteMass                               , satelliteRadius    , &
+         &                                                       satelliteSpheroidMass                       , velocityVirial
+    character       (len= 3                  )                :: joinString
+    character       (len=70                  )                :: dataString
+    type            (varying_string          )                :: message
+    logical                                                   :: errorCondition
 
     ! Get the host node.
     hostNode => thisNode%mergesWith()

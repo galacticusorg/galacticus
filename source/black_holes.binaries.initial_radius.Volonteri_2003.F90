@@ -49,9 +49,9 @@ contains
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Physical
     implicit none
-    type (treeNode              ), intent(inout), pointer :: hostNode              , thisNode
-    class(nodeComponentBlackHole)               , pointer :: hostBlackHoleComponent, thisBlackHoleComponent
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    type (treeNode                ), intent(inout), target :: hostNode              , thisNode
+    class(nodeComponentBlackHole  ), pointer               :: hostBlackHoleComponent, thisBlackHoleComponent
+    class(darkMatterHaloScaleClass), pointer               :: darkMatterHaloScale_
 
     ! Get the black hole components.
     thisBlackHoleComponent => thisNode%blackHole ()
