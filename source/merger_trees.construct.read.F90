@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -2212,11 +2212,13 @@ contains
     type            (keplerOrbit                    )                                                 :: thisOrbit                                                            
     integer                                                                                           :: iNode                              , thispass
     integer         (c_size_t                       )                                                 :: historyCount                       , iIsolatedNode                   
+    integer         (kind_int8                      )                                                 :: progenitorMassMaximumIndex
     logical                                                                                           :: branchMerges                       , branchTipReached            , & 
          &                                                                                               endOfBranch                        , isolatedProgenitorExists    , & 
          &                                                                                               nodeWillMerge                                                        
     double precision                                                                                  :: radiusApocenter                    , radiusPericenter            , & 
-         &                                                                                               radiusVirial                       , timeSubhaloMerges               
+         &                                                                                               radiusVirial                       , timeSubhaloMerges           , &
+         &                                                                                               progenitorMassMaximum
     type            (varying_string                 )                                                 :: message                                                              
     type            (progenitorIterator             )                                                 :: progenitors                                                          
     
@@ -2270,13 +2272,19 @@ contains
                          ! Search for any isolated progenitors of the node's descendent.
                          isolatedProgenitorExists=.false.
                          call progenitors%descendentSet(thisNode%descendent,nodes)
+                         progenitorMassMaximum=-1.0d0
+                         progenitorMassMaximumIndex=-1_kind_int8
                          do while (progenitors%next(nodes) .and. .not.isolatedProgenitorExists)
                             progenitorNode => progenitors%current(nodes)
                             isolatedProgenitorExists=(progenitorNode%nodeIndex == progenitorNode%hostIndex)
+                            if (progenitorNode%nodeMass > progenitorMassMaximum) then
+                               progenitorMassMaximum     =progenitorNode%nodeMass
+                               progenitorMassMaximumIndex=progenitorNode%nodeIndex
+                            end if
                          end do
-                         ! If an isolated progenitor exists, this is a merger event. If not, it is a subhalo promotion (which will be
-                         ! handled elsewhere).
-                         if (isolatedProgenitorExists) then
+                         ! If an isolated progenitor exists, or this is not the most massive subhalo progenitor, this is a merger
+                         ! event. If not, it is a subhalo promotion (which will be handled elsewhere).
+                         if (isolatedProgenitorExists .or. progenitorMassMaximumIndex /= thisNode%nodeIndex) then
                             branchMerges                =.true.
                             nodes(iNode)%mergesWithIndex=thisNode%descendent%nodeIndex
                             lastSeenNode                => thisNode
@@ -3423,7 +3431,7 @@ contains
     type   (varying_string    )                                        :: message
     logical                                                            :: nodeIsMostMassive, isolatedProgenitorExists, &
          &                                                                nodeIsPrimary
-
+    
     ! Get a unique ID for this split forest.
     splitForestUniqueID=splitForestUniqueID+1
     ! Build sorted indices into nodes.
@@ -3577,7 +3585,7 @@ contains
                    end if
                 end do
              end if
-             nodeIsPrimary=nodeIsMostMassive.and..not.isolatedProgenitorExists
+             nodeIsPrimary=nodeIsMostMassive.and..not.isolatedProgenitorExists             
              ! Determine the type of event. If the descendent is a subhalo, then this is an inter-tree branch jump. If the
              ! descendent is not a subhalo this is an inter-tree subhalo promotion.
              pushCount=pushCount+1
@@ -3589,7 +3597,7 @@ contains
                 splitForestIsPrimary(pushCount)=nodeIsPrimary
                 splitForestPushType (pushCount)=pushTypeSubhaloPromotion
                 splitForestPushDone (pushCount)=.false.
-                splitForestPullDone (pushCount)=.false.
+                splitForestPullDone (pushCount)=.false.                
              else
                 ! For non-primary progenitors, detect nested subhalo hierarchy. The descendent node is a subhalo. As nested hierarchies are not currently
                 ! handled, we must instead find the isolated host of the descendent and push to that node instead.
@@ -3722,7 +3730,7 @@ contains
     type            (varying_string    )                                      :: message
     character       (len=12            )                                      :: label
     logical                                                                   :: nodeIsMostMassive
-    
+
     !! TODO: Handle cases where branch jumps and/or subhalo promotions are disallowed.
     
     call Galacticus_Display_Indent('Assigning inter-tree events',verbosityInfo)
@@ -3828,7 +3836,6 @@ contains
                       
                       !! TODO: we should set any merge target here - otherwise the target could evolve past the merging time prior
                       !! to the branch jump happening.
-
                    end if
                    newEvent%time =  splitForestPushTime(pullListIndex(thisNode,iPull))
                    newEvent%node => null()
