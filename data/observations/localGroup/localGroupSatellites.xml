@@ -9077,6 +9077,10 @@
     </galaxy>
     <galaxy>
       <name>Andromeda XXXI</name>
+      <alias>
+        <value>And XXXI</value>
+        <value>Lacerta I</value>
+      </alias>
       <declinationArcMinutes>
         <value>17</value>
       </declinationArcMinutes>
@@ -9086,16 +9090,31 @@
       <declinationDegrees>
         <value>41</value>
       </declinationDegrees>
+      <distanceHeliocentric>
+        <error>40</error>
+        <value>773</value>
+        <reference>Rhode et al. (arXiv:1701.08168)</reference>
+        <referenceURL>https://arxiv.org/abs/1701.08168</referenceURL>	
+      </distanceHeliocentric>
+      <distanceM31>
+        <value>264</value>
+	<error>6</error>
+        <reference>Rhode et al. (arXiv:1701.08168)</reference>
+        <referenceURL>https://arxiv.org/abs/1701.08168</referenceURL>	
+      </distanceM31>
       <distanceModulus>
-        <errorHigh>0.12</errorHigh>
-        <errorLow>0.12</errorLow>
-        <value>24.40</value>
+        <errorHigh>0.11</errorHigh>
+        <errorLow>0.11</errorLow>
+        <value>24.44</value>
+        <reference>Rhode et al. (arXiv:1701.08168)</reference>
+        <referenceURL>https://arxiv.org/abs/1701.08168</referenceURL>	
       </distanceModulus>
       <ellipticityProjected>
-        <errorHigh>0.07</errorHigh>
-        <errorLow>0.07</errorLow>
-        <value>0.43</value>
-      </ellipticityProjected>
+        <error>0.03</error>
+        <value>0.44</value>
+        <reference>Rhode et al. (arXiv:1701.08168)</reference>
+        <referenceURL>https://arxiv.org/abs/1701.08168</referenceURL>	
+     </ellipticityProjected>
       <extinction>
         <value>0.133</value>
       </extinction>
@@ -9104,6 +9123,12 @@
         <errorLow>0.7</errorLow>
         <value>12.7</value>
       </magnitudeApparentV>
+      <magnitudeAbsoluteV>
+        <error>0.3</error>
+        <value>-11.4</value>
+        <reference>Rhode et al. (arXiv:1701.08168)</reference>
+        <referenceURL>https://arxiv.org/abs/1701.08168</referenceURL>	
+     </magnitudeAbsoluteV>
       <massDynamicalHalfLightRadius>
         <errorHigh>8</errorHigh>
         <errorLow>9</errorLow>
@@ -9124,15 +9149,23 @@
         <type>spectroscopic; median</type>
         <value>-2.0</value>
       </metallicityStellar>
+      <metallicityStellar>
+        <error>0.03</error>
+        <type>photometric; median</type>
+        <value>-1.68</value>
+        <reference>Rhode et al. (arXiv:1701.08168)</reference>
+        <referenceURL>https://arxiv.org/abs/1701.08168</referenceURL>	
+      </metallicityStellar>
       <positionAngle>
         <errorHigh>6.0</errorHigh>
         <errorLow>6.0</errorLow>
         <value>-59.0</value>
       </positionAngle>
       <radiusHalfLightAngular>
-        <errorHigh>0.40</errorHigh>
-        <errorLow>0.50</errorLow>
-        <value>4.20</value>
+        <error>0.21</error>
+        <value>3.24</value>
+        <reference>Rhode et al. (arXiv:1701.08168)</reference>
+        <referenceURL>https://arxiv.org/abs/1701.08168</referenceURL>	
       </radiusHalfLightAngular>
       <rightAscensionHours>
         <reference>Martin et al.; ApJ; 793; 14</reference>
@@ -9156,9 +9189,10 @@
         <value>?</value>
       </rotationVelocityMaximumStellar>
       <surfaceBrightnessCentralV>
-        <errorHigh>0.8</errorHigh>
-        <errorLow>0.8</errorLow>
-        <value>25.8</value>
+        <error>0.3</error>
+        <value>24.8</value>
+	<reference>Rhode et al. (arXiv:1701.08168)</reference>
+        <referenceURL>https://arxiv.org/abs/1701.08168</referenceURL>	
       </surfaceBrightnessCentralV>
       <velocityDispersionNeutralHydrogen>
         <errorHigh>?</errorHigh>
