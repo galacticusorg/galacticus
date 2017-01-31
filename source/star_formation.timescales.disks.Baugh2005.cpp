@@ -16,9 +16,6 @@
 //    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 //% Contains an implementation of the \cite{baugh_can_2005} star formation timescale rule for galactic disks.
-
-namespace Star_Formation_Timescale_Disks_Baugh2005
-{
   
 //% Implements the \cite{baugh_can_2005} star formation timescale rule for galactic disks.
 #include <string.h>
@@ -33,6 +30,9 @@ namespace Star_Formation_Timescale_Disks_Baugh2005
   
 //: ./work/build/utility.input_parameters.o
 #include <utility.input_parameters.h>
+
+namespace Star_Formation_Timescale_Disks_Baugh2005
+{
   
   // Define a type for our function.
   typedef double (func)(void *thisNode);
