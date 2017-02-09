@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -49,12 +49,12 @@ contains
     use Numerical_Constants_Math
     use Hot_Halo_Mass_Distributions
     implicit none
-    type            (treeNode                    ), intent(inout), pointer :: thisNode
-    class           (nodeComponentBasic          )               , pointer :: formationBasicComponent
-    class           (nodeComponentHotHalo        )               , pointer :: formationHotHaloComponent
-    class           (hotHaloMassDistributionClass)               , pointer :: defaultHotHaloMassDistribution
-    double precision                                                       :: infallDensity            , infallRadius, &
-         &                                                                    infallRadiusGrowthRate   , outerRadius
+    type            (treeNode                    ), intent(inout) :: thisNode
+    class           (nodeComponentBasic          ), pointer       :: formationBasicComponent
+    class           (nodeComponentHotHalo        ), pointer       :: formationHotHaloComponent
+    class           (hotHaloMassDistributionClass), pointer       :: defaultHotHaloMassDistribution
+    double precision                                              :: infallDensity            , infallRadius, &
+         &                                                           infallRadiusGrowthRate   , outerRadius
 
     ! Get node components.
     formationBasicComponent   => thisNode%formationNode%basic  ()

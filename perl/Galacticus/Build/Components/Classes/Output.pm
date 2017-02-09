@@ -218,6 +218,10 @@ sub Class_Output {
 	name        => $code::class->{'name'}."Output",
 	description => "Populate output buffers with properties to output for a {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
 	content     => "",
+	modules     =>
+	    [
+	     "Multi_Counters"
+	    ],
 	variables   =>
 	    [
 	     {
@@ -251,6 +255,12 @@ sub Class_Output {
 		 intrinsic  => "double precision",
 		 attributes => [ "intent(in   )" ], 
 		 variables  => [ "time" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "multiCounter",
+		 attributes => [ "intent(in   )" ], 
+		 variables  => [ "outputInstance" ]
 	     },
 	     {
 		 intrinsic  => "integer",
@@ -343,7 +353,7 @@ sub Class_Output {
 	&List::ExtraUtils::sortedKeys(\%outputDerivedTypes)
 	);
     # Add all required modules.
-    @{$function->{'modules'}} = &List::ExtraUtils::sortedKeys(\%modulesRequired);
+    push(@{$function->{'modules'}},&List::ExtraUtils::sortedKeys(\%modulesRequired));
     # Determine unused arguments.
     @code::argumentsUnused = 
 	nestedmap
@@ -360,6 +370,7 @@ sub Class_Output {
 	  $NestedMap::stack[0]
 	 )
 	} &List::ExtraUtils::sortedKeys(\%argumentUsage);
+    push(@code::argumentsUnused,"outputInstance");
     if ( scalar(@code::argumentsUnused) > 0 ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 !GCC$ attributes unused :: {join(", ",@argumentsUnused)}
@@ -375,7 +386,7 @@ CODE
 if (default{ucfirst($class->{'name'})}Component%{$member->{'name'}}IsActive() {(exists($member->{'output'}->{'instances'}) && $member->{'output'}->{'instances'} eq "first") ? " .and. instance == 1" : ""}) then
 CODE
 	# Iterate over all properties belonging to this member which are to be output.
-	foreach $code::property ( grep {exists($_->{'output'})} &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}, keyAs => 'name' ) ) {
+	foreach $code::property ( grep {exists($_->{'output'}) && ! $_->{'definedInParent'} } &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}, keyAs => 'name' ) ) {
 	    # Determine output count.
 	    if      ( $code::property->{'data'}->{'rank'} == 0 ) {
 		$code::count = 1;
@@ -432,10 +443,10 @@ CODE
 if ({$condition}) then
 CODE
 		}
-		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 output{ucfirst($property->{'data'}->{'type'})}=self%{$property->{'name'}}()
-call output{ucfirst($property->{'data'}->{'type'})}%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time)
-call self%{$property->{'name'}}Set(output{ucfirst($property->{'data'}->{'type'})})
+call output{ucfirst($property->{'data'}->{'type'})}%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time,outputInstance)
+if (.not.same_type_as(self,{$class->{'name'}}Class)) call self%{$property->{'name'}}Set(output{ucfirst($property->{'data'}->{'type'})})
 CODE
 		if ( exists($code::property->{'output'}->{'condition'}) ) {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');

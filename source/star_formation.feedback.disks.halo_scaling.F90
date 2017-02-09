@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -101,16 +101,16 @@ contains
     use Cosmology_Functions
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: thisNode
-    double precision                          , intent(in   )          :: energyInputRate                    , starFormationRate
-    class           (nodeComponentBasic      )               , pointer :: thisBasicComponent
-    double precision                          , save                   :: velocityPrevious           =-1.0d0, velocityFactorPrevious       =-1.0d0
+    type            (treeNode                ), intent(inout), target :: thisNode
+    double precision                          , intent(in   )         :: energyInputRate                    , starFormationRate
+    class           (nodeComponentBasic      ), pointer               :: thisBasicComponent
+    double precision                          , save                  :: velocityPrevious           =-1.0d0, velocityFactorPrevious       =-1.0d0
     !$omp threadprivate(velocityPrevious,velocityFactorPrevious)
-    class           (cosmologyFunctionsClass )               , pointer :: cosmologyFunctionsDefault
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                          , save                   :: expansionFactorPrevious    =-1.0d0, expansionFactorFactorPrevious=-1.0d0
+    class           (cosmologyFunctionsClass ), pointer               :: cosmologyFunctionsDefault
+    class           (darkMatterHaloScaleClass), pointer               :: darkMatterHaloScale_
+    double precision                          , save                  :: expansionFactorPrevious    =-1.0d0, expansionFactorFactorPrevious=-1.0d0
     !$omp threadprivate(expansionFactorPrevious,expansionFactorFactorPrevious)
-    double precision                                                   :: expansionFactor                    , virialVelocity
+    double precision                                                  :: expansionFactor                    , virialVelocity
     !GCC$ attributes unused :: starFormationRate
     
     ! Get the default cosmology functions object.

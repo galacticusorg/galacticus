@@ -93,7 +93,7 @@ CPPCOMPILER_VERSION = `$(CPPCOMPILER) -v 2>&1`
 # module - this will lead to circular dependency problems as Make becomes confused about how to
 # build the module file.
 vpath %.F90 source
-$(BUILDPATH)/%.p.F90 : source/%.F90 $(BUILDPATH)/hdf5FCInterop.dat
+$(BUILDPATH)/%.p.F90 : source/%.F90 $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml
 	./scripts/build/preprocess.pl source/$*.F90 $(BUILDPATH)/$*.p.F90
 $(BUILDPATH)/%.o : $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
 	@mlist=`cat $(BUILDPATH)/$*.m` ; \
@@ -160,7 +160,7 @@ $(BUILDPATH)/pFq/pfq.new.o : ./source/pFq/pfq.new.f Makefile
 
 # Rule for running *.Inc files through the preprocessor. We strip out single quote characters in comment lines to avoid spurious
 # complaints from the preprocessor.
-$(BUILDPATH)/%.Inc : ./source/%.Inc $(BUILDPATH)/hdf5FCInterop.dat
+$(BUILDPATH)/%.Inc : ./source/%.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml
 	./scripts/build/preprocess.pl ./source/$*.Inc $(BUILDPATH)/$*.Inc
 $(BUILDPATH)/%.inc : $(BUILDPATH)/%.Inc Makefile
 	perl -MRegexp::Common -ne '$$l=$$_;$$l =~ s/($$RE{comment}{Fortran}{-keep})/\/\*$$4\*\/$$5/; print $$l' $< | cpp -nostdinc -C | perl -MRegexp::Common -ne '$$l=$$_;$$l =~ s/($$RE{comment}{C}{-keep})/!$$4/; print $$l' > $(BUILDPATH)/$*.tmp
@@ -252,6 +252,11 @@ $(BUILDPATH)/utility.memory_management.preContain.inc: ./scripts/build/memoryMan
 $(BUILDPATH)/utility.memory_management.postContain.inc:
 	@touch $(BUILDPATH)/utility.memory_management.postContain.inc
 
+$(BUILDPATH)/openMPCriticalSections.count.inc $(BUILDPATH)/openMPCriticalSections.enumerate.inc: $(BUILDPATH)/openMPCriticalSections.xml
+	@touch $(BUILDPATH)/openMPCriticalSections.count.inc $(BUILDPATH)/openMPCriticalSections.enumerate.inc
+$(BUILDPATH)/openMPCriticalSections.xml: ./scripts/build/enumerateOpenMPCriticalSections.pl
+	./scripts/build/enumerateOpenMPCriticalSections.pl `pwd`
+
 # Rules for version routines.
 $(BUILDPATH)/galacticus.output.version.revision.inc: $(wildcard .hg/branch)
 	@if [ -f .hg/branch ] ; then hg tip | awk 'BEGIN {FS=":";r=-1;h=""} {if ((NR == 1 && NF == 3 ) || $$1 == "parent") {r=$$2;h=$$3}} END {print "integer, parameter :: hgRevision="r"\ncharacter(len=12), parameter :: hgHash=\""h"\""}' > $(BUILDPATH)/galacticus.output.version.revision.inc; else printf 'integer, parameter :: hgRevision=-1\ncharacter(len=12), parameter :: hgHash=""\n' > $(BUILDPATH)/galacticus.output.version.revision.inc; fi
@@ -341,7 +346,7 @@ source/FFTlog/fftlog.f source/FFTlog/cdgamma.f source/FFTlog/drfftb.f source/FFT
 	 patch < ../drfftf.f.patch; \
 	 patch < ../drffti.f.patch; \
 	 cd -; \
-	 ./scripts/build/useDependencies.pl `pwd` $(MAKE); \
+	 ./scripts/build/useDependencies.pl `pwd`; \
 	fi
 	echo $(BUILDPATH)/FFTlog/cdgamma.o > $(BUILDPATH)/FFTlog/cdgamma.d
 	echo $(BUILDPATH)/FFTlog/drfftb.o  > $(BUILDPATH)/FFTlog/drfftb.d

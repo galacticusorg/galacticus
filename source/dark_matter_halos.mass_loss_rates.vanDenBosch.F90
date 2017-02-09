@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -61,13 +61,13 @@ contains
     use Virial_Density_Contrast
     use Cosmology_Functions
     implicit none
-    type            (treeNode                  ), intent(inout), pointer :: thisNode
-    class           (nodeComponentBasic        )               , pointer :: parentBasic              , thisBasic
-    class           (nodeComponentSatellite    )               , pointer :: thisSatellite
-    class           (cosmologyFunctionsClass   )               , pointer :: cosmologyFunctionsDefault
-    class           (virialDensityContrastClass)               , pointer :: virialDensityContrast_
-    double precision                                                     :: massLossTimescale        , satelliteBoundMass, &
-         &                                                                  satelliteHostMassRatio   , satelliteTime
+    type            (treeNode                  ), intent(inout) :: thisNode
+    class           (nodeComponentBasic        ), pointer       :: parentBasic              , thisBasic
+    class           (nodeComponentSatellite    ), pointer       :: thisSatellite
+    class           (cosmologyFunctionsClass   ), pointer       :: cosmologyFunctionsDefault
+    class           (virialDensityContrastClass), pointer       :: virialDensityContrast_
+    double precision                                            :: massLossTimescale        , satelliteBoundMass, &
+         &                                                         satelliteHostMassRatio   , satelliteTime
 
     thisSatellite      => thisNode     %satellite()
     satelliteBoundMass =  thisSatellite%boundMass()

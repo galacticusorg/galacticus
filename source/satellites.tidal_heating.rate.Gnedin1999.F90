@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -80,7 +80,7 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Math
     use Error_Functions
-    use COsmology_Parameters
+    use Cosmology_Parameters
     use Galactic_Structure_Densities
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Rotation_Curves
@@ -89,21 +89,21 @@ contains
     use Tensors
     use Dark_Matter_Halo_Scales
     implicit none
-    class           (nodeComponentSatellite        ), pointer                     :: thisSatellite
-    type            (treeNode                      ), pointer     , intent(inout) :: thisNode
-    type            (treeNode                      ), pointer                     :: hostNode
-    class           (cosmologyParametersClass      ), pointer                     :: cosmologyParameters_
-    class           (darkMatterHaloScaleClass      ), pointer                     :: darkMatterHaloScale_
-    class           (nodeComponentBasic            ), pointer                     :: basic
-    double precision                                , dimension(3)                :: position                 , velocity
-    double precision                                                              :: satelliteMass            , parentDensity            , &
-         &                                                                           parentEnclosedMass       , velocityCircularSatellite, &
-         &                                                                           radius                   , speed                    , &
-         &                                                                           timescaleShock           , heatingRateNormalized    , &
-         &                                                                           orbitalFrequencySatellite, radiusHalfMassSatellite  , &
-         &                                                                           satelliteHalfMass        , darkMatterFraction
-    type            (tensorRank2Dimension3Symmetric)                              :: tidalTensor              , tidalTensorPathIntegrated, &
-         &                                                                           positionTensor
+    class           (nodeComponentSatellite        ), pointer       :: thisSatellite
+    type            (treeNode                      ), intent(inout) :: thisNode
+    type            (treeNode                      ), pointer       :: hostNode
+    class           (cosmologyParametersClass      ), pointer       :: cosmologyParameters_
+    class           (darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_
+    class           (nodeComponentBasic            ), pointer       :: basic
+    double precision                                , dimension(3)  :: position                 , velocity
+    double precision                                                :: satelliteMass            , parentDensity            , &
+         &                                                             parentEnclosedMass       , velocityCircularSatellite, &
+         &                                                             radius                   , speed                    , &
+         &                                                             timescaleShock           , heatingRateNormalized    , &
+         &                                                             orbitalFrequencySatellite, radiusHalfMassSatellite  , &
+         &                                                             satelliteHalfMass        , darkMatterFraction
+    type            (tensorRank2Dimension3Symmetric)                :: tidalTensor              , tidalTensorPathIntegrated, &
+         &                                                             positionTensor
     
     ! Construct required properties of satellite and host.
     hostNode                  => thisNode     %mergesWith               ()

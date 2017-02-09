@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +27,7 @@ module Tidal_Stripping_Rate_Zentner2005
   implicit none
   private
   public :: Satellite_Tidal_Stripping_Rate_Zentner2005_Initialize
-
+ 
   ! Module scope variables used in root finding.
   double precision                     :: tidalPullGlobal
   type            (treeNode),  pointer :: activeNode
@@ -46,7 +46,7 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string                     ),          intent(in   ) :: satelliteTidalStrippingMethod
+    type     (varying_string                            ),          intent(in   ) :: satelliteTidalStrippingMethod
     procedure(Satellite_Tidal_Stripping_Rate_Zentner2005), pointer, intent(inout) :: Satellite_Tidal_Stripping_Rate
 
     if (satelliteTidalStrippingMethod == 'Zentner2005') then
@@ -82,20 +82,20 @@ contains
     use Dark_Matter_Halo_Scales
     use Root_Finder
     implicit none
-    class           (nodeComponentSatellite), pointer                     :: thisSatellite
-    type            (treeNode              ), pointer     , intent(inout) :: thisNode
-    type            (treeNode              ), pointer                     :: hostNode
-    double precision                        , dimension(3)                :: position                      , velocity
-    double precision                        , parameter                   :: toleranceAbsolute      =0.0d0 , toleranceRelative=1.0d-3
-    double precision                        , parameter                   :: radiusZero             =0.0d0
-    double precision                        , parameter                   :: tidalRadiusTinyFraction=1.0d-6
-    type            (rootFinder            ), save                        :: finder
+    type            (treeNode              ), intent(inout), target :: thisNode
+    type            (treeNode              ), pointer               :: hostNode
+    class           (nodeComponentSatellite), pointer               :: thisSatellite
+    double precision                        , dimension(3)          :: position                      , velocity
+    double precision                        , parameter             :: toleranceAbsolute      =0.0d0 , toleranceRelative=1.0d-3
+    double precision                        , parameter             :: radiusZero             =0.0d0
+    double precision                        , parameter             :: tidalRadiusTinyFraction=1.0d-6
+    type            (rootFinder            ), save                  :: finder
     !$omp threadprivate(finder)
-    double precision                                                      :: satelliteMass                 , parentDensity           , &
-         &                                                                   parentEnclosedMass            , angularFrequency        , &
-         &                                                                   orbitalPeriod                 , radius                  , &
-         &                                                                   tidalTensor                   , tidalRadius             , &
-         &                                                                   outerSatelliteMass            , radialFrequency
+    double precision                                                :: satelliteMass                 , parentDensity           , &
+         &                                                             parentEnclosedMass            , angularFrequency        , &
+         &                                                             orbitalPeriod                 , radius                  , &
+         &                                                             tidalTensor                   , tidalRadius             , &
+         &                                                             outerSatelliteMass            , radialFrequency
 
     ! Get required quantities from satellite and host nodes.
     hostNode          => thisNode     %mergesWith()
@@ -140,14 +140,14 @@ contains
          &   Galactic_Structure_Enclosed_Mass(thisNode,radiusZero) >= 0.0d0      &
          & ) then
        ! Initial estimate of the tidal radius.
-       tidalPullGlobal =  angularFrequency**2-tidalTensor
-       tidalRadius     =                                  &
-            &           (                                 &
-            &            +gravitationalConstantGalacticus &
-            &            *satelliteMass                   &
-            &            /tidalPullGlobal                 &
-            &            *(kilo*gigaYear/megaParsec)**2   &
-            &           )**(1.0d0/3.0d0)
+       tidalPullGlobal=  angularFrequency**2-tidalTensor
+       tidalRadius    =                                  &
+            &          (                                 &
+            &           +gravitationalConstantGalacticus &
+            &           *satelliteMass                   &
+            &           /tidalPullGlobal                 &
+            &           *(kilo*gigaYear/megaParsec)**2   &
+            &          )**(1.0d0/3.0d0)
        ! Find the tidal radius in the dark matter profile.
        if (.not.finder%isInitialized()) then
           call finder%rootFunction(Tidal_Radius_Solver)
@@ -160,7 +160,7 @@ contains
                &                   rangeExpandType              =rangeExpandMultiplicative      &
                &                  )
        end if
-       activeNode      => thisNode
+       activeNode => thisNode
        ! Check for complete stripping.
        if (Tidal_Radius_Solver(tidalRadiusTinyFraction*tidalRadius) > 0.0d0) then
           tidalRadius=0.0d0
@@ -178,7 +178,7 @@ contains
     Satellite_Tidal_Stripping_Rate_Zentner2005=-satelliteTidalStrippingZentner2005Rate*outerSatelliteMass/orbitalPeriod
     return
   end function Satellite_Tidal_Stripping_Rate_Zentner2005
-
+  
   double precision function Tidal_Radius_Solver(radius)
     !% Root function used to find the tidal radius within a subhalo.
     use Numerical_Constants_Prefixes

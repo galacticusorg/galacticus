@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,14 +27,14 @@ module Galactic_Structure_Radius_Solver_Procedures
   abstract interface
      double precision function Radius_Solver_Get_Template(thisNode)
        import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode
+       type(treeNode), intent(inout) :: thisNode
      end function Radius_Solver_Get_Template
   end interface
   abstract interface
      subroutine Radius_Solver_Set_Template(thisNode,value)
        import treeNode
-       type            (treeNode), intent(inout), pointer :: thisNode
-       double precision          , intent(in   )          :: value
+       type            (treeNode), intent(inout) :: thisNode
+       double precision          , intent(in   ) :: value
      end subroutine Radius_Solver_Set_Template
   end interface
 

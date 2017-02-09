@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -30,16 +30,10 @@ module Dark_Matter_Halos_Mass_Loss_Rates
   logical                                                      :: darkMatterHaloMassLossRateInitialized=.false.
 
   ! Name of mass loss rate method used.
-  type     (varying_string                          )          :: darkMatterHaloMassLossRateMethod
+  type     (varying_string                  )          :: darkMatterHaloMassLossRateMethod
 
   ! Pointer to the function that actually does the calculation.
-  procedure(Dark_Matter_Halo_Mass_Loss_Rate_Template), pointer :: Dark_Matter_Halos_Mass_Loss_Rate_Get =>null()
-  abstract interface
-     double precision function Dark_Matter_Halo_Mass_Loss_Rate_Template(thisNode)
-       import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode
-     end function Dark_Matter_Halo_Mass_Loss_Rate_Template
-  end interface
+  procedure(Dark_Matter_Halos_Mass_Loss_Rate), pointer :: Dark_Matter_Halos_Mass_Loss_Rate_Get =>null()
 
 contains
 
@@ -85,14 +79,12 @@ contains
   double precision function Dark_Matter_Halos_Mass_Loss_Rate(thisNode)
     !% Returns the rate of mass loss (in $M_\odot$/Gyr) from {\normalfont \ttfamily thisNode}.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
 
     ! Initialize the module.
-    call Dark_Matter_Halo_Mass_Loss_Rates_Initialize
-
+    call Dark_Matter_Halo_Mass_Loss_Rates_Initialize()
     ! Get the energy using the selected method.
     Dark_Matter_Halos_Mass_Loss_Rate=Dark_Matter_Halos_Mass_Loss_Rate_Get(thisNode)
-
     return
   end function Dark_Matter_Halos_Mass_Loss_Rate
 

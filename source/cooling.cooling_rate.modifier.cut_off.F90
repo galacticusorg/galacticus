@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -49,13 +49,13 @@ contains
     use ISO_Varying_String
     use Galacticus_Error
     implicit none
-    type            (treeNode               ), intent(inout), pointer :: thisNode
-    double precision                         , intent(inout)          :: coolingRate
-    class           (nodeComponentBasic     )               , pointer :: thisBasicComponent
-    class           (cosmologyFunctionsClass)               , pointer :: cosmologyFunctionsDefault
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                                                  :: virialVelocity
-    type            (varying_string         )                         :: coolingCutOffWhenText
+    type            (treeNode                ), intent(inout) :: thisNode
+    double precision                          , intent(inout) :: coolingRate
+    class           (nodeComponentBasic      ), pointer       :: thisBasicComponent
+    class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctionsDefault
+    class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
+    double precision                                          :: virialVelocity
+    type            (varying_string          )                :: coolingCutOffWhenText
 
     if (.not.moduleInitialized) then
        !$omp critical (Cooling_Rate_Modifier_Cut_Off_Initialize)

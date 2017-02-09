@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -32,6 +32,7 @@ module Cooling_Radii_Simple
   implicit none
   private
   public :: Cooling_Radius_Simple_Initialize, Cooling_Radius_Simple_Reset
+
 
   ! Module global variable that stores the time available for cooling.
   double precision                                        :: coolingTimeAvailable
@@ -120,7 +121,7 @@ contains
   subroutine Cooling_Radius_Simple_Reset(thisNode)
     !% Reset the cooling radius calculation.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
 
     coolingRadiusComputed          =.false.
     coolingRadiusGrowthRateComputed=.false.
@@ -137,13 +138,13 @@ contains
     use Cooling_Times
     use Cooling_Times_Available
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode
-    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
-    double precision                                               :: coolingRadius                   , coolingTimeAvailable      , &
-         &                                                            coolingTimeAvailableIncreaseRate, coolingTimeDensityLogSlope, &
-         &                                                            coolingTimeTemperatureLogSlope  , density                   , &
-         &                                                            densityLogSlope                 , outerRadius               , &
-         &                                                            temperature                     , temperatureLogSlope
+    type            (treeNode            ), intent(inout) :: thisNode
+    class           (nodeComponentHotHalo), pointer       :: thisHotHaloComponent
+    double precision                                      :: coolingRadius                   , coolingTimeAvailable      , &
+         &                                                   coolingTimeAvailableIncreaseRate, coolingTimeDensityLogSlope, &
+         &                                                   coolingTimeTemperatureLogSlope  , density                   , &
+         &                                                   densityLogSlope                 , outerRadius               , &
+         &                                                   temperature                     , temperatureLogSlope
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Cooling_Radius_Simple_Reset(thisNode)
@@ -179,8 +180,8 @@ contains
           ! Logarithmic slope of density profile.
           temperatureLogSlope=hotHaloTemperatureProfile_%temperatureLogSlope(thisNode,coolingRadius)
           ! Get cooling density, temperature and metallicity.
-          density    =defaultHotHaloMassDistribution%density    (activeNode,coolingRadius)
-          temperature=hotHaloTemperatureProfile_    %temperature(activeNode,coolingRadius)
+          density    =defaultHotHaloMassDistribution%density    (thisNode,coolingRadius)
+          temperature=hotHaloTemperatureProfile_    %temperature(thisNode,coolingRadius)
 
           ! Logarithmic slope of the cooling time-density relation.
           coolingTimeDensityLogSlope=Cooling_Time_Density_Log_Slope(temperature,density,gasAbundances,chemicalDensities,radiation)
@@ -207,13 +208,13 @@ contains
     use Cooling_Times_Available
     use Root_Finder
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode
-    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
-    double precision                      , parameter              :: zeroRadius          =0.0d0
-    double precision                      , parameter              :: toleranceAbsolute   =0.0d0, toleranceRelative=1.0d-6
-    type            (rootFinder          ), save                   :: finder
+    type            (treeNode            ), intent(inout), target :: thisNode
+    class           (nodeComponentHotHalo), pointer               :: thisHotHaloComponent
+    double precision                      , parameter             :: zeroRadius          =0.0d0
+    double precision                      , parameter             :: toleranceAbsolute   =0.0d0, toleranceRelative=1.0d-6
+    type            (rootFinder          ), save                  :: finder
     !$omp threadprivate(finder)
-    double precision                                               :: outerRadius
+    double precision                                              :: outerRadius
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Cooling_Radius_Simple_Reset(thisNode)
@@ -228,7 +229,7 @@ contains
 
        ! Make the node available to the root finding routine.
        activeNode => thisNode
-
+       
        ! Initialize quantities needed by the solver.
        call Cooling_Radius_Solver_Initialize(thisNode)
 
@@ -264,15 +265,32 @@ contains
     end if
     return
   end function Cooling_Radius_Simple
+  
+  double precision function Cooling_Radius_Root(radius)
+    !% Root function which evaluates the difference between the cooling time at {\normalfont \ttfamily radius} and the time available for cooling.
+    use Cooling_Times
+    implicit none
+    double precision, intent(in   ) :: radius
+    double precision                :: coolingTime, density, temperature
+
+    ! Compute density, temperature and abundances.
+    density    =defaultHotHaloMassDistribution%density    (activeNode,radius)
+    temperature=hotHaloTemperatureProfile_    %temperature(activeNode,radius)
+    ! Compute the cooling time at the specified radius.
+    coolingTime=Cooling_Time(temperature,density,gasAbundances,chemicalDensities,radiation)
+    ! Return the difference between cooling time and time available.
+    Cooling_Radius_Root=coolingTime-coolingTimeAvailable
+    return
+  end function Cooling_Radius_Root
 
   subroutine Cooling_Radius_Solver_Initialize(thisNode)
     !% Initialize the abundances, chemical properties and radiation field for {\normalfont \ttfamily thisNode} for use in cooling radius
     !% calculations.
     use Chemical_Reaction_Rates_Utilities
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode
-    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
-    double precision                                               :: massToDensityConversion
+    type            (treeNode            ), intent(inout) :: thisNode
+    class           (nodeComponentHotHalo), pointer       :: thisHotHaloComponent
+    double precision                                      :: massToDensityConversion
 
     ! Get node components.
     thisHotHaloComponent => thisNode%hotHalo()
@@ -304,22 +322,5 @@ contains
     call radiation%set(thisNode)
     return
   end subroutine Cooling_Radius_Solver_Initialize
-
-  double precision function Cooling_Radius_Root(radius)
-    !% Root function which evaluates the difference between the cooling time at {\normalfont \ttfamily radius} and the time available for cooling.
-    use Cooling_Times
-    implicit none
-    double precision, intent(in   ) :: radius
-    double precision                :: coolingTime, density, temperature
-
-    ! Compute density, temperature and abundances.
-    density    =defaultHotHaloMassDistribution%density    (activeNode,radius)
-    temperature=hotHaloTemperatureProfile_    %temperature(activeNode,radius)
-    ! Compute the cooling time at the specified radius.
-    coolingTime=Cooling_Time(temperature,density,gasAbundances,chemicalDensities,radiation)
-    ! Return the difference between cooling time and time available.
-    Cooling_Radius_Root=coolingTime-coolingTimeAvailable
-    return
-  end function Cooling_Radius_Root
 
 end module Cooling_Radii_Simple

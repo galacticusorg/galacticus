@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -72,14 +72,14 @@ contains
     use Kepler_Orbits
     use Gaussian_Random
     implicit none
-    class           (satelliteMergingTimescalesLaceyCole1993Tormen)           , intent(inout)          :: self
-    type            (treeNode                                     )           , intent(inout), pointer :: thisNode
-    type            (keplerOrbit                                  )           , intent(inout)          :: thisOrbit
-    type            (treeNode                                     )                          , pointer :: hostNode
-    double precision                                               , parameter                         :: orbitalFactorDistributionSigma=0.26d0                          !   Cole et al. (2000).
-    double precision                                               , parameter                         :: orbitalFactorDistributionMean =-0.14d0                         !   Cole et al. (2000).
-    double precision                                                                                   :: log10OrbitalFactor                          , randomDeviate, &
-         &                                                                                                orbitalFactor
+    class           (satelliteMergingTimescalesLaceyCole1993Tormen), intent(inout) :: self
+    type            (treeNode                                     ), intent(inout) :: thisNode
+    type            (keplerOrbit                                  ), intent(inout) :: thisOrbit
+    type            (treeNode                                     ), pointer       :: hostNode
+    double precision                                               , parameter     :: orbitalFactorDistributionSigma=0.26d0                          !   Cole et al. (2000).
+    double precision                                               , parameter     :: orbitalFactorDistributionMean =-0.14d0                         !   Cole et al. (2000).
+    double precision                                                               :: log10OrbitalFactor                          , randomDeviate, &
+         &                                                                            orbitalFactor
     !GCC$ attributes unused :: thisOrbit
     
     ! Find the host node.

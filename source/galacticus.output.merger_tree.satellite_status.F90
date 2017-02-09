@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,6 +34,17 @@ module Galacticus_Output_Trees_Satellite_Status
   ! Flag indicating whether or not this module has been initialized.
   logical :: outputSatelliteStatusInitialized=.false.
 
+  ! Discriminator to use to determine satellite status.
+  integer :: statusOrphanDiscriminator
+  !# <enumeration>
+  !#  <name>statusOrphanDiscriminator</name>
+  !#  <description>Enumeration of possible discriminators for satellite orphan status.</description>
+  !#  <visibility>private</visibility>
+  !#  <encodeFunction>yes</encodeFunction>
+  !#  <entry label="boundMass"/>
+  !#  <entry label="position" />
+  !# </enumeration>
+  
 contains
 
   subroutine Galacticus_Output_Tree_Satellite_Status_Initialize
@@ -43,6 +54,7 @@ contains
     use Galacticus_Nodes
     use ISO_Varying_String
     implicit none
+    type(varying_string) :: statusOrphanDiscriminatorText
 
     if (.not.outputSatelliteStatusInitialized) then
        !$omp critical(Galacticus_Output_Tree_Satellite_Status_Initialize)
@@ -59,24 +71,55 @@ contains
           !@   <group>output</group>
           !@ </inputParameter>
           call Get_Input_Parameter('outputSatelliteStatus',outputSatelliteStatus,defaultValue=.false.)
+          !@ <inputParameter>
+          !@   <name>statusOrphanDiscriminator</name>
+          !@   <defaultValue>boundMass</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Specifies whether bound mass or position history will be used to determine satellite orphan status.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('statusOrphanDiscriminator',statusOrphanDiscriminatorText,defaultValue='boundMass')
+          statusOrphanDiscriminator=enumerationStatusOrphanDiscriminatorEncode(char(statusOrphanDiscriminatorText),includesPrefix=.false.)             
           ! Count number of properties to output and check that required properties are gettable.
           satelliteStatusPropertyCount=0
           if (outputSatelliteStatus) then
              satelliteStatusPropertyCount=satelliteStatusPropertyCount+1
-             if     (                                                                                                                    &
-                  &  .not.                                                                                                               &
-                  &       (                                                                                                              &
-                  &        defaultSatelliteComponent% boundMassHistoryIsGettable()                                                       &
-                  &       )                                                                                                              &
-                  & ) call Galacticus_Error_Report                                                                                       &
-                  &        (                                                                                                             &
-                  &         'Galacticus_Output_Tree_Satellite_Status_Initialize'                                                      ,  &
-                  &         'this method requires that boundMassHistory property must be gettable for the satellite component.'       // &
-                  &         Galacticus_Component_List(                                                                                   &
-                  &                                   'satellite'                                                                     ,  &
-                  &                                   defaultSatelliteComponent%boundMassHistoryAttributeMatch(requireGettable=.true.)   &
-                  &                                  )                                                                                   &
-                  &        )
+             select case (statusOrphanDiscriminator)
+             case (statusOrphanDiscriminatorBoundMass)
+                if     (                                                                                                                    &
+                     &  .not.                                                                                                               &
+                     &       (                                                                                                              &
+                     &        defaultSatelliteComponent% boundMassHistoryIsGettable()                                                       &
+                     &       )                                                                                                              &
+                     & ) call Galacticus_Error_Report                                                                                       &
+                     &        (                                                                                                             &
+                     &         'Galacticus_Output_Tree_Satellite_Status_Initialize'                                                      ,  &
+                     &         'this method requires that boundMassHistory property must be gettable for the satellite component.'       // &
+                     &         Galacticus_Component_List(                                                                                   &
+                     &                                   'satellite'                                                                     ,  &
+                     &                                   defaultSatelliteComponent%boundMassHistoryAttributeMatch(requireGettable=.true.)   &
+                     &                                  )                                                                                   &
+                     &        )
+             case (statusOrphanDiscriminatorPosition )
+                if     (                                                                                                                    &
+                     &  .not.                                                                                                               &
+                     &       (                                                                                                              &
+                     &        defaultPositionComponent %  positionHistoryIsGettable()                                                       &
+                     &       )                                                                                                              &
+                     & ) call Galacticus_Error_Report                                                                                       &
+                     &        (                                                                                                             &
+                     &         'Galacticus_Output_Tree_Satellite_Status_Initialize'                                                      ,  &
+                     &         'this method requires that positionHistory property must be gettable for the position component.'         // &
+                     &         Galacticus_Component_List(                                                                                   &
+                     &                                   'position'                                                                      ,  &
+                     &                                   defaultPositionComponent%positionHistoryAttributeMatch  (requireGettable=.true.)   &
+                     &                                  )                                                                                   &
+                     &        )
+             end select
            end if
           ! Flag that module is now initialized.
           outputSatelliteStatusInitialized=.true.
@@ -96,12 +139,12 @@ contains
     use Galacticus_Nodes
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode)              , intent(inout), pointer :: thisNode
-    double precision                        , intent(in   )          :: time
-    integer                                 , intent(inout)          :: doubleProperty         , integerProperty
-    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
-         &                                                              integerPropertyComments, integerPropertyNames
-    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+    type            (treeNode)              , intent(inout) :: thisNode
+    double precision                        , intent(in   ) :: time
+    integer                                 , intent(inout) :: doubleProperty         , integerProperty
+    character       (len=*   ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
+         &                                                     integerPropertyComments, integerPropertyNames
+    double precision          , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     !GCC$ attributes unused :: thisNode, time, doubleProperty, doublePropertyNames, doublePropertyComments, doublePropertyUnitsSI
     
     ! Initialize the module.
@@ -133,9 +176,9 @@ contains
     !% Account for the number of satellite host properties to be written to the \glc\ output file.
     use Galacticus_Nodes
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: time
-    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
+    type            (treeNode), intent(inout) :: thisNode
+    double precision          , intent(in   ) :: time
+    integer                   , intent(inout) :: doublePropertyCount, integerPropertyCount
     !GCC$ attributes unused :: thisNode, time, doublePropertyCount
     
     ! Initialize the module.
@@ -151,23 +194,26 @@ contains
   !#  <sortName>Galacticus_Output_Tree_Satellite_Status</sortName>
   !# </mergerTreeOutputTask>
   subroutine Galacticus_Output_Tree_Satellite_Status(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store satellite host halo properties in the \glc\ output file buffers.
     use Galacticus_Nodes
     use Kind_Numbers
     use Histories
+    use Multi_Counters
     implicit none
-    double precision                        , intent(in   )          :: time
-    type            (treeNode              ), intent(inout), pointer :: thisNode
-    integer                                 , intent(inout)          :: doubleBufferCount     , doubleProperty , integerBufferCount, &
-         &                                                              integerProperty
-    integer         (kind=kind_int8        ), intent(inout)          :: integerBuffer    (:,:)
-    double precision                        , intent(inout)          :: doubleBuffer     (:,:)
-    class           (nodeComponentBasic    )               , pointer :: thisBasic
-    class           (nodeComponentSatellite)               , pointer :: thisSatellite
-    type            (history               )                         :: boundMassHistory
-    integer         (kind=kind_int8        )                         :: status
-    !GCC$ attributes unused :: time, doubleBufferCount, doubleProperty, doubleBuffer
+    double precision                        , intent(in   ) :: time
+    type            (treeNode              ), intent(inout) :: thisNode
+    integer                                 , intent(inout) :: doubleBufferCount     , doubleProperty , integerBufferCount, &
+         &                                                     integerProperty
+    integer         (kind=kind_int8        ), intent(inout) :: integerBuffer    (:,:)
+    double precision                        , intent(inout) :: doubleBuffer     (:,:)
+    type            (multiCounter          ), intent(inout) :: instance
+    class           (nodeComponentBasic    ), pointer       :: thisBasic
+    class           (nodeComponentSatellite), pointer       :: thisSatellite
+    class           (nodeComponentPosition ), pointer       :: thisPosition
+    type            (history               )                :: discriminatorHistory
+    integer         (kind=kind_int8        )                :: status
+    !GCC$ attributes unused :: time, doubleBufferCount, doubleProperty, doubleBuffer, instance
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Satellite_Status_Initialize
@@ -177,11 +223,17 @@ contains
        ! Test for satellite.
        if (thisNode%isSatellite()) then
           ! Is a satellite. Determine if we have halo information or not.
-          thisSatellite    => thisNode     %satellite       ()
-          thisBasic        => thisNode     %basic           ()
-          boundMassHistory =  thisSatellite%boundMassHistory()
-          if (boundMassHistory%exists()) then
-             if (thisBasic%time() > boundMassHistory%time(size(boundMassHistory%time))) then
+          thisBasic => thisNode%basic()
+          select case (statusOrphanDiscriminator)
+          case (statusOrphanDiscriminatorBoundMass)
+             thisSatellite        => thisNode     %satellite       ()
+             discriminatorHistory =  thisSatellite%boundMassHistory()
+          case (statusOrphanDiscriminatorPosition )
+             thisPosition         => thisNode     %position        ()
+             discriminatorHistory =  thisPosition %positionHistory ()
+          end select
+          if (discriminatorHistory%exists()) then
+             if (thisBasic%time() > discriminatorHistory%time(size(discriminatorHistory%time))) then
                 status=2
              else
                 status=1

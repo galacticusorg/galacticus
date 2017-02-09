@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -64,8 +64,8 @@ contains
     !% host and satellite spheroids.
     use Galacticus_Nodes
     implicit none
-    type (treeNode             ), intent(inout), pointer :: hostNode             , thisNode
-    class(nodeComponentSpheroid)               , pointer :: hostSpheroidComponent, thisSpheroidComponent
+    type (treeNode             ), intent(inout), target :: hostNode             , thisNode
+    class(nodeComponentSpheroid), pointer               :: hostSpheroidComponent, thisSpheroidComponent
 
     ! Get the spheroid components.
     thisSpheroidComponent => thisNode%spheroid()

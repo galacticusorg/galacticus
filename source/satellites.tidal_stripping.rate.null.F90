@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -46,7 +46,7 @@ contains
     !% Return the null mass loss for satellites due to tidal stripping.
     use Galacticus_Nodes
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
+    type(treeNode), intent(inout), target :: thisNode
     !GCC$ attributes unused :: thisNode
     
     Satellite_Tidal_Stripping_Rate_Null=0.0d0

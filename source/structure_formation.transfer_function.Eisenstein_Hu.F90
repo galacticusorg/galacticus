@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -102,6 +102,7 @@ contains
   function eisensteinHu1999ConstructorInternal(neutrinoNumberEffective,neutrinoMassSummed,darkMatterParticle_,cosmologyParameters_)
     !% Internal constructor for the ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
     use Galacticus_Error
+    use Dark_Matter_Particles
     implicit none
     type            (transferFunctionEisensteinHu1999)                                  :: eisensteinHu1999ConstructorInternal
     double precision                                  , intent(in   )                   :: neutrinoNumberEffective           , neutrinoMassSummed

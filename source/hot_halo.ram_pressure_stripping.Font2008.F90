@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -74,13 +74,13 @@ contains
     use Hot_Halo_Ram_Pressure_Forces
     use Root_Finder
     implicit none
-    type            (treeNode  ), intent(inout), pointer :: thisNode
-    double precision            , parameter              :: toleranceAbsolute             =0.0d0 , toleranceRelative=1.0d-3
-    double precision            , parameter              :: radiusSmallestOverRadiusVirial=1.0d-6
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    type            (rootFinder), save                   :: finder
+    type            (treeNode                ), intent(inout), target :: thisNode
+    double precision                          , parameter             :: toleranceAbsolute             =0.0d0 , toleranceRelative=1.0d-3
+    double precision                          , parameter             :: radiusSmallestOverRadiusVirial=1.0d-6
+    class           (darkMatterHaloScaleClass), pointer               :: darkMatterHaloScale_
+    type            (rootFinder              ), save                  :: finder
     !$omp threadprivate(finder)
-    double precision                                     :: virialRadius
+    double precision                                                  :: virialRadius
 
     ! Get the virial radius of the satellite.
     darkMatterHaloScale_ => darkMatterHaloScale              (        )

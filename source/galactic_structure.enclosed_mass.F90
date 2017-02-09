@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -42,13 +42,13 @@ contains
     include 'galactic_structure.enclosed_mass.tasks.modules.inc'
     !# </include>
     implicit none
-    type            (treeNode               ), intent(inout)  :: thisNode
-    integer                                  , intent(in   ), optional          :: componentType        , massType, weightBy, &
-         &                                                                         weightIndex
-    double precision                         , intent(in   ), optional          :: radius
-    logical                                  , intent(in   ), optional          :: haloLoaded
-    procedure       (Component_Enclosed_Mass)                         , pointer :: componentEnclosedMass
-    double precision                                                            :: componentMass
+    type            (treeNode               ), intent(inout)           :: thisNode
+    integer                                  , intent(in   ), optional :: componentType        , massType, weightBy, &
+         &                                                                weightIndex
+    double precision                         , intent(in   ), optional :: radius
+    logical                                  , intent(in   ), optional :: haloLoaded
+    procedure       (Component_Enclosed_Mass), pointer                 :: componentEnclosedMass
+    double precision                                                   :: componentMass
 
     ! Set default options.
     call Galactic_Structure_Enclosed_Mass_Defaults(componentType,massType,weightBy,weightIndex,haloLoaded)
@@ -79,15 +79,16 @@ contains
     use ISO_Varying_String
     use String_Handling
     implicit none
-    type            (treeNode      ), intent(inout), pointer  :: thisNode
-    integer                         , intent(in   ), optional :: componentType , massType, weightBy, weightIndex
-    double precision                , intent(in   ), optional :: fractionalMass, mass
-    logical                         , intent(in   ), optional :: haloLoaded
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    type            (rootFinder    ), save                    :: finder
+    type            (treeNode                ), intent(inout), target   :: thisNode
+    integer                                   , intent(in   ), optional :: componentType       , massType   , &
+         &                                                                 weightBy            , weightIndex
+    double precision                          , intent(in   ), optional :: fractionalMass      , mass
+    logical                                   , intent(in   ), optional :: haloLoaded
+    class           (darkMatterHaloScaleClass), pointer                 :: darkMatterHaloScale_
+    type            (rootFinder              ), save                    :: finder
     !$omp threadprivate(finder)
-    type            (varying_string)                          :: message
-    character       (len=11        )                          :: massLabel
+    type            (varying_string          )                          :: message
+    character       (len=11                  )                          :: massLabel
 
     ! Set default options.
     call Galactic_Structure_Enclosed_Mass_Defaults(componentType,massType,weightBy,weightIndex,haloLoaded)

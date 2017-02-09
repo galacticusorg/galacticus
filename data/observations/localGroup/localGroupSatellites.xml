@@ -282,6 +282,41 @@
       <rightAscensionSeconds>
         <value>35</value>
       </rightAscensionSeconds>
+
+      <velocityRadialHeliocentric>
+        <value>-102.3</value>
+        <error>0.4</error>
+	<errorSystematic>2.0</errorSystematic>
+        <reference>Simon et al. (arXiv:1610.05301)</reference>
+        <referenceURL>https://arxiv.org/abs/1610.05301</referenceURL>
+      </velocityRadialHeliocentric>
+      <velocityDispersionStellar>
+	<value>0.1</value>
+	<errorHigh>0.7</errorHigh>
+	<errorLow>0.1</errorLow>
+        <limit confidenceLevel="90.0%" type="upper">1.2</limit>
+        <limit confidenceLevel="95.5%" type="upper">1.5</limit>
+        <limit confidenceLevel="99.7%" type="upper">2.3</limit>
+        <reference>Simon et al. (arXiv:1610.05301)</reference>
+        <referenceURL>https://arxiv.org/abs/1610.05301</referenceURL>
+      </velocityDispersionStellar>
+      <metallicityMeasurementTechnique>
+	<value>1</value>
+        <reference>Simon et al. (arXiv:1610.05301)</reference>
+        <referenceURL>https://arxiv.org/abs/1610.05301</referenceURL>
+      </metallicityMeasurementTechnique>
+      <metallicityStellar>
+	<value>-2.42</value>
+	<errorHigh>0.07</errorHigh>
+	<errorLow>0.08</errorLow>
+        <reference>Simon et al. (arXiv:1610.05301)</reference>
+        <referenceURL>https://arxiv.org/abs/1610.05301</referenceURL>
+      </metallicityStellar>
+      <metallicityDispersionStellar>
+        <limit confidenceLevel="95.5%" type="upper">0.19</limit>
+        <reference>Simon et al. (arXiv:1610.05301)</reference>
+        <referenceURL>https://arxiv.org/abs/1610.05301</referenceURL>
+      </metallicityDispersionStellar>
     </galaxy>
     <galaxy>
       <name>DES J0531−2801</name>
@@ -1023,13 +1058,19 @@
         <value>1.7</value>
       </radiusHalfLightAngular>
       <rightAscensionHours>
-        <value>12</value>
+        <value>23</value>
+        <reference>Simon et al. (arXiv:1610.05301)</reference>
+        <referenceURL>https://arxiv.org/abs/1610.05301</referenceURL>
       </rightAscensionHours>
       <rightAscensionMinutes>
-        <value>21</value>
+        <value>56</value>
+        <reference>Simon et al. (arXiv:1610.05301)</reference>
+        <referenceURL>https://arxiv.org/abs/1610.05301</referenceURL>
       </rightAscensionMinutes>
       <rightAscensionSeconds>
-        <value>42.1</value>
+        <value>36</value>
+        <reference>Simon et al. (arXiv:1610.05301)</reference>
+        <referenceURL>https://arxiv.org/abs/1610.05301</referenceURL>
       </rightAscensionSeconds>
       <velocityDispersionStellar>
         <limit confidenceLevel="90%" type="upper">3.6</limit>
@@ -1241,14 +1282,62 @@
       <alias>
         <value>EriII</value>
       </alias>
+      <velocityRadialHeliocentric>
+        <error>1.3</error>
+	<errorSystematic>2.0</errorSystematic>
+        <value>75.6</value>
+      	<reference>Li et al. (2016; arXiv:1611.05052)</reference>
+	<referenceURL>http://adsabs.harvard.edu/abs/2016arXiv161105052L</referenceURL>
+      </velocityRadialHeliocentric>
+      <velocityMilkyWay>
+        <value>-66.6</value>
+      	<reference>Li et al. (2016; arXiv:1611.05052)</reference>
+	<referenceURL>http://adsabs.harvard.edu/abs/2016arXiv161105052L</referenceURL>
+      </velocityMilkyWay>
+      <velocityDispersionStellar>
+        <errorHigh>1.2</errorHigh>
+        <errorLow>0.9</errorLow>
+        <value>6.9</value>
+      	<reference>Li et al. (2016; arXiv:1611.05052)</reference>
+	<referenceURL>http://adsabs.harvard.edu/abs/2016arXiv161105052L</referenceURL>
+      </velocityDispersionStellar>
+      <massDynamicalHalfLightRadius>
+        <errorHigh>4.0</errorHigh>
+	<errorLow>3.0</errorLow>
+        <value>12.0</value>
+      	<reference>Li et al. (2016; arXiv:1611.05052)</reference>
+	<referenceURL>http://adsabs.harvard.edu/abs/2016arXiv161105052L</referenceURL>
+      </massDynamicalHalfLightRadius>
+      <metallicityMeasurementTechnique>
+        <value>1</value>
+      </metallicityMeasurementTechnique>
+      <metallicityStellar>
+        <error>0.13</error>
+        <value>-2.38</value>
+      	<reference>Li et al. (2016; arXiv:1611.05052)</reference>
+	<referenceURL>http://adsabs.harvard.edu/abs/2016arXiv161105052L</referenceURL>
+      </metallicityStellar>
+      <metallicityDispersionStellar>
+	<value>0.47</value>
+	<errorHigh>0.12</errorHigh>
+	<errorLow>0.09</errorLow>
+      	<reference>Li et al. (2016; arXiv:1611.05052)</reference>
+	<referenceURL>http://adsabs.harvard.edu/abs/2016arXiv161105052L</referenceURL>
+      </metallicityDispersionStellar>
       <declinationArcMinutes>
-        <value>31</value>
+        <value>32</value>
+	<reference>Crnojević et al. (2016; ApJ; 824; 14)</reference>
+	<referenceURL>http://adsabs.harvard.edu/abs/2016ApJ...824L..14C</referenceURL>
       </declinationArcMinutes>
       <declinationArcSeconds>
-        <value>59</value>
+        <value>01.7</value>
+	<reference>Crnojević et al. (2016; ApJ; 824; 14)</reference>
+	<referenceURL>http://adsabs.harvard.edu/abs/2016ApJ...824L..14C</referenceURL>
       </declinationArcSeconds>
       <declinationDegrees>
         <value>-43</value>
+	<reference>Crnojević et al. (2016; ApJ; 824; 14)</reference>
+	<referenceURL>http://adsabs.harvard.edu/abs/2016ApJ...824L..14C</referenceURL>
       </declinationDegrees>
       <detectionEfficiencyHalfLight>
         <reference>The DES Collaboration (2015; ApJ)</reference>
@@ -1256,19 +1345,25 @@
         <value>1.00</value>
       </detectionEfficiencyHalfLight>
       <distanceHeliocentric>
-        <value>380</value>
+        <value>366</value>
+	<error>17</error>
+	<reference>Crnojević et al. (2016; ApJ; 824; 14)</reference>
+	<referenceURL>http://adsabs.harvard.edu/abs/2016ApJ...824L..14C</referenceURL>
       </distanceHeliocentric>
       <distanceModulus>
         <value>22.9</value>
       </distanceModulus>
       <ellipticityProjected>
-        <errorHigh>0.07</errorHigh>
-        <errorLow>0.07</errorLow>
-        <value>0.49</value>
+        <error>0.04</error>
+        <value>0.48</value>
+	<reference>Crnojević et al. (2016; ApJ; 824; 14)</reference>
+	<referenceURL>http://adsabs.harvard.edu/abs/2016ApJ...824L..14C</referenceURL>
       </ellipticityProjected>
       <magnitudeAbsoluteV>
-        <error>0.1</error>
-        <value>-6.6</value>
+        <value>-7.1</value>
+        <error>0.3</error>
+	<reference>Crnojević et al. (2016; ApJ; 824; 14)</reference>
+	<referenceURL>http://adsabs.harvard.edu/abs/2016ApJ...824L..14C</referenceURL>
       </magnitudeAbsoluteV>
       <massNeutralHydrogen>
         <limit confidenceLevel="99.999971%" type="upper">0.02570</limit>
@@ -1279,8 +1374,10 @@
         <value>0.0363</value>
       </massStellar>
       <positionAngle>
-        <error>6</error>
-        <value>80</value>
+        <error>3.3</error>
+        <value>72.6</value>
+	<reference>Crnojević et al. (2016; ApJ; 824; 14)</reference>
+	<referenceURL>http://adsabs.harvard.edu/abs/2016ApJ...824L..14C</referenceURL>
       </positionAngle>
       <publication>
         <value>Koposov et al. (2015; ApJ)</value>
@@ -1289,21 +1386,31 @@
         <value>http://adsabs.harvard.edu/abs/2015arXiv150302079K</value>
       </publicationURL>
       <radiusHalfLight>
-        <error>12e-3</error>
-        <value>172e-3</value>
+        <error>14e-3</error>
+        <value>277e-3</value>
+	<reference>Crnojević et al. (2016; ApJ; 824; 14)</reference>
+	<referenceURL>http://adsabs.harvard.edu/abs/2016ApJ...824L..14C</referenceURL>
       </radiusHalfLight>
       <radiusHalfLightAngular>
-        <error>0.1</error>
-        <value>1.6</value>
+        <error>0.12</error>
+        <value>2.31</value>
+	<reference>Crnojević et al. (2016; ApJ; 824; 14)</reference>
+	<referenceURL>http://adsabs.harvard.edu/abs/2016ApJ...824L..14C</referenceURL>
       </radiusHalfLightAngular>
       <rightAscensionHours>
         <value>3</value>
+	<reference>Crnojević et al. (2016; ApJ; 824; 14)</reference>
+	<referenceURL>http://adsabs.harvard.edu/abs/2016ApJ...824L..14C</referenceURL>
       </rightAscensionHours>
       <rightAscensionMinutes>
         <value>44</value>
+	<reference>Crnojević et al. (2016; ApJ; 824; 14)</reference>
+	<referenceURL>http://adsabs.harvard.edu/abs/2016ApJ...824L..14C</referenceURL>
       </rightAscensionMinutes>
       <rightAscensionSeconds>
-        <value>21</value>
+        <value>20.1</value>
+	<reference>Crnojević et al. (2016; ApJ; 824; 14)</reference>
+	<referenceURL>http://adsabs.harvard.edu/abs/2016ApJ...824L..14C</referenceURL>
       </rightAscensionSeconds>
     </galaxy>
     <galaxy>
@@ -8970,6 +9077,10 @@
     </galaxy>
     <galaxy>
       <name>Andromeda XXXI</name>
+      <alias>
+        <value>And XXXI</value>
+        <value>Lacerta I</value>
+      </alias>
       <declinationArcMinutes>
         <value>17</value>
       </declinationArcMinutes>
@@ -8979,16 +9090,31 @@
       <declinationDegrees>
         <value>41</value>
       </declinationDegrees>
+      <distanceHeliocentric>
+        <error>40</error>
+        <value>773</value>
+        <reference>Rhode et al. (arXiv:1701.08168)</reference>
+        <referenceURL>https://arxiv.org/abs/1701.08168</referenceURL>	
+      </distanceHeliocentric>
+      <distanceM31>
+        <value>264</value>
+	<error>6</error>
+        <reference>Rhode et al. (arXiv:1701.08168)</reference>
+        <referenceURL>https://arxiv.org/abs/1701.08168</referenceURL>	
+      </distanceM31>
       <distanceModulus>
-        <errorHigh>0.12</errorHigh>
-        <errorLow>0.12</errorLow>
-        <value>24.40</value>
+        <errorHigh>0.11</errorHigh>
+        <errorLow>0.11</errorLow>
+        <value>24.44</value>
+        <reference>Rhode et al. (arXiv:1701.08168)</reference>
+        <referenceURL>https://arxiv.org/abs/1701.08168</referenceURL>	
       </distanceModulus>
       <ellipticityProjected>
-        <errorHigh>0.07</errorHigh>
-        <errorLow>0.07</errorLow>
-        <value>0.43</value>
-      </ellipticityProjected>
+        <error>0.03</error>
+        <value>0.44</value>
+        <reference>Rhode et al. (arXiv:1701.08168)</reference>
+        <referenceURL>https://arxiv.org/abs/1701.08168</referenceURL>	
+     </ellipticityProjected>
       <extinction>
         <value>0.133</value>
       </extinction>
@@ -8997,6 +9123,12 @@
         <errorLow>0.7</errorLow>
         <value>12.7</value>
       </magnitudeApparentV>
+      <magnitudeAbsoluteV>
+        <error>0.3</error>
+        <value>-11.4</value>
+        <reference>Rhode et al. (arXiv:1701.08168)</reference>
+        <referenceURL>https://arxiv.org/abs/1701.08168</referenceURL>	
+     </magnitudeAbsoluteV>
       <massDynamicalHalfLightRadius>
         <errorHigh>8</errorHigh>
         <errorLow>9</errorLow>
@@ -9017,15 +9149,23 @@
         <type>spectroscopic; median</type>
         <value>-2.0</value>
       </metallicityStellar>
+      <metallicityStellar>
+        <error>0.03</error>
+        <type>photometric; median</type>
+        <value>-1.68</value>
+        <reference>Rhode et al. (arXiv:1701.08168)</reference>
+        <referenceURL>https://arxiv.org/abs/1701.08168</referenceURL>	
+      </metallicityStellar>
       <positionAngle>
         <errorHigh>6.0</errorHigh>
         <errorLow>6.0</errorLow>
         <value>-59.0</value>
       </positionAngle>
       <radiusHalfLightAngular>
-        <errorHigh>0.40</errorHigh>
-        <errorLow>0.50</errorLow>
-        <value>4.20</value>
+        <error>0.21</error>
+        <value>3.24</value>
+        <reference>Rhode et al. (arXiv:1701.08168)</reference>
+        <referenceURL>https://arxiv.org/abs/1701.08168</referenceURL>	
       </radiusHalfLightAngular>
       <rightAscensionHours>
         <reference>Martin et al.; ApJ; 793; 14</reference>
@@ -9049,9 +9189,10 @@
         <value>?</value>
       </rotationVelocityMaximumStellar>
       <surfaceBrightnessCentralV>
-        <errorHigh>0.8</errorHigh>
-        <errorLow>0.8</errorLow>
-        <value>25.8</value>
+        <error>0.3</error>
+        <value>24.8</value>
+	<reference>Rhode et al. (arXiv:1701.08168)</reference>
+        <referenceURL>https://arxiv.org/abs/1701.08168</referenceURL>	
       </surfaceBrightnessCentralV>
       <velocityDispersionNeutralHydrogen>
         <errorHigh>?</errorHigh>

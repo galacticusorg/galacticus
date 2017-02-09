@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -71,10 +71,10 @@ contains
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     !# </include>
     implicit none
-    type            (treeNode              ), intent(inout), pointer       :: thisNode
-    logical                                 , parameter                    :: specificAngularMomentumRequired=.true.
-    procedure       (Radius_Solver_Get_Template)               , pointer, save :: Radius_Get             =>null(), Velocity_Get=>null()
-    procedure       (Radius_Solver_Set_Template)               , pointer, save :: Radius_Set             =>null(), Velocity_Set=>null()
+    type            (treeNode                  ), intent(inout), target :: thisNode
+    logical                                     , parameter             :: specificAngularMomentumRequired=.true.
+    procedure       (Radius_Solver_Get_Template), pointer      , save   :: Radius_Get             =>null(), Velocity_Get=>null()
+    procedure       (Radius_Solver_Set_Template), pointer      , save   :: Radius_Set             =>null(), Velocity_Set=>null()
     !$omp threadprivate(Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
     logical                                                                :: componentActive
     double precision                                                       :: specificAngularMomentum
@@ -107,12 +107,12 @@ contains
     !% Solve for the equilibrium radius of the given component.
     use Dark_Matter_Profiles
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode
-    double precision                        , intent(in   )          :: specificAngularMomentum
+    type            (treeNode                  ), intent(inout)          :: thisNode
+    double precision                            , intent(in   )          :: specificAngularMomentum
     procedure       (Radius_Solver_Get_Template), intent(in   ), pointer :: Radius_Get             , Velocity_Get
     procedure       (Radius_Solver_Set_Template), intent(in   ), pointer :: Radius_Set             , Velocity_Set
-    class           (darkMatterProfileClass)               , pointer :: darkMatterProfile_
-    double precision                                                 :: radius                 , velocity
+    class           (darkMatterProfileClass    )               , pointer :: darkMatterProfile_
+    double precision                                                     :: radius                 , velocity
     !GCC$ attributes unused :: Radius_Get, Velocity_Get
     
     ! Return immediately if the specific angular momentum is zero.

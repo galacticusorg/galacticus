@@ -1,5 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
-!!    Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+!!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -35,8 +35,8 @@ contains
     use Cosmology_Functions
     use Dark_Matter_Profiles
     implicit none
-    class(hotHaloOutflowReincorporationZero), intent(inout)          :: self
-    type (treeNode                         ), intent(inout), pointer :: node
+    class(hotHaloOutflowReincorporationZero), intent(inout) :: self
+    type (treeNode                         ), intent(inout) :: node
     !GCC$ attributes unused :: self, node
     
     zeroRate=0.0d0

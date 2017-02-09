@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -84,10 +84,10 @@ contains
     use Galacticus_Nodes
     use Stellar_Feedback
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode
-    class           (nodeComponentDisk)               , pointer :: thisDiskComponent
-    double precision                   , intent(in   )          :: energyInputRate  , starFormationRate
-    double precision                                            :: diskVelocity     , outflowRateToStarFormationRate
+    type            (treeNode         ), intent(inout), target :: thisNode
+    class           (nodeComponentDisk), pointer               :: thisDiskComponent
+    double precision                   , intent(in   )         :: energyInputRate  , starFormationRate
+    double precision                                           :: diskVelocity     , outflowRateToStarFormationRate
     !GCC$ attributes unused :: starFormationRate
     
     ! Get the disk.

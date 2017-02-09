@@ -1,5 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
-!!    Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+!!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -40,8 +40,8 @@ contains
     use Input_Parameters
     use Galacticus_Nodes
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(inout)          :: coolingRate
+    type            (treeNode), intent(inout) :: thisNode
+    double precision          , intent(inout) :: coolingRate
 
     if (.not.moduleInitialized) then
        !$omp critical (Cooling_Rate_Modifier_Satellite_Initialize)

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -48,63 +48,63 @@ module Accretion_Halos
   !#   <description>Returns {\tt true} if this tree branch may accrete baryons, and {\tt false} otherwise.</description>
   !#   <type>logical</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
+  !#   <argument>type(treeNode), intent(inout), target :: node</argument>
   !#  </method>
   !#  <method name="accretionRate" >
   !#   <description>Returns the rate (in units of $M_\odot$ Gyr$^{-1}$) of accretion of mass from the \gls{igm} onto {\normalfont \ttfamily node} in the given {\normalfont \ttfamily accretionMode}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
-  !#   <argument>integer       , intent(in   )          :: accretionMode</argument>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#   <argument>integer       , intent(in   ) :: accretionMode</argument>
   !#  </method>
   !#  <method name="accretedMass" >
   !#   <description>Returns the mass (in units of $M_\odot$) of accreted from the \gls{igm} onto {\normalfont \ttfamily node} in the given {\normalfont \ttfamily accretionMode}. Used to initialize nodes.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
-  !#   <argument>integer       , intent(in   )          :: accretionMode</argument>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#   <argument>integer       , intent(in   ) :: accretionMode</argument>
   !#  </method>
   !#  <method name="failedAccretionRate" >
   !#   <description>Returns the rate (in units of $M_\odot$ Gyr$^{-1}$) of failed accretion of mass from the \gls{igm} onto {\normalfont \ttfamily node} in the given {\normalfont \ttfamily accretionMode}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
-  !#   <argument>integer       , intent(in   )          :: accretionMode</argument>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#   <argument>integer       , intent(in   ) :: accretionMode</argument>
   !#  </method>
   !#  <method name="failedAccretedMass" >
   !#   <description>Returns the mass (in units of $M_\odot$) of that failed to accrete from the \gls{igm} onto {\normalfont \ttfamily node} in the given {\normalfont \ttfamily accretionMode}. Used to initialize nodes.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
-  !#   <argument>integer       , intent(in   )          :: accretionMode</argument>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#   <argument>integer       , intent(in   ) :: accretionMode</argument>
   !#  </method>
   !#  <method name="accretionRateMetals" >
   !#   <description>Returns the rate (in units of $M_\odot$ Gyr$^{-1}$) of accretion of metals from the \gls{igm} onto {\normalfont \ttfamily node} in the given {\normalfont \ttfamily accretionMode}.</description>
   !#   <type>type(abundances)</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
-  !#   <argument>integer       , intent(in   )          :: accretionMode</argument>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#   <argument>integer       , intent(in   ) :: accretionMode</argument>
   !#  </method>
   !#  <method name="accretedMassMetals" >
   !#   <description>Returns the mass of metals (in units of $M_\odot$) of accreted from the \gls{igm} onto {\normalfont \ttfamily node} in the given {\normalfont \ttfamily accretionMode}. Used to initialize nodes.</description>
   !#   <type>type(abundances)</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
-  !#   <argument>integer       , intent(in   )          :: accretionMode</argument>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#   <argument>integer       , intent(in   ) :: accretionMode</argument>
   !#  </method>
   !#  <method name="accretionRateChemicals" >
   !#   <description>Returns the rate (in units of $M_\odot$ Gyr$^{-1}$) of accretion of chemicals from the \gls{igm} onto {\normalfont \ttfamily node} in the given {\normalfont \ttfamily accretionMode}.</description>
   !#   <type>type(chemicalAbundances)</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
-  !#   <argument>integer       , intent(in   )          :: accretionMode</argument>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#   <argument>integer       , intent(in   ) :: accretionMode</argument>
   !#  </method>
   !#  <method name="accretedMassChemicals" >
   !#   <description>Returns the mass of chemicals (in units of $M_\odot$) of accreted from the \gls{igm} onto {\normalfont \ttfamily node} in the given {\normalfont \ttfamily accretionMode}. Used to initialize nodes.</description>
   !#   <type>type(chemicalAbundances)</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
-  !#   <argument>integer       , intent(in   )          :: accretionMode</argument>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#   <argument>integer       , intent(in   ) :: accretionMode</argument>
   !#  </method>
   include 'accretionHalo.type.inc'
   !# </include>
@@ -146,12 +146,12 @@ module Accretion_Halos
     !% Set names of hot halo properties to be written to the \glc\ output file.
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode            )              , intent(inout), pointer :: thisNode
-    double precision                                    , intent(in   )          :: time
-    integer                                             , intent(inout)          :: doubleProperty         , integerProperty
-    character       (len=*               ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
-         &                                                                          integerPropertyComments, integerPropertyNames
-    double precision                      , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+    type            (treeNode            )              , intent(inout) :: thisNode
+    double precision                                    , intent(in   ) :: time
+    integer                                             , intent(inout) :: doubleProperty         , integerProperty
+    character       (len=*               ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
+         &                                                                 integerPropertyComments, integerPropertyNames
+    double precision                      , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     !GCC$ attributes unused :: thisNode, time, integerProperty, integerPropertyComments, integerPropertyNames, integerPropertyUnitsSI, doublePropertyUnitsSI
     
     ! Initialize the module.
@@ -182,10 +182,10 @@ module Accretion_Halos
   subroutine Accretion_Halos_Hot_Halo_Output_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of hot halo cooling properties to be written to the the \glc\ output file.
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode
-    double precision                      , intent(in   )          :: time
-    integer                               , intent(inout)          :: doublePropertyCount  , integerPropertyCount
-    integer                               , parameter              :: propertyCount      =1
+    type            (treeNode            ), intent(inout) :: thisNode
+    double precision                      , intent(in   ) :: time
+    integer                               , intent(inout) :: doublePropertyCount  , integerPropertyCount
+    integer                               , parameter     :: propertyCount      =1
     !GCC$ attributes unused :: thisNode,time, integerPropertyCount
     
     ! Initialize the module.
@@ -200,19 +200,21 @@ module Accretion_Halos
   !#  <sortName>Accretion_Halos_Hot_Halo_Output</sortName>
   !# </mergerTreeOutputTask>
   subroutine Accretion_Halos_Hot_Halo_Output(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store hot halo properties in the \glc\ output file buffers.
     use Kind_Numbers
+    use Multi_Counters
     implicit none
     double precision                    , intent(in   )          :: time
     type            (treeNode          ), intent(inout), pointer :: thisNode
-    integer                             , intent(inout)          :: doubleBufferCount     , doubleProperty, integerBufferCount, &
-         &                                                          integerProperty
+    integer                             , intent(inout)          :: doubleBufferCount     , doubleProperty    , &
+         &                                                          integerBufferCount    , integerProperty
     integer         (kind=kind_int8    ), intent(inout)          :: integerBuffer    (:,:)
     double precision                    , intent(inout)          :: doubleBuffer     (:,:)
+    type            (multiCounter      ), intent(inout)          :: instance
     class           (accretionHaloClass)               , pointer :: accretionHalo_
-    double precision                                             :: accretionRateHot      ,accretionRateTotal
-    !GCC$ attributes unused :: time, integerBufferCount, integerProperty, integerBuffer
+    double precision                                             :: accretionRateHot      , accretionRateTotal
+    !GCC$ attributes unused :: time, integerBufferCount, integerProperty, integerBuffer, instance
     
     ! Initialize the module.
     call Accretion_Halos_Output_Initialize()

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -45,8 +45,8 @@ contains
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    type (treeNode                ), intent(inout) :: thisNode
+    class(darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
 
     darkMatterHaloScale_ => darkMatterHaloScale()
     Hot_Halo_Ram_Pressure_Timescale_Halo_DynTime=darkMatterHaloScale_%dynamicalTimescale(thisNode)

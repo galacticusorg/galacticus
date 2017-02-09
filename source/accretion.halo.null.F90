@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -43,8 +43,8 @@ contains
     !% Returns true if this branch can accrete any baryons.
     use Galacticus_Nodes
     implicit none
-    class(accretionHaloNull), intent(inout)          :: self
-    type (treeNode         ), intent(inout), pointer :: node
+    class(accretionHaloNull), intent(inout)         :: self
+    type (treeNode         ), intent(inout), target :: node
     !GCC$ attributes unused :: self, node
     
     nullBranchHasBaryons=.false.
@@ -55,9 +55,9 @@ contains
     !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     implicit none
-    class  (accretionHaloNull), intent(inout)          :: self
-    type   (treeNode         ), intent(inout), pointer :: node
-    integer                   , intent(in   )          :: accretionMode
+    class  (accretionHaloNull), intent(inout) :: self
+    type   (treeNode         ), intent(inout) :: node
+    integer                   , intent(in   ) :: accretionMode
     !GCC$ attributes unused :: self, node, accretionMode
     
     nullAccretionRate=0.0d0
@@ -68,9 +68,9 @@ contains
     !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     implicit none
-    class  (accretionHaloNull), intent(inout)          :: self
-    type   (treeNode         ), intent(inout), pointer :: node
-    integer                   , intent(in   )          :: accretionMode
+    class  (accretionHaloNull), intent(inout) :: self
+    type   (treeNode         ), intent(inout) :: node
+    integer                   , intent(in   ) :: accretionMode
     !GCC$ attributes unused :: self, node, accretionMode
 
     nullAccretedMass=0.0d0
@@ -81,9 +81,9 @@ contains
     !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     implicit none
-    class  (accretionHaloNull), intent(inout)          :: self
-    type   (treeNode         ), intent(inout), pointer :: node
-    integer                   , intent(in   )          :: accretionMode
+    class  (accretionHaloNull), intent(inout) :: self
+    type   (treeNode         ), intent(inout) :: node
+    integer                   , intent(in   ) :: accretionMode
     !GCC$ attributes unused :: self, node, accretionMode
 
     nullFailedAccretionRate=0.0d0
@@ -94,9 +94,9 @@ contains
     !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     implicit none
-    class  (accretionHaloNull), intent(inout)          :: self
-    type   (treeNode         ), intent(inout), pointer :: node
-    integer                   , intent(in   )          :: accretionMode
+    class  (accretionHaloNull), intent(inout) :: self
+    type   (treeNode         ), intent(inout) :: node
+    integer                   , intent(in   ) :: accretionMode
     !GCC$ attributes unused :: self, node, accretionMode
 
     nullFailedAccretedMass=0.0d0
@@ -107,10 +107,10 @@ contains
     !% Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
     use Galacticus_Nodes
     implicit none
-    type   (abundances       )                         :: nullAccretionRateMetals
-    class  (accretionHaloNull), intent(inout)          :: self
-    type   (treeNode         ), intent(inout), pointer :: node
-    integer                   , intent(in   )          :: accretionMode
+    type   (abundances       )                :: nullAccretionRateMetals
+    class  (accretionHaloNull), intent(inout) :: self
+    type   (treeNode         ), intent(inout) :: node
+    integer                   , intent(in   ) :: accretionMode
     !GCC$ attributes unused :: self, node, accretionMode
 
     nullAccretionRateMetals=zeroAbundances
@@ -121,10 +121,10 @@ contains
     !% Computes the mass of abundances accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
     use Galacticus_Nodes
     implicit none
-    type   (abundances       )                         :: nullAccretedMassMetals
-    class  (accretionHaloNull), intent(inout)          :: self
-    type   (treeNode         ), intent(inout), pointer :: node
-    integer                   , intent(in   )          :: accretionMode
+    type   (abundances       )                :: nullAccretedMassMetals
+    class  (accretionHaloNull), intent(inout) :: self
+    type   (treeNode         ), intent(inout) :: node
+    integer                   , intent(in   ) :: accretionMode
     !GCC$ attributes unused :: self, node, accretionMode
 
     nullAccretedMassMetals=zeroAbundances
@@ -136,10 +136,10 @@ contains
     use Galacticus_Nodes
     use Chemical_Abundances_Structure
     implicit none
-    type   (chemicalAbundances)                         :: nullAccretionRateChemicals
-    class  (accretionHaloNull ), intent(inout)          :: self
-    type   (treeNode          ), intent(inout), pointer :: node
-    integer                    , intent(in   )          :: accretionMode
+    type   (chemicalAbundances)                :: nullAccretionRateChemicals
+    class  (accretionHaloNull ), intent(inout) :: self
+    type   (treeNode          ), intent(inout) :: node
+    integer                    , intent(in   ) :: accretionMode
     !GCC$ attributes unused :: self, node, accretionMode
 
     nullAccretionRateChemicals=zeroChemicalAbundances
@@ -151,10 +151,10 @@ contains
     use Galacticus_Nodes
     use Chemical_Abundances_Structure
     implicit none
-    type   (chemicalAbundances)                         :: nullAccretedMassChemicals
-    class  (accretionHaloNull ), intent(inout)          :: self
-    type   (treeNode          ), intent(inout), pointer :: node
-    integer                    , intent(in   )          :: accretionMode
+    type   (chemicalAbundances)                :: nullAccretedMassChemicals
+    class  (accretionHaloNull ), intent(inout) :: self
+    type   (treeNode          ), intent(inout) :: node
+    integer                    , intent(in   ) :: accretionMode
     !GCC$ attributes unused :: self, node, accretionMode
 
     nullAccretedMassChemicals=zeroChemicalAbundances

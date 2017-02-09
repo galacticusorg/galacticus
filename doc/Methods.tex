@@ -3665,7 +3665,7 @@ Extra outputs for merger trees (i.e. those which do not involve output of a fixe
     return
   end subroutine Galacticus_Extra_Output_Example
 \end{verbatim}
-The subroutine will be called for each node in each merger tree at each output, and should perform whatever extra output related to {\normalfont \ttfamily thisNode}. The index of the output and tree are provided as {\normalfont \ttfamily iOutput} and {\normalfont \ttfamily treeIndex} for reference, and may be used in organizing output. The {\normalfont \ttfamily nodePassesFilter} flag will be set to {\normalfont \ttfamily true} if {\normalfont \ttfamily thisNode} passed all active output filters (see \S\ref{sec:OutputFilters}). If it is {\normalfont \ttfamily false} then typically no output should occur (although other tasks may still be undertaken).
+The subroutine will be called for each node in each merger tree at each output, and should perform whatever extra output related to {\normalfont \ttfamily thisNode}. The index of the output and tree are provided as {\normalfont \ttfamily iOutput} and {\normalfont \ttfamily treeIndex} for reference, and may be used in organizing output. The {\normalfont \ttfamily nodePassesFilter} flag will be set to {\normalfont \ttfamily true} if {\normalfont \ttfamily thisNode} passed all active output filters (see \S\ref{sec:methodsGalacticFilter}). If it is {\normalfont \ttfamily false} then typically no output should occur (although other tasks may still be undertaken).
 
 \subsubsection{Merger Tree Output Tasks}
 
@@ -3843,44 +3843,6 @@ where {\normalfont \ttfamily Node\_Dump\_Procedure} is the name of a subroutine 
  end subroutine Node_Dump_Procedure
 \end{verbatim}
 If the node contains an active component, this subroutine should display all relevant properties of the component. If not, it can display a short message indicating that fact.
-
-\subsubsection{Output Filter Tasks}\label{sec:OutputFilters}\index{output!filtering}\index{filtering!output}
-
-Extra filters for controlling which galaxies are output can be added using the directives {\normalfont \ttfamily mergerTreeOutputFilterInitialize} and {\normalfont \ttfamily mergerTreeOutputFilter}. Each directive should give the name of the function to be called to initialize or apply the filter respectively. A template for these tasks is:
-\begin{verbatim}
-  !# <mergerTreeOutputFilterInitialize>
-  !#  <unitName>Galacticus_Merger_Tree_Output_Filter_Initialzie_Example</unitName>
-  !# </mergerTreeOutputFilterInitialize>
-  subroutine Galacticus_Merger_Tree_Output_Filter_Initialize_Example(filterNames)
-    implicit none
-    type(varying_string), intent(in), dimension(:) :: filterNames
-    .
-    .
-    .
-    return
-  end subroutine Galacticus_Merger_Tree_Output_Filter_Initialize_Example
-
-  !# <mergerTreeOutputFilter>
-  !#  <unitName>Galacticus_Merger_Tree_Output_Filter_Example</unitName>
-  !# </mergerTreeOutputFilter>
-  logical function Galacticus_Merger_Tree_Output_Filter_Example(thisNode,doOutput)
-    implicit none
-    type(treeNode),       intent(inout), pointer :: thisNode
-    logical,              intent(inout)          :: doOutput)
-    .
-    .
-    .
-    return
-  end function Galacticus_Merger_Tree_Output_Filter_Example
-\end{verbatim}
-The initialization subroutine will be called prior to any use of the filter function. The {\normalfont \ttfamily filterNames} arrays contains a list of all filters which were requested to be applied. The function should check if its filter is listed in this array and activate itself if necessary. The filter function will be called for each node, {\normalfont \ttfamily thisNode}, which is being considered for output. If the filter is activate, it should determine whether {\normalfont \ttfamily thisNode} passes its criteria for output. If it does not, {\normalfont \ttfamily doOutput} should be set to false. If the output criteria are met, then {\normalfont \ttfamily doOutput} \emph{should not be changed} (as it may already have been set false by some other filter).
-
-Currently available filters, selected using the {\normalfont \ttfamily [mergerTreeOutputFilters]} input parameter, are:
-\begin{itemize}
- \item [{\normalfont \ttfamily lightcone}] Restricts output to those galaxies which fall within a specified lightcone geometry. See \S\ref{sec:OutputLightcone} for further details;
- \item [{\normalfont \ttfamily stellarMass}] Restricts output to those galaxies with a total stellar mass equal to or greater than {\normalfont \ttfamily [stellarMassFilterThreshold]};
- \item [{\normalfont \ttfamily luminosity}] Restricts output to those galaxies with a total absolute AB magnitude less than or equal to\footnote{That is, galaxies which are at least as luminous as the specified threshold.} {\normalfont \ttfamily [luminosityFilterAbsoluteMagnitudeThresholds]}. This input parameter should be an array, with one entry for each luminosity being computed. The filter will be applied only for those luminosities that are being output at the current time.
-\end{itemize}
 
 \subsubsection{Output Group Output Tasks}\index{output groups}\index{tasks!output}
 

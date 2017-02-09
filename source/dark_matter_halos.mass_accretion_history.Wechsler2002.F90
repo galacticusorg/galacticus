@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -113,13 +113,13 @@ contains
     !% \cite{wechsler_concentrations_2002}.
     use Cosmology_Functions
     implicit none
-    class           (darkMatterHaloMassAccretionHistoryWechsler2002), intent(inout)          :: self
-    type            (treeNode                                      ), intent(inout), pointer :: node
-    double precision                                                , intent(in   )          :: mass
-    class           (nodeComponentBasic                            )               , pointer :: baseBasic
-    class           (cosmologyFunctionsClass                       )               , pointer :: cosmologyFunctions_
-    double precision                                                                         :: expansionFactor                   , expansionFactorBase, &
-         &                                                                                      mergerTreeFormationExpansionFactor
+    class           (darkMatterHaloMassAccretionHistoryWechsler2002), intent(inout) :: self
+    type            (treeNode                                      ), intent(inout) :: node
+    double precision                                                , intent(in   ) :: mass
+    class           (nodeComponentBasic                            ), pointer       :: baseBasic
+    class           (cosmologyFunctionsClass                       ), pointer       :: cosmologyFunctions_
+    double precision                                                                :: expansionFactor                   , expansionFactorBase, &
+         &                                                                             mergerTreeFormationExpansionFactor
 
     ! Get the default cosmology functions object.
     cosmologyFunctions_ => cosmologyFunctions      ()

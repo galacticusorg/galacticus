@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -99,19 +99,19 @@ contains
     use Numerical_Constants_Physical
     use Galacticus_Error
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: hostNode                       , satelliteNode
-    double precision                       , intent(  out)          :: angularMomentumFactor          , hostMass                         , &
-         &                                                             hostRadius                     , hostSpheroidMass                 , &
-         &                                                             hostSpheroidMassPreMerger      , remnantSpheroidGasMass           , &
-         &                                                             remnantSpheroidMass            , satelliteMass                    , &
-         &                                                             satelliteRadius                , satelliteSpheroidMass
-    class           (nodeComponentDisk    )               , pointer :: hostDiskComponent              , satelliteDiskComponent
-    class           (nodeComponentSpheroid)               , pointer :: hostSpheroidComponent          , satelliteSpheroidComponent
-    double precision                                                :: componentMass                  , hostDiskDarkMatterFactor         , &
-         &                                                             hostDiskHalfMassRadius         , hostSpheroidDarkMatterFactor     , &
-         &                                                             hostSpheroidHalfMassRadius     , satelliteDiskDarkMatterFactor    , &
-         &                                                             satelliteDiskHalfMassRadius    , satelliteSpheroidDarkMatterFactor, &
-         &                                                             satelliteSpheroidHalfMassRadius
+    type            (treeNode             ), intent(inout), target :: hostNode                       , satelliteNode
+    double precision                       , intent(  out)         :: angularMomentumFactor          , hostMass                         , &
+         &                                                            hostRadius                     , hostSpheroidMass                 , &
+         &                                                            hostSpheroidMassPreMerger      , remnantSpheroidGasMass           , &
+         &                                                            remnantSpheroidMass            , satelliteMass                    , &
+         &                                                            satelliteRadius                , satelliteSpheroidMass
+    class           (nodeComponentDisk    ), pointer               :: hostDiskComponent              , satelliteDiskComponent
+    class           (nodeComponentSpheroid), pointer               :: hostSpheroidComponent          , satelliteSpheroidComponent
+    double precision                                               :: componentMass                  , hostDiskDarkMatterFactor         , &
+         &                                                            hostDiskHalfMassRadius         , hostSpheroidDarkMatterFactor     , &
+         &                                                            hostSpheroidHalfMassRadius     , satelliteDiskDarkMatterFactor    , &
+         &                                                            satelliteDiskHalfMassRadius    , satelliteSpheroidDarkMatterFactor, &
+         &                                                            satelliteSpheroidHalfMassRadius
 
     ! Get the disk and spheroid components of host and satellite.
     hostDiskComponent          =>      hostNode%disk    ()

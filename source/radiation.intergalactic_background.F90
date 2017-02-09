@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -121,10 +121,10 @@ contains
   subroutine Radiation_Set_Intergalactic_Background(componentMatched,thisNode,radiationProperties)
     !% Property setting routine for the radiation component from file method.
     implicit none
-    logical                                                        , intent(in   )          :: componentMatched
-    type            (treeNode          )                           , intent(inout), pointer :: thisNode
-    double precision                    , allocatable, dimension(:), intent(inout)          :: radiationProperties
-    class           (nodeComponentBasic)                                          , pointer :: thisBasic
+    logical                                                        , intent(in   ) :: componentMatched
+    type            (treeNode          )                           , intent(inout) :: thisNode
+    double precision                    , allocatable, dimension(:), intent(inout) :: radiationProperties
+    class           (nodeComponentBasic), pointer                                  :: thisBasic
 
     ! Return immediately if this component was not matched.
     if (.not.componentMatched) return

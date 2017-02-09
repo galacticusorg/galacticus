@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -47,12 +47,12 @@ contains
     include 'satellites.merging.remnant_sizes.progenitor_propeties.modules.inc'
     !# </include>
     implicit none
-    type            (treeNode), intent(inout), pointer :: hostNode                 , satelliteNode
-    double precision          , intent(  out)          :: angularMomentumFactor    , hostMass              , &
-         &                                                hostRadius               , hostSpheroidMass      , &
-         &                                                hostSpheroidMassPreMerger, remnantSpheroidGasMass, &
-         &                                                remnantSpheroidMass      , satelliteMass         , &
-         &                                                satelliteRadius          , satelliteSpheroidMass
+    type            (treeNode), intent(inout), target :: hostNode                 , satelliteNode
+    double precision          , intent(  out)         :: angularMomentumFactor    , hostMass              , &
+         &                                               hostRadius               , hostSpheroidMass      , &
+         &                                               hostSpheroidMassPreMerger, remnantSpheroidGasMass, &
+         &                                               remnantSpheroidMass      , satelliteMass         , &
+         &                                               satelliteRadius          , satelliteSpheroidMass
 
     if (.not.satelliteMergingRemnantProgenitorPropertiesInitialized) then
        !$omp critical(satelliteMergingRemnantProgenitorPropertiesInitialize)

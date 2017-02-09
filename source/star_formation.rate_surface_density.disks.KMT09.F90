@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -57,7 +57,7 @@ contains
   subroutine Star_Formation_Rate_Surface_Density_Disks_KMT09_Reset(thisNode)
     !% Reset the extended Schmidt relation calculation.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
 
     factorsComputed=.false.
     lastUniqueID   =thisNode%uniqueID()
@@ -136,15 +136,15 @@ contains
     use Galactic_Structure_Options
     use Numerical_Constants_Prefixes
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode
-    double precision                   , intent(in   )          :: radius
-    class           (nodeComponentDisk)               , pointer :: thisDiskComponent
-    type            (abundances       ), save                   :: fuelAbundances
+    type            (treeNode         ), intent(inout) :: thisNode
+    double precision                   , intent(in   ) :: radius
+    class           (nodeComponentDisk), pointer       :: thisDiskComponent
+    type            (abundances       ), save          :: fuelAbundances
     !$omp threadprivate(fuelAbundances)
-    double precision                   , parameter              :: surfaceDensityTransition=85.0d12                                 !   M_Solar/Mpc^2
-    double precision                                            :: surfaceDensityFactor            , molecularFraction                               , &
-         &                                                         s                               , sigmaMolecularComplex                           , &
-         &                                                         surfaceDensityGas               , surfaceDensityGasDimensionless
+    double precision                   , parameter     :: surfaceDensityTransition=85.0d12                                 !   M_Solar/Mpc^2
+    double precision                                   :: surfaceDensityFactor            , molecularFraction                               , &
+         &                                                s                               , sigmaMolecularComplex                           , &
+         &                                                surfaceDensityGas               , surfaceDensityGasDimensionless
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Star_Formation_Rate_Surface_Density_Disks_KMT09_Reset(thisNode)

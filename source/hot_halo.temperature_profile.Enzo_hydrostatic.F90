@@ -1,5 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
-!!    Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+!!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -78,11 +78,11 @@ contains
     use Numerical_Constants_Math
     use Dark_Matter_Profiles
     implicit none
-    class           (hotHaloTemperatureProfileEnzoHydrostatic), intent(inout)          :: self
-    type            (treeNode                                ), intent(inout), pointer :: node
-    double precision                                          , intent(in   )          :: radius
-    class           (darkMatterProfileClass                  )               , pointer :: darkMatterProfile_
-    double precision                                                                   :: enclosedMass, density
+    class           (hotHaloTemperatureProfileEnzoHydrostatic), intent(inout) :: self
+    type            (treeNode                                ), intent(inout) :: node
+    double precision                                          , intent(in   ) :: radius
+    class           (darkMatterProfileClass                  ), pointer       :: darkMatterProfile_
+    double precision                                                          :: enclosedMass      , density
     !GCC$ attributes unused :: self
     
     if (self%temperature(node,radius) <= enzoHydrostaticTemperatureMinimum) then

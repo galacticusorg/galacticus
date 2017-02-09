@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -65,8 +65,8 @@ contains
     !% fixed ratio of outflow rate to star formation rate.
     use Stellar_Feedback
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: energyInputRate, starFormationRate
+    type            (treeNode), intent(inout), target :: thisNode
+    double precision          , intent(in   )         :: energyInputRate, starFormationRate
     !GCC$ attributes unused :: thisNode, starFormationRate
 
     Star_Formation_Feedback_Disk_Outflow_Rate_Fixed=diskOutflowFraction*energyInputRate/feedbackEnergyInputAtInfinityCanonical

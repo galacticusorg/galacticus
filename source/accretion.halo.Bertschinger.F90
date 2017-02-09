@@ -1,5 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
-!!    Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+!!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -124,9 +124,9 @@ contains
     use Galacticus_Nodes
     use Dark_Matter_Profiles
     implicit none
-    class(accretionHaloBertschinger), intent(inout)          :: self
-    type (treeNode                 ), intent(inout), pointer :: node
-    class(darkMatterProfileClass   )               , pointer :: darkMatterProfile_
+    class(accretionHaloBertschinger), intent(inout) :: self
+    type (treeNode                 ), intent(inout) :: node
+    class(darkMatterProfileClass   ), pointer       :: darkMatterProfile_
     !GCC$ attributes unused :: self
     
     darkMatterProfile_        => darkMatterProfile                         (    )
@@ -138,9 +138,9 @@ contains
     !% Returns the total accretion rate to use for {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     implicit none
-    class(accretionHaloBertschinger), intent(inout)          :: self
-    type (treeNode                 ), intent(inout), pointer :: node
-    class(nodeComponentBasic       )               , pointer :: basic
+    class(accretionHaloBertschinger), intent(inout) :: self
+    type (treeNode                 ), intent(inout) :: node
+    class(nodeComponentBasic       ), pointer       :: basic
     !GCC$ attributes unused :: self
     
     basic                          => node %basic                    ()
@@ -152,9 +152,9 @@ contains
     !% Returns the total mass to use for {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     implicit none
-    class(accretionHaloBertschinger), intent(inout)          :: self
-    type (treeNode                 ), intent(inout), pointer :: node
-    class(nodeComponentBasic       )               , pointer :: basic
+    class(accretionHaloBertschinger), intent(inout) :: self
+    type (treeNode                 ), intent(inout) :: node
+    class(nodeComponentBasic       ), pointer       :: basic
 
     !GCC$ attributes unused :: self
     basic                 => node %basic           ()

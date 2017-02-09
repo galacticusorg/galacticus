@@ -8,8 +8,6 @@ use Cwd;
 use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Data::Dumper;
 use List::ExtraUtils;
-## AJB HACK use Galacticus::Build::SourceTree::Hooks;
-## AJB HACK use Galacticus::Build::SourceTree;
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::processHooks{'objectBuilder'} = \&Process_ObjectBuilder;
@@ -40,7 +38,7 @@ sub Process_ObjectBuilder {
 	    $builderCode .= "   end do\n";
 	    $builderCode .= "   if (parametersCurrent%isPresent('".$node->{'directive'}->{'class'}."Method').and.(.not.".$node->{'directive'}->{'source'}."%isGlobal().or.associated(parametersCurrent%parent))) then\n";
 	    $builderCode .= "      ! Object should belong to the parameter node. Get the node and test whether the object has already been created in it.\n";
-	    $builderCode .= "      parameterNode => parametersCurrent%node('".$node->{'directive'}->{'class'}."Method')\n";
+	    $builderCode .= "      parameterNode => parametersCurrent%node('".$node->{'directive'}->{'class'}."Method'".(exists($node->{'directive'}->{'copy'}) ? ",copyInstance=".$node->{'directive'}->{'copy'} : "").")\n";
 	    $builderCode .= "      if (parameterNode%objectCreated()) then\n";
 	    $builderCode .= "         ! Object already exists - simply get a pointer to it.\n";
 	    $builderCode .= "         genericObject => parameterNode%objectGet()\n";

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -38,19 +38,19 @@ contains
     use Cosmology_Functions
     use Dark_Matter_Halos_Correa2015
     implicit none
-    class           (darkMatterHaloMassAccretionHistoryCorrea2015), intent(inout)          :: self
-    type            (treeNode                                    ), intent(inout), pointer :: node
-    double precision                                              , intent(in   )          :: mass
-    class           (nodeComponentBasic                          )               , pointer :: baseBasicComponent
-    class           (cosmologyFunctionsClass                     )               , pointer :: cosmologyFunctions_
-    double precision                                              , parameter              :: toleranceRelative  =1.0d-6
-    double precision                                              , parameter              :: toleranceAbsolute  =0.0d0
-    type            (rootFinder                                  ), save                   :: finder
+    class           (darkMatterHaloMassAccretionHistoryCorrea2015), intent(inout) :: self
+    type            (treeNode                                    ), intent(inout) :: node
+    double precision                                              , intent(in   ) :: mass
+    class           (nodeComponentBasic                          ), pointer       :: baseBasicComponent
+    class           (cosmologyFunctionsClass                     ), pointer       :: cosmologyFunctions_
+    double precision                                              , parameter     :: toleranceRelative  =1.0d-6
+    double precision                                              , parameter     :: toleranceAbsolute  =0.0d0
+    type            (rootFinder                                  ), save          :: finder
     !$omp threadprivate(finder)
-    double precision                                                                       :: baseRedshift               , baseTime, &
-         &                                                                                    baseExpansionFactor        , baseMass, &
-         &                                                                                    redshift                   , aTilde  , &
-         &                                                                                    bTilde
+    double precision                                                              :: baseRedshift               , baseTime, &
+         &                                                                           baseExpansionFactor        , baseMass, &
+         &                                                                           redshift                   , aTilde  , &
+         &                                                                           bTilde
     !GCC$ attributes unused :: self
     
     ! Get properties of the base node.

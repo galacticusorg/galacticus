@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -415,9 +415,10 @@ contains
   !#  <sortName>Node_Component_Black_Hole_Simple_Output</sortName>
   !# </mergerTreeOutputTask>
   subroutine Node_Component_Black_Hole_Simple_Output(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store black hole properties in the \glc\ output file buffers.
     use Kind_Numbers
+    use Multi_Counters
     implicit none
     double precision                        , intent(in   )          :: time
     type            (treeNode              ), intent(inout), pointer :: thisNode
@@ -425,10 +426,11 @@ contains
          &                                                              integerProperty
     integer         (kind=kind_int8        ), intent(inout)          :: integerBuffer         (:,:)
     double precision                        , intent(inout)          :: doubleBuffer          (:,:)
+    type            (multiCounter          ), intent(inout)          :: instance
     class           (nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent
     class           (nodeComponentSpheroid )               , pointer :: thisSpheroidComponent
     double precision                                                 :: restMassAccretionRate
-    !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer
+    !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer, instance
     
     ! Ensure that the black hole component is of the simple class.
     if (Node_Component_Black_Hole_Simple_Matches(thisNode)) then

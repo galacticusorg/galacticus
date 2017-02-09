@@ -1,5 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
-!!    Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+!!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -246,10 +246,10 @@ contains
     use Galacticus_Display
     use Galacticus_Error
     implicit none
-    class           (darkMatterProfileTidallyHeated), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
-    double precision                                , intent(in   )          :: radius
-    class           (nodeComponentSatellite        )               , pointer :: satellite
+    class           (darkMatterProfileTidallyHeated), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , intent(in   ) :: radius
+    class           (nodeComponentSatellite        ), pointer       :: satellite
 
     satellite => node%satellite()
     if (satellite%tidalHeatingNormalized() <= 0.0d0) then
@@ -282,7 +282,7 @@ contains
     use Galacticus_Display
     implicit none
     class           (darkMatterProfileTidallyHeated), intent(inout)           :: self
-    type            (treeNode                      ), intent(inout), pointer  :: node
+    type            (treeNode                      ), intent(inout)           :: node
     double precision                                , intent(in   )           :: moment
     double precision                                , intent(in   ), optional :: radiusMinimum                 , radiusMaximum
 
@@ -451,9 +451,9 @@ contains
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
     use Numerical_Constants_Physical
     implicit none
-    class           (darkMatterProfileTidallyHeated), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
-    double precision                                , intent(in   )          :: radius
+    class           (darkMatterProfileTidallyHeated), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , intent(in   ) :: radius
 
     if (radius > 0.0d0) then
        tidallyHeatedCircularVelocity=sqrt(                                 &
@@ -472,9 +472,9 @@ contains
     use Galacticus_Display
     use Galacticus_Error
     implicit none
-    class(darkMatterProfileTidallyHeated), intent(inout)          :: self
-    type (treeNode                      ), intent(inout), pointer :: node
-    class(nodeComponentSatellite        )               , pointer :: satellite
+    class(darkMatterProfileTidallyHeated), intent(inout) :: self
+    type (treeNode                      ), intent(inout) :: node
+    class(nodeComponentSatellite        ), pointer       :: satellite
 
     satellite => node%satellite()
     if (satellite%tidalHeatingNormalized() <= 0.0d0) then
@@ -560,9 +560,9 @@ contains
     use Galacticus_Display
     use Galacticus_Error
     implicit none
-    class           (darkMatterProfileTidallyHeated), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
-    class           (nodeComponentSatellite        )               , pointer :: satellite
+    class           (darkMatterProfileTidallyHeated), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    class           (nodeComponentSatellite        ), pointer       :: satellite
 
     satellite => node%satellite()
     if (satellite%tidalHeatingNormalized() <= 0.0d0) then
@@ -594,9 +594,9 @@ contains
     use Galacticus_Display
     use Galacticus_Error
     implicit none
-    class           (darkMatterProfileTidallyHeated), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
-    class           (nodeComponentSatellite        )               , pointer :: satellite
+    class           (darkMatterProfileTidallyHeated), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    class           (nodeComponentSatellite        ), pointer       :: satellite
 
     satellite => node%satellite()
     if (satellite%tidalHeatingNormalized() <= 0.0d0) then
@@ -699,10 +699,10 @@ contains
     use Galacticus_Display
     use Galacticus_Error
     implicit none
-    class           (darkMatterProfileTidallyHeated), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
-    double precision                                , intent(in   )          :: time
-    class           (nodeComponentSatellite        )               , pointer :: satellite
+    class           (darkMatterProfileTidallyHeated), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , intent(in   ) :: time
+    class           (nodeComponentSatellite        ), pointer       :: satellite
 
     satellite => node%satellite()
     if (satellite%tidalHeatingNormalized() <= 0.0d0) then
@@ -735,10 +735,10 @@ contains
     use Galacticus_Display
     use Galacticus_Error
     implicit none
-    class           (darkMatterProfileTidallyHeated), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
-    double precision                                , intent(in   )          :: time
-    class           (nodeComponentSatellite        )               , pointer :: satellite
+    class           (darkMatterProfileTidallyHeated), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , intent(in   ) :: time
+    class           (nodeComponentSatellite        ), pointer       :: satellite
 
     satellite => node%satellite()
     if (satellite%tidalHeatingNormalized() <= 0.0d0) then

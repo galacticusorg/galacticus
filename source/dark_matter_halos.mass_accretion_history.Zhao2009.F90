@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -40,24 +40,24 @@ contains
     use Cosmological_Mass_Variance
     use Critical_Overdensities
     implicit none
-    class           (darkMatterHaloMassAccretionHistoryZhao2009), intent(inout)          :: self
-    type            (treeNode                                  ), intent(inout), pointer :: node
-    double precision                                            , intent(in   )          :: mass
-    class           (criticalOverdensityClass                  )               , pointer :: criticalOverdensity_
-    class           (cosmologicalMassVarianceClass             )               , pointer :: cosmologicalMassVariance_
-    class           (nodeComponentBasic                        )               , pointer :: baseBasicComponent
-    double precision                                            , parameter              :: odeToleranceAbsolute          =1.0d-10, odeToleranceRelative =1.0d-10
-    double precision                                            , dimension(1)           :: nowTime
-    double precision                                                                     :: baseMass                              , baseTime                     , &
-       &                                                                                    dSigmadMassLogarithmicObserved        , deltaCriticalObserved        , &
-       &                                                                                    pObserved                             , sObserved                    , &
-       &                                                                                    sigmaObserved                         , wObserved                    , &
-       &                                                                                    currentMass
-    type            (fgsl_odeiv_step                           )                         :: odeStepper
-    type            (fgsl_odeiv_control                        )                         :: odeController
-    type            (fgsl_odeiv_evolve                         )                         :: odeEvolver
-    type            (fgsl_odeiv_system                         )                         :: odeSystem
-    logical                                                                              :: odeReset                      =.true.
+    class           (darkMatterHaloMassAccretionHistoryZhao2009), intent(inout) :: self
+    type            (treeNode                                  ), intent(inout) :: node
+    double precision                                            , intent(in   ) :: mass
+    class           (criticalOverdensityClass                  ), pointer       :: criticalOverdensity_
+    class           (cosmologicalMassVarianceClass             ), pointer       :: cosmologicalMassVariance_
+    class           (nodeComponentBasic                        ), pointer       :: baseBasicComponent
+    double precision                                            , parameter     :: odeToleranceAbsolute          =1.0d-10, odeToleranceRelative =1.0d-10
+    double precision                                            , dimension(1)  :: nowTime
+    double precision                                                            :: baseMass                              , baseTime                     , &
+       &                                                                           dSigmadMassLogarithmicObserved        , deltaCriticalObserved        , &
+       &                                                                           pObserved                             , sObserved                    , &
+       &                                                                           sigmaObserved                         , wObserved                    , &
+       &                                                                           currentMass
+    type            (fgsl_odeiv_step                           )                :: odeStepper
+    type            (fgsl_odeiv_control                        )                :: odeController
+    type            (fgsl_odeiv_evolve                         )                :: odeEvolver
+    type            (fgsl_odeiv_system                         )                :: odeSystem
+    logical                                                                     :: odeReset                      =.true.
     !GCC$ attributes unused :: self
     
     ! Get required objects.

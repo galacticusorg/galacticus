@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -88,12 +88,12 @@ contains
     use Numerical_Constants_Math
     use Hot_Halo_Mass_Distributions
     implicit none
-    type            (treeNode                    ), intent(inout), pointer :: thisNode
-    class           (nodeComponentHotHalo        )               , pointer :: thisHotHaloComponent
-    class           (hotHaloMassDistributionClass)               , pointer :: defaultHotHaloMassDistribution
-    class           (darkMatterHaloScaleClass    )               , pointer :: darkMatterHaloScale_
-    double precision                                                       :: coolingDensity      , infallRadius  , infallRadiusGrowthRate, &
-         &                                                                    outerRadius         , virialVelocity
+    type            (treeNode                    ), intent(inout) :: thisNode
+    class           (nodeComponentHotHalo        ), pointer       :: thisHotHaloComponent
+    class           (hotHaloMassDistributionClass), pointer       :: defaultHotHaloMassDistribution
+    class           (darkMatterHaloScaleClass    ), pointer       :: darkMatterHaloScale_
+    double precision                                              :: coolingDensity      , infallRadius  , infallRadiusGrowthRate, &
+         &                                                           outerRadius         , virialVelocity
 
     ! Get the virial velocity.
     darkMatterHaloScale_ => darkMatterHaloScale()

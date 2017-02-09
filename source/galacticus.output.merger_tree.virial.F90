@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -74,12 +74,12 @@ contains
     use Galacticus_Nodes
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode)              , intent(inout), pointer :: thisNode
-    double precision                        , intent(in   )          :: time
-    integer                                 , intent(inout)          :: doubleProperty         , integerProperty
-    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
-         &                                                              integerPropertyComments, integerPropertyNames
-    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+    type            (treeNode)              , intent(inout) :: thisNode
+    double precision                        , intent(in   ) :: time
+    integer                                 , intent(inout) :: doubleProperty         , integerProperty
+    character       (len=*   ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
+         &                                                     integerPropertyComments, integerPropertyNames
+    double precision          , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     !GCC$ attributes unused :: thisNode, time, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI
     
     ! Initialize the module.
@@ -123,9 +123,9 @@ contains
     !% Account for the number of virial properties to be written to the \glc\ output file.
     use Galacticus_Nodes
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: time
-    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
+    type            (treeNode), intent(inout) :: thisNode
+    double precision          , intent(in   ) :: time
+    integer                   , intent(inout) :: doublePropertyCount, integerPropertyCount
     !GCC$ attributes unused :: thisNode, time, integerPropertyCount
     
     ! Initialize the module.
@@ -141,20 +141,22 @@ contains
   !#  <sortName>Galacticus_Output_Tree_Virial</sortName>
   !# </mergerTreeOutputTask>
   subroutine Galacticus_Output_Tree_Virial(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store virial properties in the \glc\ output file buffers.
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Kind_Numbers
+    use Multi_Counters
     implicit none
-    double precision                , intent(in   )          :: time
-    type            (treeNode      ), intent(inout), pointer :: thisNode
-    integer                         , intent(inout)          :: doubleBufferCount     , doubleProperty, integerBufferCount, &
-         &                                                      integerProperty
-    integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
-    double precision                , intent(inout)          :: doubleBuffer     (:,:)
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer
+    double precision                          , intent(in   ) :: time
+    type            (treeNode                ), intent(inout) :: thisNode
+    integer                                   , intent(inout) :: doubleBufferCount     , doubleProperty, integerBufferCount, &
+         &                                                       integerProperty
+    integer         (kind=kind_int8          ), intent(inout) :: integerBuffer    (:,:)
+    double precision                          , intent(inout) :: doubleBuffer     (:,:)
+    type            (multiCounter            ), intent(inout) :: instance
+    class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
+    !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer, instance
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Virial_Initialize

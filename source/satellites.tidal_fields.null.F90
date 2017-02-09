@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -35,7 +35,7 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),                 intent(in   ) :: satellitesTidalFieldMethod
+    type     (varying_string                 ),          intent(in   ) :: satellitesTidalFieldMethod
     procedure(Satellites_Tidal_Field_Null_Get), pointer, intent(inout) :: Satellites_Tidal_Field_Get
     
     if (satellitesTidalFieldMethod == 'null') Satellites_Tidal_Field_Get => Satellites_Tidal_Field_Null_Get
@@ -46,7 +46,7 @@ contains
     !% Computes the tidal field acting on a satellite in the {\normalfont \ttfamily null} implementation. Always returns zero.
     use Galacticus_Nodes
     implicit none
-    type (treeNode), intent(inout), pointer :: thisNode
+    type (treeNode), intent(inout) :: thisNode
     !GCC$ attributes unused :: thisNode
     
     Satellites_Tidal_Field_Null_Get=0.0d0

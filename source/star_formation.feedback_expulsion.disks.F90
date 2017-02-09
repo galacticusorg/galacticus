@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,20 +27,13 @@ module Star_Formation_Feedback_Expulsion_Disks
   public :: Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate
 
   ! Flag to indicate if this module has been initialized.
-  logical                                                                  :: starFormationExpulsiveFeedbackDisksInitialized =.false.
+  logical                                                                 :: starFormationExpulsiveFeedbackDisksInitialized =.false.
 
   ! Name of cooling rate available method used.
-  type     (varying_string                                      )          :: starFormationExpulsiveFeedbackDisksMethod
+  type     (varying_string                                     )          :: starFormationExpulsiveFeedbackDisksMethod
 
   ! Pointer to the function that actually does the calculation.
-  procedure(Star_Formation_Expulsive_Feedback_Disk_Rate_Template), pointer :: Star_Formation_Expulsive_Feedback_Disk_Rate_Get=>null()
-  abstract interface
-     double precision function Star_Formation_Expulsive_Feedback_Disk_Rate_Template(thisNode,starFormationRate,energyInputRate)
-       import treeNode
-       type            (treeNode), intent(inout), pointer :: thisNode
-       double precision          , intent(in   )          :: energyInputRate, starFormationRate
-     end function Star_Formation_Expulsive_Feedback_Disk_Rate_Template
-  end interface
+  procedure(Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate), pointer :: Star_Formation_Expulsive_Feedback_Disk_Rate_Get=>null()
 
 contains
 
@@ -88,8 +81,8 @@ contains
   double precision function Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate(thisNode,starFormationRate,energyInputRate)
     !% Returns the expulsive outflow rate due to star formation in the disk component of {\normalfont \ttfamily thisNode}.
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: energyInputRate, starFormationRate
+    type            (treeNode), intent(inout) :: thisNode
+    double precision          , intent(in   ) :: energyInputRate, starFormationRate
 
     ! Initialize the module.
     call Star_Formation_Expulsive_Feedback_Disks_Initialize

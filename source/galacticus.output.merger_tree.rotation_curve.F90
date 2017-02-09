@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -248,13 +248,13 @@ contains
     use Galacticus_Nodes
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode)              , intent(inout), pointer :: thisNode
-    double precision                        , intent(in   )          :: time
-    integer                                 , intent(inout)          :: doubleProperty         , integerProperty
-    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
-         &                                                              integerPropertyComments, integerPropertyNames
-    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    integer                                                          :: i
+    type            (treeNode)              , intent(inout) :: thisNode
+    double precision                        , intent(in   ) :: time
+    integer                                 , intent(inout) :: doubleProperty         , integerProperty
+    character       (len=*   ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
+         &                                                     integerPropertyComments, integerPropertyNames
+    double precision          , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+    integer                                                 :: i
     !GCC$ attributes unused :: thisNode, time, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI
     
     ! Initialize the module.
@@ -288,9 +288,9 @@ contains
     !% Account for the number of rotation curve properties to be written to the \glc\ output file.
     use Galacticus_Nodes
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: time
-    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
+    type            (treeNode), intent(inout) :: thisNode
+    double precision          , intent(in   ) :: time
+    integer                   , intent(inout) :: doublePropertyCount, integerPropertyCount
     !GCC$ attributes unused :: thisNode, time, integerPropertyCount
     
     ! Initialize the module.
@@ -306,7 +306,7 @@ contains
   !#  <sortName>Galacticus_Output_Tree_Rotation_Curve</sortName>
   !# </mergerTreeOutputTask>
   subroutine Galacticus_Output_Tree_Rotation_Curve(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store rotation curve properties in the \glc\ output file buffers.
     use Galacticus_Nodes
     use Kind_Numbers
@@ -314,20 +314,22 @@ contains
     use Dark_Matter_Halo_Scales
     use Galactic_Structure_Options
     use Galactic_Structure_Enclosed_Masses
+    use Multi_Counters
     implicit none
-    double precision                                , intent(in   )          :: time
-    type            (treeNode                      ), intent(inout), pointer :: thisNode
-    integer                                         , intent(inout)          :: doubleBufferCount         , doubleProperty, integerBufferCount, &
-         &                                                                      integerProperty
-    integer         (kind=kind_int8                ), intent(inout)          :: integerBuffer        (:,:)
-    double precision                                , intent(inout)          :: doubleBuffer         (:,:)
-    class           (nodeComponentDisk             )               , pointer :: thisDisk
-    class           (nodeComponentSpheroid         )               , pointer :: thisSpheroid
-    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfile
-    class           (darkMatterHaloScaleClass      )               , pointer :: darkMatterHaloScale_
-    integer                                                                  :: i
-    double precision                                                         :: radius                    , radiusVirial
-    !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer
+    double precision                                , intent(in   ) :: time
+    type            (treeNode                      ), intent(inout) :: thisNode
+    integer                                         , intent(inout) :: doubleBufferCount         , doubleProperty, integerBufferCount, &
+         &                                                             integerProperty
+    integer         (kind=kind_int8                ), intent(inout) :: integerBuffer        (:,:)
+    double precision                                , intent(inout) :: doubleBuffer         (:,:)
+    type            (multiCounter                  ), intent(inout) :: instance
+    class           (nodeComponentDisk             ), pointer       :: thisDisk
+    class           (nodeComponentSpheroid         ), pointer       :: thisSpheroid
+    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfile
+    class           (darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_
+    integer                                                         :: i
+    double precision                                                :: radius                    , radiusVirial
+    !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer, instance
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Rotation_Curve_Initialize

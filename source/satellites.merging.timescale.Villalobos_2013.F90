@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -126,12 +126,12 @@ contains
     use Cosmology_Functions
     use Kepler_Orbits
     implicit none
-    class           (satelliteMergingTimescalesVillalobos2013 ), intent(inout)          :: self
-    type            (treeNode                                 ), intent(inout), pointer :: thisNode
-    type            (keplerOrbit                              ), intent(inout)          :: thisOrbit
-    class           (nodeComponentBasic                       )               , pointer :: thisBasic
-    class           (cosmologyFunctionsClass                  )               , pointer :: cosmologyFunctionsDefault
-    double precision                                                                    :: expansionFactor
+    class           (satelliteMergingTimescalesVillalobos2013 ), intent(inout) :: self
+    type            (treeNode                                 ), intent(inout) :: thisNode
+    type            (keplerOrbit                              ), intent(inout) :: thisOrbit
+    class           (nodeComponentBasic                       ), pointer       :: thisBasic
+    class           (cosmologyFunctionsClass                  ), pointer       :: cosmologyFunctionsDefault
+    double precision                                                           :: expansionFactor
 
     ! Get the default cosmology functions object.
     cosmologyFunctionsDefault => cosmologyFunctions()

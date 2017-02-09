@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -80,13 +80,13 @@ contains
     use Numerical_Constants_Astronomical
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode)              , intent(inout), pointer :: thisNode
-    double precision                        , intent(in   )          :: time
-    integer                                 , intent(inout)          :: doubleProperty         , integerProperty
-    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
-         &                                                              integerPropertyComments, integerPropertyNames
-    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    integer                                                          :: iLuminosity
+    type            (treeNode)              , intent(inout) :: thisNode
+    double precision                        , intent(in   ) :: time
+    integer                                 , intent(inout) :: doubleProperty         , integerProperty
+    character       (len=*   ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
+         &                                                     integerPropertyComments, integerPropertyNames
+    double precision          , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+    integer                                                 :: iLuminosity
     !GCC$ attributes unused :: thisNode, integerProperty, integerPropertyComments, integerPropertyNames, integerPropertyUnitsSI
     
     ! Initialize the module.
@@ -134,9 +134,9 @@ contains
     !% Account for the number of half-light properties to be written to the \glc\ output file.
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: time
-    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
+    type            (treeNode), intent(inout) :: thisNode
+    double precision          , intent(in   ) :: time
+    integer                   , intent(inout) :: doublePropertyCount, integerPropertyCount
     !GCC$ attributes unused :: thisNode, integerPropertyCount
     
     ! Initialize the module.
@@ -152,22 +152,24 @@ contains
   !#  <sortName>Galacticus_Output_Tree_Half_Light</sortName>
   !# </mergerTreeOutputTask>
   subroutine Galacticus_Output_Tree_Half_Light(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store density contrast properties in the \glc\ output file buffers.
     use Kind_Numbers
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     use Stellar_Luminosities_Structure
+    use Multi_Counters
     implicit none
-    double precision                , intent(in   )          :: time
-    type            (treeNode      ), intent(inout), pointer :: thisNode
-    integer                         , intent(inout)          :: doubleBufferCount     , doubleProperty, integerBufferCount, &
-         &                                                      integerProperty
-    integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
-    double precision                , intent(inout)          :: doubleBuffer     (:,:)
-    integer                                                  :: iLuminosity
-    double precision                                         :: halfLightRadius       , massEnclosed
-    !GCC$ attributes unused :: integerProperty, integerBufferCount, integerBuffer
+    double precision                , intent(in   ) :: time
+    type            (treeNode      ), intent(inout) :: thisNode
+    integer                         , intent(inout) :: doubleBufferCount     , doubleProperty, integerBufferCount, &
+         &                                             integerProperty
+    integer         (kind=kind_int8), intent(inout) :: integerBuffer    (:,:)
+    double precision                , intent(inout) :: doubleBuffer     (:,:)
+    type            (multiCounter  ), intent(inout) :: instance
+    integer                                         :: iLuminosity
+    double precision                                :: halfLightRadius       , massEnclosed
+    !GCC$ attributes unused :: integerProperty, integerBufferCount, integerBuffer, instance
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Half_Light_Initialize

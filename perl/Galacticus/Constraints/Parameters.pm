@@ -234,8 +234,16 @@ sub Convert_Parameters_To_Galacticus {
 	++$parameterCount if ( exists($parameters[$i]->{'prior'}) );
     }
     die("Convert_Parameters_To_Galacticus: number of supplied values does not match number of parameters")
-	unless ( scalar(@values) == $parameterCount );
-
+	unless
+	( 
+	   scalar(@values) ==   $parameterCount
+	  ||
+	  (
+	   $config->{'simulation'}->{'type'} eq "particleSwarm" 
+	   &&
+	   scalar(@values) == 2*$parameterCount 
+	  )
+	);
     # Map values to parameters.
     my $j = -1;
     my %parameterValues;

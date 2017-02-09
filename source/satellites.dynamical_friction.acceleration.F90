@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -86,8 +86,8 @@ contains
     !% Return the satellite acceleration due to dynamical friction for {\normalfont \ttfamily thisNode} (in units of km/s/Gyr).
     use Galacticus_Nodes
     implicit none
-    double precision             , dimension(3)           :: Satellite_Dynamical_Friction_Acceleration
-    type            (treeNode   ), intent(inout), pointer :: thisNode
+    double precision             , dimension(3)  :: Satellite_Dynamical_Friction_Acceleration
+    type            (treeNode   ), intent(inout) :: thisNode
 
     ! Initialize the module.
     call Satellite_Dynamical_Friction_Acceleration_Initialize

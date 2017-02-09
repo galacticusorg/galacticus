@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -103,6 +103,9 @@ contains
     use Galacticus_Input_Paths
     use IO_XML
     use String_Handling
+    use Galacticus_HDF5
+    use IO_HDF5
+    use Numerical_Constants_Units
     implicit none
     type            (varying_string), intent(in   )               :: filterName
     type            (Node          ), pointer                     :: doc
@@ -113,9 +116,10 @@ contains
     integer                                                       :: filterIndex             , ioErr
     type            (varying_string)                              :: filterFileName          , errorMessage
     type            (DOMException  )                              :: exception
-    logical                                                       :: parseSuccess
+    logical                                                       :: parseSuccess            , firstFilter
     character       (len=32        )                              :: word
     double precision                                              :: centralWavelength       , resolution
+    type            (hdf5Object    )                              :: filtersGroup            , dataset
 
     ! Allocate space for this filter.
     if (allocated(filterResponses)) then
@@ -205,6 +209,24 @@ contains
        call destroy(doc)
        !$omp end critical (FoX_DOM_Access)
     end if
+    ! No effective wavelength was supplied - compute it directly.
+    filterResponses(filterIndex)%wavelengthEffectiveAvailable=.true.
+    filterResponses(filterIndex)%wavelengthEffective         =+sum(filterResponses(filterIndex)%wavelength*filterResponses(filterIndex)%response) &
+         &                                                    /sum(                                        filterResponses(filterIndex)%response)
+    ! Store the filter effective wavelength to the output file.
+    !$omp critical (HDF5_Access)    
+    filtersGroup=galacticusOutputFile%openGroup('Filters','Properties of filters used.')
+    firstFilter =.not.filtersGroup%hasDataset('name')
+    word        =filterResponses(filterIndex)%name
+    call filtersGroup%writeDataset([word                                            ],'name'               ,'Filter name.'                       ,appendTo=.true.                        )
+    call filtersGroup%writeDataset([filterResponses(filterIndex)%wavelengthEffective],'wavelengthEffective','Effective wavelength of filter [Å].',appendTo=.true.,datasetReturned=dataset)
+    if (firstFilter) then
+       call dataset%writeAttribute("Angstroms [Å]"        ,"units"    )
+       call dataset%writeAttribute(1.0d0/angstromsPerMeter,"unitsInSI")
+    end if
+    call dataset     %close()
+    call filtersGroup%close()
+    !$omp end critical (HDF5_Access)    
     return
   end subroutine Filter_Response_Load
 

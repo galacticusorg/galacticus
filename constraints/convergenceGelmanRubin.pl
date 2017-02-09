@@ -10,10 +10,10 @@ use Data::Dumper;
 use Galacticus::Options;
 use Galacticus::Constraints::Parameters;
 
-# Compute the Gelman & Rubin Rhat convergence statistic using a statelog
-# from the Bayesian Inference Engine. Based on Brooks & Gelman (1998;
-# Journal of Computational and Graphical Statistics; 7; 4; 434-455) and
-# Gelman & Rubin (1992; Statistical Science; 7; 4; 457-472).
+# Compute the Gelman & Rubin Rhat convergence statistic using MCMC
+# chain files. Based on Brooks & Gelman (1998; Journal of
+# Computational and Graphical Statistics; 7; 4; 434-455) and Gelman &
+# Rubin (1992; Statistical Science; 7; 4; 457-472).
 
 # Get command line arguments.
 die("Usage: convergenceGelmanRubin.pl <configFile> [options...]")

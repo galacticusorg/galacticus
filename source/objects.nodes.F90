@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -722,12 +722,14 @@ module Galacticus_Nodes
     implicit none
     type (treeNode)               , pointer :: treeNodeWalkBranch
     class(treeNode), intent(inout), target  :: self
-    type (treeNode), intent(inout), pointer :: startNode
-    type (treeNode)               , pointer :: workNode          , selfNode
+    type (treeNode), intent(inout), target  :: startNode
+    type (treeNode)               , pointer :: workNode          , selfNode, &
+         &                                     branchTip
 
-    selfNode => self
-    workNode => self
-    if (associated(selfNode,startNode)) then
+    selfNode  => self
+    workNode  => self
+    branchTip => startNode
+    if (associated(selfNode,branchTip)) then
        do while (associated(workNode%firstChild))
           workNode => workNode%firstChild
        end do
@@ -741,7 +743,7 @@ module Galacticus_Nodes
        else
           workNode => workNode%parent
           ! Terminate when back at starting node.
-          if (associated(workNode,startNode)) workNode => null()
+          if (associated(workNode,branchTip)) workNode => null()
        end if
     end if
     treeNodeWalkBranch => workNode
@@ -956,8 +958,9 @@ module Galacticus_Nodes
   end subroutine Node_Component_Output_Names_Null
 
   subroutine Node_Component_Output_Null(self,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time,instance)
+       &,doubleBufferCount,doubleBuffer,time,outputInstance,instance)
     !% Dump a generic tree node component.
+    use Multi_Counters
     implicit none
     class           (nodeComponent    ), intent(inout) :: self
     double precision                   , intent(in   ) :: time
@@ -965,8 +968,9 @@ module Galacticus_Nodes
          &                                                integerProperty
     integer         (kind=kind_int8   ), intent(inout) :: integerBuffer    (:,:)
     double precision                   , intent(inout) :: doubleBuffer     (:,:)
+    type            (multiCounter     ), intent(in   ) :: outputInstance
     integer                            , intent(in   ) :: instance
-    !GCC$ attributes unused :: self, integerProperty, integerBufferCount, integerBuffer, doubleProperty, doubleBufferCount, doubleBuffer, time, instance
+    !GCC$ attributes unused :: self, integerProperty, integerBufferCount, integerBuffer, doubleProperty, doubleBufferCount, doubleBuffer, time, outputInstance, instance
 
     return
   end subroutine Node_Component_Output_Null

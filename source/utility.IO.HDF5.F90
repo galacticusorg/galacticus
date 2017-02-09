@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -657,13 +657,7 @@ contains
           message=message//nonRootOpenObjectCount//" open object(s) remain in file object '"//thisObject%objectName//"'"
           call Galacticus_Display_Indent('Problem closing HDF5 file')
           call Galacticus_Display_Message(message)
-          allocate(openObjectIDs(nonRootOpenObjectCount))
-          call h5fget_obj_ids_f(thisObject%objectID,H5F_OBJ_ALL_F,nonRootOpenObjectCount,openObjectIDs,errorCode)
-          if (errorCode /= 0) then
-             message="unable to get IDs of open objects in file object '"//thisObject%objectName//"'"
-             call Galacticus_Error_Report('IO_HDF5_Close',message)
-          end if
-          do i=1,nonRootOpenObjectCount
+          do i=1,openObjectCount
              call h5iget_name_f(openObjectIDs(i),objectName,objectNameSizeMaximum,objectNameSize,errorCode)
              if (errorCode /= 0) then
                 message="unable to get name of open object in file object '"//thisObject%objectName//"'"
@@ -671,7 +665,7 @@ contains
              end if
              message="Object: "//trim(objectName)//" ["
              message=message//openObjectIDs(i)//"]"
-             call Galacticus_Display_Message(message)
+             if (trim(objectName) /= "/") call Galacticus_Display_Message(message)
           end do
           call Galacticus_Display_Unindent('done')
        end if

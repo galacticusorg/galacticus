@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -76,20 +76,20 @@ contains
     use Stellar_Luminosities_Structure
     use Stellar_Feedback
     implicit none
-    double precision                     , intent(  out)          :: energyInputRate              , fuelMassRate             , &
-         &                                                           stellarMassRate
-    type            (abundances         ), intent(inout)          :: fuelAbundancesRates          , stellarAbundancesRates
-    type            (stellarLuminosities), intent(  out)          :: stellarLuminositiesRates
-    double precision                     , intent(in   )          :: starFormationRate
-    type            (abundances         ), intent(in   )          :: fuelAbundances
-    integer                              , intent(in   )          :: component
-    type            (treeNode           ), intent(inout), pointer :: thisNode
-    type            (history            ), intent(inout)          :: thisHistory
-    class           (nodeComponentBasic )               , pointer :: thisBasicComponent
-    integer                                                       :: imfSelected
-    double precision                                              :: fuelMetallicity              , fuelMetalsRateOfChange   , &
-         &                                                           recycledFractionInstantaneous, stellarMetalsRateOfChange, &
-         &                                                           time                         , yieldInstantaneous
+    double precision                     , intent(  out) :: energyInputRate              , fuelMassRate             , &
+         &                                                  stellarMassRate
+    type            (abundances         ), intent(inout) :: fuelAbundancesRates          , stellarAbundancesRates
+    type            (stellarLuminosities), intent(  out) :: stellarLuminositiesRates
+    double precision                     , intent(in   ) :: starFormationRate
+    type            (abundances         ), intent(in   ) :: fuelAbundances
+    integer                              , intent(in   ) :: component
+    type            (treeNode           ), intent(inout) :: thisNode
+    type            (history            ), intent(inout) :: thisHistory
+    class           (nodeComponentBasic ), pointer       :: thisBasicComponent
+    integer                                              :: imfSelected
+    double precision                                     :: fuelMetallicity              , fuelMetalsRateOfChange   , &
+         &                                                  recycledFractionInstantaneous, stellarMetalsRateOfChange, &
+         &                                                  time                         , yieldInstantaneous
     !GCC$ attributes unused :: thisHistory
     
     ! Get the instantaneous recycling rate for the IMF.
@@ -147,8 +147,8 @@ contains
     use Galacticus_Nodes
     use Histories
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-    type(history ), intent(inout)          :: thisHistory
+    type(treeNode), intent(inout) :: thisNode
+    type(history ), intent(inout) :: thisHistory
     !GCC$ attributes unused :: thisNode, thisHistory
     
     return

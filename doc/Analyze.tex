@@ -80,6 +80,11 @@ outputFile.hdf5
  |    |
  |    x-> Output2                             Group
  |
+ +-> Filters                                  Group
+ |    |
+ |    +-> name                                Dataset   {<filterCount>}
+ |    +-> wavelengthEffective                 Dataset   {<filterCount>}
+ |
  +-> Parameters                               Group
  |    |
  |    +-> inputParameter1                     Attribute {}
@@ -151,6 +156,14 @@ The UUID is then available as {\normalfont \ttfamily \$model-\textgreater\{'uuid
 
 Additionally, two datasets are included which store details of the \glc\ source changeset. {\normalfont \ttfamily sourceChangeSetMerge} contains the output of ``{\normalfont \ttfamily hg bundle -t none}'', that is, it contains a Mercurial changegroup that incorporates any changes made to the current branch relative to the main \glc\ branch. {\normalfont \ttfamily sourceChangeSetDiff} contains the output of ``{\normalfont \ttfamily hg diff}'', that is, all differences between the source code in the working directory and that which has been committed to Mercurial. Used together, these two datasets allow the precise source code used to run the model to be recovered from the main branch \glc\ source.
 
+\subsection{Filters}
+
+For each broadband filter used in the \glc\ model run an entry is added to the datasets in this group. Currently, two datasets are generated:
+\begin{description}
+\item[{\normalfont \ttfamily name}] The name of each filter used.
+\item[{\normalfont \ttfamily wavelengthEffective}] The effective wavelength, $\lambda_{\rm eff}$ (defined as $\lambda_{\rm eff}=\left. \int_0^\infty \lambda R(\lambda) {\rm d}\lambda \right/ \int_0^\infty R(\lambda) {\rm d}\lambda$, where $R(\lambda)$ is the filter response) of the filter in \AA.
+\end{description}
+
 \subsection{Parameters}
 
 The {\normalfont \ttfamily Parameters} group contains a record of all parameter values (either input or default) that were used for this \glc\ run. The group contains a long list of attributes, each attribute named for the corresponding parameter and with a single entry giving the value of that parameter. If a parameter has subparameters, a group is created having the same name as the parameter, which will contain attributes corresponding to each subparameter. The {\normalfont \ttfamily scripts/aux/Extract\_Parameter\_File.pl} script can be used to extract these parameter values to an XML file suitable for re-input into \glc.
@@ -184,6 +197,13 @@ The {\normalfont \ttfamily Outputs} group contains one or more sub-groups corres
  \item[{\normalfont \ttfamily outputExpansionFactor} \emph{(attribute)}] The expansion factor at this output;
  \item[{\normalfont \ttfamily nodeData}] A group of node properties as described below.
  \item[{\normalfont \ttfamily mergerTree} subgroups \emph{(optional)}] A set of {\normalfont \ttfamily mergerTree} groups as described below.
+\end{description}
+
+Output is controlled by parameters given within the {\normalfont \ttfamily mergerTreeOutput} section of the parameter file. Current options are:
+\begin{description}
+\item[{\normalfont \ttfamily outputMergerTrees}] If {\normalfont \ttfamily true} then each merger tree is output to the relevant sub-group at each output time (see \S\ref{sec:nodeDataGroup}). Otherwise merger trees are not output. [Default: {\normalfont \ttfamily true}.]
+\item[{\normalfont \ttfamily outputReferences}] If {\normalfont \ttfamily true} then an HDF5 reference dataset is written for each merger tree subgroup (see \S\ref{sec:mergerTreeSubgroups}). [Default: {\normalfont \ttfamily false}.]
+\item[{\normalfont \ttfamily galacticFilterMethod}] A ``galactic filter'' (see \S\ref{sec:methodsGalacticFilter}) which is applied to each node in the tree to determine whether or not it should be output. By combinding multiple filters it is possible to construct arbitrarily complex criteria for output. [Default: {\normalfont \ttfamily always}.]
 \end{description}
 
 \subsubsection{nodeData group}\label{sec:nodeDataGroup}

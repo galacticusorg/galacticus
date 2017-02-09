@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -94,10 +94,8 @@ contains
     type            (varying_string)            :: headerText                 , usageText
     character       (len=1         )            :: join
 
-    !$omp critical (MemAdd)
     issueNewReport=.false.
-    usedMemory%memoryType(memoryTypeTotal)%usage=0
-    usedMemory%memoryType(memoryTypeTotal)%usage=sum(usedMemory%memoryType(:)%usage)
+    usedMemory%memoryType(memoryTypeTotal)%usage=sum(usedMemory%memoryType(1:memoryTypeTotal-1)%usage)
     if (usageAtPreviousReport <= 0) then ! First call, so always report memory usage.
        issueNewReport=.true.
     else if (usedMemory%memoryType(memoryTypeTotal)%usage > 0) then
@@ -135,7 +133,6 @@ contains
        call Galacticus_Display_Message(headerText)
        call Galacticus_Display_Message(usageText )
     end if
-    !$omp end critical (MemAdd)
     return
   end subroutine Memory_Usage_Report
 
@@ -244,6 +241,7 @@ contains
     integer                  , intent(in   ), optional :: addRemove      , blockCount      , line            , memoryType
     character(len=*         ), intent(in   ), optional :: file
     integer                                            :: addRemoveActual, blockCountActual, memoryTypeActual
+    integer  (kind_int8     )                          :: accumulation
     type     (varying_string)                          :: message
 
     if (present(memoryType)) then
@@ -261,10 +259,9 @@ contains
     else
        blockCountActual=1
     end if
-    !$omp critical(Memory_Management_Usage)
-    usedMemory%memoryType(memoryTypeActual)%usage=usedMemory%memoryType(memoryTypeActual)%usage+elementsUsed*addRemoveActual
-    usedMemory%memoryType(memoryTypeActual)%usage=usedMemory%memoryType(memoryTypeActual)%usage+sign(blockCountActual,addRemoveActual)*allocationOverhead
-    !$omp end critical(Memory_Management_Usage)
+    accumulation=elementsUsed*addRemoveActual+sign(blockCountActual,addRemoveActual)*allocationOverhead
+    !$omp atomic
+    usedMemory%memoryType(memoryTypeActual)%usage=usedMemory%memoryType(memoryTypeActual)%usage+accumulation
     if (Galacticus_Verbosity_Level() >= verbosityDebug) then
        if (present(file).and.present(line)) then
           message='memory record: '

@@ -9,8 +9,6 @@ use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/pe
 use Data::Dumper;
 use XML::Simple;
 use Fortran::Utils;
-## AJB REMOVED use Galacticus::Build::SourceTree::Hooks;
-## AJB REMOVED use Galacticus::Build::SourceTree;
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::parseHooks{'visibilities'} = \&Parse_Visibilities;

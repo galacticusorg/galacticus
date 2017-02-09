@@ -1,0 +1,799 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+  !% An implementation of the lightcone geometry class which assumes a square field of view.
+
+  use Cosmology_Functions
+  
+  !# <geometryLightcone name="geometryLightconeSquare">
+  !#  <description>
+  !#   A lightcone geometry class which assumes a square field of view., i.e. defined such that a point $(x,y,z)$ is in the survey
+  !#   angular mask if $|\hbox{atan2}(y,x)| &lt; \psi/2$ and $|\hbox{atan2}(z,x)| &lt; \psi/2$ where $\hbox{atan2}()$ is the
+  !#   quadrant-aware inverse tangent function, and $\psi$ is the angular size of the field, we compute the solid angle of the
+  !#   lightcone as follows. Define a spherical coodinate system $(\theta,\phi)$ with the pole ($\theta=0$) aligned with the
+  !#   $x$-axis. The solid angle of the field is then  
+  !#   \begin{equation}
+  !#    \Omega = 2 \pi \int_0^{\psi/2} \sin\theta {\mathrm d}\theta + 8 \int_{\psi/2}^{\tan^{-1}(\sqrt{2}\tan(\psi/2))} {\mathrm d}\theta \sin\theta \int_{\cos^{-1}(\tan(\psi/2)/\tan\theta)}^{\pi/4} {\mathrm d}\phi,
+  !#   \end{equation}
+  !#   which is
+  !#   \begin{equation}
+  !#    \Omega = 2 \pi [1-\cos(\psi/2)] + 8 \int_{\psi/2}^{\tan^{-1}(\sqrt{2}\tan(\psi/2))} {\mathrm d}\theta \sin\theta \left[ {\pi\over 4} - \cos^{-1}\left({\tan(\psi/2)\over \tan\theta}\right)\right],
+  !#   \end{equation}
+  !#   or
+  !#   \begin{equation}
+  !#    \Omega = 2 \pi [1 - \cos(\tan^{-1}(\sqrt{2}\tan(\psi/2)))] - 8 \int_{\psi/2}^{\tan^{-1}(\sqrt{2}\tan(\psi/2))} {\mathrm d}\theta \sin\theta \cos^{-1}\left({\tan(\psi/2)\over \tan\theta}\right),
+  !#   \end{equation}
+  !#   The final integral can be evaluated (using Mathematica for example) to give
+  !#   \begin{eqnarray}
+  !#    \Omega &amp;=&amp; 2 \pi [3 - \cos(\tan^{-1}(\sqrt{2}\tan(\psi/2)))] - 8 \sin(x) \left( \sqrt{(a^2+1)\cos(2x)+a^2-1}(\log(a(\sqrt{2}\sqrt{2a^2\cos^2(x)+\cos(2x)-1} \right. \nonumber \\
+  !#   &amp; &amp;  +2a))-\log(\sqrt{\cos(2x)-1}))\sqrt{\csc^2(x)(-((a^2+1)\cos(2x)+a^2-1))}-\cot(x)((a^2+1)\cos(2x)+a^2-1) \nonumber \\
+  !#   &amp; &amp; \left. \cos^{-1}(a \cot(x)) \right) / [(a^2+1)\cos(2x)+a^2-1],
+  !#   \end{eqnarray}
+  !#   where $a=\tan(\psi/2)$ and $x=\tan^{-1}[\sqrt{2}\tan (\psi/2)]$.
+  !#  
+  !#   Various sub-parameters specify the details of the light geomtry. The {\normalfont \ttfamily lengthReplication} parameter
+  !#   should give the length of the simulation box (the box will be replicated to span the volume covered by the lightcone),
+  !#   with the {\normalfont \ttfamily lengthUnitsInSI} parameter giving the length unit in SI units and {\normalfont \ttfamily
+  !#   lengthHubbleExponent} giving the exponent of $h$ that appears in the length unit. The {\normalfont \ttfamily angularSize}
+  !#   parameter of {\normalfont \ttfamily fieldOfView} should gives the length of the side of the square field of view in
+  !#   degrees. The {\normalfont \ttfamily origin} element must contain the $x$, $y$, $z$ coordinates of the origin of the
+  !#   lightcone within the simulation box, while the {\normalfont \ttfamily unitVectorX} parameters must give unit vectors which
+  !#   point along the lightcone (for {\normalfont \ttfamily X}$=1$), and in the two directions perpendicular to the lightcone
+  !#   (for {\normalfont \ttfamily X}$=2$ and 3). The {\normalfont \ttfamily redshift} parameters must list the redshifts of
+  !#   available outputs.
+  !#  </description>
+  !# </geometryLightcone>
+  type, extends(geometryLightconeClass) :: geometryLightconeSquare
+     !% A lightcone geometry class which assumes a square field of view.
+     private
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_
+     double precision                         , dimension(3,3)            :: unitVector
+     double precision                         , dimension(3  )            :: origin
+     double precision                         , dimension(:), allocatable :: outputTimes              , distanceMinimum        , &
+          &                                                                  distanceMaximum
+     double precision                                                     :: lengthReplication        , angularSize            , &
+          &                                                                  solidAngleSubtended
+     logical                                                              :: timeEvolvesAlongLightcone, positionGettableChecked, &
+          &                                                                  mergeTimeGettableChecked
+   contains
+     !@ <objectMethods>
+     !@   <object>geometryLightconeSquare</object>
+     !@   <objectMethod>
+     !@     <method>positionAtOutput</method>
+     !@     <type>\textcolor{red}{\textless double(3)\textgreater}</type>
+     !@     <arguments>\intzero\ output\argin, \textcolor{red}{\textless double(3)\textgreater} nodePosition\argin, \logicalzero\ [positionFound]\argout</arguments>
+     !@     <description>Returns the position of a point, {\normalfont \ttfamily nodePosition} (given in physical coordinates within the primary replicant volume), in comoving coordinates in the replicant volume in which it appears in the lightcone. If the point is \emph{not} in the lightcone the returned position is set to the largest possible negative number in each coordinate. If the optional {\normalfont \ttfamily positionFound} argument is given it will be set to true or false to indicate whether or not the point was found in the lightcone volume.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>replicants</method>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ output\argin, \textcolor{red}{\textless double(3)\textgreater} nodePosition\argin, \enumReplicantAction\ action\argin, \intzero\ [count]\argout, \logicalzero\ [isInLightcone],\intzero\ [instance]\argin, \textcolor{red}{\textless double(3)\textgreater} [position]\argout</arguments>
+     !@     <description>
+     !@      Performs various actions related to replicants of nodes appearing in lightcone output, depending on the value of the {\normalfont \ttfamily action} argument:
+     !@      \begin{description}
+     !@      \item[{\normalfont \ttfamily replicantActionCount}] returns in {\normalfont \ttfamily count} the number of replicants in which the node appears in the lightcone;
+     !@      \item[{\normalfont \ttfamily replicantActionAny}] returns true in {\normalfont \ttfamily isInLightcone} is the given position appears in \emph{any} replicant in the lightcone;
+     !@      \item[{\normalfont \ttfamily replicantActionInstance}] returns in {\normalfont \ttfamily position} the position in the {\normalfont \ttfamily instance}$^{\rm th}$ replicant in which this position appears in the lightcone.
+     !@      \end{description}
+     !@     </description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     final     ::                     squareDestructor
+     procedure :: isInLightcone    => squareIsInLightcone
+     procedure :: replicationCount => squareReplicationCount
+     procedure :: solidAngle       => squareSolidAngle
+     procedure :: position         => squarePosition
+     procedure :: velocity         => squareVelocity
+     procedure :: positionAtOutput => squarePositionAtOutput
+     procedure :: replicants       => squareReplicants
+  end type geometryLightconeSquare
+
+  interface geometryLightconeSquare
+     !% Constructors for the {\normalfont \ttfamily square} dark matter halo spin distribution class.
+     module procedure squareConstructorParameters
+     module procedure squareConstructorInternal
+  end interface geometryLightconeSquare
+
+  ! Enumeration describing actions for the replicant method.
+  !# <enumeration>
+  !#  <name>replicantAction</name>
+  !#  <description>Used to specify type of action required from the replicant method.</description>
+  !#  <visibility>private</visibility>
+  !#  <entry label="count"   />
+  !#  <entry label="any"     />
+  !#  <entry label="instance"/>
+  !# </enumeration>
+  
+contains
+
+  function squareConstructorParameters(parameters)
+    !% Constructor for the {\normalfont \ttfamily square} lightcone geometry distribution class which takes a parameter list as
+    !% input.
+    use Input_Parameters2
+    use Cosmology_Parameters
+    use Numerical_Constants_Astronomical
+    use Galacticus_Error
+    implicit none            
+    type            (geometryLightconeSquare )                            :: squareConstructorParameters
+    type            (inputParameters         ), intent(inout)             :: parameters
+    double precision                          , dimension(3,3)            :: unitVector
+    double precision                          , dimension(3)              :: origin
+    double precision                          , dimension(:), allocatable :: redshift                   , outputTimes
+    class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_
+    class           (cosmologyFunctionsClass ), pointer                   :: cosmologyFunctions_
+    double precision                                                      :: lengthReplication          , angularSize         , &
+         &                                                                   lengthUnitsInSI            , unitConversionLength
+    integer                                                               :: lengthHubbleExponent       , iOutput
+    logical                                                               :: timeEvolvesAlongLightcone
+    !# <inputParameterList label="allowedParameterNames" />
+
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)
+    if (parameters%isPresent('redshift')) then
+       allocate(redshift   (parameters%count('redshift')))
+       allocate(outputTimes(parameters%count('redshift')))
+    else
+       call Galacticus_Error_Report('squareConstructorParameters','list of output redshifts to use must be supplied')
+    end if
+    !# <inputParameter>
+    !#   <name>origin</name>
+    !#   <source>parameters</source>
+    !#   <variable>origin</variable>
+    !#   <description>The origin for the lightcone.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>unitVector1</name>
+    !#   <source>parameters</source>
+    !#   <variable>unitVector(:,1)</variable>
+    !#   <description>The first (radial) unit vector defining the lightcone geometry.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>unitVector2</name>
+    !#   <source>parameters</source>
+    !#   <variable>unitVector(:,2)</variable>
+    !#   <description>The second (angular) unit vector defining the lightcone geometry.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>unitVector3</name>
+    !#   <source>parameters</source>
+    !#   <variable>unitVector(:,3)</variable>
+    !#   <description>The third (angular) unit vector defining the lightcone geometry.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>lengthReplication</name>
+    !#   <source>parameters</source>
+    !#   <variable>lengthReplication</variable>
+    !#   <description>The length of the simulation box being used to construct the lightcone.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>lengthUnitsInSI</name>
+    !#   <source>parameters</source>
+    !#   <variable>lengthUnitsInSI</variable>
+    !#   <description>The units of the box length in the SI system.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>lengthHubbleExponent</name>
+    !#   <source>parameters</source>
+    !#   <variable>lengthHubbleExponent</variable>
+    !#   <description>The exponent of the ``little-$h$'' parameter used in the definition of the box length.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>angularSize</name>
+    !#   <source>parameters</source>
+    !#   <variable>angularSize</variable>
+    !#   <description>The angular size (i.e. side length) of the square field of view of the lightcone (in units of degrees).</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>redshift</name>
+    !#   <source>parameters</source>
+    !#   <variable>redshift</variable>
+    !#   <description>The redshifts of output times to be used in the lightcone.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>timeEvolvesAlongLightcone</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <variable>timeEvolvesAlongLightcone</variable>
+    !#   <description>If {\normalfont \ttfamily true}, cosmic time evolves along the lightcone as expected. Otherwise, time is fixed at the present epoch throughout the lightone. This allows construction of lightcones with no evolution.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    ! Convert redshifts to times.
+    do iOutput=1,size(redshift)
+       outputTimes(iOutput)=cosmologyFunctions_ %cosmicTime                 (                   &
+            &                cosmologyFunctions_%expansionFactorFromRedshift (                  &
+            &                                                                 redshift(iOutput) &
+            &                                                                )                  &
+            &                                                               )
+    end do
+    ! Convert angle to radians.
+    angularSize=angularSize*degreesToRadians
+    ! Convert lengths units internal units.
+    unitConversionLength=+lengthUnitsInSI                                                               &
+         &               *cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**lengthHubbleExponent &
+         &               /megaParsec
+    origin              =origin           *unitConversionLength
+    lengthReplication   =lengthReplication*unitConversionLength
+    ! Construct the object.
+    squareConstructorParameters=geometryLightconeSquare(origin,unitVector,angularSize,outputTimes,lengthReplication,timeEvolvesAlongLightcone,cosmologyFunctions_)
+    return
+  end function squareConstructorParameters
+
+  function squareConstructorInternal(origin,unitVector,angularSize,outputTimes,lengthReplication,timeEvolvesAlongLightcone,cosmologyFunctions_)
+    !% Internal constructor for the {\normalfont \ttfamily square} lightcone geometry distribution class.
+    use Sort
+    use Memory_Management
+    use Numerical_Constants_Math
+    use Trigonometric_Functions
+    use Vectors
+    use Galacticus_Error
+    use ISO_Varying_String
+    use String_Handling
+    implicit none
+    type            (geometryLightconeSquare)                                 :: squareConstructorInternal
+    double precision                          , dimension(3,3), intent(in   ) :: unitVector
+    double precision                          , dimension(3)  , intent(in   ) :: origin
+    double precision                          , dimension(:)  , intent(in   ) :: outputTimes
+    class           (cosmologyFunctionsClass ), target        , intent(in   ) :: cosmologyFunctions_
+    double precision                                          , intent(in   ) :: lengthReplication                 , angularSize
+    logical                                                   , intent(in   ) :: timeEvolvesAlongLightcone
+    double precision                          , parameter                     :: orthogonalityTolerance   =1.000d-6
+    double precision                          , parameter                     :: angularSizeSmall         =0.017d+0
+    integer                                                                   :: iOutput                           , i              , &
+         &                                                                       j
+    double precision                                                          :: timeMinimum                       , timeMaximum    , &
+         &                                                                       tanHalfAngle                      , outputTime     , &
+         &                                                                       distanceMinimum                   , distanceMaximum, &
+         &                                                                       magnitude
+    character       (len=12                 )                                 :: label
+    type            (varying_string         )                                 :: message
+    !# <constructorAssign variables="origin,unitVector,angularSize,outputTimes,lengthReplication,timeEvolvesAlongLightcone,*cosmologyFunctions_"/>
+
+    ! Ensures times are sorted.
+    call Sort_Do(squareConstructorInternal%outputTimes)
+    ! Find the minimum and maximum distance associated with each output time.
+    call allocateArray(squareConstructorInternal%distanceMinimum,shape(squareConstructorInternal%outputTimes))
+    call allocateArray(squareConstructorInternal%distanceMaximum,shape(squareConstructorInternal%outputTimes))
+    do iOutput=1,size(squareConstructorInternal%outputTimes)
+       if (iOutput == 1                                          ) then
+          timeMinimum=                                                      squareConstructorInternal%outputTimes(iOutput)
+       else
+          timeMinimum=sqrt(squareConstructorInternal%outputTimes(iOutput-1)*squareConstructorInternal%outputTimes(iOutput))
+       end if
+       if (iOutput == size(squareConstructorInternal%outputTimes)) then
+          timeMaximum=                                                      squareConstructorInternal%outputTimes(iOutput)          
+       else
+          timeMaximum=sqrt(squareConstructorInternal%outputTimes(iOutput+1)*squareConstructorInternal%outputTimes(iOutput))
+       end if
+       squareConstructorInternal%distanceMinimum(iOutput)=squareConstructorInternal%cosmologyFunctions_%distanceComoving(timeMaximum)
+       squareConstructorInternal%distanceMaximum(iOutput)=squareConstructorInternal%cosmologyFunctions_%distanceComoving(timeMinimum)
+    end do    
+    ! Normalize unit vectors.
+    do i=1,3
+       squareConstructorInternal%unitVector(:,i)=+                 squareConstructorInternal%unitVector(:,i)  &
+            &                                    /Vector_Magnitude(squareConstructorInternal%unitVector(:,i))
+    end do
+    ! Test for orthogonality.
+    do i=1,2
+       do j=i+1,3
+          magnitude=abs(Dot_Product(squareConstructorInternal%unitVector(:,i),squareConstructorInternal%unitVector(:,j)))
+          if (magnitude > orthogonalityTolerance) then
+             write (label,'(e12.6)') magnitude
+             message=var_str('unit vectors ')//i//' and '//j//' are not orthogonal (|êᵢ⨯êⱼ|='//label//')'
+             call Galacticus_Error_Report('squareConstructorInternal',message)
+          end if
+       end do
+    end do
+    ! If requested, reduce the list of lightcone output times to the final time, and have it incorporate the full radial length of
+    ! the lightcone. This allows the construction of lightcones with no evolution along the cone.
+    if (.not.timeEvolvesAlongLightcone) then
+       outputTime     =squareConstructorInternal%outputTimes    (size(squareConstructorInternal%outputTimes))
+       distanceMinimum=squareConstructorInternal%distanceMinimum(size(squareConstructorInternal%outputTimes))
+       distanceMaximum=squareConstructorInternal%distanceMaximum(                                         1 )
+       call deallocateArray(squareConstructorInternal%outputTimes        )
+       call deallocateArray(squareConstructorInternal%distanceMinimum    )
+       call deallocateArray(squareConstructorInternal%distanceMaximum    )
+       call   allocateArray(squareConstructorInternal%outputTimes    ,[1])
+       call   allocateArray(squareConstructorInternal%distanceMinimum,[1])
+       call   allocateArray(squareConstructorInternal%distanceMaximum,[1])
+       squareConstructorInternal%outputTimes    =outputTime
+       squareConstructorInternal%distanceMinimum=distanceMinimum
+       squareConstructorInternal%distanceMaximum=distanceMaximum
+    end if
+    ! Compute the solid angle of the lightcone.
+    if (angularSize < angularSizeSmall) then
+       squareConstructorInternal%solidAngleSubtended=angularSize**2
+    else
+       tanHalfAngle=tan(angularSize/2.0d0)
+       squareConstructorInternal%solidAngleSubtended=+2.0d0                                     &
+            &                                        *Pi                                        &
+            &                                        *(                                         &
+            &                                          +3.0d0                                   &
+            &                                          -cos(                                    &
+            &                                               atan(                               &
+            &                                                     sqrt(2.0d0)                   &
+            &                                                    *tanHalfAngle                  &
+            &                                                   )                               &
+            &                                              )                                    &
+            &                                         )                                         &
+            &                                        -8.0d0                                     &
+            &                                        *inverseCosineIntegral(                    &
+            &                                                               tanHalfAngle      , &
+            &                                                               atan(               &
+            &                                                                     sqrt(2.0d0)   &
+            &                                                                    *tanHalfAngle  &
+            &                                                                   )               &
+            &                                                              )
+    end if
+    ! Set property attribute check status.
+    squareConstructorInternal%positionGettableChecked =.false.
+    squareConstructorInternal%mergeTimeGettableChecked=.false.
+    return
+
+  contains
+
+    double precision function inverseCosineIntegral(a,x)
+      !% Integral of $\sin(x)*\cos^{-1}[a/tan(x)]$ evaluated using Wolfram Alpha.
+      implicit none
+      double precision, intent(in) :: a , x
+      double complex               :: aa, xx
+
+      aa                   =a
+      xx                   =x
+      inverseCosineIntegral=real(                                                                                     &
+           &                     +sin(xx)                                                                             &
+           &                     *(                                                                                   &
+           &                       +sqrt(                (aa**2+1.0d0)*cos(2.0d0*xx)+aa**2-1.0d0)                     &
+           &                       *sqrt(cosec(xx)**2*(-((aa**2+1.0d0)*cos(2.0d0*xx)+aa**2-1.0d0)))                   &
+           &                       *(                                                                                 &
+           &                         +log(aa*(sqrt(2.0d0)*sqrt(2.0d0*aa**2*cos(xx)**2+cos(2.0d0*xx)-1.0d0)+2.0d0*aa)) &
+           &                         -log(                sqrt(                       cos(2.0d0*xx)-1.0d0)          ) &
+           &                        )                                                                                 &
+           &                       -     cot  (xx)   *(+ (aa**2+1.0d0)*cos(2.0d0*xx)+aa**2-1.0d0)*acos(aa*cot(xx))    &
+           &                      )                                                                                   &
+           &                     /                    (+ (aa**2+1.0d0)*cos(2.0d0*xx)+aa**2-1.0d0)                     &
+           &                    )
+      return
+    end function inverseCosineIntegral
+
+  end function squareConstructorInternal
+
+  subroutine squareDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily square} lightcone geometry distribution class.
+    implicit none
+    type(geometryLightconeSquare), intent(inout) :: self
+    
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    return
+  end subroutine squareDestructor
+
+  function squareReplicationCount(self,node,output)
+    !% Determine the number of times {\normalfont \ttfamily node} appears in the lightcone.
+    use, intrinsic :: ISO_C_Binding
+    use               Galacticus_Nodes
+    implicit none
+    integer(c_size_t               )                :: squareReplicationCount
+    class  (geometryLightconeSquare), intent(inout) :: self
+    type   (treeNode               ), intent(inout) :: node
+    integer(c_size_t               ), intent(in   ) :: output
+    class  (nodeComponentPosition  ), pointer       :: position
+
+    position => node%position()
+    call self%replicants(output,position%position(),replicantActionCount,count=squareReplicationCount)
+    return
+  end function squareReplicationCount
+  
+  logical function squareIsInLightcone(self,node,atPresentEpoch,radiusBuffer)
+    !% Determine if the given {\normalfont \ttfamily node} lies within the lightcone.
+    use, intrinsic :: ISO_C_Binding
+    use               Arrays_Search
+    use               Galacticus_Error
+    use               ISO_Varying_String
+    use               String_Handling
+    use               Vectors
+    use               Numerical_Comparison
+    use               Memory_Management
+    implicit none
+    class           (geometryLightconeSquare), intent(inout)               :: self
+    type            (treeNode               ), intent(inout)               :: node
+    logical                                  , intent(in   ) , optional    :: atPresentEpoch
+    double precision                         , intent(in   ) , optional    :: radiusBuffer
+    class           (nodeComponentBasic     )                , pointer     :: basic               , basicParent
+    class           (nodeComponentPosition  )                , pointer     :: position
+    class           (nodeComponentSatellite )                , pointer     :: satellite
+    double precision                         , parameter                   :: timeTolerance=1.0d-3
+    double precision                         , dimension(3  )              :: nodePosition
+    double precision                         , dimension(:,:), allocatable :: nodePositionHistory
+    integer         (c_size_t               )                                 outputMinimum       , outputMaximum, &
+         &                                                                    output
+    double precision                                                       :: timeCurrent         , timeMerge    , &
+         &                                                                    timeFinal
+    character       (len=10                 )                              :: label
+    type            (varying_string         )                              :: message
+    !# <optionalArgument name="atPresentEpoch" defaultsTo=".true." />
+
+    ! Get the basic component.
+    basic => node%basic()
+    ! Check if this node exists prior to any lightcone time.
+    if (basic%time() < self%outputTimes(1)*(1.0d0-timeTolerance)) then
+       ! It does, so it will not be output.
+       squareIsInLightcone=.false.
+       return
+    end if
+    ! Check that we can get the position of a node.
+    if (.not.self%positionGettableChecked) then
+       self%positionGettableChecked=.true.
+       if (.not.defaultPositionComponent%positionIsGettable())                                                                          &
+            & call Galacticus_Error_Report                                                                                              &
+            &      (                                                                                                                    &
+            &       'squareIsInLightcone'                                                                                             , &
+            &       'testing if a node is in the lightcone requires that the position property of the position component be gettable'// &
+            &       Galacticus_Component_List(                                                                                          &
+            &                                 'position'                                                                             ,  &
+            &                                  defaultPositionComponent%positionAttributeMatch(requireGettable=.true.)                  &
+            &                                )                                                                                          &
+            &      )
+    end if
+    ! Determine to which output this galaxy corresponds.
+    outputMinimum=Search_Array_For_Closest(self%outputTimes,basic%time())
+    if (atPresentEpoch_) then
+       ! We want to check only the current time for this node. Check that the node exists precisely at a lightcone snapshot time,
+       ! and then set the maximum output to check to equal to minimum, such that we test only the current time.
+       if (.not.Values_Agree(self%outputTimes(outputMinimum),basic%time(),relTol=timeTolerance)) then
+          message=         'failed to find matching time in lightcone'                       //char(10)
+          write (label,'(f6.3)') basic%time()
+          message=message//'               node time = '//trim(label)//' Gyr'                //char(10)
+          write (label,'(f6.3)') self%outputTimes(outputMinimum)
+          message=message//'  closest lightcone time = '//trim(label)//' Gyr ['//outputMinimum//']'
+          call Galacticus_Error_Report('Galacticus_Merger_Tree_Output_Filter_Lightcone',message)
+       end if
+       outputMaximum=outputMinimum
+    else
+       ! We need to test if the node is in the lightcone at any point during its existance. Determine for how long this node will
+       ! persist. This requires that the merging time be defined. To perform the test also requires that a position exists.  Check
+       ! that we can get the time of merging and the position of a node.
+       if (.not.self%mergeTimeGettableChecked) then
+          self%mergeTimeGettableChecked=.true.
+          if (.not.defaultSatelliteComponent%timeOfMergingIsGettable())                                                                               &
+               & call Galacticus_Error_Report                                                                                                         &
+               &      (                                                                                                                               &
+               &       'squareIsInLightcone'                                                                                                        , &
+               &       'testing if a node is ever in the lightcone requires that the timeOfMerging property of the satellite component be gettable'// &
+               &       Galacticus_Component_List(                                                                                                     &
+               &                                 'satellite'                                                                                        , &
+               &                                  defaultSatelliteComponent%timeOfMergingAttributeMatch(requireGettable=.true.)                       &
+               &                                )                                                                                                     &
+               &      )
+          if (.not.defaultPositionComponent%positionIsGettable())                                                                                     &
+               & call Galacticus_Error_Report                                                                                                         &
+               &      (                                                                                                                               &
+               &       'squareIsInLightcone'                                                                                                        , &
+               &       'testing if a node is ever in the lightcone requires that the position property of the position component be gettable'      // &
+               &       Galacticus_Component_List(                                                                                                     &
+               &                                 'position'                                                                                         , &
+               &                                  defaultPositionComponent %positionAttributeMatch     (requireGettable=.true.)                       &
+               &                                )                                                                                                     &
+               &      )
+       end if
+       ! Ensure minimum output time is after when the node exists.
+       if (self%outputTimes(outputMinimum) < basic%time()) then
+          if (outputMinimum < size(self%outputTimes)) then
+             ! Increment the minimum output time.
+             outputMinimum=outputMinimum+1
+          else
+             ! No output time exists after our node, so it can not be in the lightcone.
+             squareIsInLightcone=.false.
+             return
+          end if
+       end if
+       ! Get node position component.
+       position => node%position()
+       ! Test for primary progenitor status.
+       if (node%isPrimaryProgenitor().or..not.associated(node%parent)) then
+          ! Node is the primary progenitor (or is the root node in its tree), so exists only until the time of its parent and has
+          ! fixed position.
+          if (associated(node%parent)) then
+             basicParent => node%parent%basic()
+             timeFinal   =  basicParent%time ()
+          else
+             timeFinal   =  basic      %time ()
+          end if
+          outputMaximum=Search_Array_For_Closest(self%outputTimes,timeFinal)
+          ! Ensure maximum output is before the final time.
+          if (self%outputTimes(outputMaximum) > timeFinal) then
+             if (outputMaximum > 1) then
+                outputMaximum=outputMaximum-1
+             else
+                ! The earliest output time is after the parent time, so the node can not be in the lightcone.
+                squareIsInLightcone=.false.
+                return
+             end if
+          end if
+          ! Construct array of positions at output times.
+          call allocateArray(nodePositionHistory,[3_c_size_t,outputMaximum-outputMinimum+1])
+          do output=1,outputMaximum-outputMinimum+1
+             nodePositionHistory(:,output)=position%position()
+          end do
+       else
+          ! Node is not the primary progenitor, so will become a satellite. We therefore need to know for how long it will persist
+          ! as a satellite and its position during that time.
+          satellite => node     %satellite    ()
+          timeMerge =  satellite%timeOfMerging()
+          if (timeMerge < basic%time()) call Galacticus_Error_Report('squareIsInLightcone','can not determine if satellite is in lightcone without knowledge of its time of merging')
+          outputMaximum=Search_Array_For_Closest(self%outputTimes,timeMerge)
+          ! Ensure maximum output is before the parent time.
+          if (self%outputTimes(outputMaximum) > timeMerge) then
+             if (outputMaximum > 1) then
+                outputMaximum=outputMaximum-1
+             else
+                ! The earliest output time is after the parent time, so the node can not be in the lightcone.
+                squareIsInLightcone=.false.
+                return
+             end if
+          end if
+          ! Construct array of positions at output times.
+          call allocateArray(nodePositionHistory,[3_c_size_t,outputMaximum-outputMinimum+1])
+          timeCurrent=basic%time()
+          do output=1,outputMaximum-outputMinimum+1
+             call basic%timeSet(self%outputTimes(output+outputMinimum-1))
+             nodePositionHistory(:,output)=position%position()
+          end do
+          call basic%timeSet(timeCurrent)
+       end if
+    end if
+    ! Iterate over possible output times.
+    do output=outputMinimum,outputMaximum
+       ! Get position of galaxy in comoving coordinates.
+       if (atPresentEpoch_) then
+          position     => node    %position()
+          nodePosition =  position%position()
+       else
+          nodePosition =  nodePositionHistory(:,output-outputMinimum+1)
+       end if
+       ! Find the position (if possible) of the node in the lightcone for this output.
+       call self%replicants(output,nodePosition,replicantActionAny,isInLightcone=squareIsInLightcone,radiusBuffer=radiusBuffer)
+       ! Return as soon as we find that the node is in the lightcone.
+       if (squareIsInLightcone) return
+    end do
+    return
+  end function squareIsInLightcone
+
+  double precision function squareSolidAngle(self)
+    !% Return the solid angle (in steradians) of a square lightcone.
+    implicit none
+    class(geometryLightconeSquare), intent(inout) :: self
+
+    squareSolidAngle=self%solidAngleSubtended
+    return
+  end function squareSolidAngle
+
+  function squarePosition(self,node,instance)
+    !% Return the position of the node in lightcone coordinates.
+    use, intrinsic :: ISO_C_Binding
+    use               ISO_Varying_String
+    use               Arrays_Search
+    use               String_Handling
+    use               Numerical_Comparison
+    use               Galacticus_Error
+    implicit none
+    double precision                         , dimension(3)  :: squarePosition
+    class           (geometryLightconeSquare), intent(inout) :: self
+    type            (treeNode               ), intent(inout) :: node
+    integer         (c_size_t               ), intent(in   ) :: instance
+    class           (nodeComponentBasic     ), pointer       :: basic
+    class           (nodeComponentPosition  ), pointer       :: position
+    double precision                         , parameter     :: timeTolerance =1.0d-3
+    integer         (c_size_t               )                :: output
+    character       (len=10                 )                :: label
+    type            (varying_string         )                :: message
+
+    ! Get the basic component.
+    basic    => node%basic   ()
+    position => node%position()
+    ! Determine to which output this node corresponds.
+    output=Search_Array_For_Closest(self%outputTimes,basic%time())
+    if (.not.Values_Agree(self%outputTimes(output),basic%time(),relTol=timeTolerance)) then
+       message=         'failed to find matching time in lightcone'                       //char(10)
+       write (label,'(f6.3)') basic%time()
+       message=message//'               node time = '//trim(label)//' Gyr'                //char(10)
+       write (label,'(f6.3)') self%outputTimes(output)
+       message=message//'  closest lightcone time = '//trim(label)//' Gyr ['//output//']'
+       call Galacticus_Error_Report('squarePosition',message)
+    end if
+    squarePosition=self%positionAtOutput(output,position%position(),instance)
+    return
+  end function squarePosition
+
+  function squareVelocity(self,node,instance)
+    !% Return the velocity of the node in lightcone coordinates.
+    implicit none
+    double precision                         , dimension(3)  :: squarevelocity
+    class           (geometryLightconeSquare), intent(inout) :: self
+    type            (treeNode               ), intent(inout) :: node
+    integer         (c_size_t               ), intent(in   ) :: instance
+    class           (nodeComponentPosition  ), pointer       :: position
+    integer                                                  :: i
+    !GCC$ attributes unused :: instance
+    
+    ! Get the position component.
+    position => node%position()
+    ! Compute velocity of galaxy in lightcone coordinate system.
+    do i=1,3
+       squareVelocity(i)=Dot_Product(position%velocity(),self%unitVector(:,i))
+    end do
+    return
+  end function squareVelocity
+
+  subroutine squareReplicants(self,output,nodePosition,action,count,isInLightcone,radiusBuffer,instance,position)
+    !% Compute quantities related to the number of replicants in which a node appears.
+    use, intrinsic :: ISO_C_Binding
+    use               Galacticus_Nodes
+    use               Vectors
+    use               Galacticus_Error
+    implicit none
+    class           (geometryLightconeSquare), intent(inout)                           :: self
+    integer         (c_size_t               ), intent(in   )                           :: output
+    double precision                         , intent(in   ), dimension(3  )           :: nodePosition
+    integer                                  , intent(in   )                           :: action
+    integer         (c_size_t               ), intent(  out)                , optional :: count
+    integer         (c_size_t               ), intent(in   )                , optional :: instance
+    logical                                  , intent(  out)                , optional :: isInLightcone
+    double precision                         , intent(in   )                , optional :: radiusBuffer
+    double precision                                        , dimension(3  ), optional :: position
+    double precision                                        , dimension(3  )           :: nodePositionComoving, nodePositionReplicant, &
+         &                                                                                origin
+    integer                                                 , dimension(3,2)           :: periodicRange
+    integer                                                                            :: i                   , j                    , &
+         &                                                                                k                   , iAxis                , &
+         &                                                                                replicantCount
+    logical                                                                            :: isInFieldOfView     , found
+    double precision                                                                   :: distanceRadial      , lengthOffsetOrigin   , &
+         &                                                                                distanceMinimum     , distanceMaximum
+    
+    ! Validate input.
+    select case (action)
+    case (replicantActionCount   )
+       if (.not.present(count        )) call Galacticus_Error_Report('squareReplicants',        'count argument not provided')
+    case (replicantActionAny     )
+       if (.not.present(isInLightcone)) call Galacticus_Error_Report('squareReplicants','isInLightcone argument not provided')
+    case (replicantActionInstance)
+       if (.not.present(instance     )) call Galacticus_Error_Report('squareReplicants',     'instance argument not provided')
+       if (.not.present(position     )) call Galacticus_Error_Report('squareReplicants',     'position argument not provided')
+    case default
+       call Galacticus_Error_Report('squareReplicants','unknown action')
+    end select
+    ! If a buffer radius (i.e. a point is to be considered to be inside the lightcone if it is within that distance from an edge
+    ! of the cone) is being specified then adjust origin. We shift the origin backward along the lightcone principal axis such
+    ! that the cone is effectively broadened by the desired radius. In the diagram below, the inner cone is the true lightcone
+    ! geometry, the outer cone is shifted back by a distance L, such that the edge of the outer cone is offset from the inner cone
+    ! by the desired buffer radius, R. From the geometry it is clear that L=R/sin(θ/2):
+    !
+    !  \ \         / /
+    !   \ \       /R/
+    !    \ \     /⤡/
+    !     \ \ ∡θ/ /      L=R/sin(θ/2)
+    !      \ \ / /
+    !       \ ↑L/
+    !        \↓/
+    !
+    ! The minimum and maximum distances for this section of the cone must then be offset by +L to counteract the shift in
+    ! origin. Finally, the minimum/maximum distance is decreased/increased by R such that the caps of the cone section are
+    ! buffered by a distance R also.
+    if (present(radiusBuffer).and.radiusBuffer > 0.0d0) then
+       lengthOffsetOrigin=+radiusBuffer               &
+            &             /sin(                       &
+            &                  +0.5d0                 &
+            &                  *self%angularSize      &
+            &                 )
+       origin            =+self%origin                &
+            &             -self%unitVector      (:,1) &
+            &             *lengthOffsetOrigin
+       distanceMinimum   =+self%distanceMinimum(output)+lengthOffsetOrigin-radiusBuffer
+       distanceMaximum   =+self%distanceMaximum(output)+lengthOffsetOrigin+radiusBuffer
+    else
+       origin            =+self%origin
+       distanceMinimum   =+self%distanceMinimum(output)
+       distanceMaximum   =+self%distanceMaximum(output)
+    end if    
+    ! Determine range of possible replicants of this galaxy which could be in the lightcone.
+    periodicRange(:,1)=floor  ((origin+self%distanceMinimum(output)*self%unitVector(:,1))/self%lengthReplication)-1
+    periodicRange(:,2)=ceiling((origin+self%distanceMaximum(output)*self%unitVector(:,1))/self%lengthReplication)+0
+    ! Get comoving position.
+    nodePositionComoving=nodePosition/self%cosmologyFunctions_%expansionFactor(self%outputTimes(output))
+    ! Iterate over all replicants.
+    found         =.false.
+    replicantCount=0
+    do i=periodicRange(1,1),periodicRange(1,2)
+       do j=periodicRange(2,1),periodicRange(2,2)
+          do k=periodicRange(3,1),periodicRange(3,2)
+             ! Compute position of node in lightcone coordinate system.
+             forall(iAxis=1:3)
+                nodePositionReplicant(iAxis)=Dot_Product(nodePositionComoving-self%origin+self%lengthReplication*dble([i,j,k]),self%unitVector(:,iAxis))
+             end forall
+             ! Test if node lies within the correct angular window.
+             isInFieldOfView=                                                                              &
+                  & abs(atan2(nodePositionReplicant(2),nodePositionReplicant(1))) < 0.5d0*self%angularsize &
+                  &  .and.                                                                                 &
+                  & abs(atan2(nodePositionReplicant(3),nodePositionReplicant(1))) < 0.5d0*self%angularsize
+             ! Test if node lies within appropriate radial range.
+             distanceRadial=Vector_Magnitude(nodePositionReplicant)
+             found  =      isInFieldOfView                          &
+                  &  .and. distanceRadial >  distanceMinimum        &
+                  &  .and. distanceRadial <= distanceMaximum
+             if (found) then
+                if (action == replicantActionAny) then
+                   ! If we are just testing for presence in the lightcone, then we can return right now.
+                   isInLightcone=.true.
+                   return
+                end if
+                replicantCount=replicantCount+1
+                if (action == replicantActionInstance .and. replicantCount == instance) then
+                   position=nodePositionReplicant
+                   return
+                end if
+             end if
+          end do
+       end do
+    end do
+    ! Set output.
+    select case (action)
+    case (replicantActionCount   )
+       count        =replicantCount
+    case (replicantActionAny     )
+       isInLightcone=.false.
+    case (replicantActionInstance)
+       call Galacticus_Error_Report('squareReplicants','instance not found')
+    case default
+       call Galacticus_Error_Report('squareReplicants','unknown action'    )
+    end select
+    return
+  end subroutine squareReplicants
+  
+  function squarePositionAtOutput(self,output,nodePosition,instance)
+    !% Return the position of the node in lightcone coordinates.
+    use, intrinsic :: ISO_C_Binding
+    implicit none
+    double precision                                        , dimension(3) :: squarePositionAtOutput
+    class           (geometryLightconeSquare), intent(inout)               :: self
+    integer         (c_size_t               ), intent(in   )               :: output
+    double precision                         , intent(in   ), dimension(3) :: nodePosition
+    integer         (c_size_t               ), intent(in   )               :: instance
+
+    call self%replicants(output,nodePosition,replicantActionInstance,instance=instance,position=squarePositionAtOutput)
+    return
+  end function squarePositionAtOutput

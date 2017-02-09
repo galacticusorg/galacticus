@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+!!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -46,14 +47,14 @@ module Dark_Matter_Profiles
   !#   <description>Returns the logarithmic slope of the density profile in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout), pointer :: node</argument>
-  !#   <argument>double precision          , intent(in   )          :: radius</argument>
+  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
+  !#   <argument>double precision          , intent(in   ) :: radius</argument>
   !#  </method>
   !#  <method name="radialMoment" >
   !#   <description>Returns the {\normalfont \ttfamily m}$^{\mathrm th}$ radial moment of the dark matter profile of {\normalfont \ttfamily node} optionally between the given {\normalfont \ttfamily radiusMinimum} and {\normalfont \ttfamily radiusMaximum} (given in units of Mpc).</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout), pointer  :: node</argument>
+  !#   <argument>type            (treeNode), intent(inout)           :: node</argument>
   !#   <argument>double precision          , intent(in   )           :: moment</argument>
   !#   <argument>double precision          , intent(in   ), optional :: radiusMinimum, radiusMaximum</argument>
   !#  </method>
@@ -61,7 +62,7 @@ module Dark_Matter_Profiles
   !#   <description>Return the total energy for the given {\normalfont \ttfamily node} in units of $M_\odot$ km$^2$ s$^{-1}$.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
   !#  </method>
   !#  <method name="energyGrowthRate" >
   !#   <description> Returns the rate of chance of the total energy of {\normalfont \ttfamily node} in units of $M_\odot$ km$^2$ s$^{-1}$ Gyr$^{-1}$.</description>
@@ -73,7 +74,7 @@ module Dark_Matter_Profiles
   !#   <description> Returns the relation between specific angular momentum and rotation velocity (assuming a rotation velocity that is constant in radius) for the given {\normalfont \ttfamily node}. Specifically, the normalization, $A$, returned is such that $V_{\mathrm rot} = A J/M$</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout), pointer :: node</argument>
+  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
   !#  </method>
   !#  <method name="radiusFromSpecificAngularMomentum" >
   !#   <description> Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} at which the specific angular momentum of a circular orbit equals {\normalfont \ttfamily specificAngularMomentum} (specified in units of km s$^{-1}$ Mpc.</description>
@@ -86,14 +87,14 @@ module Dark_Matter_Profiles
   !#   <description>Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout), pointer :: node</argument>
-  !#   <argument>double precision          , intent(in   )          :: radius</argument>
+  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
+  !#   <argument>double precision          , intent(in   ) :: radius</argument>
   !#  </method>
   !#  <method name="circularVelocityMaximum" >
   !#   <description>Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout), pointer :: node</argument>
+  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
   !#  </method>
   !#  <method name="potential" >
   !#   <description>Returns the gravitational potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
@@ -121,15 +122,15 @@ module Dark_Matter_Profiles
   !#   <description>Returns the freefall radius (in Mpc) corresponding to the given {\normalfont \ttfamily time} (in Gyr) in {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout), pointer :: node</argument>
-  !#   <argument>double precision          , intent(in   )          :: time</argument>
+  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
+  !#   <argument>double precision          , intent(in   ) :: time</argument>
   !#  </method>
   !#  <method name="freeFallRadiusIncreaseRate" >
   !#   <description>Returns the rate of increase of the freefall radius (in Mpc/Gyr) corresponding to the given {\normalfont \ttfamily time} (in Gyr) in {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout), pointer :: node</argument>
-  !#   <argument>double precision          , intent(in   )          :: time</argument>
+  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
+  !#   <argument>double precision          , intent(in   ) :: time</argument>
   !#  </method>
   include 'darkMatterProfile.type.inc'
   !# </include>

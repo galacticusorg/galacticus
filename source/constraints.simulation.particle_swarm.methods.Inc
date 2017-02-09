@@ -1,5 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
-!!    Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+!!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -19,7 +19,8 @@
 !% Defines methods for the ``particleSwarm'' simulator class.
 
 function simulatorParticleSwarmConstructor(parameterPriors,parameterMappings,modelLikelihood,simulationConvergence,simulationStoppingCriterion&
-     &,simulationState,simulationStateInitializor,stepsMaximum,logFileRoot,logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient,interactionRoot)
+     &,simulationState,simulationStateInitializor,stepsMaximum,logFileRoot,logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,&
+     &accelerationCoefficientGlobal,velocityCoefficient,interactionRoot,resume,logFilePreviousRoot)
   !% Constructor for ``particleSwarm'' simulator class.
   implicit none
   type            (simulatorParticleSwarm)                                              :: simulatorParticleSwarmConstructor
@@ -30,12 +31,14 @@ function simulatorParticleSwarmConstructor(parameterPriors,parameterMappings,mod
   class           (stoppingCriterion             ), intent(in   ), target               :: simulationStoppingCriterion
   class           (state                         ), intent(in   ), target               :: simulationState
   class           (stateInitializor              ), intent(in   ), target               :: simulationStateInitializor
-  character       (len=*                         ), intent(in   )                       :: logFileRoot, interactionRoot
+  character       (len=*                         ), intent(in   )                       :: logFileRoot                      , interactionRoot                , &
+       &                                                                                   logFilePreviousRoot
   integer                                         , intent(in   )                       :: stepsMaximum                     , reportCount                    , &
        &                                                                                   logFlushCount
   double precision                                , intent(in   )                       :: inertiaWeight                    , accelerationCoefficientPersonal, &
        &                                                                                   accelerationCoefficientGlobal    , velocityCoefficient
-
+  logical                                                                               :: resume
+  
   simulatorParticleSwarmConstructor%parameterCount                 =  size(parameterPriors)
   simulatorParticleSwarmConstructor%parameterPriors                => parameterPriors
   simulatorParticleSwarmConstructor%parameterMappings              => parameterMappings
@@ -52,6 +55,8 @@ function simulatorParticleSwarmConstructor(parameterPriors,parameterMappings,mod
   simulatorParticleSwarmConstructor%accelerationCoefficientGlobal  =  accelerationCoefficientGlobal
   simulatorParticleSwarmConstructor%velocityCoefficient            =  velocityCoefficient
   simulatorParticleSwarmConstructor%logFileRoot                    =  logFileRoot
+  simulatorParticleSwarmConstructor%logFilePreviousRoot            =  logFilePreviousRoot
+  simulatorParticleSwarmConstructor%resume                         =  resume
   simulatorParticleSwarmConstructor%interactionRoot                =  trim(interactionRoot)
   simulatorParticleSwarmConstructor%isInteractive                  =  trim(interactionRoot) /= "none"
   return
@@ -84,11 +89,12 @@ subroutine simulatorParticleSwarmSimulate(self)
        &                                                                                   logLikelihoodVariance          , logLikelihoodVarianceBestPersonal, &
        &                                                                                   logLikelihoodVarianceBestGlobal, logLikelihood
   type            (pseudoRandom          )                                              :: randomNumberGenerator
-  type            (varying_string        )                                              :: logFileName                    , message                     , &
+  type            (varying_string        )                                              :: logFileName                    , message                          , &
        &                                                                                   interactionFileName
   integer                                                                               :: logFileUnit                    , convergedAtStep                  , &
        &                                                                                   convergenceFileUnit            , i                                , &
-       &                                                                                   ioStatus                       , interactionFile
+       &                                                                                   ioStatus                       , interactionFile                  , &
+       &                                                                                   stateCount                     , mpiRank
   logical                                                                               :: isConverged                    , accept
   character       (len=32                )                                              :: label
 
@@ -100,7 +106,7 @@ subroutine simulatorParticleSwarmSimulate(self)
   logPosterior=logImpossible
   do while (logPosterior <= logImpossible)
      ! Initialize particle to some state vector.
-     call self%simulationStateInitializor%initialize(self%simulationState,self%parameterPriors,self%parametermappings,timeEvaluateInitial)
+     call self%simulationStateInitializor%initialize(self%simulationState,self%parameterPriors,self%parameterMappings,timeEvaluateInitial)
      ! Evaluate the posterior in the initial state.
      timeEvaluate        =-1.0
      timeEvaluatePrevious=real(timeEvaluateInitial)
@@ -143,13 +149,36 @@ subroutine simulatorParticleSwarmSimulate(self)
   stateBestGlobal                =reshape(mpiSelf%requestData([0],                 stateBestGlobal ),[self%parameterCount])
   logPosteriorBestGlobal         =sum    (mpiSelf%requestData([0],[         logPosteriorBestGlobal])                      )
   logLikelihoodVarianceBestGlobal=sum    (mpiSelf%requestData([0],[logLikelihoodVarianceBestGlobal])                      )
-  ! Set an initial velocity for the particle.
+  ! Compute maximum velocities.
   do i=1,self%parameterCount     
-     positionMinimum (i)=self%parameterPriors(i)%minimum()
-     positionMaximum (i)=self%parameterPriors(i)%maximum()
-     velocityMaximum (i)=self%velocityCoefficient*(positionMaximum(i)-positionMinimum(i))
-     velocityParticle(i)=(2.0d0*randomNumberGenerator%sample()-1.0d0)*velocityMaximum(i)
-  end do  
+     positionMinimum(i)=self%parameterPriors(i)%minimum()
+     positionMaximum(i)=self%parameterPriors(i)%maximum()
+     velocityMaximum(i)=self%velocityCoefficient*(positionMaximum(i)-positionMinimum(i))
+  end do
+  ! Set initial velocities.
+  if (self%resume) then
+     ! Simulation is being resumed - retrieve velocities from the previous state files.
+     logFileName=self%logFilePreviousRoot//'_'//mpiSelf%rankLabel()//'.log'
+     open(newunit=logFileUnit,file=char(logFileName),status='old',form='formatted')
+     ioStatus=0
+     do while (ioStatus == 0)
+        read (logFileUnit,*,iostat=ioStatus) stateCount          , &
+             &                               mpiRank             , &
+             &                               timeEvaluateInitial , &
+             &                               isConverged         , &
+             &                               logPosterior        , &
+             &                               logLikelihood       , &
+             &                               stateVector         , &
+             &                               stateVector
+        if (ioStatus == 0) velocityParticle=stateVector
+     end do
+     close(logFileUnit)
+  else
+     ! Simulation is not being resumed, so set an initial velocity for the particle.
+     do i=1,self%parameterCount     
+       velocityParticle(i)=(2.0d0*randomNumberGenerator%sample()-1.0d0)*velocityMaximum(i)
+     end do
+  end if
   ! Begin the simulation.
   logFileName=self%logFileRoot//'_'//mpiSelf%rankLabel()//'.log'
   open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted')
@@ -274,7 +303,8 @@ subroutine simulatorParticleSwarmSimulate(self)
           &                isConverged                    , &
           &                logPosterior                   , &
           &                logLikelihood                  , &
-          &                stateVector
+          &                stateVector                    , &
+          &                velocityParticle
      if (mod(self%simulationState%count(),self%logFlushCount) == 0) call flush(logFileUnit)
      ! Repeat.
      call mpiBarrier()

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -81,11 +81,11 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode
-    class           (nodeComponentDisk)               , pointer :: thisDisk
-    double precision                                            :: forceGravitational, forceTidal, massLossRateFractional, &
-         &                                                         radiusHalfMass    , tidalField, timeDynamical         , &
-         &                                                         velocityRotation
+    type            (treeNode         ), intent(inout) :: thisNode
+    class           (nodeComponentDisk), pointer       :: thisDisk
+    double precision                                   :: forceGravitational, forceTidal, massLossRateFractional, &
+         &                                                radiusHalfMass    , tidalField, timeDynamical         , &
+         &                                                velocityRotation
 
     ! Assume no mass loss rate due to tidal by default.
     Tidal_Stripping_Mass_Loss_Rate_Disk_Simple=0.0d0

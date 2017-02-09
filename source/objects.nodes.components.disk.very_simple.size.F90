@@ -1,5 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
-!!    Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+!!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -106,9 +106,9 @@ contains
     !% Determines whether the disk is physically plausible for radius solving tasks. Require that it have non-zero mass.
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode
-    logical                            , intent(inout)          :: galaxyIsPhysicallyPlausible
-    class           (nodeComponentDisk)               , pointer :: thisDisk
+    type            (treeNode         ), intent(inout) :: thisNode
+    logical                            , intent(inout) :: galaxyIsPhysicallyPlausible
+    class           (nodeComponentDisk), pointer       :: thisDisk
 
     ! Return immediately if our method is not selected.
     if (.not.defaultDiskComponent%verySimpleSizeIsActive()) return
@@ -130,7 +130,7 @@ contains
     !% Interface for the size solver algorithm.
     use Dark_Matter_Halo_Spins
     implicit none
-    type            (treeNode                                       ), intent(inout), pointer :: thisNode
+    type            (treeNode                                       ), intent(inout)          :: thisNode
     logical                                                          , intent(  out)          :: componentActive
     logical                                                          , intent(in   )          :: specificAngularMomentumRequired
     double precision                                                 , intent(  out)          :: specificAngularMomentum
@@ -161,8 +161,8 @@ contains
   double precision function Node_Component_Disk_Very_Simple_Size_Radius(thisNode)
     !% Return the radius of the disk used in structure solvers.
     implicit none
-    type (treeNode         ), intent(inout), pointer :: thisNode
-    class(nodeComponentDisk)               , pointer :: thisDisk
+    type (treeNode         ), intent(inout) :: thisNode
+    class(nodeComponentDisk), pointer       :: thisDisk
 
     thisDisk => thisNode%disk()
     Node_Component_Disk_Very_Simple_Size_Radius=thisDisk%radius()
@@ -172,9 +172,9 @@ contains
   subroutine Node_Component_Disk_Very_Simple_Size_Radius_Set(thisNode,radius)
     !% Set the radius of the disk used in structure solvers.
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode
-    double precision                   , intent(in   )          :: radius
-    class           (nodeComponentDisk)               , pointer :: thisDisk
+    type            (treeNode         ), intent(inout) :: thisNode
+    double precision                   , intent(in   ) :: radius
+    class           (nodeComponentDisk), pointer       :: thisDisk
 
     thisDisk => thisNode%disk()
     call thisDisk%radiusSet(radius)
@@ -184,8 +184,8 @@ contains
   double precision function Node_Component_Disk_Very_Simple_Size_Velocity(thisNode)
     !% Return the circular velocity of the disk.
     implicit none
-    type (treeNode         ), intent(inout), pointer :: thisNode
-    class(nodeComponentDisk)               , pointer :: thisDisk
+    type (treeNode         ), intent(inout) :: thisNode
+    class(nodeComponentDisk), pointer       :: thisDisk
 
     thisDisk => thisNode%disk()
     Node_Component_Disk_Very_Simple_Size_Velocity=thisDisk%velocity()
@@ -195,9 +195,9 @@ contains
   subroutine Node_Component_Disk_Very_Simple_Size_Velocity_Set(thisNode,velocity)
     !% Set the circular velocity of the disk.
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode
-    double precision                   , intent(in   )          :: velocity
-    class           (nodeComponentDisk)               , pointer :: thisDisk
+    type            (treeNode         ), intent(inout) :: thisNode
+    double precision                   , intent(in   ) :: velocity
+    class           (nodeComponentDisk), pointer       :: thisDisk
 
     thisDisk => thisNode%disk()
     call thisDisk%velocitySet(velocity)
