@@ -160,8 +160,8 @@ contains
     select type (thisAgeStatistics)
     class is (nodeComponentAgeStatisticsStandard)
        ! Find the node to merge with.
-       hostNode          => thisNode%mergesWith   ()
-       hostAgeStatistics => hostNode%ageStatistics()
+       hostNode          => thisNode%mergesWith   (                 )
+       hostAgeStatistics => hostNode%ageStatistics(autoCreate=.true.)
        ! Move the star formation rates from secondary to primary.
        select case (thisMergerStarsMoveTo)
        case (movesToDisk    )
