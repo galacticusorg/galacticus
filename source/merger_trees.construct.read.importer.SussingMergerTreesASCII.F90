@@ -374,10 +374,8 @@ contains
     ! Display counter.
     call Galacticus_Display_Indent ('Parsing "Sussing Merger Trees" format merger tree file',verbosityWorking)
     ! If a forest field is provided, scan it now to find the ranges to read from subsequent files.
-    forestHaloCountFirst        =0
-    forestHaloCountLast         =0
-    forestSnapshotHaloCountFirst=0
-    forestSnapshotHaloCountLast =0
+    forestHaloCountFirst=0
+    forestHaloCountLast =0
     if (mergerTreeImportSussingUseForestFile) then
        forestCount=Count_Lines_in_File(mergerTreeImportSussingForestFile,'#')
        call allocateArray(forestSnapshotHaloCount     ,                                                                        shape(self%snapshotFileName) )
@@ -385,9 +383,11 @@ contains
        call allocateArray(forestSnapshotHaloCountLast ,                                                                        shape(self%snapshotFileName) )
        call allocateArray(forestSnapshotHaloCounts    ,[mergerTreeImportSussingForestLast-mergerTreeImportSussingForestFirst+1,size (self%snapshotFileName)])
        call allocateArray(forestID                    ,[mergerTreeImportSussingForestLast-mergerTreeImportSussingForestFirst+1                             ])
-       j          =0
-       forestFirst=mergerTreeImportSussingForestFirst
-       forestLast =mergerTreeImportSussingForestLast
+       forestFirst                 =mergerTreeImportSussingForestFirst
+       forestLast                  =mergerTreeImportSussingForestLast
+       forestSnapshotHaloCountFirst=0
+       forestSnapshotHaloCountLast =0
+       j                           =0
        if (forestLast < 0) forestLast=forestCount
        open(newUnit=fileUnit,file=char(mergerTreeImportSussingForestFile),status='old',form='formatted')
        read (fileUnit,'(a)') line
