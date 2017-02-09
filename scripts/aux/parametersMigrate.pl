@@ -387,6 +387,10 @@ my @translations =
 		 "Kitayama-Suto1996"         => "kitayamaSuto1996"             ,
 		 "sphericalTopHat"           => "sphericalCollapseMatterLambda",
 		 "sphericalTopHatDarkEnergy" => "sphericalCollapseMatterDE"
+	     },
+	     mergerTreeImporterMethod        =>
+	     {
+	         "sussing"                   => "sussingASCII"
 	     }
 	 }
     }
@@ -401,7 +405,8 @@ my %knownDefaults =
      "cosmologyParametersMethod"            => "simple"       ,
      "darkMatterProfileConcentrationMethod" => "gao2008"      ,
      "powerSpectrumPrimordialMethod"        => "powerLaw"     ,
-     "haloMassFunctionMethod"               => "tinker2008"
+     "haloMassFunctionMethod"               => "tinker2008"   ,
+     "mergerTreeOutput"                     => "true"
   );
 
 # Parse the input file.
