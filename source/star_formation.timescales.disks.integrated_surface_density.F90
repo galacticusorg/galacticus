@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -73,15 +73,15 @@ contains
     use Numerical_Constants_Math
     use Numerical_Integration
     implicit none
-    type            (treeNode                  ), intent(inout), pointer :: thisNode
-    class           (nodeComponentDisk         )               , pointer :: thisDiskComponent
-    double precision                            , parameter              :: radiusInnerDimensionless=0.0d0, radiusOuterDimensionless=10.0d0
-    double precision                                                     :: diskScaleRadius               , gasMass                        , &
-         &                                                                  radiusInner                   , radiusOuter                    , &
-         &                                                                  starFormationRate
-    type            (fgsl_function             )                         :: integrandFunction
-    type            (fgsl_integration_workspace)                         :: integrationWorkspace
-    logical                                                              :: integrationReset
+    type            (treeNode                  ), intent(inout), target :: thisNode
+    class           (nodeComponentDisk         ), pointer               :: thisDiskComponent
+    double precision                            , parameter             :: radiusInnerDimensionless=0.0d0, radiusOuterDimensionless=10.0d0
+    double precision                                                    :: diskScaleRadius               , gasMass                        , &
+         &                                                                 radiusInner                   , radiusOuter                    , &
+         &                                                                 starFormationRate
+    type            (fgsl_function             )                        :: integrandFunction
+    type            (fgsl_integration_workspace)                        :: integrationWorkspace
+    logical                                                             :: integrationReset
     
     ! Get the disk properties.
     thisDiskComponent => thisNode%disk()
@@ -122,7 +122,7 @@ contains
     end if
     return
   end function Star_Formation_Timescale_Disk_Integrated_SD
-
+  
   double precision function Star_Formation_Rate_Integrand_Surface_Density(radius)
     !% Integrand function for the ``integrated surface density'' star formation rate calculation.
     use Star_Formation_Rate_Surface_Density_Disks
@@ -133,5 +133,5 @@ contains
     Star_Formation_Rate_Integrand_Surface_Density=radius*Star_Formation_Rate_Surface_Density_Disk(activeNode,radius)
     return
   end function Star_Formation_Rate_Integrand_Surface_Density
-
+  
 end module Star_Formation_Timescale_Disks_Integrated_SD

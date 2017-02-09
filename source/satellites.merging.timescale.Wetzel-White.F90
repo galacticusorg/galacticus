@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -51,14 +51,14 @@ contains
     use Cosmology_Functions
     use Kepler_Orbits
     implicit none
-    class           (satelliteMergingTimescalesWetzelWhite2010), intent(inout)          :: self
-    type            (treeNode                                 ), intent(inout), pointer :: thisNode
-    type            (keplerOrbit                              ), intent(inout)          :: thisOrbit
-    type            (treeNode                                 )               , pointer :: hostNode
-    class           (nodeComponentBasic                       )               , pointer :: hostBasic                , thisBasic
-    class           (cosmologyFunctionsClass                  )               , pointer :: cosmologyFunctionsDefault
-    double precision                                           , parameter              :: timeScaleNormalization   =0.2d0      !   C_dyn from Wetzel & White (2010).
-    double precision                                                                    :: massRatio
+    class           (satelliteMergingTimescalesWetzelWhite2010), intent(inout) :: self
+    type            (treeNode                                 ), intent(inout) :: thisNode
+    type            (keplerOrbit                              ), intent(inout) :: thisOrbit
+    type            (treeNode                                 ), pointer       :: hostNode
+    class           (nodeComponentBasic                       ), pointer       :: hostBasic                , thisBasic
+    class           (cosmologyFunctionsClass                  ), pointer       :: cosmologyFunctionsDefault
+    double precision                                           , parameter     :: timeScaleNormalization   =0.2d0      !   C_dyn from Wetzel & White (2010).
+    double precision                                                           :: massRatio
     !GCC$ attributes unused :: self, thisOrbit
     
     ! Get the default cosmology functions object.

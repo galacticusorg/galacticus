@@ -78,7 +78,7 @@ sub Attributes_Match {
 		]
 	};
 	# Create the function code.
-	$function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
+	$function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 requireSettableActual =.false.
 requireGettableActual =.false.
 requireEvolvableActual=.false.
@@ -87,7 +87,7 @@ if (present(requireGettable )) requireGettableActual =requireGettable
 if (present(requireEvolvable)) requireEvolvableActual=requireEvolvable
 CODE
 	# Iterate over component implementations.
-	foreach $code::member ( &List::ExtraUtils::hashList($code::property->{'members'}) ) {
+	foreach $code::member ( &List::ExtraUtils::hashList($code::property->{'members'}, keyAs => 'name' ) ) {
 	    @code::logic = ();
 	    foreach ( "get", "set", "rate" ) {
 		push(@code::logic,".not.require".($_ eq "rate" ? "Evolvable" : ucfirst($_)."table")."Actual" )

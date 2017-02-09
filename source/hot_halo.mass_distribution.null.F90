@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -49,9 +49,9 @@ contains
   double precision function nullDensityLogSlope(self,node,radius)
     !% Return the logarithmic slope of the density of the hot halo at the given {\normalfont \ttfamily radius}.
     implicit none
-    class           (hotHaloMassDistributionNull), intent(inout)          :: self
-    type            (treeNode                   ), intent(inout), pointer :: node
-    double precision                             , intent(in   )          :: radius
+    class           (hotHaloMassDistributionNull), intent(inout) :: self
+    type            (treeNode                   ), intent(inout) :: node
+    double precision                             , intent(in   ) :: radius
     !GCC$ attributes unused :: self, node, radius
 
     nullDensityLogSlope=0.0d0
@@ -73,9 +73,9 @@ contains
   double precision function nullRadialMoment(self,node,moment,radius)
     !% Return the density of the hot halo at the given {\normalfont \ttfamily radius}.
     implicit none
-    class           (hotHaloMassDistributionNull), intent(inout)          :: self
-    type            (treeNode                   ), intent(inout), pointer :: node
-    double precision                             , intent(in   )          :: moment, radius
+    class           (hotHaloMassDistributionNull), intent(inout) :: self
+    type            (treeNode                   ), intent(inout) :: node
+    double precision                             , intent(in   ) :: moment, radius
     !GCC$ attributes unused :: self, node, radius, moment
 
     nullRadialMoment=0.0d0
@@ -85,8 +85,8 @@ contains
   double precision function nullRotationNormalization(self,node)
     !% Returns the relation between specific angular momentum and rotation velocity (assuming a rotation velocity that is constant in radius) for {\normalfont \ttfamily node}. Specifically, the normalization, $A$, returned is such that $V_{\mathrm rot} = A J/M$.
     implicit none
-    class(hotHaloMassDistributionNull), intent(inout)          :: self
-    type (treeNode                   ), intent(inout), pointer :: node
+    class(hotHaloMassDistributionNull), intent(inout) :: self
+    type (treeNode                   ), intent(inout) :: node
     !GCC$ attributes unused :: self, node
 
     nullRotationNormalization=0.0d0

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+!!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -36,4 +37,9 @@ module Galactic_Filters
   !#  </method>
   !# </functionClass>
   
+  type, public :: filterList
+     class(galacticFilterClass), pointer :: filter_
+     type (filterList         ), pointer :: next    => null()
+  end type filterList
+
 end module Galactic_Filters

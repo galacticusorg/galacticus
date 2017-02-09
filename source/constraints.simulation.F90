@@ -1,5 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
-!!    Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+!!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -96,7 +96,8 @@ contains
          &                                                                                simulatorReportCountDefinition                     , simulatorTemperatureScaleDefinition              , &
          &                                                                                simulatorInteractionRootDefinition                 , simulatorInertiaWeightDefinition                 , &
          &                                                                                simulatorAccelerationCoefficientPersonalDefinition , simulatorAccelerationCoefficientGlobalDefinition , &
-         &                                                                                simulatorVelocityCoefficientDefinition
+         &                                                                                simulatorVelocityCoefficientDefinition             , simulatorResumeDefinition                        , &
+         &                                                                                simulatorLogFilePreviousDefinition
     integer                                                                            :: simulatorStepsMaximum                              , simulatorStateSwapCount                          , &
          &                                                                                simulatorAcceptanceAverageCount                    , simulatorUntemperedStepCount                     , &
          &                                                                                simulatorTemperingLevelCount                       , simulatorStepsPerLevel                           , &
@@ -104,8 +105,9 @@ contains
     double precision                                                                   :: simulatorTemperatureMaximum                        , simulatorTemperatureScale                        , &
          &                                                                                simulatorInertiaWeight                             , simulatorAccelerationCoefficientPersonal         , &
          &                                                                                simulatorAccelerationCoefficientGlobal             , simulatorVelocityCoefficient
-    type            (varying_string  )                                                 :: simulatorLogFile                                   , simulatorInteractionRoot
-    logical                                                                            :: simulatorSampleOutliers
+    type            (varying_string  )                                                 :: simulatorLogFile                                   , simulatorInteractionRoot                         , &
+         &                                                                                simulatorLogFilePrevious
+    logical                                                                            :: simulatorSampleOutliers                            , simulatorResume
 
     select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"type"))))
     case ("differentialEvolution")
@@ -307,6 +309,7 @@ contains
           simulatorAccelerationCoefficientGlobalDefinition   => XML_Get_First_Element_By_Tag_Name(definition,"accelerationCoefficientGlobal"  )
           simulatorVelocityCoefficientDefinition             => XML_Get_First_Element_By_Tag_Name(definition,"velocityCoefficient"            )
           simulatorLogFlushCountDefinition                   => XML_Get_First_Element_By_Tag_Name(definition,"logFlushCount"                  )
+          simulatorResumeDefinition                          => XML_Get_First_Element_By_Tag_Name(definition,"resume"                          )
           call extractDataContent(simulatorStepsMaximumDefinition                   ,simulatorStepsMaximum                   )
           call extractDataContent(simulatorReportCountDefinition                    ,simulatorReportCount                    )
           call extractDataContent(simulatorInertiaWeightDefinition                  ,simulatorInertiaWeight                  )
@@ -314,8 +317,15 @@ contains
           call extractDataContent(simulatorAccelerationCoefficientGlobalDefinition  ,simulatorAccelerationCoefficientGlobal  )
           call extractDataContent(simulatorVelocityCoefficientDefinition            ,simulatorVelocityCoefficient            )
           call extractDataContent(simulatorLogFlushCountDefinition                  ,simulatorLogFlushCount                  )
+          call extractDataContent(simulatorResumeDefinition                         ,simulatorResume                         )
           simulatorLogFile        =XML_Extract_Text(simulatorLogFileDefinition        )
           simulatorInteractionRoot=XML_Extract_Text(simulatorInteractionRootDefinition)
+          if (simulatorResume) then
+             simulatorLogFilePreviousDefinition => XML_Get_First_Element_By_Tag_Name(definition                        ,"logFilePreviousRoot")
+             simulatorLogFilePrevious            = XML_Extract_Text                 (simulatorLogFilePreviousDefinition                      )
+          else
+             simulatorLogFilePrevious=""
+          end if
           newSimulator=simulatorParticleSwarm(                                          &
                &                              parameterPriors                         , &
                &                              parameterMappings                       , &
@@ -332,7 +342,9 @@ contains
                &                              simulatorAccelerationCoefficientPersonal, &
                &                              simulatorAccelerationCoefficientGlobal  , &
                &                              simulatorVelocityCoefficient            , &
-               &                              char(simulatorInteractionRoot)            &
+               &                              char(simulatorInteractionRoot)          , &
+               &                              simulatorResume                         , &
+               &                              char(simulatorLogFilePrevious)            &
                &                             )
        end select
     case default

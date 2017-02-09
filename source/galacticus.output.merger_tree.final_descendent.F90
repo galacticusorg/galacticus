@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -89,7 +89,7 @@ contains
        &,integerPropertyUnitsSI,doubleProperty ,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of descendent properties to be written to the \glc\ output file.
     implicit none
-    type     (treeNode), intent(inout), pointer      :: thisNode
+    type     (treeNode), intent(inout)               :: thisNode
     double precision   , intent(in   )               :: time
     integer            , intent(inout)               :: integerProperty,doubleProperty
     character(len=*   ), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
@@ -126,9 +126,9 @@ contains
     !% Account for the number of descendent properties to be written to the \glc\ output file.
     use Galacticus_Nodes
     implicit none
-    type   (treeNode              ), intent(inout), pointer :: thisNode
-    double precision               , intent(in   )          :: time
-    integer                        , intent(inout)          :: integerPropertyCount,doublePropertyCount
+    type   (treeNode              ), intent(inout) :: thisNode
+    double precision               , intent(in   ) :: time
+    integer                        , intent(inout) :: integerPropertyCount,doublePropertyCount
     !GCC$ attributes unused :: thisNode, time, doublePropertyCount
     
     ! Initialize the module.
@@ -144,21 +144,23 @@ contains
   !#  <sortName>Galacticus_Output_Tree_Final_Descendents</sortName>
   !# </mergerTreeOutputTask>
   subroutine Galacticus_Output_Tree_Final_Descendents(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store descendent properties in the \glc\ output file buffers.
     use Galacticus_Nodes
     use Kind_Numbers
     use Galacticus_Output_Times
+    use Multi_Counters
     implicit none
-    double precision                        , intent(in   )          :: time
-    type            (treeNode              ), intent(inout), pointer :: thisNode
-    integer                                 , intent(inout)          :: integerProperty,integerBufferCount,doubleProperty&
-         &,doubleBufferCount
-    integer         (kind=kind_int8        ), intent(inout)          :: integerBuffer(:,:)
-    double precision                        , intent(inout)          :: doubleBuffer (:,:)
-    type            (treeNode              ),                pointer :: descendentNode
-    class           (nodeComponentSatellite),                pointer :: thisSatelliteComponent
-    !GCC$ attributes unused :: doubleProperty, doubleBufferCount, doubleBuffer, time
+    double precision                        , intent(in   )         :: time
+    type            (treeNode              ), intent(inout), target :: thisNode
+    integer                                 , intent(inout)         :: integerProperty,integerBufferCount,doubleProperty&
+         &,doubleBufferCount        
+    integer         (kind=kind_int8        ), intent(inout)         :: integerBuffer(:,:)
+    double precision                        , intent(inout)         :: doubleBuffer (:,:)
+    type            (multiCounter          ), intent(inout)         :: instance
+    type            (treeNode              ), pointer               :: descendentNode
+    class           (nodeComponentSatellite), pointer               :: thisSatelliteComponent
+    !GCC$ attributes unused :: doubleProperty, doubleBufferCount, doubleBuffer, time, instance
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Final_Descendents_Initialize()

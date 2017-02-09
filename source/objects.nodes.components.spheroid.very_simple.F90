@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+!!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -734,9 +735,9 @@ contains
     !% Determines whether the spheroid is physically plausible for radius solving tasks. Require that it have non-zero mass.
     use Dark_Matter_Halo_Scales
     implicit none
-    type   (treeNode             ), intent(inout), pointer :: thisNode
-    logical                       , intent(inout)          :: galaxyIsPhysicallyPlausible
-    class  (nodeComponentSpheroid)               , pointer :: thisSpheroid
+    type   (treeNode             ), intent(inout) :: thisNode
+    logical                       , intent(inout) :: galaxyIsPhysicallyPlausible
+    class  (nodeComponentSpheroid), pointer       :: thisSpheroid
 
     ! Return immediately if our method is not selected.
     if (.not.defaultSpheroidComponent%verySimpleIsActive()) return
@@ -758,7 +759,7 @@ contains
     !% Interface for the size solver algorithm.
     use Dark_Matter_Halo_Spins
     implicit none
-    type            (treeNode                                      ), intent(inout), pointer :: thisNode
+    type            (treeNode                                      ), intent(inout)          :: thisNode
     logical                                                         , intent(  out)          :: componentActive
     logical                                                         , intent(in   )          :: specificAngularMomentumRequired
     double precision                                                , intent(  out)          :: specificAngularMomentum
@@ -789,8 +790,8 @@ contains
   double precision function Node_Component_Spheroid_Very_Simple_Radius(thisNode)
     !% Return the radius of the spheroid used in structure solvers.
     implicit none
-    type (treeNode             ), intent(inout), pointer :: thisNode
-    class(nodeComponentSpheroid)               , pointer :: thisSpheroid
+    type (treeNode             ), intent(inout) :: thisNode
+    class(nodeComponentSpheroid), pointer       :: thisSpheroid
 
     thisSpheroid => thisNode%spheroid()
     Node_Component_Spheroid_Very_Simple_Radius=thisSpheroid%radius()
@@ -800,9 +801,9 @@ contains
   subroutine Node_Component_Spheroid_Very_Simple_Radius_Set(thisNode,radius)
     !% Set the radius of the spheroid used in structure solvers.
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode
-    double precision                   , intent(in   )          :: radius
-    class           (nodeComponentSpheroid)               , pointer :: thisSpheroid
+    type            (treeNode             ), intent(inout) :: thisNode
+    double precision                       , intent(in   ) :: radius
+    class           (nodeComponentSpheroid), pointer       :: thisSpheroid
 
     thisSpheroid => thisNode%spheroid()
     call thisSpheroid%radiusSet(radius)
@@ -812,8 +813,8 @@ contains
   double precision function Node_Component_Spheroid_Very_Simple_Velocity(thisNode)
     !% Return the circular velocity of the spheroid.
     implicit none
-    type (treeNode             ), intent(inout), pointer :: thisNode
-    class(nodeComponentSpheroid)               , pointer :: thisSpheroid
+    type (treeNode             ), intent(inout) :: thisNode
+    class(nodeComponentSpheroid), pointer       :: thisSpheroid
 
     thisSpheroid => thisNode%spheroid()
     Node_Component_Spheroid_Very_Simple_Velocity=thisSpheroid%velocity()
@@ -823,9 +824,9 @@ contains
   subroutine Node_Component_Spheroid_Very_Simple_Velocity_Set(thisNode,velocity)
     !% Set the circular velocity of the spheroid.
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: thisNode
-    double precision                       , intent(in   )          :: velocity
-    class           (nodeComponentSpheroid)               , pointer :: thisSpheroid
+    type            (treeNode             ), intent(inout) :: thisNode
+    double precision                       , intent(in   ) :: velocity
+    class           (nodeComponentSpheroid), pointer       :: thisSpheroid
 
     thisSpheroid => thisNode%spheroid()
     call thisSpheroid%velocitySet(velocity)

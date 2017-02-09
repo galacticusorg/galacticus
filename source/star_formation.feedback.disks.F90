@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -33,14 +33,7 @@ module Star_Formation_Feedback_Disks
   type     (varying_string                                    )          :: starFormationFeedbackDisksMethod
 
   ! Pointer to the function that actually does the calculation.
-  procedure(Star_Formation_Feedback_Disk_Outflow_Rate_Template), pointer :: Star_Formation_Feedback_Disk_Outflow_Rate_Get=>null()
-  interface Star_Formation_Feedback_Disk_Outflow_Rate_Template
-     double precision function Star_Formation_Feedback_Disk_Outflow_Rate_Template(thisNode,starFormationRate,energyInputRate)
-       import treeNode
-       type            (treeNode), intent(inout), pointer :: thisNode
-       double precision          , intent(in   )          :: energyInputRate, starFormationRate
-     end function Star_Formation_Feedback_Disk_Outflow_Rate_Template
-  end interface Star_Formation_Feedback_Disk_Outflow_Rate_Template
+  procedure(Star_Formation_Feedback_Disk_Outflow_Rate), pointer :: Star_Formation_Feedback_Disk_Outflow_Rate_Get=>null()
 
 contains
 
@@ -87,8 +80,8 @@ contains
   double precision function Star_Formation_Feedback_Disk_Outflow_Rate(thisNode,starFormationRate,energyInputRate)
     !% Returns the outflow rate due to star formation in the disk component of {\normalfont \ttfamily thisNode}.
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: energyInputRate, starFormationRate
+    type            (treeNode), intent(inout), target :: thisNode
+    double precision          , intent(in   )         :: energyInputRate, starFormationRate
 
     ! Initialize the module.
     call Star_Formation_Feedback_Disks_Initialize

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -320,9 +320,10 @@ contains
   end subroutine Kepler_Orbits_Destroy
 
   subroutine Kepler_Orbits_Output(self,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount&
-       &,doubleBuffer,time)
+       &,doubleBuffer,time,outputInstance)
     !% Store a {\normalfont \ttfamily keplerOrbit} object in the output buffers.
     use Kind_Numbers
+    use Multi_Counters
     implicit none
     class           (keplerOrbit   )                , intent(inout) :: self
     double precision                                , intent(in   ) :: time
@@ -330,7 +331,8 @@ contains
          &                                                             integerProperty
     integer         (kind=kind_int8), dimension(:,:), intent(inout) :: integerBuffer
     double precision                , dimension(:,:), intent(inout) :: doubleBuffer
-    !GCC$ attributes unused :: integerBufferCount, integerProperty, integerBuffer, time
+    type            (multiCounter  )                , intent(in   ) :: outputInstance
+    !GCC$ attributes unused :: integerBufferCount, integerProperty, integerBuffer, time, outputInstance
     
     if (self%isDefined()) then
        doubleBuffer(doubleBufferCount,doubleProperty+1)=self%energy         ()

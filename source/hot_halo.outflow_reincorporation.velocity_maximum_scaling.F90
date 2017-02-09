@@ -1,5 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
-!!    Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+!!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -191,13 +191,13 @@ contains
     use Cosmology_Functions
     use Dark_Matter_Profiles
     implicit none
-    class           (hotHaloOutflowReincorporationVelocityMaximumScaling), intent(inout)          :: self
-    type            (treeNode                                           ), intent(inout), pointer :: node
-    class           (cosmologyFunctionsClass                            )               , pointer :: cosmologyFunctions_
-    class           (darkMatterProfileClass                             )               , pointer :: darkMatterProfile_
-    class           (nodeComponentBasic                                 )               , pointer :: basic
-    class           (nodeComponentHotHalo                               )               , pointer :: hotHalo
-    double precision                                                                              :: timeScale
+    class           (hotHaloOutflowReincorporationVelocityMaximumScaling), intent(inout) :: self
+    type            (treeNode                                           ), intent(inout) :: node
+    class           (cosmologyFunctionsClass                            ), pointer       :: cosmologyFunctions_
+    class           (darkMatterProfileClass                             ), pointer       :: darkMatterProfile_
+    class           (nodeComponentBasic                                 ), pointer       :: basic
+    class           (nodeComponentHotHalo                               ), pointer       :: hotHalo
+    double precision                                                                     :: timeScale
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)

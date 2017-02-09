@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -166,10 +166,10 @@ contains
     !% Return the logarithmic slope of the density of the hot halo at the given {\normalfont \ttfamily radius}.
     use Coordinates
     implicit none
-    class           (hotHaloMassDistributionBetaProfile), intent(inout)          :: self
-    type            (treeNode                          ), intent(inout), pointer :: node
-    double precision                                    , intent(in   )          :: radius
-    type            (coordinateSpherical               )                         :: position
+    class           (hotHaloMassDistributionBetaProfile), intent(inout) :: self
+    type            (treeNode                          ), intent(inout) :: node
+    double precision                                    , intent(in   ) :: radius
+    type            (coordinateSpherical               )                :: position
 
     call self%initialize(node)
     position                      =[radius,0.0d0,0.0d0]
@@ -198,10 +198,10 @@ contains
   double precision function betaProfileRadialMoment(self,node,moment,radius)
     !% Return the radial moment of the density profile of the hot halo to the given {\normalfont \ttfamily radius}.
     implicit none
-    class           (hotHaloMassDistributionBetaProfile), intent(inout)          :: self
-    type            (treeNode                          ), intent(inout), pointer :: node
-    double precision                                    , intent(in   )          :: moment , radius
-    class           (nodeComponentHotHalo              )               , pointer :: hotHalo
+    class           (hotHaloMassDistributionBetaProfile), intent(inout) :: self
+    type            (treeNode                          ), intent(inout) :: node
+    double precision                                    , intent(in   ) :: moment , radius
+    class           (nodeComponentHotHalo              ), pointer       :: hotHalo
 
     call self%initialize(node)
     hotHalo                => node%hotHalo()
@@ -224,9 +224,9 @@ contains
     !% rotation velocity that is constant in radius) for {\normalfont \ttfamily node}. Specifically, the
     !% normalization, $A$, returned is such that $V_{\mathrm rot} = A J/M$.
     implicit none
-    class(hotHaloMassDistributionBetaProfile), intent(inout)          :: self
-    type (treeNode                          ), intent(inout), pointer :: node
-    class(nodeComponentHotHalo              )               , pointer :: hotHalo
+    class(hotHaloMassDistributionBetaProfile), intent(inout) :: self
+    type (treeNode                          ), intent(inout) :: node
+    class(nodeComponentHotHalo              ), pointer       :: hotHalo
 
     hotHalo                         => node%hotHalo()
     betaProfileRotationNormalization=                           &

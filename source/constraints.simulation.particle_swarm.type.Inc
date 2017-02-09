@@ -1,5 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
-!!    Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+!!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -23,8 +23,9 @@
           &                                                        reportCount                    , logFlushCount
      double precision                                           :: accelerationCoefficientPersonal, accelerationCoefficientGlobal, &
           &                                                        inertiaWeight                  , velocityCoefficient
-     logical                                                    :: isInteractive
-     type            (varying_string   )                        :: logFileRoot                    , interactionRoot
+     logical                                                    :: isInteractive                  , resume
+     type            (varying_string   )                        :: logFileRoot                    , interactionRoot              , &
+          &                                                        logFilePreviousRoot
      type            (prior            ), pointer, dimension(:) :: parameterPriors
      type            (mappingList      ), pointer, dimension(:) :: parameterMappings
      class           (likelihood       ), pointer               :: modelLikelihood

@@ -81,7 +81,9 @@
   <timestepSimpleRelative value="0.100" />
 
   <!-- Output options -->
-  <mergerTreeOutputReferences value="false"/>
+  <mergerTreeOutput>
+    <outputReferences value="false"/>
+  </mergerTreeOutput>
 
   <!-- Output file -->
   <galacticusOutputFileName value="testSuite/outputs/reproducibility/closedBox.hdf5"/>

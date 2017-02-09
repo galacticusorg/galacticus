@@ -200,6 +200,8 @@
   <timestepSimpleRelative value="0.1"/>
 
   <!-- Output options -->
-  <mergerTreeOutputReferences value="false"/>
+  <mergerTreeOutput>
+    <outputReferences value="false"/>
+  </mergerTreeOutput>
 
 </parameters>

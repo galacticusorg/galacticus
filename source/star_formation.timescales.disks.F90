@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -42,7 +42,7 @@ module Star_Formation_Timescales_Disks
   abstract interface
      double precision function Star_Formation_Timescale_Disk_FTemplate(thisNode)
        import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode
+       type(treeNode), intent(inout), target :: thisNode
      end function Star_Formation_Timescale_Disk_FTemplate
   end interface
   abstract interface
@@ -114,8 +114,8 @@ contains
   double precision function Star_Formation_Timescale_Disk(thisNode)
     !% Returns the timescale (in Gyr) for star formation in the disk component of {\normalfont \ttfamily thisNode}.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-    type(c_ptr   )                         :: cNode
+    type(treeNode), intent(inout), target :: thisNode
+    type(c_ptr   )                        :: cNode
 
     ! Initialize the module.
     call Star_Formation_Timescale_Disks_Initialize

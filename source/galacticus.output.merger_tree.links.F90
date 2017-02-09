@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -130,9 +130,10 @@ contains
   !#  <sortName>Galacticus_Output_Tree_Links</sortName>
   !# </mergerTreeOutputTask>
   subroutine Galacticus_Output_Tree_Links(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store link properties in the \glc\ output file buffers.
     use Kind_Numbers
+    use Multi_Counters
     implicit none
     double precision                , intent(in   )          :: time
     type            (treeNode      ), intent(inout), pointer :: thisNode
@@ -140,7 +141,8 @@ contains
          &                                                      integerProperty
     integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
     double precision                , intent(inout)          :: doubleBuffer     (:,:)
-    !GCC$ attributes unused :: doubleBufferCount, doubleProperty, doubleBuffer, time
+    type            (multiCounter  ), intent(inout)          :: instance
+    !GCC$ attributes unused :: doubleBufferCount, doubleProperty, doubleBuffer, time, instance
     
     integerProperty=integerProperty+1
     integerBuffer(integerBufferCount,integerProperty)=thisNode               %index()

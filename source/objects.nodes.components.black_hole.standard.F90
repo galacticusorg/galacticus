@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -623,7 +623,7 @@ contains
        ! If the separation is non-positive, assume that the black holes merge instantaneously.
        if (radiusInitial <= 0.0d0) then
           ! Get the central black hole of the host galaxy.
-          hostCentralBlackHoleComponent => hostNode%blackHole(instance=1)
+          hostCentralBlackHoleComponent => hostNode%blackHole(instance=1,autoCreate=.true.)
           ! Loop over all black holes in the satellite galaxy.
           do instance=1,thisNode%blackHoleCount()
              ! Get the black hole.
@@ -1139,10 +1139,11 @@ contains
   !#  <sortName>Node_Component_Black_Hole_Standard_Output</sortName>
   !# </mergerTreeOutputTask>
   subroutine Node_Component_Black_Hole_Standard_Output(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store black hole properties in the \glc\ output file buffers.
     use Kind_Numbers
     use Accretion_Disks
+    use Multi_Counters
     implicit none
     double precision                        , intent(in   )          :: time
     type            (treeNode              ), intent(inout), pointer :: thisNode
@@ -1150,9 +1151,10 @@ contains
          &                                                              integerProperty
     integer         (kind=kind_int8        ), intent(inout)          :: integerBuffer         (:,:)
     double precision                        , intent(inout)          :: doubleBuffer          (:,:)
+    type            (multiCounter          ), intent(inout)          :: instance
     class           (nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent
     double precision                                                 :: accretionRateHotHalo       , accretionRateSpheroid, restMassAccretionRate
-    !GCC$ attributes unused :: time
+    !GCC$ attributes unused :: time, instance
     
     if (Node_Component_Black_Hole_Standard_Matches(thisNode)) then
        ! Store the properties.

@@ -68,7 +68,9 @@
   <reionizationSuppressionOpticalDepth value="0.0883790456"/>
   <conditionalMassFunctionBehrooziAlphaSatellite value="0.981019943414"/>
   <modifiedPressSchechterGamma2 value="-0.01"/>
-  <mergerTreeOutputReferences value="false"/>
+  <mergerTreeOutput>
+    <outputReferences value="false"/>
+  </mergerTreeOutput>
   <imfSelectionMethod value="fixed"/>
   <conditionalMassFunctionBehrooziLog10M1 value="12.1440055417"/>
   <reionizationSuppressionVelocity value="35.0"/>

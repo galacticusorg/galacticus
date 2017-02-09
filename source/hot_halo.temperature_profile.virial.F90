@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -50,9 +50,9 @@ contains
     !% Return the logarithmic slope of the density profile in a {\normalfont \ttfamily virial} hot halo mass
     !% distribution.
     implicit none
-    class           (hotHaloTemperatureProfileVirial), intent(inout)          :: self
-    type            (treeNode                       ), intent(inout), pointer :: node
-    double precision                                 , intent(in   )          :: radius
+    class           (hotHaloTemperatureProfileVirial), intent(inout) :: self
+    type            (treeNode                       ), intent(inout) :: node
+    double precision                                 , intent(in   ) :: radius
     !GCC$ attributes unused :: self, node, radius
     
     virialTemperatureLogSlope=0.0d0

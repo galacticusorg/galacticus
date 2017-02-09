@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -296,13 +296,13 @@ contains
     !% Set the names of velocity dispersion properties to be written to the \glc\ output file.
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode)              , intent(inout), pointer :: thisNode
-    double precision                        , intent(in   )          :: time
-    integer                                 , intent(inout)          :: doubleProperty         , integerProperty
-    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
-         &                                                              integerPropertyComments, integerPropertyNames
-    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    integer                                                          :: i
+    type            (treeNode)              , intent(inout) :: thisNode
+    double precision                        , intent(in   ) :: time
+    integer                                 , intent(inout) :: doubleProperty         , integerProperty
+    character       (len=*   ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
+         &                                                     integerPropertyComments, integerPropertyNames
+    double precision          , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+    integer                                                 :: i
     !GCC$ attributes unused :: thisNode, time, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI
     
     ! Initialize the module.
@@ -335,9 +335,9 @@ contains
   subroutine Galacticus_Output_Tree_Velocity_Dispersion_Property_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of velocity dispersion properties to be written to the \glc\ output file.
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: time
-    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
+    type            (treeNode), intent(inout) :: thisNode
+    double precision          , intent(in   ) :: time
+    integer                   , intent(inout) :: doublePropertyCount, integerPropertyCount
     !GCC$ attributes unused :: thisNode, integerPropertyCount, time
     
     ! Initialize the module.
@@ -353,7 +353,7 @@ contains
   !#  <sortName>Galacticus_Output_Tree_Velocity_Dispersion</sortName>
   !# </mergerTreeOutputTask>
   subroutine Galacticus_Output_Tree_Velocity_Dispersion(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store velocity dispersion properties in the \glc\ output file buffers.
     use Kind_Numbers
     use Galactic_Structure_Velocity_Dispersions
@@ -362,28 +362,30 @@ contains
     use Numerical_Integration
     use Galactic_Structure_Options
     use Galactic_Structure_Enclosed_Masses
+    use Multi_Counters
     implicit none
-    double precision                                , intent(in   )          :: time
-    type            (treeNode                      ), intent(inout), pointer :: thisNode
-    integer                                         , intent(inout)          :: doubleBufferCount                , doubleProperty          , &
-         &                                                                      integerBufferCount               , integerProperty
-    integer         (kind=kind_int8                ), intent(inout)          :: integerBuffer        (:,:)
-    double precision                                , intent(inout)          :: doubleBuffer         (:,:)
-    class           (nodeComponentDisk             )               , pointer :: thisDisk
-    class           (nodeComponentSpheroid         )               , pointer :: thisSpheroid
-    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfile
-    class           (darkMatterHaloScaleClass      )               , pointer :: darkMatterHaloScale_
-    double precision                                , parameter              :: outerRadiusMultiplier     =10.0d0
-    type            (fgsl_function                 )                         :: integrandFunction
-    type            (fgsl_integration_workspace    )                         :: integrationWorkspace
-    integer                                                                  :: i
-    logical                                                                  :: scaleIsZero
-    double precision                                                         :: densityIntegrand                 , radius                  , &
-         &                                                                      radiusFromFraction               , radiusVirial            , &
-         &                                                                      radiusZero                       , velocityDensityIntegrand, &
-         &                                                                      numerator                        , denominator             , &
-         &                                                                      massDisk                         , massSpheroid
-    !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer
+    double precision                                , intent(in   )         :: time
+    type            (treeNode                      ), intent(inout), target :: thisNode
+    integer                                         , intent(inout)         :: doubleBufferCount                , doubleProperty          , &
+         &                                                                     integerBufferCount               , integerProperty
+    integer         (kind=kind_int8                ), intent(inout)         :: integerBuffer        (:,:)
+    double precision                                , intent(inout)         :: doubleBuffer         (:,:)
+    type            (multiCounter                  ), intent(inout)         :: instance
+    class           (nodeComponentDisk             ), pointer               :: thisDisk
+    class           (nodeComponentSpheroid         ), pointer               :: thisSpheroid
+    class           (nodeComponentDarkMatterProfile), pointer               :: thisDarkMatterProfile
+    class           (darkMatterHaloScaleClass      ), pointer               :: darkMatterHaloScale_
+    double precision                                , parameter             :: outerRadiusMultiplier     =10.0d0
+    type            (fgsl_function                 )                        :: integrandFunction
+    type            (fgsl_integration_workspace    )                        :: integrationWorkspace
+    integer                                                                 :: i
+    logical                                                                 :: scaleIsZero
+    double precision                                                        :: densityIntegrand                 , radius                  , &
+         &                                                                     radiusFromFraction               , radiusVirial            , &
+         &                                                                     radiusZero                       , velocityDensityIntegrand, &
+         &                                                                     numerator                        , denominator             , &
+         &                                                                     massDisk                         , massSpheroid
+    !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer, instance
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Velocity_Dispersion_Initialize

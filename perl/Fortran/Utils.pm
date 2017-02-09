@@ -678,7 +678,7 @@ sub Unformat_Variables {
 
 sub Extract_Variables {
     # Given the post-"::" section of a variable declaration line, return an array of all variable names.
-    my $variableList = shift;
+    my $variableList = shift;    
     return
 	unless ( defined($variableList) );
     my %options;
@@ -708,7 +708,14 @@ sub Extract_Variables {
 	}
     }
     # Remove text within matching () pairs.
+    my $iteration = 0;
     while ( $variableList =~ m/[\(\[]/ ) {
+	++$iteration;
+	if ( $iteration > 10000 ) {
+	    print "Fortran::Utils::Extract_Variables(): maximum iterations exceeded for input:\n";
+	    print " --> '".$variableList."'\n";
+	    exit 1;
+	}
 	(my $extracted, my $remainder, my $prefix) = extract_bracketed($variableList,"()[]","[\\sa-zA-Z0-9_,:=>\%\\+\\-\\*\\/\.]+");
 	if ( $options{'keepQualifiers'} == 0 ) {
 	    die('Extract_Variables: failed to find prefix in "'.$variableList.'"')

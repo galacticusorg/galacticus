@@ -279,8 +279,32 @@ sub Construct_Data {
 		rank        => $property->{'rank'      }                 ,
 		isEvolvable => $property->{'attributes'}->{'isEvolvable'}
 	    };
+	    # If this property is defined in a parent class, check that attributes match.
+	    $property->{'definedInParent'} = 0;
+	    my $parentImplementation       = exists($component->{'extends'}) ? $component->{'extends'}->{'implementation'} : undef();
+	    while ( defined($parentImplementation) ) {
+		# Check for existence of property in parent.
+		if ( exists($parentImplementation->{'properties'}->{'property'}->{$property->{'name'}}) ) {
+		    $property->{'definedInParent'} = 1;
+		    my $parentProperty = $parentImplementation->{'properties'}->{'property'}->{$property->{'name'}};
+		    foreach ( 'type', 'rank' ) {
+			die("Galacticus::Build::Components::Properties::Construct_Data: property '".$property->{'name'}."' in component '".$component->{'name'}."' of class '".$component->{'class'}."' lacks '".$_."' data characteristic which is present in parent implementation")
+			    unless ( exists($property->{$_}) );
+			die("Galacticus::Build::Components::Properties::Construct_Data: property '".$property->{'name'}."' in component '".$component->{'name'}."' of class '".$component->{'class'}."' does not match '".$_."' data characteristic in parent implementation")
+			    unless ( $property->{$_} eq $parentProperty->{$_} );
+		    }
+		    foreach ( keys(%{$parentProperty->{'attributes'}}) ) {
+			die("Galacticus::Build::Components::Properties::Construct_Data: property '".$property->{'name'}."' in component '".$component->{'name'}."' of class '".$component->{'class'}."' lacks '".$_."' attribute which is present in parent implementation")
+			    unless ( exists($property->{'attributes'}->{$_}) );
+			die("Galacticus::Build::Components::Properties::Construct_Data: property '".$property->{'name'}."' in component '".$component->{'name'}."' of class '".$component->{'class'}."' does not match '".$_."' attribute in parent implementation")
+			    unless ( $property->{'attributes'}->{$_} eq $parentProperty->{'attributes'}->{$_} );
+		    }
+		}
+		# Move to the next parent.
+		$parentImplementation = exists($parentImplementation->{'extends'}) ? $parentImplementation->{'extends'}->{'implementation'} : undef();	
+	    }
 	    # Unless this property is virtual, create a linked data object for it.
-	    unless ( $property->{'attributes'}->{'isVirtual'} ) {
+	    unless ( $property->{'attributes'}->{'isVirtual'} || $property->{'definedInParent'} ) {
 		# Write a message.
 		print "            --> '".$property->{'name'}."'\n";
 		# Create the linked data name.

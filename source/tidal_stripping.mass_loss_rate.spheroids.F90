@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -43,8 +43,8 @@ contains
     include 'tidal_stripping.mass_loss_rate.spheroids.modules.inc'
     !# </include>
     implicit none
-    type(treeNode      ), intent(inout), pointer :: thisNode
-    type(varying_string)                         :: tidalStrippingMassLossRateSpheroidsMethod
+    type(treeNode      ), intent(inout) :: thisNode
+    type(varying_string)                :: tidalStrippingMassLossRateSpheroidsMethod
 
     ! Initialize if necessary.
     if (.not.moduleInitialized) then

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -134,8 +134,8 @@ contains
     !% Returns the dynamical timescale for {\normalfont \ttfamily thisNode}.
     use Numerical_Constants_Astronomical
     implicit none
-    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)          :: self
-    type (treeNode                                          ), intent(inout), pointer :: thisNode
+    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
+    type (treeNode                                          ), intent(inout) :: thisNode
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= self%lastUniqueID) call self%calculationReset(thisNode)

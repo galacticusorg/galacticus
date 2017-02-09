@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -83,8 +83,8 @@ contains
     !% Returns true if this branch can accrete any baryons.
     use Galacticus_Nodes
     implicit none
-    class(accretionHaloNaozBarkana2007), intent(inout)          :: self
-    type (treeNode                    ), intent(inout), pointer :: node
+    class(accretionHaloNaozBarkana2007), intent(inout)         :: self
+    type (treeNode                    ), intent(inout), target :: node
     !GCC$ attributes unused :: self, node
     
     naozBarkana2007BranchHasBaryons=.true.
@@ -98,12 +98,12 @@ contains
     use Cosmology_Parameters
     use Galacticus_Error
     implicit none
-    class           (accretionHaloNaozBarkana2007 ), intent(inout)          :: self
-    type            (treeNode                     ), intent(inout), pointer :: node
-    class           (nodeComponentBasic           )               , pointer :: basic
-    class           (intergalacticMediumStateClass)               , pointer :: igmState_
-    class           (cosmologyParametersClass     )               , pointer :: cosmologyParameters_
-    double precision                                                        :: massFiltering       , accretionFraction
+    class           (accretionHaloNaozBarkana2007 ), intent(inout) :: self
+    type            (treeNode                     ), intent(inout) :: node
+    class           (nodeComponentBasic           ), pointer       :: basic
+    class           (intergalacticMediumStateClass), pointer       :: igmState_
+    class           (cosmologyParametersClass     ), pointer       :: cosmologyParameters_
+    double precision                                               :: massFiltering       , accretionFraction
     !GCC$ attributes unused :: self
     
     igmState_ => intergalacticMediumState()

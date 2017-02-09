@@ -19,7 +19,6 @@ my $tree = &Galacticus::Build::SourceTree::ParseFile($inputFileName);
 
 # Process the tree.
 &Galacticus::Build::SourceTree::ProcessTree($tree);
-
 # Serialize back to source code.
 open(my $outputFile,">",$outputFileName);
 print $outputFile &Galacticus::Build::SourceTree::Serialize($tree);

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -82,8 +82,8 @@ contains
     !% Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) in the disk component of
     !% {\normalfont \ttfamily thisNode} at the given {\normalfont \ttfamily radius}.
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: radius
+    type            (treeNode), intent(inout) :: thisNode
+    double precision          , intent(in   ) :: radius
 
     ! Initialize the module.
     call Star_Formation_Rate_Surface_Density_Disks_Initialize()

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -36,7 +36,7 @@ module Dark_Matter_Halo_Scales
   !#   <description>The characteristic dynamical timescale of a dark matter halo.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), pointer, intent(inout) :: thisNode</argument>
+  !#   <argument>type(treeNode), intent(inout) :: thisNode</argument>
   !#  </method>
   !#  <method name="virialVelocity" >
   !#   <description>The virial velocity of a dark matter halo</description>

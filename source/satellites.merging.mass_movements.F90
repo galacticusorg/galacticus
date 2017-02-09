@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -44,7 +44,7 @@ contains
     use Galacticus_Nodes
     use Satellite_Merging_Mass_Movements_Descriptors
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
 
     call Satellite_Merging_Mass_Movement(thisNode,thisMergerGasMovesTo,thisMergerStarsMoveTo,thisHostGasMovesTo,thisHostStarsMoveTo,thisMergerIsMajor)
     return
@@ -59,9 +59,9 @@ contains
     include 'satellites.merging.mass_movements.modules.inc'
     !# </include>
     implicit none
-    type   (treeNode), intent(inout), pointer :: thisNode
-    integer          , intent(  out)          :: gasMovesTo   , hostGasMovesTo, hostStarsMoveTo, starsMoveTo
-    logical          , intent(  out)          :: mergerIsMajor
+    type   (treeNode), intent(inout) :: thisNode
+    integer          , intent(  out) :: gasMovesTo   , hostGasMovesTo, hostStarsMoveTo, starsMoveTo
+    logical          , intent(  out) :: mergerIsMajor
 
     if (.not.satelliteMergingMassMovementsInitialized) then
        !$omp critical(satelliteMergingMassMovementsInitialize)

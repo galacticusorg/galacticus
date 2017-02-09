@@ -110,9 +110,10 @@ foreach my $directive ( keys(%{$includeDirectives}) ) {
     # Add on any other dependencies.
     push(@extraDependencies,keys(%{$nonIncludeDirectives->{$1}->{'dependency'}}))
 	if ( $directive =~ m/^([a-zA-Z0-9_]+)\.(moduleUse|functionCall)$/ &&  exists($nonIncludeDirectives->{$1}->{'dependency'}) );
-    # Output the Makefile rule. Add an explicit dependence on "hdf5FCInterop.dat" to ensure that HDF% type interoperability is
-    # determined before attempting to build the file.
-    print $directivesMakefile $fileName.": ".$ENV{'BUILDPATH'}."/".$directive.".xml ".join(" ",@extraDependencies)." \$(BUILDPATH)/hdf5FCInterop.dat\n";
+    # Output the Makefile rule. Add an explicit dependence on "hdf5FCInterop.dat" to ensure that HDF5 type interoperability is
+    # determined before attempting to build the file. Similarly add explicit dependence on "openMPCriticalSections.xml" so that
+    # OpenMP critical sections can be referenced by name.
+    print $directivesMakefile $fileName.": ".$ENV{'BUILDPATH'}."/".$directive.".xml ".join(" ",@extraDependencies)." \$(BUILDPATH)/hdf5FCInterop.dat \$(BUILDPATH)/openMPCriticalSections.xml\n";
     print $directivesMakefile "\t./scripts/build/buildCode.pl ".$installDirectoryName." ".$ENV{'BUILDPATH'}."/".$directive.".xml\n";
     print $directivesMakefile "\n";
     # Output the directive itself.

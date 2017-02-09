@@ -287,8 +287,8 @@ sub SubmitJobs {
 			open(my $trace,$sacct." -b -j ".$jobID." |");
 			while ( my $line = <$trace> ) {
 			    my @columns = split(" ",$line);
-			    if ( $columns[0] == $jobID ) {
-				if ( $columns[3] =~ m/(\d+):\d+/ ) {
+			    if ( $columns[0] eq $jobID ) {
+				if ( $columns[2] =~ m/(\d+):\d+/ ) {
 				    $exitStatus = $1;
 				}
 			    }

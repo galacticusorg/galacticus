@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -366,13 +366,13 @@ contains
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
     use Dark_Matter_Halo_Scales
     implicit none
-    class           (darkMatterProfileEinasto      ), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
-    double precision                                , intent(in   )          :: radius
-    class           (nodeComponentBasic            )               , pointer :: thisBasicComponent
-    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
-    double precision                                                         :: alpha                         , radiusOverScaleRadius      , &
-         &                                                                      scaleRadius
+    class           (darkMatterProfileEinasto      ), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , intent(in   ) :: radius
+    class           (nodeComponentBasic            ), pointer       :: thisBasicComponent
+    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
+    double precision                                                :: alpha                         , radiusOverScaleRadius      , &
+         &                                                             scaleRadius
     !GCC$ attributes unused :: self
     
     ! Get components.
@@ -396,7 +396,7 @@ contains
     use Gamma_Functions
     implicit none
     class           (darkMatterProfileEinasto     ), intent(inout)           :: self
-    type            (treeNode                     ), intent(inout), pointer  :: node
+    type            (treeNode                     ), intent(inout)           :: node
     double precision                               , intent(in   )           :: moment
     double precision                               , intent(in   ), optional :: radiusMinimum                 , radiusMaximum
     class           (nodeComponentBasic            )              , pointer  :: thisBasicComponent
@@ -481,9 +481,9 @@ contains
     !% units of Mpc).
     use Numerical_Constants_Physical
     implicit none
-    class           (darkMatterProfileEinasto), intent(inout)          :: self
-    type            (treeNode                ), intent(inout), pointer :: node
-    double precision                          , intent(in   )          :: radius
+    class           (darkMatterProfileEinasto), intent(inout) :: self
+    type            (treeNode                ), intent(inout) :: node
+    double precision                          , intent(in   ) :: radius
 
     if (radius > 0.0d0) then
        einastoCircularVelocity=sqrt(gravitationalConstantGalacticus&
@@ -499,13 +499,13 @@ contains
     use Numerical_Constants_Physical
     use Root_Finder
     implicit none
-    class           (darkMatterProfileEinasto      ), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
-    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfile
-    double precision                                , parameter              :: toleranceRelative    =1.0d-3
-    double precision                                                         :: alpha                       , radiusScale, &
-         &                                                                      radiusPeak
-    type            (rootFinder                    )                         :: finder
+    class           (darkMatterProfileEinasto      ), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfile
+    double precision                                , parameter     :: toleranceRelative    =1.0d-3
+    double precision                                                :: alpha                       , radiusScale, &
+         &                                                             radiusPeak
+    type            (rootFinder                    )                :: finder
     
     ! Get the shape parameter for this halo.
     thisDarkMatterProfile => node                 %darkMatterProfile(autoCreate=.true.)
@@ -749,11 +749,11 @@ contains
     use Gamma_Functions
     use Dark_Matter_Halo_Scales
     implicit none
-    class           (darkMatterProfileEinasto      ), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
-    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
-    double precision                                                         :: alpha                         , scaleRadius, &
-         &                                                                      virialRadiusOverScaleRadius
+    class           (darkMatterProfileEinasto      ), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
+    double precision                                                :: alpha                         , scaleRadius, &
+         &                                                             virialRadiusOverScaleRadius
 
     ! Get components.
     thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
@@ -781,15 +781,15 @@ contains
     use Dark_Matter_Halo_Scales
     use Numerical_Interpolation
     implicit none
-    class           (darkMatterProfileEinasto      ), intent(inout)           :: self
-    type            (treeNode                      ), intent(inout) , pointer :: node
-    class           (nodeComponentBasic            )                , pointer :: thisBasicComponent
-    class           (nodeComponentDarkMatterProfile)                , pointer :: thisDarkMatterProfileComponent
-    integer         (c_size_t                      ), dimension(0:1)          :: jAlpha
-    double precision                                , dimension(0:1)          :: hAlpha
-    integer                                                                   :: iAlpha
-    double precision                                                          :: alpha                         , scaleRadius, &
-         &                                                                       virialRadiusOverScaleRadius
+    class           (darkMatterProfileEinasto      ), intent(inout)  :: self
+    type            (treeNode                      ), intent(inout)  :: node
+    class           (nodeComponentBasic            ), pointer        :: thisBasicComponent
+    class           (nodeComponentDarkMatterProfile), pointer        :: thisDarkMatterProfileComponent
+    integer         (c_size_t                      ), dimension(0:1) :: jAlpha
+    double precision                                , dimension(0:1) :: hAlpha
+    integer                                                          :: iAlpha
+    double precision                                                 :: alpha                         , scaleRadius, &
+         &                                                              virialRadiusOverScaleRadius
 
     ! Get components.
     thisBasicComponent             => node%basic            (                 )
@@ -1305,17 +1305,17 @@ contains
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
     implicit none
-    class           (darkMatterProfileEinasto      )                , intent(inout)          :: self
-    type            (treeNode                      )                , intent(inout), pointer :: node
-    double precision                                                , intent(in   )          :: time
-    class           (nodeComponentBasic            )                               , pointer :: thisBasicComponent
-    class           (nodeComponentDarkMatterProfile)                               , pointer :: thisDarkMatterProfileComponent
-    integer         (c_size_t                      ), dimension(0:1)                         :: jAlpha
-    double precision                                , dimension(0:1)                         :: hAlpha
-    integer                                                                                  :: iAlpha
-    double precision                                                                         :: alpha                         , freefallTimeScaleFree, &
-         &                                                                                      radiusScale                   , timeScale            , &
-         &                                                                                      velocityScale
+    class           (darkMatterProfileEinasto      ), intent(inout)  :: self
+    type            (treeNode                      ), intent(inout)  :: node
+    double precision                                , intent(in   )  :: time
+    class           (nodeComponentBasic            ), pointer        :: thisBasicComponent
+    class           (nodeComponentDarkMatterProfile), pointer        :: thisDarkMatterProfileComponent
+    integer         (c_size_t                      ), dimension(0:1) :: jAlpha
+    double precision                                , dimension(0:1) :: hAlpha
+    integer                                                          :: iAlpha
+    double precision                                                 :: alpha                         , freefallTimeScaleFree, &
+         &                                                              radiusScale                   , timeScale            , &
+         &                                                              velocityScale
 
     ! For non-positive freefall times, return a zero freefall radius immediately.
     if (time <= 0.0d0) then
@@ -1371,17 +1371,17 @@ contains
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
     implicit none
-    class           (darkMatterProfileEinasto      )                , intent(inout)          :: self
-    type            (treeNode                      )                , intent(inout), pointer :: node
-    double precision                                                , intent(in   )          :: time
-    class           (nodeComponentBasic            )                               , pointer :: thisBasicComponent
-    class           (nodeComponentDarkMatterProfile)                               , pointer :: thisDarkMatterProfileComponent
-    integer         (c_size_t                      ), dimension(0:1)                         :: jAlpha
-    double precision                                , dimension(0:1)                         :: hAlpha
-    integer                                                                                  :: iAlpha
-    double precision                                                                         :: alpha                         , freefallTimeScaleFree, &
-         &                                                                                      radiusScale                   , timeScale            , &
-         &                                                                                      velocityScale
+    class           (darkMatterProfileEinasto      ), intent(inout)  :: self
+    type            (treeNode                      ), intent(inout)  :: node
+    double precision                                , intent(in   )  :: time
+    class           (nodeComponentBasic            ), pointer        :: thisBasicComponent
+    class           (nodeComponentDarkMatterProfile), pointer        :: thisDarkMatterProfileComponent
+    integer         (c_size_t                      ), dimension(0:1) :: jAlpha
+    double precision                                , dimension(0:1) :: hAlpha
+    integer                                                          :: iAlpha
+    double precision                                                 :: alpha                         , freefallTimeScaleFree, &
+         &                                                              radiusScale                   , timeScale            , &
+         &                                                              velocityScale
 
     ! For non-positive freefall times, return a zero freefall radius immediately.
     if (time <= 0.0d0) then

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -2234,7 +2234,9 @@ contains
                    call Time_Until_Merging_Subresolution(nodes(iNode),nodes,nodeList,iNode,timeSubhaloMerges)
                 end if
                 ! Set a merging time and/or orbit if this node will merge.
-                if (nodeWillMerge.and.mergerTreeReadPresetMergerTimes) then
+                if (mergerTreeReadPresetMergerTimes) then
+                   ! If the node does not merge set an infinite merging time.
+                   if (.not.nodeWillMerge) timeSubhaloMerges=timeUntilMergingInfinite
                    ! Store the time of merging for this node and all of its primary progenitors.
                    firstProgenitor => nodeList(iIsolatedNode)%node
                    do while (associated(firstProgenitor))

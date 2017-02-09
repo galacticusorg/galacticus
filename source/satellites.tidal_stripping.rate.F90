@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -87,7 +87,7 @@ contains
     !% Return the satellite mass loss rate due to tidal stripping for {\normalfont \ttfamily thisNode} (in units of $M_\odot$/Gyr).
     use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout), target :: thisNode
 
     ! Initialize the module.
     call Satellite_Tidal_Stripping_Initialize

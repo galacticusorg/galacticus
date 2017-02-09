@@ -13,9 +13,6 @@ use LaTeX::Encode;
 use Scalar::Util qw(reftype);
 use List::ExtraUtils;
 use Fortran::Utils;
-## AJB HACK use Galacticus::Build::SourceTree::Hooks;
-## AJB HACK use Galacticus::Build::SourceTree;
-## AJB HACK use Galacticus::Build::SourceTree::Parse::ModuleUses;
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::processHooks{'functionClass'} = \&Process_FunctionClass;
@@ -575,8 +572,10 @@ sub Process_FunctionClass {
 		$postContains->[0]->{'content'} .= "    implicit none\n";
 		$postContains->[0]->{'content'} .= "    type (treeNode), intent(inout) :: thisNode\n";
 		$postContains->[0]->{'content'} .= "    class(".$directive->{'name'}."Class), pointer :: default\n\n";
-		$postContains->[0]->{'content'} .= "    default => ".$directive->{'name'}."()\n";
-		$postContains->[0]->{'content'} .= "    call default%calculationReset(thisNode)\n";
+		$postContains->[0]->{'content'} .= "    if (associated(".$directive->{'name'}."Default)) then\n";
+		$postContains->[0]->{'content'} .= "      default => ".$directive->{'name'}."()\n";
+		$postContains->[0]->{'content'} .= "      call default%calculationReset(thisNode)\n";
+		$postContains->[0]->{'content'} .= "    end if\n";
 		$postContains->[0]->{'content'} .= "    return\n";
 		$postContains->[0]->{'content'} .= "  end subroutine ".$directive->{'name'}."DoCalculationReset\n\n";
 	    }
@@ -625,7 +624,7 @@ sub Process_FunctionClass {
 		    $category = "function";
 		    $type     = "";
 		    $self     = "      ".$method->{'type'}.", pointer :: ".$directive->{'name'}.ucfirst($methodName).$extension."\n";
-		} elsif ( $method->{'type'} =~ m/^type/ ) {
+		} elsif ( $method->{'type'} =~ m/^type/ || $method->{'type'} =~ m/,/ ) {
 		    $category = "function";
 		    $type     = "";
 		    $self     = "      ".$method->{'type'}." :: ".$directive->{'name'}.ucfirst($methodName).$extension."\n";
@@ -648,8 +647,8 @@ sub Process_FunctionClass {
 		    $postContains->[0]->{'content'} .= "      use Galacticus_Error\n";
 		}
 		$postContains->[0]->{'content'} .= "      implicit none\n";
-		$postContains->[0]->{'content'} .= $self;
 		$postContains->[0]->{'content'} .= $argumentCode;
+		$postContains->[0]->{'content'} .= $self;
 		if ( exists($method->{'code'}) ) {
 		    my $code = "      ".$method->{'code'};
 		    $code =~ s/\n/\n      /g;

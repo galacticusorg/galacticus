@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -81,7 +81,7 @@ contains
   subroutine Cooling_Radius_Isothermal_Reset(thisNode)
     !% Reset the cooling radius calculation.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout) :: thisNode
 
     coolingRadiusComputed          =.false.
     coolingRadiusGrowthRateComputed=.false.
@@ -97,10 +97,10 @@ contains
     use Dark_Matter_Halo_Scales
     use Cooling_Times_Available
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                                   :: coolingRadius                   , coolingTimeAvailable, &
-         &                                                coolingTimeAvailableIncreaseRate, virialRadius
+    type            (treeNode                ), intent(inout) :: thisNode
+    class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
+    double precision                                          :: coolingRadius                   , coolingTimeAvailable, &
+         &                                                       coolingTimeAvailableIncreaseRate, virialRadius
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Cooling_Radius_Isothermal_Reset(thisNode)
@@ -146,14 +146,14 @@ contains
     use Hot_Halo_Mass_Distributions
     use Hot_Halo_Temperature_Profiles
     implicit none
-    type            (treeNode                      ), intent(inout), pointer :: thisNode
-    class           (nodeComponentHotHalo          )               , pointer :: thisHotHaloComponent
-    class           (hotHaloMassDistributionClass  )               , pointer :: defaultHotHaloMassDistribution
-    class           (darkMatterHaloScaleClass      )               , pointer :: darkMatterHaloScale_
-    class           (hotHaloTemperatureProfileClass)               , pointer :: hotHaloTemperatureProfile_
-    double precision                                                         :: coolingTime                   , coolingTimeAvailable   , &
-         &                                                                      density                       , massToDensityConversion, &
-         &                                                                      temperature                   , virialRadius
+    type            (treeNode                      ), intent(inout), target :: thisNode
+    class           (nodeComponentHotHalo          ), pointer               :: thisHotHaloComponent
+    class           (hotHaloMassDistributionClass  ), pointer               :: defaultHotHaloMassDistribution
+    class           (darkMatterHaloScaleClass      ), pointer               :: darkMatterHaloScale_
+    class           (hotHaloTemperatureProfileClass), pointer               :: hotHaloTemperatureProfile_
+    double precision                                                        :: coolingTime                   , coolingTimeAvailable   , &
+         &                                                                     density                       , massToDensityConversion, &
+         &                                                                     temperature                   , virialRadius
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Cooling_Radius_Isothermal_Reset(thisNode)

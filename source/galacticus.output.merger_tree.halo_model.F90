@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -120,12 +120,12 @@ contains
     !% Set the names of halo model properties to be written to the \glc\ output file.
     use Galacticus_Nodes
     implicit none
-    type            (treeNode)              , intent(inout), pointer :: thisNode
-    double precision                        , intent(in   )          :: time
-    integer                                 , intent(inout)          :: doubleProperty         , integerProperty
-    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
-         &                                                              integerPropertyComments, integerPropertyNames
-    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+    type            (treeNode)              , intent(inout) :: thisNode
+    double precision                        , intent(in   ) :: time
+    integer                                 , intent(inout) :: doubleProperty         , integerProperty
+    character       (len=*   ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
+         &                                                     integerPropertyComments, integerPropertyNames
+    double precision          , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     !GCC$ attributes unused :: thisNode, time
     
     ! Initialize the module.
@@ -169,9 +169,9 @@ contains
     !% Account for the number of halo model properties to be written to the \glc\ output file.
     use Galacticus_Nodes
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: time
-    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
+    type            (treeNode), intent(inout) :: thisNode
+    double precision          , intent(in   ) :: time
+    integer                   , intent(inout) :: doublePropertyCount, integerPropertyCount
     !GCC$ attributes unused :: thisNode, time
     
     ! Initialize the module.
@@ -190,20 +190,22 @@ contains
   !#  <sortName>Galacticus_Output_Halo_Model</sortName>
   !# </mergerTreeOutputTask>
   subroutine Galacticus_Output_Halo_Model(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store halo model properties in the \glc\ output file buffers.
     use Galacticus_Nodes
     use Dark_Matter_Halo_Biases
     use Kind_Numbers
+    use Multi_Counters
     implicit none
-    double precision                , intent(in   )          :: time
-    type            (treeNode      ), intent(inout), pointer :: thisNode
-    integer                         , intent(inout)          :: doubleBufferCount     , doubleProperty, integerBufferCount, &
-         &                                                      integerProperty
-    integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
-    double precision                , intent(inout)          :: doubleBuffer     (:,:)
-    type            (treeNode      )               , pointer :: isolatedNode
-    !GCC$ attributes unused :: time
+    double precision                , intent(in   )         :: time
+    type            (treeNode      ), intent(inout), target :: thisNode
+    integer                         , intent(inout)         :: doubleBufferCount     , doubleProperty, integerBufferCount, &
+         &                                                     integerProperty
+    integer         (kind=kind_int8), intent(inout)         :: integerBuffer    (:,:)
+    double precision                , intent(inout)         :: doubleBuffer     (:,:)
+    type            (multiCounter  ), intent(inout)         :: instance
+    type            (treeNode      ), pointer               :: isolatedNode
+    !GCC$ attributes unused :: time, instance
     
     ! Initialize the module.
     call Galacticus_Output_Halo_Model_Initialize

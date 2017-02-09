@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -49,10 +49,10 @@ contains
     use Galacticus_Nodes
     use Kepler_Orbits
     implicit none
-    class           (satelliteMergingTimescalesInfinite), intent(inout)          :: self
-    type            (treeNode                          ), intent(inout), pointer :: thisNode
-    type            (keplerOrbit                       ), intent(inout)          :: thisOrbit
-    double precision                                    , parameter              :: timeInfinite=1.0d30 ! Effective infinite time.
+    class           (satelliteMergingTimescalesInfinite), intent(inout) :: self
+    type            (treeNode                          ), intent(inout) :: thisNode
+    type            (keplerOrbit                       ), intent(inout) :: thisOrbit
+    double precision                                    , parameter     :: timeInfinite=1.0d30 ! Effective infinite time.
     !GCC$ attributes unused :: self, thisNode, thisOrbit
     
     infiniteTimeUntilMerging=timeInfinite

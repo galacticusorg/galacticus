@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -68,9 +68,9 @@ contains
     !% Return the specific angular momentum of cooling gas in the mean model.
     use Galacticus_Nodes
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode
-    double precision                      , intent(in   )          :: radius
-    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
+    type            (treeNode            ), intent(inout) :: thisNode
+    double precision                      , intent(in   ) :: radius
+    class           (nodeComponentHotHalo), pointer       :: thisHotHaloComponent
     !GCC$ attributes unused :: radius
     
     ! Compute mean specific angular momentum from the hot halo component.

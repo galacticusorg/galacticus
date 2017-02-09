@@ -1,5 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
-!!    Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+!!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -428,9 +428,9 @@ contains
     !% units of Mpc).
     use Numerical_Constants_Physical
     implicit none
-    class           (darkMatterProfileBurkert), intent(inout)          :: self
-    type            (treeNode                ), intent(inout), pointer :: node
-    double precision                          , intent(in   )          :: radius
+    class           (darkMatterProfileBurkert), intent(inout) :: self
+    type            (treeNode                ), intent(inout) :: node
+    double precision                          , intent(in   ) :: radius
 
     if (radius > 0.0d0) then
        burkertCircularVelocity=sqrt(gravitationalConstantGalacticus*self%enclosedMass(node,radius)/radius)
@@ -444,12 +444,12 @@ contains
     !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
     use Numerical_Constants_Physical
     implicit none
-    class           (darkMatterProfileBurkert      ), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
+    class           (darkMatterProfileBurkert      ), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
     ! The radius (in units of the scale radius) at which the rotation speed peaks in a Burkert halo.
-    double precision                                , parameter              :: radiusMaximum    =3.2446257246042642d0
-    class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
-    double precision                                                         :: scaleRadius
+    double precision                                , parameter    :: radiusMaximum    =3.2446257246042642d0
+    class           (nodeComponentDarkMatterProfile), pointer      :: darkMatterProfile
+    double precision                                               :: scaleRadius
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
@@ -516,10 +516,10 @@ contains
     !% Return the normalization of the rotation velocity vs. specific angular momentum relation.
     use Dark_Matter_Halo_Scales
     implicit none
-    class           (darkMatterProfileBurkert      ), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
-    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
-    double precision                                                         :: concentration
+    class           (darkMatterProfileBurkert      ), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
+    double precision                                                :: concentration
 
     ! Get components.
     thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
@@ -540,11 +540,11 @@ contains
     !% Return the energy of an Burkert halo density profile.
     use Dark_Matter_Halo_Scales
     implicit none
-    class           (darkMatterProfileBurkert      ), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
-    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
-    class           (nodeComponentBasic            )               , pointer :: thisBasicComponent
-    double precision                                                         :: concentration
+    class           (darkMatterProfileBurkert      ), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
+    class           (nodeComponentBasic            ), pointer       :: thisBasicComponent
+    double precision                                                :: concentration
 
     ! Get components.
     thisBasicComponent             => node%basic            (                 )
@@ -831,13 +831,13 @@ contains
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Astronomical
     implicit none
-    class           (darkMatterProfileBurkert      ), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
-    double precision                                , intent(in   )          :: time
-    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
-    double precision                                                         :: concentration                 , freefallTimeScaleFree, &
-         &                                                                      radiusScale                   , timeScale            , &
-         &                                                                      velocityScale
+    class           (darkMatterProfileBurkert      ), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , intent(in   ) :: time
+    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
+    double precision                                                :: concentration                 , freefallTimeScaleFree, &
+         &                                                             radiusScale                   , timeScale            , &
+         &                                                             velocityScale
 
     ! For non-positive freefall times, return a zero freefall radius immediately.
     if (time <= 0.0d0) then
@@ -878,13 +878,13 @@ contains
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Astronomical
     implicit none
-    class           (darkMatterProfileBurkert      ), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
-    double precision                                , intent(in   )          :: time
-    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
-    double precision                                                         :: concentration                 , freefallTimeScaleFree, &
-         &                                                                      radiusScale                   , timeScale            , &
-         &                                                                      velocityScale
+    class           (darkMatterProfileBurkert      ), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , intent(in   ) :: time
+    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
+    double precision                                                :: concentration                 , freefallTimeScaleFree, &
+         &                                                             radiusScale                   , timeScale            , &
+         &                                                             velocityScale
 
     ! For non-positive freefall times, return the limiting value for small radii.
     if (time <= 0.0d0) then

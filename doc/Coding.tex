@@ -180,7 +180,7 @@ A common requirement in object constructors is to assign the values of arguments
     return
   end function stellarMassConstructorInternal
 \end{lstlisting}
-will cause the value of the {\normalfont \ttfamily massThreshold} argument to {\normalfont \ttfamily stellarMassConstructorInternal\%massThreshold}.
+will cause the value of the {\normalfont \ttfamily massThreshold} argument to {\normalfont \ttfamily stellarMassConstructorInternal\%massThreshold}. If an argument name is prefixed with {\normalfont \ttfamily \textasteriskcentered} in the variables list, pointer assignment is used instead of standard assignment.
 
 \subsection{Optional Arguments}
 
@@ -672,6 +672,18 @@ In very exceptional circumstances it is necessary to subvert the module hierarch
   !# </functionGlobal>
 \end{verbatim}
 Here, {\normalfont \ttfamily myFunction} is the name of the function to make global, while the {\normalfont \ttfamily type} and {\normalfont \ttfamily arguments} (of which there may be more than one) elements are used to generate a suitable interface for the function. At run-time, a pointer to this function is then available from the {\normalfont \ttfamily Functions\_Global} module, named {\normalfont \ttfamily myFunction\_}. Note that {\normalfont \ttfamily Functions\_Global\_Set} provided by the {\normalfont \ttfamily Functions\_Global\_Utilities} module must be called once to initialize these global function pointers prior to their use.
+
+\section{\glc\ Metadata}
+
+\glc\ can collect metadata on its own activity. This is useful for profiling the code for example.
+
+\subsection{OpenMP Critical Section Wait Times}
+
+\glc\ makes use of \gls{openmp} for parallel operation. \gls{openmp} {\normalfont \ttfamily critical} sections are used throughout to limit access to parts of the code which must be executed in serial. Threads will block at each {\normalfont \ttfamily critical} section if another thread is currently within it. \glc\ can profile the amount of time spent waiting at each named \gls{openmp} {\normalfont \ttfamily critical} section across all threads. To enable this profiling \glc\ should be compiled with {\normalfont \ttfamily -DOMPPROFILE} added to the compile options (in {\normalfont \ttfamily GALACTICUS\_FCFLAGS}). This will cause profiling instructions to be added to the source code prior to compilation. When this instrumented executable is run an {\normalfont \ttfamily metaData/openMP/} group will be added to the output file. This group contains two datasets, {\normalfont \ttfamily criticalSectionNames} and {\normalfont \ttfamily criticalSectionWaitTimes}. The first lists the names of all named \gls{openmp} {\normalfont \ttfamily critical} sections, while the second lists the total number of seconds (across all threads) spent waiting at each section. A script is provided to analyze this metadata:
+\begin{verbatim}
+./scripts/aux/openMPCriticalWaitProfile.pl <modelFileName>
+\end{verbatim}
+This script will analyze the \gls{openmp} {\normalfont \ttfamily critical} section wait time metadata in the named file, reporting the total time spent waiting at critical sections followed by a rank ordered list of the top ten sections by wait time. This can be useful for assessing whether optimization might help to reduce \gls{openmp} {\normalfont \ttfamily critical} section wait times.
 
 \section{Objects}
 

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -117,9 +117,9 @@ contains
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
     use Galacticus_Nodes
     implicit none
-    class           (darkMatterProfileIsothermal), intent(inout)          :: self
-    type            (treeNode                   ), intent(inout), pointer :: node
-    double precision                             , intent(in   )          :: radius
+    class           (darkMatterProfileIsothermal), intent(inout) :: self
+    type            (treeNode                   ), intent(inout) :: node
+    double precision                             , intent(in   ) :: radius
     !GCC$ attributes unused :: self, node, radius
     
     isothermalDensityLogSlope=-2.0d0
@@ -135,7 +135,7 @@ contains
     use Numerical_Comparison
     implicit none
     class           (darkMatterProfileIsothermal), intent(inout)           :: self
-    type            (treeNode                   ), intent(inout), pointer  :: node
+    type            (treeNode                   ), intent(inout)           :: node
     double precision                             , intent(in   )           :: moment
     double precision                             , intent(in   ), optional :: radiusMinimum      , radiusMaximum
     class           (nodeComponentBasic         )               , pointer  :: thisBasicComponent
@@ -217,9 +217,9 @@ contains
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    class           (darkMatterProfileIsothermal), intent(inout)          :: self
-    type            (treeNode                   ), intent(inout), pointer :: node
-    double precision                             , intent(in   )          :: radius
+    class           (darkMatterProfileIsothermal), intent(inout) :: self
+    type            (treeNode                   ), intent(inout) :: node
+    double precision                             , intent(in   ) :: radius
     !GCC$ attributes unused :: radius
     
     isothermalCircularVelocity=self%scale%virialVelocity(node)
@@ -232,8 +232,8 @@ contains
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    class           (darkMatterProfileIsothermal), intent(inout)          :: self
-    type            (treeNode                   ), intent(inout), pointer :: node
+    class           (darkMatterProfileIsothermal), intent(inout) :: self
+    type            (treeNode                   ), intent(inout) :: node
 
     isothermalCircularVelocityMaximum=self%circularVelocity(node,0.0d0)
     return
@@ -260,8 +260,8 @@ contains
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    class(darkMatterProfileIsothermal), intent(inout)          :: self
-    type (treeNode                   ), intent(inout), pointer :: node
+    class(darkMatterProfileIsothermal), intent(inout) :: self
+    type (treeNode                   ), intent(inout) :: node
 
     isothermalRotationNormalization=2.0d0/self%scale%virialRadius(node)
     return
@@ -272,9 +272,9 @@ contains
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    class(darkMatterProfileIsothermal), intent(inout)          :: self
-    type (treeNode                   ), intent(inout), pointer :: node
-    class(nodeComponentBasic         )               , pointer :: thisBasicComponent
+    class(darkMatterProfileIsothermal), intent(inout) :: self
+    type (treeNode                   ), intent(inout) :: node
+    class(nodeComponentBasic         ), pointer       :: thisBasicComponent
 
     thisBasicComponent    => node%basic     ()
     isothermalEnergy=-0.5d0*thisBasicComponent%mass()*self%scale%virialVelocity(node)**2
@@ -331,9 +331,9 @@ contains
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Astronomical
     implicit none
-    class           (darkMatterProfileIsothermal), intent(inout)          :: self
-    type            (treeNode                   ), intent(inout), pointer :: node
-    double precision                             , intent(in   )          :: time
+    class           (darkMatterProfileIsothermal), intent(inout) :: self
+    type            (treeNode                   ), intent(inout) :: node
+    double precision                             , intent(in   ) :: time
 
     isothermalFreefallRadius=sqrt(2.0d0/Pi)*self%scale%virialVelocity(node)*time&
          &/Mpc_per_km_per_s_To_Gyr
@@ -350,9 +350,9 @@ contains
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Astronomical
     implicit none
-    class           (darkMatterProfileIsothermal), intent(inout)          :: self
-    type            (treeNode                   ), intent(inout), pointer :: node
-    double precision                             , intent(in   )          :: time
+    class           (darkMatterProfileIsothermal), intent(inout) :: self
+    type            (treeNode                   ), intent(inout) :: node
+    double precision                             , intent(in   ) :: time
     !GCC$ attributes unused :: time
     
     isothermalFreefallRadiusIncreaseRate=sqrt(2.0d0/Pi)*self%scale%virialVelocity(node) &

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -73,12 +73,12 @@ contains
     use Galacticus_Nodes
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode)              , intent(inout), pointer :: node
-    double precision                        , intent(in   )          :: time
-    integer                                 , intent(inout)          :: doubleProperty         , integerProperty
-    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
-         &                                                              integerPropertyComments, integerPropertyNames
-    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+    type            (treeNode)              , intent(inout) :: node
+    double precision                        , intent(in   ) :: time
+    integer                                 , intent(inout) :: doubleProperty         , integerProperty
+    character       (len=*   ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
+         &                                                     integerPropertyComments, integerPropertyNames
+    double precision          , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     !GCC$ attributes unused :: node, time, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI
     
     ! Initialize the module.
@@ -109,9 +109,9 @@ contains
     !% Account for the number of velocityMaximum properties to be written to the \glc\ output file.
     use Galacticus_Nodes
     implicit none
-    type            (treeNode), intent(inout), pointer :: node
-    double precision          , intent(in   )          :: time
-    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
+    type            (treeNode), intent(inout) :: node
+    double precision          , intent(in   ) :: time
+    integer                   , intent(inout) :: doublePropertyCount, integerPropertyCount
     !GCC$ attributes unused :: node, integerPropertyCount, time
     
     ! Initialize the module.
@@ -126,20 +126,22 @@ contains
   !#  <sortName>Galacticus_Output_Tree_Velocity_Maximum</sortName>
   !# </mergerTreeOutputTask>
   subroutine Galacticus_Output_Tree_Velocity_Maximum(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
+       &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store velocityMaximum properties in the \glc\ output file buffers.
     use Galacticus_Nodes
     use Dark_Matter_Profiles
     use Kind_Numbers
+    use Multi_Counters
     implicit none
     double precision                        , intent(in   )                 :: time
-    type            (treeNode              ), intent(inout), pointer        :: node
+    type            (treeNode              ), intent(inout)                 :: node
     integer                                 , intent(inout)                 :: doubleBufferCount , doubleProperty , &
          &                                                                     integerBufferCount, integerProperty
     integer         (kind=kind_int8        ), intent(inout), dimension(:,:) :: integerBuffer    
     double precision                        , intent(inout), dimension(:,:) :: doubleBuffer     
+    type            (multiCounter          ), intent(inout)                 :: instance
     class           (darkMatterProfileClass)               , pointer        :: darkMatterProfile_
-    !GCC$ attributes unused :: time, integerProperty, integerBuffer, integerBufferCount
+    !GCC$ attributes unused :: time, integerProperty, integerBuffer, integerBufferCount, instance
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Velocity_Maximum_Initialize()

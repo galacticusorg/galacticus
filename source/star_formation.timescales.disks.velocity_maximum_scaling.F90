@@ -1,5 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
-!!    Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+!!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -127,15 +127,15 @@ contains
     use Cosmology_Functions
     use Dark_Matter_Profiles
     implicit none
-    type            (treeNode               ), intent(inout), pointer :: node
-    class           (nodeComponentBasic     )               , pointer :: basic
-    class           (cosmologyFunctionsClass)               , pointer :: cosmologyFunctions_
-    class           (darkMatterProfileClass )               , pointer :: darkMatterProfile_
-    double precision                         , save                   :: velocityMaximumPrevious=-1.0d0, velocityFactorPrevious       =-1.0d0
+    type            (treeNode               ), intent(inout), target :: node
+    class           (nodeComponentBasic     ), pointer               :: basic
+    class           (cosmologyFunctionsClass), pointer               :: cosmologyFunctions_
+    class           (darkMatterProfileClass ), pointer               :: darkMatterProfile_
+    double precision                         , save                  :: velocityMaximumPrevious=-1.0d0, velocityFactorPrevious       =-1.0d0
     !$omp threadprivate(velocityMaximumPrevious,velocityFactorPrevious)
-    double precision                         , save                   :: expansionFactorPrevious=-1.0d0, expansionFactorFactorPrevious=-1.0d0
+    double precision                         , save                  :: expansionFactorPrevious=-1.0d0, expansionFactorFactorPrevious=-1.0d0
     !$omp threadprivate(expansionFactorPrevious,expansionFactorFactorPrevious)
-    double precision                                                  :: expansionFactor               , velocityMaximum
+    double precision                                                 :: expansionFactor               , velocityMaximum
 
     ! Get the basic component.
     basic => node%basic()
@@ -178,7 +178,7 @@ contains
   subroutine Star_Formation_Timescale_Disks_VlctyMxSclng_Reset(node)
     !% Reset the velocity maximum scaling disk star formation timescale calculation.
     implicit none
-    type(treeNode), intent(inout), pointer :: node
+    type(treeNode), intent(inout) :: node
 
     timescaleComputed=.false.
     lastUniqueID     =node%uniqueID()

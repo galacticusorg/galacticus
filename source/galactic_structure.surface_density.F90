@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -39,14 +39,14 @@ contains
     use Galacticus_Error
     use Coordinate_Systems
     implicit none
-    type            (treeNode                 ), intent(inout)          , pointer :: thisNode
-    integer                                    , intent(in   ), optional          :: componentType                     , coordinateSystem, &
-         &                                                                           massType                          , weightBy        , &
-         &                                                                           weightIndex
-    logical                                    , intent(in   ), optional          :: haloLoaded
-    double precision                           , intent(in   )                    :: position                       (3)
-    procedure       (Component_Surface_Density)                         , pointer :: componentSurfaceDensityFunction
-    integer                                                                       :: coordinateSystemActual
+    type            (treeNode                 ), intent(inout)           :: thisNode
+    integer                                    , intent(in   ), optional :: componentType                     , coordinateSystem, &
+         &                                                                  massType                          , weightBy        , &
+         &                                                                  weightIndex
+    logical                                    , intent(in   ), optional :: haloLoaded
+    double precision                           , intent(in   )           :: position                       (3)
+    procedure       (Component_Surface_Density), pointer                 :: componentSurfaceDensityFunction
+    integer                                                              :: coordinateSystemActual
 
     ! Determine position in cylindrical coordinate system to use.
     if (present(coordinateSystem)) then
