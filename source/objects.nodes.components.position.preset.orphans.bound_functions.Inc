@@ -51,3 +51,37 @@ function PositionPresetOrphansPosition(self)
   end if
   return
 end function PositionPresetOrphansPosition
+
+function PositionPresetOrphansVelocity(self)
+  !% Return the velocity of the node.
+  implicit none
+  double precision                                    , allocatable  , dimension(:) :: PositionPresetOrphansVelocity
+  class           (nodeComponentPositionPresetOrphans), intent(inout)               :: self
+  type            (treeNode                          ), pointer                     :: node
+  class           (nodeComponentBasic                ), pointer                     :: basic
+  type            (history                           )                              :: positionHistory
+  logical                                                                           :: positionIsKnown
+  
+  ! Check if the node has a known, preset position.
+  positionIsKnown =  .false.
+  node            => self%host()
+  if (node%isSatellite()) then
+     positionHistory=self%positionHistory()
+     if (positionHistory%exists()) then
+        basic => node%basic()
+        positionIsKnown=positionHistory%time(size(positionHistory%time)) >= basic%time()
+     else
+        positionIsKnown=.false.
+     end if
+  else
+     positionIsKnown=.true.
+  end if
+  ! If the node has no known position (i.e. is an orphan), check if it was previously assigned a position at this time. If so,
+  ! return that position, otherwise, assign one now. If position is known, simply call the velocity method of our parent class.
+  if (positionIsKnown) then
+     PositionPresetOrphansVelocity=self%nodeComponentPositionPreset%velocity      ()
+  else
+     PositionPresetOrphansVelocity=self                            %velocityOrphan()
+  end if
+  return
+end function PositionPresetOrphansVelocity

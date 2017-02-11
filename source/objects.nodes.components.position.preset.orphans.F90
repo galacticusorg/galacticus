@@ -50,6 +50,21 @@ module Node_Component_Position_Preset_Orphans
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" isDeferred="get" />
   !#   </property>
   !#   <property>
+  !#     <name>velocity</name>
+  !#     <type>double</type>
+  !#     <rank>1</rank>
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+  !#     <getFunction bindsTo="component">PositionPresetOrphansVelocity</getFunction>
+  !#     <output labels="[X,Y,Z]" unitsInSI="megaParsec" comment="Velocity of the node (peculiar, in physical coordinates)."/>
+  !#     <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
+  !#   </property>
+  !#   <property>
+  !#     <name>velocityOrphan</name>
+  !#     <type>double</type>
+  !#     <rank>1</rank>
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" isDeferred="get" />
+  !#   </property>
+  !#   <property>
   !#     <name>timeAssign</name>
   !#     <type>double</type>
   !#     <rank>0</rank>
@@ -103,5 +118,26 @@ contains
     Node_Component_Position_Preset_Orphans_Position_Orphan=self%positionOrphanValue()
     return
   end function Node_Component_Position_Preset_Orphans_Position_Orphan
+
+  function Node_Component_Position_Preset_Orphans_Velocity_Orphan(self)
+    !% Return the velocity of the orphan node.
+    use Satellite_Oprhan_Distributions
+    implicit none
+    double precision                                    , allocatable  , dimension(:) :: Node_Component_Position_Preset_Orphans_Velocity_Orphan
+    class           (nodeComponentPositionPresetOrphans), intent(inout)               :: self
+    type            (treeNode                          ), pointer                     :: node
+    class           (nodeComponentBasic                ), pointer                     :: basic
+    class           (satelliteOrphanDistributionClass  ), pointer                     :: satelliteOrphanDistribution_
+
+    node  => self%host ()
+    basic => node%basic()
+    if (basic%time() /= self%timeAssign()) then
+       satelliteOrphanDistribution_ => satelliteOrphanDistribution()
+       call self%    timeAssignSet(basic                       %time    (    ))
+       call self%velocityOrphanSet(satelliteOrphanDistribution_%velocity(node))
+    end if
+    Node_Component_Position_Preset_Orphans_Velocity_Orphan=self%velocityOrphanValue()
+    return
+  end function Node_Component_Position_Preset_Orphans_Velocity_Orphan
 
 end module Node_Component_Position_Preset_Orphans
