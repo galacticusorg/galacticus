@@ -19,8 +19,10 @@
   !% An abstract implementation of the orphan satellite distribution which assumes an isotropic distribution with randomly
   !% assigned positions.
 
+  use Statistics_Distributions
+  
   !# <satelliteOrphanDistribution name="satelliteOrphanDistributionRandomIsotropic" abstract="yes">
-  !#  <description>An abstract orphan satellite distribution which assumes an isotropic, random distribution. The radial distribution must be specified by the child class.</description>
+  !#  <description>An abstract orphan satellite distribution which assumes an isotropic, random distribution of positions, and velocities drawn from an isotropic normal distribution. The radial distribution and velocity dispersion must be specified by the child class.</description>
   !# </satelliteOrphanDistribution>
   type, abstract, extends(satelliteOrphanDistributionClass) :: satelliteOrphanDistributionRandomIsotropic
      !% An abstract orphan satellite distribution which assumes an isotropic, random distribution.
@@ -34,9 +36,17 @@
      !@     <type>\doublezero</type>
      !@     <arguments>textcolor{red}{\textless type(treeNode)\textgreater} node\arginout, \doublezero\ fraction\argin</arguments>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>velocityDispersion</method>
+     !@     <description>Return the 1-D velocity dispersion of the orphan satellite population.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments>textcolor{red}{\textless type(treeNode)\textgreater} node\arginout</arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
-     procedure                                            :: position                            => randomIsotropicPosition
-     procedure(randomIsotropicInverseCMFRadial), deferred :: inverseCumulativeMassFunctionRadial
+     procedure                                              :: position                            => randomIsotropicPosition
+     procedure                                              :: velocity                            => randomIsotropicVelocity
+     procedure(randomIsotropicInverseCMFRadial  ), deferred :: inverseCumulativeMassFunctionRadial
+     procedure(randomIsotropicVelocityDispersion), deferred :: velocityDispersion
   end type satelliteOrphanDistributionRandomIsotropic
 
   abstract interface
@@ -48,6 +58,16 @@
        type            (treeNode                                  ), intent(inout) :: node
        double precision                                            , intent(in   ) :: fraction
      end function randomIsotropicInverseCMFRadial
+  end interface
+
+  abstract interface
+     !% Abstract interface for the velocity dispersion in the {\normalfont \ttfamily randomIsotropic} orphan satellite
+     !% distribution class.
+     double precision function randomIsotropicVelocityDispersion(self,node)
+       import satelliteOrphanDistributionRandomIsotropic, treeNode
+       class(satelliteOrphanDistributionRandomIsotropic), intent(inout) :: self
+       type (treeNode                                  ), intent(inout) :: node
+     end function randomIsotropicVelocityDispersion
   end interface
   
 contains
@@ -81,3 +101,30 @@ contains
          &                    +positionHost           %position()
     return
   end function randomIsotropicPosition
+
+  function randomIsotropicVelocity(self,node)
+    !% Return the velocity of an orphan satellite in a random isotropic distribution.
+    use Pseudo_Random
+    use Numerical_Constants_Math
+    use Coordinates
+    implicit none
+    double precision                                            , dimension(3)  :: randomIsotropicVelocity
+    class           (satelliteOrphanDistributionRandomIsotropic), intent(inout) :: self
+    type            (treeNode                                  ), intent(inout) :: node
+    type            (treeNode                                  ), pointer       :: nodeHost
+    class           (nodeComponentPosition                     ), pointer       :: positionHost
+    type            (distributionNormal                        )                :: normalDistribution
+    integer                                                                     :: i
+    
+    ! Get the 1-D velocity dispersion for the orphan.
+    normalDistribution=distributionNormal(0.0d0,self%velocityDispersion(node))
+    ! Find the velocity of the host.
+    nodeHost               =>  node        %parent
+    positionHost           =>  nodeHost    %position()
+    randomIsotropicVelocity=  +positionHost%velocity()
+    ! Add velocity of the orphan.
+    do i=1,3
+       randomIsotropicVelocity(i)=randomIsotropicVelocity(i)+normalDistribution%sample(randomNumberGenerator=node%hostTree%randomNumberGenerator)
+    end do
+    return
+  end function randomIsotropicVelocity

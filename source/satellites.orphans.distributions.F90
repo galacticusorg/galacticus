@@ -42,6 +42,12 @@ module Satellite_Oprhan_Distributions
   !#   <pass>yes</pass>
   !#   <argument>type(treeNode), intent(inout) :: node</argument>
   !#  </method>
+  !#  <method name="velocity" >
+  !#   <description>Return the peculiar velocity of the given orphan in physical coordinates.</description>
+  !#   <type>double precision, dimension(3)</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#  </method>
   !# </functionClass>
 
 end module Satellite_Oprhan_Distributions
