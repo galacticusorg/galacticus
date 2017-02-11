@@ -32,6 +32,7 @@
      final     ::                                        traceDarkMatterDestructor
      procedure :: extent                              => traceDarkMatterExtent
      procedure :: inverseCumulativeMassFunctionRadial => traceDarkMatterInverseCMFRadial
+     procedure :: velocityDispersion                  => traceDarkMatterVelocityDispersion
   end type satelliteOrphanDistributionTraceDarkMatter
 
   interface satelliteOrphanDistributionTraceDarkMatter
@@ -109,3 +110,19 @@ contains
          &                                                                     )
     return
   end function traceDarkMatterInverseCMFRadial
+
+  double precision function traceDarkMatterVelocityDispersion(self,node)
+    !% Return the velocity dispersion of the orphan satellite population.
+    use Dark_Matter_Halo_Scales
+    implicit none
+    class(satelliteOrphanDistributionTraceDarkMatter), intent(inout) :: self
+    type (treeNode                                  ), intent(inout) :: node
+    type (treeNode                                  ), pointer       :: nodeHost
+    class(darkMatterHaloScaleClass                  ), pointer       :: darkMatterHaloScale_
+    !GCC$ attributes unused :: self
+
+    nodeHost                          => node                %parent
+    darkMatterHaloScale_              => darkMatterHaloScale                (    )
+    traceDarkMatterVelocityDispersion =  darkMatterHaloScale_%virialVelocity(node)
+    return
+  end function traceDarkMatterVelocityDispersion
