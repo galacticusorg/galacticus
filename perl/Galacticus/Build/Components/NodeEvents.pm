@@ -22,7 +22,8 @@ use Text::Template 'fill_in_string';
 	     ],
          interfaces =>
 	     [
-	      \&Node_Event_Task_Interface	      
+	      \&Node_Event_Task_Interface	      ,
+	      \&Node_Event_Merge_Time_Set_Interface
 	     ],
 	 functions =>
 	     [
@@ -109,6 +110,12 @@ sub Build_Node_Event_Class {
 		      intrinsic  => "logical",
 		      attributes => [ "public" ],
 		      variables  => [ "isPrimary", "hasSecondary" ]
+		  },
+		  {
+		      intrinsic  => "procedure",
+		      type       => "nodeEventInterTreeMergeTimeSet",
+		      attributes => [ "pointer", "nopass" ],
+		      variables  => [ "mergeTimeSet" ]
 		  }
 		 ]
 	 },
@@ -134,6 +141,12 @@ sub Build_Node_Event_Class {
 		      intrinsic  => "logical",
 		      attributes => [ "public" ],
 		      variables  => [ "isPrimary" ]
+		  },
+		  {
+		      intrinsic  => "procedure",
+		      type       => "nodeEventInterTreeMergeTimeSet",
+		      attributes => [ "pointer", "nopass" ],
+		      variables  => [ "mergeTimeSet" ]
 		  }
 		 ]
 	 }
@@ -179,6 +192,27 @@ sub Node_Event_Task_Interface {
 		 intrinsic  => "integer",
 		 attributes => [ "intent(inout)" ],
 		 variables  => [ "deadlockStatus" ]
+	     }
+	    ]		
+    };
+}
+
+sub Node_Event_Merge_Time_Set_Interface {
+    # Define an interface for "nodeEvent" merge time set functions.
+    my $build = shift();
+    # Define the interface.
+    $build->{'interfaces'}->{'nodeEventInterTreeMergeTimeSet'} =
+    {
+	name      => "nodeEventInterTreeMergeTimeSet"                               ,
+	comment   => "Interface for node event inter tree merge time set functions.",
+	intrinsic => "void"                                                         ,
+	data      =>
+	    [
+	     {
+		 intrinsic  => "type",
+		 type       => "treeNode",
+		 attributes => [ "intent(inout)", "target" ],
+		 variables  => [ "nodeSatellite", "nodeHost" ]
 	     }
 	    ]		
     };
