@@ -61,7 +61,6 @@ contains
     class           (darkMatterProfileClass                     ), pointer       :: darkMatterProfile_
     logical                                                      , parameter     :: acceptUnboundOrbits          =.false.
     double precision                                             , parameter     :: expArgumentMaximum           =100.0d0
-    double precision                                             , parameter     :: timeInfinite                 =1.0d30
     double precision                                             , parameter     :: A                            =0.216d0, b                 =1.3d0, &  !   Fitting parameters from eqn. (6) of Boylan-Kolchin et al.
          &                                                                          c                            =1.9d0  , d                 =1.0d0
     double precision                                                             :: equivalentCircularOrbitRadius        , massRatio               , &
@@ -84,7 +83,7 @@ contains
     select case (errorCode)
     case (errorCodeOrbitUnbound     )
        orbitalCircularity               =1.0d0
-       boylanKolchin2008TimeUntilMerging=timeInfinite
+       boylanKolchin2008TimeUntilMerging=satelliteMergeTimeInfinite
        return
     case (errorCodeNoEquivalentOrbit)
        ! Circularity is not defined. Assume instantaneous merging.
