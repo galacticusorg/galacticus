@@ -570,7 +570,7 @@ contains
     implicit none
     type (treeNode      ), intent(inout), pointer :: thisNode
     type (treeNode      )               , pointer :: parentNode, satelliteNode, &
-         &                                           mergeeNode
+         &                                           mergeeNode, hostNode
     type (varying_string)                         :: message
     
     ! Get pointer to parent node.
@@ -602,22 +602,25 @@ contains
        call thisNode%formationNode%copyNodeTo(parentNode%formationNode)
        parentNode%formationNode%parent => parentNode
     end if
-
     ! Transfer any satellite nodes to the parent.
     if (associated(thisNode%firstSatellite)) then
+       hostNode => parentNode
+       do while (hostNode%isSatellite())
+          hostNode => hostNode%parent
+       end do   
        ! Attach the satellite nodes to the parent.
-       if (associated(parentNode%firstSatellite)) then
+       if (associated(hostNode%firstSatellite)) then
           ! Find the last satellite of the parent node.
-          satelliteNode         => parentNode%lastSatellite()
-          satelliteNode%sibling => thisNode  %firstSatellite
+          satelliteNode                 => hostNode% lastSatellite()
+          satelliteNode%sibling         => thisNode%firstSatellite
        else
-          parentNode%firstSatellite => thisNode%firstSatellite
+          hostNode      %firstSatellite => thisNode%firstSatellite
        end if
        ! Get the first satellite of thisNode.
        satelliteNode => thisNode%firstSatellite
        do while (associated(satelliteNode))
           ! Set the parent node for this satellite to the parent.
-          satelliteNode%parent => parentNode
+          satelliteNode%parent => hostNode
           satelliteNode        => satelliteNode%sibling
        end do
     end if
@@ -669,14 +672,12 @@ contains
        message='Making node '
        message=message//thisNode%index()//' a satellite in '//thisNode%parent%index()
        call Galacticus_Display_Message(message,verbosityInfo)
-    end if
-
+    end if    
     ! Call subroutines to perform any necessary processing prior to this node merger event.
     !# <include directive="nodeMergerTask" type="functionCall" functionType="void">
     !#  <functionArgs>thisNode</functionArgs>
     include 'events.node_mergers.process.inc'
     !# </include>
-
     !$omp critical (Events_Node_Merger_Initialize)
     if (.not.nodeMergersInitialized) then
        ! Get the node mergers method parameter.
@@ -701,10 +702,8 @@ contains
        nodeMergersInitialized=.true.
     end if
     !$omp end critical (Events_Node_Merger_Initialize)
-
     ! Call the routine to perform the merger.
     call Events_Node_Merger_Do(thisNode)
-
     return
   end subroutine Events_Node_Merger
 
