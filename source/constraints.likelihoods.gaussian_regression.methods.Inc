@@ -512,7 +512,7 @@ function likelihoodGaussianRegressionVariogramModelF(x, parameters) bind(c)
   status = FGSL_vector_align(xx, vec)
   
   if (any(xx < 0.0d0)) then
-     likelihoodGaussianRegressionVariogramModelF=1.0d30
+     likelihoodGaussianRegressionVariogramModelF=huge(1.0d0)
   else
      where (separationsNormalized > xx(3))
         separationsLimited=xx(3)

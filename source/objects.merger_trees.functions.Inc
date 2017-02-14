@@ -125,7 +125,7 @@ double precision function Merger_Tree_Earliest_Time(self)
   !% Return the earliest time in a merger tree.
   implicit none
   class           (mergerTree        ), intent(inout), target :: self
-  double precision                    , parameter             :: timeInfinity=1.0d30
+  double precision                    , parameter             :: timeInfinity=huge(1.0d0)
   type            (mergerTree        ), pointer               :: currentTree
   type            (treeNode          ), pointer               :: thisNode
   class           (nodeComponentBasic), pointer               :: thisBasic
@@ -150,7 +150,7 @@ double precision function Merger_Tree_Earliest_Time_Evolving(self)
   !% Return the earliest time in a merger tree.
   implicit none
   class           (mergerTree        ), intent(inout), target :: self
-  double precision                    , parameter             :: timeInfinity=1.0d30
+  double precision                    , parameter             :: timeInfinity=huge(1.0d0)
   type            (mergerTree        ), pointer               :: currentTree
   type            (treeNode          ), pointer               :: thisNode
   class           (nodeComponentBasic), pointer               :: thisBasic
