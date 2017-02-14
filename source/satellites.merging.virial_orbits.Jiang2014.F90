@@ -80,10 +80,10 @@ contains
     implicit none
     type            (keplerOrbit               )                                :: jiang2014Orbit
     class           (virialOrbitJiang2014      ), intent(inout)                 :: self
-    type            (treeNode                  ), intent(inout), pointer        :: host                   , node
+    type            (treeNode                  ), intent(inout)                 :: host                   , node
     logical                                     , intent(in   )                 :: acceptUnboundOrbits
-    class           (darkMatterHaloScaleClass  )               , pointer        :: darkMatterHaloScale_
-    class           (nodeComponentBasic        )               , pointer        :: hostBasic              , basic
+    class           (darkMatterHaloScaleClass  ), pointer                       :: darkMatterHaloScale_
+    class           (nodeComponentBasic        ), pointer                       :: hostBasic              , basic
     class           (virialDensityContrastClass), pointer                       :: virialDensityContrast_
     integer                                     , parameter                     :: attemptsMaximum        =10000
     double precision                            , parameter                     :: boundTolerance         =1.0d-4 !  Tolerence to ensure that orbits are sufficiently bound.
