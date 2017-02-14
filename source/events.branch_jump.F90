@@ -33,6 +33,9 @@ contains
     use Merger_Trees_Evolve_Deadlock_Status
     use ISO_Varying_String
     use String_Handling
+    !# <include directive="branchJumpPostProcess" type="moduleUse">
+    include 'events.branch_jump.post_process.modules.inc'
+    !# </include>
     implicit none
     class    (nodeEvent     ), intent(in   )          :: thisEvent
     type     (treeNode      ), intent(inout), pointer :: thisNode
@@ -69,6 +72,11 @@ contains
     thisNode%hostTree => newHost%hostTree
     ! Locate the paired event in the host and remove it.
     call newHost%removePairedEvent(thisEvent)
+    ! Allow any postprocessing of the branch jump event that may be necessary.
+    !# <include directive="branchJumpPostProcess" type="functionCall" functionType="void">
+    !#  <functionArgs>thisNode</functionArgs>
+    include 'events.branch_jump.postprocess.inc'
+    !# </include>
     ! Since we changed the tree, record that the tree is not deadlocked.
     deadlockStatus=deadlockStatusIsNotDeadlocked
     return
