@@ -70,19 +70,30 @@ my @forestFiles =
      	 parameters => 
      	  {
      	      mergerTreeReadSubresolutionMergingMethod => {value => "infinite"},
-     	      mergerTreeReadPresetMergerNodes          => {value => "true"             }
+     	      mergerTreeReadPresetMergerNodes          => {value => "true"    }
      	  }
      },
      # A milli-Millennium tree in which a mergee is transferred as part of an inter-tree event but the destination node is a
      # clone. Requires that promotion of a cloned node to a satellite parent correctly moves any satellites in the clone into the
      # host halo of the parent.
      {
-	 label      => "milliMillennium-forest1000019000000-noMerging",
-	 fileName   => "testSuite/data/mergerTrees/splitForests-milliMillennium-tree1000019000000.hdf5",
+     	 label      => "milliMillennium-forest1000019000000-noMerging",
+     	 fileName   => "testSuite/data/mergerTrees/splitForests-milliMillennium-tree1000019000000.hdf5",
+     	 parameters => 
+     	  {
+     	      mergerTreeReadSubresolutionMergingMethod => {value => "infinite"},
+     	      mergerTreeReadPresetMergerNodes          => {value => "true"    }
+     	  }
+     },
+     # A milli-Millennium tree in which a satellite is orphanized with a merge target that is a satellite. Fails unless we
+     # explicitly check for that merge target being a satellite and move the new host to the merge target's parent.
+     {
+	 label      => "milliMillennium-forest1000020000000-noMerging",
+	 fileName   => "testSuite/data/mergerTrees/splitForests-milliMillennium-tree1000020000000.hdf5",
 	 parameters => 
 	  {
 	      mergerTreeReadSubresolutionMergingMethod => {value => "infinite"},
-	      mergerTreeReadPresetMergerNodes          => {value => "true"             }
+	      mergerTreeReadPresetMergerNodes          => {value => "true"    }
 	  }
      }
     );
@@ -104,12 +115,13 @@ if ( defined($millenniumDatabaseConfig) ) {
     print "SKIPPED: Millennium database location undefined\n";
     exit;
 }
-push(
-    @forestFiles,
-    {
-	label    => "milliMillennium",
-	fileName => $millenniumDatabaseConfig->{'path'}."/milliMillennium/milliMillennium.hdf5"
-    );
+## AJB HACK
+# push(
+#     @forestFiles,
+#     {
+# 	label    => "milliMillennium",
+# 	fileName => $millenniumDatabaseConfig->{'path'}."/milliMillennium/milliMillennium.hdf5"
+#     );
     
 # Define the set of properties that we want to compare.
 my @properties = ( "nodeIndex", "positionPositionX", "positionPositionY", "positionPositionZ", "positionVelocityX", "positionVelocityY", "positionVelocityZ", "satelliteNodeIndex", "satelliteMergeTime", "satelliteBoundMass", "nodeIsIsolated", "basicTimeLastIsolated", "parentIndex", "basicMass" );

@@ -297,8 +297,12 @@ contains
     satellite => node    %satellite  ()
     call satellite%isOrphanSet(.true.)
     nodeHost  => node    %mergeTarget
+    ! For satellite merge targets, step up through parents until an isolated host is found.
+    do while (nodeHost%isSatellite())
+       nodeHost => nodeHost%parent
+    end do
     basic     => node    %basic      ()
-    basicHost => nodeHost%basic      ()
+    basicHost => nodeHost%basic      ()    
     ! Trace the merge target progenitors back until one is found which exists at the time of the orphaned satellite.
     do while (basicHost%time() > basic%time())
        ! For satellite merge targets, step up through parents until an isolated host is found.
