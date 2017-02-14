@@ -34,6 +34,9 @@ contains
     use String_Handling
     use Galacticus_Display
     use Merger_Trees_Evolve_Node
+    !# <include directive="subhaloPromotionPostProcess" type="moduleUse">
+    include 'events.subhalo_promotion.post_process.modules.inc'
+    !# </include>
     implicit none
     class    (nodeEvent                     ), intent(in   )          :: thisEvent
     type     (treeNode                      ), intent(inout), pointer :: thisNode
@@ -71,6 +74,11 @@ contains
        parentBasic => promotionNode%basic()
        call mergingStatistics%massWhenFirstIsolatedSet(parentBasic%mass())
     end if
+    ! Allow any postprocessing of the subhalo promotion event that may be necessary.
+    !# <include directive="subhaloPromotionPostProcess" type="functionCall" functionType="void">
+    !#  <functionArgs>thisNode</functionArgs>
+    include 'events.subhalo_promotion.postprocess.inc'
+    !# </include>
     ! Promote the halo.
     call Tree_Node_Promote(thisNode)
     ! Since we changed the tree, record that the tree is not deadlocked.
