@@ -30,6 +30,9 @@ module Satellite_Merging_Timescales
   public :: Satellite_Merging_Timescale_State_Store   , Satellite_Merging_Timescale_State_Retrieve, &
        &    Satellite_Merging_Timescale_State_Snapshot
 
+  ! Effective infinite time for merging.
+  double precision, public, parameter :: satelliteMergeTimeInfinite=huge(1.0d0)
+  
   !# <include directive="satelliteMergingTimescales" type="function" >
   !#  <descriptiveName>Satellite Merging Timescales</descriptiveName>
   !#  <description>Object providing merging timescales for satellites.</description>
