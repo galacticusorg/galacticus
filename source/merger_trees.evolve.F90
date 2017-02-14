@@ -259,25 +259,18 @@ contains
           ! Post a deadlocking message.
           if (deadlockStatus == deadlockStatusIsReporting) call Galacticus_Display_Indent("Deadlock report follows")
           
-          ! Find the final time across all trees in this forest.
-          finalTimeInTree=-1.0d0
-          currentTree => thisTree
-          do while (associated(currentTree))
-             if (associated(currentTree%baseNode)) then
-                thisNode           => currentTree%baseNode
-                thisBasicComponent => thisNode%basic()
-                finalTimeInTree    =  max(thisBasicComponent%time(),finalTimeInTree)
-             end if
-             currentTree => currentTree%nextTree
-          end do
-          
           ! Iterate through all trees.
           currentTree => thisTree
           treesLoop: do while (associated(currentTree))
-
+             
              ! Skip empty trees.
              if (associated(currentTree%baseNode)) then
-                
+
+                ! Find the final time in this tree.
+                thisNode           => currentTree%baseNode
+                thisBasicComponent => thisNode%basic()
+                finalTimeInTree    =  thisBasicComponent%time()
+
                 ! Report on current tree if deadlocked.
                 if (deadlockStatus == deadlockStatusIsReporting) then
                    vMessage="tree "
@@ -293,7 +286,7 @@ contains
                 
                 ! Tree walk loop: Walk to each node in the tree and consider whether or not to evolve it.
                 treeWalkLoop: do while (associated(thisNode))                   
-
+                   
                    ! Get the basic component of the node.
                    thisBasicComponent => thisNode%basic()    
                    
