@@ -25,7 +25,7 @@ module Kepler_Orbits
   public :: keplerOrbit
 
   ! Effective infinite radius used for apocenters in unbound orbits.
-  double precision, parameter :: radiusEffectiveInfinity=1.0d30
+  double precision, parameter :: radiusEffectiveInfinity=huge(1.0d0)
 
   type keplerOrbit
      !% The structure used for describing orbits in \glc. This object will automatically convert from one set of orbital

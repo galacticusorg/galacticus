@@ -1102,7 +1102,7 @@ contains
                &                             timeMaximumJ          , &
                &                             volumeNormalizationJ    &
                &                            )
-          distanceMaximum=1.0d30
+          distanceMaximum=huge(1.0d0)
           do iField=1,surveyGeometry_%fieldCount()
              distanceMaximum=min(distanceMaximum,surveyGeometry_%distanceMaximum(10.0d0**logMassBinCenter(binI),iField),surveyGeometry_%distanceMaximum(10.0d0**logMassBinCenter(binJ),iField))
           end do
