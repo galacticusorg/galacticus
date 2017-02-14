@@ -44,7 +44,7 @@ module Node_Events_Inter_Tree
   
 contains
 
-  logical function Node_Push_From_Tree(thisEvent,thisNode,deadlockStatus)
+  logical function Node_Push_From_Tree(event,node,deadlockStatus)
     !% Push a node from the tree.
     use ISO_Varying_String
     use Galacticus_Display
@@ -52,34 +52,59 @@ contains
     use String_Handling
     use Merger_Trees_Evolve_Deadlock_Status
     implicit none
-    class    (nodeEvent        ), intent(in   )          :: thisEvent
-    type     (treeNode         ), intent(inout), pointer :: thisNode
-    integer                     , intent(inout)          :: deadlockStatus
-    type     (interTreeTransfer)               , pointer :: waitListEntry
-    integer  (c_size_t         )                         :: splitForestUniqueID
-    integer  (kind_int8        )                         :: pairedNodeID
-    type     (varying_string   )                         :: message
-    character(len=12           )                         :: label
+    class    (nodeEvent         ), intent(in   )          :: event
+    type     (treeNode          ), intent(inout), pointer :: node
+    integer                      , intent(inout)          :: deadlockStatus
+    type     (treeNode          )               , pointer :: nodeMergee
+    class    (nodeComponentBasic)               , pointer :: basic              , basicMergee
+    type     (interTreeTransfer )               , pointer :: waitListEntry
+    integer  (c_size_t          )                         :: splitForestUniqueID
+    integer  (kind_int8         )                         :: pairedNodeID
+    type     (varying_string    )                         :: message
+    character(len=12            )                         :: label
 
     ! If this node is not yet a subhalo, do not perform the event.
-    if (.not.thisNode%isSatellite()) then
+    if (.not.node%isSatellite()) then
        Node_Push_From_Tree=.false.
        return
-    end if    
+    end if
+    ! Handle any mergees of the transferring node.
+    if (associated(node%firstMergee)) then
+       ! Any mergees must have reached the time of this halo before a transfer is allowed.
+       basic      => node%basic      ()
+       nodeMergee => node%firstMergee
+       do while (associated(nodeMergee))
+          basicMergee => nodeMergee%basic()
+          if (basicMergee%time() < basic%time()) then
+             Node_Push_From_Tree=.false.
+             return
+          end if
+          nodeMergee => nodeMergee%siblingMergee
+       end do
+       ! Move mergees to this node prior to inter-tree transfer.
+       nodeMergee => node%firstMergee
+       do while (associated(nodeMergee))
+          call nodeMergee%removeFromHost()
+          nodeMergee%parent         => null()
+          nodeMergee%sibling        => node      %firstSatellite
+          node      %firstSatellite => nodeMergee
+          nodeMergee                => nodeMergee%siblingMergee
+       end do
+    end if
     ! Report on activity and extract identifiers.
-    select type (thisEvent)
+    select type (event)
     type is (nodeEventSubhaloPromotionInterTree)
-       write (label,'(f12.6)') thisEvent%time
+       write (label,'(f12.6)') event%time
        message='Satellite node ['
-       message=message//thisNode%index()//'] promoting to isolated node in another tree {event ID: '//thisEvent%ID//'} at time '//trim(label)//' Gyr'
-       splitForestUniqueID=thisEvent%splitForestUniqueID
-       pairedNodeID       =thisEvent%pairedNodeID
+       message=message//node%index()//'] promoting to isolated node in another tree {event ID: '//event%ID//'} at time '//trim(label)//' Gyr'
+       splitForestUniqueID=event%splitForestUniqueID
+       pairedNodeID       =event%pairedNodeID
     type is (nodeEventBranchJumpInterTree      )
-       write (label,'(f12.6)') thisEvent%time
+       write (label,'(f12.6)') event%time
        message='Satellite node ['
-       message=message//thisNode%index()//'] jumping branch to another tree {event ID: '//thisEvent%ID//'} at time '//trim(label)//' Gyr'
-       splitForestUniqueID=thisEvent%splitForestUniqueID
-       pairedNodeID       =thisEvent%pairedNodeID
+       message=message//node%index()//'] jumping branch to another tree {event ID: '//event%ID//'} at time '//trim(label)//' Gyr'
+       splitForestUniqueID=event%splitForestUniqueID
+       pairedNodeID       =event%pairedNodeID
      class default
         splitForestUniqueID=-1
         pairedNodeID       =-1
@@ -87,7 +112,7 @@ contains
     end select
     call Galacticus_Display_Message(message,verbosityInfo)
     ! This is a subhalo jumping to another in another tree. Remove the node from its host.
-    call thisNode%removeFromHost()
+    call node%removeFromHost()
     ! Put the node onto the inter-tree wait list.
     !$omp critical(interTreeWaitList)
     if (.not.associated(interTreeWaitList%next)) allocate(interTreeWaitList%next)
@@ -96,7 +121,7 @@ contains
        if (.not.associated(waitListEntry%next)) allocate(waitListEntry%next)
        waitListEntry => waitListEntry%next
     end do
-    waitListEntry%node                => thisNode
+    waitListEntry%node                => node
     waitListEntry%next                => null()
     waitListEntry%splitForestUniqueID =  splitForestUniqueID
     waitListEntry%pairedNodeID        =  pairedNodeID
@@ -112,7 +137,7 @@ contains
     return
   end function Node_Push_From_Tree
 
-  logical function Node_Pull_From_Tree(thisEvent,thisNode,deadlockStatus)
+  logical function Node_Pull_From_Tree(event,node,deadlockStatus)
     !% Pull a node from the tree.
     use ISO_Varying_String
     use Galacticus_Display
@@ -125,13 +150,16 @@ contains
     !# <include directive="interTreeSatelliteInsert" type="moduleUse">
     include 'events.inter_tree.satellite_insert.modules.inc'
     !# </include>
+    !# <include directive="interTreePostProcess" type="moduleUse">
+    include 'events.inter_tree.post_process.modules.inc'
+    !# </include>
     implicit none
-    class           (nodeEvent         ), intent(in   )          :: thisEvent
-    type            (treeNode          ), intent(inout), pointer :: thisNode
+    class           (nodeEvent         ), intent(in   )          :: event
+    type            (treeNode          ), intent(inout), pointer :: node
     integer                             , intent(inout)          :: deadlockStatus
     type            (interTreeTransfer )               , pointer :: waitListEntry              , waitListEntryPrevious
     type            (treeNode          )               , pointer :: pullNode                   , satelliteNode        , &
-         &                                                          attachNode
+         &                                                          attachNode                 , hostNode
     class           (nodeComponentBasic)               , pointer :: pullBasic                  , attachBasic
     class           (nodeEvent         )               , pointer :: attachedEvent              , lastEvent            , &
          &                                                          pairedEvent
@@ -147,22 +175,22 @@ contains
     ! Assume that this event, if it can not be performed, at least makes the tree suspendable.
     if (deadlockStatus == deadlockStatusIsDeadlocked) deadlockStatus=deadlockStatusIsSuspendable
     ! Identify the event type.
-    select type (thisEvent)
+    select type (event)
     type is (nodeEventSubhaloPromotionInterTree)
-       write (label,'(f12.6)') thisEvent%time
+       write (label,'(f12.6)') event%time
        message='Searching for node to pull {promotion} to ['
-       message=message//thisNode%index()//'] {event ID: '//thisEvent%ID//'} at time '//trim(label)//' Gyr'
-       splitForestUniqueID=thisEvent%splitForestUniqueID
-       pairedNodeID       =thisEvent%pairedNodeID
-       isPrimary          =thisEvent%isPrimary
+       message=message//node%index()//'] {event ID: '//event%ID//'} at time '//trim(label)//' Gyr'
+       splitForestUniqueID=event%splitForestUniqueID
+       pairedNodeID       =event%pairedNodeID
+       isPrimary          =event%isPrimary
        timeMatchRequired  =.true.
     type is (nodeEventBranchJumpInterTree      )
-       write (label,'(f12.6)') thisEvent%time
+       write (label,'(f12.6)') event%time
        message='Searching for node to pull {branch jump} to descendent ['
-       message=message//thisNode%index()//'] in host ['//thisNode%parent%index()//'] {event ID: '//thisEvent%ID//'} at time '//trim(label)//' Gyr'
-       splitForestUniqueID=thisEvent%splitForestUniqueID
-       pairedNodeID       =thisEvent%pairedNodeID
-       isPrimary          =thisEvent%isPrimary
+       message=message//node%index()//'] in host ['//node%parent%index()//'] {event ID: '//event%ID//'} at time '//trim(label)//' Gyr'
+       splitForestUniqueID=event%splitForestUniqueID
+       pairedNodeID       =event%pairedNodeID
+       isPrimary          =event%isPrimary
        timeMatchRequired  =.false.
     class default
        splitForestUniqueID=-1
@@ -183,14 +211,14 @@ contains
              pullNode           => waitListEntry%node
              waitListEntry%node => null()
              message='Found node to pull to ['
-             message=message//thisNode%index()//':'//pullNode%index()//'] {event ID: '//thisEvent%ID//'; primary? '
+             message=message//node%index()//':'//pullNode%index()//'] {event ID: '//event%ID//'; primary? '
              if (isPrimary) then
                 message=message//"yes"
              else
                 message=message//"no"
              end if
              message=message//'} at time '//trim(label)//' Gyr'
-             call Galacticus_Display_Message(message,verbosityInfo)
+             call Galacticus_Display_Message(message,verbosityInfo)             
              ! Remove the node from the linked list.
              waitListEntryPrevious%next => waitListEntry        %next
              deallocate(waitListEntry)
@@ -200,43 +228,56 @@ contains
              message=message//waitListSize//' nodes'
              call Galacticus_Display_Message(message,verbosityInfo)
              ! Attach the pulled node.
-             pullNode%sibling        => null()
-             pullNode%firstChild     => null()
-             pullNode%firstSatellite => null()
-             pullNode%hostTree       => thisNode%hostTree
+             pullNode     %sibling    => null()
+             pullNode     %firstChild => null()
+             pullNode     %hostTree   => node    %hostTree
+             satelliteNode            => pullNode%firstSatellite
+             do while (associated(satelliteNode))
+                satelliteNode%hostTree => node         %hostTree
+                satelliteNode          => satelliteNode%sibling
+             end do
              if (isPrimary) then
                 ! Handle primary progenitor cases.
-                select type (thisEvent)
+                select type (event)
                 type is (nodeEventSubhaloPromotionInterTree)                
                    ! Node being jumped to should not be a satellite in this case.
-                   if (thisNode%isSatellite()) call Galacticus_Error_Report('Node_Pull_From_Tree','inter-tree primary subhalo promotion, but jumped-to node is a satellite - unexpected behavior')
+                   if (node%isSatellite()) call Galacticus_Error_Report('Node_Pull_From_Tree','inter-tree primary subhalo promotion, but jumped-to node is a satellite - unexpected behavior')
                    ! Pulled node is the primary progenitor and a subhalo promotion. It is being pulled to a node that is a clone of its parent. Replace the
                    ! clone with the pulled node.                
-                   pullNode     %parent                    => thisNode%parent
-                   pullNode     %sibling                   => thisNode%sibling
-                   pullNode     %firstSatellite            => thisNode%firstSatellite
-                   pullNode     %event                     => thisNode%event
-                   thisNode     %event                     => null()
-                   thisNode     %parent        %firstChild => pullNode
-                   satelliteNode                           => pullNode%firstSatellite
+                   if (associated(node%firstSatellite)) then
+                      satelliteNode => node%firstSatellite
+                      do while (associated(satelliteNode%sibling))
+                         satelliteNode => satelliteNode%sibling
+                      end do
+                      satelliteNode%sibling => pullNode%firstSatellite
+                   else
+                      node%firstSatellite => pullNode%firstSatellite
+                   end if
+                   pullNode%firstSatellite            => node%firstSatellite
+                   pullNode%parent                    => node%parent
+                   pullNode%sibling                   => node%sibling
+                   pullNode%event                     => node%event
+                   node     %event                    => null()
+                   node     %parent       %firstChild => pullNode
+                   satelliteNode                      => pullNode%firstSatellite
                    do while (associated(satelliteNode))
                       satelliteNode%parent => pullNode
                       satelliteNode        => satelliteNode%sibling
                    end do
                    ! Remove this event from those attached to the pulled node, and reattach to the clone node so that it will be
                    ! destroyed when we destroy the clone node.
-                   if (pullNode%event%ID == thisEvent%ID) then
-                      thisNode%event      => pullNode%event
+                   if (pullNode%event%ID == event%ID) then
+                      node    %event      => pullNode%event
                       pullNode%event      => pullNode%event%next
-                      thisNode%event%next => null()
+                      node    %event%next => null()
                    else
                       lastEvent     => null()
                       attachedEvent => pullNode%event
                       do while (associated(attachedEvent))
-                         if (attachedEvent%ID == thisEvent%ID) then
-                            thisNode %event      => attachedEvent
+                         if (attachedEvent%ID == event%ID) then
+                            node %event      => attachedEvent
                             lastEvent      %next => attachedEvent%next
-                            thisNode %event%next => null()
+                            node %event%next => null()
                             exit
                          end if
                          lastEvent     => attachedEvent
@@ -263,38 +304,38 @@ contains
                    attachBasic => pullNode%parent%basic()
                    if (timeMatchRequired .and. pullBasic%time() /= attachBasic%time()) then
                       message='pulled node does not match in time [primary]:'//char(10)
-                      message=message//" event ID="//thisEvent%id//char(10)
+                      message=message//" event ID="//event%id//char(10)
                       write (label,'(f12.6)') attachBasic%time()
-                      message=message//"  node ID="//thisNode%index()//"; time="//label//" Gyr"//char(10)
+                      message=message//"  node ID="//node%index()//"; time="//label//" Gyr"//char(10)
                       write (label,'(f12.6)')   pullBasic%time()
                       message=message//"  pull ID="//pullNode%index()//"; time="//label//" Gyr"
                       call Galacticus_Error_Report('Node_Pull_From_Tree',message)
                    end if
                    call pullBasic%timeSet(pullBasic%time()*(1.0d0-timeOffsetFractional))
                    ! Destroy the cloned node.
-                   call thisNode %destroy()
-                   deallocate(thisNode)
+                   call node %destroy()
+                   deallocate(node)
                 type is (nodeEventBranchJumpInterTree      )
                    ! Pulled node is the primary progenitor, but is a branch jump event. If the target node has a timeLastIsolated
-                   ! prior to the current time, that indicates that it had one or more progenitors (in this tree) which where
+                   ! prior to the current time, that indicates that it had one or more progenitors (in this tree) which were
                    ! non-primary (since the pulled node is primary). One of those progenitors would be treated as primary. In that
                    ! case, we must retain that progenitor and add our pulled node as a satellite node in the host halo. Otherwise,
-                   ! simply attach it as the primary progenitor of the node is jumps to.
-                   attachBasic => thisNode%basic()
-                   if (attachBasic%timeLastIsolated() < attachBasic%time()) then   
-                      pullNode%parent                => thisNode%parent
-                      pullNode%sibling               => thisNode%parent%firstSatellite
+                   ! simply attach it as the primary progenitor of the node it jumps to.
+                   attachBasic => node%basic()
+                   if (attachBasic%timeLastIsolated() < attachBasic%time()) then
+                      pullNode%parent                => node%parent
+                      pullNode%sibling               => node%parent%firstSatellite
                       pullNode%parent%firstSatellite => pullNode
                       ! Allow any necessary manipulation of the nodes.
                       !# <include directive="interTreeSatelliteInsert" type="functionCall" functionType="void">
-                      !#  <functionArgs>pullNode,thisNode</functionArgs>
+                      !#  <functionArgs>pullNode,node</functionArgs>
                       include 'events.inter_tree.satellite_insert.inc'
                       !# </include>  
                    else
                       ! Attach pulled node as the primary progenitor of the target node as it is the primary (and only progenitor).
-                      pullNode%parent     => thisNode
+                      pullNode%parent     => node
                       pullNode%sibling    => null()
-                      thisNode%firstChild => pullNode
+                      node%firstChild => pullNode
                       ! Reset the ID of the descendent to that of the progenitor to mimic what would
                       ! have occurred if trees were processed unsplit. We also reset the basic mass and time last isolated for the same
                       ! reason.
@@ -303,8 +344,8 @@ contains
                       include 'events.inter_tree.satellite_attach.inc'
                       !# </include>
                       pullBasic   => pullNode%basic()
-                      attachBasic => thisNode%basic()
-                      call thisNode   %           indexSet(pullNode %           index())
+                      attachBasic => node%basic()
+                      call node   %           indexSet(pullNode %           index())
                       call attachBasic%            massSet(pullBasic%            mass())
                       call attachBasic%timeLastIsolatedSet(pullBasic%timeLastIsolated())                   
                    end if
@@ -313,7 +354,7 @@ contains
                 ! Pulled node is not the primary progenitor, so our node is actually a satellite in the node pulled to (or its
                 ! host should it be a subhalo).
                 inSatellite =  .false.
-                attachNode  => thisNode
+                attachNode  => node
                 do while(associated(attachNode))
                    if (attachNode%isSatellite()) then
                       inSatellite=.true.
@@ -336,7 +377,7 @@ contains
                    end do
                 else
                    ! Node being pulled to is not a satellite, so attach as a satellite in it directly.
-                   attachNode => thisNode
+                   attachNode => node
                 end if
                 pullNode   %sibling        => attachNode%firstSatellite
                 attachNode %firstSatellite => pullNode
@@ -346,7 +387,7 @@ contains
                    attachBasic => attachNode%parent%basic()                
                    if (pullBasic%time() > attachBasic%time()) then
                       message='pulled node exceeds node in time [non-primary]:'//char(10)
-                      message=message//" event ID="//thisEvent%id//char(10)
+                      message=message//" event ID="//event%id//char(10)
                       write (label,'(f12.6)') attachBasic%time()
                       message=message//"  node ID="//attachNode%index()//"; time="//label//" Gyr"//char(10)
                       write (label,'(f12.6)')   pullBasic%time()
@@ -354,7 +395,46 @@ contains
                       call Galacticus_Error_Report('Node_Pull_From_Tree',message)
                    end if
                 end if
+                ! Assign a merging time to the new satellite if possible.
+                select type (event)
+                type is (nodeEventSubhaloPromotionInterTree)
+                   attachBasic => attachNode%basic()                
+                   if (associated(event%mergeTimeSet)) call event%mergeTimeSet(pullNode,attachNode)
+                type is (nodeEventBranchJumpInterTree      )
+                   attachBasic => attachNode%basic()                
+                   if (associated(event%mergeTimeSet)) call event%mergeTimeSet(pullNode,attachNode)
+                class default
+                   call Galacticus_Error_Report('Node_Pull_From_Tree','non-primary jump should be inter-tree branch jump')
+                end select
              end if
+             ! If the node or its parent are now satellites, and have their own satellites, transfer these satellites to the new
+             ! host node.
+             if ((pullNode%isSatellite().or.pullNode%parent%isSatellite()).and.associated(pullNode%firstSatellite)) then
+                if (pullNode%isSatellite()) then
+                   hostNode => pullNode%parent
+                else if (pullNode%parent%isSatellite()) then
+                   hostNode => pullNode%parent%parent
+                else
+                   hostNode => null()
+                   call Galacticus_Error_Report('Node_Pull_From_Tree','neither node nor parent are satellites - this should not happen')
+                end if
+                satelliteNode          => pullNode%firstSatellite
+                satelliteNode%parent   => hostNode
+                satelliteNode%hostTree => hostNode%hostTree
+                do while (associated(satelliteNode%sibling))
+                   satelliteNode          => satelliteNode%sibling
+                   satelliteNode%parent   => hostNode
+                   satelliteNode%hostTree => hostNode%hostTree
+                end do
+                satelliteNode%sibling   => hostNode%firstSatellite
+                hostNode%firstSatellite => pullNode%firstSatellite
+                pullNode%firstSatellite => null()
+             end if
+             ! Allow any postprocessing of the inter-tree transfer event that may be necessary.
+             !# <include directive="interTreePostProcess" type="functionCall" functionType="void">
+             !#  <functionArgs>pullNode</functionArgs>
+             include 'events.inter_tree.postprocess.inc'
+             !# </include>
              ! Record that the event was performed, and set the deadlock status to not deadlocked since we changed the tree.
              deadlockStatus     =deadlockStatusIsNotDeadlocked
              Node_Pull_From_Tree=.true.
