@@ -88,13 +88,23 @@ my @forestFiles =
      # A milli-Millennium tree in which a satellite is orphanized with a merge target that is a satellite. Fails unless we
      # explicitly check for that merge target being a satellite and move the new host to the merge target's parent.
      {
-	 label      => "milliMillennium-forest1000020000000-noMerging",
-	 fileName   => "testSuite/data/mergerTrees/splitForests-milliMillennium-tree1000020000000.hdf5",
-	 parameters => 
-	  {
-	      mergerTreeReadSubresolutionMergingMethod => {value => "infinite"},
-	      mergerTreeReadPresetMergerNodes          => {value => "true"    }
-	  }
+     	 label      => "milliMillennium-forest1000020000000-noMerging",
+     	 fileName   => "testSuite/data/mergerTrees/splitForests-milliMillennium-tree1000020000000.hdf5",
+     	 parameters => 
+     	  {
+     	      mergerTreeReadSubresolutionMergingMethod => {value => "infinite"},
+     	      mergerTreeReadPresetMergerNodes          => {value => "true"    }
+     	  }
+     },
+     # A milli-Millennium tree.....
+     {
+     	 label      => "milliMillennium-forest4000027000000-noMerging",
+     	 fileName   => "testSuite/data/mergerTrees/splitForests-milliMillennium-tree4000027000000.hdf5",
+     	 parameters => 
+     	  {
+     	      mergerTreeReadSubresolutionMergingMethod => {value => "infinite"},
+     	      mergerTreeReadPresetMergerNodes          => {value => "true"    }
+     	  }
      }
     );
 
@@ -115,13 +125,12 @@ if ( defined($millenniumDatabaseConfig) ) {
     print "SKIPPED: Millennium database location undefined\n";
     exit;
 }
-## AJB HACK
-# push(
-#     @forestFiles,
-#     {
-# 	label    => "milliMillennium",
-# 	fileName => $millenniumDatabaseConfig->{'path'}."/milliMillennium/milliMillennium.hdf5"
-#     );
+push(
+    @forestFiles,
+    {
+	label    => "milliMillennium",
+	fileName => $millenniumDatabaseConfig->{'path'}."/milliMillennium/milliMillennium.hdf5"
+    );
     
 # Define the set of properties that we want to compare.
 my @properties = ( "nodeIndex", "positionPositionX", "positionPositionY", "positionPositionZ", "positionVelocityX", "positionVelocityY", "positionVelocityZ", "satelliteNodeIndex", "satelliteMergeTime", "satelliteBoundMass", "nodeIsIsolated", "basicTimeLastIsolated", "parentIndex", "basicMass" );
@@ -233,7 +242,7 @@ foreach my $forestFile ( @forestFiles ) {
 		# Identify to which tree the problem node belongs.
 		my $nodeCount = 0;
 		my $iTree = 0;
-		while ( $data->{'split'}->{'mergerTreeStartIndex'}->(($iTree))+$data->{'split'}->{'mergerTreeCount'}->(($iTree)) < $js ) {
+		while ( $data->{'split'}->{'mergerTreeStartIndex'}->(($iTree))+$data->{'split'}->{'mergerTreeCount'}->(($iTree))-1 < $js ) {
 		    ++$iTree;
 		}
 		# Report on the problem.

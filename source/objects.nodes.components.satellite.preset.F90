@@ -25,9 +25,9 @@ module Node_Component_Satellite_Preset
   use Galacticus_Nodes
   implicit none
   private
-  public :: Node_Component_Satellite_Preset_Promote               , Node_Component_Satellite_Preset_Inter_Tree_Attach, &
-       &    Node_Component_Satellite_Preset_Inter_Tree_Insert     , Node_Component_Satellite_Preset_Rate_Compute     , &
-       &    Node_Component_Satellite_Preset_Inter_Tree_Postprocess
+  public :: Node_Component_Satellite_Preset_Promote               , Node_Component_Satellite_Preset_Inter_Tree_Attach    , &
+       &    Node_Component_Satellite_Preset_Inter_Tree_Insert     , Node_Component_Satellite_Preset_Rate_Compute         , &
+       &    Node_Component_Satellite_Preset_Inter_Tree_Postprocess, Node_Component_Satellite_Preset_Satellite_Host_Change
 
   !# <component>
   !#  <class>satellite</class>
@@ -245,9 +245,8 @@ contains
        satelliteMergee => mergee%satellite()
        if (satelliteMergee%isOrphan()) then
           if (Galacticus_Verbosity_Level() >= verbosityInfo) then
-             message=var_str('Satellite node [')//node%index()//'] will be orphanized due to event'
+             message=var_str('Satellite node [')//mergee%index()//'] will be orphanized due to event'
              call Galacticus_Display_Message(message)
-             call backtrace()
           end if
           call Node_Component_Satellite_Preset_Orphanize(mergee)
        end if
@@ -255,7 +254,32 @@ contains
     end do
     return
   end subroutine Node_Component_Satellite_Preset_Inter_Tree_Postprocess
-  
+
+  !# <satelliteHostChangeTask>
+  !#  <unitName>Node_Component_Satellite_Preset_Satellite_Host_Change</unitName>
+  !# </satelliteHostChangeTask>
+  subroutine Node_Component_Satellite_Preset_Satellite_Host_Change(node)
+    !% For satellite host changes, if the satellite is an orphan with a merge target ensure it remains in the branch of its merge
+    !% target.
+    use ISO_Varying_String
+    use String_Handling
+    use Galacticus_Display
+    implicit none
+    type (treeNode              ), intent(inout), pointer :: node
+    class(nodeComponentSatellite)               , pointer :: satellite
+    type (varying_string        )                         :: message
+
+    satellite => node%satellite()
+    if (satellite%isOrphan().and.associated(node%mergeTarget)) then
+       if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+          message=var_str('Satellite node [')//node%index()//'] will be orphanized due to host change'
+          call Galacticus_Display_Message(message)
+       end if
+       call Node_Component_Satellite_Preset_Orphanize(node)
+    end if
+    return
+  end subroutine Node_Component_Satellite_Preset_Satellite_Host_Change
+
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Satellite_Preset_Rate_Compute</unitName>
   !# </rateComputeTask>
@@ -328,11 +352,13 @@ contains
        end if
        call Galacticus_Display_Message(message)
     end if
-    ! Move to the new host.
-    if (associated(node%parent)) call node%removeFromHost()
-    node    %sibling        => nodeHost%firstSatellite
-    node    %parent         => nodeHost
-    nodeHost%firstSatellite => node
+    ! Move to the new host. (If the new host is the same as the current host, do nothing.)
+    if (.not.associated(node%parent,nodeHost)) then
+       if (associated(node%parent)) call node%removeFromHost()
+       node    %sibling        => nodeHost%firstSatellite
+       node    %parent         => nodeHost
+       nodeHost%firstSatellite => node
+    end if
     return
   end subroutine Node_Component_Satellite_Preset_Orphanize
   
