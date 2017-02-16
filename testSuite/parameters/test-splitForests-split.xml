@@ -207,5 +207,6 @@
 
   <!-- Output options -->
   <mergerTreeOutputReferences value="false"/>
+  <outputSatelliteStatus value="true"/>
 
 </parameters>
