@@ -206,7 +206,6 @@ contains
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Boolean
     use Memory_Management
-    use Cosmology_Parameters
     implicit none
     type     (varying_string          ), intent(in   )          :: mergerTreeConstructMethod 
     procedure(Merger_Tree_Read_Do     ), intent(inout), pointer :: Merger_Tree_Construct     
@@ -2210,8 +2209,8 @@ contains
     class           (nodeComponentSatellite         ), pointer                                        :: satelliteSatellite                , satellite          
     class           (darkMatterHaloScaleClass       ), pointer                                        :: darkMatterHaloScale_
     class           (virialOrbitClass               ), pointer                                        :: virialOrbit_
-    type            (keplerOrbit                    )                                                 :: thisOrbit                                                         
-    integer                                                                                           :: iNode                             , thispass
+    type            (keplerOrbit                    )                                                 :: orbit                                                         
+    integer                                                                                           :: iNode                             , pass_
     integer         (c_size_t                       )                                                 :: historyCount                      , iIsolatedNode                 
     integer         (kind_int8                      )                                                 :: progenitorMassMaximumIndex
     logical                                                                                           :: branchMerges                      , branchTipReached          , & 
@@ -2227,7 +2226,7 @@ contains
     historyCountMaximum  = 0
     nodes%mergesWithIndex=-1
     ! First pass assigns isolated node indices to all descendents, second pass finds mergers.
-    do thisPass=passAssign,passMerge
+    do pass_=passAssign,passMerge
        do iNode=1,size(nodes)
           if (nodes(iNode)%primaryIsolatedNodeIndex /= nodeIsUnreachable) then
              iIsolatedNode=nodes(iNode)%primaryIsolatedNodeIndex
@@ -2318,7 +2317,7 @@ contains
                       end if
                    end do
                    ! If on the isolated node index assigning pass, skip to the next halo.
-                   if (thisPass == passAssign) cycle
+                   if (pass_ == passAssign) cycle
                    ! Only set a merging time if this node is not the primary progenitor of its parent.
                    if (.not.nodeList(iIsolatedNode)%node%isPrimaryProgenitor()) then
                       ! Record the largest history.
@@ -2338,7 +2337,7 @@ contains
                       ! Flag that this node will merge.
                       nodeWillMerge=.true.
                    end if
-                else if (thisPass == passAssign) then
+                else if (pass_ == passAssign) then
                    ! If on the isolated node index assigning pass, skip to the next halo.
                    cycle
                 else if (.not.nodeList(iIsolatedNode)%node%isPrimaryProgenitor()) then
@@ -2368,7 +2367,7 @@ contains
                 end if            
              end if
              ! Handle cases where a node jumps to another tree.
-             if (thisPass == passMerge .and. isOnPushList(nodes(iNode)) .and. mergerTreeReadPresetMergerTimes) then
+             if (pass_ == passMerge .and. isOnPushList(nodes(iNode)) .and. mergerTreeReadPresetMergerTimes) then
                 ! Merger times are to be preset, but this node will be pushed to another tree. We must set its merging time to be
                 ! infinite in this case.
                 firstProgenitor => nodeList(iIsolatedNode)%node
@@ -2443,8 +2442,8 @@ contains
                    if (mergerTreeReadPresetOrbitsSetAll) then
                       ! The satellite and host have zero separation, so no orbit can be
                       ! computed. Since all orbits must be set, choose an orbit at random.
-                      thisOrbit=virialOrbit_%orbit(satelliteNode,hostNode,acceptUnboundOrbits)
-                      call satelliteSatellite%virialOrbitSet(thisOrbit)
+                      orbit=virialOrbit_%orbit(satelliteNode,hostNode,acceptUnboundOrbits)
+                      call satelliteSatellite%virialOrbitSet(orbit)
                    else
                       message='merging halos ['
                       message=message//satelliteNode%index()//' & '//hostNode%index()//'] have zero separation'
@@ -2452,30 +2451,30 @@ contains
                    end if
                 else
                    ! Create the orbit.
-                   thisOrbit=Orbit_Construct(basicSatellite%mass(),basicOrbitalPartner%mass(),relativePosition,relativeVelocity)
+                   orbit=Orbit_Construct(basicSatellite%mass(),basicOrbitalPartner%mass(),relativePosition,relativeVelocity)
                    ! Propagate to the virial radius.
-                   radiusPericenter=thisOrbit%radiusPericenter()
-                   radiusApocenter =thisOrbit%radiusApocenter ()
-                   radiusVirial    =darkMatterHaloScale_%virialRadius(orbitalPartner)
+                   radiusPericenter=orbit               %radiusPericenter(              )
+                   radiusApocenter =orbit               %radiusApocenter (              )
+                   radiusVirial    =darkMatterHaloScale_%virialRadius    (orbitalPartner)
                    ! Check if the orbit intersects the virial radius.
-                   if     (                                                                          &
-                        &    radiusVirial >= radiusPericenter                                        &
-                        &  .and.                                                                     &
-                        &   (radiusVirial <= radiusApocenter          .or. .not.thisOrbit%isBound()) &
-                        &  .and.                                                                     &
-                        &   (.not.mergerTreeReadPresetOrbitsBoundOnly .or.      thisOrbit%isBound()) &
+                   if     (                                                                      &
+                        &    radiusVirial >= radiusPericenter                                    &
+                        &  .and.                                                                 &
+                        &   (radiusVirial <= radiusApocenter          .or. .not.orbit%isBound()) &
+                        &  .and.                                                                 &
+                        &   (.not.mergerTreeReadPresetOrbitsBoundOnly .or.      orbit%isBound()) &
                         & ) then
-                      call thisOrbit%propagate(radiusVirial,infalling=.true.)
+                      call orbit%propagate(radiusVirial,infalling=.true.)
                       ! Set the orbit.
-                      call satelliteSatellite%virialOrbitSet(thisOrbit)
+                      call satelliteSatellite%virialOrbitSet(orbit)
                       ! If the satellite component supports full phase-space position, set that
                       ! also.
                       if (satelliteSatellite%positionIsSettable()) call satelliteSatellite%positionSet(relativePosition)
                       if (satelliteSatellite%velocityIsSettable()) call satelliteSatellite%velocitySet(relativeVelocity)
                    else if (mergerTreeReadPresetOrbitsSetAll) then
                       ! The given orbit does not cross the virial radius. Since all orbits must be set, choose an orbit at random.
-                      thisOrbit=virialOrbit_%orbit(satelliteNode,hostNode,acceptUnboundOrbits)
-                      call satelliteSatellite%virialOrbitSet(thisOrbit)
+                      orbit=virialOrbit_%orbit(satelliteNode,hostNode,acceptUnboundOrbits)
+                      call satelliteSatellite%virialOrbitSet(orbit)
                    else if (mergerTreeReadPresetOrbitsAssertAllSet) then
                       message='virial orbit could not be set for node '
                       message=message//satelliteNode%index()//char(10)
@@ -2902,7 +2901,7 @@ contains
     !% Ensure that nodes have valid primary progenitors.
     implicit none
     class  (nodeData          ), dimension(:), intent(inout) :: nodes                            
-    type   (treeNode          ), pointer                     :: nodeNew          , thisSatellite 
+    type   (treeNode          ), pointer                     :: nodeNew          , nodeSatellite 
     class  (nodeComponentBasic), pointer                     :: newBasicComponent                
     integer                                                  :: iNode                            
     integer(c_size_t          )                              :: iIsolatedNode                    
@@ -2934,10 +2933,10 @@ contains
                 nodeNew%event => null()
                 ! Any satellites are now attached to the copy.
                 nodes(iNode)%node%parent%firstSatellite => null()
-                thisSatellite => nodeNew%firstSatellite
-                do while (associated(thisSatellite))
-                   thisSatellite%parent => nodeNew
-                   thisSatellite        => thisSatellite%sibling
+                nodeSatellite => nodeNew%firstSatellite
+                do while (associated(nodeSatellite))
+                   nodeSatellite%parent => nodeNew
+                   nodeSatellite        => nodeSatellite%sibling
                 end do
              end if
           end if
@@ -3130,7 +3129,7 @@ contains
     class           (nodeComponentPosition          ), pointer                                    :: position
     type            (treeNode                       ), pointer                                    :: hostNode             , satelliteNode
     double precision                                                , dimension(3)                :: relativePosition     , relativeVelocity           
-    type            (keplerOrbit                    )                                             :: thisOrbit                                         
+    type            (keplerOrbit                    )                                             :: orbit                                         
     double precision                                                                              :: primaryProgenitorMass, timeUntilMerging           
     type            (progenitorIterator             )                                             :: progenitors                                                                       
     character       (len=42                         )                                             :: coordinateLabel                                                                   
@@ -3193,7 +3192,7 @@ contains
              call Galacticus_Display_Unindent('assuming instantaneous merging' ,verbosityWarn)
           else
              ! Create the orbit.
-             thisOrbit=Orbit_Construct(lastSeenNode%nodeMass,primaryProgenitor%nodeMass,relativePosition,relativeVelocity)
+             orbit=Orbit_Construct(lastSeenNode%nodeMass,primaryProgenitor%nodeMass,relativePosition,relativeVelocity)
              ! Construct temporary nodes.
              satelliteNode                => treeNode()
              hostNode                     => treeNode()
@@ -3206,7 +3205,7 @@ contains
              satelliteNode%parent         => hostNode
              hostNode     %firstSatellite => satelliteNode             
              ! Determine the time until merging.
-             timeUntilMerging=subresolutionSatelliteMergingTimescales%timeUntilMerging(satelliteNode,thisOrbit)
+             timeUntilMerging=subresolutionSatelliteMergingTimescales%timeUntilMerging(satelliteNode,orbit)
              ! Clean up.
              call satelliteNode%destroy()
              call hostNode     %destroy()
@@ -3235,23 +3234,23 @@ contains
     return
   end subroutine Time_Until_Merging_Subresolution
 
-  function Orbit_Construct(mass1,mass2,position,velocity) result(thisOrbit)
+  function Orbit_Construct(mass1,mass2,position,velocity) result(orbit)
     !% Construct a Keplerian orbit given body masses, positions, and relative velocities.
     use Kepler_Orbits
     use Vectors
     implicit none
-    type            (keplerOrbit)                              :: thisOrbit           
-    double precision                           , intent(in   ) :: mass1    , mass2    
-    double precision             , dimension(3), intent(in   ) :: position , velocity 
+    type            (keplerOrbit)                              :: orbit           
+    double precision                           , intent(in   ) :: mass1   , mass2    
+    double precision             , dimension(3), intent(in   ) :: position, velocity 
     
-    call thisOrbit%reset()
-    call thisOrbit%massesSet            (       &
-         &                               mass1, &
-         &                               mass2  &
-         &                              )
-    call thisOrbit%radiusSet            (                                                   Vector_Magnitude(position))
-    call thisOrbit%velocityRadialSet    (                    Dot_Product(velocity,position)/Vector_Magnitude(position))
-    call thisOrbit%velocityTangentialSet(Vector_Magnitude(Vector_Product(velocity,position)/Vector_Magnitude(position)))
+    call orbit%reset()
+    call orbit%massesSet            (       &
+         &                           mass1, &
+         &                           mass2  &
+         &                          )
+    call orbit%radiusSet            (                                                   Vector_Magnitude(position))
+    call orbit%velocityRadialSet    (                    Dot_Product(velocity,position)/Vector_Magnitude(position))
+    call orbit%velocityTangentialSet(Vector_Magnitude(Vector_Product(velocity,position)/Vector_Magnitude(position)))
     return
   end function Orbit_Construct
 
