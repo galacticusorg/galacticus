@@ -593,6 +593,16 @@ contains
           call Galacticus_Error_Report("Merger_Tree_Read_Initialize",message)
        end if
 
+       ! Warn about lack of branch jumps and subhalo promotions if split forests are being used.
+       if (mergerTreeReadForestSizeMaximum > 0_c_size_t .and. .not.(mergerTreeReadAllowBranchJumps .and. mergerTreeReadAllowSubhaloPromotions)) then
+          message='WARNING: large forests may be split for processing but '
+          if (                                              .not.mergerTreeReadAllowBranchJumps) message=message//' branch jumps'
+          if (.not.mergerTreeReadAllowSubhaloPromotions.and..not.mergerTreeReadAllowBranchJumps) message=message//' and'
+          if (.not.mergerTreeReadAllowSubhaloPromotions                                        ) message=message//' subhalo promotions'          
+          message=message//' are not allowed - this can result in inconsistent treatment between split and unsplit forest processing'
+          call Galacticus_Warn(message)
+       end if
+       
        ! Fixed thread assignment currently not possible with multiple files.
        if (mergerTreeReadFixedThreadAssignment .and. mergerTreeReadFileCount > 1) call Galacticus_Error_Report("Merger_Tree_Read_Initialize","fixed thread assignment is not possible with multiple tree files")
        
