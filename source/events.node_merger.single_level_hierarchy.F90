@@ -50,7 +50,7 @@ contains
     use Satellite_Promotion
     implicit none
     type(treeNode      ), intent(inout), pointer :: thisNode
-    type(treeNode      )               , pointer :: childNode, nextSatellite, parentNode, thisSatellite
+    type(treeNode      )               , pointer :: childNode, parentNode, thisSatellite
     type(varying_string)                         :: message
 
     ! Get the parent node.
@@ -82,18 +82,11 @@ contains
     end if
 
     ! Move any of its own satellites to become satellites of the parent and set their parent node pointers appropriately.
-    if (associated(thisNode%firstSatellite)) then
+    do while (associated(thisNode%firstSatellite))
+       ! Move the satellite to the new parent.
        thisSatellite => thisNode%firstSatellite
-       do while (associated(thisSatellite))
-          ! Find next sibling satellite.
-          nextSatellite => thisSatellite%sibling
-          ! Move the satellite to the new parent.
-          call Satellite_Move_To_New_Host(thisSatellite,parentNode)
-          ! Move to the next sibling satellite.
-          thisSatellite => nextSatellite
-       end do
-       thisNode%firstSatellite => null()
-    end if
+       call Satellite_Move_To_New_Host(thisSatellite,parentNode)
+    end do
     return
   end subroutine Events_Node_Merger_Do_SLH
 
