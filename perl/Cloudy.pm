@@ -10,7 +10,7 @@ use Galacticus::Path;
 sub Initialize {
     # Download and compile Cloudy so that it is ready for use.
     # Specify Cloudy version.
-    my $cloudyVersion = "c13.03";
+    my $cloudyVersion = "c13.05";
     # Specify Cloudy path.
     my $cloudyPath    = &galacticusPath()."aux/".$cloudyVersion;
     # Download the code.
