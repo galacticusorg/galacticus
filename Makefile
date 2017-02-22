@@ -356,3 +356,6 @@ source/FFTlog/fftlog.f source/FFTlog/cdgamma.f source/FFTlog/drfftb.f source/FFT
 
 $(BUILDPATH)/FFTlog/%.o: ./source/FFTlog/%.f Makefile
 	$(FCCOMPILER) -c $< -o $(BUILDPATH)/FFTlog/$*.o $(FCFLAGS)
+
+aux/XSpec/%.o: ./aux/XSpec/%.f Makefile
+	$(FCCOMPILER) -c $< -o aux/XSpec/$*.o $(FCFLAGS)
