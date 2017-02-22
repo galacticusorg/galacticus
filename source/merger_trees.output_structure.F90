@@ -42,8 +42,8 @@ contains
   !# <mergerTreePreEvolveTask>
   !#   <unitName>Merger_Tree_Structure_Output</unitName>
   !# </mergerTreePreEvolveTask>
-  subroutine Merger_Tree_Structure_Output(thisTree)
-    !% Output the structure of {\normalfont \ttfamily thisTree}.
+  subroutine Merger_Tree_Structure_Output(tree)
+    !% Output the structure of {\normalfont \ttfamily tree}.
     use Galacticus_Nodes
     use Input_Parameters
     use Memory_Management
@@ -56,16 +56,16 @@ contains
     include 'merger_trees.output_structure.tasks.modules.inc'
     !# </include>
     implicit none
-    type            (mergerTree        ), intent(in   ), target                :: thisTree
-    type            (treeNode          )                             , pointer :: thisNode
-    integer         (kind=kind_int8    ), allocatable  , dimension(:)          :: nodeIndex
-    double precision                    , allocatable  , dimension(:)          :: nodeProperty
-    class           (nodeComponentBasic)                             , pointer :: thisBasicComponent
-    type            (mergerTree        )                             , pointer :: currentTree
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    integer                                                                    :: nodeCount
-    type            (varying_string    )                                       :: groupComment      , groupName
-    type            (hdf5Object        )                                       :: nodeDataset       , treeGroup
+    type            (mergerTree              ), intent(in   ), target                :: tree
+    type            (treeNode                )                             , pointer :: node
+    integer         (kind=kind_int8          ), allocatable  , dimension(:)          :: nodeIndex
+    double precision                          , allocatable  , dimension(:)          :: nodeProperty
+    class           (nodeComponentBasic      )                             , pointer :: basic
+    type            (mergerTree              )                             , pointer :: currentTree
+    class           (darkMatterHaloScaleClass)                             , pointer :: darkMatterHaloScale_
+    integer                                                                          :: nodeCount
+    type            (varying_string          )                                       :: groupComment        , groupName
+    type            (hdf5Object              )                                       :: nodeDataset         , treeGroup
 
     ! Check if module is initialized.
     if (.not.structureOutputModuleInitialized) then
@@ -111,14 +111,14 @@ contains
        ! Get required classes.
        darkMatterHaloScale_ => darkMatterHaloScale()
        ! Iterate over trees.
-       currentTree => thisTree
+       currentTree => tree
        do while (associated(currentTree))
           ! Count up number of nodes in the tree.
           nodeCount=0
-          thisNode => currentTree%baseNode
-          do while (associated(thisNode))
+          node => currentTree%baseNode
+          do while (associated(node))
              nodeCount=nodeCount+1
-             thisNode => thisNode%walkTree()
+             node => node%walkTree()
           end do
           ! Allocate storage space.
           call allocateArray(nodeIndex   ,[nodeCount])
@@ -133,11 +133,11 @@ contains
 
           ! Extract node indices and output to file.
           nodeCount=0
-          thisNode => currentTree%baseNode
-          do while (associated(thisNode))
+          node => currentTree%baseNode
+          do while (associated(node))
              nodeCount=nodeCount+1
-             nodeIndex(nodeCount)=thisNode%index()
-             thisNode => thisNode%walkTree()
+             nodeIndex(nodeCount)=node%index()
+             node => node%walkTree()
           end do
           !$omp critical(HDF5_Access)
           call treeGroup%writeDataset(nodeIndex,'nodeIndex','Index of the node.')
@@ -145,11 +145,11 @@ contains
 
           ! Extract child node indices and output to file.
           nodeCount=0
-          thisNode => currentTree%baseNode
-          do while (associated(thisNode))
+          node => currentTree%baseNode
+          do while (associated(node))
              nodeCount=nodeCount+1
-             nodeIndex(nodeCount)=thisNode%firstChild%index()
-             thisNode => thisNode%walkTree()
+             nodeIndex(nodeCount)=node%firstChild%index()
+             node => node%walkTree()
           end do
           !$omp critical(HDF5_Access)
           call treeGroup%writeDataset(nodeIndex,'childIndex','Index of the child node.')
@@ -157,11 +157,11 @@ contains
 
           ! Extract parent node indices and output to file.
           nodeCount=0
-          thisNode => currentTree%baseNode
-          do while (associated(thisNode))
+          node => currentTree%baseNode
+          do while (associated(node))
              nodeCount=nodeCount+1
-             nodeIndex(nodeCount)=thisNode%parent%index()
-             thisNode => thisNode%walkTree()
+             nodeIndex(nodeCount)=node%parent%index()
+             node => node%walkTree()
           end do
           !$omp critical(HDF5_Access)
           call treeGroup%writeDataset(nodeIndex,'parentIndex','Index of the parent node.')
@@ -169,11 +169,11 @@ contains
 
           ! Extract sibling node indices and output to file.
           nodeCount=0
-          thisNode => currentTree%baseNode
-          do while (associated(thisNode))
+          node => currentTree%baseNode
+          do while (associated(node))
              nodeCount=nodeCount+1
-             nodeIndex(nodeCount)=thisNode%sibling%index()
-             thisNode => thisNode%walkTree()
+             nodeIndex(nodeCount)=node%sibling%index()
+             node => node%walkTree()
           end do
           !$omp critical(HDF5_Access)
           call treeGroup%writeDataset(nodeIndex,'siblingIndex','Index of the sibling node.')
@@ -181,12 +181,12 @@ contains
 
           ! Extract node masses and output to file.
           nodeCount=0
-          thisNode => currentTree%baseNode
-          do while (associated(thisNode))
-             thisBasicComponent => thisNode%basic()
+          node => currentTree%baseNode
+          do while (associated(node))
+             basic => node%basic()
              nodeCount=nodeCount+1
-             nodeProperty(nodeCount)=thisBasicComponent%mass()
-             thisNode => thisNode%walkTree()
+             nodeProperty(nodeCount)=basic%mass()
+             node => node%walkTree()
           end do
           !$omp critical(HDF5_Access)
           call treeGroup%writeDataset(nodeProperty,'nodeMass','Mass of node.',datasetReturned=nodeDataset)
@@ -196,12 +196,12 @@ contains
 
           ! Extract node times and output to file.
           nodeCount=0
-          thisNode => currentTree%baseNode
-          do while (associated(thisNode))
-             thisBasicComponent => thisNode%basic()
+          node => currentTree%baseNode
+          do while (associated(node))
+             basic => node%basic()
              nodeCount=nodeCount+1
-             nodeProperty(nodeCount)=thisBasicComponent%time()
-             thisNode => thisNode%walkTree()
+             nodeProperty(nodeCount)=basic%time()
+             node => node%walkTree()
           end do
           !$omp critical(HDF5_Access)
           call treeGroup%writeDataset(nodeProperty,'nodeTime','Time at node.',datasetReturned=nodeDataset)
@@ -214,11 +214,11 @@ contains
 
              ! Extract node virial radii and output to file.
              nodeCount=0
-             thisNode => currentTree%baseNode
-             do while (associated(thisNode))
+             node => currentTree%baseNode
+             do while (associated(node))
                 nodeCount=nodeCount+1
-                nodeProperty(nodeCount)=darkMatterHaloScale_%virialRadius(thisNode)
-                thisNode => thisNode%walkTree()
+                nodeProperty(nodeCount)=darkMatterHaloScale_%virialRadius(node)
+                node => node%walkTree()
              end do
              !$omp critical(HDF5_Access)
              call treeGroup%writeDataset(nodeProperty,'nodeVirialRadius','Virial radius of the node [Mpc].',datasetReturned=nodeDataset)
@@ -228,11 +228,11 @@ contains
 
              ! Extract node virial velocity and output to file.
              nodeCount=0
-             thisNode => currentTree%baseNode
-             do while (associated(thisNode))
+             node => currentTree%baseNode
+             do while (associated(node))
                 nodeCount=nodeCount+1
-                nodeProperty(nodeCount)=darkMatterHaloScale_%virialVelocity(thisNode)
-                thisNode => thisNode%walkTree()
+                nodeProperty(nodeCount)=darkMatterHaloScale_%virialVelocity(node)
+                node => node%walkTree()
              end do
              !$omp critical(HDF5_Access)
              call treeGroup%writeDataset(nodeProperty,'nodeVirialVelocity','Virial velocity of the node [km/s].',datasetReturned=nodeDataset)

@@ -85,13 +85,13 @@ contains
     return
   end subroutine isothermalDestructor
   
-  subroutine isothermalCalculationReset(self,thisNode)
+  subroutine isothermalCalculationReset(self,node)
     !% Reset the dark matter profile calculation.
     implicit none
-    class(darkMatterProfileIsothermal), intent(inout)          :: self
-    type (treeNode                   ), intent(inout) :: thisNode
+    class(darkMatterProfileIsothermal), intent(inout) :: self
+    type (treeNode                   ), intent(inout) :: node
 
-    call self%scale%calculationReset(thisNode)
+    call self%scale%calculationReset(node)
     return
   end subroutine isothermalCalculationReset
 
@@ -105,10 +105,10 @@ contains
     class           (darkMatterProfileIsothermal), intent(inout) :: self
     type            (treeNode                   ), intent(inout) :: node
     double precision                             , intent(in   ) :: radius
-    class           (nodeComponentBasic         ), pointer       :: thisBasicComponent
+    class           (nodeComponentBasic         ), pointer       :: basic
 
-    thisBasicComponent   => node%basic         ()
-    isothermalDensity=thisBasicComponent%mass()/4.0d0/Pi/self%scale%virialRadius(node)/radius**2
+    basic             => node %basic()
+    isothermalDensity =  basic%mass ()/4.0d0/Pi/self%scale%virialRadius(node)/radius**2
     return
   end function isothermalDensity
 
@@ -138,16 +138,16 @@ contains
     type            (treeNode                   ), intent(inout)           :: node
     double precision                             , intent(in   )           :: moment
     double precision                             , intent(in   ), optional :: radiusMinimum      , radiusMaximum
-    class           (nodeComponentBasic         )               , pointer  :: thisBasicComponent
+    class           (nodeComponentBasic         )               , pointer  :: basic
     double precision                                                       :: radiusMinimumActual, radiusMaximumActual
     
     radiusMinimumActual=0.0d0
     radiusMaximumActual=self%scale%virialRadius(node)
     if (present(radiusMinimum)) radiusMinimumActual=radiusMinimum
     if (present(radiusMaximum)) radiusMaximumActual=radiusMaximum
-    thisBasicComponent   => node%basic         ()
+    basic   => node%basic         ()
     if (Values_Agree(moment,1.0d0,absTol=1.0d-6)) then
-       isothermalRadialMoment=+thisBasicComponent%mass()             &
+       isothermalRadialMoment=+basic%mass()                          &
             &                 /4.0d0                                 &
             &                 /Pi                                    &
             &                 /self%scale%virialRadius(node)         &
@@ -157,7 +157,7 @@ contains
             &                   -radiusMinimumActual**(moment-1.0d0) &
             &                  )
     else
-       isothermalRadialMoment=+thisBasicComponent%mass()             &
+       isothermalRadialMoment=+basic%mass()                          &
             &                 /4.0d0                                 &
             &                 /Pi                                    &
             &                 /self%scale%virialRadius(node)         &
@@ -178,10 +178,10 @@ contains
     class           (darkMatterProfileIsothermal), intent(inout) :: self
     type            (treeNode                   ), intent(inout) :: node
     double precision                             , intent(in   ) :: radius
-    class           (nodeComponentBasic         ), pointer       :: thisBasicComponent
+    class           (nodeComponentBasic         ), pointer       :: basic
 
-    thisBasicComponent   => node%basic     ()
-    isothermalEnclosedMass=thisBasicComponent%mass()*(radius/self%scale%virialRadius(node))
+    basic   => node%basic     ()
+    isothermalEnclosedMass=basic%mass()*(radius/self%scale%virialRadius(node))
     return
   end function isothermalEnclosedMass
 
@@ -274,10 +274,10 @@ contains
     implicit none
     class(darkMatterProfileIsothermal), intent(inout) :: self
     type (treeNode                   ), intent(inout) :: node
-    class(nodeComponentBasic         ), pointer       :: thisBasicComponent
+    class(nodeComponentBasic         ), pointer       :: basic
 
-    thisBasicComponent    => node%basic     ()
-    isothermalEnergy=-0.5d0*thisBasicComponent%mass()*self%scale%virialVelocity(node)**2
+    basic    => node%basic     ()
+    isothermalEnergy=-0.5d0*basic%mass()*self%scale%virialVelocity(node)**2
     return
   end function isothermalEnergy
 
@@ -288,11 +288,11 @@ contains
     implicit none
     class(darkMatterProfileIsothermal), intent(inout)          :: self
     type (treeNode                   ), intent(inout), pointer :: node
-    class(nodeComponentBasic         )               , pointer :: thisBasicComponent
+    class(nodeComponentBasic         )               , pointer :: basic
 
-    thisBasicComponent   => node%basic     ()
+    basic   => node%basic     ()
     isothermalEnergyGrowthRate=self%energy(node)&
-         &*(thisBasicComponent%accretionRate()/thisBasicComponent%mass()+2.0d0&
+         &*(basic%accretionRate()/basic%mass()+2.0d0&
          &*self%scale%virialVelocityGrowthRate(node)/self%scale%virialVelocity(node))
     return
   end function isothermalEnergyGrowthRate

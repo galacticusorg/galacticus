@@ -91,47 +91,47 @@ contains
     return
   end subroutine Galactic_Structure_Radii_Adiabatic_Initialize
 
-  subroutine Galactic_Structure_Radii_Solve_Adiabatic(thisNode)
-    !% Find the radii of galactic components in {\normalfont \ttfamily thisNode} using the ``adiabatic'' method.
+  subroutine Galactic_Structure_Radii_Solve_Adiabatic(node)
+    !% Find the radii of galactic components in {\normalfont \ttfamily node} using the ``adiabatic'' method.
     use Cosmology_Parameters
     use Galacticus_Error
     use Galacticus_Display
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
-    type            (treeNode                  ), intent(inout), target :: thisNode
-    integer                                     , parameter             :: iterationMaximum       =100
-    procedure       (Radius_Solver_Get_Template), pointer               :: Radius_Get             =>null(), Velocity_Get=>null()
-    procedure       (Radius_Solver_Set_Template), pointer               :: Radius_Set             =>null(), Velocity_Set=>null()
+    type            (treeNode                  ), intent(inout), target :: node
+    integer                                     , parameter             :: iterationMaximum                =  100
+    procedure       (Radius_Solver_Get_Template), pointer               :: Radius_Get                      => null(), Velocity_Get => null()
+    procedure       (Radius_Solver_Set_Template), pointer               :: Radius_Set                      => null(), Velocity_Set => null()
     !$omp threadprivate(Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
-    class           (nodeComponentBasic        ), pointer               :: thisBasicComponent
-    class           (cosmologyParametersClass  ), pointer               :: thisCosmologyParameters
-    logical                                     , parameter             :: specificAngularMomentumRequired=.true.
+    class           (nodeComponentBasic        ), pointer               :: basic
+    class           (cosmologyParametersClass  ), pointer               :: cosmologyParameters_
+    logical                                     , parameter             :: specificAngularMomentumRequired =  .true.
     logical                                                             :: componentActive
     double precision                                                    :: specificAngularMomentum
 
     ! Check that the galaxy is physical plausible. If not, do not try to solve for its structure.
-    thisNode%isPhysicallyPlausible=.true.
+    node%isPhysicallyPlausible=.true.
     include 'galactic_structure.radius_solver.plausible.inc'
-    if (thisNode%isPhysicallyPlausible) then
+    if (node%isPhysicallyPlausible) then
        ! Initialize the solver state.
        iterationCount=0
        fitMeasure    =2.0d0*adiabaticContractionSolutionTolerance
 
        ! Determine which node to use for halo properties.
        if (adiabaticContractionUseFormationHalo) then
-          if (.not.associated(thisNode%formationNode)) call Galacticus_Error_Report('Galactic_Structure_Radii_Solve_Adiabatic','no formation node exists')
-          haloNode => thisNode%formationNode
+          if (.not.associated(node%formationNode)) call Galacticus_Error_Report('Galactic_Structure_Radii_Solve_Adiabatic','no formation node exists')
+          haloNode => node%formationNode
        else
-          haloNode => thisNode
+          haloNode => node
        end if
 
        ! Get the default cosmology.
-       thisCosmologyParameters => cosmologyParameters()
+       cosmologyParameters_ => cosmologyParameters()
        ! Compute fraction of mass distribution as the halo. Truncate this to zero: we can get negative values if the ODE solver is
        ! exploring regimes of high baryonic mass, and this would cause problems.
-       thisBasicComponent => thisNode%basic()
-       haloFraction=(thisCosmologyParameters%OmegaMatter()-thisCosmologyParameters%OmegaBaryon())/thisCosmologyParameters%OmegaMatter() ! Determine the dark matter fraction.
+       basic => node%basic()
+       haloFraction=(cosmologyParameters_%OmegaMatter()-cosmologyParameters_%OmegaBaryon())/cosmologyParameters_%OmegaMatter() ! Determine the dark matter fraction.
 
        ! Begin iteration to find a converged solution.
        do while (iterationCount <= 2 .or. ( fitMeasure > adiabaticContractionSolutionTolerance .and. iterationCount < iterationMaximum ) )
@@ -151,7 +151,7 @@ contains
        ! Check that we found a converged solution.
        if (fitMeasure > adiabaticContractionSolutionTolerance) then
           call Galacticus_Display_Message('dumping node for which radii are currently being sought')
-          call thisNode%serializeASCII()
+          call node%serializeASCII()
           call Galacticus_Error_Report('Galactic_Structure_Radii_Solve_Adiabatic','failed to find converged solution')
        end if
 
@@ -159,7 +159,7 @@ contains
     return
   end subroutine Galactic_Structure_Radii_Solve_Adiabatic
 
-  subroutine Solve_For_Radius(thisNode,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
+  subroutine Solve_For_Radius(node,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
     !% Solve for the equilibrium radius of the given component.
     use Dark_Matter_Profiles
     use Numerical_Constants_Physical
@@ -171,7 +171,7 @@ contains
     use String_Handling
     use Memory_Management
     implicit none
-    type            (treeNode                  ), intent(inout)                     :: thisNode
+    type            (treeNode                  ), intent(inout)                     :: node
     double precision                            , intent(in   )                     :: specificAngularMomentum
     procedure       (Radius_Solver_Get_Template), intent(in   ) , pointer           :: Radius_Get                        , Velocity_Get
     procedure       (Radius_Solver_Set_Template), intent(in   ) , pointer           :: Radius_Set                        , Velocity_Set
@@ -196,7 +196,7 @@ contains
 
     if (iterationCount == 1 .or. haloFraction <= 0.0d0) then
        ! On first iteration, see if we have a previous radius set for this component.
-       radius=Radius_Get(thisNode)
+       radius=Radius_Get(node)
 
        if (radius <= 0.0d0) then
           ! No previous radius was set, so make a simple estimate of sizes of all components ignoring adiabatic contraction and self-gravity.
@@ -208,7 +208,7 @@ contains
           velocity=darkMatterProfile_%circularVelocity(haloNode,radius)
        else
           ! A previous radius was set, so use it, and the previous circular velocity, as the initial guess.
-          velocity=Velocity_Get(thisNode)
+          velocity=Velocity_Get(node)
        end if
 
     else
@@ -216,7 +216,7 @@ contains
        if (specificAngularMomentum <= 0.0d0) return
 
        ! Get current radius of the component.
-       radius=Radius_Get(thisNode)
+       radius=Radius_Get(node)
 
        ! Find the corresponding initial radius in the dark matter halo.
        radiusInitial=Galactic_Structure_Radius_Initial(haloNode,radius)
@@ -232,7 +232,7 @@ contains
 
        ! Compute baryonic contribution to rotation curve.
        if (adiabaticContractionIncludeBaryonGravity) then
-          baryonicVelocitySquared=Galactic_Structure_Rotation_Curve(thisNode,radius,massType=massTypeBaryonic)**2
+          baryonicVelocitySquared=Galactic_Structure_Rotation_Curve(node,radius,massType=massTypeBaryonic)**2
        else
           baryonicVelocitySquared=0.0d0
        end if
@@ -293,9 +293,9 @@ contains
 
        ! Catch unphysical states.
        if (radius <= 0.0d0) then
-          call thisNode%serializeASCII()
+          call node%serializeASCII()
           message='radius has reached zero for node '
-          message=message//thisNode%index()//' - report follows:'//char(10)
+          message=message//node%index()//' - report follows:'//char(10)
           write (label,'(e12.6)') specificAngularMomentum
           message=message//'  specific angular momentum:    '//label//char(10)
           write (label,'(e12.6)') velocity
@@ -314,8 +314,8 @@ contains
     end if
 
     ! Set the component size to new radius and velocity.
-    call Radius_Set  (thisNode,radius  )
-    call Velocity_Set(thisNode,velocity)
+    call Radius_Set  (node,radius  )
+    call Velocity_Set(node,velocity)
     return
   end subroutine Solve_For_Radius
 

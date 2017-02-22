@@ -138,11 +138,11 @@ contains
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Merging_Statistics_Recent_Merger_Tree_Init</unitName>
   !# </mergerTreeInitializeTask>
-  subroutine Node_Component_Merging_Statistics_Recent_Merger_Tree_Init(thisNode)
+  subroutine Node_Component_Merging_Statistics_Recent_Merger_Tree_Init(node)
     !% Initialize the merging statistics component by creating components in nodes.
     implicit none
-    type (treeNode                      ), intent(inout), pointer :: thisNode
-    class(nodeComponentMergingStatistics)               , pointer :: thisMergingStatistics
+    type (treeNode                      ), intent(inout), pointer :: node
+    class(nodeComponentMergingStatistics)               , pointer :: mergingStatistics
 
     ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%recentIsActive()) return
@@ -151,10 +151,10 @@ contains
     call Node_Component_Merging_Statistics_Recent_Initialize()
 
     ! Create a merger statistics component and initialize it.
-    thisMergingStatistics => thisNode%mergingStatistics(autoCreate=.true.)
-    select type (thisMergingStatistics)
+    mergingStatistics => node%mergingStatistics(autoCreate=.true.)
+    select type (mergingStatistics)
     class is (nodeComponentMergingStatisticsRecent)
-       call thisMergingStatistics%recentMajorMergerCountSet(zeroCount)
+       call mergingStatistics%recentMajorMergerCountSet(zeroCount)
     end select
     return
   end subroutine Node_Component_Merging_Statistics_Recent_Merger_Tree_Init
@@ -162,18 +162,18 @@ contains
   !# <nodeMergerTask>
   !#  <unitName>Node_Component_Merging_Statistics_Recent_Node_Merger</unitName>
   !# </nodeMergerTask>
-  subroutine Node_Component_Merging_Statistics_Recent_Node_Merger(thisNode)
-    !% Record any major merger of {\normalfont \ttfamily thisNode}.
+  subroutine Node_Component_Merging_Statistics_Recent_Node_Merger(node)
+    !% Record any major merger of {\normalfont \ttfamily node}.
     use, intrinsic :: ISO_C_Binding
     use Galacticus_Error
     use Dark_Matter_Halo_Scales
     use Galacticus_Output_Times
     implicit none
-    type            (treeNode                      ), intent(inout)         , pointer :: thisNode
-    type            (treeNode                      )                        , pointer :: descendentNode
-    class           (nodeComponentMergingStatistics)                        , pointer :: parentMergingStatistics
-    class           (nodeComponentBasic            )                        , pointer :: descendentParentBasic  , parentBasic, &
-         &                                                                               thisBasic
+    type            (treeNode                      ), intent(inout)         , pointer :: node
+    type            (treeNode                      )                        , pointer :: nodeDescendent
+    class           (nodeComponentMergingStatistics)                        , pointer :: mergingStatisticsParent
+    class           (nodeComponentBasic            )                        , pointer :: basicDescendentParent  , basicParent, &
+         &                                                                               basic
     class           (darkMatterHaloScaleClass      )                        , pointer :: darkMatterHaloScale_
     integer                                         , dimension(outputCount)          :: mergerIncrement
     integer         (c_size_t                      )                                  :: i
@@ -182,11 +182,11 @@ contains
     ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%recentIsActive()) return
 
-    thisBasic               => thisNode       %basic            ()
-    parentBasic             => thisNode%parent%basic            ()
-    parentMergingStatistics => thisNode%parent%mergingStatistics()
+    basic                   => node       %basic            ()
+    basicParent             => node%parent%basic            ()
+    mergingStatisticsParent => node%parent%mergingStatistics()
     ! Record the merger time if this is a major merger.
-    if (thisBasic%mass() >= nodeMajorMergerFraction*parentBasic%mass()) then
+    if (basic%mass() >= nodeMajorMergerFraction*basicParent%mass()) then
        ! Iterate over output times and check if this merger is sufficient close to them to be counted.
        mergerIncrement=0
        do i=1,outputCount
@@ -195,23 +195,23 @@ contains
              recentTimeInterval=nodeRecentMajorMergerInterval
           case (nodeRecentMajorMergerIntervalTypeDynamical)
              darkMatterHaloScale_ => darkMatterHaloScale()
-             recentTimeInterval=nodeRecentMajorMergerInterval*darkMatterHaloScale_%dynamicalTimescale(thisNode)
+             recentTimeInterval=nodeRecentMajorMergerInterval*darkMatterHaloScale_%dynamicalTimescale(node)
           case default
              call Galacticus_Error_Report('Node_Component_Merging_Statistics_Recent_Node_Merger','unrecognized time interval type')
           end select
           if (nodeRecentMajorMergerFromInfall) then
-             if (thisNode%parent%isSatellite()) then
-                timeBase=parentBasic%timeLastIsolated()
+             if (node%parent%isSatellite()) then
+                timeBase=basicParent%timeLastIsolated()
              else
                 timeBase=Galacticus_Output_Time(i)
-                descendentNode => thisNode%parent
-                do while (associated(descendentNode))
-                   if (descendentNode%isPrimaryProgenitor()) then
-                      descendentNode => descendentNode%parent
+                nodeDescendent => node%parent
+                do while (associated(nodeDescendent))
+                   if (nodeDescendent%isPrimaryProgenitor()) then
+                      nodeDescendent => nodeDescendent%parent
                    else
-                      if (associated(descendentNode%parent)) then
-                         descendentParentBasic => descendentNode%parent%basic()
-                         timeBase=min(timeBase,descendentParentBasic%time())
+                      if (associated(nodeDescendent%parent)) then
+                         basicDescendentParent => nodeDescendent%parent%basic()
+                         timeBase=min(timeBase,basicDescendentParent%time())
                       end if
                       exit
                    end if
@@ -220,13 +220,13 @@ contains
           else
              timeBase=Galacticus_Output_Time(i)
           end if
-          if     (                                                            &
-               &   thisBasic%time() <= timeBase                               &
-               &  .and.                                                       &
-               &   thisBasic%time() >  timeBase-nodeRecentMajorMergerInterval &
+          if     (                                                        &
+               &   basic%time() <= timeBase                               &
+               &  .and.                                                   &
+               &   basic%time() >  timeBase-nodeRecentMajorMergerInterval &
                & ) mergerIncrement(i)=1
        end do
-       call parentMergingStatistics%recentMajorMergerCountSet(parentMergingStatistics%recentMajorMergerCount()+mergerIncrement)
+       call mergingStatisticsParent%recentMajorMergerCountSet(mergingStatisticsParent%recentMajorMergerCount()+mergerIncrement)
     end if
     return
   end subroutine Node_Component_Merging_Statistics_Recent_Node_Merger
@@ -234,24 +234,24 @@ contains
   !# <nodePromotionTask>
   !#  <unitName>Node_Component_Merging_Statistics_Recent_Node_Promotion</unitName>
   !# </nodePromotionTask>
-  subroutine Node_Component_Merging_Statistics_Recent_Node_Promotion(thisNode)
-    !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, we simply update the node merger time.
+  subroutine Node_Component_Merging_Statistics_Recent_Node_Promotion(node)
+    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the node merger time.
     implicit none
-    type (treeNode                      ), intent(inout), pointer :: thisNode
-    class(nodeComponentMergingStatistics)               , pointer :: parentMergingStatistics, thisMergingStatistics
+    type (treeNode                      ), intent(inout), pointer :: node
+    class(nodeComponentMergingStatistics)               , pointer :: mergingStatisticsParent, mergingStatistics
 
     ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%recentIsActive()) return
 
     ! Get the merging statistics components.
-    parentMergingStatistics => thisNode%parent%mergingStatistics()
-    thisMergingStatistics   => thisNode       %mergingStatistics()
-    call      thisMergingStatistics%recentMajorMergerCountSet    &
+    mergingStatisticsParent => node%parent%mergingStatistics()
+    mergingStatistics       => node       %mergingStatistics()
+    call      mergingStatistics%recentMajorMergerCountSet        &
          & (                                                     &
-         &     thisMergingStatistics%recentMajorMergerCount   () &
-         &  +parentMergingStatistics%recentMajorMergerCount   () &
+         &   mergingStatistics      %recentMajorMergerCount   () &
+         &  +mergingStatisticsParent%recentMajorMergerCount   () &
          & )
-    call    parentMergingStatistics%recentMajorMergerCountSet    &
+    call    mergingStatisticsParent%recentMajorMergerCountSet    &
          & (                                                     &
          &  zeroCount                                            &
          & )
@@ -262,12 +262,12 @@ contains
   !#  <unitName>Node_Component_Merging_Statistics_Recent_Output_Names</unitName>
   !#  <sortName>Node_Component_Merging_Statistics_Recent_Output</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Node_Component_Merging_Statistics_Recent_Output_Names(thisNode,integerProperty,integerPropertyNames&
+  subroutine Node_Component_Merging_Statistics_Recent_Output_Names(node,integerProperty,integerPropertyNames&
        &,integerPropertyComments,integerPropertyUnitsSI ,doubleProperty,doublePropertyNames,doublePropertyComments&
        &,doublePropertyUnitsSI,time)
     !% Set names of black hole properties to be written to the \glc\ output file.
     implicit none
-    type            (treeNode)              , intent(inout), pointer :: thisNode
+    type            (treeNode)              , intent(inout), pointer :: node
     double precision                        , intent(in   )          :: time
     integer                                 , intent(inout)          :: doubleProperty         , integerProperty
     character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
@@ -275,7 +275,7 @@ contains
     double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     !GCC$ attributes unused :: time, doubleProperty, doublePropertyComments, doublePropertyNames, doublePropertyUnitsSI
     
-    if (Node_Component_Merging_Statistics_Recent_Matches(thisNode)) then
+    if (Node_Component_Merging_Statistics_Recent_Matches(node)) then
        !@ <outputPropertyGroup>
        !@   <name>mergingStatistics</name>
        !@   <description>Statistics on mergers</description>
@@ -302,15 +302,15 @@ contains
   !#  <unitName>Node_Component_Merging_Statistics_Recent_Output_Count</unitName>
   !#  <sortName>Node_Component_Merging_Statistics_Recent_Output</sortName>
   !# </mergerTreeOutputPropertyCount>
-  subroutine Node_Component_Merging_Statistics_Recent_Output_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
+  subroutine Node_Component_Merging_Statistics_Recent_Output_Count(node,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of black hole properties to be written to the the \glc\ output file.
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
+    type            (treeNode), intent(inout), pointer :: node
     double precision          , intent(in   )          :: time
     integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
     !GCC$ attributes unused :: doublePropertyCount, time
     
-    if (Node_Component_Merging_Statistics_Recent_Matches(thisNode)) integerPropertyCount=integerPropertyCount+1
+    if (Node_Component_Merging_Statistics_Recent_Matches(node)) integerPropertyCount=integerPropertyCount+1
     return
   end subroutine Node_Component_Merging_Statistics_Recent_Output_Count
 
@@ -318,7 +318,7 @@ contains
   !#  <unitName>Node_Component_Merging_Statistics_Recent_Output</unitName>
   !#  <sortName>Node_Component_Merging_Statistics_Recent_Output</sortName>
   !# </mergerTreeOutputTask>
-  subroutine Node_Component_Merging_Statistics_Recent_Output(thisNode,integerProperty,integerBufferCount,integerBuffer&
+  subroutine Node_Component_Merging_Statistics_Recent_Output(node,integerProperty,integerBufferCount,integerBuffer&
        &,doubleProperty ,doubleBufferCount,doubleBuffer,time,instance)
     !% Store black hole properties in the \glc\ output file buffers.
     use Kind_Numbers
@@ -326,37 +326,37 @@ contains
     use Multi_Counters
     implicit none
     double precision                                , intent(in   )                   :: time
-    type            (treeNode                      ), intent(inout)         , pointer :: thisNode
+    type            (treeNode                      ), intent(inout)         , pointer :: node
     integer                                         , intent(inout)                   :: doubleBufferCount         , doubleProperty, integerBufferCount, &
          &                                                                               integerProperty
     integer         (kind=kind_int8                ), intent(inout)                   :: integerBuffer        (:,:)
     double precision                                , intent(inout)                   :: doubleBuffer         (:,:)
     type            (multiCounter                  ), intent(inout)                   :: instance
-    class           (nodeComponentMergingStatistics)                        , pointer :: thisMergingStatistics
+    class           (nodeComponentMergingStatistics)                        , pointer :: mergingStatistics
     integer                                         , dimension(outputCount)          :: mergerIncrement
     !GCC$ attributes unused :: doubleBufferCount, doubleProperty, doubleBuffer, instance
 
-    if (Node_Component_Merging_Statistics_Recent_Matches(thisNode)) then
+    if (Node_Component_Merging_Statistics_Recent_Matches(node)) then
        ! Store the properties.
-       thisMergingStatistics => thisNode             %mergingStatistics     ()
-       mergerIncrement       =  thisMergingStatistics%recentMajorMergerCount()
+       mergingStatistics => node             %mergingStatistics     ()
+       mergerIncrement       =  mergingStatistics%recentMajorMergerCount()
        integerProperty=integerProperty+1
        integerBuffer(integerBufferCount,integerProperty)=mergerIncrement(Galacticus_Output_Time_Index(time,findClosest=.true.))
     end if
     return
   end subroutine Node_Component_Merging_Statistics_Recent_Output
 
-  logical function Node_Component_Merging_Statistics_Recent_Matches(thisNode)
-    !% Return true if the black hole component of {\normalfont \ttfamily thisNode} is a match to the standard implementation.
+  logical function Node_Component_Merging_Statistics_Recent_Matches(node)
+    !% Return true if the black hole component of {\normalfont \ttfamily node} is a match to the standard implementation.
     implicit none
-    type (treeNode                      ), intent(inout), pointer :: thisNode
-    class(nodeComponentMergingStatistics)               , pointer :: thisMergingStatistics
+    type (treeNode                      ), intent(inout), pointer :: node
+    class(nodeComponentMergingStatistics)               , pointer :: mergingStatistics
 
     ! Get the merging statistics component.
-    thisMergingStatistics => thisNode%mergingStatistics()
+    mergingStatistics => node%mergingStatistics()
     ! Ensure that it is of the recent class.
     Node_Component_Merging_Statistics_Recent_Matches=.false.
-    select type (thisMergingStatistics)
+    select type (mergingStatistics)
     class is (nodeComponentMergingStatisticsRecent)
        Node_Component_Merging_Statistics_Recent_Matches=.true.
     type  is (nodeComponentMergingStatistics        )

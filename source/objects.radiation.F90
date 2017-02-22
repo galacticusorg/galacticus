@@ -61,7 +61,7 @@ module Radiation_Structure
      !@     <method>set</method>
      !@     <description>Set the radiation components in the radiation object.</description>
      !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater thisNode}</arguments>
+     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater node}</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>temperature</method>
@@ -139,7 +139,7 @@ contains
     return
   end subroutine Radiation_Define
 
-  subroutine Radiation_Set_Node(radiation,thisNode)
+  subroutine Radiation_Set_Node(radiation,node)
     !% Set the {\normalfont \ttfamily radiation} field as specified.
     !# <include directive="radiationSet" type="moduleUse">
     include 'objects.radiation.set.modules.inc'
@@ -147,22 +147,22 @@ contains
     use Galacticus_Nodes
     implicit none
     class  (radiationStructure), intent(inout) :: radiation
-    type   (treeNode          ), intent(inout) :: thisNode
-    class  (nodeComponentBasic), pointer       :: thisBasicComponent
+    type   (treeNode          ), intent(inout) :: node
+    class  (nodeComponentBasic), pointer       :: basic
     integer                                    :: iComponent
 
     ! For an unallocated radiation object, return immediately.
     if (.not.allocated(radiation%radiationType)) return
 
     ! Set the time.
-    thisBasicComponent => thisNode%basic()
-    radiation%timeValue=thisBasicComponent%time()
+    basic               => node %basic()
+    radiation%timeValue =  basic%time ()
 
     ! Loop over all radiation components.
     do iComponent=1,size(radiation%radiationType)
        ! Call the appropriate routine to set the component.
        !# <include directive="radiationSet" type="functionCall" functionType="void">
-       !#  <functionArgs>radiation%radiationType(iComponent)==radiationType#label,thisNode,radiation%components(iComponent)%properties</functionArgs>
+       !#  <functionArgs>radiation%radiationType(iComponent)==radiationType#label,node,radiation%components(iComponent)%properties</functionArgs>
        include 'objects.radiation.set.inc'
        !# </include>
     end do

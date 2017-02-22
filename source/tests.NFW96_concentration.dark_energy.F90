@@ -33,10 +33,10 @@ program Test_NFW96_Concentration_Dark_Energy
   use String_Handling
   use Unit_Tests
   implicit none
-  type            (treeNode                           )                         , pointer :: thisNode
-  class           (nodeComponentBasic                 )                         , pointer :: thisBasicComponent
-  class           (cosmologyParametersClass           )                         , pointer :: thisCosmologyParameters
-  class           (cosmologyFunctionsClass            )                         , pointer :: cosmologyFunctionsDefault
+  type            (treeNode                           )                         , pointer :: node
+  class           (nodeComponentBasic                 )                         , pointer :: basic
+  class           (cosmologyParametersClass           )                         , pointer :: cosmologyParameters_
+  class           (cosmologyFunctionsClass            )                         , pointer :: cosmologyFunctions_
   class           (darkMatterProfileConcentrationClass)                         , pointer :: darkMatterProfileConcentration_
   integer                                              , dimension(6), parameter          :: chardenLogHaloMass       =[10,11,12,13,14,15]
   double precision                                     , dimension(6), parameter          :: chardenConcentrationZ0   =[10.2700200d00,9.0204391d00,7.8041310d00,6.6154380d00,5.4956946d00,4.4538398d00], chardenConcentrationZ3=[5.8715897d00,5.4417138d00,5.0239682d00,4.6186433d00,4.2366042d00,3.8884208d00]
@@ -56,15 +56,14 @@ program Test_NFW96_Concentration_Dark_Energy
   call Input_Parameters_File_Open(parameterFile)
 
   ! Create a node.
-  thisNode => treeNode()
-
+  node  => treeNode      (                 )
   ! Get the basic component.
-  thisBasicComponent => thisNode%basic(autoCreate=.true.)
+  basic => node    %basic(autoCreate=.true.)
 
   ! Get the default cosmology.
-  thisCosmologyParameters         => cosmologyParameters           ()
+  cosmologyParameters_            => cosmologyParameters           ()
   ! Get the default cosmology functions object.
-  cosmologyFunctionsDefault       => cosmologyFunctions            ()
+  cosmologyFunctions_             => cosmologyFunctions            ()
   ! Get the default concentrations object.
   darkMatterProfileConcentration_ => darkMatterProfileConcentration()
 
@@ -72,18 +71,18 @@ program Test_NFW96_Concentration_Dark_Energy
   do iMass=1,size(chardenLogHaloMass)
 
      ! Set the mass of the original node.
-     call thisBasicComponent%massSet((10.0d0**chardenLogHaloMass(iMass))/thisCosmologyParameters%HubbleConstant(hubbleUnitsLittleH))
+     call basic%massSet((10.0d0**chardenLogHaloMass(iMass))/cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH))
 
      ! Compute and compare concentration at z=0.
-     call thisBasicComponent%timeSet(cosmologyFunctionsDefault%cosmicTime(1.00d0))
-     ourConcentration=darkMatterProfileConcentration_%concentration(thisNode)
+     call basic%timeSet(cosmologyFunctions_%cosmicTime(1.00d0))
+     ourConcentration=darkMatterProfileConcentration_%concentration(node)
      message="10^"
      message=message//chardenLogHaloMass(iMass)//" M⊙/h halo concentration at z=0"
      call Assert(char(message),ourConcentration,chardenConcentrationZ0(iMass),relTol=0.02d0)
 
      ! Compute and compare concentration at z=3.
-     call thisBasicComponent%timeSet(cosmologyFunctionsDefault%cosmicTime(0.25d0))
-     ourConcentration=darkMatterProfileConcentration_%concentration(thisNode)
+     call basic%timeSet(cosmologyFunctions_%cosmicTime(0.25d0))
+     ourConcentration=darkMatterProfileConcentration_%concentration(node)
      message="10^"
      message=message//chardenLogHaloMass(iMass)//" M⊙/h halo concentration at z=3"
      call Assert(char(message),ourConcentration,chardenConcentrationZ3(iMass),relTol=0.01d0)

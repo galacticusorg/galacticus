@@ -52,37 +52,37 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Sz_Dstrbtins
 
   ! Interface for mass mapping functions.
   abstract interface
-     double precision function Map_Mass(mass,thisNode)
+     double precision function Map_Mass(mass,node)
        import treeNode
        double precision          , intent(in   )          :: mass
-       type            (treeNode), intent(inout), pointer :: thisNode
+       type            (treeNode), intent(inout), pointer :: node
      end function Map_Mass
   end interface
 
   ! Interface for radius mapping functions.
   abstract interface
-     double precision function Map_Radius(radius,thisNode)
+     double precision function Map_Radius(radius,node)
        import treeNode
        double precision          , intent(in   )          :: radius
-       type            (treeNode), intent(inout), pointer :: thisNode
+       type            (treeNode), intent(inout), pointer :: node
      end function Map_Radius
   end interface
 
   ! Interface for mass error functions.
   abstract interface
-     double precision function Mass_Error(mass,thisNode)
+     double precision function Mass_Error(mass,node)
        import treeNode
        double precision          , intent(in   )          :: mass
-       type            (treeNode), intent(inout), pointer :: thisNode
+       type            (treeNode), intent(inout), pointer :: node
      end function Mass_Error
   end interface
 
   ! Interface for radius error functions.
   abstract interface
-     double precision function Radius_Error(radius,thisNode)
+     double precision function Radius_Error(radius,node)
        import treeNode
        double precision          , intent(in   )          :: radius
-       type            (treeNode), intent(inout), pointer :: thisNode
+       type            (treeNode), intent(inout), pointer :: node
      end function Radius_Error
   end interface
 
@@ -165,8 +165,8 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Sz_Dstrbtins
   end type sizeFunctionWork
 
   ! Work array.
-  type(sizeFunctionWork), allocatable, dimension(:) :: thisGalaxy
-  !$omp threadprivate(thisGalaxy)
+  type(sizeFunctionWork), allocatable, dimension(:) :: galaxyWork
+  !$omp threadprivate(galaxyWork)
 
   ! Options controlling binning in halo mass.
   integer                               :: analysisSizeFunctionCovarianceModel
@@ -184,7 +184,7 @@ contains
   !# <mergerTreeAnalysisTask>
   !#  <unitName>Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins</unitName>
   !# </mergerTreeAnalysisTask>
-  subroutine Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins(thisTree,thisNode,nodeStatus,iOutput,mergerTreeAnalyses)
+  subroutine Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins(tree,node,nodeStatus,iOutput,mergerTreeAnalyses)
     !% Construct a mass functions to compare to various observational determinations.
     use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
@@ -207,13 +207,13 @@ contains
     use Root_Finder
     use Table_Labels
     implicit none
-    type            (mergerTree                    ), intent(inout)                 :: thisTree
-    type            (treeNode                      ), intent(inout), pointer        :: thisNode
+    type            (mergerTree                    ), intent(inout)                 :: tree
+    type            (treeNode                      ), intent(inout), pointer        :: node
     integer                                         , intent(in   )                 :: nodeStatus
     integer         (c_size_t                      ), intent(in   )                 :: iOutput
     type            (varying_string                ), intent(in   ), dimension(:  ) :: mergerTreeAnalyses
-    class           (nodeComponentBasic            )               , pointer        :: thisBasic
-    class           (nodeComponentDisk             )               , pointer        :: thisDisk
+    class           (nodeComponentBasic            )               , pointer        :: basic
+    class           (nodeComponentDisk             )               , pointer        :: disk
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )               , pointer        :: cosmologyParametersObserved
@@ -670,20 +670,20 @@ contains
     ! Return if this is a tree finalization.
     if (nodeStatus == nodeStatusFinal) return
     ! Allocate work arrays.
-    if (.not.allocated(thisGalaxy)) allocate(thisGalaxy(size(sizeFunctions)))
+    if (.not.allocated(galaxyWork)) allocate(galaxyWork(size(sizeFunctions)))
     ! Iterate over active analyses.
     do i=1,size(sizeFunctions)
        ! Cycle if this size function receives no contribution from this output number.
        if (all(sizeFunctions(i)%outputWeight(:,iOutput) <= 0.0d0)) cycle
        ! Allocate workspace.
-       if (.not.allocated(thisGalaxy(i)%sizeFunction       )) call allocateArray(thisGalaxy(i)%sizeFunction       ,[sizeFunctions(i)%radiiCount,sizeFunctions(i)%massesCount])
-       if (.not.allocated(thisGalaxy(i)%sizeFunctionWeights)) call allocateArray(thisGalaxy(i)%sizeFunctionWeights,[                            sizeFunctions(i)%massesCount])
+       if (.not.allocated(galaxyWork(i)%sizeFunction       )) call allocateArray(galaxyWork(i)%sizeFunction       ,[sizeFunctions(i)%radiiCount,sizeFunctions(i)%massesCount])
+       if (.not.allocated(galaxyWork(i)%sizeFunctionWeights)) call allocateArray(galaxyWork(i)%sizeFunctionWeights,[                            sizeFunctions(i)%massesCount])
        ! Get the galactic mass.
        mass=                                                                                                                                            &
-            &  Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeDisk    ,massType=sizeFunctions(i)%descriptor%massType) &
-            & +Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeSpheroid,massType=sizeFunctions(i)%descriptor%massType)
+            &  Galactic_Structure_Enclosed_Mass(node,radiusLarge,componentType=componentTypeDisk    ,massType=sizeFunctions(i)%descriptor%massType) &
+            & +Galactic_Structure_Enclosed_Mass(node,radiusLarge,componentType=componentTypeSpheroid,massType=sizeFunctions(i)%descriptor%massType)
        if (mass            <=                  0.0d0) cycle
-       if (associated(sizeFunctions(i)%descriptor%mapMass)) mass=sizeFunctions(i)%descriptor%mapMass(mass,thisNode)
+       if (associated(sizeFunctions(i)%descriptor%mapMass)) mass=sizeFunctions(i)%descriptor%mapMass(mass,node)
        mass=mass*sizeFunctions(i)%cosmologyConversionMass(iOutput) ! Convert for cosmology.
        massLogarithmic=log10(mass)
        do j=1,sizeFunctions(i)%descriptor%massSystematicCoefficientCount
@@ -691,10 +691,10 @@ contains
        end do
        if (massLogarithmic <  sizeFunctions(i)%descriptor%massLogarithmicMinimum) cycle
        ! Get the galactic radius.
-       thisDisk => thisNode%disk  ()
-       radius   =  thisDisk%radius()
+       disk => node%disk  ()
+       radius   =  disk%radius()
        if (radius <= 0.0d0) cycle
-       if (associated(sizeFunctions(i)%descriptor%mapRadius)) radius=sizeFunctions(i)%descriptor%mapRadius(radius,thisNode)
+       if (associated(sizeFunctions(i)%descriptor%mapRadius)) radius=sizeFunctions(i)%descriptor%mapRadius(radius,node)
        radius=radius*sizeFunctions(i)%cosmologyConversionSize(iOutput) ! Convert for cosmology.
        radiusLogarithmicFaceOn=log10(radius)
        do j=1,sizeFunctions(i)%descriptor%radiusSystematicCoefficientCount
@@ -702,7 +702,7 @@ contains
        end do
        ! Compute contributions to each bin.
        if (associated(sizeFunctions(i)%descriptor%massRandomErrorFunction)) then
-          massRandomError=sizeFunctions(i)%descriptor%massRandomErrorFunction(mass,thisNode)
+          massRandomError=sizeFunctions(i)%descriptor%massRandomErrorFunction(mass,node)
        else
           massRandomError=0.0d0
           do j=1,sizeFunctions(i)%descriptor%massRandomCoefficientCount
@@ -716,69 +716,69 @@ contains
           massRandomError=max(min(massRandomError,sizeFunctions(i)%massRandomMaximum),sizeFunctions(i)%massRandomMinimum)
        end if
        if (associated(sizeFunctions(i)%descriptor%radiusRandomErrorFunction)) then
-          sizeRandomError=sizeFunctions(i)%descriptor%radiusRandomErrorFunction(radius,thisNode)
+          sizeRandomError=sizeFunctions(i)%descriptor%radiusRandomErrorFunction(radius,node)
        else
           sizeRandomError=sizeFunctions(i)%descriptor%radiusRandomError
        end if
        ! Averge the contribution to the size function over galaxy inclination angles.
-       thisGalaxy(i)%sizeFunction=0.0d0
+       galaxyWork(i)%sizeFunction=0.0d0
        do sampleStep=1,sampleStepCount
           ! Adjust radius for inclination.
           inclinationAngle =acos(dble(sampleStep-1)/dble(sampleStepCount-1))
           radiusLogarithmic=radiusLogarithmicFaceOn+log10(inclinationTable%interpolate(inclinationAngle))
-          thisGalaxy(i)%sizeFunction=+thisGalaxy(i)%sizeFunction                                                                      &
+          galaxyWork(i)%sizeFunction=+galaxyWork(i)%sizeFunction                                                                      &
                &                     +(                                                                                               &
                &                       +erf((sizeFunctions(i)%radiiLogarithmicMaximum-radiusLogarithmic)/sizeRandomError/sqrt(2.0d0)) &
                &                       -erf((sizeFunctions(i)%radiiLogarithmicMinimum-radiusLogarithmic)/sizeRandomError/sqrt(2.0d0)) &
                &                      )                                                                                               &
                &                      /2.0d0            
        end do
-       thisGalaxy(i)%sizeFunction=thisGalaxy(i)%sizeFunction/dble(sampleStepCount)
+       galaxyWork(i)%sizeFunction=galaxyWork(i)%sizeFunction/dble(sampleStepCount)
        ! Compute contribution to mass bins.
-       thisGalaxy(i)%sizeFunctionWeights=(                                                                                               &
+       galaxyWork(i)%sizeFunctionWeights=(                                                                                               &
             &                             +erf((sizeFunctions(i)%massesLogarithmicMaximum- massLogarithmic)/massRandomError/sqrt(2.0d0)) &
             &                             -erf((sizeFunctions(i)%massesLogarithmicMinimum- massLogarithmic)/massRandomError/sqrt(2.0d0)) &
             &                            )                                                                                               &
             &                            /2.0d0                                                                                          &
-            &                            *thisTree%volumeWeight                                                                          &
+            &                            *tree%volumeWeight                                                                          &
             &                            *sizeFunctions(i)%cosmologyConversionSizeFunction(iOutput)
        do j=1,sizeFunctions(i)%massesCount
-          thisGalaxy(i)%sizeFunction(:,j)=thisGalaxy(i)%sizeFunction(:,j)*thisGalaxy(i)%sizeFunctionWeights(j)
+          galaxyWork(i)%sizeFunction(:,j)=galaxyWork(i)%sizeFunction(:,j)*galaxyWork(i)%sizeFunctionWeights(j)
        end do       
        ! Apply output weights.
        do j=1,sizeFunctions(i)%radiiCount
-          thisGalaxy           (i)%sizeFunction(j,:        ) &
-               & =thisGalaxy   (i)%sizeFunction(j,:        ) &
+          galaxyWork           (i)%sizeFunction(j,:        ) &
+               & =galaxyWork   (i)%sizeFunction(j,:        ) &
                & *sizeFunctions(i)%outputWeight(  :,iOutput)
        end do
-       thisGalaxy(i)%sizeFunctionWeights=thisGalaxy(i)%sizeFunctionWeights*sizeFunctions(i)%outputWeight(:,iOutput)
+       galaxyWork(i)%sizeFunctionWeights=galaxyWork(i)%sizeFunctionWeights*sizeFunctions(i)%outputWeight(:,iOutput)
        ! Accumulate size function.
-       if (any(thisGalaxy(i)%sizeFunction /= 0.0d0)) then
+       if (any(galaxyWork(i)%sizeFunction /= 0.0d0)) then
           !$omp critical (Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Accumulate)
-          sizeFunctions(i)%sizeFunction       =sizeFunctions(i)%sizeFunction       +thisGalaxy(i)%sizeFunction
-          sizeFunctions(i)%sizeFunctionWeights=sizeFunctions(i)%sizeFunctionWeights+thisGalaxy(i)%sizeFunctionWeights
+          sizeFunctions(i)%sizeFunction       =sizeFunctions(i)%sizeFunction       +galaxyWork(i)%sizeFunction
+          sizeFunctions(i)%sizeFunctionWeights=sizeFunctions(i)%sizeFunctionWeights+galaxyWork(i)%sizeFunctionWeights
           !$omp end critical (Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Accumulate)
           ! Treat main branch and other galaxies differently.
-          if (thisNode%isOnMainBranch().and.analysisSizeFunctionCovarianceModel == analysisSizeFunctionCovarianceModelBinomial) then
+          if (node%isOnMainBranch().and.analysisSizeFunctionCovarianceModel == analysisSizeFunctionCovarianceModelBinomial) then
              ! Find the bin to which this halo mass belongs.
-             thisBasic => thisNode%basic()
-             haloMassBin=floor((log10(thisBasic%mass())-analysisSizeFunctionsHaloMassMinimumLogarithmic)*analysisSizeFunctionsHaloMassIntervalLogarithmicInverse)+1
+             basic => node%basic()
+             haloMassBin=floor((log10(basic%mass())-analysisSizeFunctionsHaloMassMinimumLogarithmic)*analysisSizeFunctionsHaloMassIntervalLogarithmicInverse)+1
              ! Accumulate weights to halo mass arrays.
              if (haloMassBin >= 1 .and. haloMassBin <= analysisSizeFunctionsHaloMassBinsCount) then
                 !$omp critical (Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Accumulate)
                 sizeFunctions        (i)%mainBranchGalaxyWeights       (:,:,haloMassBin)= &
                      &  sizeFunctions(i)%mainBranchGalaxyWeights       (:,:,haloMassBin)  &
-                     &  +thisGalaxy  (i)%sizeFunction
+                     &  +galaxyWork  (i)%sizeFunction
                 sizeFunctions        (i)%mainBranchGalaxyWeightsSquared(:,:,haloMassBin)= &
                      &  sizeFunctions(i)%mainBranchGalaxyWeightsSquared(:,:,haloMassBin)  &
-                     &  +thisGalaxy  (i)%sizeFunction**2
+                     &  +galaxyWork  (i)%sizeFunction**2
                 !$omp end critical (Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Accumulate)
              end if
           else
              !$omp critical (Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Accumulate)
              call Vector_Outer_Product_Accumulate(                                                   &
                   &                               reshape(                                           &
-                  &                                       thisGalaxy(i)%sizeFunction               , &
+                  &                                       galaxyWork(i)%sizeFunction               , &
                   &                                       [                                          &
                   &                                        +sizeFunctions(i)%massesCount             &
                   &                                        *sizeFunctions(i)%radiiCount              &
@@ -855,7 +855,7 @@ contains
          &                          mi                , mj               , &
          &                          m
     type            (hdf5Object) :: analysisGroup     , sizeFunctionGroup, &
-         &                          thisDataset
+         &                          dataset
     double precision             :: haloWeightBinTotal
 
     ! Return immediately if this analysis is not active.
@@ -918,14 +918,14 @@ contains
        !$omp critical(HDF5_Access)
        analysisGroup    =galacticusOutputFile%openGroup('analysis','Model analysis')
        sizeFunctionGroup=analysisGroup       %openGroup(trim(sizeFunctions(k)%descriptor%label),trim(sizeFunctions(k)%descriptor%comment))
-       call sizeFunctionGroup%writeDataset  (sizeFunctions(k)%masses                    ,'mass'                  ,'Mass'                     ,datasetReturned=thisDataset)
-       call thisDataset      %writeAttribute(sizeFunctions(k)%descriptor%massUnitsInSI  ,'unitsInSI'                                                                     )
-       call thisDataset      %close()
-       call sizeFunctionGroup%writeDataset  (sizeFunctions(k)%radii                     ,'radius'                ,'Radius'                   ,datasetReturned=thisDataset)
-       call thisDataset      %writeAttribute(sizeFunctions(k)%descriptor%radiusUnitsInSI,'unitsInSI'                                                                     )
-       call thisDataset      %close()
-       call sizeFunctionGroup%writeDataset  (sizeFunctions(k)%sizeFunction              ,'sizeFunction'          ,'Mass function'                                        )
-       call sizeFunctionGroup%writeDataset  (sizeFunctions(k)%sizeFunctionCovariance    ,'sizeFunctionCovariance','Mass function covariance'                             )
+       call sizeFunctionGroup%writeDataset  (sizeFunctions(k)%masses                    ,'mass'                  ,'Mass'                     ,datasetReturned=dataset)
+       call dataset          %writeAttribute(sizeFunctions(k)%descriptor%massUnitsInSI  ,'unitsInSI'                                                                 )
+       call dataset          %close()
+       call sizeFunctionGroup%writeDataset  (sizeFunctions(k)%radii                     ,'radius'                ,'Radius'                   ,datasetReturned=dataset)
+       call dataset          %writeAttribute(sizeFunctions(k)%descriptor%radiusUnitsInSI,'unitsInSI'                                                                 )
+       call dataset          %close()
+       call sizeFunctionGroup%writeDataset  (sizeFunctions(k)%sizeFunction              ,'sizeFunction'          ,'Mass function'                                    )
+       call sizeFunctionGroup%writeDataset  (sizeFunctions(k)%sizeFunctionCovariance    ,'sizeFunctionCovariance','Mass function covariance'                         )
        call sizeFunctionGroup%close()
        call analysisGroup    %close()
        !$omp end critical(HDF5_Access)
@@ -933,13 +933,13 @@ contains
     return
   end subroutine Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Output
 
-  double precision function Map_Radius_SDSS_Size_Function_Z0_07(radius,thisNode)
+  double precision function Map_Radius_SDSS_Size_Function_Z0_07(radius,node)
     !% Maps scale radii into Petrosian $r_{50}$ radii for the SDSS disk size analysis. Also converts from Mpc to kpc.
     implicit none
     double precision          , intent(in   )          :: radius
-    type            (treeNode), intent(inout), pointer :: thisNode
+    type            (treeNode), intent(inout), pointer :: node
     double precision          , parameter              :: diskScaleLengthToPetrosianR50=1.667632104d0
-    !GCC$ attributes unused :: thisNode
+    !GCC$ attributes unused :: node
     
     Map_Radius_SDSS_Size_Function_Z0_07=radius*diskScaleLengthToPetrosianR50*kilo
     return

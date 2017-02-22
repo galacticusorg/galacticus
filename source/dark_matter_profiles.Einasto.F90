@@ -326,13 +326,13 @@ contains
     return
   end subroutine einastoDestructor
   
-  subroutine einastoCalculationReset(self,thisNode)
+  subroutine einastoCalculationReset(self,node)
     !% Reset the dark matter profile calculation.
     implicit none
-    class(darkMatterProfileEinasto), intent(inout)          :: self
-    type (treeNode                ), intent(inout) :: thisNode
+    class(darkMatterProfileEinasto), intent(inout) :: self
+    type (treeNode                ), intent(inout) :: node
 
-    call self%scale%calculationReset(thisNode)
+    call self%scale%calculationReset(node)
     return
   end subroutine einastoCalculationReset
 
@@ -344,20 +344,20 @@ contains
     class           (darkMatterProfileEinasto      ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: radius
-    class           (nodeComponentBasic            ), pointer       :: thisBasicComponent
-    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
-    double precision                                                :: alpha                         , radiusOverScaleRadius      , &
-         &                                                             scaleRadius                   , virialRadiusOverScaleRadius
+    class           (nodeComponentBasic            ), pointer       :: basic
+    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
+    double precision                                                :: alpha            , radiusOverScaleRadius      , &
+         &                                                             scaleRadius      , virialRadiusOverScaleRadius
 
     ! Get components.
-    thisBasicComponent             => node%basic            (                 )
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
-    scaleRadius                =thisDarkMatterProfileComponent%scale()
-    alpha                      =thisDarkMatterProfileComponent%shape()
+    basic             => node%basic            (                 )
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
+    scaleRadius                =darkMatterProfile%scale()
+    alpha                      =darkMatterProfile%shape()
     radiusOverScaleRadius      =radius                       /scaleRadius
     virialRadiusOverScaleRadius=self%scale%virialRadius(node)/scaleRadius
     einastoDensity=self%densityScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius,alpha)&
-         &*thisBasicComponent%mass()/scaleRadius**3
+         &*basic%mass()/scaleRadius**3
     return
   end function einastoDensity
 
@@ -369,17 +369,17 @@ contains
     class           (darkMatterProfileEinasto      ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: radius
-    class           (nodeComponentBasic            ), pointer       :: thisBasicComponent
-    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
-    double precision                                                :: alpha                         , radiusOverScaleRadius      , &
+    class           (nodeComponentBasic            ), pointer       :: basic
+    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
+    double precision                                                :: alpha            , radiusOverScaleRadius      , &
          &                                                             scaleRadius
     !GCC$ attributes unused :: self
     
     ! Get components.
-    thisBasicComponent             => node%basic            (                 )
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
-    scaleRadius                    =  thisDarkMatterProfileComponent%scale()
-    alpha                          =  thisDarkMatterProfileComponent%shape()
+    basic             => node%basic            (                 )
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
+    scaleRadius                    =  darkMatterProfile%scale()
+    alpha                          =  darkMatterProfile%shape()
     radiusOverScaleRadius          =  radius/scaleRadius
     einastoDensityLogSlope         = -2.0d0                        &
          &                           *radiusOverScaleRadius**alpha
@@ -398,22 +398,22 @@ contains
     class           (darkMatterProfileEinasto     ), intent(inout)           :: self
     type            (treeNode                     ), intent(inout)           :: node
     double precision                               , intent(in   )           :: moment
-    double precision                               , intent(in   ), optional :: radiusMinimum                 , radiusMaximum
-    class           (nodeComponentBasic            )              , pointer  :: thisBasicComponent
-    class           (nodeComponentDarkMatterProfile)              , pointer  :: thisDarkMatterProfileComponent
-    double precision                                                         :: scaleRadius                   , virialRadiusOverScaleRadius, &
-         &                                                                      radiusMinimumActual           , radiusMaximumActual        , &
-         &                                                                      alpha                         , densityNormalization
+    double precision                               , intent(in   ), optional :: radiusMinimum      , radiusMaximum
+    class           (nodeComponentBasic            )              , pointer  :: basic
+    class           (nodeComponentDarkMatterProfile)              , pointer  :: darkMatterProfile
+    double precision                                                         :: scaleRadius        , virialRadiusOverScaleRadius, &
+         &                                                                      radiusMinimumActual, radiusMaximumActual        , &
+         &                                                                      alpha              , densityNormalization
 
     radiusMinimumActual=0.0d0
     radiusMaximumActual=self%scale%virialRadius(node)
     if (present(radiusMinimum)) radiusMinimumActual=radiusMinimum
     if (present(radiusMaximum)) radiusMaximumActual=radiusMaximum
     ! Get components.
-    thisBasicComponent             => node%basic            (                 )
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
-    scaleRadius                =thisDarkMatterProfileComponent%scale()
-    alpha                      =thisDarkMatterProfileComponent%shape()
+    basic             => node%basic            (                 )
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
+    scaleRadius                =darkMatterProfile%scale()
+    alpha                      =darkMatterProfile%shape()
     virialRadiusOverScaleRadius=self%scale%virialRadius(node)/scaleRadius
     densityNormalization= (alpha/4.0d0/Pi)                                                                      &
          &               *   ((2.0d0/alpha)                    **(3.0d0/alpha)                                ) &
@@ -421,7 +421,7 @@ contains
          &               /Gamma_Function                         (3.0d0/alpha                                 ) &
          &               /Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*virialRadiusOverScaleRadius**alpha/alpha)
     einastoRadialMoment=+densityNormalization                                            &
-         &              *thisBasicComponent%mass()                                       &
+         &              *basic%mass()                                                    &
          &              *scaleRadius**(moment-3.0d0)                                     &
          &              *(                                                               &
          &                +einastoRadialMomentScaleFree(radiusMaximumActual/scaleRadius) &
@@ -459,20 +459,20 @@ contains
     class           (darkMatterProfileEinasto      ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: radius
-    class           (nodeComponentBasic            ), pointer       :: thisBasicComponent
-    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
-    double precision                                                :: alpha                         , radiusOverScaleRadius      , &
-         &                                                             scaleRadius                   , virialRadiusOverScaleRadius
+    class           (nodeComponentBasic            ), pointer       :: basic
+    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
+    double precision                                                :: alpha            , radiusOverScaleRadius      , &
+         &                                                             scaleRadius      , virialRadiusOverScaleRadius
 
     ! Get components.
-    thisBasicComponent             => node%basic            (                 )
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
-    scaleRadius                =thisDarkMatterProfileComponent%scale()
-    alpha                      =thisDarkMatterProfileComponent%shape()
+    basic             => node%basic            (                 )
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
+    scaleRadius                =darkMatterProfile%scale()
+    alpha                      =darkMatterProfile%shape()
     radiusOverScaleRadius      =radius                       /scaleRadius
     virialRadiusOverScaleRadius=self%scale%virialRadius(node)/scaleRadius
     einastoEnclosedMass=self%enclosedMassScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius,alpha)&
-         &*thisBasicComponent%mass()
+         &*basic%mass()
     return
   end function einastoEnclosedMass
 
@@ -501,16 +501,16 @@ contains
     implicit none
     class           (darkMatterProfileEinasto      ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
-    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfile
-    double precision                                , parameter     :: toleranceRelative    =1.0d-3
-    double precision                                                :: alpha                       , radiusScale, &
+    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
+    double precision                                , parameter     :: toleranceRelative=1.0d-3
+    double precision                                                :: alpha                   , radiusScale, &
          &                                                             radiusPeak
     type            (rootFinder                    )                :: finder
     
     ! Get the shape parameter for this halo.
-    thisDarkMatterProfile => node                 %darkMatterProfile(autoCreate=.true.)
-    alpha                 =  thisDarkMatterProfile%shape            (                 )
-    radiusScale           =  thisDarkMatterProfile%scale            (                 )
+    darkMatterProfile => node                 %darkMatterProfile(autoCreate=.true.)
+    alpha             =  darkMatterProfile%shape            (                 )
+    radiusScale       =  darkMatterProfile%scale            (                 )
     ! Solve for the radius (in units of the scale radius) at which the rotation curve peaks.
     call finder%tolerance   (                                                       &
          &                   toleranceRelative  =toleranceRelative                  &
@@ -571,23 +571,23 @@ contains
     type            (treeNode                      ), intent(inout), pointer  :: node
     double precision                                , intent(in   )           :: radius
     integer                                         , intent(  out), optional :: status
-    class           (nodeComponentBasic            )               , pointer  :: thisBasicComponent
-    class           (nodeComponentDarkMatterProfile)               , pointer  :: thisDarkMatterProfileComponent
-    double precision                                                          :: alpha                         , radiusOverScaleRadius      , &
-         &                                                                       scaleRadius                   , virialRadiusOverScaleRadius
+    class           (nodeComponentBasic            )               , pointer  :: basic
+    class           (nodeComponentDarkMatterProfile)               , pointer  :: darkMatterProfile
+    double precision                                                          :: alpha            , radiusOverScaleRadius      , &
+         &                                                                       scaleRadius      , virialRadiusOverScaleRadius
 
     ! Assume success.
     if (present(status)) status=structureErrorCodeSuccess
     ! Get components.
-    thisBasicComponent             => node%basic            (                 )
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
-    scaleRadius                =thisDarkMatterProfileComponent%scale()
-    alpha                      =thisDarkMatterProfileComponent%shape()
+    basic             => node%basic            (                 )
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
+    scaleRadius                =darkMatterProfile%scale()
+    alpha                      =darkMatterProfile%shape()
     radiusOverScaleRadius      =radius                       /scaleRadius
     virialRadiusOverScaleRadius=self%scale%virialRadius(node)/scaleRadius
     einastoPotential=+self%potentialScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius,alpha) &
          &           *gravitationalConstantGalacticus                                                  &
-         &           *thisBasicComponent%mass()                                                        &
+         &           *basic%mass()                                                        &
          &           /scaleRadius
     return
   end function einastoPotential
@@ -600,16 +600,16 @@ contains
     class           (darkMatterProfileEinasto      ), intent(inout)          :: self
     type            (treeNode                      ), intent(inout), pointer :: node
     double precision                                , intent(in   )          :: specificAngularMomentum
-    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
+    class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
     double precision                                                         :: alpha                           , scaleRadius, &
          &                                                                      specificAngularMomentumScaleFree
 
     ! Get components.
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
     ! Get the scale radius of the halo.
-    scaleRadius=thisDarkMatterProfileComponent%scale()
+    scaleRadius=darkMatterProfile%scale()
     ! Get the shape parameter of the halo.
-    alpha      =thisDarkMatterProfileComponent%shape()
+    alpha      =darkMatterProfile%shape()
     ! Compute the specific angular momentum in scale free units.
     specificAngularMomentumScaleFree=specificAngularMomentum/sqrt(gravitationalConstantGalacticus*scaleRadius&
          &*self%enclosedMass(node,scaleRadius))
@@ -751,16 +751,16 @@ contains
     implicit none
     class           (darkMatterProfileEinasto      ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
-    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
-    double precision                                                :: alpha                         , scaleRadius, &
+    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
+    double precision                                                :: alpha                      , scaleRadius, &
          &                                                             virialRadiusOverScaleRadius
 
     ! Get components.
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
 
     ! Get scale radius, shape and concentration.
-    scaleRadius                =thisDarkMatterProfileComponent%scale()
-    alpha                      =thisDarkMatterProfileComponent%shape()
+    scaleRadius                =darkMatterProfile%scale()
+    alpha                      =darkMatterProfile%shape()
     virialRadiusOverScaleRadius=self%scale%virialRadius(node)/scaleRadius
 
     ! Compute the rotation normalization.
@@ -783,21 +783,21 @@ contains
     implicit none
     class           (darkMatterProfileEinasto      ), intent(inout)  :: self
     type            (treeNode                      ), intent(inout)  :: node
-    class           (nodeComponentBasic            ), pointer        :: thisBasicComponent
-    class           (nodeComponentDarkMatterProfile), pointer        :: thisDarkMatterProfileComponent
+    class           (nodeComponentBasic            ), pointer        :: basic
+    class           (nodeComponentDarkMatterProfile), pointer        :: darkMatterProfile
     integer         (c_size_t                      ), dimension(0:1) :: jAlpha
     double precision                                , dimension(0:1) :: hAlpha
     integer                                                          :: iAlpha
-    double precision                                                 :: alpha                         , scaleRadius, &
+    double precision                                                 :: alpha                      , scaleRadius, &
          &                                                              virialRadiusOverScaleRadius
 
     ! Get components.
-    thisBasicComponent             => node%basic            (                 )
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
+    basic             => node%basic            (                 )
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
 
     ! Get scale radius, shape parameter and concentration.
-    scaleRadius                =thisDarkMatterProfileComponent%scale()
-    alpha                      =thisDarkMatterProfileComponent%shape()
+    scaleRadius                =darkMatterProfile%scale()
+    alpha                      =darkMatterProfile%shape()
     virialRadiusOverScaleRadius=self%scale%virialRadius(node)/scaleRadius
 
     ! Ensure the table exists and is sufficiently tabulated.
@@ -818,7 +818,7 @@ contains
     end do
 
     ! Scale to dimensionful units.
-    einastoEnergy=einastoEnergy*thisBasicComponent%mass() &
+    einastoEnergy=einastoEnergy*basic%mass() &
          &*self%scale%virialVelocity(node)**2
     return
   end function einastoEnergy
@@ -831,22 +831,22 @@ contains
     implicit none
     class           (darkMatterProfileEinasto      ), intent(inout)           :: self
     type            (treeNode                      ), intent(inout) , pointer :: node
-    class           (nodeComponentBasic            )                , pointer :: thisBasicComponent
-    class           (nodeComponentDarkMatterProfile)                , pointer :: thisDarkMatterProfileComponent
+    class           (nodeComponentBasic            )                , pointer :: basic
+    class           (nodeComponentDarkMatterProfile)                , pointer :: darkMatterProfile
     integer         (c_size_t                      ), dimension(0:1)          :: jAlpha
     double precision                                , dimension(0:1)          :: hAlpha
     integer                                                                   :: iAlpha
-    double precision                                                          :: alpha                         , energy     , &
-         &                                                                       energyGradient                , scaleRadius, &
+    double precision                                                          :: alpha                      , energy     , &
+         &                                                                       energyGradient             , scaleRadius, &
          &                                                                       virialRadiusOverScaleRadius
 
     ! Get components.
-    thisBasicComponent             => node%basic            (                 )
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
+    basic             => node%basic            (                 )
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
 
     ! Get scale radius, shape parameter and concentration.
-    scaleRadius                =thisDarkMatterProfileComponent%scale()
-    alpha                      =thisDarkMatterProfileComponent%shape()
+    scaleRadius                =darkMatterProfile%scale()
+    alpha                      =darkMatterProfile%shape()
     virialRadiusOverScaleRadius=self%scale%virialRadius(node)/scaleRadius
 
     ! Ensure the table exists and is sufficiently tabulated.
@@ -872,11 +872,11 @@ contains
 
     ! Compute the energy growth rate.
     einastoEnergyGrowthRate=self%energy(node)&
-         &*(thisBasicComponent%accretionRate()/thisBasicComponent%mass()+2.0d0 &
+         &*(basic%accretionRate()/basic%mass()+2.0d0 &
          &*self%scale%virialVelocityGrowthRate(node)/self%scale%virialVelocity(node)+(energyGradient&
          &*virialRadiusOverScaleRadius/energy)*(self%scale%virialRadiusGrowthRate(node)&
-         &/self%scale%virialRadius(node)-thisDarkMatterProfileComponent%scaleGrowthRate()&
-         &/thisDarkMatterProfileComponent%scale()))
+         &/self%scale%virialRadius(node)-darkMatterProfile%scaleGrowthRate()&
+         &/darkMatterProfile%scale()))
 
     return
   end function einastoEnergyGrowthRate
@@ -1101,19 +1101,19 @@ contains
     class           (darkMatterProfileEinasto      )                , intent(inout)          :: self
     type            (treeNode                      )                , intent(inout), pointer :: node
     double precision                                                , intent(in   )          :: wavenumber
-    class           (nodeComponentDarkMatterProfile)                               , pointer :: thisDarkMatterProfileComponent
-    integer         (c_size_t                      ), dimension(0:1)                         :: jAlpha                        , jConcentration
-    double precision                                , dimension(0:1)                         :: hAlpha                        , hConcentration
-    integer                                                                                  :: iAlpha                        , iConcentration
-    double precision                                                                         :: alpha                         , scaleRadius        , &
-         &                                                                                      virialRadiusOverScaleRadius   , wavenumberScaleFree
+    class           (nodeComponentDarkMatterProfile)                               , pointer :: darkMatterProfile
+    integer         (c_size_t                      ), dimension(0:1)                         :: jAlpha                     , jConcentration
+    double precision                                , dimension(0:1)                         :: hAlpha                     , hConcentration
+    integer                                                                                  :: iAlpha                     , iConcentration
+    double precision                                                                         :: alpha                      , scaleRadius        , &
+         &                                                                                      virialRadiusOverScaleRadius, wavenumberScaleFree
 
     ! Get components.
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
 
     ! Get scale radius, shape parameter and concentration.
-    scaleRadius                =thisDarkMatterProfileComponent%scale()
-    alpha                      =thisDarkMatterProfileComponent%shape()
+    scaleRadius                =darkMatterProfile%scale()
+    alpha                      =darkMatterProfile%shape()
     virialRadiusOverScaleRadius=self%scale%virialRadius(node)/scaleRadius
     wavenumberScaleFree        =wavenumber*scaleRadius
 
@@ -1308,13 +1308,13 @@ contains
     class           (darkMatterProfileEinasto      ), intent(inout)  :: self
     type            (treeNode                      ), intent(inout)  :: node
     double precision                                , intent(in   )  :: time
-    class           (nodeComponentBasic            ), pointer        :: thisBasicComponent
-    class           (nodeComponentDarkMatterProfile), pointer        :: thisDarkMatterProfileComponent
+    class           (nodeComponentBasic            ), pointer        :: basic
+    class           (nodeComponentDarkMatterProfile), pointer        :: darkMatterProfile
     integer         (c_size_t                      ), dimension(0:1) :: jAlpha
     double precision                                , dimension(0:1) :: hAlpha
     integer                                                          :: iAlpha
-    double precision                                                 :: alpha                         , freefallTimeScaleFree, &
-         &                                                              radiusScale                   , timeScale            , &
+    double precision                                                 :: alpha            , freefallTimeScaleFree, &
+         &                                                              radiusScale      , timeScale            , &
          &                                                              velocityScale
 
     ! For non-positive freefall times, return a zero freefall radius immediately.
@@ -1324,17 +1324,17 @@ contains
     end if
 
     ! Get components.
-    thisBasicComponent             => node%basic            (                 )
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
+    basic             => node%basic            (                 )
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
 
     ! Get the shape parameter.
-    alpha        =thisDarkMatterProfileComponent%shape()
+    alpha        =darkMatterProfile%shape()
 
     ! Get the scale radius.
-    radiusScale  =thisDarkMatterProfileComponent%scale()
+    radiusScale  =darkMatterProfile%scale()
 
     ! Get the velocity scale.
-    velocityScale=sqrt(gravitationalConstantGalacticus*thisBasicComponent%mass()/radiusScale)
+    velocityScale=sqrt(gravitationalConstantGalacticus*basic%mass()/radiusScale)
 
     ! Compute time scale.
     timeScale=Mpc_per_km_per_s_To_Gyr*radiusScale/velocityScale
@@ -1374,13 +1374,13 @@ contains
     class           (darkMatterProfileEinasto      ), intent(inout)  :: self
     type            (treeNode                      ), intent(inout)  :: node
     double precision                                , intent(in   )  :: time
-    class           (nodeComponentBasic            ), pointer        :: thisBasicComponent
-    class           (nodeComponentDarkMatterProfile), pointer        :: thisDarkMatterProfileComponent
+    class           (nodeComponentBasic            ), pointer        :: basic
+    class           (nodeComponentDarkMatterProfile), pointer        :: darkMatterProfile
     integer         (c_size_t                      ), dimension(0:1) :: jAlpha
     double precision                                , dimension(0:1) :: hAlpha
     integer                                                          :: iAlpha
-    double precision                                                 :: alpha                         , freefallTimeScaleFree, &
-         &                                                              radiusScale                   , timeScale            , &
+    double precision                                                 :: alpha             , freefallTimeScaleFree, &
+         &                                                              radiusScale       , timeScale            , &
          &                                                              velocityScale
 
     ! For non-positive freefall times, return a zero freefall radius immediately.
@@ -1390,17 +1390,17 @@ contains
     end if
 
     ! Get components.
-    thisBasicComponent             => node%basic            (                 )
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
+    basic             => node%basic            (                 )
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
 
     ! Get the shape parameter.
-    alpha        =thisDarkMatterProfileComponent%shape()
+    alpha        =darkMatterProfile%shape()
 
     ! Get the scale radius.
-    radiusScale  =thisDarkMatterProfileComponent%scale()
+    radiusScale  =darkMatterProfile%scale()
 
     ! Get the velocity scale.
-    velocityScale=sqrt(gravitationalConstantGalacticus*thisBasicComponent%mass()/radiusScale)
+    velocityScale=sqrt(gravitationalConstantGalacticus*basic%mass()/radiusScale)
 
     ! Compute time scale.
     timeScale=Mpc_per_km_per_s_To_Gyr*radiusScale/velocityScale
@@ -1545,12 +1545,12 @@ contains
       double precision, intent(in   ) :: radius
       
       einastoFreefallTimeScaleFreeIntegrand= 1.0d0                                                                   &
-           &                                     /sqrt(                                                                  &
-           &                                             2.0d0                                                            &
-           &                                            *(                                                                &
+           &                                     /sqrt(                                                              &
+           &                                             2.0d0                                                       &
+           &                                            *(                                                           &
            &                                               self%potentialScaleFree(radiusStart,1.0d0,alphaParameter) &
            &                                              -self%potentialScaleFree(radius     ,1.0d0,alphaParameter) &
-           &                                             )                                                                &
+           &                                             )                                                           &
            &                                           )
       return
     end function einastoFreefallTimeScaleFreeIntegrand
@@ -1559,12 +1559,14 @@ contains
 
   subroutine einastoStateStore(self,stateFile,fgslStateFile)
     !% Write the tablulation state to file.
+    use Galacticus_Display
     implicit none
     class  (darkMatterProfileEinasto), intent(inout) :: self
     integer                          , intent(in   ) :: stateFile
     type   (fgsl_file               ), intent(in   ) :: fgslStateFile
     !GCC$ attributes unused :: fgslStateFile
 
+    call Galacticus_Display_Message('Storing state for: darkMatterProfile -> Einasto',verbosity=verbosityInfo)
     write (stateFile) self%angularMomentumTableRadiusMinimum,self%angularMomentumTableRadiusMaximum,self%angularMomentumTableAlphaMinimum &
          &,self%angularMomentumTableAlphaMaximum,self%energyTableConcentrationMinimum,self%energyTableConcentrationMaximum &
          &,self%energyTableAlphaMinimum,self%energyTableAlphaMaximum,self%fourierProfileTableWavenumberMinimum &
@@ -1577,6 +1579,7 @@ contains
 
   subroutine einastoStateRestore(self,stateFile,fgslStateFile)
     !% Retrieve the tabulation state from the file.
+    use Galacticus_Display
     implicit none
     class  (darkMatterProfileEinasto), intent(inout) :: self
     integer                          , intent(in   ) :: stateFile
@@ -1584,6 +1587,7 @@ contains
     !GCC$ attributes unused :: fgslStateFile
 
     ! Read the minimum and maximum tabulated times.
+    call Galacticus_Display_Message('Retrieving state for: darkMatterProfile -> Einasto',verbosity=verbosityInfo)
     read (stateFile) self%angularMomentumTableRadiusMinimum,self%angularMomentumTableRadiusMaximum,self%angularMomentumTableAlphaMinimum &
          &,self%angularMomentumTableAlphaMaximum,self%energyTableConcentrationMinimum,self%energyTableConcentrationMaximum &
          &,self%energyTableAlphaMinimum,self%energyTableAlphaMaximum,self%fourierProfileTableWavenumberMinimum &

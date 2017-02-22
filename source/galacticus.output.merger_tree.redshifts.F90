@@ -79,17 +79,17 @@ contains
   !#  <unitName>Galacticus_Output_Redshifts_Names</unitName>
   !#  <sortName>Galacticus_Output_Redshifts</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Galacticus_Output_Redshifts_Names(thisNode,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
+  subroutine Galacticus_Output_Redshifts_Names(node,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
        &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of link properties to be written to the \glc\ output file.
     implicit none
-    type            (treeNode)              , intent(inout) :: thisNode
+    type            (treeNode)              , intent(inout) :: node
     double precision                        , intent(in   ) :: time
     integer                                 , intent(inout) :: doubleProperty         , integerProperty
     character       (len=*   ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
          &                                                     integerPropertyComments, integerPropertyNames
     double precision          , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    !GCC$ attributes unused :: thisNode, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI, time
+    !GCC$ attributes unused :: node, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI, time
     
     call Galacticus_Output_Redshifts_Initalize()
     if (timeLastIsolatedIsAvailable) then
@@ -113,13 +113,13 @@ contains
   !#  <unitName>Galacticus_Output_Redshifts_Property_Count</unitName>
   !#  <sortName>Galacticus_Output_Redshifts</sortName>
   !# </mergerTreeOutputPropertyCount>
-  subroutine Galacticus_Output_Redshifts_Property_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
+  subroutine Galacticus_Output_Redshifts_Property_Count(node,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of link properties to be written to the \glc\ output file.
     implicit none
-    type            (treeNode), intent(inout) :: thisNode
+    type            (treeNode), intent(inout) :: node
     double precision          , intent(in   ) :: time
     integer                   , intent(inout) :: doublePropertyCount, integerPropertyCount
-    !GCC$ attributes unused :: thisNode, time, integerPropertyCount
+    !GCC$ attributes unused :: node, time, integerPropertyCount
     
     call Galacticus_Output_Redshifts_Initalize()
     doublePropertyCount=doublePropertyCount+redshiftPropertyCount
@@ -130,7 +130,7 @@ contains
   !#  <unitName>Galacticus_Output_Redshifts</unitName>
   !#  <sortName>Galacticus_Output_Redshifts</sortName>
   !# </mergerTreeOutputTask>
-  subroutine Galacticus_Output_Redshifts(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
+  subroutine Galacticus_Output_Redshifts(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store link properties in the \glc\ output file buffers.
     use Kind_Numbers
@@ -138,26 +138,26 @@ contains
     use Multi_Counters
     implicit none
     double precision                         , intent(in   ) :: time
-    type            (treeNode               ), intent(inout) :: thisNode
-    integer                                  , intent(inout) :: doubleBufferCount            , doubleProperty , &
-         &                                                      integerBufferCount           , integerProperty
-    integer         (kind=kind_int8         ), intent(inout) :: integerBuffer           (:,:)
-    double precision                         , intent(inout) :: doubleBuffer            (:,:)
+    type            (treeNode               ), intent(inout) :: node
+    integer                                  , intent(inout) :: doubleBufferCount       , doubleProperty , &
+         &                                                      integerBufferCount      , integerProperty
+    integer         (kind=kind_int8         ), intent(inout) :: integerBuffer      (:,:)
+    double precision                         , intent(inout) :: doubleBuffer       (:,:)
     type            (multiCounter           ), intent(inout) :: instance
-    class           (nodeComponentBasic     ), pointer       :: thisBasic
-    class           (cosmologyFunctionsClass), pointer       :: cosmologyFunctionsDefault
+    class           (nodeComponentBasic     ), pointer       :: basic
+    class           (cosmologyFunctionsClass), pointer       :: cosmologyFunctions_
     !GCC$ attributes unused :: integerProperty, integerBufferCount, integerBuffer, time, instance
     
     call Galacticus_Output_Redshifts_Initalize()
     if (timeLastIsolatedIsAvailable) then
-       cosmologyFunctionsDefault => cosmologyFunctions      ()
-       thisBasic                 => thisNode          %basic()
+       cosmologyFunctions_ => cosmologyFunctions      ()
+       basic               => node              %basic()
        doubleProperty=doubleProperty+1
-       doubleBuffer(doubleBufferCount,doubleProperty)=                 &
-            & cosmologyFunctionsDefault %redshiftFromExpansionFactor(  &
-            &  cosmologyFunctionsDefault%expansionFactor             ( &
-            &   thisBasic%timeLastIsolated()                           &
-            &  )                                                       &
+       doubleBuffer(doubleBufferCount,doubleProperty)=           &
+            & cosmologyFunctions_ %redshiftFromExpansionFactor(  &
+            &  cosmologyFunctions_%expansionFactor             ( &
+            &   basic%timeLastIsolated()                         &
+            &  )                                                 &
             & )
     end if
     return

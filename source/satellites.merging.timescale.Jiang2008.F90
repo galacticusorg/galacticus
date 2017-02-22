@@ -114,7 +114,7 @@ contains
     return
   end subroutine jiang2008Destructor
 
-  double precision function jiang2008TimeUntilMerging(self,thisNode,thisOrbit)
+  double precision function jiang2008TimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the \cite{jiang_fitting_2008} method.
     use Dark_Matter_Halo_Scales
     use Dark_Matter_Profiles
@@ -124,29 +124,29 @@ contains
     use Galacticus_Error
     implicit none
     class           (satelliteMergingTimescalesJiang2008), intent(inout) :: self
-    type            (treeNode                           ), intent(inout) :: thisNode
-    type            (keplerOrbit                        ), intent(inout) :: thisOrbit
-    type            (treeNode                           ), pointer       :: hostNode
-    class           (nodeComponentBasic                 ), pointer       :: hostBasic                            , thisBasic
+    type            (treeNode                           ), intent(inout) :: node
+    type            (keplerOrbit                        ), intent(inout) :: orbit
+    type            (treeNode                           ), pointer       :: nodeHost
+    class           (nodeComponentBasic                 ), pointer       :: basicHost                            , basic
     class           (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
     class           (darkMatterProfileClass             ), pointer       :: darkMatterProfile_
     logical                                              , parameter     :: acceptUnboundOrbits          =.false.
     double precision                                     , parameter     :: timeInfinite                 =1.0d30
 
-    double precision                                     , parameter     :: C                            =0.43d0 , a                 =0.94d0, &  !   Fitting parameters from Jiang's paper.
-         &                                                                  b                            =0.60d0 , d                 =0.60d0
+    double precision                                     , parameter     :: C                            =0.43d0 , a            =0.94d0, &  !   Fitting parameters from Jiang's paper.
+         &                                                                  b                            =0.60d0 , d            =0.60d0
     integer                                                              :: errorCode
-    double precision                                                     :: equivalentCircularOrbitRadius        , massRatio                , &
-         &                                                                  orbitalCircularity                   , radialScale              , &
+    double precision                                                     :: equivalentCircularOrbitRadius        , massRatio           , &
+         &                                                                  orbitalCircularity                   , radialScale         , &
          &                                                                  velocityScale                        , randomDeviate
 
     ! Get required objects.
     darkMatterProfile_   => darkMatterProfile  ()
     darkMatterHaloScale_ => darkMatterHaloScale()
     ! Find the host node.
-    hostNode => thisNode%parent
+    nodeHost => node%parent
     ! Get the equivalent circular orbit.
-    equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(hostNode,thisOrbit,errorCode)
+    equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,errorCode)
     ! Check error codes.
     select case (errorCode)
     case (errorCodeOrbitUnbound     )
@@ -161,16 +161,16 @@ contains
        call Galacticus_Error_Report('jiang2008TimeUntilMerging','unrecognized error code')
     end select
     ! Get velocity scale.
-    velocityScale=darkMatterHaloScale_%virialVelocity(hostNode)
-    radialScale  =darkMatterHaloScale_%virialRadius  (hostNode)
+    velocityScale=darkMatterHaloScale_%virialVelocity(nodeHost)
+    radialScale  =darkMatterHaloScale_%virialRadius  (nodeHost)
     ! Compute orbital circularity.
-    orbitalCircularity= thisOrbit%angularMomentum()                                                   &
-         &             /equivalentCircularOrbitRadius                                                 &
-         &             /darkMatterProfile_%circularVelocity(hostNode,equivalentCircularOrbitRadius)
+    orbitalCircularity= orbit%angularMomentum()                                                     &
+         &             /equivalentCircularOrbitRadius                                               &
+         &             /darkMatterProfile_%circularVelocity(nodeHost,equivalentCircularOrbitRadius)
     ! Compute mass ratio (mass in host [not including satellite] divided by mass in satellite).
-    thisBasic => thisNode%basic()
-    hostBasic => hostNode%basic()
-    massRatio=hostBasic%mass()/thisBasic%mass()-1.0d0
+    basic => node%basic()
+    basicHost => nodeHost%basic()
+    massRatio=basicHost%mass()/basic%mass()-1.0d0
     ! Check for a non-zero mass ratio.
     if (massRatio <= 0.0d0) then
        ! Assume zero merging time as the satellite is as massive as the host.
@@ -179,7 +179,7 @@ contains
        ! Compute dynamical friction timescale.
        jiang2008TimeUntilMerging                                 &
             & =Dynamical_Friction_Timescale_Multiplier(        ) &
-            & *darkMatterHaloScale_%dynamicalTimescale(hostNode) &
+            & *darkMatterHaloScale_%dynamicalTimescale(nodeHost) &
             & *sqrt(equivalentCircularOrbitRadius/radialScale)   &
             & *((a*(orbitalCircularity**b)+d)/2.0d0/C)           &
             & *          massRatio                               &
@@ -205,12 +205,14 @@ contains
 
   subroutine jiang2008StateStore(self,stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
+    use Galacticus_Display
     use Pseudo_Random
     implicit none
     class  (satelliteMergingTimescalesJiang2008), intent(inout) :: self
     integer                                     , intent(in   ) :: stateFile
     type   (fgsl_file                          ), intent(in   ) :: fgslStateFile
     
+    call Galacticus_Display_Message('Storing state for: satelliteMergingTimescale -> jiang2008',verbosity=verbosityInfo)
     write (stateFile) self%resetRandomSequenceSnapshot
     if (.not.self%resetRandomSequenceSnapshot) call Pseudo_Random_Store(self%clonedPseudoSequenceObject,fgslStateFile)
     return
@@ -218,12 +220,14 @@ contains
   
   subroutine jiang2008StateRestore(self,stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
+    use Galacticus_Display
     use Pseudo_Random
     implicit none
     class  (satelliteMergingTimescalesJiang2008), intent(inout) :: self
     integer                                     , intent(in   ) :: stateFile
     type   (fgsl_file                          ), intent(in   ) :: fgslStateFile
     
+    call Galacticus_Display_Message('Retrieving state for: satelliteMergingTimescale -> jiang2008',verbosity=verbosityInfo)
     read (stateFile) self%resetRandomSequence
     if (.not.self%resetRandomSequence) call Pseudo_Random_Retrieve(self%randomSequenceObject,fgslStateFile)
     return

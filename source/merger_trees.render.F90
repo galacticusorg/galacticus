@@ -31,7 +31,7 @@ module Merger_Trees_Render
 
 contains
 
-  subroutine Merger_Trees_Render_Dump(thisTree)
+  subroutine Merger_Trees_Render_Dump(tree)
     !% Dumps information on merger tree structure useful for rendering 3D views of merger trees.
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
@@ -41,9 +41,9 @@ contains
     use Numerical_Constants_Astronomical
     use Memory_Management
     implicit none
-    type            (mergerTree        ), intent(inout)                          :: thisTree
-    type            (treeNode          )                               , pointer :: thisNode
-    class           (nodeComponentBasic)                               , pointer :: thisBasic
+    type            (mergerTree        ), intent(inout)                          :: tree
+    type            (treeNode          )                               , pointer :: node
+    class           (nodeComponentBasic)                               , pointer :: basic
     integer         (kind=kind_int8    ), allocatable  , dimension(:  )          :: childIndex     , nodeIndex   , parentIndex
     double precision                    , allocatable  , dimension(:  )          :: expansionFactor, radiusVirial, time
     double precision                    , allocatable  , dimension(:,:)          :: position
@@ -52,8 +52,8 @@ contains
     type            (hdf5Object        )                                         :: fileObject     , treeDataset
 
     ! Reset output incremental counter if this tree is not the same as the previous one.
-    if (thisTree%index /= treeIndexPrevious) then
-       treeIndexPrevious=thisTree%index
+    if (tree%index /= treeIndexPrevious) then
+       treeIndexPrevious=tree%index
        outputCounter    =-1
     end if
 
@@ -61,14 +61,14 @@ contains
     outputCounter=outputCounter+1
 
     ! Construct a file name for the output.
-    write (fileName,'(a7,i16.16,a1,i10.10,a5)') "render:",thisTree%index,":",outputCounter,".hdf5"
+    write (fileName,'(a7,i16.16,a1,i10.10,a5)') "render:",tree%index,":",outputCounter,".hdf5"
 
     ! Count the number of nodes in the tree.
     nodesInTree=0
-    thisNode => thisTree%baseNode
-    do while (associated(thisNode))
+    node => tree%baseNode
+    do while (associated(node))
        nodesInTree=nodesInTree+1
-       call thisNode%walkTreeWithSatellites(thisNode)
+       call node%walkTreeWithSatellites(node)
     end do
 
     ! Allocate arrays for temporary storage.
@@ -81,19 +81,19 @@ contains
     call allocateArray(position       ,[3,nodesInTree])
 
     ! Populate arrays with data.
-    thisNode => thisTree%baseNode
+    node => tree%baseNode
     iNode=0
-    do while (associated(thisNode))
+    do while (associated(node))
        iNode=iNode+1
-       thisBasic              => thisNode           %basic()
-       nodeIndex      (iNode) =  thisNode           %index()
-       parentIndex    (iNode) =  thisNode%parent    %index()
-       childIndex     (iNode) =  thisNode%firstChild%index()
-       time           (iNode) =                                 thisBasic%time()
-       expansionFactor(iNode) =  cosmologyFunctionsDefault%expansionFactor              (thisBasic%time())
-       radiusVirial   (iNode) =  darkMatterHaloScale_%virialRadius(thisNode        )
-       call Tree_Node_Position(thisNode,position(:,iNode))
-       call thisNode%walkTreeWithSatellites(thisNode)
+       basic              => node           %basic()
+       nodeIndex      (iNode) =  node           %index()
+       parentIndex    (iNode) =  node%parent    %index()
+       childIndex     (iNode) =  node%firstChild%index()
+       time           (iNode) =                                 basic%time()
+       expansionFactor(iNode) =  cosmologyFunctionsDefault%expansionFactor              (basic%time())
+       radiusVirial   (iNode) =  darkMatterHaloScale_%virialRadius(node        )
+       call Tree_Node_Position(node,position(:,iNode))
+       call node%walkTreeWithSatellites(node)
     end do
 
     ! Open an HDF5 file.

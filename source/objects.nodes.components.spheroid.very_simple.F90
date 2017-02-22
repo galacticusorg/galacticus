@@ -201,19 +201,19 @@ contains
   !# <preEvolveTask>
   !# <unitName>Node_Component_Spheroid_Very_Simple_Pre_Evolve</unitName>
   !# </preEvolveTask>
-  subroutine Node_Component_Spheroid_Very_Simple_Pre_Evolve(thisNode)
+  subroutine Node_Component_Spheroid_Very_Simple_Pre_Evolve(node)
     !% Ensure the spheroid has been initialized.
     implicit none
-    type (treeNode             ), intent(inout), pointer :: thisNode
-    class(nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
+    type (treeNode             ), intent(inout), pointer :: node
+    class(nodeComponentSpheroid)               , pointer :: spheroid
 
     ! Get the spheroid component.
-    thisSpheroidComponent => thisNode%spheroid()
+    spheroid => node%spheroid()
     ! Check if an exponential spheroid component exists.
-    select type (thisSpheroidComponent)
+    select type (spheroid)
        class is (nodeComponentSpheroidVerySimple)
           ! Initialize the spheroid
-          call Node_Component_Spheroid_Very_Simple_Create(thisNode)
+          call Node_Component_Spheroid_Very_Simple_Create(node)
     end select
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Pre_Evolve
@@ -221,16 +221,16 @@ contains
   !# <postEvolveTask>
   !# <unitName>Node_Component_Spheroid_Very_Simple_Post_Evolve</unitName>
   !# </postEvolveTask>
-  subroutine Node_Component_Spheroid_Very_Simple_Post_Evolve(thisNode)
+  subroutine Node_Component_Spheroid_Very_Simple_Post_Evolve(node)
     !% Catch rounding errors in the very simple spheroid gas evolution.
     use Galacticus_Display
     use String_Handling
     use Histories
     use Abundances_Structure
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode
-    class           (nodeComponentSpheroid )               , pointer :: thisSpheroidComponent
-    class           (nodeComponentBasic    )               , pointer :: thisBasicComponent
+    type            (treeNode              ), intent(inout), pointer :: node
+    class           (nodeComponentSpheroid )               , pointer :: spheroid
+    class           (nodeComponentBasic    )               , pointer :: basic
     double precision                        , save                   :: fractionalErrorMaximum  =0.0d0
     double precision                                                 :: spheroidMass                  , fractionalError
     character       (len=20                )                         :: valueString
@@ -238,31 +238,31 @@ contains
     type            (history               )                         :: stellarPropertiesHistory
 
     ! Get the spheroid component.
-    thisSpheroidComponent => thisNode%spheroid()
+    spheroid => node%spheroid()
     ! Check if a very simple spheroid component exists.
-    select type (thisSpheroidComponent)
+    select type (spheroid)
     class is (nodeComponentSpheroidVerySimple)
        ! Trim the stellar populations properties future history.
-       thisBasicComponent => thisNode%basic()
-       stellarPropertiesHistory=thisSpheroidComponent%stellarPropertiesHistory()
-       call stellarPropertiesHistory%trim(thisBasicComponent%time())
-       call thisSpheroidComponent%stellarPropertiesHistorySet(stellarPropertiesHistory)
+       basic => node%basic()
+       stellarPropertiesHistory=spheroid%stellarPropertiesHistory()
+       call stellarPropertiesHistory%trim(basic%time())
+       call spheroid%stellarPropertiesHistorySet(stellarPropertiesHistory)
        ! Trap negative gas masses.
-       if (thisSpheroidComponent%massGas() < 0.0d0) then
+       if (spheroid%massGas() < 0.0d0) then
           ! Check if this exceeds the maximum previously recorded error.
-          fractionalError=   abs(thisSpheroidComponent%massGas    ()) &
-               &          /(                                          &
-               &                 thisSpheroidComponent%massStellar()  &
-               &            +abs(thisSpheroidComponent%massGas    ()) &
+          fractionalError=   abs(spheroid%massGas    ()) &
+               &          /(                             &
+               &                 spheroid%massStellar()  &
+               &            +abs(spheroid%massGas    ()) &
                &           )
           !$omp critical (Very_Simple_Spheroid_Post_Evolve_Check)
           if (fractionalError > fractionalErrorMaximum) then
              ! Report a warning.
              message='Warning: spheroid has negative gas mass (fractional error exceeds any previously reported):'//char(10)
-             message=message//'  Node index        = '//thisNode%index() //char(10)
-             write (valueString,'(e12.6)') thisSpheroidComponent%massGas()
+             message=message//'  Node index        = '//node%index() //char(10)
+             write (valueString,'(e12.6)') spheroid%massGas()
              message=message//'  Spheroid gas mass     = '//trim(valueString)//char(10)
-             write (valueString,'(e12.6)') thisSpheroidComponent%massStellar()
+             write (valueString,'(e12.6)') spheroid%massStellar()
              message=message//'  Spheroid stellar mass = '//trim(valueString)//char(10)
              write (valueString,'(e12.6)') fractionalError
              message=message//'  Error measure     = '//trim(valueString)//char(10)
@@ -279,46 +279,46 @@ contains
           end if
           !$omp end critical (Very_Simple_Spheroid_Post_Evolve_Check)
           ! Get the total mass of the spheroid material
-          spheroidMass=+thisSpheroidComponent%massGas    () &
-               &       +thisSpheroidComponent%massStellar()
+          spheroidMass=+spheroid%massGas    () &
+               &       +spheroid%massStellar()
           if (spheroidMass == 0.0d0) then
-             call thisSpheroidComponent%      massStellarSet(         0.0d0)
-             call thisSpheroidComponent%abundancesStellarSet(zeroAbundances)
+             call spheroid%      massStellarSet(         0.0d0)
+             call spheroid%abundancesStellarSet(zeroAbundances)
           end if
           ! Reset the gas mass of the spheroid.
-          call thisSpheroidComponent%      massGasSet(         0.0d0)
-          call thisSpheroidComponent%abundancesGasSet(zeroAbundances)
+          call spheroid%      massGasSet(         0.0d0)
+          call spheroid%abundancesGasSet(zeroAbundances)
        end if
     end select
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Post_Evolve
 
-  subroutine Node_Component_Spheroid_Very_Simple_Create(thisNode)
+  subroutine Node_Component_Spheroid_Very_Simple_Create(node)
     !% Create properties in a very simple spheroid component.
     use Histories
     use Stellar_Population_Properties
     implicit none
-    type   (treeNode             ), intent(inout), pointer :: thisNode
-    class  (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
+    type   (treeNode             ), intent(inout), pointer :: node
+    class  (nodeComponentSpheroid)               , pointer :: spheroid
     type   (history              )                         :: stellarPropertiesHistory
     logical                                                :: createStellarPropertiesHistory
 
     ! Get the spheroid component.
-    thisSpheroidComponent => thisNode%spheroid()
+    spheroid => node%spheroid()
     ! Exit if already initialized.
-    if (thisSpheroidComponent%isInitialized()) return
+    if (spheroid%isInitialized()) return
     ! Determine which histories must be created.
-    stellarPropertiesHistory      =thisSpheroidComponent%stellarPropertiesHistory        ()
-    createStellarPropertiesHistory=.not.                 stellarPropertiesHistory%exists ()
-    call                                                 stellarPropertiesHistory%destroy()
+    stellarPropertiesHistory      =spheroid%stellarPropertiesHistory()
+    createStellarPropertiesHistory=.not.stellarPropertiesHistory%exists ()
+    call                                stellarPropertiesHistory%destroy()
     ! Create the stellar properties history.
     if (createStellarPropertiesHistory) then
        ! Create the stellar properties history.
-       call Stellar_Population_Properties_History_Create     (thisNode,stellarPropertiesHistory)
-       call thisSpheroidComponent%stellarPropertiesHistorySet(         stellarPropertiesHistory)
+       call Stellar_Population_Properties_History_Create(node,stellarPropertiesHistory)
+       call spheroid%stellarPropertiesHistorySet        (     stellarPropertiesHistory)
     end if
     ! Record that the spheroid has been initialized.
-    call thisSpheroidComponent%isInitializedSet(.true.)
+    call spheroid%isInitializedSet(.true.)
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Create
 
@@ -454,35 +454,35 @@ contains
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Spheroid_Very_Simple_Scale_Set</unitName>
   !# </scaleSetTask>
-  subroutine Node_Component_Spheroid_Very_Simple_Scale_Set(thisNode)
-    !% Set scales for properties of {\normalfont \ttfamily thisNode}.
+  subroutine Node_Component_Spheroid_Very_Simple_Scale_Set(node)
+    !% Set scales for properties of {\normalfont \ttfamily node}.
     use Abundances_Structure
     use Histories
     use Stellar_Population_Properties
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: thisNode
-    class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
+    type            (treeNode             ), intent(inout), pointer :: node
+    class           (nodeComponentSpheroid)               , pointer :: spheroid
     double precision                                                :: mass
     type            (history              )                         :: stellarPopulationHistoryScales
     type            (abundances           )                         :: abundancesTotal
 
     ! Get the spheroid component.
-    thisSpheroidComponent => thisNode%spheroid()
+    spheroid => node%spheroid()
     ! Check if a very simple spheroid component exists.
-    select type (thisSpheroidComponent)
+    select type (spheroid)
     class is (nodeComponentSpheroidVerySimple)
        ! Set scale for gas and stellar mass.
-       mass=thisSpheroidComponent%massGas()+thisSpheroidComponent%massStellar()
-       call thisSpheroidComponent%massGasScale    (max(mass,spheroidVerySimpleMassScaleAbsolute))
-       call thisSpheroidComponent%massStellarScale(max(mass,spheroidVerySimpleMassScaleAbsolute))
+       mass=spheroid%massGas()+spheroid%massStellar()
+       call spheroid%massGasScale    (max(mass,spheroidVerySimpleMassScaleAbsolute))
+       call spheroid%massStellarScale(max(mass,spheroidVerySimpleMassScaleAbsolute))
        ! Set scale for gas and stellar abundances.
-       abundancesTotal=thisSpheroidComponent%abundancesGas()+thisSpheroidComponent%abundancesStellar()
-       call thisSpheroidComponent%abundancesGasScale    (max(abundancesTotal,unitAbundances*spheroidVerySimpleMassScaleAbsolute))
-       call thisSpheroidComponent%abundancesStellarScale(max(abundancesTotal,unitAbundances*spheroidVerySimpleMassScaleAbsolute))
+       abundancesTotal=spheroid%abundancesGas()+spheroid%abundancesStellar()
+       call spheroid%abundancesGasScale    (max(abundancesTotal,unitAbundances*spheroidVerySimpleMassScaleAbsolute))
+       call spheroid%abundancesStellarScale(max(abundancesTotal,unitAbundances*spheroidVerySimpleMassScaleAbsolute))
        ! Set scales for stellar population properties and star formation histories.
-       stellarPopulationHistoryScales=thisSpheroidComponent%stellarPropertiesHistory()
-       call Stellar_Population_Properties_Scales               (stellarPopulationHistoryScales,thisSpheroidComponent%massStellar(),zeroAbundances)
-       call thisSpheroidComponent%stellarPropertiesHistoryScale(stellarPopulationHistoryScales                                                   )
+       stellarPopulationHistoryScales=spheroid%stellarPropertiesHistory()
+       call Stellar_Population_Properties_Scales               (stellarPopulationHistoryScales,spheroid%massStellar(),zeroAbundances)
+       call spheroid%stellarPropertiesHistoryScale(stellarPopulationHistoryScales                                                   )
        call stellarPopulationHistoryScales%destroy()
     end select
     return
@@ -493,64 +493,64 @@ contains
   !#  <after>Satellite_Merging_Mass_Movement_Store</after>
   !#  <after>Satellite_Merging_Remnant_Size</after>
   !# </satelliteMergerTask>
-  subroutine Node_Component_Spheroid_Very_Simple_Satellite_Merging(thisNode)
-    !% Transfer any very simple spheroid associated with {\normalfont \ttfamily thisNode} to its host halo.
+  subroutine Node_Component_Spheroid_Very_Simple_Satellite_Merging(node)
+    !% Transfer any very simple spheroid associated with {\normalfont \ttfamily node} to its host halo.
     use Satellite_Merging_Mass_Movements_Descriptors
     use Galacticus_Error
     use Abundances_Structure
     use Histories
     implicit none
-    type (treeNode             ), intent(inout), pointer :: thisNode
-    type (treeNode             )               , pointer :: hostNode
-    class(nodeComponentSpheroid)               , pointer :: hostSpheroidComponent, thisSpheroidComponent
-    class(nodeComponentDisk    )               , pointer :: hostDiskComponent
-    type (history              )                         :: historyDisk          , historySpheroid      , &
-         &                                                  thisHistory          , hostHistory
+    type (treeNode             ), intent(inout), pointer :: node
+    type (treeNode             )               , pointer :: nodeHost
+    class(nodeComponentSpheroid)               , pointer :: spheroidHost, spheroid
+    class(nodeComponentDisk    )               , pointer :: diskHost
+    type (history              )                         :: historyDisk , historySpheroid, &
+         &                                                  historyHost
 
     ! Check that the very simple spheroid is active.
     if (defaultSpheroidComponent%verySimpleIsActive()) then
        
        ! Get the spheroid component, creating it if need be.
-       thisSpheroidComponent => thisNode%spheroid(autoCreate=.true.)
-       select type (thisSpheroidComponent)
+       spheroid => node%spheroid(autoCreate=.true.)
+       select type (spheroid)
        class is (nodeComponentSpheroidVerySimple)
           
           ! Find the node to merge with and its spheroid component.
-          hostNode              => thisNode%mergesWith(                 )
-          hostSpheroidComponent => hostNode%spheroid  (autoCreate=.true.)
-          hostDiskComponent     => hostNode%disk      (autoCreate=.true.)
+          nodeHost     => node    %mergesWith(                 )
+          spheroidHost => nodeHost%spheroid  (autoCreate=.true.)
+          diskHost     => nodeHost%disk      (autoCreate=.true.)
 
           ! Move gas material within the host if necessary.
           select case (thisHostGasMovesTo)
           case (movesToDisk)
-             call hostDiskComponent    %          massGasSet(                                       &
-                  &                                          +hostDiskComponent    %massGas      () &
-                  &                                          +hostSpheroidComponent%massGas      () &
+             call diskHost    %          massGasSet(                                       &
+                  &                                          +diskHost    %massGas      () &
+                  &                                          +spheroidHost%massGas      () &
                   &                                         )
-             call hostDiskComponent    %    abundancesGasSet(                                       &
-                  &                                          +hostDiskComponent    %abundancesGas() &
-                  &                                          +hostSpheroidComponent%abundancesGas() &
+             call diskHost    %    abundancesGasSet(                                       &
+                  &                                          +diskHost    %abundancesGas() &
+                  &                                          +spheroidHost%abundancesGas() &
                   &                                         )
-             call hostSpheroidComponent%          massGasSet(                                       &
-                  &                                           0.0d0                                 &
+             call spheroidHost%          massGasSet(                                       &
+                  &                                           0.0d0                        &
                   &                                         )
-             call hostSpheroidComponent%    abundancesGasSet(                                       &
-                  &                                           zeroAbundances                        &
+             call spheroidHost%    abundancesGasSet(                                       &
+                  &                                           zeroAbundances               &
                   &                                         )
           case (movesToSpheroid)
-             call hostSpheroidComponent%          massGasSet(                                       &
-                  &                                          +hostSpheroidComponent%massGas      () &
-                  &                                          +hostDiskComponent    %massGas      () &
+             call spheroidHost%          massGasSet(                                       &
+                  &                                          +spheroidHost%massGas      () &
+                  &                                          +diskHost    %massGas      () &
                   &                                         )
-             call hostSpheroidComponent%    abundancesGasSet(                                       &
-                  &                                          +hostSpheroidComponent%abundancesGas() &
-                  &                                          +hostDiskComponent    %abundancesGas() &
+             call spheroidHost%    abundancesGasSet(                                       &
+                  &                                          +spheroidHost%abundancesGas() &
+                  &                                          +diskHost    %abundancesGas() &
                   &                                         )
-             call hostDiskComponent    %          massGasSet(                                       &
-                  &                                           0.0d0                                 &
+             call diskHost    %          massGasSet(                                       &
+                  &                                           0.0d0                        &
                   &                                         )
-             call hostDiskComponent    %    abundancesGasSet(                                       &
-                  &                                           zeroAbundances                        &
+             call diskHost    %    abundancesGasSet(                                       &
+                  &                                           zeroAbundances               &
                   &                                         )
           case (doesNotMove)
              ! Do nothing.
@@ -564,49 +564,49 @@ contains
           ! Move stellar material within the host if necessary.
           select case (thisHostStarsMoveTo)
           case (movesToDisk)
-             call hostDiskComponent    %      massStellarSet(                                           &
-                  &                                          +hostDiskComponent    %      massStellar() &
-                  &                                          +hostSpheroidComponent%      massStellar() &
+             call diskHost    %      massStellarSet(                                           &
+                  &                                          +diskHost    %      massStellar() &
+                  &                                          +spheroidHost%      massStellar() &
                   &                                         )
-             call hostDiskComponent    %abundancesStellarSet(                                           &
-                  &                                           hostDiskComponent    %abundancesStellar() &
-                  &                                          +hostSpheroidComponent%abundancesStellar() &
+             call diskHost    %abundancesStellarSet(                                           &
+                  &                                           diskHost    %abundancesStellar() &
+                  &                                          +spheroidHost%abundancesStellar() &
                   &                                         )
-             call hostSpheroidComponent%      massStellarSet(                                           &
-                  &                                           0.0d0                                     &
+             call spheroidHost%      massStellarSet(                                           &
+                  &                                           0.0d0                            &
                   &                                         )
-             call hostSpheroidComponent%abundancesStellarSet(                                           &
-                  &                                           zeroAbundances                            &
+             call spheroidHost%abundancesStellarSet(                                           &
+                  &                                           zeroAbundances                   &
                   &                                         )
              ! Also add stellar properties histories.
-             historyDisk    =    hostDiskComponent%stellarPropertiesHistory()
-             historySpheroid=hostSpheroidComponent%stellarPropertiesHistory()
-             call historyDisk          %increment                  (historySpheroid)
-             call historySpheroid      %reset                      (               )
-             call hostDiskComponent    %stellarPropertiesHistorySet(historyDisk    )
-             call hostSpheroidComponent%stellarPropertiesHistorySet(historySpheroid)
+             historyDisk    =    diskHost%stellarPropertiesHistory()
+             historySpheroid=spheroidHost%stellarPropertiesHistory()
+             call historyDisk    %increment                  (historySpheroid)
+             call historySpheroid%reset                      (               )
+             call diskHost       %stellarPropertiesHistorySet(historyDisk    )
+             call spheroidHost   %stellarPropertiesHistorySet(historySpheroid)
           case (movesToSpheroid)
-             call hostSpheroidComponent%      massStellarSet  (                                         &
-                  &                                           hostSpheroidComponent%      massStellar() &
-                  &                                          +hostDiskComponent    %      massStellar() &
+             call spheroidHost%      massStellarSet  (                                         &
+                  &                                           spheroidHost%      massStellar() &
+                  &                                          +diskHost    %      massStellar() &
                   &                                         )
-             call hostSpheroidComponent%abundancesStellarSet(                                           &
-                  &                                           hostSpheroidComponent%abundancesStellar() &
-                  &                                          +hostDiskComponent    %abundancesStellar() &
+             call spheroidHost%abundancesStellarSet(                                           &
+                  &                                           spheroidHost%abundancesStellar() &
+                  &                                          +diskHost    %abundancesStellar() &
                   &                                         )
-             call hostDiskComponent    %      massStellarSet(                                           &
-                  &                                           0.0d0                                     &
+             call diskHost    %      massStellarSet(                                           &
+                  &                                           0.0d0                            &
                   &                                         )
-             call hostDiskComponent    %abundancesStellarSet(                                           &
-                  &                                           zeroAbundances                            &
+             call diskHost    %abundancesStellarSet(                                           &
+                  &                                           zeroAbundances                   &
                   &                                         )
              ! Also add stellar properties histories.
-             historyDisk    =    hostDiskComponent%stellarPropertiesHistory()
-             historySpheroid=hostSpheroidComponent%stellarPropertiesHistory()
-             call historySpheroid      %increment                  (historyDisk    )
-             call historyDisk          %reset                      (               )
-             call hostSpheroidComponent%stellarPropertiesHistorySet(historySpheroid)
-             call hostDiskComponent    %stellarPropertiesHistorySet( historyDisk   )
+             historyDisk    =    diskHost%stellarPropertiesHistory()
+             historySpheroid=spheroidHost%stellarPropertiesHistory()
+             call historySpheroid%increment                  (historyDisk    )
+             call historyDisk    %reset                      (               )
+             call spheroidHost   %stellarPropertiesHistorySet(historySpheroid)
+             call diskHost       %stellarPropertiesHistorySet(historyDisk    )
           case (doesNotMove)
              ! Do nothing.
           case default
@@ -619,82 +619,82 @@ contains
           ! Move the gas component of the very simple spheroid to the host.
           select case (thisMergerGasMovesTo)
           case (movesToDisk    )
-             call hostDiskComponent%massGasSet              (                                           &
-                  &                                          +hostDiskComponent    %      massGas()     &
-                  &                                          +thisSpheroidComponent%      massGas()     &
+             call diskHost%massGasSet              (                                       &
+                  &                                          +diskHost    %      massGas() &
+                  &                                          +spheroid    %      massGas() &
                   &                                         )
-             call hostDiskComponent%abundancesGasSet        (                                           &
-                  &                                          +hostDiskComponent    %abundancesGas()     &
-                  &                                          +thisSpheroidComponent%abundancesGas()     &
+             call diskHost%abundancesGasSet        (                                       &
+                  &                                          +diskHost    %abundancesGas() &
+                  &                                          +spheroid    %abundancesGas() &
                   &                                         )
           case (movesToSpheroid)
-             call hostSpheroidComponent%massGasSet          (                                           &
-                  &                                          +hostSpheroidComponent%      massGas()     &
-                  &                                          +thisSpheroidComponent%      massGas()     &
+             call spheroidHost%massGasSet          (                                       &
+                  &                                          +spheroidHost%      massGas() &
+                  &                                          +spheroid    %      massGas() &
                   &                                         )
-             call hostSpheroidComponent%abundancesGasSet    (                                           &
-                  &                                          +hostSpheroidComponent%abundancesGas()     &
-                  &                                          +thisSpheroidComponent%abundancesGas()     &
+             call spheroidHost%abundancesGasSet    (                                       &
+                  &                                          +spheroidHost%abundancesGas() &
+                  &                                          +spheroid    %abundancesGas() &
                   &                                         )
           case default
-             call Galacticus_Error_Report(                                                              &
-                  &                       'Node_Component_Spheroid_Very_Simple_Satellite_Merging',      &
-                  &                       'unrecognized movesTo descriptor'                             &
+             call Galacticus_Error_Report(                                                         &
+                  &                       'Node_Component_Spheroid_Very_Simple_Satellite_Merging', &
+                  &                       'unrecognized movesTo descriptor'                        &
                   &                      )
           end select
-          call    thisSpheroidComponent%massGasSet          (                                           &
-               &                                                                      0.0d0             &
+          call    spheroid%massGasSet          (                                           &
+               &                                                                     0.0d0 &
                &                                            )
-          call    thisSpheroidComponent%abundancesGasSet    (                                           &
-               &                                                             zeroAbundances             &
+          call    spheroid%abundancesGasSet    (                                           &
+               &                                                            zeroAbundances &
                &                                            )
           
           ! Move the stellar component of the very simple spheroid to the host.
           select case (thisMergerStarsMoveTo)
           case (movesToDisk    )
-             call hostDiskComponent%massStellarSet          (                                           &
-                  &                                          +hostDiskComponent%          massStellar() &
-                  &                                          +thisSpheroidComponent%      massStellar() &
+             call diskHost%massStellarSet          (                                           &
+                  &                                          +diskHost    %      massStellar() &
+                  &                                          +spheroid    %      massStellar() &
                   &                                         )
-             call hostDiskComponent%abundancesStellarSet    (                                           &
-                  &                                          +hostDiskComponent    %abundancesStellar() &
-                  &                                          +thisSpheroidComponent%abundancesStellar() &
+             call diskHost%abundancesStellarSet    (                                           &
+                  &                                          +diskHost    %abundancesStellar() &
+                  &                                          +spheroid    %abundancesStellar() &
                   &                                         )
              ! Also add stellar properties histories.
-             thisHistory=thisSpheroidComponent%stellarPropertiesHistory()
-             hostHistory=hostDiskComponent    %stellarPropertiesHistory()
-             call hostHistory          %increment                  (thisHistory)
-             call thisHistory          %reset                      (           )
-             call hostDiskComponent    %stellarPropertiesHistorySet(hostHistory)
-             call thisSpheroidComponent%stellarPropertiesHistorySet(thisHistory)
+             historySpheroid=spheroid%stellarPropertiesHistory()
+             historyHost    =diskHost%stellarPropertiesHistory()
+             call historyHost    %increment                  (historySpheroid)
+             call historySpheroid%reset                      (               )
+             call diskHost       %stellarPropertiesHistorySet(historyHost    )
+             call spheroid       %stellarPropertiesHistorySet(historySpheroid)
           case (movesToSpheroid)
-             call hostSpheroidComponent%massStellarSet      (                                           &
-                  &                                          +hostSpheroidComponent%      massStellar() &
-                  &                                          +thisSpheroidComponent%      massStellar() &
+             call spheroidHost%massStellarSet      (                                           &
+                  &                                          +spheroidHost%      massStellar() &
+                  &                                          +spheroid    %      massStellar() &
                   &                                         )
-             call hostSpheroidComponent%abundancesStellarSet(                                           &
-                  &                                          +hostSpheroidComponent%abundancesStellar() &
-                  &                                          +thisSpheroidComponent%abundancesStellar() &
+             call spheroidHost%abundancesStellarSet(                                           &
+                  &                                          +spheroidHost%abundancesStellar() &
+                  &                                          +spheroid    %abundancesStellar() &
                   &                                         )
              
              ! Also add stellar properties histories.
-             thisHistory=thisSpheroidComponent%stellarPropertiesHistory()
-             hostHistory=hostSpheroidComponent%stellarPropertiesHistory()
-             call hostHistory          %increment                  (thisHistory)
-             call thisHistory          %reset                      (           )
-             call hostDiskComponent    %stellarPropertiesHistorySet(hostHistory)
-             call thisSpheroidComponent%stellarPropertiesHistorySet(thisHistory)
+             historySpheroid=spheroid%stellarPropertiesHistory()
+             historyHost=spheroidHost%stellarPropertiesHistory()
+             call historyHost    %increment                  (historySpheroid)
+             call historySpheroid%reset                      (               )
+             call diskHost       %stellarPropertiesHistorySet(historyHost    )
+             call spheroid       %stellarPropertiesHistorySet(historySpheroid)
           case default
-             call Galacticus_Error_Report(                                                              &
-                  &                       'Node_Component_Spheroid_Very_Simple_Satellite_Merging',      &
-                  &                       'unrecognized movesTo descriptor'                             &
+             call Galacticus_Error_Report(                                                         &
+                  &                       'Node_Component_Spheroid_Very_Simple_Satellite_Merging', &
+                  &                       'unrecognized movesTo descriptor'                        &
                   &                      )
           end select
-          call    thisSpheroidComponent%massStellarSet      (                                           &
-               &                                                                   0.0d0                &
+          call    spheroid%massStellarSet      (                                         &
+               &                                                                   0.0d0 &
                &                                            )
-          call    thisSpheroidComponent%abundancesStellarSet(                                           &
-               &                                                          zeroAbundances                &
+          call    spheroid%abundancesStellarSet(                                         &
+               &                                                          zeroAbundances &
                &                                            )
        end select
     end if
@@ -731,22 +731,22 @@ contains
   !# <radiusSolverPlausibility>
   !#  <unitName>Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility</unitName>
   !# </radiusSolverPlausibility>
-  subroutine Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility(thisNode,galaxyIsPhysicallyPlausible)
+  subroutine Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility(node,galaxyIsPhysicallyPlausible)
     !% Determines whether the spheroid is physically plausible for radius solving tasks. Require that it have non-zero mass.
     use Dark_Matter_Halo_Scales
     implicit none
-    type   (treeNode             ), intent(inout) :: thisNode
+    type   (treeNode             ), intent(inout) :: node
     logical                       , intent(inout) :: galaxyIsPhysicallyPlausible
-    class  (nodeComponentSpheroid), pointer       :: thisSpheroid
+    class  (nodeComponentSpheroid), pointer       :: spheroid
 
     ! Return immediately if our method is not selected.
     if (.not.defaultSpheroidComponent%verySimpleIsActive()) return
 
      ! Determine the plausibility of the current spheroid.
-     thisSpheroid => thisNode%spheroid()
-     select type (thisSpheroid)
+     spheroid => node%spheroid()
+     select type (spheroid)
      class is (nodeComponentSpheroidVerySimple)
-        galaxyIsPhysicallyPlausible=(thisSpheroid%massStellar()+thisSpheroid%massGas() >= -spheroidMassToleranceAbsolute)
+        galaxyIsPhysicallyPlausible=(spheroid%massStellar()+spheroid%massGas() >= -spheroidMassToleranceAbsolute)
      end select
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility
@@ -754,29 +754,29 @@ contains
   !# <radiusSolverTask>
   !#  <unitName>Node_Component_Spheroid_Very_Simple_Radius_Solver</unitName>
   !# </radiusSolverTask>
-  subroutine Node_Component_Spheroid_Very_Simple_Radius_Solver(thisNode,componentActive,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get&
+  subroutine Node_Component_Spheroid_Very_Simple_Radius_Solver(node,componentActive,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get&
        &,Radius_Set,Velocity_Get,Velocity_Set)
     !% Interface for the size solver algorithm.
     use Dark_Matter_Halo_Spins
     implicit none
-    type            (treeNode                                      ), intent(inout)          :: thisNode
+    type            (treeNode                                      ), intent(inout)          :: node
     logical                                                         , intent(  out)          :: componentActive
     logical                                                         , intent(in   )          :: specificAngularMomentumRequired
     double precision                                                , intent(  out)          :: specificAngularMomentum
     procedure       (Node_Component_Spheroid_Very_Simple_Radius    ), intent(  out), pointer :: Radius_Get                     , Velocity_Get
     procedure       (Node_Component_Spheroid_Very_Simple_Radius_Set), intent(  out), pointer :: Radius_Set                     , Velocity_Set
-    class           (nodeComponentSpheroid                         )               , pointer :: thisSpheroid
-    class           (nodeComponentBasic                            )               , pointer :: thisBasic
+    class           (nodeComponentSpheroid                         )               , pointer :: spheroid
+    class           (nodeComponentBasic                            )               , pointer :: basic
 
-    ! Determine if thisNode has an active spheroid component supported by this module.
+    ! Determine if node has an active spheroid component supported by this module.
     componentActive =  .false.
-    thisSpheroid        => thisNode%spheroid()
-    select type (thisSpheroid)
+    spheroid        => node%spheroid()
+    select type (spheroid)
     class is (nodeComponentSpheroidVerySimple)
        componentActive        =  .true.
        if (specificAngularMomentumRequired) then
-          thisBasic              => thisNode%basic()
-          specificAngularMomentum=  Dark_Matter_Halo_Angular_Momentum(thisNode)/thisBasic%mass()
+          basic              => node%basic()
+          specificAngularMomentum=  Dark_Matter_Halo_Angular_Momentum(node)/basic%mass()
        end if
        ! Associate the pointers with the appropriate property routines.
        Radius_Get   => Node_Component_Spheroid_Very_Simple_Radius
@@ -787,49 +787,49 @@ contains
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Radius_Solver
 
-  double precision function Node_Component_Spheroid_Very_Simple_Radius(thisNode)
+  double precision function Node_Component_Spheroid_Very_Simple_Radius(node)
     !% Return the radius of the spheroid used in structure solvers.
     implicit none
-    type (treeNode             ), intent(inout) :: thisNode
-    class(nodeComponentSpheroid), pointer       :: thisSpheroid
+    type (treeNode             ), intent(inout) :: node
+    class(nodeComponentSpheroid), pointer       :: spheroid
 
-    thisSpheroid => thisNode%spheroid()
-    Node_Component_Spheroid_Very_Simple_Radius=thisSpheroid%radius()
+    spheroid => node%spheroid()
+    Node_Component_Spheroid_Very_Simple_Radius=spheroid%radius()
     return
   end function Node_Component_Spheroid_Very_Simple_Radius
 
-  subroutine Node_Component_Spheroid_Very_Simple_Radius_Set(thisNode,radius)
+  subroutine Node_Component_Spheroid_Very_Simple_Radius_Set(node,radius)
     !% Set the radius of the spheroid used in structure solvers.
     implicit none
-    type            (treeNode             ), intent(inout) :: thisNode
+    type            (treeNode             ), intent(inout) :: node
     double precision                       , intent(in   ) :: radius
-    class           (nodeComponentSpheroid), pointer       :: thisSpheroid
+    class           (nodeComponentSpheroid), pointer       :: spheroid
 
-    thisSpheroid => thisNode%spheroid()
-    call thisSpheroid%radiusSet(radius)
+    spheroid => node%spheroid()
+    call spheroid%radiusSet(radius)
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Radius_Set
 
-  double precision function Node_Component_Spheroid_Very_Simple_Velocity(thisNode)
+  double precision function Node_Component_Spheroid_Very_Simple_Velocity(node)
     !% Return the circular velocity of the spheroid.
     implicit none
-    type (treeNode             ), intent(inout) :: thisNode
-    class(nodeComponentSpheroid), pointer       :: thisSpheroid
+    type (treeNode             ), intent(inout) :: node
+    class(nodeComponentSpheroid), pointer       :: spheroid
 
-    thisSpheroid => thisNode%spheroid()
-    Node_Component_Spheroid_Very_Simple_Velocity=thisSpheroid%velocity()
+    spheroid => node%spheroid()
+    Node_Component_Spheroid_Very_Simple_Velocity=spheroid%velocity()
     return
   end function Node_Component_Spheroid_Very_Simple_Velocity
 
-  subroutine Node_Component_Spheroid_Very_Simple_Velocity_Set(thisNode,velocity)
+  subroutine Node_Component_Spheroid_Very_Simple_Velocity_Set(node,velocity)
     !% Set the circular velocity of the spheroid.
     implicit none
-    type            (treeNode             ), intent(inout) :: thisNode
+    type            (treeNode             ), intent(inout) :: node
     double precision                       , intent(in   ) :: velocity
-    class           (nodeComponentSpheroid), pointer       :: thisSpheroid
+    class           (nodeComponentSpheroid), pointer       :: spheroid
 
-    thisSpheroid => thisNode%spheroid()
-    call thisSpheroid%velocitySet(velocity)
+    spheroid => node%spheroid()
+    call spheroid%velocitySet(velocity)
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Velocity_Set
 

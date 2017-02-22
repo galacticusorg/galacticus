@@ -175,12 +175,14 @@ contains
 
   subroutine benson2005StateStore(self,stateFile,fgslStateFile)
     !% Write the tablulation state to file.
+    use Galacticus_Display
     use Pseudo_Random
     implicit none
     class  (virialOrbitBenson2005), intent(inout) :: self
     integer                       , intent(in   ) :: stateFile
     type   (fgsl_file            ), intent(in   ) :: fgslStateFile
     
+    call Galacticus_Display_Message('Storing state for: virialOrbit -> benson2005',verbosity=verbosityInfo)
     write (stateFile) self%resetSequenceSnapshot
     if (.not.self%resetSequenceSnapshot) call Pseudo_Random_Store(self%clonedPseudoSequenceObject,fgslStateFile)
     return
@@ -188,12 +190,14 @@ contains
 
   subroutine benson2005StateRestore(self,stateFile,fgslStateFile)
     !% Write the tablulation state to file.
+    use Galacticus_Display
     use Pseudo_Random
     implicit none
     class  (virialOrbitBenson2005), intent(inout) :: self
     integer                       , intent(in   ) :: stateFile
     type   (fgsl_file            ), intent(in   ) :: fgslStateFile
 
+    call Galacticus_Display_Message('Retrieving state for: virialOrbit -> benson2005',verbosity=verbosityInfo)
     read (stateFile) self%resetSequence
     if (.not.self%resetSequence) call Pseudo_Random_Retrieve(self%pseudoSequenceObject,fgslStateFile)
    return

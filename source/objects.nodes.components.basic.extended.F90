@@ -96,12 +96,12 @@ contains
     use ISO_Varying_String
     implicit none
     type            (treeNode                  ), intent(inout), pointer :: node
-    type            (treeNode                  )               , pointer :: thisNode              , parentNode    , &
-         &                                                                  childNode
-    class           (nodeComponentBasic        )               , pointer :: basic                 , childBasic    , &
-         &                                                                  thisBasic             , parentBasic
-    double precision                                                     :: massUnresolved        , deltaTime     , &
-         &                                                                  progenitorMassTotal   , radiusVirial
+    type            (treeNode                  )               , pointer :: nodeWork                                           , nodeParent  , &
+         &                                                                  nodeChild
+    class           (nodeComponentBasic        )               , pointer :: basic                                              , basicChild  , &
+         &                                                                  basicWork                                          , basicParent
+    double precision                                                     :: massUnresolved                                     , deltaTime   , &
+         &                                                                  progenitorMassTotal                                , radiusVirial
     type            (varying_string            )                         :: nodeComponentBasicExtendedSphericalCollapseTypeText
 
     ! Determine spherical collapse model to use.
@@ -163,43 +163,43 @@ contains
        end if
        ! Ensure Bertschinger mass is set for all nodes in this tree.
        if (basic%massBertschinger() <= 0.0d0) then
-          thisNode => node
-          do while (associated(thisNode%parent))
-             thisNode => thisNode%parent
+          nodeWork => node
+          do while (associated(nodeWork%parent))
+             nodeWork => nodeWork%parent
           end do
-          do while (associated(thisNode))
-             thisBasic => thisNode%basic()
+          do while (associated(nodeWork))
+             basicWork => nodeWork%basic()
              ! Set the Bertschinger mass.
-             if (thisBasic%massBertschinger() <= 0.0d0) then
-                call thisBasic%massBertschingerSet(               &
+             if (basicWork%massBertschinger() <= 0.0d0) then
+                call basicWork%massBertschingerSet(               &
                      &  Dark_Matter_Profile_Mass_Definition(      &
-                     &   thisNode                               , &
+                     &   nodeWork                               , &
                      &   virialDensityContrast_%densityContrast(  &
-                     &    thisBasic%mass()                      , &
-                     &    thisBasic%time()                        &
+                     &    basicWork%mass()                      , &
+                     &    basicWork%time()                        &
                      &                                         ), &
                      &   radius=radiusVirial                      &
                      &                                     )      &
                      &                                   )
-                call thisBasic%radiusTurnaroundSet(virialDensityContrast_%turnAroundOverVirialRadii(time=thisBasic%time())*radiusVirial)
+                call basicWork%radiusTurnaroundSet(virialDensityContrast_%turnAroundOverVirialRadii(time=basicWork%time())*radiusVirial)
              end if
              ! Move to next node.
-             thisNode => thisNode%walkTree()
+             nodeWork => nodeWork%walkTree()
           end do
        end if
        ! Determine if this node has a descendent.
        if (.not.associated(node%parent)) then
           ! For parent-less nodes (i.e. the root node of the tree), the rate is set equal to that of the
           ! progenitor, if it has one.
-          childNode => node%firstChild
-          if (associated(childNode)) then
+          nodeChild => node%firstChild
+          if (associated(nodeChild)) then
              ! Get the basic component of the child node.
-             childBasic => childNode%basic()
+             basicChild => nodeChild%basic()
              ! Ensure the child has a mass growth rate computed.
-             call Node_Component_Basic_Standard_Extended_Initialize(childNode)
+             call Node_Component_Basic_Standard_Extended_Initialize(nodeChild)
              ! Get the growth rate of the child.
-             call basic% accretionRateBertschingerSet(childBasic%             accretionRate())
-             call basic%radiusTurnaroundGrowthRateSet(childBasic%radiusTurnaroundGrowthRate())
+             call basic% accretionRateBertschingerSet(basicChild%             accretionRate())
+             call basic%radiusTurnaroundGrowthRateSet(basicChild%radiusTurnaroundGrowthRate())
           else
              ! Parentless node has no child - set a zero growth rate.
              call basic%accretionRateBertschingerSet (0.0d0                                  )
@@ -207,19 +207,19 @@ contains
           end if
        else
           ! Get the parent node.
-          parentNode => node%parent
+          nodeParent => node%parent
           ! Get the basic component of the parent node.
-          parentBasic => parentNode%basic()
+          basicParent => nodeParent%basic()
           ! Compute the unresolved mass.
-          massUnresolved=Node_Component_Basic_Standard_Extended_Unresolved_Mass(parentNode)
+          massUnresolved=Node_Component_Basic_Standard_Extended_Unresolved_Mass(nodeParent)
           if (massUnresolved > 0.0d0) then
              ! Positive mass growth - assume this occurs entirely in the main progenitor.
              if (node%isPrimaryProgenitor()) then
                 ! Main progenitor - compute required growth rate.
-                deltaTime=parentBasic%time()-basic%time()
+                deltaTime=basicParent%time()-basic%time()
                 if (deltaTime > 0.0d0) then
                    call basic% accretionRateBertschingerSet(massUnresolved/deltaTime)
-                   call basic%radiusTurnaroundGrowthRateSet((parentBasic%radiusTurnaround()-basic%radiusTurnaround())/deltaTime)
+                   call basic%radiusTurnaroundGrowthRateSet((basicParent%radiusTurnaround()-basic%radiusTurnaround())/deltaTime)
                 end if
              else
                 ! Non-main progenitor - assume zero growth rate.
@@ -229,13 +229,13 @@ contains
           else
              ! Negative mass growth - assume all progenitors lose mass at proportionally equal rates.
              ! Compute the total mass in progenitors.
-             progenitorMassTotal=parentBasic%massBertschinger()-massUnresolved
+             progenitorMassTotal=basicParent%massBertschinger()-massUnresolved
              ! Compute the time available for accretion.
-             deltaTime=parentBasic%time()-basic%time()
+             deltaTime=basicParent%time()-basic%time()
              ! Compute mass growth rate.
              if (deltaTime > 0.0d0) then
                 call basic% accretionRateBertschingerSet((massUnresolved/deltaTime)*(basic%massBertschinger()/progenitorMassTotal))
-                call basic%radiusTurnaroundGrowthRateSet((parentBasic%radiusTurnaround()-basic%radiusTurnaround())/deltaTime)
+                call basic%radiusTurnaroundGrowthRateSet((basicParent%radiusTurnaround()-basic%radiusTurnaround())/deltaTime)
              end if
           end if
        end if
@@ -248,7 +248,7 @@ contains
     implicit none
     type (treeNode          ), intent(inout), pointer :: node
     type (treeNode          )               , pointer :: child
-    class(nodeComponentBasic)               , pointer :: childBasic, basic
+    class(nodeComponentBasic)               , pointer :: basicChild, basic
 
     ! Get the basic component.
     basic => node%basic()
@@ -257,8 +257,8 @@ contains
     ! Remove the mass of all child nodes.
     child => node%firstChild
     do while (associated(child))
-       childBasic                                             => child%basic()
-       Node_Component_Basic_Standard_Extended_Unresolved_Mass =  Node_Component_Basic_Standard_Extended_Unresolved_Mass-childBasic%massBertschinger()
+       basicChild                                             => child%basic()
+       Node_Component_Basic_Standard_Extended_Unresolved_Mass =  Node_Component_Basic_Standard_Extended_Unresolved_Mass-basicChild%massBertschinger()
        child                                                  => child%sibling
     end do
     return
@@ -345,8 +345,8 @@ contains
      use Galacticus_Error
      implicit none
      type (treeNode          ), intent(inout), pointer :: node
-     type (treeNode          )               , pointer :: parentNode
-     class(nodeComponentBasic)               , pointer :: parentBasic, basic
+     type (treeNode          )               , pointer :: nodeParent
+     class(nodeComponentBasic)               , pointer :: basicParent, basic
 
      ! Get the basic component.
      basic => node%basic()
@@ -354,22 +354,22 @@ contains
      select type (basic)
      class is (nodeComponentBasicStandardExtended)
         ! Get the parent node and its basic component.
-        parentNode  => node      %parent
-        parentBasic => parentNode%basic ()
+        nodeParent  => node      %parent
+        basicParent => nodeParent%basic ()
         ! Ensure the two halos exist at the same time.
-        if (basic%time() /= parentBasic%time())                                               &
+        if (basic%time() /= basicParent%time())                                               &
              & call Galacticus_Error_Report(                                                  &
              &                              'Node_Component_Basic_Standard_Extended_Promote', &
              &                              'node has not been evolved to its parent'         &
              &                             )
         ! Adjust the mass to that of the parent node.
-        call basic%massBertschingerSet          (parentBasic%massBertschinger          ())
+        call basic%massBertschingerSet          (basicParent%massBertschinger          ())
         ! Adjust the accretion rate to that of the parent node.
-        call basic%accretionRateBertschingerSet (parentBasic%accretionRateBertschinger ())
+        call basic%accretionRateBertschingerSet (basicParent%accretionRateBertschinger ())
         ! Adjust the turnaround radius to that of the parent node.
-        call basic%radiusTurnaroundSet          (parentBasic%radiusTurnaround          ())
+        call basic%radiusTurnaroundSet          (basicParent%radiusTurnaround          ())
         ! Adjust the accretion rate to that of the parent node.
-        call basic%radiusTurnaroundGrowthRateSet(parentBasic%radiusTurnaroundGrowthRate())
+        call basic%radiusTurnaroundGrowthRateSet(basicParent%radiusTurnaroundGrowthRate())
      end select
      return
    end subroutine Node_Component_Basic_Standard_Extended_Promote

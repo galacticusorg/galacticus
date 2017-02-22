@@ -204,6 +204,7 @@ contains
 
   subroutine sphericalCollapseMatterLambdaStateStore(self,stateFile,fgslStateFile)
     !% Reset the tabulation if state is to be retrieved. This will force tables to be rebuilt.
+    use Galacticus_Display
     use FGSL
     implicit none
     class  (criticalOverdensitySphericalCollapseMatterLambda), intent(inout) :: self
@@ -211,6 +212,7 @@ contains
     type   (fgsl_file                                       ), intent(in   ) :: fgslStateFile
     !GCC$ attributes unused :: fgslStateFile
 
+    call Galacticus_Display_Message('Storing state for: criticalOverdensitySphericalCollapse -> matterLambda',verbosity=verbosityInfo)
     write (stateFile) self%tableInitialized
     if (self%tableInitialized) then
        write (stateFile) self%tableTimeMinimum,self%tableTimeMaximum
@@ -221,6 +223,7 @@ contains
   
   subroutine sphericalCollapseMatterLambdaStateRestore(self,stateFile,fgslStateFile)
     !% Reset the tabulation if state is to be retrieved. This will force tables to be rebuilt.
+    use Galacticus_Display
     use FGSL
     implicit none
     class  (criticalOverdensitySphericalCollapseMatterLambda), intent(inout) :: self
@@ -228,6 +231,7 @@ contains
     type   (fgsl_file                                       ), intent(in   ) :: fgslStateFile
     !GCC$ attributes unused :: fgslStateFile
     
+    call Galacticus_Display_Message('Retrieving state for: criticalOverdensitySphericalCollapse -> matterLambda',verbosity=verbosityInfo)
     read (stateFile) self%tableInitialized
     if (self%tableInitialized) then
        read (stateFile) self%tableTimeMinimum,self%tableTimeMaximum

@@ -116,10 +116,12 @@ contains
   subroutine Black_Hole_Binary_Recoil_Velocity_Standard_State_Store(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
     use Pseudo_Random
+    use Galacticus_Display
     implicit none
     integer           , intent(in   ) :: stateFile
     type   (fgsl_file), intent(in   ) :: fgslStateFile
 
+    call Galacticus_Display_Message('Storing state for: blackHoleBinaryRecoilVelocityMethod -> Campanelli2007',verbosity=verbosityInfo)
     write (stateFile) pseudoSequenceResetSnapshot
     if (.not.pseudoSequenceResetSnapshot) call Pseudo_Random_Store(clonedPseudoSequenceObject,fgslStateFile)
     return
@@ -131,10 +133,12 @@ contains
   subroutine Black_Hole_Binary_Recoil_Velocity_Standard_State_Retrieve(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
     use Pseudo_Random
+    use Galacticus_Display
     implicit none
     integer           , intent(in   ) :: stateFile
     type   (fgsl_file), intent(in   ) :: fgslStateFile
 
+    call Galacticus_Display_Message('Retrieving state for: blackHoleBinaryRecoilVelocityMethod -> Campanelli2007',verbosity=verbosityInfo)
     read (stateFile) pseudoSequenceReset
     if (.not.pseudoSequenceReset) call Pseudo_Random_Retrieve(pseudoSequenceObject,fgslStateFile)
     return

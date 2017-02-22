@@ -42,7 +42,7 @@ contains
     return
   end subroutine boylanKolchin2008Destructor
 
-  double precision function boylanKolchin2008TimeUntilMerging(self,thisNode,thisOrbit)
+  double precision function boylanKolchin2008TimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the \cite{boylan-kolchin_dynamical_2008} method.
     use Galacticus_Nodes
     use Galacticus_Error
@@ -53,10 +53,10 @@ contains
     use Satellite_Orbits
     implicit none
     class           (satelliteMergingTimescalesBoylanKolchin2008), intent(inout) :: self
-    type            (treeNode                                   ), intent(inout) :: thisNode
-    type            (keplerOrbit                                ), intent(inout) :: thisOrbit
-    type            (treeNode                                   ), pointer       :: hostNode
-    class           (nodeComponentBasic                         ), pointer       :: hostBasic                            , thisBasic
+    type            (treeNode                                   ), intent(inout) :: node
+    type            (keplerOrbit                                ), intent(inout) :: orbit
+    type            (treeNode                                   ), pointer       :: nodeHost
+    class           (nodeComponentBasic                         ), pointer       :: basicHost                            , basic
     class           (darkMatterHaloScaleClass                   ), pointer       :: darkMatterHaloScale_
     class           (darkMatterProfileClass                     ), pointer       :: darkMatterProfile_
     logical                                                      , parameter     :: acceptUnboundOrbits          =.false.
@@ -74,12 +74,12 @@ contains
     darkMatterProfile_   => darkMatterProfile  ()
     darkMatterHaloScale_ => darkMatterHaloScale()
     ! Find the host node.
-    hostNode => thisNode%parent
+    nodeHost => node%parent
     ! Get velocity scale.
-    velocityScale=darkMatterHaloScale_%virialVelocity(hostNode)
-    radialScale  =darkMatterHaloScale_%virialRadius  (hostNode)
+    velocityScale=darkMatterHaloScale_%virialVelocity(nodeHost)
+    radialScale  =darkMatterHaloScale_%virialRadius  (nodeHost)
     ! Get the equivalent circular orbit.
-    equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(hostNode,thisOrbit,errorCode)
+    equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,errorCode)
     ! Check error codes.
     select case (errorCode)
     case (errorCodeOrbitUnbound     )
@@ -93,31 +93,31 @@ contains
        return
     case (errorCodeSuccess          )
        ! Compute orbital circularity.
-       orbitalCircularity                                                                    &
-            & =thisOrbit%angularMomentum()                                                   &
-            & /equivalentCircularOrbitRadius                                                 &
-            & /darkMatterProfile_%circularVelocity(hostNode,equivalentCircularOrbitRadius)
+       orbitalCircularity                                                                  &
+            & =orbit%angularMomentum()                                                     &
+            & /equivalentCircularOrbitRadius                                               &
+            & /darkMatterProfile_%circularVelocity(nodeHost,equivalentCircularOrbitRadius)
     case default
        orbitalCircularity=0.0d0
        call Galacticus_Error_Report('boylanKolchin2008TimeUntilMerging','unrecognized error code')
     end select
     ! Compute mass ratio (mass in host [not including satellite] divided by mass in satellite).
-    thisBasic => thisNode%basic()
-    hostBasic => hostNode%basic()
-    massRatio=hostBasic%mass()/thisBasic%mass()-1.0d0
+    basic => node%basic()
+    basicHost => nodeHost%basic()
+    massRatio=basicHost%mass()/basic%mass()-1.0d0
     if (massRatio <= 0.0d0) then
        ! Assume zero merging time as the satellite is as massive as the host.
        boylanKolchin2008TimeUntilMerging=0.0d0
     else
        ! Compute dynamical friction timescale.
        expArgument=min(expArgumentMaximum,c*orbitalCircularity)
-       boylanKolchin2008TimeUntilMerging &
-            & =Dynamical_Friction_Timescale_Multiplier()      &
-            & *darkMatterHaloScale_%dynamicalTimescale(hostNode) &
-            & *A                                              &
-            & *          massRatio**b                         &
-            & /log(1.0d0+massRatio   )                        &
-            & *exp(expArgument)                               &
+       boylanKolchin2008TimeUntilMerging                         &
+            & =Dynamical_Friction_Timescale_Multiplier()         &
+            & *darkMatterHaloScale_%dynamicalTimescale(nodeHost) &
+            & *A                                                 &
+            & *          massRatio**b                            &
+            & /log(1.0d0+massRatio   )                           &
+            & *exp(expArgument)                                  &
             & *(equivalentCircularOrbitRadius/radialScale)**d
     end if
     return

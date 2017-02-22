@@ -74,9 +74,9 @@ contains
     class           (cosmologyFunctionsClass            ), pointer                                                   :: cosmologyFunctions_
     class           (surveyGeometryClass                ), pointer                                                   :: surveyGeometry_
     class           (darkMatterProfileConcentrationClass), pointer                                                   :: darkMatterProfileConcentration_
-    type            (treeNode                           ), pointer                                                   :: thisNode
-    class           (nodeComponentBasic                 ), pointer                                                   :: thisBasic
-    class           (nodeComponentDarkMatterProfile     ), pointer                                                   :: thisDarkMatterProfile
+    type            (treeNode                           ), pointer                                                   :: node
+    class           (nodeComponentBasic                 ), pointer                                                   :: basic
+    class           (nodeComponentDarkMatterProfile     ), pointer                                                   :: darkMatterProfileHalo
     class           (darkMatterHaloScaleClass           ), pointer                                                   :: darkMatterHaloScale_
     class           (linearGrowthClass                  ), pointer                                                   :: linearGrowth_
     class           (haloMassFunctionClass              ), pointer                                                   :: haloMassFunction_
@@ -111,10 +111,10 @@ contains
     haloMassFunction_               => haloMassFunction              ()
     powerSpectrum_                  => powerSpectrum                 ()
     ! Create worker node.
-    thisNode              => treeNode                  (                 )
-    thisBasic             => thisNode%basic            (autoCreate=.true.)
-    thisDarkMatterProfile => thisNode%darkMatterProfile(autoCreate=.true.)
-    select type (thisDarkMatterProfile)
+    node                  => treeNode              (                 )
+    basic                 => node%basic            (autoCreate=.true.)
+    darkMatterProfileHalo => node%darkMatterProfile(autoCreate=.true.)
+    select type (darkMatterProfileHalo)
     type is (nodeComponentDarkMatterProfileScale)
        ! This is acceptable.
     class default
@@ -315,8 +315,8 @@ contains
 
       time           =timePrime
       expansionFactor=cosmologyFunctions_%expansionFactor(time)
-      call thisBasic%timeSet                             (time)
-      call thisBasic%timeLastIsolatedSet                 (time)
+      call basic%timeSet                             (time)
+      call basic%timeLastIsolatedSet                 (time)
       integrationResetTime             =.true.
       powerSpectrumOneHaloTimeIntegrand=                                                  &
            & +Integrate(                                                                  &
@@ -353,17 +353,17 @@ contains
            &                                                     numberSatellites       , wavenumberMaximum
 
       darkMatterProfile_ => darkMatterProfile()
-      call Galacticus_Calculations_Reset(thisNode)
-      call thisBasic            % massSet(massHalo                           )
-      call Galacticus_Calculations_Reset(thisNode)
-      call thisDarkMatterProfile%scaleSet(Dark_Matter_Profile_Scale(thisNode))
+      call Galacticus_Calculations_Reset(node)
+      call basic            % massSet(massHalo                           )
+      call Galacticus_Calculations_Reset(node)
+      call darkMatterProfileHalo%scaleSet(Dark_Matter_Profile_Scale(node))
       ! Return zero if we're more than some maximum factor above the virial wavenumber for this halo. This avoids attempting to
       ! integrate rapidly oscillating Fourier profiles.
-      wavenumberMaximum=virialWavenumberMultiplierMaximum/(darkMatterHaloScale_%virialRadius(thisNode)/expansionFactor)
+      wavenumberMaximum=virialWavenumberMultiplierMaximum/(darkMatterHaloScale_%virialRadius(node)/expansionFactor)
       if (waveNumber(iWavenumber) > wavenumberMaximum) then
          powerSpectrumOneHaloIntegrand=0.0d0
       else
-         darkMatterProfileKSpace=darkMatterProfile_%kSpace(thisNode,waveNumber(iWavenumber)/expansionFactor)
+         darkMatterProfileKSpace=darkMatterProfile_%kSpace(node,waveNumber(iWavenumber)/expansionFactor)
          numberCentrals         =max(                                                                                                                       &
               &                      +0.0d0                                                                                                               , &
               &                      +conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMinimum,haloModelGalaxyTypeCentral  )  &
@@ -403,8 +403,8 @@ contains
 
       time           =timePrime
       expansionFactor=cosmologyFunctions_%expansionFactor(time)
-      call thisBasic%timeSet                             (time)
-      call thisBasic%timeLastIsolatedSet                 (time)
+      call basic%timeSet                             (time)
+      call basic%timeLastIsolatedSet                 (time)
       integrationResetTime             =.true.
       powerSpectrumTwoHaloTimeIntegrand=                                                  &
            & +Integrate(                                                                  &
@@ -442,20 +442,20 @@ contains
 
       darkMatterProfile_ => darkMatterProfile()
       haloMassFunction_  => haloMassFunction ()
-      call Galacticus_Calculations_Reset(thisNode)
-      call thisBasic            % massSet(massHalo                           )
-      call Galacticus_Calculations_Reset(thisNode)
-      call thisDarkMatterProfile%scaleSet(Dark_Matter_Profile_Scale(thisNode))
+      call Galacticus_Calculations_Reset(node)
+      call basic            % massSet(massHalo                           )
+      call Galacticus_Calculations_Reset(node)
+      call darkMatterProfileHalo%scaleSet(Dark_Matter_Profile_Scale(node))
       ! Return zero if we're more than some maximum factor above the virial wavenumber for this halo. This avoids attempting to
       ! integrate rapidly oscillating Fourier profiles.
-      wavenumberMaximum=virialWavenumberMultiplierMaximum/(darkMatterHaloScale_%virialRadius(thisNode)/expansionFactor)
+      wavenumberMaximum=virialWavenumberMultiplierMaximum/(darkMatterHaloScale_%virialRadius(node)/expansionFactor)
       if (waveNumber(iWavenumber) > wavenumberMaximum) then
          powerSpectrumTwoHaloIntegrand=0.0d0
       else
          powerSpectrumTwoHaloIntegrand=                                                                        &
               & +haloMassFunction_%differential(time    ,massHalo                               )              &
-              & *Dark_Matter_Halo_Bias         (thisNode                                        )              &
-              & *darkMatterProfile_%kSpace     (thisNode,waveNumber(iWavenumber)/expansionFactor)              &
+              & *Dark_Matter_Halo_Bias         (node                                        )              &
+              & *darkMatterProfile_%kSpace     (node,waveNumber(iWavenumber)/expansionFactor)              &
               & *max(                                                                                          &
               &      +0.0d0                                                                                  , &
               &      +conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMinimum)  &

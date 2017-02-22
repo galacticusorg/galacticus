@@ -90,11 +90,11 @@ contains
      !% Initializes the standard satellite orbit component module.
      use Input_Parameters
      implicit none
-     type(nodeComponentSatelliteStandard) :: satelliteComponent
+     type(nodeComponentSatelliteStandard) :: satellite
 
      ! Test whether module is already initialize.
      !$omp critical (Node_Component_Satellite_Standard_Initialize)
-     if (satelliteComponent%standardIsActive().and..not.moduleInitialized) then
+     if (satellite%standardIsActive().and..not.moduleInitialized) then
         ! Determine if satellite orbits are to be stored.
         !@ <inputParameter>
         !@   <name>satelliteOrbitStoreOrbitalParameters</name>
@@ -121,8 +121,8 @@ contains
         !@ </inputParameter>
         call Get_Input_Parameter('satelliteOrbitResetOnHaloFormation',satelliteOrbitResetOnHaloFormation,defaultValue=.false.)
         ! Specify the function to use for setting virial orbits.
-        call satelliteComponent%virialOrbitSetFunction(Node_Component_Satellite_Standard_Virial_Orbit_Set)
-        call satelliteComponent%virialOrbitFunction   (Node_Component_Satellite_Standard_Virial_Orbit    )
+        call satellite%virialOrbitSetFunction(Node_Component_Satellite_Standard_Virial_Orbit_Set)
+        call satellite%virialOrbitFunction   (Node_Component_Satellite_Standard_Virial_Orbit    )
         ! Record that the module is now initialized.
         moduleInitialized=.true.
      end if
@@ -134,49 +134,49 @@ contains
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Satellite_Standard_Tree_Initialize</unitName>
   !# </mergerTreeInitializeTask>
-  subroutine Node_Component_Satellite_Standard_Tree_Initialize(thisNode)
+  subroutine Node_Component_Satellite_Standard_Tree_Initialize(node)
     !% Initialize the standard satellite component.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout), pointer :: node
 
     if     (                                                                               &
-         &                     thisNode                            %isSatellite        ()  &
+         &                     node                            %isSatellite        ()  &
          &  .or.                                                                           &
          &   (                                                                             &
-         &     .not.           thisNode                            %isPrimaryProgenitor()  &
+         &     .not.           node                            %isPrimaryProgenitor()  &
          &    .and.                                                                        &
-         &          associated(thisNode                            %parent               ) &
+         &          associated(node                            %parent               ) &
          &    .and.                                                                        &
          &                     satelliteOrbitStoreOrbitalParameters                        &
          &   )                                                                             &
-         & ) call Node_Component_Satellite_Standard_Create(thisNode)
+         & ) call Node_Component_Satellite_Standard_Create(node)
     return
   end subroutine Node_Component_Satellite_Standard_Tree_Initialize
 
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Satellite_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Satellite_Standard_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure)
+  subroutine Node_Component_Satellite_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure)
     !% Compute the time until satellite merging rate of change.
     use Dark_Matter_Halos_Mass_Loss_Rates
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode
+    type            (treeNode              ), intent(inout), pointer :: node
     logical                                 , intent(in   )          :: odeConverged
     logical                                 , intent(inout)          :: interrupt
     procedure       (                      ), intent(inout), pointer :: interruptProcedure
-    class           (nodeComponentSatellite)               , pointer :: satelliteComponent
+    class           (nodeComponentSatellite)               , pointer :: satellite
     double precision                                                 :: massLossRate
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
     ! Get the satellite component.
-    satelliteComponent => thisNode%satellite()
+    satellite => node%satellite()
     ! Ensure that it is of the standard class.
-    select type (satelliteComponent)
+    select type (satellite)
     class is (nodeComponentSatelliteStandard)
-       if (thisNode%isSatellite()) then
-          massLossRate=Dark_Matter_Halos_Mass_Loss_Rate(thisNode)
-          call satelliteComponent%mergeTimeRate(-1.0d0      )
-          call satelliteComponent%boundMassRate(massLossRate)
+       if (node%isSatellite()) then
+          massLossRate=Dark_Matter_Halos_Mass_Loss_Rate(node)
+          call satellite%mergeTimeRate(-1.0d0      )
+          call satellite%boundMassRate(massLossRate)
        end if
     end select
     return
@@ -206,12 +206,12 @@ contains
     return
   end function Node_Component_Satellite_Standard_Virial_Orbit
 
-  subroutine Node_Component_Satellite_Standard_Virial_Orbit_Set(self,thisOrbit)
+  subroutine Node_Component_Satellite_Standard_Virial_Orbit_Set(self,orbit)
     !% Set the orbit of the satellite at the virial radius.
     use Satellite_Merging_Timescales
     implicit none
     class           (nodeComponentSatellite         ), intent(inout) :: self
-    type            (keplerOrbit                    ), intent(in   ) :: thisOrbit
+    type            (keplerOrbit                    ), intent(in   ) :: orbit
     type            (treeNode                       ), pointer       :: selfNode
     class           (satelliteMergingTimescalesClass), pointer       :: satelliteMergingTimescalesDefault
     double precision                                                 :: mergeTime
@@ -220,16 +220,16 @@ contains
     select type (self)
     class is (nodeComponentSatelliteStandard)
        ! Ensure the orbit is defined.
-       call thisOrbit%assertIsDefined()
+       call orbit%assertIsDefined()
        ! Get the node.
        selfNode => self%host()
        ! Update the stored time until merging to reflect the new orbit.
-       virialOrbit=thisOrbit
+       virialOrbit=orbit
        satelliteMergingTimescalesDefault => satelliteMergingTimescales()
        mergeTime=satelliteMergingTimescalesDefault%timeUntilMerging(selfNode,virialOrbit)
        if (mergeTime >= 0.0d0) call self%mergeTimeSet(mergeTime)
        ! Store the orbit.
-       call self%virialOrbitSetValue(thisOrbit)
+       call self%virialOrbitSetValue(orbit)
     end select
     return
   end subroutine Node_Component_Satellite_Standard_Virial_Orbit_Set
@@ -237,25 +237,25 @@ contains
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Satellite_Standard_Scale_Set</unitName>
   !# </scaleSetTask>
-  subroutine Node_Component_Satellite_Standard_Scale_Set(thisNode)
-    !% Set scales for properties of {\normalfont \ttfamily thisNode}.
+  subroutine Node_Component_Satellite_Standard_Scale_Set(node)
+    !% Set scales for properties of {\normalfont \ttfamily node}.
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode
-    class           (nodeComponentSatellite)               , pointer :: satelliteComponent
-    class           (nodeComponentBasic    )               , pointer :: thisBasicComponent
+    type            (treeNode              ), intent(inout), pointer :: node
+    class           (nodeComponentSatellite)               , pointer :: satellite
+    class           (nodeComponentBasic    )               , pointer :: basic
     double precision                        , parameter              :: massScaleFractional=1.0d-6, timeScale=1.0d-3
 
     ! Get the satellite component.
-    satelliteComponent => thisNode%satellite()
+    satellite => node%satellite()
     ! Ensure that it is of the standard class.
-    select type (satelliteComponent)
+    select type (satellite)
     class is (nodeComponentSatelliteStandard)
        ! Get the basic component.
-       thisBasicComponent => thisNode%basic()
+       basic => node%basic()
        ! Set scale for time.
-       call satelliteComponent%mergeTimeScale(timeScale                                    )
+       call satellite%mergeTimeScale(timeScale                       )
        ! Set scale for bound mass.
-       call satelliteComponent%boundMassScale(massScaleFractional*thisBasicComponent%mass())
+       call satellite%boundMassScale(massScaleFractional*basic%mass())
     end select
     return
   end subroutine Node_Component_Satellite_Standard_Scale_Set
@@ -263,10 +263,10 @@ contains
   !# <haloFormationTask>
   !#  <unitName>Node_Component_Satellite_Standard_Halo_Formation_Task</unitName>
   !# </haloFormationTask>
-  subroutine Node_Component_Satellite_Standard_Halo_Formation_Task(thisNode)
+  subroutine Node_Component_Satellite_Standard_Halo_Formation_Task(node)
     !% Reset the orbits of satellite galaxies on halo formation events.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout), pointer :: node
     type(treeNode)               , pointer :: satelliteNode
 
     ! Return immediately if this method is not active.
@@ -276,7 +276,7 @@ contains
     if (.not.satelliteOrbitResetOnHaloFormation) return
 
     ! Loop over all satellites.
-    satelliteNode => thisNode%firstSatellite
+    satelliteNode => node%firstSatellite
     do while (associated(satelliteNode))
        ! Create a new orbit for this satellite.
        call Node_Component_Satellite_Standard_Create(satelliteNode)
@@ -292,58 +292,58 @@ contains
   !# <satelliteHostChangeTask>
   !#  <unitName>Node_Component_Satellite_Standard_Create</unitName>
   !# </satelliteHostChangeTask>
-  subroutine Node_Component_Satellite_Standard_Create(thisNode)
+  subroutine Node_Component_Satellite_Standard_Create(node)
     !% Create a satellite orbit component and assign a time until merging and a bound mass equal initially to the total halo mass.
     use Virial_Orbits
     use Satellite_Merging_Timescales
     implicit none
-    type            (treeNode                       ), intent(inout), pointer :: thisNode
+    type            (treeNode                       ), intent(inout), pointer :: node
     type            (treeNode                       )               , pointer :: hostNode
-    class           (nodeComponentSatellite         )               , pointer :: satelliteComponent
-    class           (nodeComponentBasic             )               , pointer :: basicComponent
+    class           (nodeComponentSatellite         )               , pointer :: satellite
+    class           (nodeComponentBasic             )               , pointer :: basic
     class           (satelliteMergingTimescalesClass)               , pointer :: satelliteMergingTimescalesDefault
     class           (virialOrbitClass               )               , pointer :: virialOrbit_
     logical                                                                   :: isNewSatellite
     double precision                                                          :: mergeTime
-    type            (keplerOrbit                    )                         :: thisOrbit
+    type            (keplerOrbit                    )                         :: orbit
 
     ! Return immediately if this method is not active.
     if (.not.defaultSatelliteComponent%standardIsActive()) return
 
     ! Get the satellite component.
-    satelliteComponent => thisNode%satellite()
+    satellite => node%satellite()
     ! Determine if the satellite component exists already.
     isNewSatellite=.false.
-    select type (satelliteComponent)
+    select type (satellite)
     type is (nodeComponentSatellite)
        isNewSatellite=.true.
     end select
 
     ! If this is a new satellite, create the component and set the bound mass.
     if (isNewSatellite) then
-       satelliteComponent => thisNode%satellite(autoCreate=.true.)
-       select type (satelliteComponent)
+       satellite => node%satellite(autoCreate=.true.)
+       select type (satellite)
        class is (nodeComponentSatelliteStandard)
           ! Set the bound mass of the satellite.
-          basicComponent => thisNode%basic()
-          call satelliteComponent%boundMassSet(basicComponent%mass())
+          basic => node%basic()
+          call satellite%boundMassSet(basic%mass())
        end select
     end if
 
-    select type (satelliteComponent)
+    select type (satellite)
     class is (nodeComponentSatelliteStandard)
        ! Ensure the module has been initialized.
        call Node_Component_Satellite_Standard_Initialize()
        ! Get an orbit for this satellite.
-       hostNode     => thisNode%parent
+       hostNode     => node%parent
        virialOrbit_ => virialOrbit()
-       thisOrbit=virialOrbit_%orbit(thisNode,hostNode,acceptUnboundOrbits)
+       orbit=virialOrbit_%orbit(node,hostNode,acceptUnboundOrbits)
        ! Store the orbit if necessary.
-       if (satelliteOrbitStoreOrbitalParameters) call satelliteComponent%virialOrbitSet(thisOrbit)
+       if (satelliteOrbitStoreOrbitalParameters) call satellite%virialOrbitSet(orbit)
        ! Compute and store a time until merging.
        satelliteMergingTimescalesDefault => satelliteMergingTimescales()
-       mergeTime=satelliteMergingTimescalesDefault%timeUntilMerging(thisNode,thisOrbit)
-       if (mergeTime >= 0.0d0) call satelliteComponent%mergeTimeSet(mergeTime)
+       mergeTime=satelliteMergingTimescalesDefault%timeUntilMerging(node,orbit)
+       if (mergeTime >= 0.0d0) call satellite%mergeTimeSet(mergeTime)
     end select
     return
   end subroutine Node_Component_Satellite_Standard_Create

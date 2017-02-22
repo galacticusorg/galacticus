@@ -308,11 +308,13 @@ contains
   !# </galacticusStateStoreTask>
   subroutine Spherical_Collapse_Matter_Lambda_State_Store(stateFile,fgslStateFile)
     !% Write the tablulation state to file.
+    use Galacticus_Display
     implicit none
     integer           , intent(in   ) :: stateFile
     type   (fgsl_file), intent(in   ) :: fgslStateFile
     !GCC$ attributes unused :: fgslStateFile
     
+    call Galacticus_Display_Message('Storing state for: sphericalCollapse -> matterLambda',verbosity=verbosityInfo)
     write (stateFile) deltaTableTimeMinimum,deltaTableTimeMaximum
     return
   end subroutine Spherical_Collapse_Matter_Lambda_State_Store
@@ -322,11 +324,13 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Spherical_Collapse_Matter_Lambda_State_Retrieve(stateFile,fgslStateFile)
     !% Retrieve the tabulation state from the file.
+    use Galacticus_Display
     implicit none
     integer           , intent(in   ) :: stateFile
     type   (fgsl_file), intent(in   ) :: fgslStateFile
     !GCC$ attributes unused :: fgslStateFile
 
+    call Galacticus_Display_Message('Retrieving state for: sphericalCollapse -> matterLambda',verbosity=verbosityInfo)
     read (stateFile) deltaTableTimeMinimum,deltaTableTimeMaximum
     return
   end subroutine Spherical_Collapse_Matter_Lambda_State_Retrieve

@@ -40,7 +40,7 @@ contains
   !# <coolingRateModifierMethod>
   !#  <unitName>Cooling_Rate_Modifier_Cut_Off</unitName>
   !# </coolingRateModifierMethod>
-  subroutine Cooling_Rate_Modifier_Cut_Off(thisNode,coolingRate)
+  subroutine Cooling_Rate_Modifier_Cut_Off(node,coolingRate)
     !% Modify cooling rates by truncating them to zero below a given redshift and virial velocity.
     use Input_Parameters
     use Cosmology_Functions
@@ -49,10 +49,10 @@ contains
     use ISO_Varying_String
     use Galacticus_Error
     implicit none
-    type            (treeNode                ), intent(inout) :: thisNode
+    type            (treeNode                ), intent(inout) :: node
     double precision                          , intent(inout) :: coolingRate
-    class           (nodeComponentBasic      ), pointer       :: thisBasicComponent
-    class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctionsDefault
+    class           (nodeComponentBasic      ), pointer       :: basic
+    class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
     double precision                                          :: virialVelocity
     type            (varying_string          )                :: coolingCutOffWhenText
@@ -93,8 +93,8 @@ contains
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter("coolingCutOffRedshift",coolingCutOffRedshift,defaultValue=0.0d0)
-          cosmologyFunctionsDefault => cosmologyFunctions()
-          coolingCutOffTime=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(coolingCutOffRedshift))
+          cosmologyFunctions_ => cosmologyFunctions()
+          coolingCutOffTime=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(coolingCutOffRedshift))
           !@ <inputParameter>
           !@   <name>coolingCutOffWhen</name>
           !@   <defaultValue>after</defaultValue>
@@ -127,19 +127,19 @@ contains
     darkMatterHaloScale_ => darkMatterHaloScale()
     select case (coolingCutOffFormationNode)
     case (.false.)
-       virialVelocity=darkMatterHaloScale_%virialVelocity(thisNode              )
+       virialVelocity=darkMatterHaloScale_%virialVelocity(node              )
     case (.true. )
-       virialVelocity=darkMatterHaloScale_%virialVelocity(thisNode%formationNode)
+       virialVelocity=darkMatterHaloScale_%virialVelocity(node%formationNode)
     end select
-    thisBasicComponent => thisNode%basic()
-    if     (                                                                                                     &
-         &  (                                                                                                    &
-         &   (thisBasicComponent%time() >= coolingCutOffTime .and. coolingCutOffWhen == coolingCutOffWhenAfter ) &
-         &    .or.                                                                                               &
-         &   (thisBasicComponent%time() <= coolingCutOffTime .and. coolingCutOffWhen == coolingCutOffWhenBefore) &
-         &  )                                                                                                    &
-         &   .and.                                                                                               &
-         &  virialVelocity            <= coolingCutOffVelocity                                                   &
+    basic => node%basic()
+    if     (                                                                                        &
+         &  (                                                                                       &
+         &   (basic%time() >= coolingCutOffTime .and. coolingCutOffWhen == coolingCutOffWhenAfter ) &
+         &    .or.                                                                                  &
+         &   (basic%time() <= coolingCutOffTime .and. coolingCutOffWhen == coolingCutOffWhenBefore) &
+         &  )                                                                                       &
+         &   .and.                                                                                  &
+         &  virialVelocity            <= coolingCutOffVelocity                                      &
          & ) coolingRate=0.0d0
     return
   end subroutine Cooling_Rate_Modifier_Cut_Off

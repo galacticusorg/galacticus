@@ -68,47 +68,47 @@ contains
     return
   end subroutine Dark_Matter_Halo_Spins_Initialize
 
-  double precision function Dark_Matter_Halo_Angular_Momentum(thisNode)
-    !% Returns the total anuglar momentum of {\normalfont \ttfamily thisNode} based on its mass, energy and spin parameter.
+  double precision function Dark_Matter_Halo_Angular_Momentum(node)
+    !% Returns the total anuglar momentum of {\normalfont \ttfamily node} based on its mass, energy and spin parameter.
     use Galacticus_Nodes
     use Numerical_Constants_Physical
     use Dark_Matter_Profiles
     implicit none
-    type (treeNode              ), intent(inout) :: thisNode
-    class(nodeComponentBasic    ), pointer       :: thisBasicComponent
-    class(nodeComponentSpin     ), pointer       :: thisSpinComponent
+    type (treeNode              ), intent(inout) :: node
+    class(nodeComponentBasic    ), pointer       :: basic
+    class(nodeComponentSpin     ), pointer       :: spin
     class(darkMatterProfileClass), pointer       :: darkMatterProfile_
 
     ! Ensure that the module is initialized.
     call Dark_Matter_Halo_Spins_Initialize
 
-    thisBasicComponent => thisNode%basic   (                 )
-    thisSpinComponent  => thisNode%spin    (autoCreate=.true.)
+    basic              => node%basic       (                 )
+    spin               => node%spin        (autoCreate=.true.)
     darkMatterProfile_ => darkMatterProfile(                 )
-    Dark_Matter_Halo_Angular_Momentum=thisSpinComponent%spin()*gravitationalConstantGalacticus*thisBasicComponent%mass()**2.5d0 &
-         &/sqrt(abs(darkMatterProfile_%energy(thisNode)))
+    Dark_Matter_Halo_Angular_Momentum=spin%spin()*gravitationalConstantGalacticus*basic%mass()**2.5d0 &
+         &/sqrt(abs(darkMatterProfile_%energy(node)))
     return
   end function Dark_Matter_Halo_Angular_Momentum
 
-  double precision function Dark_Matter_Halo_Angular_Momentum_Growth_Rate(thisNode)
-    !% Returns the rate of change of the total anuglar momentum of {\normalfont \ttfamily thisNode} based on its mass, energy and spin parameter.
+  double precision function Dark_Matter_Halo_Angular_Momentum_Growth_Rate(node)
+    !% Returns the rate of change of the total anuglar momentum of {\normalfont \ttfamily node} based on its mass, energy and spin parameter.
     use Galacticus_Nodes
     use Dark_Matter_Profiles
     implicit none
-    type (treeNode              ), intent(inout), pointer :: thisNode
-    class(nodeComponentBasic    )               , pointer :: thisBasicComponent
-    class(nodeComponentSpin     )               , pointer :: thisSpinComponent
+    type (treeNode              ), intent(inout), pointer :: node
+    class(nodeComponentBasic    )               , pointer :: basic
+    class(nodeComponentSpin     )               , pointer :: spin
     class(darkMatterProfileClass)               , pointer :: darkMatterProfile_
 
     ! Ensure that the module is initialized.
     call Dark_Matter_Halo_Spins_Initialize
 
-    thisBasicComponent => thisNode%basic   (                 )
-    thisSpinComponent  => thisNode%spin    (autoCreate=.true.)
+    basic              => node%basic       (                 )
+    spin               => node%spin        (autoCreate=.true.)
     darkMatterProfile_ => darkMatterProfile(                 )
-    Dark_Matter_Halo_Angular_Momentum_Growth_Rate=Dark_Matter_Halo_Angular_Momentum(thisNode)&
-         &*(thisSpinComponent%spinGrowthRate()/thisSpinComponent%spin()+2.5d0*thisBasicComponent%accretionRate()&
-         &/thisBasicComponent%mass()-0.5d0*darkMatterProfile_%energyGrowthRate(thisNode)/darkMatterProfile_%energy(thisNode))
+    Dark_Matter_Halo_Angular_Momentum_Growth_Rate=Dark_Matter_Halo_Angular_Momentum(node)&
+         &*(spin%spinGrowthRate()/spin%spin()+2.5d0*basic%accretionRate()&
+         &/basic%mass()-0.5d0*darkMatterProfile_%energyGrowthRate(node)/darkMatterProfile_%energy(node))
 
     return
   end function Dark_Matter_Halo_Angular_Momentum_Growth_Rate

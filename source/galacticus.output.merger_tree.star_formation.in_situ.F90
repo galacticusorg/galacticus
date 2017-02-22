@@ -108,45 +108,45 @@ contains
     return
   end subroutine Star_Formation_Histories_In_Situ_Initialize
 
-  subroutine Star_Formation_History_Create_In_Situ(thisNode,thisHistory,timeBegin)
+  subroutine Star_Formation_History_Create_In_Situ(node,historyStarFormation,timeBegin)
     !% Create the history required for storing star formation history.
     use Histories
     use Galacticus_Nodes
     use Galacticus_Output_Times
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    type            (history           ), intent(inout)          :: thisHistory
-    class           (nodeComponentBasic)               , pointer :: thisBasicComponent
+    type            (treeNode          ), intent(inout), pointer :: node
+    type            (history           ), intent(inout)          :: historyStarFormation
+    class           (nodeComponentBasic)               , pointer :: basic
     double precision                    , intent(in   )          :: timeBegin
-    double precision                                             :: timeBeginActual   , timeEnd
+    double precision                                             :: timeBeginActual     , timeEnd
 
     ! Find the start and end times for this history.
-    thisBasicComponent => thisNode%basic()
-    timeBeginActual=min(timeBegin,thisBasicComponent%time())
+    basic => node%basic()
+    timeBeginActual=min(timeBegin,basic%time())
     timeEnd  =Galacticus_Next_Output_Time(timeBegin)
-    call Star_Formation_History_In_Situ_Make_History(thisHistory,timeBeginActual,timeEnd)
+    call Star_Formation_History_In_Situ_Make_History(historyStarFormation,timeBeginActual,timeEnd)
     return
   end subroutine Star_Formation_History_Create_In_Situ
 
-  subroutine Star_Formation_History_In_Situ_Make_History(thisHistory,timeBegin,timeEnd,currentTimes)
+  subroutine Star_Formation_History_In_Situ_Make_History(historyStarFormation,timeBegin,timeEnd,currentTimes)
     !% Create the history required for storing star formation history.
     use Histories
     use Numerical_Ranges
     use Galacticus_Output_Times
     use Galacticus_Error
     implicit none
-    type            (history      )              , intent(inout)           :: thisHistory
-    double precision                             , intent(in   )           :: timeBegin       , timeEnd
+    type            (history      )              , intent(inout)           :: historyStarFormation
+    double precision                             , intent(in   )           :: timeBegin           , timeEnd
     double precision               , dimension(:), intent(in   ), optional :: currentTimes
-    type            (timeStepRange), pointer                               :: firstTimeStep   , nextTimeStep , thisTimeStep
-    integer                                                                :: coarseTimeCount , fineTimeCount, timeCount
+    type            (timeStepRange), pointer                               :: firstTimeStep       , nextTimeStep , thisTimeStep
+    integer                                                                :: coarseTimeCount     , fineTimeCount, timeCount
     logical                                                                :: gotFirstTimeStep
-    double precision                                                       :: timeCoarseBegin , timeCoarseEnd, timeFineBegin, timeNext, &
+    double precision                                                       :: timeCoarseBegin     , timeCoarseEnd, timeFineBegin, timeNext, &
          &                                                                    timeNow
 
     ! Exit with a null history if it would contain no time.
     if (timeEnd <= timeBegin) then
-       call thisHistory%destroy()
+       call historyStarFormation%destroy()
        return
     end if
     ! If we have a set of times tabulated already, do some sanity checks.
@@ -237,14 +237,14 @@ contains
        timeCount=timeCount+size(currentTimes)
        if (gotFirstTimeStep) timeCount=timeCount-1
     end if
-    call thisHistory%create(2,timeCount)
+    call historyStarFormation%create(2,timeCount)
     timeCount=0
     if (present(currentTimes)) then
        if (gotFirstTimeStep) then
-          thisHistory%time(timeCount+1:timeCount+size(currentTimes)-1)=currentTimes(1:size(currentTimes)-1)
+          historyStarFormation%time(timeCount+1:timeCount+size(currentTimes)-1)=currentTimes(1:size(currentTimes)-1)
           timeCount=size(currentTimes)-1
        else
-          thisHistory%time(timeCount+1:timeCount+size(currentTimes)  )=currentTimes(1:size(currentTimes)  )
+          historyStarFormation%time(timeCount+1:timeCount+size(currentTimes)  )=currentTimes(1:size(currentTimes)  )
           timeCount=size(currentTimes)
        end if
     end if
@@ -255,9 +255,9 @@ contains
        do while (associated(thisTimeStep))
           ! Populate the time array.
           if      (thisTimeStep%count == 1) then
-             thisHistory%time(timeCount+1)=thisTimeStep%timeEnd
+             historyStarFormation%time(timeCount+1)=thisTimeStep%timeEnd
           else if (thisTimeStep%count >  1) then
-             thisHistory%time(timeCount+1:timeCount+thisTimeStep%count)=Make_Range(thisTimeStep%timeBegin,thisTimeStep%timeEnd&
+             historyStarFormation%time(timeCount+1:timeCount+thisTimeStep%count)=Make_Range(thisTimeStep%timeBegin,thisTimeStep%timeEnd&
                   &,thisTimeStep%count,rangeTypeLinear)
           end if
           timeCount=timeCount+thisTimeStep%count
@@ -270,42 +270,42 @@ contains
     return
   end subroutine Star_Formation_History_In_Situ_Make_History
 
-  subroutine Star_Formation_History_Record_In_Situ(thisNode,thisHistory,fuelAbundances,starFormationRate)
-    !% Record the star formation history for {\normalfont \ttfamily thisNode}.
+  subroutine Star_Formation_History_Record_In_Situ(node,historyStarFormation,fuelAbundances,starFormationRate)
+    !% Record the star formation history for {\normalfont \ttfamily node}.
     use, intrinsic :: ISO_C_Binding
     use Histories
     use Galacticus_Nodes
     use Abundances_Structure
     use Arrays_Search
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    type            (history           ), intent(inout)          :: thisHistory
+    type            (treeNode          ), intent(inout), pointer :: node
+    type            (history           ), intent(inout)          :: historyStarFormation
     type            (abundances        ), intent(in   )          :: fuelAbundances
     double precision                    , intent(in   )          :: starFormationRate
-    class           (nodeComponentBasic)               , pointer :: thisBasicComponent
+    class           (nodeComponentBasic)               , pointer :: basic
     integer                                                      :: historyCount
     integer         (c_size_t          )                         :: iHistory
     double precision                                             :: timeNode
     !GCC$ attributes unused :: fuelAbundances
 
     ! Get the current time for this node.
-    thisBasicComponent => thisNode%basic()
-    timeNode=thisBasicComponent%time()
+    basic => node%basic()
+    timeNode=basic%time()
 
     ! Get the number of times at which star formation rate is tabulated for this node.
-    historyCount=size(thisHistory%time)
+    historyCount=size(historyStarFormation%time)
 
     ! Find the point in the table at which to accumulate the star formation rate.
-    iHistory=Search_Array(thisHistory%time,timeNode)+1
+    iHistory=Search_Array(historyStarFormation%time,timeNode)+1
 
     ! Accumulate to the appropriate time.
-    thisHistory%data(iHistory,:)=starFormationRate
+    historyStarFormation%data(iHistory,:)=starFormationRate
 
     return
   end subroutine Star_Formation_History_Record_In_Situ
 
-  subroutine Star_Formation_History_Output_In_Situ(thisNode,nodePassesFilter,thisHistory,iOutput,treeIndex,componentLabel)
-    !% Output the star formation history for {\normalfont \ttfamily thisNode}.
+  subroutine Star_Formation_History_Output_In_Situ(node,nodePassesFilter,historyStarFormation,iOutput,treeIndex,componentLabel)
+    !% Output the star formation history for {\normalfont \ttfamily node}.
     use, intrinsic :: ISO_C_Binding
     use Histories
     use ISO_Varying_String
@@ -315,21 +315,21 @@ contains
     use Kind_Numbers
     use Galacticus_Output_Times
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
+    type            (treeNode          ), intent(inout), pointer :: node
     logical                             , intent(in   )          :: nodePassesFilter
-    type            (history           ), intent(inout)          :: thisHistory
+    type            (history           ), intent(inout)          :: historyStarFormation
     integer         (c_size_t          ), intent(in   )          :: iOutput
     integer         (kind=kind_int8    ), intent(in   )          :: treeIndex
     character       (len=*             ), intent(in   )          :: componentLabel
-    class           (nodeComponentBasic)               , pointer :: parentBasicComponent
-    type            (treeNode          )               , pointer :: parentNode
+    class           (nodeComponentBasic)               , pointer :: basicParent
+    type            (treeNode          )               , pointer :: nodeParent
     double precision                                             :: timeBegin           , timeEnd
     type            (varying_string    )                         :: groupName
     type            (hdf5Object        )                         :: historyGroup        , outputGroup, treeGroup
     type            (history           )                         :: newHistory
 
     ! Return if the history does not exist.
-    if (.not.thisHistory%exists()) return
+    if (.not.historyStarFormation%exists()) return
 
     ! Check if the node passes any filtering, and output it if it does.
     if (nodePassesFilter) then
@@ -344,11 +344,11 @@ contains
        treeGroup=outputGroup%openGroup(char(groupName),"Star formation histories for each tree.")
        ! Write dataset to the group.
        groupName=trim(componentLabel)//"Time"
-       groupname=groupName//thisNode%index()
-       call treeGroup%writeDataset(thisHistory%time,char(groupName),"Star formation history times of the "//trim(componentLabel)//" component.")
+       groupname=groupName//node%index()
+       call treeGroup%writeDataset(historyStarFormation%time,char(groupName),"Star formation history times of the "//trim(componentLabel)//" component.")
        groupName=trim(componentLabel)//"SFH"
-       groupname=groupName//thisNode%index()
-       call treeGroup%writeDataset(thisHistory%data,char(groupName),"Star formation history stellar masses of the "//trim(componentLabel)//" component.")
+       groupname=groupName//node%index()
+       call treeGroup%writeDataset(historyStarFormation%data,char(groupName),"Star formation history stellar masses of the "//trim(componentLabel)//" component.")
        ! Close the star formation history group.
        call treeGroup   %close()
        call outputGroup %close()
@@ -356,26 +356,26 @@ contains
        !$omp end critical(HDF5_Access)
     end if
 
-    timeBegin=thisHistory%time(1)
+    timeBegin=historyStarFormation%time(1)
     if (iOutput < Galacticus_Output_Time_Count()) then
        timeEnd =Galacticus_Output_Time(iOutput+1)
     else
-       parentNode => thisNode
-       do while (associated(parentNode%parent))
-          parentNode => parentNode%parent
+       nodeParent => node
+       do while (associated(nodeParent%parent))
+          nodeParent => nodeParent%parent
        end do
-       parentBasicComponent => parentNode%basic()
-       timeEnd=parentBasicComponent%time()
+       basicParent => nodeParent%basic()
+       timeEnd=basicParent%time()
     end if
-    call Star_Formation_History_In_Situ_Make_History(newHistory,timeBegin,timeEnd,thisHistory%time)
-    newHistory%data(1:size(thisHistory%time),:)=thisHistory%data(:,:)
-    call thisHistory%destroy()
-    thisHistory=newHistory
+    call Star_Formation_History_In_Situ_Make_History(newHistory,timeBegin,timeEnd,historyStarFormation%time)
+    newHistory%data(1:size(historyStarFormation%time),:)=historyStarFormation%data(:,:)
+    call historyStarFormation%destroy()
+    historyStarFormation=newHistory
     call newHistory %destroy(recordMemory=.false.)
     return
   end subroutine Star_Formation_History_Output_In_Situ
 
-  subroutine Star_Formation_History_Scales_In_Situ(thisHistory,stellarMass,stellarAbundances)
+  subroutine Star_Formation_History_Scales_In_Situ(historyStarFormation,stellarMass,stellarAbundances)
     !% Set the scalings for error control on the absolute values of star formation histories.
     use Histories
     use Abundances_Structure
@@ -383,21 +383,21 @@ contains
     implicit none
     double precision            , intent(in   )               :: stellarMass
     type            (abundances), intent(in   )               :: stellarAbundances
-    type            (history   ), intent(inout)               :: thisHistory
+    type            (history   ), intent(inout)               :: historyStarFormation
     double precision            , parameter                   :: stellarMassMinimum=1.0d0
     double precision            , allocatable  , dimension(:) :: timeSteps
     integer                                                   :: i
     !GCC$ attributes unused :: stellarAbundances
     
     ! Return immediately if the history does not exist.
-    if (.not.thisHistory%exists()) return
+    if (.not.historyStarFormation%exists()) return
 
     ! Get timesteps.
-    call thisHistory%timeSteps(timeSteps)
+    call historyStarFormation%timeSteps(timeSteps)
 
     ! Set scaling factors for star formation rate.
     forall(i=1:2)
-       thisHistory%data(:,i)=max(stellarMass,stellarMassMinimum)/timeSteps
+       historyStarFormation%data(:,i)=max(stellarMass,stellarMassMinimum)/timeSteps
     end forall
   
     ! Destroy temporary array.
@@ -410,19 +410,19 @@ contains
   !#  <unitName>Star_Formation_History_Scales_In_Situ_Satellite_Merging</unitName>
   !#  <before>re:Node_Component_.+_Satellite_Merging</before>
   !# </satelliteMergerTask>
-  subroutine Star_Formation_History_Scales_In_Situ_Satellite_Merging(thisNode)
+  subroutine Star_Formation_History_Scales_In_Situ_Satellite_Merging(node)
     !% Zero any in-situ star formation history for galaxy about to merge.
     use Galacticus_Nodes
     use Histories
     implicit none
-    type (treeNode             ), intent(inout), pointer :: thisNode
+    type (treeNode             ), intent(inout), pointer :: node
     class(nodeComponentDisk    )               , pointer :: disk
     class(nodeComponentSpheroid)               , pointer :: spheroid
     type (history              )                         :: diskStarFormationHistory, spheroidStarformationHistory
     
     if (moduleActive) then
-       disk                                   => thisNode%disk                ()
-       spheroid                               => thisNode%spheroid            ()
+       disk                                   => node%disk                ()
+       spheroid                               => node%spheroid            ()
        diskStarFormationHistory               =  disk    %starFormationHistory()
        spheroidStarformationHistory           =  spheroid%starFormationHistory()
        if (diskStarFormationHistory    %exists()) then

@@ -64,42 +64,42 @@ contains
     return
   end subroutine Cooling_Time_Available_WF_Initialize
 
-  double precision function Cooling_Time_Available_WF(thisNode)
+  double precision function Cooling_Time_Available_WF(node)
     !% Compute the time available for cooling using the \cite{white_galaxy_1991} method. This is assumed to be equal to the
     !% dynamical timescale of the halo.
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    type (treeNode                ), intent(inout) :: thisNode
-    class(nodeComponentBasic      ), pointer       :: thisBasicComponent
+    type (treeNode                ), intent(inout) :: node
+    class(nodeComponentBasic      ), pointer       :: basic
     class(darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
 
     ! Get the basic component.
-    thisBasicComponent => thisNode%basic()
+    basic => node%basic()
     ! Return the appropriate time.
     if (coolingTimeAvailableAgeFactor == 1.0d0) then
        ! Time available equals the age of the Universe, which is just the time for this node.
-       Cooling_Time_Available_WF=thisBasicComponent%time()
+       Cooling_Time_Available_WF=basic%time()
     else if (coolingTimeAvailableAgeFactor == 0.0d0) then
        ! Time available equals the halo dynamical time.
        darkMatterHaloScale_ => darkMatterHaloScale()
-       Cooling_Time_Available_WF=darkMatterHaloScale_%dynamicalTimescale(thisNode)
+       Cooling_Time_Available_WF=darkMatterHaloScale_%dynamicalTimescale(node)
     else
        ! Time is interpolated between age of Universe and dynamical time. Do the interpolation.
        darkMatterHaloScale_ => darkMatterHaloScale()
-       Cooling_Time_Available_WF=exp(log(thisBasicComponent%time())*coolingTimeAvailableAgeFactor&
-            &+log(darkMatterHaloScale_%dynamicalTimescale(thisNode))*(1.0d0-coolingTimeAvailableAgeFactor))
+       Cooling_Time_Available_WF=exp(log(basic%time())*coolingTimeAvailableAgeFactor&
+            &+log(darkMatterHaloScale_%dynamicalTimescale(node))*(1.0d0-coolingTimeAvailableAgeFactor))
     end if
     return
   end function Cooling_Time_Available_WF
 
-  double precision function Cooling_Time_Available_Increase_Rate_WF(thisNode)
+  double precision function Cooling_Time_Available_Increase_Rate_WF(node)
     !% Compute the rate of increase of the time available for cooling using the \cite{white_galaxy_1991} method. We return a rate
     !% of 1, even though technically it can depend on halo properties.
     use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout) :: thisNode
-    !GCC$ attributes unused :: thisNode
+    type(treeNode), intent(inout) :: node
+    !GCC$ attributes unused :: node
     
     ! Simply return unit rate.
     Cooling_Time_Available_Increase_Rate_WF=1.0d0

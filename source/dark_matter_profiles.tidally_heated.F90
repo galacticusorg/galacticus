@@ -168,13 +168,13 @@ contains
     return
   end subroutine tidallyHeatedDestructor
   
-  subroutine tidallyHeatedCalculationReset(self,thisNode)
+  subroutine tidallyHeatedCalculationReset(self,node)
     !% Reset the dark matter profile calculation.
     implicit none
-    class(darkMatterProfileTidallyHeated), intent(inout)          :: self
-    type (treeNode                      ), intent(inout) :: thisNode
+    class(darkMatterProfileTidallyHeated), intent(inout) :: self
+    type (treeNode                      ), intent(inout) :: node
 
-    call self%unheatedProfile%calculationReset(thisNode)
+    call self%unheatedProfile%calculationReset(node)
     return
   end subroutine tidallyHeatedCalculationReset
 
@@ -767,22 +767,26 @@ contains
 
   subroutine tidallyHeatedStateStore(self,stateFile,fgslStateFile)
     !% Write the tablulation state to file.
+    use Galacticus_Display
     implicit none
     class  (darkMatterProfileTidallyHeated), intent(inout) :: self
     integer                                , intent(in   ) :: stateFile
     type   (fgsl_file                     ), intent(in   ) :: fgslStateFile
 
+    call Galacticus_Display_Message('Storing state for: darkMatterProfile -> tidallyHeated',verbosity=verbosityInfo)
     call self%unheatedProfile%stateStore(stateFile,fgslStateFile)
     return
   end subroutine tidallyHeatedStateStore
 
   subroutine tidallyHeatedStateRestore(self,stateFile,fgslStateFile)
     !% Retrieve the tabulation state from the file.
+    use Galacticus_Display
     implicit none
     class  (darkMatterProfileTidallyHeated), intent(inout) :: self
     integer                                , intent(in   ) :: stateFile
     type   (fgsl_file                     ), intent(in   ) :: fgslStateFile
 
+    call Galacticus_Display_Message('Retrieving state for: darkMatterProfile -> tidallyHeated',verbosity=verbosityInfo)
     call self%unheatedProfile%stateRestore(stateFile,fgslStateFile)
     return
   end subroutine tidallyHeatedStateRestore

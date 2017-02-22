@@ -55,30 +55,30 @@ contains
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Inter_Output_Standard_Scale_Set</unitName>
   !# </scaleSetTask>
-  subroutine Node_Component_Inter_Output_Standard_Scale_Set(thisNode)
-    !% Set scales for properties of {\normalfont \ttfamily thisNode}.
+  subroutine Node_Component_Inter_Output_Standard_Scale_Set(node)
+    !% Set scales for properties of {\normalfont \ttfamily node}.
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: thisNode
-    class           (nodeComponentInterOutput)               , pointer :: thisInterOutput
-    class           (nodeComponentDisk       )               , pointer :: thisDisk
-    class           (nodeComponentSpheroid   )               , pointer :: thisSpheroid
+    type            (treeNode                ), intent(inout), pointer :: node
+    class           (nodeComponentInterOutput)               , pointer :: interOutput
+    class           (nodeComponentDisk       )               , pointer :: disk
+    class           (nodeComponentSpheroid   )               , pointer :: spheroid
     double precision                          , parameter              :: massMinimum    =1.0d0
     double precision                          , parameter              :: timeScale      =1.0d0
     double precision                                                   :: mass
 
     ! Get the interoutput component.
-    thisInterOutput => thisNode%interOutput()
+    interOutput => node%interOutput()
     ! Check if component is of standard class.
-    select type (thisInterOutput)
+    select type (interOutput)
     class is (nodeComponentInterOutputStandard)
        ! Get disk and spheroid components.
-       thisDisk     => thisNode%disk    ()
-       thisSpheroid => thisNode%spheroid()       
+       disk     => node%disk    ()
+       spheroid => node%spheroid()       
        ! Set scale for masses.
-       mass   = thisDisk%massGas    ()+thisSpheroid%massGas    () &
-            &  +thisDisk%massStellar()+thisSpheroid%massStellar()
-       call thisInterOutput%    diskStarFormationRateScale(max(mass,massMinimum)/timeScale)
-       call thisInterOutput%spheroidStarFormationRateScale(max(mass,massMinimum)/timeScale)
+       mass   = disk%massGas    ()+spheroid%massGas    () &
+            &  +disk%massStellar()+spheroid%massStellar()
+       call interOutput%    diskStarFormationRateScale(max(mass,massMinimum)/timeScale)
+       call interOutput%spheroidStarFormationRateScale(max(mass,massMinimum)/timeScale)
     end select
     return
   end subroutine Node_Component_Inter_Output_Standard_Scale_Set
@@ -86,18 +86,18 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Inter_Output_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Inter_Output_Standard_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure)
+  subroutine Node_Component_Inter_Output_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure)
     !% Compute the exponential disk node mass rate of change.
     use Galacticus_Output_Times
     implicit none
-    type            (treeNode                    ), intent(inout), pointer :: thisNode
+    type            (treeNode                    ), intent(inout), pointer :: node
     logical                                       , intent(in   )          :: odeConverged
     logical                                       , intent(inout)          :: interrupt
-    procedure       (interruptTask), intent(inout), pointer :: interruptProcedure
-    class           (nodeComponentInterOutput    )               , pointer :: thisInterOutput
-    class           (nodeComponentDisk           )               , pointer :: thisDisk
-    class           (nodeComponentSpheroid       )               , pointer :: thisSpheroid
-    class           (nodeComponentBasic          )               , pointer :: thisBasic
+    procedure       (interruptTask               ), intent(inout), pointer :: interruptProcedure
+    class           (nodeComponentInterOutput    )               , pointer :: interOutput
+    class           (nodeComponentDisk           )               , pointer :: disk
+    class           (nodeComponentSpheroid       )               , pointer :: spheroid
+    class           (nodeComponentBasic          )               , pointer :: basic
     double precision                                                       :: diskStarFormationRate, spheroidStarFormationRate, &
          &                                                                    timeCurrent          , timeOutputNext           , &
          &                                                                    timeOutputPrevious
@@ -106,15 +106,15 @@ contains
     ! Return immediately if the standard inter-output component is not active.
     if (.not.defaultInteroutputComponent%standardIsActive()) return
     ! Get the disk and check that it is of our class.
-    thisInterOutput => thisNode%interOutput()
+    interOutput => node%interOutput()
     ! Get disk and spheroid star formation rates.
-    thisDisk                  => thisNode    %disk             ()
-    thisSpheroid              => thisNode    %spheroid         ()
-    diskStarFormationRate     =  thisDisk    %starFormationRate()
-    spheroidStarFormationRate =  thisSpheroid%starFormationRate()
+    disk                      => node    %disk             ()
+    spheroid                  => node    %spheroid         ()
+    diskStarFormationRate     =  disk    %starFormationRate()
+    spheroidStarFormationRate =  spheroid%starFormationRate()
     ! Find the time interval between previous and next outputs.
-    thisBasic          => thisNode %basic()
-    timeCurrent        =  thisBasic%time ()
+    basic              => node %basic()
+    timeCurrent        =  basic%time ()
     timeOutputPrevious =  Galacticus_Previous_Output_Time(timeCurrent)
     timeOutputNext     =  Galacticus_Next_Output_Time    (timeCurrent)
     ! Return if there is no next output.
@@ -122,32 +122,32 @@ contains
     ! Set previous time to zero if there is no previous output.
     if (timeOutputPrevious < 0.0d0) timeOutputPrevious=0.0d0
     ! Accumulate rates.
-    call thisInterOutput%    diskStarFormationRateRate(    diskStarFormationRate/(timeOutputNext-timeOutputPrevious),interrupt,interruptProcedure)
-    call thisInterOutput%spheroidStarFormationRateRate(spheroidStarFormationRate/(timeOutputNext-timeOutputPrevious),interrupt,interruptProcedure)
+    call interOutput%    diskStarFormationRateRate(    diskStarFormationRate/(timeOutputNext-timeOutputPrevious),interrupt,interruptProcedure)
+    call interOutput%spheroidStarFormationRateRate(spheroidStarFormationRate/(timeOutputNext-timeOutputPrevious),interrupt,interruptProcedure)
     return
   end subroutine Node_Component_Inter_Output_Standard_Rate_Compute
 
   !# <mergerTreeExtraOutputTask>
   !#  <unitName>Node_Component_Inter_Output_Standard_Reset</unitName>
   !# </mergerTreeExtraOutputTask>
-  subroutine Node_Component_Inter_Output_Standard_Reset(thisNode,iOutput,treeIndex,nodePassesFilter)
+  subroutine Node_Component_Inter_Output_Standard_Reset(node,iOutput,treeIndex,nodePassesFilter)
     !% Reset interoutput accumulated quantities.
     use, intrinsic :: ISO_C_Binding
     use Kind_Numbers
     implicit none
-    type   (treeNode                ), intent(inout), pointer :: thisNode
+    type   (treeNode                ), intent(inout), pointer :: node
     integer(c_size_t                ), intent(in   )          :: iOutput
     integer(kind=kind_int8          ), intent(in   )          :: treeIndex
     logical                          , intent(in   )          :: nodePassesFilter
-    class  (nodeComponentInterOutput)               , pointer :: thisInterOutput
+    class  (nodeComponentInterOutput)               , pointer :: interOutput
     !GCC$ attributes unused :: iOutput, nodePassesFilter, treeIndex
     
     ! Get the interoutput component and check it is of our class.
-    thisInterOutput => thisNode%interOutput()
-    select type (thisInterOutput)
+    interOutput => node%interOutput()
+    select type (interOutput)
        class is (nodeComponentInterOutputStandard)
-       call thisInterOutput%    diskStarFormationRateSet(0.0d0)
-       call thisInterOutput%spheroidStarFormationRateSet(0.0d0)
+       call interOutput%    diskStarFormationRateSet(0.0d0)
+       call interOutput%spheroidStarFormationRateSet(0.0d0)
     end select
     return
   end subroutine Node_Component_Inter_Output_Standard_Reset
@@ -156,61 +156,61 @@ contains
   !#  <unitName>Node_Component_Inter_Output_Standard_Satellite_Merging</unitName>
   !#  <after>Satellite_Merging_Mass_Movement_Store</after>
   !# </satelliteMergerTask>
-  subroutine Node_Component_Inter_Output_Standard_Satellite_Merging(thisNode)
-    !% Remove any inter-output quantities associated with {\normalfont \ttfamily thisNode} and add them to the merge target.
+  subroutine Node_Component_Inter_Output_Standard_Satellite_Merging(node)
+    !% Remove any inter-output quantities associated with {\normalfont \ttfamily node} and add them to the merge target.
     use Satellite_Merging_Mass_Movements_Descriptors
     use Galacticus_Error
     implicit none
-    type (treeNode                ), intent(inout), pointer :: thisNode
-    type (treeNode                )               , pointer :: hostNode
-    class(nodeComponentInterOutput)               , pointer :: hostInterOutput, thisInterOutput
+    type (treeNode                ), intent(inout), pointer :: node
+    type (treeNode                )               , pointer :: nodeHost
+    class(nodeComponentInterOutput)               , pointer :: interOutputHost, interOutput
 
     ! Get the inter-output component.
-    thisInterOutput => thisNode%interOutput()
+    interOutput => node%interOutput()
     ! Ensure that it is of the standard class.
-    select type (thisInterOutput)
+    select type (interOutput)
     class is (nodeComponentInterOutputStandard)
        ! Find the node to merge with.
-       hostNode        => thisNode%mergesWith ()
-       hostInterOutput => hostNode%interOutput()
+       nodeHost        => node%mergesWith ()
+       interOutputHost => nodeHost%interOutput()
        ! Move the star formation rates from secondary to primary.
        select case (thisMergerStarsMoveTo)
        case (movesToDisk    )
-          call hostInterOutput%    diskStarFormationRateSet(                                             &
-               &                                             hostInterOutput%    diskStarFormationRate() &
-               &                                            +thisInterOutput%    diskStarFormationRate() &
+          call interOutputHost%    diskStarFormationRateSet(                                             &
+               &                                             interOutputHost%    diskStarFormationRate() &
+               &                                            +interOutput    %    diskStarFormationRate() &
                &                                           )
-          call hostInterOutput%spheroidStarFormationRateSet(                                             &
-               &                                             hostInterOutput%spheroidStarFormationRate() &
-               &                                            +thisInterOutput%spheroidStarFormationRate() &
+          call interOutputHost%spheroidStarFormationRateSet(                                             &
+               &                                             interOutputHost%spheroidStarFormationRate() &
+               &                                            +interOutput    %spheroidStarFormationRate() &
                &                                           )
        case (movesToSpheroid)
        case default
           call Galacticus_Error_Report('Node_Component_Inter_Output_Standard_Satellite_Merging','unrecognized movesTo descriptor')
        end select
        ! Zero rates in the secondary,
-       call thisInterOutput%    diskStarFormationRateSet(                                             &
-            &                                             0.0d0                                       &
-            &                                           )
-       call thisInterOutput%spheroidStarFormationRateSet(                                             &
-            &                                             0.0d0                                       &
-            &                                           )
+       call interOutput%    diskStarFormationRateSet(                                             &
+            &                                         0.0d0                                       &
+            &                                       )
+       call interOutput%spheroidStarFormationRateSet(                                             &
+            &                                         0.0d0                                       &
+            &                                       )
        ! Move star formation rates within the host if necessary.
        select case (thisHostStarsMoveTo)
        case (movesToDisk)
-          call hostInterOutput%    diskStarFormationRateSet(                                             &
-               &                                             hostInterOutput%    diskStarFormationRate() &
-               &                                            +hostInterOutput%spheroidStarFormationRate() &
+          call interOutputHost%    diskStarFormationRateSet(                                             &
+               &                                             interOutputHost%    diskStarFormationRate() &
+               &                                            +interOutputHost%spheroidStarFormationRate() &
                &                                           )
-          call hostInterOutput%spheroidStarFormationRateSet(                                             &
+          call interOutputHost%spheroidStarFormationRateSet(                                             &
                &                                             0.0d0                                       &
                &                                           )
        case (movesToSpheroid)
-          call hostInterOutput%spheroidStarFormationRateSet(                                             &
-               &                                             hostInterOutput%spheroidStarFormationRate() &
-               &                                            +hostInterOutput%    diskStarFormationRate() &
+          call interOutputHost%spheroidStarFormationRateSet(                                             &
+               &                                             interOutputHost%spheroidStarFormationRate() &
+               &                                            +interOutputHost%    diskStarFormationRate() &
                &                                           )
-          call hostInterOutput%    diskStarFormationRateSet(                                             &
+          call interOutputHost%    diskStarFormationRateSet(                                             &
                &                                             0.0d0                                       &
                &                                           )
        case (doesNotMove)

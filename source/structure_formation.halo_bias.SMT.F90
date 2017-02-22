@@ -44,16 +44,16 @@ contains
     return
   end subroutine Dark_Matter_Halo_Bias_SMT_Initialize
 
-  double precision function Dark_Matter_Halo_Bias_Node_SMT(thisNode)
+  double precision function Dark_Matter_Halo_Bias_Node_SMT(node)
     !% Computes the bias for a dark matter halo using the method of \cite{mo_analytic_1996}.
     use Galacticus_Nodes
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    class(nodeComponentBasic)               , pointer :: thisBasicComponent
+    type (treeNode          ), intent(inout), pointer :: node
+    class(nodeComponentBasic)               , pointer :: basic
 
     ! Compute halo bias.
-    thisBasicComponent => thisNode%basic()
-    Dark_Matter_Halo_Bias_Node_SMT=Dark_Matter_Halo_Bias_SMT(thisBasicComponent%mass(),thisBasicComponent%time())
+    basic => node%basic()
+    Dark_Matter_Halo_Bias_Node_SMT=Dark_Matter_Halo_Bias_SMT(basic%mass(),basic%time())
     return
   end function Dark_Matter_Halo_Bias_Node_SMT
 

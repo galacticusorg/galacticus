@@ -133,19 +133,19 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Satellite_Status_Names</unitName>
   !#  <sortName>Galacticus_Output_Tree_Satellite_Status</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Galacticus_Output_Tree_Satellite_Status_Names(thisNode,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
+  subroutine Galacticus_Output_Tree_Satellite_Status_Names(node,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
        &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of satellite orbital extremum properties to be written to the \glc\ output file.
     use Galacticus_Nodes
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode)              , intent(inout) :: thisNode
+    type            (treeNode)              , intent(inout) :: node
     double precision                        , intent(in   ) :: time
     integer                                 , intent(inout) :: doubleProperty         , integerProperty
     character       (len=*   ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
          &                                                     integerPropertyComments, integerPropertyNames
     double precision          , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    !GCC$ attributes unused :: thisNode, time, doubleProperty, doublePropertyNames, doublePropertyComments, doublePropertyUnitsSI
+    !GCC$ attributes unused :: node, time, doubleProperty, doublePropertyNames, doublePropertyComments, doublePropertyUnitsSI
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Satellite_Status_Initialize
@@ -172,14 +172,14 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Satellite_Status_Property_Count</unitName>
   !#  <sortName>Galacticus_Output_Tree_Satellite_Status</sortName>
   !# </mergerTreeOutputPropertyCount>
-  subroutine Galacticus_Output_Tree_Satellite_Status_Property_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
+  subroutine Galacticus_Output_Tree_Satellite_Status_Property_Count(node,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of satellite host properties to be written to the \glc\ output file.
     use Galacticus_Nodes
     implicit none
-    type            (treeNode), intent(inout) :: thisNode
+    type            (treeNode), intent(inout) :: node
     double precision          , intent(in   ) :: time
     integer                   , intent(inout) :: doublePropertyCount, integerPropertyCount
-    !GCC$ attributes unused :: thisNode, time, doublePropertyCount
+    !GCC$ attributes unused :: node, time, doublePropertyCount
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Satellite_Status_Initialize
@@ -193,7 +193,7 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Satellite_Status</unitName>
   !#  <sortName>Galacticus_Output_Tree_Satellite_Status</sortName>
   !# </mergerTreeOutputTask>
-  subroutine Galacticus_Output_Tree_Satellite_Status(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
+  subroutine Galacticus_Output_Tree_Satellite_Status(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store satellite host halo properties in the \glc\ output file buffers.
     use Galacticus_Nodes
@@ -202,15 +202,15 @@ contains
     use Multi_Counters
     implicit none
     double precision                        , intent(in   ) :: time
-    type            (treeNode              ), intent(inout) :: thisNode
-    integer                                 , intent(inout) :: doubleBufferCount     , doubleProperty , integerBufferCount, &
+    type            (treeNode              ), intent(inout) :: node
+    integer                                 , intent(inout) :: doubleBufferCount        , doubleProperty , integerBufferCount, &
          &                                                     integerProperty
-    integer         (kind=kind_int8        ), intent(inout) :: integerBuffer    (:,:)
-    double precision                        , intent(inout) :: doubleBuffer     (:,:)
+    integer         (kind=kind_int8        ), intent(inout) :: integerBuffer       (:,:)
+    double precision                        , intent(inout) :: doubleBuffer        (:,:)
     type            (multiCounter          ), intent(inout) :: instance
-    class           (nodeComponentBasic    ), pointer       :: thisBasic
-    class           (nodeComponentSatellite), pointer       :: thisSatellite
-    class           (nodeComponentPosition ), pointer       :: thisPosition
+    class           (nodeComponentBasic    ), pointer       :: basic
+    class           (nodeComponentSatellite), pointer       :: satellite
+    class           (nodeComponentPosition ), pointer       :: position
     type            (history               )                :: discriminatorHistory
     integer         (kind=kind_int8        )                :: status
     !GCC$ attributes unused :: time, doubleBufferCount, doubleProperty, doubleBuffer, instance
@@ -221,19 +221,19 @@ contains
     ! Store property data if we are outputting satellite orbital pericenter data.
     if (outputSatelliteStatus) then
        ! Test for satellite.
-       if (thisNode%isSatellite()) then
+       if (node%isSatellite()) then
           ! Is a satellite. Determine if we have halo information or not.
-          thisBasic => thisNode%basic()
+          basic => node%basic()
           select case (statusOrphanDiscriminator)
           case (statusOrphanDiscriminatorBoundMass)
-             thisSatellite        => thisNode     %satellite       ()
-             discriminatorHistory =  thisSatellite%boundMassHistory()
+             satellite            => node     %satellite       ()
+             discriminatorHistory =  satellite%boundMassHistory()
           case (statusOrphanDiscriminatorPosition )
-             thisPosition         => thisNode     %position        ()
-             discriminatorHistory =  thisPosition %positionHistory ()
+             position             => node     %position        ()
+             discriminatorHistory =  position %positionHistory ()
           end select
           if (discriminatorHistory%exists()) then
-             if (thisBasic%time() > discriminatorHistory%time(size(discriminatorHistory%time))) then
+             if (basic%time() > discriminatorHistory%time(size(discriminatorHistory%time))) then
                 status=2
              else
                 status=1

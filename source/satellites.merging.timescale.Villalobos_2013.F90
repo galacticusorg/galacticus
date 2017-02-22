@@ -119,7 +119,7 @@ contains
     return
   end subroutine villalobos2013Destructor
 
-  double precision function villalobos2013TimeUntilMerging(self,thisNode,thisOrbit)
+  double precision function villalobos2013TimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the \cite{villalobos_improved_2013} method.
     use Galacticus_Nodes
     use Dynamical_Friction_Timescale_Utilities
@@ -127,18 +127,18 @@ contains
     use Kepler_Orbits
     implicit none
     class           (satelliteMergingTimescalesVillalobos2013 ), intent(inout) :: self
-    type            (treeNode                                 ), intent(inout) :: thisNode
-    type            (keplerOrbit                              ), intent(inout) :: thisOrbit
-    class           (nodeComponentBasic                       ), pointer       :: thisBasic
-    class           (cosmologyFunctionsClass                  ), pointer       :: cosmologyFunctionsDefault
+    type            (treeNode                                 ), intent(inout) :: node
+    type            (keplerOrbit                              ), intent(inout) :: orbit
+    class           (nodeComponentBasic                       ), pointer       :: basic
+    class           (cosmologyFunctionsClass                  ), pointer       :: cosmologyFunctions_
     double precision                                                           :: expansionFactor
 
     ! Get the default cosmology functions object.
-    cosmologyFunctionsDefault => cosmologyFunctions()
+    cosmologyFunctions_ => cosmologyFunctions                 (            )
     ! Compute expansion factor.
-    thisBasic       => thisNode%basic()
-    expansionFactor =  cosmologyFunctionsDefault%expansionFactor(thisBasic%time())
+    basic               => node               %basic          (            )
+    expansionFactor     =  cosmologyFunctions_%expansionFactor(basic%time())
     ! Compute dynamical friction timescale.
-    villalobos2013TimeUntilMerging=self%baseMethod%timeUntilMerging(thisNode,thisOrbit)/expansionFactor**self%expansionFactorExponent
+    villalobos2013TimeUntilMerging=self%baseMethod%timeUntilMerging(node,orbit)/expansionFactor**self%expansionFactorExponent
     return
   end function villalobos2013TimeUntilMerging

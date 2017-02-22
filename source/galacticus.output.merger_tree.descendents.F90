@@ -84,17 +84,17 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Descendents_Names</unitName>
   !#  <sortName>Galacticus_Output_Tree_Descendents</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Galacticus_Output_Tree_Descendents_Names(thisNode,integerProperty,integerPropertyNames,integerPropertyComments&
+  subroutine Galacticus_Output_Tree_Descendents_Names(node,integerProperty,integerPropertyNames,integerPropertyComments&
        &,integerPropertyUnitsSI,doubleProperty ,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of descendent properties to be written to the \glc\ output file.
     implicit none
-    type            (treeNode)              , intent(inout) :: thisNode
+    type            (treeNode)              , intent(inout) :: node
     double precision                        , intent(in   ) :: time
     integer                                 , intent(inout) :: doubleProperty         , integerProperty
     character       (len=*   ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
          &                                                     integerPropertyComments, integerPropertyNames
     double precision          , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    !GCC$ attributes unused :: doubleProperty, doublePropertyNames, doublePropertyComments, doublePropertyUnitsSI, time, thisNode
+    !GCC$ attributes unused :: doubleProperty, doublePropertyNames, doublePropertyComments, doublePropertyUnitsSI, time, node
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Descendents_Initialize()
@@ -121,13 +121,13 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Descendents_Property_Count</unitName>
   !#  <sortName>Galacticus_Output_Tree_Descendents</sortName>
   !# </mergerTreeOutputPropertyCount>
-  subroutine Galacticus_Output_Tree_Descendents_Property_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
+  subroutine Galacticus_Output_Tree_Descendents_Property_Count(node,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of descendent properties to be written to the \glc\ output file.
     implicit none
-    type            (treeNode              ), intent(inout) :: thisNode
+    type            (treeNode              ), intent(inout) :: node
     double precision                        , intent(in   ) :: time
     integer                                 , intent(inout) :: doublePropertyCount, integerPropertyCount
-    !GCC$ attributes unused :: doublePropertyCount, thisNode, time
+    !GCC$ attributes unused :: doublePropertyCount, node, time
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Descendents_Initialize()
@@ -141,7 +141,7 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Descendents</unitName>
   !#  <sortName>Galacticus_Output_Tree_Descendents</sortName>
   !# </mergerTreeOutputTask>
-  subroutine Galacticus_Output_Tree_Descendents(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
+  subroutine Galacticus_Output_Tree_Descendents(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store descendent properties in the \glc\ output file buffers.
     use Kind_Numbers
@@ -149,15 +149,15 @@ contains
     use Multi_Counters
     implicit none
     double precision                        , intent(in   )         :: time
-    type            (treeNode              ), intent(inout), target :: thisNode
-    integer                                 , intent(inout)         :: doubleBufferCount          , doubleProperty, integerBufferCount, &
-         &                                                             integerProperty
-    integer         (kind=kind_int8        ), intent(inout)         :: integerBuffer         (:,:)
-    double precision                        , intent(inout)         :: doubleBuffer          (:,:)
+    type            (treeNode              ), intent(inout), target :: node
+    integer                                 , intent(inout)         :: doubleBufferCount      , doubleProperty , &
+         &                                                             integerBufferCount     , integerProperty
+    integer         (kind=kind_int8        ), intent(inout)         :: integerBuffer     (:,:)
+    double precision                        , intent(inout)         :: doubleBuffer      (:,:)
     type            (multiCounter          ), intent(inout)         :: instance
-    type            (treeNode              ), pointer               :: descendentNode
-    class           (nodeComponentBasic    ), pointer               :: thisBasicComponent
-    class           (nodeComponentSatellite), pointer               :: thisSatelliteComponent
+    type            (treeNode              ), pointer               :: nodeDescendent
+    class           (nodeComponentBasic    ), pointer               :: basic
+    class           (nodeComponentSatellite), pointer               :: satellite
     double precision                                                :: outputTimeNext
     logical                                                         :: foundDescendent
     !GCC$ attributes unused :: doubleBuffer, doubleBufferCount, doubleProperty, instance
@@ -169,7 +169,7 @@ contains
     if (outputDescendentIndices) then
 
        ! Get the satellite component.
-       thisSatelliteComponent => thisNode%satellite()
+       satellite => node%satellite()
 
        ! Get the time of the next output.
        outputTimeNext=Galacticus_Next_Output_Time(time)
@@ -178,21 +178,21 @@ contains
        integerProperty=integerProperty+1
        if (outputTimeNext < 0.0d0) then
           ! There is no next output time.
-          integerBuffer(integerBufferCount,integerProperty)=thisNode%index()
+          integerBuffer(integerBufferCount,integerProperty)=node%index()
           foundDescendent=.true.
-       else if (thisNode%isSatellite()) then
+       else if (node%isSatellite()) then
           ! Node is a satellite, so it's node index will remain unchanged.
-          if (thisSatelliteComponent%timeOfMerging() > outputTimeNext) then
+          if (satellite%timeOfMerging() > outputTimeNext) then
              ! Satellite will not have merged prior to the next output time, so retains its own index.
-             integerBuffer(integerBufferCount,integerProperty)=thisNode%index()
+             integerBuffer(integerBufferCount,integerProperty)=node%index()
              foundDescendent=.true.
           else
              ! Satellite will merge prior to the next output time - find the node it merges with.
-             descendentNode => thisNode%mergesWith()
+             nodeDescendent => node%mergesWith()
           end if
        else
           ! Node is not a satellite, so set the initial descendent to itself.
-          descendentNode => thisNode
+          nodeDescendent => node
        end if
        ! Check if we still need to find the descendent.
        if (.not.foundDescendent) then
@@ -200,22 +200,22 @@ contains
           ! Continue until the tree base is reached, or the next output time is reached.
           do while (.not.foundDescendent)
              ! Get the satellite component.
-             thisSatelliteComponent => descendentNode%satellite()
-             thisBasicComponent     => descendentNode%basic    ()
+             satellite => nodeDescendent%satellite()
+             basic     => nodeDescendent%basic    ()
              ! If the next output time has been surpassed, then we are finished.
-             if (thisBasicComponent%time() >= outputTimeNext) then
+             if (basic%time() >= outputTimeNext) then
                 foundDescendent=.true.
              else
                 ! Test whether this node is the primary progenitor.
-                if (descendentNode%isPrimaryProgenitor()) then
+                if (nodeDescendent%isPrimaryProgenitor()) then
                    ! It is, so simply move to the parent node.
-                   descendentNode => descendentNode%parent
+                   nodeDescendent => nodeDescendent%parent
                 else
                    ! It is not, so it becomes a satellite. Test whether it has a merge target associated with it.
-                   if (associated(descendentNode%mergeTarget)) then
+                   if (associated(nodeDescendent%mergeTarget)) then
                       ! It does. If merging occurs before the next output time, jump to that node. Otherwise we are finished.
-                      if (thisSatelliteComponent%timeOfMerging() <= outputTimeNext) then
-                         descendentNode => descendentNode%mergeTarget
+                      if (satellite%timeOfMerging() <= outputTimeNext) then
+                         nodeDescendent => nodeDescendent%mergeTarget
                       else
                          foundDescendent=.true.
                       end if
@@ -228,9 +228,9 @@ contains
              end if
           end do
           ! If the descendent exists after the next output time, then we've gone one step too far - back up a step.
-          if (thisBasicComponent%time() > outputTimeNext .and. associated(descendentNode%firstChild)) descendentNode => descendentNode%firstChild
+          if (basic%time() > outputTimeNext .and. associated(nodeDescendent%firstChild)) nodeDescendent => nodeDescendent%firstChild
           ! Store the descendent index.
-          integerBuffer(integerBufferCount,integerProperty)=descendentNode%index()
+          integerBuffer(integerBufferCount,integerProperty)=nodeDescendent%index()
        end if
     end if
     return

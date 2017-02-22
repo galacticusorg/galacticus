@@ -76,7 +76,7 @@ contains
     implicit none
     type (darkMatterHaloScaleVirialDensityContrastDefinition), target        :: virialDensityContrastDefinitionParameters
     type (inputParameters                                   ), intent(inout) :: parameters
-    class(virialDensityContrastClass                        ), pointer :: virialDensityContrast_
+    class(virialDensityContrastClass                        ), pointer       :: virialDensityContrast_
     !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
@@ -116,34 +116,34 @@ contains
     return
   end subroutine virialDensityContrastDefinitionDestructor
 
-  subroutine virialDensityContrastDefinitionCalculationReset(self,thisNode)
+  subroutine virialDensityContrastDefinitionCalculationReset(self,node)
     !% Reset the halo scales calculation.
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
-    type (treeNode                                          ), intent(inout) :: thisNode
+    type (treeNode                                          ), intent(inout) :: node
 
     self%virialRadiusComputed      =.false.
     self%virialTemperatureComputed =.false.
     self%virialVelocityComputed    =.false.
     self%dynamicalTimescaleComputed=.false.
-    self%lastUniqueID              =thisNode%uniqueID()
+    self%lastUniqueID              =node%uniqueID()
     return
   end subroutine virialDensityContrastDefinitionCalculationReset
 
-  double precision function virialDensityContrastDefinitionDynamicalTimescale(self,thisNode)
-    !% Returns the dynamical timescale for {\normalfont \ttfamily thisNode}.
+  double precision function virialDensityContrastDefinitionDynamicalTimescale(self,node)
+    !% Returns the dynamical timescale for {\normalfont \ttfamily node}.
     use Numerical_Constants_Astronomical
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
-    type (treeNode                                          ), intent(inout) :: thisNode
+    type (treeNode                                          ), intent(inout) :: node
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (thisNode%uniqueID() /= self%lastUniqueID) call self%calculationReset(thisNode)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
     ! Check if halo dynamical timescale is already computed. Compute and store if not.
     if (.not.self%dynamicalTimescaleComputed) then
        self%dynamicalTimescaleComputed= .true.
-       self%dynamicalTimescaleStored  = self%virialRadius  (thisNode) &
-            &                          /self%virialVelocity(thisNode) &
+       self%dynamicalTimescaleStored  = self%virialRadius  (node) &
+            &                          /self%virialVelocity(node) &
             &                          *(megaParsec/kilo/gigaYear)
      end if
     ! Return the stored timescale.
@@ -151,23 +151,23 @@ contains
     return
   end function virialDensityContrastDefinitionDynamicalTimescale
 
-  double precision function virialDensityContrastDefinitionVirialVelocity(self,thisNode)
-    !% Returns the virial velocity scale for {\normalfont \ttfamily thisNode}.
+  double precision function virialDensityContrastDefinitionVirialVelocity(self,node)
+    !% Returns the virial velocity scale for {\normalfont \ttfamily node}.
     use Numerical_Constants_Physical
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
-    type (treeNode                                          ), intent(inout) :: thisNode
-    class(nodeComponentBasic                                ), pointer       :: thisBasic
+    type (treeNode                                          ), intent(inout) :: node
+    class(nodeComponentBasic                                ), pointer       :: basic
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (thisNode%uniqueID() /= self%lastUniqueID) call self%calculationReset(thisNode)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
     ! Check if virial velocity is already computed. Compute and store if not.
     if (.not.self%virialVelocityComputed) then
        ! Get the basic component.
-       thisBasic => thisNode%basic()
+       basic => node%basic()
        ! Compute the virial velocity.
-       self%virialVelocityStored=sqrt(gravitationalConstantGalacticus*thisBasic%mass() &
-            &/self%virialRadius(thisNode))
+       self%virialVelocityStored=sqrt(gravitationalConstantGalacticus*basic%mass() &
+            &/self%virialRadius(node))
        ! Record that virial velocity has now been computed.
        self%virialVelocityComputed=.true.
     end if
@@ -176,64 +176,64 @@ contains
     return
   end function virialDensityContrastDefinitionVirialVelocity
 
-  double precision function virialDensityContrastDefinitionVirialVelocityGrowthRate(self,thisNode)
-    !% Returns the growth rate of the virial velocity scale for {\normalfont \ttfamily thisNode}.
+  double precision function virialDensityContrastDefinitionVirialVelocityGrowthRate(self,node)
+    !% Returns the growth rate of the virial velocity scale for {\normalfont \ttfamily node}.
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)          :: self
-    type (treeNode                                          ), intent(inout), pointer :: thisNode
-    class(nodeComponentBasic                                )               , pointer :: thisBasic
+    type (treeNode                                          ), intent(inout), pointer :: node
+    class(nodeComponentBasic                                )               , pointer :: basic
 
     ! Get the basic component.
-    thisBasic                                              => thisNode%basic()
+    basic                                              => node%basic()
     virialDensityContrastDefinitionVirialVelocityGrowthRate= &
          & +0.5d0                                            &
-         & *  self%virialVelocity        (thisNode)          &
+         & *  self%virialVelocity        (node)              &
          & *(                                                &
-         &    thisBasic%accretionRate    (        )          &
-         &   /thisBasic%mass             (        )          &
-         &   -self%virialRadiusGrowthRate(thisNode)          &
-         &   /self%virialRadius          (thisNode)          &
+         &    basic%accretionRate        (    )              &
+         &   /basic%mass                 (    )              &
+         &   -self%virialRadiusGrowthRate(node)              &
+         &   /self%virialRadius          (node)              &
          &  )
     return
   end function virialDensityContrastDefinitionVirialVelocityGrowthRate
 
-  double precision function virialDensityContrastDefinitionVirialTemperature(self,thisNode)
-    !% Returns the virial temperature (in Kelvin) for {\normalfont \ttfamily thisNode}.
+  double precision function virialDensityContrastDefinitionVirialTemperature(self,node)
+    !% Returns the virial temperature (in Kelvin) for {\normalfont \ttfamily node}.
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
-    type (treeNode                                          ), intent(inout) :: thisNode
+    type (treeNode                                          ), intent(inout) :: node
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (thisNode%uniqueID() /= self%lastUniqueID) call self%calculationReset(thisNode)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
     ! Check if virial temperature is already computed. Compute and store if not.
     if (.not.self%virialTemperatureComputed) then
        self%virialTemperatureComputed=.true.
        self%virialTemperatureStored=0.5d0*atomicMassUnit*meanAtomicMassPrimordial*((kilo&
-            &*self%virialVelocity(thisNode))**2)/boltzmannsConstant
+            &*self%virialVelocity(node))**2)/boltzmannsConstant
     end if
     ! Return the stored temperature.
     virialDensityContrastDefinitionVirialTemperature=self%virialTemperatureStored
     return
   end function virialDensityContrastDefinitionVirialTemperature
 
-  double precision function virialDensityContrastDefinitionVirialRadius(self,thisNode)
-    !% Returns the virial radius scale for {\normalfont \ttfamily thisNode}.
+  double precision function virialDensityContrastDefinitionVirialRadius(self,node)
+    !% Returns the virial radius scale for {\normalfont \ttfamily node}.
     use Numerical_Constants_Math
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
-    type (treeNode                                          ), intent(inout) :: thisNode
-    class(nodeComponentBasic                                ), pointer       :: thisBasic
+    type (treeNode                                          ), intent(inout) :: node
+    class(nodeComponentBasic                                ), pointer       :: basic
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (thisNode%uniqueID() /= self%lastUniqueID) call self%calculationReset(thisNode)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
     ! Check if virial radius is already computed. Compute and store if not.
     if (.not.self%virialRadiusComputed) then
        ! Get the basic component.
-       thisBasic => thisNode%basic()
+       basic => node%basic()
        ! Compute the virial radius.
-       self%virialRadiusStored=(3.0d0*thisBasic%mass()/4.0d0/Pi/self%meanDensity(thisNode))**(1.0d0/3.0d0)
+       self%virialRadiusStored=(3.0d0*basic%mass()/4.0d0/Pi/self%meanDensity(node))**(1.0d0/3.0d0)
        ! Record that the virial radius has been computed.
        self%virialRadiusComputed=.true.
     end if
@@ -242,61 +242,61 @@ contains
     return
   end function virialDensityContrastDefinitionVirialRadius
 
-  double precision function virialDensityContrastDefinitionVirialRadiusGradientLogMass(self,thisNode)
-    !% Returns the logarithmic gradient of virial radius with halo mass at fixed epoch for {\normalfont \ttfamily thisNode}.
+  double precision function virialDensityContrastDefinitionVirialRadiusGradientLogMass(self,node)
+    !% Returns the logarithmic gradient of virial radius with halo mass at fixed epoch for {\normalfont \ttfamily node}.
     use Numerical_Constants_Math
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)          :: self
-    type (treeNode                                          ), intent(inout), pointer :: thisNode
-    !GCC$ attributes unused :: self, thisNode
+    type (treeNode                                          ), intent(inout), pointer :: node
+    !GCC$ attributes unused :: self, node
     
     ! Halos at given epoch have fixed density, so radius always grows as the cube-root of mass.
     virialDensityContrastDefinitionVirialRadiusGradientLogMass=1.0d0/3.0d0
     return
   end function virialDensityContrastDefinitionVirialRadiusGradientLogMass
 
-  double precision function virialDensityContrastDefinitionVirialRadiusGrowthRate(self,thisNode)
-    !% Returns the growth rate of the virial radius scale for {\normalfont \ttfamily thisNode}.
+  double precision function virialDensityContrastDefinitionVirialRadiusGrowthRate(self,node)
+    !% Returns the growth rate of the virial radius scale for {\normalfont \ttfamily node}.
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)          :: self
-    type (treeNode                                          ), intent(inout), pointer :: thisNode
-    class(nodeComponentBasic)                                               , pointer :: thisBasic
+    type (treeNode                                          ), intent(inout), pointer :: node
+    class(nodeComponentBasic)                                               , pointer :: basic
 
     ! Get the basic component.
-    thisBasic => thisNode%basic()
-    virialDensityContrastDefinitionVirialRadiusGrowthRate=(1.0d0/3.0d0)*self%virialRadius(thisNode)&
-         &*(thisBasic%accretionRate()/thisBasic%mass()-self%meanDensityGrowthRate(thisNode)&
-         &/virialDensityContrastDefinitionMeanDensity(self,thisNode))
+    basic => node%basic()
+    virialDensityContrastDefinitionVirialRadiusGrowthRate=(1.0d0/3.0d0)*self%virialRadius(node)&
+         &*(basic%accretionRate()/basic%mass()-self%meanDensityGrowthRate(node)&
+         &/virialDensityContrastDefinitionMeanDensity(self,node))
     return
   end function virialDensityContrastDefinitionVirialRadiusGrowthRate
 
-  double precision function virialDensityContrastDefinitionMeanDensity(self,thisNode)
-    !% Returns the mean density for {\normalfont \ttfamily thisNode}.
+  double precision function virialDensityContrastDefinitionMeanDensity(self,node)
+    !% Returns the mean density for {\normalfont \ttfamily node}.
     use Cosmology_Parameters
     use Cosmology_Functions
     implicit none
-    class           (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)          :: self
-    type            (treeNode                                          ), intent(inout) :: thisNode
-    class           (nodeComponentBasic                                )               , pointer :: thisBasic
-    class           (cosmologyParametersClass                          )               , pointer :: thisCosmologyParameters
-    class           (cosmologyFunctionsClass                           )               , pointer :: cosmologyFunctionsDefault
-    integer                                                                                      :: i                        , meanDensityTablePoints
-    double precision                                                                             :: time
+    class           (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
+    type            (treeNode                                          ), intent(inout) :: node
+    class           (nodeComponentBasic                                ), pointer       :: basic
+    class           (cosmologyParametersClass                          ), pointer       :: cosmologyParameters_
+    class           (cosmologyFunctionsClass                           ), pointer       :: cosmologyFunctions_
+    integer                                                                             :: i                   , meanDensityTablePoints
+    double precision                                                                    :: time
 
     ! Get the basic component.
-    thisBasic => thisNode%basic()
+    basic => node%basic()
     ! Get the time at which this halo was last an isolated halo.
-    time=thisBasic%timeLastIsolated()
-    if (time <= 0.0d0) time=thisBasic%time()
+    time=basic%timeLastIsolated()
+    if (time <= 0.0d0) time=basic%time()
     ! For mass-dependent virial density contrasts we must always recompute the result.
     if (self%virialDensityContrast_%isMassDependent()) then
        ! Get default objects.
-       thisCosmologyParameters                    =>  cosmologyParameters  ()
-       cosmologyFunctionsDefault                  =>  cosmologyFunctions   ()
-       virialDensityContrastDefinitionMeanDensity =  +self                     %virialDensityContrast_%densityContrast(thisBasic%mass(),time)    &
-            &                                        *thisCosmologyParameters                         %OmegaMatter    (                     )    &
-            &                                        *thisCosmologyParameters                         %densityCritical(                     )    &
-            &                                        /cosmologyFunctionsDefault                       %expansionFactor(                 time)**3
+       cosmologyParameters_                       =>  cosmologyParameters                                        (                )
+       cosmologyFunctions_                        =>  cosmologyFunctions                                         (                )
+       virialDensityContrastDefinitionMeanDensity =  +self                %virialDensityContrast_%densityContrast(basic%mass(),time)    &
+            &                                        *cosmologyParameters_                       %OmegaMatter    (                 )    &
+            &                                        *cosmologyParameters_                       %densityCritical(                 )    &
+            &                                        /cosmologyFunctions_                        %expansionFactor(             time)**3
     else
        ! For non-mass-dependent virial density contrasts we can tabulate as a function of time.
        ! Retabulate the mean density vs. time if necessary.
@@ -313,16 +313,16 @@ contains
           call self%meanDensityTable%destroy()
           call self%meanDensityTable%create(self%meanDensityTimeMinimum,self%meanDensityTimeMaximum,meanDensityTablePoints)
           ! Get default objects.
-          thisCosmologyParameters   => cosmologyParameters  ()
-          cosmologyFunctionsDefault => cosmologyFunctions   ()
+          cosmologyParameters_ => cosmologyParameters()
+          cosmologyFunctions_  => cosmologyFunctions ()
           do i=1,meanDensityTablePoints
-             call self%meanDensityTable%populate                                                                            &
-                  & (                                                                                                       &
-                  &  +self%virialDensityContrast_%densityContrast(thisBasic%mass(),self%meanDensityTable%x(i))     &
-                  &  *thisCosmologyParameters             %OmegaMatter    (                                           )     &
-                  &  *thisCosmologyParameters             %densityCritical(                                           )     &
-                  &  /cosmologyFunctionsDefault           %expansionFactor(                 self%meanDensityTable%x(i))**3, &
-                  &  i                                                                                                      &
+             call self%meanDensityTable%populate                                                               &
+                  & (                                                                                          &
+                  &  +self%virialDensityContrast_%densityContrast(basic%mass(),self%meanDensityTable%x(i))     &
+                  &  *cosmologyParameters_       %OmegaMatter    (                                       )     &
+                  &  *cosmologyParameters_       %densityCritical(                                       )     &
+                  &  /cosmologyFunctions_        %expansionFactor(             self%meanDensityTable%x(i))**3, &
+                  &  i                                                                                         &
                   & )
           end do
        end if
@@ -332,41 +332,41 @@ contains
     return
   end function virialDensityContrastDefinitionMeanDensity
 
-  double precision function virialDensityContrastDefinitionMeanDensityGrowthRate(self,thisNode)
-    !% Returns the growth rate of the mean density for {\normalfont \ttfamily thisNode}.
+  double precision function virialDensityContrastDefinitionMeanDensityGrowthRate(self,node)
+    !% Returns the growth rate of the mean density for {\normalfont \ttfamily node}.
     use Cosmology_Functions
     implicit none
     class           (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)          :: self
-    type            (treeNode                                          ), intent(inout), pointer :: thisNode
-    class           (nodeComponentBasic                                )               , pointer :: thisBasic
-    class           (cosmologyFunctionsClass                           )               , pointer :: cosmologyFunctionsDefault
-    double precision                                                                             :: aExpansion               , time
+    type            (treeNode                                          ), intent(inout), pointer :: node
+    class           (nodeComponentBasic                                )               , pointer :: basic
+    class           (cosmologyFunctionsClass                           )               , pointer :: cosmologyFunctions_
+    double precision                                                                             :: expansionFactor    , time
 
-    if (thisNode%isSatellite()) then
+    if (node%isSatellite()) then
        ! Satellite halo is not growing, return zero rate.
        virialDensityContrastDefinitionMeanDensityGrowthRate=0.0d0
     else
        ! Get the basic component.
-       thisBasic => thisNode%basic()
+       basic => node%basic()
        ! Get the time at which this halo was last an isolated halo.
-       time=thisBasic%timeLastIsolated()
+       time=basic%timeLastIsolated()
        ! Check if the time is different from that one previously used.
-       if (time /= self%timePrevious .or. thisBasic%mass() /= self%massPrevious) then
+       if (time /= self%timePrevious .or. basic%mass() /= self%massPrevious) then
           ! It is not, so recompute the density growth rate.
           self%timePrevious=time
-          self%massPrevious=thisBasic%mass()
+          self%massPrevious=basic%mass()
           ! Get default objects.
-          cosmologyFunctionsDefault => cosmologyFunctions   ()
+          cosmologyFunctions_ => cosmologyFunctions()
           ! Get the expansion factor at this time.
-          aExpansion=cosmologyFunctionsDefault%expansionFactor(time)
+          expansionFactor=cosmologyFunctions_%expansionFactor(time)
           ! Compute growth rate of its mean density based on mean cosmological density and overdensity of a collapsing halo.
-          self%densityGrowthRatePrevious=                                                                &
-               & self%meanDensity(thisNode)                                                              &
-               & *(                                                                                      &
-               &   +self%virialDensityContrast_%densityContrastRateOfChange(thisBasic%mass(),time      ) &
-               &   /self%virialDensityContrast_%densityContrast            (thisBasic%mass(),time      ) &
-               &   -3.0d0                                                                                &
-               &   *cosmologyFunctionsDefault           %expansionRate     (aExpansion                 ) &
+          self%densityGrowthRatePrevious=                                                                 &
+               & self%meanDensity(node)                                                                   &
+               & *(                                                                                       &
+               &   +self%virialDensityContrast_%densityContrastRateOfChange(basic%mass(),time           ) &
+               &   /self%virialDensityContrast_%densityContrast            (basic%mass(),time           ) &
+               &   -3.0d0                                                                                 &
+               &   *cosmologyFunctions_        %expansionRate              (             expansionFactor) &
                &  )
        end if
        ! Return the stored value.
@@ -377,6 +377,7 @@ contains
 
   subroutine virialDensityContrastDefinitionStateStore(self,stateFile,fgslStateFile)
     !% Write the tablulation state to file.
+    use Galacticus_Display
     use FGSL
     implicit none
     class  (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
@@ -384,12 +385,14 @@ contains
     type   (fgsl_file                                         ), intent(in   ) :: fgslStateFile
     !GCC$ attributes unused :: fgslStateFile
     
+    call Galacticus_Display_Message('Storing state for: darkMatterHaloScale -> virialDensityContrast',verbosity=verbosityInfo)
     write (stateFile) self%meanDensityTimeMinimum,self%meanDensityTimeMaximum
     return
   end subroutine virialDensityContrastDefinitionStateStore
 
   subroutine virialDensityContrastDefinitionStateRestore(self,stateFile,fgslStateFile)
     !% Retrieve the tabulation state from the file.
+    use Galacticus_Display
     use FGSL
     implicit none
     class  (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
@@ -397,6 +400,7 @@ contains
     type   (fgsl_file                                         ), intent(in   ) :: fgslStateFile
     !GCC$ attributes unused :: fgslStateFile
 
+    call Galacticus_Display_Message('Retrieving state for: darkMatterHaloScale -> virialDensityContrast',verbosity=verbosityInfo)
     read (stateFile) self%meanDensityTimeMinimum,self%meanDensityTimeMaximum
     ! Ensure that interpolation objects will get reset.
     self%resetMeanDensityTable=.true.

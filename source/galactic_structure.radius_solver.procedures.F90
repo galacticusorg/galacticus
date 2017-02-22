@@ -25,15 +25,15 @@ module Galactic_Structure_Radius_Solver_Procedures
   public
 
   abstract interface
-     double precision function Radius_Solver_Get_Template(thisNode)
+     double precision function Radius_Solver_Get_Template(node)
        import treeNode
-       type(treeNode), intent(inout) :: thisNode
+       type(treeNode), intent(inout) :: node
      end function Radius_Solver_Get_Template
   end interface
   abstract interface
-     subroutine Radius_Solver_Set_Template(thisNode,value)
+     subroutine Radius_Solver_Set_Template(node,value)
        import treeNode
-       type            (treeNode), intent(inout) :: thisNode
+       type            (treeNode), intent(inout) :: node
        double precision          , intent(in   ) :: value
      end subroutine Radius_Solver_Set_Template
   end interface

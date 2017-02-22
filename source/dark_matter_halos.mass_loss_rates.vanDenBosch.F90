@@ -55,34 +55,34 @@ contains
     return
   end subroutine Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch_Initialize
 
-  double precision function Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch(thisNode)
+  double precision function Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch(node)
     !% Returns the rate of mass loss from dark matter halos using the prescription of \cite{van_den_bosch_mass_2005}.
     use Galacticus_Nodes
     use Virial_Density_Contrast
     use Cosmology_Functions
     implicit none
-    type            (treeNode                  ), intent(inout) :: thisNode
-    class           (nodeComponentBasic        ), pointer       :: parentBasic              , thisBasic
-    class           (nodeComponentSatellite    ), pointer       :: thisSatellite
-    class           (cosmologyFunctionsClass   ), pointer       :: cosmologyFunctionsDefault
+    type            (treeNode                  ), intent(inout) :: node
+    class           (nodeComponentBasic        ), pointer       :: basicParent              , basic
+    class           (nodeComponentSatellite    ), pointer       :: satellite
+    class           (cosmologyFunctionsClass   ), pointer       :: cosmologyFunctions_
     class           (virialDensityContrastClass), pointer       :: virialDensityContrast_
     double precision                                            :: massLossTimescale        , satelliteBoundMass, &
          &                                                         satelliteHostMassRatio   , satelliteTime
 
-    thisSatellite      => thisNode     %satellite()
-    satelliteBoundMass =  thisSatellite%boundMass()
+    satellite          => node     %satellite()
+    satelliteBoundMass =  satellite%boundMass()
     if (satelliteBoundMass > 0.0d0) then
        ! Get the default cosmology functions object.
-       cosmologyFunctionsDefault => cosmologyFunctions   ()
-       virialDensityContrast_    => virialDensityContrast()
-       thisBasic                 => thisNode %basic()
-       satelliteTime             =  thisBasic%time ()
-       massLossTimescale     =   massLossTimescaleNormalization                                                                               &
-            &                   *sqrt(virialDensityContrast_%densityContrast   (thisBasic%mass(),cosmologyFunctionsDefault%cosmicTime(1.0d0)))&
-            &                   *     cosmologyFunctionsDefault%expansionFactor(                 satelliteTime) **1.5d0                       &
-            &                   /sqrt(virialDensityContrast_%densityContrast   (thisBasic%mass(),satelliteTime))
-       parentBasic           => thisNode%parent%basic()
-       satelliteHostMassRatio=  satelliteBoundMass/parentBasic%mass()
+       cosmologyFunctions_    => cosmologyFunctions   ()
+       virialDensityContrast_ => virialDensityContrast()
+       basic                  => node %basic()
+       satelliteTime          =  basic%time ()
+       massLossTimescale      =   massLossTimescaleNormalization                                                                          &
+            &                    *sqrt(virialDensityContrast_%densityContrast(basic%mass(),cosmologyFunctions_%cosmicTime(1.0d0)))        &
+            &                    *     cosmologyFunctions_   %expansionFactor(                                     satelliteTime) **1.5d0 &
+            &                    /sqrt(virialDensityContrast_%densityContrast(basic%mass(),                        satelliteTime))
+       basicParent            => node%parent%basic()
+       satelliteHostMassRatio =  satelliteBoundMass/basicParent%mass()
        Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch=-satelliteBoundMass*satelliteHostMassRatio**zeta/massLossTimescale
     else
        Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch=0.0d0

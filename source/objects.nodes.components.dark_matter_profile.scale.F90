@@ -149,32 +149,32 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Dark_Matter_Profile_Scale_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure)
+  subroutine Node_Component_Dark_Matter_Profile_Scale_Rate_Compute(node,odeConverged,interrupt,interruptProcedure)
     !% Compute the rate of change of the scale radius.
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode                      ), intent(inout), pointer :: thisNode
+    type            (treeNode                      ), intent(inout), pointer :: node
     logical                                         , intent(in   )          :: odeConverged
     logical                                         , intent(inout)          :: interrupt
     procedure       (                              ), intent(inout), pointer :: interruptProcedure
-    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
+    class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
     class           (darkMatterHaloScaleClass      )               , pointer :: darkMatterHaloScale_
-    double precision                                                         :: concentration                 , growthRate
+    double precision                                                         :: concentration       , growthRate
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
     ! Get the dark matter profile component.
-    thisDarkMatterProfileComponent => thisNode%darkMatterProfile()
+    darkMatterProfile => node%darkMatterProfile()
     ! Ensure that it is of the scale class.
-    select type (thisDarkMatterProfileComponent)
+    select type (darkMatterProfile)
     class is (nodeComponentDarkMatterProfileScale)
        ! Find the concentration of this halo.
        darkMatterHaloScale_ => darkMatterHaloScale()
-       concentration=darkMatterHaloScale_%virialRadius(thisNode)/thisDarkMatterProfileComponent%scale()
+       concentration=darkMatterHaloScale_%virialRadius(node)/darkMatterProfile%scale()
        ! Find the growth rate and limit to ensure minimum and maximum concentrations are not exceeded.
-       growthRate=thisDarkMatterProfileComponent%scaleGrowthRate()
-       if (concentration <= darkMatterProfileMinimumConcentration) growthRate=min(growthRate,darkMatterHaloScale_%virialRadiusGrowthRate(thisNode)/darkMatterProfileMinimumConcentration)
-       if (concentration >= darkMatterProfileMaximumConcentration) growthRate=max(growthRate,darkMatterHaloScale_%virialRadiusGrowthRate(thisNode)/darkMatterProfileMaximumConcentration)
-       call thisDarkMatterProfileComponent%scaleRate(growthRate)
+       growthRate=darkMatterProfile%scaleGrowthRate()
+       if (concentration <= darkMatterProfileMinimumConcentration) growthRate=min(growthRate,darkMatterHaloScale_%virialRadiusGrowthRate(node)/darkMatterProfileMinimumConcentration)
+       if (concentration >= darkMatterProfileMaximumConcentration) growthRate=max(growthRate,darkMatterHaloScale_%virialRadiusGrowthRate(node)/darkMatterProfileMaximumConcentration)
+       call darkMatterProfile%scaleRate(growthRate)
     end select
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Rate_Compute
@@ -182,19 +182,19 @@ contains
   !# <radiusSolverPlausibility>
   !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Plausibility</unitName>
   !# </radiusSolverPlausibility>
-  subroutine Node_Component_Dark_Matter_Profile_Scale_Plausibility(thisNode,galaxyIsPhysicallyPlausible)
+  subroutine Node_Component_Dark_Matter_Profile_Scale_Plausibility(node,galaxyIsPhysicallyPlausible)
     !% Determines whether the dark matter profile is physically plausible for radius solving tasks.
     implicit none
-    type   (treeNode                      ), intent(inout) :: thisNode
+    type   (treeNode                      ), intent(inout) :: node
     logical                                , intent(inout) :: galaxyIsPhysicallyPlausible
-    class  (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
+    class  (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
 
     ! Get the dark matter profile component.
-    thisDarkMatterProfileComponent => thisNode%darkMatterProfile()
+    darkMatterProfile => node%darkMatterProfile()
     ! Ensure that it is of the scale class.
-    select type (thisDarkMatterProfileComponent)
+    select type (darkMatterProfile)
        class is (nodeComponentDarkMatterProfileScale)
-       if (thisDarkMatterProfileComponent%scale() <= 0.0d0) galaxyIsPhysicallyPlausible=.false.
+       if (darkMatterProfile%scale() <= 0.0d0) galaxyIsPhysicallyPlausible=.false.
     end select
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Plausibility
@@ -203,41 +203,41 @@ contains
   !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Tree_Initialize</unitName>
   !#  <sortName>darkMatterProfile</sortName>
   !# </mergerTreeInitializeTask>
-  subroutine Node_Component_Dark_Matter_Profile_Scale_Tree_Initialize(thisNode)
-    !% Initialize the scale radius of {\normalfont \ttfamily thisNode}.
+  subroutine Node_Component_Dark_Matter_Profile_Scale_Tree_Initialize(node)
+    !% Initialize the scale radius of {\normalfont \ttfamily node}.
     implicit none
-    type            (treeNode                      ), intent(inout), pointer :: thisNode
-    class           (nodeComponentDarkMatterProfile)               , pointer :: parentDarkMatterProfileComponent, thisDarkMatterProfileComponent
-    class           (nodeComponentBasic            )               , pointer :: parentBasicComponent            , thisBasicComponent
-    double precision                                                         :: deltaTime                       , radiusScale
+    type            (treeNode                      ), intent(inout), pointer :: node
+    class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfileParent, darkMatterProfile
+    class           (nodeComponentBasic            )               , pointer :: basicParent            , basic
+    double precision                                                         :: deltaTime              , radiusScale
 
     if (defaultDarkMatterProfileComponent%scaleIsActive()) then
        ! Get the dark matter profile component - creating if if necessary.
-       thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+       darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
        ! Get the scale radius - this will initialize the radius if necessary.
-       radiusScale=thisDarkMatterProfileComponent%scale()
+       radiusScale=darkMatterProfile%scale()
        ! Check if this node is the primary progenitor.
-       if (thisNode%isPrimaryProgenitor()) then
+       if (node%isPrimaryProgenitor()) then
           ! It is, so compute the scale radius growth rate.
           ! Now compute the growth rate.
-          thisBasicComponent   => thisNode       %basic()
-          parentBasicComponent => thisNode%parent%basic()
-          deltaTime=parentBasicComponent%time()-thisBasicComponent%time()
+          basic   => node       %basic()
+          basicParent => node%parent%basic()
+          deltaTime=basicParent%time()-basic%time()
           if (deltaTime > 0.0d0) then
-             parentDarkMatterProfileComponent => thisNode%parent%darkMatterProfile(autoCreate=.true.)
-             call thisDarkMatterProfileComponent%scaleGrowthRateSet(                                           &
-                  &                                                 (                                          &
-                  &                                                   parentDarkMatterProfileComponent%scale() &
-                  &                                                  -thisDarkMatterProfileComponent  %scale() &
-                  &                                                 )                                          &
-                  &                                                 /deltaTime                                 &
+             darkMatterProfileParent => node%parent%darkMatterProfile(autoCreate=.true.)
+             call darkMatterProfile%scaleGrowthRateSet(                                               &
+                  &                                                 (                                 &
+                  &                                                   darkMatterProfileParent%scale() &
+                  &                                                  -darkMatterProfile      %scale() &
+                  &                                                 )                                 &
+                  &                                                 /deltaTime                        &
                   &                                                )
           else
-             call thisDarkMatterProfileComponent%scaleGrowthRateSet(0.0d0)
+             call darkMatterProfile%scaleGrowthRateSet(0.0d0)
           end if
        else
           ! It is not, so set scale radius growth rate to zero.
-          call    thisDarkMatterProfileComponent%scaleGrowthRateSet(0.0d0)
+          call    darkMatterProfile%scaleGrowthRateSet(0.0d0)
        end if
     end if
     return
@@ -246,29 +246,29 @@ contains
   !# <nodePromotionTask>
   !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Promote</unitName>
   !# </nodePromotionTask>
-  subroutine Node_Component_Dark_Matter_Profile_Scale_Promote(thisNode)
-    !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, we simply update the growth rate of {\normalfont \ttfamily thisNode}
+  subroutine Node_Component_Dark_Matter_Profile_Scale_Promote(node)
+    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the growth rate of {\normalfont \ttfamily node}
     !% to be that of its parent.
     use Galacticus_Error
     implicit none
-    type (treeNode                      ), intent(inout), pointer :: thisNode
-    class(nodeComponentDarkMatterProfile)               , pointer :: parentDarkMatterProfileComponent, thisDarkMatterProfileComponent
-    class(nodeComponentBasic            )               , pointer :: parentBasicComponent            , thisBasicComponent
+    type (treeNode                      ), intent(inout), pointer :: node
+    class(nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfileParent, darkMatterProfile
+    class(nodeComponentBasic            )               , pointer :: basicParent            , basic
 
     ! Get the dark matter profile component.
-    thisDarkMatterProfileComponent => thisNode%darkMatterProfile()
+    darkMatterProfile => node%darkMatterProfile()
     ! Ensure it is of the scale class.
-    select type (thisDarkMatterProfileComponent)
+    select type (darkMatterProfile)
        class is (nodeComponentDarkMatterProfileScale)
-       parentDarkMatterProfileComponent => thisNode%parent%darkMatterProfile()
-       thisBasicComponent               => thisNode       %basic            ()
-       parentBasicComponent             => thisNode%parent%basic            ()
-       if (thisBasicComponent%time() /= parentBasicComponent%time()) call Galacticus_Error_Report('Node_Component_Dark_Matter_Profile_Scale_Promote','thisNode&
+       darkMatterProfileParent => node%parent%darkMatterProfile()
+       basic                   => node       %basic            ()
+       basicParent             => node%parent%basic            ()
+       if (basic%time() /= basicParent%time()) call Galacticus_Error_Report('Node_Component_Dark_Matter_Profile_Scale_Promote','node&
             & has not been evolved to its parent')
        ! Adjust the scale radius to that of the parent node.
-       call thisDarkMatterProfileComponent%scaleSet          (parentDarkMatterProfileComponent%scale          ())
+       call darkMatterProfile%scaleSet          (darkMatterProfileParent%scale          ())
        ! Adjust the growth rate to that of the parent node.
-       call thisDarkMatterProfileComponent%scaleGrowthRateSet(parentDarkMatterProfileComponent%scaleGrowthRate())
+       call darkMatterProfile%scaleGrowthRateSet(darkMatterProfileParent%scaleGrowthRate())
     end select
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Promote
@@ -276,19 +276,19 @@ contains
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Scale_Set</unitName>
   !# </scaleSetTask>
-  subroutine Node_Component_Dark_Matter_Profile_Scale_Scale_Set(thisNode)
-    !% Set scales for properties of {\normalfont \ttfamily thisNode}.
+  subroutine Node_Component_Dark_Matter_Profile_Scale_Scale_Set(node)
+    !% Set scales for properties of {\normalfont \ttfamily node}.
     implicit none
-    type (treeNode                      ), intent(inout), pointer :: thisNode
-    class(nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
+    type (treeNode                      ), intent(inout), pointer :: node
+    class(nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
 
     ! Get the dark matter profile component.
-    thisDarkMatterProfileComponent => thisNode%darkMatterProfile()
+    darkMatterProfile => node%darkMatterProfile()
     ! Ensure it is of the scale class.
-    select type (thisDarkMatterProfileComponent)
+    select type (darkMatterProfile)
        class is (nodeComponentDarkMatterProfileScale)
        ! Set scale for the scale radius.
-       call thisDarkMatterProfileComponent%scaleScale(thisDarkMatterProfileComponent%scale())
+       call darkMatterProfile%scaleScale(darkMatterProfile%scale())
     end select
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Scale_Set
@@ -304,26 +304,26 @@ contains
     type            (treeNode                      )              , intent(in   ), pointer :: baseNode
     double precision                                , dimension(:), intent(inout)          :: nodeProperty
     type            (hdf5Object                    )              , intent(inout)          :: treeGroup
-    type            (treeNode                      )                             , pointer :: thisNode
+    type            (treeNode                      )                             , pointer :: node
     integer                                                                                :: nodeCount
-    class           (nodeComponentDarkMatterProfile)                             , pointer :: baseDarkMatterProfileComponent, thisDarkMatterProfileComponent
+    class           (nodeComponentDarkMatterProfile)                             , pointer :: darkMatterProfileBase, darkMatterProfile
     type            (hdf5Object                    )                                       :: nodeDataset
 
     ! Check if scale radius is to be included in merger tree outputs.
     if (mergerTreeStructureOutputDarkMatterProfileScale) then
        ! Get the dark matter profile component.
-       baseDarkMatterProfileComponent => baseNode%darkMatterProfile()
+       darkMatterProfileBase => baseNode%darkMatterProfile()
        ! Ensure it is of the scale class.
-       select type (baseDarkMatterProfileComponent)
+       select type (darkMatterProfileBase)
        class is (nodeComponentDarkMatterProfileScale)
           ! Extract node scale radius and output to file.
           nodeCount=0
-          thisNode => baseNode
-          do while (associated(thisNode))
-             thisDarkMatterProfileComponent => thisNode%darkMatterProfile()
+          node => baseNode
+          do while (associated(node))
+             darkMatterProfile => node%darkMatterProfile()
              nodeCount=nodeCount+1
-             nodeProperty(nodeCount)=thisDarkMatterProfileComponent%scale()
-             thisNode => thisNode%walkTree()
+             nodeProperty(nodeCount)=darkMatterProfile%scale()
+             node => node%walkTree()
           end do
           call treeGroup  %writeDataset  (nodeProperty,'darkMatterScaleRadius','Scale radius of the dark matter profile [Mpc].',datasetReturned=nodeDataset)
           call nodeDataset%writeAttribute(megaParsec,"unitsInSI")

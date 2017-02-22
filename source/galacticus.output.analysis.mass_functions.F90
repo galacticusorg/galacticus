@@ -78,19 +78,19 @@ module Galacticus_Output_Analyses_Mass_Functions
 
   ! Interface for mass mapping functions.
   abstract interface
-     double precision function Map_Mass(mass,thisNode)
+     double precision function Map_Mass(mass,node)
        import treeNode
        double precision          , intent(in   )          :: mass
-       type            (treeNode), intent(inout), pointer :: thisNode
+       type            (treeNode), intent(inout), pointer :: node
      end function Map_Mass
   end interface
 
   ! Interface for mass error functions.
   abstract interface
-     subroutine Mass_Error(mass,thisNode,error,weight)
+     subroutine Mass_Error(mass,node,error,weight)
        import treeNode
        double precision          , intent(in   )                            :: mass
-       type            (treeNode), intent(inout), pointer                   :: thisNode
+       type            (treeNode), intent(inout), pointer                   :: node
        double precision          , intent(inout), allocatable, dimension(:) :: error   , weight
      end subroutine Mass_Error
   end interface
@@ -629,8 +629,8 @@ module Galacticus_Output_Analyses_Mass_Functions
   end type massFunctionWork
 
   ! Work array.
-  type(massFunctionWork), allocatable, dimension(:) :: thisGalaxy
-  !$omp threadprivate(thisGalaxy)
+  type(massFunctionWork), allocatable, dimension(:) :: galaxyWork
+  !$omp threadprivate(galaxyWork)
 
   ! Options controlling binning in halo mass.
   integer                     :: analysisMassFunctionCovarianceModel
@@ -676,7 +676,7 @@ contains
   !# <mergerTreeAnalysisTask>
   !#  <unitName>Galacticus_Output_Analysis_Mass_Functions</unitName>
   !# </mergerTreeAnalysisTask>
-  subroutine Galacticus_Output_Analysis_Mass_Functions(thisTree,thisNode,nodeStatus,iOutput,mergerTreeAnalyses)
+  subroutine Galacticus_Output_Analysis_Mass_Functions(tree,node,nodeStatus,iOutput,mergerTreeAnalyses)
     !% Construct a mass functions to compare to various observational determinations.
     use, intrinsic :: ISO_C_Binding
     use FGSL
@@ -698,12 +698,12 @@ contains
     use Galacticus_Output_Merger_Tree_Data
     use Vectors
     implicit none
-    type            (mergerTree                    ), intent(inout)                 :: thisTree
-    type            (treeNode                      ), intent(inout), pointer        :: thisNode
+    type            (mergerTree                    ), intent(inout)                 :: tree
+    type            (treeNode                      ), intent(inout), pointer        :: node
     integer                                         , intent(in   )                 :: nodeStatus
     integer         (c_size_t                      ), intent(in   )                 :: iOutput
     type            (varying_string                ), intent(in   ), dimension(:  ) :: mergerTreeAnalyses
-    class           (nodeComponentBasic            )               , pointer        :: thisBasic
+    class           (nodeComponentBasic            )               , pointer        :: basic
     double precision                                , allocatable  , dimension(:  ) :: randomError, randomErrorWeight
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
     double precision                                , parameter                     :: massBufferFactor              =100.0d+0 ! Multiplicative buffer size in mass to add below/above observed masses.
@@ -1430,15 +1430,15 @@ contains
     ! Return if this is a tree finalization.
     if (nodeStatus == nodeStatusFinal) return
     ! Allocate work arrays.
-    if (.not.allocated(thisGalaxy)) allocate(thisGalaxy(size(massFunctions)))
+    if (.not.allocated(galaxyWork)) allocate(galaxyWork(size(massFunctions)))
     ! Iterate over active analyses.
     do i=1,size(massFunctions)
        ! Cycle if this mass function receives no contribution from this output number.
        if (all(massFunctions(i)%outputWeight(:,iOutput) <= 0.0d0)) cycle
        ! Allocate workspace.
-       if (.not.allocated(thisGalaxy(i)%massFunction)) then
-          call allocateArray(thisGalaxy(i)%massFunction,[massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount])
-          call allocateArray(thisGalaxy(i)%covariance  ,[                                                                   &
+       if (.not.allocated(galaxyWork(i)%massFunction)) then
+          call allocateArray(galaxyWork(i)%massFunction,[massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount])
+          call allocateArray(galaxyWork(i)%covariance  ,[                                                                   &
                &                                       massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount, &
                &                                       massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount  &
                &                                      ]                                                                   &
@@ -1446,10 +1446,10 @@ contains
        end if
        ! Get the galactic mass.
        mass=                                                                                                                                            &
-            &  Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeDisk    ,massType=massFunctions(i)%descriptor%massType) &
-            & +Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeSpheroid,massType=massFunctions(i)%descriptor%massType)
+            &  Galactic_Structure_Enclosed_Mass(node,radiusLarge,componentType=componentTypeDisk    ,massType=massFunctions(i)%descriptor%massType) &
+            & +Galactic_Structure_Enclosed_Mass(node,radiusLarge,componentType=componentTypeSpheroid,massType=massFunctions(i)%descriptor%massType)
        if (mass <= 0.0d0) cycle
-       if (associated(massFunctions(i)%descriptor%mapMass)) mass=massFunctions(i)%descriptor%mapMass(mass,thisNode)
+       if (associated(massFunctions(i)%descriptor%mapMass)) mass=massFunctions(i)%descriptor%mapMass(mass,node)
        if (mass <= 0.0d0) cycle
        mass=mass*massFunctions(i)%cosmologyConversionMass(iOutput) ! Convert for cosmology.
        massLogarithmic=log10(mass)
@@ -1459,7 +1459,7 @@ contains
        if (massLogarithmic <  massFunctions(i)%descriptor%massLogarithmicMinimum) cycle
        ! Compute contributions to each bin.
        if (associated(massFunctions(i)%descriptor%randomErrorFunction)) then
-          call massFunctions(i)%descriptor%randomErrorFunction(mass,thisNode,randomError,randomErrorWeight)
+          call massFunctions(i)%descriptor%randomErrorFunction(mass,node,randomError,randomErrorWeight)
        else
           allocate(randomError      (1))
           allocate(randomErrorWeight(1))
@@ -1481,10 +1481,10 @@ contains
                &                  )
           randomErrorWeight(1)=1.0d0
        end if
-       thisGalaxy(i)%massFunction=0.0d0
+       galaxyWork(i)%massFunction=0.0d0
        do iError=1,size(randomError)
-          thisGalaxy        (i)%massFunction=                                                                                &
-               & +thisGalaxy(i)%massFunction                                                                                 &
+          galaxyWork        (i)%massFunction=                                                                                &
+               & +galaxyWork(i)%massFunction                                                                                 &
                & +randomErrorWeight(iError)                                                                                  &
                & *(                                                                                                          &
                &   +erf((massFunctions(i)%massesLogarithmicMaximumBuffered-massLogarithmic)/randomError(iError)/sqrt(2.0d0)) &
@@ -1494,57 +1494,57 @@ contains
        deallocate(randomError      )
        deallocate(randomErrorWeight)
        ! Check for empty mass function.
-       if (all(thisGalaxy(i)%massFunction == 0.0d0)) cycle
+       if (all(galaxyWork(i)%massFunction == 0.0d0)) cycle
        ! Perform cosmology conversion and incompleteness correction.
-       thisGalaxy        (i)%massFunction=                                          &
-            & +thisGalaxy(i)%massFunction                                           &
+       galaxyWork        (i)%massFunction=                                          &
+            & +galaxyWork(i)%massFunction                                           &
             & /2.0d0                                                                &
-            & *thisTree%volumeWeight                                                &
+            & *tree%volumeWeight                                                &
             & *massFunctions(i)           %cosmologyConversionMassFunction(iOutput) &
             & *massFunctions(i)%descriptor%incompleteness%completeness    (mass   )
        ! Convolve the galaxy's contribution to the mass function with the gravitational lensing
        ! transfer matrix.
        if (analysisMassFunctionsApplyGravitationalLensing)                                                                                     &
-            & thisGalaxy(i)%massFunction(massFunctions(i)%massesBufferCount+1:massFunctions(i)%massesBufferCount+massFunctions(i)%massesCount) &
-            &  =matmul(thisGalaxy(i)%massFunction,massFunctions(i)%lensingTransfer(:,:,iOutput))
+            & galaxyWork(i)%massFunction(massFunctions(i)%massesBufferCount+1:massFunctions(i)%massesBufferCount+massFunctions(i)%massesCount) &
+            &  =matmul(galaxyWork(i)%massFunction,massFunctions(i)%lensingTransfer(:,:,iOutput))
        ! Apply output weights.
-       thisGalaxy           (i)%massFunction(massFunctions(i)%massesBufferCount+1:massFunctions(i)%massesBufferCount+massFunctions(i)%massesCount        ) &
-            & =thisGalaxy   (i)%massFunction(massFunctions(i)%massesBufferCount+1:massFunctions(i)%massesBufferCount+massFunctions(i)%massesCount        ) &
+       galaxyWork           (i)%massFunction(massFunctions(i)%massesBufferCount+1:massFunctions(i)%massesBufferCount+massFunctions(i)%massesCount        ) &
+            & =galaxyWork   (i)%massFunction(massFunctions(i)%massesBufferCount+1:massFunctions(i)%massesBufferCount+massFunctions(i)%massesCount        ) &
             & *massFunctions(i)%outputWeight(                                    :                                                               ,iOutput)     
        ! Accumulate mass function.
        !$omp critical (Galacticus_Output_Analysis_Mass_Functions_Accumulate)
        massFunctions(i)%massFunction                                                                                                                       &
             & =massFunctions(i)%massFunction                                                                                                               &
-            & +thisGalaxy   (i)%massFunction(massFunctions(i)%massesBufferCount+1:massFunctions(i)%massesBufferCount+massFunctions(i)%massesCount)
+            & +galaxyWork   (i)%massFunction(massFunctions(i)%massesBufferCount+1:massFunctions(i)%massesBufferCount+massFunctions(i)%massesCount)
        !$omp end critical (Galacticus_Output_Analysis_Mass_Functions_Accumulate)
        ! Treat main branch and other galaxies differently.
-       if (thisNode%isOnMainBranch().and.analysisMassFunctionCovarianceModel == analysisMassFunctionCovarianceModelBinomial) then
+       if (node%isOnMainBranch().and.analysisMassFunctionCovarianceModel == analysisMassFunctionCovarianceModelBinomial) then
           ! Find the bin to which this halo mass belongs.
-          thisBasic => thisNode%basic()
-          haloMassBin=floor((log10(thisBasic%mass())-analysisMassFunctionsHaloMassMinimumLogarithmic)*analysisMassFunctionsHaloMassIntervalLogarithmicInverse)+1
+          basic => node%basic()
+          haloMassBin=floor((log10(basic%mass())-analysisMassFunctionsHaloMassMinimumLogarithmic)*analysisMassFunctionsHaloMassIntervalLogarithmicInverse)+1
           ! Accumulate weights to halo mass arrays.
           if (haloMassBin >= 1 .and. haloMassBin <= analysisMassFunctionsHaloMassBinsCount) then
              !$omp critical (Galacticus_Output_Analysis_Mass_Functions_Accumulate)
              massFunctions        (i)%mainBranchGalaxyWeights       (:,haloMassBin)= &
                   &  massFunctions(i)%mainBranchGalaxyWeights       (:,haloMassBin)  &
-                  &  +thisGalaxy  (i)%massFunction(massFunctions(i)%massesBufferCount+1:massFunctions(i)%massesBufferCount+massFunctions(i)%massesCount)
+                  &  +galaxyWork  (i)%massFunction(massFunctions(i)%massesBufferCount+1:massFunctions(i)%massesBufferCount+massFunctions(i)%massesCount)
              massFunctions        (i)%mainBranchGalaxyWeightsSquared(:,haloMassBin)= &
                   &  massFunctions(i)%mainBranchGalaxyWeightsSquared(:,haloMassBin)  &
-                  &  +thisGalaxy  (i)%massFunction(massFunctions(i)%massesBufferCount+1:massFunctions(i)%massesBufferCount+massFunctions(i)%massesCount)**2
+                  &  +galaxyWork  (i)%massFunction(massFunctions(i)%massesBufferCount+1:massFunctions(i)%massesBufferCount+massFunctions(i)%massesCount)**2
              !$omp end critical (Galacticus_Output_Analysis_Mass_Functions_Accumulate)
           end if
        else
           forall(j=1:massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount)
              forall(k=j:massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount)
-                thisGalaxy(i)%covariance(j,k)=thisGalaxy(i)%massFunction(j)*thisGalaxy(i)%massFunction(k)
-                thisGalaxy(i)%covariance(k,j)=thisGalaxy(i)%covariance(j,k)
+                galaxyWork(i)%covariance(j,k)=galaxyWork(i)%massFunction(j)*galaxyWork(i)%massFunction(k)
+                galaxyWork(i)%covariance(k,j)=galaxyWork(i)%covariance(j,k)
              end forall
           end forall
           ! Accumulate covariance.
           !$omp critical (Galacticus_Output_Analysis_Mass_Functions_Accumulate)
           massFunctions        (i)%massFunctionCovariance                                                                                           &
                & =massFunctions(i)%massFunctionCovariance                                                                                           &
-               & +thisGalaxy   (i)%covariance(                                                                                                      &
+               & +galaxyWork   (i)%covariance(                                                                                                      &
                &                              massFunctions(i)%massesBufferCount+1:massFunctions(i)%massesBufferCount+massFunctions(i)%massesCount, &
                &                              massFunctions(i)%massesBufferCount+1:massFunctions(i)%massesBufferCount+massFunctions(i)%massesCount  &
                &                             )
@@ -1594,7 +1594,7 @@ contains
     use Numerical_Constants_Astronomical
     implicit none
     integer                      :: i,j,k,m
-    type            (hdf5Object) :: analysisGroup,massFunctionGroup,thisDataset
+    type            (hdf5Object) :: analysisGroup,massFunctionGroup,dataset
     double precision             :: haloWeightBinTotal
 
     ! Return immediately if this analysis is not active.
@@ -1662,15 +1662,15 @@ contains
        !$omp critical(HDF5_Access)
        analysisGroup    =galacticusOutputFile%openGroup('analysis','Model analysis')
        massFunctionGroup=analysisGroup       %openGroup(trim(massFunctions(k)%descriptor%label),trim(massFunctions(k)%descriptor%comment))
-       call massFunctionGroup%writeDataset  (massFunctions(k)%masses                ,'mass'                  ,'Mass'             ,datasetReturned=thisDataset)
-       call thisDataset      %writeAttribute(massSolar             ,'unitsInSI'                                                                            )
-       call thisDataset      %close()
-       call massFunctionGroup%writeDataset  (massFunctions(k)%massFunction          ,'massFunction'          ,'Mass function'           ,datasetReturned=thisDataset)
-       call thisDataset      %writeAttribute(1.0d0/megaParsec**3   ,'unitsInSI'                                                                            )
-       call thisDataset      %close()
-       call massFunctionGroup%writeDataset  (massFunctions(k)%massFunctionCovariance,'massFunctionCovariance','Mass function covariance',datasetReturned=thisDataset)
-       call thisDataset      %writeAttribute(1.0d0/megaParsec**6   ,'unitsInSI'                                                                            )
-       call thisDataset      %close()
+       call massFunctionGroup%writeDataset  (massFunctions(k)%masses                ,'mass'                  ,'Mass'                    ,datasetReturned=dataset)
+       call dataset          %writeAttribute(massSolar             ,'unitsInSI'                                                                                 )
+       call dataset          %close()
+       call massFunctionGroup%writeDataset  (massFunctions(k)%massFunction          ,'massFunction'          ,'Mass function'           ,datasetReturned=dataset)
+       call dataset          %writeAttribute(1.0d0/megaParsec**3   ,'unitsInSI'                                                                                 )
+       call dataset          %close()
+       call massFunctionGroup%writeDataset  (massFunctions(k)%massFunctionCovariance,'massFunctionCovariance','Mass function covariance',datasetReturned=dataset)
+       call dataset          %writeAttribute(1.0d0/megaParsec**6   ,'unitsInSI'                                                                                 )
+       call dataset          %close()
        call massFunctionGroup%close()
        call analysisGroup    %close()
        !$omp end critical(HDF5_Access)
@@ -1678,12 +1678,12 @@ contains
     return
   end subroutine Galacticus_Output_Analysis_Mass_Functions_Output
 
-  double precision function Map_Mass_SDSS_Stellar_Mass_Function_Z0_07(mass,thisNode)
+  double precision function Map_Mass_SDSS_Stellar_Mass_Function_Z0_07(mass,node)
     !% Account for systematics in SDSS photometry for high-mass galaxies.
     use Input_Parameters
     implicit none                                                                                 
     double precision          , intent(in   )          :: mass
-    type            (treeNode), intent(inout), pointer :: thisNode
+    type            (treeNode), intent(inout), pointer :: node
     logical                   , save                   :: sdssStellarMassFunctionHighMassInitialized      =.false.
     double precision          , save                   :: sdssStellarMassFunctionHighMassTransitionLogMass        , &
          &                                                sdssStellarMassFunctionHighMassTransitionWidth          , &
@@ -1692,7 +1692,7 @@ contains
     double precision          , parameter              :: exponentialArgumentMaximum                      =100.0d0
     double precision                                   :: massLogarithmic                                         , &
          &                                                exponentialArgument
-    !GCC$ attributes unused :: thisNode
+    !GCC$ attributes unused :: node
     
     if (.not.sdssStellarMassFunctionHighMassInitialized) then
        !$omp critical(Map_Mass_SDSS_Stellar_Mass_Function_Z0_07_Initialize)
@@ -1922,11 +1922,11 @@ contains
     return
   end subroutine ALFALFA_HI_Mass_Function_Z0_00_Initialize
 
-  subroutine Mass_Error_ALFALFA_HI_Mass_Function_Z0_00(mass,thisNode,error,weight)
+  subroutine Mass_Error_ALFALFA_HI_Mass_Function_Z0_00(mass,node,error,weight)
     !% Computes errors on $\log_{10}($HI masses$)$ for the ALFALFA survey analysis. Uses a simple fitting function. See {\tt
     !% constraints/dataAnalysis/hiMassFunction\_ALFALFA\_z0.00/alfalfaHIMassErrorModel.pl} for details.
     double precision          , intent(in   )                            :: mass
-    type            (treeNode), intent(inout), pointer                   :: thisNode
+    type            (treeNode), intent(inout), pointer                   :: node
     double precision          , intent(inout), allocatable, dimension(:) :: error          , weight
     double precision                                                     :: logarithmicMass, molecularFraction  , &
          &                                                                  exponentialTerm, exponentialArgument
@@ -1954,7 +1954,7 @@ contains
          &   +exponentialTerm                  &
          &  ]
     ! Add in quadrature a term accounting for the scatter in the molecular ratio model.
-    molecularFraction=Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00(mass,thisNode)
+    molecularFraction=Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00(mass,node)
     error  =[                                                              &
          &   sqrt(                                                         &
          &        +error                                               **2 &
@@ -1972,37 +1972,37 @@ contains
     return
   end subroutine Mass_Error_ALFALFA_HI_Mass_Function_Z0_00
 
-  double precision function Map_Mass_ALFALFA_HI_Mass_Function_Z0_00(mass,thisNode)
+  double precision function Map_Mass_ALFALFA_HI_Mass_Function_Z0_00(mass,node)
     !% Maps gas masses into HI masses for the ALFALFA survey analysis.
     use Numerical_Constants_Astronomical
     implicit none                                                                                 
     double precision          , intent(in   )          :: mass
-    type            (treeNode), intent(inout), pointer :: thisNode
+    type            (treeNode), intent(inout), pointer :: node
     double precision                                   :: molecularRatio
 
     ! Compute the HI mass.
-    molecularRatio=Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00(mass,thisNode)
+    molecularRatio=Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00(mass,node)
     Map_Mass_ALFALFA_HI_Mass_Function_Z0_00=hydrogenByMassPrimordial*mass/(1.0d0+molecularRatio)
     return
   end function Map_Mass_ALFALFA_HI_Mass_Function_Z0_00
 
-  double precision function Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00(mass,thisNode)
+  double precision function Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00(mass,node)
     !% Compute the molecular ratio, $R_{\mathrm mol}=M_{\mathrm H_2}/M_{\mathrm HI}$ for the ALFALFA survey analysis. Assumes the model of
     !% \cite{obreschkow_simulation_2009}.
     use Numerical_Constants_Astronomical
     implicit none
     double precision                   , intent(in   )          :: mass
-    type            (treeNode         ), intent(inout), pointer :: thisNode
-    class           (nodeComponentDisk)               , pointer :: thisDisk
+    type            (treeNode         ), intent(inout), pointer :: node
+    class           (nodeComponentDisk)               , pointer :: disk
     double precision                                            :: massStellar, molecularRatioCentral, &
          &                                                         diskRadius
 
     ! Initialize the mass function.
     call ALFALFA_HI_Mass_Function_Z0_00_Initialize()
     ! Get disk properties.
-    thisDisk    => thisNode%disk       ()
-    massStellar =  thisDisk%massStellar()
-    diskRadius  =  thisDisk%radius     ()
+    disk        => node%disk       ()
+    massStellar =  disk%massStellar()
+    diskRadius  =  disk%radius     ()
     ! Get the molecular to atomic mass ratio (H2/HI).
     if (diskRadius <= 0.0d0 .or. massStellar < 0.0d0) then
        Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00=1.0d0
@@ -2036,17 +2036,17 @@ contains
     return
   end function Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00
 
-  subroutine Mass_Error_PRIMUS_Stellar_Mass_Function(mass,thisNode,error,weight)
+  subroutine Mass_Error_PRIMUS_Stellar_Mass_Function(mass,node,error,weight)
     !% Computes errors on $\log_{10}($HI masses$)$ for the PRIMUS survey analysis. Uses a simple fitting function. See {\tt
     !% constraints/dataAnalysis/stellarMassFunctions\_PRIMUS\_z0\_1/massErrors.pl} for details.
     use Cosmology_Functions
     use Geometry_Surveys
     use Memory_Management
     double precision                                   , intent(in   )                            :: mass
-    type            (treeNode                         ), intent(inout), pointer                   :: thisNode
+    type            (treeNode                         ), intent(inout), pointer                   :: node
     double precision                                   , intent(inout), allocatable, dimension(:) :: error                  , weight
     class           (cosmologyFunctionsClass          )               , pointer                   :: cosmologyFunctions_
-    class           (nodeComponentBasic               )               , pointer                   :: thisBasic
+    class           (nodeComponentBasic               )               , pointer                   :: basic
     double precision                                   , save         , allocatable, dimension(:) :: fieldWeight
     logical                                            , save                                     :: weightsComputed=.false.
     type            (surveyGeometryMoustakas2013PRIMUS)                                           :: primusGeometry
@@ -2073,12 +2073,12 @@ contains
     logMass=log10(mass)
     ! Get the redshift.
     cosmologyFunctions_ => cosmologyFunctions()
-    thisBasic           => thisNode%basic    ()
-    redshift=                                                                 &
-         & cosmologyFunctions_ %redshiftFromExpansionFactor(                  &
-         &  cosmologyFunctions_%expansionFactor             (                 &
-         &                                                   thisBasic%time() &
-         &                                                  )                 &
+    basic           => node%basic    ()
+    redshift=                                                             &
+         & cosmologyFunctions_ %redshiftFromExpansionFactor(              &
+         &  cosmologyFunctions_%expansionFactor             (             &
+         &                                                   basic%time() &
+         &                                                  )             &
          &                                                 )
     ! Construct the error.
     allocate(error(size(fieldWeight)))
@@ -2125,7 +2125,7 @@ contains
     return
   end subroutine Mass_Error_PRIMUS_Stellar_Mass_Function
 
-  subroutine Load_Standard_Mass_Function(massFunctionFileName,thisMassFunction,cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+  subroutine Load_Standard_Mass_Function(massFunctionFileName,massFunction_,cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
     !% Load the specified standard-format mass function from file.
     use ISO_Varying_String
     use Galacticus_Error
@@ -2136,7 +2136,7 @@ contains
     use IO_HDF5
     implicit none
     character       (len=*                         ), intent(in   )               :: massFunctionFileName
-    type            (massFunction                  ), intent(inout)               :: thisMassFunction
+    type            (massFunction                  ), intent(inout)               :: massFunction_
     type            (cosmologyFunctionsMatterLambda), intent(inout)               :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     ), intent(inout)               :: cosmologyParametersObserved
     type            (varying_string                ), intent(  out)               :: cosmologyScalingMass              , cosmologyScalingMassFunction
@@ -2153,7 +2153,7 @@ contains
 
     !$omp critical(HDF5_Access)
     call dataFile%openFile(char(Galacticus_Input_Path()//'/'//massFunctionFileName),readOnly=.true.)
-    call dataFile   %readDataset  ('mass'          ,thisMassFunction%masses)
+    call dataFile   %readDataset  ('mass'          ,massFunction_%masses)
     massDataset=dataFile%openDataset('mass'        )
     call massDataset%readAttribute('cosmologyScaling',cosmologyScalingMass               ,allowPseudoScalar=.true.)
     call massDataset%close()
@@ -2194,36 +2194,36 @@ contains
        dataOmegaDarkEnergyPrevious=dataOmegaDarkEnergy
     end if
     ! Construct mass function array.
-    thisMassFunction%massesCount=size(thisMassFunction%masses)
-    call allocateArray(thisMassFunction%massesLogarithmic             ,[thisMassFunction%massesCount                                       ])
-    call allocateArray(thisMassFunction%massesLogarithmicMinimum      ,[thisMassFunction%massesCount                                       ])
-    call allocateArray(thisMassFunction%massesLogarithmicMaximum      ,[thisMassFunction%massesCount                                       ])
-    call allocateArray(thisMassFunction%massFunction                  ,[thisMassFunction%massesCount                                       ])
-    call allocateArray(thisMassFunction%massFunctionCovariance        ,[thisMassFunction%massesCount,thisMassFunction%massesCount          ])
-    call allocateArray(thisMassFunction%mainBranchGalaxyWeights       ,[thisMassFunction%massesCount,analysisMassFunctionsHaloMassBinsCount])
-    call allocateArray(thisMassFunction%mainBranchGalaxyWeightsSquared,[thisMassFunction%massesCount,analysisMassFunctionsHaloMassBinsCount])
-    thisMassFunction%massesLogarithmic             =log10(thisMassFunction%masses)
-    thisMassFunction%massFunction                  =0.0d0
-    thisMassFunction%massFunctionCovariance        =0.0d0
-    thisMassFunction%mainBranchGalaxyWeights       =0.0d0
-    thisMassFunction%mainBranchGalaxyWeightsSquared=0.0d0
-    do k=1,thisMassFunction%massesCount
+    massFunction_%massesCount=size(massFunction_%masses)
+    call allocateArray(massFunction_%massesLogarithmic             ,[massFunction_%massesCount                                       ])
+    call allocateArray(massFunction_%massesLogarithmicMinimum      ,[massFunction_%massesCount                                       ])
+    call allocateArray(massFunction_%massesLogarithmicMaximum      ,[massFunction_%massesCount                                       ])
+    call allocateArray(massFunction_%massFunction                  ,[massFunction_%massesCount                                       ])
+    call allocateArray(massFunction_%massFunctionCovariance        ,[massFunction_%massesCount,massFunction_%massesCount          ])
+    call allocateArray(massFunction_%mainBranchGalaxyWeights       ,[massFunction_%massesCount,analysisMassFunctionsHaloMassBinsCount])
+    call allocateArray(massFunction_%mainBranchGalaxyWeightsSquared,[massFunction_%massesCount,analysisMassFunctionsHaloMassBinsCount])
+    massFunction_%massesLogarithmic             =log10(massFunction_%masses)
+    massFunction_%massFunction                  =0.0d0
+    massFunction_%massFunctionCovariance        =0.0d0
+    massFunction_%mainBranchGalaxyWeights       =0.0d0
+    massFunction_%mainBranchGalaxyWeightsSquared=0.0d0
+    do k=1,massFunction_%massesCount
        if (massBinWidthsAvailable) then
           ! Bin widths were explicitly specified in the file - use them to construct bin minimum and maximum masses.
-          thisMassFunction%massesLogarithmicMinimum(k)=thisMassFunction%massesLogarithmic(k)-0.5d0*log10(massBinWidths(k))
-          thisMassFunction%massesLogarithmicMaximum(k)=thisMassFunction%massesLogarithmic(k)+0.5d0*log10(massBinWidths(k))
+          massFunction_%massesLogarithmicMinimum(k)=massFunction_%massesLogarithmic(k)-0.5d0*log10(massBinWidths(k))
+          massFunction_%massesLogarithmicMaximum(k)=massFunction_%massesLogarithmic(k)+0.5d0*log10(massBinWidths(k))
        else
           ! Bin widths were not explicitly specified in the file - assume bin boundaries at means of adjacent bin centers
           ! (logarithmically), and extrapolate boundaries of initial and final bins.
           if (k ==                            1) then
-             thisMassFunction%massesLogarithmicMinimum(k)=thisMassFunction%massesLogarithmic(k)-0.5d0*(thisMassFunction%massesLogarithmic(k+1)-thisMassFunction%massesLogarithmic(k  ))
+             massFunction_%massesLogarithmicMinimum(k)=massFunction_%massesLogarithmic(k)-0.5d0*(massFunction_%massesLogarithmic(k+1)-massFunction_%massesLogarithmic(k  ))
           else
-             thisMassFunction%massesLogarithmicMinimum(k)=                                     +0.5d0*(thisMassFunction%massesLogarithmic(k-1)+thisMassFunction%massesLogarithmic(k  ))
+             massFunction_%massesLogarithmicMinimum(k)=                                  +0.5d0*(massFunction_%massesLogarithmic(k-1)+massFunction_%massesLogarithmic(k  ))
           end if
-          if (k == thisMassFunction%massesCount) then
-             thisMassFunction%massesLogarithmicMaximum(k)=thisMassFunction%massesLogarithmic(k)+0.5d0*(thisMassFunction%massesLogarithmic(k  )-thisMassFunction%massesLogarithmic(k-1))
+          if (k == massFunction_%massesCount) then
+             massFunction_%massesLogarithmicMaximum(k)=massFunction_%massesLogarithmic(k)+0.5d0*(massFunction_%massesLogarithmic(k  )-massFunction_%massesLogarithmic(k-1))
           else
-             thisMassFunction%massesLogarithmicMaximum(k)=                                     +0.5d0*(thisMassFunction%massesLogarithmic(k+1)+thisMassFunction%massesLogarithmic(k  ))
+             massFunction_%massesLogarithmicMaximum(k)=                                  +0.5d0*(massFunction_%massesLogarithmic(k+1)+massFunction_%massesLogarithmic(k  ))
           end if
        end if
     end do

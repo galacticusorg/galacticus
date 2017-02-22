@@ -95,25 +95,25 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Formation_Time_Cole2000_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Formation_Time_Cole2000_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure)
+  subroutine Node_Component_Formation_Time_Cole2000_Rate_Compute(node,odeConverged,interrupt,interruptProcedure)
     !% Check for need to update the formation time of a node in the {\normalfont \ttfamily Cole2000} formation time component.
     implicit none
-    type     (treeNode                                              ), intent(inout), pointer :: thisNode
-    logical                                                          , intent(in   )          :: odeConverged
-    logical                                                          , intent(inout)          :: interrupt
-    procedure(interruptTask                          ), intent(inout), pointer :: interruptProcedure
-    class    (nodeComponentFormationTime                            )               , pointer :: thisFormationTimeComponent
-    class    (nodeComponentBasic                                    )               , pointer :: formationBasicComponent   , thisBasicComponent
+    type     (treeNode                   ), intent(inout), pointer :: node
+    logical                               , intent(in   )          :: odeConverged
+    logical                               , intent(inout)          :: interrupt
+    procedure(interruptTask              ), intent(inout), pointer :: interruptProcedure
+    class    (nodeComponentFormationTime )               , pointer :: formationTime
+    class    (nodeComponentBasic         )               , pointer :: basicFormation    , basic
     !GCC$ attributes unused :: odeConverged
     
     ! Get the hot halo component.
-    thisFormationTimeComponent => thisNode%formationTime()
+    formationTime => node%formationTime()
     if (defaultFormationTimeComponent%cole2000IsActive()) then
        ! Check if the halo has grown sufficiently in mass to trigger a new formation event.
        if (.not.haloReformationOnPromotionOnly) then
-          thisBasicComponent      => thisNode              %basic()
-          formationBasicComponent => thisNode%formationNode%basic()
-          if (thisBasicComponent%mass() > haloReformationMassFactor*formationBasicComponent%mass()) then
+          basic      => node              %basic()
+          basicFormation => node%formationNode%basic()
+          if (basic%mass() > haloReformationMassFactor*basicFormation%mass()) then
              interrupt=.true.
              interruptProcedure => Node_Component_Formation_Time_Cole2000_Create
              return
@@ -127,70 +127,70 @@ contains
   !#  <unitName>Node_Component_Formation_Time_Cole2000_Node_Promotion</unitName>
   !#  <after>re:Node_Component_Hot_Halo_.*_Promote</after>
   !# </nodePromotionTask>
-  subroutine Node_Component_Formation_Time_Cole2000_Node_Promotion(thisNode)
+  subroutine Node_Component_Formation_Time_Cole2000_Node_Promotion(node)
     implicit none
-    type (treeNode                  ), intent(inout), pointer :: thisNode
-    class(nodeComponentFormationTime)               , pointer :: thisFormationTimeComponent
-    class(nodeComponentBasic        )               , pointer :: formationBasicComponent   , parentBasicComponent
+    type (treeNode                  ), intent(inout), pointer :: node
+    class(nodeComponentFormationTime)               , pointer :: formationTime
+    class(nodeComponentBasic        )               , pointer :: basicFormation, basicParent
 
     ! Get the formation time component.
-    thisFormationTimeComponent => thisNode%formationTime()
+    formationTime => node%formationTime()
     ! Ensure that it is of specified class.
-    select type (thisFormationTimeComponent)
+    select type (formationTime)
     class is (nodeComponentFormationTimeCole2000)
        if (haloReformationOnPromotionOnly) then
-          parentBasicComponent    => thisNode%parent       %basic()
-          formationBasicComponent => thisNode%formationnode%basic()
-          if (parentBasicComponent%mass() > haloReformationMassFactor*formationBasicComponent%mass()) &
-               & call Node_Component_Formation_Time_Cole2000_Create(thisNode)
+          basicParent    => node%parent       %basic()
+          basicFormation => node%formationNode%basic()
+          if (basicParent%mass() > haloReformationMassFactor*basicFormation%mass()) &
+               & call Node_Component_Formation_Time_Cole2000_Create(node)
        end if
     end select
     return
   end subroutine Node_Component_Formation_Time_Cole2000_Node_Promotion
 
-  subroutine Node_Component_Formation_Time_Cole2000_Create(thisNode)
-    !% Creates a halo formation time component for {\normalfont \ttfamily thisNode}. This function is also used to ``reform'' the halo, since it
+  subroutine Node_Component_Formation_Time_Cole2000_Create(node)
+    !% Creates a halo formation time component for {\normalfont \ttfamily node}. This function is also used to ``reform'' the halo, since it
     !% simply resets the formation time and mass to the current values.
     use Events_Halo_Formation
     implicit none
-    type (treeNode                  ), intent(inout), pointer :: thisNode
-    class(nodeComponentFormationTime)               , pointer :: thisFormationTimeComponent
+    type (treeNode                  ), intent(inout), pointer :: node
+    class(nodeComponentFormationTime)               , pointer :: formationTime
 
     ! Ensure that this module has been initialized.
     call Node_Component_Formation_Times_Cole2000_Initialize()
 
     ! Trigger a halo formation event.
-    call Event_Halo_Formation(thisNode)
+    call Event_Halo_Formation(node)
 
     ! Create the component.
-    thisFormationTimeComponent => thisNode%formationTime(autoCreate=.true.)
+    formationTime => node%formationTime(autoCreate=.true.)
     ! Make a copy of the formation node, and decouple it from the tree, using the parentNode pointer to point to the node of which
     ! it is the formation node.
-    if (associated(thisNode%formationNode)) call thisNode%formationNode%destroy()
-    allocate(thisNode%formationNode)
-    call thisNode%copyNodeTo(thisNode%formationNode,skipFormationNode=.true.)
-    thisNode%formationNode%parent         => thisNode
-    thisNode%formationNode%firstChild     => null()
-    thisNode%formationNode%sibling        => null()
-    thisNode%formationNode%firstSatellite => null()
-    thisNode%formationNode%firstMergee    => null()
-    thisNode%formationNode%mergeTarget    => null()
-    thisNode%formationNode%siblingMergee  => null()
-    thisNode%formationNode%formationNode  => null()
+    if (associated(node%formationNode)) call node%formationNode%destroy()
+    allocate(node%formationNode)
+    call node%copyNodeTo(node%formationNode,skipFormationNode=.true.)
+    node%formationNode%parent         => node
+    node%formationNode%firstChild     => null()
+    node%formationNode%sibling        => null()
+    node%formationNode%firstSatellite => null()
+    node%formationNode%firstMergee    => null()
+    node%formationNode%mergeTarget    => null()
+    node%formationNode%siblingMergee  => null()
+    node%formationNode%formationNode  => null()
     return
   end subroutine Node_Component_Formation_Time_Cole2000_Create
 
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Formation_Time_Cole2000_Tree_Initialize</unitName>
   !# </mergerTreeInitializeTask>
-  subroutine Node_Component_Formation_Time_Cole2000_Tree_Initialize(thisNode)
+  subroutine Node_Component_Formation_Time_Cole2000_Tree_Initialize(node)
     !% Initialize the formation node pointer for any childless node.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout), pointer :: node
 
     ! If this method is selected and the node has no child then initialize it.
-    if (defaultFormationTimeComponent%cole2000IsActive().and..not.associated(thisNode%firstChild)) &
-         & call Node_Component_Formation_Time_Cole2000_Create(thisNode)
+    if (defaultFormationTimeComponent%cole2000IsActive().and..not.associated(node%firstChild)) &
+         & call Node_Component_Formation_Time_Cole2000_Create(node)
 
     return
   end subroutine Node_Component_Formation_Time_Cole2000_Tree_Initialize

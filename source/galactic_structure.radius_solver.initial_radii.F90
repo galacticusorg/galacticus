@@ -91,30 +91,30 @@ contains
     return
   end subroutine Galactic_Structure_Radius_Initial_Initialize
 
-  double precision function Galactic_Structure_Radius_Initial(thisNode,radius)
-    !% Find the initial radius in the dark matter halo of {\normalfont \ttfamily thisNode} corresponding to the given final {\normalfont \ttfamily radius}.
+  double precision function Galactic_Structure_Radius_Initial(node,radius)
+    !% Find the initial radius in the dark matter halo of {\normalfont \ttfamily node} corresponding to the given final {\normalfont \ttfamily radius}.
     implicit none
-    type            (treeNode), intent(inout) :: thisNode
+    type            (treeNode), intent(inout) :: node
     double precision          , intent(in   ) :: radius
 
     ! Ensure that the module is initialized.
     call Galactic_Structure_Radius_Initial_Initialize()
     ! Get the initial radius.
-    Galactic_Structure_Radius_Initial=Galactic_Structure_Radius_Initial_Get(thisNode,radius)
+    Galactic_Structure_Radius_Initial=Galactic_Structure_Radius_Initial_Get(node,radius)
     return
   end function Galactic_Structure_Radius_Initial
 
-  double precision function Galactic_Structure_Radius_Initial_Derivative(thisNode,radius)
-    !% Find the derivative of the initial radius in the dark matter halo of {\normalfont \ttfamily thisNode} with respect to the final radius
+  double precision function Galactic_Structure_Radius_Initial_Derivative(node,radius)
+    !% Find the derivative of the initial radius in the dark matter halo of {\normalfont \ttfamily node} with respect to the final radius
     !% corresponding to the given final {\normalfont \ttfamily radius}.
     implicit none
-    type            (treeNode), intent(inout) :: thisNode
+    type            (treeNode), intent(inout) :: node
     double precision          , intent(in   ) :: radius
 
     ! Ensure that the module is initialized.
     call Galactic_Structure_Radius_Initial_Initialize()
     ! Get the initial radius.
-    Galactic_Structure_Radius_Initial_Derivative=Galactic_Structure_Radius_Initial_Derivative_Get(thisNode,radius)
+    Galactic_Structure_Radius_Initial_Derivative=Galactic_Structure_Radius_Initial_Derivative_Get(node,radius)
     return
   end function Galactic_Structure_Radius_Initial_Derivative
 

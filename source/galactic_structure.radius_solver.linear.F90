@@ -43,12 +43,12 @@ contains
     return
   end subroutine Galactic_Structure_Radii_Linear_Initialize
 
-  subroutine Galactic_Structure_Radii_Solve_Linear(thisNode)
-    !% Find the radii of galactic components in {\normalfont \ttfamily thisNode} using the ``linear'' method.
+  subroutine Galactic_Structure_Radii_Solve_Linear(node)
+    !% Find the radii of galactic components in {\normalfont \ttfamily node} using the ``linear'' method.
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
-    type            (treeNode                  ), intent(inout), target  :: thisNode
+    type            (treeNode                  ), intent(inout), target  :: node
     procedure       (Radius_Solver_Get_Template)               , pointer :: Radius_Get             =>null(), Velocity_Get=>null()
     procedure       (Radius_Solver_Set_Template)               , pointer :: Radius_Set             =>null(), Velocity_Set=>null()
     !$omp threadprivate(Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
@@ -57,18 +57,18 @@ contains
     double precision                                                     :: specificAngularMomentum
 
     ! Check that the galaxy is physical plausible. In this linear solver, we don't act on this.
-    thisNode%isPhysicallyPlausible=.true.
+    node%isPhysicallyPlausible=.true.
     include 'galactic_structure.radius_solver.plausible.inc'
     include 'galactic_structure.radius_solver.tasks.inc'
 
     return
   end subroutine Galactic_Structure_Radii_Solve_Linear
 
-  subroutine Solve_For_Radius(thisNode,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
+  subroutine Solve_For_Radius(node,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
     !% Solve for the equilibrium radius of the given component.
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode                  ), intent(inout), target  :: thisNode
+    type            (treeNode                  ), intent(inout), target  :: node
     double precision                            , intent(in   )          :: specificAngularMomentum
     procedure       (Radius_Solver_Get_Template), intent(in   ), pointer :: Radius_Get             , Velocity_Get
     procedure       (Radius_Solver_Set_Template), intent(in   ), pointer :: Radius_Set             , Velocity_Set
@@ -81,12 +81,12 @@ contains
 
     ! Find the radius of the component, assuming radius scales linearly with angular momentum.
     darkMatterHaloScale_ => darkMatterHaloScale()
-    velocity=darkMatterHaloScale_%virialVelocity(thisNode)
+    velocity=darkMatterHaloScale_%virialVelocity(node)
     radius  =specificAngularMomentum/velocity
 
     ! Set the component size to new radius and velocity.
-    call Radius_Set  (thisNode,radius  )
-    call Velocity_Set(thisNode,velocity)
+    call Radius_Set  (node,radius  )
+    call Velocity_Set(node,velocity)
     return
   end subroutine Solve_For_Radius
 

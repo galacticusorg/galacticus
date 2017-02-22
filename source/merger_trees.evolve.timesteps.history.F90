@@ -53,7 +53,7 @@ contains
   !# <timeStepsTask>
   !#  <unitName>Merger_Tree_Timestep_History</unitName>
   !# </timeStepsTask>
-  subroutine Merger_Tree_Timestep_History(thisNode,timeStep,End_Of_Timestep_Task,report,lockNode,lockType)
+  subroutine Merger_Tree_Timestep_History(node,timeStep,End_Of_Timestep_Task,report,nodeLock,lockType)
     !% Determines the timestep to go to the next tabulation point for global history storage.
     use, intrinsic :: ISO_C_Binding
     use Input_Parameters
@@ -65,16 +65,16 @@ contains
     use Evolve_To_Time_Reports
     use ISO_Varying_String
     implicit none
-    type            (treeNode                     ), intent(inout)          , pointer :: thisNode
+    type            (treeNode                     ), intent(inout)          , pointer :: node
     procedure       (End_Of_Timestep_Task_Template), intent(inout)          , pointer :: End_Of_Timestep_Task
     double precision                               , intent(inout)                    :: timeStep
     logical                                        , intent(in   )                    :: report
-    type            (treeNode                     ), intent(inout), optional, pointer :: lockNode
+    type            (treeNode                     ), intent(inout), optional, pointer :: nodeLock
     type            (varying_string               ), intent(inout), optional          :: lockType
-    class           (nodeComponentBasic           )                         , pointer :: thisBasicComponent
-    class           (cosmologyFunctionsClass      )                         , pointer :: cosmologyFunctionsDefault
+    class           (nodeComponentBasic           )                         , pointer :: basic
+    class           (cosmologyFunctionsClass      )                         , pointer :: cosmologyFunctions_
     integer         (c_size_t                     )                                   :: timeIndex
-    double precision                                                                  :: ourTimeStep              , time
+    double precision                                                                  :: ourTimeStep         , time
 
     if (.not.timestepHistoryInitialized) then
        !$omp critical (timestepHistoryInitialize)
@@ -94,12 +94,12 @@ contains
           call Get_Input_Parameter('outputTimestepHistory',outputTimestepHistory,defaultValue=.true.)
           if (outputTimestepHistory) then
              ! Get the default cosmology functions object.
-             cosmologyFunctionsDefault => cosmologyFunctions()
+             cosmologyFunctions_ => cosmologyFunctions()
              ! Determine if we have active components that can provide star formation rates.
              diskActive           =    defaultDiskComponent%starFormationRateIsGettable()
              spheroidActive       =defaultSpheroidComponent%starFormationRateIsGettable()
              ! Get time at present day.
-             time=cosmologyFunctionsDefault%cosmicTime(expansionFactor=0.999d0)
+             time=cosmologyFunctions_%cosmicTime(expansionFactor=0.999d0)
              ! Get module parameters.
              !@ <inputParameter>
              !@   <name>timestepHistoryBegin</name>
@@ -152,7 +152,7 @@ contains
              ! Initialize arrays.
              historyTime=Make_Range(timestepHistoryBegin,timestepHistoryEnd,timestepHistorySteps,rangeTypeLogarithmic)
              do timeIndex=1,timestepHistorySteps
-                historyExpansion(timeIndex)=cosmologyFunctionsDefault%expansionFactor(historyTime(timeIndex))
+                historyExpansion(timeIndex)=cosmologyFunctions_%expansionFactor(historyTime(timeIndex))
              end do
              historyStarFormationRate        =0.0d0
              historyDiskStarFormationRate    =0.0d0
@@ -174,8 +174,8 @@ contains
     
     ! Adjust timestep.
     ! Get current cosmic time.
-    thisBasicComponent => thisNode%basic()
-    time=thisBasicComponent%time()
+    basic => node%basic()
+    time=basic%time()
 
     ! Determine how long until next available timestep.
     timeIndex=Interpolate_Locate(historyTime,interpolationAccelerator,time)
@@ -185,7 +185,7 @@ contains
 
        ! Set return value if our timestep is smaller than current one.
        if (ourTimeStep <= timeStep) then
-          if (present(lockNode)) lockNode => thisNode
+          if (present(nodeLock)) nodeLock => node
           if (present(lockType)) lockType =  "history"
           timeStep=ourTimeStep
           End_Of_Timestep_Task => Merger_Tree_History_Store
@@ -195,7 +195,7 @@ contains
     return
   end subroutine Merger_Tree_Timestep_History
 
-  subroutine Merger_Tree_History_Store(thisTree,thisNode,deadlockStatus)
+  subroutine Merger_Tree_History_Store(thisTree,node,deadlockStatus)
     !% Store various properties in global arrays.
     use, intrinsic :: ISO_C_Binding
     use Numerical_Interpolation
@@ -203,9 +203,9 @@ contains
     use Galactic_Structure_Enclosed_Masses
     implicit none
     type            (mergerTree           ), intent(in   )          :: thisTree
-    type            (treeNode             ), intent(inout), pointer :: thisNode
+    type            (treeNode             ), intent(inout), pointer :: node
     integer                                , intent(inout)          :: deadlockStatus
-    class           (nodeComponentBasic   )               , pointer :: thisBasicComponent
+    class           (nodeComponentBasic   )               , pointer :: basic
     class           (nodeComponentDisk    )               , pointer :: thisDiskComponent
     class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
     integer         (c_size_t             )                         :: timeIndex
@@ -214,12 +214,12 @@ contains
     !GCC$ attributes unused :: deadlockStatus
     
     ! Get components.
-    thisBasicComponent    => thisNode%basic   ()
-    thisDiskComponent     => thisNode%disk    ()
-    thisSpheroidComponent => thisNode%spheroid()
+    basic    => node%basic   ()
+    thisDiskComponent     => node%disk    ()
+    thisSpheroidComponent => node%spheroid()
 
     ! Get current cosmic time.
-    time=thisBasicComponent%time()
+    time=basic%time()
 
     ! Determine how long until next available timestep.
     if (time == historyTime(timestepHistorySteps)) then
@@ -234,42 +234,42 @@ contains
     spheroidStarFormationRate=0.0d0
     if (diskActive)     diskStarFormationRate    =thisDiskComponent    %starFormationRate()
     if (spheroidActive) spheroidStarFormationRate=thisSpheroidComponent%starFormationRate()
-    historyStarFormationRate        (timeIndex)= historyStarFormationRate        (timeIndex)                                                               &
-         &                                      +(diskStarFormationRate+spheroidStarFormationRate)                                                         &
+    historyStarFormationRate        (timeIndex)= historyStarFormationRate        (timeIndex)                                                           &
+         &                                      +(diskStarFormationRate+spheroidStarFormationRate)                                                     &
          &                                      *thisTree%volumeWeight
-    historyDiskStarFormationRate    (timeIndex)= historyDiskStarFormationRate    (timeIndex)                                                               &
-         &                                      + diskStarFormationRate                                                                                    &
+    historyDiskStarFormationRate    (timeIndex)= historyDiskStarFormationRate    (timeIndex)                                                           &
+         &                                      + diskStarFormationRate                                                                                &
          &                                      *thisTree%volumeWeight
-    historySpheroidStarFormationRate(timeIndex)= historySpheroidStarFormationRate(timeIndex)                                                               &
-         &                                      +                       spheroidStarFormationRate                                                          &
+    historySpheroidStarFormationRate(timeIndex)= historySpheroidStarFormationRate(timeIndex)                                                           &
+         &                                      +                       spheroidStarFormationRate                                                      &
          &                                      *thisTree%volumeWeight
     ! Stellar densities.
-    historyStellarDensity           (timeIndex)= historyStellarDensity           (timeIndex)                                                               &
-         &                                      +  Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeStellar                                    ) &
+    historyStellarDensity           (timeIndex)= historyStellarDensity           (timeIndex)                                                           &
+         &                                      +  Galactic_Structure_Enclosed_Mass(node,massType=massTypeStellar                                    ) &
          &                                      *thisTree%volumeWeight
-    historyDiskStellarDensity       (timeIndex)= historyDiskStellarDensity       (timeIndex)                                                               &
-         &                                      +  Galactic_Structure_Enclosed_Mass(thisNode,componentType=componentTypeDisk    ,massType=massTypeStellar) &
+    historyDiskStellarDensity       (timeIndex)= historyDiskStellarDensity       (timeIndex)                                                           &
+         &                                      +  Galactic_Structure_Enclosed_Mass(node,componentType=componentTypeDisk    ,massType=massTypeStellar) &
          &                                      *thisTree%volumeWeight
-    historySpheroidStellarDensity   (timeIndex)= historySpheroidStellarDensity   (timeIndex)                                                               &
-         &                                        +Galactic_Structure_Enclosed_Mass(thisNode,componentType=componentTypeSpheroid,massType=massTypeStellar) &
+    historySpheroidStellarDensity   (timeIndex)= historySpheroidStellarDensity   (timeIndex)                                                           &
+         &                                        +Galactic_Structure_Enclosed_Mass(node,componentType=componentTypeSpheroid,massType=massTypeStellar) &
          &                                      *thisTree%volumeWeight
 
     ! Hot gas density.
-    hotGasMass                                 =   Galactic_Structure_Enclosed_Mass(thisNode,componentType=componentTypeHotHalo                          )
-    historyHotGasDensity            (timeIndex)= historyHotGasDensity            (timeIndex)                                                               &
-         &                                      +hotGasMass                                                                                                &
+    hotGasMass                                 =   Galactic_Structure_Enclosed_Mass(node,componentType=componentTypeHotHalo                          )
+    historyHotGasDensity            (timeIndex)= historyHotGasDensity            (timeIndex)                                                           &
+         &                                      +hotGasMass                                                                                            &
          &                                      *thisTree%volumeWeight
     ! Galactic gas density.
-    historyGasDensity               (timeIndex)= historyGasDensity               (timeIndex)                                                               &
-         &                                      +(                                                                                                         &
-         &                                         Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeGaseous                                    ) &
-         &                                        -hotGasMass                                                                                              &
-         &                                       )                                                                                                         &
+    historyGasDensity               (timeIndex)= historyGasDensity               (timeIndex)                                                           &
+         &                                      +(                                                                                                     &
+         &                                         Galactic_Structure_Enclosed_Mass(node,massType=massTypeGaseous                                    ) &
+         &                                        -hotGasMass                                                                                          &
+         &                                       )                                                                                                     &
          &                                      *thisTree%volumeWeight
     ! Node density
-    if (.not.thisNode%isSatellite()) then
-       historyNodeDensity           (timeIndex)= historyNodeDensity              (timeIndex)                                                               &
-            &                                   +thisBasicComponent%mass()                                                                                 &
+    if (.not.node%isSatellite()) then
+       historyNodeDensity           (timeIndex)= historyNodeDensity              (timeIndex)                                                           &
+            &                                   +basic%mass()                                                                                          &
             &                                   *thisTree%volumeWeight
     end if
     return

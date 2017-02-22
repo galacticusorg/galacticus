@@ -1162,6 +1162,7 @@ contains
 
   subroutine matterLambdaStateStore(self,stateFile,fgslStateFile)
     !% Write the tablulation state to file.
+    use Galacticus_Display
     implicit none
     class  (cosmologyFunctionsMatterLambda), intent(inout) :: self
     integer                                , intent(in   ) :: stateFile
@@ -1170,6 +1171,7 @@ contains
 
     ! Store the full tables, as they are hysteretic and cannot be reconstructed precisely without
     ! knowing the path by which they were originally constructed.
+    call Galacticus_Display_Message('Storing state for: cosmoloyFunctions -> matterLambda',verbosity=verbosityInfo)
     write (stateFile) self%ageTableNumberPoints,self%ageTableTimeMinimum,self%ageTableTimeMaximum
     write (stateFile) self%ageTableTime,self%ageTableExpansionFactor
     write (stateFile) self%distanceTableNumberPoints,self%distanceTableTimeMinimum,self%distanceTableTimeMaximum
@@ -1179,6 +1181,7 @@ contains
 
   subroutine matterLambdaStateRestore(self,stateFile,fgslStateFile)
     !% Retrieve the tabulation state from the file.
+    use Galacticus_Display
     use Memory_Management
     implicit none
     class  (cosmologyFunctionsMatterLambda), intent(inout) :: self
@@ -1187,6 +1190,7 @@ contains
     !GCC$ attributes unused :: fgslStateFile
     
     ! Read the tabulations.
+    call Galacticus_Display_Message('Retrieving state for: cosmoloyFunctions -> matterLambda',verbosity=verbosityInfo)
     read (stateFile) self%ageTableNumberPoints,self%ageTableTimeMinimum,self%ageTableTimeMaximum
     if (allocated(self%ageTableTime           )) call deallocateArray(self%ageTableTime           )
     if (allocated(self%ageTableExpansionFactor)) call deallocateArray(self%ageTableExpansionFactor)

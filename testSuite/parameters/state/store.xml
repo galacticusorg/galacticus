@@ -16,4 +16,5 @@
   <luminosityType value="rest"/> 
   <luminosityRedshift value="0.0"/> 
   <mergingTimescaleMultiplier value="5.4"/>
+  <verbosityLevel value="4"/>
 </parameters>

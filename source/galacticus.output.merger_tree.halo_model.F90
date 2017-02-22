@@ -115,18 +115,18 @@ contains
   !#  <unitName>Galacticus_Output_Halo_Model_Names</unitName>
   !#  <sortName>Galacticus_Output_Halo_Model</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Galacticus_Output_Halo_Model_Names(thisNode,integerProperty,integerPropertyNames,integerPropertyComments&
+  subroutine Galacticus_Output_Halo_Model_Names(node,integerProperty,integerPropertyNames,integerPropertyComments&
        &,integerPropertyUnitsSI,doubleProperty ,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of halo model properties to be written to the \glc\ output file.
     use Galacticus_Nodes
     implicit none
-    type            (treeNode)              , intent(inout) :: thisNode
+    type            (treeNode)              , intent(inout) :: node
     double precision                        , intent(in   ) :: time
     integer                                 , intent(inout) :: doubleProperty         , integerProperty
     character       (len=*   ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
          &                                                     integerPropertyComments, integerPropertyNames
     double precision          , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    !GCC$ attributes unused :: thisNode, time
+    !GCC$ attributes unused :: node, time
     
     ! Initialize the module.
     call Galacticus_Output_Halo_Model_Initialize
@@ -165,14 +165,14 @@ contains
   !#  <unitName>Galacticus_Output_Halo_Model_Property_Count</unitName>
   !#  <sortName>Galacticus_Output_Halo_Model</sortName>
   !# </mergerTreeOutputPropertyCount>
-  subroutine Galacticus_Output_Halo_Model_Property_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
+  subroutine Galacticus_Output_Halo_Model_Property_Count(node,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of halo model properties to be written to the \glc\ output file.
     use Galacticus_Nodes
     implicit none
-    type            (treeNode), intent(inout) :: thisNode
+    type            (treeNode), intent(inout) :: node
     double precision          , intent(in   ) :: time
     integer                   , intent(inout) :: doublePropertyCount, integerPropertyCount
-    !GCC$ attributes unused :: thisNode, time
+    !GCC$ attributes unused :: node, time
     
     ! Initialize the module.
     call Galacticus_Output_Halo_Model_Initialize
@@ -189,7 +189,7 @@ contains
   !#  <unitName>Galacticus_Output_Halo_Model</unitName>
   !#  <sortName>Galacticus_Output_Halo_Model</sortName>
   !# </mergerTreeOutputTask>
-  subroutine Galacticus_Output_Halo_Model(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
+  subroutine Galacticus_Output_Halo_Model(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store halo model properties in the \glc\ output file buffers.
     use Galacticus_Nodes
@@ -198,7 +198,7 @@ contains
     use Multi_Counters
     implicit none
     double precision                , intent(in   )         :: time
-    type            (treeNode      ), intent(inout), target :: thisNode
+    type            (treeNode      ), intent(inout), target :: node
     integer                         , intent(inout)         :: doubleBufferCount     , doubleProperty, integerBufferCount, &
          &                                                     integerProperty
     integer         (kind=kind_int8), intent(inout)         :: integerBuffer    (:,:)
@@ -212,7 +212,7 @@ contains
 
     ! Store property data if we are outputting halo model data.
     if (outputHaloModelData) then
-       isolatedNode => thisNode
+       isolatedNode => node
        do while (isolatedNode%isSatellite())
           isolatedNode => isolatedNode%parent
        end do
@@ -319,7 +319,7 @@ contains
     type            (hdf5Object       ), intent(inout) :: outputGroup
     double precision                   , intent(in   ) :: time
     class           (linearGrowthClass), pointer       :: linearGrowth_
-    double precision                                   :: growthFactor, growthFactorDerivative
+    double precision                                   :: growthFactor , growthFactorDerivative
 
     ! Initialize the module.
     call Galacticus_Output_Halo_Model_Initialize
@@ -341,7 +341,7 @@ contains
   !# <mergerTreeExtraOutputTask>
   !#  <unitName>Galacticus_Extra_Output_Halo_Fourier_Profile</unitName>
   !# </mergerTreeExtraOutputTask>
-  subroutine Galacticus_Extra_Output_Halo_Fourier_Profile(thisNode,iOutput,treeIndex,nodePassesFilter)
+  subroutine Galacticus_Extra_Output_Halo_Fourier_Profile(node,iOutput,treeIndex,nodePassesFilter)
     !% Store Fourier-space halo profiles to the output file.
     use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
@@ -353,20 +353,20 @@ contains
     use Cosmology_Functions
     use Kind_Numbers
     implicit none
-    type            (treeNode               ), intent(inout), pointer      :: thisNode
+    type            (treeNode               ), intent(inout), pointer      :: node
     integer         (c_size_t               ), intent(in   )               :: iOutput
     integer         (kind=kind_int8         ), intent(in   )               :: treeIndex
     logical                                  , intent(in   )               :: nodePassesFilter
     type            (treeNode          )                    , pointer      :: hostNode
-    class           (nodeComponentBasic     )               , pointer      :: thisBasicComponent
-    class           (cosmologyFunctionsClass)               , pointer      :: cosmologyFunctionsDefault
+    class           (nodeComponentBasic     )               , pointer      :: basic
+    class           (cosmologyFunctionsClass)               , pointer      :: cosmologyFunctions_
     class           (darkMatterProfileClass )               , pointer      :: darkMatterProfile_
     double precision                         , allocatable  , dimension(:) :: fourierProfile
     logical                                                                :: nodeExistsInOutput
     integer                                                                :: iWavenumber
     double precision                                                       :: expansionFactor
-    type            (varying_string         )                              :: groupName                , dataSetName
-    type            (hdf5Object             )                              :: outputGroup              , profilesGroup, &
+    type            (varying_string         )                              :: groupName          , dataSetName
+    type            (hdf5Object             )                              :: outputGroup        , profilesGroup, &
          &                                                                    treeGroup
 
     ! For any node that passes the filter, we want to ensure that the host halo profile is output.
@@ -375,7 +375,7 @@ contains
     ! Get required objects.
     darkMatterProfile_ => darkMatterProfile()
      ! Find the host halo.
-    hostNode => thisNode
+    hostNode => node
     do while (hostNode%isSatellite())
        hostNode => hostNode%parent
     end do
@@ -396,11 +396,11 @@ contains
        ! Allocate array to store profile.
        call allocateArray(fourierProfile,[wavenumberCount])
        ! Get the basic component.
-       thisBasicComponent => hostNode%basic()
+       basic => hostNode%basic()
        ! Get the default cosmology functions object.
-       cosmologyFunctionsDefault => cosmologyFunctions()
+       cosmologyFunctions_ => cosmologyFunctions()
        ! Get the expansion factor.
-       expansionFactor=cosmologyFunctionsDefault%expansionFactor(thisBasicComponent%time())
+       expansionFactor=cosmologyFunctions_%expansionFactor(basic%time())
        ! Construct profile. (Our wavenumbers are comoving, so we must convert them to physics
        ! coordinates before passing them to the dark matter profile k-space routine.)
        do iWavenumber=1,waveNumberCount

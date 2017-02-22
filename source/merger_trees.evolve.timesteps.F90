@@ -26,7 +26,7 @@ module Merger_Tree_Timesteps
 
 contains
 
-  double precision function Time_Step_Get(thisNode,evolveToTime,End_Of_Timestep_Task,report,lockNode,lockType)
+  double precision function Time_Step_Get(node,evolveToTime,End_Of_Timestep_Task,report,lockNode,lockType)
     !% Computes a suitable timestep over which to evolve a node in a tree.
     use Merger_Trees_Evolve_Timesteps_Template
     use ISO_Varying_String
@@ -34,21 +34,21 @@ contains
     include 'merger_trees.evolve.timesteps.moduleUse.inc'
     !# </include>
     implicit none
-    type            (treeNode                     ), intent(inout)          , pointer :: thisNode
+    type            (treeNode                     ), intent(inout)          , pointer :: node
     double precision                               , intent(in   )                    :: evolveToTime
     procedure       (End_Of_Timestep_Task_Template), intent(  out)          , pointer :: End_Of_Timestep_Task
     logical                                        , intent(in   )                    :: report
     type            (treeNode                     ), intent(inout), optional, pointer :: lockNode
     type            (varying_string               ), intent(inout), optional          :: lockType
     procedure       (End_Of_Timestep_Task_Template)                         , pointer :: End_Of_Timestep_Task_Internal
-    class           (nodeComponentBasic           )                         , pointer :: thisBasicComponent
+    class           (nodeComponentBasic           )                         , pointer :: basic
 
     ! Call the function to get the timestep.
-    thisBasicComponent => thisNode%basic()
-    Time_Step_Get=evolveToTime-thisBasicComponent%time()
+    basic => node%basic()
+    Time_Step_Get=evolveToTime-basic%time()
     End_Of_Timestep_Task_Internal => null()
     !# <include directive="timeStepsTask" type="functionCall" functionType="void">
-    !#  <functionArgs>thisNode,Time_Step_Get,End_Of_Timestep_Task_Internal,report,lockNode,lockType</functionArgs>
+    !#  <functionArgs>node,Time_Step_Get,End_Of_Timestep_Task_Internal,report,lockNode,lockType</functionArgs>
     include 'merger_trees.evolve.timesteps.inc'
     !# </include>
     End_Of_Timestep_Task => End_Of_Timestep_Task_Internal

@@ -32,12 +32,14 @@ contains
   !# </galacticusStateStoreTask>
   subroutine Merger_Tree_Read_State_Store(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
+    use Galacticus_Display
     use FGSL
     implicit none
     integer           , intent(in   ) :: stateFile
     type   (fgsl_file), intent(in   ) :: fgslStateFile
     !GCC$ attributes unused :: fgslStateFile
     
+    call Galacticus_Display_Message('Storing state for: mergerTreeConstruct -> read',verbosity=verbosityInfo)
     write (stateFile) mergerTreeQueuePosition
     return
   end subroutine Merger_Tree_Read_State_Store
@@ -47,12 +49,14 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Merger_Tree_Read_State_Retrieve(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
+    use Galacticus_Display
     use FGSL
     implicit none
     integer           , intent(in   ) :: stateFile
     type   (fgsl_file), intent(in   ) :: fgslStateFile
     !GCC$ attributes unused :: fgslStateFile
 
+    call Galacticus_Display_Message('Retrieving state for: mergerTreeConstruct -> read',verbosity=verbosityInfo)
     read (stateFile) mergerTreeQueuePosition
     return
   end subroutine Merger_Tree_Read_State_Retrieve

@@ -201,6 +201,7 @@ contains
 
   subroutine sphericalCollapseMatterLambdaStateStore(self,stateFile,fgslStateFile)
     !% Reset the tabulation if state is to be retrieved. This will force tables to be rebuilt.
+    use Galacticus_Display
     use FGSL
     implicit none
     class  (virialDensityContrastSphericalCollapseMatterLambda), intent(inout) :: self
@@ -208,12 +209,14 @@ contains
     type   (fgsl_file                                         ), intent(in   ) :: fgslStateFile
     !GCC$ attributes unused :: fgslStateFile
     
+    call Galacticus_Display_Message('Storing state for: virialDensityContrast -> sphericalCollapseMatterLambda',verbosity=verbosityInfo)
     write (stateFile) self%tableTimeMinimum,self%tableTimeMaximum
     return
   end subroutine sphericalCollapseMatterLambdaStateStore
   
   subroutine sphericalCollapseMatterLambdaStateRestore(self,stateFile,fgslStateFile)
     !% Reset the tabulation if state is to be retrieved. This will force tables to be rebuilt.
+    use Galacticus_Display
     use FGSL
     implicit none
     class  (virialDensityContrastSphericalCollapseMatterLambda), intent(inout) :: self
@@ -221,6 +224,7 @@ contains
     type   (fgsl_file                                         ), intent(in   ) :: fgslStateFile
     !GCC$ attributes unused :: fgslStateFile
 
+    call Galacticus_Display_Message('Retrieving state for: virialDensityContrast -> sphericalCollapseMatterLambda',verbosity=verbosityInfo)
     read (stateFile) self%tableTimeMinimum,self%tableTimeMaximum
     self%tableInitialized=.false.
     return

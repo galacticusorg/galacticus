@@ -61,10 +61,10 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Basic_Non_Evolving_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Basic_Non_Evolving_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure)
+  subroutine Node_Component_Basic_Non_Evolving_Rate_Compute(node,odeConverged,interrupt,interruptProcedure)
     !% Compute rates of change of properties in the standard implementation of the basic component.
     implicit none
-    type     (treeNode          ), intent(inout), pointer :: thisNode
+    type     (treeNode          ), intent(inout), pointer :: node
     logical                      , intent(in   )          :: odeConverged
     logical                      , intent(inout)          :: interrupt
     procedure(                  ), intent(inout), pointer :: interruptProcedure
@@ -72,7 +72,7 @@ contains
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
     ! Get the basic component.
-    basicComponent => thisNode%basic()
+    basicComponent => node%basic()
     ! Ensure that it is of the non-evolving class.
     select type (basicComponent)
     class is (nodeComponentBasicNonEvolving)
@@ -85,15 +85,15 @@ contains
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Basic_Non_Evolving_Scale_Set</unitName>
   !# </scaleSetTask>
-  subroutine Node_Component_Basic_Non_Evolving_Scale_Set(thisNode)
+  subroutine Node_Component_Basic_Non_Evolving_Scale_Set(node)
     !% Set scales for properties in the standard implementation of the basic component.
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
+    type            (treeNode          ), intent(inout), pointer :: node
     double precision                    , parameter              :: timeScale     =1.0d-3
     class           (nodeComponentBasic)               , pointer :: basicComponent
 
     ! Get the basic component.
-    basicComponent => thisNode%basic()
+    basicComponent => node%basic()
     ! Ensure that it is of the standard class.
     select type (basicComponent)
     class is (nodeComponentBasicNonEvolving)
@@ -106,28 +106,27 @@ contains
   !# <nodePromotionTask>
   !#  <unitName>Node_Component_Basic_Non_Evolving_Promote</unitName>
   !# </nodePromotionTask>
-  subroutine Node_Component_Basic_Non_Evolving_Promote(thisNode)
-    !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, we simply update the mass of {\normalfont \ttfamily thisNode}
+  subroutine Node_Component_Basic_Non_Evolving_Promote(node)
+    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the mass of {\normalfont \ttfamily node}
     !% to be that of its parent.
     use Galacticus_Error
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    type (treeNode          )               , pointer :: parentNode
-    class(nodeComponentBasic)               , pointer :: parentBasicComponent, thisBasicComponent
+    type (treeNode          ), intent(inout), pointer :: node
+    type (treeNode          )               , pointer :: nodeParent
+    class(nodeComponentBasic)               , pointer :: basicParent, basic
 
     ! Get the basic component.
-    thisBasicComponent => thisNode%basic()
+    basic => node%basic()
     ! Ensure that it is of the standard class.
-    select type (thisBasicComponent)
+    select type (basic)
     class is (nodeComponentBasicNonEvolving)
        ! Get the parent node and its basic component.
-       parentNode           => thisNode  %parent
-       parentBasicComponent => parentNode%basic()
+       nodeParent  => node      %parent
+       basicParent => nodeParent%basic ()
        ! Ensure the two halos exist at the same time.
-       if (thisBasicComponent%time() /= parentBasicComponent%time()) call Galacticus_Error_Report('Node_Component_Basic_Non_Evolving_Promote','thisNode&
-            & has not been evolved to its parent')
+       if (basic%time() /= basicParent%time()) call Galacticus_Error_Report('Node_Component_Basic_Non_Evolving_Promote','node has not been evolved to its parent')
        ! Adjust the mass to that of the parent node.
-       call thisBasicComponent%massSet(parentBasicComponent%mass())
+       call basic%massSet(basicParent%mass())
     end select
     return
   end subroutine Node_Component_Basic_Non_Evolving_Promote

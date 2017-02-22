@@ -42,19 +42,19 @@ contains
     return
   end subroutine presetDestructor
 
-  double precision function presetTimeUntilMerging(self,thisNode,thisOrbit)
+  double precision function presetTimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the preset value.
     use Galacticus_Nodes
     use Kepler_Orbits
     implicit none
     class(satelliteMergingTimescalesPreset), intent(inout) :: self
-    type (treeNode                        ), intent(inout) :: thisNode
-    type (keplerOrbit                     ), intent(inout) :: thisOrbit
+    type (treeNode                        ), intent(inout) :: node
+    type (keplerOrbit                     ), intent(inout) :: orbit
     class(nodeComponentSatellite          ), pointer       :: thisSatellite
-    !GCC$ attributes unused :: self, thisOrbit
+    !GCC$ attributes unused :: self, orbit
     
     ! Simply return the current time until merging as, by definition, this has been preset if this method is being used.
-    thisSatellite          => thisNode     %satellite()
+    thisSatellite          => node     %satellite()
     presetTimeUntilMerging =  thisSatellite%mergeTime()
     return
   end function presetTimeUntilMerging

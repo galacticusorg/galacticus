@@ -71,32 +71,32 @@ contains
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Age_Statistics_Standard_Scale_Set</unitName>
   !# </scaleSetTask>
-  subroutine Node_Component_Age_Statistics_Standard_Scale_Set(thisNode)
-    !% Set scales for properties of {\normalfont \ttfamily thisNode}.
+  subroutine Node_Component_Age_Statistics_Standard_Scale_Set(node)
+    !% Set scales for properties of {\normalfont \ttfamily node}.
     implicit none
-    type            (treeNode                  ), intent(inout), pointer :: thisNode
-    class           (nodeComponentAgeStatistics)               , pointer :: thisAgeStatistics
-    class           (nodeComponentDisk         )               , pointer :: thisDisk
-    class           (nodeComponentSpheroid     )               , pointer :: thisSpheroid
+    type            (treeNode                  ), intent(inout), pointer :: node
+    class           (nodeComponentAgeStatistics)               , pointer :: ageStatistics
+    class           (nodeComponentDisk         )               , pointer :: disk
+    class           (nodeComponentSpheroid     )               , pointer :: spheroid
     double precision                            , parameter              :: massMinimum    =1.0d0
     double precision                            , parameter              :: timeScale      =1.0d-3
     double precision                                                     :: mass
 
     ! Get the age statistics component.
-    thisAgeStatistics => thisNode%ageStatistics()
+    ageStatistics => node%ageStatistics()
     ! Check if component is of standard class.
-    select type (thisAgeStatistics)
+    select type (ageStatistics)
     class is (nodeComponentAgeStatisticsStandard)
        ! Get disk and spheroid components.
-       thisDisk     => thisNode%disk    ()
-       thisSpheroid => thisNode%spheroid()       
+       disk     => node%disk    ()
+       spheroid => node%spheroid()       
        ! Set scale for masses.
-       mass   = thisDisk%massGas    ()+thisSpheroid%massGas    () &
-            &  +thisDisk%massStellar()+thisSpheroid%massStellar()
-       call thisAgeStatistics%    diskTimeWeightedIntegratedSFRScale(max(mass,massMinimum)*timeScale)
-       call thisAgeStatistics%spheroidTimeWeightedIntegratedSFRScale(max(mass,massMinimum)*timeScale)
-       call thisAgeStatistics%                diskIntegratedSFRScale(max(mass,massMinimum)          )
-       call thisAgeStatistics%            spheroidIntegratedSFRScale(max(mass,massMinimum)          )
+       mass   = disk%massGas    ()+spheroid%massGas    () &
+            &  +disk%massStellar()+spheroid%massStellar()
+       call ageStatistics%    diskTimeWeightedIntegratedSFRScale(max(mass,massMinimum)*timeScale)
+       call ageStatistics%spheroidTimeWeightedIntegratedSFRScale(max(mass,massMinimum)*timeScale)
+       call ageStatistics%                diskIntegratedSFRScale(max(mass,massMinimum)          )
+       call ageStatistics%            spheroidIntegratedSFRScale(max(mass,massMinimum)          )
     end select
     return
   end subroutine Node_Component_Age_Statistics_Standard_Scale_Set
@@ -104,19 +104,19 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Age_Statistics_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Age_Statistics_Standard_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure)
+  subroutine Node_Component_Age_Statistics_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure)
     !% Compute the exponential disk node mass rate of change.
     use Galacticus_Nodes
     use Galacticus_Output_Times
     implicit none
-    type            (treeNode                    ), intent(inout), pointer :: thisNode
+    type            (treeNode                    ), intent(inout), pointer :: node
     logical                                       , intent(in   )          :: odeConverged
     logical                                       , intent(inout)          :: interrupt
-    procedure       (interruptTask), intent(inout), pointer :: interruptProcedure
-    class           (nodeComponentAgeStatistics  )               , pointer :: thisAgeStatistics
-    class           (nodeComponentDisk           )               , pointer :: thisDisk
-    class           (nodeComponentSpheroid       )               , pointer :: thisSpheroid
-    class           (nodeComponentBasic          )               , pointer :: thisBasic
+    procedure       (interruptTask               ), intent(inout), pointer :: interruptProcedure
+    class           (nodeComponentAgeStatistics  )               , pointer :: ageStatistics
+    class           (nodeComponentDisk           )               , pointer :: disk
+    class           (nodeComponentSpheroid       )               , pointer :: spheroid
+    class           (nodeComponentBasic          )               , pointer :: basic
     double precision                                                       :: time                     , diskStarFormationRate, &
          &                                                                    spheroidStarFormationRate
     !GCC$ attributes unused :: odeConverged
@@ -124,20 +124,20 @@ contains
     ! Return immediately if the standard age statistics component is not active.
     if (.not.defaultAgeStatisticsComponent%standardIsActive()) return
     ! Get the age statistics component.
-    thisAgeStatistics => thisNode%ageStatistics()
+    ageStatistics => node%ageStatistics()
     ! Get the star formation rates.
-    thisDisk                  => thisNode    %disk             ()
-    thisSpheroid              => thisNode    %spheroid         ()
-    diskStarFormationRate     =  thisDisk    %starFormationRate()
-    spheroidStarFormationRate =  thisSpheroid%starFormationRate()
+    disk                      => node    %disk             ()
+    spheroid                  => node    %spheroid         ()
+    diskStarFormationRate     =  disk    %starFormationRate()
+    spheroidStarFormationRate =  spheroid%starFormationRate()
     ! Find the current cosmic time.
-    thisBasic => thisNode %basic() 
-    time      =  thisBasic%time ()
+    basic => node %basic() 
+    time  =  basic%time ()
     ! Accumulate rates.
-    call thisAgeStatistics%    diskTimeWeightedIntegratedSFRRate(    diskStarFormationRate*time,interrupt,interruptProcedure)
-    call thisAgeStatistics%spheroidTimeWeightedIntegratedSFRRate(spheroidStarFormationRate*time,interrupt,interruptProcedure)
-    call thisAgeStatistics%                diskIntegratedSFRRate(    diskStarFormationRate     ,interrupt,interruptProcedure)
-    call thisAgeStatistics%            spheroidIntegratedSFRRate(spheroidStarFormationRate     ,interrupt,interruptProcedure)
+    call ageStatistics%    diskTimeWeightedIntegratedSFRRate(    diskStarFormationRate*time,interrupt,interruptProcedure)
+    call ageStatistics%spheroidTimeWeightedIntegratedSFRRate(spheroidStarFormationRate*time,interrupt,interruptProcedure)
+    call ageStatistics%                diskIntegratedSFRRate(    diskStarFormationRate     ,interrupt,interruptProcedure)
+    call ageStatistics%            spheroidIntegratedSFRRate(spheroidStarFormationRate     ,interrupt,interruptProcedure)
     return
   end subroutine Node_Component_Age_Statistics_Standard_Rate_Compute
 
@@ -145,89 +145,89 @@ contains
   !#  <unitName>Node_Component_Age_Statistics_Standard_Satellite_Merging</unitName>
   !#  <after>Satellite_Merging_Mass_Movement_Store</after>
   !# </satelliteMergerTask>
-  subroutine Node_Component_Age_Statistics_Standard_Satellite_Merging(thisNode)
-    !% Remove any age statistics quantities associated with {\normalfont \ttfamily thisNode} and add them to the merge target.
+  subroutine Node_Component_Age_Statistics_Standard_Satellite_Merging(node)
+    !% Remove any age statistics quantities associated with {\normalfont \ttfamily node} and add them to the merge target.
     use Satellite_Merging_Mass_Movements_Descriptors
     use Galacticus_Error
     implicit none
-    type (treeNode                  ), intent(inout), pointer :: thisNode
-    type (treeNode                  )               , pointer :: hostNode
-    class(nodeComponentAgeStatistics)               , pointer :: thisAgeStatistics, hostAgeStatistics
+    type (treeNode                  ), intent(inout), pointer :: node
+    type (treeNode                  )               , pointer :: nodeHost
+    class(nodeComponentAgeStatistics)               , pointer :: ageStatistics, ageStatisticsHost
 
     ! Get the inter-output component.
-    thisAgeStatistics => thisNode%ageStatistics()
+    ageStatistics => node%ageStatistics()
     ! Ensure that it is of the standard class.
-    select type (thisAgeStatistics)
+    select type (ageStatistics)
     class is (nodeComponentAgeStatisticsStandard)
        ! Find the node to merge with.
-       hostNode          => thisNode%mergesWith   (                 )
-       hostAgeStatistics => hostNode%ageStatistics(autoCreate=.true.)
+       nodeHost          => node    %mergesWith   (                 )
+       ageStatisticsHost => nodeHost%ageStatistics(autoCreate=.true.)
        ! Move the star formation rates from secondary to primary.
        select case (thisMergerStarsMoveTo)
        case (movesToDisk    )
-          call hostAgeStatistics%    diskTimeWeightedIntegratedSFRSet(                                                       &
-               &                                                       hostAgeStatistics%    diskTimeWeightedIntegratedSFR() &
-               &                                                      +thisAgeStatistics%    diskTimeWeightedIntegratedSFR() &
+          call ageStatisticsHost%    diskTimeWeightedIntegratedSFRSet(                                                       &
+               &                                                       ageStatisticsHost%    diskTimeWeightedIntegratedSFR() &
+               &                                                      +ageStatistics    %    diskTimeWeightedIntegratedSFR() &
                &                                                     )
-          call hostAgeStatistics%spheroidTimeWeightedIntegratedSFRSet(                                                       &
-               &                                                       hostAgeStatistics%spheroidTimeWeightedIntegratedSFR() &
-               &                                                      +thisAgeStatistics%spheroidTimeWeightedIntegratedSFR() &
+          call ageStatisticsHost%spheroidTimeWeightedIntegratedSFRSet(                                                       &
+               &                                                       ageStatisticsHost%spheroidTimeWeightedIntegratedSFR() &
+               &                                                      +ageStatistics    %spheroidTimeWeightedIntegratedSFR() &
                &                                                     )
-          call hostAgeStatistics%                diskIntegratedSFRSet(                                                       &
-               &                                                       hostAgeStatistics%                diskIntegratedSFR() &
-               &                                                      +thisAgeStatistics%                diskIntegratedSFR() &
+          call ageStatisticsHost%                diskIntegratedSFRSet(                                                       &
+               &                                                       ageStatisticsHost%                diskIntegratedSFR() &
+               &                                                      +ageStatistics    %                diskIntegratedSFR() &
                &                                                     )
-          call hostAgeStatistics%            spheroidIntegratedSFRSet(                                                       &
-               &                                                       hostAgeStatistics%            spheroidIntegratedSFR() &
-               &                                                      +thisAgeStatistics%            spheroidIntegratedSFR() &
+          call ageStatisticsHost%            spheroidIntegratedSFRSet(                                                       &
+               &                                                       ageStatisticsHost%            spheroidIntegratedSFR() &
+               &                                                      +ageStatistics    %            spheroidIntegratedSFR() &
                &                                                     )
        case (movesToSpheroid)
        case default
           call Galacticus_Error_Report('Node_Component_Age_Statistics_Standard_Satellite_Merging','unrecognized movesTo descriptor')
        end select
        ! Zero rates in the secondary,
-       call thisAgeStatistics%    diskTimeWeightedIntegratedSFRSet(                                                          &
-            &                                                       0.0d0                                                    &
-            &                                                     )
-       call thisAgeStatistics%spheroidTimeWeightedIntegratedSFRSet(                                                          &
-            &                                                       0.0d0                                                    &
-            &                                                     )
-       call thisAgeStatistics%                diskIntegratedSFRSet(                                                          &
-            &                                                       0.0d0                                                    &
-            &                                                     )
-       call thisAgeStatistics%            spheroidIntegratedSFRSet(                                                          &
-            &                                                       0.0d0                                                    &
-            &                                                     )
+       call ageStatistics%    diskTimeWeightedIntegratedSFRSet(                                                          &
+            &                                                   0.0d0                                                    &
+            &                                                 )
+       call ageStatistics%spheroidTimeWeightedIntegratedSFRSet(                                                          &
+            &                                                   0.0d0                                                    &
+            &                                                 )
+       call ageStatistics%                diskIntegratedSFRSet(                                                          &
+            &                                                   0.0d0                                                    &
+            &                                                 )
+       call ageStatistics%            spheroidIntegratedSFRSet(                                                          &
+            &                                                   0.0d0                                                    &
+            &                                                 )
        ! Move star formation rates within the host if necessary.
        select case (thisHostStarsMoveTo)
        case (movesToDisk)
-          call hostAgeStatistics%    diskTimeWeightedIntegratedSFRSet(                                                       &
-               &                                                       hostAgeStatistics%    diskTimeWeightedIntegratedSFR() &
-               &                                                      +hostAgeStatistics%spheroidTimeWeightedIntegratedSFR() &
+          call ageStatisticsHost%    diskTimeWeightedIntegratedSFRSet(                                                       &
+               &                                                       ageStatisticsHost%    diskTimeWeightedIntegratedSFR() &
+               &                                                      +ageStatisticsHost%spheroidTimeWeightedIntegratedSFR() &
                &                                                     )
-          call hostAgeStatistics%spheroidTimeWeightedIntegratedSFRSet(                                                       &
+          call ageStatisticsHost%spheroidTimeWeightedIntegratedSFRSet(                                                       &
                &                                                       0.0d0                                                 &
                &                                                     )
-          call hostAgeStatistics%                diskIntegratedSFRSet(                                                       &
-               &                                                       hostAgeStatistics%                diskIntegratedSFR() &
-               &                                                      +hostAgeStatistics%            spheroidIntegratedSFR() &
+          call ageStatisticsHost%                diskIntegratedSFRSet(                                                       &
+               &                                                       ageStatisticsHost%                diskIntegratedSFR() &
+               &                                                      +ageStatisticsHost%            spheroidIntegratedSFR() &
                &                                                     )
-          call hostAgeStatistics%            spheroidIntegratedSFRSet(                                                       &
+          call ageStatisticsHost%            spheroidIntegratedSFRSet(                                                       &
                &                                                       0.0d0                                                 &
                &                                                     )
        case (movesToSpheroid)
-          call hostAgeStatistics%spheroidTimeWeightedIntegratedSFRSet(                                                       &
-               &                                                       hostAgeStatistics%spheroidTimeWeightedIntegratedSFR() &
-               &                                                      +hostAgeStatistics%    diskTimeWeightedIntegratedSFR() &
+          call ageStatisticsHost%spheroidTimeWeightedIntegratedSFRSet(                                                       &
+               &                                                       ageStatisticsHost%spheroidTimeWeightedIntegratedSFR() &
+               &                                                      +ageStatisticsHost%    diskTimeWeightedIntegratedSFR() &
                &                                                     )
-          call hostAgeStatistics%    diskTimeWeightedIntegratedSFRSet(                                                       &
+          call ageStatisticsHost%    diskTimeWeightedIntegratedSFRSet(                                                       &
                &                                                       0.0d0                                                 &
                &                                                     )
-          call hostAgeStatistics%            spheroidIntegratedSFRSet(                                                       &
-               &                                                       hostAgeStatistics%            spheroidIntegratedSFR() &
-               &                                                      +hostAgeStatistics%                diskIntegratedSFR() &
+          call ageStatisticsHost%            spheroidIntegratedSFRSet(                                                       &
+               &                                                       ageStatisticsHost%            spheroidIntegratedSFR() &
+               &                                                      +ageStatisticsHost%                diskIntegratedSFR() &
                &                                                     )
-          call hostAgeStatistics%                diskIntegratedSFRSet(                                                       &
+          call ageStatisticsHost%                diskIntegratedSFRSet(                                                       &
                &                                                       0.0d0                                                 &
                &                                                     )
        case (doesNotMove)

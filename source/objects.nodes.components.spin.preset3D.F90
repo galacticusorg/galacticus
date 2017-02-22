@@ -58,33 +58,33 @@ contains
   !#  <unitName>Node_Component_Spin_Preset3D_Initialize</unitName>
   !#  <sortName>spin</sortName>
   !# </mergerTreeInitializeTask>
-  subroutine Node_Component_Spin_Preset3D_Initialize(thisNode)
-    !% Initialize the spin of {\normalfont \ttfamily thisNode}.
+  subroutine Node_Component_Spin_Preset3D_Initialize(node)
+    !% Initialize the spin of {\normalfont \ttfamily node}.
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    class           (nodeComponentSpin )               , pointer :: parentSpinComponent , thisSpinComponent
-    class           (nodeComponentBasic)               , pointer :: parentBasicComponent, thisBasicComponent
+    type            (treeNode          ), intent(inout), pointer :: node
+    class           (nodeComponentSpin )               , pointer :: parentSpinComponent , spin
+    class           (nodeComponentBasic)               , pointer :: parentBasicComponent, basic
     double precision                                             :: deltaTime
 
     ! Ensure that the spin component is of the preset class.
-    thisSpinComponent => thisNode%spin()
-    select type (thisSpinComponent)
+    spin => node%spin()
+    select type (spin)
     class is (nodeComponentSpinPreset3D)
        ! Check if this node is the primary progenitor.
-       if (thisNode%isPrimaryProgenitor()) then
+       if (node%isPrimaryProgenitor()) then
           ! It is, so compute the spin vector growth rate.
-          thisBasicComponent   => thisNode       %basic()
-          parentBasicComponent => thisNode%parent%basic()
-          parentSpinComponent  => thisNode%parent%spin ()
-          deltaTime=parentBasicComponent%time()-thisBasicComponent%time()
+          basic   => node       %basic()
+          parentBasicComponent => node%parent%basic()
+          parentSpinComponent  => node%parent%spin ()
+          deltaTime=parentBasicComponent%time()-basic%time()
           if (deltaTime > 0.0d0) then
-             call thisSpinComponent%spinVectorGrowthRateSet((parentSpinComponent%spinVector()-thisSpinComponent%spinVector())/deltaTime)
+             call spin%spinVectorGrowthRateSet((parentSpinComponent%spinVector()-spin%spinVector())/deltaTime)
           else
-             call thisSpinComponent%spinVectorGrowthRateSet([0.0d0,0.0d0,0.0d0])
+             call spin%spinVectorGrowthRateSet([0.0d0,0.0d0,0.0d0])
           end if
        else
           ! It is not, so set spin growth rate to zero.
-          call thisSpinComponent%spinVectorGrowthRateSet([0.0d0,0.0d0,0.0d0])
+          call spin%spinVectorGrowthRateSet([0.0d0,0.0d0,0.0d0])
        end if
     end select
     return
@@ -93,23 +93,23 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Spin_Preset3D_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Spin_Preset3D_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure)
+  subroutine Node_Component_Spin_Preset3D_Rate_Compute(node,odeConverged,interrupt,interruptProcedure)
     !% Compute rates of change of properties in the preset implementation of the spin component.
     implicit none
-    type     (treeNode         ), intent(inout), pointer :: thisNode
+    type     (treeNode         ), intent(inout), pointer :: node
     logical                     , intent(in   )          :: odeConverged
     logical                     , intent(inout)          :: interrupt
     procedure(                 ), intent(inout), pointer :: interruptProcedure
-    class    (nodeComponentSpin)               , pointer :: thisSpinComponent
+    class    (nodeComponentSpin)               , pointer :: spin
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
     ! Get the spin component.
-    thisSpinComponent => thisNode%spin()
+    spin => node%spin()
     ! Ensure that it is of the preset class.
-    select type (thisSpinComponent)
+    select type (spin)
     class is (nodeComponentSpinPreset3D)
        ! Rate of change is set equal to the precomputed growth rate.
-       call thisSpinComponent%spinVectorRate(thisSpinComponent%spinVectorGrowthRate())
+       call spin%spinVectorRate(spin%spinVectorGrowthRate())
     end select
     return
   end subroutine Node_Component_Spin_Preset3D_Rate_Compute
@@ -117,21 +117,21 @@ contains
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Spin_Preset3D_Scale_Set</unitName>
   !# </scaleSetTask>
-  subroutine Node_Component_Spin_Preset3D_Scale_Set(thisNode)
+  subroutine Node_Component_Spin_Preset3D_Scale_Set(node)
     !% Set scales for properties in the preset implementation of the spin component.
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode
+    type            (treeNode         ), intent(inout), pointer :: node
     double precision                   , parameter              :: timeScale        =1.0d-3
     double precision                   , parameter              :: scaleMassRelative=1.0d-6
-    class           (nodeComponentSpin)               , pointer :: thisSpinComponent
+    class           (nodeComponentSpin)               , pointer :: spin
 
     ! Get the spin component.
-    thisSpinComponent => thisNode%spin()
+    spin => node%spin()
     ! Ensure that it is of the preset class.
-    select type (thisSpinComponent)
+    select type (spin)
     class is (nodeComponentSpinPreset3D)
        ! Set scale for spin.
-       call thisSpinComponent%spinVectorScale([1.0d0,1.0d0,1.0d0]*thisSpinComponent%spin())
+       call spin%spinVectorScale([1.0d0,1.0d0,1.0d0]*spin%spin())
     end select
     return
   end subroutine Node_Component_Spin_Preset3D_Scale_Set
@@ -139,29 +139,28 @@ contains
   !# <nodePromotionTask>
   !#  <unitName>Node_Component_Spin_Preset3D_Promote</unitName>
   !# </nodePromotionTask>
-  subroutine Node_Component_Spin_Preset3D_Promote(thisNode)
-    !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, we simply update the spin of {\normalfont \ttfamily thisNode}
+  subroutine Node_Component_Spin_Preset3D_Promote(node)
+    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the spin of {\normalfont \ttfamily node}
     !% to be that of its parent.
     use Galacticus_Error
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    type (treeNode          )               , pointer :: parentNode
-    class(nodeComponentSpin )               , pointer :: parentSpinComponent , thisSpinComponent
-    class(nodeComponentBasic)               , pointer :: parentBasicComponent, thisBasicComponent
+    type (treeNode          ), intent(inout), pointer :: node
+    type (treeNode          )               , pointer :: nodeParent
+    class(nodeComponentSpin )               , pointer :: spinParent , spin
+    class(nodeComponentBasic)               , pointer :: basicParent, basic
 
     ! Ensure that the spin component is of the preset3D class.
-    thisSpinComponent => thisNode%spin()
-    select type (thisSpinComponent)
+    spin => node%spin()
+    select type (spin)
     class is (nodeComponentSpinPreset3D)
-       parentNode           => thisNode  %parent
-       thisBasicComponent   => thisNode  %basic()
-       parentBasicComponent => parentNode%basic()
-       if (thisBasicComponent%time() /= parentBasicComponent%time()) call Galacticus_Error_Report('Node_Component_Spin_Preset3D_Promote','thisNode&
-            & has not been evolved to its parent')
+       nodeParent  => node      %parent
+       basic       => node      %basic ()
+       basicParent => nodeParent%basic ()
+       if (basic%time() /= basicParent%time()) call Galacticus_Error_Report('Node_Component_Spin_Preset3D_Promote','node has not been evolved to its parent')
        ! Adjust the spin growth rate to that of the parent node.
-       parentSpinComponent => parentNode%spin()
-       call thisSpinComponent%spinVectorSet          (parentSpinComponent%spinVector          ())
-       call thisSpinComponent%spinVectorGrowthRateSet(parentSpinComponent%spinVectorGrowthRate())
+       spinParent => nodeParent%spin()
+       call spin%spinVectorSet          (spinParent%spinVector          ())
+       call spin%spinVectorGrowthRateSet(spinParent%spinVectorGrowthRate())
     end select
     return
   end subroutine Node_Component_Spin_Preset3D_Promote

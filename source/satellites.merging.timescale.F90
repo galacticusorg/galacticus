@@ -27,8 +27,6 @@ module Satellite_Merging_Timescales
   include 'satelliteMergingTimescales.functionModules.inc'
   !# </include>
   private
-  public :: Satellite_Merging_Timescale_State_Store   , Satellite_Merging_Timescale_State_Retrieve, &
-       &    Satellite_Merging_Timescale_State_Snapshot
 
   !# <include directive="satelliteMergingTimescales" type="function" >
   !#  <descriptiveName>Satellite Merging Timescales</descriptiveName>
@@ -40,8 +38,8 @@ module Satellite_Merging_Timescales
   !#   <description>Return the time (in Gyr) until the satellite will merge with its host given the current orbit.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode   ), intent(inout) :: thisNode</argument>
-  !#   <argument>type(keplerOrbit), intent(inout) :: thisOrbit</argument>
+  !#   <argument>type(treeNode   ), intent(inout) :: node</argument>
+  !#   <argument>type(keplerOrbit), intent(inout) :: orbit</argument>
   !#  </method>
   include 'satelliteMergingTimescales.type.inc'
   !# </include>

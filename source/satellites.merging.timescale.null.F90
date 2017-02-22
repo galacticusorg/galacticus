@@ -42,15 +42,15 @@ contains
     return
   end subroutine nullDestructor
 
-  double precision function nullTimeUntilMerging(self,thisNode,thisOrbit)
+  double precision function nullTimeUntilMerging(self,node,orbit)
     !% Return a zero timescale for satellite merging.
     use Galacticus_Nodes
     use Kepler_Orbits
     implicit none
     class(satelliteMergingTimescalesNull), intent(inout) :: self
-    type (treeNode                      ), intent(inout) :: thisNode
-    type (keplerOrbit                   ), intent(inout) :: thisOrbit
-    !GCC$ attributes unused :: self, thisNode, thisOrbit
+    type (treeNode                      ), intent(inout) :: node
+    type (keplerOrbit                   ), intent(inout) :: orbit
+    !GCC$ attributes unused :: self, node, orbit
     
     nullTimeUntilMerging=0.0d0
     return

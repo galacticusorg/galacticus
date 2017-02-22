@@ -35,17 +35,18 @@ contains
   !# <mergerTreePreEvolveTask>
   !#   <unitName>Merger_Tree_Prune_Baryons</unitName>
   !# </mergerTreePreEvolveTask>
-  subroutine Merger_Tree_Prune_Baryons(thisTree)
-    !% Prune branches from {\normalfont \ttfamily thisTree}.
+  subroutine Merger_Tree_Prune_Baryons(tree)
+    !% Prune branches from {\normalfont \ttfamily tree}.
     use Galacticus_Nodes
     use Merger_Trees_Pruning_Utilities
     use Input_Parameters
     use Accretion_Halos
     implicit none
-    type   (mergerTree        ), intent(in   ), target :: thisTree
-    type   (treeNode          ), pointer               :: nextNode          , previousNode, thisNode
-    class  (nodeComponentBasic), pointer               :: thisBasicComponent
-    type   (mergerTree        ), pointer               :: currentTree
+    type   (mergerTree        ), intent(in   ), target :: tree
+    type   (treeNode          ), pointer               :: nodeNext      , nodePrevious, &
+         &                                                node
+    class  (nodeComponentBasic), pointer               :: basic
+    type   (mergerTree        ), pointer               :: treeCurrent
     class  (accretionHaloClass), pointer               :: accretionHalo_
     logical                                            :: didPruning
 
@@ -76,52 +77,52 @@ contains
        ! Get required objects.
        accretionHalo_ => accretionHalo()
        ! Iterate over trees.
-       currentTree => thisTree
-       do while (associated(currentTree))
+       treeCurrent => tree
+       do while (associated(treeCurrent))
           didPruning=.true.
           do while (didPruning)
              didPruning=.false.
              ! Get root node of the tree.
-             thisNode           => currentTree%baseNode
-             thisBasicComponent => thisNode%basic()
+             node  => treeCurrent%baseNode
+             basic => node       %basic   ()
              ! Check if the tree has any baryons.
-             if (.not.accretionHalo_%branchHasBaryons(thisNode)) then
+             if (.not.accretionHalo_%branchHasBaryons(node)) then
                 ! Entire tree can be pruned. Destroy all but this base node. (Leaving just
                 ! the base node makes the tree inert - i.e. it can not do anything.)
-                thisNode => thisNode%firstChild
-                do while (associated(thisNode))
-                   nextNode => thisNode%sibling
-                   call thisNode%destroyBranch()
-                   deallocate(thisNode)
-                   thisNode => nextNode
+                node => node%firstChild
+                do while (associated(node))
+                   nodeNext => node%sibling
+                   call node%destroyBranch()
+                   deallocate(node)
+                   node => nodeNext
                 end do
              else
                 ! Walk the tree, pruning branches.
-                do while (associated(thisNode))
-                   thisBasicComponent => thisNode%basic()
+                do while (associated(node))
+                   basic => node%basic()
                    ! Record the parent node to which we will return.
-                   previousNode => thisNode%parent
-                   if (.not.accretionHalo_%branchHasBaryons(thisNode).and.thisNode%uniqueID() /= previousNode%uniqueID()) then
+                   nodePrevious => node%parent
+                   if (.not.accretionHalo_%branchHasBaryons(node).and.node%uniqueID() /= nodePrevious%uniqueID()) then
                       didPruning=.true.
                       ! Decouple from other nodes.
-                      call Merger_Tree_Prune_Unlink_Parent(thisNode,previousNode,.not.accretionHalo_%branchHasBaryons(previousNode),.true.)
+                      call Merger_Tree_Prune_Unlink_Parent(node,nodePrevious,.not.accretionHalo_%branchHasBaryons(nodePrevious),.true.)
                       ! Clean the branch.
-                      call Merger_Tree_Prune_Clean_Branch(thisNode)
+                      call Merger_Tree_Prune_Clean_Branch(node)
                       ! Destroy the branch.
-                      call thisNode%destroyBranch()
-                      deallocate(thisNode)
+                      call node%destroyBranch()
+                      deallocate(node)
                       ! Return to parent node.
-                      thisNode => previousNode
+                      node => nodePrevious
                    end if
-                   thisNode => thisNode%walkTree()
+                   node => node%walkTree()
                 end do
              end if
           end do
           ! Move to the next tree.
-          currentTree => currentTree%nextTree
+          treeCurrent => treeCurrent%nextTree
        end do
        ! Uniqueify nodes.
-       call Merger_Tree_Prune_Uniqueify_IDs(thisTree)
+       call Merger_Tree_Prune_Uniqueify_IDs(tree)
     end if
     return
   end subroutine Merger_Tree_Prune_Baryons

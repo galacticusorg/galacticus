@@ -97,11 +97,11 @@ contains
     return
   end subroutine Galactic_Structure_Radii_Fixed_Initialize
 
-  subroutine Galactic_Structure_Radii_Solve_Fixed(thisNode)
-    !% Find the radii of galactic components in {\normalfont \ttfamily thisNode} using the ``fixed'' method.
+  subroutine Galactic_Structure_Radii_Solve_Fixed(node)
+    !% Find the radii of galactic components in {\normalfont \ttfamily node} using the ``fixed'' method.
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     implicit none
-    type            (treeNode                  ), intent(inout), target :: thisNode
+    type            (treeNode                  ), intent(inout), target :: node
     procedure       (Radius_Solver_Get_Template), pointer               :: Radius_Get                     => null(), Velocity_Get => null()
     procedure       (Radius_Solver_Set_Template), pointer               :: Radius_Set                     => null(), Velocity_Set => null()
     !$omp threadprivate(Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
@@ -110,7 +110,7 @@ contains
     double precision                                                    :: specificAngularMomentum
 
     ! Assume that the node is physically plausible, since in this fixed solver, we don't act on this.
-    thisNode%isPhysicallyPlausible=.true.
+    node%isPhysicallyPlausible=.true.
 
     ! Solve for radii.
     include 'galactic_structure.radius_solver.tasks.inc'
@@ -118,12 +118,12 @@ contains
     return
   end subroutine Galactic_Structure_Radii_Solve_Fixed
 
-  subroutine Solve_For_Radius(thisNode,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
+  subroutine Solve_For_Radius(node,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
     !% Solve for the equilibrium radius of the given component.
     use Dark_Matter_Halo_Scales
     use Dark_Matter_Profiles
     implicit none
-    type            (treeNode                  ), intent(inout)          :: thisNode
+    type            (treeNode                  ), intent(inout)          :: node
     double precision                            , intent(in   )          :: specificAngularMomentum
     procedure       (Radius_Solver_Get_Template), intent(in   ), pointer :: Radius_Get             , Velocity_Get
     procedure       (Radius_Solver_Set_Template), intent(in   ), pointer :: Radius_Set             , Velocity_Set
@@ -135,21 +135,21 @@ contains
     !GCC$ attributes unused :: Radius_Get, Velocity_Get, specificAngularMomentum
     
     ! Find the radius of the component, assuming radius is a fixed fraction of radius times spin parameter.
-    thisSpinComponent    => thisNode%spin      ()
+    thisSpinComponent    => node%spin      ()
     select case (galacticStructureRadiiFixedRadius)
     case (galacticStructureRadiiFixedRadiusVirial    )
-       darkMatterHaloScale_ => darkMatterHaloScale                         (        )
-       velocity             =  darkMatterHaloScale_%virialVelocity         (thisNode)
-       radius               =  darkMatterHaloScale_%virialRadius           (thisNode)*thisSpinComponent%spin()*galacticStructureRadiiFixedFactor
+       darkMatterHaloScale_ => darkMatterHaloScale                         (    )
+       velocity             =  darkMatterHaloScale_%virialVelocity         (node)
+       radius               =  darkMatterHaloScale_%virialRadius           (node)*thisSpinComponent%spin()*galacticStructureRadiiFixedFactor
     case (galacticStructureRadiiFixedRadiusTurnaround)
-       darkMatterProfile_   => darkMatterProfile                           (        )
-       basic                => thisNode            %basic                  (        )
-       velocity             =  darkMatterProfile_  %circularVelocityMaximum(thisNode)
-       radius               =  basic               %radiusTurnaround       (        )*thisSpinComponent%spin()*galacticStructureRadiiFixedFactor
+       darkMatterProfile_   => darkMatterProfile                           (    )
+       basic                => node                %basic                  (    )
+       velocity             =  darkMatterProfile_  %circularVelocityMaximum(node)
+       radius               =  basic               %radiusTurnaround       (    )*thisSpinComponent%spin()*galacticStructureRadiiFixedFactor
     end select
     ! Set the component size to new radius and velocity.
-    call Radius_Set  (thisNode,radius  )
-    call Velocity_Set(thisNode,velocity)
+    call Radius_Set  (node,radius  )
+    call Velocity_Set(node,velocity)
     return
   end subroutine Solve_For_Radius
 

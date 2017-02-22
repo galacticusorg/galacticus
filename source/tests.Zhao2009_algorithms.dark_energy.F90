@@ -36,11 +36,11 @@ program Test_Zhao2009_Dark_Energy
   use Galacticus_Input_Paths
   use File_Utilities
   implicit none
-  type            (treeNode                               )                         , pointer :: thisNode
-  class           (nodeComponentBasic                     )                         , pointer :: thisBasicComponent
+  type            (treeNode                               )                         , pointer :: node
+  class           (nodeComponentBasic                     )                         , pointer :: basic
   integer                                                  , dimension(2), parameter          :: logarithmicHaloMasses           =[12,15]
   double precision                                         , dimension(2), parameter          :: concentrationDifferenceTolerance=[3.1d-2,5.5d-4], timeDifferenceTolerance=[2.5d-2,2.0d-2]
-  class           (cosmologyFunctionsClass                )                         , pointer :: cosmologyFunctionsDefault
+  class           (cosmologyFunctionsClass                )                         , pointer :: cosmologyFunctions_
   class           (darkMatterProfileConcentrationClass    )                         , pointer :: darkMatterProfileConcentration_
   class           (darkMatterHaloMassAccretionHistoryClass)                         , pointer :: darkMatterHaloMassAccretionHistory_
   type            (varying_string                         )                                   :: fileName                                        , message                                , &
@@ -65,12 +65,12 @@ program Test_Zhao2009_Dark_Energy
   call Input_Parameters_File_Open(parameterFile)
 
   ! Create a node.
-  thisNode => treeNode()
+  node  => treeNode      (                 )
 
   ! Get the basic component.
-  thisBasicComponent => thisNode%basic(autoCreate=.true.)
+  basic => node    %basic(autoCreate=.true.)
   ! Get the default cosmology functions object.
-  cosmologyFunctionsDefault           => cosmologyFunctions                ()
+  cosmologyFunctions_                 => cosmologyFunctions                ()
   ! Get the default concentrations object.
   darkMatterProfileConcentration_     => darkMatterProfileConcentration    ()
   ! Get the default mass accretion history object.
@@ -100,30 +100,30 @@ program Test_Zhao2009_Dark_Energy
         read (fUnit,*) redshift,haloMass,theirConcentration
 
         ! Compute the corresponding cosmological time.
-        theirTime=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(redshift))
+        theirTime=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift))
 
         ! Set the mass and time of the original node.
-        call thisBasicComponent%massSet(10.0d0**logarithmicHaloMasses(iMass))
-        call thisBasicComponent%timeSet(cosmologyFunctionsDefault%cosmicTime                (1.0d0))
+        call basic%massSet(10.0d0**logarithmicHaloMasses(iMass))
+        call basic%timeSet(cosmologyFunctions_%cosmicTime(1.0d0))
 
         ! Get the time corresponding to the current halo mass.
-        ourTime=darkMatterHaloMassAccretionHistory_%time(thisNode,haloMass)
+        ourTime=darkMatterHaloMassAccretionHistory_%time(node,haloMass)
 
         ! Set the node mass and time to the current values.
-        call thisBasicComponent%massSet(haloMass )
-        call thisBasicComponent%timeSet(theirTime)
+        call basic%massSet(haloMass )
+        call basic%timeSet(theirTime)
 
         ! Get the corresponding halo concentration.
-        ourConcentration=darkMatterProfileConcentration_%concentration(thisNode)
+        ourConcentration=darkMatterProfileConcentration_%concentration(node)
 
         ! Compute the difference between our values and the comparison values.
         timeDifferenceMaximum         =max(                                                             &
              &                              timeDifferenceMaximum                                       &
-             &                             ,abs(ourTime         -theirTime         )/theirTime         &
+             &                             ,abs(ourTime         -theirTime         )/theirTime          &
              &                             )
         concentrationDifferenceMaximum=max(                                                             &
              &                              concentrationDifferenceMaximum                              &
-             &                             ,abs(ourConcentration-theirConcentration)/theirConcentration&
+             &                             ,abs(ourConcentration-theirConcentration)/theirConcentration &
              &                            )
 
      end do

@@ -18,75 +18,75 @@
 
 !% Defines functions bound to the merger tree object class.
 
-subroutine Merger_Tree_Destroy(thisTree)
+subroutine Merger_Tree_Destroy(tree)
   !% Destroys the entire merger tree.
   implicit none
-  class(mergerTree), intent(inout) :: thisTree
-  type (treeEvent ), pointer       :: thisEvent, nextEvent 
+  class(mergerTree), intent(inout) :: tree
+  type (treeEvent ), pointer       :: event, eventNext
 
-  select type (thisTree)
+  select type (tree)
   type is (mergerTree)
      ! Destroy all nodes.
-     if (associated(thisTree%baseNode)) then
-        call thisTree%baseNode%destroyBranch()
-        deallocate(thisTree%baseNode)
+     if (associated(tree%baseNode)) then
+        call tree%baseNode%destroyBranch()
+        deallocate(tree%baseNode)
      end if
      ! Destroy the HDF5 group associated with this tree.
-     call thisTree%hdf5Group%destroy()
+     call tree%hdf5Group%destroy()
      ! Destroy any events attached to this tree.
-     thisEvent => thisTree%event
-     do while (associated(thisEvent))
-        nextEvent => thisEvent%next
-        deallocate(thisEvent)
-        thisEvent => nextEvent
+     event => tree%event
+     do while (associated(event))
+        eventNext => event%next
+        deallocate(event)
+        event => eventNext
      end do
   end select
   return
 end subroutine Merger_Tree_Destroy
 
-function Merger_Tree_Node_Get(thisTree,nodeIndex)
-  !% Return a pointer to a node in {\normalfont \ttfamily thisTree} given the index of the node.
+function Merger_Tree_Node_Get(tree,nodeIndex)
+  !% Return a pointer to a node in {\normalfont \ttfamily tree} given the index of the node.
   implicit none
-  class  (mergerTree    ), intent(in   ), target :: thisTree
+  class  (mergerTree    ), intent(in   ), target :: tree
   integer(kind=kind_int8), intent(in   )         :: nodeIndex
-  type   (mergerTree    ), pointer               :: currentTree
-  type   (treeNode      ), pointer               :: Merger_Tree_Node_Get, thisNode
+  type   (mergerTree    ), pointer               :: treeCurrent
+  type   (treeNode      ), pointer               :: Merger_Tree_Node_Get, node
 
   Merger_Tree_Node_Get => null()
-  currentTree => thisTree
-  do while (associated(currentTree))
-     thisNode => currentTree%baseNode
-     do while (associated(thisNode))
-        if (thisNode%index() == nodeIndex) then
-           Merger_Tree_Node_Get => thisNode
+  treeCurrent => tree
+  do while (associated(treeCurrent))
+     node => treeCurrent%baseNode
+     do while (associated(node))
+        if (node%index() == nodeIndex) then
+           Merger_Tree_Node_Get => node
            return
         end if
-        thisNode => thisNode%walkTreeWithSatellites()
+        node => node%walkTreeWithSatellites()
      end do
-     currentTree => currentTree%nextTree
+     treeCurrent => treeCurrent%nextTree
   end do
   return
 end function Merger_Tree_Node_Get
 
-function Merger_Tree_Create_Event(self) result (newEvent)
+function Merger_Tree_Create_Event(self) result (eventNew)
   !% Create a new event in a merger tree.
   implicit none
   class(mergerTree), intent(inout) :: self
-  type (treeEvent ), pointer       :: newEvent, thisEvent
+  type (treeEvent ), pointer       :: eventNew, event
   
-  allocate(newEvent)
-  nullify(newEvent%next)
+  allocate(eventNew)
+  nullify(eventNew%next)
   !$omp atomic
   eventID=eventID+1
-  newEvent%ID=eventID
+  eventNew%ID=eventID
   if (associated(self%event)) then
-     thisEvent => self%event
-     do while (associated(thisEvent%next))
-        thisEvent => thisEvent%next
+     event => self%event
+     do while (associated(event%next))
+        event => event%next
      end do
-     thisEvent%next => newEvent
+     event%next => eventNew
   else
-     self%event => newEvent
+     self%event => eventNew
   end if
   return
 end function Merger_Tree_Create_Event
@@ -96,26 +96,26 @@ subroutine Merger_Tree_Remove_Event(self,event)
   implicit none
   class  (mergerTree), intent(inout) :: self
   type   (treeEvent ), intent(in   ) :: event
-  type   (treeEvent ), pointer       :: lastEvent, nextEvent, thisEvent
+  type   (treeEvent ), pointer       :: eventLast, eventNext, eventCurrent
   
   ! Destroy the event.
-  lastEvent => null()
-  thisEvent => self%event
-  do while (associated(thisEvent))
+  eventLast    => null()
+  eventCurrent => self%event
+  do while (associated(eventCurrent))
      ! Match the event.
-     if (thisEvent%ID == event%ID) then
-        if (associated(thisEvent,self%event)) then
-           self     %event => thisEvent%next
-           lastEvent       => self     %event
+     if (eventCurrent%ID == event%ID) then
+        if (associated(eventCurrent,self%event)) then
+           self     %event => eventCurrent%next
+           eventLast       => self %event
         else
-           lastEvent%next  => thisEvent%next
+           eventLast%next  => eventCurrent%next
         end if
-        nextEvent => thisEvent%next
-        deallocate(thisEvent)
-        thisEvent => nextEvent
+        eventNext => eventCurrent%next
+        deallocate(eventCurrent)
+        eventCurrent => eventNext
      else
-        lastEvent => thisEvent
-        thisEvent => thisEvent%next
+        eventLast    => eventCurrent
+        eventCurrent => eventCurrent%next
      end if
   end do
   return
@@ -125,23 +125,23 @@ double precision function Merger_Tree_Earliest_Time(self)
   !% Return the earliest time in a merger tree.
   implicit none
   class           (mergerTree        ), intent(inout), target :: self
-  double precision                    , parameter             :: timeInfinity=1.0d30
-  type            (mergerTree        ), pointer               :: currentTree
-  type            (treeNode          ), pointer               :: thisNode
-  class           (nodeComponentBasic), pointer               :: thisBasic
+  double precision                    , parameter             :: timeInfinity=huge(1.0d0)
+  type            (mergerTree        ), pointer               :: treeCurrent
+  type            (treeNode          ), pointer               :: node
+  class           (nodeComponentBasic), pointer               :: basic
   
   Merger_Tree_Earliest_Time =  timeInfinity
-  currentTree               => self
-  do while (associated(currentTree))
-     thisNode => currentTree%baseNode
-     do while (associated(thisNode))
-        if (.not.associated(thisNode%firstChild)) then
-           thisBasic                 =>                               thisNode %basic()
-           Merger_Tree_Earliest_Time =  min(Merger_Tree_Earliest_Time,thisBasic%time ())
+  treeCurrent               => self
+  do while (associated(treeCurrent))
+     node => treeCurrent%baseNode
+     do while (associated(node))
+        if (.not.associated(node%firstChild)) then
+           basic                     =>                               node %basic()
+           Merger_Tree_Earliest_Time =  min(Merger_Tree_Earliest_Time,basic%time ())
         end if
-        thisNode => thisNode%walkTreeWithSatellites()
+        node => node%walkTreeWithSatellites()
      end do
-     currentTree => currentTree%nextTree
+     treeCurrent => treeCurrent%nextTree
   end do
   return
 end function Merger_Tree_Earliest_Time
@@ -150,23 +150,23 @@ double precision function Merger_Tree_Earliest_Time_Evolving(self)
   !% Return the earliest time in a merger tree.
   implicit none
   class           (mergerTree        ), intent(inout), target :: self
-  double precision                    , parameter             :: timeInfinity=1.0d30
-  type            (mergerTree        ), pointer               :: currentTree
-  type            (treeNode          ), pointer               :: thisNode
-  class           (nodeComponentBasic), pointer               :: thisBasic
+  double precision                    , parameter             :: timeInfinity=huge(1.0d0)
+  type            (mergerTree        ), pointer               :: treeCurrent
+  type            (treeNode          ), pointer               :: node
+  class           (nodeComponentBasic), pointer               :: basic
   
   Merger_Tree_Earliest_Time_Evolving =  timeInfinity
-  currentTree                        => self
-  do while (associated(currentTree))
-     thisNode => currentTree%baseNode
-     do while (associated(thisNode))
-        if (.not.associated(thisNode%firstChild).and.(associated(thisNode%parent).or..not.associated(thisNode%firstSatellite))) then
-           thisBasic                          =>                                        thisNode %basic()
-           Merger_Tree_Earliest_Time_Evolving =  min(Merger_Tree_Earliest_Time_Evolving,thisBasic%time ())
+  treeCurrent                        => self
+  do while (associated(treeCurrent))
+     node => treeCurrent%baseNode
+     do while (associated(node))
+        if (.not.associated(node%firstChild).and.(associated(node%parent).or..not.associated(node%firstSatellite))) then
+           basic                              =>                                        node %basic()
+           Merger_Tree_Earliest_Time_Evolving =  min(Merger_Tree_Earliest_Time_Evolving,basic%time ())
         end if
-        thisNode => thisNode%walkTreeWithSatellites()
+        node => node%walkTreeWithSatellites()
      end do
-     currentTree => currentTree%nextTree
+     treeCurrent => treeCurrent%nextTree
   end do
   return
 end function Merger_Tree_Earliest_Time_Evolving
@@ -175,17 +175,17 @@ double precision function Merger_Tree_Latest_Time(self)
   !% Return the latest time in a merger tree.
   implicit none
   class           (mergerTree        ), intent(inout), target :: self
-  type            (mergerTree        ), pointer               :: currentTree
+  type            (mergerTree        ), pointer               :: treeCurrent
   class           (nodeComponentBasic), pointer               :: baseBasic
   
   Merger_Tree_Latest_Time =  -1.0d0
-  currentTree             => self
-  do while (associated(currentTree))
-     if (associated(currentTree%baseNode)) then
-        baseBasic               =>                             currentTree%baseNode%basic()
+  treeCurrent             => self
+  do while (associated(treeCurrent))
+     if (associated(treeCurrent%baseNode)) then
+        baseBasic               =>                             treeCurrent%baseNode%basic()
         Merger_Tree_Latest_Time =  max(Merger_Tree_Latest_Time,baseBasic  %time          ())
      end if
-     currentTree => currentTree%nextTree
+     treeCurrent => treeCurrent%nextTree
   end do
   return
 end function Merger_Tree_Latest_Time

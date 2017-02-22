@@ -52,7 +52,7 @@
      ! Record of whether or not quantities have been computed.
      logical                                                 :: specificAngularMomentumScalingsComputed, maximumVelocityComputed
      ! Stored values of computed quantities.
-     double precision                                        :: specificAngularMomentumLengthScale     , specificAngularMomentumScale     , &
+     double precision                                        :: specificAngularMomentumLengthScale     , specificAngularMomentumScale         , &
           &                                                     concentrationPrevious                  , burkertNormalizationFactorPrevious   , &
           &                                                     maximumVelocityPrevious
      ! Pointer to object setting halo scales.
@@ -225,16 +225,16 @@ contains
     return
   end subroutine burkertDestructor
   
-  subroutine burkertCalculationReset(self,thisNode)
+  subroutine burkertCalculationReset(self,node)
     !% Reset the dark matter profile calculation.
     implicit none
-    class(darkMatterProfileBurkert), intent(inout)          :: self
-    type (treeNode            ), intent(inout) :: thisNode
+    class(darkMatterProfileBurkert), intent(inout) :: self
+    type (treeNode                ), intent(inout) :: node
 
     self%specificAngularMomentumScalingsComputed=.false.
     self%maximumVelocityComputed                =.false.
-    self%lastUniqueID                           =thisNode%uniqueID()
-    call self%scale%calculationReset(thisNode)
+    self%lastUniqueID                           =node%uniqueID()
+    call self%scale%calculationReset(node)
     return
   end subroutine burkertCalculationReset
 
@@ -330,17 +330,17 @@ contains
     class           (darkMatterProfileBurkert      ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: radius
-    class           (nodeComponentBasic            ), pointer       :: thisBasicComponent
-    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
-    double precision                                                :: radiusOverScaleRadius         , scaleRadius, &
+    class           (nodeComponentBasic            ), pointer       :: basic
+    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
+    double precision                                                :: radiusOverScaleRadius      , scaleRadius, &
          &                                                             virialRadiusOverScaleRadius
 
-    thisBasicComponent             => node%basic            (                 )
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
-    scaleRadius                    =thisDarkMatterProfileComponent%scale()
+    basic             => node%basic            (                 )
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
+    scaleRadius                    =darkMatterProfile%scale()
     radiusOverScaleRadius          =radius                       /scaleRadius
     virialRadiusOverScaleRadius    =self%scale%virialRadius(node)/scaleRadius
-    burkertDensity=self%densityScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius)*thisBasicComponent%mass()/scaleRadius**3
+    burkertDensity=self%densityScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius)*basic%mass()/scaleRadius**3
     return
   end function burkertDensity
 
@@ -352,17 +352,17 @@ contains
     class           (darkMatterProfileBurkert      ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: radius
-    class           (nodeComponentBasic            ), pointer       :: thisBasicComponent
-    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
-    double precision                                                :: radiusOverScaleRadius         , scaleRadius, &
+    class           (nodeComponentBasic            ), pointer       :: basic
+    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
+    double precision                                                :: radiusOverScaleRadius      , scaleRadius, &
          &                                                             virialRadiusOverScaleRadius
 
-    thisBasicComponent             => node%basic            (                 )
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
-    scaleRadius                    =thisDarkMatterProfileComponent%scale()
+    basic             => node%basic            (                 )
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
+    scaleRadius                    =darkMatterProfile%scale()
     radiusOverScaleRadius          =radius                       /scaleRadius
     virialRadiusOverScaleRadius    =self%scale%virialRadius(node)/scaleRadius
-    burkertEnclosedMass            =self%enclosedMassScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius)*thisBasicComponent%mass()
+    burkertEnclosedMass            =self%enclosedMassScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius)*basic%mass()
     return
   end function burkertEnclosedMass
 
@@ -377,14 +377,14 @@ contains
     type            (treeNode                      ), intent(inout), pointer  :: node
     double precision                                , intent(in   )           :: radius
     integer                                         , intent(  out), optional :: status
-    class           (nodeComponentDarkMatterProfile)               , pointer  :: thisDarkMatterProfileComponent
-    double precision                                , parameter               :: radiusSmall                   =1.0d-10
-    double precision                                                          :: radiusOverScaleRadius                 , virialRadiusOverScaleRadius
+    class           (nodeComponentDarkMatterProfile)               , pointer  :: darkMatterProfile
+    double precision                                , parameter               :: radiusSmall          =1.0d-10
+    double precision                                                          :: radiusOverScaleRadius        , virialRadiusOverScaleRadius
 
     if (present(status)) status=structureErrorCodeSuccess
-    thisDarkMatterProfileComponent   => node%darkMatterProfile(autoCreate=.true.)
-    radiusOverScaleRadius            =radius                       /thisDarkMatterProfileComponent%scale()
-    virialRadiusOverScaleRadius      =self%scale%virialRadius(node)/thisDarkMatterProfileComponent%scale()
+    darkMatterProfile   => node%darkMatterProfile(autoCreate=.true.)
+    radiusOverScaleRadius            =radius                       /darkMatterProfile%scale()
+    virialRadiusOverScaleRadius      =self%scale%virialRadius(node)/darkMatterProfile%scale()
     if (radiusOverScaleRadius < radiusSmall) then
        burkertPotential=                                                                          &
             & +(                                                                                  &
@@ -471,7 +471,7 @@ contains
     class           (darkMatterProfileBurkert      ), intent(inout)          :: self
     type            (treeNode                      ), intent(inout), pointer :: node
     double precision                                , intent(in   )          :: specificAngularMomentum
-    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
+    class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
     double precision                                                         :: specificAngularMomentumScaleFree
 
     ! Return immediately with zero radius for non-positive specific angular momenta.
@@ -487,10 +487,10 @@ contains
        self%specificAngularMomentumScalingsComputed=.true.
 
        ! Get the dark matter profile.
-       thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
+       darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
 
        ! Get the scale radius.
-       self%specificAngularMomentumLengthScale=thisDarkMatterProfileComponent%scale()
+       self%specificAngularMomentumLengthScale=darkMatterProfile%scale()
 
        ! Get the specific angular momentum scale.
        self%specificAngularMomentumScale=self%specificAngularMomentumLengthScale*self%circularVelocity(node&
@@ -518,14 +518,14 @@ contains
     implicit none
     class           (darkMatterProfileBurkert      ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
-    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
+    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
     double precision                                                :: concentration
 
     ! Get components.
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
 
     ! Find the concentration parameter of this halo.
-    concentration=self%scale%virialRadius(node)/thisDarkMatterProfileComponent%scale()
+    concentration=self%scale%virialRadius(node)/darkMatterProfile%scale()
 
     ! Ensure that the interpolations exist and extend sufficiently far.
     call self%tabulate(concentration)
@@ -542,23 +542,23 @@ contains
     implicit none
     class           (darkMatterProfileBurkert      ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
-    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
-    class           (nodeComponentBasic            ), pointer       :: thisBasicComponent
+    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
+    class           (nodeComponentBasic            ), pointer       :: basic
     double precision                                                :: concentration
 
     ! Get components.
-    thisBasicComponent             => node%basic            (                 )
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
+    basic             => node%basic            (                 )
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
 
     ! Find the concentration parameter of this halo.
-    concentration=self%scale%virialRadius(node)/thisDarkMatterProfileComponent%scale()
+    concentration=self%scale%virialRadius(node)/darkMatterProfile%scale()
 
     ! Ensure that the interpolations exist and extend sufficiently far.
     call self%tabulate(concentration)
 
     ! Find the energy by interpolation.
     burkertEnergy=self%burkertConcentrationTable%interpolate(concentration,table=burkertConcentrationEnergyIndex)&
-         &*thisBasicComponent%mass()*self%scale%virialVelocity(node)**2
+         &*basic%mass()*self%scale%virialVelocity(node)**2
     return
   end function burkertEnergy
 
@@ -568,17 +568,17 @@ contains
     implicit none
     class           (darkMatterProfileBurkert      ), intent(inout)          :: self
     type            (treeNode                      ), intent(inout), pointer :: node
-    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
-    class           (nodeComponentBasic            )               , pointer :: thisBasicComponent
-    double precision                                                         :: concentration                 , energy, &
+    class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
+    class           (nodeComponentBasic            )               , pointer :: basic
+    double precision                                                         :: concentration     , energy, &
          &                                                                      energyGradient
 
     ! Get components.
-    thisBasicComponent             => node%basic            (                 )
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
+    basic             => node%basic            (                 )
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
 
     ! Find the concentration parameter of this halo.
-    concentration=self%scale%virialRadius(node)/thisDarkMatterProfileComponent%scale()
+    concentration=self%scale%virialRadius(node)/darkMatterProfile%scale()
 
     ! Ensure that the interpolations exist and extend sufficiently far.
     call self%tabulate(concentration)
@@ -588,10 +588,10 @@ contains
     energyGradient=self%burkertConcentrationTable%interpolateGradient(concentration,table=burkertConcentrationEnergyIndex)
 
     burkertEnergyGrowthRate=self%energy(node)&
-         &*(thisBasicComponent%accretionRate()/thisBasicComponent%mass()+2.0d0 &
+         &*(basic%accretionRate()/basic%mass()+2.0d0 &
          &*self%scale%virialVelocityGrowthRate(node)/self%scale%virialVelocity(node)+(energyGradient&
          &*concentration/energy)*(self%scale%virialRadiusGrowthRate(node)/self%scale%virialRadius(node)&
-         &-thisDarkMatterProfileComponent%scaleGrowthRate()/thisDarkMatterProfileComponent%scale()))
+         &-darkMatterProfile%scaleGrowthRate()/darkMatterProfile%scale()))
 
     return
   end function burkertEnergyGrowthRate
@@ -641,10 +641,10 @@ contains
     !% concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius).
     implicit none
     class           (darkMatterProfileBurkert), intent(inout) :: self
-    double precision                      , intent(in   ) :: concentration                                                   , radius
-    double precision                      , parameter     :: minimumRadiusForExactSolution          =1.0d-4
+    double precision                          , intent(in   ) :: concentration                                                   , radius
+    double precision                          , parameter     :: minimumRadiusForExactSolution              =1.0d-4
     ! Precomputed Burkert normalization factor for unit concentration.
-    double precision                      , parameter     :: burkertNormalizationFactorUnitConcentration=1.0d0/(3.0d0*log(2.0d0)-2.0d0*atan(1.0d0))
+    double precision                          , parameter     :: burkertNormalizationFactorUnitConcentration=1.0d0/(3.0d0*log(2.0d0)-2.0d0*atan(1.0d0))
 
     if (radius < minimumRadiusForExactSolution) then
        ! Use a series solution for small radii.
@@ -782,15 +782,15 @@ contains
     class           (darkMatterProfileBurkert      ), intent(inout)          :: self
     type            (treeNode                      ), intent(inout), pointer :: node
     double precision                                , intent(in   )          :: waveNumber
-    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
-    double precision                                                         :: concentration                 , radiusScale, &
+    class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
+    double precision                                                         :: concentration      , radiusScale, &
          &                                                                      waveNumberScaleFree
 
     ! Get components.
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
 
     ! Get the scale radius.
-    radiusScale=thisDarkMatterProfileComponent%scale()
+    radiusScale=darkMatterProfile%scale()
 
     ! Compute the concentration parameter.
     concentration=self%scale%virialRadius(node)/radiusScale
@@ -834,9 +834,9 @@ contains
     class           (darkMatterProfileBurkert      ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: time
-    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
-    double precision                                                :: concentration                 , freefallTimeScaleFree, &
-         &                                                             radiusScale                   , timeScale            , &
+    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
+    double precision                                                :: concentration    , freefallTimeScaleFree, &
+         &                                                             radiusScale      , timeScale            , &
          &                                                             velocityScale
 
     ! For non-positive freefall times, return a zero freefall radius immediately.
@@ -846,10 +846,10 @@ contains
     end if
 
     ! Get components.
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
 
     ! Get the scale radius.
-    radiusScale=thisDarkMatterProfileComponent%scale()
+    radiusScale=darkMatterProfile%scale()
 
     ! Get the concentration.
     concentration=self%scale%virialRadius(node)/radiusScale
@@ -881,9 +881,9 @@ contains
     class           (darkMatterProfileBurkert      ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: time
-    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
-    double precision                                                :: concentration                 , freefallTimeScaleFree, &
-         &                                                             radiusScale                   , timeScale            , &
+    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
+    double precision                                                :: concentration    , freefallTimeScaleFree, &
+         &                                                             radiusScale      , timeScale            , &
          &                                                             velocityScale
 
     ! For non-positive freefall times, return the limiting value for small radii.
@@ -893,10 +893,10 @@ contains
     end if
 
     ! Get components.
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
 
     ! Get the scale radius.
-    radiusScale=thisDarkMatterProfileComponent%scale()
+    radiusScale=darkMatterProfile%scale()
 
     ! Get the concentration.
     concentration=self%scale%virialRadius(node)/radiusScale
@@ -1021,18 +1021,21 @@ contains
 
   subroutine burkertStateStore(self,stateFile,fgslStateFile)
     !% Write the tablulation state to file.
+    use Galacticus_Display
     implicit none
     class  (darkMatterProfileBurkert), intent(inout) :: self
     integer                          , intent(in   ) :: stateFile
     type   (fgsl_file               ), intent(in   ) :: fgslStateFile
     !GCC$ attributes unused :: fgslStateFile
     
+    call Galacticus_Display_Message('Storing state for: darkMatterProfile -> Burkert',verbosity=verbosityInfo)
     write (stateFile) self%concentrationMinimum,self%concentrationMaximum,self%radiusMinimum,self%radiusMaximum,self%freefallRadiusMinimum,self%freefallRadiusMaximum
     return
   end subroutine burkertStateStore
 
   subroutine burkertStateRestore(self,stateFile,fgslStateFile)
     !% Retrieve the tabulation state from the file.
+    use Galacticus_Display
     implicit none
     class  (darkMatterProfileBurkert), intent(inout) :: self
     integer                          , intent(in   ) :: stateFile
@@ -1040,6 +1043,7 @@ contains
     !GCC$ attributes unused :: fgslStateFile
 
     ! Read the minimum and maximum tabulated times.
+    call Galacticus_Display_Message('Retrieving state for: darkMatterProfile -> Burkert',verbosity=verbosityInfo)
     read (stateFile) self%concentrationMinimum,self%concentrationMaximum,self%radiusMinimum,self%radiusMaximum,self%freefallRadiusMinimum,self%freefallRadiusMaximum
     ! Retabulate.
     self%burkertTableInitialized        =.false.

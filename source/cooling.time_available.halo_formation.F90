@@ -61,27 +61,27 @@ contains
     return
   end subroutine Cooling_Time_Available_Halo_Formation_Initialize
 
-  double precision function Cooling_Time_Available_Halo_Formation(thisNode)
+  double precision function Cooling_Time_Available_Halo_Formation(node)
     !% Compute the time available for cooling using the \cite{cole_hierarchical_2000} method. Specifically, the time available is
     !% assumed to be the time since the halo formation event.
     implicit none
-    type (treeNode                  ), intent(inout) :: thisNode
-    class(nodeComponentBasic        ), pointer       :: thisBasicComponent
-    class(nodeComponentFormationTime), pointer       :: thisFormationTimeComponent
+    type (treeNode                  ), intent(inout) :: node
+    class(nodeComponentBasic        ), pointer       :: basic
+    class(nodeComponentFormationTime), pointer       :: formationTime
 
-    thisBasicComponent         => thisNode%basic        ()
-    thisFormationTimeComponent => thisNode%formationTime()
+    basic         => node%basic        ()
+    formationTime => node%formationTime()
 
-    Cooling_Time_Available_Halo_Formation=thisBasicComponent%time()-thisFormationTimeComponent%formationTime()
+    Cooling_Time_Available_Halo_Formation=basic%time()-formationTime%formationTime()
     return
   end function Cooling_Time_Available_Halo_Formation
 
-  double precision function Cooling_Time_Available_Increase_Rate_Halo_Formation(thisNode)
+  double precision function Cooling_Time_Available_Increase_Rate_Halo_Formation(node)
     !% Compute the rate of increase of the time available for cooling using the \cite{cole_hierarchical_2000} method. We return a rate
     !% of 1.
     implicit none
-    type(treeNode), intent(inout) :: thisNode
-    !GCC$ attributes unused :: thisNode
+    type(treeNode), intent(inout) :: node
+    !GCC$ attributes unused :: node
     
     ! Simply return unit rate.
     Cooling_Time_Available_Increase_Rate_Halo_Formation=1.0d0

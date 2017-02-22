@@ -48,28 +48,28 @@ contains
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Basic_Standard_Tree_Tracking_Initialize</unitName>
   !# </mergerTreeInitializeTask>
-  subroutine Node_Component_Basic_Standard_Tree_Tracking_Initialize(thisNode)
-    !% Set the mass accretion rate for {\normalfont \ttfamily thisNode}.
+  subroutine Node_Component_Basic_Standard_Tree_Tracking_Initialize(node)
+    !% Set the mass accretion rate for {\normalfont \ttfamily node}.
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    type            (treeNode          )               , pointer :: progenitorNode
-    class           (nodeComponentBasic)               , pointer :: thisBasic     , progenitorBasic
+    type            (treeNode          ), intent(inout), pointer :: node
+    type            (treeNode          )               , pointer :: nodeProgenitor
+    class           (nodeComponentBasic)               , pointer :: basic         , basicProgenitor
     double precision                                             :: massMaximum
 
     ! Get the basic component.
-    thisBasic => thisNode%basic()
+    basic => node%basic()
     ! Ensure that it is of the standard tracking class.
-    select type (thisBasic)
+    select type (basic)
        class is (nodeComponentBasicStandardTracking)
           ! Find the maximum progenitor mass.
-       progenitorNode => thisNode
+       nodeProgenitor => node
        massMaximum    =  0.0d0
-       do while (associated(progenitorNode))
-          progenitorBasic => progenitorNode%basic     ()
-          massMaximum     =  max(massMaximum,progenitorBasic%mass())
-          progenitorNode  => progenitorNode%firstChild
+       do while (associated(nodeProgenitor))
+          basicProgenitor => nodeProgenitor%basic     ()
+          massMaximum     =  max(massMaximum,basicProgenitor%mass())
+          nodeProgenitor  => nodeProgenitor%firstChild
        end do
-       call thisBasic%massMaximumSet(massMaximum)
+       call basic%massMaximumSet(massMaximum)
     end select
     return
   end subroutine Node_Component_Basic_Standard_Tree_Tracking_Initialize
@@ -77,25 +77,25 @@ contains
   !# <nodePromotionTask>
   !#  <unitName>Node_Component_Basic_Standard_Tracking_Promote</unitName>
   !# </nodePromotionTask>
-  subroutine Node_Component_Basic_Standard_Tracking_Promote(thisNode)
-    !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, we simply update the maximum mass of {\tt
-    !% thisNode} to be that of its parent.
+  subroutine Node_Component_Basic_Standard_Tracking_Promote(node)
+    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the maximum mass of {\tt
+    !% node} to be that of its parent.
     use Galacticus_Error
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    type (treeNode          )               , pointer :: parentNode
-    class(nodeComponentBasic)               , pointer :: parentBasic, thisBasic
+    type (treeNode          ), intent(inout), pointer :: node
+    type (treeNode          )               , pointer :: nodeParent
+    class(nodeComponentBasic)               , pointer :: basicParent, basic
 
     ! Get the basic component.
-    thisBasic => thisNode%basic()
+    basic => node%basic()
     ! Ensure that it is of the standard tracking class.
-    select type (thisBasic)
+    select type (basic)
        class is (nodeComponentBasicStandardTracking)
           ! Get the parent node and its basic component.
-       parentNode  => thisNode  %parent
-       parentBasic => parentNode%basic()
+       nodeParent  => node  %parent
+       basicParent => nodeParent%basic()
        ! Adjust the maximum mass to that of the parent node.
-       call thisBasic%massMaximumSet(parentBasic%massMaximum())
+       call basic%massMaximumSet(basicParent%massMaximum())
     end select
     return
   end subroutine Node_Component_Basic_Standard_Tracking_Promote

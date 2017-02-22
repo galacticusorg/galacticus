@@ -46,23 +46,23 @@ contains
     return
   end subroutine Galactic_Structure_Initial_Radii_Static_Initialize
 
-  double precision function Galactic_Structure_Radius_Initial_Static(thisNode,radius)
+  double precision function Galactic_Structure_Radius_Initial_Static(node,radius)
     !% Compute the initial radius in the dark matter halo assuming the halo is static.
     implicit none
-    type            (treeNode), intent(inout) :: thisNode
+    type            (treeNode), intent(inout) :: node
     double precision          , intent(in   ) :: radius
-    !GCC$ attributes unused :: thisNode, radius
+    !GCC$ attributes unused :: node, radius
 
     Galactic_Structure_Radius_Initial_Static=radius
     return
   end function Galactic_Structure_Radius_Initial_Static
 
-  double precision function Galactic_Structure_Radius_Initial_Derivative_Static(thisNode,radius)
+  double precision function Galactic_Structure_Radius_Initial_Derivative_Static(node,radius)
     !% Compute the derivative of the initial radius in the dark matter halo assuming the halo is static.
     implicit none
-    type            (treeNode), intent(inout) :: thisNode
+    type            (treeNode), intent(inout) :: node
     double precision          , intent(in   ) :: radius
-    !GCC$ attributes unused :: thisNode, radius
+    !GCC$ attributes unused :: node, radius
     
     Galactic_Structure_Radius_Initial_Derivative_Static=1.0d0
     return

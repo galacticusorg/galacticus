@@ -23,10 +23,8 @@ module Node_Component_Mass_Flow_Statistics_Standard
   use Galacticus_Nodes
   implicit none
   private
-  public :: Node_Component_Mass_Flow_Statistics_Standard_Merger_Tree_Init, &
-       &    Node_Component_Mass_Flow_Statistics_Standard_Scale_Set       , &
-       &    Node_Component_Mass_Flow_Statistics_Standard_Extra_Output    , &
-       &    Node_Component_Mass_Flow_Statistics_Standard_Rate_Compute
+  public :: Node_Component_Mass_Flow_Statistics_Standard_Merger_Tree_Init, Node_Component_Mass_Flow_Statistics_Standard_Scale_Set   , &
+       &    Node_Component_Mass_Flow_Statistics_Standard_Extra_Output    , Node_Component_Mass_Flow_Statistics_Standard_Rate_Compute
 
   !# <component>
   !#  <class>massFlowStatistics</class>
@@ -80,12 +78,12 @@ contains
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Mass_Flow_Statistics_Standard_Merger_Tree_Init</unitName>
   !# </mergerTreeInitializeTask>
-  subroutine Node_Component_Mass_Flow_Statistics_Standard_Merger_Tree_Init(thisNode)
+  subroutine Node_Component_Mass_Flow_Statistics_Standard_Merger_Tree_Init(node)
     !% Initialize the mass flow statistics component by creating components in nodes and computing formation times.
     use Dark_Matter_Halo_Formation_Times
     implicit none
-    type (treeNode                       ), pointer, intent(inout) :: thisNode
-    class(nodeComponentMassFlowStatistics), pointer                :: thisMassFlowStatisticsComponent
+    type (treeNode                       ), pointer, intent(inout) :: node
+    class(nodeComponentMassFlowStatistics), pointer                :: massFlowStatistics
     
     ! Return immediately if this class is not active.
     if (.not.defaultMassFlowStatisticsComponent%standardIsActive()) return
@@ -94,10 +92,10 @@ contains
     call Node_Component_Mass_Flow_Statistics_Standard_Initialize()
 
     ! Create a mass flow statistics component and initialize it.
-    thisMassFlowStatisticsComponent => thisNode%massFlowStatistics(autoCreate=.true.)
-    select type (thisMassFlowStatisticsComponent)
+    massFlowStatistics => node%massFlowStatistics(autoCreate=.true.)
+    select type (massFlowStatistics)
     class is (nodeComponentMassFlowStatisticsStandard)
-       call thisMassFlowStatisticsComponent%cooledMassSet(0.0d0)
+       call massFlowStatistics%cooledMassSet(0.0d0)
     end select
     return
   end subroutine Node_Component_Mass_Flow_Statistics_Standard_Merger_Tree_Init
@@ -105,24 +103,24 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Mass_Flow_Statistics_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Mass_Flow_Statistics_Standard_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure)
+  subroutine Node_Component_Mass_Flow_Statistics_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure)
     !% Compute rates of change of properties in the standard implementation of the basic component.
     use Cooling_Rates
     implicit none
-    type     (treeNode                       ), pointer, intent(inout) :: thisNode
+    type     (treeNode                       ), pointer, intent(inout) :: node
     logical                                            , intent(in   ) :: odeConverged
     logical                                   ,          intent(inout) :: interrupt
     procedure(                               ), pointer, intent(inout) :: interruptProcedure
-    class    (nodeComponentMassFlowStatistics), pointer                :: massFlowStatisticsComponent
+    class    (nodeComponentMassFlowStatistics), pointer                :: massFlowStatistics
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
     ! Get the massFlowStatistics component.
-    massFlowStatisticsComponent => thisNode%massFlowStatistics()
+    massFlowStatistics => node%massFlowStatistics()
     ! Ensure that it is of the standard class.
-    select type (massFlowStatisticsComponent)
+    select type (massFlowStatistics)
     class is (nodeComponentMassFlowStatisticsStandard)
        ! Cooled mass rate simply equals the cooling rate.
-       call massFlowStatisticsComponent%cooledMassRate(Cooling_Rate(thisNode))
+       call massFlowStatistics%cooledMassRate(Cooling_Rate(node))
     end select
     return
   end subroutine Node_Component_Mass_Flow_Statistics_Standard_Rate_Compute
@@ -130,22 +128,22 @@ contains
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Mass_Flow_Statistics_Standard_Scale_Set</unitName>
   !# </scaleSetTask>
-  subroutine Node_Component_Mass_Flow_Statistics_Standard_Scale_Set(thisNode)
+  subroutine Node_Component_Mass_Flow_Statistics_Standard_Scale_Set(node)
     !% Set scales for properties in the standard implementation of the massFlowStatistics component.
     implicit none
-    type            (treeNode                       ), pointer, intent(inout) :: thisNode
-    double precision                                 , parameter              :: scaleMassRelative=1.0d-6
-    class           (nodeComponentMassFlowStatistics), pointer                :: massFlowStatisticsComponent
-    class           (nodeComponentBasic             ), pointer                :: thisBasicComponent
+    type            (treeNode                       ), pointer, intent(inout) :: node
+    double precision                                 , parameter              :: scaleMassRelative =1.0d-6
+    class           (nodeComponentMassFlowStatistics), pointer                :: massFlowStatistics
+    class           (nodeComponentBasic             ), pointer                :: basic
 
     ! Get the massFlowStatistics component.
-    massFlowStatisticsComponent => thisNode%massFlowStatistics()
+    massFlowStatistics => node%massFlowStatistics()
     ! Ensure that it is of the standard class.
-    select type (massFlowStatisticsComponent)
+    select type (massFlowStatistics)
     class is (nodeComponentMassFlowStatisticsStandard)
        ! Set scale for cooled mass.
-       thisBasicComponent => thisNode%basic()
-       call massFlowStatisticsComponent%cooledMassScale(scaleMassRelative*thisBasicComponent%mass())
+       basic => node%basic()
+       call massFlowStatistics%cooledMassScale(scaleMassRelative*basic%mass())
     end select
     return
   end subroutine Node_Component_Mass_Flow_Statistics_Standard_Scale_Set
@@ -153,28 +151,28 @@ contains
   !# <mergerTreeExtraOutputTask>
   !#  <unitName>Node_Component_Mass_Flow_Statistics_Standard_Extra_Output</unitName>
   !# </mergerTreeExtraOutputTask>
-  subroutine Node_Component_Mass_Flow_Statistics_Standard_Extra_Output(thisNode,iOutput,treeIndex,nodePassesFilter)
+  subroutine Node_Component_Mass_Flow_Statistics_Standard_Extra_Output(node,iOutput,treeIndex,nodePassesFilter)
     !% Reset mass flow statistics at output time.
     use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
     use Kind_Numbers
     implicit none
-    type            (treeNode                       ), intent(inout), pointer      :: thisNode
-    integer         (kind=kind_int8                 ), intent(in   )               :: treeIndex
-    integer         (kind=c_size_t                  ), intent(in   )               :: iOutput
-    logical                                          , intent(in   )               :: nodePassesFilter
-    class           (nodeComponentMassFlowStatistics),                pointer      :: massFlowStatisticsComponent
+    type            (treeNode                       ), intent(inout), pointer :: node
+    integer         (kind=kind_int8                 ), intent(in   )          :: treeIndex
+    integer         (kind=c_size_t                  ), intent(in   )          :: iOutput
+    logical                                          , intent(in   )          :: nodePassesFilter
+    class           (nodeComponentMassFlowStatistics),                pointer :: massFlowStatistics
     !GCC$ attributes unused :: iOutput, nodePassesFilter, treeIndex
     
     ! Return immediately if we are not to reset mass flow statistics at output time.
     if (.not.massFlowStatisticsResetOnOutput) return
 
     ! Get the massFlowStatistics component.
-    massFlowStatisticsComponent => thisNode%massFlowStatistics()
+    massFlowStatistics => node%massFlowStatistics()
     ! Ensure that it is of the standard class.
-    select type (massFlowStatisticsComponent)
+    select type (massFlowStatistics)
     class is (nodeComponentMassFlowStatisticsStandard)
-       call massFlowStatisticsComponent%cooledMassSet(0.0d0) 
+       call massFlowStatistics%cooledMassSet(0.0d0) 
     end select
     return
   end subroutine Node_Component_Mass_Flow_Statistics_Standard_Extra_Output

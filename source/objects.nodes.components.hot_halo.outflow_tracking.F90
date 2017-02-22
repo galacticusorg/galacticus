@@ -62,34 +62,34 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure)
+  subroutine Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute(node,odeConverged,interrupt,interruptProcedure)
     !% Compute the hot halo node mass rate of change.
     use Abundances_Structure
     use Dark_Matter_Halo_Scales
     use Node_Component_Hot_Halo_Standard_Data
     implicit none
-    type            (treeNode                    )           , intent(inout), pointer :: thisNode
+    type            (treeNode                    )           , intent(inout), pointer :: node
     logical                                                  , intent(in   )          :: odeConverged
     logical                                                  , intent(inout)          :: interrupt
-    procedure       (interruptTask)           , intent(inout), pointer :: interruptProcedure
-    class           (nodeComponentHotHalo        )                          , pointer :: thisHotHalo
+    procedure       (interruptTask               )           , intent(inout), pointer :: interruptProcedure
+    class           (nodeComponentHotHalo        )                          , pointer :: hotHalo
     class           (darkMatterHaloScaleClass    )                          , pointer :: darkMatterHaloScale_
     double precision                                                                  :: massReturnRate
     type            (abundances                  )                                    :: abundancesReturnRate
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
     ! Get the hot halo component.
-    thisHotHalo => thisNode%hotHalo()
+    hotHalo => node%hotHalo()
     ! Act only if this hot halo is of our class.
-    select type (thisHotHalo)
+    select type (hotHalo)
     class is (nodeComponentHotHaloOutflowTracking)
        ! Get required objects.
        darkMatterHaloScale_ => darkMatterHaloScale()
        ! Add the rate of abundances return from the outflowed component.
-       massReturnRate      =hotHaloOutflowReturnRate*thisHotHalo%outflowedMass      ()/darkMatterHaloScale_%dynamicalTimescale(thisNode)
-       abundancesReturnRate=hotHaloOutflowReturnRate*thisHotHalo%outflowedAbundances()/darkMatterHaloScale_%dynamicalTimescale(thisNode)
-       call thisHotHalo%trackedOutflowMassRate      (      massReturnRate)
-       call thisHotHalo%trackedOutflowAbundancesRate(abundancesReturnRate)
+       massReturnRate      =hotHaloOutflowReturnRate*hotHalo%outflowedMass      ()/darkMatterHaloScale_%dynamicalTimescale(node)
+       abundancesReturnRate=hotHaloOutflowReturnRate*hotHalo%outflowedAbundances()/darkMatterHaloScale_%dynamicalTimescale(node)
+       call hotHalo%trackedOutflowMassRate      (      massReturnRate)
+       call hotHalo%trackedOutflowAbundancesRate(abundancesReturnRate)
     end select
     return
   end subroutine Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute
@@ -97,30 +97,30 @@ contains
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Hot_Halo_Outflow_Tracking_Scale_Set</unitName>
   !# </scaleSetTask>
-  subroutine Node_Component_Hot_Halo_Outflow_Tracking_Scale_Set(thisNode)
-    !% Set scales for properties of {\tt thisNode}.
+  subroutine Node_Component_Hot_Halo_Outflow_Tracking_Scale_Set(node)
+    !% Set scales for properties of {\tt node}.
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode
-    class           (nodeComponentHotHalo)               , pointer :: thisHotHalo
-    class           (nodeComponentBasic  )               , pointer :: thisBasic
+    type            (treeNode            ), intent(inout), pointer :: node
+    class           (nodeComponentHotHalo)               , pointer :: hotHalo
+    class           (nodeComponentBasic  )               , pointer :: basic
     double precision                      , parameter              :: scaleMassRelative=1.0d-3
     double precision                                               :: massVirial
 
     ! Get the hot halo component.
-    thisHotHalo => thisNode%hotHalo()
+    hotHalo => node%hotHalo()
     ! Ensure that it is of the standard class.
-    select type (thisHotHalo)
+    select type (hotHalo)
     class is (nodeComponentHotHaloOutflowTracking)
        ! Get the basic component.
-       thisBasic => thisNode%basic()
+       basic => node%basic()
        ! Get virial properties.
-       massVirial=thisBasic%mass()
+       massVirial=basic%mass()
        ! Set a scale for the tracked abundances.
-       call thisHotHalo%trackedOutflowMassScale      (               massVirial*scaleMassRelative)
-       call thisHotHalo%trackedOutflowAbundancesScale(unitAbundances*massVirial*scaleMassRelative)
+       call hotHalo%trackedOutflowMassScale      (               massVirial*scaleMassRelative)
+       call hotHalo%trackedOutflowAbundancesScale(unitAbundances*massVirial*scaleMassRelative)
     end select
     return
   end subroutine Node_Component_Hot_Halo_Outflow_Tracking_Scale_Set

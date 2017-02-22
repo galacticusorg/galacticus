@@ -32,7 +32,7 @@ module Merger_Trees_Dump
   !$omp threadprivate(outputCount,treeIndexPrevious)
 contains
 
-  subroutine Merger_Tree_Dump(treeIndex,baseNode,highlightNodes,backgroundColor,nodeColor,edgeColor,highlightColor,nodeStyle&
+  subroutine Merger_Tree_Dump(treeIndex,nodeBase,highlightNodes,backgroundColor,nodeColor,edgeColor,highlightColor,nodeStyle&
        &,highlightStyle ,edgeStyle ,labelNodes,labelUnique,scaleNodesByLogMass,edgeLengthsToTimes,timeRange,path)
     !% Dumps the tree structure to a file in a format suitable for processing with \href{http://www.graphviz.org/}{\normalfont \scshape dot}. Nodes
     !% are shown as circles if isolated or rectangles if satellites. Isolated nodes are connected to their descendent halo, while
@@ -42,7 +42,7 @@ contains
     use ISO_Varying_String
     implicit none
     integer         (kind=kind_int8    )              , intent(in   )                    :: treeIndex
-    type            (treeNode          )              , intent(in   )          , pointer :: baseNode
+    type            (treeNode          )              , intent(in   )          , pointer :: nodeBase
     integer         (kind=kind_int8    ), dimension(:), intent(in   ), optional          :: highlightNodes
     character       (len=*             )              , intent(in   ), optional          :: backgroundColor          , edgeColor           , &
          &                                                                                  edgeStyle                , highlightColor      , &
@@ -53,7 +53,7 @@ contains
     double precision                    , dimension(2), intent(in   ), optional          :: timeRange
     type            (varying_string    )              , intent(in   ), optional          :: path
     type            (treeNode          )                                       , pointer :: thisNode
-    class           (nodeComponentBasic)                                       , pointer :: parentBasicComponent     , thisBasicComponent
+    class           (nodeComponentBasic)                                       , pointer :: basicParent              , basic
     logical                                                                              :: edgeLengthsToTimesActual , labelNodesActual    , &
          &                                                                                  scaleNodesByLogMassActual, labelUniqueActual
     integer                                                                              :: fileUnit
@@ -139,24 +139,24 @@ contains
     ! If sizes are to be scaled by mass, find the range of masses in the tree. If edges are set to time intervals, find minimum
     ! and maximum times in tree.
     if (scaleNodesByLogMassActual.or.edgeLengthsToTimesActual) then
-       thisNode           => baseNode
-       thisBasicComponent => thisNode%basic()
-       nodeMassMinimum=thisBasicComponent%mass()
-       nodeMassMaximum=thisBasicComponent%mass()
-       timeMinimum    =thisBasicComponent%time()
-       timeMaximum    =thisBasicComponent%time()
+       thisNode        => nodeBase
+       basic           => thisNode%basic()
+       nodeMassMinimum =  basic   %mass ()
+       nodeMassMaximum =  basic   %mass ()
+       timeMinimum     =  basic   %time ()
+       timeMaximum     =  basic   %time ()
        do while (associated(thisNode))
-          thisBasicComponent => thisNode%basic()
-          if (thisBasicComponent%mass() < nodeMassMinimum) nodeMassMinimum=thisBasicComponent%mass()
-          if (thisBasicComponent%mass() > nodeMassMaximum) nodeMassMaximum=thisBasicComponent%mass()
-          if (thisBasicComponent%time() < timeMinimum    ) timeMinimum    =thisBasicComponent%time()
-          if (thisBasicComponent%time() > timeMaximum    ) timeMaximum    =thisBasicComponent%time()
+          basic => thisNode%basic()
+          if (basic%mass() < nodeMassMinimum) nodeMassMinimum=basic%mass()
+          if (basic%mass() > nodeMassMaximum) nodeMassMaximum=basic%mass()
+          if (basic%time() < timeMinimum    ) timeMinimum    =basic%time()
+          if (basic%time() > timeMaximum    ) timeMaximum    =basic%time()
           thisNode => thisNode%walkTreeWithSatellites()
        end do
        nodeMassMinimum=log(nodeMassMinimum)
        nodeMassMaximum=log(nodeMassMaximum)
-       timeMinimum    =log(timeMinimum)
-       timeMaximum    =log(timeMaximum)
+       timeMinimum    =log(timeMinimum    )
+       timeMaximum    =log(timeMaximum    )
     else
        nodeMassMinimum=0.0d0
        nodeMassMaximum=0.0d0
@@ -177,18 +177,18 @@ contains
     write (fileUnit,'(a)'    ) 'size="8,11";'
 
     ! Loop over all nodes.
-    thisNode => baseNode
+    thisNode => nodeBase
     do while (associated(thisNode))
        ! Get the basic component.
-       thisBasicComponent => thisNode%basic()
+       basic => thisNode%basic()
        ! Skip the node if it lies outside of the specified time range.
        if     (                                             &
             &   .not.present(timeRange)                     &
             &  .or.                                         &
             &   (                                           &
-            &     thisBasicComponent%time() >= timeRange(1) &
+            &     basic%time() >= timeRange(1) &
             &    .and.                                      &
-            &     thisBasicComponent%time() <= timeRange(2) &
+            &     basic%time() <= timeRange(2) &
             &   )                                           &
             & ) then
           ! Write each node, setting the node shape to a box for subhalos and a circle for halos. Node label consists of the node
@@ -227,8 +227,8 @@ contains
              if (associated(thisNode%parent)) then
                 write (fileUnit,'(a,i16.16,a,i16.16,a,a,a,a,$)') '"',thisNode%uniqueID(),'" -> "',thisNode%parent%uniqueID(),'" [color="',trim(edgeColorActual),'", style=',trim(edgeStyleActual)
                 if (edgeLengthsToTimesActual) then
-                   parentBasicComponent => thisNode%parent%basic()
-                   timeDifference=1000.0d0*log10(parentBasicComponent%time()/thisBasicComponent%time())/(timeMaximum-timeMinimum)
+                   basicParent => thisNode%parent%basic()
+                   timeDifference=1000.0d0*log10(basicParent%time()/basic%time())/(timeMaximum-timeMinimum)
                    write (fileUnit,'(a,f10.6,$)') ', minlen=',timeDifference
                 end if
                 write (fileUnit,'(a)') '];'
@@ -237,7 +237,7 @@ contains
 
           ! Set size of node if requested.
           if (scaleNodesByLogMassActual.and.nodeMassMaximum > nodeMassMinimum) then
-             nodeMass=10.0d0*(log(thisBasicComponent%mass())-nodeMassMinimum)/(nodeMassMaximum-nodeMassMinimum)+1.0d0
+             nodeMass=10.0d0*(log(basic%mass())-nodeMassMinimum)/(nodeMassMaximum-nodeMassMinimum)+1.0d0
              write (fileUnit,'(a,i16.16,a,f10.6,a)') '"',thisNode%uniqueID(),'" [width=',nodeMass,'];'
           end if
 

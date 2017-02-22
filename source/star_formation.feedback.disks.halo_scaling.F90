@@ -96,17 +96,17 @@ contains
     return
   end subroutine Star_Formation_Feedback_Disks_Halo_Scaling_Initialize
 
-  double precision function Star_Formation_Feedback_Disk_Outflow_Rate_Halo_Scaling(thisNode,starFormationRate,energyInputRate)
-    !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\normalfont \ttfamily thisNode}.
+  double precision function Star_Formation_Feedback_Disk_Outflow_Rate_Halo_Scaling(node,starFormationRate,energyInputRate)
+    !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\normalfont \ttfamily node}.
     use Cosmology_Functions
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode                ), intent(inout), target :: thisNode
+    type            (treeNode                ), intent(inout), target :: node
     double precision                          , intent(in   )         :: energyInputRate                    , starFormationRate
-    class           (nodeComponentBasic      ), pointer               :: thisBasicComponent
+    class           (nodeComponentBasic      ), pointer               :: basic
     double precision                          , save                  :: velocityPrevious           =-1.0d0, velocityFactorPrevious       =-1.0d0
     !$omp threadprivate(velocityPrevious,velocityFactorPrevious)
-    class           (cosmologyFunctionsClass ), pointer               :: cosmologyFunctionsDefault
+    class           (cosmologyFunctionsClass ), pointer               :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass), pointer               :: darkMatterHaloScale_
     double precision                          , save                  :: expansionFactorPrevious    =-1.0d0, expansionFactorFactorPrevious=-1.0d0
     !$omp threadprivate(expansionFactorPrevious,expansionFactorFactorPrevious)
@@ -114,14 +114,14 @@ contains
     !GCC$ attributes unused :: starFormationRate
     
     ! Get the default cosmology functions object.
-    cosmologyFunctionsDefault => cosmologyFunctions ()
-    darkMatterHaloScale_      => darkMatterHaloScale()
+    cosmologyFunctions_  => cosmologyFunctions ()
+    darkMatterHaloScale_ => darkMatterHaloScale()
     ! Get the basic component.
-    thisBasicComponent => thisNode%basic()
+    basic => node%basic()
 
     ! Get virial velocity and expansion factor.
-    virialVelocity =darkMatterHaloScale_%virialVelocity(thisNode                 )
-    expansionFactor=cosmologyFunctionsDefault%expansionFactor                (thisBasicComponent%time())
+    virialVelocity =darkMatterHaloScale_%virialVelocity (node        )
+    expansionFactor=cosmologyFunctions_ %expansionFactor(basic%time())
 
     ! Compute the velocity factor.
     if (virialVelocity /= velocityPrevious) then

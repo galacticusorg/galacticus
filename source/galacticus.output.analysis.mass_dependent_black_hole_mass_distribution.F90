@@ -55,10 +55,10 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_BH_Dstrbtins
 
   ! Interface for mass mapping functions.
   abstract interface
-     double precision function Map_Mass(mass,thisNode)
+     double precision function Map_Mass(mass,node)
        import treeNode
        double precision          , intent(in   )          :: mass
-       type            (treeNode), intent(inout), pointer :: thisNode
+       type            (treeNode), intent(inout), pointer :: node
      end function Map_Mass
   end interface
 
@@ -131,8 +131,8 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_BH_Dstrbtins
   end type blackHoleMassDistributionWork
 
   ! Work array.
-  type(blackHoleMassDistributionWork), allocatable, dimension(:) :: thisGalaxy
-  !$omp threadprivate(thisGalaxy)
+  type(blackHoleMassDistributionWork), allocatable, dimension(:) :: galaxyWork
+  !$omp threadprivate(galaxyWork)
   
   ! Options controlling binning in halo mass.
   integer                     :: analysisBlackHoleMassDistributionCovarianceModel
@@ -147,7 +147,7 @@ contains
   !# <mergerTreeAnalysisTask>
   !#  <unitName>Galacticus_Output_Analysis_Mass_Dpndnt_BH_Dstrbtins</unitName>
   !# </mergerTreeAnalysisTask>
-  subroutine Galacticus_Output_Analysis_Mass_Dpndnt_BH_Dstrbtins(thisTree,thisNode,nodeStatus,iOutput,mergerTreeAnalyses)
+  subroutine Galacticus_Output_Analysis_Mass_Dpndnt_BH_Dstrbtins(tree,node,nodeStatus,iOutput,mergerTreeAnalyses)
     !% Construct black hole mass distributions to compare to various observational determinations.
     use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
@@ -170,14 +170,14 @@ contains
     use Numerical_Ranges
     use Numerical_Constants_Astronomical
     implicit none
-    type            (mergerTree                    ), intent(in   )                 :: thisTree
-    type            (treeNode                      ), intent(inout), pointer        :: thisNode
+    type            (mergerTree                    ), intent(in   )                 :: tree
+    type            (treeNode                      ), intent(inout), pointer        :: node
     integer                                         , intent(in   )                 :: nodeStatus
     integer         (c_size_t                      ), intent(in   )                 :: iOutput
     type            (varying_string                ), intent(in   ), dimension(:  ) :: mergerTreeAnalyses
     double precision                                , allocatable  , dimension(:  ) :: blackHoleMasses ,masses
-    class           (nodeComponentBasic            )               , pointer        :: thisBasic
-    class           (nodeComponentBlackHole        )               , pointer        :: thisBlackHole
+    class           (nodeComponentBasic            )               , pointer        :: basic
+    class           (nodeComponentBlackHole        )               , pointer        :: blackHole
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )               , pointer        :: cosmologyParametersObserved
@@ -659,26 +659,26 @@ contains
     ! Return if this is a tree finalization.
     if (nodeStatus == nodeStatusFinal) return
     ! Allocate work arrays.
-    if (.not.allocated(thisGalaxy)) allocate(thisGalaxy(size(blackHoleDistributions)))
+    if (.not.allocated(galaxyWork)) allocate(galaxyWork(size(blackHoleDistributions)))
     ! Iterate over active analyses.
     do i=1,size(blackHoleDistributions)
        ! Cycle if this black hole mass distribution receives no contribution from this output.
        if (all(blackHoleDistributions(i)%outputWeight(:,iOutput) <= 0.0d0)) cycle
        ! Allocate workspace.
-       if (.not.allocated(thisGalaxy(i)%blackHoleMassDistribution       )) call allocateArray(thisGalaxy(i)%blackHoleMassDistribution       ,[blackHoleDistributions(i)%blackHoleMassesCount,blackHoleDistributions(i)%massesCount])
-       if (.not.allocated(thisGalaxy(i)%blackHoleMassDistributionWeights)) call allocateArray(thisGalaxy(i)%blackHoleMassDistributionWeights,[                                               blackHoleDistributions(i)%massesCount])
+       if (.not.allocated(galaxyWork(i)%blackHoleMassDistribution       )) call allocateArray(galaxyWork(i)%blackHoleMassDistribution       ,[blackHoleDistributions(i)%blackHoleMassesCount,blackHoleDistributions(i)%massesCount])
+       if (.not.allocated(galaxyWork(i)%blackHoleMassDistributionWeights)) call allocateArray(galaxyWork(i)%blackHoleMassDistributionWeights,[                                               blackHoleDistributions(i)%massesCount])
        ! Filter the galaxy.
-       if (.not.blackHoleDistributions(i)%descriptor%filter%passes(thisNode)) cycle
+       if (.not.blackHoleDistributions(i)%descriptor%filter%passes(node)) cycle
        ! Get the spheroid hole mass.
-       mass=Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeSpheroid,massType=massTypeStellar)
+       mass=Galactic_Structure_Enclosed_Mass(node,radiusLarge,componentType=componentTypeSpheroid,massType=massTypeStellar)
        if (mass <= 0.0d0) cycle
        ! Get the black hole mass.
-       thisBlackHole => thisNode     %blackHole()
-       blackHoleMass =  thisBlackHole%mass     ()
+       blackHole => node     %blackHole()
+       blackHoleMass =  blackHole%mass     ()
        if (blackHoleMass <= 0.0d0) cycle
        ! Map galaxy and black hole masses.
-       if (associated(blackHoleDistributions(i)%descriptor%mapGalaxyMass   )) mass         =blackHoleDistributions(i)%descriptor%mapGalaxyMass   (         mass,thisNode)
-       if (associated(blackHoleDistributions(i)%descriptor%mapBlackHoleMass)) blackHoleMass=blackHoleDistributions(i)%descriptor%mapBlackHoleMass(blackHoleMass,thisNode)
+       if (associated(blackHoleDistributions(i)%descriptor%mapGalaxyMass   )) mass         =blackHoleDistributions(i)%descriptor%mapGalaxyMass   (         mass,node)
+       if (associated(blackHoleDistributions(i)%descriptor%mapBlackHoleMass)) blackHoleMass=blackHoleDistributions(i)%descriptor%mapBlackHoleMass(blackHoleMass,node)
        ! Convert masses for cosmology and systematics.
        mass=mass*blackHoleDistributions(i)%cosmologyConversionMass(iOutput)
        massLogarithmic=log10(mass)
@@ -723,54 +723,54 @@ contains
        massRandomError         =max(         massRandomError,         massRandomErrorMinimum)
        blackHoleMassRandomError=max(blackHoleMassRandomError,blackHoleMassRandomErrorMinimum)
        ! Compute weights for each bin.
-       thisGalaxy(i)%blackHoleMassDistributionWeights     =+(                                                                                                                                  &
+       galaxyWork(i)%blackHoleMassDistributionWeights     =+(                                                                                                                                  &
             &                                                +erf((blackHoleDistributions(i)%         massesLogarithmicMaximum-         massLogarithmic)/         massRandomError/sqrt(2.0d0)) &
             &                                                -erf((blackHoleDistributions(i)%         massesLogarithmicMinimum-         massLogarithmic)/         massRandomError/sqrt(2.0d0)) &
             &                                               )                                                                                                                                  &
             &                                              /2.0d0                                                                                                                              &
-            &                                              *thisTree%volumeWeight
+            &                                              *tree%volumeWeight
        do j=1,blackHoleDistributions(i)%massesCount
-          thisGalaxy(i)%blackHoleMassDistribution    (:,j)=+(                                                                                                                                  &
+          galaxyWork(i)%blackHoleMassDistribution    (:,j)=+(                                                                                                                                  &
                &                                             +erf((blackHoleDistributions(i)%blackHoleMassesLogarithmicMaximum-blackHoleMassLogarithmic)/blackHoleMassRandomError/sqrt(2.0d0)) &
                &                                             -erf((blackHoleDistributions(i)%blackHoleMassesLogarithmicMinimum-blackHoleMassLogarithmic)/blackHoleMassRandomError/sqrt(2.0d0)) &
                &                                            )                                                                                                                                  &
                &                                           /2.0d0                                                                                                                              &
-               &                                           *thisGalaxy(i)%blackHoleMassDistributionWeights(j)
+               &                                           *galaxyWork(i)%blackHoleMassDistributionWeights(j)
        end do
        ! Apply output weights.
        do j=1,blackHoleDistributions(i)%blackHoleMassesCount
-          thisGalaxy                    (i)%blackHoleMassDistribution(j,:        ) &
-               & =thisGalaxy            (i)%blackHoleMassDistribution(j,:        ) &
+          galaxyWork                    (i)%blackHoleMassDistribution(j,:        ) &
+               & =galaxyWork            (i)%blackHoleMassDistribution(j,:        ) &
                & *blackHoleDistributions(i)%outputWeight             (  :,iOutput)
        end do
-       thisGalaxy(i)%blackHoleMassDistributionWeights=thisGalaxy(i)%blackHoleMassDistributionWeights*blackHoleDistributions(i)%outputWeight(:,iOutput)
+       galaxyWork(i)%blackHoleMassDistributionWeights=galaxyWork(i)%blackHoleMassDistributionWeights*blackHoleDistributions(i)%outputWeight(:,iOutput)
        ! Accumulate blackHoleMass distribution.
-       if (any(thisGalaxy(i)%blackHoleMassDistribution /= 0.0d0)) then
+       if (any(galaxyWork(i)%blackHoleMassDistribution /= 0.0d0)) then
           !$omp critical (Galacticus_Output_Analysis_Mass_Dpndnt_BH_Dstrbtins_Accumulate)
-          blackHoleDistributions(i)%blackHoleMassDistribution       =blackHoleDistributions(i)%blackHoleMassDistribution       +thisGalaxy(i)%blackHoleMassDistribution
-          blackHoleDistributions(i)%blackHoleMassDistributionWeights=blackHoleDistributions(i)%blackHoleMassDistributionWeights+thisGalaxy(i)%blackHoleMassDistributionWeights
+          blackHoleDistributions(i)%blackHoleMassDistribution       =blackHoleDistributions(i)%blackHoleMassDistribution       +galaxyWork(i)%blackHoleMassDistribution
+          blackHoleDistributions(i)%blackHoleMassDistributionWeights=blackHoleDistributions(i)%blackHoleMassDistributionWeights+galaxyWork(i)%blackHoleMassDistributionWeights
           !$omp end critical (Galacticus_Output_Analysis_Mass_Dpndnt_BH_Dstrbtins_Accumulate)
           ! Treat main branch and other galaxies differently.
-          if (thisNode%isOnMainBranch().and.analysisBlackHoleMassDistributionCovarianceModel == analysisBlackHoleMassDistributionCovarianceModelBinomial) then
+          if (node%isOnMainBranch().and.analysisBlackHoleMassDistributionCovarianceModel == analysisBlackHoleMassDistributionCovarianceModelBinomial) then
              ! Find the bin to which this halo mass belongs.
-             thisBasic => thisNode%basic()
-             haloMassBin=floor((log10(thisBasic%mass())-analysisBlackHoleMassDistributionsHaloMassMinimumLogarithmic)*analysisBHMassDstrbtnsHaloMassIntervalLogarithmicInverse)+1
+             basic => node%basic()
+             haloMassBin=floor((log10(basic%mass())-analysisBlackHoleMassDistributionsHaloMassMinimumLogarithmic)*analysisBHMassDstrbtnsHaloMassIntervalLogarithmicInverse)+1
              ! Accumulate weights to halo mass arrays.
              if (haloMassBin >= 1 .and. haloMassBin <= analysisBlackHoleMassDistributionsHaloMassBinsCount) then
                 !$omp critical (Galacticus_Output_Analysis_Mass_Dpndnt_BH_Dstrbtins_Accumulate)
                 blackHoleDistributions        (i)%mainBranchGalaxyWeights       (:,:,haloMassBin)= &
                      &  blackHoleDistributions(i)%mainBranchGalaxyWeights       (:,:,haloMassBin)  &
-                     &  +thisGalaxy  (i)%blackHoleMassDistribution
+                     &  +galaxyWork  (i)%blackHoleMassDistribution
                 blackHoleDistributions        (i)%mainBranchGalaxyWeightsSquared(:,:,haloMassBin)= &
                      &  blackHoleDistributions(i)%mainBranchGalaxyWeightsSquared(:,:,haloMassBin)  &
-                     &  +thisGalaxy  (i)%blackHoleMassDistribution**2
+                     &  +galaxyWork  (i)%blackHoleMassDistribution**2
                 !$omp end critical (Galacticus_Output_Analysis_Mass_Dpndnt_BH_Dstrbtins_Accumulate)
              end if
           else
              !$omp critical (Galacticus_Output_Analysis_Mass_Dpndnt_BH_Dstrbtins_Accumulate)
              call Vector_Outer_Product_Accumulate(                                                                         &
                   &                               reshape(                                                                 &
-                  &                                       thisGalaxy(i)%blackHoleMassDistribution                        , &
+                  &                                       galaxyWork(i)%blackHoleMassDistribution                        , &
                   &                                       [                                                                &
                   &                                        +blackHoleDistributions(i)%massesCount                          &
                   &                                        *blackHoleDistributions(i)%blackHoleMassesCount                 &
@@ -797,7 +797,7 @@ contains
     use Memory_Management
     implicit none
     integer                      :: k,m,mi,zi,mj,zj,ci,cj
-    type            (hdf5Object) :: analysisGroup,blackHoleMassDistributionGroup,thisDataset
+    type            (hdf5Object) :: analysisGroup,blackHoleMassDistributionGroup,dataset
     double precision             :: haloWeightBinTotal
 
     ! Return immediately if this analysis is not active.
@@ -860,14 +860,14 @@ contains
        !$omp critical(HDF5_Access)
        analysisGroup                 =galacticusOutputFile%openGroup('analysis','Model analysis')
        blackHoleMassDistributionGroup=analysisGroup       %openGroup(trim(blackHoleDistributions(k)%descriptor%label),trim(blackHoleDistributions(k)%descriptor%comment))
-       call blackHoleMassDistributionGroup%writeDataset  (blackHoleDistributions(k)%masses                             ,'mass'                               ,'Mass'                                   ,datasetReturned=thisDataset)
-       call thisDataset                   %writeAttribute(blackHoleDistributions(k)%descriptor%massUnitsInSI           ,'unitsInSI'                                                                                                )
-       call thisDataset                   %close()
-       call blackHoleMassDistributionGroup%writeDataset  (blackHoleDistributions(k)%blackHoleMasses                    ,'blackHoleMass'                      ,'Black hole mass'                        ,datasetReturned=thisDataset)
-       call thisDataset                   %writeAttribute(blackHoleDistributions(k)%descriptor%massUnitsInSI           ,'unitsInSI'                                                                                                )
-       call thisDataset                   %close()
-       call blackHoleMassDistributionGroup%writeDataset  (blackHoleDistributions(k)%blackHoleMassDistribution          ,'blackHoleMassDistribution'          ,'Black hole mass distribution'                                       )
-       call blackHoleMassDistributionGroup%writeDataset  (blackHoleDistributions(k)%blackHoleMassDistributionCovariance,'blackHoleMassDistributionCovariance','Black hole mass distribution covariance'                            )
+       call blackHoleMassDistributionGroup%writeDataset  (blackHoleDistributions(k)%masses                             ,'mass'                               ,'Mass'                                   ,datasetReturned=dataset)
+       call dataset                       %writeAttribute(blackHoleDistributions(k)%descriptor%massUnitsInSI           ,'unitsInSI'                                                                                            )
+       call dataset                       %close()
+       call blackHoleMassDistributionGroup%writeDataset  (blackHoleDistributions(k)%blackHoleMasses                    ,'blackHoleMass'                      ,'Black hole mass'                        ,datasetReturned=dataset)
+       call dataset                       %writeAttribute(blackHoleDistributions(k)%descriptor%massUnitsInSI           ,'unitsInSI'                                                                                            )
+       call dataset                       %close()
+       call blackHoleMassDistributionGroup%writeDataset  (blackHoleDistributions(k)%blackHoleMassDistribution          ,'blackHoleMassDistribution'          ,'Black hole mass distribution'                                   )
+       call blackHoleMassDistributionGroup%writeDataset  (blackHoleDistributions(k)%blackHoleMassDistributionCovariance,'blackHoleMassDistributionCovariance','Black hole mass distribution covariance'                        )
        call blackHoleMassDistributionGroup%close()
        call analysisGroup                 %close()
        !$omp end critical(HDF5_Access)
@@ -875,25 +875,25 @@ contains
     return
   end subroutine Galacticus_Output_Analysis_Mass_Dpndnt_BH_Dstrbtins_Output
 
-  double precision function Map_Black_Hole_Mass_Kormendy_Ho(blackHoleMass,thisNode)
+  double precision function Map_Black_Hole_Mass_Kormendy_Ho(blackHoleMass,node)
     !% Maps raw black hole masses.
     use Numerical_Constants_Astronomical
     implicit none
     double precision          , intent(in   )          :: blackHoleMass
-    type            (treeNode), intent(inout), pointer :: thisNode
-    !GCC$ attributes unused :: thisNode
+    type            (treeNode), intent(inout), pointer :: node
+    !GCC$ attributes unused :: node
     
     Map_Black_Hole_Mass_Kormendy_Ho=blackHoleMass
     return
   end function Map_Black_Hole_Mass_Kormendy_Ho
 
-  double precision function Map_Galaxy_Mass_Kormendy_Ho(mass,thisNode)
+  double precision function Map_Galaxy_Mass_Kormendy_Ho(mass,node)
     !% Maps raw black hole masses.
     use Numerical_Constants_Astronomical
     implicit none
     double precision          , intent(in   )          :: mass
-    type            (treeNode), intent(inout), pointer :: thisNode
-    !GCC$ attributes unused :: thisNode
+    type            (treeNode), intent(inout), pointer :: node
+    !GCC$ attributes unused :: node
 
     Map_Galaxy_Mass_Kormendy_Ho=mass
     return
