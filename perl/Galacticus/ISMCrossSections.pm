@@ -65,15 +65,15 @@ sub Cross_Sections {
 	my @files = (
 	    {
 		name => "dotbvabs.f",
-		url  => "ftp://heasarc.gsfc.nasa.gov/software/lheasoft/release/current/Xspec/src/XSFunctions/"
+		url  => "ftp://heasarc.gsfc.nasa.gov/software/lheasoft/lheasoft6.20/heasoft-6.20/Xspec/src/XSFunctions/"
 	    },
 	    {
 		name => "gphoto.f",
-		url  => "ftp://heasarc.gsfc.nasa.gov/software/lheasoft/release/current/Xspec/src/XSFunctions/"
+		url  => "ftp://heasarc.gsfc.nasa.gov/software/lheasoft/lheasoft6.20/heasoft-6.20/Xspec/src/XSFunctions/"
 	    },
 	    {
 		name => "phfit2.f",
-		url  => "ftp://heasarc.gsfc.nasa.gov/software/lheasoft/release/current/Xspec/src/XSFunctions/"
+		url  => "ftp://heasarc.gsfc.nasa.gov/software/lheasoft/lheasoft6.20/heasoft-6.20/Xspec/src/XSFunctions/"
 	    },
 	    {
 		name => "j4save.f",
@@ -84,7 +84,7 @@ sub Cross_Sections {
 	foreach my $file ( @files ) {
 	    unless ( -e "aux/XSpec/".$file->{'name'} ) {
 		system("mkdir -p aux/XSpec; wget ".$file->{'url'}.$file->{'name'}." -O aux/XSpec/".$file->{'name'});
-		(my $dependencyFile = "aux/XSpec/".$file->{'name'}) =~ s/\.f$.d//;
+		(my $dependencyFile = "aux/XSpec/".$file->{'name'}) =~ s/\.f/.d/;
 		unlink($dependencyFile)
 		    if ( -e $dependencyFile );
 	    }
@@ -111,6 +111,8 @@ sub Cross_Sections {
 	$interpIndices->((0),:) .= $energyIndices;
 	$interpIndices->((1),:) .= $metallicityIndex;
 	$crossSection = $w00CrossSection->interpND($interpIndices);
+	my $outOfRange = which(($energyIndices < 0.0) | ($energyIndices > nelem($w00Energy)-1));
+	$crossSection->($outOfRange) .= 0.0;       
     } else {
 	die('ISMCrossSections::Cross_Sections(): unknown model')
     }
