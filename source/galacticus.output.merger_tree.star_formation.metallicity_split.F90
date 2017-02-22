@@ -32,7 +32,7 @@ module Star_Formation_Histories_Metallicity_Split
 
   ! Array of metallicities at which to tabulate.
   double precision, allocatable, dimension(:) :: metallicityTable
-  double precision, parameter                 :: metallicityInfinite                   =1.0d30                                          !   Effective infinite metallicity.
+  double precision, parameter                 :: metallicityInfinite                   =huge(1.0d0)                                      !   Effective infinite metallicity.
 
   ! Flag indicating if metallicity data has been written.
   logical                                     :: metallicityTableWritten               =.false.

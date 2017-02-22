@@ -117,6 +117,12 @@ module Histories
      !@     <arguments>\doublezero\ currentTime\argin, \intzero\ [minimumPointsToRemove]\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>trimForward</method>
+     !@     <description>Removes any times in a history \emph{after} the given time. Optionally returns a history object with the removed history.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ currentTime\argin, \textcolor{red}{\textless type(history)\textgreater} [removedHistory]\argout</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>increment</method>
      !@     <description>Adds two histories, possibly with different time series.</description>
      !@     <type>\void</type>
@@ -185,25 +191,30 @@ module Histories
      generic                   :: operator(-)            => subtract
      generic                   :: operator(/)            => divide
      generic                   :: operator(*)            => multiply
-     procedure :: isZero        =>History_Is_Zero
-     procedure :: builder       =>History_Builder
-     procedure :: dump          =>History_Dump
-     procedure :: dumpRaw       =>History_Dump_Raw
-     procedure :: readRaw       =>History_Read_Raw
-     procedure :: create        =>History_Create
-     procedure :: clone         =>History_Clone
-     procedure :: destroy       =>History_Destroy
-     procedure :: trim          =>History_Trim
-     procedure :: extend        =>History_Extend
-     procedure :: increment     =>History_Increment
-     procedure :: combine       =>History_Combine
-     procedure :: reset         =>History_Reset
-     procedure :: setToUnity    =>History_Set_To_Unity
-     procedure :: exists        =>History_Exists
-     procedure :: timeSteps     =>History_Timesteps
-     procedure :: serializeCount=>History_Serialize_Count
-     procedure :: serialize     =>History_Serialize
-     procedure :: deserialize   =>History_Deserialize
+     procedure :: isZero        => History_Is_Zero
+     procedure :: builder       => History_Builder
+     procedure :: dump          => History_Dump
+     procedure :: dumpRaw       => History_Dump_Raw
+     procedure :: readRaw       => History_Read_Raw
+     procedure :: create        => History_Create
+     procedure :: clone         => History_Clone
+     procedure :: destroy       => History_Destroy
+     procedure :: trim          => History_Trim
+     procedure :: trimForward   => History_Trim_Forward
+     procedure :: extend        => History_Extend
+     procedure :: increment     => History_Increment
+     procedure :: combine       => History_Combine
+     procedure :: reset         => History_Reset
+     procedure :: setToUnity    => History_Set_To_Unity
+     procedure :: exists        => History_Exists
+     procedure :: timeSteps     => History_Timesteps
+     procedure :: serializeCount=> History_Serialize_Count
+     procedure :: serialize     => History_Serialize
+     procedure :: deserialize   => History_Deserialize
+     procedure ::                  History_Append_History
+     procedure ::                  History_Append_Epoch
+     generic   :: append        => History_Append_History, &
+          &                        History_Append_Epoch
   end type history
 
   type longIntegerHistory
@@ -263,6 +274,12 @@ module Histories
      !@     <arguments>\doublezero\ currentTime\argin, \intzero\ [minimumPointsToRemove]\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>trimForward</method>
+     !@     <description>Removes any times in a history \emph{after} the given time. Optionally returns a history object with the removed history.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ currentTime\argin, \textcolor{red}{\textless type(longIntegerHistory)\textgreater} [removedHistory]\argout</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>reset</method>
      !@     <description>Resets all entries in a history to zero.</description>
      !@     <type>\void</type>
@@ -275,16 +292,21 @@ module Histories
      !@     <arguments></arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: builder       =>History_Long_Integer_Builder
-     procedure :: dump          =>History_Long_Integer_Dump
-     procedure :: dumpRaw       =>History_Long_Integer_Dump_Raw
-     procedure :: readRaw       =>History_Long_Integer_Read_Raw
-     procedure :: create        =>History_Long_Integer_Create
-     procedure :: clone         =>History_Long_Integer_Clone
-     procedure :: destroy       =>History_Long_Integer_Destroy
-     procedure :: trim          =>History_Long_Integer_Trim
-     procedure :: reset         =>History_Long_Integer_Reset
-     procedure :: exists        =>History_Long_Integer_Exists
+     procedure :: builder       => History_Long_Integer_Builder
+     procedure :: dump          => History_Long_Integer_Dump
+     procedure :: dumpRaw       => History_Long_Integer_Dump_Raw
+     procedure :: readRaw       => History_Long_Integer_Read_Raw
+     procedure :: create        => History_Long_Integer_Create
+     procedure :: clone         => History_Long_Integer_Clone
+     procedure :: destroy       => History_Long_Integer_Destroy
+     procedure :: trim          => History_Long_Integer_Trim
+     procedure :: trimForward   => History_Long_Integer_Trim_Forward
+     procedure :: reset         => History_Long_Integer_Reset
+     procedure :: exists        => History_Long_Integer_Exists
+     procedure ::                  History_Long_Integer_Append_History
+     procedure ::                  History_Long_Integer_Append_Epoch
+     generic   :: append        => History_Long_Integer_Append_History, &
+          &                        History_Long_Integer_Append_Epoch
   end type longIntegerHistory
 
   ! A null history object.
@@ -847,6 +869,52 @@ contains
     return
   end subroutine History_Trim
 
+  subroutine History_Trim_Forward(self,time,removedHistory)
+    !% Removes all points in a history after the given {\normalfont \ttfamily time}. Optionally, the removed history can be
+    !% returned as {\normalfont \ttfamily removedHistory}.
+    use, intrinsic :: ISO_C_Binding
+    use               Memory_Management
+    use               Arrays_Search
+    implicit none
+    class           (history ), intent(inout)           :: self
+    double precision          , intent(in   )           :: time
+    type            (history ), intent(inout), optional :: removedHistory
+    type            (history )                          :: temporaryHistory
+    integer         (c_size_t)                          :: trimAt          , trimCount
+
+    ! Ensure the removed history to be returned is initialized.
+    if (present(removedHistory).and.allocated(removedHistory%time)) then
+       call deallocateArray(removedHistory%time)
+       call deallocateArray(removedHistory%data)
+    end if
+    ! Return if no history exists or if the final time is prior to the trim time.
+    if (.not.allocated(self%time).or.self%time(size(self%time)) <= time) return
+    ! Find where to trim and number of trimmed points.
+    trimAt   =Search_Array(self%time,time)+1
+    trimCount=size(self%time)-trimAt+1
+    ! Transfer data to a temporary history.
+    call Move_Alloc(self%time,temporaryHistory%time)
+    call Move_Alloc(self%data,temporaryHistory%data)
+    ! Reallocate history to trimmed size and populate.
+    if (trimAt > 1) then
+       call allocateArray(self%time,[trimAt-1                                                ])
+       call allocateArray(self%data,[trimAt-1,size(temporaryHistory%data,dim=2,kind=c_size_t)])
+       self%time=temporaryHistory%time(1:trimAt-1  )
+       self%data=temporaryHistory%data(1:trimAt-1,:)
+    end if
+    ! If the trimmed history is to be returned, allocate the arrays and populate.
+    if (present(removedHistory)) then
+       call allocateArray(removedHistory%time,[trimCount                                                ])
+       call allocateArray(removedHistory%data,[trimCount,size(temporaryHistory%data,dim=2,kind=c_size_t)])
+       removedHistory%time=temporaryHistory%time(trimAt:trimAt+trimCount-1  )
+       removedHistory%data=temporaryHistory%data(trimAt:trimAt+trimCount-1,:)
+    end if
+    ! Clean up temporary history.
+    call deallocateArray(temporaryHistory%time)
+    call deallocateArray(temporaryHistory%data)
+    return
+  end subroutine History_Trim_Forward
+  
   subroutine History_Long_Integer_Trim(thisHistory,currentTime,minimumPointsToRemove)
     !% Removes outdated information from ``future histories'' (i.e. histories that store data for future reference). Removes all
     !% but one entry prior to the given {\normalfont \ttfamily currentTime} (this allows for interpolation of the history to the current
@@ -912,6 +980,190 @@ contains
     return
   end subroutine History_Long_Integer_Trim
 
+  subroutine History_Long_Integer_Trim_Forward(self,time,removedHistory)
+    !% Removes all points in a history after the given {\normalfont \ttfamily time}. Optionally, the removed history can be
+    !% returned as {\normalfont \ttfamily removedHistory}.
+    use, intrinsic :: ISO_C_Binding
+    use               Memory_Management
+    use               Arrays_Search
+    implicit none
+    class           (longIntegerHistory), intent(inout)           :: self
+    double precision                    , intent(in   )           :: time
+    type            (longIntegerHistory), intent(inout), optional :: removedHistory
+    type            (longIntegerHistory)                          :: temporaryHistory
+    integer         (c_size_t          )                          :: trimAt          , trimCount
+
+    ! Ensure the removed history to be returned is initialized.
+    if (present(removedHistory).and.allocated(removedHistory%time)) then
+       call deallocateArray(removedHistory%time)
+       call deallocateArray(removedHistory%data)
+    end if
+    ! Return if no history exists or if the final time is prior to the trim time.
+    if (.not.allocated(self%time).or.self%time(size(self%time)) <= time) return
+    ! Find where to trim and number of trimmed points.
+    trimAt   =Search_Array(self%time,time)+1
+    trimCount=size(self%time)-trimAt+1
+    ! Transfer data to a temporary history.
+    call Move_Alloc(self%time,temporaryHistory%time)
+    call Move_Alloc(self%data,temporaryHistory%data)
+    ! Reallocate history to trimmed size and populate.
+    if (trimAt > 1) then
+       call allocateArray(self%time,[trimAt-1                                                ])
+       call allocateArray(self%data,[trimAt-1,size(temporaryHistory%data,dim=2,kind=c_size_t)])
+       self%time=temporaryHistory%time(1:trimAt-1  )
+       self%data=temporaryHistory%data(1:trimAt-1,:)
+    end if
+    ! If the trimmed history is to be returned, allocate the arrays and populate.
+    if (present(removedHistory)) then
+       call allocateArray(removedHistory%time,[trimCount                                                ])
+       call allocateArray(removedHistory%data,[trimCount,size(temporaryHistory%data,dim=2,kind=c_size_t)])
+       removedHistory%time=temporaryHistory%time(trimAt:trimAt+trimCount-1  )
+       removedHistory%data=temporaryHistory%data(trimAt:trimAt+trimCount-1,:)
+    end if
+    ! Clean up temporary history.
+    call deallocateArray(temporaryHistory%time)
+    call deallocateArray(temporaryHistory%data)
+    return
+  end subroutine History_Long_Integer_Trim_Forward
+  
+  subroutine History_Long_Integer_Append_History(self,append)
+    !% Append a history to a long integer history.
+    use Memory_Management
+    use Galacticus_Error
+    implicit none
+    class           (longIntegerHistory), intent(inout)                 :: self
+    type            (longIntegerHistory), intent(in   )                 :: append
+    double precision                    , allocatable  , dimension(:  ) :: timeTmp
+    integer         (kind=kind_int8    ), allocatable  , dimension(:,:) :: dataTmp
+    
+    if (.not.allocated(self%time)) then
+       ! No pre-existing history - simply copy the history to append.
+       self%time=append%time
+       self%data=append%data
+    else
+       ! A history already exists. Validate the provided append history.
+       if (append%time(1) <= self%time(size(self%time))) call Galacticus_Error_Report('History_Long_Integer_Append_History','history to append starts before end of history to which it is being appended')
+       if (size(self%data,dim=2) /= size(append%data,dim=2)) call Galacticus_Error_Report('History_Long_Integer_Append_History','histories have different cardinalities')
+       ! Do the append.
+       call allocateArray(timeTmp,[size(self%time)+size(append%time)                      ])
+       call allocateArray(dataTmp,[size(self%time)+size(append%time),size(self%data,dim=2)])
+       timeTmp(                1:size(self%time)                    )=self  %time
+       timeTmp(size(self%time)+1:size(self%time)+size(append%time)  )=append%time
+       dataTmp(                1:size(self%time)                  ,:)=self  %data
+       dataTmp(size(self%time)+1:size(self%time)+size(append%time),:)=append%data
+       call deallocateArray(        self%time)
+       call deallocateArray(        self%data)
+       call Move_Alloc   (timeTmp,self%time)
+       call Move_Alloc   (dataTmp,self%data)       
+    end if
+    return
+  end subroutine History_Long_Integer_Append_History
+  
+  subroutine History_Long_Integer_Append_Epoch(self,time,append)
+    !% Append a history to a long integer history.
+    use Memory_Management
+    use Galacticus_Error
+    implicit none
+    class           (longIntegerHistory), intent(inout)                 :: self
+    double precision                    , intent(in   )                 :: time
+    integer         (kind=kind_int8    ), intent(in   ), dimension(:  ) :: append
+    double precision                    , allocatable  , dimension(:  ) :: timeTmp
+    integer         (kind=kind_int8    ), allocatable  , dimension(:,:) :: dataTmp
+    
+    if (.not.allocated(self%time)) then
+       ! No pre-existing history - simply copy the history to append.
+       call allocateArray(self%time,[1              ])
+       call allocateArray(self%data,[1,size(append)])
+       self%time(1  )=time
+       self%data(1,:)=append
+    else
+       ! A history already exists. Validate the provided append history.
+       if (time <= self%time(size(self%time))) call Galacticus_Error_Report('History_Append_History','history to append starts before end of history to which it is being appended')
+       if (size(self%data,dim=2) /= size(append)) call Galacticus_Error_Report('History_Long_Integer_Append_History','histories have different cardinalities')
+       ! Do the append.
+       call allocateArray(timeTmp,[size(self%time)+1                      ])
+       call allocateArray(dataTmp,[size(self%time)+1,size(self%data,dim=2)])
+       timeTmp(                1:size(self%time)    )=self   %time
+       timeTmp(size(self%time)+1                    )=        time
+       dataTmp(                1:size(self%time)  ,:)=self   %data
+       dataTmp(size(self%time)+1                  ,:)=        append
+       call deallocateArray(        self%time)
+       call deallocateArray(        self%data)
+       call Move_Alloc   (timeTmp,self%time)
+       call Move_Alloc   (dataTmp,self%data)       
+    end if
+    return
+  end subroutine History_Long_Integer_Append_Epoch
+  
+  subroutine History_Append_History(self,append)
+    !% Append a history to a long integer history.
+    use Memory_Management
+    use Galacticus_Error
+    implicit none
+    class           (history), intent(inout)                 :: self
+    type            (history), intent(in   )                 :: append
+    double precision         , allocatable  , dimension(:  ) :: timeTmp
+    double precision         , allocatable  , dimension(:,:) :: dataTmp
+    
+    if (.not.allocated(self%time)) then
+       ! No pre-existing history - simply copy the history to append.
+       self%time=append%time
+       self%data=append%data
+    else
+       ! A history already exists. Validate the provided append hsitory.
+       if (append%time(1) <= self%time(size(self%time))) call Galacticus_Error_Report('History_Append_History','history to append starts before end of history to which it is being appended')
+       if (size(self%data,dim=2) /= size(append%data,dim=2)) call Galacticus_Error_Report('History_Append_History','histories have different cardinalities')
+       ! Do do the append.
+       call allocateArray(timeTmp,[size(self%time)+size(append%time)                      ])
+       call allocateArray(dataTmp,[size(self%time)+size(append%time),size(self%data,dim=2)])
+       timeTmp(                1:size(self%time)                    )=self  %time
+       timeTmp(size(self%time)+1:size(self%time)+size(append%time)  )=append%time
+       dataTmp(                1:size(self%time)                  ,:)=self  %data
+       dataTmp(size(self%time)+1:size(self%time)+size(append%time),:)=append%data
+       call deallocateArray(        self%time)
+       call deallocateArray(        self%data)
+       call Move_Alloc   (timeTmp,self%time)
+       call Move_Alloc   (dataTmp,self%data)       
+    end if
+    return
+  end subroutine History_Append_History
+  
+  subroutine History_Append_Epoch(self,time,append)
+    !% Append a history to a long integer history.
+    use Memory_Management
+    use Galacticus_Error
+    implicit none
+    class           (history), intent(inout)                 :: self
+    double precision         , intent(in   )                 :: time
+    double precision         , intent(in   ), dimension(:  ) :: append
+    double precision         , allocatable  , dimension(:  ) :: timeTmp
+    double precision         , allocatable  , dimension(:,:) :: dataTmp
+    
+    if (.not.allocated(self%time)) then
+       ! No pre-existing history - simply copy the history to append.
+       call allocateArray(self%time,[1              ])
+       call allocateArray(self%data,[1,size(append)])
+       self%time(1  )=time
+       self%data(1,:)=append
+    else
+       ! A history already exists. Validate the provided append data.
+       if (time <= self%time(size(self%time))) call Galacticus_Error_Report('History_Append_History','history to append starts before end of history to which it is being appended')
+       if (size(self%data,dim=2) /= size(append)) call Galacticus_Error_Report('History_Append_History','histories have different cardinalities')
+       ! Do the append.
+       call allocateArray(timeTmp,[size(self%time)+1                      ])
+       call allocateArray(dataTmp,[size(self%time)+1,size(self%data,dim=2)])
+       timeTmp(                1:size(self%time)    )=self   %time
+       timeTmp(size(self%time)+1                    )=        time
+       dataTmp(                1:size(self%time)  ,:)=self   %data
+       dataTmp(size(self%time)+1                  ,:)=        append
+       call deallocateArray(        self%time)
+       call deallocateArray(        self%data)
+       call Move_Alloc   (timeTmp,self%time)
+       call Move_Alloc   (dataTmp,self%data)       
+    end if
+    return
+  end subroutine History_Append_Epoch
+  
    subroutine History_Increment(thisHistory,addHistory)
      !% Adds the data in {\normalfont \ttfamily addHistory} to that in {\normalfont \ttfamily thisHistory}. This function is designed for histories that track
      !% instantaneous rates. The rates in {\normalfont \ttfamily addHistory} are interpolated to the times in {\normalfont \ttfamily thisHistory} and added to the
