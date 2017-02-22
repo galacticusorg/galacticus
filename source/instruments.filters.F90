@@ -149,19 +149,19 @@ contains
        filterResponses(filterIndex)%nPoints            =4
        call allocateArray(filterResponses(filterIndex)%wavelength,[4])
        call allocateArray(filterResponses(filterIndex)%response  ,[4])
-       filterResponses(filterIndex)%wavelength         =                                                                &
-            & [                                                                                                         &
-            &  centralWavelength*(sqrt(4.0d0*resolution**2+1.0d0)-1.0d0)/2.0d0/resolution/(1.0+1.0d0/cutOffResolution), &
-            &  centralWavelength*(sqrt(4.0d0*resolution**2+1.0d0)-1.0d0)/2.0d0/resolution                             , &
-            &  centralWavelength*(sqrt(4.0d0*resolution**2+1.0d0)+1.0d0)/2.0d0/resolution                             , &
-            &  centralWavelength*(sqrt(4.0d0*resolution**2+1.0d0)+1.0d0)/2.0d0/resolution*(1.0+1.0d0/cutOffResolution)  &
+       filterResponses(filterIndex)%wavelength         =                                                                  &
+            & [                                                                                                           &
+            &  centralWavelength*(sqrt(4.0d0*resolution**2+1.0d0)-1.0d0)/2.0d0/resolution/(1.0d0+1.0d0/cutOffResolution), &
+            &  centralWavelength*(sqrt(4.0d0*resolution**2+1.0d0)-1.0d0)/2.0d0/resolution                               , &
+            &  centralWavelength*(sqrt(4.0d0*resolution**2+1.0d0)+1.0d0)/2.0d0/resolution                               , &
+            &  centralWavelength*(sqrt(4.0d0*resolution**2+1.0d0)+1.0d0)/2.0d0/resolution*(1.0d0+1.0d0/cutOffResolution)  &
             & ]
-       filterResponses(filterIndex)%response           =                                                                &
-            & [                                                                                                         &
-            &  0.0d0                                                                                                  , &
-            &  1.0d0                                                                                                  , &
-            &  1.0d0                                                                                                  , &
-            &  0.0d0                                                                                                    &
+       filterResponses(filterIndex)%response           =                                                                  &
+            & [                                                                                                           &
+            &  0.0d0                                                                                                    , &
+            &  1.0d0                                                                                                    , &
+            &  1.0d0                                                                                                    , &
+            &  0.0d0                                                                                                      &
             & ]
     else
        ! Construct a file name for the filter.
