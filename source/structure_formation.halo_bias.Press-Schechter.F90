@@ -44,17 +44,16 @@ contains
     return
   end subroutine Dark_Matter_Halo_Bias_Press_Schechter_Initialize
 
-  double precision function Dark_Matter_Halo_Bias_Node_Press_Schechter(thisNode)
+  double precision function Dark_Matter_Halo_Bias_Node_Press_Schechter(node)
     !% Computes the bias for a dark matter halo using the method of \cite{mo_analytic_1996}.
     use Galacticus_Nodes
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    class(nodeComponentBasic)               , pointer :: thisBasicComponent
+    type (treeNode          ), intent(inout), pointer :: node
+    class(nodeComponentBasic)               , pointer :: basic
 
     ! Compute halo bias.
-    thisBasicComponent => thisNode%basic()
-    Dark_Matter_Halo_Bias_Node_Press_Schechter=Dark_Matter_Halo_Bias_Press_Schechter(thisBasicComponent%mass()&
-         &,thisBasicComponent%time())
+    basic => node%basic()
+    Dark_Matter_Halo_Bias_Node_Press_Schechter=Dark_Matter_Halo_Bias_Press_Schechter(basic%mass(),basic%time())
     return
   end function Dark_Matter_Halo_Bias_Node_Press_Schechter
 
@@ -63,10 +62,10 @@ contains
     use Critical_Overdensities
     use Cosmological_Mass_Variance
     implicit none
-    double precision                               , intent(in   ) :: mass                , time
+    double precision                               , intent(in   ) :: mass                     , time
     class           (criticalOverdensityClass     ), pointer       :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
-    double precision                                               :: deltaCritical       , nu  , &
+    double precision                                               :: deltaCritical            , nu  , &
          &                                                            sigma
 
     ! Get default objects.

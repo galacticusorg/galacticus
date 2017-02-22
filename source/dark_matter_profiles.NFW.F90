@@ -227,16 +227,16 @@ contains
     return
   end subroutine nfwDestructor
   
-  subroutine nfwCalculationReset(self,thisNode)
+  subroutine nfwCalculationReset(self,node)
     !% Reset the dark matter profile calculation.
     implicit none
-    class(darkMatterProfileNFW), intent(inout)          :: self
-    type (treeNode            ), intent(inout) :: thisNode
+    class(darkMatterProfileNFW), intent(inout) :: self
+    type (treeNode            ), intent(inout) :: node
 
     self%specificAngularMomentumScalingsComputed=.false.
     self%maximumVelocityComputed                =.false.
-    self%lastUniqueID                           =thisNode%uniqueID()
-    call self%scale%calculationReset(thisNode)
+    self%lastUniqueID                           =node%uniqueID()
+    call self%scale%calculationReset(node)
     return
   end subroutine nfwCalculationReset
 
@@ -332,18 +332,18 @@ contains
     class           (darkMatterProfileNFW          ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: radius
-    class           (nodeComponentBasic            ), pointer       :: thisBasicComponent
-    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
+    class           (nodeComponentBasic            ), pointer       :: basic
+    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
     double precision                                                :: radiusOverScaleRadius         , scaleRadius, &
          &                                                             virialRadiusOverScaleRadius
 
-    thisBasicComponent             => node%basic            (                 )
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
-    scaleRadius                    =thisDarkMatterProfileComponent%scale()
+    basic             => node%basic            (                 )
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
+    scaleRadius                    =darkMatterProfile%scale()
     radiusOverScaleRadius          =radius                           /scaleRadius
     virialRadiusOverScaleRadius    =self%scale%virialRadius(node)/scaleRadius
     nfwDensity=self%densityScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius)&
-         &*thisBasicComponent%mass()/scaleRadius**3
+         &*basic%mass()/scaleRadius**3
     return
   end function nfwDensity
 
@@ -355,17 +355,17 @@ contains
     class           (darkMatterProfileNFW          ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: radius
-    class           (nodeComponentBasic            ), pointer       :: thisBasicComponent
-    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
-    double precision                                                :: radiusOverScaleRadius         , scaleRadius
+    class           (nodeComponentBasic            ), pointer       :: basic
+    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
+    double precision                                                :: radiusOverScaleRadius, scaleRadius
     !GCC$ attributes unused :: self
     
-    thisBasicComponent             => node%basic            (                 )
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
-    scaleRadius                    =  thisDarkMatterProfileComponent%scale()
-    radiusOverScaleRadius          =  radius/scaleRadius
-    nfwDensityLogSlope             = -(1.0d0+3.0d0*radiusOverScaleRadius) &
-         &                           /(1.0d0+      radiusOverScaleRadius)
+    basic                 => node%basic            (                 )
+    darkMatterProfile     => node%darkMatterProfile(autoCreate=.true.)
+    scaleRadius           =  darkMatterProfile%scale()
+    radiusOverScaleRadius =  radius/scaleRadius
+    nfwDensityLogSlope    = -(1.0d0+3.0d0*radiusOverScaleRadius) &
+         &                  /(1.0d0+      radiusOverScaleRadius)
     return
   end function nfwDensityLogSlope
 
@@ -381,8 +381,8 @@ contains
     type            (treeNode                     ), intent(inout)           :: node
     double precision                               , intent(in   )           :: moment
     double precision                               , intent(in   ), optional :: radiusMinimum                 , radiusMaximum
-    class           (nodeComponentBasic            )              , pointer  :: thisBasicComponent
-    class           (nodeComponentDarkMatterProfile)              , pointer  :: thisDarkMatterProfileComponent
+    class           (nodeComponentBasic            )              , pointer  :: basic
+    class           (nodeComponentDarkMatterProfile)              , pointer  :: darkMatterProfile
     double precision                                                         :: scaleRadius                   , virialRadiusOverScaleRadius, &
          &                                                                      radiusMinimumActual           , radiusMaximumActual
 
@@ -390,11 +390,11 @@ contains
     radiusMaximumActual=self%scale%virialRadius(node)
     if (present(radiusMinimum)) radiusMinimumActual=radiusMinimum
     if (present(radiusMaximum)) radiusMaximumActual=radiusMaximum
-    thisBasicComponent             => node%basic            (                 )
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
-    scaleRadius                    =thisDarkMatterProfileComponent%scale()
+    basic             => node%basic            (                 )
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
+    scaleRadius                    =darkMatterProfile%scale()
     virialRadiusOverScaleRadius    =self%scale%virialRadius(node)/scaleRadius
-    nfwRadialMoment                =+thisBasicComponent%mass()                                   &
+    nfwRadialMoment                =+basic%mass()                                                &
          &                          *scaleRadius**(moment-3.0d0)                                 &
          &                          /(                                                           &
          &                            +log(1.0d0+virialRadiusOverScaleRadius)                    &
@@ -450,18 +450,18 @@ contains
     class           (darkMatterProfileNFW          ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: radius
-    class           (nodeComponentBasic            ), pointer       :: thisBasicComponent
-    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
-    double precision                                                :: radiusOverScaleRadius         , scaleRadius, &
+    class           (nodeComponentBasic            ), pointer       :: basic
+    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
+    double precision                                                :: radiusOverScaleRadius      , scaleRadius, &
          &                                                             virialRadiusOverScaleRadius
 
-    thisBasicComponent             => node%basic            (                 )
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
-    scaleRadius                    =thisDarkMatterProfileComponent%scale()
-    radiusOverScaleRadius          =radius                       /scaleRadius
-    virialRadiusOverScaleRadius    =self%scale%virialRadius(node)/scaleRadius
-    nfwEnclosedMass                =self%enclosedMassScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius) &
-         &*thisBasicComponent%mass()
+    basic                       => node%basic            (                 )
+    darkMatterProfile           => node%darkMatterProfile(autoCreate=.true.)
+    scaleRadius                 =  darkMatterProfile%scale()
+    radiusOverScaleRadius       =  radius                       /scaleRadius
+    virialRadiusOverScaleRadius =  self%scale%virialRadius(node)/scaleRadius
+    nfwEnclosedMass             =  self%enclosedMassScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius) &
+         &*basic%mass()
     return
   end function nfwEnclosedMass
 
@@ -475,15 +475,15 @@ contains
     type            (treeNode                      ), intent(inout), pointer  :: node
     double precision                                , intent(in   )           :: radius
     integer                                         , intent(  out), optional :: status
-    class           (nodeComponentDarkMatterProfile)               , pointer  :: thisDarkMatterProfileComponent
-    double precision                                , parameter               :: radiusSmall                   =1.0d-10
-    double precision                                                          :: radiusOverScaleRadius                 , radiusTerm, &
+    class           (nodeComponentDarkMatterProfile)               , pointer  :: darkMatterProfile
+    double precision                                , parameter               :: radiusSmall                =1.0d-10
+    double precision                                                          :: radiusOverScaleRadius              , radiusTerm, &
          &                                                                       virialRadiusOverScaleRadius
 
     if (present(status)) status=structureErrorCodeSuccess
-    thisDarkMatterProfileComponent   => node%darkMatterProfile(autoCreate=.true.)
-    radiusOverScaleRadius            =radius                       /thisDarkMatterProfileComponent%scale()
-    virialRadiusOverScaleRadius      =self%scale%virialRadius(node)/thisDarkMatterProfileComponent%scale()
+    darkMatterProfile           => node%darkMatterProfile(autoCreate=.true.)
+    radiusOverScaleRadius       =  radius                       /darkMatterProfile%scale()
+    virialRadiusOverScaleRadius =  self%scale%virialRadius(node)/darkMatterProfile%scale()
     if (radiusOverScaleRadius < radiusSmall) then
        ! Use a series solution for very small radii.
        radiusTerm=1.0d0-0.5d0*radiusOverScaleRadius
@@ -550,7 +550,7 @@ contains
     class           (darkMatterProfileNFW          ), intent(inout)          :: self
     type            (treeNode                      ), intent(inout), pointer :: node
     double precision                                , intent(in   )          :: specificAngularMomentum
-    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
+    class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
     double precision                                                         :: specificAngularMomentumScaleFree
 
     ! Return immediately with zero radius for non-positive specific angular momenta.
@@ -566,10 +566,10 @@ contains
        self%specificAngularMomentumScalingsComputed=.true.
 
        ! Get the dark matter profile.
-       thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
+       darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
 
        ! Get the scale radius.
-       self%specificAngularMomentumLengthScale=thisDarkMatterProfileComponent%scale()
+       self%specificAngularMomentumLengthScale=darkMatterProfile%scale()
 
        ! Get the specific angular momentum scale.
        self%specificAngularMomentumScale=self%specificAngularMomentumLengthScale*self%circularVelocity(node&
@@ -596,14 +596,14 @@ contains
     implicit none
     class           (darkMatterProfileNFW          ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
-    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
+    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
     double precision                                                :: concentration
 
     ! Get components.
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
 
     ! Find the concentration parameter of this halo.
-    concentration=self%scale%virialRadius(node)/thisDarkMatterProfileComponent%scale()
+    concentration=self%scale%virialRadius(node)/darkMatterProfile%scale()
 
     ! Ensure that the interpolations exist and extend sufficiently far.
     call self%tabulate(concentration)
@@ -620,23 +620,23 @@ contains
     implicit none
     class           (darkMatterProfileNFW          ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
-    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
-    class           (nodeComponentBasic            ), pointer       :: thisBasicComponent
+    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
+    class           (nodeComponentBasic            ), pointer       :: basic
     double precision                                                :: concentration
 
     ! Get components.
-    thisBasicComponent             => node%basic            (                 )
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
+    basic             => node%basic            (                 )
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
 
     ! Find the concentration parameter of this halo.
-    concentration=self%scale%virialRadius(node)/thisDarkMatterProfileComponent%scale()
+    concentration=self%scale%virialRadius(node)/darkMatterProfile%scale()
 
     ! Ensure that the interpolations exist and extend sufficiently far.
     call self%tabulate(concentration)
 
     ! Find the energy by interpolation.
     nfwEnergy=self%nfwConcentrationTable%interpolate(concentration,table=nfwConcentrationEnergyIndex)&
-         &*thisBasicComponent%mass()*self%scale%virialVelocity(node)**2
+         &*basic%mass()*self%scale%virialVelocity(node)**2
     return
   end function nfwEnergy
 
@@ -646,17 +646,17 @@ contains
     implicit none
     class           (darkMatterProfileNFW          ), intent(inout)          :: self
     type            (treeNode                      ), intent(inout), pointer :: node
-    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
-    class           (nodeComponentBasic            )               , pointer :: thisBasicComponent
-    double precision                                                         :: concentration                 , energy, &
+    class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
+    class           (nodeComponentBasic            )               , pointer :: basic
+    double precision                                                         :: concentration    , energy, &
          &                                                                      energyGradient
 
     ! Get components.
-    thisBasicComponent             => node%basic            (                 )
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
+    basic             => node%basic            (                 )
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
 
     ! Find the concentration parameter of this halo.
-    concentration=self%scale%virialRadius(node)/thisDarkMatterProfileComponent%scale()
+    concentration=self%scale%virialRadius(node)/darkMatterProfile%scale()
 
     ! Ensure that the interpolations exist and extend sufficiently far.
     call self%tabulate(concentration)
@@ -666,10 +666,10 @@ contains
     energyGradient=self%nfwConcentrationTable%interpolateGradient(concentration,table=nfwConcentrationEnergyIndex)
 
     nfwEnergyGrowthRate=self%energy(node)&
-         &*(thisBasicComponent%accretionRate()/thisBasicComponent%mass()+2.0d0 &
+         &*(basic%accretionRate()/basic%mass()+2.0d0 &
          &*self%scale%virialVelocityGrowthRate(node)/self%scale%virialVelocity(node)+(energyGradient&
          &*concentration/energy)*(self%scale%virialRadiusGrowthRate(node)/self%scale%virialRadius(node)&
-         &-thisDarkMatterProfileComponent%scaleGrowthRate()/thisDarkMatterProfileComponent%scale()))
+         &-darkMatterProfile%scaleGrowthRate()/darkMatterProfile%scale()))
 
     return
   end function nfwEnergyGrowthRate
@@ -837,15 +837,15 @@ contains
     class           (darkMatterProfileNFW          ), intent(inout)          :: self
     type            (treeNode                      ), intent(inout), pointer :: node
     double precision                                , intent(in   )          :: waveNumber
-    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
-    double precision                                                         :: concentration                 , radiusScale, &
+    class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
+    double precision                                                         :: concentration      , radiusScale, &
          &                                                                      waveNumberScaleFree
 
     ! Get components.
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
 
     ! Get the scale radius.
-    radiusScale=thisDarkMatterProfileComponent%scale()
+    radiusScale=darkMatterProfile%scale()
 
     ! Compute the concentration parameter.
     concentration=self%scale%virialRadius(node)/radiusScale
@@ -871,9 +871,9 @@ contains
     class           (darkMatterProfileNFW          ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: time
-    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
-    double precision                                                :: concentration                 , freefallTimeScaleFree, &
-         &                                                             radiusScale                   , timeScale            , &
+    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
+    double precision                                                :: concentration    , freefallTimeScaleFree, &
+         &                                                             radiusScale      , timeScale            , &
          &                                                             velocityScale
 
     ! For non-positive freefall times, return a zero freefall radius immediately.
@@ -883,10 +883,10 @@ contains
     end if
 
     ! Get components.
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
 
     ! Get the scale radius.
-    radiusScale=thisDarkMatterProfileComponent%scale()
+    radiusScale=darkMatterProfile%scale()
 
     ! Get the concentration.
     concentration=self%scale%virialRadius(node)/radiusScale
@@ -918,9 +918,9 @@ contains
     class           (darkMatterProfileNFW          ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: time
-    class           (nodeComponentDarkMatterProfile), pointer       :: thisDarkMatterProfileComponent
-    double precision                                                :: concentration                 , freefallTimeScaleFree, &
-         &                                                             radiusScale                   , timeScale            , &
+    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
+    double precision                                                :: concentration    , freefallTimeScaleFree, &
+         &                                                             radiusScale      , timeScale            , &
          &                                                             velocityScale
 
     ! For non-positive freefall times, return the limiting value for small radii.
@@ -930,10 +930,10 @@ contains
     end if
 
     ! Get components.
-    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
 
     ! Get the scale radius.
-    radiusScale=thisDarkMatterProfileComponent%scale()
+    radiusScale=darkMatterProfile%scale()
 
     ! Get the concentration.
     concentration=self%scale%virialRadius(node)/radiusScale
@@ -1058,18 +1058,21 @@ contains
 
   subroutine nfwStateStore(self,stateFile,fgslStateFile)
     !% Write the tablulation state to file.
+    use Galacticus_Display
     implicit none
     class  (darkMatterProfileNFW), intent(inout) :: self
     integer                      , intent(in   ) :: stateFile
     type   (fgsl_file           ), intent(in   ) :: fgslStateFile
     !GCC$ attributes unused :: fgslStateFile
 
+    call Galacticus_Display_Message('Storing state for: darkMatterProfile -> NFW',verbosity=verbosityInfo)
     write (stateFile) self%concentrationMinimum,self%concentrationMaximum,self%radiusMinimum,self%radiusMaximum,self%freefallRadiusMinimum,self%freefallRadiusMaximum
     return
   end subroutine nfwStateStore
 
   subroutine nfwStateRestore(self,stateFile,fgslStateFile)
     !% Retrieve the tabulation state from the file.
+    use Galacticus_Display
     implicit none
     class  (darkMatterProfileNFW), intent(inout) :: self
     integer                      , intent(in   ) :: stateFile
@@ -1077,6 +1080,7 @@ contains
     !GCC$ attributes unused :: fgslStateFile
 
     ! Read the minimum and maximum tabulated times.
+    call Galacticus_Display_Message('Retrieving state for: darkMatterProfile -> NFW',verbosity=verbosityInfo)
     read (stateFile) self%concentrationMinimum,self%concentrationMaximum,self%radiusMinimum,self%radiusMaximum,self%freefallRadiusMinimum,self%freefallRadiusMaximum
     ! Retabulate.
     self%nfwTableInitialized        =.false.

@@ -213,6 +213,7 @@ contains
 
   subroutine growingStateStore(self,stateFile,fgslStateFile)
     !% Write the tablulation state to file.
+    use Galacticus_Display
     use FGSL
     implicit none
     class  (hotHaloMassDistributionCoreRadiusGrowing), intent(inout) :: self
@@ -220,12 +221,14 @@ contains
     type   (fgsl_file                               ), intent(in   ) :: fgslStateFile
     !GCC$ attributes unused :: fgslStateFile
     
+    call Galacticus_Display_Message('Storing state for: hotHaloMassDistributionCoreRadius -> growing',verbosity=verbosityInfo)
     write (stateFile) self%coreRadiusMinimum,self%coreRadiusMaximum
     return
   end subroutine growingStateStore
 
   subroutine growingStateRestore(self,stateFile,fgslStateFile)
     !% Retrieve the tabulation state from the file.
+    use Galacticus_Display
     use FGSL
     implicit none
     class  (hotHaloMassDistributionCoreRadiusGrowing), intent(inout) :: self
@@ -233,6 +236,7 @@ contains
     type   (fgsl_file                               ), intent(in   ) :: fgslStateFile
     !GCC$ attributes unused :: fgslStateFile
 
+    call Galacticus_Display_Message('Retrieving state for: hotHaloMassDistributionCoreRadius -> growing',verbosity=verbosityInfo)
     ! Read the minimum and maximum tabulated times.
     read (stateFile) self%coreRadiusMinimum,self%coreRadiusMaximum
     ! Force retabulation on next evaluation.

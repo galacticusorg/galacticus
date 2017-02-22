@@ -120,18 +120,18 @@ contains
   !# <calculationResetTask>
   !# <unitName>Cooling_Specific_AM_Constant_Rotation_Reset</unitName>
   !# </calculationResetTask>
-  subroutine Cooling_Specific_AM_Constant_Rotation_Reset(thisNode)
+  subroutine Cooling_Specific_AM_Constant_Rotation_Reset(node)
     !% Reset the specific angular momentum of cooling gas calculation.
     use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout) :: thisNode
+    type(treeNode), intent(inout) :: node
 
     coolingSpecificAngularMomentumComputed=.false.
-    lastUniqueID                          =thisNode%uniqueID()
+    lastUniqueID                          =node%uniqueID()
     return
   end subroutine Cooling_Specific_AM_Constant_Rotation_Reset
 
-  double precision function Cooling_Specific_Angular_Momentum_Constant_Rotation(thisNode,radius)
+  double precision function Cooling_Specific_Angular_Momentum_Constant_Rotation(node,radius)
     !% Return the specific angular momentum of cooling gas in the constant rotation model.
     use Galacticus_Error
     use Galacticus_Nodes
@@ -139,41 +139,40 @@ contains
     use Hot_Halo_Mass_Distributions
     use Numerical_Constants_Physical
     implicit none
-    type            (treeNode                    ), intent(inout) :: thisNode
+    type            (treeNode                    ), intent(inout) :: node
     double precision                              , intent(in   ) :: radius
-    class           (nodeComponentBasic          ), pointer       :: thisBasicComponent
-    class           (nodeComponentSpin           ), pointer       :: thisSpinComponent
-    class           (nodeComponentHotHalo        ), pointer       :: thisHotHaloComponent
-    class           (hotHaloMassDistributionClass), pointer       :: defaultHotHaloMassDistribution
+    class           (nodeComponentBasic          ), pointer       :: basic
+    class           (nodeComponentSpin           ), pointer       :: spin
+    class           (nodeComponentHotHalo        ), pointer       :: hotHalo
+    class           (hotHaloMassDistributionClass), pointer       :: hotHaloMassDistribution_
     class           (darkMatterProfileClass      ), pointer       :: darkMatterProfile_
-    double precision                                              :: meanSpecificAngularMomentum   , rotationNormalization
+    double precision                                              :: meanSpecificAngularMomentum, rotationNormalization
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (thisNode%uniqueID() /= lastUniqueID) call Cooling_Specific_AM_Constant_Rotation_Reset(thisNode)
+    if (node%uniqueID() /= lastUniqueID) call Cooling_Specific_AM_Constant_Rotation_Reset(node)
     ! Get required objects.
-    darkMatterProfile_             => darkMatterProfile      ()
+    darkMatterProfile_       => darkMatterProfile      ()
     ! Get the hot halo mass distribution.
-    defaultHotHaloMassDistribution => hotHaloMassDistribution()
+    hotHaloMassDistribution_ => hotHaloMassDistribution()
     ! Check if specific angular momentum of cooling gas is already computed.
     if (.not.coolingSpecificAngularMomentumComputed) then
        ! Flag that cooling radius is now computed.
        coolingSpecificAngularMomentumComputed=.true.
-
        ! Compute the mean specific angular momentum.
        select case (meanSpecificAngularMomentumFrom)
        case (profileDarkMatter)
           ! Compute mean specific angular momentum of the dark matter halo from the spin parameter, mass and energy of the halo.
-          thisBasicComponent => thisNode%basic()
-          thisSpinComponent  => thisNode%spin ()
-          meanSpecificAngularMomentum= gravitationalConstantGalacticus                   &
-               &                      *thisSpinComponent %spin()                         &
-               &                      *thisBasicComponent%mass()**1.5d0                  &
-               &                      /sqrt(abs(darkMatterProfile_%energy(thisNode)))
+          basic => node%basic()
+          spin  => node%spin ()
+          meanSpecificAngularMomentum= gravitationalConstantGalacticus            &
+               &                      *spin %spin()                               &
+               &                      *basic%mass()**1.5d0                        &
+               &                      /sqrt(abs(darkMatterProfile_%energy(node)))
        case (profileHotGas    )
           ! Compute mean specific angular momentum from the hot halo component.
-          thisHotHaloComponent => thisNode%hotHalo()
-          meanSpecificAngularMomentum= thisHotHaloComponent%angularMomentum() &
-               &                      /thisHotHaloComponent%mass           ()
+          hotHalo => node%hotHalo()
+          meanSpecificAngularMomentum= hotHalo%angularMomentum() &
+               &                      /hotHalo%mass           ()
        case default
           meanSpecificAngularMomentum=0.0d0
           call Galacticus_Error_Report('Cooling_Specific_Angular_Momentum_Constant_Rotation','unknown profile type')
@@ -182,9 +181,9 @@ contains
        ! Compute the rotation normalization.
        select case (rotationNormalizationFrom      )
        case (profileDarkMatter)
-          rotationNormalization=darkMatterProfile_%rotationNormalization(thisNode)
+          rotationNormalization=darkMatterProfile_      %rotationNormalization(node)
        case (profileHotGas    )
-          rotationNormalization=defaultHotHaloMassDistribution%rotationNormalization(thisNode)
+          rotationNormalization=hotHaloMassDistribution_%rotationNormalization(node)
        case default
           rotationNormalization=0.0d0
           call Galacticus_Error_Report('Cooling_Specific_Angular_Momentum_Constant_Rotation','unknown profile type')
@@ -200,13 +199,13 @@ contains
        ! Return the computed value.
        if (coolingAngularMomentumUseInteriorMean) then
           ! Find the specific angular momentum interior to the specified radius.
-          Cooling_Specific_Angular_Momentum_Constant_Rotation= coolingSpecificAngularMomentumStored                               &
-               &                                              *defaultHotHaloMassDistribution%radialMoment(thisNode,3.0d0,radius) &
-               &                                              /defaultHotHaloMassDistribution%radialMoment(thisNode,2.0d0,radius)
+          Cooling_Specific_Angular_Momentum_Constant_Rotation= coolingSpecificAngularMomentumStored                     &
+               &                                              *hotHaloMassDistribution_%radialMoment(node,3.0d0,radius) &
+               &                                              /hotHaloMassDistribution_%radialMoment(node,2.0d0,radius)
        else
           ! Find the specific angular momentum at the specified radius.
-          Cooling_Specific_Angular_Momentum_Constant_Rotation= coolingSpecificAngularMomentumStored                  &
-               &                                              *                                              radius
+          Cooling_Specific_Angular_Momentum_Constant_Rotation= coolingSpecificAngularMomentumStored                     &
+               &                                              *                                                 radius
        end if
     else
        ! Radius is non-positive - return zero.

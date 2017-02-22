@@ -44,16 +44,16 @@ contains
     return
   end subroutine infiniteDestructor
 
-  double precision function infiniteTimeUntilMerging(self,thisNode,thisOrbit)
+  double precision function infiniteTimeUntilMerging(self,node,orbit)
     !% Return a zero timescale for satellite merging.
     use Galacticus_Nodes
     use Kepler_Orbits
     implicit none
     class           (satelliteMergingTimescalesInfinite), intent(inout) :: self
-    type            (treeNode                          ), intent(inout) :: thisNode
-    type            (keplerOrbit                       ), intent(inout) :: thisOrbit
+    type            (treeNode                          ), intent(inout) :: node
+    type            (keplerOrbit                       ), intent(inout) :: orbit
     double precision                                    , parameter     :: timeInfinite=1.0d30 ! Effective infinite time.
-    !GCC$ attributes unused :: self, thisNode, thisOrbit
+    !GCC$ attributes unused :: self, node, orbit
     
     infiniteTimeUntilMerging=timeInfinite
     return

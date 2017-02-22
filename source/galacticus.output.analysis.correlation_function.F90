@@ -47,19 +47,19 @@ module Galacticus_Output_Analyses_Correlation_Functions
 
   ! Interface for mass mapping functions.
   abstract interface
-     double precision function Map_Mass(mass,thisNode)
+     double precision function Map_Mass(mass,node)
        import treeNode
        double precision          , intent(in   )          :: mass
-       type            (treeNode), intent(inout), pointer :: thisNode
+       type            (treeNode), intent(inout), pointer :: node
      end function Map_Mass
   end interface
 
   ! Interface for mass error functions.
   abstract interface
-     double precision function Mass_Error(mass,thisNode)
+     double precision function Mass_Error(mass,node)
        import treeNode
        double precision          , intent(in   )          :: mass
-       type            (treeNode), intent(inout), pointer :: thisNode
+       type            (treeNode), intent(inout), pointer :: node
      end function Mass_Error
   end interface
 
@@ -153,11 +153,11 @@ module Galacticus_Output_Analyses_Correlation_Functions
   end type correlationFunctionWork
 
   ! Work array.
-  type(correlationFunctionWork), allocatable, dimension(:) :: thisHalo
-  !$omp threadprivate(thisHalo)
+  type(correlationFunctionWork), allocatable, dimension(:) :: haloWork
+  !$omp threadprivate(haloWork)
 
   ! Halo mass binning.
-  double precision :: analysisProjectedCorrelationFunctionsHaloMassMinimum           , analysisProjectedCorrelationFunctionsHaloMassMaximum           , &
+  double precision :: analysisProjectedCorrelationFunctionsHaloMassMinimum           , analysisProjectedCorrelationFunctionsHaloMassMaximum      , &
        &              analysisProjectedCorrelationFunctionsHaloMassMinimumLogarithmic, haloMassIntervalLogarithmicInverse
   integer          :: analysisProjectedCorrelationFunctionsHaloMassBinsCount         , analysisProjectedCorrelationFunctionsHaloMassBinsPerDecade
 
@@ -172,7 +172,7 @@ contains
   !# <mergerTreeAnalysisTask>
   !#  <unitName>Galacticus_Output_Analysis_Correlation_Functions</unitName>
   !# </mergerTreeAnalysisTask>
-  subroutine Galacticus_Output_Analysis_Correlation_Functions(thisTree,thisNode,nodeStatus,iOutput,mergerTreeAnalyses)
+  subroutine Galacticus_Output_Analysis_Correlation_Functions(tree,node,nodeStatus,iOutput,mergerTreeAnalyses)
     !% Construct correlation functions to compare to various observational determinations.
     use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
@@ -193,8 +193,8 @@ contains
     use Linear_Growth
     use Galacticus_Output_Merger_Tree_Data
     implicit none
-    type            (mergerTree                    ), intent(inout)                 :: thisTree
-    type            (treeNode                      ), intent(inout), pointer        :: thisNode
+    type            (mergerTree                    ), intent(inout)                 :: tree
+    type            (treeNode                      ), intent(inout), pointer        :: node
     integer                                         , intent(in   )                 :: nodeStatus
     integer         (c_size_t                      ), intent(in   )                 :: iOutput
     type            (varying_string                ), intent(in   ), dimension(:  ) :: mergerTreeAnalyses
@@ -509,28 +509,28 @@ contains
     if (.not.analysisActive) return
     ! Accumulate halo and return on tree finalization.
     if (nodeStatus == nodeStatusFinal) then
-       if (allocated(thisHalo)) then
+       if (allocated(haloWork)) then
           do i=1,size(correlationFunctions)
-             if (thisHalo(i)%initialized) call Accumulate_Halo(correlationFunctions(i),thisHalo(i))
+             if (haloWork(i)%initialized) call Accumulate_Halo(correlationFunctions(i),haloWork(i))
           end do
        end if
        return
     end if
     ! Allocate work arrays.
-    if (.not.allocated(thisHalo)) then
-       allocate(thisHalo(size(correlationFunctions)))
-       thisHalo%initialized=.false.
+    if (.not.allocated(haloWork)) then
+       allocate(haloWork(size(correlationFunctions)))
+       haloWork%initialized=.false.
     end if
     ! Iterate over active analyses.
     do i=1,size(correlationFunctions)
        ! Return if this correlation function receives no contribution from this output number.
        if (all(correlationFunctions(i)%outputWeight(:,iOutput) <= 0.0d0)) cycle
        ! Get the galactic mass.
-       mass=                                                                                                                                                   &
-            &  Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeDisk    ,massType=correlationFunctions(i)%descriptor%massType) &
-            & +Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeSpheroid,massType=correlationFunctions(i)%descriptor%massType)
+       mass=                                                                                                                                               &
+            &  Galactic_Structure_Enclosed_Mass(node,radiusLarge,componentType=componentTypeDisk    ,massType=correlationFunctions(i)%descriptor%massType) &
+            & +Galactic_Structure_Enclosed_Mass(node,radiusLarge,componentType=componentTypeSpheroid,massType=correlationFunctions(i)%descriptor%massType)
        if (mass <= 0.0d0) cycle
-       if (associated(correlationFunctions(i)%descriptor%mapMass)) mass=correlationFunctions(i)%descriptor%mapMass(mass,thisNode)
+       if (associated(correlationFunctions(i)%descriptor%mapMass)) mass=correlationFunctions(i)%descriptor%mapMass(mass,node)
        mass=mass*correlationFunctions(i)%cosmologyConversionMass(iOutput) ! Convert for cosmology.
        massLogarithmic=log10(mass)
        do j=1,correlationFunctions(i)%descriptor%massSystematicCoefficientCount
@@ -543,14 +543,14 @@ contains
        end do
        if (massLogarithmic < correlationFunctions(i)%descriptor%massLogarithmicMinimum) cycle
        ! Accumulate the node.
-       call Accumulate_Node(correlationFunctions(i),thisHalo(i),thisTree,thisNode,mass,massLogarithmic,iOutput)
+       call Accumulate_Node(correlationFunctions(i),haloWork(i),tree,node,mass,massLogarithmic,iOutput)
        ! Accumulate halo if this is the last node in the tree.
-       if (nodeStatus == nodeStatusLast) call Accumulate_Halo(correlationFunctions(i),thisHalo(i))
+       if (nodeStatus == nodeStatusLast) call Accumulate_Halo(correlationFunctions(i),haloWork(i))
     end do
     return
   end subroutine Galacticus_Output_Analysis_Correlation_Functions
 
-  subroutine Accumulate_Node(thisCorrelationFunction,thisHalo,thisTree,thisNode,mass,massLogarithmic,iOutput)
+  subroutine Accumulate_Node(correlationFunction_,haloWork,tree,node,mass,massLogarithmic,iOutput)
     !% Accumulate a single galaxy to the population of the current halo. Since galaxy masses
     !% have random errors, each galaxy added is assigned an inclusion probability, which will be
     !% taken into account when evaluating the one- and two-halo terms from this halo in the halo
@@ -562,15 +562,15 @@ contains
     use Memory_Management
     use Galacticus_Output_Merger_Tree_Data
     implicit none
-    type            (correlationFunction    ), intent(inout)                 :: thisCorrelationFunction
-    type            (correlationFunctionWork), intent(inout)                 :: thisHalo
-    type            (mergerTree             ), intent(in   )                 :: thisTree
-    type            (treeNode               ), intent(inout), pointer        :: thisNode
+    type            (correlationFunction    ), intent(inout)                 :: correlationFunction_
+    type            (correlationFunctionWork), intent(inout)                 :: haloWork
+    type            (mergerTree             ), intent(in   )                 :: tree
+    type            (treeNode               ), intent(inout), pointer        :: node
     double precision                         , intent(in   )                 :: mass                     , massLogarithmic
     integer         (c_size_t               ), intent(in   )                 :: iOutput
     type            (treeNode               )               , pointer        :: hostNode
     class           (cosmologyFunctionsClass)               , pointer        :: cosmologyFunctions_    
-    class           (nodeComponentBasic     )               , pointer        :: thisBasic                , rootBasic
+    class           (nodeComponentBasic     )               , pointer        :: basic                    , basicRoot
     class           (darkMatterProfileClass )               , pointer        :: darkMatterProfile_
     double precision                         , allocatable  , dimension(:,:) :: satelliteProbabilityTmp
     integer                                  , parameter                     :: satelliteCountMinimum=100
@@ -581,97 +581,97 @@ contains
     logical                                                                  :: satelliteIncluded
     
     ! Get the index of the host halo.
-    if (thisNode%isSatellite()) then
-       hostNode => thisNode%parent
+    if (node%isSatellite()) then
+       hostNode => node%parent
     else
-       hostNode => thisNode
+       hostNode => node
     end if
     hostIndex=hostNode%uniqueID()
     ! Allocate arrays.
-    if (.not.thisHalo%initialized) then
-       call allocateArray(thisHalo%centralProbability,[size(thisCorrelationFunction%massMinimumLogarithmic)])
-       call allocateArray(thisHalo%fourierProfile    ,[size(thisCorrelationFunction%wavenumber            )])
-       allocate  (thisHalo%satelliteProbability(0,0))
-       deallocate(thisHalo%satelliteProbability     )
-       thisHalo%propertiesSet     =.false.
-       thisHalo%satelliteCount    =0
-       thisHalo%centralProbability=0.0d0
-       thisHalo%isMainBranch      =.false.
-       thisHalo%initialized       =.true.
-       thisHalo%treeIndex         =-1_kind_int8
-       thisHalo%haloIndex         =-1_kind_int8
+    if (.not.haloWork%initialized) then
+       call allocateArray(haloWork%centralProbability,[size(correlationFunction_%massMinimumLogarithmic)])
+       call allocateArray(haloWork%fourierProfile    ,[size(correlationFunction_%wavenumber            )])
+       allocate  (haloWork%satelliteProbability(0,0))
+       deallocate(haloWork%satelliteProbability     )
+       haloWork%propertiesSet     =.false.
+       haloWork%satelliteCount    =0
+       haloWork%centralProbability=0.0d0
+       haloWork%isMainBranch      =.false.
+       haloWork%initialized       =.true.
+       haloWork%treeIndex         =-1_kind_int8
+       haloWork%haloIndex         =-1_kind_int8
     end if
     ! Check if the host has changed.
-    if     (                                      &
-         &   thisTree%index /= thisHalo%treeIndex &
-         &  .or.                                  &
-         &   hostIndex      /= thisHalo%haloIndex &
-         & )                                      &
-         & call Accumulate_Halo(thisCorrelationFunction,thisHalo)
+    if     (                                       &
+         &   tree     %index /= haloWork%treeIndex &
+         &  .or.                                   &
+         &   hostIndex       /= haloWork%haloIndex &
+         & )                                       &
+         & call Accumulate_Halo(correlationFunction_,haloWork)
     ! Accumulate properties to the current halo.
-    thisHalo%treeIndex=thisTree%index
-    thisHalo%haloIndex=hostIndex
+    haloWork%treeIndex=tree%index
+    haloWork%haloIndex=hostIndex
     ! Find the random error on the galaxy mass.
-    if (associated(thisCorrelationFunction%descriptor%massRandomErrorFunction)) then
-       randomError=thisCorrelationFunction%descriptor%massRandomErrorFunction(mass,thisNode)
+    if (associated(correlationFunction_%descriptor%massRandomErrorFunction)) then
+       randomError=correlationFunction_%descriptor%massRandomErrorFunction(mass,node)
     else
        randomError=0.0d0
-       do j=1,thisCorrelationFunction%descriptor%massRandomCoefficientCount
-          randomError=+randomError                                                  &
-               &          +thisCorrelationFunction%massRandomCoefficients(j)        &
-               &          *(                                                        &
-               &            +log10(mass)                                            &
-               &            -thisCorrelationFunction%descriptor%massSystematicLogM0 &
+       do j=1,correlationFunction_%descriptor%massRandomCoefficientCount
+          randomError=+randomError                                               &
+               &          +correlationFunction_%massRandomCoefficients(j)        &
+               &          *(                                                     &
+               &            +log10(mass)                                         &
+               &            -correlationFunction_%descriptor%massSystematicLogM0 &
                &           )**(j-1)
        end do
-       randomError=max(min(randomError,thisCorrelationFunction%massRandomMaximum),thisCorrelationFunction%massRandomMinimum)
+       randomError=max(min(randomError,correlationFunction_%massRandomMaximum),correlationFunction_%massRandomMinimum)
     end if
     ! Iterate over mass ranges.
     satelliteIncluded=.false.
-    do j=1,size(thisCorrelationFunction%massMinimumLogarithmic)
+    do j=1,size(correlationFunction_%massMinimumLogarithmic)
        ! Find the probability that this galaxy is included in the sample.
-       galaxyInclusionProbability=0.5d0*(1.0d0-erf((thisCorrelationFunction%massMinimumLogarithmic(j)-massLogarithmic)/randomError/sqrt(2.0d0)))
-       if (thisNode%isSatellite()) then
+       galaxyInclusionProbability=0.5d0*(1.0d0-erf((correlationFunction_%massMinimumLogarithmic(j)-massLogarithmic)/randomError/sqrt(2.0d0)))
+       if (node%isSatellite()) then
           if (galaxyInclusionProbability > 0.0d0) then
              if (.not.satelliteIncluded) then
                 satelliteIncluded=.true.
-                thisHalo%satelliteCount=thisHalo%satelliteCount+1
-                if (.not.allocated(thisHalo%satelliteProbability)) then
-                   call allocateArray(thisHalo%satelliteProbability,[satelliteCountMinimum,size(thisCorrelationFunction%massMinimumLogarithmic)])
-                else if (size(thisHalo%satelliteProbability,dim=1) < thisHalo%satelliteCount) then
-                   call Move_Alloc(thisHalo%satelliteProbability,satelliteProbabilityTmp)
-                   call allocateArray(thisHalo%satelliteProbability,[2*size(satelliteProbabilityTmp,dim=1),size(thisCorrelationFunction%massMinimumLogarithmic)])
-                   thisHalo%satelliteProbability(1:size(satelliteProbabilityTmp,dim=1),:)=satelliteProbabilityTmp
+                haloWork%satelliteCount=haloWork%satelliteCount+1
+                if (.not.allocated(haloWork%satelliteProbability)) then
+                   call allocateArray(haloWork%satelliteProbability,[satelliteCountMinimum,size(correlationFunction_%massMinimumLogarithmic)])
+                else if (size(haloWork%satelliteProbability,dim=1) < haloWork%satelliteCount) then
+                   call Move_Alloc(haloWork%satelliteProbability,satelliteProbabilityTmp)
+                   call allocateArray(haloWork%satelliteProbability,[2*size(satelliteProbabilityTmp,dim=1),size(correlationFunction_%massMinimumLogarithmic)])
+                   haloWork%satelliteProbability(1:size(satelliteProbabilityTmp,dim=1),:)=satelliteProbabilityTmp
                    call deallocateArray(satelliteProbabilityTmp)
                 end if
-                thisHalo%satelliteProbability(thisHalo%satelliteCount,:)=0.0d0
+                haloWork%satelliteProbability(haloWork%satelliteCount,:)=0.0d0
              end if
-             thisHalo%satelliteProbability(thisHalo%satelliteCount,j)=galaxyInclusionProbability
+             haloWork%satelliteProbability(haloWork%satelliteCount,j)=galaxyInclusionProbability
           end if
        else
-          thisHalo%centralProbability(j)=  galaxyInclusionProbability
+          haloWork%centralProbability(j)=  galaxyInclusionProbability
        end if
-       if (galaxyInclusionProbability > 0.0d0 .and. .not.thisHalo%propertiesSet) then
-          thisHalo%propertiesSet        =  .true.
-          thisHalo%isMainBranch         =  hostNode %isOnMainBranch(        )
-          thisBasic                     => hostNode          %basic(        )
-          rootBasic                     => thisTree %baseNode%basic(        )
-          thisHalo%haloMass             =  rootBasic%mass          (        )
-          thisHalo%hostMass             =  thisBasic%mass          (        )
-          thisHalo%haloWeight           =  thisTree %volumeWeight
-          thisHalo%outputNumber         =  iOutput
-          thisHalo%haloTime             =  thisBasic%time          (        )
-          thisHalo%haloBias             =  Dark_Matter_Halo_Bias   (hostNode)
+       if (galaxyInclusionProbability > 0.0d0 .and. .not.haloWork%propertiesSet) then
+          haloWork%propertiesSet        =  .true.
+          haloWork%isMainBranch         =  hostNode %isOnMainBranch(        )
+          basic                     => hostNode          %basic(        )
+          basicRoot                     => tree     %baseNode%basic(        )
+          haloWork%haloMass             =  basicRoot%mass          (        )
+          haloWork%hostMass             =  basic%mass          (        )
+          haloWork%haloWeight           =  tree     %volumeWeight
+          haloWork%outputNumber         =  iOutput
+          haloWork%haloTime             =  basic%time          (        )
+          haloWork%haloBias             =  Dark_Matter_Halo_Bias   (hostNode)
           cosmologyFunctions_           => cosmologyFunctions      (        )
           darkMatterProfile_            => darkMatterProfile       (        )
-          expansionFactor               =  cosmologyFunctions_%expansionFactor(thisBasic%time())
-          do i=1,size(thisCorrelationFunction%wavenumber)
+          expansionFactor               =  cosmologyFunctions_%expansionFactor(basic%time())
+          do i=1,size(correlationFunction_%wavenumber)
              ! Note that wavenumbers must be converted from comoving to physical units for the dark matter profile k-space function.
-             thisHalo%fourierProfile(i)=darkMatterProfile_%kSpace(                                                           &
-                  &                                                hostNode                                                , &
-                  &                                                thisCorrelationFunction%waveNumber             (i      )  &
-                  &                                               *thisCorrelationFunction%cosmologyConversionSize(iOutput)  &
-                  &                                               /expansionFactor                                           &
+             haloWork%fourierProfile(i)=darkMatterProfile_%kSpace(                                                        &
+                  &                                                hostNode                                             , &
+                  &                                                correlationFunction_%waveNumber             (i      )  &
+                  &                                               *correlationFunction_%cosmologyConversionSize(iOutput)  &
+                  &                                               /expansionFactor                                        &
                   &                                              )
           end do
        end if
@@ -679,7 +679,7 @@ contains
     return
   end subroutine Accumulate_Node
 
-  subroutine Accumulate_Halo(thisCorrelationFunction,thisHalo)
+  subroutine Accumulate_Halo(correlationFunction_,haloWork)
     !% Assumulate a single halo's contributions to the halo model one- and two-halo terms. For
     !% the one-halo term we count contributions from central-satellite pairs, and from
     !% satellite-satellite pairs. Contributions differ in the scalings applied to the
@@ -691,36 +691,36 @@ contains
     use Halo_Model_Power_Spectrum_Modifiers
     use Linear_Algebra
     implicit none
-    type            (correlationFunction                ), intent(inout)                                                                  :: thisCorrelationFunction        
-    type            (correlationFunctionWork            ), intent(inout)                                                                  :: thisHalo
-    double precision                                                    , dimension(                                                                                                                      &
-         &                                                                          size(thisCorrelationFunction%wavenumber            ),                                                                 &
-         &                                                                          size(thisCorrelationFunction%massMinimumLogarithmic)                                                                  &
-         &                                                                         )                                                      :: thisOneHaloTerm                , thisTwoHaloTerm
-    double precision                                                    , dimension(size(thisCorrelationFunction%massMinimumLogarithmic)) :: galaxyDensity
-    logical                                                             , dimension(size(thisCorrelationFunction%massMinimumLogarithmic)) :: oneHaloTermActive              , twoHaloTermActive
-    double precision                                     , allocatable  , dimension(:,:                                                 ) :: termJacobian                   , termCovariance            , &
-         &                                                                                                                                   mainBranchTermCovariance       , modifierCovariance
-    double precision                                     , allocatable  , dimension(:                                                   ) :: satelliteJacobian              , modifierCovarianceDiagonal
-    double precision                                                                                                                      :: satellitePairsCountMean        , satelliteCountMean        , &
-         &                                                                                                                                   haloWeightOutput
-    integer                                                                                                                               :: wavenumberCount                , haloMassBin               , &
-         &                                                                                                                                   i                              , j                         , &
-         &                                                                                                                                   indexOneHalo                   , indexTwoHalo              , &
-         &                                                                                                                                   indexDensity                   , massCount
-    logical                                                                                                                               :: mainBranchCounted    
-    type            (matrix                             )                                                                                 :: jacobianMatrix
-    class           (haloModelPowerSpectrumModifierClass), pointer                                                                        :: haloModelPowerSpectrumModifier_
+    type            (correlationFunction                ), intent(inout)                                                               :: correlationFunction_        
+    type            (correlationFunctionWork            ), intent(inout)                                                               :: haloWork
+    double precision                                                    , dimension(                                                                                                                   &
+         &                                                                          size(correlationFunction_%wavenumber            ),                                                                 &
+         &                                                                          size(correlationFunction_%massMinimumLogarithmic)                                                                  &
+         &                                                                         )                                                   :: oneHaloTerm                , twoHaloTerm
+    double precision                                                    , dimension(size(correlationFunction_%massMinimumLogarithmic)) :: galaxyDensity
+    logical                                                             , dimension(size(correlationFunction_%massMinimumLogarithmic)) :: oneHaloTermActive              , twoHaloTermActive
+    double precision                                     , allocatable  , dimension(:,:                                              ) :: termJacobian                   , termCovariance            , &
+         &                                                                                                                                mainBranchTermCovariance       , modifierCovariance
+    double precision                                     , allocatable  , dimension(:                                                ) :: satelliteJacobian              , modifierCovarianceDiagonal
+    class           (haloModelPowerSpectrumModifierClass), pointer                                                                     :: haloModelPowerSpectrumModifier_
+    double precision                                                                                                                   :: satellitePairsCountMean        , satelliteCountMean        , &
+         &                                                                                                                                haloWeightOutput
+    integer                                                                                                                            :: wavenumberCount                , haloMassBin               , &
+         &                                                                                                                                i                              , j                         , &
+         &                                                                                                                                indexOneHalo                   , indexTwoHalo              , &
+         &                                                                                                                                indexDensity                   , massCount
+    logical                                                                                                                            :: mainBranchCounted    
+    type            (matrix                             )                                                                              :: jacobianMatrix
 
     ! Return immediately if no nodes have been accumulated.
-    if (thisHalo%treeIndex /= -1_kind_int8) then
+    if (haloWork%treeIndex /= -1_kind_int8) then
        oneHaloTermActive=.false.
        twoHaloTermActive=.false.
        mainBranchCounted=.false.
-       massCount        =size(thisCorrelationFunction%massMinimumLogarithmic)
-       wavenumberCount  =size(thisCorrelationFunction%wavenumber            )
-       allocate(termJacobian              (massCount*(2*wavenumberCount+1),thisHalo%satelliteCount+1))
-       allocate(satelliteJacobian         (                                thisHalo%satelliteCount  ))
+       massCount        =size(correlationFunction_%massMinimumLogarithmic)
+       wavenumberCount  =size(correlationFunction_%wavenumber            )
+       allocate(termJacobian              (massCount*(2*wavenumberCount+1),haloWork%satelliteCount+1))
+       allocate(satelliteJacobian         (                                haloWork%satelliteCount  ))
        allocate(modifierCovariance        (             wavenumberCount   ,wavenumberCount          ))
        allocate(modifierCovarianceDiagonal(massCount*(2*wavenumberCount+1)                          ))
        haloModelPowerSpectrumModifier_ => haloModelPowerSpectrumModifier()
@@ -730,76 +730,76 @@ contains
        ! Iterate over masses.
        do i=1,massCount
            ! Find mean number of satellites and satellite pairs.
-          if (thisHalo%satelliteCount > 0) then
-             satelliteCountMean     =Poisson_Binomial_Distribution_Mean      (thisHalo%satelliteProbability(1:thisHalo%satelliteCount,i))
-             satellitePairsCountMean=Poisson_Binomial_Distribution_Mean_Pairs(thisHalo%satelliteProbability(1:thisHalo%satelliteCount,i))
+          if (haloWork%satelliteCount > 0) then
+             satelliteCountMean     =Poisson_Binomial_Distribution_Mean      (haloWork%satelliteProbability(1:haloWork%satelliteCount,i))
+             satellitePairsCountMean=Poisson_Binomial_Distribution_Mean_Pairs(haloWork%satelliteProbability(1:haloWork%satelliteCount,i))
           else
              satelliteCountMean     =0.0d0
              satellitePairsCountMean=0.0d0
           end if
           ! Skip if this halo contains no galaxies.
-          if (thisHalo%centralProbability(i) > 0.0d0 .or. satelliteCountMean > 0.0d0) then             
+          if (haloWork%centralProbability(i) > 0.0d0 .or. satelliteCountMean > 0.0d0) then             
              ! Compute output halo weight.
-             haloWeightOutput=thisHalo%haloWeight*thisCorrelationFunction%outputWeight(i,thisHalo%outputNumber)
+             haloWeightOutput=haloWork%haloWeight*correlationFunction_%outputWeight(i,haloWork%outputNumber)
              ! Compute contribution to galaxy density.
              galaxyDensity(i)= haloWeightOutput                 &
                   &           *(                                &
-                  &             +thisHalo%centralProbability(i) &
+                  &             +haloWork%centralProbability(i) &
                   &             +satelliteCountMean             &
                   &            )             
              ! For main branch galaxies, accumulate their contribution to the density as a function of halo mass, so that we can later subtract this from the variance.
-             if (thisHalo%isMainBranch) then
-                haloMassBin=floor((log10(thisHalo%haloMass)-analysisProjectedCorrelationFunctionsHaloMassMinimumLogarithmic)*haloMassIntervalLogarithmicInverse)+1
+             if (haloWork%isMainBranch) then
+                haloMassBin=floor((log10(haloWork%haloMass)-analysisProjectedCorrelationFunctionsHaloMassMinimumLogarithmic)*haloMassIntervalLogarithmicInverse)+1
                 ! Accumulate weights to halo mass arrays.
                 if (haloMassBin >= 1 .and. haloMassBin <= analysisProjectedCorrelationFunctionsHaloMassBinsCount) then
                    !$omp critical (Analyses_Correlation_Functions_Main_Branch)
-                   thisCorrelationFunction        %meanDensityMainBranch(  i,haloMassBin)= &
-                        & +thisCorrelationFunction%meanDensityMainBranch(  i,haloMassBin)  &
-                        & +haloWeightOutput                                                &
-                        & *thisHalo               %centralProbability   (  i            )
-                   thisCorrelationFunction        %oneHaloTermMainBranch(:,i,haloMassBin)= &
-                        & +thisCorrelationFunction%oneHaloTermMainBranch(:,i,haloMassBin)  &
-                        & +haloWeightOutput                                                &
-                        & *thisHalo               %centralProbability   (  i            )  &
-                        & *satelliteCountMean                                              &
-                        & *thisHalo%fourierProfile
-                   thisCorrelationFunction        %twoHaloTermMainBranch(:,i,haloMassBin)= &
-                        & +thisCorrelationFunction%twoHaloTermMainBranch(:,i,haloMassBin)  &
-                        & +haloWeightOutput                                                &
-                        & *thisHalo               %centralProbability   (  i            )  &
-                        & *thisHalo%haloBias                                               &
-                        & *thisHalo%fourierProfile
+                   correlationFunction_        %meanDensityMainBranch(  i,haloMassBin)=   &
+                        & +correlationFunction_%meanDensityMainBranch(  i,haloMassBin)    &
+                        & +haloWeightOutput                                               &
+                        & *haloWork               %centralProbability   (  i            )
+                   correlationFunction_        %oneHaloTermMainBranch(:,i,haloMassBin)=   &
+                        & +correlationFunction_%oneHaloTermMainBranch(:,i,haloMassBin)    &
+                        & +haloWeightOutput                                               &
+                        & *haloWork               %centralProbability   (  i            ) &
+                        & *satelliteCountMean                                             &
+                        & *haloWork%fourierProfile
+                   correlationFunction_        %twoHaloTermMainBranch(:,i,haloMassBin)=   &
+                        & +correlationFunction_%twoHaloTermMainBranch(:,i,haloMassBin)    &
+                        & +haloWeightOutput                                               &
+                        & *haloWork               %centralProbability   (  i            ) &
+                        & *haloWork%haloBias                                              &
+                        & *haloWork%fourierProfile
                    !$omp end critical (Analyses_Correlation_Functions_Main_Branch)
                    ! If this is the first mass bin in which the central, main branch galaxy is seen, increment the number of main branch galaxies.
                    if (.not.mainBranchCounted) then
                       mainBranchCounted=.true.
                       !$omp atomic
-                      thisCorrelationFunction%countMainBranch(haloMassBin)=thisCorrelationFunction%countMainBranch(haloMassBin)+1
+                      correlationFunction_%countMainBranch(haloMassBin)=correlationFunction_%countMainBranch(haloMassBin)+1
                    end if
                 end if
              end if
              ! Accumulate contribution to galaxy density.
              !$omp atomic
-             thisCorrelationFunction%meanDensity(i)=   thisCorrelationFunction%meanDensity(i) &
-                  &                                 +  galaxyDensity                      (i)
+             correlationFunction_%meanDensity(i)= correlationFunction_%meanDensity(i) &
+                  &                              +galaxyDensity                   (i)
              ! Compute and accumulate one-halo term.
              if (satelliteCountMean > 0.0d0) then
                 oneHaloTermActive(  i)=.true.
-                thisOneHaloTerm  (:,i)= haloWeightOutput                 &
+                oneHaloTerm  (:,i)= haloWeightOutput                      &
                      &                 *(                                &
-                     &                   +thisHalo%centralProbability(i) &
+                     &                   +haloWork%centralProbability(i) &
                      &                   *satelliteCountMean             &
-                     &                   *thisHalo%fourierProfile        &
+                     &                   *haloWork%fourierProfile        &
                      &                   +satellitePairsCountMean        &
-                     &                   *thisHalo%fourierProfile    **2 &
+                     &                   *haloWork%fourierProfile    **2 &
                      &                  )
-                call haloModelPowerSpectrumModifier_%modify(                                                                         &
-                     &                                       thisCorrelationFunction%wavenumber                                      &
-                     &                                      *thisCorrelationFunction%cosmologyConversionSize(thisHalo%outputNumber), &
-                     &                                       termOneHalo                                                           , &
-                     &                                       thisOneHaloTerm(:,i)                                                  , &
-                     &                                       modifierCovariance                                                    , &
-                     &                                       mass=thisHalo%hostMass                                                  &
+                call haloModelPowerSpectrumModifier_%modify(                                                                      &
+                     &                                       correlationFunction_%wavenumber                                      &
+                     &                                      *correlationFunction_%cosmologyConversionSize(haloWork%outputNumber), &
+                     &                                       termOneHalo                                                        , &
+                     &                                       oneHaloTerm(:,i)                                                   , &
+                     &                                       modifierCovariance                                                 , &
+                     &                                       mass=haloWork%hostMass                                               &
                      &                                     )
                 call Term_Indices(i,wavenumberCount,indexOneHalo,indexTwoHalo,indexDensity)
                 forall(j=1:wavenumberCount)
@@ -807,22 +807,22 @@ contains
                 end forall
                 modifierCovarianceDiagonal(indexDensity)=0.0d0
                 !$omp critical(Analyses_Correlation_Functions_Accumulate1)
-                thisCorrelationFunction%oneHaloTerm(:,i)= thisCorrelationFunction%oneHaloTerm(:,i) &
-                     &                                   +thisOneHaloTerm                    (:,i)
+                correlationFunction_%oneHaloTerm(:,i)= correlationFunction_%oneHaloTerm(:,i) &
+                     &                                +oneHaloTerm                     (:,i)
                 !$omp end critical(Analyses_Correlation_Functions_Accumulate1)
              end if
              ! Compute and accumulate two-halo term.
              twoHaloTermActive(  i)=.true.
-             thisTwoHaloTerm  (:,i)= galaxyDensity(i)          &
-                  &                 *  thisHalo%haloBias       &
-                  &                 *  thisHalo%fourierProfile
-             call haloModelPowerSpectrumModifier_%modify(                                                                         &
-                  &                                       thisCorrelationFunction%wavenumber                                      &
-                  &                                      *thisCorrelationFunction%cosmologyConversionSize(thisHalo%outputNumber), &
-                  &                                       termTwoHalo                                                           , &
-                  &                                       thisTwoHaloTerm(:,i)                                                  , &
-                  &                                       modifierCovariance                                                    , &
-                  &                                       mass=thisHalo%hostMass                                                  &
+             twoHaloTerm  (:,i)= galaxyDensity(i)        &
+                  &             *haloWork%haloBias       &
+                  &             *haloWork%fourierProfile
+             call haloModelPowerSpectrumModifier_%modify(                                                                      &
+                  &                                       correlationFunction_%wavenumber                                      &
+                  &                                      *correlationFunction_%cosmologyConversionSize(haloWork%outputNumber), &
+                  &                                       termTwoHalo                                                        , &
+                  &                                       twoHaloTerm(:,i)                                                   , &
+                  &                                       modifierCovariance                                                 , &
+                  &                                       mass=haloWork%hostMass                                               &
                   &                                     )
              call Term_Indices(i,wavenumberCount,indexOneHalo,indexTwoHalo,indexDensity)
              forall(j=1:wavenumberCount)
@@ -830,8 +830,8 @@ contains
              end forall
              modifierCovarianceDiagonal(indexDensity)=0.0d0
              !$omp critical(Analyses_Correlation_Functions_Accumulate2)
-             thisCorrelationFunction%twoHaloTerm(:,i)= thisCorrelationFunction%twoHaloTerm(:,i) &
-                  &                                   +thisTwoHaloTerm                    (:,i)
+             correlationFunction_%twoHaloTerm(:,i)= correlationFunction_%twoHaloTerm(:,i) &
+                  &                                +twoHaloTerm                     (:,i)
              !$omp end critical(Analyses_Correlation_Functions_Accumulate2)
              ! Construct Jacobian of the terms being accumulated. The Jacobian here is an MxN matrix, where M=massCount*(2*wavenumberCount+1)
              ! (the number of terms in halo model quantities being accumulated {wavenumberCount for 1- and 2-halo terms, plus a density, for
@@ -839,21 +839,21 @@ contains
              ! Compute indices.
              call Term_Indices(i,wavenumberCount,indexOneHalo,indexTwoHalo,indexDensity)
              ! One halo terms.
-             if (thisHalo%satelliteCount > 0) then
-                satelliteJacobian=Poisson_Binomial_Distribution_Mean_Pairs_Jacobian(thisHalo%satelliteProbability(1:thisHalo%satelliteCount,i))*thisHalo%satelliteProbability(1:thisHalo%satelliteCount,i)
+             if (haloWork%satelliteCount > 0) then
+                satelliteJacobian=Poisson_Binomial_Distribution_Mean_Pairs_Jacobian(haloWork%satelliteProbability(1:haloWork%satelliteCount,i))*haloWork%satelliteProbability(1:haloWork%satelliteCount,i)
                 do j=1,wavenumberCount
-                   termJacobian(indexOneHalo             +j              -1,1:thisHalo%satelliteCount  )=haloWeightOutput                   *thisHalo%fourierProfile(j)**2*satelliteJacobian
+                   termJacobian(indexOneHalo             +j              -1,1:haloWork%satelliteCount  )=haloWeightOutput                   *haloWork%fourierProfile(j)**2*satelliteJacobian
                 end do
              end if
-             termJacobian      (indexOneHalo:indexOneHalo+wavenumberCount-1,  thisHalo%satelliteCount+1)=haloWeightOutput                   *thisHalo%fourierProfile      *thisHalo%centralProbability(                           i)*satelliteCountMean
+             termJacobian      (indexOneHalo:indexOneHalo+wavenumberCount-1,  haloWork%satelliteCount+1)=haloWeightOutput                   *haloWork%fourierProfile      *haloWork%centralProbability(                           i)*satelliteCountMean
              ! Two halo terms.
              do j=1,wavenumberCount
-                termJacobian   (indexTwoHalo             +j              -1,1:thisHalo%satelliteCount  )=haloWeightOutput*thisHalo%haloBias*thisHalo%fourierProfile(j)   *thisHalo%satelliteProbability(1:thisHalo%satelliteCount,i)
+                termJacobian   (indexTwoHalo             +j              -1,1:haloWork%satelliteCount  )=haloWeightOutput*haloWork%haloBias*haloWork%fourierProfile(j)   *haloWork%satelliteProbability(1:haloWork%satelliteCount,i)
              end do
-             termJacobian      (indexTwoHalo:indexTwoHalo+wavenumberCount-1,  thisHalo%satelliteCount+1)=haloWeightOutput*thisHalo%haloBias*thisHalo%fourierProfile      *thisHalo%  centralProbability(                          i)
+             termJacobian      (indexTwoHalo:indexTwoHalo+wavenumberCount-1,  haloWork%satelliteCount+1)=haloWeightOutput*haloWork%haloBias*haloWork%fourierProfile      *haloWork%  centralProbability(                          i)
              ! Compute density terms.
-             termJacobian      (indexDensity                               ,1:thisHalo%satelliteCount  )=haloWeightOutput                                                *thisHalo%satelliteProbability(1:thisHalo%satelliteCount,i)
-             termJacobian      (indexDensity                               ,  thisHalo%satelliteCount+1)=haloWeightOutput                                                *thisHalo%  centralProbability(                          i)
+             termJacobian      (indexDensity                               ,1:haloWork%satelliteCount  )=haloWeightOutput                                                *haloWork%satelliteProbability(1:haloWork%satelliteCount,i)
+             termJacobian      (indexDensity                               ,  haloWork%satelliteCount+1)=haloWeightOutput                                                *haloWork%  centralProbability(                          i)
           end if
        end do
        ! Construct and accumulate term covariance.
@@ -863,8 +863,8 @@ contains
        ! Add modifier covariance.
        termCovariance=termCovariance+Vector_Outer_Product(modifierCovarianceDiagonal)
        ! For main branch galaxies, zero all off-diagonal contributions.
-       if (thisHalo%isMainBranch) then
-          termJacobian(:,1:thisHalo%satelliteCount)=0.0d0
+       if (haloWork%isMainBranch) then
+          termJacobian(:,1:haloWork%satelliteCount)=0.0d0
           jacobianMatrix=termJacobian
           allocate(mainBranchTermCovariance(massCount*(2*wavenumberCount+1),massCount*(2*wavenumberCount+1)))
           mainBranchTermCovariance=jacobianMatrix*jacobianMatrix%transpose()          
@@ -879,18 +879,18 @@ contains
           deallocate(mainBranchTermCovariance)
        end if
        !$omp critical(Analyses_Correlation_Functions_Accumulate3)
-       thisCorrelationFunction%termCovariance=thisCorrelationFunction%termCovariance+termCovariance
+       correlationFunction_%termCovariance=correlationFunction_%termCovariance+termCovariance
        !$omp end critical(Analyses_Correlation_Functions_Accumulate3)
        deallocate(termJacobian     )
        deallocate(satelliteJacobian)
     end if
     ! Reset counts.
-    if (allocated(thisHalo%centralProbability)) thisHalo%centralProbability=0.0d0
-    thisHalo%satelliteCount=0
-    thisHalo%propertiesSet =.false.
+    if (allocated(haloWork%centralProbability)) haloWork%centralProbability=0.0d0
+    haloWork%satelliteCount=0
+    haloWork%propertiesSet =.false.
     ! Reset indices.
-    thisHalo%treeIndex=-1_kind_int8
-    thisHalo%haloIndex=-1_kind_int8
+    haloWork%treeIndex=-1_kind_int8
+    haloWork%haloIndex=-1_kind_int8
     return
   end subroutine Accumulate_Halo
   
@@ -921,7 +921,7 @@ contains
     integer                                                                   :: i                             , k                                  , &
          &                                                                       j                             , wavenumberCount, m, n, massCount, indexDensity, indexOneHalo, indexTwoHalo
     type            (hdf5Object                )                              :: analysisGroup                 , correlationFunctionGroup           , &
-         &                                                                       thisDataset
+         &                                                                       dataset
     type            (table1DLogarithmicLinear  )                              :: correlationTable
     double precision                                                          :: projectedSeparation           , binSeparationMinimum               , &
          &                                                                       binSeparationMaximum          , binWidthLogarithmic
@@ -1247,17 +1247,17 @@ contains
        !$omp critical(HDF5_Access)
        analysisGroup           =galacticusOutputFile%openGroup('analysis','Model analysis')
        correlationFunctionGroup=analysisGroup       %openGroup(trim(correlationFunctions(k)%descriptor%label),trim(correlationFunctions(k)%descriptor%comment))
-       call correlationFunctionGroup%writeDataset  (correlationFunctions(k)%separation  ,'separation'                   ,'Separation'                      ,datasetReturned=thisDataset)
-       call thisDataset             %writeAttribute(megaParsec                          ,'unitsInSI'                                                                                   )
-       call thisDataset             %close         (                                                                                                                                   )
-       call correlationFunctionGroup%writeDataset  (binnedProjectedCorrelation          ,'correlationFunction'          ,'Projected correlation'           ,datasetReturned=thisDataset)
-       call thisDataset             %writeAttribute(megaParsec                          ,'unitsInSI'                                                                                   )
-       call thisDataset             %close         (                                                                                                                                   )
-       call correlationFunctionGroup%writeDataset  (binnedProjectedCorrelationCovariance,'correlationFunctionCovariance','Projected correlation covariance',datasetReturned=thisDataset)
-       call thisDataset             %writeAttribute(megaParsec**2                       , 'unitsInSI'                                                                                  )
-       call thisDataset             %close         (                                                                                                                                   )
-       call correlationFunctionGroup%close         (                                                                                                                                   )
-       call analysisGroup           %close         (                                                                                                                                   )
+       call correlationFunctionGroup%writeDataset  (correlationFunctions(k)%separation  ,'separation'                   ,'Separation'                      ,datasetReturned=dataset)
+       call dataset             %writeAttribute(megaParsec                          ,'unitsInSI'                                                                                   )
+       call dataset             %close         (                                                                                                                                   )
+       call correlationFunctionGroup%writeDataset  (binnedProjectedCorrelation          ,'correlationFunction'          ,'Projected correlation'           ,datasetReturned=dataset)
+       call dataset             %writeAttribute(megaParsec                          ,'unitsInSI'                                                                                   )
+       call dataset             %close         (                                                                                                                                   )
+       call correlationFunctionGroup%writeDataset  (binnedProjectedCorrelationCovariance,'correlationFunctionCovariance','Projected correlation covariance',datasetReturned=dataset)
+       call dataset             %writeAttribute(megaParsec**2                       , 'unitsInSI'                                                                                  )
+       call dataset             %close         (                                                                                                                                   )
+       call correlationFunctionGroup%close         (                                                                                                                               )
+       call analysisGroup           %close         (                                                                                                                               )
        !$omp end critical(HDF5_Access)
        call deallocateArray(binnedProjectedCorrelation          )
        call deallocateArray(binnedProjectedCorrelationCovariance)

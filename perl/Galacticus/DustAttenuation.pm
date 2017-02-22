@@ -130,18 +130,18 @@ sub Get_Dust_Attenuated_Luminosity {
     }
 
     # Get the datasets needed for our calculation.
-    &HDF5::Get_Dataset($dataSet,\@propertyList);
+    &Galacticus::HDF5::Get_Dataset($dataSet,\@propertyList);
     my $dataSets = $dataSet->{'dataSets'};
 
     # Ensure we have an effective wavelength and a wavelength index for this filter.
     unless ( exists($effectiveWavelength{$filterLabel}) ) {
-	my $filterPath = &galacticusPath()."data/filters/".$filter.".xml";
+	my $filterPath = &Galacticus::Path::galacticusPath()."data/filters/".$filter.".xml";
 	die("Get_Dust_Attenuated_Luminosity(): can not find filter file for: ".$filter) unless ( -e $filterPath );
 	my $xml = new XML::Simple;
 	my $filterData = $xml->XMLin($filterPath);
 	unless ( exists($filterData->{'effectiveWavelength'}) ) {
 	    # No effective wavelength data available for filter - run the script that computes it.
-	    system(&galacticusPath()."scripts/filters/vega_offset_effective_lambda.pl");
+	    system(&Galacticus::Path::galacticusPath()."scripts/filters/vega_offset_effective_lambda.pl");
 	    $filterData = $xml->XMLin($filterPath);
 	    die ("Get_Dust_Attenuated_Luminosity(): failed to compute effective wavelengths for filters") unless ( exists($filterData->{'effectiveWavelength'}) );
 	}
@@ -283,7 +283,7 @@ sub Load_Dust_Atlas {
 	if ( exists($dataSet->{'dustAtlasFile'}) ) {
 	    $dustFile = $dataSet->{'dustAtlasFile'};
 	} else {
-	    $dustFile = &galacticusPath()."data/dust/atlasFerrara2000/attenuations_MilkyWay_dustHeightRatio1.0.xml";
+	    $dustFile = &Galacticus::Path::galacticusPath()."data/dust/atlasFerrara2000/attenuations_MilkyWay_dustHeightRatio1.0.xml";
 	}
 	
         # Read the dust file.

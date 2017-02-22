@@ -173,16 +173,16 @@ contains
     return
   end subroutine velocityMaximumScalingInitalize
   
-  subroutine velocityMaximumScalingCalculationReset(self,thisNode)
+  subroutine velocityMaximumScalingCalculationReset(self,node)
     !% Reset the halo scales calculation.
     implicit none
     class(hotHaloOutflowReincorporationVelocityMaximumScaling), intent(inout) :: self
-    type (treeNode                                           ), intent(inout) :: thisNode
+    type (treeNode                                           ), intent(inout) :: node
 
     self%velocityMaximumComputed=.false.
     self%expansionFactorComputed=.false.
     self%rateComputed           =.false.
-    self%lastUniqueID           =thisNode%uniqueID()
+    self%lastUniqueID           =node%uniqueID()
     return
   end subroutine velocityMaximumScalingCalculationReset
 

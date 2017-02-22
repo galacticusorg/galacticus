@@ -85,4 +85,5 @@ foreach my $dataset ( @datasets ) {
 	unless ( $equal == 1 );
 }
 
+print "SUCCESS!\n";
 exit;

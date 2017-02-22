@@ -65,7 +65,7 @@ contains
     return
   end subroutine laceyCole1993TormenDestructor
 
-  double precision function laceyCole1993TormenTimeUntilMerging(self,thisNode,thisOrbit)
+  double precision function laceyCole1993TormenTimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the \cite{lacey_merger_1993} method with a parameterization of orbital
     !% parameters designed to fit the results of \cite{tormen_rise_1997} as described by \cite{cole_hierarchical_2000}.
     use Galacticus_Nodes
@@ -73,23 +73,23 @@ contains
     use Gaussian_Random
     implicit none
     class           (satelliteMergingTimescalesLaceyCole1993Tormen), intent(inout) :: self
-    type            (treeNode                                     ), intent(inout) :: thisNode
-    type            (keplerOrbit                                  ), intent(inout) :: thisOrbit
+    type            (treeNode                                     ), intent(inout) :: node
+    type            (keplerOrbit                                  ), intent(inout) :: orbit
     type            (treeNode                                     ), pointer       :: hostNode
     double precision                                               , parameter     :: orbitalFactorDistributionSigma=0.26d0                          !   Cole et al. (2000).
     double precision                                               , parameter     :: orbitalFactorDistributionMean =-0.14d0                         !   Cole et al. (2000).
     double precision                                                               :: log10OrbitalFactor                          , randomDeviate, &
          &                                                                            orbitalFactor
-    !GCC$ attributes unused :: thisOrbit
+    !GCC$ attributes unused :: orbit
     
     ! Find the host node.
-    hostNode => thisNode%parent
+    hostNode => node%parent
     ! Compute the orbital factor - selected at random from a lognormal distribution.
     randomDeviate=Gaussian_Random_Get(self%randomSequenceObject,orbitalFactorDistributionSigma,self%resetRandomSequence)
     log10OrbitalFactor=orbitalFactorDistributionMean+randomDeviate
     orbitalFactor=10.0d0**log10OrbitalFactor
     ! Compute the timescale.
-    laceyCole1993TormenTimeUntilMerging=orbitalFactor*self%timeUntilMergingMassDependence(thisNode)
+    laceyCole1993TormenTimeUntilMerging=orbitalFactor*self%timeUntilMergingMassDependence(node)
     return
   end function laceyCole1993TormenTimeUntilMerging
 
@@ -105,12 +105,14 @@ contains
 
   subroutine laceyCole1993TormenStateStore(self,stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
+    use Galacticus_Display
     use Pseudo_Random
     implicit none
     class  (satelliteMergingTimescalesLaceyCole1993Tormen), intent(inout) :: self
     integer                                               , intent(in   ) :: stateFile
     type   (fgsl_file                                    ), intent(in   ) :: fgslStateFile
     
+    call Galacticus_Display_Message('Storing state for: satelliteMergingTimescale -> laceyCole1993Tormen',verbosity=verbosityInfo)
     write (stateFile) self%resetRandomSequenceSnapshot
     if (.not.self%resetRandomSequenceSnapshot) call Pseudo_Random_Store(self%clonedPseudoSequenceObject,fgslStateFile)
     return
@@ -118,12 +120,14 @@ contains
   
   subroutine laceyCole1993TormenStateRestore(self,stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
+    use Galacticus_Display
     use Pseudo_Random
     implicit none
     class  (satelliteMergingTimescalesLaceyCole1993Tormen), intent(inout) :: self
     integer                                               , intent(in   ) :: stateFile
     type   (fgsl_file                                    ), intent(in   ) :: fgslStateFile
     
+    call Galacticus_Display_Message('Retrieving state for: satelliteMergingTimescale -> laceyCole1993Tormen',verbosity=verbosityInfo)
     read (stateFile) self%resetRandomSequence
     if (.not.self%resetRandomSequence) call Pseudo_Random_Retrieve(self%randomSequenceObject,fgslStateFile)
     return

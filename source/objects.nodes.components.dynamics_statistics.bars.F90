@@ -65,7 +65,7 @@ contains
   !# <timeStepsTask>
   !#  <unitName>Node_Component_Dynamics_Statistics_Bars_Timestep</unitName>
   !# </timeStepsTask>
-  subroutine Node_Component_Dynamics_Statistics_Bars_Timestep(thisNode,timeStep,End_Of_Timestep_Task,report,lockNode,lockType)
+  subroutine Node_Component_Dynamics_Statistics_Bars_Timestep(node,timeStep,End_Of_Timestep_Task,report,lockNode,lockType)
     !% Determines the timestep to go to the next tabulation point for galactic bar dynamics storage.
     use Input_Parameters
     use Evolve_To_Time_Reports
@@ -73,21 +73,21 @@ contains
     use Dark_Matter_Halo_Scales
     use Galacticus_Error
     implicit none
-    type            (treeNode                                      ), intent(inout)             , pointer :: thisNode
+    type            (treeNode                                      ), intent(inout)             , pointer :: node
     procedure       (Node_Component_Dynamics_Statistics_Bars_Record), intent(inout)             , pointer :: End_Of_Timestep_Task
     double precision                                                , intent(inout)                       :: timeStep
     logical                                                         , intent(in   )                       :: report
     type            (treeNode                                      ), intent(inout), optional   , pointer :: lockNode
     type            (varying_string                                ), intent(inout), optional             :: lockType
     type            (treeNode                                      )                            , pointer :: hostNode
-    class           (nodeComponentBasic                            )                            , pointer :: thisBasic
-    class           (nodeComponentDynamicsStatistics               )                            , pointer :: thisDynamicsStatistics
+    class           (nodeComponentBasic                            )                            , pointer :: basic
+    class           (nodeComponentDynamicsStatistics               )                            , pointer :: dynamicsStatistics
     class           (darkMatterHaloScaleClass                      )                            , pointer :: darkMatterHaloScale_
     double precision                                                , allocatable  , dimension(:)         :: timeRecord
     double precision                                                                                      :: ourTimeStep
 
     ! Return immediately if this class is not active or if this galaxy is not a satellite.
-    if (.not.(defaultDynamicsStatisticsComponent%barsIsActive().and.thisNode%isSatellite())) return
+    if (.not.(defaultDynamicsStatisticsComponent%barsIsActive().and.node%isSatellite())) return
     ! Initialize if necessary
     if (.not.dynamicsStatisticsBarsInitialized) then
        !$omp critical (dynamicsStatisticsBarsInitialize)
@@ -111,23 +111,23 @@ contains
        !$omp end critical (dynamicsStatisticsBarsInitialize)
     end if
     ! Determine the allowed timestep.
-    thisDynamicsStatistics => thisNode%dynamicsStatistics()
-    select type (thisDynamicsStatistics)
+    dynamicsStatistics => node%dynamicsStatistics()
+    select type (dynamicsStatistics)
     type is (nodeComponentDynamicsStatistics)
        ! Create the component now, and record state immediately.
        ourTimeStep=0.0d0
     class is (nodeComponentDynamicsStatisticsBars)
        ! Set return value if our timestep is smaller than current one.
-       timeRecord           =  thisDynamicsStatistics%time  ()
-       hostNode             => thisNode              %parent
-       thisBasic            => thisNode              %basic ()
+       timeRecord           =  dynamicsStatistics%time  ()
+       hostNode             => node              %parent
+       basic            => node              %basic ()
        darkMatterHaloScale_ => darkMatterHaloScale          ()
        ourTimestep=                                                   &
             & max(                                                    &
             &      timeRecord(size(timeRecord))                       &
             &     +dynamicsStatisticsBarsFrequency                    &
             &     *darkMatterHaloScale_%dynamicalTimescale(hostNode)  &
-            &     -thisBasic%time()                                 , &
+            &     -basic%time()                                 , &
             &     0.0d0                                               &
             &    )
     class default
@@ -136,7 +136,7 @@ contains
     end select
     ! Check if our timestep is the limiting factor.
     if (ourTimeStep <= timeStep) then
-       if (present(lockNode)) lockNode => thisNode
+       if (present(lockNode)) lockNode => node
        if (present(lockType)) lockType =  "galactic dynamics statistics (bars)"
        timeStep=ourTimeStep
        End_Of_Timestep_Task => Node_Component_Dynamics_Statistics_Bars_Record
@@ -145,7 +145,7 @@ contains
     return
   end subroutine Node_Component_Dynamics_Statistics_Bars_Timestep
 
-  subroutine Node_Component_Dynamics_Statistics_Bars_Record(thisTree,thisNode,deadlockStatus)
+  subroutine Node_Component_Dynamics_Statistics_Bars_Record(tree,node,deadlockStatus)
     !% Record the bar dynamical state of a satellite galaxy.
     use Numerical_Interpolation
     use Numerical_Constants_Math
@@ -153,38 +153,38 @@ contains
     use Satellite_Orbits
     use Kepler_Orbits
     implicit none
-    type            (mergerTree                     ), intent(in   )          :: thisTree
-    type            (treeNode                       ), intent(inout), pointer :: thisNode
+    type            (mergerTree                     ), intent(in   )          :: tree
+    type            (treeNode                       ), intent(inout), pointer :: node
     integer                                          , intent(inout)          :: deadlockStatus
-    class           (nodeComponentBasic             )               , pointer :: thisBasic
-    class           (nodeComponentDisk              )               , pointer :: thisDisk
-    class           (nodeComponentSatellite         )               , pointer :: thisSatellite
-    class           (nodeComponentDynamicsStatistics)               , pointer :: thisDynamicsStatistics
+    class           (nodeComponentBasic             )               , pointer :: basic
+    class           (nodeComponentDisk              )               , pointer :: disk
+    class           (nodeComponentSatellite         )               , pointer :: satellite
+    class           (nodeComponentDynamicsStatistics)               , pointer :: dynamicsStatistics
     type            (treeNode                       )               , pointer :: hostNode
-    type            (keplerOrbit                    )                         :: thisOrbit
+    type            (keplerOrbit                    )                         :: orbit
     double precision                                                          :: barInstabilityTimescale, barInstabilityExternalDrivingSpecificTorque, &
          &                                                                       adiabaticRatio         , velocityPericenter                         , &
          &                                                                       radiusPericenter
-    !GCC$ attributes unused :: thisTree, deadlockStatus
+    !GCC$ attributes unused :: tree, deadlockStatus
     
     ! Get components.
-    thisBasic              => thisNode%basic             (                 )
-    thisDynamicsStatistics => thisNode%dynamicsStatistics(autoCreate=.true.)
+    basic              => node%basic             (                 )
+    dynamicsStatistics => node%dynamicsStatistics(autoCreate=.true.)
     ! Record the state.
-    select type (thisDynamicsStatistics)
+    select type (dynamicsStatistics)
     class is (nodeComponentDynamicsStatisticsBars)
-       thisDisk      => thisNode     %disk       ()
-       thisSatellite => thisNode     %satellite  ()
-       hostNode      => thisNode     %parent
-       thisOrbit     =  thisSatellite%virialOrbit()
-       call Satellite_Orbit_Extremum_Phase_Space_Coordinates(hostNode,thisOrbit,extremumPericenter,radiusPericenter,velocityPericenter)
-       call Bar_Instability_Timescale(thisNode,barInstabilityTimescale,barInstabilityExternalDrivingSpecificTorque)
-       if (thisDisk%radius() > 0.0d0) then
-          adiabaticRatio=(radiusPericenter/velocityPericenter)/(2.0d0*Pi*thisDisk%radius()/thisDisk%velocity())
+       disk      => node     %disk       ()
+       satellite => node     %satellite  ()
+       hostNode      => node     %parent
+       orbit     =  satellite%virialOrbit()
+       call Satellite_Orbit_Extremum_Phase_Space_Coordinates(hostNode,orbit,extremumPericenter,radiusPericenter,velocityPericenter)
+       call Bar_Instability_Timescale(node,barInstabilityTimescale,barInstabilityExternalDrivingSpecificTorque)
+       if (disk%radius() > 0.0d0) then
+          adiabaticRatio=(radiusPericenter/velocityPericenter)/(2.0d0*Pi*disk%radius()/disk%velocity())
        else
           adiabaticRatio=-1.0d0
        end if
-       call thisDynamicsStatistics%record(thisBasic%time(),barInstabilityTimescale,adiabaticRatio)
+       call dynamicsStatistics%record(basic%time(),barInstabilityTimescale,adiabaticRatio)
     end select
     return
   end subroutine Node_Component_Dynamics_Statistics_Bars_Record
@@ -192,7 +192,7 @@ contains
   !# <mergerTreeExtraOutputTask>
   !#  <unitName>Node_Component_Dynamics_Statistics_Bars_Output</unitName>
   !# </mergerTreeExtraOutputTask>
-  subroutine Node_Component_Dynamics_Statistics_Bars_Output(thisNode,iOutput,treeIndex,nodePassesFilter)
+  subroutine Node_Component_Dynamics_Statistics_Bars_Output(node,iOutput,treeIndex,nodePassesFilter)
     !% Store the dynamical histories of galaxies to \glc\ output file.
     use, intrinsic :: ISO_C_Binding
     use Galacticus_HDF5
@@ -202,25 +202,25 @@ contains
     use ISO_Varying_String
     use IO_HDF5
     implicit none
-    type            (treeNode                       ), intent(inout), pointer      :: thisNode
+    type            (treeNode                       ), intent(inout), pointer      :: node
     integer         (kind=c_size_t                  ), intent(in   )               :: iOutput
     integer         (kind=kind_int8                 ), intent(in   )               :: treeIndex
     logical                                          , intent(in   )               :: nodePassesFilter
-    class           (nodeComponentDynamicsStatistics)               , pointer      :: thisDynamicsStatistics
-    double precision                                 , allocatable  , dimension(:) :: thisData
+    class           (nodeComponentDynamicsStatistics)               , pointer      :: dynamicsStatistics
+    double precision                                 , allocatable  , dimension(:) :: dataValues
     type            (varying_string                 )                              :: outputGroupName          , treeGroupName       , &
          &                                                                            timeDatasetName          , timescaleDatasetName, &
          &                                                                            adiabaticRatioDatasetName
     type            (hdf5Object                     )                              :: outputs                  , output              , &
          &                                                                            dynamics                 , tree                , &
-         &                                                                            thisDataset
+         &                                                                            dataset
     !GCC$ attributes unused :: nodePassesFilter
     
     ! Output the history data if and only if any has been collated.
     if (dynamicsStatisticsBarsInitialized) then
        ! Get the dynamics statistics component.
-       thisDynamicsStatistics => thisNode%dynamicsStatistics()
-       select type (thisDynamicsStatistics)
+       dynamicsStatistics => node%dynamicsStatistics()
+       select type (dynamicsStatistics)
        class is (nodeComponentDynamicsStatisticsBars)
           ! Open groups for writing.
           outputGroupName="Output"
@@ -258,21 +258,21 @@ contains
           timeDatasetName          ="time"
           timescaleDatasetName     ="timeScale"
           adiabaticRatioDatasetName="adiabaticRatio"
-          timeDatasetName          =timeDatasetName          //thisNode%index()
-          timescaleDatasetName     =timescaleDatasetName     //thisNode%index()
-          adiabaticRatioDatasetName=adiabaticRatioDatasetName//thisNode%index()
-          thisData            =thisDynamicsStatistics%time                   ()
-          call tree       %writeDataset  (thisData,char(timeDatasetName          ),"Time [Gyr]"      ,datasetReturned=thisDataset)
-          call thisDataset%writeAttribute(gigaYear                                ,"unitsInSI"                                   )
-          call thisDataset%close         (                                                                                       )
-          thisData            =thisDynamicsStatistics%barInstabilityTimescale()
-          call tree       %writeDataset  (thisData,char(timescaleDatasetName     ),"Time scale [Gyr]",datasetReturned=thisDataset)
-          call thisDataset%writeAttribute(gigaYear                                ,"unitsInSI"                                   )
-          call thisDataset%close         (                                                                                       )
-          thisData            =thisDynamicsStatistics%adiabaticRatio         ()
-          call tree       %writeDataset  (thisData,char(adiabaticRatioDatasetName),"[]"              ,datasetReturned=thisDataset)
-          call thisDataset%writeAttribute(gigaYear                                ,"unitsInSI"                                   )
-          call thisDataset%close         (                                                                                       )
+          timeDatasetName          =timeDatasetName          //node%index()
+          timescaleDatasetName     =timescaleDatasetName     //node%index()
+          adiabaticRatioDatasetName=adiabaticRatioDatasetName//node%index()
+          dataValues               =dynamicsStatistics%time                   ()
+          call tree   %writeDataset  (dataValues,char(timeDatasetName          ),"Time [Gyr]"      ,datasetReturned=dataset)
+          call dataset%writeAttribute(gigaYear                                  ,"unitsInSI"                               )
+          call dataset%close         (                                                                                     )
+          dataValues               =dynamicsStatistics%barInstabilityTimescale()
+          call tree   %writeDataset  (dataValues,char(timescaleDatasetName     ),"Time scale [Gyr]",datasetReturned=dataset)
+          call dataset%writeAttribute(gigaYear                                  ,"unitsInSI"                               )
+          call dataset%close         (                                                                                     )
+          dataValues               =dynamicsStatistics%adiabaticRatio         ()
+          call tree   %writeDataset  (dataValues,char(adiabaticRatioDatasetName),"[]"              ,datasetReturned=dataset)
+          call dataset%writeAttribute(gigaYear                                  ,"unitsInSI"                               )
+          call dataset%close         (                                                                                     )
           ! Close groups. 
           call tree    %close()
           call dynamics%close()

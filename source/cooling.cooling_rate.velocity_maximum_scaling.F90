@@ -171,31 +171,31 @@ contains
     return
   end subroutine Cooling_Rate_Velocity_Maximum_Scaling_Initialize
 
-  double precision function Cooling_Rate_Velocity_Maximum_Scaling(thisNode)
+  double precision function Cooling_Rate_Velocity_Maximum_Scaling(node)
     !% Computes the mass cooling rate in a hot gas halo assuming a fixed timescale for cooling.
     use Cosmology_Functions
     use Dark_Matter_Profiles
     implicit none
-    type            (treeNode               ), intent(inout) :: thisNode
-    double precision                         , parameter     :: expArgumentMaximum       =100.0d0
-    double precision                         , parameter     :: velocityNormalization    =200.0d0
-    class           (nodeComponentBasic     ), pointer       :: thisBasicComponent
-    class           (nodeComponentHotHalo   ), pointer       :: thisHotHaloComponent
+    type            (treeNode               ), intent(inout) :: node
+    double precision                         , parameter     :: expArgumentMaximum     =100.0d0
+    double precision                         , parameter     :: velocityNormalization  =200.0d0
+    class           (nodeComponentBasic     ), pointer       :: basic
+    class           (nodeComponentHotHalo   ), pointer       :: hotHalo
     class           (cosmologyFunctionsClass), pointer       :: cosmologyFunctions_
     class           (darkMatterProfileClass ), pointer       :: darkMatterProfile_
-    double precision                         , save          :: expansionFactorPrevious  =-1.0d0 , velocityMaximumPrevious=-1.0d0, &
+    double precision                         , save          :: expansionFactorPrevious=-1.0d0 , velocityMaximumPrevious=-1.0d0, &
          &                                                      coolingRate
     !$omp threadprivate(expansionFactorPrevious,velocityMaximumPrevious,coolingRate)
-    double precision                                         :: expFactor                        , expansionFactor               , &
-         &                                                      expArgument                      , velocityMaximum  
+    double precision                                         :: expFactor                      , expansionFactor               , &
+         &                                                      expArgument                    , velocityMaximum  
     
     ! Get the default cosmology functions object.
-    cosmologyFunctions_  => cosmologyFunctions                         (                         )
-    darkMatterProfile_   => darkMatterProfile                          (                         )
-    thisBasicComponent   => thisNode%basic                             (                         )
-    thisHotHaloComponent => thisNode%hotHalo                           (                         )
-    expansionFactor      =  cosmologyFunctions_%expansionFactor        (thisBasicComponent%time())
-    velocityMaximum      =  darkMatterProfile_ %circularVelocityMaximum(thisNode                 )
+    cosmologyFunctions_ => cosmologyFunctions                         (            )
+    darkMatterProfile_  => darkMatterProfile                          (            )
+    basic               => node               %basic                  (            )
+    hotHalo             => node               %hotHalo                (            )
+    expansionFactor     =  cosmologyFunctions_%expansionFactor        (basic%time())
+    velocityMaximum     =  darkMatterProfile_ %circularVelocityMaximum(node        )
     if (expansionFactor /= expansionFactorPrevious .or. velocityMaximum /= velocityMaximumPrevious) then
        expArgument=log10(                                                                                  &
             &             velocityMaximum                                                                  &
@@ -222,7 +222,7 @@ contains
        expansionFactorPrevious=expansionFactor
        velocityMaximumPrevious=velocityMaximum
     end if
-    Cooling_Rate_Velocity_Maximum_Scaling=thisHotHaloComponent%mass()*coolingRate
+    Cooling_Rate_Velocity_Maximum_Scaling=hotHalo%mass()*coolingRate
     return
   end function Cooling_Rate_Velocity_Maximum_Scaling
   

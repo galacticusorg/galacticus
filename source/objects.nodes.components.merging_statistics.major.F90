@@ -47,27 +47,27 @@ contains
   !#  <unitName>Node_Component_Merging_Statistics_Major_Satellite_Merging</unitName>
   !#  <after>Satellite_Merging_Mass_Movement_Store</after>
   !# </satelliteMergerTask>
-  subroutine Node_Component_Merging_Statistics_Major_Satellite_Merging(thisNode)
-    !% Record any major merger of {\normalfont \ttfamily thisNode}.
+  subroutine Node_Component_Merging_Statistics_Major_Satellite_Merging(node)
+    !% Record any major merger of {\normalfont \ttfamily node}.
     use Satellite_Merging_Mass_Movements_Descriptors
     implicit none
-    type            (treeNode                      ), intent(inout), pointer      :: thisNode
-    class           (nodeComponentMergingStatistics)               , pointer      :: hostMergingStatistics
-    class           (nodeComponentBasic            )               , pointer      :: hostBasic            , thisBasic
-    type            (treeNode                      )               , pointer      :: hostNode
-    double precision                                , allocatable  , dimension(:) :: majorMergerTimesNew  , majorMergerTimes
+    type            (treeNode                      ), intent(inout), pointer      :: node
+    class           (nodeComponentMergingStatistics)               , pointer      :: mergingStatistics
+    class           (nodeComponentBasic            )               , pointer      :: basicHost          , basic
+    type            (treeNode                      )               , pointer      :: nodeHost
+    double precision                                , allocatable  , dimension(:) :: majorMergerTimesNew, majorMergerTimes
 
     ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%majorIsActive()) return
     ! Record the merger time if this is a major merger.
     if (thisMergerIsMajor) then
        ! Get required components    
-       hostNode              => thisNode%mergesWith       ()
-       thisBasic             => thisNode%basic            ()
-       hostBasic             => hostNode%basic            ()
-       hostMergingStatistics => hostNode%mergingStatistics(autoCreate=.true.)
+       nodeHost          => node    %mergesWith       ()
+       basic             => node    %basic            ()
+       basicHost         => nodeHost%basic            ()
+       mergingStatistics => nodeHost%mergingStatistics(autoCreate=.true.)
        ! Expand the merger time array and record the new time.
-       majorMergerTimes=hostMergingStatistics%majorMergerTime()
+       majorMergerTimes=mergingStatistics%majorMergerTime()
        if (allocated(majorMergerTimes)) then
           allocate(majorMergerTimesNew(size(majorMergerTimes)+1))
           majorMergerTimesNew(1:size(majorMergerTimes))=majorMergerTimes
@@ -75,8 +75,8 @@ contains
        else
           allocate(majorMergerTimesNew(1))
        end if
-       majorMergerTimesNew(size(majorMergerTimesNew))=hostBasic%time()
-       call hostMergingStatistics%majorMergerTimeSet(majorMergerTimesNew)
+       majorMergerTimesNew(size(majorMergerTimesNew))=basicHost%time()
+       call mergingStatistics%majorMergerTimeSet(majorMergerTimesNew)
        deallocate(majorMergerTimesNew)
     end if
     return
@@ -85,44 +85,44 @@ contains
   !# <nodePromotionTask>
   !#  <unitName>Node_Component_Merging_Statistics_Major_Node_Promotion</unitName>
   !# </nodePromotionTask>
-  subroutine Node_Component_Merging_Statistics_Major_Node_Promotion(thisNode)
-    !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, we simply update the node merger time.
+  subroutine Node_Component_Merging_Statistics_Major_Node_Promotion(node)
+    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the node merger time.
     implicit none
-    type (treeNode                      ), intent(inout), pointer      :: thisNode
-    class(nodeComponentMergingStatistics)               , pointer      :: parentMergingStatistics, thisMergingStatistics
-    double precision                     , allocatable  , dimension(:) :: thisMajorMergerTime    , parentMajorMergerTime, &
-         &                                                                newMajorMergerTime
+    type (treeNode                      ), intent(inout), pointer      :: node
+    class(nodeComponentMergingStatistics)               , pointer      :: mergingStatisticsParent, mergingStatistics
+    double precision                     , allocatable  , dimension(:) :: timeMajorMerger        , timeMajorMergerParent, &
+         &                                                                timeMajorMergerNew
 
     ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%majorIsActive()) return
     ! Get the merging statistics components.
-    parentMergingStatistics => thisNode%parent        %mergingStatistics(autoCreate=.true.)
-    thisMergingStatistics   => thisNode               %mergingStatistics(autoCreate=.true.)
-    thisMajorMergerTime     =  thisMergingStatistics  %majorMergerTime  (                 )
-    parentMajorMergerTime   =  parentMergingStatistics%majorMergerTime  (                 )
-    allocate(newMajorMergerTime(size(thisMajorMergerTime)+size(parentMajorMergerTime)))
-    newMajorMergerTime(                          1:size(thisMajorMergerTime)                            )=thisMajorMergerTime
-    newMajorMergerTime(size(thisMajorMergerTime)+1:size(thisMajorMergerTime)+size(parentMajorMergerTime))=parentMajorMergerTime    
-    call thisMergingStatistics%majorMergerTimeSet(newMajorMergerTime)
+    mergingStatisticsParent => node%parent            %mergingStatistics(autoCreate=.true.)
+    mergingStatistics       => node                   %mergingStatistics(autoCreate=.true.)
+    timeMajorMerger         =  mergingStatistics      %majorMergerTime  (                 )
+    timeMajorMergerParent   =  mergingStatisticsParent%majorMergerTime  (                 )
+    allocate(timeMajorMergerNew(size(timeMajorMerger)+size(timeMajorMergerParent)))
+    timeMajorMergerNew(                      1:size(timeMajorMerger)                            )=timeMajorMerger
+    timeMajorMergerNew(size(timeMajorMerger)+1:size(timeMajorMerger)+size(timeMajorMergerParent))=timeMajorMergerParent    
+    call mergingStatistics%majorMergerTimeSet(timeMajorMergerNew)
     return
   end subroutine Node_Component_Merging_Statistics_Major_Node_Promotion
 
   !# <mergerTreeExtraOutputTask>
   !#  <unitName>Node_Component_Merging_Statistics_Major_Output</unitName>
   !# </mergerTreeExtraOutputTask>
-  subroutine Node_Component_Merging_Statistics_Major_Output(thisNode,iOutput,treeIndex,nodePassesFilter)
-    !% Output properties for all black holes in {\normalfont \ttfamily thisNode}.
+  subroutine Node_Component_Merging_Statistics_Major_Output(node,iOutput,treeIndex,nodePassesFilter)
+    !% Output properties for all black holes in {\normalfont \ttfamily node}.
     use, intrinsic :: ISO_C_Binding
     use Galacticus_HDF5
     use Kind_Numbers
     use ISO_Varying_String
     use String_Handling
     implicit none
-    type            (treeNode                      ), intent(inout), pointer      :: thisNode
+    type            (treeNode                      ), intent(inout), pointer      :: node
     integer         (kind=kind_int8                ), intent(in   )               :: treeIndex
     integer         (c_size_t                      ), intent(in   )               :: iOutput
     logical                                         , intent(in   )               :: nodePassesFilter
-    class           (nodeComponentMergingStatistics)               , pointer      :: thisMergingStatistics
+    class           (nodeComponentMergingStatistics)               , pointer      :: mergingStatistics
     double precision                                , allocatable  , dimension(:) :: majorMergerTimes
     type            (hdf5Object                    )                              :: majorMergersGroup, outputGroup, &
          &                                                                           treeGroup
@@ -131,8 +131,8 @@ contains
     ! Return immediately if this class is not active or the filter has not passed.
     if (.not.(defaultMergingStatisticsComponent%majorIsActive().and.nodePassesFilter)) return
     ! Get the major merger times.
-    thisMergingStatistics => thisNode%mergingStatistics()
-    majorMergerTimes=thisMergingStatistics%majorMergerTime()
+    mergingStatistics => node%mergingStatistics()
+    majorMergerTimes=mergingStatistics%majorMergerTime()
     ! Return if no major mergers occurred.
     if (.not.allocated(majorMergerTimes).or.size(majorMergerTimes) == 0) return
     ! Open the output group.
@@ -145,7 +145,7 @@ contains
     groupName=groupName//treeIndex
     treeGroup=outputGroup%openGroup(char(groupName),"Major merger times for all nodes in this tree")
     groupName="node"
-    groupName=groupName//thisNode%index()
+    groupName=groupName//node%index()
     call treeGroup%writeDataset(majorMergerTimes,char(groupName),"Major merger times.")
     call treeGroup        %close()
     call outputGroup      %close()

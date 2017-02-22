@@ -240,12 +240,14 @@ contains
 
   subroutine wetzel2010StateStore(self,stateFile,fgslStateFile)
     !% Write the tablulation state to file.
-    use Pseudo_Random
+     use Galacticus_Display
+   use Pseudo_Random
     implicit none
     class  (virialOrbitWetzel2010), intent(inout) :: self
     integer                       , intent(in   ) :: stateFile
     type   (fgsl_file            ), intent(in   ) :: fgslStateFile
 
+    call Galacticus_Display_Message('Storing state for: virialOrbit -> wetzel2010',verbosity=verbosityInfo)
     write (stateFile) self%resetSequenceSnapshot
     if (.not.self%resetSequenceSnapshot) call Pseudo_Random_Store(self%clonedPseudoSequenceObject,fgslStateFile)
     return
@@ -253,12 +255,14 @@ contains
 
   subroutine wetzel2010StateRestore(self,stateFile,fgslStateFile)
     !% Write the tablulation state to file.
+    use Galacticus_Display
     use Pseudo_Random
     implicit none
     class  (virialOrbitWetzel2010), intent(inout) :: self
     integer                       , intent(in   ) :: stateFile
     type   (fgsl_file            ), intent(in   ) :: fgslStateFile
 
+    call Galacticus_Display_Message('Retrieving state for: virialOrbit -> wetzel2010',verbosity=verbosityInfo)
     read (stateFile) self%resetSequence
     if (.not.self%resetSequence) call Pseudo_Random_Retrieve(self%pseudoSequenceObject,fgslStateFile)
    return

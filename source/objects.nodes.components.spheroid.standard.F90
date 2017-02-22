@@ -340,19 +340,19 @@ contains
   !# <preEvolveTask>
   !# <unitName>Node_Component_Spheroid_Standard_Pre_Evolve</unitName>
   !# </preEvolveTask>
-  subroutine Node_Component_Spheroid_Standard_Pre_Evolve(thisNode)
+  subroutine Node_Component_Spheroid_Standard_Pre_Evolve(node)
     !% Ensure the spheroid has been initialized.
     implicit none
-    type (treeNode             ), intent(inout), pointer :: thisNode
-    class(nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
+    type (treeNode             ), intent(inout), pointer :: node
+    class(nodeComponentSpheroid)               , pointer :: spheroid
 
     ! Get the spheroid component.
-    thisSpheroidComponent => thisNode%spheroid()
+    spheroid => node%spheroid()
     ! Check if a standard spheroid component exists.
-    select type (thisSpheroidComponent)
+    select type (spheroid)
     class is (nodeComponentSpheroidStandard)
        ! Initialize the spheroid.
-       call Node_Component_Spheroid_Standard_Initializor(thisSpheroidComponent)
+       call Node_Component_Spheroid_Standard_Initializor(spheroid)
     end select
     return
   end subroutine Node_Component_Spheroid_Standard_Pre_Evolve
@@ -360,7 +360,7 @@ contains
   !# <postEvolveTask>
   !# <unitName>Node_Component_Spheroid_Standard_Post_Evolve</unitName>
   !# </postEvolveTask>
-  subroutine Node_Component_Spheroid_Standard_Post_Evolve(thisNode)
+  subroutine Node_Component_Spheroid_Standard_Post_Evolve(node)
     !% Trim histories attached to the spheroid.
     use Galacticus_Display
     use String_Handling
@@ -368,9 +368,9 @@ contains
     use Abundances_Structure
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode
-    class           (nodeComponentSpheroid )               , pointer :: thisSpheroidComponent
-    class           (nodeComponentBasic    )               , pointer :: thisBasicComponent
+    type            (treeNode              ), intent(inout), pointer :: node
+    class           (nodeComponentSpheroid )               , pointer :: spheroid
+    class           (nodeComponentBasic    )               , pointer :: basic
     double precision                        , save                   :: fractionalErrorMaximum  =0.0d0
     double precision                                                 :: fractionalError               , specificAngularMomentum, &
          &                                                              spheroidMass
@@ -379,34 +379,34 @@ contains
     type            (history               )                         :: stellarPropertiesHistory
 
     ! Get the spheroid component.
-    thisSpheroidComponent => thisNode%spheroid()
+    spheroid => node%spheroid()
     ! Check if an exponential spheroid component exists.
-    select type (thisSpheroidComponent)
+    select type (spheroid)
        class is (nodeComponentSpheroidStandard)
 
           ! Trim the stellar populations properties future history.
-       thisBasicComponent => thisNode%basic()
-       stellarPropertiesHistory=thisSpheroidComponent%stellarPropertiesHistory()
-       call stellarPropertiesHistory%trim(thisBasicComponent%time())
-       call thisSpheroidComponent%stellarPropertiesHistorySet(stellarPropertiesHistory)
+       basic => node%basic()
+       stellarPropertiesHistory=spheroid%stellarPropertiesHistory()
+       call stellarPropertiesHistory%trim(basic%time())
+       call spheroid%stellarPropertiesHistorySet(stellarPropertiesHistory)
 
        ! Trap negative gas masses.
-       if (thisSpheroidComponent%massGas() < 0.0d0) then
+       if (spheroid%massGas() < 0.0d0) then
 
           ! Check if this exceeds the maximum previously recorded error.
-          fractionalError=   abs(thisSpheroidComponent%massGas    ()) &
-               &          /(                                          &
-               &             abs(thisSpheroidComponent%massGas    ()) &
-               &            +abs(thisSpheroidComponent%massStellar()) &
+          fractionalError=   abs(spheroid%massGas    ()) &
+               &          /(                             &
+               &             abs(spheroid%massGas    ()) &
+               &            +abs(spheroid%massStellar()) &
                &           )
           !$omp critical (Standard_Spheroid_Post_Evolve_Check)
           if (fractionalError > fractionalErrorMaximum) then
              ! Report a warning.
              message='Warning: spheroid has negative gas mass (fractional error exceeds any previously reported):'//char(10)
-             message=message//'  Node index            = '//thisNode%index() //char(10)
-             write (valueString,'(e12.6)') thisSpheroidComponent%massGas    ()
+             message=message//'  Node index            = '//node%index() //char(10)
+             write (valueString,'(e12.6)') spheroid%massGas    ()
              message=message//'  Spheroid gas mass     = '//trim(valueString)//char(10)
-             write (valueString,'(e12.6)') thisSpheroidComponent%massStellar()
+             write (valueString,'(e12.6)') spheroid%massStellar()
              message=message//'  Spheroid stellar mass = '//trim(valueString)//char(10)
              write (valueString,'(e12.6)') fractionalError
              message=message//'  Error measure         = '//trim(valueString)//char(10)
@@ -424,21 +424,21 @@ contains
           !$omp end critical (Standard_Spheroid_Post_Evolve_Check)
 
           ! Get the specific angular momentum of the spheroid material
-          spheroidMass= thisSpheroidComponent%massGas    () &
-               &       +thisSpheroidComponent%massStellar()
+          spheroidMass= spheroid%massGas    () &
+               &       +spheroid%massStellar()
           if (spheroidMass == 0.0d0) then
              specificAngularMomentum=0.0d0
-             call thisSpheroidComponent%        massStellarSet(                  0.0d0)
-             call thisSpheroidComponent%  abundancesStellarSet(         zeroAbundances)
-             call thisSpheroidComponent%luminositiesStellarSet(zeroStellarLuminosities)
+             call spheroid%        massStellarSet(                  0.0d0)
+             call spheroid%  abundancesStellarSet(         zeroAbundances)
+             call spheroid%luminositiesStellarSet(zeroStellarLuminosities)
           else
-             specificAngularMomentum=thisSpheroidComponent%angularMomentum()/spheroidMass
+             specificAngularMomentum=spheroid%angularMomentum()/spheroidMass
           end if
 
           ! Reset the gas, abundances and angular momentum of the spheroid.
-          call thisSpheroidComponent%        massGasSet(                                                      0.0d0)
-          call thisSpheroidComponent%  abundancesGasSet(                                             zeroAbundances)
-          call thisSpheroidComponent%angularMomentumSet(specificAngularMomentum*thisSpheroidComponent%massStellar())
+          call spheroid%        massGasSet(                                                      0.0d0)
+          call spheroid%  abundancesGasSet(                                             zeroAbundances)
+          call spheroid%angularMomentumSet(specificAngularMomentum*spheroid%massStellar())
        end if
 
     end select
@@ -458,7 +458,7 @@ contains
     !GCC$ attributes unused :: interrupt, interruptProcedure
     
     ! Trap cases where an attempt is made to add gas via this sink function.
-    if (rate > 0.0d0) call Galacticus_Error_Report(                                                        &
+    if (rate > 0.0d0) call Galacticus_Error_Report(                                                       &
          &                                         'Node_Component_Spheroid_Standard_Mass_Gas_Sink_Rate', &
          &                                         'attempt to add mass via sink in standard spheroid'    &
          &                                        )
@@ -485,7 +485,7 @@ contains
     implicit none
     class           (nodeComponentSpheroid        ), intent(inout)                    :: self
     logical                                        , intent(inout), optional          :: interrupt
-    procedure       (interruptTask ), intent(inout), optional, pointer :: interruptProcedure
+    procedure       (interruptTask                ), intent(inout), optional, pointer :: interruptProcedure
     double precision                               , intent(in   )                    :: rate
     class           (nodeComponentHotHalo         )                         , pointer :: selfHotHaloComponent
     type            (treeNode                     )                         , pointer :: selfNode
@@ -532,7 +532,7 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Spheroid_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Spheroid_Standard_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure)
+  subroutine Node_Component_Spheroid_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure)
     !% Compute the standard spheroid node mass rate of change.
     use Star_Formation_Feedback_Spheroids
     use Star_Formation_Feedback_Expulsion_Spheroids
@@ -546,161 +546,161 @@ contains
     use Satellites_Tidal_Fields
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: thisNode
-    logical                                , intent(in   )          :: odeConverged
-    logical                                , intent(inout)          :: interrupt
-    procedure       (                     ), intent(inout), pointer :: interruptProcedure
-    class           (nodeComponentSpheroid)               , pointer :: thisSpheroid
-    class           (nodeComponentHotHalo )               , pointer :: thisHotHalo
+    type            (treeNode                ), intent(inout), pointer :: node
+    logical                                   , intent(in   )          :: odeConverged
+    logical                                   , intent(inout)          :: interrupt
+    procedure       (                        ), intent(inout), pointer :: interruptProcedure
+    class           (nodeComponentSpheroid   )               , pointer :: spheroid
+    class           (nodeComponentHotHalo    )               , pointer :: hotHalo
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    type            (abundances           ), save                   :: fuelAbundances            , fuelAbundancesRates     , &
-         &                                                             stellarAbundancesRates
+    type            (abundances              ), save                   :: fuelAbundances            , fuelAbundancesRates     , &
+         &                                                                stellarAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
-    double precision                                                :: angularMomentumOutflowRate, energyInputRate         , &
-         &                                                             fractionGas               , fractionStellar         , &
-         &                                                             fuelMass                  , fuelMassRate            , &
-         &                                                             gasMass                   , massLossRate            , &
-         &                                                             massOutflowRate           , massOutflowRateFromHalo , &
-         &                                                             massOutflowRateToHotHalo  , outflowToHotHaloFraction, &
-         &                                                             spheroidDynamicalTime     , spheroidMass            , &
-         &                                                             starFormationRate         , stellarMassRate         , &
-         &                                                             tidalField                , tidalTorque
-    type            (history              )                         :: historyTransferRate       , stellarHistoryRate
-    type            (stellarLuminosities  ), save                   :: luminositiesStellarRates
+    double precision                                                   :: angularMomentumOutflowRate, energyInputRate         , &
+         &                                                                fractionGas               , fractionStellar         , &
+         &                                                                fuelMass                  , fuelMassRate            , &
+         &                                                                gasMass                   , massLossRate            , &
+         &                                                                massOutflowRate           , massOutflowRateFromHalo , &
+         &                                                                massOutflowRateToHotHalo  , outflowToHotHaloFraction, &
+         &                                                                spheroidDynamicalTime     , spheroidMass            , &
+         &                                                                starFormationRate         , stellarMassRate         , &
+         &                                                                tidalField                , tidalTorque
+    type            (history                 )                         :: historyTransferRate       , stellarHistoryRate
+    type            (stellarLuminosities     ), save                   :: luminositiesStellarRates
     !$omp threadprivate(luminositiesStellarRates)
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
     ! Get the disk and check that it is of our class.
-    thisSpheroid => thisNode%spheroid()
-    select type (thisSpheroid)
+    spheroid => node%spheroid()
+    select type (spheroid)
     class is (nodeComponentSpheroidStandard)
 
        ! Check for a realistic spheroid, return immediately if spheroid is unphysical.
-       if     (    thisSpheroid%angularMomentum() <  0.0d0 &
-            & .or. thisSpheroid%radius         () <= 0.0d0 &
-            & .or. thisSpheroid%massGas        () <  0.0d0 &
+       if     (    spheroid%angularMomentum() <  0.0d0 &
+            & .or. spheroid%radius         () <= 0.0d0 &
+            & .or. spheroid%massGas        () <  0.0d0 &
             & ) return
 
        ! Find the star formation timescale.
-       starFormationRate=thisSpheroid%starFormationRate()
+       starFormationRate=spheroid%starFormationRate()
 
        ! Get the available fuel mass.
-       fuelMass         =thisSpheroid%massGas          ()
+       fuelMass         =spheroid%massGas          ()
 
        ! Find the metallicity of the fuel supply.
-       fuelAbundances   =thisSpheroid%abundancesGas    ()
+       fuelAbundances   =spheroid%abundancesGas    ()
        call fuelAbundances%massToMassFraction(fuelMass)
 
        ! Find rates of change of stellar mass, gas mass, abundances and luminosities.
-       stellarHistoryRate=thisSpheroid%stellarPropertiesHistory()
-       call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,componentTypeSpheroid,thisNode &
-            &,stellarHistoryRate,stellarMassRate,stellarAbundancesRates ,luminositiesStellarRates,fuelMassRate&
+       stellarHistoryRate=spheroid%stellarPropertiesHistory()
+       call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,componentTypeSpheroid,node    &
+            &,stellarHistoryRate,stellarMassRate,stellarAbundancesRates ,luminositiesStellarRates,fuelMassRate &
             &,fuelAbundancesRates,energyInputRate)
-       if (stellarHistoryRate%exists()) call thisSpheroid%stellarPropertiesHistoryRate(stellarHistoryRate)
+       if (stellarHistoryRate%exists()) call spheroid%stellarPropertiesHistoryRate(stellarHistoryRate)
 
        ! Adjust rates.
-       call thisSpheroid%        massStellarRate(         stellarMassRate)
-       call thisSpheroid%            massGasRate(            fuelMassRate)
-       call thisSpheroid%  abundancesStellarRate(  stellarAbundancesRates)
-       call thisSpheroid%      abundancesGasRate(     fuelAbundancesRates)
-       call thisSpheroid%luminositiesStellarRate(luminositiesStellarRates)
+       call spheroid%        massStellarRate(         stellarMassRate)
+       call spheroid%            massGasRate(            fuelMassRate)
+       call spheroid%  abundancesStellarRate(  stellarAbundancesRates)
+       call spheroid%      abundancesGasRate(     fuelAbundancesRates)
+       call spheroid%luminositiesStellarRate(luminositiesStellarRates)
 
        ! Record the star formation history.
-       stellarHistoryRate=thisSpheroid%starFormationHistory()
+       stellarHistoryRate=spheroid%starFormationHistory()
        call stellarHistoryRate%reset()
-       call Star_Formation_History_Record(thisNode,stellarHistoryRate,fuelAbundances,starFormationRate)
-       if (stellarHistoryRate%exists()) call thisSpheroid%starFormationHistoryRate(stellarHistoryRate)
+       call Star_Formation_History_Record(node,stellarHistoryRate,fuelAbundances,starFormationRate)
+       if (stellarHistoryRate%exists()) call spheroid%starFormationHistoryRate(stellarHistoryRate)
 
        ! Find rate of outflow of material from the spheroid and pipe it to the outflowed reservoir.
-       massOutflowRateToHotHalo=Star_Formation_Feedback_Spheroid_Outflow_Rate          (thisNode,starFormationRate,energyInputRate)
-       massOutflowRateFromHalo =Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate(thisNode,starFormationRate,energyInputRate)
+       massOutflowRateToHotHalo=Star_Formation_Feedback_Spheroid_Outflow_Rate          (node,starFormationRate,energyInputRate)
+       massOutflowRateFromHalo =Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate(node,starFormationRate,energyInputRate)
        massOutflowRate         =massOutflowRateToHotHalo+massOutflowRateFromHalo
        if (massOutflowRate > 0.0d0) then
           ! Find the fraction of material which outflows to the hot halo.
           outflowToHotHaloFraction=massOutflowRateToHotHalo/massOutflowRate
 
           ! Get the masses of the spheroid.
-          gasMass     =        thisSpheroid%massGas    ()
-          spheroidMass=gasMass+thisSpheroid%massStellar()
+          gasMass     =        spheroid%massGas    ()
+          spheroidMass=gasMass+spheroid%massStellar()
 
           ! Limit the outflow rate timescale to a multiple of the dynamical time.
-          spheroidDynamicalTime=Mpc_per_km_per_s_To_Gyr*thisSpheroid%radius()/thisSpheroid%velocity()
+          spheroidDynamicalTime=Mpc_per_km_per_s_To_Gyr*spheroid%radius()/spheroid%velocity()
 
           ! Limit the mass outflow rate.
           massOutflowRate=min(massOutflowRate,gasMass/spheroidOutflowTimescaleMinimum/spheroidDynamicalTime)
-          thisHotHalo => thisNode%hotHalo()
-          call thisHotHalo %outflowingMassRate(+massOutflowRate*outflowToHotHaloFraction)
-          call thisSpheroid%       massGasRate(-massOutflowRate                         )
+          hotHalo => node%hotHalo()
+          call hotHalo %outflowingMassRate(+massOutflowRate*outflowToHotHaloFraction)
+          call spheroid%       massGasRate(-massOutflowRate                         )
 
           ! Compute the angular momentum outflow rate.
           if (spheroidMass > 0.0d0) then
-             angularMomentumOutflowRate=(massOutflowRate/spheroidMass)*thisSpheroid%angularMomentum()
-             call thisHotHalo %outflowingAngularMomentumRate(+angularMomentumOutflowRate*outflowToHotHaloFraction)
-             call thisSpheroid%          angularMomentumRate(-angularMomentumOutflowRate                         )
+             angularMomentumOutflowRate=(massOutflowRate/spheroidMass)*spheroid%angularMomentum()
+             call hotHalo %outflowingAngularMomentumRate(+angularMomentumOutflowRate*outflowToHotHaloFraction)
+             call spheroid%          angularMomentumRate(-angularMomentumOutflowRate                         )
           end if
 
           ! Compute the abundances outflow rate.
-          fuelAbundancesRates=thisSpheroid%abundancesGas()
+          fuelAbundancesRates=spheroid%abundancesGas()
           call fuelAbundancesRates%massToMassFraction(gasMass)
           fuelAbundancesRates=fuelAbundancesRates*massOutflowRate
-          call thisHotHalo %outflowingAbundancesRate(+fuelAbundancesRates*outflowToHotHaloFraction)
-          call thisSpheroid%       abundancesGasRate(-fuelAbundancesRates                         )
+          call hotHalo %outflowingAbundancesRate(+fuelAbundancesRates*outflowToHotHaloFraction)
+          call spheroid%       abundancesGasRate(-fuelAbundancesRates                         )
        end if
 
        ! Apply mass loss rate due to ram pressure stripping.
-       if (thisSpheroid%massGas() > 0.0d0) then
-          massLossRate=Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid(thisNode)
+       if (spheroid%massGas() > 0.0d0) then
+          massLossRate=Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid(node)
           if (massLossRate > 0.0d0) then
-             thisHotHalo => thisNode%hotHalo()
-             call thisSpheroid%                  massGasRate(-massLossRate                                                                                   )
-             call thisSpheroid%          angularMomentumRate(-massLossRate*thisSpheroid%angularMomentum()/(thisSpheroid%massGas()+thisSpheroid%massStellar()))
-             call thisSpheroid%            abundancesGasRate(-massLossRate*thisSpheroid%abundancesGas  ()/ thisSpheroid%massGas()                            )
-             call thisHotHalo %           outflowingMassRate(+massLossRate                                                                                   )
-             call thisHotHalo %outflowingAngularMomentumRate(+massLossRate*thisSpheroid%angularMomentum()/(thisSpheroid%massGas()+thisSpheroid%massStellar()))
-             call thisHotHalo %outflowingAbundancesRate     (+massLossRate*thisSpheroid%abundancesGas  ()/ thisSpheroid%massGas()                            )
+             hotHalo => node%hotHalo()
+             call spheroid%                  massGasRate(-massLossRate                                                                       )
+             call spheroid%          angularMomentumRate(-massLossRate*spheroid%angularMomentum()/(spheroid%massGas()+spheroid%massStellar()))
+             call spheroid%            abundancesGasRate(-massLossRate*spheroid%abundancesGas  ()/ spheroid%massGas()                        )
+             call hotHalo %           outflowingMassRate(+massLossRate                                                                       )
+             call hotHalo %outflowingAngularMomentumRate(+massLossRate*spheroid%angularMomentum()/(spheroid%massGas()+spheroid%massStellar()))
+             call hotHalo %     outflowingAbundancesRate(+massLossRate*spheroid%abundancesGas  ()/ spheroid%massGas()                        )
           end if
        end if
 
        ! Apply mass loss rate due to tidal stripping.
-       if (thisSpheroid%massGas()+thisSpheroid%massStellar() > 0.0d0) then
-          massLossRate=Tidal_Stripping_Mass_Loss_Rate_Spheroid(thisNode)
+       if (spheroid%massGas()+spheroid%massStellar() > 0.0d0) then
+          massLossRate=Tidal_Stripping_Mass_Loss_Rate_Spheroid(node)
           if (massLossRate > 0.0d0) then
-             thisHotHalo    => thisNode%hotHalo()
-             fractionGas    =  min(1.0d0,max(0.0d0,thisSpheroid%massGas()/(thisSpheroid%massGas()+thisSpheroid%massStellar())))
+             hotHalo    => node%hotHalo()
+             fractionGas    =  min(1.0d0,max(0.0d0,spheroid%massGas()/(spheroid%massGas()+spheroid%massStellar())))
              fractionStellar=  1.0d0-fractionGas
-             if (fractionGas    > 0.0d0 .and. thisSpheroid%massGas    () > 0.0d0) then
-                call    thisSpheroid%                  massGasRate(-fractionGas    *massLossRate                                                                                     )
-                call    thisSpheroid%            abundancesGasRate(-fractionGas    *massLossRate*thisSpheroid%abundancesGas    ()/ thisSpheroid%massGas()                            )
-                call    thisHotHalo %           outflowingMassRate(+fractionGas    *massLossRate                                                                                     )
-                call    thisHotHalo %outflowingAbundancesRate     (+fractionGas    *massLossRate*thisSpheroid%abundancesGas    ()/ thisSpheroid%massGas()                            )
-                call    thisHotHalo %outflowingAngularMomentumRate(+fractionGas    *massLossRate*thisSpheroid%angularMomentum  ()/(thisSpheroid%massGas()+thisSpheroid%massStellar()))
+             if (fractionGas    > 0.0d0 .and. spheroid%massGas    () > 0.0d0) then
+                call spheroid%                  massGasRate  (-fractionGas    *massLossRate                                                                         )
+                call spheroid%            abundancesGasRate  (-fractionGas    *massLossRate*spheroid%abundancesGas    ()/ spheroid%massGas()                        )
+                call hotHalo %           outflowingMassRate  (+fractionGas    *massLossRate                                                                         )
+                call hotHalo %     outflowingAbundancesRate  (+fractionGas    *massLossRate*spheroid%abundancesGas    ()/ spheroid%massGas()                        )
+                call hotHalo %outflowingAngularMomentumRate  (+fractionGas    *massLossRate*spheroid%angularMomentum  ()/(spheroid%massGas()+spheroid%massStellar()))
              end if
-             if (fractionStellar > 0.0d0 .and. thisSpheroid%massStellar() > 0.0d0) then
-                call    thisSpheroid%              massStellarRate(-fractionStellar*massLossRate                                                                                     )
-                call    thisSpheroid%        abundancesStellarRate(-fractionStellar*massLossRate*thisSpheroid%abundancesStellar()/                        thisSpheroid%massStellar() )
+             if (fractionStellar > 0.0d0 .and. spheroid%massStellar() > 0.0d0) then
+                call spheroid%              massStellarRate  (-fractionStellar*massLossRate                                                                         )
+                call spheroid%        abundancesStellarRate  (-fractionStellar*massLossRate*spheroid%abundancesStellar()/                    spheroid%massStellar() )
                 ! Stellar properties history.
-                historyTransferRate=thisSpheroid%stellarPropertiesHistory()         
+                historyTransferRate=spheroid%stellarPropertiesHistory()         
                 if (historyTransferRate%exists()) then
-                   call thisSpheroid%stellarPropertiesHistoryRate (-fractionStellar*massLossRate*historyTransferRate             /                        thisSpheroid%massStellar() )
+                   call spheroid%stellarPropertiesHistoryRate(-fractionStellar*massLossRate*historyTransferRate         /                    spheroid%massStellar() )
                 end if
                 call historyTransferRate%destroy()
                 ! Star formation history.
-                historyTransferRate=thisSpheroid%starFormationHistory()         
+                historyTransferRate=spheroid%starFormationHistory()         
                 if (historyTransferRate%exists()) then
-                   call thisSpheroid%starFormationHistoryRate     (-fractionStellar*massLossRate*historyTransferRate             /                        thisSpheroid%massStellar() )
+                   call spheroid%starFormationHistoryRate     (-fractionStellar*massLossRate*historyTransferRate        /                    spheroid%massStellar() )
                 end if
                 call historyTransferRate%destroy()
              end if
-             call       thisSpheroid%          angularMomentumRate(-                massLossRate*thisSpheroid%angularMomentum  ()/(thisSpheroid%massGas()+thisSpheroid%massStellar()))
+             call       spheroid%          angularMomentumRate(-                massLossRate*spheroid%angularMomentum ()/(spheroid%massGas()+spheroid%massStellar()))
           end if
        end if
 
        ! Apply tidal heating.
        darkMatterHaloScale_ => darkMatterHaloScale()
-       if (thisNode%isSatellite() .and. thisSpheroid%angularMomentum() < (thisSpheroid%massGas()+thisSpheroid%massStellar())*darkMatterHaloScale_%virialRadius(thisNode)*darkMatterHaloScale_%virialVelocity(thisNode) .and. thisSpheroid%radius() < darkMatterHaloScale_%virialRadius(thisNode)) then
-          tidalField =Satellite_Tidal_Field(thisNode)
-          tidalTorque=abs(tidalField)*(thisSpheroid%massGas()+thisSpheroid%massStellar())*thisSpheroid%radius()**2
-          call thisSpheroid%angularMomentumRate(+tidalTorque)
+       if (node%isSatellite() .and. spheroid%angularMomentum() < (spheroid%massGas()+spheroid%massStellar())*darkMatterHaloScale_%virialRadius(node)*darkMatterHaloScale_%virialVelocity(node) .and. spheroid%radius() < darkMatterHaloScale_%virialRadius(node)) then
+          tidalField =Satellite_Tidal_Field(node)
+          tidalTorque=abs(tidalField)*(spheroid%massGas()+spheroid%massStellar())*spheroid%radius()**2
+          call spheroid%angularMomentumRate(+tidalTorque)
        end if
 
     end select
@@ -750,16 +750,16 @@ contains
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Spheroid_Standard_Scale_Set</unitName>
   !# </scaleSetTask>
-  subroutine Node_Component_Spheroid_Standard_Scale_Set(thisNode)
-    !% Set scales for properties of {\normalfont \ttfamily thisNode}. Note that gas masses get an additional scaling down since they can approach
+  subroutine Node_Component_Spheroid_Standard_Scale_Set(node)
+    !% Set scales for properties of {\normalfont \ttfamily node}. Note that gas masses get an additional scaling down since they can approach
     !% zero and we'd like to prevent them from becoming negative.
     use Abundances_Structure
     use Galacticus_Output_Star_Formation_Histories
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: thisNode
-    class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
-    class           (nodeComponentDisk    )               , pointer :: thisDiskComponent
+    type            (treeNode             ), intent(inout), pointer :: node
+    class           (nodeComponentSpheroid)               , pointer :: spheroid
+    class           (nodeComponentDisk    )               , pointer :: disk
     double precision                       , parameter              :: massMinimum                   =1.0d0
     double precision                       , parameter              :: angularMomentumMinimum        =0.1d0
     double precision                       , parameter              :: gasMassScaling                =0.1d0
@@ -769,77 +769,77 @@ contains
     type            (stellarLuminosities  )                         :: stellarLuminositiesScale
 
     ! Get the spheroid component.
-    thisSpheroidComponent => thisNode%spheroid()
+    spheroid => node%spheroid()
     ! Check if a standard spheroid component exists.
-    select type (thisSpheroidComponent)
+    select type (spheroid)
     class is (nodeComponentSpheroidStandard)
 
        ! Get the disk component.
-       thisDiskComponent => thisNode%disk()
+       disk => node%disk()
 
        ! Set scale for angular momentum.
-       angularMomentum=thisDiskComponent%angularMomentum()+thisSpheroidComponent%angularMomentum()
-       call thisSpheroidComponent%angularMomentumScale(               max(angularMomentum,angularMomentumMinimum))
+       angularMomentum=disk%angularMomentum()+spheroid%angularMomentum()
+       call spheroid%angularMomentumScale(               max(angularMomentum,angularMomentumMinimum))
 
        ! Set scale for gas mass.
-       mass           =abs(                                                                     &
-            &              +thisDiskComponent%massGas    ()+thisSpheroidComponent%massGas    () &
-            &              +thisDiskComponent%massStellar()+thisSpheroidComponent%massStellar() &
+       mass           =abs(                                           &
+            &              +disk%massGas    ()+spheroid%massGas    () &
+            &              +disk%massStellar()+spheroid%massStellar() &
             &             )
-       call thisSpheroidComponent%        massGasScale(gasMassScaling*max(           mass,           massMinimum))
-       call thisSpheroidComponent%    massStellarScale(               max(           mass,           massMinimum))
+       call spheroid%        massGasScale(gasMassScaling*max(           mass,           massMinimum))
+       call spheroid%    massStellarScale(               max(           mass,           massMinimum))
 
        ! Set scales for abundances if necessary.
        if (abundancesCount > 0) then
           ! Set scale for gas abundances.
-          call thisSpheroidComponent%abundancesGasScale    (                                                      &
-               &                                            +gasMassScaling                                       &
-               &                                            *max(                                                 &
-               &                                                 +abs(                                            &
-               &                                                      +thisDiskComponent    %abundancesGas    ()  &
-               &                                                      +thisSpheroidComponent%abundancesGas    ()  &
-               &                                                     )                                            &
-               &                                                 +abs(                                            &
-               &                                                      +thisDiskComponent    %abundancesStellar()  &
-               &                                                      +thisSpheroidComponent%abundancesStellar()  &
-               &                                                     )                                          , &
-               &                                                      +massMinimum                                &
-               &                                                      *unitAbundances                             &
-               &                                                )                                                 &
+          call spheroid%abundancesGasScale    (                                                      &
+               &                                            +gasMassScaling                          &
+               &                                            *max(                                    &
+               &                                                 +abs(                               &
+               &                                                      +disk    %abundancesGas    ()  &
+               &                                                      +spheroid%abundancesGas    ()  &
+               &                                                     )                               &
+               &                                                 +abs(                               &
+               &                                                      +disk    %abundancesStellar()  &
+               &                                                      +spheroid%abundancesStellar()  &
+               &                                                     )                             , &
+               &                                                      +massMinimum                   &
+               &                                                      *unitAbundances                &
+               &                                                )                                    &
                &                                           )
 
           ! Set scale for stellar abundances.
-          call thisSpheroidComponent%abundancesStellarScale(                                                     &
-               &                                            max(                                                 &
-               &                                                 abs(                                            &
-               &                                                     +thisDiskComponent    %abundancesStellar()  &
-               &                                                     +thisSpheroidComponent%abundancesStellar()  &
-               &                                                    )                                          , &
-               &                                                     +massMinimum                                &
-               &                                                     *unitAbundances                             &
-               &                                               )                                                 &
+          call spheroid%abundancesStellarScale(                                                     &
+               &                                            max(                                    &
+               &                                                 abs(                               &
+               &                                                     +disk    %abundancesStellar()  &
+               &                                                     +spheroid%abundancesStellar()  &
+               &                                                    )                             , &
+               &                                                     +massMinimum                   &
+               &                                                     *unitAbundances                &
+               &                                               )                                    &
                &                                           )
        end if
        ! Set scales for stellar luminosities.
-       stellarLuminositiesScale=max(                                                    &
-            &                       abs(                                                &
-            &                           +thisDiskComponent      %luminositiesStellar()  &
-            &                           +thisSpheroidComponent  %luminositiesStellar()  &
-            &                          )                                              , &
-            &                           +unitStellarLuminosities                        &
-            &                           *luminosityMinimum                              &
+       stellarLuminositiesScale=max(                                       &
+            &                       abs(                                   &
+            &                           +disk      %luminositiesStellar()  &
+            &                           +spheroid  %luminositiesStellar()  &
+            &                          )                                 , &
+            &                           +unitStellarLuminosities           &
+            &                           *luminosityMinimum                 &
             &                      )
-       call stellarLuminositiesScale%truncate                (thisSpheroidComponent   %luminositiesStellar())
-       call thisSpheroidComponent   %luminositiesStellarScale(stellarLuminositiesScale                      )
+       call stellarLuminositiesScale%truncate                (spheroid   %luminositiesStellar())
+       call spheroid   %luminositiesStellarScale(stellarLuminositiesScale                      )
 
        ! Set scales for stellar population properties history.
-       stellarPopulationHistoryScales=thisSpheroidComponent%stellarPropertiesHistory()
-       call Stellar_Population_Properties_Scales               (stellarPopulationHistoryScales,thisSpheroidComponent%massStellar(),thisSpheroidComponent%abundancesStellar())
-       call thisSpheroidComponent%stellarPropertiesHistoryScale(stellarPopulationHistoryScales                                                                      )
+       stellarPopulationHistoryScales=spheroid%stellarPropertiesHistory()
+       call Stellar_Population_Properties_Scales  (stellarPopulationHistoryScales,spheroid%massStellar(),spheroid%abundancesStellar())
+       call spheroid%stellarPropertiesHistoryScale(stellarPopulationHistoryScales                                                    )
        call stellarPopulationHistoryScales%destroy()
-       stellarPopulationHistoryScales=thisSpheroidComponent%starFormationHistory()
-       call Star_Formation_History_Scales                      (stellarPopulationHistoryScales,thisSpheroidComponent%massStellar(),thisSpheroidComponent%abundancesStellar())
-       call thisSpheroidComponent%starFormationHistoryScale    (stellarPopulationHistoryScales                                                                      )
+       stellarPopulationHistoryScales=spheroid%starFormationHistory()
+       call Star_Formation_History_Scales         (stellarPopulationHistoryScales,spheroid%massStellar(),spheroid%abundancesStellar())
+       call spheroid%starFormationHistoryScale    (stellarPopulationHistoryScales                                                    )
        call stellarPopulationHistoryScales%destroy()
     end select
     return
@@ -850,20 +850,20 @@ contains
   !#  <after>Satellite_Merging_Mass_Movement_Store</after>
   !#  <after>Satellite_Merging_Remnant_Size</after>
   !# </satelliteMergerTask>
-  subroutine Node_Component_Spheroid_Standard_Satellite_Merging(thisNode)
-    !% Transfer any standard spheroid associated with {\normalfont \ttfamily thisNode} to its host halo.
+  subroutine Node_Component_Spheroid_Standard_Satellite_Merging(node)
+    !% Transfer any standard spheroid associated with {\normalfont \ttfamily node} to its host halo.
     use Satellite_Merging_Mass_Movements_Descriptors
     use Galacticus_Error
     use Satellite_Merging_Remnant_Sizes_Properties
     use Abundances_Structure
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: thisNode
-    type            (treeNode             )               , pointer :: hostNode
-    class           (nodeComponentDisk    )               , pointer :: hostDiskComponent    , thisDiskComponent
-    class           (nodeComponentSpheroid)               , pointer :: hostSpheroidComponent, thisSpheroidComponent
+    type            (treeNode             ), intent(inout), pointer :: node
+    type            (treeNode             )               , pointer :: nodeHost
+    class           (nodeComponentDisk    )               , pointer :: diskHost    , disk
+    class           (nodeComponentSpheroid)               , pointer :: spheroidHost, spheroid
     type            (history              )                         :: historyDisk          , historySpheroid                , &
-         &                                                             thisHistory
+         &                                                             history_
     double precision                                                :: angularMomentum      , diskSpecificAngularMomentum    , &
          &                                                             spheroidMass         , spheroidSpecificAngularMomentum
 
@@ -871,31 +871,31 @@ contains
     if (defaultSpheroidComponent%standardIsActive()) then
 
        ! Get the spheroid component, creating it if need be.
-       thisSpheroidComponent => thisNode%spheroid(autoCreate=.true.)
-       select type (thisSpheroidComponent)
+       spheroid => node%spheroid(autoCreate=.true.)
+       select type (spheroid)
        class is (nodeComponentSpheroidStandard)
-          thisDiskComponent => thisNode%disk()
+          disk => node%disk()
 
           ! Find the node to merge with.
-          hostNode              => thisNode%mergesWith(                 )
-          hostDiskComponent     => hostNode%disk      (autoCreate=.true.)
-          hostSpheroidComponent => hostNode%spheroid  (autoCreate=.true.)
+          nodeHost              => node%mergesWith(                 )
+          diskHost     => nodeHost%disk      (autoCreate=.true.)
+          spheroidHost => nodeHost%spheroid  (autoCreate=.true.)
 
           ! Get specific angular momentum of the host spheroid and disk material.
-          if (hostSpheroidComponent%massGas()+hostSpheroidComponent%massStellar() > 0.0d0) then
-             spheroidSpecificAngularMomentum=   hostSpheroidComponent%angularMomentum() &
-                  &                          /(                                         &
-                  &                             hostSpheroidComponent%massGas        () &
-                  &                            +hostSpheroidComponent%massStellar    () &
+          if (spheroidHost%massGas()+spheroidHost%massStellar() > 0.0d0) then
+             spheroidSpecificAngularMomentum=   spheroidHost%angularMomentum() &
+                  &                          /(                                &
+                  &                             spheroidHost%massGas        () &
+                  &                            +spheroidHost%massStellar    () &
                   &                           )
           else
              spheroidSpecificAngularMomentum=0.0d0
           end if
-          if (hostDiskComponent%massGas()+hostDiskComponent%massStellar() > 0.0d0) then
-             diskSpecificAngularMomentum=   hostDiskComponent%angularMomentum() &
-                  &                      /(                                     &
-                  &                         hostDiskComponent%massGas        () &
-                  &                        +hostDiskComponent%massStellar    () &
+          if (diskHost%massGas()+diskHost%massStellar() > 0.0d0) then
+             diskSpecificAngularMomentum=   diskHost%angularMomentum() &
+                  &                      /(                            &
+                  &                         diskHost%massGas        () &
+                  &                        +diskHost%massStellar    () &
                   &                       )
           else
              diskSpecificAngularMomentum=0.0d0
@@ -904,50 +904,50 @@ contains
           ! Move gas material within the host if necessary.
           select case (thisHostGasMovesTo)
           case (movesToDisk)
-             call hostDiskComponent    %        massGasSet(                                         &
-                  &                                         hostDiskComponent    %massGas        () &
-                  &                                        +hostSpheroidComponent%massGas        () &
-                  &                                       )
-             call hostDiskComponent    %  abundancesGasSet(                                         &
-                  &                                         hostDiskComponent    %abundancesGas  () &
-                  &                                        +hostSpheroidComponent%abundancesGas  () &
-                  &                                       )
-             call hostDiskComponent    %angularMomentumSet(                                         &
-                  &                                         hostDiskComponent    %angularMomentum() &
-                  &                                        +hostSpheroidComponent%massGas        () &
-                  &                                        *spheroidSpecificAngularMomentum         &
-                  &                                       )
-             call hostSpheroidComponent%angularMomentumSet(                                         &
-                  &                                         hostSpheroidComponent%angularMomentum() &
-                  &                                        -hostSpheroidComponent%massGas        () &
-                  &                                        *spheroidSpecificAngularMomentum         &
-                  &                                       )
-             call hostSpheroidComponent%        massGasSet(                                         &
-                  &                                         0.0d0                                   &
-                  &    )
-             call hostSpheroidComponent%  abundancesGasSet(                                         &
-                  &                                         zeroAbundances                          &
-                  &                                       )
+             call diskHost    %        massGasSet(                                 &
+                  &                                diskHost    %massGas        ()  &
+                  &                               +spheroidHost%massGas        ()  &
+                  &                              )
+             call diskHost    %  abundancesGasSet(                                 &
+                  &                                diskHost    %abundancesGas  ()  &
+                  &                               +spheroidHost%abundancesGas  ()  &
+                  &                              )
+             call diskHost    %angularMomentumSet(                                 &
+                  &                                diskHost    %angularMomentum()  &
+                  &                               +spheroidHost%massGas        ()  &
+                  &                               *spheroidSpecificAngularMomentum &
+                  &                              )
+             call spheroidHost%angularMomentumSet(                                 &
+                  &                                spheroidHost%angularMomentum()  &
+                  &                               -spheroidHost%massGas        ()  &
+                  &                               *spheroidSpecificAngularMomentum &
+                  &                              )
+             call spheroidHost%        massGasSet(                                 &
+                  &                                0.0d0                           &
+                  &                              )
+             call spheroidHost%  abundancesGasSet(                                 &
+                  &                                zeroAbundances                  &
+                  &                              )
           case (movesToSpheroid)
-             call hostSpheroidComponent%        massGasSet(&
-                  &                                         hostSpheroidComponent%massGas        () &
-                  &                                        +hostDiskComponent    %massGas        () &
-                  &                                       )
-             call hostDiskComponent    %angularMomentumSet(                                         &
-                  &                                         hostDiskComponent%angularMomentum    () &
-                  &                                        -hostDiskComponent%massGas            () &
-                  &                                        *diskSpecificAngularMomentum             &
-                  &                                       )
-             call hostSpheroidComponent%  abundancesGasSet(                                         &
-                  &                                         hostSpheroidComponent%abundancesGas  () &
-                  &                                        +hostDiskComponent    %abundancesGas  () &
-                  &                                       )
-             call hostDiskComponent    %        massGasSet(                                         &
-                  &                                         0.0d0                                   &
-                  &                                       )
-             call hostDiskComponent    %  abundancesGasSet(                                         &
-                  &                                         zeroAbundances                          &
-                  &                                       )
+             call spheroidHost%        massGasSet(                                 &
+                  &                                spheroidHost%massGas        ()  &
+                  &                               +diskHost    %massGas        ()  &
+                  &                              )
+             call diskHost    %angularMomentumSet(                                 &
+                  &                                diskHost%angularMomentum    ()  &
+                  &                               -diskHost%massGas            ()  &
+                  &                               *diskSpecificAngularMomentum     &
+                  &                              )
+             call spheroidHost%  abundancesGasSet(                                 &
+                  &                                spheroidHost%abundancesGas  ()  &
+                  &                               +diskHost    %abundancesGas  ()  &
+                  &                              )
+             call diskHost    %        massGasSet(                                 &
+                  &                                0.0d0                           &
+                  &                              )
+             call diskHost    %  abundancesGasSet(                                 &
+                  &                                zeroAbundances                  &
+                  &                              )
           case (doesNotMove)
              ! Do nothing.
           case default
@@ -957,96 +957,96 @@ contains
           ! Move stellar material within the host if necessary.
           select case (thisHostStarsMoveTo)
           case (movesToDisk)
-             call hostDiskComponent    %        massStellarSet     (                                             &
-                  &                                                  hostDiskComponent    %        massStellar() &
-                  &                                                 +hostSpheroidComponent%        massStellar() &
-                  &                                                )
-             call hostDiskComponent    %  abundancesStellarSet     (                                             &
-                  &                                                  hostDiskComponent    %  abundancesStellar() &
-                  &                                                 +hostSpheroidComponent%  abundancesStellar() &
-                  &                                                )
-             call hostDiskComponent    %luminositiesStellarSet     (                                             &
-                  &                                                  hostDiskComponent    %luminositiesStellar() &
-                  &                                                 +hostSpheroidComponent%luminositiesStellar() &
-                  &                                                )
-             call hostDiskComponent    %    angularMomentumSet     (                                             &
-                  &                                                  hostDiskComponent    %    angularMomentum() &
-                  &                                                 +hostSpheroidComponent%        massStellar() &
-                  &                                                 *spheroidSpecificAngularMomentum             &
-                  &                                                )
-             call hostSpheroidComponent%    angularMomentumSet     (                                             &
-                  &                                                  hostSpheroidComponent%    angularMomentum() &
-                  &                                                 -hostSpheroidComponent%        massStellar() &
-                  &                                                 *spheroidSpecificAngularMomentum             &
-                  &                                                )
-             call hostSpheroidComponent%        massStellarSet     (                                             &
-                  &                                                  0.0d0                                       &
-                  &                                                )
-             call hostSpheroidComponent%  abundancesStellarSet     (                                             &
-                  &                                                  zeroAbundances                              &
-                  &                                                )
-             call hostSpheroidComponent%luminositiesStellarSet     (                                             &
-                  &                                                  zeroStellarLuminosities                     &
-                  &                                                )
+             call     diskHost%        massStellarSet(                                    &
+                  &                                    diskHost    %        massStellar() &
+                  &                                   +spheroidHost%        massStellar() &
+                  &                                  )
+             call     diskHost%  abundancesStellarSet(                                    &
+                  &                                    diskHost    %  abundancesStellar() &
+                  &                                   +spheroidHost%  abundancesStellar() &
+                  &                                  )
+             call     diskHost%luminositiesStellarSet(                                    &
+                  &                                    diskHost    %luminositiesStellar() &
+                  &                                   +spheroidHost%luminositiesStellar() &
+                  &                                  )
+             call     diskHost%    angularMomentumSet(                                    &
+                  &                                    diskHost    %    angularMomentum() &
+                  &                                   +spheroidHost%        massStellar() &
+                  &                                   *spheroidSpecificAngularMomentum    &
+                  &                                  )
+             call spheroidHost%    angularMomentumSet(                                    &
+                  &                                    spheroidHost%    angularMomentum() &
+                  &                                   -spheroidHost%        massStellar() &
+                  &                                   *spheroidSpecificAngularMomentum    &
+                  &                                  )
+             call spheroidHost%        massStellarSet(                                    &
+                  &                                    0.0d0                              &
+                  &                                  )
+             call spheroidHost%  abundancesStellarSet(                                    &
+                  &                                    zeroAbundances                     &
+                  &                                  )
+             call spheroidHost%luminositiesStellarSet(                                    &
+                  &                                    zeroStellarLuminosities            &
+                  &                                  )
              ! Also add stellar properties histories.
-             historyDisk    =    hostDiskComponent%stellarPropertiesHistory()
-             historySpheroid=hostSpheroidComponent%stellarPropertiesHistory()
+             historyDisk    =    diskHost%stellarPropertiesHistory()
+             historySpheroid=spheroidHost%stellarPropertiesHistory()
              call historyDisk    %increment(historySpheroid    )
              call historySpheroid%reset    (                   )
-             call hostDiskComponent    %stellarPropertiesHistorySet(historyDisk    )
-             call hostSpheroidComponent%stellarPropertiesHistorySet(historySpheroid)
+             call diskHost    %stellarPropertiesHistorySet(historyDisk    )
+             call spheroidHost%stellarPropertiesHistorySet(historySpheroid)
              ! Also add star formation histories.
-             historyDisk    =    hostDiskComponent%starFormationHistory()
-             historySpheroid=hostSpheroidComponent%starFormationHistory()
+             historyDisk    =    diskHost%starFormationHistory()
+             historySpheroid=spheroidHost%starFormationHistory()
              call historyDisk    %combine(historySpheroid     )
              call historySpheroid%reset  (                    )
-             call hostDiskComponent    %    starFormationHistorySet(historyDisk    )
-             call hostSpheroidComponent%    starFormationHistorySet(historySpheroid)
+             call diskHost    %    starFormationHistorySet(historyDisk    )
+             call spheroidHost%    starFormationHistorySet(historySpheroid)
              call historyDisk    %destroy(recordMemory=.false.)
              call historySpheroid%destroy(recordMemory=.false.)
           case (movesToSpheroid)
-             call hostSpheroidComponent%             massStellarSet(                                             &
-                  &                                                  hostSpheroidComponent%        massStellar() &
-                  &                                                 +hostDiskComponent    %        massStellar() &
-                  &                                                )
-             call hostDiskComponent    %         angularMomentumSet( hostDiskComponent    %    angularMomentum() &
-                  &                                                 -hostDiskComponent    %        massStellar() &
-                  &                                                 *diskSpecificAngularMomentum                 &
-                  &                                                )
-             call hostSpheroidComponent%       abundancesStellarSet(                                             &
-                  &                                                  hostSpheroidComponent%  abundancesStellar() &
-                  &                                                 +hostDiskComponent    %  abundancesStellar() &
-                  &                                                )
-             call hostSpheroidComponent%     luminositiesStellarSet( hostSpheroidComponent%luminositiesStellar() &
-                  &                                                 +hostDiskComponent    %luminositiesStellar() &
-                  &                                                )
-             call hostDiskComponent    %             massStellarSet(                                             &
-                  &                                                  0.0d0                                       &
-                  &                                                )
-             call hostDiskComponent    %       abundancesStellarSet(                                             &
-                  &                                                  zeroAbundances                              &
-                  &                                                )
-             call hostDiskComponent    %     luminositiesStellarSet(                                             &
-                  &                                                  zeroStellarLuminosities                     &
-                  &                                                )
+             call spheroidHost%        massStellarSet(                                    &
+                  &                                    spheroidHost%        massStellar() &
+                  &                                   +diskHost    %        massStellar() &
+                  &                                  )
+             call     diskHost%    angularMomentumSet( diskHost    %    angularMomentum() &
+                  &                                   -diskHost    %        massStellar() &
+                  &                                   *diskSpecificAngularMomentum        &
+                  &                                  )
+             call spheroidHost%  abundancesStellarSet(                                    &
+                  &                                    spheroidHost%  abundancesStellar() &
+                  &                                   +diskHost    %  abundancesStellar() &
+                  &                                  )
+             call spheroidHost%luminositiesStellarSet( spheroidHost%luminositiesStellar() &
+                  &                                   +diskHost    %luminositiesStellar() &
+                  &                                  )
+             call     diskHost%        massStellarSet(                                    &
+                  &                                    0.0d0                              &
+                  &                                  )
+             call     diskHost%  abundancesStellarSet(                                    &
+                  &                                    zeroAbundances                     &
+                  &                                  )
+             call     diskHost%luminositiesStellarSet(                                    &
+                  &                                    zeroStellarLuminosities            &
+                  &                                  )
              ! Also add stellar properties histories.
-             historyDisk    =    hostDiskComponent%stellarPropertiesHistory()
-             historySpheroid=hostSpheroidComponent%stellarPropertiesHistory()
+             historyDisk    =    diskHost%stellarPropertiesHistory()
+             historySpheroid=spheroidHost%stellarPropertiesHistory()
              call historySpheroid%increment(historyDisk)
              call historyDisk    %reset    (           )
-             call hostSpheroidComponent%stellarPropertiesHistorySet(historySpheroid)
-             call hostDiskComponent    %stellarPropertiesHistorySet( historyDisk   )
+             call spheroidHost%stellarPropertiesHistorySet(historySpheroid)
+             call diskHost    %stellarPropertiesHistorySet( historyDisk   )
              ! Also add star formation histories.
-             historyDisk    =hostDiskComponent    %starFormationHistory()
-             historySpheroid=hostSpheroidComponent%starFormationHistory()
+             historyDisk    =diskHost    %starFormationHistory()
+             historySpheroid=spheroidHost%starFormationHistory()
              call historySpheroid%combine(historyDisk         )
              call historyDisk    %reset  (                    )
-             call hostSpheroidComponent%starFormationHistorySet    (historySpheroid)
-             call hostDiskComponent    %starFormationHistorySet    (historyDisk    )
+             call spheroidHost%starFormationHistorySet    (historySpheroid)
+             call diskHost    %starFormationHistorySet    (historyDisk    )
              call historyDisk    %destroy(recordMemory=.false.)
              call historySpheroid%destroy(recordMemory=.false.)
-             historyDisk    =hostDiskComponent    %starFormationHistory()
-             historySpheroid=hostSpheroidComponent%starFormationHistory()
+             historyDisk    =diskHost    %starFormationHistory()
+             historySpheroid=spheroidHost%starFormationHistory()
           case (doesNotMove)
              ! Do nothing.
           case default
@@ -1055,112 +1055,112 @@ contains
 
           ! If the entire host disk/spheroid (gas plus stars) was moved to the spheroid/disk, ensure that the
           ! corresponding angular momentum is precisely zero.
-          if (hostDiskComponent    %massStellar()+hostDiskComponent    %massGas() == 0.0d0) &
-               & call hostDiskComponent%angularMomentumSet    (0.0d0)
-          if (hostSpheroidComponent%massStellar()+hostSpheroidComponent%massGas() == 0.0d0) &
-               & call hostSpheroidComponent%angularMomentumSet(0.0d0)
+          if (diskHost    %massStellar()+diskHost    %massGas() == 0.0d0) &
+               & call diskHost%angularMomentumSet    (0.0d0)
+          if (spheroidHost%massStellar()+spheroidHost%massGas() == 0.0d0) &
+               & call spheroidHost%angularMomentumSet(0.0d0)
 
           ! Get specific angular momentum of the spheroid material.
-          spheroidMass=thisSpheroidComponent%massGas()+thisSpheroidComponent%massStellar()
+          spheroidMass=spheroid%massGas()+spheroid%massStellar()
           if (spheroidMass > 0.0d0) then
-             spheroidSpecificAngularMomentum=thisSpheroidComponent%angularMomentum()/spheroidMass
+             spheroidSpecificAngularMomentum=spheroid%angularMomentum()/spheroidMass
 
              ! Move the gas component of the standard spheroid to the host.
              select case (thisMergerGasMovesTo)
              case (movesToDisk)
-                call hostDiskComponent    %            massGasSet(                                             &
-                     &                                             hostDiskComponent    %            massGas() &
-                     &                                            +thisSpheroidComponent%            massGas() &
-                     &                                           )
-                call hostDiskComponent    %      abundancesGasSet(                                             &
-                     &                                             hostDiskComponent    %      abundancesGas() &
-                     &                                            +thisSpheroidComponent%      abundancesGas() &
-                     &                                           )
-                call hostDiskComponent    %    angularMomentumSet( hostDiskComponent    %    angularMomentum() &
-                     &                                            +thisSpheroidComponent%            massGas() &
-                     &                                            *spheroidSpecificAngularMomentum             &
-                     &                                           )
+                call     diskHost%        massGasSet(                                 &
+                     &                                diskHost    %        massGas()  &
+                     &                               +spheroid%            massGas()  &
+                     &                              )
+                call     diskHost%  abundancesGasSet(                                 &
+                     &                                diskHost    %  abundancesGas()  &
+                     &                               +spheroid    %  abundancesGas()  &
+                     &                              )
+                call     diskHost%angularMomentumSet( diskHost    %angularMomentum()  &
+                     &                               +spheroid    %        massGas()  &
+                     &                               *spheroidSpecificAngularMomentum &
+                     &                              )
              case (movesToSpheroid)
-                call hostSpheroidComponent%            massGasSet(&
-                     &                                             hostSpheroidComponent%            massGas() &
-                     &                                            +thisSpheroidComponent%            massGas() &
-                     &                                           )
-                call hostSpheroidComponent%      abundancesGasSet(                                             &
-                     &                                             hostSpheroidComponent%      abundancesGas() &
-                     &                                            +thisSpheroidComponent%      abundancesGas() &
-                     &                                           )
+                call spheroidHost%        massGasSet(                                 &
+                     &                                spheroidHost%        massGas()  &
+                     &                               +spheroid    %        massGas()  &
+                     &                              )
+                call spheroidHost%  abundancesGasSet(                                 &
+                     &                                spheroidHost%  abundancesGas()  &
+                     &                               +spheroid    %  abundancesGas()  &
+                     &                              )
              case default
                 call Galacticus_Error_Report('Node_Component_Spheroid_Standard_Satellite_Merging','unrecognized movesTo descriptor')
              end select
-             call thisSpheroidComponent%      massGasSet(0.0d0         )
-             call thisSpheroidComponent%abundancesGasSet(zeroAbundances)
+             call spheroid%      massGasSet(0.0d0         )
+             call spheroid%abundancesGasSet(zeroAbundances)
 
              ! Move the stellar component of the standard spheroid to the host.
              select case (thisMergerStarsMoveTo)
              case (movesToDisk)
-                call hostDiskComponent    %        massStellarSet(                                             &
-                     &                                             hostDiskComponent    %        massStellar() &
-                     &                                            +thisSpheroidComponent%        massStellar() &
-                     &                                           )
-                call hostDiskComponent    %  abundancesStellarSet( hostDiskComponent    %  abundancesStellar() &
-                     &                                            +thisSpheroidComponent%  abundancesStellar() &
-                     &                                           )
-                call hostDiskComponent    %luminositiesStellarSet( hostDiskComponent    %luminositiesStellar() &
-                     &                                            +thisSpheroidComponent%luminositiesStellar() &
-                     &                                           )
-                call hostDiskComponent    %    angularMomentumSet( hostDiskComponent    %    angularMomentum() &
-                     &                                            +thisSpheroidComponent%        massStellar() &
-                     &                                            *spheroidSpecificAngularMomentum             &
-                     &                                           )
+                call diskHost    %        massStellarSet(                                 &
+                     &                                    diskHost%        massStellar()  &
+                     &                                   +spheroid%        massStellar()  &
+                     &                                  )
+                call diskHost    %  abundancesStellarSet( diskHost%  abundancesStellar()  &
+                     &                                   +spheroid%  abundancesStellar()  &
+                     &                                  )
+                call diskHost    %luminositiesStellarSet( diskHost%luminositiesStellar()  &
+                     &                                   +spheroid%luminositiesStellar()  &
+                     &                                  )
+                call diskHost    %    angularMomentumSet( diskHost%    angularMomentum()  &
+                     &                                   +spheroid%        massStellar()  &
+                     &                                   *spheroidSpecificAngularMomentum &
+                     &                                  )
                 ! Also add stellar properties histories.
-                historySpheroid=thisSpheroidComponent%stellarPropertiesHistory()
-                thisHistory    =hostDiskComponent    %stellarPropertiesHistory()
-                call thisHistory    %increment(historySpheroid    )
-                call historySpheroid%reset    (                   )
-                call hostDiskComponent    %stellarPropertiesHistorySet(thisHistory    )
-                call thisSpheroidComponent%stellarPropertiesHistorySet(historySpheroid)
+                historySpheroid=spheroid%stellarPropertiesHistory()
+                history_       =diskHost%stellarPropertiesHistory()
+                call history_       %increment                  (historySpheroid)
+                call historySpheroid%reset                      (               )
+                call diskHost       %stellarPropertiesHistorySet(history_       )
+                call spheroid       %stellarPropertiesHistorySet(historySpheroid)
                 ! Also add star formation histories.
-                historySpheroid=thisSpheroidComponent%starFormationHistory()
-                thisHistory    =hostDiskComponent    %starFormationHistory()
-                call thisHistory    %combine (historySpheroid     )
-                call historySpheroid%reset   (                    )
-                call hostDiskComponent    %starFormationHistorySet(thisHistory    )
-                call thisSpheroidComponent%starFormationHistorySet(historySpheroid)
-                call thisHistory    %destroy (recordMemory=.false.)
-                call historySpheroid%destroy (recordMemory=.false.)
+                historySpheroid=spheroid%starFormationHistory()
+                history_       =diskHost%starFormationHistory()
+                call history_       %combine                (             historySpheroid)
+                call historySpheroid%reset                  (                            )
+                call diskHost       %starFormationHistorySet(             history_       )
+                call spheroid       %starFormationHistorySet(             historySpheroid)
+                call history_       %destroy                (recordMemory=.false.        )
+                call historySpheroid%destroy                (recordMemory=.false.        )
              case (movesToSpheroid)
-                call hostSpheroidComponent%        massStellarSet( hostSpheroidComponent%        massStellar() &
-                     &                                            +thisSpheroidComponent%        massStellar() &
-                     &                                           )
-                call hostSpheroidComponent%  abundancesStellarSet( hostSpheroidComponent%  abundancesStellar() &
-                     &                                            +thisSpheroidComponent%  abundancesStellar() &
-                     &                                           )
-                call hostSpheroidComponent%luminositiesStellarSet( hostSpheroidComponent%luminositiesStellar() &
-                     &                                            +thisSpheroidComponent%luminositiesStellar() &
-                     &                                           )
+                call spheroidHost%        massStellarSet( spheroidHost%        massStellar() &
+                     &                                   +spheroid    %        massStellar() &
+                     &                                  )
+                call spheroidHost%  abundancesStellarSet( spheroidHost%  abundancesStellar() &
+                     &                                   +spheroid    %  abundancesStellar() &
+                     &                                  )
+                call spheroidHost%luminositiesStellarSet( spheroidHost%luminositiesStellar() &
+                     &                                   +spheroid    %luminositiesStellar() &
+                     &                                  )
                 ! Also add stellar properties histories.
-                historySpheroid=thisSpheroidComponent%stellarPropertiesHistory()
-                thisHistory    =hostSpheroidComponent%stellarPropertiesHistory()
-                call thisHistory%increment(historySpheroid)
-                call historySpheroid%reset()
-                call hostSpheroidComponent%stellarPropertiesHistorySet(thisHistory    )
-                call thisSpheroidComponent%stellarPropertiesHistorySet(historySpheroid)
+                historySpheroid=spheroid    %stellarPropertiesHistory()
+                history_       =spheroidHost%stellarPropertiesHistory()
+                call history_        %increment(historySpheroid)
+                call historySpheroid%reset                      (               )
+                call spheroidHost   %stellarPropertiesHistorySet(history_       )
+                call spheroid       %stellarPropertiesHistorySet(historySpheroid)
                 ! Also add star formation histories.
-                historySpheroid=thisSpheroidComponent%starFormationHistory()
-                thisHistory    =hostSpheroidComponent%starFormationHistory()
-                call thisHistory%combine(historySpheroid)
-                call historySpheroid%reset()
-                call hostSpheroidComponent%starFormationHistorySet(thisHistory    )
-                call thisSpheroidComponent%starFormationHistorySet(historySpheroid)
-                call thisHistory    %destroy(recordMemory=.false.)
-                call historySpheroid%destroy(recordMemory=.false.)
+                historySpheroid=spheroid    %starFormationHistory()
+                history_       =spheroidHost%starFormationHistory()
+                call history_       %combine(historySpheroid)
+                call historySpheroid%reset                  (                             )
+                call spheroidHost   %starFormationHistorySet(              history_       )
+                call spheroid       %starFormationHistorySet(              historySpheroid)
+                call history_       %destroy                (recordMemory=.false.         )
+                call historySpheroid%destroy                (recordMemory=.false.         )
              case default
                 call Galacticus_Error_Report('Node_Component_Spheroid_Standard_Satellite_Merging','unrecognized movesTo descriptor')
              end select
-             call thisSpheroidComponent%        massStellarSet(0.0d0                  )
-             call thisSpheroidComponent%  abundancesStellarSet(zeroAbundances         )
-             call thisSpheroidComponent%luminositiesStellarSet(zeroStellarLuminosities)
-             call thisSpheroidComponent%    angularMomentumSet(0.0d0                  )
+             call spheroid%        massStellarSet(0.0d0                  )
+             call spheroid%  abundancesStellarSet(zeroAbundances         )
+             call spheroid%luminositiesStellarSet(zeroStellarLuminosities)
+             call spheroid%    angularMomentumSet(0.0d0                  )
           end if
 
           ! Set the angular momentum of the spheroid.
@@ -1168,8 +1168,8 @@ contains
              ! Note that the remnant specific angular momentum computed by the merger remnant modules automatically gives the mean
              ! specific angular momentum of the component by virtue of the fact that it computes the ratio of the actual angular
              ! momentum to the contribution from the component's own rotation curve at its scale radius.
-             angularMomentum=remnantSpecificAngularMomentum*(hostSpheroidComponent%massGas()+hostSpheroidComponent%massStellar())
-             call hostSpheroidComponent%angularMomentumSet(angularMomentum)
+             angularMomentum=remnantSpecificAngularMomentum*(spheroidHost%massGas()+spheroidHost%massStellar())
+             call spheroidHost%angularMomentumSet(angularMomentum)
           end if
 
        end select
@@ -1180,107 +1180,107 @@ contains
   !# <radiusSolverPlausibility>
   !#  <unitName>Node_Component_Spheroid_Standard_Radius_Solver_Plausibility</unitName>
   !# </radiusSolverPlausibility>
-  subroutine Node_Component_Spheroid_Standard_Radius_Solver_Plausibility(thisNode,galaxyIsPhysicallyPlausible)
+  subroutine Node_Component_Spheroid_Standard_Radius_Solver_Plausibility(node,galaxyIsPhysicallyPlausible)
     !% Determines whether the spheroid is physically plausible for radius solving tasks. Require that it have non-zero mass and angular momentum.
     implicit none
-    type   (treeNode             ), intent(inout) :: thisNode
+    type   (treeNode             ), intent(inout) :: node
     logical                       , intent(inout) :: galaxyIsPhysicallyPlausible
-    class  (nodeComponentSpheroid), pointer       :: thisSpheroidComponent
+    class  (nodeComponentSpheroid), pointer       :: spheroid
 
     ! Return immediately if our method is not selected.
     if (.not.defaultSpheroidComponent%standardIsActive()) return
 
     ! Determine the plausibility of the current spheroid.
-    thisSpheroidComponent => thisNode%spheroid()
-    select type (thisSpheroidComponent)
+    spheroid => node%spheroid()
+    select type (spheroid)
        class is (nodeComponentSpheroidStandard)
           ! Determine the plausibility of the current spheroid.
-       if        (thisSpheroidComponent%massStellar          ()+thisSpheroidComponent%massGas() < -spheroidMassToleranceAbsolute) then
+       if        (spheroid%massStellar          ()+spheroid%massGas() < -spheroidMassToleranceAbsolute) then
           galaxyIsPhysicallyPlausible=.false.
        else
-          if     (      thisSpheroidComponent%massStellar    ()+thisSpheroidComponent%massGas() >  spheroidMassToleranceAbsolute &
-               &  .and. thisSpheroidComponent%angularMomentum()                                 <                          0.0d0 &
+          if     (      spheroid%massStellar    ()+spheroid%massGas() >  spheroidMassToleranceAbsolute &
+               &  .and. spheroid%angularMomentum()                    <                          0.0d0 &
                & ) galaxyIsPhysicallyPlausible=.false.
        end if
     end select
     return
   end subroutine Node_Component_Spheroid_Standard_Radius_Solver_Plausibility
 
-  double precision function Node_Component_Spheroid_Standard_Radius_Solve(thisNode)
+  double precision function Node_Component_Spheroid_Standard_Radius_Solve(node)
     !% Return the circular radius of the standard spheroid.
     implicit none
-    type (treeNode             ), intent(inout) :: thisNode
-    class(nodeComponentSpheroid), pointer       :: thisSpheroidComponent
+    type (treeNode             ), intent(inout) :: node
+    class(nodeComponentSpheroid), pointer       :: spheroid
 
-    thisSpheroidComponent => thisNode%spheroid()
-    Node_Component_Spheroid_Standard_Radius_Solve=thisSpheroidComponent%radius()
+    spheroid => node%spheroid()
+    Node_Component_Spheroid_Standard_Radius_Solve=spheroid%radius()
     return
   end function Node_Component_Spheroid_Standard_Radius_Solve
 
-  double precision function Node_Component_Spheroid_Standard_Velocity_Solve(thisNode)
+  double precision function Node_Component_Spheroid_Standard_Velocity_Solve(node)
     !% Return the circular velocity of the standard spheroid.
     implicit none
-    type (treeNode             ), intent(inout) :: thisNode
-    class(nodeComponentSpheroid), pointer       :: thisSpheroidComponent
+    type (treeNode             ), intent(inout) :: node
+    class(nodeComponentSpheroid), pointer       :: spheroid
 
-    thisSpheroidComponent => thisNode%spheroid()
-    Node_Component_Spheroid_Standard_Velocity_Solve=thisSpheroidComponent%velocity()
+    spheroid => node%spheroid()
+    Node_Component_Spheroid_Standard_Velocity_Solve=spheroid%velocity()
     return
   end function Node_Component_Spheroid_Standard_Velocity_Solve
 
-  subroutine Node_Component_Spheroid_Standard_Radius_Solve_Set(thisNode,radius)
+  subroutine Node_Component_Spheroid_Standard_Radius_Solve_Set(node,radius)
     !% Set the scale radius of the standard spheroid.
     implicit none
-    type            (treeNode             ), intent(inout) :: thisNode
+    type            (treeNode             ), intent(inout) :: node
     double precision                       , intent(in   ) :: radius
-    class           (nodeComponentSpheroid), pointer       :: thisSpheroidComponent
+    class           (nodeComponentSpheroid), pointer       :: spheroid
 
-    thisSpheroidComponent => thisNode%spheroid()
-    call thisSpheroidComponent%radiusSet(max(radius,0.0d0))
+    spheroid => node%spheroid()
+    call spheroid%radiusSet(max(radius,0.0d0))
     return
   end subroutine Node_Component_Spheroid_Standard_Radius_Solve_Set
 
-  subroutine Node_Component_Spheroid_Standard_Velocity_Solve_Set(thisNode,velocity)
+  subroutine Node_Component_Spheroid_Standard_Velocity_Solve_Set(node,velocity)
     !% Set the scale velocity of the standard spheroid.
     implicit none
-    type            (treeNode             ), intent(inout) :: thisNode
+    type            (treeNode             ), intent(inout) :: node
     double precision                       , intent(in   ) :: velocity
-    class           (nodeComponentSpheroid), pointer       :: thisSpheroidComponent
+    class           (nodeComponentSpheroid), pointer       :: spheroid
 
-    thisSpheroidComponent => thisNode%spheroid()
-    call thisSpheroidComponent%velocitySet(max(velocity,0.0d0))
+    spheroid => node%spheroid()
+    call spheroid%velocitySet(max(velocity,0.0d0))
     return
   end subroutine Node_Component_Spheroid_Standard_Velocity_Solve_Set
 
   !# <radiusSolverTask>
   !#  <unitName>Node_Component_Spheroid_Standard_Radius_Solver</unitName>
   !# </radiusSolverTask>
-  subroutine Node_Component_Spheroid_Standard_Radius_Solver(thisNode,componentActive,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get&
+  subroutine Node_Component_Spheroid_Standard_Radius_Solver(node,componentActive,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get&
        &,Velocity_Set)
     !% Interface for the size solver algorithm.
     implicit none
-    type            (treeNode                                         ), intent(inout)          :: thisNode
+    type            (treeNode                                         ), intent(inout)          :: node
     logical                                                            , intent(  out)          :: componentActive
     logical                                                            , intent(in   )          :: specificAngularMomentumRequired
     double precision                                                   , intent(  out)          :: specificAngularMomentum
-    procedure       (Node_Component_Spheroid_Standard_Radius_Solve_Set), intent(  out), pointer :: Radius_Set             , Velocity_Set
-    procedure       (Node_Component_Spheroid_Standard_Radius_Solve    ), intent(  out), pointer :: Radius_Get             , Velocity_Get
-    class           (nodeComponentSpheroid                            )               , pointer :: thisSpheroidComponent
-    double precision                                                                            :: angularMomentum        , specificAngularMomentumMean, &
+    procedure       (Node_Component_Spheroid_Standard_Radius_Solve_Set), intent(  out), pointer :: Radius_Set                     , Velocity_Set
+    procedure       (Node_Component_Spheroid_Standard_Radius_Solve    ), intent(  out), pointer :: Radius_Get                     , Velocity_Get
+    class           (nodeComponentSpheroid                            )               , pointer :: spheroid
+    double precision                                                                            :: angularMomentum                , specificAngularMomentumMean, &
          &                                                                                         spheroidMass
 
-    ! Determine if thisNode has an active disk component supported by this module.
+    ! Determine if node has an active disk component supported by this module.
     componentActive=.false.
-    thisSpheroidComponent => thisNode%spheroid()
-    select type (thisSpheroidComponent)
+    spheroid => node%spheroid()
+    select type (spheroid)
        class is (nodeComponentSpheroidStandard)
        componentActive=.true.
        ! Get the angular momentum.
        if (specificAngularMomentumRequired) then
-          angularMomentum=thisSpheroidComponent%angularMomentum()
+          angularMomentum=spheroid%angularMomentum()
           if (angularMomentum >= 0.0d0) then
              ! Compute the specific angular momentum at the scale radius, assuming a flat rotation curve.
-             spheroidMass=thisSpheroidComponent%massGas()+thisSpheroidComponent%massStellar()
+             spheroidMass=spheroid%massGas()+spheroid%massStellar()
              if (spheroidMass > 0.0d0) then
                 specificAngularMomentumMean=angularMomentum/spheroidMass
              else
@@ -1294,8 +1294,8 @@ contains
           Velocity_Get => Node_Component_Spheroid_Standard_Velocity_Solve
           Velocity_Set => Node_Component_Spheroid_Standard_Velocity_Solve_Set
        else
-          call Node_Component_Spheroid_Standard_Radius_Solve_Set  (thisNode,0.0d0)
-          call Node_Component_Spheroid_Standard_Velocity_Solve_Set(thisNode,0.0d0)
+          call Node_Component_Spheroid_Standard_Radius_Solve_Set  (node,0.0d0)
+          call Node_Component_Spheroid_Standard_Velocity_Solve_Set(node,0.0d0)
           componentActive=.false.
        end if
     end select
@@ -1341,8 +1341,8 @@ contains
           basic    => selfNode%basic()
           timeBegin=  basic   %time ()
        end if
-       call Star_Formation_History_Create               (selfNode,    starFormationHistory,timeBegin)
-       call self%    starFormationHistorySet(                         starFormationHistory          )
+       call Star_Formation_History_Create(selfNode,starFormationHistory,timeBegin)
+       call self% starFormationHistorySet(         starFormationHistory          )
     end if
     ! Record that the spheroid has been initialized.
     call self%isInitializedSet(.true.)
@@ -1354,20 +1354,20 @@ contains
     use Star_Formation_Timescales_Spheroids
     implicit none
     class           (nodeComponentSpheroidStandard ), intent(inout) :: self
-    type            (treeNode                      ), pointer       :: thisNode
+    type            (treeNode                      ), pointer       :: node
     double precision                                                :: gasMass , starFormationTimescale
 
     ! Get the associated node.
-    thisNode => self%host()
+    node => self%host()
 
     ! Get the star formation timescale.
-    starFormationTimescale=Star_Formation_Timescale_Spheroid(thisNode)
+    starFormationTimescale=Star_Formation_Timescale_Spheroid(node)
 
     ! Get the gas mass.
     gasMass=self%massGas()
 
     ! If timescale is finite and gas mass is positive, then compute star formation rate.
-    if (starFormationTimescale > 0.0d0 .and. gasMass > 0.0d0 .and. (spheroidStarFormationInSatellites .or. .not.thisNode%isSatellite())) then
+    if (starFormationTimescale > 0.0d0 .and. gasMass > 0.0d0 .and. (spheroidStarFormationInSatellites .or. .not.node%isSatellite())) then
        Node_Component_Spheroid_Standard_Star_Formation_Rate=gasMass/starFormationTimescale
     else
        Node_Component_Spheroid_Standard_Star_Formation_Rate=0.0d0
@@ -1375,46 +1375,46 @@ contains
     return
   end function Node_Component_Spheroid_Standard_Star_Formation_Rate
 
-  subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Extend(thisNode)
-    !% Extend the range of a star formation history in a standard spheroid component for {\normalfont \ttfamily thisNode}.
+  subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Extend(node)
+    !% Extend the range of a star formation history in a standard spheroid component for {\normalfont \ttfamily node}.
     implicit none
-    type (treeNode             ), intent(inout), pointer :: thisNode
-    class(nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
+    type (treeNode             ), intent(inout), pointer :: node
+    class(nodeComponentSpheroid)               , pointer :: spheroid
     type (history              )                         :: starFormationHistory
 
     ! Get the spheroid component.
-    thisSpheroidComponent => thisNode%spheroid()
+    spheroid => node%spheroid()
 
     ! Extend the range as necessary.
-    starFormationHistory=thisSpheroidComponent%starFormationHistory()
+    starFormationHistory=spheroid%starFormationHistory()
     call starFormationHistory%extend(times=starFormationHistoryTemplate)
-    call thisSpheroidComponent%starFormationHistorySet(starFormationHistory)
+    call spheroid%starFormationHistorySet(starFormationHistory)
     return
   end subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Extend
 
   !# <mergerTreeExtraOutputTask>
   !#  <unitName>Node_Component_Spheroid_Standard_Star_Formation_History_Output</unitName>
   !# </mergerTreeExtraOutputTask>
-  subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Output(thisNode,iOutput,treeIndex,nodePassesFilter)
+  subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Output(node,iOutput,treeIndex,nodePassesFilter)
     !% Store the star formation history in the output file.
     use, intrinsic :: ISO_C_Binding
     use Kind_Numbers
     use Galacticus_Output_Star_Formation_Histories
     implicit none
-    type   (treeNode             ), intent(inout), pointer :: thisNode
+    type   (treeNode             ), intent(inout), pointer :: node
     integer(c_size_t             ), intent(in   )          :: iOutput
     integer(kind=kind_int8       ), intent(in   )          :: treeIndex
     logical                       , intent(in   )          :: nodePassesFilter
-    class  (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
+    class  (nodeComponentSpheroid)               , pointer :: spheroid
     type   (history              )                         :: starFormationHistory
 
     ! Output the star formation history if a spheroid exists for this component.
-    thisSpheroidComponent => thisNode%spheroid()
-    select type (thisSpheroidComponent)
+    spheroid => node%spheroid()
+    select type (spheroid)
     class is (nodeComponentSpheroidStandard)
-       starFormationHistory=thisSpheroidComponent%starFormationHistory()
-       call Star_Formation_History_Output(thisNode,nodePassesFilter,starFormationHistory,iOutput,treeIndex,'spheroid')
-       call thisSpheroidComponent%starFormationHistorySet(starFormationHistory)
+       starFormationHistory=spheroid%starFormationHistory()
+       call Star_Formation_History_Output(node,nodePassesFilter,starFormationHistory,iOutput,treeIndex,'spheroid')
+       call spheroid%starFormationHistorySet(starFormationHistory)
     end select
     return
   end subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Output
@@ -1424,11 +1424,13 @@ contains
   !# </galacticusStateStoreTask>
   subroutine Node_Component_Spheroid_Standard_State_Store(stateFile,fgslStateFile)
     !% Write the tablulation state to file.
+    use Galacticus_Display
     use FGSL
     implicit none
     integer           , intent(in   ) :: stateFile
     type   (fgsl_file), intent(in   ) :: fgslStateFile
 
+    call Galacticus_Display_Message('Storing state for: treeNodeMethodSpheroid -> standard',verbosity=verbosityInfo)
     write (stateFile) spheroidAngularMomentumAtScaleRadius
     call spheroidMassDistribution%stateStore(stateFile,fgslStateFile)
     return
@@ -1439,11 +1441,13 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Node_Component_Spheroid_Standard_State_Retrieve(stateFile,fgslStateFile)
     !% Retrieve the tabulation state from the file.
+    use Galacticus_Display
     use FGSL
     implicit none
     integer           , intent(in   ) :: stateFile
     type   (fgsl_file), intent(in   ) :: fgslStateFile
 
+    call Galacticus_Display_Message('Retrieving state for: treeNodeMethodSpheroid -> standard',verbosity=verbosityInfo)
     read (stateFile) spheroidAngularMomentumAtScaleRadius
     call spheroidMassDistribution%stateRestore(stateFile,fgslStateFile)
     return

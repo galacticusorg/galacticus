@@ -228,14 +228,14 @@ contains
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Merging_Statistics_Standard_Merger_Tree_Init</unitName>
   !# </mergerTreeInitializeTask>
-  subroutine Node_Component_Merging_Statistics_Standard_Merger_Tree_Init(thisNode)
+  subroutine Node_Component_Merging_Statistics_Standard_Merger_Tree_Init(node)
     !% Initialize the merging statistics component by creating components in nodes and computing formation times.
     use Dark_Matter_Halo_Formation_Times
     implicit none
-    type   (treeNode                      ), intent(inout), pointer :: thisNode
-    type   (treeNode                      )               , pointer :: hostNode
-    class  (nodeComponentMergingStatistics)               , pointer :: thisMergingStatistics
-    class  (nodeComponentBasic            )               , pointer :: thisBasic
+    type   (treeNode                      ), intent(inout), pointer :: node
+    type   (treeNode                      )               , pointer :: nodeHost
+    class  (nodeComponentMergingStatistics)               , pointer :: mergingStatistics
+    class  (nodeComponentBasic            )               , pointer :: basic
     integer                                                         :: nodeHierarchyLevel
 
     ! Return immediately if this class is not active.
@@ -245,50 +245,50 @@ contains
     call Node_Component_Merging_Statistics_Standard_Initialize()
     ! Find the initial hierarchy level.
     nodeHierarchyLevel =  0
-    hostNode       => thisNode
-    do while (hostNode%isSatellite())
+    nodeHost       => node
+    do while (nodeHost%isSatellite())
        nodeHierarchyLevel =  nodeHierarchyLevel       +1
-       hostNode           => hostNode          %parent
+       nodeHost           => nodeHost          %parent
     end do    
     ! Create a merger statistics component and initialize it. 
-    thisMergingStatistics => thisNode%mergingStatistics(autoCreate=.true.)
-    thisBasic             => thisNode%basic            (                 )
-    call thisMergingStatistics%       nodeHierarchyLevelSet(nodeHierarchyLevel  )
-    call thisMergingStatistics%nodeHierarchyLevelMaximumSet(nodeHierarchyLevel  )
-    call thisMergingStatistics%    massWhenFirstIsolatedSet(thisBasic%mass())
-    call thisMergingStatistics%    galaxyMajorMergerTimeSet(        -1.0d0  )
-    call thisMergingStatistics%      nodeMajorMergerTimeSet(        -1.0d0  )
-    call thisMergingStatistics%        nodeFormationTimeSet(Dark_Matter_Halo_Formation_Time(thisNode,nodeFormationMassFraction))
+    mergingStatistics => node%mergingStatistics(autoCreate=.true.)
+    basic             => node%basic            (                 )
+    call mergingStatistics%       nodeHierarchyLevelSet(nodeHierarchyLevel)
+    call mergingStatistics%nodeHierarchyLevelMaximumSet(nodeHierarchyLevel)
+    call mergingStatistics%    massWhenFirstIsolatedSet(      basic%mass())
+    call mergingStatistics%    galaxyMajorMergerTimeSet(            -1.0d0)
+    call mergingStatistics%      nodeMajorMergerTimeSet(            -1.0d0)
+    call mergingStatistics%        nodeFormationTimeSet(Dark_Matter_Halo_Formation_Time(node,nodeFormationMassFraction))
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Merger_Tree_Init
 
   !# <nodeMergerTask>
   !#  <unitName>Node_Component_Merging_Statistics_Standard_Node_Merger</unitName>
   !# </nodeMergerTask>
-  subroutine Node_Component_Merging_Statistics_Standard_Node_Merger(thisNode)
-    !% Record any major merger of {\normalfont \ttfamily thisNode}.
+  subroutine Node_Component_Merging_Statistics_Standard_Node_Merger(node)
+    !% Record any major merger of {\normalfont \ttfamily node}.
     implicit none
-    type (treeNode                      ), intent(inout), pointer :: thisNode
-    class(nodeComponentMergingStatistics)               , pointer :: parentMergingStatisticsComponent, thisMergingStatisticsComponent
-    class(nodeComponentBasic            )               , pointer :: parentBasicComponent            , thisBasicComponent
+    type (treeNode                      ), intent(inout), pointer :: node
+    class(nodeComponentMergingStatistics)               , pointer :: mergingStatisticsParent, mergingStatistics
+    class(nodeComponentBasic            )               , pointer :: parentBasicComponent            , basic
     
     ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%standardIsActive()) return
 
-    thisBasicComponent               => thisNode       %basic            ()
-    parentBasicComponent             => thisNode%parent%basic            ()
-    thisMergingStatisticsComponent   => thisNode       %mergingStatistics()
-    parentMergingStatisticsComponent => thisNode%parent%mergingStatistics()
+    basic                            => node       %basic            ()
+    parentBasicComponent             => node%parent%basic            ()
+    mergingStatistics       => node       %mergingStatistics()
+    mergingStatisticsParent => node%parent%mergingStatistics()
     ! Record the merger time if this is a major merger.
-    if (thisBasicComponent%mass() >= nodeMajorMergerFraction*parentBasicComponent%mass()) &
-         &  call parentMergingStatisticsComponent%nodeMajorMergerTimeSet(thisBasicComponent%time())
+    if (basic%mass() >= nodeMajorMergerFraction*parentBasicComponent%mass()) &
+         &  call mergingStatisticsParent%nodeMajorMergerTimeSet(basic%time())
     ! Increment the hierarchy level of the merging node.
-    call Node_Component_Merging_Statistics_Standard_Reset_Hierarchy(thisNode)
-    call thisMergingStatisticsComponent%nodeHierarchyLevelSet       (    thisMergingStatisticsComponent%nodeHierarchyLevel       ()+1)
-    call thisMergingStatisticsComponent%nodeHierarchyLevelMaximumSet(                                                                   &
+    call Node_Component_Merging_Statistics_Standard_Reset_Hierarchy(node)
+    call mergingStatistics%nodeHierarchyLevelSet       (    mergingStatistics%nodeHierarchyLevel       ()+1)
+    call mergingStatistics%nodeHierarchyLevelMaximumSet(                                                                   &
          &                                                           max(                                                               &
-         &                                                               thisMergingStatisticsComponent%nodeHierarchyLevel       ()   , &
-         &                                                               thisMergingStatisticsComponent%nodeHierarchyLevelMaximum()     &
+         &                                                               mergingStatistics%nodeHierarchyLevel       ()   , &
+         &                                                               mergingStatistics%nodeHierarchyLevelMaximum()     &
          &                                                              )                                                               &
          &                                                          )
     return
@@ -297,45 +297,45 @@ contains
   !# <nodePromotionTask>
   !#  <unitName>Node_Component_Merging_Statistics_Standard_Node_Promotion</unitName>
   !# </nodePromotionTask>
-  subroutine Node_Component_Merging_Statistics_Standard_Node_Promotion(thisNode)
-    !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, we simply update the node merger time.
+  subroutine Node_Component_Merging_Statistics_Standard_Node_Promotion(node)
+    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the node merger time.
     implicit none
-    type (treeNode                      ), intent(inout), pointer :: thisNode
-    class(nodeComponentMergingStatistics)               , pointer :: parentMergingStatisticsComponent, thisMergingStatisticsComponent
-    class(nodeComponentBasic            )               , pointer :: parentBasicComponent
+    type (treeNode                      ), intent(inout), pointer :: node
+    class(nodeComponentMergingStatistics)               , pointer :: mergingStatisticsParent, mergingStatistics
+    class(nodeComponentBasic            )               , pointer :: basicParent
     
     ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%standardIsActive()) return
 
     ! Get the merging statistics components.
-    parentMergingStatisticsComponent => thisNode%parent%mergingStatistics()
-    thisMergingStatisticsComponent   => thisNode       %mergingStatistics()
-    parentBasicComponent             => thisNode%parent%basic            ()
-    call Node_Component_Merging_Statistics_Standard_Reset_Hierarchy(thisNode)
-    if (parentMergingStatisticsComponent%nodeMajorMergerTime() > thisMergingStatisticsComponent%nodeMajorMergerTime()) &
-         & call thisMergingStatisticsComponent%nodeMajorMergerTimeSet(parentMergingStatisticsComponent%nodeMajorMergerTime())
-    call thisMergingStatisticsComponent%nodeHierarchyLevelSet(parentMergingStatisticsComponent%nodeHierarchyLevel())
-    call thisMergingStatisticsComponent%nodeFormationTimeSet (parentMergingStatisticsComponent%nodeFormationTime ())
+    mergingStatisticsParent => node%parent%mergingStatistics()
+    mergingStatistics       => node       %mergingStatistics()
+    basicParent             => node%parent%basic            ()
+    call Node_Component_Merging_Statistics_Standard_Reset_Hierarchy(node)
+    if (mergingStatisticsParent%nodeMajorMergerTime() > mergingStatistics%nodeMajorMergerTime()) &
+         & call mergingStatistics%nodeMajorMergerTimeSet(mergingStatisticsParent%nodeMajorMergerTime())
+    call mergingStatistics%nodeHierarchyLevelSet(mergingStatisticsParent%nodeHierarchyLevel())
+    call mergingStatistics%nodeFormationTimeSet (mergingStatisticsParent%nodeFormationTime ())
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Node_Promotion
 
   !# <postEvolveTask>
   !# <unitName>Node_Component_Merging_Statistics_Standard_Reset_Hierarchy</unitName>
   !# </postEvolveTask>
-  subroutine Node_Component_Merging_Statistics_Standard_Reset_Hierarchy(thisNode)
+  subroutine Node_Component_Merging_Statistics_Standard_Reset_Hierarchy(node)
     !% Reset the maximum node hierarchy level if the node has grown sufficiently in mass.
     implicit none
-    type            (treeNode                      ), intent(inout), pointer :: thisNode
-    class           (nodeComponentBasic            )               , pointer :: thisBasicComponent
-    class           (nodeComponentMergingStatistics)               , pointer :: thisMergingStatistics
+    type            (treeNode                      ), intent(inout), pointer :: node
+    class           (nodeComponentBasic            )               , pointer :: basic
+    class           (nodeComponentMergingStatistics)               , pointer :: mergingStatistics
 
     ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%standardIsActive()) return
     ! Test if previous mass at promotion has been exceeded by a sufficient factor.
-    thisBasicComponent    => thisNode%basic            ()
-    thisMergingStatistics => thisNode%mergingStatistics()
-    if (thisBasicComponent%mass() > hierarchyLevelResetFactor*thisMergingStatistics%massWhenFirstIsolated()) &
-         & call thisMergingStatistics%nodeHierarchyLevelMaximumSet(thisMergingStatistics%nodeHierarchyLevel())
+    basic    => node%basic            ()
+    mergingStatistics => node%mergingStatistics()
+    if (basic%mass() > hierarchyLevelResetFactor*mergingStatistics%massWhenFirstIsolated()) &
+         & call mergingStatistics%nodeHierarchyLevelMaximumSet(mergingStatistics%nodeHierarchyLevel())
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Reset_Hierarchy
     
@@ -343,14 +343,14 @@ contains
   !#  <unitName>Node_Component_Merging_Statistics_Standard_Satellite_Merging</unitName>
   !#  <after>Satellite_Merging_Mass_Movement_Store</after>
   !# </satelliteMergerTask>
-  subroutine Node_Component_Merging_Statistics_Standard_Satellite_Merging(thisNode)
-    !% Record properties of a merging event for {\normalfont \ttfamily thisNode}.
+  subroutine Node_Component_Merging_Statistics_Standard_Satellite_Merging(node)
+    !% Record properties of a merging event for {\normalfont \ttfamily node}.
     use Satellite_Merging_Mass_Movements_Descriptors
     implicit none
-    type (treeNode                      ), intent(inout), pointer :: thisNode
-    type (treeNode                      )               , pointer :: hostNode
-    class(nodeComponentBasic            )               , pointer :: hostBasicComponent
-    class(nodeComponentMergingStatistics)               , pointer :: hostMergingStatisticsComponent
+    type (treeNode                      ), intent(inout), pointer :: node
+    type (treeNode                      )               , pointer :: nodeHost
+    class(nodeComponentBasic            )               , pointer :: basicHost
+    class(nodeComponentMergingStatistics)               , pointer :: mergingStatisticsHost
 
     ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%standardIsActive()) return
@@ -358,11 +358,11 @@ contains
     ! Record the time of this merger if it is a major merger.
     if (thisMergerIsMajor) then
        ! Find the node to merge with.
-       hostNode                       => thisNode%mergesWith       ()
-       hostBasicComponent             => hostNode%basic            ()
-       hostMergingStatisticsComponent => hostNode%mergingStatistics()
+       nodeHost              => node    %mergesWith       ()
+       basicHost             => nodeHost%basic            ()
+       mergingStatisticsHost => nodeHost%mergingStatistics()
        ! Record the merger time.
-       call hostMergingStatisticsComponent%galaxyMajorMergerTimeSet(hostBasicComponent%time())
+       call mergingStatisticsHost%galaxyMajorMergerTimeSet(basicHost%time())
     end if
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Satellite_Merging

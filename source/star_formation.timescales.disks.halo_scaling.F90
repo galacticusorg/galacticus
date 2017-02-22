@@ -121,14 +121,14 @@ contains
     return
   end subroutine Star_Formation_Timescale_Disks_Halo_Scaling_Initialize
 
-  double precision function Star_Formation_Timescale_Disk_Halo_Scaling(thisNode)
-    !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\normalfont \ttfamily thisNode} in the halo scaling timescale model.
+  double precision function Star_Formation_Timescale_Disk_Halo_Scaling(node)
+    !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\normalfont \ttfamily node} in the halo scaling timescale model.
     use Cosmology_Functions
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode                ), intent(inout), target :: thisNode
-    class           (nodeComponentBasic      ), pointer               :: thisBasicComponent
-    class           (cosmologyFunctionsClass ), pointer               :: cosmologyFunctionsDefault
+    type            (treeNode                ), intent(inout), target :: node
+    class           (nodeComponentBasic      ), pointer               :: basic
+    class           (cosmologyFunctionsClass ), pointer               :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass), pointer               :: darkMatterHaloScale_
     double precision                          , parameter             :: virialVelocityNormalization=200.0d0
     double precision                          , save                  :: velocityPrevious           =-1.0d0 , velocityFactorPrevious       =-1.0d0
@@ -138,20 +138,20 @@ contains
     double precision                                                  :: expansionFactor                    , virialVelocity
 
     ! Get the basic component.
-    thisBasicComponent => thisNode%basic()
+    basic => node%basic()
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (thisNode%uniqueID() /= lastUniqueID) call Star_Formation_Timescale_Disks_Halo_Scaling_Reset(thisNode)
+    if (node%uniqueID() /= lastUniqueID) call Star_Formation_Timescale_Disks_Halo_Scaling_Reset(node)
 
     ! Compute the timescale if necessary.
     if (.not.timescaleComputed) then
        ! Get the default cosmology functions object.
-       cosmologyFunctionsDefault => cosmologyFunctions ()
-       darkMatterHaloScale_      => darkMatterHaloScale()
+       cosmologyFunctions_  => cosmologyFunctions ()
+       darkMatterHaloScale_ => darkMatterHaloScale()
 
        ! Get virial velocity and expansion factor.
-       virialVelocity =darkMatterHaloScale_%virialVelocity(thisNode                 )
-       expansionFactor=cosmologyFunctionsDefault%expansionFactor                (thisBasicComponent%time())
+       virialVelocity =darkMatterHaloScale_%virialVelocity (node        )
+       expansionFactor=cosmologyFunctions_ %expansionFactor(basic%time())
 
        ! Compute the velocity factor.
        if (virialVelocity /= velocityPrevious) then
@@ -183,13 +183,13 @@ contains
   !# <calculationResetTask>
   !# <unitName>Star_Formation_Timescale_Disks_Halo_Scaling_Reset</unitName>
   !# </calculationResetTask>
-  subroutine Star_Formation_Timescale_Disks_Halo_Scaling_Reset(thisNode)
+  subroutine Star_Formation_Timescale_Disks_Halo_Scaling_Reset(node)
     !% Reset the halo scaling disk star formation timescale calculation.
     implicit none
-    type(treeNode), intent(inout) :: thisNode
+    type(treeNode), intent(inout) :: node
 
     timescaleComputed=.false.
-    lastUniqueID     =thisNode%uniqueID()
+    lastUniqueID     =node%uniqueID()
     return
   end subroutine Star_Formation_Timescale_Disks_Halo_Scaling_Reset
 

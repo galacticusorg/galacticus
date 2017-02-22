@@ -55,37 +55,37 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Met_Dstrbtins
 
   ! Interface for mass mapping functions.
   abstract interface
-     double precision function Map_Mass(mass,thisNode)
+     double precision function Map_Mass(mass,node)
        import treeNode
        double precision          , intent(in   )          :: mass
-       type            (treeNode), intent(inout), pointer :: thisNode
+       type            (treeNode), intent(inout), pointer :: node
      end function Map_Mass
   end interface
 
   ! Interface for metallicity mapping functions.
   abstract interface
-     double precision function Map_Metallicity(radius,thisNode)
+     double precision function Map_Metallicity(radius,node)
        import treeNode
        double precision          , intent(in   )          :: radius
-       type            (treeNode), intent(inout), pointer :: thisNode
+       type            (treeNode), intent(inout), pointer :: node
      end function Map_Metallicity
   end interface
 
   ! Interface for mass error functions.
   abstract interface
-     double precision function Mass_Error(mass,thisNode)
+     double precision function Mass_Error(mass,node)
        import treeNode
        double precision          , intent(in   )          :: mass
-       type            (treeNode), intent(inout), pointer :: thisNode
+       type            (treeNode), intent(inout), pointer :: node
      end function Mass_Error
   end interface
 
   ! Interface for metallicity error functions.
   abstract interface
-     double precision function Metallicity_Error(radius,thisNode)
+     double precision function Metallicity_Error(radius,node)
        import treeNode
        double precision          , intent(in   )          :: radius
-       type            (treeNode), intent(inout), pointer :: thisNode
+       type            (treeNode), intent(inout), pointer :: node
      end function Metallicity_Error
   end interface
 
@@ -199,8 +199,8 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Met_Dstrbtins
   end type metallicityDistributionWork
 
   ! Work array.
-  type(metallicityDistributionWork), allocatable, dimension(:) :: thisGalaxy
-  !$omp threadprivate(thisGalaxy)
+  type(metallicityDistributionWork), allocatable, dimension(:) :: galaxyWork
+  !$omp threadprivate(galaxyWork)
   
   ! Options controlling binning in halo mass.
   integer                     :: analysisMetallicityDistributionCovarianceModel
@@ -215,7 +215,7 @@ contains
   !# <mergerTreeAnalysisTask>
   !#  <unitName>Galacticus_Output_Analysis_Mass_Dpndnt_Met_Dstrbtins</unitName>
   !# </mergerTreeAnalysisTask>
-  subroutine Galacticus_Output_Analysis_Mass_Dpndnt_Met_Dstrbtins(thisTree,thisNode,nodeStatus,iOutput,mergerTreeAnalyses)
+  subroutine Galacticus_Output_Analysis_Mass_Dpndnt_Met_Dstrbtins(tree,node,nodeStatus,iOutput,mergerTreeAnalyses)
     !% Construct metallicity distributions to compare to various observational determinations.
     use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
@@ -239,15 +239,15 @@ contains
     use Numerical_Ranges
     use Numerical_Constants_Astronomical
     implicit none
-    type            (mergerTree                    ), intent(in   )                 :: thisTree
-    type            (treeNode                      ), intent(inout), pointer        :: thisNode
+    type            (mergerTree                    ), intent(in   )                 :: tree
+    type            (treeNode                      ), intent(inout), pointer        :: node
     integer                                         , intent(in   )                 :: nodeStatus
     integer         (c_size_t                      ), intent(in   )                 :: iOutput
     type            (varying_string                ), intent(in   ), dimension(:  ) :: mergerTreeAnalyses
     double precision                                , allocatable  , dimension(:  ) :: metallicities
-    class           (nodeComponentBasic            )               , pointer        :: thisBasic
-    class           (nodeComponentDisk             )               , pointer        :: thisDisk
-    class           (nodeComponentSpheroid         )               , pointer        :: thisSpheroid
+    class           (nodeComponentBasic            )               , pointer        :: basic
+    class           (nodeComponentDisk             )               , pointer        :: disk
+    class           (nodeComponentSpheroid         )               , pointer        :: spheroid
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )               , pointer        :: cosmologyParametersObserved
@@ -885,43 +885,43 @@ contains
     ! Return if this is a tree finalization.
     if (nodeStatus          == nodeStatusFinal) return
     ! Allocate work arrays.
-    if (.not.allocated(thisGalaxy)) allocate(thisGalaxy(size(metallicityDistributions)))
+    if (.not.allocated(galaxyWork)) allocate(galaxyWork(size(metallicityDistributions)))
     ! Iterate over active analyses.
     do i=1,size(metallicityDistributions)
        ! Cycle if this metallicity distribution receives no contribution from this output.
        if (all(metallicityDistributions(i)%outputWeight(:,iOutput) <= 0.0d0)) cycle
        ! Allocate workspace.
-       if (.not.allocated(thisGalaxy(i)%metallicityDistribution       )) call allocateArray(thisGalaxy(i)%metallicityDistribution       ,[metallicityDistributions(i)%metallicitiesCount,metallicityDistributions(i)%massesCount])
-       if (.not.allocated(thisGalaxy(i)%metallicityDistributionWeights)) call allocateArray(thisGalaxy(i)%metallicityDistributionWeights,[                                               metallicityDistributions(i)%massesCount])
+       if (.not.allocated(galaxyWork(i)%metallicityDistribution       )) call allocateArray(galaxyWork(i)%metallicityDistribution       ,[metallicityDistributions(i)%metallicitiesCount,metallicityDistributions(i)%massesCount])
+       if (.not.allocated(galaxyWork(i)%metallicityDistributionWeights)) call allocateArray(galaxyWork(i)%metallicityDistributionWeights,[                                               metallicityDistributions(i)%massesCount])
        ! Filter the galaxy.
-       if (.not.metallicityDistributions(i)%descriptor%filter%passes(thisNode)) cycle
+       if (.not.metallicityDistributions(i)%descriptor%filter%passes(node)) cycle
        ! Get the galactic mass.
        mass=                                                                                                                                                       &
-            &  Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeDisk    ,massType=metallicityDistributions(i)%descriptor%massType) &
-            & +Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeSpheroid,massType=metallicityDistributions(i)%descriptor%massType)
+            &  Galactic_Structure_Enclosed_Mass(node,radiusLarge,componentType=componentTypeDisk    ,massType=metallicityDistributions(i)%descriptor%massType) &
+            & +Galactic_Structure_Enclosed_Mass(node,radiusLarge,componentType=componentTypeSpheroid,massType=metallicityDistributions(i)%descriptor%massType)
        if (mass <= 0.0d0) cycle
-       if (associated(metallicityDistributions(i)%descriptor%mapMass)) mass=metallicityDistributions(i)%descriptor%mapMass(mass,thisNode)
+       if (associated(metallicityDistributions(i)%descriptor%mapMass)) mass=metallicityDistributions(i)%descriptor%mapMass(mass,node)
        ! Get the metal mass.
-       thisDisk     => thisNode%disk    ()
-       thisSpheroid => thisNode%spheroid()
+       disk     => node%disk    ()
+       spheroid => node%spheroid()
        select case (metallicityDistributions(i)%descriptor%metallicityType)
        case (massTypeStellar)
-          abundancesDisk    =thisDisk    %abundancesStellar()
-          abundancesSpheroid=thisSpheroid%abundancesStellar()
+          abundancesDisk    =disk    %abundancesStellar()
+          abundancesSpheroid=spheroid%abundancesStellar()
        case (massTypeGaseous)
-          abundancesDisk    =thisDisk    %abundancesGas    ()
-          abundancesSpheroid=thisSpheroid%abundancesGas    ()
+          abundancesDisk    =disk    %abundancesGas    ()
+          abundancesSpheroid=spheroid%abundancesGas    ()
        end select
        metallicityMass=                                                                                                                                                   &
-            &  Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeDisk    ,massType=metallicityDistributions(i)%descriptor%metallicityType) &
-            & +Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeSpheroid,massType=metallicityDistributions(i)%descriptor%metallicityType)
+            &  Galactic_Structure_Enclosed_Mass(node,radiusLarge,componentType=componentTypeDisk    ,massType=metallicityDistributions(i)%descriptor%metallicityType) &
+            & +Galactic_Structure_Enclosed_Mass(node,radiusLarge,componentType=componentTypeSpheroid,massType=metallicityDistributions(i)%descriptor%metallicityType)
        if (metallicityMass > 0.0d0) then
           metallicity=(abundancesDisk%metallicity()+abundancesSpheroid%metallicity())/metallicityMass
        else
           metallicity=0.0d0
        end if
        if (metallicity <= 0.0d0) cycle
-       if (associated(metallicityDistributions(i)%descriptor%mapMetallicity)) metallicity=metallicityDistributions(i)%descriptor%mapMetallicity(metallicity,thisNode)
+       if (associated(metallicityDistributions(i)%descriptor%mapMetallicity)) metallicity=metallicityDistributions(i)%descriptor%mapMetallicity(metallicity,node)
        ! Convert mass for cosmology and systematics.
        mass=mass*metallicityDistributions(i)%cosmologyConversionMass(iOutput)
        massLogarithmic=log10(mass)
@@ -949,7 +949,7 @@ contains
        end do
        ! Compute contributions to each bin.
        if (associated(metallicityDistributions(i)%descriptor%massRandomErrorFunction)) then
-          massRandomError=metallicityDistributions(i)%descriptor%massRandomErrorFunction(mass,thisNode)
+          massRandomError=metallicityDistributions(i)%descriptor%massRandomErrorFunction(mass,node)
        else
           massRandomError=0.0d0
           do j=1,metallicityDistributions(i)%descriptor%massRandomCoefficientCount
@@ -963,7 +963,7 @@ contains
           massRandomError=max(massRandomError,massRandomErrorMinimum)
        end if
        if (associated(metallicityDistributions(i)%descriptor%metallicityRandomErrorFunction)) then
-          metallicityRandomError=metallicityDistributions(i)%descriptor%metallicityRandomErrorFunction(metallicity,thisNode)
+          metallicityRandomError=metallicityDistributions(i)%descriptor%metallicityRandomErrorFunction(metallicity,node)
        else         
           metallicityRandomError=0.0d0
           do j=1,metallicityDistributions(i)%descriptor%metallicityRandomCoefficientCount
@@ -976,60 +976,60 @@ contains
           end do
           metallicityRandomError=max(metallicityRandomError,metallicityRandomErrorMinimum)
        end if
-       thisGalaxy(i)%metallicityDistributionWeights=(                                                                                                                              &
+       galaxyWork(i)%metallicityDistributionWeights=(                                                                                                                              &
             &                                        +erf((metallicityDistributions(i)%massesLogarithmicMaximum       -       massLogarithmic)/       massRandomError/sqrt(2.0d0)) &
             &                                        -erf((metallicityDistributions(i)%massesLogarithmicMinimum       -       massLogarithmic)/       massRandomError/sqrt(2.0d0)) &
             &                                       )                                                                                                                              &
             &                                       /2.0d0                                                                                                                         &
-            &                                       *thisTree%volumeWeight
+            &                                       *tree%volumeWeight
        select case (metallicityDistributions(i)%descriptor%statisticType)
        case (statisticDistribution)
           do j=1,metallicityDistributions(i)%massesCount
-             thisGalaxy(i)%metallicityDistribution(:,j)=+(                                                                                                                              &
+             galaxyWork(i)%metallicityDistribution(:,j)=+(                                                                                                                              &
                   &                                       +erf((metallicityDistributions(i)%metallicitiesLogarithmicMaximum-metallicityLogarithmic)/metallicityRandomError/sqrt(2.0d0)) &
                   &                                       -erf((metallicityDistributions(i)%metallicitiesLogarithmicMinimum-metallicityLogarithmic)/metallicityRandomError/sqrt(2.0d0)) &
                   &                                      )                                                                                                                              &
                   &                                     /2.0d0&
-                  &                                     *thisGalaxy(i)%metallicityDistributionWeights(j)
+                  &                                     *galaxyWork(i)%metallicityDistributionWeights(j)
           end do
        case (statisticMean        )
-          thisGalaxy(i)%metallicityDistribution(1,:)=+metallicity*thisGalaxy(i)%metallicityDistributionWeights(:)
-          thisGalaxy(i)%metallicityDistribution(2,:)=+            thisGalaxy(i)%metallicityDistributionWeights(:)
+          galaxyWork(i)%metallicityDistribution(1,:)=+metallicity*galaxyWork(i)%metallicityDistributionWeights(:)
+          galaxyWork(i)%metallicityDistribution(2,:)=+            galaxyWork(i)%metallicityDistributionWeights(:)
        end select
        ! Apply output weights.
        do j=1,metallicityDistributions(i)%metallicitiesCount
-          thisGalaxy                      (i)%metallicityDistribution(j,:        ) &
-               & =thisGalaxy              (i)%metallicityDistribution(j,:        ) &
+          galaxyWork                      (i)%metallicityDistribution(j,:        ) &
+               & =galaxyWork              (i)%metallicityDistribution(j,:        ) &
                & *metallicityDistributions(i)%outputWeight           (  :,iOutput)
        end do
-       thisGalaxy(i)%metallicityDistributionWeights=thisGalaxy(i)%metallicityDistributionWeights*metallicityDistributions(i)%outputWeight(:,iOutput)
+       galaxyWork(i)%metallicityDistributionWeights=galaxyWork(i)%metallicityDistributionWeights*metallicityDistributions(i)%outputWeight(:,iOutput)
        ! Accumulate metallicity distribution.
-       if (any(thisGalaxy(i)%metallicityDistribution /= 0.0d0)) then
+       if (any(galaxyWork(i)%metallicityDistribution /= 0.0d0)) then
           !$omp critical (Galacticus_Output_Analysis_Mass_Dpndnt_Met_Dstrbtins_Accumulate)
-          metallicityDistributions(i)%metallicityDistribution       =metallicityDistributions(i)%metallicityDistribution       +thisGalaxy(i)%metallicityDistribution
-          metallicityDistributions(i)%metallicityDistributionWeights=metallicityDistributions(i)%metallicityDistributionWeights+thisGalaxy(i)%metallicityDistributionWeights
+          metallicityDistributions(i)%metallicityDistribution       =metallicityDistributions(i)%metallicityDistribution       +galaxyWork(i)%metallicityDistribution
+          metallicityDistributions(i)%metallicityDistributionWeights=metallicityDistributions(i)%metallicityDistributionWeights+galaxyWork(i)%metallicityDistributionWeights
           !$omp end critical (Galacticus_Output_Analysis_Mass_Dpndnt_Met_Dstrbtins_Accumulate)
           ! Treat main branch and other galaxies differently.
-          if (thisNode%isOnMainBranch().and.analysisMetallicityDistributionCovarianceModel == analysisMetallicityDistributionCovarianceModelBinomial) then
+          if (node%isOnMainBranch().and.analysisMetallicityDistributionCovarianceModel == analysisMetallicityDistributionCovarianceModelBinomial) then
              ! Find the bin to which this halo mass belongs.
-             thisBasic => thisNode%basic()
-             haloMassBin=floor((log10(thisBasic%mass())-analysisMetallicityDistributionsHaloMassMinimumLogarithmic)*analysisMtllctyDstrbtnsHaloMassIntervalLogarithmicInverse)+1
+             basic => node%basic()
+             haloMassBin=floor((log10(basic%mass())-analysisMetallicityDistributionsHaloMassMinimumLogarithmic)*analysisMtllctyDstrbtnsHaloMassIntervalLogarithmicInverse)+1
              ! Accumulate weights to halo mass arrays.
              if (haloMassBin >= 1 .and. haloMassBin <= analysisMetallicityDistributionsHaloMassBinsCount) then
                 !$omp critical (Galacticus_Output_Analysis_Mass_Dpndnt_Met_Dstrbtins_Accumulate)
                 metallicityDistributions        (i)%mainBranchGalaxyWeights       (:,:,haloMassBin)= &
                      &  metallicityDistributions(i)%mainBranchGalaxyWeights       (:,:,haloMassBin)  &
-                     &  +thisGalaxy  (i)%metallicityDistribution
+                     &  +galaxyWork  (i)%metallicityDistribution
                 metallicityDistributions        (i)%mainBranchGalaxyWeightsSquared(:,:,haloMassBin)= &
                      &  metallicityDistributions(i)%mainBranchGalaxyWeightsSquared(:,:,haloMassBin)  &
-                     &  +thisGalaxy  (i)%metallicityDistribution**2
+                     &  +galaxyWork  (i)%metallicityDistribution**2
                 !$omp end critical (Galacticus_Output_Analysis_Mass_Dpndnt_Met_Dstrbtins_Accumulate)
              end if
           else
              !$omp critical (Galacticus_Output_Analysis_Mass_Dpndnt_Met_Dstrbtins_Accumulate)
              call Vector_Outer_Product_Accumulate(                                                                         &
                   &                               reshape(                                                                 &
-                  &                                       thisGalaxy(i)%metallicityDistribution                          , &
+                  &                                       galaxyWork(i)%metallicityDistribution                          , &
                   &                                       [                                                                &
                   &                                        +metallicityDistributions(i)%massesCount                        &
                   &                                        *metallicityDistributions(i)%metallicitiesCount                 &
@@ -1058,7 +1058,7 @@ contains
     double precision            , allocatable, dimension(:  ) :: metallicityMean
     double precision            , allocatable, dimension(:,:) :: metallicityMeanCovariance, jacobian
     integer                                                   :: k,m,mi,zi,mj,zj,ci,cj
-    type            (hdf5Object)                              :: analysisGroup,metallicityDistributionGroup,thisDataset
+    type            (hdf5Object)                              :: analysisGroup,metallicityDistributionGroup,dataset
     double precision                                          :: haloWeightBinTotal
     type            (matrix    )                              :: jacobianMatrix, covarianceMatrix
 
@@ -1163,9 +1163,9 @@ contains
        !$omp critical(HDF5_Access)
        analysisGroup               =galacticusOutputFile%openGroup('analysis','Model analysis')
        metallicityDistributionGroup=analysisGroup       %openGroup(trim(metallicityDistributions(k)%descriptor%label),trim(metallicityDistributions(k)%descriptor%comment))
-       call        metallicityDistributionGroup%writeDataset  (metallicityDistributions(k)%masses                           ,'mass'                             ,'Mass'                               ,datasetReturned=thisDataset)
-       call        thisDataset                 %writeAttribute(metallicityDistributions(k)%descriptor%massUnitsInSI         ,'unitsInSI'                                                                                          )
-       call        thisDataset                 %close()
+       call        metallicityDistributionGroup%writeDataset  (metallicityDistributions(k)%masses                           ,'mass'                             ,'Mass'                               ,datasetReturned=dataset)
+       call        dataset                 %writeAttribute(metallicityDistributions(k)%descriptor%massUnitsInSI         ,'unitsInSI'                                                                                          )
+       call        dataset                 %close()
        if (allocated(metallicityDistributions(k)%metallicities)) &
             & call metallicityDistributionGroup%writeDataset  (metallicityDistributions(k)%metallicities                    ,'metallicity'                      ,'Metallicity'                                                    )
        call        metallicityDistributionGroup%writeDataset  (metallicityDistributions(k)%metallicityDistribution          ,'metallicityDistribution'          ,'Metallicity distribution'                                       )
@@ -1177,26 +1177,26 @@ contains
     return
   end subroutine Galacticus_Output_Analysis_Mass_Dpndnt_Met_Dstrbtins_Output
 
-  double precision function Map_Metallicity_SDSS_Stellar_Phase_Z0_07(metallicity,thisNode)
+  double precision function Map_Metallicity_SDSS_Stellar_Phase_Z0_07(metallicity,node)
     !% Maps raw metallicities into Solar units.
     use Numerical_Constants_Astronomical
     implicit none
     double precision          , intent(in   )          :: metallicity
-    type            (treeNode), intent(inout), pointer :: thisNode
-    !GCC$ attributes unused :: thisNode
+    type            (treeNode), intent(inout), pointer :: node
+    !GCC$ attributes unused :: node
 
     Map_Metallicity_SDSS_Stellar_Phase_Z0_07=metallicity/metallicitySolar
     return
   end function Map_Metallicity_SDSS_Stellar_Phase_Z0_07
 
-  double precision function Map_Metallicity_SDSS_Gas_Phase_Z0_07(metallicity,thisNode)
+  double precision function Map_Metallicity_SDSS_Gas_Phase_Z0_07(metallicity,node)
     !% Maps raw metallicities into 12+log(O/H) units. \cite{andrews_mass-metallicity_2013}
     !% assume 12+log(O/H)=8.86 for the Solar oxygen abundance.
     use Numerical_Constants_Astronomical
     implicit none
     double precision          , intent(in   )          :: metallicity
-    type            (treeNode), intent(inout), pointer :: thisNode
-    !GCC$ attributes unused :: thisNode
+    type            (treeNode), intent(inout), pointer :: node
+    !GCC$ attributes unused :: node
     
     Map_Metallicity_SDSS_Gas_Phase_Z0_07=+10.0d0**8.86d0   &
          &                               *metallicity      &

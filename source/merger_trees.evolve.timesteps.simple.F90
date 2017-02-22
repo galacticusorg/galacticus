@@ -35,8 +35,8 @@ contains
   !# <timeStepsTask>
   !#  <unitName>Merger_Tree_Timestep_Simple</unitName>
   !# </timeStepsTask>
-  subroutine Merger_Tree_Timestep_Simple(thisNode,timeStep,End_Of_Timestep_Task,report,lockNode,lockType)
-    !% Determine a suitable timestep for {\normalfont \ttfamily thisNode} using the simple method. This simply selects the smaller of {\tt
+  subroutine Merger_Tree_Timestep_Simple(node,timeStep,End_Of_Timestep_Task,report,lockNode,lockType)
+    !% Determine a suitable timestep for {\normalfont \ttfamily node} using the simple method. This simply selects the smaller of {\tt
     !% timestepSimpleAbsolute} and {\normalfont \ttfamily timestepSimpleRelative}$H^{-1}(t)$.
     use Galacticus_Nodes
     use Input_Parameters
@@ -44,16 +44,16 @@ contains
     use Evolve_To_Time_Reports
     use ISO_Varying_String
     implicit none
-    type            (treeNode               ), intent(inout)          , pointer :: thisNode
+    type            (treeNode               ), intent(inout)          , pointer :: node
     procedure       (                       ), intent(inout)          , pointer :: End_Of_Timestep_Task
     double precision                         , intent(inout)                    :: timeStep
     logical                                  , intent(in   )                    :: report
     type            (treeNode               ), intent(inout), optional, pointer :: lockNode
     type            (varying_string         ), intent(inout), optional          :: lockType
-    class           (nodeComponentBasic     )                         , pointer :: thisBasicComponent
-    class           (cosmologyFunctionsClass)                         , pointer :: cosmologyFunctionsDefault
-    double precision                                                            :: expansionFactor          , expansionTimescale, &
-         &                                                                         ourTimeStep              , time
+    class           (nodeComponentBasic     )                         , pointer :: basic
+    class           (cosmologyFunctionsClass)                         , pointer :: cosmologyFunctions_
+    double precision                                                            :: expansionFactor      , expansionTimescale, &
+         &                                                                         ourTimeStep          , time
     !GCC$ attributes unused :: End_Of_Timestep_Task
     
     if (.not.timestepSimpleInitialized) then
@@ -89,16 +89,16 @@ contains
     end if
 
     ! Get the default cosmology functions object.
-    cosmologyFunctionsDefault => cosmologyFunctions()
+    cosmologyFunctions_ => cosmologyFunctions()
 
     ! Get current cosmic time.
-    thisBasicComponent => thisNode%basic()
-    time=thisBasicComponent%time()
+    basic => node%basic()
+    time=basic%time()
     
     ! Find current expansion timescale.
     if (timestepSimpleRelative > 0.0d0) then
-       expansionFactor=cosmologyFunctionsDefault%expansionFactor(time)
-       expansionTimescale=1.0d0/cosmologyFunctionsDefault%expansionRate(expansionFactor)
+       expansionFactor   =      cosmologyFunctions_%expansionFactor(           time)
+       expansionTimescale=1.0d0/cosmologyFunctions_%expansionRate  (expansionFactor)
        ourTimeStep=min(timestepSimpleRelative*expansionTimescale,timestepSimpleAbsolute)
     else
        ourTimeStep=                                              timestepSimpleAbsolute
@@ -106,7 +106,7 @@ contains
        
     ! Set return value if our timestep is smaller than current one.
     if (ourTimeStep < timeStep) then
-       if (present(lockNode)) lockNode => thisNode
+       if (present(lockNode)) lockNode => node
        if (present(lockType)) lockType =  "simple"
        timeStep=ourTimeStep
     end if

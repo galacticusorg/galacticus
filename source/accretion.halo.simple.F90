@@ -262,9 +262,9 @@ contains
     class           (accretionHaloSimple     ), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
     integer                                   , intent(in   ) :: accretionMode
-    class           (nodeComponentBasic      ), pointer       :: thisBasicComponent
-    class           (nodeComponentHotHalo    ), pointer       :: thisHotHaloComponent
-    class           (cosmologyParametersClass), pointer       :: thisCosmologyParameters
+    class           (nodeComponentBasic      ), pointer       :: basic
+    class           (nodeComponentHotHalo    ), pointer       :: hotHalo
+    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
     double precision                                          :: growthRate             , unaccretedMass, &
          &                                                       failedFraction
 
@@ -274,23 +274,23 @@ contains
     ! Get the failed accretion fraction.
     failedFraction=self%failedFraction(node)
     ! Get the default cosmology.
-    thisCosmologyParameters => cosmologyParameters()
-    thisBasicComponent   => node%basic()
-    thisHotHaloComponent => node%hotHalo()
-    simpleAccretionRate=(thisCosmologyParameters%OmegaBaryon()/thisCosmologyParameters%OmegaMatter())*self%accretionRateTotal(node)*(1.0d0-failedFraction)
+    cosmologyParameters_ => cosmologyParameters()
+    basic   => node%basic()
+    hotHalo => node%hotHalo()
+    simpleAccretionRate=(cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter())*self%accretionRateTotal(node)*(1.0d0-failedFraction)
     ! Test for negative accretion.
     if (.not.self%negativeAccretionAllowed.and.self%accretionRateTotal(node) < 0.0d0) then
        ! Accretion rate is negative, and not allowed. Return zero accretion rate.
        simpleAccretionRate=0.0d0
     else
        ! Return the standard accretion rate.
-       unaccretedMass=thisHotHaloComponent%unaccretedMass()
+       unaccretedMass=hotHalo%unaccretedMass()
        growthRate=self%accretionRateTotal(node)/self%massTotal(node)
        simpleAccretionRate=simpleAccretionRate+unaccretedMass*growthRate*(1.0d0-failedFraction)
     end if
     ! If accretion is allowed only on new growth, check for new growth and shut off accretion if growth is not new.
     if (self%accreteNewGrowthOnly) then
-       if (self%massTotal(node) < thisBasicComponent%massMaximum()) simpleAccretionRate=0.0d0
+       if (self%massTotal(node) < basic%massMaximum()) simpleAccretionRate=0.0d0
     end if
     return
   end function simpleAccretionRate
@@ -303,8 +303,8 @@ contains
     class          (accretionHaloSimple     ), intent(inout) :: self
     type           (treeNode                ), intent(inout) :: node
     integer                                  , intent(in   ) :: accretionMode
-    class          (nodeComponentBasic      ), pointer       :: thisBasicComponent
-    class          (cosmologyParametersClass), pointer       :: thisCosmologyParameters
+    class          (nodeComponentBasic      ), pointer       :: basic
+    class          (cosmologyParametersClass), pointer       :: cosmologyParameters_
     double precision                                         :: failedFraction
 
     simpleAccretedMass=0.0d0
@@ -312,10 +312,10 @@ contains
     if (node%isSatellite()                     ) return
     ! Get the failed accretion fraction.
     failedFraction=self%failedFraction(node)
-    thisBasicComponent   => node%basic     ()
+    basic   => node%basic     ()
     ! Get the default cosmology.
-    thisCosmologyParameters => cosmologyParameters()
-    simpleAccretedMass=(thisCosmologyParameters%OmegaBaryon()/thisCosmologyParameters%OmegaMatter())*self%massTotal(node)*(1.0d0-failedFraction)
+    cosmologyParameters_ => cosmologyParameters()
+    simpleAccretedMass=(cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter())*self%massTotal(node)*(1.0d0-failedFraction)
     return
   end function simpleAccretedMass
 
@@ -328,33 +328,33 @@ contains
     class           (accretionHaloSimple     ), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
     integer                                   , intent(in   ) :: accretionMode
-    class           (nodeComponentBasic      ), pointer       :: thisBasicComponent
-    class           (nodeComponentHotHalo    ), pointer       :: thisHotHaloComponent
-    class           (cosmologyParametersClass), pointer       :: thisCosmologyParameters
-    double precision                                          :: growthRate             , unaccretedMass, &
+    class           (nodeComponentBasic      ), pointer       :: basic
+    class           (nodeComponentHotHalo    ), pointer       :: hotHalo
+    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
+    double precision                                          :: growthRate          , unaccretedMass, &
          &                                                       failedFraction
 
     simpleFailedAccretionRate=0.0d0
-    if (accretionMode          == accretionModeCold) return
-    if (node%isSatellite()                     ) return
+    if (accretionMode               == accretionModeCold) return
+    if (node         %isSatellite()                     ) return
     ! Get the default cosmology.
-    thisCosmologyParameters => cosmologyParameters()
-    thisBasicComponent      => node%basic     ()
+    cosmologyParameters_ => cosmologyParameters      ()
+    basic                => node               %basic()
     ! Get the failed fraction.
     failedFraction=self%failedFraction(node)
-    thisHotHaloComponent => node%hotHalo()
+    hotHalo => node%hotHalo()
     ! Test for negative accretion.
     if (.not.self%negativeAccretionAllowed.and.self%accretionRateTotal(node) < 0.0d0) then
-       simpleFailedAccretionRate=(thisCosmologyParameters%OmegaBaryon()/thisCosmologyParameters%OmegaMatter())*self%accretionRateTotal(node)
+       simpleFailedAccretionRate=(cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter())*self%accretionRateTotal(node)
     else
-       simpleFailedAccretionRate=(thisCosmologyParameters%OmegaBaryon()/thisCosmologyParameters%OmegaMatter())*self%accretionRateTotal(node)*failedFraction
-       unaccretedMass=thisHotHaloComponent%unaccretedMass()
+       simpleFailedAccretionRate=(cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter())*self%accretionRateTotal(node)*failedFraction
+       unaccretedMass=hotHalo%unaccretedMass()
        growthRate=self%accretionRateTotal(node)/self%massTotal(node)
        simpleFailedAccretionRate=simpleFailedAccretionRate-unaccretedMass*growthRate*(1.0d0-failedFraction)
     end if
     ! If accretion is allowed only on new growth, check for new growth and shut off accretion if growth is not new.
     if (self%accreteNewGrowthOnly) then
-       if (self%massTotal(node) < thisBasicComponent%massMaximum()) simpleFailedAccretionRate=0.0d0
+       if (self%massTotal(node) < basic%massMaximum()) simpleFailedAccretionRate=0.0d0
     end if
     return
   end function simpleFailedAccretionRate
@@ -368,8 +368,8 @@ contains
     class           (accretionHaloSimple     ), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
     integer                                   , intent(in   ) :: accretionMode
-    class           (nodeComponentBasic      ), pointer       :: thisBasicComponent
-    class           (cosmologyParametersClass), pointer       :: thisCosmologyParameters
+    class           (nodeComponentBasic      ), pointer       :: basic
+    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
     double precision                                          :: failedFraction
 
     simpleFailedAccretedMass=0.0d0
@@ -377,10 +377,10 @@ contains
     if (node%isSatellite()                     ) return
     ! Get the failed fraction.
     failedFraction=self%failedFraction(node)
-    thisBasicComponent => node%basic()
+    basic => node%basic()
     ! Get the default cosmology.
-    thisCosmologyParameters => cosmologyParameters()
-    simpleFailedAccretedMass=(thisCosmologyParameters%OmegaBaryon()/thisCosmologyParameters%OmegaMatter())*self%massTotal(node)*failedFraction
+    cosmologyParameters_ => cosmologyParameters()
+    simpleFailedAccretedMass=(cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter())*self%massTotal(node)*failedFraction
     return
   end function simpleFailedAccretedMass
   
@@ -475,7 +475,7 @@ contains
     type            (chemicalAbundances      )                :: simpleChemicalMasses
     type            (treeNode                ), intent(inout) :: node
     double precision                          , intent(in   ) :: massAccreted
-    class           (nodeComponentBasic      ), pointer       :: thisBasicComponent
+    class           (nodeComponentBasic      ), pointer       :: basic
     class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
     class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
     class           (chemicalStateClass      ), pointer       :: chemicalState_
@@ -493,7 +493,7 @@ contains
     ! Compute the temperature and density of accreting material, assuming accreted has is at the virial temperature and that the
     ! overdensity is one third of the mean overdensity of the halo.
     temperature          =darkMatterHaloScale_%virialTemperature(node)
-    thisBasicComponent   => node%basic()
+    basic   => node%basic()
     numberDensityHydrogen=hydrogenByMassPrimordial*(cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter())*self%massTotal(node)*massToDensityConversion/atomicMassHydrogen
     ! Set the radiation field.
     call self%radiation%set(node)

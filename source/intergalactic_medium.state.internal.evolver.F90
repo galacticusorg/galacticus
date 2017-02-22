@@ -31,13 +31,13 @@
    public :: Intergalactic_Medium_State_Internal_Initialize
    
    logical                                                                        :: igmPropertiesCompute
-   double precision                                 , allocatable, dimension(:  ) :: temperature                                , massFiltering               , &
-        &                                                                            clumpingFactor                             , opticalDepth
-   integer                                                                        :: igmPropertiesTimeCountPerDecade            , timeCount
-   double precision                                                               :: igmPropertiesRedshiftMinimum               , igmPropertiesRedshiftMaximum
-   double precision                                                               :: timeMinimum                                , timeMaximum
-   double precision                                 , allocatable, dimension(:  ) :: time                                       , redshift
-   double precision                                 , allocatable, dimension(:,:) :: densityHydrogen                            , densityHelium               , &
+   double precision                                 , allocatable, dimension(:  ) :: temperature                    , massFiltering               , &
+        &                                                                            clumpingFactor                 , opticalDepth
+   integer                                                                        :: igmPropertiesTimeCountPerDecade, timeCount
+   double precision                                                               :: igmPropertiesRedshiftMinimum   , igmPropertiesRedshiftMaximum
+   double precision                                                               :: timeMinimum                    , timeMaximum
+   double precision                                 , allocatable, dimension(:  ) :: time                           , redshift
+   double precision                                 , allocatable, dimension(:,:) :: densityHydrogen                , densityHelium               , &
         &                                                                            massFilteringComposite
 
    ! Classes used in ODE solution.
@@ -51,7 +51,7 @@
    !# <universePreEvolveTask>
    !#  <unitName>Intergalactic_Medium_State_Internal_Initialize</unitName>
    !# </universePreEvolveTask>
-   subroutine Intergalactic_Medium_State_Internal_Initialize(thisUniverse)
+   subroutine Intergalactic_Medium_State_Internal_Initialize(universe_)
      !% Attach an initial event to a merger tree to cause the properties update function to be called.
      use Galacticus_Nodes
      use Input_Parameters
@@ -69,8 +69,8 @@
      use Galacticus_Output_Times
      use Galacticus_Error
      implicit none
-     type            (universe                     ), intent(inout) :: thisUniverse
-     type            (universeEvent                ), pointer       :: thisEvent
+     type            (universe                     ), intent(inout) :: universe_
+     type            (universeEvent                ), pointer       :: event
      class           (linearGrowthClass            ), pointer       :: linearGrowth_
      class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
      integer                                                        :: iTime                       , atomicNumber             , &
@@ -321,14 +321,14 @@
            call igmState_%massFilteringSet(massFiltering  (1:1  ))
         end select
         ! Create the first interrupt event in the universe object.
-        thisEvent      => thisUniverse%createEvent()
-        thisEvent%time =  time(1)
-        thisEvent%task => Intergalactic_Medium_State_Internal_Update
+        event      => universe_%createEvent()
+        event%time =  time(1)
+        event%task => Intergalactic_Medium_State_Internal_Update
      end if
      return
    end subroutine Intergalactic_Medium_State_Internal_Initialize
    
-   logical function Intergalactic_Medium_State_Internal_Update(thisEvent,thisUniverse) result (success)
+   logical function Intergalactic_Medium_State_Internal_Update(event,universe_) result (success)
      !% Update the properties for a given universe.
      use               Galacticus_Nodes
      use               Galacticus_Display
@@ -355,38 +355,38 @@
      use               Galacticus_HDF5
      use               IO_HDF5
      implicit none
-     class           (universeEvent                ), intent(in   )            :: thisEvent
-     type            (universe                     ), intent(inout)            :: thisUniverse
+     class           (universeEvent                ), intent(in   )            :: event
+     type            (universe                     ), intent(inout)            :: universe_
      type            (universeEvent                ), pointer                  :: newEvent
      class           (intergalacticMediumStateClass), pointer                  :: igmState_
      class           (linearGrowthClass            ), pointer                  :: linearGrowth_
      class           (cosmologicalMassVarianceClass), pointer                  :: cosmologicalMassVariance_
-     double precision                               , parameter                :: odeToleranceAbsolute        =1.0d-03,             &
-          &                                                                       odeToleranceRelative        =1.0d-03,             &
+     double precision                               , parameter                :: odeToleranceAbsolute        =1.0d-03,                &
+          &                                                                       odeToleranceRelative        =1.0d-03,                &
           &                                                                       timeToleranceRelative       =1.0d-6
-     type            (mergerTree                   ), pointer                  :: thisTree       
-     type            (mergerTreeList               ), pointer                  :: thisForest       
-     type            (treeNode                     ), pointer                  :: thisNode
-     class           (nodeComponentBasic           ), pointer                  :: thisBasic
+     type            (mergerTree                   ), pointer                  :: tree       
+     type            (mergerTreeList               ), pointer                  :: forest       
+     type            (treeNode                     ), pointer                  :: node
+     class           (nodeComponentBasic           ), pointer                  :: basic
      type            (fodeiv2_system               ), save                     :: ode2System
      type            (fodeiv2_driver               ), save                     :: ode2Driver
      logical                                        , save                     :: odeReset
      integer                                        , parameter                :: propertyCount               =10
-     double precision                               , parameter                :: massFilteringScale=1.0d4
-     double precision                               , dimension(propertyCount) :: properties, propertyScales
+     double precision                               , parameter                :: massFilteringScale          =1.0d4
+     double precision                               , dimension(propertyCount) :: properties                          , propertyScales
      type            (varying_string               )                           :: message
      character       (len=6                        )                           :: label
      type            (hdf5Object                   )                           :: igmGroup                            , igmDataset
      integer         (c_size_t                     )                           :: iNow
-     double precision                                                          :: treetimeLatest                      , timeCurrent, &
+     double precision                                                          :: treetimeLatest                      , timeCurrent   , &
           &                                                                       timeMaximum
 
      ! Display message.
-     write (label,'(f6.3)') thisEvent%time
+     write (label,'(f6.3)') event%time
      message = "Evolving IGM properties to time "//trim(label)//" Gyr"
      call Galacticus_Display_Indent(message)
      ! Find the current timestep.
-     iNow = Search_Array_For_Closest(time,thisEvent%time)
+     iNow = Search_Array_For_Closest(time,event%time)
      ! Evolve the properties up to this timestep.
      if (iNow > 1) then        
         ! Get required objects.
@@ -452,21 +452,21 @@
     end if
     ! Find the latest time across all trees in the universe.
     treetimeLatest=0.0d0
-    thisForest => thisUniverse%trees
-    do while (associated(thisForest))
-       thisTree => thisForest%tree
-       do while (associated(thisTree))
-          thisNode       => thisTree%baseNode
-          thisBasic      => thisNode%basic()
-          treetimeLatest =  max(treetimeLatest,thisBasic%time())
-          thisTree       => thisTree%nextTree
+    forest => universe_%trees
+    do while (associated(forest))
+       tree => forest%tree
+       do while (associated(tree))
+          node       => tree%baseNode
+          basic      => node%basic()
+          treetimeLatest =  max(treetimeLatest,basic%time())
+          tree       => tree%nextTree
        end do
-       thisForest => thisForest%next
+       forest => forest%next
     end do
     ! Add the next event to the universe.
     timeMaximum=min(treetimeLatest,Galacticus_Output_time(Galacticus_Output_time_Count()))
     if (iNow < timeCount .and. time(iNow+1) <= timeMaximum) then
-       newEvent      => thisUniverse%createEvent()
+       newEvent      => universe_%createEvent()
        newEvent%time =  min(time(iNow+1),timeMaximum*(1.0d0-timeToleranceRelative))
        newEvent%task => Intergalactic_Medium_State_Internal_Update
     else

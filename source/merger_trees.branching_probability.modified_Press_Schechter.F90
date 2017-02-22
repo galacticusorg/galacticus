@@ -1019,12 +1019,14 @@ contains
   !# </galacticusStateStoreTask>
   subroutine Modified_Press_Schechter_Branching_State_Store(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
+    use Galacticus_Display
     use FGSL
     implicit none
     integer           , intent(in   ) :: stateFile
     type   (fgsl_file), intent(in   ) :: fgslStateFile
     !GCC$ attributes unused :: fgslStateFile
 
+    call Galacticus_Display_Message('Storing state for: treeBranching -> modifiedPress-Schechter',verbosity=verbosityInfo)
     write (stateFile) subresolutionHypergeometricInitialized,upperBoundHypergeometricInitialized
     if (subresolutionHypergeometricInitialized) write (stateFile) subresolutionHypergeometric%x(1),subresolutionHypergeometric%x(-1)
     if (   upperBoundHypergeometricInitialized) write (stateFile)    upperBoundHypergeometric%x(1),   upperBoundHypergeometric%x(-1),massResolutionTabulated
@@ -1036,6 +1038,7 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Modified_Press_Schechter_Branching_State_Restore(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
+    use Galacticus_Display
     use FGSL
     implicit none
     integer                    , intent(in   ) :: stateFile
@@ -1044,6 +1047,7 @@ contains
          &                                        xResolution
     !GCC$ attributes unused :: fgslStateFile
 
+    call Galacticus_Display_Message('Retrieving state for: treeBranching -> modifiedPress-Schechter',verbosity=verbosityInfo)
     read (stateFile) subresolutionHypergeometricInitialized,upperBoundHypergeometricInitialized
     if (subresolutionHypergeometricInitialized) then
        subresolutionHypergeometricInitialized=.false.

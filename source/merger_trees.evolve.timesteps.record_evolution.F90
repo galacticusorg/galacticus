@@ -52,7 +52,7 @@ contains
   !# <timeStepsTask>
   !#  <unitName>Merger_Tree_Timestep_Record_Evolution</unitName>
   !# </timeStepsTask>
-  subroutine Merger_Tree_Timestep_Record_Evolution(thisNode,timeStep,End_Of_Timestep_Task,report,lockNode,lockType)
+  subroutine Merger_Tree_Timestep_Record_Evolution(node,timeStep,End_Of_Timestep_Task,report,nodeLock,lockType)
     !% Determines the timestep to go to the next tabulation point for galaxy evolution storage.
     use, intrinsic :: ISO_C_Binding
     use Input_Parameters
@@ -64,16 +64,16 @@ contains
     use Evolve_To_Time_Reports
     use ISO_Varying_String
     implicit none
-    type            (treeNode                     ), intent(inout)          , pointer :: thisNode
+    type            (treeNode                     ), intent(inout)          , pointer :: node
     procedure       (End_Of_Timestep_Task_Template), intent(inout)          , pointer :: End_Of_Timestep_Task
     double precision                               , intent(inout)                    :: timeStep
     logical                                        , intent(in   )                    :: report
-    type            (treeNode                     ), intent(inout), optional, pointer :: lockNode
+    type            (treeNode                     ), intent(inout), optional, pointer :: nodeLock
     type            (varying_string               ), intent(inout), optional          :: lockType
-    class           (nodeComponentBasic           )                         , pointer :: thisBasicComponent
-    class           (cosmologyFunctionsClass      )                         , pointer :: cosmologyFunctionsDefault
+    class           (nodeComponentBasic           )                         , pointer :: basic
+    class           (cosmologyFunctionsClass      )                         , pointer :: cosmologyFunctions_
     integer         (c_size_t                     )                                   :: timeIndex
-    double precision                                                                  :: ourTimeStep              , time
+    double precision                                                                  :: ourTimeStep         , time
 
     if (.not.timestepRecordEvolutionInitialized) then
        !$omp critical (timestepRecordEvolutionInitialize)
@@ -93,9 +93,9 @@ contains
           call Get_Input_Parameter('timestepRecordEvolution',timestepRecordEvolution,defaultValue=.false.)
           if (timestepRecordEvolution) then
              ! Get the default cosmology functions object.
-             cosmologyFunctionsDefault => cosmologyFunctions()
+             cosmologyFunctions_ => cosmologyFunctions()
             ! Get time at present day.
-             time=cosmologyFunctionsDefault%cosmicTime(expansionFactor=0.999d0)
+             time=cosmologyFunctions_%cosmicTime(expansionFactor=0.999d0)
              ! Get module parameters.
              !@ <inputParameter>
              !@   <name>timestepRecordEvolutionBegin</name>
@@ -141,7 +141,7 @@ contains
              ! Initialize arrays.
              evolutionTime=Make_Range(timestepRecordEvolutionBegin,timestepRecordEvolutionEnd,timestepRecordEvolutionSteps,rangeTypeLogarithmic)
              do timeIndex=1,timestepRecordEvolutionSteps
-                evolutionExpansion(timeIndex)=cosmologyFunctionsDefault%expansionFactor(evolutionTime(timeIndex))
+                evolutionExpansion(timeIndex)=cosmologyFunctions_%expansionFactor(evolutionTime(timeIndex))
              end do
              call Reset_Records()
           end if
@@ -151,10 +151,10 @@ contains
     end if
 
     ! Adjust timestep if applicable.
-    if (timestepRecordEvolution.and.thisNode%isOnMainBranch()) then
+    if (timestepRecordEvolution.and.node%isOnMainBranch()) then
        ! Get current cosmic time.
-       thisBasicComponent => thisNode%basic()
-       time=thisBasicComponent%time()
+       basic => node%basic()
+       time=basic%time()
 
        ! Determine how long until next available timestep.
        timeIndex=Interpolate_Locate(evolutionTime,interpolationAccelerator,time)
@@ -164,7 +164,7 @@ contains
 
           ! Set return value if our timestep is smaller than current one.
           if (ourTimeStep <= timeStep) then
-             if (present(lockNode)) lockNode => thisNode
+             if (present(nodeLock)) nodeLock => node
              if (present(lockType)) lockType =  "record evolution"
              timeStep=ourTimeStep
              End_Of_Timestep_Task => Merger_Tree_Record_Evolution_Store
@@ -175,7 +175,7 @@ contains
     return
   end subroutine Merger_Tree_Timestep_Record_Evolution
 
-  subroutine Merger_Tree_Record_Evolution_Store(thisTree,thisNode,deadlockStatus)
+  subroutine Merger_Tree_Record_Evolution_Store(thisTree,node,deadlockStatus)
     !% Store properties of the main progenitor galaxy.
     use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
@@ -184,16 +184,16 @@ contains
     use Galactic_Structure_Enclosed_Masses
     implicit none
     type            (mergerTree        ), intent(in   )          :: thisTree
-    type            (treeNode          ), intent(inout), pointer :: thisNode
+    type            (treeNode          ), intent(inout), pointer :: node
     integer                             , intent(inout)          :: deadlockStatus
-    class           (nodeComponentBasic)               , pointer :: thisBasicComponent
+    class           (nodeComponentBasic)               , pointer :: basic
     integer         (c_size_t          )                         :: timeIndex
     double precision                                             :: time
     !GCC$ attributes unused :: deadlockStatus, thisTree
     
     ! Get current cosmic time.
-    thisBasicComponent => thisNode%basic()
-    time=thisBasicComponent%time()
+    basic => node%basic()
+    time=basic%time()
 
     ! Determine how long until next available timestep.
     if (time == evolutionTime(timestepRecordEvolutionSteps)) then
@@ -203,8 +203,8 @@ contains
     end if
 
     ! Accumulate the properties.
-    evolutionStellarMass(timeIndex)=Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeStellar )
-    evolutionTotalMass  (timeIndex)=Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeGalactic)
+    evolutionStellarMass(timeIndex)=Galactic_Structure_Enclosed_Mass(node,massType=massTypeStellar )
+    evolutionTotalMass  (timeIndex)=Galactic_Structure_Enclosed_Mass(node,massType=massTypeGalactic)
 
     return
   end subroutine Merger_Tree_Record_Evolution_Store
@@ -212,7 +212,7 @@ contains
   !# <mergerTreeExtraOutputTask>
   !#  <unitName>Merger_Tree_Record_Evolution_Output</unitName>
   !# </mergerTreeExtraOutputTask>
-  subroutine Merger_Tree_Record_Evolution_Output(thisNode,iOutput,treeIndex,nodePassesFilter)
+  subroutine Merger_Tree_Record_Evolution_Output(node,iOutput,treeIndex,nodePassesFilter)
     !% Store Fourier-space halo profiles to the output file.
     use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
@@ -222,7 +222,7 @@ contains
     use String_Handling
     use Numerical_Constants_Astronomical
     implicit none
-    type   (treeNode      ), intent(inout), pointer :: thisNode
+    type   (treeNode      ), intent(inout), pointer :: node
     integer(c_size_t      ), intent(in   )          :: iOutput
     integer(kind=kind_int8), intent(in   )          :: treeIndex
     logical                , intent(in   )          :: nodePassesFilter
@@ -230,7 +230,7 @@ contains
     type   (hdf5Object    )                         :: outputGroup     , thisDataset
 
     ! If halo model output was requested, output the Fourier-space halo profiles.
-    if (nodePassesFilter.and.timestepRecordEvolution.and.iOutput == Galacticus_Output_Time_Count().and.thisNode%isOnMainBranch())&
+    if (nodePassesFilter.and.timestepRecordEvolution.and.iOutput == Galacticus_Output_Time_Count().and.node%isOnMainBranch())&
          & then
        ! Create a group for the profile datasets.
        outputGroup=galacticusOutputFile%openGroup("mainProgenitorEvolution","Evolution data of main progenitors.")

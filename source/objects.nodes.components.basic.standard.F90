@@ -68,10 +68,10 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Basic_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Basic_Standard_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure)
+  subroutine Node_Component_Basic_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure)
     !% Compute rates of change of properties in the standard implementation of the basic component.
     implicit none
-    type     (treeNode          ), intent(inout), pointer :: thisNode
+    type     (treeNode          ), intent(inout), pointer :: node
     logical                      , intent(in   )          :: odeConverged
     logical                      , intent(inout)          :: interrupt
     procedure(                  ), intent(inout), pointer :: interruptProcedure
@@ -79,7 +79,7 @@ contains
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
     ! Get the basic component.
-    basicComponent => thisNode%basic()
+    basicComponent => node%basic()
     ! Ensure that it is of the standard class.
     select type (basicComponent)
     class is (nodeComponentBasicStandard)
@@ -94,16 +94,16 @@ contains
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Basic_Standard_Scale_Set</unitName>
   !# </scaleSetTask>
-  subroutine Node_Component_Basic_Standard_Scale_Set(thisNode)
+  subroutine Node_Component_Basic_Standard_Scale_Set(node)
     !% Set scales for properties in the standard implementation of the basic component.
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
+    type            (treeNode          ), intent(inout), pointer :: node
     double precision                    , parameter              :: timeScale        =1.0d-3
     double precision                    , parameter              :: scaleMassRelative=1.0d-6
     class           (nodeComponentBasic)               , pointer :: basicComponent
 
     ! Get the basic component.
-    basicComponent => thisNode%basic()
+    basicComponent => node%basic()
     ! Ensure that it is of the standard class.
     select type (basicComponent)
     class is (nodeComponentBasicStandard)
@@ -118,70 +118,70 @@ contains
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Basic_Standard_Tree_Initialize</unitName>
   !# </mergerTreeInitializeTask>
-  subroutine Node_Component_Basic_Standard_Tree_Initialize(thisNode)
-    !% Set the mass accretion rate for {\normalfont \ttfamily thisNode}.
+  subroutine Node_Component_Basic_Standard_Tree_Initialize(node)
+    !% Set the mass accretion rate for {\normalfont \ttfamily node}.
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    type            (treeNode          )               , pointer :: childNode          , parentNode
-    class           (nodeComponentBasic)               , pointer :: childBasicComponent, parentBasicComponent, thisBasicComponent
+    type            (treeNode          ), intent(inout), pointer :: node
+    type            (treeNode          )               , pointer :: childNode          , nodeParent
+    class           (nodeComponentBasic)               , pointer :: childBasicComponent, basicParent, basic
     double precision                                             :: deltaTime          , massUnresolved      , progenitorMassTotal
 
     ! Get the basic component.
-    thisBasicComponent => thisNode%basic()
+    basic => node%basic()
     ! Ensure that it is of the standard class.
-    select type (thisBasicComponent)
+    select type (basic)
     class is (nodeComponentBasicStandard)
        ! Set the last isolated time to the current time at the farthest point along the future of this branch.
-       parentNode => thisNode
-       do while (associated(parentNode%parent).and.parentNode%isPrimaryProgenitor())
-          parentNode => parentNode%parent
+       nodeParent => node
+       do while (associated(nodeParent%parent).and.nodeParent%isPrimaryProgenitor())
+          nodeParent => nodeParent%parent
        end do
-       parentBasicComponent => parentNode%basic()
-       call thisBasicComponent%timeLastIsolatedSet(parentBasicComponent%time())
+       basicParent => nodeParent%basic()
+       call basic%timeLastIsolatedSet(basicParent%time())
        ! Determine node status.
-       if (thisNode%isSatellite()) then
+       if (node%isSatellite()) then
           ! Node is a satellite - we assume no accretion.
-          call thisBasicComponent%accretionRateSet(0.0d0)
-       else if (.not.associated(thisNode%parent)) then
+          call basic%accretionRateSet(0.0d0)
+       else if (.not.associated(node%parent)) then
           ! For parent-less nodes (i.e. the root node of the tree), the rate is set equal to that of the
           ! progenitor, if it has one.
-          childNode => thisNode%firstChild
+          childNode => node%firstChild
           if (associated(childNode)) then
              ! Get the basic component of the child node.
              childBasicComponent => childNode%basic()
              ! Ensure the child has a mass growth rate computed.
              call Node_Component_Basic_Standard_Tree_Initialize(childNode)
              ! Get the growth rate of the child.
-             call thisBasicComponent%accretionRateSet(childBasicComponent%accretionRate())
+             call basic%accretionRateSet(childBasicComponent%accretionRate())
           else
              ! Parentless node has no child - set a zero growth rate.
-             call thisBasicComponent%accretionRateSet(0.0d0                              )
+             call basic%accretionRateSet(0.0d0                              )
           end if
        else
           ! Get the parent node.
-          parentNode => thisNode%parent
+          nodeParent => node%parent
           ! Get the basic component of the parent node.
-          parentBasicComponent => parentNode%basic()
+          basicParent => nodeParent%basic()
           ! Compute the unresolved mass.
-          massUnresolved=Node_Component_Basic_Standard_Unresolved_Mass(parentNode)
+          massUnresolved=Node_Component_Basic_Standard_Unresolved_Mass(nodeParent)
           if (massUnresolved > 0.0d0) then
              ! Positive mass growth - assume this occurs entirely in the main progenitor.
-             if (thisNode%isPrimaryProgenitor()) then
+             if (node%isPrimaryProgenitor()) then
                 ! Main progenitor - compute required growth rate.
-                deltaTime=parentBasicComponent%time()-thisBasicComponent%time()
-                if (deltaTime > 0.0d0) call thisBasicComponent%accretionRateSet(massUnresolved/deltaTime)
+                deltaTime=basicParent%time()-basic%time()
+                if (deltaTime > 0.0d0) call basic%accretionRateSet(massUnresolved/deltaTime)
              else
                 ! Non-main progenitor - assume zero growth rate.
-                call thisBasicComponent%accretionRateSet(0.0d0)
+                call basic%accretionRateSet(0.0d0)
              end if
           else
              ! Negative mass growth - assume all progenitors lose mass at proportionally equal rates.
              ! Compute the total mass in progenitors.
-             progenitorMassTotal=parentBasicComponent%mass()-massUnresolved
+             progenitorMassTotal=basicParent%mass()-massUnresolved
              ! Compute the time available for accretion.
-             deltaTime=parentBasicComponent%time()-thisBasicComponent%time()
+             deltaTime=basicParent%time()-basic%time()
              ! Compute mass growth rate.
-             if (deltaTime > 0.0d0) call thisBasicComponent%accretionRateSet((massUnresolved/deltaTime)*(thisBasicComponent%mass()/progenitorMassTotal))
+             if (deltaTime > 0.0d0) call basic%accretionRateSet((massUnresolved/deltaTime)*(basic%mass()/progenitorMassTotal))
           end if
        end if
     end select
@@ -191,21 +191,21 @@ contains
   !# <nodeMergerTask>
   !#  <unitName>Node_Component_Basic_Standard_Stop_Accretion</unitName>
   !# </nodeMergerTask>
-  subroutine Node_Component_Basic_Standard_Stop_Accretion(thisNode)
+  subroutine Node_Component_Basic_Standard_Stop_Accretion(node)
     !% Switch off accretion of new mass onto this node once it becomes a satellite.
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    class(nodeComponentBasic)               , pointer :: thisBasicComponent
+    type (treeNode          ), intent(inout), pointer :: node
+    class(nodeComponentBasic)               , pointer :: basic
 
     ! Get the basic component.
-    thisBasicComponent => thisNode%basic()
+    basic => node%basic()
     ! Ensure that it is of the standard class.
-    select type (thisBasicComponent)
+    select type (basic)
     class is (nodeComponentBasicStandard)
        ! Shut down mass accretion onto the halo now that it is a satellite.
-       call thisBasicComponent%accretionRateSet   (0.0d0                    )
+       call basic%accretionRateSet   (0.0d0       )
        ! Record the time at which the node became a satellite - used for computing halo scales etc.
-       call thisBasicComponent%timeLastIsolatedSet(thisBasicComponent%time())
+       call basic%timeLastIsolatedSet(basic%time())
     end select
     return
   end subroutine Node_Component_Basic_Standard_Stop_Accretion
@@ -213,61 +213,61 @@ contains
    !# <nodePromotionTask>
    !#  <unitName>Node_Component_Basic_Standard_Promote</unitName>
    !# </nodePromotionTask>
-   subroutine Node_Component_Basic_Standard_Promote(thisNode)
-     !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, we simply update the mass of {\normalfont \ttfamily thisNode}
+   subroutine Node_Component_Basic_Standard_Promote(node)
+     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the mass of {\normalfont \ttfamily node}
      !% to be that of its parent.
      use Galacticus_Error
      use ISO_Varying_String
      use String_Handling
      implicit none
-     type     (treeNode          ), intent(inout), pointer :: thisNode
-     type     (treeNode          )               , pointer :: parentNode
-     class    (nodeComponentBasic)               , pointer :: parentBasicComponent, thisBasicComponent
+     type     (treeNode          ), intent(inout), pointer :: node
+     type     (treeNode          )               , pointer :: nodeParent
+     class    (nodeComponentBasic)               , pointer :: basicParent, basic
      type     (varying_string    )                         :: message
      character(len=12            )                         :: label
      
      ! Get the basic component.
-     thisBasicComponent => thisNode%basic()
+     basic => node%basic()
      ! Ensure that it is of the standard class.
-     select type (thisBasicComponent)
+     select type (basic)
      class is (nodeComponentBasicStandard)
         ! Get the parent node and its basic component.
-        parentNode           => thisNode  %parent
-        parentBasicComponent => parentNode%basic()
+        nodeParent           => node  %parent
+        basicParent => nodeParent%basic()
         ! Ensure the two halos exist at the same time.
-        if (thisBasicComponent%time() /= parentBasicComponent%time()) then
-           message=var_str("node [")//thisNode%index()//"] has not been evolved to its parent ["//parentNode%index()//"]"//char(10)
-           write (label,'(f12.6)') thisBasicComponent%time()
+        if (basic%time() /= basicParent%time()) then
+           message=var_str("node [")//node%index()//"] has not been evolved to its parent ["//nodeParent%index()//"]"//char(10)
+           write (label,'(f12.6)') basic%time()
            message=message//"    node is at time: "//label//" Gyr"//char(10)
-           write (label,'(f12.6)') parentBasicComponent%time()
+           write (label,'(f12.6)') basicParent%time()
            message=message//"  parent is at time: "//label//" Gyr"
            call Galacticus_Error_Report('Node_Component_Basic_Standard_Promote',message)
         end if
         ! Adjust the mass to that of the parent node.
-        call thisBasicComponent%massSet         (parentBasicComponent%mass         ())
+        call basic%massSet         (basicParent%mass         ())
         ! Adjust the accretion rate to that of the parent node.
-        call thisBasicComponent%accretionRateSet(parentBasicComponent%accretionRate())
+        call basic%accretionRateSet(basicParent%accretionRate())
      end select
      return
    end subroutine Node_Component_Basic_Standard_Promote
 
-  double precision function Node_Component_Basic_Standard_Unresolved_Mass(thisNode)
-    !% Return the unresolved mass for {\normalfont \ttfamily thisNode}.
+  double precision function Node_Component_Basic_Standard_Unresolved_Mass(node)
+    !% Return the unresolved mass for {\normalfont \ttfamily node}.
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    type (treeNode          )               , pointer :: childNode
-    class(nodeComponentBasic)               , pointer :: childBasicComponent, thisBasicComponent
+    type (treeNode          ), intent(inout), pointer :: node
+    type (treeNode          )               , pointer :: nodeChild
+    class(nodeComponentBasic)               , pointer :: basicChild, basic
 
     ! Get the basic component.
-    thisBasicComponent => thisNode%basic()
+    basic => node%basic()
     ! Initialize the unresolved mass to the mass of the current node's basic component.
-    Node_Component_Basic_Standard_Unresolved_Mass=thisBasicComponent%mass()
+    Node_Component_Basic_Standard_Unresolved_Mass=basic%mass()
     ! Remove the mass of all child nodes.
-    childNode => thisNode%firstChild
-    do while (associated(childNode))
-       childBasicComponent                           => childNode%basic()
-       Node_Component_Basic_Standard_Unresolved_Mass =  Node_Component_Basic_Standard_Unresolved_Mass-childBasicComponent%mass()
-       childNode                                     => childNode%sibling
+    nodeChild => node%firstChild
+    do while (associated(nodeChild))
+       basicChild                                    => nodeChild%basic()
+       Node_Component_Basic_Standard_Unresolved_Mass =  Node_Component_Basic_Standard_Unresolved_Mass-basicChild%mass()
+       nodeChild                                     => nodeChild%sibling
     end do
     return
   end function Node_Component_Basic_Standard_Unresolved_Mass

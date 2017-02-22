@@ -66,7 +66,7 @@ contains
     return
   end function Stellar_Population_Properties_History_Count_Instantaneous
 
-  subroutine Stellar_Population_Properties_Rates_Instantaneous(starFormationRate,fuelAbundances,component,thisNode,thisHistory,stellarMassRate&
+  subroutine Stellar_Population_Properties_Rates_Instantaneous(starFormationRate,fuelAbundances,component,node,propertiesHistory,stellarMassRate&
        &,stellarAbundancesRates,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
     !% Return an array of stellar population property rates of change given a star formation rate and fuel abundances.
     use Galacticus_Nodes
@@ -83,14 +83,14 @@ contains
     double precision                     , intent(in   ) :: starFormationRate
     type            (abundances         ), intent(in   ) :: fuelAbundances
     integer                              , intent(in   ) :: component
-    type            (treeNode           ), intent(inout) :: thisNode
-    type            (history            ), intent(inout) :: thisHistory
-    class           (nodeComponentBasic ), pointer       :: thisBasicComponent
+    type            (treeNode           ), intent(inout) :: node
+    type            (history            ), intent(inout) :: propertiesHistory
+    class           (nodeComponentBasic ), pointer       :: basic
     integer                                              :: imfSelected
     double precision                                     :: fuelMetallicity              , fuelMetalsRateOfChange   , &
          &                                                  recycledFractionInstantaneous, stellarMetalsRateOfChange, &
          &                                                  time                         , yieldInstantaneous
-    !GCC$ attributes unused :: thisHistory
+    !GCC$ attributes unused :: propertiesHistory
     
     ! Get the instantaneous recycling rate for the IMF.
     recycledFractionInstantaneous=IMF_Recycled_Fraction_Instantaneous(starFormationRate,fuelAbundances,component)
@@ -118,15 +118,15 @@ contains
     imfSelected=IMF_Select(starFormationRate,fuelAbundances,component)
 
     ! Get the current cosmological time for this node.
-    thisBasicComponent => thisNode%basic()
-    time=thisBasicComponent%time()
+    basic => node%basic()
+    time=basic%time()
 
     ! Set luminosity rates of change.
     call stellarLuminositiesRates%setLuminosities(starFormationRate,imfSelected,time,fuelAbundances)
    return
   end subroutine Stellar_Population_Properties_Rates_Instantaneous
 
-  subroutine Stellar_Population_Properties_Scales_Instantaneous(thisHistory,stellarMass,stellarAbundances)
+  subroutine Stellar_Population_Properties_Scales_Instantaneous(propertiesHistory,stellarMass,stellarAbundances)
     !% Set the scalings for error control on the absolute values of stellar population properties. The instantaneous method
     !% requires none, so just return.
     use Histories
@@ -134,22 +134,22 @@ contains
     implicit none
     double precision            , intent(in   ) :: stellarMass
     type            (abundances), intent(in   ) :: stellarAbundances
-    type            (history   ), intent(inout) :: thisHistory
-    !GCC$ attributes unused :: thisHistory, stellarMass, stellarAbundances
+    type            (history   ), intent(inout) :: propertiesHistory
+    !GCC$ attributes unused :: propertiesHistory, stellarMass, stellarAbundances
 
     ! No history is used in this case, so simply return.
     return
   end subroutine Stellar_Population_Properties_Scales_Instantaneous
 
-  subroutine Stellar_Population_Properties_History_Create_Instantaneous(thisNode,thisHistory)
+  subroutine Stellar_Population_Properties_History_Create_Instantaneous(node,propertiesHistory)
     !% Create any history required for storing stellar population properties. The instantaneous method requires none, so don't
     !% create one.
     use Galacticus_Nodes
     use Histories
     implicit none
-    type(treeNode), intent(inout) :: thisNode
-    type(history ), intent(inout) :: thisHistory
-    !GCC$ attributes unused :: thisNode, thisHistory
+    type(treeNode), intent(inout) :: node
+    type(history ), intent(inout) :: propertiesHistory
+    !GCC$ attributes unused :: node, propertiesHistory
     
     return
   end subroutine Stellar_Population_Properties_History_Create_Instantaneous

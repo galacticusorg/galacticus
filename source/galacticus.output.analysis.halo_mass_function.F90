@@ -59,8 +59,8 @@ module Galacticus_Output_Analyses_Halo_Mass_Function
   end type massFunctionWork
 
   ! Work array.
-  type(massFunctionWork), allocatable, dimension(:) :: thisHalo
-  !$omp threadprivate(thisHalo)
+  type(massFunctionWork), allocatable, dimension(:) :: haloWork
+  !$omp threadprivate(haloWork)
 
   ! Options controlling mass function construction.
   integer                     :: analysisHaloMassFunctionsMassBinsCount                           , analysisHaloMassFunctionsMassBinsPerDecade
@@ -83,7 +83,7 @@ contains
   !# <mergerTreeAnalysisTask>
   !#  <unitName>Galacticus_Output_Analysis_Halo_Mass_Functions</unitName>
   !# </mergerTreeAnalysisTask>
-  subroutine Galacticus_Output_Analysis_Halo_Mass_Functions(thisTree,thisNode,nodeStatus,iOutput,mergerTreeAnalyses)
+  subroutine Galacticus_Output_Analysis_Halo_Mass_Functions(tree,node,nodeStatus,iOutput,mergerTreeAnalyses)
     !% Construct halo mass functions.
     use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
@@ -99,12 +99,12 @@ contains
     use Numerical_Ranges
     use Numerical_Comparison
     implicit none
-    type            (mergerTree                    ), intent(inout)                 :: thisTree
-    type            (treeNode                      ), intent(inout), pointer        :: thisNode
+    type            (mergerTree                    ), intent(inout)                 :: tree
+    type            (treeNode                      ), intent(inout), pointer        :: node
     integer                                         , intent(in   )                 :: nodeStatus
     integer         (c_size_t                      ), intent(in   )                 :: iOutput
     type            (varying_string                ), intent(in   ), dimension(:  ) :: mergerTreeAnalyses
-    class           (nodeComponentBasic            )               , pointer        :: thisBasic
+    class           (nodeComponentBasic            )               , pointer        :: basic
     class           (nodeComponentMergingStatistics)               , pointer        :: mergingStatistics
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctions_
     integer                                                                         :: currentAnalysis,activeAnalysisCount,haloMassBin,massBin,i,k
@@ -323,40 +323,40 @@ contains
     ! Return if this is a tree finalization.
     if (nodeStatus == nodeStatusFinal) return
     ! Allocate work arrays.
-    if (.not.allocated(thisHalo)) allocate(thisHalo(size(massFunctions)))
+    if (.not.allocated(haloWork)) allocate(haloWork(size(massFunctions)))
     ! Iterate over active analyses.
     do i=1,size(massFunctions)
        ! Cycle if this mass function does not accumulate from this output number.
        if (iOutput /= massFunctions(i)%outputIndex) cycle
        ! Cycle if this is a subhalo.
-       if (thisNode%isSatellite()) cycle
+       if (node%isSatellite()) cycle
        ! Exclude halos which were not always isolated, if required.
        if (massFunctions(i)%alwaysIsolatedHalosOnly) then       
-          mergingStatistics => thisNode%mergingStatistics()
+          mergingStatistics => node%mergingStatistics()
           if (mergingStatistics%nodeHierarchyLevelMaximum() > 0) cycle
        end if
        ! Allocate workspace.
-       if (.not.allocated(thisHalo(i)%massFunction)) then
-          call allocateArray(thisHalo(i)%massFunction,[analysisHaloMassFunctionsMassBinsCount])
-          call allocateArray(thisHalo(i)%covariance  ,[                                         &
+       if (.not.allocated(haloWork(i)%massFunction)) then
+          call allocateArray(haloWork(i)%massFunction,[analysisHaloMassFunctionsMassBinsCount])
+          call allocateArray(haloWork(i)%covariance  ,[                                         &
                &                                     analysisHaloMassFunctionsMassBinsCount,  &
                &                                     analysisHaloMassFunctionsMassBinsCount   &
                &                                    ]                                         &
                &          )
        end if
        ! Get the halo mass.
-       thisBasic      =>       thisNode%basic()
-       massLogarithmic=  log10(thisBasic%mass())
+       basic           =>       node %basic()
+       massLogarithmic =  log10(basic%mass ())
        ! Determine which bin this halo contributes to.
        massBin=floor((massLogarithmic-analysisHaloMassFunctionsMassMinimumLogarithmic)*analysisHaloMassFunctionsMassIntervalLogarithmicInverse)+1
        if (massBin >= 1 .and. massBin <= analysisHaloMassFunctionsMassBinsCount) then          
           !$omp critical (Galacticus_Output_Analysis_Halo_Mass_Functions_Accumulate)
           massFunctions        (i)%massFunction(massBin) &
                & =massFunctions(i)%massFunction(massBin) &
-               & +thisTree%volumeWeight
+               & +tree%volumeWeight
           !$omp end critical (Galacticus_Output_Analysis_Halo_Mass_Functions_Accumulate)
           ! Treat main branch and other galaxies differently.
-          if (thisNode%isOnMainBranch().and.analysisHaloMassFunctionCovarianceModel == analysisHaloMassFunctionCovarianceModelBinomial) then
+          if (node%isOnMainBranch().and.analysisHaloMassFunctionCovarianceModel == analysisHaloMassFunctionCovarianceModelBinomial) then
              ! Find the bin to which this halo mass belongs.
              haloMassBin=floor((massLogarithmic-analysisHaloMassFunctionsHaloMassMinimumLogarithmic)*analysisHaloMassFunctionsHaloMassIntervalLogarithmicInverse)+1
              ! Accumulate weights to halo mass arrays.
@@ -364,10 +364,10 @@ contains
                 !$omp critical (Galacticus_Output_Analysis_Halo_Mass_Functions_Accumulate)
                 massFunctions        (i)%mainBranchHaloWeights       (massBin,haloMassBin)= &
                      &  massFunctions(i)%mainBranchHaloWeights       (massBin,haloMassBin)  &
-                     &  +thisTree%volumeWeight
+                     &  +tree%volumeWeight
                 massFunctions        (i)%mainBranchHaloWeightsSquared(massBin,haloMassBin)= &
                      &  massFunctions(i)%mainBranchHaloWeightsSquared(massBin,haloMassBin)  &
-                     &  +thisTree%volumeWeight
+                     &  +tree%volumeWeight
                 !$omp end critical (Galacticus_Output_Analysis_Halo_Mass_Functions_Accumulate)
              end if
           else
@@ -375,7 +375,7 @@ contains
              !$omp critical (Galacticus_Output_Analysis_Halo_Mass_Functions_Accumulate)
              massFunctions        (i)%massFunctionCovariance(massBin,massBin) &
                   & =massFunctions(i)%massFunctionCovariance(massBin,massBin) &
-                  & +thisTree%volumeWeight**2
+                  & +tree%volumeWeight**2
              !$omp end critical (Galacticus_Output_Analysis_Halo_Mass_Functions_Accumulate)
           end if
        end if
@@ -392,7 +392,7 @@ contains
     use Numerical_Constants_Astronomical
     implicit none
     integer                      :: i,j,k,m
-    type            (hdf5Object) :: analysisGroup,massFunctionGroup,thisDataset
+    type            (hdf5Object) :: analysisGroup,massFunctionGroup,dataset
     double precision             :: haloWeightBinTotal
 
     ! Return immediately if this analysis is not active.
@@ -460,15 +460,15 @@ contains
        !$omp critical(HDF5_Access)
        analysisGroup    =galacticusOutputFile%openGroup('analysis','Model analysis')
        massFunctionGroup=analysisGroup       %openGroup(char(massFunctions(k)%label),"Halo mass function")
-       call massFunctionGroup%writeDataset  (massFunctions(k)%masses                ,'mass'                  ,'Mass'                    ,datasetReturned=thisDataset)
-       call thisDataset      %writeAttribute(massSolar             ,'unitsInSI'                                                                                     )
-       call thisDataset      %close()
-       call massFunctionGroup%writeDataset  (massFunctions(k)%massFunction          ,'massFunction'          ,'Mass function'           ,datasetReturned=thisDataset)
-       call thisDataset      %writeAttribute(1.0d0/megaParsec**3   ,'unitsInSI'                                                                                     )
-       call thisDataset      %close()
-       call massFunctionGroup%writeDataset  (massFunctions(k)%massFunctionCovariance,'massFunctionCovariance','Mass function covariance',datasetReturned=thisDataset)
-       call thisDataset      %writeAttribute(1.0d0/megaParsec**6   ,'unitsInSI'                                                                                     )
-       call thisDataset      %close()
+       call massFunctionGroup%writeDataset  (massFunctions(k)%masses                ,'mass'                  ,'Mass'                    ,datasetReturned=dataset)
+       call dataset          %writeAttribute(massSolar             ,'unitsInSI'                                                                                 )
+       call dataset          %close()
+       call massFunctionGroup%writeDataset  (massFunctions(k)%massFunction          ,'massFunction'          ,'Mass function'           ,datasetReturned=dataset)
+       call dataset          %writeAttribute(1.0d0/megaParsec**3   ,'unitsInSI'                                                                                 )
+       call dataset          %close()
+       call massFunctionGroup%writeDataset  (massFunctions(k)%massFunctionCovariance,'massFunctionCovariance','Mass function covariance',datasetReturned=dataset)
+       call dataset          %writeAttribute(1.0d0/megaParsec**6   ,'unitsInSI'                                                                                 )
+       call dataset          %close()
        call massFunctionGroup%close()
        call analysisGroup    %close()
        !$omp end critical(HDF5_Access)

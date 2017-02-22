@@ -44,16 +44,16 @@ contains
     return
   end subroutine Dark_Matter_Halo_Bias_Tinker2010_Initialize
 
-  double precision function Dark_Matter_Halo_Bias_Node_Tinker2010(thisNode)
+  double precision function Dark_Matter_Halo_Bias_Node_Tinker2010(node)
     !% Computes the bias for a dark matter halo using the method of \cite{mo_analytic_1996}.
     use Galacticus_Nodes
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    class(nodeComponentBasic)               , pointer :: thisBasicComponent
+    type (treeNode          ), intent(inout), pointer :: node
+    class(nodeComponentBasic)               , pointer :: basic
 
     ! Compute halo bias.
-    thisBasicComponent => thisNode%basic()
-    Dark_Matter_Halo_Bias_Node_Tinker2010=Dark_Matter_Halo_Bias_Tinker2010(thisBasicComponent%mass(),thisBasicComponent%time())
+    basic => node%basic()
+    Dark_Matter_Halo_Bias_Node_Tinker2010=Dark_Matter_Halo_Bias_Tinker2010(basic%mass(),basic%time())
     return
   end function Dark_Matter_Halo_Bias_Node_Tinker2010
 

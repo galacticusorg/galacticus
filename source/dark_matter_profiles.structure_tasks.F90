@@ -32,21 +32,21 @@ contains
   !# <enclosedMassTask>
   !#  <unitName>Dark_Matter_Profile_Enclosed_Mass_Task</unitName>
   !# </enclosedMassTask>
-  double precision function Dark_Matter_Profile_Enclosed_Mass_Task(thisNode,radius,componentType,massType,weightBy,weightIndex,haloLoaded)
+  double precision function Dark_Matter_Profile_Enclosed_Mass_Task(node,radius,componentType,massType,weightBy,weightIndex,haloLoaded)
     !% Computes the mass within a given radius for a dark matter profile.
     use Galactic_Structure_Options
     use Cosmology_Parameters
     use Galactic_Structure_Initial_Radii
     implicit none
-    type            (treeNode                ), intent(inout)           :: thisNode
-    integer                                   , intent(in   )           :: componentType          , massType     , &
-         &                                                                 weightBy               , weightIndex
+    type            (treeNode                ), intent(inout)           :: node
+    integer                                   , intent(in   )           :: componentType       , massType     , &
+         &                                                                 weightBy            , weightIndex
     double precision                          , intent(in   )           :: radius
     logical                                   , intent(in   ), optional :: haloLoaded
-    class           (nodeComponentBasic      )               , pointer  :: thisBasicComponent
-    class           (cosmologyParametersClass)               , pointer  :: thisCosmologyParameters
+    class           (nodeComponentBasic      )               , pointer  :: basic
+    class           (cosmologyParametersClass)               , pointer  :: cosmologyParameters_
     class           (darkMatterProfileClass  )               , pointer  :: darkMatterProfile_
-    double precision                                                    :: darkMatterFraction     , radiusInitial
+    double precision                                                    :: darkMatterFraction  , radiusInitial
     logical                                                             :: haloLoadedActual
     !GCC$ attributes unused :: weightIndex
 
@@ -57,14 +57,14 @@ contains
 
     ! Get required objects.
     darkMatterProfile_      => darkMatterProfile  ()
-    thisCosmologyParameters => cosmologyParameters()
+    cosmologyParameters_ => cosmologyParameters()
     ! Determine the dark matter fraction.
-    darkMatterFraction=(thisCosmologyParameters%OmegaMatter()-thisCosmologyParameters%OmegaBaryon())/thisCosmologyParameters%OmegaMatter()
+    darkMatterFraction=(cosmologyParameters_%OmegaMatter()-cosmologyParameters_%OmegaBaryon())/cosmologyParameters_%OmegaMatter()
     ! Test radius.
     if (radius >= radiusLarge) then
        ! Return the total mass of the halo in this case.
-       thisBasicComponent => thisNode%basic()
-       Dark_Matter_Profile_Enclosed_Mass_Task=thisBasicComponent%mass()
+       basic => node%basic()
+       Dark_Matter_Profile_Enclosed_Mass_Task=basic%mass()
     else if (radius <= 0.0d0) then
        ! Zero radius. Return zero mass.
        Dark_Matter_Profile_Enclosed_Mass_Task=0.0d0
@@ -74,13 +74,13 @@ contains
        if (present(haloLoaded)) haloLoadedActual=haloLoaded
        if (haloLoadedActual) then
           ! Halo loading is to be accounted for - get the initial radius in the dark matter halo.
-          radiusInitial=Galactic_Structure_Radius_Initial(thisNode,radius)
+          radiusInitial=Galactic_Structure_Radius_Initial(node,radius)
        else
           ! Halo loading is not to be accounted for. The radius to use is simply the radius we were given.
           radiusInitial=radius
        end if
        ! Return the mass within the initial radius.
-       Dark_Matter_Profile_Enclosed_Mass_Task=darkMatterProfile_%enclosedMass(thisNode,radiusInitial)
+       Dark_Matter_Profile_Enclosed_Mass_Task=darkMatterProfile_%enclosedMass(node,radiusInitial)
     end if
     ! Scale to account for just the dark component.
     Dark_Matter_Profile_Enclosed_Mass_Task=Dark_Matter_Profile_Enclosed_Mass_Task*darkMatterFraction
@@ -90,12 +90,12 @@ contains
   !# <rotationCurveTask>
   !#  <unitName>Dark_Matter_Profile_Rotation_Curve_Task</unitName>
   !# </rotationCurveTask>
-  double precision function Dark_Matter_Profile_Rotation_Curve_Task(thisNode,radius,componentType,massType,haloLoaded)
+  double precision function Dark_Matter_Profile_Rotation_Curve_Task(node,radius,componentType,massType,haloLoaded)
     !% Computes the rotation curve at a given radius for a dark matter profile.
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     implicit none
-    type            (treeNode), intent(inout)           :: thisNode
+    type            (treeNode), intent(inout)           :: node
     integer                   , intent(in   )           :: componentType, massType
     double precision          , intent(in   )           :: radius
     logical                   , intent(in   ), optional :: haloLoaded
@@ -106,7 +106,7 @@ contains
 
     ! Compute if a spheroid is present.
     if (radius > 0.0d0) then
-       componentMass=Dark_Matter_Profile_Enclosed_Mass_Task(thisNode,radius,componentType,massType,weightByMass,weightIndexNull&
+       componentMass=Dark_Matter_Profile_Enclosed_Mass_Task(node,radius,componentType,massType,weightByMass,weightIndexNull&
             &,haloLoaded)
        if (componentMass > 0.0d0) Dark_Matter_Profile_Rotation_Curve_Task=sqrt(gravitationalConstantGalacticus*componentMass)&
             &/sqrt(radius)
@@ -117,21 +117,21 @@ contains
   !# <densityTask>
   !#  <unitName>Dark_Matter_Profile_Density_Task</unitName>
   !# </densityTask>
-  double precision function Dark_Matter_Profile_Density_Task(thisNode,positionSpherical,componentType,massType,weightBy,weightIndex,haloLoaded)
+  double precision function Dark_Matter_Profile_Density_Task(node,positionSpherical,componentType,massType,weightBy,weightIndex,haloLoaded)
     !% Computes the density at a given position for a dark matter profile.
     use Galactic_Structure_Options
     use Galactic_Structure_Initial_Radii
     use Cosmology_Parameters
     implicit none
-    type            (treeNode                ), intent(inout)           :: thisNode
-    integer                                   , intent(in   )           :: componentType             , massType     , &
-         &                                                                 weightBy                  , weightIndex
-    double precision                          , intent(in   )           :: positionSpherical      (3)
+    type            (treeNode                ), intent(inout)           :: node
+    integer                                   , intent(in   )           :: componentType          , massType     , &
+         &                                                                 weightBy               , weightIndex
+    double precision                          , intent(in   )           :: positionSpherical   (3)
     logical                                   , intent(in   ), optional :: haloLoaded
-    class           (cosmologyParametersClass)               , pointer  :: thisCosmologyParameters
+    class           (cosmologyParametersClass)               , pointer  :: cosmologyParameters_
     class           (darkMatterProfileClass  )               , pointer  :: darkMatterProfile_
     logical                                                             :: haloLoadedActual
-    double precision                                                    :: darkMatterFraction        , radiusInitial, &
+    double precision                                                    :: darkMatterFraction     , radiusInitial, &
          &                                                                 radiusJacobian
     !GCC$ attributes unused :: weightIndex
     
@@ -142,16 +142,16 @@ contains
     if (.not.(weightBy      == weightByMass                                                )) return
     ! Get required objects.
     darkMatterProfile_      => darkMatterProfile  ()
-    thisCosmologyParameters => cosmologyParameters()
+    cosmologyParameters_ => cosmologyParameters()
     ! Determine the dark matter fraction.
-    darkMatterFraction=(thisCosmologyParameters%OmegaMatter()-thisCosmologyParameters%OmegaBaryon())/thisCosmologyParameters%OmegaMatter()
+    darkMatterFraction=(cosmologyParameters_%OmegaMatter()-cosmologyParameters_%OmegaBaryon())/cosmologyParameters_%OmegaMatter()
     ! Determine if we need to account for halo loading (a.k.a. adiabatic contraction, a.k.a. baryonic pinching).
     haloLoadedActual=.true.
     if (present(haloLoaded)) haloLoadedActual=haloLoaded
     if (haloLoadedActual) then
        ! Halo loading is to be accounted for - get the initial radius in the dark matter halo, and the Jacobian.
-       radiusInitial = Galactic_Structure_Radius_Initial           (thisNode,positionSpherical(1))
-       radiusJacobian= Galactic_Structure_Radius_Initial_Derivative(thisNode,positionSpherical(1)) &
+       radiusInitial = Galactic_Structure_Radius_Initial           (node,positionSpherical(1))
+       radiusJacobian= Galactic_Structure_Radius_Initial_Derivative(node,positionSpherical(1)) &
             &         *(radiusInitial/positionSpherical(1))**2
     else
        ! Halo loading is not to be accounted for. The radius to use is simply the radius we were given.
@@ -159,7 +159,7 @@ contains
        radiusJacobian=1.0d0
     end if
     ! Return the mass within the initial radius.
-    Dark_Matter_Profile_Density_Task=darkMatterProfile_%density(thisNode,radiusInitial)
+    Dark_Matter_Profile_Density_Task=darkMatterProfile_%density(node,radiusInitial)
     ! Account for the Jacobian.
     Dark_Matter_Profile_Density_Task=Dark_Matter_Profile_Density_Task*radiusJacobian
     ! Scale to account for just the dark component.
@@ -170,13 +170,13 @@ contains
   !# <rotationCurveGradientTask>
   !#  <unitName>Dark_Matter_Profile_Rotation_Curve_Gradient_Task</unitName>
   !# </rotationCurveGradientTask>
-  double precision function Dark_Matter_Profile_Rotation_Curve_Gradient_Task(thisNode,radius,componentType,massType,haloLoaded)
+  double precision function Dark_Matter_Profile_Rotation_Curve_Gradient_Task(node,radius,componentType,massType,haloLoaded)
     !% Computes the rotation curve gradient for the dark matter.
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     use Numerical_Constants_Math
     implicit none
-    type            (treeNode), intent(inout)           :: thisNode
+    type            (treeNode), intent(inout)           :: node
     integer                   , intent(in   )           :: componentType   , massType
     double precision          , intent(in   )           :: radius
     logical                   , intent(in   ), optional :: haloLoaded
@@ -189,8 +189,8 @@ contains
     if (radius <= 0.0d0) return
 
     positionSpherical=[radius,0.0d0,0.0d0]
-    componentMass   =Dark_Matter_Profile_Enclosed_Mass_Task(thisNode,radius           ,componentType,massType,weightByMass,weightIndexNull,haloLoaded)
-    componentDensity=Dark_Matter_Profile_Density_Task      (thisNode,positionSpherical,componentType,massType,weightByMass,weightIndexNull,haloLoaded)
+    componentMass   =Dark_Matter_Profile_Enclosed_Mass_Task(node,radius           ,componentType,massType,weightByMass,weightIndexNull,haloLoaded)
+    componentDensity=Dark_Matter_Profile_Density_Task      (node,positionSpherical,componentType,massType,weightByMass,weightIndexNull,haloLoaded)
     if (componentMass ==0.0d0 .or. componentDensity == 0.0d0) return
     Dark_Matter_Profile_Rotation_Curve_Gradient_Task=           &
          &                   gravitationalConstantGalacticus    &
@@ -203,13 +203,13 @@ contains
   !# <potentialTask>
   !#  <unitName>Dark_Matter_Profile_Potential_Task</unitName>
   !# </potentialTask>
-  double precision function Dark_Matter_Profile_Potential_Task(thisNode,radius,componentType,massType,haloLoaded,status)
+  double precision function Dark_Matter_Profile_Potential_Task(node,radius,componentType,massType,haloLoaded,status)
     !% Return the potential due to dark matter.
     use Galactic_Structure_Options
     use Galacticus_Error
     use Cosmology_Parameters
     implicit none
-    type            (treeNode                ), intent(inout), pointer  :: thisNode
+    type            (treeNode                ), intent(inout), pointer  :: node
     integer                                   , intent(in   )           :: componentType, massType
     double precision                          , intent(in   )           :: radius
     logical                                   , intent(in   ), optional :: haloLoaded
@@ -237,7 +237,7 @@ contains
          &             /  cosmologyParameters_%OmegaMatter()
     ! Compute dark matter potential (scales linearly with dark matter fraction).
     Dark_Matter_Profile_Potential_Task=+darkMatterFraction                                        &
-         &                             *darkMatterProfile_%potential(thisNode,radius,statusLocal)
+         &                             *darkMatterProfile_%potential(node,radius,statusLocal)
     if (present(status).and.statusLocal /= structureErrorCodeSuccess) status=structureErrorCodeSuccess
     return
   end function Dark_Matter_Profile_Potential_Task

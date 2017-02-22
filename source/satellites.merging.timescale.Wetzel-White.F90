@@ -44,7 +44,7 @@ contains
     return
   end subroutine wetzelWhite2010Destructor
 
-  double precision function wetzelWhite2010TimeUntilMerging(self,thisNode,thisOrbit)
+  double precision function wetzelWhite2010TimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the \cite{wetzel_what_2010} method.
     use Galacticus_Nodes
     use Dynamical_Friction_Timescale_Utilities
@@ -52,29 +52,29 @@ contains
     use Kepler_Orbits
     implicit none
     class           (satelliteMergingTimescalesWetzelWhite2010), intent(inout) :: self
-    type            (treeNode                                 ), intent(inout) :: thisNode
-    type            (keplerOrbit                              ), intent(inout) :: thisOrbit
-    type            (treeNode                                 ), pointer       :: hostNode
-    class           (nodeComponentBasic                       ), pointer       :: hostBasic                , thisBasic
-    class           (cosmologyFunctionsClass                  ), pointer       :: cosmologyFunctionsDefault
-    double precision                                           , parameter     :: timeScaleNormalization   =0.2d0      !   C_dyn from Wetzel & White (2010).
+    type            (treeNode                                 ), intent(inout) :: node
+    type            (keplerOrbit                              ), intent(inout) :: orbit
+    type            (treeNode                                 ), pointer       :: nodeHost
+    class           (nodeComponentBasic                       ), pointer       :: basicHost                   , basic
+    class           (cosmologyFunctionsClass                  ), pointer       :: cosmologyFunctions_
+    double precision                                           , parameter     :: timeScaleNormalization=0.2d0        !   C_dyn from Wetzel & White (2010).
     double precision                                                           :: massRatio
-    !GCC$ attributes unused :: self, thisOrbit
+    !GCC$ attributes unused :: self, orbit
     
     ! Get the default cosmology functions object.
-    cosmologyFunctionsDefault => cosmologyFunctions()
+    cosmologyFunctions_ => cosmologyFunctions()
     ! Find the host node.
-    hostNode => thisNode%parent
+    nodeHost => node%parent
     ! Compute mass ratio.
-    thisBasic => thisNode%basic()
-    hostBasic => hostNode%basic()
-    massRatio=hostBasic%mass()/thisBasic%mass()
+    basic => node%basic()
+    basicHost => nodeHost%basic()
+    massRatio=basicHost%mass()/basic%mass()
     ! Compute dynamical friction timescale using eqn. (2) from Wetzel & White (2010).
     wetzelWhite2010TimeUntilMerging= Dynamical_Friction_Timescale_Multiplier()   &
          &                          *timeScaleNormalization                      &
-         &                          /cosmologyFunctionsDefault%expansionRate(    &
-         &                            cosmologyFunctionsDefault%expansionFactor( &
-         &                             thisBasic%time()                          &
+         &                          /cosmologyFunctions_%expansionRate(          &
+         &                            cosmologyFunctions_%expansionFactor(       &
+         &                             basic%time()                              &
          &                                                                     ) &
          &                                                                  )    &
          &                          *           massRatio                        &

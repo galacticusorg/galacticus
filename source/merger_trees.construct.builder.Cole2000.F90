@@ -192,11 +192,11 @@ contains
     implicit none
     class           (mergerTreeBuilderCole2000), intent(inout)         :: self
     type            (mergerTree               ), intent(inout), target :: tree
-    type            (treeNode                 ), pointer               :: newNode1                  , newNode2                   , thisNode                  , &
-         &                                                                previousNode
+    type            (treeNode                 ), pointer               :: nodeNew1                  , nodeNew2                   , node                  , &
+         &                                                                nodePrevious
     class           (criticalOverdensityClass ), pointer               :: criticalOverdensity_
-    class           (nodeComponentBasic       ), pointer               :: newBasic1                 , newBasic2                  , thisBasic                 , &
-         &                                                                parentBasic
+    class           (nodeComponentBasic       ), pointer               :: basicNew1                 , basicNew2                  , basic                 , &
+         &                                                                basicParent
     double precision                           , parameter             :: toleranceResolutionParent=1.0d-3
     double precision                           , parameter             :: toleranceResolutionSelf  =1.0d-6
     double precision                           , parameter             :: toleranceDeltaCritical   =1.0d-6
@@ -217,8 +217,8 @@ contains
     criticalOverdensity_ => criticalOverdensity()
     ! Begin construction.
     nodeIndex =  1                   ! Initialize the node index counter to unity.
-    thisNode  => tree    %baseNode   ! Point to the base node.
-    thisBasic => thisNode%basic   () ! Get the basic component of the node.
+    node  => tree%baseNode   ! Point to the base node.
+    basic => node%basic   () ! Get the basic component of the node.
     if (.not.self%branchingIntervalDistributionInitialized.and.self%branchIntervalStep) then
        ! Note that we use a unit rate - we will scale the results to the actual rate required.
        self%branchingIntervalDistribution           =distributionNegativeExponential(1.0d0)
@@ -230,46 +230,46 @@ contains
     ! Get the mass resolution for this tree.
     massResolution=self%mergerTreeMassResolution_%resolution(tree)
     ! Convert time for base node to critical overdensity (which we use as a time coordinate in this module).
-    baseNodeTime =thisBasic%time()
-    deltaCritical=criticalOverdensity_%value(time=thisBasic%time(),mass=thisBasic%mass())
-    call thisBasic%timeSet(deltaCritical)
+    baseNodeTime =basic%time()
+    deltaCritical=criticalOverdensity_%value(time=basic%time(),mass=basic%mass())
+    call basic%timeSet(deltaCritical)
     ! Begin tree build loop.    
-    do while (associated(thisNode))
+    do while (associated(node))
        ! Get the basic component of the node.
-       thisBasic => thisNode%basic()
+       basic => node%basic()
        ! Initialize the state for this branch.
        accretionFractionCumulative=0.0d0
-       branchMassCurrent          =thisBasic%mass()
-       branchDeltaCriticalCurrent =thisBasic%time()
+       branchMassCurrent          =basic%mass()
+       branchDeltaCriticalCurrent =basic%time()
        ! Evolve the branch until mass falls below the resolution limit, the earliest time is reached, or the branch ends.       
        branchIsDone=.false.
        do while (.not.branchIsDone)
-          if     (                                                                                                                          &
-               &   branchMassCurrent                           <= massResolution                                                            &
-               &  .or.                                                                                                                      &
-               &   branchDeltaCriticalCurrent                  >= criticalOverdensity_%value(time=self%timeEarliest,mass=branchMassCurrent) &
-               &  .or.                                                                                                                      &
-               &   .not.self%shouldFollowBranch(tree,thisNode)                                                                              &
+          if     (                                                                                                                      &
+               &   branchMassCurrent                       <= massResolution                                                            &
+               &  .or.                                                                                                                  &
+               &   branchDeltaCriticalCurrent              >= criticalOverdensity_%value(time=self%timeEarliest,mass=branchMassCurrent) &
+               &  .or.                                                                                                                  &
+               &   .not.self%shouldFollowBranch(tree,node)                                                                              &
                & ) then
              ! Branch should be terminated. If we have any accumulated accretion, terminate the branch with a final node.
              if (accretionFractionCumulative > 0.0d0) then
                 nodeIndex      =  nodeIndex+1
-                newNode1       => treeNode(nodeIndex,tree)
-                newBasic1      => newNode1%basic(autoCreate=.true.)
+                nodeNew1       => treeNode(nodeIndex,tree)
+                basicNew1      => nodeNew1%basic(autoCreate=.true.)
                 ! Compute new mass accounting for sub-resolution accretion.
-                nodeMass1      =  thisBasic%mass()*(1.0d0-accretionFractionCumulative)
+                nodeMass1      =  basic%mass()*(1.0d0-accretionFractionCumulative)
                 ! Compute the time corresponding to this new node.
                 time           =  criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical,mass=branchMassCurrent)
                 ! Set properties of the new node.
                 deltaCritical1 =  criticalOverdensity_%value         (time               =time         ,mass=nodeMass1        )
-                call newBasic1%massSet(nodeMass1     )
-                call newBasic1%timeSet(deltaCritical1)
+                call basicNew1%massSet(nodeMass1     )
+                call basicNew1%timeSet(deltaCritical1)
                 ! Create links from old to new node and vice-versa.
-                thisNode%firstChild => newNode1
-                newNode1%parent     => thisNode
+                node%firstChild => nodeNew1
+                nodeNew1%parent     => node
                 ! Move to the terminating node (necessary otherwise we would move to this terminating node next and continue to
                 ! grow a branch from it).
-                thisNode            => newNode1
+                node            => nodeNew1
              end if
              ! Flag that the branch is done.
              branchIsDone=.true.
@@ -284,8 +284,8 @@ contains
              if (accretionFraction < 0.0d0) then
                 ! Terminate the branch with a final node.
                 nodeIndex          =  nodeIndex+1
-                newNode1           => treeNode      (nodeIndex,tree)
-                newBasic1          => newNode1%basic(autoCreate=.true. )
+                nodeNew1           => treeNode      (nodeIndex,tree)
+                basicNew1          => nodeNew1%basic(autoCreate=.true. )
                 ! Compute new mass accounting for sub-resolution accretion.
                 nodeMass1          = massResolution
                 ! Compute the time corresponding to this event.
@@ -305,14 +305,14 @@ contains
                    deltaCritical1=branchDeltaCriticalCurrent*(1.0d0+toleranceDeltaCritical)
                 end if
                 ! Set properties of the new node.
-                call newBasic1%massSet(nodeMass1     )
-                call newBasic1%timeSet(deltaCritical1)
+                call basicNew1%massSet(nodeMass1     )
+                call basicNew1%timeSet(deltaCritical1)
                 ! Create links from old to new node and vice-versa.
-                thisNode%firstChild => newNode1
-                newNode1%parent     => thisNode
+                node%firstChild => nodeNew1
+                nodeNew1%parent     => node
                 ! Move to the terminating node (necessary otherwise we would move to this terminating node next and continue to
                 ! grow a branch from it), and flag that the branch is done.
-                thisNode            => newNode1
+                node            => nodeNew1
                 branchIsDone        =  .true.
              else
                 ! Finding maximum allowed step in w. Limit based on branching rate only if we are using the original Cole et
@@ -422,13 +422,13 @@ contains
                 end if
                 ! Determine the critical overdensity for collapse for the new halo(s).
                 if (snapEarliestTime) then
-                   deltaCritical                 =+criticalOverdensity_%value(                        &
-                        &                                                        time=self%timeEarliest, &
-                        &                                                        mass=branchMassCurrent  &
-                        &                                                       )
+                   deltaCritical=+criticalOverdensity_%value(                        &
+                        &                                    time=self%timeEarliest, &
+                        &                                    mass=branchMassCurrent  &
+                        &                                   )
                 else
-                   deltaCritical                 =+branchDeltaCriticalCurrent &
-                        &                         +deltaW
+                   deltaCritical=+branchDeltaCriticalCurrent &
+                        &        +deltaW
                 end if
                 if (snapAccretionFraction) then
                    accretionFractionCumulative=self%accretionLimit
@@ -440,11 +440,11 @@ contains
                 case (.true.)
                    ! Branching occurs - create two progenitors.
                    nodeIndex     =  nodeIndex+1
-                   newNode1      => treeNode(nodeIndex,tree)
-                   newBasic1     => newNode1%basic(autoCreate=.true.)
+                   nodeNew1      => treeNode(nodeIndex,tree)
+                   basicNew1     => nodeNew1%basic(autoCreate=.true.)
                    ! Compute mass of one of the new nodes.
                    nodeMass1     =  Tree_Branch_Mass(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,branchingProbability,tree%randomNumberGenerator)
-                   nodeMass2     =  thisBasic%mass()-nodeMass1
+                   nodeMass2     =  basic%mass()-nodeMass1
                    nodeMass1=nodeMass1*(1.0d0-accretionFractionCumulative)
                    nodeMass2=nodeMass2*(1.0d0-accretionFractionCumulative)
                    ! Compute the time corresponding to this branching event.
@@ -453,49 +453,49 @@ contains
                    deltaCritical1=  criticalOverdensity_%value         (time               =time         ,mass=nodeMass1        )
                    ! If we are to snap halos to the earliest time, and the computed deltaCritical is sufficiently close to that time, snap it.
                    if (snapEarliestTime.and.Values_Agree(deltaCritical1,deltaCritical,relTol=1.0d-6)) deltaCritical1=deltaCritical
-                   call newBasic1%massSet(nodeMass1     )
-                   call newBasic1%timeSet(deltaCritical1)
+                   call basicNew1%massSet(nodeMass1     )
+                   call basicNew1%timeSet(deltaCritical1)
                    ! Create second progenitor.
                    nodeIndex=nodeIndex+1
-                   newNode2  => treeNode(nodeIndex,tree)
-                   newBasic2 => newNode2%basic(autoCreate=.true.)
+                   nodeNew2  => treeNode(nodeIndex,tree)
+                   basicNew2 => nodeNew2%basic(autoCreate=.true.)
                    ! Set properties of second new node.
                    deltaCritical2=criticalOverdensity_%value(time=time,mass=nodeMass2)
                    ! If we are to snap halos to the earliest time, and the computed deltaCritical is sufficiently close to that time, snap it.
                    if (snapEarliestTime.and.Values_Agree(deltaCritical2,deltaCritical,relTol=1.0d-6)) deltaCritical2=deltaCritical
-                   call newBasic2%massSet(nodeMass2     )
-                   call newBasic2%timeSet(deltaCritical2)
+                   call basicNew2%massSet(nodeMass2     )
+                   call basicNew2%timeSet(deltaCritical2)
                    ! Create links from old to new nodes and vice-versa. (Ensure that child node is the more massive progenitor.)
                    if (nodeMass2 > nodeMass1) then
-                      thisNode%firstChild => newNode2
-                      newNode2%sibling    => newNode1
+                      node%firstChild => nodeNew2
+                      nodeNew2%sibling    => nodeNew1
                    else
-                      thisNode%firstChild => newNode1
-                      newNode1%sibling    => newNode2
+                      node%firstChild => nodeNew1
+                      nodeNew1%sibling    => nodeNew2
                    end if
-                   newNode1%parent        => thisNode
-                   newNode2%parent        => thisNode
+                   nodeNew1%parent        => node
+                   nodeNew2%parent        => node
                    branchIsDone           =  .true.
                 case (.false.)
                    ! No branching occurs - create one progenitor.
                    if (accretionFractionCumulative >= self%accretionLimit) then
                       nodeIndex      =  nodeIndex+1
-                      newNode1       => treeNode(nodeIndex,tree)
-                      newBasic1      => newNode1%basic(autoCreate=.true.)
+                      nodeNew1       => treeNode(nodeIndex,tree)
+                      basicNew1      => nodeNew1%basic(autoCreate=.true.)
                       ! Compute new mass accounting for sub-resolution accretion.
-                      nodeMass1      =  thisBasic%mass()*(1.0d0-accretionFractionCumulative)
+                      nodeMass1      =  basic%mass()*(1.0d0-accretionFractionCumulative)
                       ! Compute the time corresponding to this new node.
                       time           =  criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical,mass=branchMassCurrent)
                       ! Set properties of the new node.
                       deltaCritical1 =  criticalOverdensity_%value         (time               =time         ,mass=nodeMass1        )
-                      call newBasic1%massSet(nodeMass1     )
-                      call newBasic1%timeSet(deltaCritical1)
+                      call basicNew1%massSet(nodeMass1     )
+                      call basicNew1%timeSet(deltaCritical1)
                       ! Create links from old to new node and vice-versa.
-                      thisNode%firstChild => newNode1
-                      newNode1%parent     => thisNode
+                      node%firstChild => nodeNew1
+                      nodeNew1%parent     => node
                       branchIsDone=.true.
                    else
-                      branchMassCurrent         =thisBasic%mass()*(1.0d0-accretionFractionCumulative)
+                      branchMassCurrent         =basic%mass()*(1.0d0-accretionFractionCumulative)
                       branchDeltaCriticalCurrent=deltaCritical
                    end if
                 end select
@@ -504,64 +504,64 @@ contains
        end do
        ! Check if tree should be aborted.
        if (self%shouldAbort(tree)) then
-          thisNode => null()
+          node => null()
        else
           ! Walk to the next node.
-          thisNode => thisNode%walkTreeUnderConstruction()
+          node => node%walkTreeUnderConstruction()
        end if
     end do
     ! Walk the tree and convert w to time.
-    thisNode => tree%baseNode
-    do while (associated(thisNode))
+    node => tree%baseNode
+    do while (associated(node))
        ! Get the basic component of the node.
-       thisBasic    => thisNode%basic()
+       basic    => node%basic()
        ! Compute the collapse time.
-       collapseTime =  criticalOverdensity_%timeOfCollapse(criticalOverdensity=thisBasic%time(),mass=thisBasic%mass())
-       call thisBasic%timeSet(collapseTime)
-       thisNode => thisNode%walkTree()
+       collapseTime =  criticalOverdensity_%timeOfCollapse(criticalOverdensity=basic%time(),mass=basic%mass())
+       call basic%timeSet(collapseTime)
+       node => node%walkTree()
     end do
-    thisBasic => tree%baseNode%basic()
-    call thisBasic%timeSet(baseNodeTime)
+    basic => tree%baseNode%basic()
+    call basic%timeSet(baseNodeTime)
     ! Check for well-ordering in time.
-    thisNode     => tree%baseNode
-    previousNode => thisNode
-    do while (associated(thisNode))       
-       if (associated(thisNode%parent)) then
-          thisBasic   => thisNode       %basic()
-          parentBasic => thisNode%parent%basic()
-          if (parentBasic%time() <= thisBasic%time()) then
+    node     => tree%baseNode
+    nodePrevious => node
+    do while (associated(node))       
+       if (associated(node%parent)) then
+          basic   => node       %basic()
+          basicParent => node%parent%basic()
+          if (basicParent%time() <= basic%time()) then
              if     (                                                                       &
-                  &   parentBasic%mass() < massResolution*(1.0d0+toleranceResolutionParent) &
+                  &   basicParent%mass() < massResolution*(1.0d0+toleranceResolutionParent) &
                   &  .and.                                                                  &
-                  &     thisBasic%mass() < massResolution*(1.0d0+toleranceResolutionSelf  ) &
+                  &   basic      %mass() < massResolution*(1.0d0+toleranceResolutionSelf  ) &
                   & ) then
                 ! Parent halo is very close to the resolution limit. Simply prune away the remainder of this branch.
-                call thisNode%destroyBranch()
-                deallocate(thisNode)
-                thisNode => previousNode
+                call node%destroyBranch()
+                deallocate(node)
+                node => nodePrevious
              else
                 ! Parent halo is not close to the resolution limit - this is an error.
                 message="branch is not well-ordered in time:"           //char(10)
-                write (label,'(i20)'   ) thisNode       %index()
+                write (label,'(i20)'   ) node       %index()
                 message=message//" ->      node index = "//label        //char(10)
-                write (label,'(i20)'   ) thisNode%parent%index()
+                write (label,'(i20)'   ) node%parent%index()
                 message=message//" ->    parent index = "//label        //char(10)
-                write (label,'(e20.14)')                                   thisBasic%time()
+                write (label,'(e20.14)')                                   basic%time()
                 message=message//" ->       node time = "//label//" Gyr"//char(10)
-                write (label,'(e20.14)')                                 parentBasic%time()
+                write (label,'(e20.14)')                                 basicParent%time()
                 message=message//" ->     parent time = "//label//" Gyr"//char(10)
-                write (label,'(e20.14)')                                                           thisBasic%mass()
+                write (label,'(e20.14)')                                                         basic      %mass()
                 message=message//" ->       node mass = "//label//" M☉" //char(10)
-                write (label,'(e20.14)')                                                         parentBasic%mass()
+                write (label,'(e20.14)')                                                         basicParent%mass()
                 message=message//" ->     parent mass = "//label//" M☉" //char(10)
-                write (label,'(e20.14)') criticalOverdensity_%value(time=  thisBasic%time(),mass=  thisBasic%mass())
+                write (label,'(e20.14)') criticalOverdensity_%value(time=basic      %time(),mass=basic      %mass())
                 message=message//" ->         node δc = "//label        //char(10)
-                write (label,'(e20.14)') criticalOverdensity_%value(time=parentBasic%time(),mass=parentBasic%mass())
+                write (label,'(e20.14)') criticalOverdensity_%value(time=basicParent%time(),mass=basicParent%mass())
                 message=message//" ->       parent δc = "//label        //char(10)
-                thisBasic => tree%baseNode%basic()
-                write (label,'(e20.14)')                                   thisBasic%time()
+                basic => tree%baseNode%basic()
+                write (label,'(e20.14)')                                   basic%time()
                 message=message//" ->       tree time = "//label//" Gyr"//char(10)
-                write (label,'(e20.14)')                                                           thisBasic%mass()
+                write (label,'(e20.14)')                                                         basic      %mass()
                 message=message//" ->       tree mass = "//label//" M☉" //char(10)
                 write (label,'(e20.14)') massResolution
                 message=message//" -> mass resolution = "//label//" M☉"
@@ -569,8 +569,8 @@ contains
              end if
           end if
        end if
-       previousNode => thisNode
-       thisNode     => thisNode%walkTree()
+       nodePrevious => node
+       node         => node%walkTree()
     end do
     return
   end subroutine cole2000Build

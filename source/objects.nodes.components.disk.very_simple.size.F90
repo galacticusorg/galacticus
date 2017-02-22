@@ -102,22 +102,22 @@ contains
   !# <radiusSolverPlausibility>
   !#  <unitName>Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility</unitName>
   !# </radiusSolverPlausibility>
-  subroutine Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility(thisNode,galaxyIsPhysicallyPlausible)
+  subroutine Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility(node,galaxyIsPhysicallyPlausible)
     !% Determines whether the disk is physically plausible for radius solving tasks. Require that it have non-zero mass.
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode         ), intent(inout) :: thisNode
+    type            (treeNode         ), intent(inout) :: node
     logical                            , intent(inout) :: galaxyIsPhysicallyPlausible
-    class           (nodeComponentDisk), pointer       :: thisDisk
+    class           (nodeComponentDisk), pointer       :: disk
 
     ! Return immediately if our method is not selected.
     if (.not.defaultDiskComponent%verySimpleSizeIsActive()) return
 
      ! Determine the plausibility of the current disk.
-     thisDisk => thisNode%disk()
-     select type (thisDisk)
+     disk => node%disk()
+     select type (disk)
      class is (nodeComponentDiskVerySimpleSize)
-        galaxyIsPhysicallyPlausible=(thisDisk%massStellar()+thisDisk%massGas() >= -diskMassToleranceAbsolute)
+        galaxyIsPhysicallyPlausible=(disk%massStellar()+disk%massGas() >= -diskMassToleranceAbsolute)
      end select
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility
@@ -125,29 +125,29 @@ contains
   !# <radiusSolverTask>
   !#  <unitName>Node_Component_Disk_Very_Simple_Size_Radius_Solver</unitName>
   !# </radiusSolverTask>
-  subroutine Node_Component_Disk_Very_Simple_Size_Radius_Solver(thisNode,componentActive,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get&
+  subroutine Node_Component_Disk_Very_Simple_Size_Radius_Solver(node,componentActive,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get&
        &,Radius_Set,Velocity_Get,Velocity_Set)
     !% Interface for the size solver algorithm.
     use Dark_Matter_Halo_Spins
     implicit none
-    type            (treeNode                                       ), intent(inout)          :: thisNode
+    type            (treeNode                                       ), intent(inout)          :: node
     logical                                                          , intent(  out)          :: componentActive
     logical                                                          , intent(in   )          :: specificAngularMomentumRequired
     double precision                                                 , intent(  out)          :: specificAngularMomentum
     procedure       (Node_Component_Disk_Very_Simple_Size_Radius    ), intent(  out), pointer :: Radius_Get                     , Velocity_Get
     procedure       (Node_Component_Disk_Very_Simple_Size_Radius_Set), intent(  out), pointer :: Radius_Set                     , Velocity_Set
-    class           (nodeComponentDisk                              )               , pointer :: thisDisk
-    class           (nodeComponentBasic                             )               , pointer :: thisBasic
+    class           (nodeComponentDisk                              )               , pointer :: disk
+    class           (nodeComponentBasic                             )               , pointer :: basic
 
-    ! Determine if thisNode has an active disk component supported by this module.
+    ! Determine if node has an active disk component supported by this module.
     componentActive =  .false.
-    thisDisk        => thisNode%disk()
-    select type (thisDisk)
+    disk        => node%disk()
+    select type (disk)
     class is (nodeComponentDiskVerySimpleSize)
        componentActive        =  .true.
        if (specificAngularMomentumRequired) then
-          thisBasic              => thisNode%basic()
-          specificAngularMomentum=  Dark_Matter_Halo_Angular_Momentum(thisNode)/thisBasic%mass()
+          basic                  => node%basic()
+          specificAngularMomentum=  Dark_Matter_Halo_Angular_Momentum(node)/basic%mass()
        end if
        ! Associate the pointers with the appropriate property routines.
        Radius_Get   => Node_Component_Disk_Very_Simple_Size_Radius
@@ -158,49 +158,49 @@ contains
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_Radius_Solver
 
-  double precision function Node_Component_Disk_Very_Simple_Size_Radius(thisNode)
+  double precision function Node_Component_Disk_Very_Simple_Size_Radius(node)
     !% Return the radius of the disk used in structure solvers.
     implicit none
-    type (treeNode         ), intent(inout) :: thisNode
-    class(nodeComponentDisk), pointer       :: thisDisk
+    type (treeNode         ), intent(inout) :: node
+    class(nodeComponentDisk), pointer       :: disk
 
-    thisDisk => thisNode%disk()
-    Node_Component_Disk_Very_Simple_Size_Radius=thisDisk%radius()
+    disk => node%disk()
+    Node_Component_Disk_Very_Simple_Size_Radius=disk%radius()
     return
   end function Node_Component_Disk_Very_Simple_Size_Radius
 
-  subroutine Node_Component_Disk_Very_Simple_Size_Radius_Set(thisNode,radius)
+  subroutine Node_Component_Disk_Very_Simple_Size_Radius_Set(node,radius)
     !% Set the radius of the disk used in structure solvers.
     implicit none
-    type            (treeNode         ), intent(inout) :: thisNode
+    type            (treeNode         ), intent(inout) :: node
     double precision                   , intent(in   ) :: radius
-    class           (nodeComponentDisk), pointer       :: thisDisk
+    class           (nodeComponentDisk), pointer       :: disk
 
-    thisDisk => thisNode%disk()
-    call thisDisk%radiusSet(radius)
+    disk => node%disk()
+    call disk%radiusSet(radius)
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_Radius_Set
 
-  double precision function Node_Component_Disk_Very_Simple_Size_Velocity(thisNode)
+  double precision function Node_Component_Disk_Very_Simple_Size_Velocity(node)
     !% Return the circular velocity of the disk.
     implicit none
-    type (treeNode         ), intent(inout) :: thisNode
-    class(nodeComponentDisk), pointer       :: thisDisk
+    type (treeNode         ), intent(inout) :: node
+    class(nodeComponentDisk), pointer       :: disk
 
-    thisDisk => thisNode%disk()
-    Node_Component_Disk_Very_Simple_Size_Velocity=thisDisk%velocity()
+    disk => node%disk()
+    Node_Component_Disk_Very_Simple_Size_Velocity=disk%velocity()
     return
   end function Node_Component_Disk_Very_Simple_Size_Velocity
 
-  subroutine Node_Component_Disk_Very_Simple_Size_Velocity_Set(thisNode,velocity)
+  subroutine Node_Component_Disk_Very_Simple_Size_Velocity_Set(node,velocity)
     !% Set the circular velocity of the disk.
     implicit none
-    type            (treeNode         ), intent(inout) :: thisNode
+    type            (treeNode         ), intent(inout) :: node
     double precision                   , intent(in   ) :: velocity
-    class           (nodeComponentDisk), pointer       :: thisDisk
+    class           (nodeComponentDisk), pointer       :: disk
 
-    thisDisk => thisNode%disk()
-    call thisDisk%velocitySet(velocity)
+    disk => node%disk()
+    call disk%velocitySet(velocity)
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_Velocity_Set
 

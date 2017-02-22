@@ -61,8 +61,8 @@ contains
     return
   end subroutine Galactic_Structure_Radii_Simple_Initialize
 
-  subroutine Galactic_Structure_Radii_Solve_Simple(thisNode)
-    !% Find the radii of galactic components in {\normalfont \ttfamily thisNode} using the ``simple'' method.
+  subroutine Galactic_Structure_Radii_Solve_Simple(node)
+    !% Find the radii of galactic components in {\normalfont \ttfamily node} using the ``simple'' method.
     use Galacticus_Error
     !# <include directive="radiusSolverTask" type="moduleUse">
     include 'galactic_structure.radius_solver.tasks.modules.inc'
@@ -71,7 +71,7 @@ contains
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     !# </include>
     implicit none
-    type            (treeNode                  ), intent(inout), target :: thisNode
+    type            (treeNode                  ), intent(inout), target :: node
     logical                                     , parameter             :: specificAngularMomentumRequired=.true.
     procedure       (Radius_Solver_Get_Template), pointer      , save   :: Radius_Get             =>null(), Velocity_Get=>null()
     procedure       (Radius_Solver_Set_Template), pointer      , save   :: Radius_Set             =>null(), Velocity_Set=>null()
@@ -80,34 +80,34 @@ contains
     double precision                                                       :: specificAngularMomentum
 
     ! Check that the galaxy is physical plausible. In this simple solver, we don't act on this.
-    thisNode%isPhysicallyPlausible=.true.
+    node%isPhysicallyPlausible=.true.
     !# <include directive="radiusSolverPlausibility" type="functionCall" functionType="void">
-    !#  <functionArgs>thisNode,thisNode%isPhysicallyPlausible</functionArgs>
+    !#  <functionArgs>node,node%isPhysicallyPlausible</functionArgs>
     include 'galactic_structure.radius_solver.plausible.inc'
     !# </include>
 
     ! Determine which node to use for halo properties.
     if (simpleRadiusSolverUseFormationHalo) then
-       if (.not.associated(thisNode%formationNode)) call Galacticus_Error_Report('Galactic_Structure_Radii_Solve_Simple','no formation node exists')
-       haloNode => thisNode%formationNode
+       if (.not.associated(node%formationNode)) call Galacticus_Error_Report('Galactic_Structure_Radii_Solve_Simple','no formation node exists')
+       haloNode => node%formationNode
     else
-       haloNode => thisNode
+       haloNode => node
     end if
 
     !# <include directive="radiusSolverTask" type="functionCall" functionType="void">
-    !#  <functionArgs>thisNode,componentActive,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set</functionArgs>
-    !#  <onReturn>if (componentActive) call Solve_For_Radius(thisNode,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)</onReturn>
+    !#  <functionArgs>node,componentActive,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set</functionArgs>
+    !#  <onReturn>if (componentActive) call Solve_For_Radius(node,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)</onReturn>
     include 'galactic_structure.radius_solver.tasks.inc'
     !# </include>
 
     return
   end subroutine Galactic_Structure_Radii_Solve_Simple
 
-  subroutine Solve_For_Radius(thisNode,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
+  subroutine Solve_For_Radius(node,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
     !% Solve for the equilibrium radius of the given component.
     use Dark_Matter_Profiles
     implicit none
-    type            (treeNode                  ), intent(inout)          :: thisNode
+    type            (treeNode                  ), intent(inout)          :: node
     double precision                            , intent(in   )          :: specificAngularMomentum
     procedure       (Radius_Solver_Get_Template), intent(in   ), pointer :: Radius_Get             , Velocity_Get
     procedure       (Radius_Solver_Set_Template), intent(in   ), pointer :: Radius_Set             , Velocity_Set
@@ -127,8 +127,8 @@ contains
     velocity=darkMatterProfile_%circularVelocity(haloNode,radius)
 
     ! Set the component size to new radius and velocity.
-    call Radius_Set  (thisNode,radius  )
-    call Velocity_Set(thisNode,velocity)
+    call Radius_Set  (node,radius  )
+    call Velocity_Set(node,velocity)
     return
   end subroutine Solve_For_Radius
 

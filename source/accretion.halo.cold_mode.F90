@@ -296,8 +296,8 @@ contains
     type            (treeNode                     ), intent(inout) :: node
     double precision                               , intent(in   ) :: massAccreted
     integer                                        , intent(in   ) :: accretionMode
-    class           (nodeComponentBasic           ), pointer       :: thisBasicComponent
-    class           (cosmologyParametersClass     ), pointer       :: thisCosmologyParameters
+    class           (nodeComponentBasic           ), pointer       :: basic
+    class           (cosmologyParametersClass     ), pointer       :: cosmologyParameters_
     class           (intergalacticMediumStateClass), pointer       :: intergalacticMediumState_
     class           (darkMatterHaloScaleClass     ), pointer       :: darkMatterHaloScale_
     class           (chemicalStateClass           ), pointer       :: chemicalState_
@@ -310,19 +310,19 @@ contains
          &                                                            fractionHot
 
     ! Get required objects.
-    thisCosmologyParameters => cosmologyParameters()
-    darkMatterHaloScale_    => darkMatterHaloScale()
-    chemicalState_          => chemicalState      ()
+    cosmologyParameters_ => cosmologyParameters()
+    darkMatterHaloScale_ => darkMatterHaloScale()
+    chemicalState_       => chemicalState      ()
     ! Get the basic component.
-    thisBasicComponent   => node%basic()
+    basic                => node%basic()
     ! Compute coefficient in conversion of mass to density for this node.
     massToDensityConversion=Chemicals_Mass_To_Density_Conversion(darkMatterHaloScale_%virialRadius(node))/3.0d0
     ! Compute the temperature and density of accreting material, assuming accreted has is at the virial temperature and that the
     ! overdensity is one third of the mean overdensity of the halo.
-    temperatureHot            =  darkMatterHaloScale_%virialTemperature(node                 )
-    intergalacticMediumState_ => intergalacticMediumState              (                         )
-    temperature               =  intergalacticMediumState_%temperature (thisBasicComponent%time())
-    numberDensityHydrogen     =  hydrogenByMassPrimordial*(thisCosmologyParameters%omegaBaryon()/thisCosmologyParameters%omegaMatter())*thisBasicComponent%mass()*massToDensityConversion&
+    temperatureHot            =  darkMatterHaloScale_     %virialTemperature(node        )
+    intergalacticMediumState_ => intergalacticMediumState                   (            )
+    temperature               =  intergalacticMediumState_%temperature      (basic%time())
+    numberDensityHydrogen     =  hydrogenByMassPrimordial*(cosmologyParameters_%omegaBaryon()/cosmologyParameters_%omegaMatter())*basic%mass()*massToDensityConversion&
          &/atomicMassHydrogen
     ! Set the radiation field.
     call self%radiation%set(node)
@@ -369,8 +369,8 @@ contains
     double precision                          , parameter     :: adiabaticIndex             =5.0d0/3.0d0  
     double precision                          , parameter     :: perturbationInitialExponent=0.0d0
     double precision                          , parameter     :: logStabilityRatioMaximum   =60.0d0
-    class           (cosmologyParametersClass), pointer       :: thisCosmologyParameters
-    class           (nodeComponentBasic      ), pointer       :: thisBasic
+    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
+    class           (nodeComponentBasic      ), pointer       :: basic
     class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
     class           (chemicalStateClass      ), pointer       :: chemicalState_
     class           (coolingFunctionClass    ), pointer       :: coolingFunction_
@@ -387,14 +387,14 @@ contains
        coldModeColdModeFraction=1.0d0
     case (accretionModeHot,accretionModeCold)
        ! Get required objects.
-       thisCosmologyParameters => cosmologyParameters()
-       darkMatterHaloScale_    => darkMatterHaloScale()
-       chemicalState_          => chemicalState      ()
-       coolingFunction_        => coolingFunction    ()
+       cosmologyParameters_ => cosmologyParameters()
+       darkMatterHaloScale_ => darkMatterHaloScale()
+       chemicalState_       => chemicalState      ()
+       coolingFunction_     => coolingFunction    ()
        ! Set the radiation field.
        call self%radiation%set(node)
        ! Get the basic component.
-       thisBasic => node%basic()
+       basic => node%basic()
        ! Compute factors required for stability analysis.
        radiusShock          =darkMatterHaloScale_%virialRadius  (node)
        velocityPreShock     =darkMatterHaloScale_%virialVelocity(node)
@@ -408,9 +408,9 @@ contains
             &                 (adiabaticIndex-1.0d0)                     &
             &                /(adiabaticIndex+1.0d0)                     &
             &                *(3.0d0/4.0d0/Pi)                           &
-            &                *thisBasic%mass()                           &
-            &                *thisCosmologyParameters%omegaBaryon()      &
-            &                /thisCosmologyParameters%omegaMatter()      &
+            &                *basic               %mass       ()         &
+            &                *cosmologyParameters_%omegaBaryon()         &
+            &                /cosmologyParameters_%omegaMatter()         &
             &                /radiusShock**3                             &
             &                /(                                          &
             &                   1.0d0                                    &
@@ -439,7 +439,7 @@ contains
             &                                zeroAbundances       ,      &
             &                                self%radiation              &
             &                               )
-       coolingFunctionValue=                                             &
+       coolingFunctionValue=                                                        &
             &               coolingFunction_%coolingFunction(                       &
             &                                                numberDensityHydrogen, &
             &                                                temperaturePostShock , &

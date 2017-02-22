@@ -52,59 +52,60 @@ contains
     return
   end subroutine laceyCole1993Destructor
 
-  double precision function laceyCole1993TimeUntilMerging(self,thisNode,thisOrbit)
+  double precision function laceyCole1993TimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the \cite{lacey_merger_1993} method.
     use Galacticus_Nodes
     use Kepler_Orbits
     use Dark_Matter_Halo_Scales
     implicit none
     class           (satelliteMergingTimescalesLaceyCole1993), intent(inout) :: self
-    type            (treeNode                               ), intent(inout) :: thisNode
-    type            (keplerOrbit                            ), intent(inout) :: thisOrbit
-    type            (treeNode                               ), pointer       :: hostNode
+    type            (treeNode                               ), intent(inout) :: node
+    type            (keplerOrbit                            ), intent(inout) :: orbit
+    type            (treeNode                               ), pointer       :: nodeHost
     class           (darkMatterHaloScaleClass               ), pointer       :: darkMatterHaloScale_
     double precision                                                         :: equivalentCircularOrbitRadius, orbitalCircularity, &
          &                                                                      radialScale                  , velocityScale
 
     ! Find the host node.
-    hostNode => thisNode%parent
+    nodeHost => node%parent
     ! Get velocity scale.
     darkMatterHaloScale_ => darkMatterHaloScale()
-    velocityScale=darkMatterHaloScale_%virialVelocity(hostNode)
-    radialScale  =darkMatterHaloScale_%virialRadius  (hostNode)
+    velocityScale=darkMatterHaloScale_%virialVelocity(nodeHost)
+    radialScale  =darkMatterHaloScale_%virialRadius  (nodeHost)
     ! Compute radius of orbit with same energy.
-    equivalentCircularOrbitRadius=exp(thisOrbit%energy()/velocityScale**2+0.5d0)
+    equivalentCircularOrbitRadius=exp(orbit%energy()/velocityScale**2+0.5d0)
     ! Compute orbital circularity.
-    orbitalCircularity=thisOrbit%angularMomentum()/velocityScale/radialScale/equivalentCircularOrbitRadius
+    orbitalCircularity=orbit%angularMomentum()/velocityScale/radialScale/equivalentCircularOrbitRadius
     ! Compute the merging timescale.
     laceyCole1993TimeUntilMerging                         &
          & =orbitalCircularity           **0.78d0         &
          & *equivalentCircularOrbitRadius**2              &
-         & *self%timeUntilMergingMassDependence(thisNode)
+         & *self%timeUntilMergingMassDependence(node)
     return
   end function laceyCole1993TimeUntilMerging
 
-  double precision function laceyCole1993TimeUntilMergingMassDependence(self,thisNode)
+  double precision function laceyCole1993TimeUntilMergingMassDependence(self,node)
     !% Return the mass-dependent part of the timescale for merging satellites using the \cite{lacey_merger_1993} method.
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Dynamical_Friction_Timescale_Utilities
     implicit none
     class           (satelliteMergingTimescalesLaceyCole1993), intent(inout) :: self
-    type            (treeNode                               ), intent(inout) :: thisNode
-    type            (treeNode                               ), pointer       :: hostNode
-    class           (nodeComponentBasic                     ), pointer       :: hostBasic                 , thisBasic
+    type            (treeNode                               ), intent(inout) :: node
+    type            (treeNode                               ), pointer       :: nodeHost
+    class           (nodeComponentBasic                     ), pointer       :: basicHost                 , basic
     class           (darkMatterHaloScaleClass               ), pointer       :: darkMatterHaloScale_
     double precision                                         , parameter     :: inverseTwoB1=1.169335453d0            !  1/2/B(1).
     double precision                                                         :: massRatio
     !GCC$ attributes unused :: self
     
     ! Find the host node.
-    hostNode => thisNode%parent
+    nodeHost => node%parent
     ! Compute mass ratio.
-    thisBasic => thisNode%basic()
-    hostBasic => hostNode%basic()
-    massRatio=hostBasic%mass()/thisBasic%mass()
+    basic     =>  node     %basic()
+    basicHost =>  nodeHost %basic()
+    massRatio =  +basicHost%mass () &
+         &       /basic    %mass ()
     ! Check for a greater than unity mass ratio.
     if (massRatio <= 1.0d0) then
        ! Assume zero merging time as the satellite is as massive as the host.
@@ -114,7 +115,7 @@ contains
        darkMatterHaloScale_ => darkMatterHaloScale()
        laceyCole1993TimeUntilMergingMassDependence               &
             & =Dynamical_Friction_Timescale_Multiplier()         &
-            & *darkMatterHaloScale_%dynamicalTimescale(hostNode) &
+            & *darkMatterHaloScale_%dynamicalTimescale(nodeHost) &
             & *inverseTwoB1                                      &
             & *    massRatio                                     &
             & /log(massRatio)

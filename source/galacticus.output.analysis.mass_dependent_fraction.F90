@@ -52,36 +52,36 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Fractions
 
   ! Interface for mass mapping functions.
   abstract interface
-     double precision function Map_Mass(mass,thisNode)
+     double precision function Map_Mass(mass,node)
        import treeNode
        double precision          , intent(in   )          :: mass
-       type            (treeNode), intent(inout), pointer :: thisNode
+       type            (treeNode), intent(inout), pointer :: node
      end function Map_Mass
   end interface
 
   ! Interface for metallicity mapping functions.
   abstract interface
-     double precision function Map_Metallicity(radius,thisNode)
+     double precision function Map_Metallicity(radius,node)
        import treeNode
        double precision          , intent(in   )          :: radius
-       type            (treeNode), intent(inout), pointer :: thisNode
+       type            (treeNode), intent(inout), pointer :: node
      end function Map_Metallicity
   end interface
 
   ! Interface for mass error functions.
   abstract interface
-     double precision function Mass_Error(mass,thisNode)
+     double precision function Mass_Error(mass,node)
        import treeNode
        double precision          , intent(in   )          :: mass
-       type            (treeNode), intent(inout), pointer :: thisNode
+       type            (treeNode), intent(inout), pointer :: node
      end function Mass_Error
   end interface
 
   ! Interface for classifier functions.
   abstract interface
-     double precision function Classifier(thisNode)
+     double precision function Classifier(node)
        import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode
+       type(treeNode), intent(inout), pointer :: node
      end function Classifier
   end interface
 
@@ -151,8 +151,8 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Fractions
   end type fractionFunctionWork
 
   ! Work array.
-  type(fractionFunctionWork), allocatable, dimension(:) :: thisGalaxy
-  !$omp threadprivate(thisGalaxy)
+  type(fractionFunctionWork), allocatable, dimension(:) :: galaxyWork
+  !$omp threadprivate(galaxyWork)
 
   ! Options controlling binning in halo mass.
   integer                     :: analysisFractionFunctionCovarianceModel
@@ -167,7 +167,7 @@ contains
   !# <mergerTreeAnalysisTask>
   !#  <unitName>Galacticus_Output_Analysis_Mass_Dpndnt_Fractions</unitName>
   !# </mergerTreeAnalysisTask>
-  subroutine Galacticus_Output_Analysis_Mass_Dpndnt_Fractions(thisTree,thisNode,nodeStatus,iOutput,mergerTreeAnalyses)
+  subroutine Galacticus_Output_Analysis_Mass_Dpndnt_Fractions(tree,node,nodeStatus,iOutput,mergerTreeAnalyses)
     !% Construct fraction functions to compare to various observational determinations.
     use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
@@ -189,12 +189,12 @@ contains
     use Galacticus_Output_Merger_Tree_Data
     use Numerical_Ranges
     implicit none
-    type            (mergerTree                    ), intent(in   )                 :: thisTree
-    type            (treeNode                      ), intent(inout), pointer        :: thisNode
+    type            (mergerTree                    ), intent(in   )                 :: tree
+    type            (treeNode                      ), intent(inout), pointer        :: node
     integer                                         , intent(in   )                 :: nodeStatus
     integer         (c_size_t                      ), intent(in   )                 :: iOutput
     type            (varying_string                ), intent(in   ), dimension(:  ) :: mergerTreeAnalyses
-    class           (nodeComponentBasic            )               , pointer        :: thisBasic
+    class           (nodeComponentBasic            )               , pointer        :: basic
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )               , pointer        :: cosmologyParametersObserved
@@ -516,20 +516,20 @@ contains
     ! Return if this is a tree finalization.
     if (nodeStatus          == nodeStatusFinal) return
     ! Allocate work arrays.
-    if (.not.allocated(thisGalaxy)) allocate(thisGalaxy(size(fractionFunctions)))
+    if (.not.allocated(galaxyWork)) allocate(galaxyWork(size(fractionFunctions)))
     ! Iterate over active analyses.
     do i=1,size(fractionFunctions)
        ! Cycle if this fraction function receives no contribution from this output.
        if (all(fractionFunctions(i)%outputWeight(:,iOutput) <= 0.0d0)) cycle
        ! Allocate workspace.
-       if (.not.allocated(thisGalaxy(i)%fractionFunction       )) call allocateArray(thisGalaxy(i)%fractionFunction       ,[fractionFunctions(i)%massesCount])
-       if (.not.allocated(thisGalaxy(i)%fractionFunctionWeights)) call allocateArray(thisGalaxy(i)%fractionFunctionWeights,[fractionFunctions(i)%massesCount])
+       if (.not.allocated(galaxyWork(i)%fractionFunction       )) call allocateArray(galaxyWork(i)%fractionFunction       ,[fractionFunctions(i)%massesCount])
+       if (.not.allocated(galaxyWork(i)%fractionFunctionWeights)) call allocateArray(galaxyWork(i)%fractionFunctionWeights,[fractionFunctions(i)%massesCount])
        ! Get the galactic mass.
        mass=                                                                                                                                                &
-            &  Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeDisk    ,massType=fractionFunctions(i)%descriptor%massType) &
-            & +Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeSpheroid,massType=fractionFunctions(i)%descriptor%massType)
+            &  Galactic_Structure_Enclosed_Mass(node,radiusLarge,componentType=componentTypeDisk    ,massType=fractionFunctions(i)%descriptor%massType) &
+            & +Galactic_Structure_Enclosed_Mass(node,radiusLarge,componentType=componentTypeSpheroid,massType=fractionFunctions(i)%descriptor%massType)
        if (mass <= 0.0d0) cycle
-       if (associated(fractionFunctions(i)%descriptor%mapMass)) mass=fractionFunctions(i)%descriptor%mapMass(mass,thisNode)
+       if (associated(fractionFunctions(i)%descriptor%mapMass)) mass=fractionFunctions(i)%descriptor%mapMass(mass,node)
        ! Convert mass for cosmology and systematics.
        mass=mass*fractionFunctions(i)%cosmologyConversionMass(iOutput)
        massLogarithmic=log10(mass)
@@ -539,7 +539,7 @@ contains
        if (massLogarithmic < fractionFunctions(i)%descriptor%massLogarithmicMinimum) cycle
        ! Compute random errors on mass.
        if (associated(fractionFunctions(i)%descriptor%massRandomErrorFunction)) then
-          massRandomError=fractionFunctions(i)%descriptor%massRandomErrorFunction(mass,thisNode)
+          massRandomError=fractionFunctions(i)%descriptor%massRandomErrorFunction(mass,node)
        else
           massRandomError=0.0d0
           do j=1,fractionFunctions(i)%descriptor%massRandomCoefficientCount
@@ -553,43 +553,43 @@ contains
           massRandomError=max(massRandomError,massRandomErrorMinimum)
        end if
        ! Compute probability for galaxy to be in class.
-       probabilityInClass=fractionFunctions(i)%descriptor%classifierFunction(thisNode)
+       probabilityInClass=fractionFunctions(i)%descriptor%classifierFunction(node)
        ! Compute contributions to each bin.
-       thisGalaxy(i)%fractionFunctionWeights=+(                                                                                                  &
+       galaxyWork(i)%fractionFunctionWeights=+(                                                                                                  &
             &                                  +erf((fractionFunctions(i)%massesLogarithmicMaximum-massLogarithmic)/massRandomError/sqrt(2.0d0)) &
             &                                  -erf((fractionFunctions(i)%massesLogarithmicMinimum-massLogarithmic)/massRandomError/sqrt(2.0d0)) &
             &                                 )                                                                                                  &
             &                                /2.0d0                                                                                              &
-            &                                *thisTree%volumeWeight                                                                              &
+            &                                *tree%volumeWeight                                                                              &
             &                                *fractionFunctions(i)%outputWeight(:,iOutput)
-       thisGalaxy(i)%fractionFunction       =+probabilityInClass                                                                                 &
-            &                                *thisGalaxy(i)%fractionFunctionWeights
+       galaxyWork(i)%fractionFunction       =+probabilityInClass                                                                                 &
+            &                                *galaxyWork(i)%fractionFunctionWeights
        ! Accumulate fraction function.
-       if (any(thisGalaxy(i)%fractionFunction /= 0.0d0)) then
+       if (any(galaxyWork(i)%fractionFunction /= 0.0d0)) then
           !$omp critical (Galacticus_Output_Analysis_Mass_Dpndnt_Fractions_Accumulate)
-          fractionFunctions(i)%fractionFunction       =fractionFunctions(i)%fractionFunction       +thisGalaxy(i)%fractionFunction
-          fractionFunctions(i)%fractionFunctionWeights=fractionFunctions(i)%fractionFunctionWeights+thisGalaxy(i)%fractionFunctionWeights
+          fractionFunctions(i)%fractionFunction       =fractionFunctions(i)%fractionFunction       +galaxyWork(i)%fractionFunction
+          fractionFunctions(i)%fractionFunctionWeights=fractionFunctions(i)%fractionFunctionWeights+galaxyWork(i)%fractionFunctionWeights
           !$omp end critical (Galacticus_Output_Analysis_Mass_Dpndnt_Fractions_Accumulate)
           ! Treat main branch and other galaxies differently.
-          if (thisNode%isOnMainBranch().and.analysisFractionFunctionCovarianceModel == analysisFractionFunctionCovarianceModelBinomial) then
+          if (node%isOnMainBranch().and.analysisFractionFunctionCovarianceModel == analysisFractionFunctionCovarianceModelBinomial) then
              ! Find the bin to which this halo mass belongs.
-             thisBasic => thisNode%basic()
-             haloMassBin=floor((log10(thisBasic%mass())-analysisFractionFunctionsHaloMassMinimumLogarithmic)*analysisFrctnFnctnsHaloMassIntervalLogarithmicInverse)+1
+             basic => node%basic()
+             haloMassBin=floor((log10(basic%mass())-analysisFractionFunctionsHaloMassMinimumLogarithmic)*analysisFrctnFnctnsHaloMassIntervalLogarithmicInverse)+1
              ! Accumulate weights to halo mass arrays.
              if (haloMassBin >= 1 .and. haloMassBin <= analysisFractionFunctionsHaloMassBinsCount) then
                 !$omp critical (Galacticus_Output_Analysis_Mass_Dpndnt_Fractions_Accumulate)
                 fractionFunctions        (i)%mainBranchGalaxyWeights       (:,haloMassBin)= &
                      &  fractionFunctions(i)%mainBranchGalaxyWeights       (:,haloMassBin)  &
-                     &  +thisGalaxy  (i)%fractionFunction
+                     &  +galaxyWork  (i)%fractionFunction
                 fractionFunctions        (i)%mainBranchGalaxyWeightsSquared(:,haloMassBin)= &
                      &  fractionFunctions(i)%mainBranchGalaxyWeightsSquared(:,haloMassBin)  &
-                     &  +thisGalaxy  (i)%fractionFunction**2
+                     &  +galaxyWork  (i)%fractionFunction**2
                 !$omp end critical (Galacticus_Output_Analysis_Mass_Dpndnt_Fractions_Accumulate)
              end if
           else
              !$omp critical (Galacticus_Output_Analysis_Mass_Dpndnt_Fractions_Accumulate)
              call Vector_Outer_Product_Accumulate(                                                 &
-                  &                               thisGalaxy       (i)%fractionFunction          , &
+                  &                               galaxyWork       (i)%fractionFunction          , &
                   &                               fractionFunctions(i)%fractionFunctionCovariance, &
                   &                               sparse=.true.                                    &
                   &                              )
@@ -611,7 +611,7 @@ contains
     integer                      :: k                 , m                    , &
          &                          mi                , mj
     type            (hdf5Object) :: analysisGroup     , fractionFunctionGroup, &
-         &                          thisDataset
+         &                          dataset
     double precision             :: haloWeightBinTotal
 
     ! Return immediately if this analysis is not active.
@@ -661,11 +661,11 @@ contains
        !$omp critical(HDF5_Access)
        analysisGroup        =galacticusOutputFile%openGroup('analysis','Model analysis')
        fractionFunctionGroup=analysisGroup       %openGroup(trim(fractionFunctions(k)%descriptor%label),trim(fractionFunctions(k)%descriptor%comment))
-       call fractionFunctionGroup%writeDataset  (fractionFunctions(k)%masses                    ,'mass'                      ,'Mass'                        ,datasetReturned=thisDataset)
-       call thisDataset          %writeAttribute(fractionFunctions(k)%descriptor%massUnitsInSI  ,'unitsInSI'                                                                            )
-       call thisDataset          %close()
-       call fractionFunctionGroup%writeDataset  (fractionFunctions(k)%fractionFunction          ,'fractionFunction'          ,'Fraction function'                                       )
-       call fractionFunctionGroup%writeDataset  (fractionFunctions(k)%fractionFunctionCovariance,'fractionFunctionCovariance','Fraction function covariance'                            )
+       call fractionFunctionGroup%writeDataset  (fractionFunctions(k)%masses                    ,'mass'                      ,'Mass'                        ,datasetReturned=dataset)
+       call dataset              %writeAttribute(fractionFunctions(k)%descriptor%massUnitsInSI  ,'unitsInSI'                                                                        )
+       call dataset              %close()
+       call fractionFunctionGroup%writeDataset  (fractionFunctions(k)%fractionFunction          ,'fractionFunction'          ,'Fraction function'                                   )
+       call fractionFunctionGroup%writeDataset  (fractionFunctions(k)%fractionFunctionCovariance,'fractionFunctionCovariance','Fraction function covariance'                        )
        call fractionFunctionGroup%close()
        call analysisGroup        %close()
        !$omp end critical(HDF5_Access)

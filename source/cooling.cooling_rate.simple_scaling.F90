@@ -137,31 +137,31 @@ contains
     return
   end subroutine Cooling_Rate_Simple_Scaling_Initialize
 
-  double precision function Cooling_Rate_Simple_Scaling(thisNode)
+  double precision function Cooling_Rate_Simple_Scaling(node)
     !% Computes the mass cooling rate in a hot gas halo assuming a fixed timescale for cooling.
     use Cosmology_Functions
     implicit none
-    type            (treeNode               ), intent(inout) :: thisNode
-    double precision                         , parameter     :: expArgumentMaximum       =100.0d0
-    class           (nodeComponentBasic     ), pointer       :: thisBasicComponent
-    class           (nodeComponentHotHalo   ), pointer       :: thisHotHaloComponent
-    class           (cosmologyFunctionsClass), pointer       :: cosmologyFunctionsDefault
-    double precision                         , save          :: expansionFactorPrevious  =-1.0d0 , massBasicPrevious=-1.0d0, &
+    type            (treeNode               ), intent(inout) :: node
+    double precision                         , parameter     :: expArgumentMaximum     =100.0d0
+    class           (nodeComponentBasic     ), pointer       :: basic
+    class           (nodeComponentHotHalo   ), pointer       :: hotHalo
+    class           (cosmologyFunctionsClass), pointer       :: cosmologyFunctions_
+    double precision                         , save          :: expansionFactorPrevious=-1.0d0 , massBasicPrevious=-1.0d0, &
          &                                                      coolingRate
     !$omp threadprivate(expansionFactorPrevious,massBasicPrevious,coolingRate)
-    double precision                                         :: expFactor                          , expansionFactor, &
+    double precision                                         :: expFactor                      , expansionFactor, &
          &                                                      expArgument
 
     ! Get the default cosmology functions object.
-    cosmologyFunctionsDefault => cosmologyFunctions()
-    thisBasicComponent        => thisNode%basic    ()
-    thisHotHaloComponent      => thisNode%hotHalo  ()
-    expansionFactor           =  cosmologyFunctionsDefault%expansionFactor(thisBasicComponent%time())
-    if (expansionFactor /= expansionFactorPrevious .or. thisBasicComponent%mass() /= massBasicPrevious) then
-       expArgument               =log10(                                &
-            &                       thisBasicComponent%mass()           &
-            &                      /coolingRateSimpleScalingCutOffMass  &
-            &                     )                                     &
+    cosmologyFunctions_ => cosmologyFunctions                 (            )
+    basic               => node               %basic          (            )
+    hotHalo             => node               %hotHalo        (            )
+    expansionFactor     =  cosmologyFunctions_%expansionFactor(basic%time())
+    if (expansionFactor /= expansionFactorPrevious .or. basic%mass() /= massBasicPrevious) then
+       expArgument               =log10(                               &
+            &                       basic%mass()                       &
+            &                      /coolingRateSimpleScalingCutOffMass &
+            &                     )                                    &
             &                /coolingRateSimpleScalingCutOffWidth
        if (expArgument < expArgumentMaximum) then
           expFactor=1.0d0/(1.0d0+exp(+expArgument))**coolingRateSimpleScalingCutOffExponent
@@ -172,9 +172,9 @@ contains
             &          /coolingRateSimpleScalingTimescale                          &
             &          *expFactor
        expansionFactorPrevious=expansionFactor
-       massBasicPrevious=thisBasicComponent%mass()
+       massBasicPrevious      =basic          %mass()
     end if
-    Cooling_Rate_Simple_Scaling=thisHotHaloComponent%mass()*coolingRate
+    Cooling_Rate_Simple_Scaling=hotHalo%mass()*coolingRate
     return
   end function Cooling_Rate_Simple_Scaling
 

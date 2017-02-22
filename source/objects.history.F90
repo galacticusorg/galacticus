@@ -1233,12 +1233,14 @@ contains
   !# </galacticusStateStoreTask>
   subroutine Histories_State_Store(stateFile,fgslStateFile)
     !% Write the history state to file.
+    use Galacticus_Display
     use FGSL
     implicit none
     integer           , intent(in   ) :: stateFile
     type   (fgsl_file), intent(in   ) :: fgslStateFile
     !GCC$ attributes unused :: fgslStateFile
     
+    call Galacticus_Display_Message('Storing state for: histories',verbosity=verbosityInfo)
     write (stateFile) historyStorageEarliestTime,historyStorageLatestTime
     return
   end subroutine Histories_State_Store
@@ -1248,12 +1250,14 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Histories_State_Retrieve(stateFile,fgslStateFile)
     !% Retrieve the history state from the file.
+    use Galacticus_Display
     use FGSL
     implicit none
     integer           , intent(in   ) :: stateFile
     type   (fgsl_file), intent(in   ) :: fgslStateFile
     !GCC$ attributes unused :: fgslStateFile
 
+    call Galacticus_Display_Message('Retrieving state for: histories',verbosity=verbosityInfo)
     read (stateFile) historyStorageEarliestTime,historyStorageLatestTime
     return
   end subroutine Histories_State_Retrieve

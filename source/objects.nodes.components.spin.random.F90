@@ -88,14 +88,14 @@ contains
   !#  <unitName>Node_Component_Spin_Random_Initialize_Spins</unitName>
   !#  <sortName>spin</sortName>
   !# </mergerTreeInitializeTask>
-  subroutine Node_Component_Spin_Random_Initialize_Spins(thisNode)
-    !% Initialize the spin of {\normalfont \ttfamily thisNode}.
+  subroutine Node_Component_Spin_Random_Initialize_Spins(node)
+    !% Initialize the spin of {\normalfont \ttfamily node}.
     use Halo_Spin_Distributions
     implicit none
-    type            (treeNode                 ), intent(inout), pointer :: thisNode
-    type            (treeNode                 )               , pointer :: relatedNode
-    class           (nodeComponentSpin        )               , pointer :: relatedSpinComponent , thisSpinComponent
-    class           (nodeComponentBasic       )               , pointer :: relatedBasicComponent
+    type            (treeNode                 ), intent(inout), pointer :: node
+    type            (treeNode                 )               , pointer :: nodeRelated
+    class           (nodeComponentSpin        )               , pointer :: spinRelated          , spin
+    class           (nodeComponentBasic       )               , pointer :: basicRelated
     class           (haloSpinDistributionClass), pointer                :: haloSpinDistribution_
     double precision                                                    :: previousSetMass      , previousSetSpin
 
@@ -104,34 +104,34 @@ contains
        ! Ensure the module is initialized.
        call Node_Component_Spin_Random_Initialize()
        ! Get the basic component.
-       thisSpinComponent => thisNode%spin()
+       spin => node%spin()
        ! Ensure that the spin has not yet been assigned for this node.
-       select type (thisSpinComponent)
+       select type (spin)
        type is (nodeComponentSpin)
           ! Get required objects.
           haloSpinDistribution_ => haloSpinDistribution()
           ! Walk the tree back along primary children to the earliest such progenitor.
-          relatedNode => thisNode
-          do while (associated(relatedNode%firstChild))
-             relatedNode => relatedNode%firstChild
+          nodeRelated => node
+          do while (associated(nodeRelated%firstChild))
+             nodeRelated => nodeRelated%firstChild
           end do
           ! Walk forward through the branch, assigning spins. If the mass of the halo exceeds that of the halo for which we last
           ! selected a spin by a given factor, then select a new spin from the distribution. Otherwise, use the previously
           ! assigned spin.
-          relatedSpinComponent  => relatedNode          %spin  (autoCreate =.true.)
-          relatedBasicComponent => relatedNode          %basic (                  )
-          previousSetSpin       =  haloSpinDistribution_%sample(relatedNode       )
-          previousSetMass       =  relatedBasicComponent%mass  (                  )
-          call relatedSpinComponent%spinSet(previousSetSpin)
-          do while (relatedNode%isPrimaryProgenitor())
-             relatedNode           => relatedNode%parent
-             relatedBasicComponent => relatedNode%basic()
-             if (relatedBasicComponent%mass() > randomSpinResetMassFactor*previousSetMass) then
-                previousSetSpin=haloSpinDistribution_%sample(relatedNode)
-                previousSetMass=relatedBasicComponent%mass()
+          spinRelated     => nodeRelated          %spin  (autoCreate =.true.)
+          basicRelated    => nodeRelated          %basic (                  )
+          previousSetSpin =  haloSpinDistribution_%sample(nodeRelated       )
+          previousSetMass =  basicRelated         %mass  (                  )
+          call spinRelated%spinSet(previousSetSpin)
+          do while (nodeRelated%isPrimaryProgenitor())
+             nodeRelated           => nodeRelated%parent
+             basicRelated => nodeRelated%basic()
+             if (basicRelated%mass() > randomSpinResetMassFactor*previousSetMass) then
+                previousSetSpin=haloSpinDistribution_%sample(nodeRelated)
+                previousSetMass=basicRelated         %mass  (           )
              end if
-             relatedSpinComponent => relatedNode%spin(autoCreate=.true.)
-             call relatedSpinComponent%spinSet(previousSetSpin)
+             spinRelated => nodeRelated%spin(autoCreate=.true.)
+             call spinRelated%spinSet(previousSetSpin)
           end do
        end select
     end if
@@ -141,28 +141,27 @@ contains
   !# <nodePromotionTask>
   !#  <unitName>Node_Component_Spin_Random_Promote</unitName>
   !# </nodePromotionTask>
-  subroutine Node_Component_Spin_Random_Promote(thisNode)
-    !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, we simply update the spin of {\normalfont \ttfamily thisNode}
+  subroutine Node_Component_Spin_Random_Promote(node)
+    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the spin of {\normalfont \ttfamily node}
     !% to be that of its parent.
     use Galacticus_Error
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    type (treeNode          )               , pointer :: parentNode
-    class(nodeComponentSpin )               , pointer :: parentSpinComponent , thisSpinComponent
-    class(nodeComponentBasic)               , pointer :: parentBasicComponent, thisBasicComponent
+    type (treeNode          ), intent(inout), pointer :: node
+    type (treeNode          )               , pointer :: nodeParent
+    class(nodeComponentSpin )               , pointer :: spinParent , spin
+    class(nodeComponentBasic)               , pointer :: basicParent, basic
 
     ! Ensure that the spin component is of the random class.
-    thisSpinComponent => thisNode%spin()
-    select type (thisSpinComponent)
+    spin => node%spin()
+    select type (spin)
     class is (nodeComponentSpinRandom)
-       parentNode           => thisNode  %parent
-       thisBasicComponent   => thisNode  %basic()
-       parentBasicComponent => parentNode%basic()
-       if (thisBasicComponent%time() /= parentBasicComponent%time()) call Galacticus_Error_Report('Node_Component_Spin_Random_Promote','thisNode&
-            & has not been evolved to its parent')
+       nodeParent => node%parent
+       basic      => node%basic ()
+       basicParent => nodeParent%basic()
+       if (basic%time() /= basicParent%time()) call Galacticus_Error_Report('Node_Component_Spin_Random_Promote','node has not been evolved to its parent')
        ! Adjust the mass to that of the parent node.
-       parentSpinComponent => parentNode%spin()
-       call thisSpinComponent%spinSet(parentSpinComponent%spin())
+       spinParent => nodeParent%spin()
+       call spin%spinSet(spinParent%spin())
     end select
     return
   end subroutine Node_Component_Spin_Random_Promote

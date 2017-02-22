@@ -101,13 +101,13 @@ contains
   !# <mergerTreePreEvolveTask>
   !#   <unitName>Meta_Tree_Timing_Pre_Evolve</unitName>
   !# </mergerTreePreEvolveTask>
-  subroutine Meta_Tree_Timing_Pre_Evolve(thisTree)
-    !% Record the CPU time prior to evolving {\normalfont \ttfamily thisTree}.
+  subroutine Meta_Tree_Timing_Pre_Evolve(tree)
+    !% Record the CPU time prior to evolving {\normalfont \ttfamily tree}.
     use Galacticus_Nodes
     implicit none
-    type (mergerTree        ), intent(in   ) :: thisTree
-    type (treeNode          ), pointer       :: thisNode
-    class(nodeComponentBasic), pointer       :: thisBasicComponent
+    type (mergerTree        ), intent(in   ) :: tree
+    type (treeNode          ), pointer       :: node
+    class(nodeComponentBasic), pointer       :: basic
 
     ! Ensure the module is initialized.
     call Meta_Tree_Timing_Initialize()
@@ -121,9 +121,9 @@ contains
        timePreEvolution=dble(time)
        !$ end if
        ! Record the mass of the tree.
-       thisNode           => thisTree          %baseNode
-       thisBasicComponent => thisNode          %basic()
-       treeMass           =  thisBasicComponent%mass ()
+       node     => tree %baseNode
+       basic    => node %basic   ()
+       treeMass =  basic%mass    ()
     end if
 
     return

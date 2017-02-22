@@ -35,17 +35,17 @@ contains
   !#  <unitName>Radiation_Set_CMB</unitName>
   !#  <label>CMB</label>
   !# </radiationSet>
-  subroutine Radiation_Set_CMB(componentMatched,thisNode,radiationProperties)
+  subroutine Radiation_Set_CMB(componentMatched,node,radiationProperties)
     !% Property setting routine for the cosmic microwave background radiation component.
     use Galacticus_Nodes
     use Memory_Management
     use Cosmology_Functions
     implicit none
     logical                                                             , intent(in   ) :: componentMatched
-    type            (treeNode               )                           , intent(inout) :: thisNode
+    type            (treeNode               )                           , intent(inout) :: node
     double precision                         , allocatable, dimension(:), intent(inout) :: radiationProperties
-    class           (nodeComponentBasic     )             , pointer                     :: thisBasicComponent
-    class           (cosmologyFunctionsClass)             , pointer                     :: cosmologyFunctionsDefault
+    class           (nodeComponentBasic     )             , pointer                     :: basic
+    class           (cosmologyFunctionsClass)             , pointer                     :: cosmologyFunctions_
 
     ! Return immediately if this component was not matched.
     if (.not.componentMatched) return
@@ -54,10 +54,10 @@ contains
     if (.not.allocated(radiationProperties)) call allocateArray(radiationProperties,[1])
 
     ! Get the default cosmology functions object.
-    cosmologyFunctionsDefault => cosmologyFunctions()
+    cosmologyFunctions_ => cosmologyFunctions()
     ! Set the CMB temperature.
-    thisBasicComponent => thisNode%basic()
-    radiationProperties(1)=cosmologyFunctionsDefault%temperatureCMBEpochal(thisBasicComponent%time())
+    basic => node%basic()
+    radiationProperties(1)=cosmologyFunctions_%temperatureCMBEpochal(basic%time())
 
     return
   end subroutine Radiation_Set_CMB
@@ -74,7 +74,7 @@ contains
     logical                                                             , intent(in   ) :: componentMatched
     double precision                                                    , intent(in   ) :: time
     double precision                         , allocatable, dimension(:), intent(inout) :: radiationProperties
-    class           (cosmologyFunctionsClass)             , pointer                     :: cosmologyFunctionsDefault
+    class           (cosmologyFunctionsClass)             , pointer                     :: cosmologyFunctions_
 
     ! Return immediately if this component was not matched.
     if (.not.componentMatched) return
@@ -83,9 +83,9 @@ contains
     if (.not.allocated(radiationProperties)) call allocateArray(radiationProperties,[1])
 
     ! Get the default cosmology functions object.
-    cosmologyFunctionsDefault => cosmologyFunctions()
+    cosmologyFunctions_ => cosmologyFunctions()
     ! Set the CMB temperature.
-    radiationProperties(1)=cosmologyFunctionsDefault%temperatureCMBEpochal(time)
+    radiationProperties(1)=cosmologyFunctions_%temperatureCMBEpochal(time)
 
     return
   end subroutine Radiation_Set_Time_CMB

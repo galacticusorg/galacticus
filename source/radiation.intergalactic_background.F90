@@ -118,13 +118,13 @@ contains
   !#  <unitName>Radiation_Set_Intergalactic_Background</unitName>
   !#  <label>IGB</label>
   !# </radiationSet>
-  subroutine Radiation_Set_Intergalactic_Background(componentMatched,thisNode,radiationProperties)
+  subroutine Radiation_Set_Intergalactic_Background(componentMatched,node,radiationProperties)
     !% Property setting routine for the radiation component from file method.
     implicit none
     logical                                                        , intent(in   ) :: componentMatched
-    type            (treeNode          )                           , intent(inout) :: thisNode
+    type            (treeNode          )                           , intent(inout) :: node
     double precision                    , allocatable, dimension(:), intent(inout) :: radiationProperties
-    class           (nodeComponentBasic), pointer                                  :: thisBasic
+    class           (nodeComponentBasic), pointer                                  :: basic
 
     ! Return immediately if this component was not matched.
     if (.not.componentMatched) return
@@ -132,8 +132,8 @@ contains
     ! Ensure that the module is initialized.
     call Radiation_Initialize_Intergalactic_Background
     ! Call the routine to do the calculation.
-    thisBasic => thisNode%basic()
-    call Radiation_Set_Intergalactic_Background_Do(thisBasic%time(),radiationProperties)
+    basic => node%basic()
+    call Radiation_Set_Intergalactic_Background_Do(basic%time(),radiationProperties)
 
     return
   end subroutine Radiation_Set_Intergalactic_Background

@@ -173,6 +173,8 @@ contains
     use ODEIV2_Solver
     use Memory_Management
     use Galacticus_Calculations_Resets
+    use Galacticus_Display
+    use Galacticus_Error
     use, intrinsic :: ISO_C_Binding
     !# <include directive="preEvolveTask" type="moduleUse">
     include 'objects.tree_node.pre_evolve.modules.inc'
@@ -191,12 +193,15 @@ contains
     type            (treeNode                    )      , intent(inout), pointer :: thisNode
     double precision                                    , intent(in   )          :: endTime
     logical                                             , intent(  out)          :: interrupted
-    procedure       (interruptTask)      , intent(  out), pointer :: interruptProcedure
+    procedure       (interruptTask               )      , intent(  out), pointer :: interruptProcedure
     class           (nodeComponentBasic          )                     , pointer :: basicComponent
     integer                                       , save                         :: nPropertiesPrevious=-1
     !$omp threadprivate(nPropertiesPrevious)
     logical                                                                      :: solvedAnalytically
     double precision                                                             :: startTimeThisNode
+    integer                                                                      :: lengthMaximum         , i
+    type            (varying_string              )                               :: message               , line
+    character       (len =12                     )                               :: label
 #ifdef PROFILE
     type            (c_funptr                    )                               :: Error_Analyzer
 #endif
@@ -258,7 +263,6 @@ contains
        call thisNode%serializeValues(propertyValues)
        ! Compute offsets into serialization arrays for rates and scales.
        call thisNode%serializationOffsets()
-       
        ! Compute scales for all properties and extract from the node.
        call thisNode%odeStepScalesInitialize()
        !# <include directive="scaleSetTask" type="functionCall" functionType="void">
@@ -266,6 +270,32 @@ contains
        include 'objects.tree_node.set_scale.inc'
        !# </include>
        call thisNode%serializeScales(propertyScales)
+       ! Check for zero property scales which will cause floating point overflow in the ODE solver.
+       if (any(propertyScales == 0.0d0)) then
+          message='WARNING: Zero entry in ODE system scales for node'
+          call Galacticus_Warn          (message)
+          call Galacticus_Display_Indent(message)
+          lengthMaximum=0    
+          do i=1,nProperties
+             lengthMaximum=max(lengthMaximum,len(thisNode%nameFromIndex(i)))
+          end do
+          line=repeat("―",lengthMaximum)//repeat("―――――――――――――――",2)
+          call Galacticus_Display_Message(line)
+          call Galacticus_Display_Message(repeat(" ",lengthMaximum)//' : y            : yScale')
+          call Galacticus_Display_Message(line)
+          do i=1,nProperties
+             message=thisNode%nameFromIndex(i)
+             message=repeat(" ",lengthMaximum-len(message))//message
+             write (label,'(e12.6)') propertyValues(i)
+             message=message//" : "//label
+             write (label,'(e12.6)') propertyScales(i)
+             message=message//" : "//label
+             call Galacticus_Display_Message(message)
+          end do
+          call Galacticus_Display_Message(line)
+          call thisNode%serializeASCII()
+          call Galacticus_Display_Unindent('done')
+       end if
        ! Assign module global pointer to this node.
        activeTreeIndex=  thisTree%index
        activeNode     => thisNode

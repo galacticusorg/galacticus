@@ -53,7 +53,7 @@ contains
   !# <universePreEvolveTask>
   !#  <unitName>Radiation_Intergalactic_Background_Internal_Initialize</unitName>
   !# </universePreEvolveTask>
-  subroutine Radiation_Intergalactic_Background_Internal_Initialize(thisUniverse)
+  subroutine Radiation_Intergalactic_Background_Internal_Initialize(universe_)
     !% Attach an initial event to a merger tree to cause the background radiation update function to be called.
     use Galacticus_Nodes
     use Input_Parameters
@@ -62,8 +62,8 @@ contains
     use Cosmology_Functions
     use Atomic_Cross_Sections_Ionization_Photo
     implicit none
-    type   (universe               ), intent(inout) :: thisUniverse
-    type   (universeEvent          ), pointer       :: thisEvent
+    type   (universe               ), intent(inout) :: universe_
+    type   (universeEvent          ), pointer       :: event
     class  (cosmologyFunctionsClass), pointer       :: cosmologyFunctions_
     integer                                         :: iWavelength        , iTime
 
@@ -225,14 +225,14 @@ contains
        ! Create the first interrupt event in the universe object.
        backgroundTimePrevious=  0.0d0
        backgroundTimeNext    =  backgroundRadiationTime (1)
-       thisEvent             => thisUniverse%createEvent( )
-       thisEvent%time        =  backgroundRadiationTime (1)
-       thisEvent%task        => Radiation_Intergalactic_Background_Internal_Update
+       event             => universe_%createEvent( )
+       event%time        =  backgroundRadiationTime (1)
+       event%task        => Radiation_Intergalactic_Background_Internal_Update
     end if
     return
   end subroutine Radiation_Intergalactic_Background_Internal_Initialize
   
-  logical function Radiation_Intergalactic_Background_Internal_Update(thisEvent,thisUniverse) result (success)
+  logical function Radiation_Intergalactic_Background_Internal_Update(event,universe_) result (success)
     !% Update the radiation background for a given universe.
     use               Kind_Numbers
     use               Galacticus_Output_Times
@@ -256,15 +256,15 @@ contains
     use               Galacticus_HDF5
     use               IO_HDF5
     implicit none
-    class           (universeEvent                ), intent(in   ) :: thisEvent
-    type            (universe                     ), intent(inout) :: thisUniverse
-    type            (mergerTree                   ), pointer       :: thisTree       
-    type            (mergerTreeList               ), pointer       :: thisForest       
-    type            (treeNode                     ), pointer       :: thisNode
-    class           (nodeComponentBasic           ), pointer       :: thisBasic
-    class           (nodeComponentDisk            ), pointer       :: thisDisk
-    class           (nodeComponentSpheroid        ), pointer       :: thisSpheroid
-    type            (universeEvent                ), pointer       :: newEvent
+    class           (universeEvent                ), intent(in   ) :: event
+    type            (universe                     ), intent(inout) :: universe_
+    type            (mergerTree                   ), pointer       :: tree       
+    type            (mergerTreeList               ), pointer       :: forest       
+    type            (treeNode                     ), pointer       :: node
+    class           (nodeComponentBasic           ), pointer       :: basic
+    class           (nodeComponentDisk            ), pointer       :: disk
+    class           (nodeComponentSpheroid        ), pointer       :: spheroid
+    type            (universeEvent                ), pointer       :: eventNew
     class           (accretionDiskSpectraClass    ), pointer       :: accretionDiskSpectra_
     class           (stellarPopulationSpectraClass), pointer       :: stellarPopulationSpectra_
     double precision                               , parameter     :: odeToleranceAbsolute        =1.0d-30, odeToleranceRelative        =1.0d-3
@@ -292,35 +292,35 @@ contains
     logical                                                        :: firstTime
 
     ! Display message.
-    write (label,'(f6.3)') thisEvent%time
+    write (label,'(f6.3)') event%time
     message="Evolving cosmic background radiation to time "//trim(label)//" Gyr"
     call Galacticus_Display_Indent(message)
     ! Find the current timestep.
-    iNow=Search_Array_For_Closest(backgroundRadiationTime,thisEvent%time)
+    iNow=Search_Array_For_Closest(backgroundRadiationTime,event%time)
     ! Get required objects.
     accretionDiskSpectra_     => accretionDiskSpectra    ()
     stellarPopulationSpectra_ => stellarPopulationSpectra()
     ! Iterate over all nodes.
     call Galacticus_Display_Message('Accumulating emissivity')
     treeTimeLatest=0.0d0
-    thisForest => thisUniverse%trees
-    do while (associated(thisForest))
-       thisTree => thisForest%tree
-       do while (associated(thisTree))
-          thisNode => thisTree%baseNode
-          do while (associated(thisNode))
-             thisBasic => thisNode%basic()
-             treeTimeLatest=max(treeTimeLatest,thisBasic%time())
-             if (thisBasic%time() == thisEvent%time) then
+    forest => universe_%trees
+    do while (associated(forest))
+       tree => forest%tree
+       do while (associated(tree))
+          node => tree%baseNode
+          do while (associated(node))
+             basic => node%basic()
+             treeTimeLatest=max(treeTimeLatest,basic%time())
+             if (basic%time() == event%time) then
                 ! Get the star formation rates and metallicites for this node.
-                thisDisk                  => thisNode    %disk             ()
-                thisSpheroid              => thisNode    %spheroid         ()
-                starFormationRateDisk     =  thisDisk    %starFormationRate()
-                starFormationRateSpheroid =  thisSpheroid%starFormationRate()
-                gasMassDisk               =  thisDisk    %massGas          ()
-                gasMassSpheroid           =  thisSpheroid%massGas          ()
-                gasAbundancesDisk         =  thisDisk    %abundancesGas    ()
-                gasAbundancesSpheroid     =  thisSpheroid%abundancesGas    ()
+                disk                  => node    %disk             ()
+                spheroid              => node    %spheroid         ()
+                starFormationRateDisk     =  disk    %starFormationRate()
+                starFormationRateSpheroid =  spheroid%starFormationRate()
+                gasMassDisk               =  disk    %massGas          ()
+                gasMassSpheroid           =  spheroid%massGas          ()
+                gasAbundancesDisk         =  disk    %abundancesGas    ()
+                gasAbundancesSpheroid     =  spheroid%abundancesGas    ()
                 if (starFormationRateDisk     > 0.0d0) gasAbundancesDisk    =gasAbundancesDisk    /gasMassDisk
                 if (starFormationRateSpheroid > 0.0d0) gasAbundancesSpheroid=gasAbundancesSpheroid/gasMassSpheroid
                 if (starFormationRateDisk > 0.0d0 .or. starFormationRateSpheroid > 0.0d0) then
@@ -332,13 +332,13 @@ contains
                    firstTime=.true.
                    do iTime=1,backgroundRadiationTimeCount
                       ! Skip times in the past.
-                      if (backgroundRadiationTime(iTime) < thisEvent%time) cycle
+                      if (backgroundRadiationTime(iTime) < event%time) cycle
                       ! Compute age of the currently forming population at this time.
-                      ageEnd=backgroundRadiationTime(iTime)-thisEvent%time
+                      ageEnd=backgroundRadiationTime(iTime)-event%time
                       if (iTime == 1) then
                          ageStart=0.0d0
                       else
-                         ageStart=max(backgroundRadiationTime(iTime-1)-thisEvent%time,0.0d0)
+                         ageStart=max(backgroundRadiationTime(iTime-1)-event%time,0.0d0)
                       end if
                       ! Iterate over wavelength
                       do iWavelength=1,backgroundRadiationWavelengthCount                         
@@ -378,23 +378,23 @@ contains
                               &   +stellarSpectrumSpheroid                                 &
                               &   *starFormationRateSpheroid                               &
                               &  )                                                         &
-                              & *thisTree%volumeWeight
+                              & *tree%volumeWeight
                          ! Add AGN emission. This accumulates only to the the current time.
                          if (firstTime)                                                       &
                               & backgroundRadiationEmissivity  (iWavelength,iTime)            &
                               &  =backgroundRadiationEmissivity(iWavelength,iTime)            &
-                              &  +accretionDiskSpectra_        %spectrum(thisNode,wavelength) &
-                              &  *thisTree%volumeWeight
+                              &  +accretionDiskSpectra_        %spectrum(node,wavelength) &
+                              &  *tree%volumeWeight
                       end do
                       firstTime=.false.
                    end do
                 end if
              end if
-             thisNode => thisNode%walkTreeWithSatellites()
+             node => node%walkTreeWithSatellites()
           end do
-          thisTree => thisTree%nextTree
+          tree => tree%nextTree
        end do
-       thisForest => thisForest%next
+       forest => forest%next
     end do
     ! Evolve the cosmic background radiation up to this timestep.
     if (iNow > 1) then
@@ -446,9 +446,9 @@ contains
          &   backgroundRadiationTime(iNow+1) < Galacticus_Output_Time(Galacticus_Output_Time_Count()) &
          & ) then
        backgroundTimePrevious=  backgroundRadiationTime(iNow  )
-       newEvent              => thisUniverse%createEvent()
-       newEvent%time         =  backgroundRadiationTime(iNow+1)
-       newEvent%task         => Radiation_Intergalactic_Background_Internal_Update
+       eventNew              => universe_%createEvent()
+       eventNew%time         =  backgroundRadiationTime(iNow+1)
+       eventNew%task         => Radiation_Intergalactic_Background_Internal_Update
     else
        ! Output the results to file.
        !$omp critical (HDF5_Access)

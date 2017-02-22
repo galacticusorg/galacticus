@@ -297,12 +297,14 @@ contains
 
   subroutine diemerKravtsov2014StateStore(self,stateFile,fgslStateFile)
     !% Write the tablulation state to file.
+    use Galacticus_Display
     use Pseudo_Random
     implicit none
     class  (darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout) :: self
     integer                                                  , intent(in   ) :: stateFile
     type   (fgsl_file                                       ), intent(in   ) :: fgslStateFile
 
+    call Galacticus_Display_Message('Storing state for: darkMatterProfileConcentration -> diemerKravtsov2014',verbosity=verbosityInfo)
     write (stateFile) self%resetSequenceSnapshot
     if (.not.self%resetSequenceSnapshot) call Pseudo_Random_Store(self%clonedPseudoSequenceObject,fgslStateFile)
     return
@@ -310,12 +312,14 @@ contains
 
   subroutine diemerKravtsov2014StateRestore(self,stateFile,fgslStateFile)
     !% Write the tablulation state to file.
+    use Galacticus_Display
     use Pseudo_Random
     implicit none
     class  (darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout) :: self
     integer                                                  , intent(in   ) :: stateFile
     type   (fgsl_file                                       ), intent(in   ) :: fgslStateFile
 
+    call Galacticus_Display_Message('Retrieving state for: darkMatterProfileConcentration -> diemerKravtsov2014',verbosity=verbosityInfo)
     read (stateFile) self%resetSequence
     if (.not.self%resetSequence) call Pseudo_Random_Retrieve(self%pseudoSequenceObject,fgslStateFile)
    return

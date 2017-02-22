@@ -350,32 +350,32 @@ contains
   !# <calculationResetTask>
   !#   <unitName>Node_Component_Disk_Standard_Calculation_Reset</unitName>
   !# </calculationResetTask>
-  subroutine Node_Component_Disk_Standard_Calculation_Reset(thisNode)
+  subroutine Node_Component_Disk_Standard_Calculation_Reset(node)
     !% Reset standard disk structure calculations.
     use Node_Component_Disk_Standard_Data
     implicit none
-    type(treeNode), intent(inout) :: thisNode
+    type(treeNode), intent(inout) :: node
 
-    call Node_Component_Disk_Standard_Reset(thisNode%uniqueID())
+    call Node_Component_Disk_Standard_Reset(node%uniqueID())
     return
   end subroutine Node_Component_Disk_Standard_Calculation_Reset
 
   !# <preEvolveTask>
   !# <unitName>Node_Component_Disk_Standard_Pre_Evolve</unitName>
   !# </preEvolveTask>
-  subroutine Node_Component_Disk_Standard_Pre_Evolve(thisNode)
+  subroutine Node_Component_Disk_Standard_Pre_Evolve(node)
     !% Ensure the disk has been initialized.
     implicit none
-    type (treeNode         ), intent(inout), pointer :: thisNode
-    class(nodeComponentDisk)               , pointer :: thisDiskComponent
+    type (treeNode         ), intent(inout), pointer :: node
+    class(nodeComponentDisk)               , pointer :: disk
 
     ! Get the disk component.
-    thisDiskComponent => thisNode%disk()
+    disk => node%disk()
     ! Check if an standard disk component exists.
-    select type (thisDiskComponent)
+    select type (disk)
        class is (nodeComponentDiskStandard)
           ! Initialize the disk
-       call Node_Component_Disk_Standard_Create(thisNode)
+       call Node_Component_Disk_Standard_Create(node)
     end select
     return
   end subroutine Node_Component_Disk_Standard_Pre_Evolve
@@ -383,7 +383,7 @@ contains
   !# <postEvolveTask>
   !# <unitName>Node_Component_Disk_Standard_Post_Evolve</unitName>
   !# </postEvolveTask>
-  subroutine Node_Component_Disk_Standard_Post_Evolve(thisNode)
+  subroutine Node_Component_Disk_Standard_Post_Evolve(node)
     !% Trim histories attached to the disk.
     use Galacticus_Display
     use String_Handling
@@ -394,10 +394,10 @@ contains
     use Dark_Matter_Halo_Scales
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: thisNode
-    class           (nodeComponentDisk       )               , pointer :: thisDiskComponent
-    class           (nodeComponentBasic      )               , pointer :: thisBasicComponent
-    class           (nodeComponentSpin       )               , pointer :: thisSpin
+    type            (treeNode                ), intent(inout), pointer :: node
+    class           (nodeComponentDisk       )               , pointer :: disk
+    class           (nodeComponentBasic      )               , pointer :: basic
+    class           (nodeComponentSpin       )               , pointer :: spin
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                          , parameter              :: angularMomentumTolerance=1.0d-2
     double precision                          , save                   :: fractionalErrorMaximum  =0.0d0
@@ -408,32 +408,32 @@ contains
     type            (history                 )                         :: stellarPropertiesHistory
 
     ! Get the disk component.
-    thisDiskComponent => thisNode%disk()
+    disk => node%disk()
     ! Check if an standard disk component exists.
-    select type (thisDiskComponent)
+    select type (disk)
     class is (nodeComponentDiskStandard)
        ! Trim the stellar populations properties future history.
-       thisBasicComponent => thisNode%basic()
-       stellarPropertiesHistory=thisDiskComponent%stellarPropertiesHistory()
-       call stellarPropertiesHistory%trim(thisBasicComponent%time())
-       call thisDiskComponent%stellarPropertiesHistorySet(stellarPropertiesHistory)
+       basic => node%basic()
+       stellarPropertiesHistory=disk%stellarPropertiesHistory()
+       call stellarPropertiesHistory%trim(basic%time())
+       call disk%stellarPropertiesHistorySet(stellarPropertiesHistory)
 
        ! Trap negative gas masses.
-       if (thisDiskComponent%massGas() < 0.0d0) then
+       if (disk%massGas() < 0.0d0) then
           ! Check if this exceeds the maximum previously recorded error.
-          fractionalError=   abs(thisDiskComponent%massGas    ()) &
-               &          /(                                      &
-               &             abs(thisDiskComponent%massGas    ()) &
-               &            +abs(thisDiskComponent%massStellar()) &
+          fractionalError=   abs(disk%massGas    ()) &
+               &          /(                         &
+               &             abs(disk%massGas    ()) &
+               &            +abs(disk%massStellar()) &
                &           )
           !$omp critical (Standard_Disk_Post_Evolve_Check)
           if (fractionalError > fractionalErrorMaximum) then
              ! Report a warning.
              message='Warning: disk has negative gas mass (fractional error exceeds any previously reported):'//char(10)
-             message=message//'  Node index        = '//thisNode%index() //char(10)
-             write (valueString,'(e12.6)') thisDiskComponent%massGas    ()
+             message=message//'  Node index        = '//node%index() //char(10)
+             write (valueString,'(e12.6)') disk%massGas    ()
              message=message//'  Disk gas mass     = '//trim(valueString)//char(10)
-             write (valueString,'(e12.6)') thisDiskComponent%massStellar()
+             write (valueString,'(e12.6)') disk%massStellar()
              message=message//'  Disk stellar mass = '//trim(valueString)//char(10)
              write (valueString,'(e12.6)') fractionalError
              message=message//'  Error measure     = '//trim(valueString)//char(10)
@@ -451,64 +451,64 @@ contains
           !$omp end critical (Standard_Disk_Post_Evolve_Check)
 
           ! Get the specific angular momentum of the disk material
-          diskMass= thisDiskComponent%massGas    () &
-               &   +thisDiskComponent%massStellar()
+          diskMass= disk%massGas    () &
+               &   +disk%massStellar()
           if (diskMass == 0.0d0) then
              specificAngularMomentum=0.0d0
-             call thisDiskComponent%        massStellarSet(                  0.0d0)
-             call thisDiskComponent%  abundancesStellarSet(         zeroAbundances)
-             call thisDiskComponent%luminositiesStellarSet(zeroStellarLuminosities)
+             call disk%        massStellarSet(                  0.0d0)
+             call disk%  abundancesStellarSet(         zeroAbundances)
+             call disk%luminositiesStellarSet(zeroStellarLuminosities)
           else
-             specificAngularMomentum=thisDiskComponent%angularMomentum()/diskMass
-             if (specificAngularMomentum < 0.0d0) specificAngularMomentum=thisDiskComponent%radius()*thisDiskComponent%velocity()
+             specificAngularMomentum=disk%angularMomentum()/diskMass
+             if (specificAngularMomentum < 0.0d0) specificAngularMomentum=disk%radius()*disk%velocity()
           end if
 
           ! Reset the gas, abundances and angular momentum of the disk.
-          call thisDiskComponent%        massGasSet(                                                  0.0d0)
-          call thisDiskComponent%  abundancesGasSet(                                         zeroAbundances)
-          call thisDiskComponent%angularMomentumSet(specificAngularMomentum*thisDiskComponent%massStellar())
+          call disk%        massGasSet(                                     0.0d0)
+          call disk%  abundancesGasSet(                            zeroAbundances)
+          call disk%angularMomentumSet(specificAngularMomentum*disk%massStellar())
 
        end if
        ! Trap negative angular momentum.
        darkMatterHaloScale_ => darkMatterHaloScale()
-       if (thisDiskComponent%angularMomentum() < 0.0d0) then
-          thisSpin => thisNode%spin()
-          if      (                                             &
-               &     thisDiskComponent  %massStellar    ()      &
-               &    +thisDiskComponent  %massGas        ()      &
-               &   <=                                           &
-               &     0.0d0                                      &
+       if (disk%angularMomentum() < 0.0d0) then
+          spin => node%spin()
+          if      (                           &
+               &     disk  %massStellar    () &
+               &    +disk  %massGas        () &
+               &   <=                         &
+               &     0.0d0                    &
                &  ) then
-             call thisDiskComponent%angularMomentumSet(0.0d0)
+             call disk%angularMomentumSet(0.0d0)
           else if (.not.diskNegativeAngularMomentumAllowed) then
-             if  (                                                   &
-                  &    abs(thisDiskComponent%angularMomentum())      &
-                  &   /(                                             &
-                  &        thisDiskComponent%massStellar    ()       &
-                  &     +  thisDiskComponent%massGas        ()       &
-                  &    )                                             &
-                  &  <                                               &
-                  &    angularMomentumTolerance                      &
-                  &   *darkMatterHaloScale_%virialRadius  (thisNode) &
-                  &   *darkMatterHaloScale_%virialVelocity(thisNode) &
-                  &   *thisSpin            %spin          (        ) &
+             if  (                                 &
+                  &    abs(disk%angularMomentum()) &
+                  &   /(                           &
+                  &        disk%massStellar    ()  &
+                  &     +  disk%massGas        ()  &
+                  &    )                           &
+                  &  <                             &
+                  &    angularMomentumTolerance    &
+                  &   *darkMatterHaloScale_%virialRadius  (node) &
+                  &   *darkMatterHaloScale_%virialVelocity(node) &
+                  &   *spin            %spin          (        ) &
                   & ) then
-                call thisDiskComponent%angularMomentumSet(0.0d0)
+                call disk%angularMomentumSet(0.0d0)
              else
                 message='negative angular momentum in disk with positive mass'
-                write (valueString,'(e12.6)') thisDiskComponent%angularMomentum()
+                write (valueString,'(e12.6)') disk%angularMomentum()
                 message=message//char(10)//' -> angular momentum       = '//trim(valueString)
-                write (valueString,'(e12.6)') thisDiskComponent%massStellar    ()
+                write (valueString,'(e12.6)') disk%massStellar    ()
                 message=message//char(10)//' -> stellar mass           = '//trim(valueString)
-                write (valueString,'(e12.6)') thisDiskComponent%massGas        ()
+                write (valueString,'(e12.6)') disk%massGas        ()
                 message=message//char(10)//' -> gas mass               = '//trim(valueString)
-                write (valueString,'(e12.6)')  darkMatterHaloScale_%virialRadius  (thisnode) &
-                     &                  *darkMatterHaloScale_%virialVelocity(thisnode) &
-                     &                  *thisSpin%spin()
+                write (valueString,'(e12.6)')  darkMatterHaloScale_%virialRadius  (node) &
+                     &                        *darkMatterHaloScale_%virialVelocity(node) &
+                     &                        *spin                %spin          (    )
                 message=message//char(10)//' -> angular momentum scale = '//trim(valueString)
-                call Galacticus_Error_Report(                                               &
-                     &                       'Node_Component_Disk_Standard_Post_Evolve', &
-                     &                       message                                        &
+                call Galacticus_Error_Report(                                                &
+                     &                       'Node_Component_Disk_Standard_Post_Evolve',     &
+                     &                       message                                         &
                      &                      )
              end if
           end if
@@ -517,14 +517,14 @@ contains
     return
   end subroutine Node_Component_Disk_Standard_Post_Evolve
 
-  subroutine Node_Component_Disk_Standard_Create(thisNode)
+  subroutine Node_Component_Disk_Standard_Create(node)
     !% Create properties in an standard disk component.
     use Histories
     use Stellar_Population_Properties
     use Galacticus_Output_Star_Formation_Histories
     implicit none
-    type   (treeNode             ), intent(inout), pointer :: thisNode
-    class  (nodeComponentDisk    )               , pointer :: thisDiskComponent
+    type   (treeNode             ), intent(inout), pointer :: node
+    class  (nodeComponentDisk    )               , pointer :: disk
     class  (nodeComponentSpheroid)               , pointer :: spheroid
     class  (nodeComponentBasic   )               , pointer :: basic
     type   (history              )                         :: starFormationHistory        , stellarPropertiesHistory      , &
@@ -533,44 +533,44 @@ contains
     double precision                                       :: timeBegin
     
     ! Get the disk component.
-    thisDiskComponent => thisNode%disk()
+    disk => node%disk()
     ! Exit if already initialized.
-    if (thisDiskComponent%isInitialized()) return
+    if (disk%isInitialized()) return
     ! Determine which histories must be created.
-    starFormationHistory          =thisDiskComponent%starFormationHistory            ()
+    starFormationHistory          =disk%starFormationHistory            ()
     createStarFormationHistory    =.not.             starFormationHistory    %exists ()
     call                                             starformationhistory    %destroy()
-    stellarPropertiesHistory      =thisDiskComponent%stellarPropertiesHistory        ()
+    stellarPropertiesHistory      =disk%stellarPropertiesHistory        ()
     createStellarPropertiesHistory=.not.             stellarPropertiesHistory%exists ()
     call                                             stellarPropertiesHistory%destroy()
     ! Create the stellar properties history.
     if (createStellarPropertiesHistory) then
        ! Create the stellar properties history.
-       call Stellar_Population_Properties_History_Create (thisNode,stellarPropertiesHistory)
-       call thisDiskComponent%stellarPropertiesHistorySet(         stellarPropertiesHistory)
+       call Stellar_Population_Properties_History_Create (node,stellarPropertiesHistory)
+       call disk%stellarPropertiesHistorySet(         stellarPropertiesHistory)
     end if
     ! Create the star formation history.
     if (createStarFormationHistory    ) then
-       spheroid => thisNode%spheroid()
+       spheroid => node%spheroid()
        spheroidStarFormationHistory=spheroid%starFormationHistory()
        if (spheroidStarFormationHistory%exists()) then
           timeBegin=  spheroidStarFormationHistory%time(1)
        else
-          basic    => thisNode%basic()
+          basic    => node%basic()
           timeBegin=  basic   %time ()
        end if
-       call Star_Formation_History_Create                (thisNode,    starFormationHistory,timeBegin)
-       call thisDiskComponent%    starFormationHistorySet(             starFormationHistory          )
+       call Star_Formation_History_Create                (node,    starFormationHistory,timeBegin)
+       call disk%    starFormationHistorySet(             starFormationHistory          )
     end if
     ! Record that the disk has been initialized.
-    call thisDiskComponent%isInitializedSet(.true.)
+    call disk%isInitializedSet(.true.)
     return
   end subroutine Node_Component_Disk_Standard_Create
 
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Disk_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Disk_Standard_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedureReturn)
+  subroutine Node_Component_Disk_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedureReturn)
     !% Compute the standard disk node mass rate of change.
     use Abundances_Structure
     use Histories
@@ -586,15 +586,15 @@ contains
     use Dark_Matter_Halo_Scales
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode                    ), intent(inout), pointer :: thisNode
+    type            (treeNode                    ), intent(inout), pointer :: node
     logical                                       , intent(in   )          :: odeConverged
-    class           (nodeComponentDisk           )               , pointer :: thisDisk
-    class           (nodeComponentSpheroid       )               , pointer :: thisSpheroid
-    class           (nodeComponentHotHalo        )               , pointer :: thisHotHalo
+    class           (nodeComponentDisk           )               , pointer :: disk
+    class           (nodeComponentSpheroid       )               , pointer :: spheroid
+    class           (nodeComponentHotHalo        )               , pointer :: hotHalo
     class           (darkMatterHaloScaleClass    )               , pointer :: darkMatterHaloScale_
     logical                                       , intent(inout)          :: interrupt
-    procedure       (interruptTask), intent(inout), pointer :: interruptProcedureReturn
-    procedure       (interruptTask)               , pointer :: interruptProcedure
+    procedure       (interruptTask               ), intent(inout), pointer :: interruptProcedureReturn
+    procedure       (interruptTask               )               , pointer :: interruptProcedure
     type            (abundances                  ), save                   :: fuelAbundances              , fuelAbundancesRates       , &
          &                                                                    stellarAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
@@ -617,71 +617,71 @@ contains
     interruptProcedure => interruptProcedureReturn
 
     ! Get the disk and check that it is of our class.
-    thisDisk => thisNode%disk()
-    select type (thisDisk)
+    disk => node%disk()
+    select type (disk)
        class is (nodeComponentDiskStandard)
 
           ! Check for a realistic disk, return immediately if disk is unphysical.
-       if     (     thisDisk%angularMomentum() < 0.0d0 &
-            &  .or. thisDisk%radius         () < 0.0d0 &
-            &  .or. thisDisk%massGas        () < 0.0d0 &
+       if     (     disk%angularMomentum() < 0.0d0 &
+            &  .or. disk%radius         () < 0.0d0 &
+            &  .or. disk%massGas        () < 0.0d0 &
             & ) return
 
        ! Interrupt if the disk is not initialized.
-       if (.not.thisDisk%isInitialized()) then
+       if (.not.disk%isInitialized()) then
           interrupt=.true.
           interruptProcedureReturn => Node_Component_Disk_Standard_Create
           return
        end if
 
        ! Compute the star formation rate.
-       starFormationRate=thisDisk%starFormationRate()
+       starFormationRate=disk%starFormationRate()
 
        ! Get the available fuel mass.
-       fuelMass         =thisDisk%massGas          ()
+       fuelMass         =disk%massGas          ()
 
        ! Find the metallicity of the fuel supply.
-       fuelAbundances   =thisDisk%abundancesGas    ()
+       fuelAbundances   =disk%abundancesGas    ()
        call fuelAbundances%massToMassFraction(fuelMass)
 
        ! Find rates of change of stellar mass, gas mass, abundances and luminosities.
-       stellarHistoryRate=thisDisk%stellarPropertiesHistory()
-       call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,componentTypeDisk,thisNode,stellarHistoryRate&
+       stellarHistoryRate=disk%stellarPropertiesHistory()
+       call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,componentTypeDisk,node,stellarHistoryRate&
             &,stellarMassRate,stellarAbundancesRates,luminositiesStellarRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
-       if (stellarHistoryRate%exists()) call thisDisk%stellarPropertiesHistoryRate(stellarHistoryRate)
+       if (stellarHistoryRate%exists()) call disk%stellarPropertiesHistoryRate(stellarHistoryRate)
 
        ! Adjust rates.
-       call thisDisk%        massStellarRate(         stellarMassRate)
-       call thisDisk%            massGasRate(            fuelMassRate)
-       call thisDisk%  abundancesStellarRate(  stellarAbundancesRates)
-       call thisDisk%      abundancesGasRate(     fuelAbundancesRates)
-       call thisDisk%luminositiesStellarRate(luminositiesStellarRates)
+       call disk%        massStellarRate(         stellarMassRate)
+       call disk%            massGasRate(            fuelMassRate)
+       call disk%  abundancesStellarRate(  stellarAbundancesRates)
+       call disk%      abundancesGasRate(     fuelAbundancesRates)
+       call disk%luminositiesStellarRate(luminositiesStellarRates)
 
        ! Record the star formation history.
-       stellarHistoryRate=thisDisk%starFormationHistory()
+       stellarHistoryRate=disk%starFormationHistory()
        call stellarHistoryRate%reset()
-       call Star_Formation_History_Record(thisNode,stellarHistoryRate,fuelAbundances,starFormationRate)
-       if (stellarHistoryRate%exists()) call thisDisk%starFormationHistoryRate(stellarHistoryRate)
+       call Star_Formation_History_Record(node,stellarHistoryRate,fuelAbundances,starFormationRate)
+       if (stellarHistoryRate%exists()) call disk%starFormationHistoryRate(stellarHistoryRate)
 
        ! Find rate of outflow of material from the disk and pipe it to the outflowed reservoir.
-       massOutflowRateToHotHalo=Star_Formation_Feedback_Disk_Outflow_Rate          (thisNode,starFormationRate,energyInputRate)
-       massOutflowRateFromHalo =Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate(thisNode,starFormationRate,energyInputRate)
+       massOutflowRateToHotHalo=Star_Formation_Feedback_Disk_Outflow_Rate          (node,starFormationRate,energyInputRate)
+       massOutflowRateFromHalo =Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate(node,starFormationRate,energyInputRate)
        massOutflowRate         =massOutflowRateToHotHalo+massOutflowRateFromHalo
        if (massOutflowRate > 0.0d0) then
           ! Find the fraction of material which outflows to the hot halo.
           outflowToHotHaloFraction=massOutflowRateToHotHalo/massOutflowRate
 
           ! Get the masses of the disk.
-          gasMass =        thisDisk%massGas    ()
-          diskMass=gasMass+thisDisk%massStellar()
+          gasMass =        disk%massGas    ()
+          diskMass=gasMass+disk%massStellar()
 
           ! Limit the outflow rate timescale to a multiple of the dynamical time.
-          diskDynamicalTime=Mpc_per_km_per_s_To_Gyr*thisDisk%radius()/thisDisk%velocity()
+          diskDynamicalTime=Mpc_per_km_per_s_To_Gyr*disk%radius()/disk%velocity()
           massOutflowRate=min(massOutflowRate,gasMass/diskOutflowTimescaleMinimum/diskDynamicalTime)
 
           ! Compute the angular momentum outflow rate.
           if (diskMass > 0.0d0) then
-             angularMomentum           =thisDisk%angularMomentum()
+             angularMomentum           =disk%angularMomentum()
              angularMomentumOutflowRate=angularMomentum*(massOutflowRate/diskMass)
              angularMomentumOutflowRate=sign(min(abs(angularMomentumOutflowRate),abs(angularMomentum/diskOutflowTimescaleMinimum &
                   &/diskDynamicalTime)),angularMomentumOutflowRate)
@@ -689,25 +689,25 @@ contains
              angularMomentumOutflowRate=0.0d0
           end if
           if (gasMass > 0.0d0) then
-             fuelAbundancesRates=thisDisk%abundancesGas()
+             fuelAbundancesRates=disk%abundancesGas()
              call fuelAbundancesRates%massToMassFraction(gasMass)
              fuelAbundancesRates=fuelAbundancesRates*massOutflowRate
           else
              fuelAbundancesRates=zeroAbundances
           end if
-          thisHotHalo => thisNode%hotHalo()
-          call thisHotHalo%           outflowingMassRate( massOutflowRate           *outflowToHotHaloFraction)
-          call thisDisk   %                  massGasRate(-massOutflowRate                                    )
-          call thisHotHalo%outflowingAngularMomentumRate( angularMomentumOutflowRate*outflowToHotHaloFraction)
-          call thisDisk   %          angularMomentumRate(-angularMomentumOutflowRate                         )
-          call thisHotHalo%     outflowingAbundancesRate( fuelAbundancesRates       *outflowToHotHaloFraction)
-          call thisDisk   %            abundancesGasRate(-fuelAbundancesRates                                )
+          hotHalo => node%hotHalo()
+          call hotHalo%           outflowingMassRate( massOutflowRate           *outflowToHotHaloFraction)
+          call disk   %                  massGasRate(-massOutflowRate                                    )
+          call hotHalo%outflowingAngularMomentumRate( angularMomentumOutflowRate*outflowToHotHaloFraction)
+          call disk   %          angularMomentumRate(-angularMomentumOutflowRate                         )
+          call hotHalo%     outflowingAbundancesRate( fuelAbundancesRates       *outflowToHotHaloFraction)
+          call disk   %            abundancesGasRate(-fuelAbundancesRates                                )
        end if
 
        ! Determine if the disk is bar unstable and, if so, the rate at which material is moved to the pseudo-bulge.
-       if (thisNode%isPhysicallyPlausible) then
+       if (node%isPhysicallyPlausible) then
           ! Disk has positive angular momentum, so compute an instability timescale.
-          call Bar_Instability_Timescale(thisNode,barInstabilityTimescale,barInstabilitySpecificTorque)
+          call Bar_Instability_Timescale(node,barInstabilityTimescale,barInstabilitySpecificTorque)
        else
           ! Disk has non-positive angular momentum, therefore it is unphysical. Do not compute an instability timescale in this
           ! case as the disk radius may be unphysical also.
@@ -716,98 +716,98 @@ contains
        ! Negative timescale indicates no bar instability.
        if (barInstabilityTimescale >= 0.0d0) then
           ! Disk is unstable, so compute rates at which material is transferred to the spheroid.
-          thisSpheroid => thisNode%spheroid()
+          spheroid => node%spheroid()
           ! Gas mass.
-          transferRate            =max(         0.0d0         ,thisDisk    %massGas                (                         ))/barInstabilityTimescale
-          call                                      thisDisk    %massGasRate            (-           transferRate                              )
-          call                                      thisSpheroid%massGasRate            (+           transferRate ,interrupt,interruptProcedure)
+          transferRate            =max(         0.0d0         ,disk    %massGas                (                         ))/barInstabilityTimescale
+          call                                      disk    %massGasRate            (-           transferRate                              )
+          call                                      spheroid%massGasRate            (+           transferRate ,interrupt,interruptProcedure)
           ! Stellar mass.
-          transferRate            =max(         0.0d0         ,thisDisk    %massStellar            (                         ))/barInstabilityTimescale
-          call                                      thisDisk    %massStellarRate        (-           transferRate                              )
-          call                                      thisSpheroid%massStellarRate        (+           transferRate ,interrupt,interruptProcedure)
+          transferRate            =max(         0.0d0         ,disk    %massStellar            (                         ))/barInstabilityTimescale
+          call                                      disk    %massStellarRate        (-           transferRate                              )
+          call                                      spheroid%massStellarRate        (+           transferRate ,interrupt,interruptProcedure)
           ! Angular momentum.
-          transferRate            =max(         0.0d0         ,thisDisk    %angularMomentum        (                         ))/barInstabilityTimescale
-          call                                      thisDisk    %angularMomentumRate    (-           transferRate                              )
-          call                                      thisSpheroid%angularMomentumRate    (+           transferRate ,interrupt,interruptProcedure)
+          transferRate            =max(         0.0d0         ,disk    %angularMomentum        (                         ))/barInstabilityTimescale
+          call                                      disk    %angularMomentumRate    (-           transferRate                              )
+          call                                      spheroid%angularMomentumRate    (+           transferRate ,interrupt,interruptProcedure)
           ! Gas abundances.
-          fuelAbundancesRates     =max(zeroAbundances         ,thisDisk    %abundancesGas          (                         ))/barInstabilityTimescale
-          call                                      thisDisk    %abundancesGasRate      (-     fuelAbundancesRates                             )
-          call                                      thisSpheroid%abundancesGasRate      (+     fuelAbundancesRates,interrupt,interruptProcedure)
+          fuelAbundancesRates     =max(zeroAbundances         ,disk    %abundancesGas          (                         ))/barInstabilityTimescale
+          call                                      disk    %abundancesGasRate      (-     fuelAbundancesRates                             )
+          call                                      spheroid%abundancesGasRate      (+     fuelAbundancesRates,interrupt,interruptProcedure)
           ! Stellar abundances.
-          stellarAbundancesRates  =max(zeroAbundances         ,thisDisk    %abundancesStellar      (                         ))/barInstabilityTimescale
-          call                                      thisDisk    %abundancesStellarRate  (-  stellarAbundancesRates                             )
-          call                                      thisSpheroid%abundancesStellarRate  (+  stellarAbundancesRates,interrupt,interruptProcedure)
+          stellarAbundancesRates  =max(zeroAbundances         ,disk    %abundancesStellar      (                         ))/barInstabilityTimescale
+          call                                      disk    %abundancesStellarRate  (-  stellarAbundancesRates                             )
+          call                                      spheroid%abundancesStellarRate  (+  stellarAbundancesRates,interrupt,interruptProcedure)
           ! Stellar luminosities.
-          luminositiesTransferRate=max(zeroStellarLuminosities,thisDisk    %luminositiesStellar    (                         ))/barInstabilityTimescale
-          call                                      thisDisk    %luminositiesStellarRate(-luminositiesTransferRate                             )
-          call                                      thisSpheroid%luminositiesStellarRate(+luminositiesTransferRate,interrupt,interruptProcedure)
+          luminositiesTransferRate=max(zeroStellarLuminosities,disk    %luminositiesStellar    (                         ))/barInstabilityTimescale
+          call                                      disk    %luminositiesStellarRate(-luminositiesTransferRate                             )
+          call                                      spheroid%luminositiesStellarRate(+luminositiesTransferRate,interrupt,interruptProcedure)
           ! Stellar properties history.
-          historyTransferRate=thisDisk%stellarPropertiesHistory()         
+          historyTransferRate=disk%stellarPropertiesHistory()         
           if (historyTransferRate%exists()) then
              historyTransferRate=historyTransferRate/barInstabilityTimescale
-             call thisDisk    %stellarPropertiesHistoryRate(-historyTransferRate                             )
-             call thisSpheroid%stellarPropertiesHistoryRate(+historyTransferRate,interrupt,interruptProcedure)
+             call disk    %stellarPropertiesHistoryRate(-historyTransferRate                             )
+             call spheroid%stellarPropertiesHistoryRate(+historyTransferRate,interrupt,interruptProcedure)
           end if
           call historyTransferRate%destroy()
           ! Star formation history.
-          historyTransferRate=thisDisk%starFormationHistory()
+          historyTransferRate=disk%starFormationHistory()
           if (historyTransferRate%exists()) then
              historyTransferRate=historyTransferRate/barInstabilityTimescale
-             call thisDisk    %starFormationHistoryRate(-historyTransferRate                             )
-             call thisSpheroid%starFormationHistoryRate(+historyTransferRate,interrupt,interruptProcedure)
+             call disk    %starFormationHistoryRate(-historyTransferRate                             )
+             call spheroid%starFormationHistoryRate(+historyTransferRate,interrupt,interruptProcedure)
           end if
           call historyTransferRate%destroy()
           ! Additional external torque.
           darkMatterHaloScale_ => darkMatterHaloScale()
-          if (thisSpheroid%angularMomentum() < (thisSpheroid%massGas()+thisSpheroid%massStellar())*darkMatterHaloScale_%virialRadius(thisNode)*darkMatterHaloScale_%virialVelocity(thisNode) .and. thisSpheroid%radius() < darkMatterHaloScale_%virialRadius(thisNode)) then
-             call thisSpheroid%angularMomentumRate(+barInstabilitySpecificTorque*(thisSpheroid%massGas()+thisSpheroid%massStellar()),interrupt,interruptProcedure)
+          if (spheroid%angularMomentum() < (spheroid%massGas()+spheroid%massStellar())*darkMatterHaloScale_%virialRadius(node)*darkMatterHaloScale_%virialVelocity(node) .and. spheroid%radius() < darkMatterHaloScale_%virialRadius(node)) then
+             call spheroid%angularMomentumRate(+barInstabilitySpecificTorque*(spheroid%massGas()+spheroid%massStellar()),interrupt,interruptProcedure)
           end if
        end if
 
        ! Apply mass loss rate due to ram pressure stripping.
-       if (thisDisk%massGas() > 0.0d0) then
-          massLossRate=Ram_Pressure_Stripping_Mass_Loss_Rate_Disk(thisNode)
+       if (disk%massGas() > 0.0d0) then
+          massLossRate=Ram_Pressure_Stripping_Mass_Loss_Rate_Disk(node)
           if (massLossRate > 0.0d0) then
-             thisHotHalo => thisNode%hotHalo()
-             call    thisDisk%                  massGasRate(-massLossRate                                                                       )
-             call    thisDisk%          angularMomentumRate(-massLossRate*thisDisk%angularMomentum()/(thisDisk%massGas()+thisDisk%massStellar()))
-             call    thisDisk%            abundancesGasRate(-massLossRate*thisDisk%abundancesGas  ()/ thisDisk%massGas()                        )
-             call thisHotHalo%           outflowingMassRate(+massLossRate                                                                       )
-             call thisHotHalo%outflowingAngularMomentumRate(+massLossRate*thisDisk%angularMomentum()/(thisDisk%massGas()+thisDisk%massStellar()))
-             call thisHotHalo%outflowingAbundancesRate     (+massLossRate*thisDisk%abundancesGas  ()/ thisDisk%massGas()                        )
+             hotHalo => node%hotHalo()
+             call    disk%                  massGasRate(-massLossRate                                                                       )
+             call    disk%          angularMomentumRate(-massLossRate*disk%angularMomentum()/(disk%massGas()+disk%massStellar()))
+             call    disk%            abundancesGasRate(-massLossRate*disk%abundancesGas  ()/ disk%massGas()                        )
+             call hotHalo%           outflowingMassRate(+massLossRate                                                                       )
+             call hotHalo%outflowingAngularMomentumRate(+massLossRate*disk%angularMomentum()/(disk%massGas()+disk%massStellar()))
+             call hotHalo%outflowingAbundancesRate     (+massLossRate*disk%abundancesGas  ()/ disk%massGas()                        )
           end if
        end if
 
        ! Apply mass loss rate due to tidal stripping.
-       if (thisDisk%massGas()+thisDisk%massStellar() > 0.0d0) then
-          massLossRate=Tidal_Stripping_Mass_Loss_Rate_Disk(thisNode)
+       if (disk%massGas()+disk%massStellar() > 0.0d0) then
+          massLossRate=Tidal_Stripping_Mass_Loss_Rate_Disk(node)
           if (massLossRate > 0.0d0) then
-             thisHotHalo    => thisNode%hotHalo()
-             fractionGas    =  min(1.0d0,max(0.0d0,thisDisk%massGas()/(thisDisk%massGas()+thisDisk%massStellar())))
+             hotHalo    => node%hotHalo()
+             fractionGas    =  min(1.0d0,max(0.0d0,disk%massGas()/(disk%massGas()+disk%massStellar())))
              fractionStellar=  1.0d0-fractionGas
-             if (fractionGas     > 0.0d0 .and. thisDisk%massGas    () > 0.0d0) then
-                call    thisDisk%                  massGasRate(-fractionGas    *massLossRate                                                                         )
-                call    thisDisk%            abundancesGasRate(-fractionGas    *massLossRate*thisDisk%abundancesGas    ()/ thisDisk%massGas()                        )
-                call thisHotHalo%           outflowingMassRate(+fractionGas    *massLossRate                                                                         )
-                call thisHotHalo%outflowingAbundancesRate     (+fractionGas    *massLossRate*thisDisk%abundancesGas    ()/ thisDisk%massGas()                        )
-                call thisHotHalo%outflowingAngularMomentumRate(+fractionGas    *massLossRate*thisDisk%angularMomentum  ()/(thisDisk%massGas()+thisDisk%massStellar()))
+             if (fractionGas     > 0.0d0 .and. disk%massGas    () > 0.0d0) then
+                call    disk%                  massGasRate(-fractionGas    *massLossRate                                                                         )
+                call    disk%            abundancesGasRate(-fractionGas    *massLossRate*disk%abundancesGas    ()/ disk%massGas()                        )
+                call hotHalo%           outflowingMassRate(+fractionGas    *massLossRate                                                                         )
+                call hotHalo%outflowingAbundancesRate     (+fractionGas    *massLossRate*disk%abundancesGas    ()/ disk%massGas()                        )
+                call hotHalo%outflowingAngularMomentumRate(+fractionGas    *massLossRate*disk%angularMomentum  ()/(disk%massGas()+disk%massStellar()))
              end if
-             if (fractionStellar > 0.0d0 .and. thisDisk%massStellar() > 0.0d0) then
-                call    thisDisk%              massStellarRate(-fractionStellar*massLossRate                                                                         )
-                call    thisDisk%        abundancesStellarRate(-fractionStellar*massLossRate*thisDisk%abundancesStellar()/                    thisDisk%massStellar() )
+             if (fractionStellar > 0.0d0 .and. disk%massStellar() > 0.0d0) then
+                call    disk%              massStellarRate(-fractionStellar*massLossRate                                                                         )
+                call    disk%        abundancesStellarRate(-fractionStellar*massLossRate*disk%abundancesStellar()/                    disk%massStellar() )
                 ! Stellar properties history.
-                historyTransferRate=thisDisk%stellarPropertiesHistory()         
+                historyTransferRate=disk%stellarPropertiesHistory()         
                 if (historyTransferRate%exists()) then
-                   call thisDisk%stellarPropertiesHistoryRate (-fractionStellar*massLossRate*historyTransferRate         /                    thisDisk%massStellar() )
+                   call disk%stellarPropertiesHistoryRate (-fractionStellar*massLossRate*historyTransferRate         /                    disk%massStellar() )
                 end if
                 call historyTransferRate%destroy()
                 ! Star formation history.
-                historyTransferRate=thisDisk%starFormationHistory()
+                historyTransferRate=disk%starFormationHistory()
                 if (historyTransferRate%exists()) then
-                   call thisDisk    %starFormationHistoryRate (-fractionStellar*massLossRate*historyTransferRate         /                    thisDisk%massStellar() )
+                   call disk    %starFormationHistoryRate (-fractionStellar*massLossRate*historyTransferRate         /                    disk%massStellar() )
                 end if
              end if
-             call       thisDisk%          angularMomentumRate(-                massLossRate*thisDisk%angularMomentum  ()/(thisDisk%massGas()+thisDisk%massStellar()))
+             call       disk%          angularMomentumRate(-                massLossRate*disk%angularMomentum  ()/(disk%massGas()+disk%massStellar()))
           end if
        end if
     end select
@@ -821,17 +821,17 @@ contains
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Disk_Standard_Scale_Set</unitName>
   !# </scaleSetTask>
-  subroutine Node_Component_Disk_Standard_Scale_Set(thisNode)
-    !% Set scales for properties of {\normalfont \ttfamily thisNode}.
+  subroutine Node_Component_Disk_Standard_Scale_Set(node)
+    !% Set scales for properties of {\normalfont \ttfamily node}.
     use Histories
     use Stellar_Population_Properties
     use Galacticus_Output_Star_Formation_Histories
     use Abundances_Structure
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: thisNode
-    class           (nodeComponentDisk    )               , pointer :: thisDiskComponent
-    class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
+    type            (treeNode             ), intent(inout), pointer :: node
+    class           (nodeComponentDisk    )               , pointer :: disk
+    class           (nodeComponentSpheroid)               , pointer :: spheroid
     double precision                       , parameter              :: massMinimum                   =1.0d0
     double precision                       , parameter              :: angularMomentumMinimum        =1.0d-2
     double precision                       , parameter              :: luminosityMinimum             =1.0d0
@@ -841,67 +841,63 @@ contains
     type            (abundances           )                         :: abundancesScale
     
     ! Get the disk component.
-    thisDiskComponent => thisNode%disk()
+    disk => node%disk()
     ! Check if an standard disk component exists.
-    select type (thisDiskComponent)
-       class is (nodeComponentDiskStandard)
-
-          ! Get disk components.
-       thisSpheroidComponent => thisNode%spheroid()
-
+    select type (disk)
+    class is (nodeComponentDiskStandard)
+       ! Get spheroid component.
+       spheroid => node%spheroid()
        ! Set scale for angular momentum.
-       angularMomentum=thisDiskComponent%angularMomentum()+thisSpheroidComponent%angularMomentum()
-       call thisDiskComponent%angularMomentumScale(max(angularMomentum,angularMomentumMinimum))
-
+       angularMomentum=disk%angularMomentum()+spheroid%angularMomentum()
+       call disk%angularMomentumScale(max(angularMomentum,angularMomentumMinimum))
        ! Set scale for masses.
-       mass           =abs(                                                                     &
-            &              +thisDiskComponent%massGas    ()+thisSpheroidComponent%massGas    () &
-            &              +thisDiskComponent%massStellar()+thisSpheroidComponent%massStellar() &
+       mass           =abs(                                           &
+            &              +disk%massGas    ()+spheroid%massGas    () &
+            &              +disk%massStellar()+spheroid%massStellar() &
             &             )
-       call thisDiskComponent%massGasScale              (max(           mass,           massMinimum))
-       call thisDiskComponent%massStellarScale          (max(           mass,           massMinimum))
-
+       call disk%massGasScale        (max(           mass,           massMinimum))
+       call disk%massStellarScale    (max(           mass,           massMinimum))
        ! Set scales for abundances if necessary.
        if (abundancesCount > 0) then
           ! Set scale for abundances.
-          abundancesScale=+max(                                                 &
-               &               +abs(                                            &
-               &                    +thisDiskComponent    %abundancesGas    ()  &
-               &                    +thisSpheroidComponent%abundancesGas    ()  &
-               &                   )                                            &
-               &               +abs(                                            &
-               &                    +thisDiskComponent    %abundancesStellar()  &
-               &                    +thisSpheroidComponent%abundancesStellar()  &
-               &                   )                                          , &
-               &                    +massMinimum                                &
-               &                    *unitAbundances                             &
+          abundancesScale=+max(                                    &
+               &               +abs(                               &
+               &                    +disk    %abundancesGas    ()  &
+               &                    +spheroid%abundancesGas    ()  &
+               &                   )                               &
+               &               +abs(                               &
+               &                    +disk    %abundancesStellar()  &
+               &                    +spheroid%abundancesStellar()  &
+               &                   )                             , &
+               &                    +massMinimum                   &
+               &                    *unitAbundances                &
                &              )
           ! Set scale for gas abundances.
-          call thisDiskComponent%abundancesGasScale    (abundancesScale)
+          call disk%abundancesGasScale    (abundancesScale)
 
           ! Set scale for stellar abundances.
-          call thisDiskComponent%abundancesStellarScale(abundancesScale)
+          call disk%abundancesStellarScale(abundancesScale)
        end if
        ! Set scale for stellar luminosities.
-       stellarLuminositiesScale=max(                                                    &
-            &                       abs(                                                &
-            &                           +thisDiskComponent      %luminositiesStellar()  &
-            &                           +thisSpheroidComponent  %luminositiesStellar()  &
-            &                          )                                              , &
-            &                           +unitStellarLuminosities                        &
-            &                           *luminosityMinimum                              &
+       stellarLuminositiesScale=max(                                       &
+            &                       abs(                                   &
+            &                           +disk      %luminositiesStellar()  &
+            &                           +spheroid  %luminositiesStellar()  &
+            &                          )                                 , &
+            &                           +unitStellarLuminosities           &
+            &                           *luminosityMinimum                 &
             &                      )
-       call stellarLuminositiesScale%truncate                (thisDiskComponent       %luminositiesStellar())
-       call thisDiskComponent       %luminositiesStellarScale(stellarLuminositiesScale                      )
+       call stellarLuminositiesScale%truncate                (disk       %luminositiesStellar())
+       call disk       %luminositiesStellarScale(stellarLuminositiesScale                      )
 
        ! Set scales for stellar population properties and star formation histories.
-       stellarPopulationHistoryScales=thisDiskComponent%stellarPropertiesHistory()
-       call Stellar_Population_Properties_Scales           (stellarPopulationHistoryScales,thisDiskComponent%massStellar(),thisDiskComponent%abundancesStellar())
-       call thisDiskComponent%stellarPropertiesHistoryScale(stellarPopulationHistoryScales                                                                      )
+       stellarPopulationHistoryScales=disk%stellarPropertiesHistory()
+       call Stellar_Population_Properties_Scales(stellarPopulationHistoryScales,disk%massStellar(),disk%abundancesStellar())
+       call disk%stellarPropertiesHistoryScale  (stellarPopulationHistoryScales                                            )
        call stellarPopulationHistoryScales%destroy()
-       stellarPopulationHistoryScales=thisDiskComponent%starFormationHistory()
-       call Star_Formation_History_Scales                  (stellarPopulationHistoryScales,thisDiskComponent%massStellar(),thisDiskComponent%abundancesStellar())
-       call thisDiskComponent%starFormationHistoryScale    (stellarPopulationHistoryScales                                                                      )
+       stellarPopulationHistoryScales=disk%starFormationHistory()
+       call Star_Formation_History_Scales       (stellarPopulationHistoryScales,disk%massStellar(),disk%abundancesStellar())
+       call disk%starFormationHistoryScale      (stellarPopulationHistoryScales                                            )
        call stellarPopulationHistoryScales%destroy()
 
     end select
@@ -913,35 +909,35 @@ contains
   !#  <after>Satellite_Merging_Mass_Movement_Store</after>
   !#  <after>Satellite_Merging_Remnant_Size</after>
   !# </satelliteMergerTask>
-  subroutine Node_Component_Disk_Standard_Satellite_Merging(thisNode)
-    !% Transfer any standard disk associated with {\normalfont \ttfamily thisNode} to its host halo.
+  subroutine Node_Component_Disk_Standard_Satellite_Merging(node)
+    !% Transfer any standard disk associated with {\normalfont \ttfamily node} to its host halo.
     use Histories
     use Abundances_Structure
     use Satellite_Merging_Mass_Movements_Descriptors
     use Galacticus_Error
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: thisNode
-    class           (nodeComponentDisk    )               , pointer :: hostDiskComponent      , thisDiskComponent
-    class           (nodeComponentSpheroid)               , pointer :: hostSpheroidComponent  , thisSpheroidComponent
-    type            (treeNode             )               , pointer :: hostNode
-    type            (history              )                         :: hostHistory            , thisHistory
+    type            (treeNode             ), intent(inout), pointer :: node
+    class           (nodeComponentDisk    )               , pointer :: diskHost               , disk
+    class           (nodeComponentSpheroid)               , pointer :: spheroidHost           , spheroid
+    type            (treeNode             )               , pointer :: nodeHost
+    type            (history              )                         :: historyHost            , historyNode
     double precision                                                :: specificAngularMomentum
 
     ! Check that the disk is of the standard class.
-    thisDiskComponent => thisNode%disk()
-    select type (thisDiskComponent)
+    disk => node%disk()
+    select type (disk)
        class is (nodeComponentDiskStandard)
-       thisSpheroidComponent => thisNode%spheroid()
+       spheroid => node%spheroid()
 
        ! Find the node to merge with.
-       hostNode              => thisNode%mergesWith(                 )
-       hostDiskComponent     => hostNode%disk      (autoCreate=.true.)
-       hostSpheroidComponent => hostNode%spheroid  (autoCreate=.true.)
+       nodeHost     => node%mergesWith  (                 )
+       diskHost     => nodeHost%disk    (autoCreate=.true.)
+       spheroidHost => nodeHost%spheroid(autoCreate=.true.)
 
        ! Get specific angular momentum of the disk material.
-       if (                                                            thisDiskComponent%massGas()+thisDiskComponent%massStellar() > 0.0d0) then
-          specificAngularMomentum=thisDiskComponent%angularMomentum()/(thisDiskComponent%massGas()+thisDiskComponent%massStellar())
+       if (                                               disk%massGas()+disk%massStellar() > 0.0d0) then
+          specificAngularMomentum=disk%angularMomentum()/(disk%massGas()+disk%massStellar())
        else
           specificAngularMomentum=0.0d0
        end if
@@ -949,104 +945,104 @@ contains
        ! Move the gas component of the standard disk to the host.
        select case (thisMergerGasMovesTo)
        case (movesToDisk)
-          call hostDiskComponent    %massGasSet            (                                                                     &
-               &                                             hostDiskComponent    %massGas            ()                         &
-               &                                            +thisDiskComponent    %massGas            ()                         &
+          call diskHost    %massGasSet            (                                                                     &
+               &                                             diskHost    %massGas            ()                         &
+               &                                            +disk        %massGas            ()                         &
                &                                           )
-          call hostDiskComponent    %abundancesGasSet      (                                                                     &
-               &                                             hostDiskComponent    %abundancesGas      ()                         &
-               &                                            +thisDiskComponent    %abundancesGas      ()                         &
+          call diskHost    %abundancesGasSet      (                                                                     &
+               &                                             diskHost    %abundancesGas      ()                         &
+               &                                            +disk        %abundancesGas      ()                         &
                &                                           )
-          call hostDiskComponent    %angularMomentumSet    (                                                                     &
-               &                                             hostDiskComponent    %angularMomentum    ()                         &
-               &                                            +thisDiskComponent    %massGas            ()*specificAngularMomentum &
+          call diskHost    %angularMomentumSet    (                                                                     &
+               &                                             diskHost    %angularMomentum    ()                         &
+               &                                            +disk        %massGas            ()*specificAngularMomentum &
                &                                           )
        case (movesToSpheroid)
-          call hostSpheroidComponent%massGasSet            (                                                                     &
-               &                                             hostSpheroidComponent%massGas            ()                         &
-               &                                            +thisDiskComponent    %massGas            ()                         &
+          call spheroidHost%massGasSet            (                                                                     &
+               &                                             spheroidHost%massGas            ()                         &
+               &                                            +disk        %massGas            ()                         &
                &                                           )
-          call hostSpheroidComponent%abundancesGasSet      (                                                                     &
-               &                                             hostSpheroidComponent%abundancesGas      ()                         &
-               &                                            +thisDiskComponent    %abundancesGas      ()                         &
+          call spheroidHost%abundancesGasSet      (                                                                     &
+               &                                             spheroidHost%abundancesGas      ()                         &
+               &                                            +disk        %abundancesGas      ()                         &
                &                                           )
        case default
           call Galacticus_Error_Report('Node_Component_Disk_Standard_Satellite_Merging','unrecognized movesTo descriptor')
        end select
-       call thisDiskComponent%      massGasSet(         0.0d0)
-       call thisDiskComponent%abundancesGasSet(zeroAbundances)
+       call disk%      massGasSet(         0.0d0)
+       call disk%abundancesGasSet(zeroAbundances)
 
        ! Move the stellar component of the standard disk to the host.
        select case (thisMergerStarsMoveTo)
        case (movesToDisk)
-          call hostDiskComponent    %massStellarSet        (                                                                     &
-               &                                             hostDiskComponent    %massStellar        ()                         &
-               &                                            +thisDiskComponent    %massStellar        ()                         &
+          call diskHost    %massStellarSet        (                                                                     &
+               &                                             diskHost    %massStellar        ()                         &
+               &                                            +disk        %massStellar        ()                         &
                &                                           )
-          call hostDiskComponent    %abundancesStellarSet  (                                                                     &
-               &                                             hostDiskComponent    %abundancesStellar  ()                         &
-               &                                            +thisDiskComponent    %abundancesStellar  ()                         &
+          call diskHost    %abundancesStellarSet  (                                                                     &
+               &                                             diskHost    %abundancesStellar  ()                         &
+               &                                            +disk        %abundancesStellar  ()                         &
                &                                           )
-          call hostDiskComponent    %luminositiesStellarSet(                                                                     &
-               &                                             hostDiskComponent    %luminositiesStellar()                         &
-               &                                            +thisDiskComponent    %luminositiesStellar()                         &
+          call diskHost    %luminositiesStellarSet(                                                                     &
+               &                                             diskHost    %luminositiesStellar()                         &
+               &                                            +disk        %luminositiesStellar()                         &
                &                                           )
-          call hostDiskComponent    %angularMomentumSet    (                                                                     &
-               &                                             hostDiskComponent    %angularMomentum    ()                         &
-               &                                            +thisDiskComponent    %massStellar        ()*specificAngularMomentum &
+          call diskHost    %angularMomentumSet    (                                                                     &
+               &                                             diskHost    %angularMomentum    ()                         &
+               &                                            +disk        %massStellar        ()*specificAngularMomentum &
                &                                           )
           ! Also add stellar properties histories.
-          thisHistory=thisDiskComponent    %stellarPropertiesHistory()
-          hostHistory=hostDiskComponent    %stellarPropertiesHistory()
-          call hostHistory%increment(thisHistory)
-          call thisHistory%reset    (           )
-          call hostDiskComponent%stellarPropertiesHistorySet(hostHistory)
-          call thisDiskComponent%stellarPropertiesHistorySet(thisHistory)
+          historyNode=disk    %stellarPropertiesHistory()
+          historyHost=diskHost    %stellarPropertiesHistory()
+          call historyHost%increment(historyNode)
+          call historyNode%reset    (           )
+          call diskHost%stellarPropertiesHistorySet(historyHost)
+          call disk%stellarPropertiesHistorySet(historyNode)
           ! Also add star formation histories.
-          thisHistory=thisDiskComponent    %starFormationHistory    ()
-          hostHistory=hostDiskComponent    %starFormationHistory    ()
-          call hostHistory%combine (thisHistory)
-          call thisHistory%reset   (           )
-          call hostDiskComponent    %starFormationHistorySet    (hostHistory)
-          call thisDiskComponent    %starFormationHistorySet    (thisHistory)
-          call thisHistory%destroy(recordMemory=.false.)
-          call hostHistory%destroy(recordMemory=.false.)
+          historyNode=disk    %starFormationHistory    ()
+          historyHost=diskHost    %starFormationHistory    ()
+          call historyHost%combine (historyNode)
+          call historyNode%reset   (           )
+          call diskHost    %starFormationHistorySet    (historyHost)
+          call disk    %starFormationHistorySet    (historyNode)
+          call historyNode%destroy(recordMemory=.false.)
+          call historyHost%destroy(recordMemory=.false.)
        case (movesToSpheroid)
-          call hostSpheroidComponent%massStellarSet        (                                                                     &
-               &                                             hostSpheroidComponent%massStellar        ()                         &
-               &                                            +thisDiskComponent    %massStellar        ()                         &
+          call spheroidHost%massStellarSet        (                                                                     &
+               &                                             spheroidHost%massStellar        ()                         &
+               &                                            +disk        %massStellar        ()                         &
                &                                           )
-          call hostSpheroidComponent%abundancesStellarSet  (                                                                     &
-               &                                             hostSpheroidComponent%abundancesStellar  ()                         &
-               &                                            +thisDiskComponent    %abundancesStellar  ()                         &
+          call spheroidHost%abundancesStellarSet  (                                                                     &
+               &                                             spheroidHost%abundancesStellar  ()                         &
+               &                                            +disk        %abundancesStellar  ()                         &
                &                                            )
-          call hostSpheroidComponent%luminositiesStellarSet(                                                                     &
-               &                                             hostSpheroidComponent%luminositiesStellar()                         &
-               &                                            +thisDiskComponent    %luminositiesStellar()                         &
+          call spheroidHost%luminositiesStellarSet(                                                                     &
+               &                                             spheroidHost%luminositiesStellar()                         &
+               &                                            +disk        %luminositiesStellar()                         &
                &                                           )
           ! Also add stellar properties histories.
-          thisHistory=thisDiskComponent    %stellarPropertiesHistory()
-          hostHistory=hostSpheroidComponent%stellarPropertiesHistory()
-          call hostHistory%increment(thisHistory)
-          call thisHistory%reset    (           )
-          call hostSpheroidComponent%stellarPropertiesHistorySet(hostHistory)
-          call thisDiskComponent    %stellarPropertiesHistorySet(thisHistory)
+          historyNode=disk    %stellarPropertiesHistory()
+          historyHost=spheroidHost%stellarPropertiesHistory()
+          call historyHost%increment(historyNode)
+          call historyNode%reset    (           )
+          call spheroidHost%stellarPropertiesHistorySet(historyHost)
+          call disk    %stellarPropertiesHistorySet(historyNode)
           ! Also add star formation histories.
-          thisHistory=thisDiskComponent    %starFormationHistory    ()
-          hostHistory=hostSpheroidComponent%starFormationHistory    ()
-          call hostHistory%combine(thisHistory)
-          call thisHistory%reset  (           )
-          call hostSpheroidComponent%starFormationHistorySet(hostHistory)
-          call thisDiskComponent    %starFormationHistorySet(thisHistory)
-          call thisHistory%destroy(recordMemory=.false.)
-          call hostHistory%destroy(recordMemory=.false.)
+          historyNode=disk    %starFormationHistory    ()
+          historyHost=spheroidHost%starFormationHistory    ()
+          call historyHost%combine(historyNode)
+          call historyNode%reset  (           )
+          call spheroidHost%starFormationHistorySet(historyHost)
+          call disk    %starFormationHistorySet(historyNode)
+          call historyNode%destroy(recordMemory=.false.)
+          call historyHost%destroy(recordMemory=.false.)
        case default
           call Galacticus_Error_Report('Node_Component_Disk_Standard_Satellite_Merging','unrecognized movesTo descriptor')
        end select
-       call thisDiskComponent%        massStellarSet(                  0.0d0)
-       call thisDiskComponent%  abundancesStellarSet(         zeroAbundances)
-       call thisDiskComponent%luminositiesStellarSet(zeroStellarLuminosities)
-       call thisDiskComponent%    angularMomentumSet(                  0.0d0)
+       call disk%        massStellarSet(                  0.0d0)
+       call disk%  abundancesStellarSet(         zeroAbundances)
+       call disk%luminositiesStellarSet(zeroStellarLuminosities)
+       call disk%    angularMomentumSet(                  0.0d0)
     end select
     return
   end subroutine Node_Component_Disk_Standard_Satellite_Merging
@@ -1054,13 +1050,13 @@ contains
   !# <radiusSolverPlausibility>
   !#  <unitName>Node_Component_Disk_Standard_Radius_Solver_Plausibility</unitName>
   !# </radiusSolverPlausibility>
-  subroutine Node_Component_Disk_Standard_Radius_Solver_Plausibility(thisNode,galaxyIsPhysicallyPlausible)
+  subroutine Node_Component_Disk_Standard_Radius_Solver_Plausibility(node,galaxyIsPhysicallyPlausible)
     !% Determines whether the disk is physically plausible for radius solving tasks. Require that it have non-zero mass and angular momentum.
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode                ), intent(inout) :: thisNode
+    type            (treeNode                ), intent(inout) :: node
     logical                                   , intent(inout) :: galaxyIsPhysicallyPlausible
-    class           (nodeComponentDisk       ), pointer       :: thisDiskComponent
+    class           (nodeComponentDisk       ), pointer       :: disk
     class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
     double precision                                          :: angularMomentumScale
 
@@ -1068,30 +1064,30 @@ contains
     if (.not.defaultDiskComponent%standardIsActive()) return
 
      ! Determine the plausibility of the current disk.
-     thisDiskComponent => thisNode%disk()
-     select type (thisDiskComponent)
+     disk => node%disk()
+     select type (disk)
      class is (nodeComponentDiskStandard)
-        if      (thisDiskComponent%angularMomentum()                             <                       0.0d0) &
+        if      (disk%angularMomentum()                             <                       0.0d0) &
              & galaxyIsPhysicallyPlausible=.false.
-        if      (thisDiskComponent%massStellar    ()+thisDiskComponent%massGas() <  -diskMassToleranceAbsolute) then
+        if      (disk%massStellar    ()+disk%massGas() <  -diskMassToleranceAbsolute) then
            galaxyIsPhysicallyPlausible=.false.
-        else if (thisDiskComponent%massStellar    ()+thisDiskComponent%massGas() >=                      0.0d0) then
-           if      (                                                                                            &
-                &   thisDiskComponent%angularMomentum() < 0.0d0                                                 &
+        else if (disk%massStellar    ()+disk%massGas() >=                      0.0d0) then
+           if      (                                                                               &
+                &   disk%angularMomentum() < 0.0d0                                                 &
                 &  ) then
               galaxyIsPhysicallyPlausible=.false.
            else
               darkMatterHaloScale_ => darkMatterHaloScale()
-              angularMomentumScale=(                                            &
-                   &                 thisDiskComponent%massStellar()            &
-                   &                +thisDiskComponent%massGas    ()            &
-                   &               )                                            &
-                   &               * darkMatterHaloScale_%virialRadius  (thisNode) &
-                   &               * darkMatterHaloScale_%virialVelocity(thisNode)
-              if     (                                                                                   &
-                   &   thisDiskComponent%angularMomentum() > angularMomentumMaximum*angularMomentumScale &
-                   &  .or.                                                                               &
-                   &   thisDiskComponent%angularMomentum() < angularMomentumMinimum*angularMomentumScale &
+              angularMomentumScale=(                                           &
+                   &                 disk%massStellar()                        &
+                   &                +disk%massGas    ()                        &
+                   &               )                                           &
+                   &               * darkMatterHaloScale_%virialRadius  (node) &
+                   &               * darkMatterHaloScale_%virialVelocity(node)
+              if     (                                                                      &
+                   &   disk%angularMomentum() > angularMomentumMaximum*angularMomentumScale &
+                   &  .or.                                                                  &
+                   &   disk%angularMomentum() < angularMomentumMinimum*angularMomentumScale &
                    & ) then
                  ! Ignore disks with angular momenta greatly exceeding that which would be expected if they had a radius comparable to the
                  ! virial radius of their halo.
@@ -1108,86 +1104,86 @@ contains
     return
   end subroutine Node_Component_Disk_Standard_Radius_Solver_Plausibility
 
-  double precision function Node_Component_Disk_Standard_Radius_Solve(thisNode)
+  double precision function Node_Component_Disk_Standard_Radius_Solve(node)
     !% Return the radius of the standard disk used in structure solvers.
     implicit none
-    type (treeNode         ), intent(inout) :: thisNode
-    class(nodeComponentDisk), pointer       :: thisDiskComponent
+    type (treeNode         ), intent(inout) :: node
+    class(nodeComponentDisk), pointer       :: disk
 
-    thisDiskComponent => thisNode%disk()
-    Node_Component_Disk_Standard_Radius_Solve=thisDiskComponent%radius()*diskStructureSolverRadius
+    disk => node%disk()
+    Node_Component_Disk_Standard_Radius_Solve=disk%radius()*diskStructureSolverRadius
     return
   end function Node_Component_Disk_Standard_Radius_Solve
 
-  subroutine Node_Component_Disk_Standard_Radius_Solve_Set(thisNode,radius)
+  subroutine Node_Component_Disk_Standard_Radius_Solve_Set(node,radius)
     !% Set the radius of the standard disk used in structure solvers.
     implicit none
-    type            (treeNode         ), intent(inout) :: thisNode
+    type            (treeNode         ), intent(inout) :: node
     double precision                   , intent(in   ) :: radius
-    class           (nodeComponentDisk), pointer       :: thisDiskComponent
+    class           (nodeComponentDisk), pointer       :: disk
 
-    thisDiskComponent => thisNode%disk()
-    call thisDiskComponent%radiusSet(max(radius,0.0d0)/diskStructureSolverRadius)
+    disk => node%disk()
+    call disk%radiusSet(max(radius,0.0d0)/diskStructureSolverRadius)
     return
   end subroutine Node_Component_Disk_Standard_Radius_Solve_Set
 
-  double precision function Node_Component_Disk_Standard_Velocity(thisNode)
+  double precision function Node_Component_Disk_Standard_Velocity(node)
     !% Return the circular velocity of the standard disk.
     implicit none
-    type (treeNode         ), intent(inout) :: thisNode
-    class(nodeComponentDisk), pointer       :: thisDiskComponent
+    type (treeNode         ), intent(inout) :: node
+    class(nodeComponentDisk), pointer       :: disk
 
-    thisDiskComponent => thisNode%disk()
-    Node_Component_Disk_Standard_Velocity=thisDiskComponent%velocity()
+    disk => node%disk()
+    Node_Component_Disk_Standard_Velocity=disk%velocity()
     return
   end function Node_Component_Disk_Standard_Velocity
 
-  subroutine Node_Component_Disk_Standard_Velocity_Set(thisNode,velocity)
+  subroutine Node_Component_Disk_Standard_Velocity_Set(node,velocity)
     !% Set the circular velocity of the standard disk.
     implicit none
-    type            (treeNode         ), intent(inout) :: thisNode
+    type            (treeNode         ), intent(inout) :: node
     double precision                   , intent(in   ) :: velocity
-    class           (nodeComponentDisk), pointer       :: thisDiskComponent
+    class           (nodeComponentDisk), pointer       :: disk
 
-    thisDiskComponent => thisNode%disk()
-    call thisDiskComponent%velocitySet(velocity)
+    disk => node%disk()
+    call disk%velocitySet(velocity)
     return
   end subroutine Node_Component_Disk_Standard_Velocity_Set
 
   !# <radiusSolverTask>
   !#  <unitName>Node_Component_Disk_Standard_Radius_Solver</unitName>
   !# </radiusSolverTask>
-  subroutine Node_Component_Disk_Standard_Radius_Solver(thisNode,componentActive,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get&
+  subroutine Node_Component_Disk_Standard_Radius_Solver(node,componentActive,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get&
        &,Velocity_Set)
     !% Interface for the size solver algorithm.
     use Tables
     use Node_Component_Disk_Standard_Data
     use Numerical_Constants_Physical
     implicit none
-    type            (treeNode                                     ), intent(inout)          :: thisNode
+    type            (treeNode                                     ), intent(inout)          :: node
     logical                                                        , intent(  out)          :: componentActive
     logical                                                        , intent(in   )          :: specificAngularMomentumRequired
     double precision                                               , intent(  out)          :: specificAngularMomentum
     procedure       (Node_Component_Disk_Standard_Radius_Solve    ), intent(  out), pointer :: Radius_Get                     , Velocity_Get
     procedure       (Node_Component_Disk_Standard_Radius_Solve_Set), intent(  out), pointer :: Radius_Set                     , Velocity_Set
-    class           (nodeComponentDisk                            )               , pointer :: thisDiskComponent
+    class           (nodeComponentDisk                            )               , pointer :: disk
     double precision                                                                        :: angularMomentum                , diskMass    , &
          &                                                                                     specificAngularMomentumMean
 
-    ! Determine if thisNode has an active disk component supported by this module.
+    ! Determine if node has an active disk component supported by this module.
     componentActive        =  .false.
     specificAngularMomentum=  0.0d0
-    thisDiskComponent      => thisNode%disk()
-    select type (thisDiskComponent)
+    disk      => node%disk()
+    select type (disk)
        class is (nodeComponentDiskStandard)
        componentActive=.true.
        ! Get the angular momentum.
        if (specificAngularMomentumRequired) then
-          angularMomentum=thisDiskComponent%angularMomentum()
+          angularMomentum=disk%angularMomentum()
           if (angularMomentum >= 0.0d0) then
              ! Compute the specific angular momentum at the scale radius, assuming a flat rotation curve.
-             diskMass= thisDiskComponent%massGas    () &
-                  &   +thisDiskComponent%massStellar()
+             diskMass= disk%massGas    () &
+                  &   +disk%massStellar()
              if (diskMass > 0.0d0) then
                 specificAngularMomentumMean=angularMomentum/diskMass
              else
@@ -1198,16 +1194,16 @@ contains
              ! difference between rotation curves for thin disk and a spherical mass distribution. Trap instances where this leads to
              ! imaginary specific angular momentum - this can happen as the radius solver explores the allowed range of radii when
              ! seeking a solution.
-             if (diskRadiusSolverCole2000Method)                                                              &
-                  & specificAngularMomentum=sqrt(                                                            &
-                  &                               max(                                                        &
-                  &                                    0.0d0,                                                 &
-                  &                                    specificAngularMomentum**2                             &
-                  &                                   -diskRadiusSolverFlatVsSphericalFactor                  &
-                  &                                   *gravitationalConstantGalacticus                        &
-                  &                                   *diskMass                                               &
-                  &                                   *Node_Component_Disk_Standard_Radius_Solve(thisNode) &
-                  &                                  )                                                        &
+             if (diskRadiusSolverCole2000Method)                                                       &
+                  & specificAngularMomentum=sqrt(                                                      &
+                  &                               max(                                                 &
+                  &                                    0.0d0,                                          &
+                  &                                    specificAngularMomentum**2                      &
+                  &                                   -diskRadiusSolverFlatVsSphericalFactor           &
+                  &                                   *gravitationalConstantGalacticus                 &
+                  &                                   *diskMass                                        &
+                  &                                   *Node_Component_Disk_Standard_Radius_Solve(node) &
+                  &                                  )                                                 &
                   )
           end if
           ! Associate the pointers with the appropriate property routines.
@@ -1216,8 +1212,8 @@ contains
           Velocity_Get => Node_Component_Disk_Standard_Velocity
           Velocity_Set => Node_Component_Disk_Standard_Velocity_Set
        else
-          call Node_Component_Disk_Standard_Radius_Solve_Set(thisNode,0.0d0)
-          call Node_Component_Disk_Standard_Velocity_Set    (thisNode,0.0d0)
+          call Node_Component_Disk_Standard_Radius_Solve_Set(node,0.0d0)
+          call Node_Component_Disk_Standard_Velocity_Set    (node,0.0d0)
           componentActive=.false.
        end if
     end select
@@ -1229,20 +1225,20 @@ contains
     use Star_Formation_Timescales_Disks
     implicit none
     class           (nodeComponentDiskStandard), intent(inout) :: self
-    type            (treeNode                 ), pointer       :: thisNode
+    type            (treeNode                 ), pointer       :: node
     double precision                                           :: gasMass , starFormationTimescale
 
     ! Get the associated node.
-    thisNode => self%host()
+    node => self%host()
 
     ! Get the star formation timescale.
-    starFormationTimescale=Star_Formation_Timescale_Disk(thisNode)
+    starFormationTimescale=Star_Formation_Timescale_Disk(node)
 
     ! Get the gas mass.
     gasMass=self%massGas()
 
     ! If timescale is finite and gas mass is positive, then compute star formation rate.
-    if (starFormationTimescale > 0.0d0 .and. gasMass > 0.0d0 .and. (diskStarFormationInSatellites .or. .not.thisNode%isSatellite())) then
+    if (starFormationTimescale > 0.0d0 .and. gasMass > 0.0d0 .and. (diskStarFormationInSatellites .or. .not.node%isSatellite())) then
        Node_Component_Disk_Standard_Star_Formation_Rate=gasMass/starFormationTimescale
     else
        Node_Component_Disk_Standard_Star_Formation_Rate=0.0d0
@@ -1253,27 +1249,27 @@ contains
   !# <mergerTreeExtraOutputTask>
   !#  <unitName>Node_Component_Disk_Standard_Star_Formation_History_Output</unitName>
   !# </mergerTreeExtraOutputTask>
-  subroutine Node_Component_Disk_Standard_Star_Formation_History_Output(thisNode,iOutput,treeIndex,nodePassesFilter)
+  subroutine Node_Component_Disk_Standard_Star_Formation_History_Output(node,iOutput,treeIndex,nodePassesFilter)
     !% Store the star formation history in the output file.
     use, intrinsic :: ISO_C_Binding
     use Kind_Numbers
     use Histories
     use Galacticus_Output_Star_Formation_Histories
     implicit none
-    type   (treeNode         ), intent(inout), pointer :: thisNode
+    type   (treeNode         ), intent(inout), pointer :: node
     integer(c_size_t         ), intent(in   )          :: iOutput
     integer(kind=kind_int8   ), intent(in   )          :: treeIndex
     logical                   , intent(in   )          :: nodePassesFilter
-    class  (nodeComponentDisk)               , pointer :: thisDiskComponent
+    class  (nodeComponentDisk)               , pointer :: disk
     type   (history          )                         :: starFormationHistory
 
     ! Output the star formation history if a disk exists for this component.
-    thisDiskComponent => thisNode%disk()
-    select type (thisDiskComponent)
+    disk => node%disk()
+    select type (disk)
        class is (nodeComponentDiskStandard)
-       starFormationHistory=thisDiskComponent%starFormationHistory()
-       call Star_Formation_History_Output(thisNode,nodePassesFilter,starFormationHistory,iOutput,treeIndex,'disk')
-       call thisDiskComponent%starFormationHistorySet(starFormationHistory)
+       starFormationHistory=disk%starFormationHistory()
+       call Star_Formation_History_Output(node,nodePassesFilter,starFormationHistory,iOutput,treeIndex,'disk')
+       call disk%starFormationHistorySet(starFormationHistory)
     end select
     return
   end subroutine Node_Component_Disk_Standard_Star_Formation_History_Output
@@ -1283,12 +1279,14 @@ contains
   !# </galacticusStateStoreTask>
   subroutine Node_Component_Disk_Standard_State_Store(stateFile,fgslStateFile)
     !% Write the tablulation state to file.
+    use Galacticus_Display
     use Node_Component_Disk_Standard_Data
     use FGSL
     implicit none
     integer           , intent(in   ) :: stateFile
     type   (fgsl_file), intent(in   ) :: fgslStateFile
 
+    call Galacticus_Display_Message('Storing state for: treeNodeMethodDisk -> standard',verbosity=verbosityInfo)
     write (stateFile) diskStructureSolverSpecificAngularMomentum,diskRadiusSolverFlatVsSphericalFactor
     call diskMassDistribution%stateStore(stateFile,fgslStateFile)
     return
@@ -1299,12 +1297,14 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Node_Component_Disk_Standard_State_Retrieve(stateFile,fgslStateFile)
     !% Retrieve the tabulation state from the file.
+    use Galacticus_Display
     use Node_Component_Disk_Standard_Data
     use FGSL
     implicit none
     integer           , intent(in   ) :: stateFile
     type   (fgsl_file), intent(in   ) :: fgslStateFile
 
+    call Galacticus_Display_Message('Retrieving state for: treeNodeMethodDisk -> standard',verbosity=verbosityInfo)
     read (stateFile) diskStructureSolverSpecificAngularMomentum,diskRadiusSolverFlatVsSphericalFactor
     call diskMassDistribution%stateRestore(stateFile,fgslStateFile)
     return

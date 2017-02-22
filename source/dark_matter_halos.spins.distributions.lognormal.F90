@@ -137,12 +137,14 @@ contains
 
   subroutine logNormalStateStore(self,stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
+    use Galacticus_Display
     use Pseudo_Random
     implicit none
     class  (haloSpinDistributionLogNormal), intent(inout) :: self
     integer                               , intent(in   ) :: stateFile
     type   (fgsl_file                    ), intent(in   ) :: fgslStateFile
 
+    call Galacticus_Display_Message('Storing state for: haloSpinDistribution -> logNormal',verbosity=verbosityInfo)
     write (stateFile) self%resetRandomSequenceSnapshot
     if (.not.self%resetRandomSequenceSnapshot) call Pseudo_Random_Store(self%clonedPseudoSequence,fgslStateFile)
     return
@@ -150,12 +152,14 @@ contains
 
   subroutine logNormalStateRestore(self,stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
+    use Galacticus_Display
     use Pseudo_Random
     implicit none
     class  (haloSpinDistributionLogNormal), intent(inout) :: self
     integer                               , intent(in   ) :: stateFile
     type   (fgsl_file                    ), intent(in   ) :: fgslStateFile
 
+    call Galacticus_Display_Message('Retrieving state for: haloSpinDistribution -> logNormal',verbosity=verbosityInfo)
     read (stateFile) self%resetRandomSequence
     if (.not.self%resetRandomSequence) call Pseudo_Random_Retrieve(self%randomSequence,fgslStateFile)
     return
