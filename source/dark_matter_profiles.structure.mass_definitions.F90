@@ -33,7 +33,7 @@ contains
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     implicit none    
-    type            (treeNode                ), pointer , intent(inout) :: node
+    type            (treeNode                )          , intent(inout) :: node
     double precision                                    , intent(in   ) :: densityContrast
     double precision                          , optional, intent(  out) :: radius              , velocity
     class           (nodeComponentBasic      ), pointer                 :: basic

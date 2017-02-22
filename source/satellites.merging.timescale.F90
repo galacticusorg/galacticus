@@ -28,6 +28,9 @@ module Satellite_Merging_Timescales
   !# </include>
   private
 
+  ! Effective infinite time for merging.
+  double precision, public, parameter :: satelliteMergeTimeInfinite=huge(1.0d0)
+  
   !# <include directive="satelliteMergingTimescales" type="function" >
   !#  <descriptiveName>Satellite Merging Timescales</descriptiveName>
   !#  <description>Object providing merging timescales for satellites.</description>

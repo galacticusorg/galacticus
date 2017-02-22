@@ -34,14 +34,18 @@ contains
     use String_Handling
     use Galacticus_Display
     use Merger_Trees_Evolve_Node
+    !# <include directive="subhaloPromotionPostProcess" type="moduleUse">
+    include 'events.subhalo_promotion.post_process.modules.inc'
+    !# </include>
     implicit none
-    class  (nodeEvent                     ), intent(in   )          :: thisEvent
-    type   (treeNode                      ), intent(inout), pointer :: thisNode
-    integer                                , intent(inout)          :: deadlockStatus
-    type   (treeNode                      )               , pointer :: promotionNode
-    class  (nodeComponentBasic            )               , pointer :: parentBasic
-    class  (nodeComponentMergingStatistics)               , pointer :: mergingStatistics
-    type   (varying_string                )                         :: message
+    class    (nodeEvent                     ), intent(in   )          :: thisEvent
+    type     (treeNode                      ), intent(inout), pointer :: thisNode
+    integer                                  , intent(inout)          :: deadlockStatus
+    type     (treeNode                      )               , pointer :: promotionNode
+    class    (nodeComponentBasic            )               , pointer :: parentBasic
+    class    (nodeComponentMergingStatistics)               , pointer :: mergingStatistics
+    type     (varying_string                )                         :: message
+    character(len=12                        )                         :: label
     
     ! Find the node to promote to.
     promotionNode => thisEvent%node
@@ -52,9 +56,12 @@ contains
        return
     end if
     ! Report.
-    message='Satellite node ['
-    message=message//thisNode%index()//'] promoting to isolated node ['//thisEvent%node%index()//']'
-    call Galacticus_Display_Message(message,verbosityInfo)
+    if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+       write (label,'(f12.6)') thisEvent%time
+       message='Satellite node ['
+       message=message//thisNode%index()//'] promoting to isolated node ['//thisEvent%node%index()//'] at time '//trim(label)//' Gyr'
+       call Galacticus_Display_Message(message)
+    end if
     ! Remove the subhalo from its host.
     call thisNode%removeFromHost()
     ! Make thisNode the primary progenitor of the target node.
@@ -67,6 +74,11 @@ contains
        parentBasic => promotionNode%basic()
        call mergingStatistics%massWhenFirstIsolatedSet(parentBasic%mass())
     end if
+    ! Allow any postprocessing of the subhalo promotion event that may be necessary.
+    !# <include directive="subhaloPromotionPostProcess" type="functionCall" functionType="void">
+    !#  <functionArgs>thisNode</functionArgs>
+    include 'events.subhalo_promotion.postprocess.inc'
+    !# </include>
     ! Promote the halo.
     call Tree_Node_Promote(thisNode)
     ! Since we changed the tree, record that the tree is not deadlocked.

@@ -156,17 +156,17 @@ contains
     use Dark_Matter_Profile_Mass_Definitions
     use ISO_Varying_String
     implicit none
-    type            (keplerOrbit               )                         :: fixedOrbit
-    class           (virialOrbitFixed          ), intent(inout)          :: self
-    type            (treeNode                  ), intent(inout), pointer :: host                      , node
-    logical                                     , intent(in   )          :: acceptUnboundOrbits
-    class           (nodeComponentBasic        )               , pointer :: hostBasic                 , basic
-    class           (darkMatterHaloScaleClass  )               , pointer :: darkMatterHaloScale_
-    class           (virialDensityContrastClass), pointer                :: virialDensityContrast_
-    double precision                                                     :: velocityHost              , massHost          , &
-         &                                                                  radiusHost                , massSatellite
-    type            (varying_string            )                         :: message
-    character       (len=12                    )                         :: label
+    type            (keplerOrbit               )                :: fixedOrbit
+    class           (virialOrbitFixed          ), intent(inout) :: self
+    type            (treeNode                  ), intent(inout) :: host                      , node
+    logical                                     , intent(in   ) :: acceptUnboundOrbits
+    class           (nodeComponentBasic        ), pointer       :: hostBasic                 , basic
+    class           (darkMatterHaloScaleClass  ), pointer       :: darkMatterHaloScale_
+    class           (virialDensityContrastClass), pointer       :: virialDensityContrast_
+    double precision                                            :: velocityHost              , massHost     , &
+         &                                                         radiusHost                , massSatellite
+    type            (varying_string            )                :: message
+    character       (len=12                    )                :: label
     !GCC$ attributes unused :: acceptUnboundOrbits
     
     ! Reset the orbit.

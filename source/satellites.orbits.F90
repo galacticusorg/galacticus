@@ -115,7 +115,7 @@ contains
     use Dark_Matter_Profiles
     implicit none
     double precision                        , intent(in   ) :: radius
-    double precision                        , parameter     :: potentialInfinite=1.0d30
+    double precision                        , parameter     :: potentialInfinite=huge(1.0d0)
     class           (darkMatterProfileClass), pointer       :: darkMatterProfile_
     double precision                                        :: potential
     integer                                                 :: status

@@ -163,6 +163,7 @@ contains
     type   (mergerTree    ), intent(in   )          :: thisTree
     type   (treeNode      ), intent(inout), pointer :: node
     integer                , intent(inout)          :: deadlockStatus
+    type   (treeNode      )               , pointer :: mergee        , mergeeNext
     type   (varying_string)                         :: message
     !GCC$ attributes unused :: thisTree
     
@@ -172,19 +173,27 @@ contains
        message=message//node%index()//'] is being merged'
        call Galacticus_Display_Message(message)
     end if
-
     ! Allow arbitrary routines to process the merger.
     !# <include directive="satelliteMergerTask" type="functionCall" functionType="void">
     !#  <functionArgs>node</functionArgs>
     include 'merger_trees.evolve.timesteps.satellite.inc'
     !# </include>
+    ! Any mergees of the merging node must become mergees of its merge target.
+    mergee => thisNode%firstMergee
+    do while (associated(mergee))
+       mergeeNext => mergee%siblingMergee
+       call mergee%removeFromMergee()
+       mergee%siblingMergee => thisNode%mergeTarget%firstMergee
+       thisNode%mergeTarget%firstMergee => mergee
+       mergee%mergeTarget => thisNode%mergeTarget
+       mergee => mergeeNext
+    end do
     ! Finally remove the satellite node from the host and merge targets and destroy it.
     call node%removeFromHost  ()
     call node%removeFromMergee()
     call node%destroy         ()
     deallocate(node)
     node => null()
-
     ! The tree was changed, so mark that it is not deadlocked.
     deadlockStatus=deadlockStatusIsNotDeadlocked
     return
