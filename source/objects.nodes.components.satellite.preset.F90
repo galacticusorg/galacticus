@@ -236,10 +236,13 @@ contains
     use Galacticus_Display
     implicit none
     type (treeNode              ), intent(inout), pointer :: node
-    type (treeNode              )               , pointer :: mergee
+    type (treeNode              )               , pointer :: mergee         , nodeWork
+    type (treeNodeLinkedList    )               , pointer :: nodeStack      , nodeNext, &
+         &                                                   nodeNew
     class(nodeComponentSatellite)               , pointer :: satelliteMergee
     type (varying_string        )                         :: message
 
+    nodeStack => null()
     mergee => node%firstMergee
     do while (associated(mergee))
        satelliteMergee => mergee%satellite()
@@ -248,9 +251,35 @@ contains
              message=var_str('Satellite node [')//mergee%index()//'] will be orphanized due to event'
              call Galacticus_Display_Message(message)
           end if
-          call Node_Component_Satellite_Preset_Orphanize(mergee)
+          allocate(nodeNew)
+          nodeNew  %node => mergee
+          nodeNew  %next => nodeStack
+          nodeStack      => nodeNew
        end if
        mergee => mergee%siblingMergee
+    end do
+    ! Process the stack.
+    do while (associated(nodeStack))
+       ! Pop a node from the stack.
+       nodeWork => nodeStack%node
+       nodeNext => nodeStack%next
+       deallocate(nodeStack)
+       nodeStack => nodeNext
+       ! Push any mergees onto the stack.
+       mergee => nodeWork%firstMergee
+       do while (associated(mergee))
+          ! Only push orphaned nodes onto the stack
+          satelliteMergee => mergee%satellite()
+          if (satelliteMergee%isOrphan()) then
+             allocate(nodeNew)
+             nodeNew  %node => mergee
+             nodeNew  %next => nodeStack
+             nodeStack      => nodeNew
+          end if
+          mergee => mergee%siblingMergee
+       end do
+       ! Process the node.
+       call Node_Component_Satellite_Preset_Orphanize(nodeWork)
     end do
     return
   end subroutine Node_Component_Satellite_Preset_Inter_Tree_Postprocess
@@ -267,6 +296,9 @@ contains
     implicit none
     type (treeNode              ), intent(inout), pointer :: node
     class(nodeComponentSatellite)               , pointer :: satellite
+    type (treeNodeLinkedList    )               , pointer :: nodeStack, nodeNext, &
+         &                                                   nodeNew
+    type (treeNode              )               , pointer :: nodeWork , mergee
     type (varying_string        )                         :: message
 
     satellite => node%satellite()
@@ -275,7 +307,33 @@ contains
           message=var_str('Satellite node [')//node%index()//'] will be orphanized due to host change'
           call Galacticus_Display_Message(message)
        end if
-       call Node_Component_Satellite_Preset_Orphanize(node)
+       ! Initialize a stack of nodes to allow us to process all mergees.
+       allocate(nodeStack)
+       nodeStack%node => node
+       nodeStack%next => null()
+       ! Process the stack.
+       do while (associated(nodeStack))
+          ! Pop a node from the stack.
+          nodeWork => nodeStack%node
+          nodeNext => nodeStack%next
+          deallocate(nodeStack)
+          nodeStack => nodeNext
+          ! Push any mergees onto the stack.
+          mergee => nodeWork%firstMergee
+          do while (associated(mergee))
+             ! Only push orphaned nodes onto the stack
+             satellite => mergee%satellite()
+             if (satellite%isOrphan()) then
+                allocate(nodeNew)
+                nodeNew  %node => mergee
+                nodeNew  %next => nodeStack
+                nodeStack      => nodeNew
+             end if
+             mergee => mergee%siblingMergee
+          end do
+          ! Process the node.
+          call Node_Component_Satellite_Preset_Orphanize(nodeWork)
+       end do
     end if
     return
   end subroutine Node_Component_Satellite_Preset_Satellite_Host_Change
