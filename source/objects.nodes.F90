@@ -42,6 +42,12 @@ module Galacticus_Nodes
      type(treeNode), pointer :: node
   end type treeNodeList
 
+  type, public :: treeNodeLinkedList
+     !% Type to give a linked list of treeNodes.
+     type(treeNode          ), pointer :: node
+     type(treeNodeLinkedList), pointer :: next
+  end type treeNodeLinkedList
+
   ! Include merger tree object.
   include "objects.merger_trees.type.inc"
 
