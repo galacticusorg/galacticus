@@ -149,7 +149,7 @@ contains
     return
   end subroutine Merger_Tree_Timestep_Satellite
 
-  subroutine Satellite_Merger_Process(thisTree,node,deadlockStatus)
+  subroutine Satellite_Merger_Process(tree,node,deadlockStatus)
     !% Process a satellite node which has undergone a merger with its host node.
     use Galacticus_Nodes
     use Merger_Trees_Evolve_Deadlock_Status
@@ -160,12 +160,12 @@ contains
     include 'merger_trees.evolve.timesteps.satellite.moduleUse.inc'
     !# </include>
     implicit none
-    type   (mergerTree    ), intent(in   )          :: thisTree
+    type   (mergerTree    ), intent(in   )          :: tree
     type   (treeNode      ), intent(inout), pointer :: node
     integer                , intent(inout)          :: deadlockStatus
     type   (treeNode      )               , pointer :: mergee        , mergeeNext
     type   (varying_string)                         :: message
-    !GCC$ attributes unused :: thisTree
+    !GCC$ attributes unused :: tree
     
     ! Report if necessary.
     if (Galacticus_Verbosity_Level() >= verbosityInfo) then
@@ -179,14 +179,14 @@ contains
     include 'merger_trees.evolve.timesteps.satellite.inc'
     !# </include>
     ! Any mergees of the merging node must become mergees of its merge target.
-    mergee => thisNode%firstMergee
+    mergee => node%firstMergee
     do while (associated(mergee))
        mergeeNext => mergee%siblingMergee
        call mergee%removeFromMergee()
-       mergee%siblingMergee => thisNode%mergeTarget%firstMergee
-       thisNode%mergeTarget%firstMergee => mergee
-       mergee%mergeTarget => thisNode%mergeTarget
-       mergee => mergeeNext
+       mergee%siblingMergee             => node      %mergeTarget%firstMergee
+       node  %mergeTarget  %firstMergee => mergee
+       mergee%mergeTarget               => node      %mergeTarget
+       mergee                           => mergeeNext
     end do
     ! Finally remove the satellite node from the host and merge targets and destroy it.
     call node%removeFromHost  ()
