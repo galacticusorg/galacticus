@@ -55,9 +55,11 @@ contains
     class    (nodeEvent         ), intent(in   )          :: event
     type     (treeNode          ), intent(inout), pointer :: node
     integer                      , intent(inout)          :: deadlockStatus
-    type     (treeNode          )               , pointer :: nodeMergee
+    type     (treeNode          )               , pointer :: nodeMergee         , nodeWork
     class    (nodeComponentBasic)               , pointer :: basic              , basicMergee
     type     (interTreeTransfer )               , pointer :: waitListEntry
+    type     (treeNodeLinkedList)               , pointer :: nodeStack          , nodeNext, &
+         &                                                   nodeNew
     integer  (c_size_t          )                         :: splitForestUniqueID
     integer  (kind_int8         )                         :: pairedNodeID
     type     (varying_string    )                         :: message
@@ -81,14 +83,38 @@ contains
           end if
           nodeMergee => nodeMergee%siblingMergee
        end do
-       ! Move mergees to this node prior to inter-tree transfer.
+       ! Move mergees (and their mergees, etc.) to this node prior to inter-tree transfer.
+       !! Build the initial stack.
+       nodeStack  => null()
        nodeMergee => node%firstMergee
        do while (associated(nodeMergee))
-          call nodeMergee%removeFromHost()
-          nodeMergee%parent         => null()
-          nodeMergee%sibling        => node      %firstSatellite
-          node      %firstSatellite => nodeMergee
-          nodeMergee                => nodeMergee%siblingMergee
+          allocate(nodeNew)
+          nodeNew   %node => nodeMergee
+          nodeNew   %next => nodeStack
+          nodeStack       => nodeNew
+          nodeMergee      => nodeMergee%siblingMergee
+       end do
+       !! Process the stack.
+       do while (associated(nodeStack))
+          ! Pop a node from the stack.
+          nodeWork => nodeStack%node
+          nodeNext => nodeStack%next
+          deallocate(nodeStack)
+          nodeStack => nodeNext
+          ! Push any mergees onto the stack.
+          nodeMergee => nodeWork%firstMergee
+          do while (associated(nodeMergee))
+             allocate(nodeNew)
+             nodeNew   %node => nodeMergee
+             nodeNew   %next => nodeStack
+             nodeStack       => nodeNew
+             nodeMergee      => nodeMergee%siblingMergee
+          end do
+          ! Process the node.
+          call nodeWork%removeFromHost()
+          nodeWork%parent         => null()
+          nodeWork%sibling        => node    %firstSatellite
+          node    %firstSatellite => nodeWork
        end do
     end if
     ! Report on activity and extract identifiers.
@@ -159,7 +185,8 @@ contains
     integer                             , intent(inout)          :: deadlockStatus
     type            (interTreeTransfer )               , pointer :: waitListEntry              , waitListEntryPrevious
     type            (treeNode          )               , pointer :: pullNode                   , satelliteNode        , &
-         &                                                          attachNode                 , hostNode
+         &                                                          attachNode                 , hostNode             , &
+         &                                                          mergeeNode                 , mergeeNext
     class           (nodeComponentBasic)               , pointer :: pullBasic                  , attachBasic
     class           (nodeEvent         )               , pointer :: attachedEvent              , lastEvent            , &
          &                                                          pairedEvent
@@ -253,13 +280,21 @@ contains
                    else
                       node%firstSatellite => pullNode%firstSatellite
                    end if
-                   pullNode%firstSatellite            => node%firstSatellite
-                   pullNode%parent                    => node%parent
-                   pullNode%sibling                   => node%sibling
-                   pullNode%event                     => node%event
-                   node     %event                    => null()
-                   node     %parent       %firstChild => pullNode
-                   satelliteNode                      => pullNode%firstSatellite
+                   pullNode  %firstSatellite            => node    %firstSatellite
+                   pullNode  %parent                    => node    %parent
+                   pullNode  %sibling                   => node    %sibling
+                   pullNode  %event                     => node    %event
+                   node      %event                     => null()
+                   node      %parent        %firstChild => pullNode
+                   mergeeNode                           => node    %firstMergee
+                   do while (associated(mergeeNode))
+                      mergeeNode%mergeTarget   => pullNode
+                      mergeeNext               => mergeeNode%siblingMergee
+                      mergeeNode%siblingMergee => pullNode  %firstMergee
+                      pullNode  %firstMergee   => mergeeNode
+                      mergeeNode               => mergeeNext
+                   end do                   
+                   satelliteNode                        => pullNode%firstSatellite
                    do while (associated(satelliteNode))
                       satelliteNode%parent => pullNode
                       satelliteNode        => satelliteNode%sibling
