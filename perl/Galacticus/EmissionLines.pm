@@ -15,6 +15,7 @@ use Cloudy;
 use Galacticus::HDF5;
 use Galacticus::IonizingContinuua;
 use Galacticus::Launch::PBS;
+use Galacticus::Filters;
 use Galacticus::Path;
 
 %Galacticus::HDF5::galacticusFunctions = ( %Galacticus::HDF5::galacticusFunctions,
@@ -188,10 +189,7 @@ sub Get_Line_Luminosity {
 	    }
 	    # Load the filter transmission curve.
 	    my $filterFile = "./data/filters/".$filterName.".xml";
-	    my $xml        = new XML::Simple;
-	    my $filter     = $xml->XMLin($filterFile);
-	    my $wavelengths = pdl [];
-	    my $response    = pdl [];
+	    (my $wavelengths, my $response) = &Galacticus::Filters::Load($filterName);
 	    foreach my $datum ( @{$filter->{'response'}->{'datum'}} ) {
 		$datum =~ s/^\s*//;
 		$datum =~ s/\s*$//;
