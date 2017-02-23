@@ -287,7 +287,6 @@ sub Get_AGN_Luminosity {
 	# Get SEDs for the joint wavelengths at the model luminosities.
 	my $wavelengthSize = $SEDs->getdim(1);
 	(my $jointSED, $interpolateError) = interpolate($jointWavelengths(*1),$sedWavelengths(*$wavelengthSize)->xchg(0,1),$SEDs);
-	
 	# Determine cross-section model to use.
 	my $crossSectionModel = "Wilms2000";
 	$crossSectionModel = $model->{'agnLuminosities'}->{'crossSectionsModel'}
@@ -298,8 +297,8 @@ sub Get_AGN_Luminosity {
 	my $inRange       = 
 	    intersect
 	    (
-	     which($bolometricLuminosity > $luminositiesBolometric(0)),
-	     which($bolometricLuminosity < $luminositiesBolometric(-1))
+	     which($bolometricLuminosity > $luminositiesBolometric(( 0))),
+	     which($bolometricLuminosity < $luminositiesBolometric((-1)))
 	    );
 	$inRange = 
 	    intersect
