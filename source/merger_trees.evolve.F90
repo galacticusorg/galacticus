@@ -54,7 +54,7 @@ module Merger_Trees_Evolve
   
 contains
 
-  subroutine Merger_Tree_Evolve_To(thisTree,endTime,treeDidEvolve,suspendTree,deadlockReporting)
+  subroutine Merger_Tree_Evolve_To(tree,endTime,treeDidEvolve,suspendTree,deadlockReporting)
     !% Evolves all properties of a merger tree to the specified time.
     use Merger_Trees_Evolve_Node
     use Merger_Trees_Evolve_Timesteps_Template
@@ -73,6 +73,8 @@ contains
     double precision                                                   , intent(in   ) :: endTime
     logical                                                            , intent(  out) :: treeDidEvolve                     , suspendTree
     logical                                                            , intent(in   ) :: deadlockReporting
+    type            (treeNode                     )           , pointer                :: nodeLock                          , nodeNext         , &
+         &                                                                                nodeParent                        , node
     class           (nodeEvent                    )           , pointer                :: event
     double precision                               , parameter                         :: timeTolerance              =1.0d-5
     double precision                               , parameter                         :: largeTime                  =1.0d10
@@ -141,7 +143,7 @@ contains
     suspendTree               =  .false.
     anyTreeExistsAtOutputTime =  .false.
     treeDidEvolve             =  .false.
-    currentTree               => thisTree
+    currentTree               => tree
     do while (associated(currentTree))
        ! Skip empty trees.
        if (associated(currentTree%baseNode)) then
@@ -202,13 +204,13 @@ contains
     if (.not.anyTreeExistsAtOutputTime) then
        hasInterTreeEvent=.false.
        ! Iterate over trees.
-       currentTree => thisTree
+       currentTree => tree
        do while (associated(currentTree).and..not.hasIntertreeEvent)
           ! Iterate over nodes.
-          thisNode => currentTree%baseNode
-          do while (associated(thisNode).and..not.hasIntertreeEvent)                   
+          node => currentTree%baseNode
+          do while (associated(node).and..not.hasIntertreeEvent)                   
              ! Iterate over events.
-             event => thisNode%event
+             event => node%event
              do while (associated(event).and..not.hasIntertreeEvent)
                 select type (event)
                 type is (nodeEventSubhaloPromotionInterTree)
@@ -218,7 +220,7 @@ contains
                 end select
                 event => event%next
              end do
-             thisNode => thisNode%walkTreeWithSatellites()
+             node => node%walkTreeWithSatellites()
           end do
           currentTree => currentTree%nextTree
        end do
@@ -265,9 +267,9 @@ contains
              if (associated(currentTree%baseNode)) then
 
                 ! Find the final time in this tree.
-                thisNode           => currentTree%baseNode
-                thisBasicComponent => thisNode%basic()
-                finalTimeInTree    =  thisBasicComponent%time()
+                node           => currentTree%baseNode
+                basic => node%basic()
+                finalTimeInTree    =  basic%time()
 
                 ! Report on current tree if deadlocked.
                 if (deadlockStatus == deadlockStatusIsReporting) then
@@ -283,8 +285,8 @@ contains
                 basic => node%basic()
                 
                 ! Tree walk loop: Walk to each node in the tree and consider whether or not to evolve it.
-                treeWalkLoop: do while (associated(node))                   
-                   
+                treeWalkLoop: do while (associated(node))
+
                    ! Get the basic component of the node.
                    basic => node%basic()    
                    
@@ -297,8 +299,8 @@ contains
                    ! Evolve this node if it has a parent (or will transfer to another tree where it will have a parent), exists
                    ! before the output time, has no children (i.e. they've already all been processed), and either exists before
                    ! the final time in its tree, or exists precisely at that time and has some attached event yet to occur.
-                   event       =>            thisNode%event
-                   hasParent   =  associated(thisNode%parent)
+                   event       =>            node%event
+                   hasParent   =  associated(node%parent)
                    treeLimited =  .true.
                    do while (associated(event).and.treeLimited)
                       ! Skip events which occur after the current evolution end time.
@@ -316,23 +318,24 @@ contains
                       event => event%next
                    end do
                    evolveCondition: if (                                     &
-                        &                     hasParent                                   &
+                        &                     hasParent                      &
                         &               .and.                                &
                         &                .not.associated(node%firstChild  )  &
                         &               .and.                                &
                         &                (                                   &
-                        &                  thisBasicComponent%time() <  endTime           &
+                        &                  basic%time() <  endTime           &
                         &                 .or.                               &
                         &                  (                                 &
-                        &                    .not.treeLimited                             & ! For nodes that are not tree limited (i.e. have a node which
-                        &                   .and.                                         & ! will jump to another tree), allow them to evolve if the node
-                        &                    thisBasicComponent%time() == endTime         & ! is at the end time also, since the jump may occur at that time.
+                        &                    .not.treeLimited                & ! For nodes that are not tree limited (i.e. have a node which
+                        &                   .and.                            & ! will jump to another tree), allow them to evolve if the node
+                        &                    basic%time() == endTime         & ! is at the end time also, since the jump may occur at that time.
                         &                  )                                 &
                         &                )                                   &
                         &               .and.                                &
                         &                (                                   &
-                        &                   .not.treeLimited                              &
-                        &                .or.                                             &
+                        &                   .not.treeLimited                 &
+                        &                .or.                                &
+                        &                    basic%time() <  finalTimeInTree &
                         &                .or.                                &
                         &                 (                                  &
                         &                  (                                 &
@@ -393,7 +396,7 @@ contains
                          end if
                       end do
                       ! If this halo has reached its parent halo, decide how to handle it.
-                      if (associated(thisNode).and.associated(thisNode%parent)) then
+                      if (associated(node).and.associated(node%parent)) then
                          nodeParent           => node%parent
                          basicParent => nodeParent%basic()
                          if (basic%time() >= basicParent%time()) then
@@ -411,7 +414,7 @@ contains
                                ! This is the major progenitor, so promote the node to its parent providing that the node has no
                                ! siblings - this ensures that any siblings have already been evolved and become satellites of the
                                ! parent halo. Also record that the tree is not deadlocked, as we are changing the tree state.
-                               if (.not.associated(thisNode%sibling).and..not.associated(thisNode%event)) then
+                               if (.not.associated(node%sibling).and..not.associated(node%event)) then
                                   deadlockStatus=deadlockStatusIsNotDeadlocked
                                   call Tree_Node_Promote(node)
                                end if
@@ -431,7 +434,7 @@ contains
                          ! one that provides additional connection between nodes, so leads to the most informative deadlock graph.
                          if      (associated(node%firstChild)) then
                             call Deadlock_Add_Node(node,currentTree%index,node%firstChild,var_str("has child"          ))
-                         else if (.not.associated(thisNode%parent)) then
+                         else if (.not.associated(node%parent)) then
                             call Deadlock_Add_Node(node,currentTree%index,node           ,var_str("no parent"          ))
                          else if (basic%time() >= endTime) then
                             call Deadlock_Add_Node(node,currentTree%index,node           ,var_str("in future of output"))
@@ -504,7 +507,7 @@ contains
     return
   end subroutine Merger_Tree_Evolve_To
 
-  recursive function Evolve_To_Time(thisNode,endTime,End_Of_Timestep_Task,report,lockNode,lockType) result(evolveToTime)
+  recursive function Evolve_To_Time(node,endTime,End_Of_Timestep_Task,report,nodeLock,lockType) result(evolveToTime)
     !% Determine the time to which {\normalfont \ttfamily node} should be evolved.
     use Merger_Trees_Evolve_Timesteps_Template
     use Merger_Trees_Evolve_Node
@@ -517,6 +520,7 @@ contains
     use Evolve_To_Time_Reports
     implicit none
     double precision                                                                  :: evolveToTime
+    type            (treeNode                     ), intent(inout)          , pointer :: node
     double precision                               , intent(in   )                    :: endTime
     type            (treeNode                     )                         , pointer :: nodeSatellite                , nodeSibling
     procedure       (End_Of_Timestep_Task_Template), intent(  out)          , pointer :: End_Of_Timestep_Task
@@ -528,7 +532,7 @@ contains
          &                                                                               basicSibling                 , basic
     class           (nodeComponentSatellite       )                         , pointer :: satelliteSatellite
     class           (nodeEvent                    )                         , pointer :: thisEvent
-    class           (treeEvent                    )                         , pointer :: thisTreeEvent
+    class           (treeEvent                    )                         , pointer :: treeEvent_
     class           (cosmologyFunctionsClass      )                         , pointer :: cosmologyFunctionsDefault
     double precision                                                                  :: expansionFactor              , expansionTimescale, &
          &                                                                               hostTimeLimit                , time              , &
@@ -582,10 +586,10 @@ contains
        ! Limit to the time of its parent node if this node is not a satellite.
        if (associated(node%parent)) then
           basicParent => node%parent%basic()
-          if (parentBasicComponent%time() < evolveToTime) then
+          if (basicParent%time() < evolveToTime) then
              if (present(nodeLock)) nodeLock => node%parent
              if (present(lockType)) lockType =  "promotion"
-             evolveToTime=parentBasicComponent%time()
+             evolveToTime=basicParent%time()
           end if
        end if
        if (report) call Evolve_To_Time_Report("promotion limit: ",evolveToTime)
@@ -634,7 +638,7 @@ contains
           if (present(lockType)) lockType =  "satellite in host"
           evolveToTime=hostTimeLimit
        end if
-       if (report) call Evolve_To_Time_Report("satellite in host limit: ",evolveToTime,thisNode%parent%index())
+       if (report) call Evolve_To_Time_Report("satellite in host limit: ",evolveToTime,node%parent%index())
     end select
 
     ! Also ensure that this node is not evolved beyond the time of any of its current satellites.
@@ -642,12 +646,12 @@ contains
     time=basic%time()
     do while (associated(nodeSatellite))
        basicSatellite => nodeSatellite%basic()
-       if (max(satelliteBasicComponent%time(),time) < evolveToTime) then
+       if (max(basicSatellite%time(),time) < evolveToTime) then
           if (present(nodeLock)) nodeLock => nodeSatellite
           if (present(lockType)) lockType =  "hosted satellite"
-          evolveToTime=max(satelliteBasicComponent%time(),time)
+          evolveToTime=max(basicSatellite%time(),time)
        end if
-       if (report) call Evolve_To_Time_Report("hosted satellite: ",evolveToTime,satelliteNode%index())
+       if (report) call Evolve_To_Time_Report("hosted satellite: ",evolveToTime,nodeSatellite%index())
        nodeSatellite => nodeSatellite%sibling
     end do
 
@@ -657,15 +661,15 @@ contains
     time=basic%time()
     do while (associated(nodeSatellite))
        satelliteSatellite => nodeSatellite%satellite()
-       if (max(satelliteSatelliteComponent%timeOfMerging(),time) < evolveToTime) then
+       if (max(satelliteSatellite%timeOfMerging(),time) < evolveToTime) then
           if (present(nodeLock)) nodeLock => nodeSatellite
           if (present(lockType)) then
              write (timeFormatted,'(f7.4)') max(satelliteSatellite%timeOfMerging(),time)
              lockType =  "mergee ("//trim(timeFormatted)//")"
           end if
-          evolveToTime=max(satelliteSatelliteComponent%timeOfMerging(),time)
+          evolveToTime=max(satelliteSatellite%timeOfMerging(),time)
        end if
-       if (report) call Evolve_To_Time_Report("mergee limit: ",evolveToTime,satelliteNode%index())
+       if (report) call Evolve_To_Time_Report("mergee limit: ",evolveToTime,nodeSatellite%index())
        nodeSatellite => nodeSatellite%siblingMergee
     end do
 
@@ -675,12 +679,12 @@ contains
        nodeSibling => node%sibling
        do while (associated(nodeSibling))
           basicSibling => nodeSibling%basic()
-          if (max(thisBasicComponent%time(),siblingBasicComponent%time()) < evolveToTime) then
+          if (max(basic%time(),basicSibling%time()) < evolveToTime) then
              if (present(nodeLock)) nodeLock => nodeSibling
              if (present(lockType)) lockType =  "sibling"
-             evolveToTime=max(thisBasicComponent%time(),siblingBasicComponent%time())
+             evolveToTime=max(basic%time(),basicSibling%time())
           end if
-          if (report) call Evolve_To_Time_Report("sibling: ",evolveToTime,siblingNode%index())
+          if (report) call Evolve_To_Time_Report("sibling: ",evolveToTime,nodeSibling%index())
           nodeSibling => nodeSibling%sibling
        end do
     end if
@@ -688,7 +692,7 @@ contains
     ! Also ensure that the timestep taken does not exceed the allowed timestep for this specific node.
     if (report) call Galacticus_Display_Indent("timestepping criteria")
     End_Of_Timestep_Task_Internal => null()
-    evolveToTime=min(evolveToTime,thisBasicComponent%time()+Time_Step_Get(thisNode,evolveToTime,End_Of_Timestep_Task_Internal,report,lockNode,lockType))
+    evolveToTime=min(evolveToTime,basic%time()+Time_Step_Get(node,evolveToTime,End_Of_Timestep_Task_Internal,report,nodeLock,lockType))
     End_Of_Timestep_Task => End_Of_Timestep_Task_Internal    
     if (report) call Galacticus_Display_Unindent("done")
 
@@ -723,24 +727,24 @@ contains
     ! Also ensure that the timestep doesn't exceed any event attached to the tree.
     treeEvent_ => node%hostTree%event
     do while (associated(treeEvent_))
-       if (max(thisTreeEvent%time,time) <= evolveToTime) then
+       if (max(treeEvent_%time,time) <= evolveToTime) then
           if (present(nodeLock)) nodeLock => node%hostTree%baseNode
           if (present(lockType)) then
              lockType =  "tree event ("
              lockType=lockType//treeEvent_%ID//")"
           end if
-          evolveToTime=max(thisTreeEvent%time,time)
+          evolveToTime=max(treeEvent_%time,time)
        end if
        if (report) then
           message="tree event ("
           message=message//treeEvent_%ID//"): "
-          call Evolve_To_Time_Report(char(message),evolveToTime,thisNode%hostTree%baseNode%index())
+          call Evolve_To_Time_Report(char(message),evolveToTime,node%hostTree%baseNode%index())
        end if
        treeEvent_ => treeEvent_%next
     end do
 
     ! Check that end time exceeds current time.
-    if (evolveToTime < thisBasicComponent%time()) then
+    if (evolveToTime < basic%time()) then
        message='end time ('
        write (timeFormatted,'(f7.4)') evolveToTime
        message=message//trim(timeFormatted)//' Gyr) is before current time ('
@@ -748,19 +752,19 @@ contains
        message=message//trim(timeFormatted)//' Gyr) of node '
        message=message//node%index()
        message=message//' (time difference is '
-       write (timeFormatted,'(e8.2)') thisBasicComponent%time()-evolveToTime
+       write (timeFormatted,'(e8.2)') basic%time()-evolveToTime
        message=message//trim(timeFormatted)
-       if (.not.Tree_Node_Is_Accurate(thisBasicComponent%time(),evolveToTime)) then
+       if (.not.Tree_Node_Is_Accurate(basic%time(),evolveToTime)) then
           ! End time is well before current time. This is an error. Call ourself with reporting switched on to generate a report
           ! on the time limits.
           message=message//' Gyr)'
-          if (.not.report) time=Evolve_To_Time(thisNode,endTime,End_Of_Timestep_Task,report=.true.)
+          if (.not.report) time=Evolve_To_Time(node,endTime,End_Of_Timestep_Task,report=.true.)
           call Galacticus_Error_Report('Evolve_To_Time',message)
        else
           ! End time is before current time, but only by a small amount, simply reset the current time to the end time.
           message=message//' Gyr) - this should happen infrequently'
           call Galacticus_Display_Message(message,verbosityInfo)
-          call thisBasicComponent%timeSet(evolveToTime)
+          call basic%timeSet(evolveToTime)
        end if
     end if
     return
@@ -889,20 +893,20 @@ contains
           style="solid"
        end if
        write (treeUnit,'(a,i16.16,a,a,a,a,a,i16.16,a,i16.16,a,i16.16,a,f13.10,a,a,a)') '"',node%node%uniqueID(),'" [shape=circle, color=',trim(color),', style=',trim(style),' label="',node%node%uniqueid(),':',node%node%index(),'\ntree: ',node%treeIndex,'\ntime: ',basic%time(),'\n',char(node%lockType),'"];'
-       if (associated(thisNode%lockNode)) write (treeUnit,'(a,i16.16,a,i16.16,a)') '"',thisNode%node%uniqueID(),'" -> "',thisNode%lockNode%uniqueID(),'"'
+       if (associated(node%nodeLock)) write (treeUnit,'(a,i16.16,a,i16.16,a)') '"',node%node%uniqueID(),'" -> "',node%nodeLock%uniqueID(),'"'
        node => node%next
     end do
     ! Close the tree.
     write (treeUnit,*) '}'
     close(treeUnit)
     ! Clean up the deadlock node list.
-    thisNode => deadlockHeadNode
-    do while (associated(thisNode))
-       testNode => thisNode%next
-       nullify(thisNode%node    )
-       nullify(thisNode%lockNode)
-       deallocate(thisNode)
-       thisNode => testNode
+    node => deadlockHeadNode
+    do while (associated(node))
+       testNode => node%next
+       nullify(node%node    )
+       nullify(node%nodeLock)
+       deallocate(node)
+       node => testNode
     end do
     deadlockHeadNode => null()
     return
@@ -915,18 +919,19 @@ contains
     type            (mergerTree        ), intent(in   )          :: tree
     type            (treeNode          ), intent(inout), pointer :: node
     integer                             , intent(inout)          :: deadlockStatus
-    class           (nodeEvent         )               , pointer :: lastEvent         , nextEvent, &
+    class           (nodeEvent         )               , pointer :: lastEvent     , nextEvent        , &
          &                                                          thisEvent
-    double precision                                             :: nodeTime, timeEventEarliest
+    class           (nodeComponentBasic)               , pointer :: basic
+    double precision                                             :: nodeTime      , timeEventEarliest
     logical                                                      :: taskDone
     !GCC$ attributes unused :: tree
     
     ! Get the current time.
-    basic => node          %basic()
-    nodeTime           =  basic%time ()
+    basic    => node %basic()
+    nodeTime =  basic%time ()
 
     ! Find the current earliest event.    
-    thisEvent => thisNode%event
+    thisEvent => node%event
     timeEventEarliest=huge(1.0d0)
     do while (associated(thisEvent))
        timeEventEarliest=min(timeEventEarliest,thisEvent%time)
