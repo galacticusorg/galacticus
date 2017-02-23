@@ -40,6 +40,10 @@ sub Parse_Options {
 	++$iArg;
 	if ( $arguments[$iArg] =~ m/^\-\-(.*)/ ) {
 	    my $argument = $1;
+	    die("Galacticus::Options::Parse_Options: missing final value after option '--".$argument."'")
+		unless ( $iArg+1 < scalar(@arguments) );
+	    die("Galacticus::Options::Parse_Options: missing value after option '--".$argument."'")
+		if ( $arguments[$iArg+1] =~ m/^\-\-/ );
 	    my $value = $arguments[$iArg+1];
 	    ++$iArg;
 	    if ( $arguments[$iArg] =~ m/^\"/ ) {
