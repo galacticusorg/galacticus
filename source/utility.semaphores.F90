@@ -188,7 +188,7 @@ contains
     
     thisSemaphore => semaphoreListHead
     do while (associated(thisSemaphore))
-       do while (thisSemaphore%self%waitCount > 0)
+       do while (associated(thisSemaphore%self).and.thisSemaphore%self%waitCount > 0)
           call thisSemaphore%self%post()       
        end do
        thisSemaphore => thisSemaphore%next

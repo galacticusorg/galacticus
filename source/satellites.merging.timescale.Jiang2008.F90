@@ -131,7 +131,6 @@ contains
     class           (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
     class           (darkMatterProfileClass             ), pointer       :: darkMatterProfile_
     logical                                              , parameter     :: acceptUnboundOrbits          =.false.
-    double precision                                     , parameter     :: timeInfinite                 =1.0d30
 
     double precision                                     , parameter     :: C                            =0.43d0 , a            =0.94d0, &  !   Fitting parameters from Jiang's paper.
          &                                                                  b                            =0.60d0 , d            =0.60d0
@@ -150,7 +149,7 @@ contains
     ! Check error codes.
     select case (errorCode)
     case (errorCodeOrbitUnbound     )
-       jiang2008TimeUntilMerging=timeInfinite
+       jiang2008TimeUntilMerging=satelliteMergeTimeInfinite
        return
     case (errorCodeNoEquivalentOrbit)
        ! Circularity is not defined. Assume instantaneous merging.

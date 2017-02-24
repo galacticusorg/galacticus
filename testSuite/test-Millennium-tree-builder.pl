@@ -25,7 +25,7 @@ if ( $validator ) {
     die("FAILED: IRATE-format file generated from Millennium database output did not validate")
 	unless ( $? == 0 );
 } else {
-    print "SKIP: iratevalidate is not installed - validation of IRATE-format file will be skipped\n";
+    print "SKIPPED: iratevalidate is not installed - validation of IRATE-format file will be skipped\n";
 }
 
 exit;

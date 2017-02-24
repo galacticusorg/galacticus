@@ -71,7 +71,7 @@ subroutine stateInitializorLatinHypercubeInitialize(self,simulationState,paramet
         end do
      end do
      ! Find minimum separation.
-     separationMinimum=1.0d30
+     separationMinimum=huge(1.0d0)
      do i1=0,mpiSelf%count()-1
         do i2=i1+1,mpiSelf%count()-1
            separationMinimum=min(separationMinimum,sum((stateGrid(i1,:)-stateGrid(i2,:))**2))

@@ -34,6 +34,9 @@ module Galacticus_State
   ! Root name for state files.
   type   (varying_string) :: stateFileRoot                , stateRetrieveFileRoot
 
+  ! Active status of store and retrieve.
+  logical                 :: stateStoreActive             , stateRetrieveActive
+  
   ! Flag indicating if module has been initialized.
   logical                 :: stateInitialized     =.false.
 
@@ -47,11 +50,13 @@ contains
     implicit none
 
     ! Ensure that module is initialized.
-    call State_Initialize
-
-    !# <include directive="galacticusStateSnapshotTask" type="functionCall" functionType="void">
-    include 'galacticus.state.snapshot.inc'
-    !# </include>
+    call State_Initialize()
+    ! Check if state store is active.
+    if (stateStoreActive) then    
+       !# <include directive="galacticusStateSnapshotTask" type="functionCall" functionType="void">
+       include 'galacticus.state.snapshot.inc'
+       !# </include>
+    end if
     return
   end subroutine Galacticus_State_Snapshot
 
@@ -72,8 +77,8 @@ contains
     ! Ensure that module is initialized.
     call State_Initialize
 
-    ! Check if a file has been specified.
-    if (stateFileRoot /= "none") then
+    ! Check if state store is active.
+    if (stateStoreActive) then
 
        ! Open a file in which to store the state and an additional file for FGSL state.
        !$ if (omp_in_parallel()) then
@@ -132,8 +137,8 @@ contains
        ! Ensure that module is initialized.
        call State_Initialize
 
-       ! Check if a file has been specified.
-       if (stateRetrieveFileRoot /= "none") then
+       ! Check if state retrieve is active.
+       if (stateRetrieveActive) then
 
           ! Open a file in which to retrieve the state and an additional file for FGSL state.
           !$ if (omp_in_parallel()) then
@@ -200,6 +205,10 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('stateRetrieveFileRoot',stateRetrieveFileRoot,defaultValue="none")
+
+       ! Record active status of store and retrieve.
+       stateStoreActive   =(stateFileRoot         /= "none")
+       stateRetrieveActive=(stateRetrieveFileRoot /= "none")
 
        ! Flag that module is now initialized.
        stateInitialized=.true.

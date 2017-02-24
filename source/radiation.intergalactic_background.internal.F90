@@ -54,7 +54,7 @@ contains
   !#  <unitName>Radiation_Intergalactic_Background_Internal_Initialize</unitName>
   !# </universePreEvolveTask>
   subroutine Radiation_Intergalactic_Background_Internal_Initialize(universe_)
-    !% Attach an initial event to a merger tree to cause the background radiation update function to be called.
+    !% Attach an initial event to the universe to cause the background radiation update function to be called.
     use Galacticus_Nodes
     use Input_Parameters
     use Memory_Management
