@@ -210,7 +210,7 @@ contains
     implicit none
     class           (powerSpectrumWindowFunctionTopHatSharpKHybrid), intent(inout) :: self
     double precision                                               , intent(in   ) :: smoothingMass
-    double precision                                               , parameter     :: wavenumberLarge=1.0d30 !    Effective infinity.
+    double precision                                               , parameter     :: wavenumberLarge=huge(1.0d0) ! Effective infinity.
     !GCC$ attributes unused :: self, smoothingMass
     
     topHatSharpKHybridWavenumberMaximum=wavenumberLarge

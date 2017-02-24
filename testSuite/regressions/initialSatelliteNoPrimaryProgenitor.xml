@@ -47,7 +47,7 @@
   <haloMassFunctionSamplingStellarMassFunctionErrorBeta value="0.75"/>
   <modifiedPressSchechterGamma2 value="-0.01"/>
   <treeNodeMethodBlackHole value="null"/>
-  <treeNodeMethodSpheroid value="standard"/>
+  <treeNodeMethodSpheroid value="null"/>
   <timestepSimpleRelative value="0.1"/>
   <coolingTimeSimpleDegreesOfFreedom value="3"/>
   <treeNodeMethodBasic value="standard"/>

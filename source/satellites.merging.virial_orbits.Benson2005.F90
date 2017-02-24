@@ -61,28 +61,28 @@ contains
     use Galacticus_Error
     use Pseudo_Random
     implicit none
-    type            (keplerOrbit               )                         :: benson2005Orbit
-    class           (virialOrbitBenson2005     ), intent(inout)          :: self
-    type            (treeNode                  ), intent(inout), pointer :: host                   , node
-    logical                                     , intent(in   )          :: acceptUnboundOrbits
-    class           (darkMatterHaloScaleClass  )               , pointer :: darkMatterHaloScale_
-    class           (nodeComponentBasic        )               , pointer :: hostBasic              , basic
-    class           (virialDensityContrastClass), pointer                :: virialDensityContrast_
-    double precision                            , parameter              :: pMax                   =1.96797d0                              , &
-         &                                                                  velocityMax            =3.00000d0
-    double precision                            , parameter              :: a                   (9)=[                                        &
-         &                                                                                           0.390052d+01,0.247973d+01,0.102373d+02, &
-         &                                                                                           0.683922d+00,0.353953d+00,0.107716d+01, &
-         &                                                                                           0.509837d+00,0.206204d+00,0.314641d+00  &
-         &                                                                                          ]
-    double precision                            , parameter              :: boundTolerance         =1.0d-4 !  Tolerence to ensure that orbits are sufficiently bound.
-    double precision                                                     :: b1                             , b2                        , &
-         &                                                                  distributionFunction           , energyInternal            , &
-         &                                                                  uniformRandom                  , velocityRadialInternal    , &
-         &                                                                  velocityHost                   , velocityTangentialInternal, &
-         &                                                                  massHost                       , radiusHost                , &
-         &                                                                  massSatellite                  , radiusHostSelf
-    logical                                                              :: foundOrbit
+    type            (keplerOrbit               )                :: benson2005Orbit
+    class           (virialOrbitBenson2005     ), intent(inout) :: self
+    type            (treeNode                  ), intent(inout) :: host                   , node
+    logical                                     , intent(in   ) :: acceptUnboundOrbits
+    class           (darkMatterHaloScaleClass  ), pointer       :: darkMatterHaloScale_
+    class           (nodeComponentBasic        ), pointer       :: hostBasic              , basic
+    class           (virialDensityContrastClass), pointer       :: virialDensityContrast_
+    double precision                            , parameter     :: pMax                   =1.96797d0                              , &
+         &                                                         velocityMax            =3.00000d0
+    double precision                            , parameter     :: a                   (9)=[                                        &
+         &                                                                                  0.390052d+01,0.247973d+01,0.102373d+02, &
+         &                                                                                  0.683922d+00,0.353953d+00,0.107716d+01, &
+         &                                                                                  0.509837d+00,0.206204d+00,0.314641d+00  &
+         &                                                                                 ]
+    double precision                            , parameter     :: boundTolerance         =1.0d-4 !  Tolerence to ensure that orbits are sufficiently bound.
+    double precision                                            :: b1                             , b2                        , &
+         &                                                         distributionFunction           , energyInternal            , &
+         &                                                         uniformRandom                  , velocityRadialInternal    , &
+         &                                                         velocityHost                   , velocityTangentialInternal, &
+         &                                                         massHost                       , radiusHost                , &
+         &                                                         massSatellite                  , radiusHostSelf
+    logical                                                     :: foundOrbit
 
     ! Get required objects.
     darkMatterHaloScale_ => darkMatterHaloScale()
@@ -184,7 +184,10 @@ contains
     
     call Galacticus_Display_Message('Storing state for: virialOrbit -> benson2005',verbosity=verbosityInfo)
     write (stateFile) self%resetSequenceSnapshot
-    if (.not.self%resetSequenceSnapshot) call Pseudo_Random_Store(self%clonedPseudoSequenceObject,fgslStateFile)
+    if (.not.self%resetSequenceSnapshot) then
+       call Pseudo_Random_Store(self%clonedPseudoSequenceObject,fgslStateFile)
+       call Pseudo_Random_Free (self%clonedPseudoSequenceObject              )
+    end if
     return
   end subroutine benson2005StateStore
 

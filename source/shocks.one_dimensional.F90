@@ -24,7 +24,7 @@ module Shocks_1D
   public :: Shocks_1D_Density_Jump
 
   ! Effective infinite Mach number for strong shocks.
-  double precision, parameter, public :: machNumberInfinite=1.0d30
+  double precision, parameter, public :: machNumberInfinite=huge(1.0d0)
 
 contains
 
