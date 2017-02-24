@@ -2013,7 +2013,7 @@ contains
        innerShellEnergy=0.0d0
     else
        if ( electronNumber < 3) then
-          innerShellEnergy=1.0d30
+          innerShellEnergy=huge(1.0d0)
        else
           innerShellEnergy=fitCoefficients1(1,atomicNumber,electronNumber,innerShellNumber)
        end if

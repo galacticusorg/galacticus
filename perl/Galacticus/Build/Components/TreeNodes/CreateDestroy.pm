@@ -244,33 +244,36 @@ sub Tree_Node_Finalization {
 ! Remove any events attached to the node, along with their paired event in other nodes.
 thisEvent => self%event
 do while (associated(thisEvent))
-    ! Locate the paired event and remove it.
-    pairEvent => thisEvent%node%event
-    lastEvent => thisEvent%node%event
-    ! Iterate over all events.
-    pairMatched=.false.
-    do while (associated(pairEvent).and..not.pairMatched)
-       ! Match the paired event ID with the current event ID.
-       if (pairEvent%ID == thisEvent%ID) then
-          pairMatched=.true.
-          if (associated(pairEvent,thisEvent%node%event)) then
-             thisEvent%node  %event => pairEvent%next
-             lastEvent       => thisEvent%node %event
-          else
-             lastEvent%next  => pairEvent%next
-          end if
-          nextEvent => pairEvent%next
-          deallocate(pairEvent)
-          pairEvent => nextEvent
-       else
-          lastEvent => pairEvent
-          pairEvent => pairEvent%next
-       end if
-    end do
-    if (.not.pairMatched) call Galacticus_Error_Report('treeNodeDestroy','unable to find paired event')
-    nextEvent => thisEvent%next
-    deallocate(thisEvent)
-    thisEvent => nextEvent
+   ! If a paired node is given, remove any paired event from it.
+   if (associated(thisEvent%node)) then
+      ! Locate the paired event and remove it.
+      pairEvent => thisEvent%node%event
+      lastEvent => thisEvent%node%event
+      ! Iterate over all events.
+      pairMatched=.false.
+      do while (associated(pairEvent).and..not.pairMatched)
+         ! Match the paired event ID with the current event ID.
+         if (pairEvent%ID == thisEvent%ID) then
+            pairMatched=.true.
+            if (associated(pairEvent,thisEvent%node%event)) then
+               thisEvent%node  %event => pairEvent%next
+               lastEvent       => thisEvent%node %event
+            else
+               lastEvent%next  => pairEvent%next
+            end if
+            nextEvent => pairEvent%next
+            deallocate(pairEvent)
+            pairEvent => nextEvent
+         else
+            lastEvent => pairEvent
+            pairEvent => pairEvent%next
+         end if
+      end do 
+      if (.not.pairMatched) call Galacticus_Error_Report('treeNodeDestroy','unable to find paired event')
+   end if
+   nextEvent => thisEvent%next
+   deallocate(thisEvent)
+   thisEvent => nextEvent
 end do
 CODE
      # Insert a type-binding for this function.

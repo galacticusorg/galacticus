@@ -105,7 +105,7 @@ sub Construct_Models {
 		}
 		# Specify the output directory.
 		my $modelLabel    = exists($parameterData->{'label'}) ? $parameterData->{'label'}->[0]->{'value'} : $iModelSet.":".$iModel;
-		my $galacticusOutputDirectory =  $launchScript->{'modelRootDirectory'}
+		my $galacticusOutputDirectory = $launchScript->{'modelRootDirectory'}
 		."/".$modelBaseName."_".$modelLabel;
 		# Change output directory name to an md5 hash if so requested.
 		my $descriptor;
@@ -164,11 +164,11 @@ sub Construct_Models {
 		    my $data;
 		    foreach my $name ( sort(keys(%{$parameters})) ) {
 			$data->{$name} = $parameters->{$name};
-			foreach ( @{$data->{$name}} ) {
+			foreach ( @{$data->{$name}} ) {			    
 			    $_->{'value'} =~ s/\%\%galacticusOutputPath\%\%/$galacticusOutputDirectory/g
-				unless ( $name eq "label" );
+				unless ( ! exists($_->{'value'}) || $name eq "label" );
 			}
-		    }
+		    }  
 		    # Output the parameters as an XML file.
 		    my $xmlOutput = new XML::Simple (RootName=>"parameters");
 		    open(outHndl,">".$galacticusOutputDirectory."/parameters.xml");

@@ -25,6 +25,7 @@ module Merger_Trees_Evolve_Deadlock_Status
   !#  <description>Specifies deadlock status during merger tree evolution.</description>
   !#  <entry label="isNotDeadlocked" />
   !#  <entry label="isReporting"     />
+  !#  <entry label="isSuspendable"   />
   !#  <entry label="isDeadlocked"    />
   !# </enumeration>
 end module Merger_Trees_Evolve_Deadlock_Status

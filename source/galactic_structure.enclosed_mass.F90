@@ -144,7 +144,7 @@ contains
     use ISO_Varying_String
     use String_Handling
     implicit none
-    type            (treeNode                ), intent(inout), pointer  :: thisNode
+    type            (treeNode                ), intent(inout), target   :: thisNode
     integer                                   , intent(in   ), optional :: componentType       , massType       , weightBy, weightIndex
     double precision                          , intent(in   ), optional :: density             , densityContrast
     logical                                   , intent(in   ), optional :: haloLoaded

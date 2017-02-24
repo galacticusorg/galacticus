@@ -36,14 +36,18 @@ contains
     include 'satellites.structures.host_change.moduleUse.inc'
     !# </include>
     implicit none
-    type(treeNode      ), intent(inout), pointer :: newHostNode      , satelliteNode
-    type(treeNode      )               , pointer :: lastSatelliteNode
-    type(varying_string)                         :: message
-
+    type     (treeNode          ), intent(inout), pointer :: newHostNode      , satelliteNode
+    type     (treeNode          )               , pointer :: lastSatelliteNode
+    class    (nodeComponentBasic), pointer                :: basic
+    type     (varying_string    )                         :: message
+    character(len=12            )                         :: label
+    
     ! Report if necessary.
     if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+       basic => satelliteNode%basic()
+       write (label,'(f12.6)') basic%time()
        message='Satellite node ['
-       message=message//satelliteNode%index()//'] is being promoted to new host node ['//newHostNode%index()//']'
+       message=message//satelliteNode%index()//'] is being promoted to new host node ['//newHostNode%index()//'] at time '//trim(label)//' Gyr'
        call Galacticus_Display_Message(message)
     end if
 

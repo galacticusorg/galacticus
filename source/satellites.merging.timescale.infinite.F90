@@ -52,10 +52,9 @@ contains
     class           (satelliteMergingTimescalesInfinite), intent(inout) :: self
     type            (treeNode                          ), intent(inout) :: node
     type            (keplerOrbit                       ), intent(inout) :: orbit
-    double precision                                    , parameter     :: timeInfinite=1.0d30 ! Effective infinite time.
     !GCC$ attributes unused :: self, node, orbit
     
-    infiniteTimeUntilMerging=timeInfinite
+    infiniteTimeUntilMerging=satelliteMergeTimeInfinite
     return
   end function infiniteTimeUntilMerging
 
