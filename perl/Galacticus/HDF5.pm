@@ -349,10 +349,7 @@ sub Get_Dataset {
 	if ( scalar(keys(%parameterList)) > 0 ) {
 	    print "To resolve this issue try adding the following to your input parameter file:\n";
 	    foreach my $parameter ( keys(%parameterList) ) {
-		print "<parameter>\n";
-		print "  <name>".$parameter."</name>\n";
-		print "  <value>".$parameterList{$parameter}."</value>\n";
-		print "</parameter>\n";
+		print '<'.$parameter.' value="'.$parameterList{$parameter}.'"/>\n';
 	    }
 	    print "\nThis may not be a complete list of additional parameters required to solve this issue - check carefully what outputs are required and ensure that you have requested these from Galacticus.\n";
 	}
