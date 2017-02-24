@@ -877,7 +877,7 @@ contains
           disk => node%disk()
 
           ! Find the node to merge with.
-          nodeHost              => node%mergesWith(                 )
+          nodeHost     => node    %mergesWith(                 )
           diskHost     => nodeHost%disk      (autoCreate=.true.)
           spheroidHost => nodeHost%spheroid  (autoCreate=.true.)
 
