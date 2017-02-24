@@ -260,7 +260,7 @@ contains
          &                                                                                   basic
     class           (nodeComponentSatellite       )                             , pointer :: mergeeSatellite
     type            (mergerTree                   )                             , pointer :: currentTree
-    type            (nodeEvent                    )                             , pointer :: event                   , pairedEvent
+    class           (nodeEvent                    )                             , pointer :: event                   , pairedEvent
     type            (fgsl_interp_accel            )                                       :: interpolationAccelerator
     logical                                                                               :: interpolationReset
     integer         (c_size_t                     )                                       :: iNow                    , iParent    , &

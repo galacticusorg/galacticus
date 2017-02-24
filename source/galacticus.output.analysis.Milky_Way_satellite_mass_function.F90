@@ -420,10 +420,10 @@ contains
     use Numerical_Constants_Astronomical
     use String_Handling
     implicit none
-    double precision            , dimension(massBinsCount) :: massFunctionCumulativeMean                       , massFunctionCumulativeMeanVariance, &
+    double precision            , dimension(massBinsCount) :: massFunctionCumulativeMean                                  , massFunctionCumulativeMeanVariance, &
          &                                                    massFunctionCumulativeMeanPoissonVariance
-    double precision            , parameter                :: logImpossible                            =-1.0d30
-    type            (hdf5Object)                           :: analysisGroup                                    , massFunctionGroup                 , &
+    double precision            , parameter                :: logImpossible                            =-0.5d0*huge(1.0d0)
+    type            (hdf5Object)                           :: analysisGroup                                               , massFunctionGroup                 , &
          &                                                    thisDataset
     integer                                                :: i
 

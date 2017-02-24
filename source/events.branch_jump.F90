@@ -33,13 +33,17 @@ contains
     use Merger_Trees_Evolve_Deadlock_Status
     use ISO_Varying_String
     use String_Handling
+    !# <include directive="branchJumpPostProcess" type="moduleUse">
+    include 'events.branch_jump.post_process.modules.inc'
+    !# </include>
     implicit none
-    class  (nodeEvent     ), intent(in   )          :: thisEvent
-    type   (treeNode      ), intent(inout), pointer :: thisNode
-    integer                , intent(inout)          :: deadlockStatus
-    type   (treeNode      )               , pointer :: lastSatellite , newHost
-    type   (varying_string)                         :: message
-
+    class    (nodeEvent     ), intent(in   )          :: thisEvent
+    type     (treeNode      ), intent(inout), pointer :: thisNode
+    integer                  , intent(inout)          :: deadlockStatus
+    type     (treeNode      )               , pointer :: lastSatellite , newHost
+    type     (varying_string)                         :: message
+    character(len=12        )                         :: label
+    
     ! If the node is not yet a satellite, wait until it is before peforming this task.
     if (.not.thisNode%isSatellite()) then
        Node_Branch_Jump=.false.
@@ -48,8 +52,9 @@ contains
        Node_Branch_Jump=.true.
     end if
     ! Report.
+    write (label,'(f12.6)') thisEvent%time
     message='Node ['
-    message=message//thisNode%index()//'] jumping branch to ['//thisEvent%node%index()//']'
+    message=message//thisNode%index()//'] jumping branch to host ['//thisEvent%node%index()//'] at time '//label//' Gyr'
     call Galacticus_Display_Message(message,verbosityInfo)
     ! Remove the satellite from its current host.
     call thisNode%removeFromHost()
@@ -67,6 +72,11 @@ contains
     thisNode%hostTree => newHost%hostTree
     ! Locate the paired event in the host and remove it.
     call newHost%removePairedEvent(thisEvent)
+    ! Allow any postprocessing of the branch jump event that may be necessary.
+    !# <include directive="branchJumpPostProcess" type="functionCall" functionType="void">
+    !#  <functionArgs>thisNode</functionArgs>
+    include 'events.branch_jump.postprocess.inc'
+    !# </include>
     ! Since we changed the tree, record that the tree is not deadlocked.
     deadlockStatus=deadlockStatusIsNotDeadlocked
     return

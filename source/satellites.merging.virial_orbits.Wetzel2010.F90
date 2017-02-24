@@ -123,26 +123,26 @@ contains
     use Critical_Overdensities
     use Cosmology_Functions
     implicit none
-    type            (keplerOrbit               )                         :: wetzel2010Orbit
-    class           (virialOrbitWetzel2010     ), intent(inout)          :: self
-    type            (treeNode                  ), intent(inout), pointer :: host                   , node
-    logical                                     , intent(in   )          :: acceptUnboundOrbits
-    class           (nodeComponentBasic        )               , pointer :: hostBasic             , basic
-    class           (cosmologyFunctionsClass   )               , pointer :: cosmologyFunctions_
-    class           (virialDensityContrastClass), pointer                :: virialDensityContrast_
-    class           (darkMatterHaloScaleClass  ), pointer                :: darkMatterHaloScale_
-    class           (criticalOverdensityClass  ), pointer                :: criticalOverdensity_
-    double precision                            , parameter              :: circularityMaximum       =1.0d0, circularityMinimum    =0.0d0
-    double precision                            , parameter              :: redshiftMaximum          =5.0d0, expansionFactorMinimum=1.0d0/(1.0d0+redshiftMaximum)
-    double precision                                                     :: R1                             , apocentricRadius                                    , &
-         &                                                                  circularity                    , eccentricityInternal                                , &
-         &                                                                  expansionFactor                , g1                                                  , &
-         &                                                                  massCharacteristic             , pericentricRadius                                   , &
-         &                                                                  probabilityTotal               , massSatellite                                       , &
-         &                                                                  timeNode                       , velocityHost                                        , &
-         &                                                                  radiusHost                     , massHost                                            , &
-         &                                                                  radiusHostSelf
-    logical                                                              :: foundOrbit
+    type            (keplerOrbit               )                :: wetzel2010Orbit
+    class           (virialOrbitWetzel2010     ), intent(inout) :: self
+    type            (treeNode                  ), intent(inout) :: host                   , node
+    logical                                     , intent(in   ) :: acceptUnboundOrbits
+    class           (nodeComponentBasic        ), pointer       :: hostBasic             , basic
+    class           (cosmologyFunctionsClass   ), pointer       :: cosmologyFunctions_
+    class           (virialDensityContrastClass), pointer       :: virialDensityContrast_
+    class           (darkMatterHaloScaleClass  ), pointer       :: darkMatterHaloScale_
+    class           (criticalOverdensityClass  ), pointer       :: criticalOverdensity_
+    double precision                            , parameter     :: circularityMaximum       =1.0d0, circularityMinimum    =0.0d0
+    double precision                            , parameter     :: redshiftMaximum          =5.0d0, expansionFactorMinimum=1.0d0/(1.0d0+redshiftMaximum)
+    double precision                                            :: R1                             , apocentricRadius                                    , &
+         &                                                         circularity                    , eccentricityInternal                                , &
+         &                                                         expansionFactor                , g1                                                  , &
+         &                                                         massCharacteristic             , pericentricRadius                                   , &
+         &                                                         probabilityTotal               , massSatellite                                       , &
+         &                                                         timeNode                       , velocityHost                                        , &
+         &                                                         radiusHost                     , massHost                                            , &
+         &                                                         radiusHostSelf
+    logical                                                     :: foundOrbit
     !GCC$ attributes unused :: acceptUnboundOrbits
     
     ! Get required objects.

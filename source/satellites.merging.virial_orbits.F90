@@ -41,8 +41,8 @@ module Virial_Orbits
   !#   <description>Returns an orbit object.</description>
   !#   <type>type(keplerOrbit)</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), pointer :: node, host</argument>
-  !#   <argument>logical       , intent(in   )          :: acceptUnboundOrbits</argument>
+  !#   <argument>type(treeNode), intent(inout) :: node, host</argument>
+  !#   <argument>logical       , intent(in   ) :: acceptUnboundOrbits</argument>
   !#  </method>
   !#  <method name="densityContrastDefinition" >
   !#   <description>Returns a {\normalfont \ttfamily virialDensityContrast} object describing the virial density contrast used to define this orbit class.</description>

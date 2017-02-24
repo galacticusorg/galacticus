@@ -308,7 +308,7 @@ contains
        ! Decide how many points to tabulate and allocate table arrays.
        self%nfwInverseTableNumberPoints=int(log10(self%radiusMaximum/self%radiusMinimum)*dble(nfwInverseTablePointsPerDecade))+1       
        ! Create a range of radii.
-       call self%nfwSpecificAngularMomentum%destroy(                                                       )
+       call self%nfwSpecificAngularMomentum%destroy(                                                                      )
        call self%nfwSpecificAngularMomentum%create (self%radiusMinimum,self%radiusMaximum,self%nfwInverseTableNumberPoints)
        ! Loop over radii and populate tables.
        do iRadius=1,self%nfwInverseTableNumberPoints

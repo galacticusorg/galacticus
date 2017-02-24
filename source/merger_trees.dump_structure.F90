@@ -104,7 +104,7 @@ contains
           !@   <cardinality>1</cardinality>
           !@   <group>output</group>
           !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeStructureDumpMassMaximum',mergerTreeStructureDumpMassMaximum,defaultValue=1.0d30)
+          call Get_Input_Parameter('mergerTreeStructureDumpMassMaximum',mergerTreeStructureDumpMassMaximum,defaultValue=huge(1.0d0))
           ! Flag that module is initialized.
           moduleInitialized=.true.
        end if

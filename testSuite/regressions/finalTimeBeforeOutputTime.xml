@@ -77,7 +77,7 @@
   <treeNodeMethodBlackHole value="null"/>
   <stellarPopulationPropertiesMethod value="instantaneous"/>
   <galacticusOutputFileName value="testSuite/outputs/finalTimeBeforeOutputTime.hdf5"/>
-  <treeNodeMethodSpheroid value="standard"/>
+  <treeNodeMethodSpheroid value="verySimple"/>
   <coolingMeanAngularMomentumFrom value="hotGas"/>
   <timestepSimpleRelative value="0.1"/>
   <coolingTimeSimpleDegreesOfFreedom value="3"/>

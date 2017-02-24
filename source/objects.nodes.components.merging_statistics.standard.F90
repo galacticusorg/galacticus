@@ -128,7 +128,7 @@ contains
        call Get_Input_Parameter('nodeFormationMassFraction',nodeFormationMassFraction,defaultValue=0.5d0)
        !@ <inputParameter>
        !@   <name>hierarchyLevelResetFactor</name>
-       !@   <defaultValue>$10^{30}$</defaultValue>
+       !@   <defaultValue>$10^{100}$</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The factor by which a node's mass must increase before the previous maximum hierarchy level is forgotten.
@@ -136,7 +136,7 @@ contains
        !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('hierarchyLevelResetFactor',hierarchyLevelResetFactor,defaultValue=1.0d30)
+       call Get_Input_Parameter('hierarchyLevelResetFactor',hierarchyLevelResetFactor,defaultValue=1.0d100)
        ! Bind the hierarchy level get functions.
        call mergingStatistics%nodeHierarchyLevelFunction       (Node_Component_Merging_statistics_Standard_Hierarchy_Level)
        call mergingStatistics%nodeHierarchyLevelMaximumFunction(Node_Component_Merging_statistics_Standard_HLM            )

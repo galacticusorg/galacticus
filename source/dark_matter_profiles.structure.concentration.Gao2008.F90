@@ -98,20 +98,28 @@ contains
     !% \cite{gao_redshift_2008} algorithm.
     use Dark_Matter_Halo_Scales
     implicit none
-    class(darkMatterProfileClass                            ), pointer       :: gao2008DarkMatterProfileDefinition
-    class(darkMatterProfileConcentrationGao2008             ), intent(inout) :: self
-    class(darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition
-
-    allocate(darkMatterProfileNFW                               :: gao2008DarkMatterProfileDefinition)
-    allocate(darkMatterHaloScaleVirialDensityContrastDefinition :: darkMatterHaloScaleDefinition     )
-    select type (gao2008DarkMatterProfileDefinition)
-    type is (darkMatterProfileNFW)
-       select type (darkMatterHaloScaleDefinition)
-       type is (darkMatterHaloScaleVirialDensityContrastDefinition)
-          darkMatterHaloScaleDefinition     =darkMatterHaloScaleVirialDensityContrastDefinition(self%densityContrastDefinition())
-          gao2008DarkMatterProfileDefinition=darkMatterProfileNFW                              (darkMatterHaloScaleDefinition   )
+    class  (darkMatterProfileClass                            ), pointer                     :: gao2008DarkMatterProfileDefinition
+    class  (darkMatterProfileConcentrationGao2008             ), intent(inout)               :: self
+    class  (darkMatterHaloScaleVirialDensityContrastDefinition), pointer                     :: darkMatterHaloScaleDefinition
+    class  (darkMatterProfileClass                            ), allocatable  , target, save :: densityProfileDefinition
+    logical                                                                           , save :: densityProfileDefinitionInitialized=.false.
+    !$omp threadprivate(densityProfileDefinition,densityProfileDefinitionInitialized)
+ 
+    if (.not.densityProfileDefinitionInitialized) then
+       allocate(darkMatterProfileNFW                               :: densityProfileDefinition     )
+       allocate(darkMatterHaloScaleVirialDensityContrastDefinition :: darkMatterHaloScaleDefinition)
+       select type (densityProfileDefinition)
+       type is (darkMatterProfileNFW)
+          select type (darkMatterHaloScaleDefinition)
+          type is (darkMatterHaloScaleVirialDensityContrastDefinition)
+             darkMatterHaloScaleDefinition=darkMatterHaloScaleVirialDensityContrastDefinition(self%densityContrastDefinition())
+             densityProfileDefinition     =darkMatterProfileNFW                              (darkMatterHaloScaleDefinition   )
+             call densityProfileDefinition%makeIndestructible()
+          end select
        end select
-    end select    
-    return
+       densityProfileDefinitionInitialized=.true.
+    end if
+    gao2008DarkMatterProfileDefinition => densityProfileDefinition
+   return
   end function gao2008DarkMatterProfileDefinition
 
