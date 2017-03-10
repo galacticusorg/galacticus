@@ -1136,11 +1136,10 @@
         <value>-1.8</value>
       </magnitudeAbsoluteV>
       <massDynamicalHalfLightRadius>
-        <errorHigh>1.201</errorHigh>
-        <errorLow>0.293</errorLow>
-        <reference>Kirby et al. (2015; arXiv:1510.03856)</reference>
-        <referenceURL>http://arxiv.org/abs/1510.03856</referenceURL>
-        <value>0.794</value>
+        <reference>Kirby et al. (2017; arXiv:1703.02978)</reference>
+        <referenceURL>http://adsabs.harvard.edu/abs/2017arXiv170302978K</referenceURL>
+        <limit confidenceLevel="90.0" type="upper">0.37</limit>
+        <limit confidenceLevel="95.0" type="upper">0.56</limit>
       </massDynamicalHalfLightRadius>
       <massStellar>
         <error>0.00020</error>
@@ -1155,13 +1154,10 @@
         <value>1</value>
       </metallicityMeasurementTechnique>
       <metallicityStellar>
-        <value>-2.2</value>
-      </metallicityStellar>
-      <metallicityStellar>
-        <error>0.08</error>
-        <reference>Kirby et al. (2015; arXiv:1510.03856)</reference>
-        <referenceURL>http://arxiv.org/abs/1510.03856</referenceURL>
-        <value>-2.50</value>
+        <error>0.05</error>
+        <reference>Kirby et al. (2017; arXiv:1703.02978)</reference>
+        <referenceURL>http://adsabs.harvard.edu/abs/2017arXiv170302978K</referenceURL>
+        <value>-2.24</value>
       </metallicityStellar>
       <positionAngle>
         <errorHigh>16</errorHigh>
@@ -1194,17 +1190,16 @@
         <value>17.4</value>
       </rightAscensionSeconds>
       <velocityDispersionStellar>
-        <errorHigh>4.0</errorHigh>
-        <errorLow>1.4</errorLow>
-        <reference>Kirby et al. (2015; arXiv:1510.03856)</reference>
-        <referenceURL>http://arxiv.org/abs/1510.03856</referenceURL>
-        <value>5.1</value>
+        <reference>Kirby et al. (2017; arXiv:1703.02978)</reference>
+        <referenceURL>http://adsabs.harvard.edu/abs/2017arXiv170302978K</referenceURL>
+        <limit confidenceLevel="90.0" type="upper">3.4</limit>
+        <limit confidenceLevel="95.0" type="upper">4.2</limit>
       </velocityDispersionStellar>
       <velocityRadialHeliocentric>
-        <error>2.9</error>
-        <reference>Kirby et al. (2015; arXiv:1510.03856)</reference>
-        <referenceURL>http://arxiv.org/abs/1510.03856</referenceURL>
-        <value>-382.1</value>
+        <error>1.1</error>
+        <reference>Kirby et al. (2017; arXiv:1703.02978)</reference>
+        <referenceURL>http://adsabs.harvard.edu/abs/2017arXiv170302978K</referenceURL>
+        <value>-381.7</value>
       </velocityRadialHeliocentric>
     </galaxy>
     <galaxy>
