@@ -17,16 +17,18 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Implements the geometry of the GAMA survey used by \cite{baldry_galaxy_2012}.
+
+  use Galacticus_Input_Paths
+  use Cosmology_Functions
   
   !# <surveyGeometry name="surveyGeometryBaldry2012GAMA">
   !#  <description>Implements the geometry of the GAMA survey of \cite{baldry_galaxy_2012}.</description>
   !# </surveyGeometry>
-
-  use Galacticus_Input_Paths
-
   type, extends(surveyGeometryMangle) :: surveyGeometryBaldry2012GAMA
-     double precision :: distanceMaximumSurvey
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     double precision                                   :: distanceMaximumSurvey
    contains
+     final     ::                              baldry2012GAMADestructor
      procedure :: fieldCount                => baldry2012GAMAFieldCount
      procedure :: distanceMaximum           => baldry2012GAMADistanceMaximum
      procedure :: angularPowerMaximumDegree => baldry2012GAMAAngularPowerMaximumDegree
@@ -36,7 +38,8 @@
 
   interface surveyGeometryBaldry2012GAMA
      !% Constructors for the \cite{baldry_galaxy_2012} survey geometry class.
-     module procedure baldry2012GAMADefaultConstructor
+     module procedure baldry2012GAMAConstructorParameters
+     module procedure baldry2012GAMAConstructorInternal
   end interface surveyGeometryBaldry2012GAMA
 
   ! Number of fields.
@@ -47,23 +50,47 @@
 
 contains
 
-  function baldry2012GAMADefaultConstructor()
-    !% Default constructor for the \cite{baldry_galaxy_2012} conditional mass function class.
+  function baldry2012GAMAConstructorParameters(parameters) result (self)
+    !% Constructor for the \cite{baldry_galaxy_2012} conditional mass function class which takes a parameter set as input.
+    use Input_Parameters2
     use Cosmology_Functions
+    implicit none
+    type (surveyGeometryBaldry2012GAMA)                :: self
+    type (inputParameters             ), intent(inout) :: parameters
+    class(cosmologyFunctionsClass     ), pointer       :: cosmologyFunctions_
+    !# <inputParameterList label="allowedParameterNames" />
+
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    ! Build the object.
+    self=surveyGeometryBaldry2012GAMA(cosmologyFunctions_)
+    return
+  end function baldry2012GAMAConstructorParameters
+  
+  function baldry2012GAMAConstructorInternal(cosmologyFunctions_) result (self)
+    !% Internal constructor for the \cite{baldry_galaxy_2012} conditional mass function class.
     use Cosmology_Functions_Options
     implicit none
-    type            (surveyGeometryBaldry2012GAMA)            :: baldry2012GAMADefaultConstructor
-    class           (cosmologyFunctionsClass     ), pointer   :: cosmologyFunctions_
-    double precision                              , parameter :: redshiftMaximum                 =0.06d0
+    type            (surveyGeometryBaldry2012GAMA)                        :: self
+    class           (cosmologyFunctionsClass     ), intent(in   ), target :: cosmologyFunctions_
+    double precision                              , parameter             :: redshiftMaximum    =0.06d0
+    !# <constructorAssign variables="*cosmologyFunctions_"/>
 
-    cosmologyFunctions_                                      => cosmologyFunctions                         (                                             )
-    baldry2012GAMADefaultConstructor%distanceMaximumSurvey   =  cosmologyFunctions_%distanceComovingConvert(distanceTypeComoving,redshift=redshiftMaximum)
-    baldry2012GAMADefaultConstructor%solidAnglesInitialized  =.false.
-    baldry2012GAMADefaultConstructor%angularPowerInitialized =.false.
-    baldry2012GAMADefaultConstructor%windowInitialized       =.false.
+    call self%initialize()
+    self%distanceMaximumSurvey=self%cosmologyFunctions_%distanceComovingConvert(distanceTypeComoving,redshift=redshiftMaximum)
    return
-  end function baldry2012GAMADefaultConstructor
+  end function baldry2012GAMAConstructorInternal
 
+  subroutine baldry2012GAMADestructor(self)
+    !% Destructor for the ``baldry2012GAMA'' survey geometry class.
+    implicit none
+    type(surveyGeometryBaldry2012GAMA), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    return
+  end subroutine baldry2012GAMADestructor
+  
   integer function baldry2012GAMAFieldCount(self)
     !% Return the number of fields in this sample.
     implicit none

@@ -280,11 +280,12 @@ contains
              analysisActive=.false.
           else
              analysisActive=.true.
+             cosmologyFunctionsModel => cosmologyFunctions()
              ! Establish survey geometries.
              allocate(surveyGeometryFullSky :: blackHoleDistributionDescriptors(1)%geometry)
              select type (g => blackHoleDistributionDescriptors(1)%geometry)
              type is (surveyGeometryFullSky)
-                g=surveyGeometryFullSky(0.0d0,0.06d0)
+                g=surveyGeometryFullSky(0.0d0,0.06d0,cosmologyFunctionsModel)
              end select             
              ! Establish sample filters.
              allocate(galacticFilterAlways :: blackHoleDistributionDescriptors(1)%filter)
@@ -295,7 +296,6 @@ contains
              ! Initialize analyses.
              currentAnalysis=0
              allocate(blackHoleDistributions(activeAnalysisCount))
-             cosmologyFunctionsModel => cosmologyFunctions()
              do i=1,size(mergerTreeAnalyses)
                 do j=1,blackHoleDistributionsSupportedCount
                    if (mergerTreeAnalyses(i) == trim(blackHoleMassDistributionLabels(j))) then

@@ -267,17 +267,17 @@ contains
              analysisActive=.false.
           else
              analysisActive=.true.
+             cosmologyFunctionsModel => cosmologyFunctions()
              ! Establish survey geometries.
              allocate(surveyGeometryHearin2014SDSS :: correlationFunctionDescriptors(1)%geometry)
              select type (g => correlationFunctionDescriptors(1)%geometry)
              type is (surveyGeometryHearin2014SDSS)
-                g=surveyGeometryHearin2014SDSS()
+                g=surveyGeometryHearin2014SDSS(cosmologyFunctionsModel)
              end select
              ! Initialize correlation functions.
              currentAnalysis=0
              allocate(correlationFunctions(activeAnalysisCount))
-             cosmologyFunctionsModel => cosmologyFunctions()
-             linearGrowth_           => linearGrowth      ()
+             linearGrowth_ => linearGrowth()
              do i=1,size(mergerTreeAnalyses)
                 do j=1,correlationFunctionsSupportedCount
                    if (mergerTreeAnalyses(i) == trim(correlationFunctionLabels(j))) then

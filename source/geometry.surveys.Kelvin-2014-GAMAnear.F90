@@ -21,7 +21,6 @@
   !# <surveyGeometry name="surveyGeometryKelvin2014GAMAnear">
   !#  <description>Implements the geometry of the GAMAnear survey of \cite{kelvin_galaxy_2014-1}.</description>
   !# </surveyGeometry>
-
   use Galacticus_Input_Paths
 
   type, extends(surveyGeometryBaldry2012GAMA) :: surveyGeometryKelvin2014GAMAnear
@@ -33,32 +32,44 @@
 
   interface surveyGeometryKelvin2014GAMAnear
      !% Constructors for the \cite{kelvin_galaxy_2014-1} survey geometry class.
-     module procedure kelvin2014GAMAnearDefaultConstructor
+     module procedure kelvin2014GAMAnearConstructorParameters
+     module procedure kelvin2014GAMAnearConstructorInternal
   end interface surveyGeometryKelvin2014GAMAnear
 
 contains
 
-  function kelvin2014GAMAnearDefaultConstructor()
+  function kelvin2014GAMAnearConstructorParameters(parameters) result(self)
     !% Default constructor for the \cite{kelvin_galaxy_2014-1} conditional mass function class.
-    use Cosmology_Functions
+    use Input_Parameters2
+    implicit none
+    type (surveyGeometryKelvin2014GAMAnear)                :: self
+    type (inputParameters                 ), intent(inout) :: parameters
+    class(cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
+    !# <inputParameterList label="allowedParameterNames" />
+
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    ! Build the object.
+    self=surveyGeometryKelvin2014GAMAnear(cosmologyFunctions_)
+    return
+  end function kelvin2014GAMAnearConstructorParameters
+
+  function kelvin2014GAMAnearConstructorInternal(cosmologyFunctions_) result (self)
+    !% Internal constructor for the \cite{kelvin_galaxy_2014-1} conditional mass function class.
     use Cosmology_Functions_Options
     implicit none
-    type            (surveyGeometryKelvin2014GAMAnear)            :: kelvin2014GAMAnearDefaultConstructor
-    class           (cosmologyFunctionsClass         ), pointer   :: cosmologyFunctions_
-    double precision                                  , parameter :: redshiftMinimum                     =0.025d0
-    double precision                                  , parameter :: redshiftMaximum                     =0.060d0
+    type            (surveyGeometryKelvin2014GAMAnear)                        :: self
+    class           (cosmologyFunctionsClass         ), intent(in   ), target :: cosmologyFunctions_
+    double precision                                  , parameter             :: redshiftMinimum    =0.025d0
+    double precision                                  , parameter             :: redshiftMaximum    =0.060d0
+    !# <constructorAssign variables="*cosmologyFunctions_"/>
 
-    cosmologyFunctions_=> cosmologyFunctions()
-    kelvin2014GAMAnearDefaultConstructor%distanceMinimumSurvey   =  &
-         & cosmologyFunctions_%distanceComovingConvert(distanceTypeComoving,redshift=redshiftMinimum)
-    kelvin2014GAMAnearDefaultConstructor%distanceMaximumSurvey   =  &
-         & cosmologyFunctions_%distanceComovingConvert(distanceTypeComoving,redshift=redshiftMaximum)
-    ! Initialize state.
-    kelvin2014GAMAnearDefaultConstructor%solidAnglesInitialized  =.false.
-    kelvin2014GAMAnearDefaultConstructor%angularPowerInitialized =.false.
-    kelvin2014GAMAnearDefaultConstructor%windowInitialized       =.false.
-   return
-  end function kelvin2014GAMAnearDefaultConstructor
+    call self%initialize()
+    self%distanceMinimumSurvey=self%cosmologyFunctions_%distanceComovingConvert(distanceTypeComoving,redshift=redshiftMinimum)
+    self%distanceMaximumSurvey=self%cosmologyFunctions_%distanceComovingConvert(distanceTypeComoving,redshift=redshiftMaximum)
+    return
+  end function kelvin2014GAMAnearConstructorInternal
 
   double precision function kelvin2014GAMAnearDistanceMinimum(self,mass,field)
     !% Compute the minimum distance at which a galaxy is included in the survey.

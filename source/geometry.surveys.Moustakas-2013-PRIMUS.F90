@@ -18,15 +18,17 @@
 
 !% Implements the geometry of the PRIMUS survey used by \cite{moustakas_primus:_2013}.
   
+  use Galacticus_Input_Paths
+  use Cosmology_Functions
+
   !# <surveyGeometry name="surveyGeometryMoustakas2013PRIMUS">
   !#  <description>Implements the geometry of the PRIMUS survey of \cite{moustakas_primus:_2013}.</description>
   !# </surveyGeometry>
-
-  use Galacticus_Input_Paths
-
   type, extends(surveyGeometryMangle) :: surveyGeometryMoustakas2013PRIMUS
-     double precision :: binDistanceMinimum, binDistanceMaximum
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     double precision                                   :: binDistanceMinimum , binDistanceMaximum
    contains
+     final     ::                              moustakas2013PRIMUSDestructor
      procedure :: fieldCount                => moustakas2013PRIMUSFieldCount
      procedure :: distanceMinimum           => moustakas2013PRIMUSDistanceMinimum
      procedure :: distanceMaximum           => moustakas2013PRIMUSDistanceMaximum
@@ -38,60 +40,54 @@
 
   interface surveyGeometryMoustakas2013PRIMUS
      !% Constructors for the \cite{moustakas_primus:_2013} survey geometry class.
-     module procedure moustakas2013PRIMUSConstructor
-     module procedure moustakas2013PRIMUSDefaultConstructor
+     module procedure moustakas2013PRIMUSConstructorParameters
+     module procedure moustakas2013PRIMUSConstructorInternal
   end interface surveyGeometryMoustakas2013PRIMUS
 
-  ! Paths and file names for mangle polygon files.
-  integer, parameter :: moustakas2013PRIMUSFields        =5
-  logical            :: moustakas2013PRIMUSBinInitialized=.false.
-  integer            :: moustakas2013PRIMUSRedshiftBin
+  ! Number of fields.
+  integer, parameter :: moustakas2013PRIMUSFields        =    5
 
   ! Angular power spectra.
   integer, parameter :: moustaskas2013AngularPowerMaximumL=3000
 
 contains
 
-  function moustakas2013PRIMUSDefaultConstructor()
+  function moustakas2013PRIMUSConstructorParameters(parameters) result(self)
     !% Default constructor for the \cite{moustakas_primus:_2013} conditional mass function class.
-    use Input_Parameters
+    use Input_Parameters2
     implicit none
-    type(surveyGeometryMoustakas2013PRIMUS) :: moustakas2013PRIMUSDefaultConstructor
+    type   (surveyGeometryMoustakas2013PRIMUS)                :: self
+    type   (inputParameters                  ), intent(inout) :: parameters
+    class  (cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
+    integer                                                   :: redshiftBin
+    !# <inputParameterList label="allowedParameterNames" />
+ 
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !# <inputParameter>
+    !#   <name>redshiftBin</name>
+    !#   <source>parameters</source>
+    !#   <description>The redshift bin (0, 1, 2, 3, 4, 5, or 5) of the \cite{moustakas_primus:_2013} mass function to use.</description>
+    !#   <type>integer</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    self=surveyGeometryMoustakas2013PRIMUS(redshiftBin,cosmologyFunctions_)
+    return
+  end function moustakas2013PRIMUSConstructorParameters
 
-    if (.not.moustakas2013PRIMUSBinInitialized) then
-       !$omp critical(moustakas2013PRIMUSBinInitialize)
-       if (.not.moustakas2013PRIMUSBinInitialized) then
-          ! Get the redshift bin to use.
-          !@ <inputParameter>
-          !@   <name>moustakas2013PRIMUSRedshiftBin</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The redshift bin (0, 1, 2, 3, 4, 5, or 6) of the \cite{moustakas_primus:_2013} mass function to use.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>starFormation</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('moustakas2013PRIMUSRedshiftBin',moustakas2013PRIMUSRedshiftBin)
-          moustakas2013PRIMUSBinInitialized=.true.
-       end if
-       !$omp end critical(moustakas2013PRIMUSBinInitialize)
-    end if
-    moustakas2013PRIMUSDefaultConstructor=moustakas2013PRIMUSConstructor(moustakas2013PRIMUSRedshiftBin)
-   return
-  end function moustakas2013PRIMUSDefaultConstructor
-
-  function moustakas2013PRIMUSConstructor(redshiftBin)
+  function moustakas2013PRIMUSConstructorInternal(redshiftBin,cosmologyFunctions_) result(self)
     !% Generic constructor for the \cite{moustakas_primus:_2013} mass function class.
     use Galacticus_Error
     use Input_Parameters
     use Cosmology_Functions
     use Cosmology_Functions_Options
     implicit none
-    type            (surveyGeometryMoustakas2013PRIMUS)                :: moustakas2013PRIMUSConstructor
-    integer                                            , intent(in   ) :: redshiftBin
-    class           (cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
-    double precision                                                   :: redshiftMinimum               , redshiftMaximum
+    type            (surveyGeometryMoustakas2013PRIMUS)                        :: self
+    integer                                            , intent(in   )         :: redshiftBin
+    class           (cosmologyFunctionsClass          ), intent(in   ), target :: cosmologyFunctions_
+    double precision                                                           :: redshiftMinimum    , redshiftMaximum
+    !# <constructorAssign variables="*cosmologyFunctions_"/>
 
     ! Find distance limits for this redshift bin.
     select case (redshiftBin)
@@ -117,24 +113,30 @@ contains
        redshiftMinimum=0.80d0
        redshiftMaximum=1.00d0
     case default
-       call Galacticus_Error_Report('moustakas2013PRIMUSConstructor','0≤redshiftBin≤6 is required')
+       call Galacticus_Error_Report('moustakas2013PRIMUSConstructorInternal','0≤redshiftBin≤6 is required')
     end select
-    cosmologyFunctions_ => cosmologyFunctions()
-    moustakas2013PRIMUSConstructor%binDistanceMinimum                                     &
-         & =cosmologyFunctions_%distanceComovingConvert(                                  &
-         &                                                 output  =distanceTypeComoving, &
-         &                                                 redshift=redshiftMinimum       &
-         &                                                )
-    moustakas2013PRIMUSConstructor%binDistanceMaximum                                     &
-         & =cosmologyFunctions_%distanceComovingConvert(                                  &
-         &                                                 output  =distanceTypeComoving, &
-         &                                                 redshift=redshiftMaximum       &
-         &                                                )
-    moustakas2013PRIMUSConstructor%solidAnglesInitialized =.false.
-    moustakas2013PRIMUSConstructor%angularPowerInitialized=.false.
-    moustakas2013PRIMUSConstructor%windowInitialized      =.false.
+    self%binDistanceMinimum                                                                 &
+         & =self%cosmologyFunctions_%distanceComovingConvert(                               &
+         &                                                   output  =distanceTypeComoving, &
+         &                                                   redshift=redshiftMinimum       &
+         &                                                  )
+    self%binDistanceMaximum                                                                 &
+         & =self%cosmologyFunctions_%distanceComovingConvert(                               &
+         &                                                   output  =distanceTypeComoving, &
+         &                                                   redshift=redshiftMaximum       &
+         &                                                  )
+    call self%initialize()
     return
-  end function moustakas2013PRIMUSConstructor
+  end function moustakas2013PRIMUSConstructorInternal
+  
+  subroutine moustakas2013PRIMUSDestructor(self)
+    !% Destructor for the ``moustakas2013PRIMUS'' survey geometry class.
+    implicit none
+    type(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
+    
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    return
+  end subroutine moustakas2013PRIMUSDestructor
   
   integer function moustakas2013PRIMUSFieldCount(self)
     !% Return the number of fields in this sample.

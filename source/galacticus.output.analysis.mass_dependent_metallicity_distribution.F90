@@ -351,16 +351,17 @@ contains
              analysisActive=.false.
           else
              analysisActive=.true.
+             cosmologyFunctionsModel => cosmologyFunctions()
              ! Establish survey geometries.
              allocate(surveyGeometryLiWhite2009SDSS :: metallicityDistributionDescriptors(1)%geometry)
              select type (g => metallicityDistributionDescriptors(1)%geometry)
              type is (surveyGeometryLiWhite2009SDSS)
-                g=surveyGeometryLiWhite2009SDSS(               )
+                g=surveyGeometryLiWhite2009SDSS(0.0d0,huge(0.0d0),cosmologyFunctionsModel)
              end select             
              allocate(surveyGeometryLiWhite2009SDSS :: metallicityDistributionDescriptors(2)%geometry)
              select type (g => metallicityDistributionDescriptors(2)%geometry)
              type is (surveyGeometryLiWhite2009SDSS)
-                g=surveyGeometryLiWhite2009SDSS(0.020d0,0.250d0)
+                g=surveyGeometryLiWhite2009SDSS(0.020d0,0.250d0,cosmologyFunctionsModel)
              end select
              ! Establish sample filters.
              allocate(galacticFilterAlways            :: metallicityDistributionDescriptors(1)%filter)
@@ -376,7 +377,6 @@ contains
              ! Initialize analyses.
              currentAnalysis=0
              allocate(metallicityDistributions(activeAnalysisCount))
-             cosmologyFunctionsModel => cosmologyFunctions()
              do i=1,size(mergerTreeAnalyses)
                 do j=1,metallicityDistributionsSupportedCount
                    if (mergerTreeAnalyses(i) == trim(metallicityDistributionLabels(j))) then

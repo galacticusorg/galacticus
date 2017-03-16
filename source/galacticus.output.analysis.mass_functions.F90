@@ -706,6 +706,7 @@ contains
     class           (nodeComponentBasic            )               , pointer        :: basic
     double precision                                , allocatable  , dimension(:  ) :: randomError, randomErrorWeight
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
+    type            (cosmologyParametersClass      )               , pointer        :: cosmologyParametersModel
     double precision                                , parameter                     :: massBufferFactor              =100.0d+0 ! Multiplicative buffer size in mass to add below/above observed masses.
     integer         (c_size_t                      )                                :: jOutput
     integer                                                                         :: currentAnalysis,activeAnalysisCount,haloMassBin,iError
@@ -923,6 +924,8 @@ contains
              analysisActive=.false.
           else
              analysisActive=.true.
+             cosmologyFunctionsModel  => cosmologyFunctions ()
+             cosmologyParametersModel => cosmologyParameters()
              ! Establish survey geometries.
              allocate(surveyGeometryLiWhite2009SDSS      :: massFunctionDescriptors( 1)%geometry)
              allocate(surveyGeometryBernardi2013SDSS     :: massFunctionDescriptors( 2)%geometry)
@@ -957,132 +960,131 @@ contains
              allocate(surveyGeometryMuzzin2013ULTRAVISTA :: massFunctionDescriptors(31)%geometry)
              select type (g => massFunctionDescriptors( 1)%geometry)
              type is (surveyGeometryLiWhite2009SDSS    )
-                g=surveyGeometryLiWhite2009SDSS    ( )
+                g=surveyGeometryLiWhite2009SDSS     (0.0d0,huge(1.0d0),cosmologyFunctionsModel )
              end select
              select type (g => massFunctionDescriptors( 2)%geometry)
              type is (surveyGeometryBernardi2013SDSS   )
-                g=surveyGeometryBernardi2013SDSS   ( )
+                g=surveyGeometryBernardi2013SDSS    (                                          )
              end select
              select type (g => massFunctionDescriptors( 3)%geometry)
              type is (surveyGeometryBaldry2012GAMA     )
-                g=surveyGeometryBaldry2012GAMA     ( )
+                g=surveyGeometryBaldry2012GAMA      (                  cosmologyFunctionsModel )
              end select
              select type (g => massFunctionDescriptors( 4)%geometry)
              type is (surveyGeometryMartin2010ALFALFA  )
-                g=surveyGeometryMartin2010ALFALFA  ( )
+                g=surveyGeometryMartin2010ALFALFA   (                  cosmologyParametersModel)
              end select
              select type (g => massFunctionDescriptors( 5)%geometry)
              type is (surveyGeometryMoustakas2013PRIMUS)
-                g=surveyGeometryMoustakas2013PRIMUS(0)
+                g=surveyGeometryMoustakas2013PRIMUS (0                ,cosmologyFunctionsModel )
              end select
              select type (g => massFunctionDescriptors( 6)%geometry)
              type is (surveyGeometryMoustakas2013PRIMUS)
-                g=surveyGeometryMoustakas2013PRIMUS(1)
+                g=surveyGeometryMoustakas2013PRIMUS (1                ,cosmologyFunctionsModel )
              end select
              select type (g => massFunctionDescriptors( 7)%geometry)
              type is (surveyGeometryMoustakas2013PRIMUS)
-                g=surveyGeometryMoustakas2013PRIMUS(2)
+                g=surveyGeometryMoustakas2013PRIMUS (2                ,cosmologyFunctionsModel )
              end select
              select type (g => massFunctionDescriptors( 8)%geometry)
              type is (surveyGeometryMoustakas2013PRIMUS)
-                g=surveyGeometryMoustakas2013PRIMUS(3)
+                g=surveyGeometryMoustakas2013PRIMUS (3                ,cosmologyFunctionsModel )
              end select
              select type (g => massFunctionDescriptors( 9)%geometry)
              type is (surveyGeometryMoustakas2013PRIMUS)
-                g=surveyGeometryMoustakas2013PRIMUS(4)
+                g=surveyGeometryMoustakas2013PRIMUS (4                ,cosmologyFunctionsModel )
              end select
              select type (g => massFunctionDescriptors(10)%geometry)
              type is (surveyGeometryMoustakas2013PRIMUS)
-                g=surveyGeometryMoustakas2013PRIMUS(5)
+                g=surveyGeometryMoustakas2013PRIMUS (5                ,cosmologyFunctionsModel )
              end select
              select type (g => massFunctionDescriptors(11)%geometry)
              type is (surveyGeometryDavidzon2013VIPERS )
-                g=surveyGeometryDavidzon2013VIPERS (0)
+                g=surveyGeometryDavidzon2013VIPERS  (0                ,cosmologyFunctionsModel )
              end select
              select type (g => massFunctionDescriptors(12)%geometry)
              type is (surveyGeometryDavidzon2013VIPERS )
-                g=surveyGeometryDavidzon2013VIPERS (1)
+                g=surveyGeometryDavidzon2013VIPERS  (1                ,cosmologyFunctionsModel )
              end select
              select type (g => massFunctionDescriptors(13)%geometry)
              type is (surveyGeometryDavidzon2013VIPERS )
-                g=surveyGeometryDavidzon2013VIPERS (2)
+                g=surveyGeometryDavidzon2013VIPERS  (2                ,cosmologyFunctionsModel )
              end select
              select type (g => massFunctionDescriptors(14)%geometry)
              type is (surveyGeometryCaputi2011UKIDSSUDS)
-                g=surveyGeometryCaputi2011UKIDSSUDS(0)
+                g=surveyGeometryCaputi2011UKIDSSUDS (0                ,cosmologyFunctionsModel )
              end select
              select type (g => massFunctionDescriptors(15)%geometry)
              type is (surveyGeometryCaputi2011UKIDSSUDS)
-                g=surveyGeometryCaputi2011UKIDSSUDS(1)
+                g=surveyGeometryCaputi2011UKIDSSUDS (1                ,cosmologyFunctionsModel )
              end select
              select type (g => massFunctionDescriptors(16)%geometry)
              type is (surveyGeometryCaputi2011UKIDSSUDS)
-                g=surveyGeometryCaputi2011UKIDSSUDS(2)
+                g=surveyGeometryCaputi2011UKIDSSUDS (2                ,cosmologyFunctionsModel )
              end select
              select type (g => massFunctionDescriptors(17)%geometry)
              type is (surveyGeometryTomczak2014ZFOURGE)
-                g=surveyGeometryTomczak2014ZFOURGE(0)
+                g=surveyGeometryTomczak2014ZFOURGE  (0                ,cosmologyFunctionsModel )
              end select
              select type (g => massFunctionDescriptors(18)%geometry)
              type is (surveyGeometryTomczak2014ZFOURGE)
-                g=surveyGeometryTomczak2014ZFOURGE(1)
+                g=surveyGeometryTomczak2014ZFOURGE  (1                ,cosmologyFunctionsModel )
              end select
              select type (g => massFunctionDescriptors(19)%geometry)
              type is (surveyGeometryTomczak2014ZFOURGE)
-                g=surveyGeometryTomczak2014ZFOURGE(2)
+                g=surveyGeometryTomczak2014ZFOURGE  (2                ,cosmologyFunctionsModel )
              end select
              select type (g => massFunctionDescriptors(20)%geometry)
              type is (surveyGeometryTomczak2014ZFOURGE)
-                g=surveyGeometryTomczak2014ZFOURGE(3)
+                g=surveyGeometryTomczak2014ZFOURGE  (3                ,cosmologyFunctionsModel )
              end select
              select type (g => massFunctionDescriptors(21)%geometry)
              type is (surveyGeometryTomczak2014ZFOURGE)
-                g=surveyGeometryTomczak2014ZFOURGE(4)
+                g=surveyGeometryTomczak2014ZFOURGE  (4                ,cosmologyFunctionsModel )
              end select
              select type (g => massFunctionDescriptors(22)%geometry)
              type is (surveyGeometryTomczak2014ZFOURGE)
-                g=surveyGeometryTomczak2014ZFOURGE(5)
+                g=surveyGeometryTomczak2014ZFOURGE  (5                ,cosmologyFunctionsModel )
              end select
              select type (g => massFunctionDescriptors(23)%geometry)
              type is (surveyGeometryTomczak2014ZFOURGE)
-                g=surveyGeometryTomczak2014ZFOURGE(6)
+                g=surveyGeometryTomczak2014ZFOURGE  (6                ,cosmologyFunctionsModel )
              end select
              select type (g => massFunctionDescriptors(24)%geometry)
              type is (surveyGeometryTomczak2014ZFOURGE)
-                g=surveyGeometryTomczak2014ZFOURGE(7)
+                g=surveyGeometryTomczak2014ZFOURGE  (7                ,cosmologyFunctionsModel )
              end select
              select type (g => massFunctionDescriptors(25)%geometry)
              type is (surveyGeometryMuzzin2013ULTRAVISTA)
-                g=surveyGeometryMuzzin2013ULTRAVISTA(0)
+                g=surveyGeometryMuzzin2013ULTRAVISTA(0                ,cosmologyFunctionsModel )
              end select
              select type (g => massFunctionDescriptors(26)%geometry)
              type is (surveyGeometryMuzzin2013ULTRAVISTA)
-                g=surveyGeometryMuzzin2013ULTRAVISTA(1)
+                g=surveyGeometryMuzzin2013ULTRAVISTA(1                ,cosmologyFunctionsModel )
              end select
              select type (g => massFunctionDescriptors(27)%geometry)
              type is (surveyGeometryMuzzin2013ULTRAVISTA)
-                g=surveyGeometryMuzzin2013ULTRAVISTA(2)
+                g=surveyGeometryMuzzin2013ULTRAVISTA(2                ,cosmologyFunctionsModel )
              end select
              select type (g => massFunctionDescriptors(28)%geometry)
              type is (surveyGeometryMuzzin2013ULTRAVISTA)
-                g=surveyGeometryMuzzin2013ULTRAVISTA(3)
+                g=surveyGeometryMuzzin2013ULTRAVISTA(3                ,cosmologyFunctionsModel )
              end select
              select type (g => massFunctionDescriptors(29)%geometry)
              type is (surveyGeometryMuzzin2013ULTRAVISTA)
-                g=surveyGeometryMuzzin2013ULTRAVISTA(4)
+                g=surveyGeometryMuzzin2013ULTRAVISTA(4                ,cosmologyFunctionsModel )
              end select
              select type (g => massFunctionDescriptors(30)%geometry)
              type is (surveyGeometryMuzzin2013ULTRAVISTA)
-                g=surveyGeometryMuzzin2013ULTRAVISTA(5)
+                g=surveyGeometryMuzzin2013ULTRAVISTA(5                ,cosmologyFunctionsModel )
              end select
              select type (g => massFunctionDescriptors(31)%geometry)
              type is (surveyGeometryMuzzin2013ULTRAVISTA)
-                g=surveyGeometryMuzzin2013ULTRAVISTA(6)
+                g=surveyGeometryMuzzin2013ULTRAVISTA(6                ,cosmologyFunctionsModel )
              end select
              ! Initialize analyses.
              currentAnalysis=0
              allocate(massFunctions(activeAnalysisCount))
-             cosmologyFunctionsModel => cosmologyFunctions()
              do i=1,size(mergerTreeAnalyses)
                 do j=1,massFunctionsSupportedCount
                    if (mergerTreeAnalyses(i) == trim(massFunctionLabels(j))) then
@@ -2053,11 +2055,13 @@ contains
     double precision                                                                              :: logMass                , redshift
     integer                                                                                       :: i
 
+    ! Get cosmology functions.
+    cosmologyFunctions_ => cosmologyFunctions()
     ! Compute field weights if necessary.
     if (.not.weightsComputed) then
        !$omp critical(Mass_Error_PRIMUS_Stellar_Mass_Function_Weights)
        if (.not.weightsComputed) then
-          primusGeometry=surveyGeometryMoustakas2013PRIMUS(1) ! Choice of redshift bin is irrelevant.
+          primusGeometry=surveyGeometryMoustakas2013PRIMUS(1,cosmologyFunctions_) ! Choice of redshift bin is irrelevant.
           call allocateArray(fieldWeight,[primusGeometry%fieldCount()])
           do i=1,primusGeometry%fieldCount()
              fieldWeight(i)=primusGeometry%solidAngle(i)
@@ -2072,8 +2076,7 @@ contains
     ! Get the logarithmic mass.
     logMass=log10(mass)
     ! Get the redshift.
-    cosmologyFunctions_ => cosmologyFunctions()
-    basic           => node%basic    ()
+    basic   => node%basic()
     redshift=                                                             &
          & cosmologyFunctions_ %redshiftFromExpansionFactor(              &
          &  cosmologyFunctions_%expansionFactor             (             &

@@ -18,61 +18,101 @@
 
 !% Implements the survey geometry of the SDSS sample used by \cite{li_distribution_2009}.
 
+  use Cosmology_Functions
+
   !# <surveyGeometry name="surveyGeometryLiWhite2009SDSS">
   !#  <description>Implements the survey geometry of the SDSS sample used by \cite{li_distribution_2009}.</description>
   !# </surveyGeometry>
-
   type, extends(surveyGeometryRandomPoints) :: surveyGeometryLiWhite2009SDSS
-     double precision :: limitDistanceMinimum, limitDistanceMaximum
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     double precision                                   :: redshiftMinimum     , redshiftMaximum
+     double precision                                   :: limitDistanceMinimum, limitDistanceMaximum
    contains
+     final     ::                      liWhite2009SDSSDestructor
      procedure :: distanceMinimum   => liWhite2009SDSSDistanceMinimum
      procedure :: distanceMaximum   => liWhite2009SDSSDistanceMaximum
      procedure :: solidAngle        => liWhite2009SDSSSolidAngle
      procedure :: randomsInitialize => liWhite2009SDSSRandomsInitialize
+     procedure :: descriptor        => liWhite2009SDSSDescriptor
   end type surveyGeometryLiWhite2009SDSS
 
   interface surveyGeometryLiWhite2009SDSS
      !% Constructors for the \cite{li_distribution_2009} survey geometry class.
-     module procedure liWhite2009SDSSDefaultConstructor
-     module procedure liWhite2009SDSSRedshiftConstructor
+     module procedure liWhite2009SDSSConstructorParameters
+     module procedure liWhite2009SDSSConstructorInternal
   end interface surveyGeometryLiWhite2009SDSS
 
 contains
 
-  function liWhite2009SDSSDefaultConstructor()
-    !% Default constructor for the \cite{li_distribution_2009} survey geometry class.
-    use Input_Parameters
+  function liWhite2009SDSSConstructorParameters(parameters) result(self)
+    !% Constructor for the \cite{li_distribution_2009} survey geometry class which takes a parameter set as input.
+    use Input_Parameters2
     implicit none
-    type(surveyGeometryLiWhite2009SDSS) :: liWhite2009SDSSDefaultConstructor
+    type            (surveyGeometryLiWhite2009SDSS)                :: self
+    type            (inputParameters              ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
+    double precision                                               :: redshiftMinimum    , redshiftMaximum
+    !# <inputParameterList label="allowedParameterNames" />
 
-    liWhite2009SDSSDefaultConstructor%geometryInitialized =.false.
-    liWhite2009SDSSDefaultConstructor%limitDistanceMinimum=     0.0d0
-    liWhite2009SDSSDefaultConstructor%limitDistanceMaximum=huge(0.0d0)
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !# <inputParameter>
+    !#   <name>redshiftMinimum</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>The minimum redshift for the survey.</description>
+    !#   <type>integer</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>redshiftMaximum</name>
+    !#   <defaultValue>huge(1.0d0)</defaultValue>
+    !#   <source>parameters</source>
+    !#   <description>The maximum redshift for the survey.</description>
+    !#   <type>integer</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>    
+    ! Build the object.
+    self=surveyGeometryLiWhite2009SDSS(redshiftMinimum,redshiftMaximum,cosmologyFunctions_)
     return
-  end function liWhite2009SDSSDefaultConstructor
+  end function liWhite2009SDSSConstructorParameters
 
-  function liWhite2009SDSSRedshiftConstructor(redshiftMinimum,redshiftMaximum)
+  function liWhite2009SDSSConstructorInternal(redshiftMinimum,redshiftMaximum,cosmologyFunctions_) result(self)
     !% Constructor for the \cite{li_distribution_2009} survey geometry class which allows specification of minimum and maximum redshifts.
     use Cosmology_Functions
     use Cosmology_Functions_Options
     implicit none
-    type            (surveyGeometryLiWhite2009SDSS)                :: liWhite2009SDSSRedshiftConstructor
-    double precision                               , intent(in   ) :: redshiftMinimum                  , redshiftMaximum
-    class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
-    
-    cosmologyFunctions_                                     => cosmologyFunctions()     
-    liWhite2009SDSSRedshiftConstructor%geometryInitialized  =  .false.
-    liWhite2009SDSSRedshiftConstructor%limitDistanceMinimum =  cosmologyFunctions_%distanceComovingConvert(                               &
-         &                                                                                                 output  =distanceTypeComoving, &
-         &                                                                                                 redshift=redshiftMinimum       &
-         &                                                                                                )
-    liWhite2009SDSSRedshiftConstructor%limitDistanceMaximum =  cosmologyFunctions_%distanceComovingConvert(                               &
-         &                                                                                                 output  =distanceTypeComoving, &
-         &                                                                                                 redshift=redshiftMaximum       &
-         &                                                                                                )
-    return
-  end function liWhite2009SDSSRedshiftConstructor
+    type            (surveyGeometryLiWhite2009SDSS)                        :: self
+    double precision                               , intent(in   )         :: redshiftMinimum    , redshiftMaximum
+    class           (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
+    !# <constructorAssign variables="*cosmologyFunctions_, redshiftMinimum, redshiftMaximum"/>
 
+    self   %geometryInitialized =.false.
+    self   %limitDistanceMinimum=self%cosmologyFunctions_%distanceComovingConvert(                               &
+         &                                                                        output  =distanceTypeComoving, &
+         &                                                                        redshift=redshiftMinimum       &
+         &                                                                       )
+    if (redshiftMaximum < huge(1.0d0)) then
+       self%limitDistanceMaximum=self%cosmologyFunctions_%distanceComovingConvert(                               &
+            &                                                                     output  =distanceTypeComoving, &
+            &                                                                     redshift=redshiftMaximum       &
+            &                                                                    )
+    else
+       self%limitDistanceMaximum=huge(1.0d0)
+    end if
+    return
+  end function liWhite2009SDSSConstructorInternal
+
+  subroutine liWhite2009SDSSDestructor(self)
+    !% Destructor for the ``liWhite2009SDSS'' survey geometry class.
+    implicit none
+    type(surveyGeometryLiWhite2009SDSS), intent(inout) :: self
+    
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    return
+  end subroutine liWhite2009SDSSDestructor
+  
   double precision function liWhite2009SDSSDistanceMinimum(self,mass,field)
     !% Compute the minimum distance at which a galaxy is visible.
     implicit none
@@ -209,3 +249,23 @@ contains
     call Galacticus_Display_Message(message)
     return
   end subroutine liWhite2009SDSSRandomsInitialize
+
+  subroutine liWhite2009SDSSDescriptor(self,descriptor)
+    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
+    use Input_Parameters2
+    use FoX_DOM
+    implicit none
+    class    (surveyGeometryLiWhite2009SDSS), intent(inout) :: self
+    type     (inputParameters              ), intent(inout) :: descriptor
+    type     (inputParameters              )                :: subParameters
+    character(len=10                       )                :: parameterLabel
+
+    call descriptor%addParameter("surveyGeometryMethod","liWhite2009SDSS")
+    subParameters=descriptor%subparameters("surveyGeometryMethod")
+    write (parameterLabel,'(f10.6)') self%redshiftMinimum
+    call subParameters%addParameter("redshiftMinimum",trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(f10.6)') self%redshiftMaximum
+    call subParameters%addParameter("redshiftMaximum",trim(adjustl(parameterLabel)))
+    call self%cosmologyFunctions_%descriptor(subParameters)    
+    return
+  end subroutine liWhite2009SDSSDescriptor

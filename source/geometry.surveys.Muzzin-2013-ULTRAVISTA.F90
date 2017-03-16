@@ -18,16 +18,18 @@
 
 !% Implements the geometry of the ULTRAVISTA survey used by \cite{muzzin_evolution_2013}.
   
+  use Galacticus_Input_Paths
+  use Cosmology_Functions
+
   !# <surveyGeometry name="surveyGeometryMuzzin2013ULTRAVISTA">
   !#  <description>Implements the geometry of the ULTRAVISTA survey of \cite{muzzin_evolution_2013}.</description>
   !# </surveyGeometry>
-
-  use Galacticus_Input_Paths
-
   type, extends(surveyGeometryMangle) :: surveyGeometryMuzzin2013ULTRAVISTA
-     integer          :: redshiftBin
-     double precision :: binDistanceMinimum, binDistanceMaximum
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     integer                                            :: redshiftBin
+     double precision                                   :: binDistanceMinimum , binDistanceMaximum
    contains
+     final     ::                              muzzin2013ULTRAVISTADestructor
      procedure :: fieldCount                => muzzin2013ULTRAVISTAFieldCount
      procedure :: distanceMinimum           => muzzin2013ULTRAVISTADistanceMinimum
      procedure :: distanceMaximum           => muzzin2013ULTRAVISTADistanceMaximum
@@ -39,62 +41,54 @@
 
   interface surveyGeometryMuzzin2013ULTRAVISTA
      !% Constructors for the \cite{muzzin_evolution_2013} survey geometry class.
-     module procedure muzzin2013ULTRAVISTAConstructor
-     module procedure muzzin2013ULTRAVISTADefaultConstructor
+     module procedure muzzin2013ULTRAVISTAConstructorParameters
+     module procedure muzzin2013ULTRAVISTAConstructorInternal
   end interface surveyGeometryMuzzin2013ULTRAVISTA
 
   ! Paths and file names for mangle polygon files.
-  integer, parameter :: muzzin2013ULTRAVISTAFields        =1
-  logical            :: muzzin2013ULTRAVISTABinInitialized=.false.
-  integer            :: muzzin2013ULTRAVISTARedshiftBin
+  integer, parameter :: muzzin2013ULTRAVISTAFields    =   1
 
   ! Angular power spectra.
   integer, parameter :: muzzin2013AngularPowerMaximumL=3600
 
 contains
 
-  function muzzin2013ULTRAVISTADefaultConstructor()
+  function muzzin2013ULTRAVISTAConstructorParameters(parameters) result(self)
     !% Default constructor for the \cite{muzzin_evolution_2013} conditional mass function class.
-    use Input_Parameters
+    use Input_Parameters2
     implicit none
-    type(surveyGeometryMuzzin2013ULTRAVISTA) :: muzzin2013ULTRAVISTADefaultConstructor
+    type(surveyGeometryMuzzin2013ULTRAVISTA) :: self
+    type   (inputParameters                 ), intent(inout) :: parameters
+    class  (cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
+    integer                                                  :: redshiftBin
+    !# <inputParameterList label="allowedParameterNames" />
+    
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !# <inputParameter>
+    !#   <name>redshiftBin</name>
+    !#   <source>parameters</source>
+    !#   <description>The redshift bin (0, 1, 2, 3, 4, 5, or 6) of the \cite{muzzin_evolution_2013} mass function to use.</description>
+    !#   <type>integer</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    self=surveyGeometryMuzzin2013ULTRAVISTA(redshiftBin,cosmologyFunctions_)
+    return
+  end function muzzin2013ULTRAVISTAConstructorParameters
 
-    if (.not.muzzin2013ULTRAVISTABinInitialized) then
-       !$omp critical(muzzin2013ULTRAVISTABinInitialize)
-       if (.not.muzzin2013ULTRAVISTABinInitialized) then
-          ! Get the redshift bin to use.
-          !@ <inputParameter>
-          !@   <name>muzzin2013ULTRAVISTARedshiftBin</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The redshift bin (0, 1, 2, 3, 4, 5, 6) of the \cite{muzzin_evolution_2013} mass function to use.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('muzzin2013ULTRAVISTARedshiftBin',muzzin2013ULTRAVISTARedshiftBin)
-          muzzin2013ULTRAVISTABinInitialized=.true.
-       end if
-       !$omp end critical(muzzin2013ULTRAVISTABinInitialize)
-    end if
-    muzzin2013ULTRAVISTADefaultConstructor=muzzin2013ULTRAVISTAConstructor(muzzin2013ULTRAVISTARedshiftBin)
-   return
-  end function muzzin2013ULTRAVISTADefaultConstructor
-
-  function muzzin2013ULTRAVISTAConstructor(redshiftBin)
-    !% Generic constructor for the \cite{muzzin_evolution_2013} mass function class.
+  function muzzin2013ULTRAVISTAConstructorInternal(redshiftBin,cosmologyFunctions_) result(self)
+    !% Internal constructor for the \cite{muzzin_evolution_2013} mass function class.
     use Galacticus_Error
-    use Input_Parameters
-    use Cosmology_Functions
     use Cosmology_Functions_Options
     implicit none
-    type            (surveyGeometryMuzzin2013ULTRAVISTA)                :: muzzin2013ULTRAVISTAConstructor
-    integer                                             , intent(in   ) :: redshiftBin
-    class           (cosmologyFunctionsClass           ), pointer       :: cosmologyFunctions_
-    double precision                                                    :: redshiftMinimum               , redshiftMaximum
+    type            (surveyGeometryMuzzin2013ULTRAVISTA)                        :: self
+    integer                                             , intent(in   )         :: redshiftBin
+    class           (cosmologyFunctionsClass           ), intent(in   ), target :: cosmologyFunctions_
+    double precision                                                            :: redshiftMinimum    , redshiftMaximum
+    !# <constructorAssign variables="redshiftBin, *cosmologyFunctions_"/>
 
     ! Find distance limits for this redshift bin.
-    muzzin2013ULTRAVISTAConstructor%redshiftBin=redshiftBin
     select case (redshiftBin)
     case(0)
        redshiftMinimum=0.20d0
@@ -117,26 +111,31 @@ contains
     case(6)
        redshiftMinimum=3.00d0
        redshiftMaximum=4.00d0
- 
     case default
-       call Galacticus_Error_Report('muzzin2013ULTRAVISTAConstructor','0≤redshiftBin≤6 is required')
+       call Galacticus_Error_Report('muzzin2013ULTRAVISTAConstructorInternal','0≤redshiftBin≤6 is required')
     end select
-    cosmologyFunctions_ => cosmologyFunctions()
-    muzzin2013ULTRAVISTAConstructor%binDistanceMinimum                                 &
-         & =cosmologyFunctions_%distanceComovingConvert(                               &
-         &                                              output  =distanceTypeComoving, &
-         &                                              redshift=redshiftMinimum       &
-         &                                             )
-    muzzin2013ULTRAVISTAConstructor%binDistanceMaximum                                 &
-         & =cosmologyFunctions_%distanceComovingConvert(                               &
-         &                                              output  =distanceTypeComoving, &
-         &                                              redshift=redshiftMaximum       &
-         &                                             )
-    muzzin2013ULTRAVISTAConstructor%solidAnglesInitialized =.false.
-    muzzin2013ULTRAVISTAConstructor%angularPowerInitialized=.false.
-    muzzin2013ULTRAVISTAConstructor%windowInitialized      =.false.
+    self%binDistanceMinimum                                                                 &
+         & =self%cosmologyFunctions_%distanceComovingConvert(                               &
+         &                                                   output  =distanceTypeComoving, &
+         &                                                   redshift=redshiftMinimum       &
+         &                                                  )
+    self%binDistanceMaximum                                                                 &
+         & =self%cosmologyFunctions_%distanceComovingConvert(                               &
+         &                                                   output  =distanceTypeComoving, &
+         &                                                   redshift=redshiftMaximum       &
+         &                                                  )
+    call self%initialize()
     return
-  end function muzzin2013ULTRAVISTAConstructor
+  end function muzzin2013ULTRAVISTAConstructorInternal
+  
+  subroutine muzzin2013ULTRAVISTADestructor(self)
+    !% Destructor for the ``muzzin2013ULTRAVISTA'' survey geometry class.
+    implicit none
+    type(surveyGeometryMuzzin2013ULTRAVISTA), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    return
+  end subroutine muzzin2013ULTRAVISTADestructor
   
   integer function muzzin2013ULTRAVISTAFieldCount(self)
     !% Return the number of fields in this sample.

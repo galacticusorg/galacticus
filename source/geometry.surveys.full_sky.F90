@@ -18,13 +18,16 @@
 
 !% Implements survey geometries over the full sky.
   
+  use Cosmology_Functions
+
   !# <surveyGeometry name="surveyGeometryFullSky">
   !#  <description>Implements survey geometries over the full sky.</description>
   !# </surveyGeometry>
-
   type, extends(surveyGeometryClass) :: surveyGeometryFullSky
-     double precision :: limitDistanceMinimum, limitDistanceMaximum
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     double precision                                   :: limitDistanceMinimum, limitDistanceMaximum
    contains
+     final     ::                            fullSkyDestructor
      procedure :: distanceMinimum         => fullSkyDistanceMinimum
      procedure :: distanceMaximum         => fullSkyDistanceMaximum
      procedure :: solidAngle              => fullSkySolidAngle
@@ -37,45 +40,79 @@
 
   interface surveyGeometryFullSky
      !% Constructors for the full sky survey geometry class.
-     module procedure fullSkyDefaultConstructor
-     module procedure fullSkyRedshiftConstructor
+     module procedure fullSkyConstructorParameters
+     module procedure fullSkyConstructorInternal
   end interface surveyGeometryFullSky
 
 contains
 
-  function fullSkyDefaultConstructor()
+  function fullSkyConstructorParameters(parameters) result(self)
     !% Default constructor for the full sky survey geometry.
-    use Galacticus_Error
+    use Input_Parameters2
     implicit none
-    type(surveyGeometryFullSky) :: fullSkyDefaultConstructor
+    type(surveyGeometryFullSky) :: self
+    type            (inputParameters              ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
+    double precision                                               :: redshiftMinimum    , redshiftMaximum
+    !# <inputParameterList label="allowedParameterNames" />
 
-    fullSkyDefaultConstructor%limitDistanceMinimum=-1.0d0
-    fullSkyDefaultConstructor%limitDistanceMaximum=-1.0d0
-    call Galacticus_Error_Report('fullSkyDefaultConstructor','default constructor not available')
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !# <inputParameter>
+    !#   <name>redshiftMinimum</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>The minimum redshift for the survey.</description>
+    !#   <type>integer</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>redshiftMaximum</name>
+    !#   <defaultValue>huge(1.0d0)</defaultValue>
+    !#   <source>parameters</source>
+    !#   <description>The maximum redshift for the survey.</description>
+    !#   <type>integer</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>    
+    ! Build the object.
+    self=surveyGeometryFullSky(redshiftMinimum,redshiftMaximum,cosmologyFunctions_)
     return
-  end function fullSkyDefaultConstructor
+  end function fullSkyConstructorParameters
 
-  function fullSkyRedshiftConstructor(redshiftMinimum,redshiftMaximum)
+  function fullSkyConstructorInternal(redshiftMinimum,redshiftMaximum,cosmologyFunctions_) result(self)
     !% Constructor for the full sky survey class which allows specification of minimum and maximum redshifts.
-    use Cosmology_Functions
     use Cosmology_Functions_Options
     implicit none
-    type            (surveyGeometryFullSky  )                :: fullSkyRedshiftConstructor
-    double precision                         , intent(in   ) :: redshiftMinimum           , redshiftMaximum
-    class           (cosmologyFunctionsClass), pointer       :: cosmologyFunctions_
-    
-    cosmologyFunctions_                             => cosmologyFunctions()     
-    fullSkyRedshiftConstructor%limitDistanceMinimum =  cosmologyFunctions_%distanceComovingConvert(                               &
-         &                                                                                         output  =distanceTypeComoving, &
-         &                                                                                         redshift=redshiftMinimum       &
-         &                                                                                        )
-    fullSkyRedshiftConstructor%limitDistanceMaximum =  cosmologyFunctions_%distanceComovingConvert(                               &
-         &                                                                                         output  =distanceTypeComoving, &
-         &                                                                                         redshift=redshiftMaximum       &
-         &                                                                                        )
-    return
-  end function fullSkyRedshiftConstructor
+    type            (surveyGeometryFullSky  )                        :: self
+    double precision                         , intent(in   )         :: redshiftMinimum    , redshiftMaximum
+    class           (cosmologyFunctionsClass), intent(in   ), target :: cosmologyFunctions_
+    !# <constructorAssign variables="*cosmologyFunctions_"/>
 
+    self   %limitDistanceMinimum=self%cosmologyFunctions_%distanceComovingConvert(                               &
+         &                                                                        output  =distanceTypeComoving, &
+         &                                                                        redshift=redshiftMinimum       &
+         &                                                                       )
+    if (redshiftMaximum < huge(1.0d0)) then
+       self%limitDistanceMaximum=self%cosmologyFunctions_%distanceComovingConvert(                               &
+            &                                                                     output  =distanceTypeComoving, &
+            &                                                                     redshift=redshiftMaximum       &
+            &                                                                    )
+    else
+       self%limitDistanceMaximum=huge(1.0d0)
+    end if
+    return
+  end function fullSkyConstructorInternal
+
+  subroutine fullSkyDestructor(self)
+    !% Destructor for the ``fullSky'' survey geometry class.
+    implicit none
+    type(surveyGeometryFullSky), intent(inout) :: self
+    
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    return
+  end subroutine fullSkyDestructor
+  
   double precision function fullSkyDistanceMinimum(self,mass,field)
     !% Compute the minimum distance at which a galaxy is visible.
     implicit none

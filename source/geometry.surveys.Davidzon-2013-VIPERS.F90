@@ -18,16 +18,18 @@
 
 !% Implements the geometry of the VIPERS survey used by \cite{davidzon_vimos_2013}.
   
+  use Galacticus_Input_Paths
+  use Cosmology_Functions
+
   !# <surveyGeometry name="surveyGeometryDavidzon2013VIPERS">
   !#  <description>Implements the geometry of the VIPERS survey of \cite{davidzon_vimos_2013}.</description>
   !# </surveyGeometry>
-
-  use Galacticus_Input_Paths
-
   type, extends(surveyGeometryMangle) :: surveyGeometryDavidzon2013VIPERS
-     integer          :: redshiftBin
-     double precision :: binDistanceMinimum, binDistanceMaximum
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     integer                                            :: redshiftBin
+     double precision                                   :: binDistanceMinimum , binDistanceMaximum
    contains
+     final     ::                              davidzon2013VIPERSDestructor
      procedure :: fieldCount                => davidzon2013VIPERSFieldCount
      procedure :: distanceMinimum           => davidzon2013VIPERSDistanceMinimum
      procedure :: distanceMaximum           => davidzon2013VIPERSDistanceMaximum
@@ -39,63 +41,56 @@
 
   interface surveyGeometryDavidzon2013VIPERS
      !% Constructors for the \cite{davidzon_vimos_2013} survey geometry class.
-     module procedure davidzon2013VIPERSConstructor
-     module procedure davidzon2013VIPERSDefaultConstructor
+     module procedure davidzon2013VIPERSConstructorParameters
+     module procedure davidzon2013VIPERSConstructorInternal
   end interface surveyGeometryDavidzon2013VIPERS
 
-  ! Paths and file names for mangle polygon files.
-  integer, parameter :: davidzon2013VIPERSFields        =1
-  logical            :: davidzon2013VIPERSBinInitialized=.false.
-  integer            :: davidzon2013VIPERSRedshiftBin
+  ! Number of fields.
+  integer, parameter :: davidzon2013VIPERSFields        =  1
 
   ! Angular power spectra.
   integer, parameter :: davidzon2013AngularPowerMaximumL=720
 
 contains
 
-  function davidzon2013VIPERSDefaultConstructor()
-    !% Default constructor for the \cite{davidzon_vimos_2013} conditional mass function class.
-    use Input_Parameters
+  function davidzon2013VIPERSConstructorParameters(parameters) result(self)
+    !% Constructor for the \cite{davidzon_vimos_2013} conditional mass function class which takes a parameter set as input.
+    use Input_Parameters2
     implicit none
-    type(surveyGeometryDavidzon2013VIPERS) :: davidzon2013VIPERSDefaultConstructor
+    type   (surveyGeometryDavidzon2013VIPERS)                :: self
+    type   (inputParameters                 ), intent(inout) :: parameters
+    class  (cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
+    integer                                                  :: redshiftBin
+    !# <inputParameterList label="allowedParameterNames" />
+    
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !# <inputParameter>
+    !#   <name>redshiftBin</name>
+    !#   <source>parameters</source>
+    !#   <description>The redshift bin (0, 1, 2) of the \cite{davidzon_vimos_2013} mass function to use.</description>
+    !#   <type>integer</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    self=surveyGeometryDavidzon2013VIPERS(redshiftBin,cosmologyFunctions_)
+    return
+  end function davidzon2013VIPERSConstructorParameters
 
-    if (.not.davidzon2013VIPERSBinInitialized) then
-       !$omp critical(davidzon2013VIPERSBinInitialize)
-       if (.not.davidzon2013VIPERSBinInitialized) then
-          ! Get the redshift bin to use.
-          !@ <inputParameter>
-          !@   <name>davidzon2013VIPERSRedshiftBin</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The redshift bin (0, 1, 2) of the \cite{davidzon_vimos_2013} mass function to use.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>starFormation</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('davidzon2013VIPERSRedshiftBin',davidzon2013VIPERSRedshiftBin)
-          davidzon2013VIPERSBinInitialized=.true.
-       end if
-       !$omp end critical(davidzon2013VIPERSBinInitialize)
-    end if
-    davidzon2013VIPERSDefaultConstructor=davidzon2013VIPERSConstructor(davidzon2013VIPERSRedshiftBin)
-   return
-  end function davidzon2013VIPERSDefaultConstructor
-
-  function davidzon2013VIPERSConstructor(redshiftBin)
+  function davidzon2013VIPERSConstructorInternal(redshiftBin,cosmologyFunctions_) result(self)
     !% Generic constructor for the \cite{davidzon_vimos_2013} mass function class.
     use Galacticus_Error
     use Input_Parameters
     use Cosmology_Functions
     use Cosmology_Functions_Options
     implicit none
-    type            (surveyGeometryDavidzon2013VIPERS)                :: davidzon2013VIPERSConstructor
-    integer                                           , intent(in   ) :: redshiftBin
-    class           (cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
-    double precision                                                  :: redshiftMinimum               , redshiftMaximum
+    type            (surveyGeometryDavidzon2013VIPERS)                        :: self
+    integer                                           , intent(in   )         :: redshiftBin
+    class           (cosmologyFunctionsClass         ), intent(in   ), target :: cosmologyFunctions_
+    double precision                                                          :: redshiftMinimum    , redshiftMaximum
+    !# <constructorAssign variables="redshiftBin, *cosmologyFunctions_"/>
 
     ! Find distance limits for this redshift bin.
-    davidzon2013VIPERSConstructor%redshiftBin=redshiftBin
     select case (redshiftBin)
     case(0)
        redshiftMinimum=0.50d0
@@ -107,24 +102,30 @@ contains
        redshiftMinimum=0.80d0
        redshiftMaximum=1.00d0
     case default
-       call Galacticus_Error_Report('davidzon2013VIPERSConstructor','0≤redshiftBin≤3 is required')
+       call Galacticus_Error_Report('davidzon2013VIPERSConstructorInternal','0≤redshiftBin≤3 is required')
     end select
-    cosmologyFunctions_ => cosmologyFunctions()
-    davidzon2013VIPERSConstructor%binDistanceMinimum                                     &
-         & =cosmologyFunctions_%distanceComovingConvert(                                  &
-         &                                                 output  =distanceTypeComoving, &
-         &                                                 redshift=redshiftMinimum       &
-         &                                                )
-    davidzon2013VIPERSConstructor%binDistanceMaximum                                     &
-         & =cosmologyFunctions_%distanceComovingConvert(                                  &
-         &                                                 output  =distanceTypeComoving, &
-         &                                                 redshift=redshiftMaximum       &
-         &                                                )
-    davidzon2013VIPERSConstructor%solidAnglesInitialized =.false.
-    davidzon2013VIPERSConstructor%angularPowerInitialized=.false.
-    davidzon2013VIPERSConstructor%windowInitialized      =.false.
-   return
-  end function davidzon2013VIPERSConstructor
+    self%binDistanceMinimum                                                                 &
+         & =self%cosmologyFunctions_%distanceComovingConvert(                               &
+         &                                                   output  =distanceTypeComoving, &
+         &                                                   redshift=redshiftMinimum       &
+         &                                                  )
+    self%binDistanceMaximum                                                                 &
+         & =self%cosmologyFunctions_%distanceComovingConvert(                               &
+         &                                                   output  =distanceTypeComoving, &
+         &                                                   redshift=redshiftMaximum       &
+         &                                                  )
+    call self%initialize()
+    return
+  end function davidzon2013VIPERSConstructorInternal
+
+  subroutine davidzon2013VIPERSDestructor(self)
+    !% Destructor for the ``baldry2012GAMA'' survey geometry class.
+    implicit none
+    type(surveyGeometryDavidzon2013VIPERS), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    return
+  end subroutine davidzon2013VIPERSDestructor
   
   integer function davidzon2013VIPERSFieldCount(self)
     !% Return the number of fields in this sample.

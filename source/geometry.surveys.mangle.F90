@@ -17,15 +17,13 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Implements an abstract survey geometry using \gls{mangle} polygons.
-  
-  !# <surveyGeometry name="surveyGeometryMangle">
-  !#  <description>Implements an abstract survey geometry using \gls{mangle} polygons.</description>
-  !#  <abstract>yes</abstract>
-  !# </surveyGeometry>
 
   use Galacticus_Input_Paths
   use Geometry_Mangle
-
+  
+  !# <surveyGeometry name="surveyGeometryMangle" abstract="yes">
+  !#  <description>Implements an abstract survey geometry using \gls{mangle} polygons.</description>
+  !# </surveyGeometry>
   type, abstract, extends(surveyGeometryClass) :: surveyGeometryMangle
      logical                                               :: solidAnglesInitialized, angularPowerInitialized, windowInitialized
      double precision        , allocatable, dimension(:  ) :: solidAngles
@@ -53,6 +51,7 @@
      procedure                                  :: windowFunctions         => mangleWindowFunctions
      procedure                                  :: angularPower            => mangleAngularPower
      procedure                                  :: pointIncluded           => manglePointIncluded
+     procedure                                  :: initialize              => mangleInitialize
      procedure(mangleMangleDirectory), deferred :: mangleDirectory
      procedure(mangleMangleFiles    ), deferred :: mangleFiles
   end type surveyGeometryMangle
@@ -81,6 +80,17 @@
   end interface
 
 contains
+
+  subroutine mangleInitialize(self)
+    !% Internal constructor for the {\sc mangle} conditional mass function class.
+    implicit none
+    class(surveyGeometryMangle), intent(inout) :: self
+ 
+    self%solidAnglesInitialized  =.false.
+    self%angularPowerInitialized =.false.
+    self%windowInitialized       =.false.
+    return
+  end subroutine mangleInitialize
 
   logical function mangleWindowFunctionAvailable(self)
     !% Return false to indicate that survey window function is not available.

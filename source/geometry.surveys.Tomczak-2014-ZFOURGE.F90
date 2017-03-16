@@ -18,16 +18,18 @@
 
 !% Implements the geometry of the ZFOURGE survey used by \cite{tomczak_galaxy_2014}.
   
+  use Galacticus_Input_Paths
+  use Cosmology_Functions
+
   !# <surveyGeometry name="surveyGeometryTomczak2014ZFOURGE">
   !#  <description>Implements the geometry of the ZFOURGE survey of \cite{tomczak_galaxy_2014}.</description>
   !# </surveyGeometry>
-
-  use Galacticus_Input_Paths
-
   type, extends(surveyGeometryMangle) :: surveyGeometryTomczak2014ZFOURGE
-     integer          :: redshiftBin
-     double precision :: binDistanceMinimum, binDistanceMaximum
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     integer                                            :: redshiftBin
+     double precision                                   :: binDistanceMinimum, binDistanceMaximum
    contains
+     final     ::                              tomczak2014ZFOURGEDestructor
      procedure :: fieldCount                => tomczak2014ZFOURGEFieldCount
      procedure :: distanceMinimum           => tomczak2014ZFOURGEDistanceMinimum
      procedure :: distanceMaximum           => tomczak2014ZFOURGEDistanceMaximum
@@ -39,62 +41,54 @@
 
   interface surveyGeometryTomczak2014ZFOURGE
      !% Constructors for the \cite{tomczak_galaxy_2014} survey geometry class.
-     module procedure tomczak2014ZFOURGEConstructor
-     module procedure tomczak2014ZFOURGEDefaultConstructor
+     module procedure tomczak2014ZFOURGEConstructorParameters
+     module procedure tomczak2014ZFOURGEConstructorInternal
   end interface surveyGeometryTomczak2014ZFOURGE
 
   ! Paths and file names for mangle polygon files.
-  integer, parameter :: tomczak2014ZFOURGEFields        =2
-  logical            :: tomczak2014ZFOURGEBinInitialized=.false.
-  integer            :: tomczak2014ZFOURGERedshiftBin
+  integer, parameter :: tomczak2014ZFOURGEFields       =   2
 
   ! Angular power spectra.
   integer, parameter :: tomczak2014AngularPowerMaximumL=5000
 
 contains
 
-  function tomczak2014ZFOURGEDefaultConstructor()
+  function tomczak2014ZFOURGEConstructorParameters(parameters) result(self)
     !% Default constructor for the \cite{tomczak_galaxy_2014} conditional mass function class.
-    use Input_Parameters
+    use Input_Parameters2
     implicit none
-    type(surveyGeometryTomczak2014ZFOURGE) :: tomczak2014ZFOURGEDefaultConstructor
+    type   (surveyGeometryTomczak2014ZFOURGE)                :: self
+    type   (inputParameters                 ), intent(inout) :: parameters
+    class  (cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
+    integer                                                  :: redshiftBin
+    !# <inputParameterList label="allowedParameterNames" />
+    
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !# <inputParameter>
+    !#   <name>redshiftBin</name>
+    !#   <source>parameters</source>
+    !#   <description>The redshift bin (0, 1, 2, 3, 4, 5, 6, or 7) of the \cite{tomczak_galaxy_2014} mass function to use.</description>
+    !#   <type>integer</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    self=surveyGeometryTomczak2014ZFOURGE(redshiftBin,cosmologyFunctions_)
+    return
+  end function tomczak2014ZFOURGEConstructorParameters
 
-    if (.not.tomczak2014ZFOURGEBinInitialized) then
-       !$omp critical(tomczak2014ZFOURGEBinInitialize)
-       if (.not.tomczak2014ZFOURGEBinInitialized) then
-          ! Get the redshift bin to use.
-          !@ <inputParameter>
-          !@   <name>tomczak2014ZFOURGERedshiftBin</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The redshift bin (0, 1, 2, 3, 4, 5, 6, 7) of the \cite{tomczak_galaxy_2014} mass function to use.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('tomczak2014ZFOURGERedshiftBin',tomczak2014ZFOURGERedshiftBin)
-          tomczak2014ZFOURGEBinInitialized=.true.
-       end if
-       !$omp end critical(tomczak2014ZFOURGEBinInitialize)
-    end if
-    tomczak2014ZFOURGEDefaultConstructor=tomczak2014ZFOURGEConstructor(tomczak2014ZFOURGERedshiftBin)
-   return
-  end function tomczak2014ZFOURGEDefaultConstructor
-
-  function tomczak2014ZFOURGEConstructor(redshiftBin)
+  function tomczak2014ZFOURGEConstructorInternal(redshiftBin,cosmologyFunctions_) result(self)
     !% Generic constructor for the \cite{tomczak_galaxy_2014} mass function class.
     use Galacticus_Error
-    use Input_Parameters
-    use Cosmology_Functions
     use Cosmology_Functions_Options
     implicit none
-    type            (surveyGeometryTomczak2014ZFOURGE)                :: tomczak2014ZFOURGEConstructor
-    integer                                           , intent(in   ) :: redshiftBin
-    class           (cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
-    double precision                                                  :: redshiftMinimum               , redshiftMaximum
+    type            (surveyGeometryTomczak2014ZFOURGE)                        :: self
+    integer                                           , intent(in   )         :: redshiftBin
+    class           (cosmologyFunctionsClass         ), intent(in   ), target :: cosmologyFunctions_
+    double precision                                                          :: redshiftMinimum    , redshiftMaximum
+    !# <constructorAssign variables="redshiftBin, *cosmologyFunctions_"/>
 
     ! Find distance limits for this redshift bin.
-    tomczak2014ZFOURGEConstructor%redshiftBin=redshiftBin
     select case (redshiftBin)
     case(0)
        redshiftMinimum=0.20d0
@@ -121,24 +115,30 @@ contains
        redshiftMinimum=2.50d0
        redshiftMaximum=3.00d0
     case default
-       call Galacticus_Error_Report('tomczak2014ZFOURGEConstructor','0≤redshiftBin≤7 is required')
+       call Galacticus_Error_Report('tomczak2014ZFOURGEConstructorInternal','0≤redshiftBin≤7 is required')
     end select
-    cosmologyFunctions_ => cosmologyFunctions()
-    tomczak2014ZFOURGEConstructor%binDistanceMinimum                                   &
-         & =cosmologyFunctions_%distanceComovingConvert(                               &
-         &                                              output  =distanceTypeComoving, &
-         &                                              redshift=redshiftMinimum       &
-         &                                             )
-    tomczak2014ZFOURGEConstructor%binDistanceMaximum                                   &
-         & =cosmologyFunctions_%distanceComovingConvert(                               &
-         &                                              output  =distanceTypeComoving, &
-         &                                              redshift=redshiftMaximum       &
-         &                                             )
-    tomczak2014ZFOURGEConstructor%solidAnglesInitialized =.false.
-    tomczak2014ZFOURGEConstructor%angularPowerInitialized=.false.
-    tomczak2014ZFOURGEConstructor%windowInitialized      =.false.
+    self%binDistanceMinimum                                                                 &
+         & =self%cosmologyFunctions_%distanceComovingConvert(                               &
+         &                                                   output  =distanceTypeComoving, &
+         &                                                   redshift=redshiftMinimum       &
+         &                                                  )
+    self%binDistanceMaximum                                                                 &
+         & =self%cosmologyFunctions_%distanceComovingConvert(                               &
+         &                                                   output  =distanceTypeComoving, &
+         &                                                   redshift=redshiftMaximum       &
+         &                                                  )
+    call self%initialize()
     return
-  end function tomczak2014ZFOURGEConstructor
+  end function tomczak2014ZFOURGEConstructorInternal
+  
+  subroutine tomczak2014ZFOURGEDestructor(self)
+    !% Destructor for the ``tomczak2014ZFOURGE'' survey geometry class.
+    implicit none
+    type(surveyGeometryTomczak2014ZFOURGE), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    return
+  end subroutine tomczak2014ZFOURGEDestructor
   
   integer function tomczak2014ZFOURGEFieldCount(self)
     !% Return the number of fields in this sample.

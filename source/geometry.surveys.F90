@@ -20,15 +20,11 @@
 
 module Geometry_Surveys
   !% Implements geometries of galaxy surveys.
-  use ISO_Varying_String
   use, intrinsic :: ISO_C_Binding
-  !# <include directive="surveyGeometry" type="functionModules" >
-  include 'surveyGeometry.functionModules.inc'
-  !# </include>
-  implicit none
   private
 
-  !# <include directive="surveyGeometry" type="function" >
+  !# <functionClass>
+  !#  <name>surveyGeometry</name>
   !#  <descriptiveName>Survey Geometry</descriptiveName>
   !#  <description>Object providing galaxy surveys geometries and related functions.</description>
   !#  <default>liWhite2009SDSS</default>
@@ -115,7 +111,6 @@ module Geometry_Surveys
   !#   <argument>double precision, intent(in   ), dimension(3) :: point</argument>
   !#   <argument>double precision, intent(in   )               :: mass</argument>
   !#  </method>
-  include 'surveyGeometry.type.inc'
-  !# </include>
+  !# </functionClass>
 
 end module Geometry_Surveys
