@@ -27,7 +27,7 @@ unless ( -e &galacticusPath()."aux/CosmicEmu/emu.exe" ) {
 	# Download the code.
 	unless ( -e &galacticusPath()."aux/CosmicEmu/CosmicEmu_v1.1.tar.gz" ) {
 	    print "Cosmic_Emu_Driver.pl: downloading Cosmic_Emu code.\n";
-	    system("wget http://www.lanl.gov/projects/cosmology/CosmicEmu/CosmicEmu_v1.1.tar.gz -O ".&galacticusPath()."aux/CosmicEmu/CosmicEmu_v1.1.tar.gz");
+	    system("wget http://www.hep.anl.gov/cosmology/CosmicEmu/CosmicEmu_v1.0.tar.gz -O ".&galacticusPath()."aux/CosmicEmu/CosmicEmu_v1.1.tar.gz");
 	    die("Cosmic_Emu_Driver.pl: FATAL - failed to download Cosmic_Emu code.")
 		unless ( -e &galacticusPath()."aux/CosmicEmu/CosmicEmu_v1.1.tar.gz" );
 	}
