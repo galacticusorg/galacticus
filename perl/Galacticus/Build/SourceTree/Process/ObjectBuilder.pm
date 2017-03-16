@@ -50,7 +50,7 @@ sub Process_ObjectBuilder {
 	    $builderCode .= "         end select\n";
 	    $builderCode .= "      else\n";
 	    $builderCode .= "         ! Object does not yet exist - build it and store in the parameter node.\n";
-	    $builderCode .= "         ".$node->{'directive'}->{'name'}." => ".$node->{'directive'}->{'class'}."(parametersCurrent)\n";
+	    $builderCode .= "         ".$node->{'directive'}->{'name'}." => ".$node->{'directive'}->{'class'}."(parametersCurrent".(exists($node->{'directive'}->{'copy'}) ? ",copyInstance=".$node->{'directive'}->{'copy'} : "").")\n";
 	    $builderCode .= "         call parameterNode%objectSet(".$node->{'directive'}->{'name'}.")\n";
 	    $builderCode .= "      end if\n";
 	    $builderCode .= "   else if (".$node->{'directive'}->{'source'}."%isGlobal()) then\n";
