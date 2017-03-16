@@ -141,7 +141,8 @@ sub ComputeLikelihood {
     # Where upper limits are present, truncate the difference vector.
     if ( exists($options{'upperLimits'}) ) {
 	my $limitTruncate = which($d->($options{'upperLimits'}) > 0.0);
-	$d->($options{'upperLimits'})->($limitTruncate) .= 0.0;
+	$d->($options{'upperLimits'})->($limitTruncate) .= 0.0
+	    if ( nelem($limitTruncate) > 0 );
     }
     # Invert the covariance matrix.
     my $CInverse;
