@@ -16,6 +16,7 @@ use Galacticus::Launch::PBS;
 use Galacticus::Constraints::Parameters;
 use GnuPlot::PrettyPlots;
 use GnuPlot::LaTeX;
+use List::ExtraUtils;
 
 # Compute projections of the posterior which give the strongest constraints.
 # Andrew Benson (27-May-2016)
@@ -30,6 +31,8 @@ my %options =
      make                => "yes",
      sampleFrom          =>    -1,
      sampleCount         =>    -1,
+     fixedTrees          => "config",
+     fixedTreesInScratch => "config",
      chain               => "all",
      outliers            =>    "",
      contributionMinimum =>  0.05,
@@ -45,6 +48,13 @@ my $config = &Galacticus::Constraints::Parameters::Parse_Config($configFile);
 # Validate the config file.
 die("projectionPursuit.pl: workDirectory must be specified in config file" ) unless ( exists($config->{'likelihood'}->{'workDirectory' }) );
 
+# Build parameter exclusion regexs.
+if ( exists($options{'excludeParameters'}) ) {
+    my @excludeRegexes = &List::ExtraUtils::as_array($options{'excludeParameters'});
+    delete($options{'excludeParameters'});
+    @{$options{'excludeParameters'}} = @excludeRegexes;
+}
+
 # Find maximum likelihood model parameters.
 print "Finding maximum likelihood model...\n";
 my $parametersMaximumLikelihood = &Galacticus::Constraints::Parameters::Maximum_Likelihood_Vector($config,\%options);
@@ -57,8 +67,9 @@ print "...found ".$parametersMatrix->dim(1)." samples\n";
 # For each parameter, apply mappings and normalize sampled states by the variance in the prior.
 print "Mapping and normalizing...\n";
 my @parameters;
-my $j = -1;
+my $j                  = -1;
 my $parameterVariances = pdl [];
+my $parametersActive   = pdl [];
 for(my $i=0;$i<scalar(@{$config->{'parameters'}->{'parameter'}});++$i) {
     # Look for active parameters.
     if ( exists($config->{'parameters'}->{'parameter'}->[$i]->{'prior'}) ) {
@@ -98,19 +109,38 @@ for(my $i=0;$i<scalar(@{$config->{'parameters'}->{'parameter'}});++$i) {
 	    die("Unknown prior '".$parameter->{'prior'}->{'distribution'}->{'type'}."'");
 	}
 	$parametersMatrix->(($j),:) /= sqrt($variance);
-	$parameterVariances = $parameterVariances->append($variance);
 	# Subtract the mean.
 	my $mean = $parametersMatrix->(($j),:)->avg();
 	$parametersMatrix->(($j),:) -= $mean;
-	# Push the parameter onto the active list.
-	push(@parameters,$parameter);
+	# Determine if parameter is active in this analysis.
+	my $parameterIsActive = 1;
+	if ( exists($options{'excludeParameter'}) ) {
+	    $parameterIsActive = 0
+		if ( grep {$parameter->{'name'} eq $_} &List::ExtraUtils::as_array($options{'excludeParameter' }) );
+	    print $parameter->{'name'}."\n";
+	}
+	if ( exists($options{'excludeParameters'}) ) {
+	    $parameterIsActive = 0
+		if ( grep {$parameter->{'name'} =~ $_} &List::ExtraUtils::as_array($options{'excludeParameters'}) );
+	}
+	# Process parameter if active.
+	if ( $parameterIsActive == 1 ) {
+	    # Parameter is active: store index to active parameter list, and record its variance, and definition.
+	    print "Parameter ".$parameter->{'name'}." is active\n";
+	    push(@parameters,$parameter);
+	    $parametersActive   = $parametersActive  ->append($j       );
+	    $parameterVariances = $parameterVariances->append($variance);
+	}
     }
 }
 
+# Build a copy of the parameters matrix which contains only active parameters.
+my $parametersMatrixActive = $parametersMatrix->($parametersActive,:);
+
 # Compute eigenvectors of the sample matrix.
 print "Finding eigenvectors...\n";
-my $covarianceMatrix = transpose($parametersMatrix) x $parametersMatrix;
-$covarianceMatrix /= $parametersMatrix->dim(1)-1;
+my $covarianceMatrix = transpose($parametersMatrixActive) x $parametersMatrixActive;
+$covarianceMatrix /= $parametersMatrixActive->dim(1)-1;
 (my $eigenVectors, my $eigenValues) = eigens_sym($covarianceMatrix);
 
 # Generate index into sorted eigenvalues.
@@ -143,7 +173,7 @@ for(my $i=0;$i<nelem($eigenValues) && $i<$options{'eigenVectorsRetain'};++$i) {
 	    ++$componentsCount;
 	}
     }
-    # Finsih LaTeX table entry for this eigenvector.
+    # Finish LaTeX table entry for this eigenvector.
     push(
 	@tableBody,
 	{
@@ -155,6 +185,7 @@ for(my $i=0;$i<nelem($eigenValues) && $i<$options{'eigenVectorsRetain'};++$i) {
 	if ( $componentsCount > $componentsMaximum );
 }
 # Construct the table.
+system("mkdir -p `dirname ".$options{'tableFile'}."`");
 open(my $tableFile,">".$options{'tableFile'});
 print $tableFile "\\begin{tabular}{l".("r\@{}c\@{}l\@{ }l" x $componentsMaximum)."} \\\\\n";
 print $tableFile "\\hline\n";
@@ -172,8 +203,8 @@ print $tableFile "\\hline\n";
 print $tableFile "\\end{tabular}\n";
 close($tableFile);
 
-# Iterate over eigenvalues from smallest to largest. Also generate parameter sets for models perturb the maximum likelihood model
-# along these eigenvalues.
+# Iterate over eigenvalues from smallest to largest. Also generate parameter sets for models perturbed from the maximum likelihood
+# model along these eigenvalues.
 my $xml = new XML::Simple;
 my @pbsJobs;
 for(my $i=0;$i<nelem($eigenValues) && $i<$options{'eigenVectorsRetain'};++$i) {
@@ -181,8 +212,8 @@ for(my $i=0;$i<nelem($eigenValues) && $i<$options{'eigenVectorsRetain'};++$i) {
     # Iterate over number of "sigma" perturbation to the model.
     for(my $n=-3;$n<=+3;++$n) {
 	# Construct the perturbed parameters.
-	my $perturbedModel = 
-	    +$parametersMaximumLikelihood
+	my $perturbedModel = $parametersMaximumLikelihood->copy();
+	$perturbedModel->($parametersActive) += 
 	    +$n
 	    *sqrt($eigenValues ->(($j)  ))
 	    *     $eigenVectors->(($j),:) 
@@ -206,6 +237,26 @@ for(my $i=0;$i<nelem($eigenValues) && $i<$options{'eigenVectorsRetain'};++$i) {
 	    system("mkdir -p ".$modelDirectory);
 	    my $perturbedParameters = &Galacticus::Constraints::Parameters::Convert_Parameter_Vector_To_Galacticus($config,$perturbedModel);
 	    &Galacticus::Constraints::Parameters::Apply_Command_Line_Parameters($perturbedParameters,\%options);
+	    # If fixed sets of trees are to be used, modify parameters to use them.
+	    my $useFixedTrees = $options{'fixedTrees'} eq "config" ? $config->{'likelihood'}->{'useFixedTrees'} : $options{'fixedTrees'};
+	    if ( $useFixedTrees eq "yes" ) {
+		my $fixedTreeDirectory;
+		my $fixedTreesInScratch;
+		if ( $options{'fixedTreesInScratch'} eq "config" ) {
+		    $fixedTreesInScratch = exists($config->{'likelihood'}->{'fixedTreesInScratch'}) && $config->{'likelihood'}->{'fixedTreesInScratch'} eq "yes";
+		} else {
+		    $fixedTreesInScratch = $options{'fixedTreesInScratch'} eq "yes";
+		}
+		if ( $fixedTreesInScratch ) {
+		    $fixedTreeDirectory = $config->{'likelihood'}->{'scratchDirectory'}."/";
+		} else {
+		    $fixedTreeDirectory = $config->{'likelihood'}->{'workDirectory'   }."/trees/";
+		}
+		my $fixedTreeFile      = $fixedTreeDirectory."fixedTrees".$perturbedParameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".hdf5";
+		# Modify parameters to use the tree file.
+		$perturbedParameters->{'mergerTreeConstructMethod'}->{'value'} = "read";
+		$perturbedParameters->{'mergerTreeReadFileName'   }->{'value'} = $fixedTreeFile;
+	    }
 	    $perturbedParameters->{'galacticusOutputFileName'}->{'value'} = $modelDirectory."galacticus.hdf5";
 	    open(my $parameterFile,">".$modelDirectory."parameters.xml");
 	    print $parameterFile $xml->XMLout($perturbedParameters, rootName => "parameters");
