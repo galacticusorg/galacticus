@@ -70,6 +70,7 @@ my @constraints = @{$constraintsRef};
 # Generate a sample of models.
 print "Generating posterior model sample...\n";
 (my $sampleCount, my $sampleDirectory) = &Galacticus::Constraints::Parameters::Sample_Models($config,\%arguments);
+print "...done\n";
 
 # Begin building LaTeX table of p-values.
 system("mkdir -p ".$workDirectory."/posteriorPredictiveChecks");
@@ -87,6 +88,7 @@ foreach my $constraint ( @constraints ) {
     my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
     print "Posterior predictive check for constraint '".$constraintDefinition->{'label'}."'...\n"; 
     # Iterate over models.
+    my @modelX;
     my @modelY;
     my $dataY;
     my $dataCovariance;
@@ -96,6 +98,7 @@ foreach my $constraint ( @constraints ) {
 	# Parse the results file.
 	my $resultFile         = $modelDirectory."/".$constraintDefinition->{'label'}.".hdf5";
 	my $results            = new PDL::IO::HDF5($resultFile);
+	my $x                  = $results->dataset('x'             )->get();
 	my $y                  = $results->dataset('y'             )->get();
 	$dataY                 = $results->dataset('yData'         )->get();
 	my $dataCovarianceFlat = $results->dataset('covarianceData')->get();
@@ -116,6 +119,7 @@ foreach my $constraint ( @constraints ) {
 	    my $yPerturbed         = $y+$perturbations->((0),:);
 	    # Store the results.
 	    push(@modelY,$yPerturbed);
+	    push(@modelX,$x         );
 	}
     }
     # Evaluate the mean result and covariance.
@@ -130,13 +134,7 @@ foreach my $constraint ( @constraints ) {
 	$covariance += outer($offset,$offset);
     }
     $covariance /= scalar(@modelY)-1;
-    my $inverseCovariance;
-    my $logCovarianceDeterminant;
-    if ( nelem($covariance) > 1 ) {
-	($inverseCovariance, $logCovarianceDeterminant) = &Galacticus::Constraints::Covariances::SVDInvert($covariance);
-    } else {
-	$inverseCovariance = minv($covariance);
-    }
+    my $inverseCovariance = minv($covariance);
     # Compute the test statistic.
     my $testStatistic = pdl [];
     for (my $i=0;$i<scalar(@modelY);++$i) {
@@ -144,9 +142,8 @@ foreach my $constraint ( @constraints ) {
 	$testStatistic = $testStatistic->append(sclr($difference x $inverseCovariance x transpose($difference)));
     }
     # Compute test statistic for the data.
-    my $difference              = $dataY-$meanY;
-    my $testStatisticData       = sclr($difference x $inverseCovariance x transpose($difference));
-    my $testStatisticDataSample = pdl [];
+    my $difference        = $dataY-$meanY;
+    my $testStatisticData = sclr($difference x $inverseCovariance x transpose($difference));
     # Find the p-value.
     my $exceeders = which($testStatistic > $testStatisticData);
     my $pValue    = nelem($exceeders)/nelem($testStatistic);
@@ -185,40 +182,40 @@ foreach my $constraint ( @constraints ) {
     print $gnuPlot "set key at screen 0.2,0.2\n";
     print $gnuPlot "set key left\n";
     print $gnuPlot "set key bottom\n";
-    my $xAll     = $testStatistic->append($testStatisticDataSample)->append($testStatisticData);
+    my $xAll     = $testStatistic->append($testStatisticData);
     my $xMinimum = minimum($xAll);
     my $xMaximum = maximum($xAll);
     my $decadesSpanned = log10($xMaximum/$xMinimum);
     if ( $decadesSpanned > 2.0 ) {
-	print $gnuPlot "set logscale x\n";
-	print $gnuPlot "set mxtics 10\n";
-	print $gnuPlot "set format x '\$10^{\%L}\$'\n";
+    	print $gnuPlot "set logscale x\n";
+    	print $gnuPlot "set mxtics 10\n";
+    	print $gnuPlot "set format x '\$10^{\%L}\$'\n";
     }
     print $gnuPlot "set xrange [".$xMinimum.":".$xMaximum."]\n";
     print $gnuPlot "set yrange [-0.05:1.05]\n";
     print $gnuPlot "set title '".$constraintDefinition->{'name'}."'\n"
-	if ( $arguments{'plotTitle'} eq "yes" );
+    	if ( $arguments{'plotTitle'} eq "yes" );
     print $gnuPlot "set xlabel 'Test statistic; \$\\mathcal{T}\$'\n";
     print $gnuPlot "set ylabel 'Cumulative probability; \$ P ( < \\mathcal{T})\$'\n";
     print $gnuPlot "set arrow from first ".$testStatisticData.", 0.0 to first ".$testStatisticData.", 0.4 filled linewidth 5 linecolor rgbcolor \"#3CB371\"\n";
     if ( $arguments{'showPValue'} eq "yes" ) {
-	print $gnuPlot "set label '\$ p_\\mathrm{B}".($pValue == 0.0 ? "" : "=").$pValueLabel."\$' at graph 0.05, 0.8\n";
+    	print $gnuPlot "set label '\$ p_\\mathrm{B}".($pValue == 0.0 ? "" : "=").$pValueLabel."\$' at graph 0.05, 0.8\n";
     }
     my $testStatisticSorted    = $testStatistic->qsort();
     my $cumulativeProbability  = pdl sequence(nelem($testStatistic));
     $cumulativeProbability    /= nelem($testStatistic);
     &GnuPlot::PrettyPlots::Prepare_Dataset
-	(
-	 \$plot,
-	 $testStatisticSorted,
-	 $cumulativeProbability,
-	 style       => "line",
-	 weight      => [5,3],
-	 color       => $GnuPlot::PrettyPlots::colorPairs{'redYellow'}
-	);
+    	(
+    	 \$plot,
+    	 $testStatisticSorted,
+    	 $cumulativeProbability,
+    	 style       => "line",
+    	 weight      => [5,3],
+    	 color       => $GnuPlot::PrettyPlots::colorPairs{'redYellow'}
+    	);
     &GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
     close($gnuPlot);
-    &GnuPlot::LaTeX::GnuPlot2PDF($plotFileTeX);
+    &GnuPlot::LaTeX::GnuPlot2PDF($plotFileTeX);    
 }
 print $pValueTable "\\hline\n";
 print $pValueTable "\\end{tabular}\n";
