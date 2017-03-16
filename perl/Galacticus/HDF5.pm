@@ -236,6 +236,8 @@ sub Get_Dataset {
 		    my $mergerTreeStartIndex = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeStartIndex")->get;
 		    my $mergerTreeCount      = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeCount"     )->get;
 		    my $mergerTreeWeight     = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeWeight"    )->get;
+		    $data     = pdl [];
+		    $dataTree = pdl [];
 		    foreach my $mergerTree ( @mergerTrees ) {
 			# Check that this tree contains some nodes at this output. If it does not, skip it.
 			my $mergerTreePDL  = pdl $mergerTree;
@@ -268,6 +270,9 @@ sub Get_Dataset {
      		    $dataBlock->{'dataSets'}->{'mergerTreeIndex'} = $dataTree;
      		    undef($dataTree);
      		}
+		# Handle the special case of the "mergerTreeWeight" dataset that may need storing back to the file.
+		&Store_Dataset($dataBlock,\@mergerTrees,$dataSetName)
+		    if ( $dataSetName eq "mergerTreeWeight" && $storeDataSets == 1 && ! exists($dataBlock->{'dataSetsAvailable'}->{$dataSetName}) );
 	     } else {
 	     	# Dataset is not present in the output file, search for a match to a derived property.
 	     	my $foundMatch = 0;
@@ -276,44 +281,8 @@ sub Get_Dataset {
 	    		$foundMatch = 1;
 	    		my $getFunc = $galacticusFunctions{$regEx};
 	    		&{$getFunc}($dataBlock,$dataSetName);
-	    		if ( $storeDataSets == 1 ) {
-	    		    my $dataSets = $dataBlock->{'dataSets'};
-	    		    my $nodeDataGroup = $dataBlock->{'hdf5File'}->group("Outputs/Output".$dataBlock->{'output'}."/nodeData");
-	    		    my $outputDataSet = new PDL::IO::HDF5::Dataset( name    => $dataSetName,
-	    								 parent  => $nodeDataGroup,
-	    								 fileObj => $dataBlock->{'hdf5File'}
-	    			);
-	    		    $outputDataSet->set($dataSets->{$dataSetName});
-
-	    		    # Determine if merger tree references need to be written for this model.
-	    		    my $createReference;
-	    		    if ( exists($dataBlock->{'parameters'}->{'mergerTreeOutputReferences'}) ) {
-	    			if ( $dataBlock->{'parameters'}->{'mergerTreeOutputReferences'} eq "true" ) {
-	    			    $createReference = 1;
-	    			} else {
-	    			    $createReference = 0;
-	    			}
-	    		    } else {
-	    			$createReference = 0;
-	    		    }
-
-	    		    # Write merger tree references if necessary.
-	    		    if ( $createReference == 1 ) {
-	    			my $dataIndexStart = 0;
-	    			my $mergerTreeIndex = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeIndex")->get;
-	    			my $mergerTreeCount = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeCount")->get;
-	    			my $start = pdl [-1];
-	    			foreach my $mergerTree ( @mergerTrees ) {
-	    			    # Count up the number of entries in this tree.
-	    			    my $mergerTreeGroup = $dataBlock->{'hdf5File'}->group("Outputs/Output".$dataBlock->{'output'}."/mergerTree".$mergerTree);
-	    			    $start          += 1;
-	    			    my $treeIndex       = which($mergerTreeIndex == $mergerTree);
-	    			    my $dataCount       = $mergerTreeCount->index($treeIndex)->squeeze;
-	    			    $mergerTreeGroup->reference($outputDataSet,$dataSetName,[$dataIndexStart],[$dataCount]);
-	    			    $dataIndexStart += $dataCount;
-	    			}
-	    		    }
-	    		}
+			&Store_Dataset($dataBlock,\@mergerTrees,$dataSetName)
+			    if ( $storeDataSets == 1 );
 	    	    }
 	    	}		
 	    	# Exit if the dataset was not matched.
@@ -375,4 +344,45 @@ sub Reset_Structure {
     }
 }
 
+sub Store_Dataset {
+    my $dataBlock   =   shift() ;
+    my @mergerTrees = @{shift()};
+    my $dataSetName =   shift() ;
+    my $dataSets = $dataBlock->{'dataSets'};
+    my $nodeDataGroup = $dataBlock->{'hdf5File'}->group("Outputs/Output".$dataBlock->{'output'}."/nodeData");
+    my $outputDataSet = new PDL::IO::HDF5::Dataset( name    => $dataSetName,
+						    parent  => $nodeDataGroup,
+						    fileObj => $dataBlock->{'hdf5File'}
+	);
+    $outputDataSet->set($dataSets->{$dataSetName});
+    # Determine if merger tree references need to be written for this model.
+    my $createReference;
+    if ( exists($dataBlock->{'parameters'}->{'mergerTreeOutputReferences'}) ) {
+	if ( $dataBlock->{'parameters'}->{'mergerTreeOutputReferences'} eq "true" ) {
+	    $createReference = 1;
+	} else {
+	    $createReference = 0;
+	}
+    } else {
+	$createReference = 0;
+    }
+    # Write merger tree references if necessary.
+    if ( $createReference == 1 ) {
+	my $dataIndexStart = 0;
+	my $mergerTreeIndex = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeIndex")->get;
+	my $mergerTreeCount = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeCount")->get;
+	my $start = pdl [-1];
+	foreach my $mergerTree ( @mergerTrees ) {
+	    # Count up the number of entries in this tree.
+	    my $mergerTreeGroup = $dataBlock->{'hdf5File'}->group("Outputs/Output".$dataBlock->{'output'}."/mergerTree".$mergerTree);
+	    $start          += 1;
+	    my $treeIndex       = which($mergerTreeIndex == $mergerTree);
+	    my $dataCount       = $mergerTreeCount->index($treeIndex)->squeeze;
+	    $mergerTreeGroup->reference($outputDataSet,$dataSetName,[$dataIndexStart],[$dataCount]);
+	    $dataIndexStart += $dataCount;
+	}
+    }
+}
+
 1;
+    
