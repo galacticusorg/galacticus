@@ -103,7 +103,7 @@ subroutine allocateArray_{$functionLabel.$suffix}(thisArray,dimensions,lowerBoun
   {$intrinsicName}                       , allocatable  , dimension({join(",",split(//,":" x $rank))}) :: thisArray
   integer                                , intent(in   ), optional                                     :: memoryType
   integer{$typeDefinition}               , intent(in   )                                               :: dimensions ({$rank})
-  integer                                , intent(in   ), optional                                     :: lowerBounds({$rank})
+  integer{$typeDefinition}               , intent(in   ), optional                                     :: lowerBounds({$rank})
   character               (len=*        ), intent(in   ), optional                                     :: file
   integer                                , intent(in   ), optional                                     :: line
   type                    (varying_string)                                                             :: message
