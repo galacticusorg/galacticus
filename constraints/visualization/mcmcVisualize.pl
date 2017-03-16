@@ -206,9 +206,9 @@ if ( $showLabels eq "yes" ) {
     print $gnuPlot "set tmargin screen 0.95\n";
 } else {
     print $gnuPlot "set lmargin screen 0\n";
-    print $gnuPlot "set rmargin screen 1\n";
+    print $gnuPlot "set rmargin screen 0.99\n";
     print $gnuPlot "set bmargin screen 0\n";
-    print $gnuPlot "set tmargin screen 1\n";
+    print $gnuPlot "set tmargin screen 0.99\n";
 }
 print $gnuPlot "set key spacing 1.2\n";
 print $gnuPlot "set key at screen 0.275,0.16\n";
