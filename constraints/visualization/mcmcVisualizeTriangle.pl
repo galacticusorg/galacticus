@@ -63,7 +63,10 @@ while ( $iArg < $#ARGV ) {
 my $outputFileName = "triangle";
 $outputFileName = $arguments{'output'}
     if ( exists($arguments{'output'}) );
-
+# Set number of significant figures in labels.
+my $sigFigs = 2;
+$sigFigs = $arguments{'sigFigs'}
+    if ( exists($arguments{'sigFigs'}) );
 # Set scale for graphics.
 my $scale = 0.4;
 $scale = $arguments{'scale'}
@@ -83,6 +86,9 @@ $drawLabels = $arguments{'drawLabels'}
 my $lineWeight = "5,3";
 $lineWeight = $arguments{'lineWeight'}
     if ( exists($arguments{'lineWeight'}) );
+my $shortcut = ".";
+$shortcut = $arguments{'shortcut'}
+    if ( exists($arguments{'shortcut'}) );
 
 # Set work directory.
 my $workDirectory = ".";
@@ -111,8 +117,8 @@ foreach my $parameter ( @{$config->{'parameters'}->{'parameter'}} ) {
 my @propertyNames;
 if ( exists($arguments{'property'}) ) {
     @propertyNames = map {$_->{'name'}} @{$arguments{'property'}};
-    die("mcmcVisualizeTriangle.pl: at least 3 propertyNames must be specified")
-	if ( scalar(@propertyNames) < 3 );
+    die("mcmcVisualizeTriangle.pl: at least 2 propertyNames must be specified")
+	if ( scalar(@propertyNames) < 2 );
     foreach my $property ( @propertyNames ) {
 	die("Property '".$property."' is not available") unless ( grep {$_ eq $property} @propertyNamesAvailable );
     }
@@ -241,7 +247,7 @@ my $outputDirectoryName = `dirname  $outputFileName`;
 my $outputBaseName      = `basename $outputFileName`;
 chomp($outputDirectoryName);
 chomp($outputBaseName     );
-print oHndl "\\newcommand{\\triangledir}{.}\n"; ## AJB HACK".$outputDirectoryName."}\n";
+print oHndl "\\newcommand{\\triangledir}{".$shortcut."}\n";
 print oHndl "\\renewcommand{\\arraystretch}{0}\n";
 print oHndl "\\setlength{\\tabcolsep}{0pt}\n";
 if ( $drawLabels eq "gnuplot" ) {
@@ -291,9 +297,8 @@ if ( $drawLabels eq "gnuplot" ) {
 	if ( $i > 0 ) {
 	    my $xml  = new XML::Simple();
 	    my $data = $xml->XMLin($outputDirectoryName."/".$outputBaseName."_".($i-1).".xml");
-	    my $rangeMinimum = &latexFormat($data->{'x'}->[ 0],2);
-	    my $rangeMaximum = &latexFormat($data->{'x'}->[-1],2);
-
+	    my $rangeMinimum = &latexFormat($data->{'x'}->[ 0],$sigFigs);
+	    my $rangeMaximum = &latexFormat($data->{'x'}->[-1],$sigFigs);
 	    my @columns;
 	    my $label = exists($properties[$i-1]->{'label'}) ? "\$".$properties[$i-1]->{'label'}."\$" : $properties[$i-1]->{'xLabel'};
 	    foreach ( $rangeMinimum, $label, $rangeMaximum ) {
@@ -314,12 +319,21 @@ if ( $drawLabels eq "gnuplot" ) {
 		if ( $i < scalar(@properties) );
 	}
 	if ( $i < scalar(@properties) ) {
-	    system("pdfcrop --margins \"-1 -1 -0 -1\" ".$outputDirectoryName."/".$outputBaseName."_".$i.".pdf ".$outputDirectoryName."/".$outputBaseName."_".$i."_cropped.pdf")
+	    my $xml          = new XML::Simple();
+	    my $data         = $xml->XMLin($outputDirectoryName."/".$outputBaseName."_".$i.".xml");
+	    my $centralValue = +$data->{'maximumLikelihoodValueX'}                   ;
+	    my $upperOffset  = +$data->{'spanUpperX'             }->[0]-$centralValue;
+	    my $lowerOffset  = -$data->{'spanLowerX'             }->[0]+$centralValue;
+	    my $label        = exists($properties[$i]->{'label'}) ? "\$".$properties[$i]->{'label'}."\$" : $properties[$i]->{'xLabel'};
+	    open(my $constraint,">".$outputDirectoryName."/".$outputBaseName."_".$i.".tex");
+	    print $constraint $label." \$=".&latexFormatErrors($centralValue,$lowerOffset,$upperOffset,$sigFigs,mathMode => 1)."\$";
+	    close($constraint);
+	    system("pdfcrop --margins \"-1 -1 -1 -1\" ".$outputDirectoryName."/".$outputBaseName."_".$i.".pdf ".$outputDirectoryName."/".$outputBaseName."_".$i."_cropped.pdf")
 		unless ( -e $outputDirectoryName."/".$outputBaseName."_".$i."_cropped.pdf" );
 	    print oHndl "\\multicolumn{3}{c}{\\includegraphics[scale=".$scale."]{\\triangledir/".$outputBaseName."_".$i."_cropped.pdf}}";
 	    if ( $i < scalar(@properties)-1 ) { 
 		for(my $j=$i+1;$j<scalar(@properties);++$j) {
-		    system("pdfcrop --margins \"-1 -1 -0 -1\" ".$outputDirectoryName."/".$outputBaseName."_".$i."_".$j.".pdf ".$outputDirectoryName."/".$outputBaseName."_".$i."_".$j."_cropped.pdf")
+		    system("pdfcrop --margins \"-1 -1 -1 -1\" ".$outputDirectoryName."/".$outputBaseName."_".$i."_".$j.".pdf ".$outputDirectoryName."/".$outputBaseName."_".$i."_".$j."_cropped.pdf")
 			unless ( -e $outputDirectoryName."/".$outputBaseName."_".$i."_".$j."_cropped.pdf" );
 		    print oHndl "&\\multicolumn{3}{c}{\\includegraphics[scale=".$scale."]{\\triangledir/".$outputBaseName."_".$i."_".$j."_cropped.pdf}}";
 		}
@@ -337,6 +351,7 @@ exit;
 sub latexFormat {
     my $value   = shift();
     my $sigFigs = shift();
+    my %options = @_;
     # Handle zero.
     return "0.0"
 	if ( $value == 0.0 );
@@ -351,5 +366,45 @@ sub latexFormat {
     # Format value.
     my $format = "%".$sigFigs.".".($sigFigs-1)."f";    
     # Return
-    return "\$".$isNegative.sprintf($format,$value)." \\times 10^{".$order."}\$";
+    my $result = $isNegative.sprintf($format,$value).($order == 0 ? "" : " \\times 10^{".$order."}");
+    $result = "\$".$result."\$"
+	unless ( exists($options{'mathMode'}) && $options{'mathMode'} == 1 );
+    return $result;
+}
+
+sub latexFormatErrors {
+    my $value       = shift();
+    my $lowerOffset = shift();
+    my $upperOffset = shift();
+    my $sigFigs     = shift();
+    my %options      = @_;
+    my $order;
+    my $isNegative = "";
+    # Handle zero.
+    if ( $value == 0.0 ) {
+	$order = 0;
+    } else {
+	# Handle negative values.
+	$isNegative = $value < 0.0 ? "-" : "";
+	$value = abs($value);
+	# Determine order.
+	$order = floor(log10($value));
+    }
+    # Scale value.
+    $value       /= 10.0**$order;
+    $lowerOffset /= 10.0**$order;
+    $upperOffset /= 10.0**$order;
+    my $lowerOrder = $lowerOffset == 0.0 ? 0 : floor(log10($lowerOffset));
+    my $upperOrder = $upperOffset == 0.0 ? 0 : floor(log10($upperOffset));
+    # Format value.
+    my $orderLowest  = $lowerOrder < $upperOrder ? $lowerOrder : $upperOrder;
+    my $sigFigsValue = $orderLowest < 0 ? $sigFigs-$orderLowest : $sigFigs;    
+    my $format       = "%".($sigFigsValue+1).".".($sigFigsValue-1)."f";
+    my $formatLower  = "%".($lowerOrder > 0 ? $sigFigs+1 : $sigFigs+1-$lowerOrder).".".($lowerOrder > 0 ? $sigFigs-1 : $sigFigs-1-$lowerOrder)."f";    
+    my $formatUpper  = "%".($upperOrder > 0 ? $sigFigs+1 : $sigFigs+1-$upperOrder).".".($upperOrder > 0 ? $sigFigs-1 : $sigFigs-1-$upperOrder)."f";    
+    # Return
+    my $result = ($order == 0 ? "" : "(").$isNegative.sprintf($format,$value)."^{+".sprintf($formatUpper,$upperOffset)."}_{-".sprintf($formatLower,$lowerOffset)."}".($order == 0 ? "" : ") \\times 10^{".$order."}");
+    $result = "\$".$result."\$"
+	unless ( exists($options{'mathMode'}) && $options{'mathMode'} == 1 );
+    return $result;
 }
