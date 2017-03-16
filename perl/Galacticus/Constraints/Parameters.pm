@@ -223,6 +223,21 @@ sub Compilation {
     return (\@constraints,$parameters);
 }
 
+sub Active_Parameter_Names {
+    # Return a list of active parameter names.
+    my $config = shift;
+    my @names;
+    # Extract parameters from config file.
+    my @parameters = &List::ExtraUtils::as_array($config->{'parameters'}->{'parameter'});
+    # Extract names.
+    my $parameterCount = 0;
+    for(my $i=0;$i<scalar(@parameters);++$i) {
+	push(@names,$parameters[$i]->{'name'})
+	    if ( exists($parameters[$i]->{'prior'}) );
+    }
+    return @names;
+}
+
 sub Convert_Parameters_To_Galacticus {
     my $config = shift;
     my @values = @_;
@@ -387,8 +402,8 @@ sub Sample_Matrix {
     my $sampleMatrix = pdl zeroes(nelem($chainParameters[0]),nelem($sampleIndex));
     for(my $i=0;$i<nelem($sampleIndex);++$i) {
 	$sampleMatrix->(:,($i)) .= $chainParameters[$sampleIndex->(($i))];
-    }
-    # If parameters are to be mapped, so do.
+    }    
+    # If parameters are to be mapped, do so.
     if ( exists($arguments{'parametersMapped'}) && $arguments{'parametersMapped'} eq "yes" ) {
 	my $i = -1;
 	foreach my $parameter ( @{$config->{'parameters'}->{'parameter'}} ) {
@@ -503,16 +518,11 @@ sub Maximum_Likelihood_Vector {
     my $logFileRoot = $config->{'simulation'}->{'logFileRoot'};
     (my $mcmcDirectory  = $logFileRoot) =~ s/\/[^\/]+$//;    
     # Determine number of chains.
-    my $chainCount = 0;
-    while () {
-	++$chainCount;
-	my $chainFileName = sprintf("%s_%4.4i.log",$logFileRoot,$chainCount);
-	last
-	    unless ( -e $chainFileName );
-    }
+    my $chainCount = &Chains_Count($config,\%arguments);
     # Parse the chains to find the maximum likelihood model.
     my $maximumLikelihood = -1e30;
     my @maximumLikelihoodParameters;
+    my @chainFiles;
     for(my $i=0;$i<$chainCount;++$i) {
 	next
 	    unless
@@ -521,17 +531,27 @@ sub Maximum_Likelihood_Vector {
 	     ||
 	     $arguments{'chain'} == $i
 	    );
-	open(iHndl,sprintf("%s_%4.4i.log",$logFileRoot,$i));
+	push(@chainFiles,sprintf("%s_%4.4i.log"        ,$logFileRoot,$i));
+	push(@chainFiles,sprintf("%sPrevious_%4.4i.log",$logFileRoot,$i))
+	    if ( exists($arguments{'includePrevious'}) && $arguments{'includePrevious'} eq "yes" );
+    }
+    foreach my $chainFile ( @chainFiles ) {
+	open(iHndl,$chainFile);
 	while ( my $line = <iHndl> ) {
-	unless ( $line =~ m/^\"/ ) {
-	    $line =~ s/^\s*//;
-	    $line =~ s/\s*$//;
-	    my @columns = split(/\s+/,$line);
-	    if ( $columns[4] > $maximumLikelihood ) {
-		$maximumLikelihood           = $columns[4];
-		@maximumLikelihoodParameters = @columns[6..$#columns];
+	    unless ( $line =~ m/^\"/ ) {
+		$line =~ s/^\s*//;
+		$line =~ s/\s*$//;
+		my @columns = split(/\s+/,$line);
+		# Determine if state is accepted.
+		my $accept = 1;
+		# Skip unconverged states unless explicitly allowed.
+		$accept = 0
+		    if ( $columns[3] eq "F" && ( ! exists($arguments{'useUnconverged'}) || $arguments{'useUnconverged'} eq "no" ) );
+		if ( $accept == 1 && $columns[4] > $maximumLikelihood ) {
+		    $maximumLikelihood           = $columns[4];
+		    @maximumLikelihoodParameters = @columns[6..$#columns];
+		}
 	    }
-	}
 	}
 	close(iHndl);
     }
