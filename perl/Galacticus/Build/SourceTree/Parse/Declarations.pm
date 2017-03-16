@@ -208,9 +208,9 @@ sub AddAttributes {
 	}
  	$childNode = $childNode->{'sibling'};
     }
-    die('Galacticus::Build::SourceTree::Parse::Declarations::AddAttributes: no declarations present'       )
+    die('Galacticus::Build::SourceTree::Parse::Declarations::AddAttributes: no declarations present in '.$node->{'type'}.' "'.$node->{'name'}.'"'       )
 	unless ( $declarationsFound );
-    die('Galacticus::Build::SourceTree::Parse::Declarations::AddAttributes: variable declaration not found')
+    die('Galacticus::Build::SourceTree::Parse::Declarations::AddAttributes: variable declaration ['.$variableName.'] not found in '.$node->{'type'}.' "'.$node->{'name'}.'"')
 	unless ( $declarationFound  );
     # Modify the attributes.
     if ( scalar(@{$declarationFound->{'variables'}}) > 1 ) {
