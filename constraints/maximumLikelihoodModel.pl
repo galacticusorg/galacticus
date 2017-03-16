@@ -141,7 +141,7 @@ if ( $useFixedTrees eq "yes" ) {
     if ( exists($config->{'likelihood'}->{'fixedTreesInScratch'}) && $config->{'likelihood'}->{'fixedTreesInScratch'} eq "yes" ) {
 	$fixedTreeDirectory = $config->{'likelihood'}->{'scratchDirectory'}."/";
     } else {
-	$fixedTreeDirectory = $config->{'likelihood'}->{'workDirectory'   }."/";
+	$fixedTreeDirectory = $config->{'likelihood'}->{'workDirectory'   }."/trees/";
     }
     my $fixedTreeFile      = $fixedTreeDirectory."fixedTrees".$parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".hdf5";
     # Modify parameters to use the tree file.
