@@ -9,6 +9,7 @@ use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/pe
 use Data::Dumper;
 use XML::Simple;
 use List::ExtraUtils;
+use Galacticus::Build::SourceTree::Parse::Declarations;
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::processHooks{'constructors'} = \&Process_Constructors;
@@ -33,7 +34,7 @@ sub Process_Constructors {
 	    } else {
 		$returnValueLabel = $node->{'parent'}->{'name'}; 
 	    }
-	    # Generate source code for the enumeration.
+	    # Generate source code for the assignment.
 	    $node->{'directive'}->{'processed'} = 1;
 	    my $assignmentSource = "  ! Auto-generated constructor assignment\n";
 	    foreach ( grep {$_ ne ""} split(/\s*,\s*/,$node->{'directive'}->{'variables'}) ) {
@@ -43,7 +44,11 @@ sub Process_Constructors {
 		    $assigner     = " => ";
 		    $argumentName = $1;
 		} 
-		$assignmentSource   .= "   ".$returnValueLabel."%".$argumentName.$assigner.$argumentName."\n";
+		# Detect optional arguments.
+		my $declaration = &Galacticus::Build::SourceTree::Parse::Declarations::GetDeclaration($node->{'parent'},$argumentName);
+		my $optional    = (grep {$_ eq "optional"} @{$declaration->{'attributes'}}) ? "if (present(".$argumentName.")) " : "";
+		# Build the assignment.
+		$assignmentSource   .= "   ".$optional.$returnValueLabel."%".$argumentName.$assigner.$argumentName."\n";
 	    }
 	    $assignmentSource   .= "  ! End auto-generated constructor assignment.\n\n";
 	    # Create a new node.
