@@ -294,7 +294,7 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
     $parameters->{'mergerTreeReadFileName'   }->{'value'} = $fixedTreeFile;
     $parameters->{'outputRedshifts'          }->{'value'} = $outputRedshifts;
     $parameters->{'mergerTreeAnalyses'       }->{'value'} = $savedAnalyses;
-    $parameters->{'mergerTreeOperatorMethd'  }            = $savedMergerTreeOperator
+    $parameters->{'mergerTreeOperatorMethod' }            = $savedMergerTreeOperator
 	if ( $savedMergerTreeOperator );
     # Restore parameters.
     foreach my $parameter ( @savedParameters ) {
