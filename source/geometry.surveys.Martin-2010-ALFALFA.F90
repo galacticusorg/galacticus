@@ -18,12 +18,15 @@
 
 !% Implements the survey geometry used by \cite{martin_arecibo_2010}.
 
+  use Cosmology_Parameters
+  
   !# <surveyGeometry name="surveyGeometryMartin2010ALFALFA">
   !#  <description>Implements the survey geometry of the SDSS sample used by \cite{martin_arecibo_2010}.</description>
   !# </surveyGeometry>
-
   type, extends(surveyGeometryRandomPoints) :: surveyGeometryMartin2010ALFALFA
+     class(cosmologyParametersClass), pointer :: cosmologyParameters_
    contains
+     final     ::                      martin2010ALFALFADestructor
      procedure :: distanceMaximum   => martin2010ALFALFADistanceMaximum
      procedure :: solidAngle        => martin2010ALFALFASolidAngle
      procedure :: randomsInitialize => martin2010ALFALFARandomsInitialize
@@ -31,7 +34,8 @@
 
   interface surveyGeometryMartin2010ALFALFA
      !% Constructors for the \cite{martin_arecibo_2010} survey geometry class.
-     module procedure martin2010ALFALFADefaultConstructor
+     module procedure martin2010ALFALFAConstructorParameters
+     module procedure martin2010ALFALFAConstructorInternal
   end interface surveyGeometryMartin2010ALFALFA
 
   ! Minimum and maximum recession velocities for a galaxy to be admitted to the sample.
@@ -39,16 +43,44 @@
 
 contains
 
-  function martin2010ALFALFADefaultConstructor()
-    !% Default constructor for the \cite{martin_arecibo_2010} conditional mass function class.
-    use Input_Parameters
+  function martin2010ALFALFAConstructorParameters(parameters) result(self)
+    !% Constructor for the \cite{martin_arecibo_2010} conditional mass function class which takes a parameter list as input.
+    use Input_Parameters2
     implicit none
-    type(surveyGeometryMartin2010ALFALFA) :: martin2010ALFALFADefaultConstructor
+    type (surveyGeometryMartin2010ALFALFA)                :: self
+    type (inputParameters                ), intent(inout) :: parameters
+    class(cosmologyParametersClass       ), pointer       :: cosmologyParameters_
+    !# <inputParameterList label="allowedParameterNames" />
 
-    martin2010ALFALFADefaultConstructor%geometryInitialized=.false.
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    ! Build the object.
+    self=surveyGeometryMartin2010ALFALFA(cosmologyParameters_)
     return
-  end function martin2010ALFALFADefaultConstructor
+  end function martin2010ALFALFAConstructorParameters
+    
+  function martin2010ALFALFAConstructorInternal(cosmologyParameters_) result(self)
+    !% Internal constructor for the \cite{martin_arecibo_2010} conditional mass function class.
+    use Input_Parameters2
+    implicit none
+    type (surveyGeometryMartin2010ALFALFA)                        :: self
+    class(cosmologyParametersClass       ), intent(in   ), target :: cosmologyParameters_
+    !# <constructorAssign variables="*cosmologyParameters_"/>
 
+    self%geometryInitialized=.false.
+    return
+  end function martin2010ALFALFAConstructorInternal
+
+  subroutine martin2010ALFALFADestructor(self)
+    !% Destructor for the ``martin2010ALFALGA'' survey geometry class.
+    implicit none
+    type(surveyGeometryMartin2010ALFALFA), intent(inout) :: self
+    
+    !# <objectDestructor name="self%cosmologyParameters_"/>
+    return
+  end subroutine martin2010ALFALFADestructor
+  
   double precision function martin2010ALFALFADistanceMaximum(self,mass,field)
     !% Compute the maximum distance at which a galaxy is visible.
     use Galacticus_Error
@@ -69,7 +101,6 @@ contains
     double precision                                 , parameter               :: massNormalization               =2.356d5
     double precision                                                           :: logarithmicMass                                       , lineWidth                                , &
          &                                                                        integratedFluxLimit
-    class    (cosmologyParametersClass              ), pointer                 :: cosmologyParameters_
     !GCC$ attributes unused :: self
     
     ! Validate field.
@@ -85,11 +116,9 @@ contains
     else
        integratedFluxLimit=integratedFluxLimitNormalization*signalToNoise*    (lineWidth/lineWidthCharacteristic)
     end if
-    ! Get the default cosmology.
-    cosmologyParameters_ => cosmologyParameters()
     ! Convert from mass and limiting integrated flux to maximum distance using relation given in text of section 2.2 of Martin et
     ! al. (2010). Limit by the maximum velocity allowed for galaxies to make it into the sample.
-    martin2010ALFALFADistanceMaximum=min(sqrt(mass/massNormalization/integratedFluxLimit),martin2010ALFALFASampleVelocityMaximum/cosmologyParameters_%hubbleConstant())
+    martin2010ALFALFADistanceMaximum=min(sqrt(mass/massNormalization/integratedFluxLimit),martin2010ALFALFASampleVelocityMaximum/self%cosmologyParameters_%hubbleConstant())
     return
   end function martin2010ALFALFADistanceMaximum
 

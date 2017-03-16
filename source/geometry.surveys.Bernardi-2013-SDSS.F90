@@ -18,12 +18,11 @@
 
 !% Implements the geometry of the PRIMUS survey used by \cite{bernardi_massive_2013}.
   
+  use Galacticus_Input_Paths
+
   !# <surveyGeometry name="surveyGeometryBernardi2013SDSS">
   !#  <description>Implements the geometry of the PRIMUS survey of \cite{bernardi_massive_2013}.</description>
   !# </surveyGeometry>
-
-  use Galacticus_Input_Paths
-
   type, extends(surveyGeometryMangle) :: surveyGeometryBernardi2013SDSS
    contains
      procedure :: fieldCount                => bernardi2013SDSSFieldCount
@@ -36,7 +35,8 @@
 
   interface surveyGeometryBernardi2013SDSS
      !% Constructors for the \cite{bernardi_massive_2013} survey geometry class.
-     module procedure bernardi2013SDSSDefaultConstructor
+     module procedure bernardi2013SDSSConstructorParameters
+     module procedure bernardi2013SDSSConstructorInternal
   end interface surveyGeometryBernardi2013SDSS
 
   ! Angular power spectra.
@@ -44,17 +44,28 @@
 
 contains
 
-  function bernardi2013SDSSDefaultConstructor()
+  function bernardi2013SDSSConstructorParameters(parameters) result (self)
+    !% Constructor for the \cite{bernardi_massive_2013} conditional mass function class which takes a parameter set as input.
+    use Input_Parameters2
+    implicit none
+    type(surveyGeometryBernardi2013SDSS)                :: self
+    type(inputParameters               ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
+    
+    ! Build the object.
+    self=surveyGeometryBernardi2013SDSS()
+    return
+  end function bernardi2013SDSSConstructorParameters
+  
+  function bernardi2013SDSSConstructorInternal() result (self)
     !% Default constructor for the \cite{bernardi_massive_2013} conditional mass function class.
     use Input_Parameters
     implicit none
-    type(surveyGeometryBernardi2013SDSS) :: bernardi2013SDSSDefaultConstructor
+    type(surveyGeometryBernardi2013SDSS) :: self
 
-    bernardi2013SDSSDefaultConstructor%solidAnglesInitialized =.false.
-    bernardi2013SDSSDefaultConstructor%angularPowerInitialized=.false.
-    bernardi2013SDSSDefaultConstructor%windowInitialized      =.false.
+    call self%initialize()
     return
-  end function bernardi2013SDSSDefaultConstructor
+  end function bernardi2013SDSSConstructorInternal
 
   integer function bernardi2013SDSSFieldCount(self)
     !% Return the number of fields in this sample.

@@ -18,11 +18,9 @@
 
 !% Implements survey geometries defined by random points.
   
-  !# <surveyGeometry name="surveyGeometryRandomPoints">
+  !# <surveyGeometry name="surveyGeometryRandomPoints" abstract="yes">
   !#  <description>Implements survey geometries defined by random points.</description>
-  !#  <abstract>yes</abstract>
   !# </surveyGeometry>
-
   type, abstract, extends(surveyGeometryClass) :: surveyGeometryRandomPoints
      logical                                     :: geometryInitialized
      double precision, allocatable, dimension(:) :: randomTheta        , randomPhi
@@ -58,6 +56,7 @@ contains
     implicit none
     class(surveyGeometryRandomPoints), intent(inout) :: self
     !GCC$ attributes unused :: self
+
     randomPointsWindowFunctionAvailable=.true.
     return
   end function randomPointsWindowFunctionAvailable

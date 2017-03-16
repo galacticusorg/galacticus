@@ -18,13 +18,16 @@
 
 !% Implements the survey geometry used by \cite{caputi_stellar_2011}.
   
+  use Cosmology_Functions
+
   !# <surveyGeometry name="surveyGeometryCaputi2011UKIDSSUDS">
   !#  <description>Implements the survey geometry of the SDSS sample used by \cite{caputi_stellar_2011}.</description>
   !# </surveyGeometry>
-
   type, extends(surveyGeometryRandomPoints) :: surveyGeometryCaputi2011UKIDSSUDS
-     double precision :: binDistanceMinimum, binDistanceMaximum
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     double precision                                   :: binDistanceMinimum , binDistanceMaximum
    contains
+     final     ::                      caputi2011UKIDSSUDSDestructor
      procedure :: distanceMinimum   => caputi2011UKIDSSUDSDistanceMinimum
      procedure :: distanceMaximum   => caputi2011UKIDSSUDSDistanceMaximum
      procedure :: volumeMaximum     => caputi2011UKIDSSUDSVolumeMaximum
@@ -34,57 +37,46 @@
 
   interface surveyGeometryCaputi2011UKIDSSUDS
      !% Constructors for the \cite{caputi_stellar_2011} survey geometry class.
-     module procedure caputi2011UKIDSSUDSDefaultConstructor
-     module procedure caputi2011UKIDSSUDSConstructor
+     module procedure caputi2011UKIDSSUDSConstructorParameters
+     module procedure caputi2011UKIDSSUDSConstructorInternal
   end interface surveyGeometryCaputi2011UKIDSSUDS
-
-  ! Default redshift bin to use.
-  logical :: caputi2011UKIDSSUDSInitialized=.false.
-  integer :: caputi2011UKIDSSUDSRedshiftBin
 
 contains
 
-  function caputi2011UKIDSSUDSDefaultConstructor()
+  function caputi2011UKIDSSUDSConstructorParameters(parameters) result(self)
     !% Default constructor for the \cite{caputi_stellar_2011} conditional mass function class.
-    use Input_Parameters
+    use Input_Parameters2
     implicit none
-    type(surveyGeometryCaputi2011UKIDSSUDS) :: caputi2011UKIDSSUDSDefaultConstructor
-
-    if (.not.caputi2011UKIDSSUDSInitialized) then
-       !$omp critical(caputi2011UKIDSSUDSInitialize)
-       if (.not.caputi2011UKIDSSUDSInitialized) then
-          ! Get the redshift bin to use.
-          !@ <inputParameter>
-          !@   <name>caputi2011UKIDSSUDSRedshiftBin</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The redshift bin (0, 1, or 2) of the \cite{caputi_stellar_2011} to use.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>starFormation</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('caputi2011UKIDSSUDSRedshiftBin',caputi2011UKIDSSUDSRedshiftBin)
-          ! Record that the survey is initialized.
-          caputi2011UKIDSSUDSInitialized=.true.
-       end if
-       !$omp end critical(caputi2011UKIDSSUDSInitialize)
-    end if
-    caputi2011UKIDSSUDSDefaultConstructor=caputi2011UKIDSSUDSConstructor(caputi2011UKIDSSUDSRedshiftBin)
+    type   (surveyGeometryCaputi2011UKIDSSUDS)                :: self
+    type   (inputParameters                  ), intent(inout) :: parameters
+    class  (cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
+    integer                                                   :: redshiftBin
+    !# <inputParameterList label="allowedParameterNames" />
+    
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !# <inputParameter>
+    !#   <name>redshiftBin</name>
+    !#   <source>parameters</source>
+    !#   <description>The redshift bin (0, 1, or 2) of the \cite{caputi_stellar_2011} to use.</description>
+    !#   <type>integer</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    self=surveyGeometryCaputi2011UKIDSSUDS(redshiftBin,cosmologyFunctions_)
     return
-  end function caputi2011UKIDSSUDSDefaultConstructor
+  end function caputi2011UKIDSSUDSConstructorParameters
 
-  function caputi2011UKIDSSUDSConstructor(redshiftBin)
-    !% Default constructor for the \cite{caputi_stellar_2011} conditional mass function class.
+  function caputi2011UKIDSSUDSConstructorInternal(redshiftBin,cosmologyFunctions_) result(self)
+    !% Internal constructor for the \cite{caputi_stellar_2011} conditional mass function class.
     use Galacticus_Error
-    use Input_Parameters
-    use Cosmology_Functions
     use Cosmology_Functions_Options
     implicit none
-    type            (surveyGeometryCaputi2011UKIDSSUDS)                :: caputi2011UKIDSSUDSConstructor
-    integer                                            , intent(in   ) :: redshiftBin
-    class           (cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
-    double precision                                                   :: redshiftMinimum               , redshiftMaximum
+    type            (surveyGeometryCaputi2011UKIDSSUDS)                        :: self
+    integer                                            , intent(in   )         :: redshiftBin
+    class           (cosmologyFunctionsClass          ), intent(in   ), target :: cosmologyFunctions_
+    double precision                                                           :: redshiftMinimum    , redshiftMaximum
+    !# <constructorAssign variables="*cosmologyFunctions_"/>
 
     ! Find distance limits for this redshift bin.
     select case (redshiftBin)
@@ -98,22 +90,30 @@ contains
        redshiftMinimum=4.25d0
        redshiftMaximum=5.00d0
     case default
-       call Galacticus_Error_Report('caputi2011UKIDSSUDSConstructor','0≤redshiftBin≤2 is required')
+       call Galacticus_Error_Report('caputi2011UKIDSSUDSConstructorInternal','0≤redshiftBin≤2 is required')
     end select
-    cosmologyFunctions_ => cosmologyFunctions()
-    caputi2011UKIDSSUDSConstructor%binDistanceMinimum                                     &
-         & =cosmologyFunctions_%distanceComovingConvert(                                  &
-         &                                                 output  =distanceTypeComoving, &
-         &                                                 redshift=redshiftMinimum       &
-         &                                                )
-    caputi2011UKIDSSUDSConstructor%binDistanceMaximum                                     &
-         & =cosmologyFunctions_%distanceComovingConvert(                                  &
-         &                                                 output  =distanceTypeComoving, &
-         &                                                 redshift=redshiftMaximum       &
-         &                                                )
-    caputi2011UKIDSSUDSConstructor%geometryInitialized=.false.
+    self%binDistanceMinimum                                                                 &
+         & =self%cosmologyFunctions_%distanceComovingConvert(                               &
+         &                                                   output  =distanceTypeComoving, &
+         &                                                   redshift=redshiftMinimum       &
+         &                                                  )
+    self%binDistanceMaximum                                                                 &
+         & =self%cosmologyFunctions_%distanceComovingConvert(                               &
+         &                                                   output  =distanceTypeComoving, &
+         &                                                   redshift=redshiftMaximum       &
+         &                                                  )
+    self%geometryInitialized=.false.
     return
-  end function caputi2011UKIDSSUDSConstructor
+  end function caputi2011UKIDSSUDSConstructorInternal
+  
+  subroutine caputi2011UKIDSSUDSDestructor(self)
+    !% Destructor for the ``caputi2011UKIDSSUDS'' survey geometry class.
+    implicit none
+    type(surveyGeometryCaputi2011UKIDSSUDS), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    return
+  end subroutine caputi2011UKIDSSUDSDestructor
   
   double precision function caputi2011UKIDSSUDSDistanceMinimum(self,mass,field)
     !% Compute the minimum distance at which a galaxy is included.

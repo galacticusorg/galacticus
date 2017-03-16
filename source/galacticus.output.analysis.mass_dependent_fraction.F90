@@ -295,16 +295,16 @@ contains
              analysisActive=.false.
           else
              analysisActive=.true.
+             cosmologyFunctionsModel => cosmologyFunctions()
              ! Establish survey geometries.
              allocate(surveyGeometryKelvin2014GAMAnear :: fractionFunctionDescriptors(1)%geometry)
              select type (g => fractionFunctionDescriptors(1)%geometry)
              type is (surveyGeometryKelvin2014GAMAnear)
-                g=surveyGeometryKelvin2014GAMAnear()
+                g=surveyGeometryKelvin2014GAMAnear(cosmologyFunctionsModel)
              end select
              ! Initialize analyses.
              currentAnalysis=0
              allocate(fractionFunctions(activeAnalysisCount))
-             cosmologyFunctionsModel => cosmologyFunctions()
              do i=1,size(mergerTreeAnalyses)
                 do j=1,fractionFunctionsSupportedCount
                    if (mergerTreeAnalyses(i) == trim(fractionFunctionLabels(j))) then

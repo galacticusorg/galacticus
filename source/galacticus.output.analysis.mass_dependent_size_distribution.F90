@@ -317,16 +317,16 @@ contains
              analysisActive=.false.
           else
              analysisActive=.true.
+             cosmologyFunctionsModel => cosmologyFunctions()
              ! Establish survey geometries.
              allocate(surveyGeometryLiWhite2009SDSS :: sizeFunctionDescriptors(1)%geometry)
              select type (g => sizeFunctionDescriptors(1)%geometry)
              type is (surveyGeometryLiWhite2009SDSS)
-                g=surveyGeometryLiWhite2009SDSS()
+                g=surveyGeometryLiWhite2009SDSS(0.0d0,huge(0.0d0),cosmologyFunctionsModel)
              end select
              ! Initialize analyses.
              currentAnalysis=0
              allocate(sizeFunctions(activeAnalysisCount))
-             cosmologyFunctionsModel => cosmologyFunctions()
              do i=1,size(mergerTreeAnalyses)
                 do j=1,sizeFunctionsSupportedCount
                    if (mergerTreeAnalyses(i) == trim(sizeFunctionLabels(j))) then
