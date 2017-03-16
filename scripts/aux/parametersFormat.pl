@@ -504,6 +504,7 @@ my @groups =
 	      qr/^stellarMassSystematics\d+$/,
 	      qr/.*StellarMassFunctionZ[\d\.]+MassRandom\d+$/,
 	      qr/.*StellarMassFunctionZ[\d\.]+MassRandomMinimum$/,
+	      qr/.*StellarMassFunctionZ[\d\.]+MassRandomMaximum$/,
 	      qr/^sdssStellarMassFunctionHighMass.*/,
 	      qr/^gamaStellarMassFunctionZ0\.03/
 	     ]
