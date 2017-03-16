@@ -370,6 +370,8 @@ sub Sample_Matrix {
 	    if ( exists($arguments{'includePrevious'}) && $arguments{'includePrevious'} eq "yes" );
 	foreach my $suffix ( @suffixes ) {
 	    my $chainFileName = sprintf("%s%s_%4.4i.log",$logFileRoot,$suffix,$i);
+	    next
+		unless ( -e $chainFileName );
 	    open(iHndl,$chainFileName);
 	    while ( my $line = <iHndl> ) {
 		unless ( $line =~ m/^\"/ ) {
