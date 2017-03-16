@@ -28,11 +28,11 @@ module Galacticus_Output_Times
        &    Galacticus_Output_Time_Index, Galacticus_Output_Redshift
 
   ! Flag to indicate if output times have been initialized.
-  logical                                     :: outputsInitialized=.false.
+  logical                                               :: outputsInitialized=.false.
 
   ! Array of output times.
   integer         (c_size_t)                            :: outputCount
-  double precision          , allocatable, dimension(:) :: outputTimes, outputRedshifts
+  double precision          , allocatable, dimension(:) :: outputTimes               , outputRedshifts
 
 contains
 
