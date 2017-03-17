@@ -75,7 +75,7 @@ contains
 
     ! Build the SDSS survey geometry of Li & White (2008) with their imposed redshift limits.
     allocate(surveyGeometry_)
-    surveyGeometry_=surveyGeometryLiWhite2009SDSS(redshiftMinimum=1.0d-3,redshiftMaximum=0.5d0)
+    surveyGeometry_=surveyGeometryLiWhite2009SDSS(redshiftMinimum=1.0d-3,redshiftMaximum=0.5d0,cosmologyFunctions_=cosmologyFunctions_)
     ! Build a filter which select galaxies with stellar mass 10⁶M☉ or greater.
     allocate(galacticFilter_)
     galacticFilter_=galacticFilterStellarMass(massThreshold=1.0d6)
