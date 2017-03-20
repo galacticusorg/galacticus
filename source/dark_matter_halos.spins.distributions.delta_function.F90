@@ -28,8 +28,9 @@
      private
      double precision :: spin
    contains
-     final     ::           deltaFunctionDestructor
-     procedure :: sample => deltaFunctionSample
+     final     ::                 deltaFunctionDestructor
+     procedure :: sample       => deltaFunctionSample
+     procedure :: distribution => deltaFunctionDistribution
   end type haloSpinDistributionDeltaFunction
   
   interface haloSpinDistributionDeltaFunction
@@ -98,3 +99,16 @@ contains
     deltaFunctionSample=self%spin
     return
   end function deltaFunctionSample
+
+  double precision function deltaFunctionDistribution(self,node)
+    !% Return the spin parameter distribution for the given {\normalfont \ttfamily node}.
+    use Galacticus_Error
+    implicit none
+    class(haloSpinDistributionDeltaFunction), intent(inout)          :: self
+    type (treeNode                         ), intent(inout), pointer :: node
+    !GCC$ attributes unused :: self, node
+    
+    deltaFunctionDistribution=0.0d0
+    call Galacticus_Error_Report('deltaFunctionSample','distribution function can not be evaluated')
+    return
+  end function deltaFunctionDistribution

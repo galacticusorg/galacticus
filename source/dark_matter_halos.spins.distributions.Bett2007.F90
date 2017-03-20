@@ -28,12 +28,14 @@
   type, extends(haloSpinDistributionClass) :: haloSpinDistributionBett2007
      !% A dark matter halo spin distribution class which assumes a \cite{bett_spin_2007} distribution.
      private
-     double precision                                        :: alpha               , lambda0
-     type            (table1DLogarithmicLinear)              :: distribution
+     double precision                                        :: alpha               , lambda0, &
+          &                                                     normalization
+     type            (table1DLogarithmicLinear)              :: distributionTable
      class           (table1D                 ), allocatable :: distributionInverse
    contains
-     final     ::           bett2007Destructor
-     procedure :: sample => bett2007Sample
+     final     ::                 bett2007Destructor
+     procedure :: sample       => bett2007Sample
+     procedure :: distribution => bett2007Distribution
   end type haloSpinDistributionBett2007
   
   interface haloSpinDistributionBett2007
@@ -95,33 +97,37 @@ contains
     double precision                                              :: spinDimensionless          , tableMaximum
     integer                                                       :: iSpin
 
-    bett2007ConstructorInternal%lambda0=lambda0
-    bett2007ConstructorInternal%alpha  =alpha
+    bett2007ConstructorInternal%lambda0      =lambda0
+    bett2007ConstructorInternal%alpha        =alpha
+    ! Compute the normalization.
+    bett2007ConstructorInternal%normalization=+3.0d0                                                                        &
+         &                                    *bett2007ConstructorInternal%alpha**(bett2007ConstructorInternal%alpha-1.0d0) &
+         &                                    /Gamma_Function(bett2007ConstructorInternal%alpha)
     ! Tabulate the cumulative distribution.
     tableMaximum=(bett2007SpinMaximum/lambda0)**(3.0d0/alpha)
-    call bett2007ConstructorInternal%distribution%destroy()
-    call bett2007ConstructorInternal%distribution%create (                                                                                        &
-         &                                                lambda0*bett2007SpinMinimum**(alpha/3.0d0),                                             &
-         &                                                lambda0*tableMaximum       **(alpha/3.0d0)                                            , &
-         &                                                bett2007TabulationPointsCount                                                         , &
-         &                                                extrapolationType                         =[extrapolationTypeFix,extrapolationTypeFix]  &
-         &                                               )
+    call bett2007ConstructorInternal%distributionTable%destroy()
+    call bett2007ConstructorInternal%distributionTable%create (                                                                                        &
+         &                                                     lambda0*bett2007SpinMinimum**(alpha/3.0d0),                                             &
+         &                                                     lambda0*tableMaximum       **(alpha/3.0d0)                                            , &
+         &                                                     bett2007TabulationPointsCount                                                         , &
+         &                                                     extrapolationType                         =[extrapolationTypeFix,extrapolationTypeFix]  &
+         &                                                    )
     ! Compute the cumulative probability distribution.
     do iSpin=1,bett2007TabulationPointsCount
-       spinDimensionless=(                                                   &
-            &             +bett2007ConstructorInternal%distribution%x(iSpin) &
-            &             /lambda0                                           &
+       spinDimensionless=(                                                        &
+            &             +bett2007ConstructorInternal%distributionTable%x(iSpin) &
+            &             /lambda0                                                &
             &            )**(3.0d0/alpha)
-       call bett2007ConstructorInternal%distribution%populate(                                                            &
-            &                                                 Gamma_Function_Incomplete_Complementary(                    &
-            &                                                                                         +alpha            , &
-            &                                                                                         +alpha              &
-            &                                                                                         *spinDimensionless  &
-            &                                                                                        )                  , &
-            &                                                 iSpin                                                       &
-            &                                                )
+       call bett2007ConstructorInternal%distributionTable%populate(                                                            &
+            &                                                      Gamma_Function_Incomplete_Complementary(                    &
+            &                                                                                              +alpha            , &
+            &                                                                                              +alpha              &
+            &                                                                                              *spinDimensionless  &
+            &                                                                                             )                  , &
+            &                                                      iSpin                                                       &
+            &                                                     )
     end do
-    call bett2007ConstructorInternal%distribution%reverse(bett2007ConstructorInternal%distributionInverse)
+    call bett2007ConstructorInternal%distributionTable%reverse(bett2007ConstructorInternal%distributionInverse)
     return
   end function bett2007ConstructorInternal
 
@@ -147,3 +153,28 @@ contains
     bett2007Sample=self%distributionInverse%interpolate(node%hostTree%randomNumberGenerator%sample())
     return
   end function bett2007Sample
+
+  double precision function bett2007Distribution(self,node)
+    !% Compute the spin parameter distribution for the given {\normalfont \ttfamily node} assuming the fitting function of
+    !% \cite{bett_spin_2007}.
+    implicit none
+    class(haloSpinDistributionBett2007), intent(inout)          :: self
+    type (treeNode                    ), intent(inout), pointer :: node
+    class(nodeComponentSpin           )               , pointer :: spin
+
+    spin                 => node%spin()
+    bett2007Distribution =  +self%normalization         &
+         &                  *(                          &
+         &                    +spin%spin()              &
+         &                    /self%lambda0             &
+         &                   )**3                       &
+         &                  *exp(                       &
+         &                       -self%alpha            &
+         &                       *(                     &
+         &                         +spin%spin()         &
+         &                         /self%lambda0        &
+         &                        )**(3.0d0/self%alpha) &
+         &                      )                       &
+         &                  /spin%spin()
+    return
+  end function bett2007Distribution
