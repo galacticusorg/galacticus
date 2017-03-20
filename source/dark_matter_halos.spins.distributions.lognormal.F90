@@ -32,6 +32,7 @@
    contains
      final     ::                  logNormalDestructor
      procedure :: sample        => logNormalSample
+     procedure :: distribution  => logNormalDistribution
      procedure :: stateSnapshot => logNormalStateSnapshot
      procedure :: stateStore    => logNormalStateStore
      procedure :: stateRestore  => logNormalStateRestore
@@ -71,8 +72,8 @@ contains
     !#   <name>sigma</name>
     !#   <source>parameters</source>
     !#   <variable>logNormalConstructorParameters%sigma</variable>
-    !#   <defaultValue>0.2216d0</defaultValue>
-    !#   <defaultSource>\citep{bett_spin_2007}</defaultSource>
+    !#   <defaultValue>0.5102d0</defaultValue>
+    !#   <defaultSource>(\citealt{bett_spin_2007}; note that in this reference the value of $\sigma$ quoted is for $\log_{10}\lambda$, while here we use $\log\lambda$)</defaultSource>
     !#   <description>The width of a log-normal spin distribution.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
@@ -124,6 +125,33 @@ contains
          &             )
     return
   end function logNormalSample
+
+  double precision function logNormalDistribution(self,node)
+    !% Return the spin parameter distribution for the given {\normalfont \ttfamily node}
+    !% assuming a log-normal distribution.
+    use Numerical_Constants_Math
+    implicit none
+    class(haloSpinDistributionLogNormal), intent(inout)          :: self
+    type (treeNode                     ), intent(inout), pointer :: node
+    class(nodeComponentSpin            )               , pointer :: spin
+
+    spin                  => node%spin()
+    logNormalDistribution =  +exp(                    &
+         &                        -(                  &
+         &                          +log(spin%spin()) &
+         &                          -self%median      &
+         &                         )**2               &
+         &                        /2.0d0              &
+         &                        /self%sigma**2      &
+         &                       )                    &
+         &                   /sqrt(                   &
+         &                         +2.0d0             &
+         &                         *Pi                &
+         &                        )                   &
+         &                   /self%sigma              &
+         &                   /spin%spin()
+    return
+  end function logNormalDistribution
 
   subroutine logNormalStateSnapshot(self)
     !% Store a snapshot of the random number generator internal state.

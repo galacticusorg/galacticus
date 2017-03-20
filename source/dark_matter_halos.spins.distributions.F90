@@ -37,6 +37,12 @@ module Halo_Spin_Distributions
   !#   <pass>yes</pass>
   !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
   !#  </method>
+  !#  <method name="distribution" >
+  !#   <description>Return the spin distribution function, $p(\lambda)$, for the given {\normalfont \ttfamily node}. It is assumed that {\normalfont \ttfamily node} provides the value of the spin at which the distribution function should be evaluated.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
+  !#  </method>
   !# </functionClass>
 
 end module Halo_Spin_Distributions
