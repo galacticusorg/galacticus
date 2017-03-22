@@ -228,7 +228,7 @@ sub Node_Event_Deserialize_Raw {
 	{
 	    type        => "void",
 	    name        => $code::class->{'name'}."DeserializeRaw",
-	    description => "Deserialize a {\\normalfont \\ttfamily ".$code::class->{'name'}." object from raw file.",
+	    description => "Deserialize a {\\normalfont \\ttfamily ".$code::class->{'name'}."} object from raw file.",
 	    content     => "",
 	    modules     =>
 		[
@@ -310,7 +310,7 @@ sub Node_Event_Serialize_Raw {
 	{
 	    type        => "void",
 	    name        => $code::class->{'name'}."SerializeRaw",
-	    description => "Serialize a {\\normalfont \\ttfamily ".$code::class->{'name'}." object to raw file.",
+	    description => "Serialize a {\\normalfont \\ttfamily ".$code::class->{'name'}."} object to raw file.",
 	    modules     =>
 		[
 		 "ISO_C_Binding"
