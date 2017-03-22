@@ -706,7 +706,7 @@ contains
     class           (nodeComponentBasic            )               , pointer        :: basic
     double precision                                , allocatable  , dimension(:  ) :: randomError, randomErrorWeight
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
-    type            (cosmologyParametersClass      )               , pointer        :: cosmologyParametersModel
+    class           (cosmologyParametersClass      )               , pointer        :: cosmologyParametersModel
     double precision                                , parameter                     :: massBufferFactor              =100.0d+0 ! Multiplicative buffer size in mass to add below/above observed masses.
     integer         (c_size_t                      )                                :: jOutput
     integer                                                                         :: currentAnalysis,activeAnalysisCount,haloMassBin,iError
