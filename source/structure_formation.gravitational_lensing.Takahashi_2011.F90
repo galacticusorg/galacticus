@@ -21,7 +21,6 @@
   !# <gravitationalLensing name="gravitationalLensingTakahashi2011">
   !#  <description>Implements the gravitational lensing distributions of \cite{takahashi_probability_2011}.</description>
   !# </gravitationalLensing>
-
   type, extends(gravitationalLensingClass) :: gravitationalLensingTakahashi2011
      logical                                    :: tableInitialized         , cdfInitialized
      type            (table1DGeneric          ) :: convergencePDF
@@ -44,7 +43,7 @@
      !@     <method>convergenceDistribution</method>
      !@     <type>\doublezero</type>
      !@     <arguments>\doublezero\ convergence\argin</arguments>
-     !@     <description>Returns the gravitatoinal lensing convergence probability density function at the given convergence.</description>
+     !@     <description>Returns the gravitational lensing convergence probability density function at the given convergence.</description>
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: magnificationPDF             => takahashi2011MagnificationPDF
@@ -55,7 +54,8 @@
 
   interface gravitationalLensingTakahashi2011
      !% Constructors for the \cite{takahashi_probability_2011} gravitational lensing class.
-     module procedure takahashi2011DefaultConstructor
+     module procedure takahashi2011ConstructorParameters
+     module procedure takahashi2011ConstructorInternal
   end interface gravitationalLensingTakahashi2011
 
   ! Smallest variance for which calculations are stable.
@@ -66,16 +66,28 @@
 
 contains
 
-  function takahashi2011DefaultConstructor()
-    !% Default constructor for the \cite{takahashi_probability_2011} gravitational lensing class.
+  function takahashi2011ConstructorParameters(parameters) result(self)
+    !% Constructor for the \cite{takahashi_probability_2011} gravitational lensing class which takes a parameter list as input.
+    use Input_Parameters2
     implicit none
-    type(gravitationalLensingTakahashi2011) :: takahashi2011DefaultConstructor
-
-    takahashi2011DefaultConstructor%tableInitialized=.false.
-    takahashi2011DefaultConstructor%cdfInitialized  =.false.
-    takahashi2011DefaultConstructor%redshiftPrevious=-2.0d0
+    type(gravitationalLensingTakahashi2011)                :: self
+    type(inputParameters                  ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
+    
+    self=gravitationalLensingTakahashi2011()
     return
-  end function takahashi2011DefaultConstructor
+  end function takahashi2011ConstructorParameters
+
+  function takahashi2011ConstructorInternal() result(self)
+    !% Internal for the \cite{takahashi_probability_2011} gravitational lensing class.
+    implicit none
+    type(gravitationalLensingTakahashi2011) :: self
+
+    self%tableInitialized=.false.
+    self%cdfInitialized  =.false.
+    self%redshiftPrevious=-2.0d0
+    return
+  end function takahashi2011ConstructorInternal
 
   double precision function takahashi2011MagnificationPDF(self,magnification,redshift,scaleSource)
     !% Compute the magnification probability density function at the given {\normalfont \ttfamily magnification} and {\normalfont \ttfamily redshift} using the

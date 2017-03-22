@@ -20,16 +20,12 @@
 
 module Gravitational_Lensing
   !% Implements gravitational lensing from large scale structure.
-  use Tables
-  use ISO_Varying_String
   use, intrinsic :: ISO_C_Binding
-  !# <include directive="gravitationalLensing" type="functionModules" >
-  include 'gravitationalLensing.functionModules.inc'
-  !# </include>
-  implicit none
+  use            :: Tables
   private
 
-  !# <include directive="gravitationalLensing" type="function" >
+  !# <functionClass>
+  !# <name>gravitationalLensing</name>
   !#  <descriptiveName>Gravitational Lensing</descriptiveName>
   !#  <description>Object providing gravitational lensing probabilities due to large scale structure.</description>
   !#  <default>takahashi2011</default>
@@ -46,7 +42,6 @@ module Gravitational_Lensing
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: magnification, redshift, scaleSource</argument>
   !#  </method>
-  include 'gravitationalLensing.type.inc'
-  !# </include>
+  !# </functionClass>
 
 end module Gravitational_Lensing

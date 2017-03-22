@@ -21,9 +21,8 @@
   !# <gravitationalLensing name="gravitationalLensingBaryonicModifier">
   !#  <description>Implements the gravitational lensing distribution by modifying another distribution for the effects of baryons.</description>
   !# </gravitationalLensing>
-
   type, extends(gravitationalLensingClass) :: gravitationalLensingBaryonicModifier
-     class           (gravitationalLensingClass), pointer :: originalDistribution
+     class           (gravitationalLensingClass), pointer :: gravitationalLensing_
      double precision                                     :: alpha                  , beta               , &
           &                                                  transitionMagnification, renormalization    , &
           &                                                  redshiftPrevious       , scaleSourcePrevious
@@ -45,97 +44,66 @@
   
   interface gravitationalLensingBaryonicModifier
      !% Constructors for the ``baryonic modifier'' gravitational lensing class.
-     module procedure baryonicModifierDefaultConstructor
+     module procedure baryonicModifierConstructorParameters
+     module procedure baryonicModifierConstructorInternal
   end interface gravitationalLensingBaryonicModifier
-
-  ! Initialization state.
-  logical                          :: baryonicModifierInitialized                             =.false.
-
-  ! Default parameters.
-  type            (varying_string) :: gravitationalLensingBaryonicModifierOriginalDistribution
-  double precision                 :: gravitationalLensingBaryonicModifierAlpha
-  double precision                 :: gravitationalLensingBaryonicModifierBeta
 
 contains
 
-  function baryonicModifierDefaultConstructor()
+  function baryonicModifierConstructorParameters(parameters) result(self)
     !% Default constructor for the ``baryonic modifier'' gravitational lensing class.
-    use Input_Parameters
+    use Input_Parameters2
     implicit none
-    type(gravitationalLensingBaryonicModifier) :: baryonicModifierDefaultConstructor
+    type            (gravitationalLensingBaryonicModifier)                :: self
+    type            (inputParameters                     ), intent(inout) :: parameters
+    class           (gravitationalLensingClass           ), pointer       :: gravitationalLensing_
+    double precision                                                      :: alpha                , beta
+    !# <inputParameterList label="allowedParameterNames" />
 
-    if (.not.baryonicModifierInitialized) then
-       !$omp critical (baryonicModifierInitialize)
-       if (.not.baryonicModifierInitialized) then
-          !@ <inputParameter>
-          !@   <name>gravitationalLensingBaryonicModifierOriginalDistribution</name>
-          !@   <defaultValue>takahashi2011</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Name of the original gravitational lensing magnification distribution method to which to apply baryonic modifiers.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('gravitationalLensingBaryonicModifierOriginalDistribution',gravitationalLensingBaryonicModifierOriginalDistribution,defaultValue='takahashi2011')
-          !@ <inputParameter>
-          !@   <name>gravitationalLensingBaryonicModifierAlpha</name>
-          !@   <defaultValue>$0$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Parameter $\alpha$ in the modified gravitational lensing \gls{pdf}, $P(\mu) \rightarrow P(\mu) + \hbox{min}[\alpha,\beta P(\mu)]$.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('gravitationalLensingBaryonicModifierAlpha',gravitationalLensingBaryonicModifierAlpha,defaultValue=0.0d0)
-          !@ <inputParameter>
-          !@   <name>gravitationalLensingBaryonicModifierBeta</name>
-          !@   <defaultValue>$0$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Parameter $\beta$ in the modified gravitational lensing \gls{pdf}, $P(\mu) \rightarrow P(\mu) + \hbox{min}[\alpha,\beta P(\mu)]$.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('gravitationalLensingBaryonicModifierBeta',gravitationalLensingBaryonicModifierBeta,defaultValue=0.0d0)
-          ! Record that we are now initialized.
-          baryonicModifierInitialized=.true.
-       end if
-       !$omp end critical (baryonicModifierInitialize)
-    end if
-    baryonicModifierDefaultConstructor                                                            &
-         & =baryonicModifierConstructor(                                                          &
-         &                              gravitationalLensingBaryonicModifierOriginalDistribution, &
-         &                              gravitationalLensingBaryonicModifierAlpha               , &
-         &                              gravitationalLensingBaryonicModifierBeta                  &
-         &                             )
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)
+    !# <inputParameter>
+    !#   <name>alpha</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>Parameter $\alpha$ in the modified gravitational lensing \gls{pdf}, $P(\mu) \rightarrow P(\mu) + \hbox{min}[\alpha,\beta P(\mu)]$.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>beta</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>Parameter $\beta$ in the modified gravitational lensing \gls{pdf}, $P(\mu) \rightarrow P(\mu) + \hbox{min}[\alpha,\beta P(\mu)]$.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="gravitationalLensing" name="gravitationalLensing_" source="parameters"/>
+    ! Build the object.
+    self=gravitationalLensingBaryonicModifier(gravitationalLensing_,alpha,beta)
     return
-  end function baryonicModifierDefaultConstructor
+  end function baryonicModifierConstructorParameters
 
-  function baryonicModifierConstructor(originalDistributionName,alpha,beta)
+  function baryonicModifierConstructorInternal(gravitationalLensing_,alpha,beta) result(self)
     !% Generic constructor for the ``baryonic modifier'' gravitational lensing class.
     implicit none
-    type            (gravitationalLensingBaryonicModifier)                :: baryonicModifierConstructor
-    type            (varying_string                      ), intent(in   ) :: originalDistributionName
-    double precision                                      , intent(in   ) :: alpha                            , beta
-
-    ! Set parameters of this object.
-    baryonicModifierConstructor%originalDistribution => gravitationalLensing(char(originalDistributionName))
-    baryonicModifierConstructor%alpha                =  alpha
-    baryonicModifierConstructor%beta                 =  beta
-    baryonicModifierConstructor%redshiftPrevious     =  -1.0d0
-    baryonicModifierConstructor%scaleSourcePrevious  =  -1.0d0
+    type            (gravitationalLensingBaryonicModifier)                        :: self
+    class           (gravitationalLensingClass           ), intent(in   ), target :: gravitationalLensing_
+    double precision                                      , intent(in   )         :: alpha                , beta
+    !# <constructorAssign variables="*gravitationalLensing_, alpha, beta"/>
+    
+    ! Initialize
+    self%redshiftPrevious   =-1.0d0
+    self%scaleSourcePrevious=-1.0d0
     return
-  end function baryonicModifierConstructor
+  end function baryonicModifierConstructorInternal
 
   subroutine baryonicModifierDestructor(self)
     !% Destructor for the ``baryonic modifier'' gravitational lensing class.
     implicit none
     type(gravitationalLensingBaryonicModifier), intent(inout) :: self
 
-    if (self%originalDistribution%isFinalizable()) deallocate(self%originalDistribution)
+    !# <objectDestructor name="self%gravitationalLensing_"/>
     return
   end subroutine baryonicModifierDestructor
 
@@ -158,7 +126,7 @@ contains
        return
     end if
     ! Check for delta-function magnification PDF.
-    if (self%originalDistribution%magnificationCDF(1.0d0,redshift,scaleSource) >= 1.0d0) then
+    if (self%gravitationalLensing_%magnificationCDF(1.0d0,redshift,scaleSource) >= 1.0d0) then
        self%transitionMagnification=1.0d0
        self%renormalization        =1.0d0
        return
@@ -177,19 +145,19 @@ contains
     end if
     self%transitionMagnification=finder%find(rootGuess=2.0d0)
     ! Find renormalization.
-    self%renormalization=+1.0d0                                                                                             &
-         &               /(                                                                                                 &
-         &                 +1.0d0                                                                                           &
-         &                 +self%alpha                                                                                      &
-         &                 *(                                                                                               &
-         &                   +                                           self%transitionMagnification                       &
-         &                   -1.0d0                                                                                         &
-         &                  )                                                                                               &
-         &                 +self%beta                                                                                       &
-         &                 *(                                                                                               &
-         &                   +1.0d0                                                                                         &
-         &                   -self%originalDistribution%magnificationCDF(self%transitionMagnification,redshift,scaleSource) &
-         &                  )                                                                                               &
+    self%renormalization=+1.0d0                                                                                              &
+         &               /(                                                                                                  &
+         &                 +1.0d0                                                                                            &
+         &                 +self%alpha                                                                                       &
+         &                 *(                                                                                                &
+         &                   +                                           self%transitionMagnification                        &
+         &                   -1.0d0                                                                                          &
+         &                  )                                                                                                &
+         &                 +self%beta                                                                                        &
+         &                 *(                                                                                                &
+         &                   +1.0d0                                                                                          &
+         &                   -self%gravitationalLensing_%magnificationCDF(self%transitionMagnification,redshift,scaleSource) &
+         &                  )                                                                                                &
          &                )
     ! Record arguments.
     self%redshiftPrevious   =redshift
@@ -202,7 +170,7 @@ contains
       implicit none
       double precision, intent(in   ) :: magnification
 
-      magnificationTransition=self%originalDistribution%magnificationPDF(magnification,redshift,scaleSource)-self%alpha/self%beta
+      magnificationTransition=self%gravitationalLensing_%magnificationPDF(magnification,redshift,scaleSource)-self%alpha/self%beta
       return
     end function magnificationTransition
 
@@ -217,7 +185,7 @@ contains
          &                                                                   scaleSource
 
     call self%renormalize(redshift,scaleSource)
-    baryonicModifierMagnificationPDF=self%originalDistribution%magnificationPDF(magnification,redshift,scaleSource)
+    baryonicModifierMagnificationPDF=self%gravitationalLensing_%magnificationPDF(magnification,redshift,scaleSource)
     if      (magnification > self%transitionMagnification) then
        baryonicModifierMagnificationPDF=baryonicModifierMagnificationPDF*(1.0d0+self%beta )
     else if (magnification > 1.0d0                       ) then
@@ -236,15 +204,15 @@ contains
          &                                                                   scaleSource
 
     call self%renormalize(redshift,scaleSource)
-    baryonicModifierMagnificationCDF=self%originalDistribution%magnificationCDF(magnification,redshift,scaleSource)
+    baryonicModifierMagnificationCDF=self%gravitationalLensing_%magnificationCDF(magnification,redshift,scaleSource)
     if      (magnification > self%transitionMagnification) then
-       baryonicModifierMagnificationCDF=+baryonicModifierMagnificationCDF                                                                &
-            &                           +self%alpha                                                                                      &
-            &                           *(self%transitionMagnification-1.0d0)                                                            &
-            &                           +self%beta                                                                                       &
-            &                           *(                                                                                               &
-            &                             +baryonicModifierMagnificationCDF                                                              &
-            &                             -self%originalDistribution%magnificationCDF(self%transitionMagnification,redshift,scaleSource) &
+       baryonicModifierMagnificationCDF=+baryonicModifierMagnificationCDF                                                                 &
+            &                           +self%alpha                                                                                       &
+            &                           *(self%transitionMagnification-1.0d0)                                                             &
+            &                           +self%beta                                                                                        &
+            &                           *(                                                                                                &
+            &                             +baryonicModifierMagnificationCDF                                                               &
+            &                             -self%gravitationalLensing_%magnificationCDF(self%transitionMagnification,redshift,scaleSource) &
             &                           )
     else if (magnification > 1.0d0                       ) then
        baryonicModifierMagnificationCDF=+baryonicModifierMagnificationCDF     &
