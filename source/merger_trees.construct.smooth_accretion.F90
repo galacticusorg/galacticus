@@ -64,7 +64,7 @@ contains
        call Get_Input_Parameter('mergerTreeHaloMass'                ,mergerTreeHaloMass                ,defaultValue=1.0d12)
        !@ <inputParameter>
        !@   <name>mergerTreeHaloMassResolution</name>
-       !@   <defaultValue>$10^{12}$</defaultValue>
+       !@   <defaultValue>$10^{9}$</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The final mass of the merger tree base halo to consider when building a smoothly accreting merger tree, in units of $M_\odot$.
