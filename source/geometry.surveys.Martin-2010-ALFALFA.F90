@@ -73,7 +73,7 @@ contains
   end function martin2010ALFALFAConstructorInternal
 
   subroutine martin2010ALFALFADestructor(self)
-    !% Destructor for the ``martin2010ALFALGA'' survey geometry class.
+    !% Destructor for the ``martin2010ALFALFA'' survey geometry class.
     implicit none
     type(surveyGeometryMartin2010ALFALFA), intent(inout) :: self
     
