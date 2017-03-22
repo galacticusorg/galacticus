@@ -355,8 +355,10 @@ sub Sample_Matrix {
     my $chainCount  = &Chains_Count($config,\%arguments);
     # Build a list of outlier chains.
     my @outlierChains = exists($arguments{'outliers'}) ? split(/,/,$arguments{'outliers'}) : ();
-    # Parse the chains to find all parameter values sampled by the chains.
-    my @chainParameters;
+    # Parse the chains to find all viable parameter sets.
+    my $iSample = -1;
+    my $viable = pdl [];
+    my $parameterCount;
     for(my $i=0;$i<$chainCount;++$i) {
 	# Skip outlier chains.
 	next
@@ -375,6 +377,7 @@ sub Sample_Matrix {
 	    open(iHndl,$chainFileName);
 	    while ( my $line = <iHndl> ) {
 		unless ( $line =~ m/^\"/ ) {
+		    ++$iSample;
 		    my @columns = split(" ",$line);
 		    my $accept = 1;
 		    # Skip unconverged states unless explicitly allowed.
@@ -383,8 +386,9 @@ sub Sample_Matrix {
 		    # Skip chains before the given start point.
 		    $accept = 0
 			if ( exists($arguments{'sampleFrom'}) && $columns[0] < $arguments{'sampleFrom'} );
-		    push(@{$chainParameters[++$#chainParameters]},@columns[6..$#columns])
-			if ( $accept );
+		    $viable = $viable->append($iSample)
+			if ( $accept == 1 );
+		    $parameterCount = scalar(@columns)-6;
 		}
 	    } 
 	    close(iHndl);
@@ -392,19 +396,57 @@ sub Sample_Matrix {
     }
     # Sample parameters.
     my $randomSample = exists($arguments{'sampleCount'}) && $arguments{'sampleCount'} > 0 ? 1 : 0;
-    $arguments{'sampleCount'} = scalar(@chainParameters)
+    $arguments{'sampleCount'} = nelem($viable)
 	if ( ! exists($arguments{'sampleCount'}) || $arguments{'sampleCount'} <= 0 );
     my $sampleIndex;
     if ( $randomSample == 1 ) {
-	$sampleIndex = pdl long(scalar(@chainParameters)*random($arguments{'sampleCount'}));
+	$sampleIndex = pdl long(nelem($viable)*random($arguments{'sampleCount'}));
     } else {
-	$sampleIndex = pdl sequence(scalar(@chainParameters));
+	$sampleIndex = pdl sequence(nelem($viable));
     }
+    $sampleIndex .= $sampleIndex->qsort();
     # Build the matrix.
-    my $sampleMatrix = pdl zeroes(nelem($chainParameters[0]),nelem($sampleIndex));
-    for(my $i=0;$i<nelem($sampleIndex);++$i) {
-	$sampleMatrix->(:,($i)) .= $chainParameters[$sampleIndex->(($i))];
-    }    
+    my $sampleMatrix = pdl zeroes($parameterCount,nelem($sampleIndex));
+    $iSample    = -1;
+    my $jSample =  0;
+    for(my $i=0;$i<$chainCount;++$i) {
+	# Skip outlier chains.
+	next
+	    if ( grep {$_ eq $i} @outlierChains );
+	# Skip non-selected chain.
+	next
+	    if ( defined($arguments{'selectChain'}) && $i != $arguments{'selectChain'} );
+	# Parse the chain file.
+	my @suffixes = ( "" );
+	push(@suffixes,"Previous")
+	    if ( exists($arguments{'includePrevious'}) && $arguments{'includePrevious'} eq "yes" );
+	foreach my $suffix ( @suffixes ) {
+	    my $chainFileName = sprintf("%s%s_%4.4i.log",$logFileRoot,$suffix,$i);
+	    next
+		unless ( -e $chainFileName );
+	    open(iHndl,$chainFileName);
+	    while ( my $line = <iHndl> ) {
+		unless ( $line =~ m/^\"/ ) {
+		    last
+			if ( $jSample >= nelem($sampleIndex) );
+		    ++$iSample;
+		    my @columns = split(" ",$line);
+		    my $accept = 1;
+		    # Skip unconverged states unless explicitly allowed.
+		    $accept = 0
+			if ( $columns[3] eq "F" && ( ! exists($arguments{'useUnconverged'}) || $arguments{'useUnconverged'} eq "no" ) );
+		    # Skip chains before the given start point.
+		    $accept = 0
+			if ( exists($arguments{'sampleFrom'}) && $columns[0] < $arguments{'sampleFrom'} );
+		    if ( $accept && $iSample == $viable->($sampleIndex)->(($jSample)) ) {
+			$sampleMatrix->(:,($jSample)) .= pdl @columns[6..$#columns];
+			++$jSample;			
+		    }
+		}
+	    } 
+	    close(iHndl);
+	}
+    }
     # If parameters are to be mapped, do so.
     if ( exists($arguments{'parametersMapped'}) && $arguments{'parametersMapped'} eq "yes" ) {
 	my $i = -1;
