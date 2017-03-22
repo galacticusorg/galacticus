@@ -44,6 +44,12 @@
      !@     <arguments></arguments>
      !@     <description>Return array of \gls{mangle} filenames for this survey geometry.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>initialize</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Initialize an instance of the \gls{mangle} survey geometry class.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure                                  :: windowFunctionAvailable => mangleWindowFunctionAvailable
      procedure                                  :: angularPowerAvailable   => mangleAngularPowerAvailable
