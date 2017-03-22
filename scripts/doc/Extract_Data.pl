@@ -409,8 +409,10 @@ foreach my $object ( sort(keys(%objects)) ) {
 		}
 		print methodHndl latex_encode($objects{$object}->{'methods'}->{$method}->{'method'})."(";
 		if ( exists($objects{$object}->{'methods'}->{$method}->{'arguments'}) ) {
-		    print methodHndl $objects{$object}->{'methods'}->{$method}->{'arguments'}
-		       unless ( UNIVERSAL::isa($objects{$object}->{'methods'}->{$method}->{'arguments'},"HASH") );
+		    unless ( UNIVERSAL::isa($objects{$object}->{'methods'}->{$method}->{'arguments'},"HASH") ) {
+			(my $arguments = $objects{$object}->{'methods'}->{$method}->{'arguments'}) =~ s/([^\\])_/$1\\_/g;
+			print methodHndl $arguments;
+		    }
 		} else {
 		    print "Warning: missing arguments for method ".$method." of ".$object." object\n";
 		}
