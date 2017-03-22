@@ -494,9 +494,9 @@ contains
                 ! Galaxy is too small to care about. Add gas and abundances which will outflow from this satellite to its future host halos.
                 nodeHost => node%parent
                 do while (associated(nodeHost%parent))
-                   basicHost       => nodeHost%basic       ()
-                   hotHaloHost     => nodeHost%hotHalo     ()
-                   basicParentHost => nodeHost%parent%basic()
+                   basicHost       => nodeHost%basic       (                 )
+                   hotHaloHost     => nodeHost%hotHalo     (autoCreate=.true.)
+                   basicParentHost => nodeHost%parent%basic(                 )
                    massOutflowed   =  +massGasInitial                                                         &
                         &                  *(                                                                 &
                         &                    +timescaleFuel                                                   &
