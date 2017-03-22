@@ -182,6 +182,12 @@ module Histories
      !@     <type>\void</type>
      !@     <arguments>\doubleone\ historyArray\argin</arguments>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>append</method>
+     !@     <description>Append a history or single instant onto the end of a history.</description>
+     !@     <type>\void</type>
+     !@     <arguments>(\doublezero\ time\argin, \doubleone\ append\argin | \textcolor{red}{\textless type(history)\textgreater} append\argin)</arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: add     =>History_Add
      procedure :: subtract=>History_Subtract
@@ -290,6 +296,12 @@ module Histories
      !@     <description>Returns true if the given history has been created.</description>
      !@     <type>\logicalzero</type>
      !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>append</method>
+     !@     <description>Append a history or single instant onto the end of a history.</description>
+     !@     <type>\void</type>
+     !@     <arguments>(\doublezero\ time\argin, \textcolor{red}{\textless integer(kind\_int8)(:)\textgreater} append\argin | \textcolor{red}{\textless type(longIntegerHistory)\textgreater} append\argin)</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: builder       => History_Long_Integer_Builder
