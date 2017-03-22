@@ -88,8 +88,9 @@ contains
     class           (nbodyHaloMassErrorSOHaloFinder), intent(inout)            :: self
     type            (treeNode                      ), intent(inout), pointer   :: node
     class           (nodeComponentBasic            )               , pointer   :: basic
-    double precision                                                           :: radiusHalo                   , densityOuterRadius, &
-         &                                                                        densityRatioInternalToSurface, particleCount     , &
+    double precision                                               , parameter :: errorConstant                =0.014d0
+    double precision                                                           :: radiusHalo                           , densityOuterRadius, &
+         &                                                                        densityRatioInternalToSurface        , particleCount     , &
          &                                                                        errorFractionalFixedSphere
 
     ! Get the basic component of the node.
@@ -113,15 +114,18 @@ contains
          &                           /radiusHalo        **3 &
          &                           /densityOuterRadius
     ! Compute the total error accounting for the change in size of the spherical region defining the halo.
-    soHaloFinderErrorFractional   =  +errorFractionalFixedSphere        &
-         &                           *(                                 &
-         &                             +1.0d0                           &
-         &                             +1.0d0                           &
-         &                             /(                               &
-         &                               +densityRatioInternalToSurface &
-         &                               -1.0d0                         &
-         &                              )                               &
-         &                            )
+    soHaloFinderErrorFractional   =  +sqrt(                                      &
+         &                                 +errorFractionalFixedSphere       **2 &
+         &                                 *(                                    &
+         &                                   +1.0d0                              &
+         &                                   +1.0d0                              &
+         &                                   /(                                  &
+         &                                     +densityRatioInternalToSurface    &
+         &                                     -1.0d0                            &
+         &                                    )                              **2 &
+         &                                  )                                    &
+         &                                 +errorConstant                    **2 &
+         &                                )
     return
   end function soHaloFinderErrorFractional
   
