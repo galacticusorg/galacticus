@@ -88,6 +88,7 @@ module Constraints_Likelihoods
   include 'constraints.likelihoods.gaussian_regression.type.inc'
   include 'constraints.likelihoods.mass_function.type.inc'
   include 'constraints.likelihoods.halo_mass_function.type.inc'
+  include 'constraints.likelihoods.spin_distribution.type.inc'
   include 'constraints.likelihoods.projected_correlation_function.type.inc'
   include 'constraints.likelihoods.SED_fit.type.inc'
   include 'constraints.likelihoods.posterior_as_prior.type.inc'
@@ -105,43 +106,46 @@ contains
     class           (likelihood    ), pointer                     :: newLikelihood
     type            (node          ), pointer    , intent(in   )  :: definition
     type            (varying_string), optional   , intent(in   )  :: configFileName
-    type            (node          ), pointer                     :: likelihoodMeanDefinition                       , likelihoodCovarianceDefinition                          , &
-         &                                                           covarianceRow                                  , likelihoodRealizationCountDefinition                    , &
-         &                                                           likelihoodRealizationCountMinimumDefinition    , likelihoodDefinition                                    , &
-         &                                                           likelihoodEmulatorRebuildCountDefinition       , likelihoodPolynomialOrderDefinition                     , &
-         &                                                           likelihoodSigmaBufferDefinition                , likelihoodLogLikelihoodBufferDefinition                 , &
-         &                                                           likelihoodLogLikelihoodErrorToleranceDefinition, likelihoodReportCountDefinition                         , &
-         &                                                           likelihoodEmulateOutliersDefinition            , likelihoodMassRangeMinimumDefinition                    , &
-         &                                                           likelihoodHaloMassMinimumDefinition            , likelihoodHaloMassMaximumDefinition                     , &
-         &                                                           likelihoodRedshiftMinimumDefinition            , likelihoodRedshiftMaximumDefinition                     , &
-         &                                                           likelihoodUseSurveyLimitsDefinition            , likelihoodMassFunctionFileNameDefinition                , &
-         &                                                           likelihoodModelSurfaceBrightnessDefinition     , likelihoodSurfaceBrightnessLimitDefinition              , &
-         &                                                           likelihoodChainBaseNameDefinition              , likelihoodToleranceDefinition                           , &
-         &                                                           likelihoodNeighborCountDefinition              , likelihoodProjectedCorrelationFunctionFileNameDefinition, &
-         &                                                           likelihoodLineOfSightDepthDefinition           , likelihoodHalfIntegralDefinition                        , &
-         &                                                           likelihoodExclusionsDefinition                 , likelihoodDumpEmulatorDefinition                        , &
-         &                                                           likelihoodDelayIntervalDefinition              , likelihoodDummyEmulatorDefinition                       , &
-         &                                                           likelihoodRedshiftDefinition                   , likelihoodMassParticleDefinition                        , &
-         &                                                           likelihoodBinCountMinimumDefinition            , likelihoodMassFunctionTypeDefinition                    , &
-         &                                                           likelihoodMassFunctionErrorModelDefinition
+    type            (node          ), pointer                     :: likelihoodMeanDefinition                                      , likelihoodCovarianceDefinition                          , &
+         &                                                           covarianceRow                                                 , likelihoodRealizationCountDefinition                    , &
+         &                                                           likelihoodRealizationCountMinimumDefinition                   , likelihoodDefinition                                    , &
+         &                                                           likelihoodEmulatorRebuildCountDefinition                      , likelihoodPolynomialOrderDefinition                     , &
+         &                                                           likelihoodSigmaBufferDefinition                               , likelihoodLogLikelihoodBufferDefinition                 , &
+         &                                                           likelihoodLogLikelihoodErrorToleranceDefinition               , likelihoodReportCountDefinition                         , &
+         &                                                           likelihoodEmulateOutliersDefinition                           , likelihoodMassRangeMinimumDefinition                    , &
+         &                                                           likelihoodHaloMassMinimumDefinition                           , likelihoodHaloMassMaximumDefinition                     , &
+         &                                                           likelihoodRedshiftMinimumDefinition                           , likelihoodRedshiftMaximumDefinition                     , &
+         &                                                           likelihoodUseSurveyLimitsDefinition                           , likelihoodMassFunctionFileNameDefinition                , &
+         &                                                           likelihoodModelSurfaceBrightnessDefinition                    , likelihoodSurfaceBrightnessLimitDefinition              , &
+         &                                                           likelihoodChainBaseNameDefinition                             , likelihoodToleranceDefinition                           , &
+         &                                                           likelihoodNeighborCountDefinition                             , likelihoodProjectedCorrelationFunctionFileNameDefinition, &
+         &                                                           likelihoodLineOfSightDepthDefinition                          , likelihoodHalfIntegralDefinition                        , &
+         &                                                           likelihoodExclusionsDefinition                                , likelihoodDumpEmulatorDefinition                        , &
+         &                                                           likelihoodDelayIntervalDefinition                             , likelihoodDummyEmulatorDefinition                       , &
+         &                                                           likelihoodRedshiftDefinition                                  , likelihoodMassParticleDefinition                        , &
+         &                                                           likelihoodBinCountMinimumDefinition                           , likelihoodMassFunctionTypeDefinition                    , &
+         &                                                           likelihoodMassFunctionErrorModelDefinition                    , likelihoodSpinDistributionFileNameDefinition            , &
+         &                                                           likelihoodMassHaloMinimumDefinition                           , likelihoodSpinDistributionParticleCountMinimumDefinition, &
+         &                                                           likelihoodSpinDistributionEnergyEstimatePtclCountMaxDefinition, likelihoodSpinDistributionNameDefinition
     type            (nodeList      ), pointer                     :: covarianceRows
     double precision                , allocatable, dimension(:  ) :: likelihoodMean
     double precision                , allocatable, dimension(:,:) :: likelihoodCovariance
     integer                         , allocatable, dimension(:  ) :: likelihoodExclusions
-    integer                                                       :: i                                              , dimensionCount                            , &
-         &                                                           likelihoodRealizationCount                     , likelihoodRealizationCountMinimum         , &
-         &                                                           likelihoodEmulatorRebuildCount                 , likelihoodPolynomialOrder                 , &
-         &                                                           likelihoodReportCount                          , likelihoodNeighborCount                   , &
-         &                                                           likelihoodBinCountMinimum
-    double precision                                              :: likelihoodSigmaBuffer                          , likelihoodLogLikelihoodBuffer             , &
-         &                                                           likelihoodHaloMassMinimum                      , likelihoodHaloMassMaximum                 , &
-         &                                                           likelihoodRedshiftMinimum                      , likelihoodRedshiftMaximum                 , &
-         &                                                           likelihoodLogLikelihoodErrorTolerance          , likelihoodSurfaceBrightnessLimit          , &
-         &                                                           likelihoodTolerance                            , likelihoodLineOfSightDepth                , &
-         &                                                           likelihoodDelayInterval                        , likelihoodRedshift                        , &
-         &                                                           likelihoodMassRangeMinimum                     , likelihoodMassParticle
-    logical                                                       :: likelihoodEmulateOutliers                      , likelihoodUseSurveyLimits                 , &
-         &                                                           likelihoodModelSurfaceBrightness               , likelihoodHalfIntegral                    , &
+    integer                                                       :: i                                                             , dimensionCount                                          , &
+         &                                                           likelihoodRealizationCount                                    , likelihoodRealizationCountMinimum                       , &
+         &                                                           likelihoodEmulatorRebuildCount                                , likelihoodPolynomialOrder                               , &
+         &                                                           likelihoodReportCount                                         , likelihoodNeighborCount                                 , &
+         &                                                           likelihoodBinCountMinimum                                     , likelihoodSpinDistributionParticleCountMinimum
+    double precision                                              :: likelihoodSigmaBuffer                                         , likelihoodLogLikelihoodBuffer                           , &
+         &                                                           likelihoodHaloMassMinimum                                     , likelihoodHaloMassMaximum                               , &
+         &                                                           likelihoodRedshiftMinimum                                     , likelihoodRedshiftMaximum                               , &
+         &                                                           likelihoodLogLikelihoodErrorTolerance                         , likelihoodSurfaceBrightnessLimit                        , &
+         &                                                           likelihoodTolerance                                           , likelihoodLineOfSightDepth                              , &
+         &                                                           likelihoodDelayInterval                                       , likelihoodRedshift                                      , &
+         &                                                           likelihoodMassRangeMinimum                                    , likelihoodMassParticle                                  , &
+         &                                                           likelihoodMassHaloMinimum                                     , likelihoodSpinDistributionEnergyEstimatePtclCountMax
+    logical                                                       :: likelihoodEmulateOutliers                                     , likelihoodUseSurveyLimits                               , &
+         &                                                           likelihoodModelSurfaceBrightness                              , likelihoodHalfIntegral                                  , &
          &                                                           likelihoodDummyEmulator
 
     select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"type",directChildrenOnly=.true.))))
@@ -298,7 +302,11 @@ contains
           likelihoodMassFunctionTypeDefinition       => XML_Get_First_Element_By_Tag_Name(definition,"massFunctionType"      )
           likelihoodMassFunctionErrorModelDefinition => XML_Get_First_Element_By_Tag_Name(definition,"massFunctionErrorModel")
           likelihoodMassFunctionFileNameDefinition   => XML_Get_First_Element_By_Tag_Name(definition,"fileName"              )
-          if (getTextContent(likelihoodMassFunctionErrorModelDefinition) == "sphericalOverdensity") then
+          if     (                                                                                      &
+               &   getTextContent(likelihoodMassFunctionErrorModelDefinition) == "sphericalOverdensity" &
+               &  .or.                                                                                  &
+               &   getTextContent(likelihoodMassFunctionErrorModelDefinition) == "trenti2010"           &
+               & ) then
              likelihoodMassParticleDefinition => XML_Get_First_Element_By_Tag_Name(definition,"massParticle")
              call extractDataContent(likelihoodMassParticleDefinition,likelihoodMassParticle)
           else
@@ -316,6 +324,32 @@ contains
                &                                   getTextContent(likelihoodMassFunctionErrorModelDefinition), &
                &                                   likelihoodMassParticle                                      &
                &                                  )
+       end select
+    case ("haloSpinDistribution")
+       allocate(likelihoodHaloSpinDistribution :: newLikelihood)
+       select type (newLikelihood)
+       type is (likelihoodHaloSpinDistribution)
+          likelihoodSpinDistributionFileNameDefinition                   => XML_Get_First_Element_By_Tag_Name(definition,"fileName"                          )
+          likelihoodSpinDistributionNameDefinition                       => XML_Get_First_Element_By_Tag_Name(definition,"distribution"                      )
+          likelihoodRedshiftDefinition                                   => XML_Get_First_Element_By_Tag_Name(definition,"redshift"                          )
+          likelihoodMassHaloMinimumDefinition                            => XML_Get_First_Element_By_Tag_Name(definition,"massHaloMinimum"                   )
+          likelihoodMassParticleDefinition                               => XML_Get_First_Element_By_Tag_Name(definition,"massParticle"                      )
+          likelihoodSpinDistributionParticleCountMinimumDefinition       => XML_Get_First_Element_By_Tag_Name(definition,"particleCountMinimum"              )
+          likelihoodSpinDistributionEnergyEstimatePtclCountMaxDefinition => XML_Get_First_Element_By_Tag_Name(definition,"energyEstimateParticleCountMaximum")
+          call extractDataContent(likelihoodRedshiftDefinition                                  ,likelihoodRedshift                                  )
+          call extractDataContent(likelihoodMassHaloMinimumDefinition                           ,likelihoodMassHaloMinimum                           )
+          call extractDataContent(likelihoodMassParticleDefinition                              ,likelihoodMassParticle                              )
+          call extractDataContent(likelihoodSpinDistributionParticleCountMinimumDefinition      ,likelihoodSpinDistributionParticleCountMinimum      )
+          call extractDataContent(likelihoodSpinDistributionEnergyEstimatePtclCountMaxDefinition,likelihoodSpinDistributionEnergyEstimatePtclCountMax)
+          newLikelihood=likelihoodHaloSpinDistribution(                                                              &
+               &                                       getTextContent(likelihoodSpinDistributionFileNameDefinition), &
+               &                                       getTextContent(likelihoodSpinDistributionNameDefinition    ), &
+               &                                       likelihoodRedshift                                          , &
+               &                                       likelihoodMassHaloMinimum                                   , &
+               &                                       likelihoodMassParticle                                      , &
+               &                                       likelihoodSpinDistributionParticleCountMinimum              , &
+               &                                       likelihoodSpinDistributionEnergyEstimatePtclCountMax          &
+               &                                      )
        end select
     case ("projectedCorrelationFunction")
        allocate(likelihoodProjectedCorrelationFunction :: newLikelihood)
@@ -371,6 +405,7 @@ contains
   include 'constraints.likelihoods.gaussian_regression.methods.inc'
   include 'constraints.likelihoods.mass_function.methods.inc'
   include 'constraints.likelihoods.halo_mass_function.methods.inc'
+  include 'constraints.likelihoods.spin_distribution.methods.inc'
   include 'constraints.likelihoods.projected_correlation_function.methods.inc'
   include 'constraints.likelihoods.SED_fit.methods.inc'
   include 'constraints.likelihoods.posterior_as_prior.methods.inc'
