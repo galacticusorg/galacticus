@@ -41,4 +41,5 @@
   integer, parameter :: haloMassFunctionErrorModelNone                =0
   integer, parameter :: haloMassFunctionErrorModelPowerLaw            =1
   integer, parameter :: haloMassFunctionErrorModelSphericalOverdensity=2
+  integer, parameter :: haloMassFunctionErrorModelTrenti2010          =3
   

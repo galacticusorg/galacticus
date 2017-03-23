@@ -141,6 +141,9 @@ function likelihoodHaloMassFunctionConstructor(fileName,redshift,massRangeMinimu
   case ("sphericalOverdensity")
      likelihoodHaloMassFunctionConstructor%errorModel  =haloMassFunctionErrorModelSphericalOverdensity
      likelihoodHaloMassFunctionConstructor%massParticle=massParticle
+  case ("trenti2010"          )
+     likelihoodHaloMassFunctionConstructor%errorModel  =haloMassFunctionErrorModelTrenti2010
+     likelihoodHaloMassFunctionConstructor%massParticle=massParticle
   end select
   return
 end function likelihoodHaloMassFunctionConstructor
@@ -218,10 +221,10 @@ double precision function likelihoodHaloMassFunctionEvaluate(self,simulationStat
           &                                          )
      haloMassFunction_ => haloMassFunctionRaw_
   case (haloMassFunctionErrorModelPowerLaw            )
-     if (size(stateVector) /= 5 )                                                                  &
+     if (size(stateVector) /= 6 )                                                                  &
           & call Galacticus_Error_Report(                                                          & 
           &                              'likelihoodHaloMassFunctionEvaluate'                    , &
-          &                              '3 parameters are required for this likelihood function'  &
+          &                              '6 parameters are required for this likelihood function'  &
           &                             )
      ! Use a mass function convolved with an error distribution.
      allocate(haloMassFunctionShethTormen::haloMassFunction_)
@@ -241,7 +244,8 @@ double precision function likelihoodHaloMassFunctionEvaluate(self,simulationStat
      type is (nbodyHaloMassErrorPowerLaw)
         nbodyHaloMassError_=nbodyHaloMassErrorPowerLaw(                &
              &                                         stateVector(4), &
-             &                                         stateVector(5)  &
+             &                                         stateVector(5), &
+             &                                         stateVector(6)  &
              &                                        )
      end select
      haloMassFunctionConvolved_   =haloMassFunctionErrorConvolved(                              &
@@ -291,6 +295,41 @@ double precision function likelihoodHaloMassFunctionEvaluate(self,simulationStat
           &                                                   )
      nullify(darkMatterHaloScale_)
      nullify(darkMatterProfile_  )
+     nullify(nbodyHaloMassError_ )
+     nullify(haloMassFunction_   )
+     haloMassFunction_ => haloMassFunctionConvolved_
+  case (haloMassFunctionErrorModelTrenti2010          )
+     if (size(stateVector) /= 3 )                                                                  &
+          & call Galacticus_Error_Report(                                                          & 
+          &                              'likelihoodHaloMassFunctionEvaluate'                    , &
+          &                              '3 parameters are required for this likelihood function'  &
+          &                             )
+     ! Use a mass function convolved with the error model from Trenti et al. (2010).
+     allocate(haloMassFunctionShethTormen::haloMassFunction_)
+     select type (haloMassFunction_)
+     type is (haloMassFunctionShethTormen)
+        haloMassFunction_      =haloMassFunctionShethTormen(                              &
+             &                                              cosmologyParameters_        , &
+             &                                              cosmologicalMassVariance_   , &
+             &                                              criticalOverdensity_        , &
+             &                                              stateVector              (1), &
+             &                                              stateVector              (2), &
+             &                                              stateVector              (3)  &
+             &                                             )
+     end select
+     allocate(nbodyHaloMassErrorTrenti2010::nbodyHaloMassError_)
+     select type (nbodyHaloMassError_)
+     type is (nbodyHaloMassErrorTrenti2010)
+        nbodyHaloMassError_=nbodyHaloMassErrorTrenti2010(                  &
+             &                                           self%massParticle &
+             &                                          )
+     end select
+     haloMassFunctionConvolved_=haloMassFunctionErrorConvolved(                              &
+          &                                                    haloMassFunction_           , &
+          &                                                    cosmologyParameters_        , &
+          &                                                    nbodyHaloMassError_         , &
+          &                                                    errorFractionalMaximum        &
+          &                                                   )
      nullify(nbodyHaloMassError_ )
      nullify(haloMassFunction_   )
      haloMassFunction_ => haloMassFunctionConvolved_
