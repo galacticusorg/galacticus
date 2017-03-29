@@ -1,13 +1,16 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use XML::Simple;
 use File::Copy;
 use Data::Dumper;
 use DateTime;
-use Cwd;
-use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Galacticus::Path;
+use PDL;
+use PDL::NiceSlice;
+use PDL::IO::HDF5;
 
 # Download, compile and run RecFast.
 # Andrew Benson (18-January-2011)
@@ -15,31 +18,13 @@ use Galacticus::Path;
 # Get arguments.
 die "Usage: RecFast_Driver.pl <parameterFile> <outputFile>"
     unless ( scalar(@ARGV) == 2 );
-my $parameterFile = $ARGV[0];
-my $outputFile    = $ARGV[1];
+my $parameterFile  = $ARGV[0];
+my $outputFileName = $ARGV[1];
 
 # Parse the parameter file.
 my $xml = new XML::Simple;
 my $parameterData = $xml->XMLin($parameterFile);
 unlink($parameterFile);
-
-# Declare data structure.
-my $output;
-
-# Check that required parameters exist.
-my @parameters = ( "OmegaBaryon", "OmegaMatter", "OmegaDarkEnergy", "HubbleConstant", "temperatureCMB", "Y_He" );
-foreach my $parameter ( @parameters ) {
-    die("CMBFast_Driver.pl: FATAL - parameter ".$parameter." can not be found.") unless ( exists($parameterData->{$parameter}) );
-    $output->{'provenance'}->{'recFast'}->{'parameters'}->{$parameter} = $parameterData->{$parameter};
-}
-
-# Extract variables.
-my $OmegaB = $parameterData->{'OmegaBaryon'    }->{'value'};
-my $OmegaM = $parameterData->{'OmegaMatter'    }->{'value'};
-my $OmegaL = $parameterData->{'OmegaDarkEnergy'}->{'value'};
-my $H0     = $parameterData->{'HubbleConstant' }->{'value'};
-my $T0     = $parameterData->{'temperatureCMB' }->{'value'};
-my $Yp     = $parameterData->{'Y_He'           }->{'value'};
 
 # Extract current file format version.
 my $fileFormat        = $parameterData->{'fileFormat'}->{'value'};
@@ -47,8 +32,6 @@ my $fileFormatCurrent = 1;
 die('RecFast_Driver.pl: this script supports file format version '.$fileFormatCurrent.' but version '.$fileFormat.' was requested')
     unless ( $fileFormat == $fileFormatCurrent );
 
-# Compute derived quantities.
-my $OmegaDM = $OmegaM-$OmegaB;
 
 # Download the code.
 unless ( -e &galacticusPath()."aux/RecFast/recfast.for" ) {
@@ -77,16 +60,35 @@ unless ( -e &galacticusPath()."aux/RecFast/recfast.exe" ) {
 
 # Run the RecFast code.
 my $buildFile = 0;
-system("mkdir -p `dirname ".$outputFile."`");
-if ( -e $outputFile ) {
-    my $xmlFile         = new XML::Simple;
-    my $previousFile    = $xmlFile->XMLin($outputFile);
-    my $previousVersion = $previousFile->{'fileFormat'};
-    $buildFile = 1 if ( $previousVersion != $fileFormatCurrent );
+system("mkdir -p `dirname ".$outputFileName."`");
+if ( -e $outputFileName ) {
+    my $existingFile      = new PDL::IO::HDF5($outputFileName);
+    (my $previousVersion) = $existingFile->attrGet('fileFormat');
+    $buildFile = 1 
+	if ( $previousVersion != $fileFormatCurrent );
 } else {
     $buildFile = 1;
 }
 if ( $buildFile == 1 ) {
+    # Open output data file.
+    my $outputFile = new PDL::IO::HDF5(">".$outputFileName);
+    # Check that required parameters exist.
+    my @parameters = ( "OmegaBaryon", "OmegaMatter", "OmegaDarkEnergy", "HubbleConstant", "temperatureCMB", "Y_He" );
+    my $parametersGroup = $outputFile->group('Parameters');
+    foreach my $parameter ( @parameters ) {
+	die("CMBFast_Driver.pl: FATAL - parameter ".$parameter." can not be found.") unless ( exists($parameterData->{$parameter}) );
+	$parametersGroup->attrSet($parameter => pdl $parameterData->{$parameter}->{'value'});
+    }
+    # Extract variables.
+    my $OmegaB = $parameterData->{'OmegaBaryon'    }->{'value'};
+    my $OmegaM = $parameterData->{'OmegaMatter'    }->{'value'};
+    my $OmegaL = $parameterData->{'OmegaDarkEnergy'}->{'value'};
+    my $H0     = $parameterData->{'HubbleConstant' }->{'value'};
+    my $T0     = $parameterData->{'temperatureCMB' }->{'value'};
+    my $Yp     = $parameterData->{'Y_He'           }->{'value'};
+    # Compute derived quantities.
+    my $OmegaDM = $OmegaM-$OmegaB;
+    # Drive RecFast.
     my $recfastOutput = "recFastOutput.data";
     open(pHndl,"|".&galacticusPath()."aux/RecFast/recfast.exe");
     print pHndl $recfastOutput."\n";
@@ -95,7 +97,6 @@ if ( $buildFile == 1 ) {
     print pHndl "1\n";
     print pHndl "6\n";
     close(pHndl);
-    
     # Parse the output file.
     my @redshift          = ();
     my @electronFraction  = ();
@@ -117,50 +118,38 @@ if ( $buildFile == 1 ) {
     }
     close(iHndl);
     unlink($recfastOutput);
-    
-    # Add arrays to output structure.
-    @{$output->{'redshift'         }->{'datum'}} = @redshift         ;
-    @{$output->{'electronFraction' }->{'datum'}} = @electronFraction ;
-    @{$output->{'hIonizedFraction' }->{'datum'}} = @hIonizedFraction ;
-    @{$output->{'heIonizedFraction'}->{'datum'}} = @heIonizedFraction;
-    @{$output->{'matterTemperature'}->{'datum'}} = @matterTemperature;
-    
+    # Write arrays to the output file.
+    $outputFile->dataset('redshift'         )->set(pdl @redshift         );
+    $outputFile->dataset('electronFraction' )->set(pdl @electronFraction );
+    $outputFile->dataset('hIonizedFraction' )->set(pdl @hIonizedFraction );
+    $outputFile->dataset('heIonizedFraction')->set(pdl @heIonizedFraction);
+    $outputFile->dataset('matterTemperature')->set(pdl @matterTemperature);
     # Add units data to output structure.
-    $output->{'matterTemperature'}->{'units'    } = "Kelvin";
-    $output->{'matterTemperature'}->{'unitsInSI'} = 1.0;
-
+    $outputFile->dataset('matterTemperature')->attrSet(units     => "Kelvin");
+    $outputFile->dataset('matterTemperature')->attrSet(unitsInSI => pdl 1.0 );
     # Add description and provenance to output structure.
-    $output->{'description'} = "IGM ionization/thermal state computed using RecFast";
+    $outputFile->attrSet(description => "IGM ionization/thermal state computed using RecFast");
     my $date = `date`;
     chomp($date);
-    $output->{'provenance'}->{'date'} = $date;
-    $output->{'provenance'}->{'source'} = "Galacticus via RecFast";
+    my $provenanceGroup = $outputFile->group('provenance');
+    $provenanceGroup->attrSet(date   => $date                   );
+    $provenanceGroup->attrSet(source => "Galacticus via RecFast");
     my $version = "unknown";
     open(iHndl,"aux/RecFast/recfast.for");
     while ( my $line = <iHndl> ) {
 	if ( $line =~ m/^CV\s+Version:\s+([\d\.]+)\s*$/ ) {$version = $1};
     }
     close(iHndl);
-    $output->{'provenance'}->{'recFast'}->{'version'} = $version;
-    @{$output->{'provenance'}->{'recFast'}->{'note'}} = ( 
-	"Includes modification of H recombination",
-	"Includes all modifications for HeI recombination"
-	);
-    
+    my $recFastProvenance = $provenanceGroup->group('recFast');
+    $recFastProvenance->attrSet(version => $version);
+    $recFastProvenance->attrSet(notes   => "Includes modification of H recombination.\nIncludes all modifications for HeI recombination");
     # Add file format.
-    $output->{'fileFormat'} = $fileFormatCurrent;
-
+    $outputFile->attrSet(fileFormat => pdl long($fileFormatCurrent));
     # Add timestamp.
     my $dt = DateTime->now->set_time_zone('local');
     (my $tz = $dt->format_cldr("ZZZ")) =~ s/(\d{2})(\d{2})/$1:$2/;
     my $now = $dt->ymd."T".$dt->hms.".".$dt->format_cldr("SSS").$tz;
-    $output->{'timeStamp'} = $now;
-
-    # Output as XML.
-    my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"igm");
-    open(outHndl,">".$outputFile);
-    print outHndl $xmlOutput->XMLout($output);
-    close(outHndl);
+    $outputFile->attrSet(timeStamp => $now);
 }
 
 exit;

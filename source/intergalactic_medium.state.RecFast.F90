@@ -23,7 +23,6 @@
   !# <intergalacticMediumState name="intergalacticMediumStateRecFast">
   !#  <description>The intergalactic medium state is computed using {\normalfont \scshape RecFast}.</description>
   !# </intergalacticMediumState>
-
   type, extends(intergalacticMediumStateFile) :: intergalacticMediumStateRecFast
      !% An \gls{igm} state class which computes state using {\normalfont \scshape RecFast}.
      private
@@ -31,25 +30,31 @@
   
   interface intergalacticMediumStateRecFast
      !% Constructors for the {\normalfont \scshape RecFast} intergalactic medium state class.
-     module procedure recFastDefaultConstructor
-     module procedure recFastConstructor
+     module procedure recFastConstructorParameters
+     module procedure recFastConstructorInternal
   end interface intergalacticMediumStateRecFast
 
 contains
 
-  function recFastDefaultConstructor()
+  function recFastConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \scshape RecFast} \gls{igm} state class.
     use Cosmology_Parameters
+    use Input_Parameters2
     implicit none
-    type (intergalacticMediumStateRecFast), target  :: recFastDefaultConstructor
-    class(cosmologyParametersClass       ), pointer :: cosmologyParameters_
+    type (intergalacticMediumStateRecFast)                :: self
+    type (inputParameters                ), intent(inout) :: parameters
+    class(cosmologyParametersClass       ), pointer       :: cosmologyParameters_
+    !# <inputParameterList label="allowedParameterNames" />
 
-    cosmologyParameters_      => cosmologyParameters(                    )
-    recFastDefaultConstructor =  recFastConstructor (cosmologyParameters_)
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    self=intergalacticMediumStateRecFast(cosmologyParameters_)
+    !# <objectDestrctor name="cosmologyParameters_"/>
     return
-  end function recFastDefaultConstructor
+  end function recFastConstructorParameters
 
-  function recFastConstructor(thisCosmologyParameters)
+  function recFastConstructorInternal(cosmologyParameters_) result(self)
     !% Constructor for the {\normalfont \scshape RecFast} \gls{igm} state class.
     use Cosmology_Parameters
     use FoX_wxml
@@ -59,39 +64,39 @@ contains
     use Input_Parameters
     use Input_Parameters2
     implicit none
-    type     (intergalacticMediumStateRecFast), target        :: recFastConstructor
-    class    (cosmologyParametersClass       ), intent(inout) :: thisCosmologyParameters
+    type     (intergalacticMediumStateRecFast)                :: self
+    class    (cosmologyParametersClass       ), intent(inout) :: cosmologyParameters_
     character(len=32                         )                :: parameterLabel
-    type     (varying_string                 )                :: command                , parameterFile
+    type     (varying_string                 )                :: command             , parameterFile
     type     (xmlf_t                         )                :: parameterDoc
     type     (inputParameterList             )                :: parameters
 
     ! Generate the name of the data file and an XML input parameter file.
     command='mkdir -p '//char(Galacticus_Input_Path())//'data/intergalacticMedium'
     call System_Command_Do(command)
-    recFastConstructor%fileName=char(Galacticus_Input_Path())//'data/intergalacticMedium/recFast'
-    parameterFile              =char(Galacticus_Input_Path())//'data/intergalacticMedium/recfast_parameters.xml'
+    self         %fileName=char(Galacticus_Input_Path())//'data/intergalacticMedium/recFast'
+    parameterFile         =char(Galacticus_Input_Path())//'data/intergalacticMedium/recfast_parameters.xml'
     ! Construct a parameter list containing all relevant values.
     parameters=inputParameterList()
-    write (parameterLabel,'(f5.3)') thisCosmologyParameters%OmegaMatter    (                   )
-    recFastConstructor%fileName=recFastConstructor%fileName//'_OmegaMatter'    //trim(parameterLabel)
+    write (parameterLabel,'(f5.3)') cosmologyParameters_%OmegaMatter    (                   )
+    self%fileName=self%fileName//'_OmegaMatter'    //trim(parameterLabel)
     call parameters%add("OmegaMatter"    ,parameterLabel)
-    write (parameterLabel,'(f5.3)') thisCosmologyParameters%OmegaDarkEnergy(                   )
-    recFastConstructor%fileName=recFastConstructor%fileName//'_OmegaDarkEnergy'//trim(parameterLabel)
+    write (parameterLabel,'(f5.3)') cosmologyParameters_%OmegaDarkEnergy(                   )
+    self%fileName=self%fileName//'_OmegaDarkEnergy'//trim(parameterLabel)
     call parameters%add("OmegaDarkEnergy",parameterLabel)
-    write (parameterLabel,'(f6.4)') thisCosmologyParameters%OmegaBaryon    (                   )
-    recFastConstructor%fileName=recFastConstructor%fileName//'_OmegaBaryon'    //trim(parameterLabel)
+    write (parameterLabel,'(f6.4)') cosmologyParameters_%OmegaBaryon    (                   )
+    self%fileName=self%fileName//'_OmegaBaryon'    //trim(parameterLabel)
     call parameters%add("OmegaBaryon"    ,parameterLabel)
-    write (parameterLabel,'(f4.1)') thisCosmologyParameters%HubbleConstant (hubbleUnitsStandard)
-    recFastConstructor%fileName=recFastConstructor%fileName//'_HubbleConstant' //trim(parameterLabel)
+    write (parameterLabel,'(f4.1)') cosmologyParameters_%HubbleConstant (hubbleUnitsStandard)
+    self%fileName=self%fileName//'_HubbleConstant' //trim(parameterLabel)
     call parameters%add("HubbleConstant" ,parameterLabel)
-    write (parameterLabel,'(f5.3)') thisCosmologyParameters%temperatureCMB (                   )
-    recFastConstructor%fileName=recFastConstructor%fileName//'_temperatureCMB' //trim(parameterLabel)
+    write (parameterLabel,'(f5.3)') cosmologyParameters_%temperatureCMB (                   )
+    self%fileName=self%fileName//'_temperatureCMB' //trim(parameterLabel)
     call parameters%add("temperatureCMB" ,parameterLabel)
     write (parameterLabel,'(f4.2)') heliumByMassPrimordial
-    recFastConstructor%fileName=recFastConstructor%fileName//'_YHe'            //trim(parameterLabel)
+    self%fileName=self%fileName//'_YHe'            //trim(parameterLabel)
     call parameters%add("Y_He"           ,parameterLabel)
-    recFastConstructor%fileName=recFastConstructor%fileName//'.xml'
+    self%fileName=self%fileName//'.hdf5'
     write (parameterLabel,'(i1)') fileFormatVersionCurrent
     call parameters%add("fileFormat",parameterLabel)
     ! Generate the parameters XML file.
@@ -100,7 +105,7 @@ contains
     call parameters%serializeToXML(parameterDoc)
     call xml_Close(parameterDoc)
     ! Run the RecFast driver script to generate the data.
-    command=char(Galacticus_Input_Path())//'scripts/aux/RecFast_Driver.pl '//parameterFile//' '//recFastConstructor%fileName
+    command=char(Galacticus_Input_Path())//'scripts/aux/RecFast_Driver.pl '//parameterFile//' '//self%fileName
     call System_Command_Do(command)
     return
-  end function recFastConstructor
+  end function recFastConstructorInternal

@@ -20,14 +20,14 @@
 
   !% An implementation of the intergalactic medium state class in which state is read from file.
 
-  !# <intergalacticMediumState name="intergalacticMediumStateFile">
-  !#  <description>The intergalactic medium state is read from file.</description>
-  !# </intergalacticMediumState>
   use FGSL
 
   ! Current file format version for intergalactic medium state files.
   integer, parameter :: fileFormatVersionCurrent=1
 
+  !# <intergalacticMediumState name="intergalacticMediumStateFile">
+  !#  <description>The intergalactic medium state is read from file.</description>
+  !# </intergalacticMediumState>
   type, extends(intergalacticMediumStateClass) :: intergalacticMediumStateFile
      !% An \gls{igm} state class which reads state from file.
      private
@@ -57,106 +57,80 @@
   
   interface intergalacticMediumStateFile
      !% Constructors for the file intergalactic medium state class.
-     module procedure fileDefaultConstructor
-     module procedure fileConstructor
+     module procedure fileConstructorParameters
+     module procedure fileConstructorInternal
   end interface intergalacticMediumStateFile
-
-  ! Initialization state.
-  logical                 :: fileInitialized                =.false.
-
-  ! Default file to read.
-  type   (varying_string) :: intergalaticMediumStateFileName
 
 contains
 
-  function fileDefaultConstructor()
+  function fileConstructorParameters(parameters) result(self)
     !% Default constructor for the file \gls{igm} state class.
-    use Input_Parameters
+    use Input_Parameters2
     implicit none
-    type(intergalacticMediumStateFile), target  :: fileDefaultConstructor
+    type(intergalacticMediumStateFile)                :: self
+    type(inputParameters             ), intent(inout) :: parameters
+    type(varying_string              )                :: fileName
     
-    if (.not.fileInitialized) then
-       !$omp critical(intergalacticMediumStateFileInitialize)
-       if (.not.fileInitialized) then
-          !@ <inputParameter>
-          !@   <name>intergalaticMediumStateFileName</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the file from which to read intergalactic medium state data.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('intergalaticMediumStateFileName',intergalaticMediumStateFileName)
-          fileInitialized=.true.
-       end if
-       !$omp end critical(intergalacticMediumStateFileInitialize)
-    end if
+    !# <inputParameter>
+    !#   <name>fileName</name>
+    !#   <source>parameters</source>
+    !#   <variable>fileName</variable>
+    !#   <description>The name of the file from which to read intergalactic medium state data.</description>
+    !#   <type>string</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
     ! Construct the object.
-    fileDefaultConstructor=fileConstructor(intergalaticMediumStateFileName)
+    self=intergalacticMediumStateFile(fileName)
     return
-  end function fileDefaultConstructor
+  end function fileConstructorParameters
 
-  function fileConstructor(fileName)
+  function fileConstructorInternal(fileName) result(self)
     !% Constructor for the file \gls{igm} state class.
     use Cosmology_Functions
     implicit none
-    type(intergalacticMediumStateFile), target        :: fileConstructor
+    type(intergalacticMediumStateFile)                :: self
     type(varying_string              ), intent(in   ) :: fileName
-
-    fileConstructor%fileName=fileName
+    !# <constructorAssign variables="fileName"/>
+    
     return
-  end function fileConstructor
+  end function fileConstructorInternal
   
   subroutine fileReadData(self)
     !% Read in data describing the state of the intergalactic medium.
     use Galacticus_Error
-    use FoX_dom
-    use IO_XML
+    use IO_HDF5
     use Cosmology_Functions
     use File_Utilities
     implicit none
     class  (intergalacticMediumStateFile), intent(inout) :: self
-    type   (node                        ), pointer       :: doc                      , thisItem
-    class  (cosmologyFunctionsClass     ), pointer       :: cosmologyFunctionsDefault
-    integer                                              :: fileFormatVersion        , iRedshift, &
-         &                                                  ioStatus
+    class  (cosmologyFunctionsClass     ), pointer       :: cosmologyFunctions_
+    integer                                              :: fileFormatVersion  , iRedshift
+    type   (hdf5Object                  )                :: file
 
     ! Check if data has yet to be read.
     if (.not.self%dataRead) then
-       !$omp critical (FoX_DOM_Access)
-       doc => parseFile(char(self%fileName),iostat=ioStatus)
-       if (ioStatus /= 0) then
-          if (File_Exists(char(self%fileName))) then
-             call Galacticus_Error_Report('fileReadData','Unable to find intergalactic medium state file "' //char(self%fileName)//'"')
-          else
-             call Galacticus_Error_Report('fileReadData','Unable to parse intergalactic medium state file "'//char(self%fileName)//'"')
-          end if
-       end if
+       if (.not.File_Exists(char(self%fileName))) call Galacticus_Error_Report('fileReadData','Unable to find intergalactic medium state file "' //char(self%fileName)//'"')
+       !$omp critical (HDF5_Access)
+       ! Open the file.
+       call file%openFile(char(self%fileName),readOnly=.true.)
        ! Check the file format version of the file.
-       thisItem             => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
-       call extractDataContent(thisItem,fileFormatVersion)
+       call file%readAttribute('fileFormat',fileFormatVersion)
        if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('fileReadData','file format version is out of date')
        ! Read the data.
-       thisItem             => XML_Get_First_Element_By_Tag_Name(doc,"redshift"          )
-       call XML_Array_Read(thisItem,"datum",self%timeTable                   )
-       thisItem             => XML_Get_First_Element_By_Tag_Name(doc,"electronFraction"  )
-       call XML_Array_Read(thisItem,"datum",self%electronFractionTable       )
-       thisItem             => XML_Get_First_Element_By_Tag_Name(doc,"hIonizedFraction"  )
-       call XML_Array_Read(thisItem,"datum",self%ionizedHydrogenFractionTable)
-       thisItem             => XML_Get_First_Element_By_Tag_Name(doc,"heIonizedFraction" )
-       call XML_Array_Read(thisItem,"datum",self%ionizedHeliumFractionTable  )
-       thisItem             => XML_Get_First_Element_By_Tag_Name(doc,"matterTemperature" )
-       call XML_Array_Read(thisItem,"datum",self%temperatureTable     )
+       call file%readDataset('redshift'         ,self%timeTable                   )
+       call file%readDataset('electronFraction' ,self%electronFractionTable       )
+       call file%readDataset('hIonizedFraction' ,self%ionizedHydrogenFractionTable)
+       call file%readDataset('heIonizedFraction',self%ionizedHeliumFractionTable  )
+       call file%readDataset('matterTemperature',self%temperatureTable            )
+       call file%close      (                                                     )
+       !$omp end critical (HDF5_Access)
        self%redshiftCount=size(self%timeTable)
        ! Get the default cosmology functions object.
-       cosmologyFunctionsDefault => cosmologyFunctions()
+       cosmologyFunctions_ => cosmologyFunctions()
        ! Convert redshifts to times.
        do iRedshift=1,self%redshiftCount
-          self%timeTable(iRedshift)=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(self%timeTable(iRedshift)))
+          self%timeTable(iRedshift)=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(self%timeTable(iRedshift)))
        end do
-       call destroy(doc)
-       !$omp end critical (FoX_DOM_Access)
        ! Flag that data has now been read.
        self%dataRead=.true.
     end if
