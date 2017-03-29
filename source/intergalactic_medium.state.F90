@@ -20,15 +20,11 @@
 
 module Intergalactic_Medium_State
   !% Provides a class for calculations of the intergalactic medium thermal and ionization state.
-  use, intrinsic :: ISO_C_Binding
-  use               ISO_Varying_String
-  use               Tables
-  !# <include directive="intergalacticMediumState" type="functionModules" >
-  include 'intergalacticMediumState.functionModules.inc'
-  !# </include>
+  use Tables
   private
-
-  !# <include directive="intergalacticMediumState" type="function" >
+  
+  !# <functionClass>
+  !#  <name>intergalacticMediumState</name>
   !#  <descriptiveName>Intergalactic Medium State</descriptiveName>
   !#  <description>Class providing intergalactic medium state.</description>
   !#  <default>recFast</default>
@@ -143,19 +139,37 @@ module Intergalactic_Medium_State
   !#    !$omp end critical (igmStateElectronScatteringInterpolation)
   !#   </code>
   !#  </method>
+  !#  <method name="filteringMass" >
+  !#   <description>Return the filtering mass at the given {\normalfont \ttfamily time}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <modules>Galacticus_Error</modules>
+  !#   <argument>double precision, intent(in   ) :: time</argument>
+  !#   <code>
+  !#    ! Ensure that the table is initialized.
+  !#    call intergalacticMediumStateFilteringMassTabulate(self,time)
+  !#    !$omp critical     (igmStateFilteringMassInterpolation)
+  !#    intergalacticMediumStateFilteringMass=self%filteringMassTable%interpolate(time)
+  !#    !$omp end critical (igmStateFilteringMassInterpolation)
+  !#   </code>
+  !#  </method>
+  !#  <!-- Filtering mass table. -->
+  !#  <data scope="module">integer                                   , parameter   :: filteringMassTablePointsPerDecade     =100                                        </data>
+  !#  <data scope="self"  >logical                                                 :: filteringMassTableInitialized         =.false.                                    </data>
+  !#  <data scope="self"  >integer                                                 :: filteringMassTableNumberPoints                                                    </data>
+  !#  <data scope="self"  >double precision                                        :: filteringMassTableTimeMaximum                 , filteringMassTableTimeMinimum     </data>
+  !#  <data scope="self"  >type            (table1DLogarithmicLinear)              :: filteringMassTable                                                                </data>
   !#  <!-- Electron scattering optical depth tables. -->
-  !#  <data scope="module">integer                                        , parameter   :: electronScatteringTablePointsPerDecade=100</data>
-  !#  <data scope="self"  >logical                                                      :: electronScatteringTableInitialized    =.false.</data>
-  !#  <data scope="self"  >integer                                                      :: electronScatteringTableNumberPoints</data>
-  !#  <data scope="self"  >double precision                                             :: electronScatteringTableTimeMaximum            , electronScatteringTableTimeMinimum</data>
-  !#  <data scope="self"  >type            (table1DLogarithmicLinear)                   :: electronScattering                            , electronScatteringFullyIonized</data>
-  !#  <data scope="self"  >class           (table1D                      ), allocatable :: electronScatteringFullyIonizedInverse         , electronScatteringInverse</data>
-  !#  <!-- Option controlling whether electron scattering optical depth calculations should assume a fully ionized universe. -->
-  !#  <data scope="module" threadprivate="yes">class (intergalacticMediumStateClass), pointer :: selfGlobal</data>
-  !#  <data scope="module" threadprivate="no" >logical                                        :: fullyIonized</data>
-  include 'intergalacticMediumState.type.inc'
-  !# </include>
+  !#  <data scope="module">integer                                   , parameter   :: electronScatteringTablePointsPerDecade=100                                        </data>
+  !#  <data scope="self"  >logical                                                 :: electronScatteringTableInitialized    =.false.                                    </data>
+  !#  <data scope="self"  >integer                                                 :: electronScatteringTableNumberPoints</data>
+  !#  <data scope="self"  >double precision                                        :: electronScatteringTableTimeMaximum            , electronScatteringTableTimeMinimum</data>
+  !#  <data scope="self"  >type            (table1DLogarithmicLinear)              :: electronScattering                            , electronScatteringFullyIonized    </data>
+  !#  <data scope="self"  >class           (table1D                 ), allocatable :: electronScatteringFullyIonizedInverse         , electronScatteringInverse         </data>
+  !# </functionClass>
 
+contains
+  
   subroutine intergalacticMediumStateElectronScatteringTabulate(self,time)
     !% Construct a table of electron scattering optical depth as a function of cosmological time.
     use Numerical_Integration
@@ -168,11 +182,10 @@ module Intergalactic_Medium_State
     type            (fgsl_function                )                        :: integrandFunction
     type            (fgsl_integration_workspace   )                        :: integrationWorkspace
     integer                                                                :: iTime
+    logical                                                                :: fullyIonized
 
     !$omp critical (igmStateElectronScatteringInterpolation)
     if (.not.self%electronScatteringTableInitialized.or.time < self%electronScatteringTableTimeMinimum) then
-       ! Set module-scope pointer to self.
-       selfGlobal => self
        ! Get the default cosmology functions object.
        cosmologyFunctions_ => cosmologyFunctions()
        ! Find minimum and maximum times to tabulate.
@@ -234,43 +247,164 @@ module Intergalactic_Medium_State
     end if
     !$omp end critical (igmStateElectronScatteringInterpolation)
     return
+    
+  contains
+
+    double precision function intergalacticMediumStateElectronScatteringIntegrand(time)
+      !% Integrand for electron scattering optical depth calculations.
+      use Cosmology_Functions
+      use Cosmology_Parameters
+      use Numerical_Constants_Physical
+      use Numerical_Constants_Astronomical
+      implicit none
+      double precision                          , intent(in   ) :: time
+      class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
+      class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
+      double precision                                          :: electronFraction    , expansionFactor
+
+      ! Get the default cosmology.
+      cosmologyParameters_ => cosmologyParameters                (    )
+      ! Get the default cosmology functions object.
+      cosmologyFunctions_  => cosmologyFunctions                 (    )
+      expansionFactor      =  cosmologyFunctions_%expansionFactor(time)
+      if (fullyIonized) then
+         electronFraction=+      hydrogenByMassPrimordial                            /atomicMassHydrogen &
+              &           +2.0d0*heliumByMassPrimordial                              /atomicMassHelium
+      else
+         electronFraction=       hydrogenByMassPrimordial*self%electronFraction(time)/atomicMassHydrogen
+      end if
+      intergalacticMediumStateElectronScatteringIntegrand &
+           & =+speedLight                                 &
+           &  *gigaYear                                   &
+           &  *thomsonCrossSection                        &
+           &  *massSolar                                  &
+           &  /atomicMassUnit                             &
+           &  /megaParsec         **3                     &
+           &  /expansionFactor    **3                     &
+           &  *cosmologyParameters_%OmegaBaryon    ()     &
+           &  *cosmologyParameters_%densityCritical()     &
+           &  *electronFraction
+      return
+    end function intergalacticMediumStateElectronScatteringIntegrand
+
   end subroutine intergalacticMediumStateElectronScatteringTabulate
 
-  double precision function intergalacticMediumStateElectronScatteringIntegrand(time)
-    !% Integrand for electron scattering optical depth calculations.
+  subroutine intergalacticMediumStateFilteringMassTabulate(self,time)
+    !% Construct a table of filtering mass as a function of cosmological time.
+    use FODEIV2
+    use ODEIV2_Solver
     use Cosmology_Functions
     use Cosmology_Parameters
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Astronomical
+    use Linear_Growth
+    use Galacticus_Error
+    use Numerical_Constants_Math
+    use Intergalactic_Medium_Filtering_Masses
     implicit none
-    double precision                          , intent(in   ) :: time
-    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
-    class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
-    double precision                                          :: electronFraction    , expansionFactor
+    class           (intergalacticMediumStateClass), intent(inout), target :: self
+    double precision                               , intent(in   )         :: time
+    class           (cosmologyParametersClass     ), pointer               :: cosmologyParameters_
+    class           (cosmologyFunctionsClass      ), pointer               :: cosmologyFunctions_
+    class           (linearGrowthClass            ), pointer               :: linearGrowth_
+    double precision                               , parameter             :: redshiftMaximumNaozBarkana=150.0d0 ! Maximum redshift at which fitting function of Naoz & Barkana is valid.
+    double precision                               , dimension(3)          :: massFiltering                     , massFilteringScales
+    double precision                               , parameter             :: odeToleranceAbsolute      =1.0d-03, odeToleranceRelative      =1.0d-03
+    type            (fodeiv2_system               )                        :: ode2System
+    type            (fodeiv2_driver               )                        :: ode2Driver
+    logical                                                                :: odeReset
+    integer                                                                :: iTime
+    double precision                                                       :: timeInitial                       , timeCurrent
 
-    ! Get the default cosmology.
-    cosmologyParameters_ => cosmologyParameters                (    )
-    ! Get the default cosmology functions object.
-    cosmologyFunctions_  => cosmologyFunctions                 (    )
-    expansionFactor      =  cosmologyFunctions_%expansionFactor(time)
-    if (fullyIonized) then
-       electronFraction=+      hydrogenByMassPrimordial                                  /atomicMassHydrogen &
-            &           +2.0d0*heliumByMassPrimordial                                    /atomicMassHelium
-    else
-       electronFraction=       hydrogenByMassPrimordial*selfGlobal%electronFraction(time)/atomicMassHydrogen
+    !$omp critical (igmStateFilteringMassInterpolation)
+    if (.not.self%filteringMassTableInitialized .or. time < self%filteringMassTableTimeMinimum) then
+       ! Get required objects.
+       cosmologyFunctions_  => cosmologyFunctions ()
+       cosmologyParameters_ => cosmologyParameters()
+       linearGrowth_        => linearGrowth       ()
+       ! Find minimum and maximum times to tabulate.
+       self%filteringMassTableTimeMaximum=max(cosmologyFunctions_%cosmicTime(1.0d0),time      )
+       self%filteringMassTableTimeMinimum=min(cosmologyFunctions_%cosmicTime(1.0d0),time/2.0d0)
+       ! Decide how many points to tabulate and allocate table arrays.
+       self%filteringMassTableNumberPoints=int(log10(self%filteringMassTableTimeMaximum/self%filteringMassTableTimeMinimum)&
+            & *dble(filteringMassTablePointsPerDecade))+1
+       ! Create the tables.
+       call self%filteringMassTable%destroy()
+       call self%filteringMassTable%create (                                     &
+            &                               self%filteringMassTableTimeMinimum , &
+            &                               self%filteringMassTableTimeMaximum , &
+            &                               self%filteringMassTableNumberPoints  &
+            &                              )
+       ! Evaluate a suitable starting time for filtering mass calculations.
+       timeInitial=cosmologyFunctions_ %cosmicTime                 (                            &
+            &       cosmologyFunctions_%expansionFactorFromRedshift (                           &
+            &                                                        redshiftMaximumNaozBarkana &
+            &                                                       )                           &
+            &                                                      )
+       ! Loop over times and populate tables.
+       do iTime=1,self%filteringMassTableNumberPoints
+          ! Abort if time is too early.
+          if (self%filteringMassTable%x(iTime) <= timeInitial) call Galacticus_Error_Report('intergalacticMediumStateFilteringMassTabulate','time is too early')
+          ! Set the composite variables used to solve for filtering mass.
+          call Mass_Filtering_ODE_Initial_Conditions(timeInitial,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,massFiltering,massFilteringScales)
+          ! Solve the ODE system
+          odeReset   =.true.
+          timeCurrent=timeInitial
+          call ODEIV2_Solve(                                                     &
+               &            ode2Driver                                         , &
+               &            ode2System                                         , &
+               &            timeCurrent                                        , &
+               &            self%filteringMassTable%x(iTime)                   , &
+               &            3                                                  , &
+               &            massFiltering                                      , &
+               &            Intergalactic_Medium_State_ODEs                    , &
+               &            odeToleranceAbsolute                               , &
+               &            odeToleranceRelative                               , &
+               &            yScale                         =massFilteringScales, &
+               &            reset                          =odeReset             &
+               &           )
+          call self%filteringMassTable%populate(massFiltering(3),iTime)
+       end do
+       ! Specify that tabulation has been made.
+       self%filteringMassTableInitialized=.true.
     end if
-    intergalacticMediumStateElectronScatteringIntegrand &
-         & =+speedLight                                 &
-         &  *gigaYear                                   &
-         &  *thomsonCrossSection                        &
-         &  *massSolar                                  &
-         &  /atomicMassUnit                             &
-         &  /megaParsec         **3                     &
-         &  /expansionFactor    **3                     &
-         &  *cosmologyParameters_%OmegaBaryon    ()     &
-         &  *cosmologyParameters_%densityCritical()     &
-         &  *electronFraction
+    !$omp end critical (igmStateFilteringMassInterpolation)
     return
-  end function intergalacticMediumStateElectronScatteringIntegrand
+
+  contains
+
+    integer function Intergalactic_Medium_State_ODEs(time,properties,propertiesRateOfChange)
+      !% Evaluates the ODEs controlling the evolution temperature.
+      use ODE_Solver_Error_Codes
+      use Cosmology_Parameters
+      use Cosmology_Functions
+      use Linear_Growth
+      use Numerical_Constants_Astronomical
+      use Numerical_Constants_Atomic
+      use Intergalactic_Medium_Filtering_Masses
+      implicit none
+      double precision                               , intent(in  )                :: time
+      double precision                               , intent(in   ), dimension(:) :: properties
+      double precision                               , intent(  out), dimension(:) :: propertiesRateOfChange
+      class           (cosmologyParametersClass     ), pointer                     :: cosmologyParameters_
+      class           (cosmologyFunctionsClass      ), pointer                     :: cosmologyFunctions_
+      class           (linearGrowthClass            ), pointer                     :: linearGrowth_
+      double precision                                                             :: temperature            , massParticleMean
+
+      ! Get required objects.
+      cosmologyParameters_ => cosmologyParameters()
+      cosmologyFunctions_  => cosmologyFunctions ()
+      linearGrowth_        => linearGrowth       ()
+       ! Find mean particle mass.
+      massParticleMean=+(hydrogenByMassPrimordial*(1.0d0+self%electronFraction(time)*electronMass/massHydrogenAtom)                 +heliumByMassPrimordial               ) &
+           &           /(hydrogenByMassPrimordial*(1.0d0+self%electronFraction(time)                              )/massHydrogenAtom+heliumByMassPrimordial/massHeliumAtom)
+      ! Get the temperature.
+      temperature=self%temperature(time)
+      ! Compute the rates of change for the ODE system.
+      propertiesRateOfChange=Mass_Filtering_ODE_System(cosmologyParameters_,cosmologyFunctions_,linearGrowth_,time,massParticleMean,temperature,properties)
+      ! Return success.
+      Intergalactic_Medium_State_ODEs=FGSL_Success
+      return
+    end function Intergalactic_Medium_State_ODEs
+
+  end subroutine intergalacticMediumStateFilteringMassTabulate
 
 end module Intergalactic_Medium_State

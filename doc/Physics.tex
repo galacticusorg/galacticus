@@ -54,9 +54,39 @@ where $r_{\mathrm s}$ is the accretion shock radius, $\Lambda$ is the post-shock
 \end{equation}
 where $M$ is the total halo mass, $\gamma(=5/3)$ is the adiabatic index of the gas, and $\alpha$ is the exponent of the initial power-law density perturbation ($\alpha=0$ is assumed). The post-shock density and temperature are found assuming the strong-shock limit.
 
-\subsection{Bertschinger}\label{phys:accretionHalo:accretionHaloBertschinger}
+\subsection{Naoz \& Barkana (2007)}\label{phys:accretionHalo:accretionHaloNaozBarkana2007}
 
-Selected using {\normalfont \ttfamily accretionHaloMethod}$=${\normalfont \ttfamily bertschinger}, this class extends the {\normalfont \ttfamily simple} class by replacing the total halo mass and accretion rate with the Bertschinger (i.e. turnaround) mass and its rate of increase respectively. Additionally, truncation of accretion (eqn.~\ref{eq:accretionHalo:truncation}) is determined by the maximum circular velocity of the node rather than by the virial velocity.
+Selected using {\normalfont \ttfamily accretionHaloMethod}$=${\normalfont \ttfamily naozBarkana2007} this method uses the filtering mass prescription of \cite{naoz_formation_2007} to compute the accreted rate of baryonic material. Specifically, \cite{naoz_formation_2007} assume that the gas mass content of halos is given by $M_{\rm g}(M_{\rm 200b},M_{\rm F}) = (\Omega_{\rm b} / \Omega_{\rm M}) f(M_{\rm 200b}/M_{\rm F}) M_{\rm 200b}$ where $M_{\rm F}$ is the filtering mass, as first introduced by \cite{gnedin_effect_2000} but defined following \cite{naoz_formation_2007}, $M_{\rm 200b}$ is the halo mass defined by a density threshold of 200 times the mean background, and
+\begin{equation}
+  f(x) = [1-(2^{1/3}-1) x^{-1}]^{-3}.
+\end{equation}
+The accretion rate onto the halo is therefore assumed to be
+\begin{equation}
+  \dot{M}_{\rm g} = {\Omega_{\rm b} \over \Omega_{\rm M}} {{\rm d} \over {\rm d} M_{\rm 200b}} \left[ f(M_{\rm 200b}/M_{\rm F}) M_{\rm 200b} \right]  \dot{M}_{\rm total}.
+\end{equation}
+This would result in a precise match to the \cite{naoz_formation_2007} assumption if:
+\begin{enumerate}
+\item The filtering mass is constant in time;
+\item $M_{\rm total}$ corresponds to $M_{\rm 200b}$; and
+\item The growth of halos occurs through smooth accretion, not through merging of smaller halos.
+\end{enumerate}
+In practice all three assumptions are violated. As such, the mass fraction in the halo will differ from $f(M_{\rm 200b}/M_{\rm F})$. To address this issue, mass is additionally assumed to flow from the hot halo reservoir to the unaccreted mass reservoir at a rate:
+\begin{equation}
+\dot{M}_{\rm hot} = - {\alpha_{\rm adjust} \over \tau_{\rm dyn}} [M_{\rm hot}+M_{\rm unaccreted}] [f_{\rm accreted}-f(M_{\rm 200b}/M_{\rm F})],
+\end{equation}
+where $\alpha_{\rm adjust} = $[{\normalfont \ttfamily accretionHaloNaozBarkana2007RateAdjust}].
+
+\section{Accretion of Total Mass into Halos}\label{sec:AccretionTotal}\index{accretion!total}
+
+The accretion rate of total mass (i.e. the mass which would be accreted in a dark matter-only universe) can be computed by the following options, which can be selected via the {\normalfont \ttfamily accretionHaloTotalMethod} input parameter.
+
+\subsection{Simple}\label{phys:accretionHaloTotal:accretionHaloTotalSimple}
+
+Selected using {\normalfont \ttfamily accretionHaloTotalMethod}$=${\normalfont \ttfamily simple}, this class assumes that the accretion rate is equal to the growth rate of the basic component mass property.
+
+\subsection{Bertschinger}\label{phys:accretionHaloTotal:accretionHaloTotalBertschinger}
+
+Selected using {\normalfont \ttfamily accretionHaloTotalMethod}$=${\normalfont \ttfamily bertschinger}, this class assumes that the accretion rate is equal to the growth rate of the basic component Bertschinger mass property.
 
 \section{Cosmology Functions}\index{cosmology}
 
@@ -1673,47 +1703,104 @@ Selected using {\normalfont \ttfamily intergalaticMediumStateMethod}$=${\normalf
 
 \subsection{File}\label{phys:intergalacticMediumState:intergalacticMediumStateFile}
 
-Selected using {\normalfont \ttfamily intergalaticMediumStateMethod}$=${\normalfont \ttfamily file}, this method reads the state of the intergalactic medium from a file and interpolates in the tabulated results. The XML file containing the table should have the following form:
- \begin{verbatim}
-<igm>
-  <electronFraction>
-    <datum>1.1590278</datum>
-    <datum>1.1590278</datum>
-    .
-    .
-    .
-  </electronFraction>
-  <hIonizedFraction>
-    <datum>1.0000000</datum>
-    <datum>1.0000000</datum>
-    .
-    .
-    .
-  </hIonizedFraction>
-  <heIonizedFraction>
-    <datum>1.0000000</datum>
-    <datum>1.0000000</datum>
-    .
-    .
-    .
-  </heIonizedFraction>
-  <matterTemperature>
-    <datum>27230.271</datum>
-    <datum>27203.016</datum>
-    .
-    .
-    .
-  </matterTemperature>
-  <redshift>
-    <datum>9990.00</datum>
-    <datum>9980.00</datum>
-    .
-    .
-    .
-  </redshift>
-</igm>
- \end{verbatim}
- The {\normalfont \ttfamily electronFraction}, {\normalfont \ttfamily hIonizedFraction}, {\normalfont \ttfamily heIonizedFraction}, and {\normalfont \ttfamily matterTemperature} elements should contain {\normalfont \ttfamily datum} elements listing the relevaqnt quantity for each redshift listed in the {\normalfont \ttfamily redshift} element.
+Selected using {\normalfont \ttfamily intergalaticMediumStateMethod}$=${\normalfont \ttfamily file}, this method reads the state of the intergalactic medium from a file and interpolates in the tabulated results. The HDF5 file containing the table should have the following form:
+\begin{verbatim}
+HDF5 "igmState.hdf5" {
+GROUP "/" {
+   ATTRIBUTE "fileFormat" {
+      DATATYPE  H5T_IEEE_F64LE
+      DATASPACE  SCALAR
+      DATA {
+      (0): 1
+      }
+   }
+   GROUP "Parameters" {
+      ATTRIBUTE "HubbleConstant" {
+         DATATYPE  H5T_IEEE_F64LE
+         DATASPACE  SCALAR
+         DATA {
+         (0): 67.8
+         }
+      }
+      ATTRIBUTE "OmegaBaryon" {
+         DATATYPE  H5T_IEEE_F64LE
+         DATASPACE  SCALAR
+         DATA {
+         (0): 0.0484
+         }
+      }
+      ATTRIBUTE "OmegaDarkEnergy" {
+         DATATYPE  H5T_IEEE_F64LE
+         DATASPACE  SCALAR
+         DATA {
+         (0): 0.692
+         }
+      }
+      ATTRIBUTE "OmegaMatter" {
+         DATATYPE  H5T_IEEE_F64LE
+         DATASPACE  SCALAR
+         DATA {
+         (0): 0.308
+         }
+      }
+      ATTRIBUTE "Y_He" {
+         DATATYPE  H5T_IEEE_F64LE
+         DATASPACE  SCALAR
+         DATA {
+         (0): 0.22
+         }
+      }
+      ATTRIBUTE "temperatureCMB" {
+         DATATYPE  H5T_IEEE_F64LE
+         DATASPACE  SCALAR
+         DATA {
+         (0): 2.725
+         }
+      }
+   }
+   DATASET "electronFraction" {
+      DATATYPE  H5T_IEEE_F64LE
+      DATASPACE  SIMPLE { ( 10000 ) / ( 10000 ) }
+   }
+   DATASET "hIonizedFraction" {
+      DATATYPE  H5T_IEEE_F64LE
+      DATASPACE  SIMPLE { ( 10000 ) / ( 10000 ) }
+   }
+   DATASET "heIonizedFraction" {
+      DATATYPE  H5T_IEEE_F64LE
+      DATASPACE  SIMPLE { ( 10000 ) / ( 10000 ) }
+   }
+   DATASET "matterTemperature" {
+      DATATYPE  H5T_IEEE_F64LE
+      DATASPACE  SIMPLE { ( 10000 ) / ( 10000 ) }
+      ATTRIBUTE "units" {
+         DATATYPE  H5T_STRING {
+            STRSIZE 6;
+            STRPAD H5T_STR_NULLTERM;
+            CSET H5T_CSET_ASCII;
+            CTYPE H5T_C_S1;
+         }
+         DATASPACE  SCALAR
+         DATA {
+         (0): "Kelvin"
+         }
+      }
+      ATTRIBUTE "unitsInSI" {
+         DATATYPE  H5T_IEEE_F64LE
+         DATASPACE  SCALAR
+         DATA {
+         (0): 1
+         }
+      }
+   }
+   DATASET "redshift" {
+      DATATYPE  H5T_IEEE_F64LE
+      DATASPACE  SIMPLE { ( 10000 ) / ( 10000 ) }
+   }
+}
+}
+\end{verbatim}
+ The {\normalfont \ttfamily electronFraction}, {\normalfont \ttfamily hIonizedFraction}, {\normalfont \ttfamily heIonizedFraction}, and {\normalfont \ttfamily matterTemperature} datasets contain the relevaqnt quantity for each redshift in the {\normalfont \ttfamily redshift} dataset.
 
 \section{Chemical State}\label{sec:ChemicalStateMethod}\index{chemical state}
 

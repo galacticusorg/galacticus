@@ -23,7 +23,6 @@
   !# <intergalacticMediumState name="intergalacticMediumStateInternal" defaultThreadPrivate="no">
   !#  <description>The intergalactic medium is assumed to be instantaneously and fully reionized at a fixed redshift, and heated to a fixed temperature.</description>
   !# </intergalacticMediumState>
-
   type, extends(intergalacticMediumStateClass) :: intergalacticMediumStateInternal
      !% An \gls{igm} state class for an internally consistent model.
      double precision, allocatable, dimension(:  ) :: time            , temperatureIGM  , &
@@ -82,7 +81,7 @@
      !@     <description>Set the filtering mass time series.</description>
      !@   </objectMethod>
      !@   <objectMethod>
-     !@     <method>filteringMAss</method>
+     !@     <method>filteringMass</method>
      !@     <type>\doublezero</type>
      !@     <arguments>\doublezero\ time\argin</arguments>
      !@     <description>Return the filtering mass at the given {\normalfont \ttfamily time}.</description>
@@ -106,35 +105,47 @@
 
   interface intergalacticMediumStateInternal
      !% Constructors for the internal intergalactic medium state class.
-     module procedure internalDefaultConstructor
+     module procedure internalConstructorParameters
+     module procedure internalConstructorInternal
   end interface intergalacticMediumStateInternal
 
 contains
 
-  function internalDefaultConstructor()
-    !% Default constructor for the {\normalfont \ttfamily internal} \gls{igm} state class.
-    use Input_Parameters
+  function internalConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily internal} \gls{igm} state class which takes a parameter set as input.
+    use Input_Parameters2
     implicit none
-    type    (intergalacticMediumStateInternal), target  :: internalDefaultConstructor
+    type(intergalacticMediumStateInternal)                :: self
+    type(inputParameters                 ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
 
-    allocate  (internalDefaultConstructor%time            (0))
-    allocate  (internalDefaultConstructor%temperatureIGM  (0))
-    allocate  (internalDefaultConstructor%densityHydrogen1(0))
-    allocate  (internalDefaultConstructor%densityHydrogen2(0))
-    allocate  (internalDefaultConstructor%densityHelium1  (0))
-    allocate  (internalDefaultConstructor%densityHelium2  (0))
-    allocate  (internalDefaultConstructor%densityHelium3  (0))
-    allocate  (internalDefaultConstructor%massFiltering   (0))
-    deallocate(internalDefaultConstructor%time               )
-    deallocate(internalDefaultConstructor%temperatureIGM     )
-    deallocate(internalDefaultConstructor%densityHydrogen1   )
-    deallocate(internalDefaultConstructor%densityHydrogen2   )
-    deallocate(internalDefaultConstructor%densityHelium1     )
-    deallocate(internalDefaultConstructor%densityHelium2     )
-    deallocate(internalDefaultConstructor%densityHelium3     )
-    deallocate(internalDefaultConstructor%massFiltering      )
+    self=intergalacticMediumStateInternal()
     return
-  end function internalDefaultConstructor
+  end function internalConstructorParameters
+
+  function internalConstructorInternal() result(self)
+    !% Internal constructor for the {\normalfont \ttfamily internal} \gls{igm} state class.
+    implicit none
+    type(intergalacticMediumStateInternal) :: self
+
+    allocate  (self%time            (0))
+    allocate  (self%temperatureIGM  (0))
+    allocate  (self%densityHydrogen1(0))
+    allocate  (self%densityHydrogen2(0))
+    allocate  (self%densityHelium1  (0))
+    allocate  (self%densityHelium2  (0))
+    allocate  (self%densityHelium3  (0))
+    allocate  (self%massFiltering   (0))
+    deallocate(self%time               )
+    deallocate(self%temperatureIGM     )
+    deallocate(self%densityHydrogen1   )
+    deallocate(self%densityHydrogen2   )
+    deallocate(self%densityHelium1     )
+    deallocate(self%densityHelium2     )
+    deallocate(self%densityHelium3     )
+    deallocate(self%massFiltering      )
+    return
+  end function internalConstructorInternal
 
   double precision function internalFilteringMass(self,time)
     !% Return the filtering mass of the \gls{igm} in the internal model.
