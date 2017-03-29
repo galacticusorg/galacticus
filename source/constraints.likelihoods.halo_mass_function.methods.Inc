@@ -172,7 +172,7 @@ double precision function likelihoodHaloMassFunctionEvaluate(self,simulationStat
   real                                            , intent(inout)               :: timeEvaluate
   double precision                                , intent(  out), optional     :: logLikelihoodVariance
   double precision                                , allocatable  , dimension(:) :: stateVector                     , massFunction
-  double precision                                , parameter                   :: errorFractionalMaximum    =0.9d0
+  double precision                                , parameter                   :: errorFractionalMaximum    =1.0d1
   class           (cosmologyParametersClass      ), pointer                     :: cosmologyParameters_
   class           (cosmologicalMassVarianceClass ), pointer                     :: cosmologicalMassVariance_
   class           (criticalOverdensityClass      ), pointer                     :: criticalOverdensity_
