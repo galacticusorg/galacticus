@@ -29,8 +29,6 @@
      private
    contains
      procedure :: velocityScale      => bertschingerVelocityScale
-     procedure :: accretionRateTotal => bertschingerAccretionRateTotal
-     procedure :: massTotal          => bertschingerMassTotal
   end type accretionHaloBertschinger
 
   interface accretionHaloBertschinger
@@ -133,31 +131,3 @@ contains
     bertschingerVelocityScale =  darkMatterProfile_%circularVelocityMaximum(node)
     return
   end function bertschingerVelocityScale
-
-  double precision function bertschingerAccretionRateTotal(self,node)
-    !% Returns the total accretion rate to use for {\normalfont \ttfamily node}.
-    use Galacticus_Nodes
-    implicit none
-    class(accretionHaloBertschinger), intent(inout) :: self
-    type (treeNode                 ), intent(inout) :: node
-    class(nodeComponentBasic       ), pointer       :: basic
-    !GCC$ attributes unused :: self
-    
-    basic                          => node %basic                    ()
-    bertschingerAccretionRateTotal =  basic%accretionRateBertschinger()
-    return
-  end function bertschingerAccretionRateTotal
-
-  double precision function bertschingerMassTotal(self,node)
-    !% Returns the total mass to use for {\normalfont \ttfamily node}.
-    use Galacticus_Nodes
-    implicit none
-    class(accretionHaloBertschinger), intent(inout) :: self
-    type (treeNode                 ), intent(inout) :: node
-    class(nodeComponentBasic       ), pointer       :: basic
-
-    !GCC$ attributes unused :: self
-    basic                 => node %basic           ()
-    bertschingerMassTotal =  basic%massBertschinger()
-    return
-  end function bertschingerMassTotal
