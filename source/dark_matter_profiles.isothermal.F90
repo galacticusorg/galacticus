@@ -35,6 +35,7 @@
      procedure :: densityLogSlope                   => isothermalDensityLogSlope
      procedure :: radialMoment                      => isothermalRadialMoment
      procedure :: enclosedMass                      => isothermalEnclosedMass
+     procedure :: radiusEnclosingDensity            => isothermalRadiusEnclosingDensity
      procedure :: potential                         => isothermalPotential
      procedure :: circularVelocity                  => isothermalCircularVelocity
      procedure :: circularVelocityMaximum           => isothermalCircularVelocityMaximum
@@ -359,3 +360,19 @@ contains
          & /Mpc_per_km_per_s_To_Gyr
     return
   end function isothermalFreefallRadiusIncreaseRate
+
+  double precision function isothermalRadiusEnclosingDensity(self,node,density)
+    !% Null implementation of function to compute the radius enclosing a given density for isothermal dark matter halo profiles.
+     use Galacticus_Nodes
+   use Galacticus_Error
+    implicit none
+    class           (darkMatterProfileIsothermal), intent(inout) :: self
+    type            (treeNode                   ), intent(inout) :: node
+    double precision                             , intent(in   ) :: density
+    !GCC$ attributes unused :: self, node, density
+
+    isothermalRadiusEnclosingDensity=0.0d0
+    call Galacticus_Error_Report('isothermalRadiusEnclosingDensity','function is not implemented')
+    return
+  end function isothermalRadiusEnclosingDensity
+  

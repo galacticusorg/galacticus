@@ -153,6 +153,7 @@
      procedure :: densityLogSlope                            => einastoDensityLogSlope
      procedure :: radialMoment                               => einastoRadialMoment
      procedure :: enclosedMass                               => einastoEnclosedMass
+     procedure :: radiusEnclosingDensity                     => einastoRadiusEnclosingDensity
      procedure :: potential                                  => einastoPotential
      procedure :: circularVelocity                           => einastoCircularVelocity
      procedure :: circularVelocityMaximum                    => einastoCircularVelocityMaximum
@@ -1601,3 +1602,19 @@ contains
     self%freefallRadiusTableInitialized =.false.
     return
   end subroutine einastoStateRestore
+
+  double precision function einastoRadiusEnclosingDensity(self,node,density)
+    !% Null implementation of function to compute the radius enclosing a given density for Einasto dark matter halo profiles.
+     use Galacticus_Nodes
+   use Galacticus_Error
+    implicit none
+    class           (darkMatterProfileEinasto), intent(inout) :: self
+    type            (treeNode                ), intent(inout) :: node
+    double precision                          , intent(in   ) :: density
+    !GCC$ attributes unused :: self, node, density
+
+    einastoRadiusEnclosingDensity=0.0d0
+    call Galacticus_Error_Report('einastoRadiusEnclosingDensity','function is not implemented')
+    return
+  end function einastoRadiusEnclosingDensity
+  
