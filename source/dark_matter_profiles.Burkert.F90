@@ -121,6 +121,7 @@
      procedure :: stateRestore                      => burkertStateRestore
      procedure :: density                           => burkertDensity
      procedure :: enclosedMass                      => burkertEnclosedMass
+     procedure :: radiusEnclosingDensity            => burkertRadiusEnclosingDensity
      procedure :: potential                         => burkertPotential
      procedure :: circularVelocity                  => burkertCircularVelocity
      procedure :: circularVelocityMaximum           => burkertCircularVelocityMaximum
@@ -1053,3 +1054,19 @@ contains
     call self%inverseAngularMomentum()
     return
   end subroutine burkertStateRestore
+
+  double precision function burkertRadiusEnclosingDensity(self,node,density)
+    !% Null implementation of function to compute the radius enclosing a given density for Burkert dark matter halo profiles.
+     use Galacticus_Nodes
+   use Galacticus_Error
+    implicit none
+    class           (darkMatterProfileBurkert), intent(inout) :: self
+    type            (treeNode                ), intent(inout) :: node
+    double precision                          , intent(in   ) :: density
+    !GCC$ attributes unused :: self, node, density
+
+    burkertRadiusEnclosingDensity=0.0d0
+    call Galacticus_Error_Report('burkertRadiusEnclosingDensity','function is not implemented')
+    return
+  end function burkertRadiusEnclosingDensity
+  

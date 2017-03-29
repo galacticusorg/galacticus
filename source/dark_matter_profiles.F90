@@ -105,11 +105,18 @@ module Dark_Matter_Profiles
   !#   <argument>integer                   , intent(  out), optional :: status</argument>
   !#  </method>
   !#  <method name="enclosedMass" >
-  !#   <description>Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc). for the given {\normalfont \ttfamily node}.</description>
+  !#   <description>Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>type            (treeNode), intent(inout) :: node</argument>
   !#   <argument>double precision          , intent(in   ) :: radius</argument>
+  !#  </method>
+  !#  <method name="radiusEnclosingDensity" >
+  !#   <description>Returns the radius (in Mpc) enclosing a given density threshold (in $M_\odot \hbox{Mpc}^{-3}$) in the dark matter profile of {\normalfont \ttfamily node}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
+  !#   <argument>double precision          , intent(in   ) :: density</argument>
   !#  </method>
   !#  <method name="kSpace" >
   !#   <description>Returns the normalized Fourier space density profile of the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily waveNumber} (given in units of Mpc$^{-1}$).</description>

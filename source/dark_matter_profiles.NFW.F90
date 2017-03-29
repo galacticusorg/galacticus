@@ -36,15 +36,19 @@
      double precision                                        :: freefallRadiusMaximum                  , radiusMaximum
      double precision                                        :: freefallTimeMinimum                    , specificAngularMomentumMinimum
      double precision                                        :: freefallTimeMaximum                    , specificAngularMomentumMaximum
+     double precision                                        :: enclosedDensityRadiusMinimum           , enclosedDensityRadiusMaximum
+     double precision                                        :: enclosedDensityMinimum                 , enclosedDensityMaximum
      ! Tables of NFW properties.
-     logical                                                 :: nfwFreefallTableInitialized            , nfwInverseTableInitialized       , &
-          &                                                     nfwTableInitialized                    
-     integer                                                 :: nfwFreefallTableNumberPoints           , nfwInverseTableNumberPoints      , &
-          &                                                     nfwTableNumberPoints
+     logical                                                 :: nfwFreefallTableInitialized            , nfwInverseTableInitialized         , &
+          &                                                     nfwTableInitialized                    , nfwEnclosedDensityTableInitialized
+     integer                                                 :: nfwFreefallTableNumberPoints           , nfwInverseTableNumberPoints        , &
+          &                                                     nfwTableNumberPoints                   , nfwEnclosedDensityTableNumberPoints
      type            (table1DLogarithmicLinear)              :: nfwConcentrationTable
      ! Tables.
-     type            (table1DLogarithmicLinear)              :: nfwFreeFall                            , nfwSpecificAngularMomentum
-     class           (table1D                 ), allocatable :: nfwFreefallInverse                     , nfwSpecificAngularMomentumInverse
+     type            (table1DLogarithmicLinear)              :: nfwFreeFall                            , nfwSpecificAngularMomentum         , &
+          &                                                     nfwEnclosedDensity
+     class           (table1D                 ), allocatable :: nfwFreefallInverse                     , nfwSpecificAngularMomentumInverse  , &
+          &                                                     nfwEnclosedDensityInverse
      ! Module variables used in integrations.
      double precision                                        :: concentrationParameter                 , radiusStart
      ! Record of unique ID of node which we last computed results for.
@@ -52,8 +56,8 @@
      ! Record of whether or not quantities have been computed.
      logical                                                 :: specificAngularMomentumScalingsComputed, maximumVelocityComputed
      ! Stored values of computed quantities.
-     double precision                                        :: specificAngularMomentumLengthScale     , specificAngularMomentumScale     , &
-          &                                                     concentrationPrevious                  , nfwNormalizationFactorPrevious   , &
+     double precision                                        :: specificAngularMomentumLengthScale     , specificAngularMomentumScale       , &
+          &                                                     concentrationPrevious                  , nfwNormalizationFactorPrevious     , &
           &                                                     maximumVelocityPrevious
      ! Pointer to object setting halo scales.
      class(darkMatterHaloScaleClass           ), pointer     :: scale
@@ -63,25 +67,31 @@
      !@   <objectMethod>
      !@     <method>densityScaleFree</method>
      !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin, \doublezero\ alpha\argin</arguments>
+     !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin</arguments>
      !@     <description>Returns the density (in units such that the virial mass and scale length are unity) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} and {\normalfont \ttfamily alpha} at the given {\normalfont \ttfamily radius} (given in units of the scale radius).</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>enclosedMassScaleFree</method>
      !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin, \doublezero\ alpha\argin</arguments>
+     !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin</arguments>
      !@     <description>Returns the enclosed mass (in units of the virial mass) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius).</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>radiusEnclosingDensityScaleFree</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin</arguments>
+     !@     <description>Returns the radius (in units of the scale radius) enclosing a given density (in units of the virial mass per cubic scale radius) in an NFW dark matter profile with given {\normalfont \ttfamily concentration}.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>freefallTabulate</method>
      !@     <type>\void</type>
-     !@     <arguments>\doublezero\ freefallTimeScaleFree\argin, \doublezero\ alphaRequired\argin</arguments>
+     !@     <arguments>\doublezero\ freefallTimeScaleFree\argin</arguments>
      !@     <description>Tabulates the freefall time vs. freefall radius for NFW halos.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>freefallTimeScaleFree</method>
      !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin, \doublezero\ alpha\argin</arguments>
+     !@     <arguments>\doublezero\ radius\argin</arguments>
      !@     <description>Compute the freefall time in a scale-free NFW halo.</description>
      !@   </objectMethod>
      !@   <objectMethod>
@@ -114,6 +124,12 @@
      !@     <arguments>\doublezero\ concentration\argin</arguments>
      !@     <description>Tabulate properties of the NFW halo profile which must be computed numerically.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>enclosedDensityTabulate</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ enclosedDensityScaleFree\argin</arguments>
+     !@     <description>Tabulate the density enclosed within a given radius for the NFW profile.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      final                                             nfwDestructor
      procedure :: calculationReset                  => nfwCalculationReset
@@ -123,6 +139,7 @@
      procedure :: densityLogSlope                   => nfwDensityLogSlope
      procedure :: radialMoment                      => nfwRadialMoment
      procedure :: enclosedMass                      => nfwEnclosedMass
+     procedure :: radiusEnclosingDensity            => nfwRadiusEnclosingDensity
      procedure :: potential                         => nfwPotential
      procedure :: circularVelocity                  => nfwCircularVelocity
      procedure :: circularVelocityMaximum           => nfwCircularVelocityMaximum
@@ -137,11 +154,13 @@
      procedure :: specificAngularMomentumScaleFree  => nfwSpecificAngularMomentumScaleFree
      procedure :: angularMomentumScaleFree          => nfwAngularMomentumScaleFree
      procedure :: enclosedMassScaleFree             => nfwEnclosedMassScaleFree
+     procedure :: densityEnclosedByRadiusScaleFree  => nfwDensityEnclosedByRadiusScaleFree
      procedure :: densityScaleFree                  => nfwDensityScaleFree
      procedure :: tabulate                          => nfwTabulate
      procedure :: inverseAngularMomentum            => nfwInverseAngularMomentum
      procedure :: freefallTabulate                  => nfwFreefallTabulate
      procedure :: freefallTimeScaleFree             => nfwFreefallTimeScaleFree
+     procedure :: enclosedDensityTabulate           => nfwEnclosedDensityTabulate
   end type darkMatterProfileNFW
 
   interface darkMatterProfileNFW
@@ -151,11 +170,12 @@
   end interface darkMatterProfileNFW
 
   ! Number of points per decade of concentration in NFW tabulations.
-  integer, parameter   :: nfwTablePointsPerDecade        =100
-  integer, parameter   :: nfwInverseTablePointsPerDecade =100
-  integer, parameter   :: nfwFreefallTablePointsPerDecade=100
+  integer, parameter   :: nfwTablePointsPerDecade               =100
+  integer, parameter   :: nfwInverseTablePointsPerDecade        =100
+  integer, parameter   :: nfwFreefallTablePointsPerDecade       =100
+  integer, parameter   :: nfwEnclosedDensityTablePointsPerDecade=100
   ! Indices for tabulated quantities.
-  integer, parameter   :: nfwConcentrationEnergyIndex    =  1, nfwConcentrationRotationNormalizationIndex=2
+  integer, parameter   :: nfwConcentrationEnergyIndex           =  1, nfwConcentrationRotationNormalizationIndex=2
 
 contains
 
@@ -176,18 +196,21 @@ contains
     type (darkMatterProfileNFW    ), target :: nfwConstructor
     class(darkMatterHaloScaleClass), target :: scale
  
-    nfwConstructor%concentrationPrevious       =  -1.0d+0
-    nfwConstructor%concentrationMinimum        =   1.0d+0
-    nfwConstructor%concentrationMaximum        =  20.0d+0
-    nfwConstructor%freefallRadiusMinimum       =   1.0d-3 
-    nfwConstructor%radiusMinimum               =   1.0d-3
-    nfwConstructor%freefallRadiusMaximum       =   1.0d+2  
-    nfwConstructor%radiusMaximum               =   1.0d+2
-    nfwConstructor%nfwFreefallTableInitialized =  .false.
-    nfwConstructor%nfwInverseTableInitialized  =  .false.
-    nfwConstructor%nfwTableInitialized         =  .false.
-    nfwConstructor%lastUniqueID                =  -1
-    nfwConstructor%scale                       => scale
+    nfwConstructor%concentrationPrevious              =  -1.0d+0
+    nfwConstructor%concentrationMinimum               =   1.0d+0
+    nfwConstructor%concentrationMaximum               =  20.0d+0
+    nfwConstructor%freefallRadiusMinimum              =   1.0d-3 
+    nfwConstructor%freefallRadiusMaximum              =   1.0d+2  
+    nfwConstructor%radiusMinimum                      =   1.0d-3
+    nfwConstructor%radiusMaximum                      =   1.0d+2
+    nfwConstructor%enclosedDensityRadiusMinimum       =   1.0d-3
+    nfwConstructor%enclosedDensityRadiusMaximum       =   1.0d+2
+    nfwConstructor%nfwEnclosedDensityTableInitialized =  .false.
+    nfwConstructor%nfwFreefallTableInitialized        =  .false.
+    nfwConstructor%nfwInverseTableInitialized         =  .false.
+    nfwConstructor%nfwTableInitialized                =  .false.
+    nfwConstructor%lastUniqueID                       =  -1
+    nfwConstructor%scale                              => scale
     ! Ensure that the dark matter profile component supports a "scale" property.
     if (.not.defaultDarkMatterProfileComponent%scaleIsGettable())                                                         &
          & call Galacticus_Error_Report                                                                                   &
@@ -215,7 +238,12 @@ contains
        call self%nfwFreeFallInverse               %destroy()
        deallocate(self%nfwFreefallInverse)
     end if
-    if (self%nfwInverseTableInitialized ) then
+    if (self%nfwEnclosedDensityTableInitialized) then
+       call self%nfwEnclosedDensity               %destroy()
+       call self%nfwEnclosedDensityInverse        %destroy()
+       deallocate(self%nfwFreefallInverse)
+    end if
+   if (self%nfwInverseTableInitialized ) then
        call self%nfwSpecificAngularMomentum       %destroy()
        call self%nfwSpecificAngularMomentumInverse%destroy()
        deallocate(self%nfwSpecificAngularMomentumInverse)
@@ -739,6 +767,97 @@ contains
     nfwEnclosedMassScaleFree=nfwEnclosedMassScaleFree*self%nfwNormalizationFactorPrevious
     return
   end function nfwEnclosedMassScaleFree
+
+  double precision function nfwRadiusEnclosingDensity(self,node,density)
+    !% Returns the radius (in units of the scale radius) in an NFW dark matter profile with given {\normalfont \ttfamily
+    !% concentration} which encloses a given density (in units of the virial mass per cubic scale radius).
+    use Numerical_Constants_Math
+    implicit none
+    class           (darkMatterProfileNFW          ), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , intent(in   ) :: density
+    class           (nodeComponentBasic            ), pointer       :: basic
+    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
+    double precision                                                :: scaleRadius                , densityScaleFree, &
+         &                                                             virialRadiusOverScaleRadius
+    
+    ! Extract profile parameters.
+    basic                       => node             %basic            (                 )
+    darkMatterProfile           => node             %darkMatterProfile(autoCreate=.true.)
+    scaleRadius                 =  darkMatterProfile%scale            (                 )
+    virialRadiusOverScaleRadius =  self%scale%virialRadius(node)/scaleRadius
+    ! Compute normalized density.
+    densityScaleFree=+density                                                                 &
+         &           *scaleRadius                                                         **3 &
+         &           /basic      %mass                 (                                 )    &
+         &           /self       %enclosedMassScaleFree(1.0d0,virialRadiusOverScaleRadius)
+    ! Ensure density table spans required range.
+    call self%enclosedDensityTabulate(densityScaleFree)
+    ! Interpolate in density table to find the required radius.
+    nfwRadiusEnclosingDensity=self%nfwEnclosedDensityInverse%interpolate(-densityScaleFree)*scaleRadius
+    return
+  end function nfwRadiusEnclosingDensity
+
+  double precision function nfwDensityEnclosedByRadiusScaleFree(self,radius)
+    !% Returns the radius (in units of the scale radius) in an NFW dark matter profile with given {\normalfont \ttfamily
+    !% concentration} which encloses a given density (in units of the virial mass per cubic scale radius).
+    use Numerical_Constants_Math
+    implicit none
+    class           (darkMatterProfileNFW), intent(inout) :: self
+    double precision                      , intent(in   ) :: radius
+
+    nfwDensityEnclosedByRadiusScaleFree=+3.0d0                                       &
+         &                              *self%enclosedMassScaleFree(radius,1.0d0)    &
+         &                              /4.0d0                                       &
+         &                              /Pi                                          &
+         &                              /                           radius       **3
+    return
+  end function nfwDensityEnclosedByRadiusScaleFree
+
+  subroutine nfwEnclosedDensityTabulate(self,enclosedDensityScaleFree)
+    !% Tabulates the enclosed density vs. radius for NFW halos.
+    implicit none
+    class           (darkMatterProfileNFW), intent(inout) :: self
+    double precision                      , intent(in   ) :: enclosedDensityScaleFree
+    logical                                               :: retabulate
+    integer                                               :: iRadius
+
+    retabulate=.not.self%nfwEnclosedDensityTableInitialized
+    ! If the table has not yet been made, compute and store the enclosed density corresponding to the minimum and maximum radii
+    ! that will be tabulated by default.
+    if (retabulate) then
+       self%enclosedDensityMinimum=self%densityEnclosedByRadiusScaleFree(self%enclosedDensityRadiusMaximum)
+       self%enclosedDensityMaximum=self%densityEnclosedByRadiusScaleFree(self%enclosedDensityRadiusMinimum)
+    end if
+    do while (enclosedDensityScaleFree < self%enclosedDensityMinimum)
+       self%enclosedDensityRadiusMaximum=2.0d0*self%enclosedDensityRadiusMaximum
+       self%enclosedDensityMinimum=self%densityEnclosedByRadiusScaleFree(self%enclosedDensityRadiusMaximum)
+       retabulate=.true.
+    end do
+    do while (enclosedDensityScaleFree > self%enclosedDensityMaximum)
+       self%enclosedDensityRadiusMinimum=0.5d0*self%enclosedDensityRadiusMinimum
+       self%enclosedDensityMaximum=self%densityEnclosedByRadiusScaleFree(self%enclosedDensityRadiusMinimum)
+       retabulate=.true.
+    end do
+    if (retabulate) then
+       ! Decide how many points to tabulate and allocate table arrays.
+       self%nfwEnclosedDensityTableNumberPoints=int(log10(self%enclosedDensityRadiusMaximum/self%enclosedDensityRadiusMinimum)*dble(nfwEnclosedDensityTablePointsPerDecade))+1
+       ! Create the table.
+       call self%nfwEnclosedDensity%destroy(                                                                                                            )
+       call self%nfwEnclosedDensity%create (self%enclosedDensityRadiusMinimum,self%enclosedDensityRadiusMaximum,self%nfwEnclosedDensityTableNumberPoints)
+       ! Loop over radii and populate tables.
+       do iRadius=1,self%nfwEnclosedDensityTableNumberPoints
+          call self%nfwEnclosedDensity%populate(                                                                            &
+               &                                -self%densityEnclosedByRadiusScaleFree(self%nfwEnclosedDensity%x(iRadius)), &
+               &                                                                                                 iRadius    &
+               &                               )
+       end do
+       call self%nfwEnclosedDensity%reverse(self%nfwEnclosedDensityInverse)
+       ! Specify that tabulation has been made.
+       self%nfwEnclosedDensityTableInitialized=.true.
+    end if
+    return
+  end subroutine nfwEnclosedDensityTabulate
 
   double precision function nfwDensityScaleFree(self,radius,concentration)
     !% Returns the density (in units such that the virial mass and scale length are unity) in an NFW dark matter profile with
