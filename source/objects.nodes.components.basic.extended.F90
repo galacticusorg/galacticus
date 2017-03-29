@@ -27,7 +27,7 @@ module Node_Component_Basic_Standard_Extended
   private
   public :: Node_Component_Basic_Standard_Extended_Initialize, Node_Component_Basic_Standard_Extended_Node_Merger , &
        &    Node_Component_Basic_Standard_Extended_Promote   , Node_Component_Basic_Standard_Extended_Rate_Compute, &
-       &    Node_Component_Basic_Standard_Extended_Scale_Set
+       &    Node_Component_Basic_Standard_Extended_Scale_Set , Node_Component_Basic_Extended_Bindings
 
   !# <component>
   !#  <class>basic</class>
@@ -42,7 +42,7 @@ module Node_Component_Basic_Standard_Extended
   !#     <name>massBertschinger</name>
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" /> 
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" isDeferred="get" /> 
   !#     <classDefault>-1.0d0</classDefault>
   !#     <output unitsInSI="massSolar" comment="Bertschinger mass of the node, assuming univeral baryon fraction."/>
   !#   </property>
@@ -56,7 +56,7 @@ module Node_Component_Basic_Standard_Extended
   !#     <name>radiusTurnaround</name>
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" isDeferred="get" />
   !#     <classDefault>-1.0d0</classDefault>
   !#   </property>
   !#   <property>
@@ -86,27 +86,20 @@ module Node_Component_Basic_Standard_Extended
 
 contains
 
-  !# <mergerTreeInitializeTask>
-  !#  <unitName>Node_Component_Basic_Standard_Extended_Initialize</unitName>
-  !# </mergerTreeInitializeTask>
-  subroutine Node_Component_Basic_Standard_Extended_Initialize(node)
-    !% Set the mass accretion rate for {\normalfont \ttfamily node}.
-    use Dark_Matter_Profile_Mass_Definitions
-    use Input_Parameters
+  !# <nodeComponentInitializationTask>
+  !#  <unitName>Node_Component_Basic_Extended_Bindings</unitName>
+  !# </nodeComponentInitializationTask>
+  subroutine Node_Component_Basic_Extended_Bindings()
+    !% Initializes the ``extended'' implementation of the basic component.
     use ISO_Varying_String
+    use Input_Parameters
     implicit none
-    type            (treeNode                  ), intent(inout), pointer :: node
-    type            (treeNode                  )               , pointer :: nodeWork                                           , nodeParent  , &
-         &                                                                  nodeChild
-    class           (nodeComponentBasic        )               , pointer :: basic                                              , basicChild  , &
-         &                                                                  basicWork                                          , basicParent
-    double precision                                                     :: massUnresolved                                     , deltaTime   , &
-         &                                                                  progenitorMassTotal                                , radiusVirial
-    type            (varying_string            )                         :: nodeComponentBasicExtendedSphericalCollapseTypeText
+    type(varying_string                    ) :: nodeComponentBasicExtendedSphericalCollapseTypeText
+    type(nodeComponentBasicStandardExtended) :: basic
 
-    ! Determine spherical collapse model to use.
+    ! Initialize the bindings.
     if (.not.moduleInitialized) then
-       !$omp critical(basicExtendedInitialize)
+       !$omp critical (Node_Component_Basic_Extended_Bindings)
        if (.not.moduleInitialized) then
           !@ <inputParameter>
           !@   <name>nodeComponentBasicExtendedSphericalCollapseType</name>
@@ -128,65 +121,105 @@ contains
           case ('bryanNorman')
              nodeComponentBasicExtendedSphericalCollapseType=nodeComponentBasicExtendedSphericalCollapseTypeBryanNorman1998
           end select
+          ! Bind deferred functions.
+          call basic%massBertschingerFunction(Node_Component_Basic_Extended_Mass_Bertschinger)
+          call basic%radiusTurnaroundFunction(Node_Component_Basic_Extended_Radius_Turnaround)
+          ! Record that the module is now initialize.
           moduleInitialized=.true.
        end if
-       !$omp end critical(basicExtendedInitialize)
+       !$omp end critical (Node_Component_Basic_Extended_Bindings)
     end if
+    return
+  end subroutine Node_Component_Basic_Extended_Bindings
+  
+  subroutine Node_Component_Basic_Extended_Bertschinger_Solver(self)
+    !% Compute the Bertschinger mass and turnaround radii
+    use Dark_Matter_Profile_Mass_Definitions
+    use Dark_Matter_Halo_Scales
+    use Dark_Matter_Profile_Scales
+    implicit none
+    class           (nodeComponentBasicStandardExtended), intent(inout) :: self
+    type            (treeNode                          ), pointer       :: selfNode
+    double precision                                                    :: radiusVirial
+
+    ! Initialize virial density contrast objects.
+    if (.not.virialDensityContrastInitialized) then
+       select case (nodeComponentBasicExtendedSphericalCollapseType)
+       case (nodeComponentBasicExtendedSphericalCollapseTypeLambda         )
+          allocate(virialDensityContrastSphericalCollapseMatterLambda :: virialDensityContrast_)
+          select type (virialDensityContrast_)
+          type is (virialDensityContrastSphericalCollapseMatterLambda)
+             virialDensityContrast_=virialDensityContrastSphericalCollapseMatterLambda()
+          end select
+       case (nodeComponentBasicExtendedSphericalCollapseTypeDE             )
+          allocate(virialDensityContrastSphericalCollapseMatterDE     :: virialDensityContrast_)
+          select type (virialDensityContrast_)
+          type is (virialDensityContrastSphericalCollapseMatterDE    )
+             virialDensityContrast_=virialDensityContrastSphericalCollapseMatterDE    ()
+          end select
+       case (nodeComponentBasicExtendedSphericalCollapseTypeBryanNorman1998)
+          allocate(virialDensityContrastBryanNorman1998               :: virialDensityContrast_)
+          select type (virialDensityContrast_)
+          type is (virialDensityContrastBryanNorman1998              )
+             virialDensityContrast_=virialDensityContrastBryanNorman1998              ()
+          end select
+       end select
+       virialDensityContrastInitialized=.true.
+    end if
+    ! Compute Bertschinger mass and turnaround radius.
+    selfNode => self%hostNode
+    call self%massBertschingerSet(                                                                                               &
+         &                        Dark_Matter_Profile_Mass_Definition(                                                           &
+         &                                                                   selfNode                                          , &
+         &                                                                   virialDensityContrast_%densityContrast(             &
+         &                                                                                                          self%mass(), &
+         &                                                                                                          self%time()  &
+         &                                                                                                         )           , &
+         &                                                            radius=radiusVirial                                        &
+         &                                                           )                                                           &
+         &                       )
+    call self%radiusTurnaroundSet(virialDensityContrast_%turnAroundOverVirialRadii(time=self%time())*radiusVirial)
+    return
+  end subroutine Node_Component_Basic_Extended_Bertschinger_Solver
+  
+  double precision function Node_Component_Basic_Extended_Mass_Bertschinger(self)
+    !% Return the Bertschinger mass.
+    implicit none
+    class(nodeComponentBasicStandardExtended), intent(inout) :: self
+    
+    if (self%massBertschingerValue() <= 0.0d0) call Node_Component_Basic_Extended_Bertschinger_Solver(self)
+    Node_Component_Basic_Extended_Mass_Bertschinger=self%massBertschingerValue()
+    return
+  end function Node_Component_Basic_Extended_Mass_Bertschinger
+
+  double precision function Node_Component_Basic_Extended_Radius_Turnaround(self)
+    !% Return the turnaround radius.
+    implicit none
+    class(nodeComponentBasicStandardExtended), intent(inout) :: self
+    
+    if (self%radiusTurnaroundValue() <= 0.0d0) call Node_Component_Basic_Extended_Bertschinger_Solver(self)
+    Node_Component_Basic_Extended_Radius_Turnaround=self%radiusTurnaroundValue()
+    return
+  end function Node_Component_Basic_Extended_Radius_Turnaround
+
+  !# <mergerTreeInitializeTask>
+  !#  <unitName>Node_Component_Basic_Standard_Extended_Initialize</unitName>
+  !# </mergerTreeInitializeTask>
+  subroutine Node_Component_Basic_Standard_Extended_Initialize(node)
+    !% Set the mass accretion rate for {\normalfont \ttfamily node}.
+    implicit none
+    type            (treeNode          ), intent(inout), pointer :: node
+    type            (treeNode          )               , pointer :: nodeChild          , nodeParent
+    class           (nodeComponentBasic)               , pointer :: basic              , basicChild, &
+         &                                                          basicParent
+    double precision                                             :: massUnresolved     , deltaTime , &
+         &                                                          progenitorMassTotal
+
     ! Get the basic component.
     basic => node%basic()
     ! Ensure that it is of the standard extended class.
     select type (basic)
     class is (nodeComponentBasicStandardExtended)
-       ! Get required objects.
-       if (.not.virialDensityContrastInitialized) then
-          select case (nodeComponentBasicExtendedSphericalCollapseType)
-          case (nodeComponentBasicExtendedSphericalCollapseTypeLambda         )
-             allocate(virialDensityContrastSphericalCollapseMatterLambda :: virialDensityContrast_)
-             select type (virialDensityContrast_)
-             type is (virialDensityContrastSphericalCollapseMatterLambda)
-                virialDensityContrast_=virialDensityContrastSphericalCollapseMatterLambda()
-             end select
-          case (nodeComponentBasicExtendedSphericalCollapseTypeDE             )
-             allocate(virialDensityContrastSphericalCollapseMatterDE     :: virialDensityContrast_)
-             select type (virialDensityContrast_)
-             type is (virialDensityContrastSphericalCollapseMatterDE    )
-                virialDensityContrast_=virialDensityContrastSphericalCollapseMatterDE    ()
-             end select
-          case (nodeComponentBasicExtendedSphericalCollapseTypeBryanNorman1998)
-             allocate(virialDensityContrastBryanNorman1998                :: virialDensityContrast_)
-             select type (virialDensityContrast_)
-             type is (virialDensityContrastBryanNorman1998              )
-                virialDensityContrast_=virialDensityContrastBryanNorman1998              ()
-             end select
-          end select
-          virialDensityContrastInitialized=.true.
-       end if
-       ! Ensure Bertschinger mass is set for all nodes in this tree.
-       if (basic%massBertschinger() <= 0.0d0) then
-          nodeWork => node
-          do while (associated(nodeWork%parent))
-             nodeWork => nodeWork%parent
-          end do
-          do while (associated(nodeWork))
-             basicWork => nodeWork%basic()
-             ! Set the Bertschinger mass.
-             if (basicWork%massBertschinger() <= 0.0d0) then
-                call basicWork%massBertschingerSet(               &
-                     &  Dark_Matter_Profile_Mass_Definition(      &
-                     &   nodeWork                               , &
-                     &   virialDensityContrast_%densityContrast(  &
-                     &    basicWork%mass()                      , &
-                     &    basicWork%time()                        &
-                     &                                         ), &
-                     &   radius=radiusVirial                      &
-                     &                                     )      &
-                     &                                   )
-                call basicWork%radiusTurnaroundSet(virialDensityContrast_%turnAroundOverVirialRadii(time=basicWork%time())*radiusVirial)
-             end if
-             ! Move to next node.
-             nodeWork => nodeWork%walkTree()
-          end do
-       end if
        ! Determine if this node has a descendent.
        if (.not.associated(node%parent)) then
           ! For parent-less nodes (i.e. the root node of the tree), the rate is set equal to that of the
@@ -198,7 +231,7 @@ contains
              ! Ensure the child has a mass growth rate computed.
              call Node_Component_Basic_Standard_Extended_Initialize(nodeChild)
              ! Get the growth rate of the child.
-             call basic% accretionRateBertschingerSet(basicChild%             accretionRate())
+             call basic% accretionRateBertschingerSet(basicChild% accretionRateBertschinger())
              call basic%radiusTurnaroundGrowthRateSet(basicChild%radiusTurnaroundGrowthRate())
           else
              ! Parentless node has no child - set a zero growth rate.
@@ -263,7 +296,6 @@ contains
     end do
     return
   end function Node_Component_Basic_Standard_Extended_Unresolved_Mass
-
 
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Basic_Standard_Extended_Rate_Compute</unitName>
