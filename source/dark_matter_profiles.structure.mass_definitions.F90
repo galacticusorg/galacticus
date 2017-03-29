@@ -25,32 +25,47 @@ module Dark_Matter_Profile_Mass_Definitions
 
 contains
 
-  double precision function Dark_Matter_Profile_Mass_Definition(node,densityContrast,radius,velocity)
+  function Dark_Matter_Profile_Mass_Definition(node,densityContrast,radius,velocity) result(massHalo)
     !% Compute the mass of {\normalfont \ttfamily node} under the given density contrast definition.
     use Galacticus_Nodes
     use Cosmology_Parameters
-    use Galactic_Structure_Enclosed_Masses
-    use Galactic_Structure_Options
+    use Cosmology_Functions
+    use Dark_Matter_Profiles
     use Numerical_Constants_Physical
-    implicit none    
+    use Numerical_Constants_Math
+    implicit none
+    double precision                                                    :: massHalo
     type            (treeNode                )          , intent(inout) :: node
     double precision                                    , intent(in   ) :: densityContrast
     double precision                          , optional, intent(  out) :: radius              , velocity
     class           (nodeComponentBasic      ), pointer                 :: basic
     class           (cosmologyParametersClass), pointer                 :: cosmologyParameters_
-    double precision                                                    :: darkMatterFraction  , radiusHalo
-
+    class           (cosmologyFunctionsClass ), pointer                 :: cosmologyFunctions_
+    class           (darkMatterProfileClass  ), pointer                 :: darkMatterProfile_
+    double precision                                                    :: radiusHalo          , density
+    
     ! Get required objects.
-    cosmologyParameters_ => cosmologyParameters()
-    ! Compute the dark matter fraction.
-    darkMatterFraction=(1.0d0-cosmologyParameters_%omegaBaryon()/cosmologyParameters_%omegaMatter())
-    ! Compute masses as necessary.
-    basic                              => node%basic()
-    radiusHalo                         =  Galactic_Structure_Radius_Enclosing_Density(node,densityContrast=densityContrast*darkMatterFraction,massType=massTypeDark,haloLoaded=.false.)
-    Dark_Matter_Profile_Mass_Definition=  Galactic_Structure_Enclosed_Mass           (node,radiusHalo                                        ,massType=massTypeDark,haloLoaded=.false.) &
-         &                               /darkMatterFraction
+    cosmologyParameters_ =>  cosmologyParameters      ()
+    cosmologyFunctions_  =>  cosmologyFunctions       ()
+    darkMatterProfile_   =>  darkMatterProfile        ()
+    basic                =>  node               %basic()
+    ! Compute the density from the density contrast.
+    density              =  +densityContrast                                       &
+         &                  *cosmologyParameters_%omegaMatter    (            )    &
+         &                  *cosmologyParameters_%densityCritical(            )    &
+         &                  /cosmologyFunctions_ %expansionFactor(basic%time())**3
+    ! Get the radius in the halo enclosing this density.
+    radiusHalo           =   darkMatterProfile_%radiusEnclosingDensity(node,density   )
+    ! Find the mass within that radius - this is computable directly from the mean density and the radius enclosing that mean
+    ! density.
+    massHalo             =  +4.0d0         &
+         &                  *Pi            &
+         &                  *density       &
+         &                  *radiusHalo**3 &
+         &                  /3.0d0    
+    ! If necesary, return the radius and circular velocity also.
     if (present(radius  )) radius  =radiusHalo
-    if (present(velocity)) velocity=sqrt(gravitationalConstantGalacticus*Dark_Matter_Profile_Mass_Definition/radiusHalo)
+    if (present(velocity)) velocity=sqrt(gravitationalConstantGalacticus*massHalo/radiusHalo)
     return
   end function Dark_Matter_Profile_Mass_Definition
 
