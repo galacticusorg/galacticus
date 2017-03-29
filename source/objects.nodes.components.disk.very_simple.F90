@@ -411,19 +411,23 @@ contains
        ! Adjust rates.
        call                                  disk%             massStellarRate(      stellarMassRate)
        call                                  disk%                 massGasRate(         fuelMassRate)
-       call                                  disk%       abundancesStellarRate(stellarAbundancesRate)
-       call                                  disk%           abundancesGasRate(   fuelAbundancesRate)
+       if (diskVerySimpleTrackAbundances) then
+          call                               disk%       abundancesStellarRate(stellarAbundancesRate)
+          call                               disk%           abundancesGasRate(   fuelAbundancesRate)
+       end if
        if (stellarHistoryRate%exists()) call disk%stellarPropertiesHistoryRate(   stellarHistoryRate)
        if (massOutflowRate > 0.0d0) then
           ! Push to the hot halo.
-          hotHalo               => node%hotHalo      ()
-          abundancesOutflowRate =  disk%abundancesGas()
-          call abundancesOutflowRate%massToMassFraction(disk%massGas())
-          abundancesOutflowRate =abundancesOutflowRate*massOutflowRate
-          call hotHalo%      outflowingMassRate(+      massOutflowRate)
-          call hotHalo%outflowingAbundancesRate(+abundancesOutflowRate)
-          call disk   %             massGasRate(-      massOutflowRate)
-          call disk   %       abundancesGasRate(-abundancesOutflowRate)
+          hotHalo => node%hotHalo      ()
+          call hotHalo%outflowingMassRate(+massOutflowRate)
+          call disk   %       massGasRate(-massOutflowRate)
+          if (diskVerySimpleTrackAbundances) then
+             abundancesOutflowRate=disk%abundancesGas()
+             call abundancesOutflowRate%massToMassFraction(disk%massGas())
+             abundancesOutflowRate=abundancesOutflowRate*massOutflowRate
+             call hotHalo%outflowingAbundancesRate(+abundancesOutflowRate)
+             call disk   %       abundancesGasRate(-abundancesOutflowRate)
+          end if
        end if
     end select
     ! Return the procedure pointer.
