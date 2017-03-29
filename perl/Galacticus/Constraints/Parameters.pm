@@ -69,7 +69,7 @@ sub Compilation {
     # Create an XML worker object.
     my $xml = new XML::Simple;
     # Retrieve the compilation file.
-    my $compilationFilePath = "constraints/compilations/".$compilationFileName;
+    my $compilationFilePath = ($compilationFileName =~ m/\//) ? $compilationFileName : "constraints/compilations/".$compilationFileName;
     my $compilation =
 	-e $compilationFilePath.".store" 
 	?
@@ -575,9 +575,11 @@ sub Maximum_Likelihood_Vector {
 	     ||
 	     $arguments{'chain'} == $i
 	    );
-	push(@chainFiles,sprintf("%s_%4.4i.log"        ,$logFileRoot,$i));
-	push(@chainFiles,sprintf("%sPrevious_%4.4i.log",$logFileRoot,$i))
-	    if ( exists($arguments{'includePrevious'}) && $arguments{'includePrevious'} eq "yes" );
+	my $chainFileName         = sprintf("%s_%4.4i.log"        ,$logFileRoot,$i);
+	my $chainFilePreviousName = sprintf("%sPrevious_%4.4i.log",$logFileRoot,$i);
+	push(@chainFiles,$chainFileName        );
+	push(@chainFiles,$chainFilePreviousName)
+	    if ( exists($arguments{'includePrevious'}) && $arguments{'includePrevious'} eq "yes" && -e $chainFilePreviousName );
     }
     foreach my $chainFile ( @chainFiles ) {
 	open(iHndl,$chainFile);
