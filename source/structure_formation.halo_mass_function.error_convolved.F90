@@ -131,11 +131,8 @@ contains
          &                       self%nBodyHaloMassError_   %errorFractional(node), &
          &                       self%errorFractionalMaximum                        &
          &                      )
-    ! Clean up our work node.
-    call node%destroy()
-    deallocate(node)
     ! Perform the convolution integral.
-    massLow                             =  max(0.01d0*mass,mass-rangeIntegralSigma*errorConvolvedErrorMass)
+    massLow                             =  max(1.0d-3*mass,mass-rangeIntegralSigma*errorConvolvedErrorMass)
     massHigh                            =                  mass+rangeIntegralSigma*errorConvolvedErrorMass
     errorConvolvedIntrinsicMassFunction => self%massFunctionIntrinsic
     errorConvolvedTime                  =  time
@@ -150,31 +147,44 @@ contains
          &                                           toleranceRelative   =1.0d-006  &
          &                                          )
     call Integrate_Done(integrandFunction,integrationWorkspace)    
+    ! Clean up our work node.
+    call node%destroy()
+    deallocate(node)
     return
-  end function errorConvolvedDifferential
-  
-  double precision function errorConvolvedConvolution(massPrime)
-    !% Integrand function used in convolving the dark matter halo mass function.
-    use Numerical_Constants_Math
-    implicit none
-    double precision, intent(in   ) :: massPrime
 
-    ! Return the convolution integrand.
-    errorConvolvedConvolution=+errorConvolvedIntrinsicMassFunction%differential(errorConvolvedTime,massPrime) &
-         &                    *exp(                                                                           &
-         &                         -0.5d0                                                                     &
-         &                         *(                                                                         &
-         &                           +(                                                                       &
-         &                             +massPrime                                                             &
-         &                             -errorConvolvedMass                                                    &
-         &                            )                                                                       &
-         &                           /errorConvolvedErrorMass                                                 &
-         &                          )**2                                                                      &
-         &                        )                                                                           &
-         &                    /sqrt(                                                                          &
-         &                          +2.0d0                                                                    &
-         &                          *Pi                                                                       &
-         &                         )                                                                          &
-         &                    /errorConvolvedErrorMass
-    return
-  end function errorConvolvedConvolution
+  contains
+
+    double precision function errorConvolvedConvolution(massPrime)
+      !% Integrand function used in convolving the dark matter halo mass function.
+      use Numerical_Constants_Math
+      implicit none
+      double precision, intent(in   ) :: massPrime
+
+      ! Get the error at this mass scale.
+      call basic%massSet(massPrime)
+      errorConvolvedErrorMass=+massPrime                                              &
+           &                  *min(                                                   &
+           &                       self%nBodyHaloMassError_   %errorFractional(node), &
+           &                       self%errorFractionalMaximum                        &
+           &                      )
+      ! Return the convolution integrand.
+      errorConvolvedConvolution=+errorConvolvedIntrinsicMassFunction%differential(errorConvolvedTime,massPrime) &
+           &                    *exp(                                                                           &
+           &                         -0.5d0                                                                     &
+           &                         *(                                                                         &
+           &                           +(                                                                       &
+           &                             +massPrime                                                             &
+           &                             -errorConvolvedMass                                                    &
+           &                            )                                                                       &
+           &                           /errorConvolvedErrorMass                                                 &
+           &                          )**2                                                                      &
+           &                        )                                                                           &
+           &                    /sqrt(                                                                          &
+           &                          +2.0d0                                                                    &
+           &                          *Pi                                                                       &
+           &                         )                                                                          &
+           &                    /errorConvolvedErrorMass
+      return
+    end function errorConvolvedConvolution
+
+  end function errorConvolvedDifferential
