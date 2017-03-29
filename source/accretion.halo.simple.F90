@@ -35,12 +35,6 @@
      !@ <objectMethods>
      !@   <object>accretionHaloSimple</object>
      !@   <objectMethod>
-     !@     <method>accretionRateTotal</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout</arguments>
-     !@     <description>Returns the total accretion rate from the \gls{igm} onto a halo (including dark matter).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
      !@     <method>failedFraction</method>
      !@     <type>double precision</type>
      !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout</arguments>
@@ -51,12 +45,6 @@
      !@     <type>double precision</type>
      !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout</arguments>
      !@     <description>Returns the velocity scale to use for {\normalfont \ttfamily node}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>massTotal</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout</arguments>
-     !@     <description>Returns the total node mass.</description>
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: branchHasBaryons       => simpleBranchHasBaryons
@@ -69,8 +57,6 @@
      procedure :: accretionRateChemicals => simpleAccretionRateChemicals
      procedure :: accretedMassChemicals  => simpleAccretedMassChemicals
      procedure :: velocityScale          => simpleVelocityScale
-     procedure :: accretionRateTotal     => simpleAccretionRateTotal
-     procedure :: massTotal              => simpleMassTotal
      procedure :: failedFraction         => simpleFailedFraction
   end type accretionHaloSimple
 
@@ -258,6 +244,7 @@ contains
     !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     use Cosmology_Parameters
+    use Accretion_Halo_Totals
     implicit none
     class           (accretionHaloSimple     ), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
@@ -265,6 +252,7 @@ contains
     class           (nodeComponentBasic      ), pointer       :: basic
     class           (nodeComponentHotHalo    ), pointer       :: hotHalo
     class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
+    class           (accretionHaloTotalClass ), pointer       :: accretionHaloTotal_
     double precision                                          :: growthRate             , unaccretedMass, &
          &                                                       failedFraction
 
@@ -275,22 +263,23 @@ contains
     failedFraction=self%failedFraction(node)
     ! Get the default cosmology.
     cosmologyParameters_ => cosmologyParameters()
-    basic   => node%basic()
-    hotHalo => node%hotHalo()
-    simpleAccretionRate=(cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter())*self%accretionRateTotal(node)*(1.0d0-failedFraction)
+    accretionHaloTotal_  => accretionHaloTotal ()
+    basic                => node%basic         ()
+    hotHalo              => node%hotHalo       ()
+    simpleAccretionRate=(cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter())*accretionHaloTotal_%accretionRate(node)*(1.0d0-failedFraction)
     ! Test for negative accretion.
-    if (.not.self%negativeAccretionAllowed.and.self%accretionRateTotal(node) < 0.0d0) then
+    if (.not.self%negativeAccretionAllowed.and.accretionHaloTotal_%accretionRate(node) < 0.0d0) then
        ! Accretion rate is negative, and not allowed. Return zero accretion rate.
        simpleAccretionRate=0.0d0
     else
        ! Return the standard accretion rate.
        unaccretedMass=hotHalo%unaccretedMass()
-       growthRate=self%accretionRateTotal(node)/self%massTotal(node)
+       growthRate=accretionHaloTotal_%accretionRate(node)/accretionHaloTotal_%accretedMass(node)
        simpleAccretionRate=simpleAccretionRate+unaccretedMass*growthRate*(1.0d0-failedFraction)
     end if
     ! If accretion is allowed only on new growth, check for new growth and shut off accretion if growth is not new.
     if (self%accreteNewGrowthOnly) then
-       if (self%massTotal(node) < basic%massMaximum()) simpleAccretionRate=0.0d0
+       if (accretionHaloTotal_%accretedMass(node) < basic%massMaximum()) simpleAccretionRate=0.0d0
     end if
     return
   end function simpleAccretionRate
@@ -299,13 +288,15 @@ contains
     !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     use Cosmology_Parameters
+    use Accretion_Halo_Totals
     implicit none
-    class          (accretionHaloSimple     ), intent(inout) :: self
-    type           (treeNode                ), intent(inout) :: node
-    integer                                  , intent(in   ) :: accretionMode
-    class          (nodeComponentBasic      ), pointer       :: basic
-    class          (cosmologyParametersClass), pointer       :: cosmologyParameters_
-    double precision                                         :: failedFraction
+    class           (accretionHaloSimple     ), intent(inout) :: self
+    type            (treeNode                ), intent(inout) :: node
+    integer                                   , intent(in   ) :: accretionMode
+    class           (nodeComponentBasic      ), pointer       :: basic
+    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
+    class           (accretionHaloTotalClass ), pointer       :: accretionHaloTotal_
+    double precision                                          :: failedFraction
 
     simpleAccretedMass=0.0d0
     if (accretionMode      == accretionModeCold) return
@@ -315,7 +306,8 @@ contains
     basic   => node%basic     ()
     ! Get the default cosmology.
     cosmologyParameters_ => cosmologyParameters()
-    simpleAccretedMass=(cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter())*self%massTotal(node)*(1.0d0-failedFraction)
+    accretionHaloTotal_  => accretionHaloTotal ()
+    simpleAccretedMass=(cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter())*accretionHaloTotal_%accretedMass(node)*(1.0d0-failedFraction)
     return
   end function simpleAccretedMass
 
@@ -324,6 +316,7 @@ contains
     use Galacticus_Nodes
     use Cosmology_Parameters
     use Dark_Matter_Halo_Scales
+    use Accretion_Halo_Totals
     implicit none
     class           (accretionHaloSimple     ), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
@@ -331,6 +324,7 @@ contains
     class           (nodeComponentBasic      ), pointer       :: basic
     class           (nodeComponentHotHalo    ), pointer       :: hotHalo
     class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
+    class           (accretionHaloTotalClass ), pointer       :: accretionHaloTotal_
     double precision                                          :: growthRate          , unaccretedMass, &
          &                                                       failedFraction
 
@@ -339,22 +333,23 @@ contains
     if (node         %isSatellite()                     ) return
     ! Get the default cosmology.
     cosmologyParameters_ => cosmologyParameters      ()
+    accretionHaloTotal_  => accretionHaloTotal       ()
     basic                => node               %basic()
     ! Get the failed fraction.
     failedFraction=self%failedFraction(node)
     hotHalo => node%hotHalo()
     ! Test for negative accretion.
-    if (.not.self%negativeAccretionAllowed.and.self%accretionRateTotal(node) < 0.0d0) then
-       simpleFailedAccretionRate=(cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter())*self%accretionRateTotal(node)
+    if (.not.self%negativeAccretionAllowed.and.accretionHaloTotal_%accretionRate(node) < 0.0d0) then
+       simpleFailedAccretionRate=(cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter())*accretionHaloTotal_%accretionRate(node)
     else
-       simpleFailedAccretionRate=(cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter())*self%accretionRateTotal(node)*failedFraction
+       simpleFailedAccretionRate=(cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter())*accretionHaloTotal_%accretionRate(node)*failedFraction
        unaccretedMass=hotHalo%unaccretedMass()
-       growthRate=self%accretionRateTotal(node)/self%massTotal(node)
+       growthRate=accretionHaloTotal_%accretionRate(node)/accretionHaloTotal_%accretedMass(node)
        simpleFailedAccretionRate=simpleFailedAccretionRate-unaccretedMass*growthRate*(1.0d0-failedFraction)
     end if
     ! If accretion is allowed only on new growth, check for new growth and shut off accretion if growth is not new.
     if (self%accreteNewGrowthOnly) then
-       if (self%massTotal(node) < basic%massMaximum()) simpleFailedAccretionRate=0.0d0
+       if (accretionHaloTotal_%accretedMass(node) < basic%massMaximum()) simpleFailedAccretionRate=0.0d0
     end if
     return
   end function simpleFailedAccretionRate
@@ -364,12 +359,14 @@ contains
     use Galacticus_Nodes
     use Cosmology_Parameters
     use Dark_Matter_Halo_Scales
+    use Accretion_Halo_Totals
     implicit none
     class           (accretionHaloSimple     ), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
     integer                                   , intent(in   ) :: accretionMode
     class           (nodeComponentBasic      ), pointer       :: basic
     class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
+    class           (accretionHaloTotalClass ), pointer       :: accretionHaloTotal_
     double precision                                          :: failedFraction
 
     simpleFailedAccretedMass=0.0d0
@@ -380,7 +377,8 @@ contains
     basic => node%basic()
     ! Get the default cosmology.
     cosmologyParameters_ => cosmologyParameters()
-    simpleFailedAccretedMass=(cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter())*self%massTotal(node)*failedFraction
+    accretionHaloTotal_     => accretionHaloTotal ()
+    simpleFailedAccretedMass=(cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter())*accretionHaloTotal_%accretedMass(node)*failedFraction
     return
   end function simpleFailedAccretedMass
   
@@ -470,6 +468,7 @@ contains
     use Chemical_States
     use Chemical_Abundances_Structure
     use Chemical_Reaction_Rates_Utilities
+    use Accretion_Halo_Totals
     implicit none
     class           (accretionHaloSimple     ), intent(inout) :: self
     type            (chemicalAbundances      )                :: simpleChemicalMasses
@@ -477,6 +476,7 @@ contains
     double precision                          , intent(in   ) :: massAccreted
     class           (nodeComponentBasic      ), pointer       :: basic
     class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
+    class           (accretionHaloTotalClass )               , pointer :: accretionHaloTotal_
     class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
     class           (chemicalStateClass      ), pointer       :: chemicalState_
     type            (chemicalAbundances      ), save          :: chemicalDensities
@@ -486,6 +486,7 @@ contains
 
     ! Get required objects.
     cosmologyParameters_ => cosmologyParameters()
+    accretionHaloTotal_  => accretionHaloTotal ()
     darkMatterHaloScale_ => darkMatterHaloScale()
     chemicalState_       => chemicalState      ()
     ! Compute coefficient in conversion of mass to density for this node.
@@ -494,7 +495,7 @@ contains
     ! overdensity is one third of the mean overdensity of the halo.
     temperature          =darkMatterHaloScale_%virialTemperature(node)
     basic   => node%basic()
-    numberDensityHydrogen=hydrogenByMassPrimordial*(cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter())*self%massTotal(node)*massToDensityConversion/atomicMassHydrogen
+    numberDensityHydrogen=hydrogenByMassPrimordial*(cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter())*accretionHaloTotal_%accretedMass(node)*massToDensityConversion/atomicMassHydrogen
     ! Set the radiation field.
     call self%radiation%set(node)
     ! Get the chemical densities.
@@ -519,34 +520,6 @@ contains
     simpleVelocityScale  =  darkMatterHaloScale_%virialVelocity(node)
     return
   end function simpleVelocityScale
-
-  double precision function simpleAccretionRateTotal(self,node)
-    !% Returns the total accretion rate from the \gls{igm} onto a halo (including dark matter).
-    use Galacticus_Nodes
-    implicit none
-    class(accretionHaloSimple     ), intent(inout) :: self
-    type (treeNode                ), intent(inout) :: node
-    class(nodeComponentBasic      ), pointer       :: basic
-    !GCC$ attributes unused :: self
-
-    basic                    => node %basic        ()
-    simpleAccretionRateTotal =  basic%accretionRate()
-    return
-  end function simpleAccretionRateTotal
-
-  double precision function simpleMassTotal(self,node)
-    !% Returns the total node mass.
-    use Galacticus_Nodes
-    implicit none
-    class(accretionHaloSimple     ), intent(inout) :: self
-    type (treeNode                ), intent(inout) :: node
-    class(nodeComponentBasic      ), pointer       :: basic
-    !GCC$ attributes unused :: self
-
-    basic           => node %basic()
-    simpleMassTotal =  basic%mass ()
-    return
-  end function simpleMassTotal
 
   double precision function simpleFailedFraction(self,node)
     !% Returns the fraction of potential accretion onto a halo from the \gls{igm} which fails.

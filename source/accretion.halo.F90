@@ -24,6 +24,7 @@ module Accretion_Halos
   use Galacticus_Nodes
   use Abundances_Structure
   use Chemical_Abundances_Structure
+  use Kind_Numbers
   !# <include directive="accretionHalo" type="functionModules" >
   include 'accretionHalo.functionModules.inc'
   !# </include>
@@ -43,6 +44,7 @@ module Accretion_Halos
   !#  <description>Class providing rates of accretion of gas from the \gls{igm} onto halos.</description>
   !#  <default>simple</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <calculationReset>yes</calculationReset>
   !#  <stateful>no</stateful>
   !#  <method name="branchHasBaryons" >
   !#   <description>Returns {\tt true} if this tree branch may accrete baryons, and {\tt false} otherwise.</description>
