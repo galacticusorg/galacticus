@@ -183,10 +183,10 @@ if (
 # If fixed sets of trees are to be used, create them as necessary, and store to a file.
 if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood'}->{'useFixedTrees'} eq "yes" ) {
     # Record the required set of output redshifts.
-    my $outputRedshifts = $parameters->{'outputRedshifts'   }->{'value'};
+    my $outputRedshifts = $parameters->{'outputRedshifts' }              ->{'value'};
     # Record and remove any analyses.
-    my $savedAnalyses   = $parameters->{'mergerTreeAnalyses'}->{'value'};
-    delete($parameters->{'mergerTreeAnalyses'});
+    my $savedAnalyses   = $parameters->{'mergerTreeOutput'}->{'analyses'}->{'value'};
+    delete($parameters->{'mergerTreeOutput'}->{'analyses'});
     # Record merger tree operators.
     my $savedMergerTreeOperator;
     $savedMergerTreeOperator = dclone($parameters->{'mergerTreeOperatorMethod'})
@@ -290,11 +290,11 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
 	$lock->unlock();
     }
     # Modify parameters to use the tree file.
-    $parameters->{'mergerTreeConstructMethod'}->{'value'} = "read";
-    $parameters->{'mergerTreeReadFileName'   }->{'value'} = $fixedTreeFile;
-    $parameters->{'outputRedshifts'          }->{'value'} = $outputRedshifts;
-    $parameters->{'mergerTreeAnalyses'       }->{'value'} = $savedAnalyses;
-    $parameters->{'mergerTreeOperatorMethod' }            = $savedMergerTreeOperator
+    $parameters->{'mergerTreeConstructMethod'}              ->{'value'} = "read";
+    $parameters->{'mergerTreeReadFileName'   }              ->{'value'} = $fixedTreeFile;
+    $parameters->{'outputRedshifts'          }              ->{'value'} = $outputRedshifts;
+    $parameters->{'mergerTreeOutput'         }->{'analyses'}->{'value'} = $savedAnalyses;
+    $parameters->{'mergerTreeOperatorMethod' }                          = $savedMergerTreeOperator
 	if ( $savedMergerTreeOperator );
     # Restore parameters.
     foreach my $parameter ( @savedParameters ) {
