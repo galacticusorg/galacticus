@@ -47,6 +47,13 @@ module Node_Component_Dark_Matter_Profile_Scale
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>
+  !#   <property>
+  !#     <name>scaleIsLimited</name>
+  !#     <type>logical</type>
+  !#     <rank>0</rank>
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+  !#     <classDefault>.true.</classDefault>
+  !#   </property>
   !#  </properties>
   !# </component>
 
@@ -127,22 +134,28 @@ contains
     class           (nodeComponentDarkMatterProfileScale), intent(inout) :: self
     type            (treeNode                           ), pointer       :: selfNode
     class           (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
-    double precision                                                     :: scaleLengthMaximum  , scaleLengthMinimum
+    double precision                                                     :: scaleLengthMaximum  , scaleLengthMinimum, &
+         &                                                                  radiusVirial
 
     ! Set the scale if it isn't already set.
-    selfNode             => self%host          ()
-    darkMatterHaloScale_ => darkMatterHaloScale()
-    scaleLengthMaximum=darkMatterHaloScale_%virialRadius(selfNode)/darkMatterProfileMinimumConcentration
-    scaleLengthMinimum=darkMatterHaloScale_%virialRadius(selfNode)/darkMatterProfileMaximumConcentration
+    selfNode => self%host()
     if (self%scaleValue() < 0.0d0) call self%scaleSet(Dark_Matter_Profile_Scale(selfNode))
-    Node_Component_Dark_Matter_Profile_Scale_Scale= &
-         & min(                                     &
-         &     scaleLengthMaximum    ,              &
-         &     max(                                 &
-         &         scaleLengthMinimum,              &
-         &         self%scaleValue()                &
-         &        )                                 &
-         &    )
+    if (self%scaleIsLimited()) then
+       darkMatterHaloScale_ => darkMatterHaloScale()
+       radiusVirial         =  darkMatterHaloScale_%virialRadius(selfNode)
+       scaleLengthMaximum   =  radiusVirial/darkMatterProfileMinimumConcentration
+       scaleLengthMinimum   =  radiusVirial/darkMatterProfileMaximumConcentration
+       Node_Component_Dark_Matter_Profile_Scale_Scale= &
+            & min(                                     &
+            &     scaleLengthMaximum    ,              &
+            &     max(                                 &
+            &         scaleLengthMinimum,              &
+            &         self%scaleValue()                &
+            &        )                                 &
+            &    )
+    else
+       Node_Component_Dark_Matter_Profile_Scale_Scale=self%scaleValue()
+    end if
     return
   end function Node_Component_Dark_Matter_Profile_Scale_Scale
 
