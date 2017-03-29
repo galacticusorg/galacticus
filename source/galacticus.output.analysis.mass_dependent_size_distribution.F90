@@ -161,7 +161,7 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Sz_Dstrbtins
   ! Type for storing temporary size functions during cumulation.
   type :: sizeFunctionWork
      double precision, allocatable, dimension(:,:) :: sizeFunction
-     double precision, allocatable, dimension(  :) :: sizeFunctionWeights
+     double precision, allocatable, dimension(  :) :: sizeFunctionWeights, radii, errorFunction
   end type sizeFunctionWork
 
   ! Work array.
@@ -676,10 +676,12 @@ contains
        ! Cycle if this size function receives no contribution from this output number.
        if (all(sizeFunctions(i)%outputWeight(:,iOutput) <= 0.0d0)) cycle
        ! Allocate workspace.
-       if (.not.allocated(galaxyWork(i)%sizeFunction       )) call allocateArray(galaxyWork(i)%sizeFunction       ,[sizeFunctions(i)%radiiCount,sizeFunctions(i)%massesCount])
-       if (.not.allocated(galaxyWork(i)%sizeFunctionWeights)) call allocateArray(galaxyWork(i)%sizeFunctionWeights,[                            sizeFunctions(i)%massesCount])
+       if (.not.allocated(galaxyWork(i)%sizeFunction       )) call allocateArray(galaxyWork(i)%sizeFunction       ,[sizeFunctions(i)%radiiCount  ,sizeFunctions(i)%massesCount]                         )
+       if (.not.allocated(galaxyWork(i)%sizeFunctionWeights)) call allocateArray(galaxyWork(i)%sizeFunctionWeights,[                              sizeFunctions(i)%massesCount]                         )
+       if (.not.allocated(galaxyWork(i)%radii              )) call allocateArray(galaxyWork(i)%radii              ,[sizeFunctions(i)%radiiCount+1                             ],lowerBounds=[0_c_size_t])
+       if (.not.allocated(galaxyWork(i)%errorFunction      )) call allocateArray(galaxyWork(i)%errorFunction      ,[sizeFunctions(i)%radiiCount+1                             ],lowerBounds=[0_c_size_t])
        ! Get the galactic mass.
-       mass=                                                                                                                                            &
+       mass=                                                                                                                                        &
             &  Galactic_Structure_Enclosed_Mass(node,radiusLarge,componentType=componentTypeDisk    ,massType=sizeFunctions(i)%descriptor%massType) &
             & +Galactic_Structure_Enclosed_Mass(node,radiusLarge,componentType=componentTypeSpheroid,massType=sizeFunctions(i)%descriptor%massType)
        if (mass            <=                  0.0d0) cycle
@@ -726,12 +728,18 @@ contains
           ! Adjust radius for inclination.
           inclinationAngle =acos(dble(sampleStep-1)/dble(sampleStepCount-1))
           radiusLogarithmic=radiusLogarithmicFaceOn+log10(inclinationTable%interpolate(inclinationAngle))
-          galaxyWork(i)%sizeFunction=+galaxyWork(i)%sizeFunction                                                                      &
-               &                     +(                                                                                               &
-               &                       +erf((sizeFunctions(i)%radiiLogarithmicMaximum-radiusLogarithmic)/sizeRandomError/sqrt(2.0d0)) &
-               &                       -erf((sizeFunctions(i)%radiiLogarithmicMinimum-radiusLogarithmic)/sizeRandomError/sqrt(2.0d0)) &
-               &                      )                                                                                               &
-               &                      /2.0d0            
+          do j=1,sizeFunctions(i)%massesCount
+             galaxyWork(i)%radii(0                            )=sizeFunctions(i)%radiiLogarithmicMinimum(0,j)
+             galaxyWork(i)%radii(1:sizeFunctions(i)%radiiCount)=sizeFunctions(i)%radiiLogarithmicMaximum(:,j)
+             galaxyWork(i)%errorFunction                       =erf((galaxyWork(i)%radii-radiusLogarithmic)/sizeRandomError/sqrt(2.0d0))
+             galaxyWork(i)%sizeFunction(:,j)=+galaxyWork(i)%sizeFunction(:,j)                                &
+                  &                          +(                                                              &
+                  &                            +galaxyWork(i)%errorFunction(1:sizeFunctions(i)%radiiCount  ) &
+                  &                            -galaxyWork(i)%errorFunction(0:sizeFunctions(i)%radiiCount-1) &
+                  &                           )                                                              &
+                  &                          /2.0d0
+             
+          end do
        end do
        galaxyWork(i)%sizeFunction=galaxyWork(i)%sizeFunction/dble(sampleStepCount)
        ! Compute contribution to mass bins.
