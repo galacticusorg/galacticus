@@ -266,9 +266,9 @@ contains
              massFunctionSquaredCumulative =0.0d0
              massFunctionCumulativeVariance=0.0d0
              massFunctionTreeCount         =0
-             ! Record that module is initialized.
-             moduleInitialized=.true.
           end if
+          ! Record that module is initialized.
+          moduleInitialized=.true.
        end if
        !$omp end critical(Galacticus_Output_Analysis_LG_Satellite_MF_Initialize)
     end if
