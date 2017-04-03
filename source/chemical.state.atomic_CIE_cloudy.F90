@@ -59,8 +59,8 @@
   end interface chemicalStateAtomicCIECloudy
 
   ! File names for the cooling function and chemical state data.
-  character       (len=55)           :: atomicCIECloudyCoolingFunctionFileName='data/cooling/cooling_function_Atomic_CIE_Cloudy.xml'
-  character       (len=55)           :: atomicCIECloudyChemicalStateFileName  ='data/chemicalState/chemical_state_Atomic_CIE_Cloudy.xml'
+  character       (len=56)           :: atomicCIECloudyCoolingFunctionFileName='data/cooling/cooling_function_Atomic_CIE_Cloudy.hdf5'
+  character       (len=56)           :: atomicCIECloudyChemicalStateFileName  ='data/chemicalState/chemical_state_Atomic_CIE_Cloudy.hdf5'
 
   ! Maximum tabulated metallicity.
   double precision       , parameter :: atomicCIECloudyMetallicityMaximumDefault=30.0d0 ! Thirty times Solar.

@@ -22,64 +22,92 @@
 
   !# <coolingFunction name="coolingFunctionCIEFile" defaultThreadPrivate="yes">
   !#  <description>
-  !#   Class providing a cooling function interpolated from a table read from file.  The XML file containing the table should have the following form:
+  !#   Class providing a cooling function interpolated from a table read from file.  The HDF5 file containing the table should have the following form:
   !#   \begin{verbatim}
-  !#    &lt;coolingFunctions&gt;
-  !#    &lt;coolingFunction&gt;
-  !#      &lt;temperature&gt;
-  !#        &lt;datum&gt;10000.0&lt;/datum&gt;
-  !#        &lt;datum&gt;15000.0&lt;/datum&gt;
-  !#        .
-  !#        .
-  !#        .
-  !#      &lt;/temperature&gt;
-  !#      &lt;coolingRate&gt;
-  !#        &lt;datum&gt;1.0e-23&lt;/datum&gt;
-  !#        &lt;datum&gt;1.7e-23&lt;/datum&gt;
-  !#        .
-  !#        .
-  !#        .
-  !#      &lt;/coolingRate&gt;
-  !#      &lt;metallicity&gt;-4.0&lt;/metallicity&gt;
-  !#    &lt;/coolingFunction&gt;
-  !#    &lt;coolingFunction&gt;
-  !#    .
-  !#    .
-  !#    .
-  !#    &lt;/coolingFunction&gt;
-  !#    &lt;description&gt;Some description of what this cooling function is.&lt;/description&gt;
-  !#    &lt;extrapolation&gt;
-  !#     &lt;metallicity&gt;
-  !#       &lt;limit&gt;low&lt;/limit&gt;
-  !#       &lt;method&gt;powerLaw&lt;/method&gt;
-  !#     &lt;/metallicity&gt;
-  !#     &lt;metallicity&gt;
-  !#       &lt;limit&gt;high&lt;/limit&gt;
-  !#       &lt;method&gt;powerLaw&lt;/method&gt;
-  !#     &lt;/metallicity&gt;
-  !#     &lt;temperature&gt;
-  !#       &lt;limit&gt;low&lt;/limit&gt;
-  !#       &lt;method&gt;powerLaw&lt;/method&gt;
-  !#    &lt;/temperature&gt;
-  !#    &lt;temperature&gt;
-  !#       &lt;limit&gt;high&lt;/limit&gt;
-  !#       &lt;method&gt;powerLaw&lt;/method&gt;
-  !#     &lt;/temperature&gt;
-  !#   &lt;/extrapolation&gt;
-  !#   &lt;/coolingFunctions&gt;
+  !#   HDF5 "coolingFunction.hdf5" {
+  !#   GROUP "/" {
+  !#      ATTRIBUTE "fileFormat" {
+  !#         DATATYPE  H5T_STRING {
+  !#            STRSIZE 1;
+  !#            STRPAD H5T_STR_NULLTERM;
+  !#            CSET H5T_CSET_ASCII;
+  !#            CTYPE H5T_C_S1;
+  !#         }
+  !#         DATASPACE  SCALAR
+  !#         DATA {
+  !#         (0): "1"
+  !#         }
+  !#      }
+  !#      DATASET "coolingRate" {
+  !#         DATATYPE  H5T_IEEE_F64LE
+  !#         DATASPACE  SIMPLE { ( 7, 8 ) / ( 7, 8 ) }
+  !#      }
+  !#      DATASET "metallicity" {
+  !#         DATATYPE  H5T_IEEE_F64LE
+  !#         DATASPACE  SIMPLE { ( 8 ) / ( 8 ) }
+  !#         ATTRIBUTE "extrapolateHigh" {
+  !#            DATATYPE  H5T_STRING {
+  !#               STRSIZE 3;
+  !#               STRPAD H5T_STR_NULLTERM;
+  !#               CSET H5T_CSET_ASCII;
+  !#               CTYPE H5T_C_S1;
+  !#            }
+  !#            DATASPACE  SCALAR
+  !#            DATA {
+  !#            (0): "fix"
+  !#            }
+  !#         }
+  !#         ATTRIBUTE "extrapolateLow" {
+  !#            DATATYPE  H5T_STRING {
+  !#               STRSIZE 3;
+  !#               STRPAD H5T_STR_NULLTERM;
+  !#               CSET H5T_CSET_ASCII;
+  !#               CTYPE H5T_C_S1;
+  !#            }
+  !#            DATASPACE  SCALAR
+  !#            DATA {
+  !#            (0): "fix"
+  !#            }
+  !#         }
+  !#      }
+  !#      DATASET "temperature" {
+  !#         DATATYPE  H5T_IEEE_F64LE
+  !#         DATASPACE  SIMPLE { ( 7 ) / ( 7 ) }
+  !#         ATTRIBUTE "extrapolateHigh" {
+  !#            DATATYPE  H5T_STRING {
+  !#               STRSIZE 8;
+  !#               STRPAD H5T_STR_NULLTERM;
+  !#               CSET H5T_CSET_ASCII;
+  !#               CTYPE H5T_C_S1;
+  !#            }
+  !#            DATASPACE  SCALAR
+  !#            DATA {
+  !#            (0): "powerLaw"
+  !#            }
+  !#         }
+  !#         ATTRIBUTE "extrapolateLow" {
+  !#            DATATYPE  H5T_STRING {
+  !#               STRSIZE 8;
+  !#               STRPAD H5T_STR_NULLTERM;
+  !#               CSET H5T_CSET_ASCII;
+  !#               CTYPE H5T_C_S1;
+  !#            }
+  !#            DATASPACE  SCALAR
+  !#            DATA {
+  !#            (0): "powerLaw"
+  !#            }
+  !#         }
+  !#      }
+  !#   }
+  !#   }
   !#   \end{verbatim}
-  !#   Each {\normalfont \ttfamily coolingFunction} element should contain two lists (inside
-  !#   {\normalfont \ttfamily temperature} and {\normalfont \ttfamily coolingRate} tags) of
-  !#   {\normalfont \ttfamily datum} elements which specify temperature (in Kelvin) and cooling
-  !#   function (in ergs cm$^3$ s$^{-1}$ computed for a hydrogen density of 1 cm$^{-3}$)
-  !#   respectively, and a {\normalfont \ttfamily metallicity} element which gives the
-  !#   logarithmic metallcity relative to Solar (a value of -999 or less is taken to imply zero
-  !#   metallicity). Any number of {\normalfont \ttfamily coolingFunction} elements may appear,
-  !#   but they must be in order of increasing metallicity and must all contain the same set of
-  !#   temperatures. The {\normalfont \ttfamily extrapolation} element defines how the table is
-  !#   to be extrapolated in the {\normalfont \ttfamily low} and {\normalfont \ttfamily high}
-  !#   limits of {\normalfont \ttfamily temperature} and {\normalfont \ttfamily
-  !#   metallicity}. The {\normalfont \ttfamily method} elements can take the following values:
+  !#   The {\normalfont \ttfamily temperature} dataset should specify temperature (in Kelvin), while the {\normalfont \ttfamily
+  !#   metallicity} dataset should give the logarithmic metallcity relative to Solar (a value of -999 or less is taken to imply
+  !#   zero metallicity). The {\normalfont \ttfamily coolingRate} dataset should specify the cooling function (in ergs cm$^3$
+  !#   s$^{-1}$ computed for a hydrogen density of 1 cm$^{-3}$) respectively at each temperature/metallicity pair. The
+  !#   {\normalfont \ttfamily extrapolateLow} and {\normalfont \ttfamily extrapolateHigh} attributes of the {\normalfont \ttfamily
+  !#   temperature} and {\normalfont \ttfamily metallicity} datasets specify how the cooling rate should be extrapolated in the
+  !#   low and high vale limits. Allowed options for these attributes are:
   !#   \begin{description}
   !#    \item[{\normalfont \ttfamily zero}] The cooling function is set to zero beyond the relevant limit.
   !#    \item[{\normalfont \ttfamily fixed}] The cooling function is held fixed at the value at the relevant limit.
@@ -88,7 +116,7 @@
   !#    cooling function is everywhere positive.  
   !#   \end{description}
   !#   If the cooling function is everywhere positive the interpolation will be done in the
-  !#   logarithmic of temperature, metallicity\footnote{The exception is if the first cooling
+  !#   logarithm of temperature, metallicity\footnote{The exception is if the first cooling
   !#   function is tabulated for zero metallicity. In that case, a linear interpolation in
   !#   metallicity is always used between zero and the first non-zero tabulated metallicity.}
   !#   and cooling function. Otherwise, interpolation is linear in these quantities. The cooling
@@ -376,12 +404,12 @@ contains
        call self%interpolatingFactors(temperatureUse,metallicityUse,iTemperature,hTemperature,iMetallicity,hMetallicity)
        ! Do the interpolation.
        self%coolingFunctionSlopePrevious=+(                                                            &
-            &                              +(+self%coolingFunctionTable(iTemperature+1,iMetallicity  ) &
-            &                                -self%coolingFunctionTable(iTemperature  ,iMetallicity  ) &
+            &                              +(+self%coolingFunctionTable(iMetallicity  ,iTemperature+1) &
+            &                                -self%coolingFunctionTable(iMetallicity  ,iTemperature  ) &
             &                               )                                                          &
             &                              *(1.0d0-hMetallicity)                                       &
-            &                              +(+self%coolingFunctionTable(iTemperature+1,iMetallicity+1) &
-            &                                -self%coolingFunctionTable(iTemperature  ,iMetallicity+1) &
+            &                              +(+self%coolingFunctionTable(iMetallicity+1,iTemperature+1) &
+            &                                -self%coolingFunctionTable(iMetallicity+1,iTemperature  ) &
             &                               )                                                          &
             &                              *(      hMetallicity)                                       &
             &                              )                                                           &
@@ -426,132 +454,85 @@ contains
   subroutine cieFileReadFile(self,fileName)
     !% Read in data from a cooling function file.
     use Galacticus_Error
-    use FoX_dom
-    use Memory_Management
-    use Numerical_Comparison
     use Galacticus_Display
-    use IO_XML
+    use ISO_Varying_String
+    use IO_HDF5
     use Table_Labels
     implicit none
-    class           (coolingFunctionCIEFile), intent(inout)             :: self
-    character       (len=*                 ), intent(in   )             :: fileName
-    double precision                        , allocatable, dimension(:) :: temperaturesReference
-    type            (Node                  ), pointer                   :: doc                                  , extrapolation               , &
-         &                                                                 extrapolationElement                 , metallicityElement          , &
-         &                                                                 thisCoolingFunction                  , thisCoolingRate             , &
-         &                                                                 thisTemperature                      , version
-    type            (NodeList              ), pointer                   :: coolingFunctionList                  , metallicityExtrapolationList, &
-         &                                                                 temperatureExtrapolationList
-    double precision                        , parameter                 :: metallicityLogarithmicZero  =-999.0d0
-    integer                                                             :: extrapolationMethod                  , fileFormatVersion           , &
-         &                                                                 iCoolingFunction                     , iExtrapolation              , &
-         &                                                                 ioErr
-    character       (len=32                )                            :: limitType
+    class           (coolingFunctionCIEFile), intent(inout) :: self
+    character       (len=*                 ), intent(in   ) :: fileName
+    double precision                        , parameter     :: metallicityLogarithmicZero=-999.0d0
+    type            (varying_string        )                :: limitType
+    integer                                                 :: fileFormatVersion
+    type            (hdf5Object            )                :: coolingFunctionFile                , metallicityDataset, &
+         &                                                     temperatureDataset
     
-    !$omp critical (FoX_DOM_Access)
-    ! Parse the XML file.
-    call Galacticus_Display_Indent('Parsing file: '//fileName,verbosityWorking)
+    !$omp critical (HDF5_Access)
+    ! Read the file.
+    call Galacticus_Display_Indent('Reading file: '//fileName,verbosityWorking)
     call Galacticus_Display_Counter(0,.true.,verbosityWorking)
-    doc => parseFile(fileName,iostat=ioErr)
-    if (ioErr /= 0) call Galacticus_Error_Report('cieFileReadFile','unable to find cooling function file')
+    call coolingFunctionFile%openFile(fileName,readOnly=.true.)
     ! Check the file format version of the file.
-    version => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
-    call extractDataContent(version,fileFormatVersion)
+    call coolingFunctionFile%readAttribute('fileFormat',fileFormatVersion)
     if (fileFormatVersion /= cieFileFormatVersionCurrent) call Galacticus_Error_Report('cieFileReadFile','file format version is out of date')
-    call Galacticus_Display_Counter(50,.false.,verbosityWorking)
-    ! Get a list of all <coolingFunction> elements.
-    coolingFunctionList   => getElementsByTagname(doc,"coolingFunction")
-    self%metallicityCount =getLength(coolingFunctionList)
-    ! Extract data from first cooling function and count number of temperatures present.
-    thisCoolingFunction   => item(coolingFunctionList,0)
-    thisTemperature       => XML_Get_First_Element_By_Tag_Name(thisCoolingFunction,"temperature")
-    self%temperatureCount =  XML_Array_Length                 (thisTemperature    ,"datum"      )
-    ! Allocate space for the table.
-    if (allocated(self%metallicities       )) call deallocateArray(self%metallicities       )
-    if (allocated(self%temperatures        )) call deallocateArray(self%temperatures        )
-    if (allocated(self%coolingFunctionTable)) call deallocateArray(self%coolingFunctionTable)
-    call allocateArray(self%metallicities       ,[                      self%metallicityCount])
-    call allocateArray(self%temperatures        ,[self%temperatureCount                      ])
-    call allocateArray(self%coolingFunctionTable,[self%temperatureCount,self%metallicityCount])
-    ! Extract data from the cooling functions and populate metallicity and temperature arrays.
-    allocate(temperaturesReference(0))
-    do iCoolingFunction=0,self%metallicityCount-1
-       ! Get required cooling function.
-       thisCoolingFunction => item(coolingFunctionList,iCoolingFunction)
-       ! Extract the metallicity from the <metallicity> element.
-       metallicityElement  => XML_Get_First_Element_By_Tag_Name(thisCoolingFunction,"metallicity")
-       call extractDataContent(metallicityElement,self%metallicities(iCoolingFunction+1))
-       ! Extract the data.
-       thisTemperature => XML_Get_First_Element_By_Tag_Name(thisCoolingFunction,"temperature")
-       thisCoolingRate => XML_Get_First_Element_By_Tag_Name(thisCoolingFunction,"coolingRate")
-       ! Check that number of temperatures is consistent.
-       if (XML_Array_Length(thisTemperature,"datum") /= self%temperatureCount) &
-            & call Galacticus_Error_Report('cieFileReadFile','sizes of temperature grids must be the same for all metallicities')
-       ! Check that number of cooling rates matches number of temperatures.
-       if (XML_Array_Length(thisTemperature,"datum") /= XML_Array_Length(thisCoolingRate,"datum")) &
-            & call Galacticus_Error_Report('cieFileReadFile','sizes of temperature and cooling rate arrays must match')
-       ! Extract data.
-       call XML_Array_Read_Static(thisTemperature,"datum",self%temperatures                              )
-       call XML_Array_Read_Static(thisCoolingRate,"datum",self%coolingFunctionTable(:,iCoolingFunction+1))
-       call Galacticus_Display_Counter(                                                   &
-            &                           int(                                              &
-            &                                50.0d0                                       &
-            &                               +50.0d0                                       &
-            &                               *dble(iCoolingFunction     )                  &
-            &                               /dble(self%metallicityCount)                  &
-            &                              )                                              &
-            &                          ,.false.                                           &
-            &                          ,verbosityWorking                                  &
-            &                         )
-       if (iCoolingFunction == 0) then
-          ! Make a copy of the temperatures to use as a reference for future temperature reads.
-          deallocate(temperaturesReference)
-          temperaturesReference=self%temperatures
-       else
-          ! Check that temperature grids are aligned.
-          if (any(Values_Differ(self%temperatures,temperaturesReference,relTol=1.0d-6))) &
-               & call Galacticus_Error_Report('cieFileReadFile','temperature grids mismatch')
-       end if
-    end do
-    deallocate(temperaturesReference)
+    ! Read datasets.
+    call coolingFunctionFile%readDataset('temperature',self%temperatures        )
+    call coolingFunctionFile%readDataset('metallicity',self%metallicities       )
+    call coolingFunctionFile%readDataset('coolingRate',self%coolingFunctionTable)
+    self%metallicityCount=size(self%metallicities)
+    self%temperatureCount=size(self%temperatures )
+    ! Unlog metallicities.
     where (self%metallicities > metallicityLogarithmicZero)
        self%metallicities=10.0d0**self%metallicities
     elsewhere
        self%metallicities=0.0d0
     end where
     ! Extract extrapolation methods from the file.
-    extrapolationElement         => XML_Get_First_Element_By_Tag_Name(doc,"extrapolation")
-    metallicityExtrapolationList => getElementsByTagname(extrapolationElement,"metallicity")
-    do iExtrapolation=0,getLength(metallicityExtrapolationList)-1
-       extrapolation => item(metallicityExtrapolationList,iExtrapolation)
-       call XML_Extrapolation_Element_Decode(extrapolation,limitType,extrapolationMethod,allowedMethods=[extrapolationTypeZero,extrapolationTypeFix,extrapolationTypePowerLaw])
-       select case (trim(limitType))
-       case ('low')
-          self%extrapolateMetallicityLow=extrapolationMethod
-       case ('high')
-          self%extrapolateMetallicityHigh=extrapolationMethod
-       case default
-         call Galacticus_Error_Report('cieFileReadFile','unrecognized extrapolation limit')
-       end select
-    end do
-    temperatureExtrapolationList => getElementsByTagname(extrapolationElement,"temperature")
-    do iExtrapolation=0,getLength(temperatureExtrapolationList)-1
-       extrapolation => item(temperatureExtrapolationList,iExtrapolation)
-       call XML_Extrapolation_Element_Decode(extrapolation,limitType,extrapolationMethod,allowedMethods=[extrapolationTypeZero,extrapolationTypeFix,extrapolationTypePowerLaw])
-       select case (trim(limitType))
-       case ('low')
-          self%extrapolateTemperatureLow=extrapolationMethod
-       case ('high')
-          self%extrapolateTemperatureHigh=extrapolationMethod
-       case default
-          call Galacticus_Error_Report('cieFileReadFile','unrecognized extrapolation limit')
-       end select
-    end do
-    ! Destroy the document.
-    call destroy(doc)
-    call Galacticus_Display_Counter_Clear(       verbosityWorking)
-    call Galacticus_Display_Unindent     ('done',verbosityWorking)
-    !$omp end critical (FoX_DOM_Access)
+    metallicityDataset=coolingFunctionFile%openDataset('metallicity')
+    call metallicityDataset%readAttribute('extrapolateLow' ,limitType,allowPseudoScalar=.true.)
+    self%extrapolateMetallicityLow =enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.)
+    call metallicityDataset%readAttribute('extrapolateHigh',limitType,allowPseudoScalar=.true.)
+    self%extrapolateMetallicityHigh=enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.)
+    call metallicityDataset%close()
+    temperatureDataset=coolingFunctionFile%openDataset('temperature')
+    call temperatureDataset%readAttribute('extrapolateLow' ,limitType,allowPseudoScalar=.true.)
+    self%extrapolateTemperatureLow =enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.)
+    call temperatureDataset%readAttribute('extrapolateHigh',limitType,allowPseudoScalar=.true.)
+    self%extrapolateTemperatureHigh=enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.)
+    call temperatureDataset%close()
+    ! Validate extrapolation methods.
+    if     (                                                              &
+         &   self%extrapolateMetallicityLow  /= extrapolationTypeFix      &
+         &  .and.                                                         &
+         &   self%extrapolateMetallicityLow  /= extrapolationTypeZero     &
+         &  .and.                                                         &
+         &   self%extrapolateMetallicityLow  /= extrapolationTypePowerLaw &
+         & ) call Galacticus_Error_Report('cieFileReadFile','extrapolation type not permitted')
+    if     (                                                              &
+         &   self%extrapolateMetallicityHigh /= extrapolationTypeFix      &
+         &  .and.                                                         &
+         &   self%extrapolateMetallicityHigh /= extrapolationTypeZero     &
+         &  .and.                                                         &
+         &   self%extrapolateMetallicityHigh /= extrapolationTypePowerLaw &
+         & ) call Galacticus_Error_Report('cieFileReadFile','extrapolation type not permitted')
+    if     (                                                              &
+         &   self%extrapolateTemperatureLow  /= extrapolationTypeFix      &
+         &  .and.                                                         &
+         &   self%extrapolateTemperatureLow  /= extrapolationTypeZero     &
+         &  .and.                                                         &
+         &   self%extrapolateTemperatureLow  /= extrapolationTypePowerLaw &
+         & ) call Galacticus_Error_Report('cieFileReadFile','extrapolation type not permitted')
+    if     (                                                              &
+         &   self%extrapolateTemperatureHigh /= extrapolationTypeFix      &
+         &  .and.                                                         &
+         &   self%extrapolateTemperatureHigh /= extrapolationTypeZero     &
+         &  .and.                                                         &
+         &   self%extrapolateTemperatureHigh /= extrapolationTypePowerLaw &
+         & ) call Galacticus_Error_Report('cieFileReadFile','extrapolation type not permitted')
+    ! Close the file.
+    call coolingFunctionFile%close()
+    call Galacticus_Display_Unindent('done',verbosityWorking)
+    !$omp end critical (HDF5_Access)
     ! Store table ranges for convenience.
     self%metallicityMinimum=self%metallicities(                    1)
     self%metallicityMaximum=self%metallicities(self%metallicityCount)
@@ -652,10 +633,10 @@ contains
     double precision                        , intent(in   ) :: hMetallicity, hTemperature
 
     ! Do the interpolation.
-    cieFileInterpolate=+self%coolingFunctionTable(iTemperature  ,iMetallicity  )*(1.0d0-hTemperature)*(1.0d0-hMetallicity) &
-         &             +self%coolingFunctionTable(iTemperature  ,iMetallicity+1)*(1.0d0-hTemperature)*(      hMetallicity) &
-         &             +self%coolingFunctionTable(iTemperature+1,iMetallicity  )*(      hTemperature)*(1.0d0-hMetallicity) &
-         &             +self%coolingFunctionTable(iTemperature+1,iMetallicity+1)*(      hTemperature)*(      hMetallicity)
+    cieFileInterpolate=+self%coolingFunctionTable(iMetallicity  ,iTemperature  )*(1.0d0-hTemperature)*(1.0d0-hMetallicity) &
+         &             +self%coolingFunctionTable(iMetallicity+1,iTemperature  )*(1.0d0-hTemperature)*(      hMetallicity) &
+         &             +self%coolingFunctionTable(iMetallicity  ,iTemperature+1)*(      hTemperature)*(1.0d0-hMetallicity) &
+         &             +self%coolingFunctionTable(iMetallicity+1,iTemperature+1)*(      hTemperature)*(      hMetallicity)
     ! Exponentiate the result if the table was stored as the log.
     if (self%logarithmicTable) cieFileInterpolate=exp(cieFileInterpolate)
     return

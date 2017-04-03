@@ -3,7 +3,9 @@ use strict;
 use warnings;
 use Cwd;
 use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
-use XML::Simple;
+use PDL;
+use PDL::NiceSlice;
+use PDL::IO::HDF5;
 use Data::Dumper;
 use Fcntl qw (:flock);
 use Cloudy;
@@ -27,11 +29,11 @@ die('Atomic_CIE_Cloudy_Driver.pl: this script supports file format version '.$fi
 # Determine if we need to compute cooling functions.
 my $computeCoolingFunctions = 0;
 if ( -e $coolingFunctionFile ) {
-    my $xmlDoc = new XML::Simple;
-    my $coolingFunction = $xmlDoc->XMLin($coolingFunctionFile);
-    if ( exists($coolingFunction->{'fileFormat'}) ) { 
+    my $coolingFunction = new PDL::IO::HDF5($coolingFunctionFile);
+    if ( grep {$_ eq "fileFormat"} $coolingFunction->attrs() ) {
+	(my $fileFormatFile) = $coolingFunction->attrGet('fileFormat');
 	$computeCoolingFunctions = 1
-	    unless ( $coolingFunction->{'fileFormat'} == $fileFormatCurrent );
+	    unless ( $fileFormatFile == $fileFormatCurrent );
     }
 } else {
     $computeCoolingFunctions = 1;
@@ -40,27 +42,29 @@ if ( -e $coolingFunctionFile ) {
 # Determine if we need to compute chemical states.
 my $computeChemicalStates = 0;
 if ( -e $chemicalStateFile ) {
-    my $xmlDoc = new XML::Simple;
-    my $chemicalState = $xmlDoc->XMLin($chemicalStateFile);
-    if ( exists($chemicalState->{'fileFormat'}) ) { 
+    my $chemicalState = new PDL::IO::HDF5($chemicalStateFile);
+    if ( grep {$_ eq "fileFormat"} $chemicalState->attrs() ) {
+	(my $fileFormatFile) = $chemicalState->attrGet('fileFormat');
 	$computeChemicalStates = 1
-	    unless ( $chemicalState->{'fileFormat'} == $fileFormatCurrent );
+	    unless ( $fileFormatFile == $fileFormatCurrent );
     }
 } else {
     $computeChemicalStates = 1;
 }
 
 # Check if we need to do calculations.
+my $coolingFunctionLock;
+my $chemicalStateLock  ;
 if ( $computeCoolingFunctions == 1 || $computeChemicalStates == 1 ) {
 
     # Open and lock the cooling function and chemical state files.
     if ( $computeCoolingFunctions == 1 ) {
-	open(coolingFunctionOutHndl,">".$coolingFunctionFile);
-	flock(coolingFunctionOutHndl,LOCK_EX);
+	open($coolingFunctionLock,">".$coolingFunctionFile.".lock");
+	flock($coolingFunctionLock,LOCK_EX);
     }
     if ( $computeChemicalStates == 1 ) {
-	open(chemicalStateOutHndl,">".$chemicalStateFile);
-	flock(chemicalStateOutHndl,LOCK_EX);
+	open($chemicalStateLock,">".$chemicalStateFile.".lock");
+	flock($chemicalStateLock,LOCK_EX);
     }
 
     # (Logarithmic) temperature range.
@@ -84,30 +88,35 @@ if ( $computeCoolingFunctions == 1 || $computeChemicalStates == 1 ) {
     my $heliumAbundancePrimordial = 0.072;
     my $heliumAbundanceSolar      = 0.100;
 
-    # Ensure Clody is built.
+    # Ensure Cloudy is built.
     (my $cloudyPath, my $cloudyVersion) = &Cloudy::Initialize();
     
     # Temporary files for Cloudy data.
     my $coolingTempFile    = "cloudy_cooling.tmp";
     my $overviewTempFile   = "cloudy_overview.tmp";
     
-    # Counter for number of cooling functions and chemical states tabulated.
-    my $iCoolingFunction = -1;
-    my $iChemicalState = -1;
+    # Counter for number of metallicities tabulated.
+    my $iMetallicity = -1;
 
     # Write message.
     print "Computing cooling functions and chemical states using Cloudy (this may take a long time)...\n";
     
-    # Initialize data structures.
-    my %coolingFunctions;
-    my %chemicalStates;
+    # Initialize data structure1.
+    my $cloudyData;
+
+    # Store metallicities.
+    $cloudyData->{'metallicity'} = pdl @logMetallicities;
+
+    # Initialize table names.
+    my @coolingFunctionTables = ( "coolingRate" );
+    my @chemicalStateTables   = ( "electronDensity", "hiDensity", "hiiDensity" );
     
     # Loop over metallicities.
     foreach my $logMetallicity ( @logMetallicities ) {
 	
-	# Increment cooling function and chemical state counter.
-	++$iCoolingFunction;
-	++$iChemicalState;
+	# Increment metallicity counter.
+	++$iMetallicity;
+	print " ⮡ Computing for log(Z/Z☉)=".$logMetallicity."\n";
 	
 	# Destroy the previous cooling function data.
 	my @temperatures     ;
@@ -115,12 +124,6 @@ if ( $computeCoolingFunctions == 1 || $computeChemicalStates == 1 ) {
 	my @electronDensities;
 	my @hiDensities      ;
 	my @hiiDensities     ;
-	my @heiDensities     ;
-	my @heiiDensities    ;
-	
-	# Store the metallicity for this cooling function and chemical state.
-	${${$coolingFunctions{'coolingFunction'}}[$iCoolingFunction]}{'metallicity'} = $logMetallicity;
-	${${$chemicalStates{'chemicalState'}}[$iChemicalState]}{'metallicity'} = $logMetallicity;
 	
 	# Run Cloudy.
 	open(cloudyScript,">".$cloudyPath."/source/input.in");
@@ -178,68 +181,69 @@ if ( $computeCoolingFunctions == 1 || $computeChemicalStates == 1 ) {
 	close(overviewHandle);
 	unlink($overviewTempFile);
 
+	# Initialize data.
+	foreach ( @coolingFunctionTables, @chemicalStateTables ) {
+	    $cloudyData->{$_} = pdl zeroes(scalar(@logMetallicities),scalar(@temperatures))
+		unless ( defined($cloudyData->{$_}) );
+	}
+
+	# Store temperatures.
+	$cloudyData->{'temperature'} = pdl @temperatures
+	    unless ( defined($cloudyData->{'temperature'}) );
+	
 	# Store cooling function data.
-	@{${${$coolingFunctions{'coolingFunction'}}[$iCoolingFunction]}{'coolingRate'}->{'datum'}}     = @coolingRates;
-	@{${${$coolingFunctions{'coolingFunction'}}[$iCoolingFunction]}{'temperature'}->{'datum'}}     = @temperatures;
+	$cloudyData->{'coolingRate'    }->(($iMetallicity),:) .= pdl @coolingRates     ;
 
 	# Store chemical state data.
-	@{${${$chemicalStates{'chemicalState'}}[$iChemicalState]}{'electronDensity'}->{'datum'}} = @electronDensities;
-	@{${${$chemicalStates{'chemicalState'}}[$iChemicalState]}{'hiDensity'      }->{'datum'}} = @hiDensities;
-	@{${${$chemicalStates{'chemicalState'}}[$iChemicalState]}{'hiiDensity'     }->{'datum'}} = @hiiDensities;
-	@{${${$chemicalStates{'chemicalState'}}[$iChemicalState]}{'temperature'    }->{'datum'}} = @temperatures;
-	
+	$cloudyData->{'electronDensity'}->(($iMetallicity),:) .= pdl @electronDensities;
+	$cloudyData->{'hiDensity'      }->(($iMetallicity),:) .= pdl @hiDensities      ;
+	$cloudyData->{'hiiDensity'     }->(($iMetallicity),:) .= pdl @hiiDensities     ;
     }
     
-    # Cooling functions:
-    # Specify extrapolation methods in temperature.
-    ${${${$coolingFunctions{'extrapolation'}}{'temperature'}}[0]}{'limit'}  = "low";
-    ${${${$coolingFunctions{'extrapolation'}}{'temperature'}}[0]}{'method'} = "powerLaw";
-    ${${${$coolingFunctions{'extrapolation'}}{'temperature'}}[1]}{'limit'}  = "high";
-    ${${${$coolingFunctions{'extrapolation'}}{'temperature'}}[1]}{'method'} = "powerLaw";
-    # Specify extrapolation methods in metallicity.
-    ${${${$coolingFunctions{'extrapolation'}}{'metallicity'}}[0]}{'limit'}  = "low";
-    ${${${$coolingFunctions{'extrapolation'}}{'metallicity'}}[0]}{'method'} = "fix";
-    ${${${$coolingFunctions{'extrapolation'}}{'metallicity'}}[1]}{'limit'}  = "high";
-    ${${${$coolingFunctions{'extrapolation'}}{'metallicity'}}[1]}{'method'} = "fix";
-    # Add some description.
-    $coolingFunctions{'description'} = "CIE cooling functions computed by Cloudy ".$cloudyVersion;
-    ${$coolingFunctions{'units'}}[0] = "Temperature: Kelvin";
-    ${$coolingFunctions{'units'}}[1] = "Cooling rate: Lambda(T)/ergs cm^3 s^-1";
-    # Add file format.
-    $chemicalStates{'fileFormat'} = $fileFormatCurrent;
-  
-    # Chemical states:
-    # Specify extrapolation methods in temperature.
-    ${${${$chemicalStates{'extrapolation'}}{'temperature'}}[0]}{'limit'}  = "low";
-    ${${${$chemicalStates{'extrapolation'}}{'temperature'}}[0]}{'method'} = "fix";
-    ${${${$chemicalStates{'extrapolation'}}{'temperature'}}[1]}{'limit'}  = "high";
-    ${${${$chemicalStates{'extrapolation'}}{'temperature'}}[1]}{'method'} = "fix";
-    # Specify extrapolation methods in metallicity.
-    ${${${$chemicalStates{'extrapolation'}}{'metallicity'}}[0]}{'limit'}  = "low";
-    ${${${$chemicalStates{'extrapolation'}}{'metallicity'}}[0]}{'method'} = "fix";
-    ${${${$chemicalStates{'extrapolation'}}{'metallicity'}}[1]}{'limit'}  = "high";
-    ${${${$chemicalStates{'extrapolation'}}{'metallicity'}}[1]}{'method'} = "fix";
-    # Add some description.
-    $chemicalStates{'description'} = "CIE ionization states computed by Cloudy ".$cloudyVersion;
-    ${$chemicalStates{'units'}}[0] = "Temperature: Kelvin";
-    ${$chemicalStates{'units'}}[1] = "Densities: by number relative to hydrogen";
-    # Add file format.
-    $chemicalStates{'fileFormat'} = $fileFormatCurrent;
-
-    # Output cooling functions to an XML file.
+    # Output cooling functions to an HDF5 file.
     if ( $computeCoolingFunctions == 1 ) {
-	my $coolingFunctions = \%coolingFunctions;
-	my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"coolingFunctions");
-	print coolingFunctionOutHndl $xmlOutput->XMLout($coolingFunctions);
-	close(coolingFunctionOutHndl);
+	my $coolingFunction = new PDL::IO::HDF5(">".$coolingFunctionFile);
+	# Store datasets.
+	$coolingFunction->dataset($_)->set($cloudyData->{$_})
+	    foreach ( 'metallicity', 'temperature', @coolingFunctionTables );
+	# Add extrapolation attributes.
+	my $temperature = $coolingFunction->dataset('temperature');
+	my $metallicity = $coolingFunction->dataset('metallicity');
+	$temperature->attrSet(extrapolateLow  => "powerLaw");
+	$temperature->attrSet(extrapolateHigh => "powerLaw");
+	$metallicity->attrSet(extrapolateLow  => "fix"     );
+	$metallicity->attrSet(extrapolateHigh => "fix"     );
+	# Add units attributes.
+	$temperature->attrSet(units     => "K"    );
+	$temperature->attrSet(unitsInSI => pdl 1.0);
+	# Add provenance.
+	$coolingFunction->attrSet(description => "CIE cooling functions computed by Cloudy ".$cloudyVersion);
+	# Add file format.
+	$coolingFunction->attrSet(fileFormat => pdl long($fileFormatCurrent));
+	# Destroy the lock file.
+	close($coolingFunctionLock);
     }
     
-    # Output chemical states to an XML file.
+    # Output chemical states to an HDF5 file.
     if ( $computeChemicalStates == 1 ) {
-	my $chemicalStateStructure = \%chemicalStates;
-	my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"chemicalStates");
-	print chemicalStateOutHndl $xmlOutput->XMLout($chemicalStateStructure);
-	close(chemicalStateOutHndl);
+	my $chemicalState = new PDL::IO::HDF5(">".$chemicalStateFile);
+	$chemicalState->dataset($_)->set($cloudyData->{$_})
+	    foreach ( 'metallicity', 'temperature', @chemicalStateTables );
+	# Add extrapolation attributes.
+	my $temperature = $chemicalState->dataset('temperature');
+	my $metallicity = $chemicalState->dataset('metallicity');
+	$temperature->attrSet(extrapolateLow  => "fix");
+	$temperature->attrSet(extrapolateHigh => "fix");
+	$metallicity->attrSet(extrapolateLow  => "fix");
+	$metallicity->attrSet(extrapolateHigh => "fix");
+	# Add units attributes.
+	$temperature->attrSet(units     => "K"    );
+	$temperature->attrSet(unitsInSI => pdl 1.0);
+	# Add provenance.
+	$chemicalState->attrSet(description => "CIE ionization states computed by Cloudy ".$cloudyVersion);
+	# Add file format.
+	$chemicalState->attrSet(fileFormat => pdl long($fileFormatCurrent));
+	close($chemicalStateLock);
     }
 
     # Write message.

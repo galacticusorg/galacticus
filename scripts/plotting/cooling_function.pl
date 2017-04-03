@@ -3,9 +3,10 @@ use strict;
 use warnings;
 use Cwd;
 use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
-use XML::Simple;
 use Data::Dumper;
 use PDL;
+use PDL::NiceSlice;
+use PDL::IO::HDF5;
 use GnuPlot::PrettyPlots;
 use GnuPlot::LaTeX;
 
@@ -22,17 +23,18 @@ if ( scalar(@ARGV) == 2 ) {
     ($pdfFile = $coolingFunctionFile) =~ s/^data\/(.+)\.xml$/plots\/$1\.pdf/;
 }
 
-# Read the XML data file.
-my $xml = new XML::Simple;
-my $data = $xml->XMLin($coolingFunctionFile);
-my @coolingFunctionsArray = @{$data -> {'coolingFunction'}};
+# Read the data file.
+my $data = new PDL::IO::HDF5($coolingFunctionFile);
+my $coolingFunctions = $data->dataset('coolingRate')->get();
+my $metallicities    = $data->dataset('metallicity')->get();
+my $temperatures     = $data->dataset('temperature')->get();
 
 # Create plot titles.
 my $lZMin = +100.0;
 my $lZMax = -100.0;
 my @plotTitles;
-for (my $iCoolingFunction=0;$iCoolingFunction<scalar(@coolingFunctionsArray);++$iCoolingFunction) {
-    my $metallicity = ${$coolingFunctionsArray[$iCoolingFunction]}{'metallicity'};
+for (my $iMetallicity=0;$iMetallicity<nelem($metallicities);++$iMetallicity) {
+    my $metallicity = $metallicities->(($iMetallicity));
     if ( $metallicity <= -999.0 ) {
 	push(@plotTitles,"Primordial");
     } else {
@@ -50,7 +52,7 @@ my $plotFile = $pdfFile;
 open($gnuPlot,"|gnuplot 1>/dev/null 2>&1");
 print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
 print $gnuPlot "set output '".$plotFileEPS."'\n";
-print $gnuPlot "set title 'Atomic CIE Cooling Function (Cloudy 13.02), colored by \$\\log_{10}(Z/Z_\\odot)\$'\n";
+print $gnuPlot "set title offset 0,-0.5 'Atomic CIE Cooling Function (Cloudy 13.05), colored by \$\\log_{10}(Z/Z_\\odot)\$'\n";
 print $gnuPlot "set xlabel 'Temperature [K]'\n";
 print $gnuPlot "set ylabel '\$\\Lambda(T)\$ [erg cm\$^3\$ s\$^{-1}\$]'\n";
 print $gnuPlot "set lmargin screen 0.15\n";
@@ -69,14 +71,12 @@ print $gnuPlot "set xrange [316.0:1.0e9]\n";
 print $gnuPlot "set yrange [3.0e-30:1.0e-19]\n";
 print $gnuPlot "set pointsize 2.0\n";
 # Loop over cooling functions.
-for (my $iCoolingFunction=0;$iCoolingFunction<scalar(@coolingFunctionsArray);++$iCoolingFunction) {
-    # Get the data for this cooling function.
-    my $x = pdl @{$coolingFunctionsArray[$iCoolingFunction]->{'temperature'}->{'datum'}};
-    my $y = pdl @{$coolingFunctionsArray[$iCoolingFunction]->{'coolingRate'}->{'datum'}};
-    my $cFrac = $iCoolingFunction/(scalar(@coolingFunctionsArray)-1);
+for (my $iMetallicity=0;$iMetallicity<nelem($metallicities);++$iMetallicity) {
+    my $cFrac = $iMetallicity/(nelem($metallicities)-1);
     &GnuPlot::PrettyPlots::Prepare_Dataset(
 	\$plot,
-	$x,$y,
+	$temperatures,
+	$coolingFunctions->(($iMetallicity),:),
 	style  => "line",
 	weight => [3,1],
 	color  => ["palette frac ".$cFrac,"palette frac ".$cFrac]
