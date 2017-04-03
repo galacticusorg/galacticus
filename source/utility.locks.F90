@@ -91,6 +91,8 @@ contains
     type   (ompReadWriteLock), intent(inout) :: self
     integer                                  :: i
 
+    ! Check if initialized.
+    if (.not.allocated(self%locks)) return
     ! Destroy each lock.
     do i=0,ubound(self%locks,dim=1)
        call OMP_Destroy_Lock(self%locks(i))
