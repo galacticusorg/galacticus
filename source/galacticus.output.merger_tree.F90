@@ -190,11 +190,16 @@ contains
     currentTree => tree
     do while (associated(currentTree))     
        ! Iterate over nodes.
-       node   => currentTree%baseNode
+       node       => currentTree%baseNode
        nodeStatus =  nodeStatusFirst       
        do while (associated(node))
           ! Find the next node.
           nodeNext => node%walkTreeWithSatellites()
+          ! Reset calculations (necessary in case the last node to be evolved is the first one we output, in which case
+          ! calculations would not be automatically reset because the node unique ID will not have changed).
+          call Galacticus_Calculations_Reset (node)
+          ! Ensure that galactic structure is up to date.
+          call Galactic_Structure_Radii_Solve(node)
           ! Check for final node.
           if (.not.associated(nodeNext)) nodeStatus=nodeStatusLast
           ! Get the basic component.
