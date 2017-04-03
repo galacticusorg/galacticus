@@ -22,82 +22,103 @@
   
   !# <chemicalState name="chemicalStateCIEFile" defaultThreadPrivate="yes">
   !#  <description>
-  !#   Class providing chemical state via interpolation of tabulated values read from file. The XML file containing the table
+  !#   Class providing chemical state via interpolation of tabulated values read from file. The HDF5 file containing the table
   !#   should have the following form:
   !#   \begin{verbatim}
-  !#    &lt;chemicalStates&gt;
-  !#    &lt;chemicalState&gt;
-  !#      &lt;temperature&gt;
-  !#        &lt;datum&gt;10000.0&lt;/datum&gt;
-  !#        &lt;datum&gt;15000.0&lt;/datum&gt;
-  !#        .
-  !#        .
-  !#        .
-  !#      &lt;/temperature&gt;
-  !#      &lt;electronDensity&gt;
-  !#        &lt;datum&gt;1.0e-23&lt;/datum&gt;
-  !#        &lt;datum&gt;1.7e-23&lt;/datum&gt;
-  !#        .
-  !#        .
-  !#        .
-  !#      &lt;/electronDensity&gt;
-  !#      &lt;hiDensity&gt;
-  !#        &lt;datum&gt;0.966495864314214&lt;/datum&gt;
-  !#        &lt;datum&gt;0.965828463162061&lt;/datum&gt;
-  !#        .
-  !#        .
-  !#        .
-  !#      &lt;/hiDensity&gt;
-  !#      &lt;hiiDensity&gt;
-  !#        &lt;datum&gt;0.033504135685786&lt;/datum&gt;
-  !#        &lt;datum&gt;0.0341715368379391&lt;/datum&gt;
-  !#        .
-  !#        .
-  !#        .
-  !#      &lt;/hiiDensity&gt;
-  !#      &lt;metallicity&gt;-4.0&lt;/metallicity&gt;
-  !#    &lt;/chemicalState&gt;
-  !#    &lt;chemicalState&gt;
-  !#    .
-  !#    .
-  !#    .
-  !#    &lt;/chemicalState&gt;
-  !#    &lt;description&gt;Some description of what this chemical state is.&lt;/description&gt;
-  !#    &lt;extrapolation&gt;
-  !#      &lt;metallicity&gt;
-  !#        &lt;limit&gt;low&lt;/limit&gt;
-  !#        &lt;method&gt;fixed&lt;/method&gt;
-  !#      &lt;/metallicity&gt;
-  !#      &lt;metallicity&gt;
-  !#        &lt;limit&gt;high&lt;/limit&gt;
-  !#        &lt;method&gt;fixed&lt;/method&gt;
-  !#      &lt;/metallicity&gt;
-  !#      &lt;temperature&gt;
-  !#        &lt;limit&gt;low&lt;/limit&gt;
-  !#        &lt;method&gt;fixed&lt;/method&gt;
-  !#      &lt;/temperature&gt;
-  !#      &lt;temperature&gt;
-  !#        &lt;limit&gt;high&lt;/limit&gt;
-  !#        &lt;method&gt;fixed&lt;/method&gt;
-  !#      &lt;/temperature&gt;
-  !#    &lt;/extrapolation&gt;
-  !#   &lt;/chemicalStates&gt;
+  !#   HDF5 "chemicalState.hdf5" {
+  !#   GROUP "/" {
+  !#      ATTRIBUTE "fileFormat" {
+  !#         DATATYPE  H5T_STRING {
+  !#            STRSIZE 1;
+  !#            STRPAD H5T_STR_NULLTERM;
+  !#            CSET H5T_CSET_ASCII;
+  !#            CTYPE H5T_C_S1;
+  !#         }
+  !#         DATASPACE  SCALAR
+  !#         DATA {
+  !#         (0): "1"
+  !#         }
+  !#      }
+  !#      DATASET "electronDensity" {
+  !#         DATATYPE  H5T_IEEE_F64LE
+  !#         DATASPACE  SIMPLE { ( 7, 8 ) / ( 7, 8 ) }
+  !#      }
+  !#      DATASET "hiDensity" {
+  !#         DATATYPE  H5T_IEEE_F64LE
+  !#         DATASPACE  SIMPLE { ( 7, 8 ) / ( 7, 8 ) }
+  !#      }
+  !#      DATASET "hiiDensity" {
+  !#         DATATYPE  H5T_IEEE_F64LE
+  !#         DATASPACE  SIMPLE { ( 7, 8 ) / ( 7, 8 ) }
+  !#      }
+  !#      DATASET "metallicity" {
+  !#         DATATYPE  H5T_IEEE_F64LE
+  !#         DATASPACE  SIMPLE { ( 8 ) / ( 8 ) }
+  !#         ATTRIBUTE "extrapolateHigh" {
+  !#            DATATYPE  H5T_STRING {
+  !#               STRSIZE 3;
+  !#               STRPAD H5T_STR_NULLTERM;
+  !#               CSET H5T_CSET_ASCII;
+  !#               CTYPE H5T_C_S1;
+  !#            }
+  !#            DATASPACE  SCALAR
+  !#            DATA {
+  !#            (0): "fix"
+  !#            }
+  !#         }
+  !#         ATTRIBUTE "extrapolateLow" {
+  !#            DATATYPE  H5T_STRING {
+  !#               STRSIZE 3;
+  !#               STRPAD H5T_STR_NULLTERM;
+  !#               CSET H5T_CSET_ASCII;
+  !#               CTYPE H5T_C_S1;
+  !#            }
+  !#            DATASPACE  SCALAR
+  !#            DATA {
+  !#            (0): "fix"
+  !#            }
+  !#         }
+  !#      }
+  !#      DATASET "temperature" {
+  !#         DATATYPE  H5T_IEEE_F64LE
+  !#         DATASPACE  SIMPLE { ( 7 ) / ( 7 ) }
+  !#         ATTRIBUTE "extrapolateHigh" {
+  !#            DATATYPE  H5T_STRING {
+  !#               STRSIZE 3;
+  !#               STRPAD H5T_STR_NULLTERM;
+  !#               CSET H5T_CSET_ASCII;
+  !#               CTYPE H5T_C_S1;
+  !#            }
+  !#            DATASPACE  SCALAR
+  !#            DATA {
+  !#            (0): "fix"
+  !#            }
+  !#         }
+  !#         ATTRIBUTE "extrapolateLow" {
+  !#            DATATYPE  H5T_STRING {
+  !#               STRSIZE 3;
+  !#               STRPAD H5T_STR_NULLTERM;
+  !#               CSET H5T_CSET_ASCII;
+  !#               CTYPE H5T_C_S1;
+  !#            }
+  !#            DATASPACE  SCALAR
+  !#            DATA {
+  !#            (0): "fix"
+  !#            }
+  !#         }
+  !#      }
+  !#   }
+  !#   }
   !#   \end{verbatim}
-  !#   Each {\normalfont \ttfamily chemicalState} element should contain two lists (inside
-  !#   {\normalfont \ttfamily temperature} and {\normalfont \ttfamily electronDensity} tags) of
-  !#   {\normalfont \ttfamily datum} elements which specify temperature (in Kelvin) and electron
-  !#   density (by number, relative to hydrogen) respectively, and a {\normalfont \ttfamily
-  !#   metallicity} element which gives the logarithmic metallcity relative to Solar (a value of
-  !#   -999 or less is taken to imply zero metallicity). Optionally, {\normalfont \ttfamily
-  !#   hiDensity} and {\normalfont \ttfamily hiiDensity} elements may be added containing lists
-  !#   of H{\normalfont \scshape i} and H{\normalfont \scshape ii} densities (by number,
-  !#   relative to hydrogen) respectively. Any number of {\normalfont \ttfamily coolingFunction}
-  !#   elements may appear, but they must be in order of increasing metallicity and must all
-  !#   contain the same set of temperatures. The {\normalfont \ttfamily extrapolation} element
-  !#   defines how the table is to be extrapolated in the {\normalfont \ttfamily low} and
-  !#   {\normalfont \ttfamily high} limits of {\normalfont \ttfamily temperature} and
-  !#   {\normalfont \ttfamily metallicity}. The {\normalfont \ttfamily method} elements can take
-  !#   the following values:
+  !#   The {\normalfont \ttfamily temperature} dataset should specify temperature (in Kelvin), while the {\normalfont \ttfamily
+  !#   metallicity} dataset should give the logarithmic metallcity relative to Solar (a value of -999 or less is taken to imply
+  !#   zero metallicity). The {\normalfont \ttfamily electronDensity} dataset should specify the number density of electrons
+  !#   relative to hydrogen at each temperature/metallicity pair. Optionally {\normalfont \ttfamily hiDensity} and {\normalfont
+  !#   \ttfamily hiiDensity} datasets may be added giving the number densities of H{\normalfont \scshape i} and H{\normalfont
+  !#   \scshape ii} relative to hydrogen respectively The {\normalfont \ttfamily extrapolateLow} and {\normalfont \ttfamily
+  !#   extrapolateHigh} attributes of the {\normalfont \ttfamily temperature} and {\normalfont \ttfamily metallicity} datasets
+  !#   specify how the cooling rate should be extrapolated in the low and high vale limits. Allowed options for these attributes
+  !#   are: 
   !#   \begin{description}
   !#    \item[{\normalfont \ttfamily zero}] The electron density is set to zero beyond the relevant limit.
   !#    \item[{\normalfont \ttfamily fixed}] The electron density is held fixed at the value at the relevant limit.
@@ -388,13 +409,13 @@ contains
        ! Do the interpolation.
        self%electronDensitySlopePrevious=+(                                                       &
             &                              +(                                                     &
-            &                                +self%densityElectron(iTemperature+1,iMetallicity  ) &
-            &                                -self%densityElectron(iTemperature  ,iMetallicity  ) &
+            &                                +self%densityElectron(iMetallicity  ,iTemperature+1) &
+            &                                -self%densityElectron(iMetallicity  ,iTemperature  ) &
             &                               )                                                     &
             &                              *(1.0d0-hMetallicity)                                  &
             &                              +(                                                     &
-            &                                +self%densityElectron(iTemperature+1,iMetallicity+1) &
-            &                                -self%densityElectron(iTemperature  ,iMetallicity+1) &
+            &                                +self%densityElectron(iMetallicity+1,iTemperature+1) &
+            &                                -self%densityElectron(iMetallicity+1,iTemperature  ) &
             &                               )                                                     &
             &                              *(     +hMetallicity)                                  &
             &                             )                                                       &
@@ -602,10 +623,10 @@ contains
     double precision                      , dimension(:,:), intent(in   ) :: density
 
     ! Do the interpolation.
-    cieFileInterpolate=+density(iTemperature  ,iMetallicity  )*(1.0d0-hTemperature)*(1.0d0-hMetallicity) &
-         &             +density(iTemperature  ,iMetallicity+1)*(1.0d0-hTemperature)*(      hMetallicity) &
-         &             +density(iTemperature+1,iMetallicity  )*(      hTemperature)*(1.0d0-hMetallicity) &
-         &             +density(iTemperature+1,iMetallicity+1)*(      hTemperature)*(      hMetallicity)
+    cieFileInterpolate=+density(iMetallicity  ,iTemperature  )*(1.0d0-hTemperature)*(1.0d0-hMetallicity) &
+         &             +density(iMetallicity+1,iTemperature  )*(1.0d0-hTemperature)*(      hMetallicity) &
+         &             +density(iMetallicity  ,iTemperature+1)*(      hTemperature)*(1.0d0-hMetallicity) &
+         &             +density(iMetallicity+1,iTemperature+1)*(      hTemperature)*(      hMetallicity)
     ! Exponentiate the result if the table was stored as the log.
     if (self%logarithmicTable) cieFileInterpolate=exp(cieFileInterpolate)
     return
@@ -614,132 +635,89 @@ contains
   subroutine cieFileReadFile(self,fileName)
     !% Read in data from an chemical state file.
     use Galacticus_Error
-    use FoX_DOM
-    use Memory_Management
-    use Numerical_Comparison
     use Galacticus_Display
-    use IO_XML
+    use ISO_Varying_String
+    use IO_HDF5
     use Table_Labels
     implicit none
-    class           (chemicalStateCIEFile), intent(inout)             :: self
-    character       (len=*               ), intent(in   )             :: fileName
-    double precision                      , allocatable, dimension(:) :: temperaturesReference
-    type            (node                ), pointer                   :: doc                                  , extrapolation               , &
-         &                                                               extrapolationElement                 , metallicityElement          , &
-         &                                                               thisChemicalState                    , thisElectronDensity         , &
-         &                                                               thisHydrogenAtomicDensity            , thisHydrogenCationDensity   , &
-         &                                                               thisTemperature                      , version
-    type            (nodeList            ), pointer                   :: chemicalStateList                    , metallicityExtrapolationList, &
-         &                                                               temperatureExtrapolationList
-    double precision                      , parameter                 :: metallicityLogarithmicZero  =-999.0d0
-    integer                                                           :: extrapolationMethod                  , fileFormatVersion           , &
-         &                                                               iChemicalState                       , iExtrapolation              , &
-         &                                                               ioErr
-    character       (len=32        )                                  :: limitType
+    class           (chemicalStateCIEFile), intent(inout) :: self
+    character       (len=*               ), intent(in   ) :: fileName
+    double precision                      , parameter     :: metallicityLogarithmicZero=-999.0d0
+    type            (varying_string      )                :: limitType
+    integer                                               :: fileFormatVersion
+    type            (hdf5Object          )                :: chemicalStateFile                  , metallicityDataset, &
+         &                                                   temperatureDataset
 
-    !$omp critical (FoX_DOM_Access)
-    ! Parse the XML file.
-    call Galacticus_Display_Indent('Parsing file: '//fileName,verbosityDebug)
-    doc => parseFile(fileName,iostat=ioErr)
-    if (ioErr /= 0) call Galacticus_Error_Report('cieFileReadFile','unable to find chemical state file')
+    !$omp critical (HDF5_Access)
+    ! Parse the file.
+    call Galacticus_Display_Indent('Reading file: '//fileName,verbosityDebug)
+    call chemicalStateFile%openFile(fileName,readOnly=.true.)
     ! Check the file format version of the file.
-    version => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
-    call extractDataContent(version,fileFormatVersion)
+    call chemicalStateFile%readAttribute('fileFormat',fileFormatVersion)
     if (fileFormatVersion /= cieFileFormatVersionCurrent) call Galacticus_Error_Report('cieFileReadFile','file format version is out of date')
-    ! Get a list of all <chemicalState> elements.
-    chemicalStateList     => getElementsByTagname(doc,"chemicalState")
-    self%metallicityCount =  getLength(chemicalStateList)
-    ! Extract data from first chemical state and count number of temperatures present.
-    thisChemicalState      => item(chemicalStateList,0)
-    thisTemperature        => XML_Get_First_Element_By_Tag_Name(thisChemicalState,"temperature")
-    self%temperatureCount  =  XML_Array_Length                 (thisTemperature  ,"datum"      )
-    ! Allocate space for the table.
-    if (allocated(self%metallicities        )) call deallocateArray(self%metallicities        )
-    if (allocated(self%temperatures         )) call deallocateArray(self%temperatures         )
-    if (allocated(self%densityElectron      )) call deallocateArray(self%densityElectron      )
-    if (allocated(self%densityHydrogenAtomic)) call deallocateArray(self%densityHydrogenAtomic)
-    if (allocated(self%densityHydrogenCation)) call deallocateArray(self%densityHydrogenCation)
-    call allocateArray(self%metallicities  ,[                      self%metallicityCount])
-    call allocateArray(self%temperatures   ,[self%temperatureCount                      ])
-    call allocateArray(self%densityElectron,[self%temperatureCount,self%metallicityCount])
-    ! Allocate space for atomic hydrogen density, if such data is included.
-    self%gotHydrogenAtomic=(XML_Array_Length(doc,"hiDensity" ) > 0)
-    if (self%gotHydrogenAtomic) call allocateArray(self%densityHydrogenAtomic,[self%temperatureCount,self%metallicityCount])
-    ! Allocate space for ionized hydrogen density, if such data is included.
-    self%gotHydrogenCation=(XML_Array_Length(doc,"hiiDensity") > 0)
-    if (self%gotHydrogenCation) call allocateArray(self%densityHydrogenCation,[self%temperatureCount,self%metallicityCount])
-    ! Extract data from the chemical states and populate metallicity and temperature arrays.
-    allocate(temperaturesReference(0))
-    do iChemicalState=0,self%metallicityCount-1
-       ! Get required chemical state.
-       thisChemicalState  => item(chemicalStateList,iChemicalState)
-       ! Extract the metallicity from the <metallicity> element.
-       metallicityElement => XML_Get_First_Element_By_Tag_Name(thisChemicalState,"metallicity")
-       call extractDataContent(metallicityElement,self%metallicities(iChemicalState+1))
-       ! Extract the data.
-       thisTemperature                                       => XML_Get_First_Element_By_Tag_Name(thisChemicalState,"temperature"    )
-       thisElectronDensity                                   => XML_Get_First_Element_By_Tag_Name(thisChemicalState,"electronDensity")
-       if (self%gotHydrogenAtomic) thisHydrogenAtomicDensity => XML_Get_First_Element_By_Tag_Name(thisChemicalState,"hiDensity"      )
-       if (self%gotHydrogenCation) thisHydrogenCationDensity => XML_Get_First_Element_By_Tag_Name(thisChemicalState,"hiiDensity"     )
-       ! Check that number of temperatures is consistent.
-       if (XML_Array_Length(thisTemperature,"datum") /= self%temperatureCount                        ) &
-            & call Galacticus_Error_Report('cieFileReadFile','sizes of temperature grids must be the same for all metallicities')
-       ! Check that number of chemical states matches number of temperatures.
-       if (XML_Array_Length(thisTemperature,"datum") /= XML_Array_Length(thisElectronDensity,"datum")) &
-            & call Galacticus_Error_Report('cieFileReadFile','sizes of temperature and electron density arrays must match'      )
-       ! Store the chemical state.
-       call                             XML_Array_Read_Static(thisTemperature          ,"datum",self%temperatures (:                 ))
-       call                             XML_Array_Read_Static(thisElectronDensity      ,"datum",self%densityElectron      (:,iChemicalState+1))
-       if (self%gotHydrogenAtomic) call XML_Array_Read_Static(thisHydrogenAtomicDensity,"datum",self%densityHydrogenAtomic(:,iChemicalState+1))
-       if (self%gotHydrogenCation) call XML_Array_Read_Static(thisHydrogenCationDensity,"datum",self%densityHydrogenCation(:,iChemicalState+1))
-       if (iChemicalState == 0) then
-          ! Copy the temperatures so we can check subsequent temperature reads for consistency.
-          deallocate(temperaturesReference)
-          temperaturesReference=self%temperatures
-       else
-          ! Check that temperature grids are aligned.
-          if (any(Values_Differ(self%temperatures,temperaturesReference,relTol=1.0d-6))) &
-               & call Galacticus_Error_Report('cieFileReadFile','temperature grids mismatch')
-       end if
-    end do
-    deallocate(temperaturesReference)
+    ! Test for presence of hydrogen data.
+    self%gotHydrogenAtomic=chemicalStateFile%hasDataset('hiDensity' )
+    self%gotHydrogenCation=chemicalStateFile%hasDataset('hiiDensity')
+    ! Read datasets.
+    call                             chemicalStateFile%readDataset('temperature'    ,self%temperatures         )
+    call                             chemicalStateFile%readDataset('metallicity'    ,self%metallicities        )
+    call                             chemicalStateFile%readDataset('electronDensity',self%densityElectron      )
+    if (self%gotHydrogenAtomic) call chemicalStateFile%readDataset('hiDensity'      ,self%densityHydrogenAtomic)
+    if (self%gotHydrogenCation) call chemicalStateFile%readDataset('hiiDensity'     ,self%densityHydrogenCation)
+    self%metallicityCount=size(self%metallicities)
+    self%temperatureCount=size(self%temperatures )
+    ! Unlog metallicities.
     where (self%metallicities > metallicityLogarithmicZero)
        self%metallicities=10.0d0**self%metallicities
     elsewhere
        self%metallicities= 0.0d0
     end where
     ! Extract extrapolation methods from the file.
-    extrapolationElement         => XML_Get_First_Element_By_Tag_Name(doc,"extrapolation")
-    metallicityExtrapolationList => getElementsByTagname(extrapolationElement,"metallicity")
-    do iExtrapolation=0,getLength(metallicityExtrapolationList)-1
-       extrapolation => item(metallicityExtrapolationList,iExtrapolation)
-       call XML_Extrapolation_Element_Decode(extrapolation,limitType,extrapolationMethod,allowedMethods=[extrapolationTypeZero,extrapolationTypeFix,extrapolationTypePowerLaw])
-       select case (trim(limitType))
-       case ('low')
-          self%extrapolateMetallicityLow =extrapolationMethod
-       case ('high')
-          self%extrapolateMetallicityHigh=extrapolationMethod
-       case default
-          call Galacticus_Error_Report('cieFileReadFile','unrecognized extrapolation limit')
-       end select
-    end do
-    temperatureExtrapolationList => getElementsByTagname(extrapolationElement,"temperature")
-    do iExtrapolation=0,getLength(temperatureExtrapolationList)-1
-       extrapolation => item(temperatureExtrapolationList,iExtrapolation)
-       call XML_Extrapolation_Element_Decode(extrapolation,limitType,extrapolationMethod,allowedMethods=[extrapolationTypeZero,extrapolationTypeFix,extrapolationTypePowerLaw])
-       select case (trim(limitType))
-       case ('low')
-          self%extrapolateTemperatureLow =extrapolationMethod
-       case ('high')
-          self%extrapolateTemperatureHigh=extrapolationMethod
-       case default
-          call Galacticus_Error_Report('cieFileReadFile','unrecognized extrapolation limit')
-       end select
-    end do
-    ! Destroy the document.
-    call destroy(doc)
+    metallicityDataset=chemicalStateFile%openDataset('metallicity')
+    call metallicityDataset%readAttribute('extrapolateLow' ,limitType,allowPseudoScalar=.true.)
+    self%extrapolateMetallicityLow =enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.)
+    call metallicityDataset%readAttribute('extrapolateHigh',limitType,allowPseudoScalar=.true.)
+    self%extrapolateMetallicityHigh=enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.)
+    call metallicityDataset%close()
+    temperatureDataset=chemicalStateFile%openDataset('temperature')
+    call temperatureDataset%readAttribute('extrapolateLow' ,limitType,allowPseudoScalar=.true.)
+    self%extrapolateTemperatureLow =enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.)
+    call temperatureDataset%readAttribute('extrapolateHigh',limitType,allowPseudoScalar=.true.)
+    self%extrapolateTemperatureHigh=enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.)
+    call temperatureDataset%close()
+    ! Validate extrapolation methods.
+    if     (                                                              &
+         &   self%extrapolateMetallicityLow  /= extrapolationTypeFix      &
+         &  .and.                                                         &
+         &   self%extrapolateMetallicityLow  /= extrapolationTypeZero     &
+         &  .and.                                                         &
+         &   self%extrapolateMetallicityLow  /= extrapolationTypePowerLaw &
+         & ) call Galacticus_Error_Report('cieFileReadFile','extrapolation type not permitted')
+    if     (                                                              &
+         &   self%extrapolateMetallicityHigh /= extrapolationTypeFix      &
+         &  .and.                                                         &
+         &   self%extrapolateMetallicityHigh /= extrapolationTypeZero     &
+         &  .and.                                                         &
+         &   self%extrapolateMetallicityHigh /= extrapolationTypePowerLaw &
+         & ) call Galacticus_Error_Report('cieFileReadFile','extrapolation type not permitted')
+    if     (                                                              &
+         &   self%extrapolateTemperatureLow  /= extrapolationTypeFix      &
+         &  .and.                                                         &
+         &   self%extrapolateTemperatureLow  /= extrapolationTypeZero     &
+         &  .and.                                                         &
+         &   self%extrapolateTemperatureLow  /= extrapolationTypePowerLaw &
+         & ) call Galacticus_Error_Report('cieFileReadFile','extrapolation type not permitted')
+    if     (                                                              &
+         &   self%extrapolateTemperatureHigh /= extrapolationTypeFix      &
+         &  .and.                                                         &
+         &   self%extrapolateTemperatureHigh /= extrapolationTypeZero     &
+         &  .and.                                                         &
+         &   self%extrapolateTemperatureHigh /= extrapolationTypePowerLaw &
+         & ) call Galacticus_Error_Report('cieFileReadFile','extrapolation type not permitted')
+    ! Close the file.
+    call chemicalStateFile%close()
     call Galacticus_Display_Unindent('done',verbosityDebug)
-    !$omp end critical (FoX_DOM_Access)
+    !$omp end critical (HDF5_Access)
     ! Store table ranges for convenience.
     self%metallicityMinimum=self%metallicities(                    1)
     self%metallicityMaximum=self%metallicities(self%metallicityCount)
