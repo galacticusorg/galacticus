@@ -79,7 +79,7 @@ contains
     double precision                     , intent(  out) :: energyInputRate              , fuelMassRate             , &
          &                                                  stellarMassRate
     type            (abundances         ), intent(inout) :: fuelAbundancesRates          , stellarAbundancesRates
-    type            (stellarLuminosities), intent(  out) :: stellarLuminositiesRates
+    type            (stellarLuminosities), intent(inout) :: stellarLuminositiesRates
     double precision                     , intent(in   ) :: starFormationRate
     type            (abundances         ), intent(in   ) :: fuelAbundances
     integer                              , intent(in   ) :: component

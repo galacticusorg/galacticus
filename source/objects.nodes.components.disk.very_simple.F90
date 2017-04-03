@@ -661,7 +661,8 @@ contains
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                                   :: diskDynamicalTime       , fuelMass              , &
          &                                                                energyInputRate         , starFormationRate
-    type            (stellarLuminosities     )                         :: luminositiesStellarRates
+    type            (stellarLuminosities     )               , save    :: luminositiesStellarRates
+    !$omp threadprivate (luminositiesStellarRates)
     type            (abundances              )                         :: fuelAbundances
     
     ! Get the disk.
