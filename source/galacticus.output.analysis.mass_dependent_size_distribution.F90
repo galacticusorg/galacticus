@@ -161,7 +161,8 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Sz_Dstrbtins
   ! Type for storing temporary size functions during cumulation.
   type :: sizeFunctionWork
      double precision, allocatable, dimension(:,:) :: sizeFunction
-     double precision, allocatable, dimension(  :) :: sizeFunctionWeights, radii, errorFunction
+     double precision, allocatable, dimension(  :) :: sizeFunctionWeights, radii      , &
+          &                                           errorFunction      , erfArgument
   end type sizeFunctionWork
 
   ! Work array.
@@ -218,9 +219,10 @@ contains
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )               , pointer        :: cosmologyParametersObserved
     integer         (c_size_t                      )                                :: j,k,jOutput
-    integer                                         , parameter                     :: inclinationAngleCount  =100
-    integer                                         , parameter                     :: sampleStepCount        =100
-    double precision                                , parameter                     :: inclinationAngleEpsilon=1.0d-3
+    integer                                         , parameter                     :: inclinationAngleCount     =100
+    integer                                         , parameter                     :: sampleStepCount           =100
+    double precision                                , parameter                     :: inclinationAngleEpsilon   =1.0d-3
+    double precision                                , parameter                     :: errorFunctionArgumentLarge=4.0d0     
     integer                                                                         :: i,l,currentAnalysis,activeAnalysisCount,haloMassBin,iDistribution,jDistribution,sampleStep
     double precision                                                                :: dataHubbleParameter ,mass,massLogarithmic&
          &,massRandomError,radiusLogarithmic,radius,sizeRandomError,dataOmegaDarkEnergy,dataOmegaMatter,sersicIndexMaximum,redshift,timeMinimum,timeMaximum,distanceMinimum,distanceMaximum,xIntegrate,inclinationAngle,halfLightRadius,halfLightRadiusFaceOn,radiusLogarithmicFaceOn
@@ -679,6 +681,7 @@ contains
        if (.not.allocated(galaxyWork(i)%sizeFunction       )) call allocateArray(galaxyWork(i)%sizeFunction       ,[sizeFunctions(i)%radiiCount  ,sizeFunctions(i)%massesCount]                         )
        if (.not.allocated(galaxyWork(i)%sizeFunctionWeights)) call allocateArray(galaxyWork(i)%sizeFunctionWeights,[                              sizeFunctions(i)%massesCount]                         )
        if (.not.allocated(galaxyWork(i)%radii              )) call allocateArray(galaxyWork(i)%radii              ,[sizeFunctions(i)%radiiCount+1                             ],lowerBounds=[0_c_size_t])
+       if (.not.allocated(galaxyWork(i)%erfArgument        )) call allocateArray(galaxyWork(i)%erfArgument        ,[sizeFunctions(i)%radiiCount+1                             ],lowerBounds=[0_c_size_t])
        if (.not.allocated(galaxyWork(i)%errorFunction      )) call allocateArray(galaxyWork(i)%errorFunction      ,[sizeFunctions(i)%radiiCount+1                             ],lowerBounds=[0_c_size_t])
        ! Get the galactic mass.
        mass=                                                                                                                                        &
@@ -729,9 +732,16 @@ contains
           inclinationAngle =acos(dble(sampleStep-1)/dble(sampleStepCount-1))
           radiusLogarithmic=radiusLogarithmicFaceOn+log10(inclinationTable%interpolate(inclinationAngle))
           do j=1,sizeFunctions(i)%massesCount
-             galaxyWork(i)%radii(0                            )=sizeFunctions(i)%radiiLogarithmicMinimum(0,j)
+             galaxyWork(i)%radii(0                            )=sizeFunctions(i)%radiiLogarithmicMinimum(1,j)
              galaxyWork(i)%radii(1:sizeFunctions(i)%radiiCount)=sizeFunctions(i)%radiiLogarithmicMaximum(:,j)
-             galaxyWork(i)%errorFunction                       =erf((galaxyWork(i)%radii-radiusLogarithmic)/sizeRandomError/sqrt(2.0d0))
+             galaxyWork(i)%erfArgument=(galaxyWork(i)%radii-radiusLogarithmic)/sizeRandomError/sqrt(2.0d0)
+             where     (galaxyWork(i)%erfArgument < -errorFunctionArgumentLarge)
+                galaxyWork(i)%errorFunction=-1.0d0
+             elsewhere (galaxyWork(i)%erfArgument > +errorFunctionArgumentLarge)
+                galaxyWork(i)%errorFunction=+1.0d0
+             elsewhere
+                galaxyWork(i)%errorFunction=erf(galaxyWork(i)%erfArgument)
+             end where
              galaxyWork(i)%sizeFunction(:,j)=+galaxyWork(i)%sizeFunction(:,j)                                &
                   &                          +(                                                              &
                   &                            +galaxyWork(i)%errorFunction(1:sizeFunctions(i)%radiiCount  ) &
@@ -844,7 +854,6 @@ contains
       halfLightRadiusIntegrandPhi=exp(-xIntegrate*sqrt((sin(phi)/cos(inclinationAngle))**2+cos(phi)**2))
       return
     end function halfLightRadiusIntegrandPhi
-
     
   end subroutine Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins
 
