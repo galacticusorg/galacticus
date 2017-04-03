@@ -71,16 +71,22 @@
      !@     <description>Returns the density (in units such that the virial mass and scale length are unity) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} and {\normalfont \ttfamily alpha} at the given {\normalfont \ttfamily radius} (given in units of the scale radius).</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>densityScaleFree</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin</arguments>
+     !@     <description>Returns the density (in units such that the virial mass and scale length are unity) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} and {\normalfont \ttfamily alpha} at the given {\normalfont \ttfamily radius} (given in units of the scale radius).</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>enclosedMassScaleFree</method>
      !@     <type>\doublezero</type>
      !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin</arguments>
      !@     <description>Returns the enclosed mass (in units of the virial mass) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius).</description>
      !@   </objectMethod>
      !@   <objectMethod>
-     !@     <method>radiusEnclosingDensityScaleFree</method>
+     !@     <method>densityEnclosedByRadiusScaleFree</method>
      !@     <type>\doublezero</type>
      !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin</arguments>
-     !@     <description>Returns the radius (in units of the scale radius) enclosing a given density (in units of the virial mass per cubic scale radius) in an NFW dark matter profile with given {\normalfont \ttfamily concentration}.</description>
+     !@     <description>Returns the density (in units of the virial mass per cubic scale radius) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} which is enclosed a given radius (in units of the scale radius).</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>freefallTabulate</method>
@@ -799,8 +805,8 @@ contains
   end function nfwRadiusEnclosingDensity
 
   double precision function nfwDensityEnclosedByRadiusScaleFree(self,radius)
-    !% Returns the radius (in units of the scale radius) in an NFW dark matter profile with given {\normalfont \ttfamily
-    !% concentration} which encloses a given density (in units of the virial mass per cubic scale radius).
+    !% Returns the density (in units of the virial mass per cubic scale radius) in an NFW dark matter profile with given {\normalfont \ttfamily
+    !% concentration} which is enclosed a given radius (in units of the scale radius).
     use Numerical_Constants_Math
     implicit none
     class           (darkMatterProfileNFW), intent(inout) :: self
