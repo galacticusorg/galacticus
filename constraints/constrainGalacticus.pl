@@ -24,6 +24,7 @@ use System::Redirect;
 use Galacticus::Constraints::Parameters;
 use List::ExtraUtils;
 use Sys::CPU;
+use Scalar::Util 'reftype';
 my $useThreads = 0;
 if ( $^V gt v5.10.0 && $Config{useithreads} ) {
     $useThreads = 1;
@@ -70,6 +71,9 @@ my $temperature    = $ARGV[3];
 my $store          = $ARGV[4];
 # Get a hash of the new parameters.
 my $newParameters = &Galacticus::Constraints::Parameters::Convert_Parameters_To_Galacticus($config,@ARGV[5..$#ARGV]);
+
+# Determine the executable.
+my $executable = exists($config->{'likelihood'}->{'executable'}) ? $config->{'likelihood'}->{'executable'} : "Galacticus.exe";
 
 # Find the scratch directory.
 my $scratchDirectory = $config->{'likelihood'}->{'workDirectory'}."/mcmc";
@@ -273,7 +277,7 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
 			if ( $coredump eq "NO" );
 		    $coreDumpSize = $config->{'likelihood'}->{'coredumpsize'}
 		        if ( exists($config->{'likelihood'}->{'coredumpsize'}) );
-		    $treeCommand .= "ulimit -c ".$coreDumpSize."; export GFORTRAN_ERROR_DUMPCORE=".$coredump."; ulimit -a; date; ./Galacticus.exe ".$config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml";
+		    $treeCommand .= "ulimit -c ".$coreDumpSize."; export GFORTRAN_ERROR_DUMPCORE=".$coredump."; ulimit -a; date; ".$executable." ".$config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml";
 		    my $treeLog = $config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".log";
 		    &System::Redirect::tofile($treeCommand,$treeLog);
 		    unless ( $? == 0 ) {
@@ -306,12 +310,44 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
 if ( defined($newParameters) ) {
     for my $newParameterName ( keys(%{$newParameters}) ) {
 	my $parameter = $parameters;
+	my $valueIndex;
+	if ( $newParameterName =~ m/^(.*)\{(\d+)\}$/ ) {
+	    $newParameterName = $1;
+	    $valueIndex = $2;
+	}
 	foreach ( split(/\-\>/,$newParameterName) ) {
-	     $parameter->{$_}->{'value'} = undef()
-		 unless ( exists($parameter->{$_}) );
-	     $parameter = $parameter->{$_};
-    }
-	$parameter->{'value'} = $newParameters->{$newParameterName};
+	    # Check if the parameter name contains an array reference.
+	    if ( $_ =~ m/^(.*)\[(\d+)\]$/ ) {
+		# Parameter name contains array reference. Step through to the relevant parameter in the list. If the parameter is
+		# not an array, allow this only if the array index given is zero.
+		if ( reftype($parameter->{$1}) eq "ARRAY" ) {
+		    $parameter->{$1}->[$2]->{'value'} = undef()
+			unless ( scalar(@{$parameter->{$1}}) > $2 );
+		    $parameter = $parameter->{$1}->[$2];
+		} else {
+		    die('constrainGalacticus.pl: attempt to access non-existant array')
+			unless ( $2 == 0 );
+		    $parameter->{$1}->{'value'} = undef()
+			unless ( exists($parameter->{$1}) );
+		    $parameter = $parameter->{$1};
+		}
+	    } else {
+		# Parameter does not contain an array reference - so simply step through to the named parameter.
+		$parameter->{$_}->{'value'} = undef()
+		    unless ( exists($parameter->{$_}) );
+		$parameter = $parameter->{$_};
+	    }
+	}
+	# Test if the parameter name contains a value index.
+	if ( defined($valueIndex) ) {
+	    # A value index is given - set the relevant entry.
+	    my @values = split(" ",$parameter->{'value'});
+	    $values[$valueIndex] = $newParameters->{$newParameterName."{".$valueIndex."}"};
+	    $parameter->{'value'} = join(" ",@values);
+	} else {
+	    # No value index is given - simply set the value of the parameter.
+	    $parameter->{'value'} = $newParameters->{$newParameterName};
+	}    
     }
 }
 
@@ -351,7 +387,7 @@ if (
     my $wallTimeLimit = int(1.1*$cpuLimit);
     $glcCommand .= " timelimit -t ".$wallTimeLimit." -T 30";
 }
-$glcCommand .= " ./Galacticus.exe ".$scratchDirectory."/constrainGalacticusParameters".$mpiRank.".xml";
+$glcCommand .= " ".$executable." ".$scratchDirectory."/constrainGalacticusParameters".$mpiRank.".xml";
 my $logFile = $scratchDirectory."/constrainGalacticusParameters".$mpiRank.".log";
 push(@temporaryFiles,$logFile);
 # my $timeGalacticusStart = [gettimeofday];
