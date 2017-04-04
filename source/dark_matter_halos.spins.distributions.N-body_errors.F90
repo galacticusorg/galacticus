@@ -24,7 +24,7 @@
   use Halo_Mass_Functions
   use Dark_Matter_Profiles
   use Dark_Matter_Halo_Scales
-
+  
   !# <haloSpinDistribution name="haloSpinDistributionNbodyErrors">
   !#  <description>
   !#   A halo spin distribution which modifies another spin distribution to account for the effects of particle noise errors
@@ -178,6 +178,7 @@ contains
     double precision                                 , intent(in   )         :: massParticle                      , time, &
          &                                                                      energyEstimateParticleCountMaximum
     integer                                          , intent(in   )         :: particleCountMinimum
+    
     ! Store properties.
     nbodyErrorsConstructorInternal%distributionIntrinsic               => distributionIntrinsic
     nbodyErrorsConstructorInternal%nbodyHaloMassError_                 => nbodyHaloMassError_
@@ -205,6 +206,8 @@ contains
     use               Memory_Management
     use               Galacticus_Nodes
     use               Numerical_Constants_Math
+    use               Galacticus_Calculations_Resets
+    use               Dark_Matter_Profile_Scales
     implicit none
     class           (haloSpinDistributionNbodyErrors), intent(inout)           :: self
     double precision                                 , intent(in   ), optional :: massRequired                        , spinRequired
@@ -267,7 +270,9 @@ contains
     do iMass=1,self%massCount
        massMeasured=10.0d0**(dble(iMass-1)*self%massDelta+log10(self%massMinimum))
        ! Estimate the mass error.
-       call nodeBasic%massSet(massMeasured)
+       call nodeBasic%massSet (massMeasured)
+       call nodeDarkMatterProfile%scaleSet(Dark_Matter_Profile_Scale(node))
+       call Galacticus_Calculations_Reset(node)
        massError=  +self%nbodyHaloMassError_%errorFractional(node) &
             &      *massMeasured
        ! Determine the correction to fractional error in potential energy if a maximum number of particles was used for estimation of potential energy.
@@ -278,12 +283,16 @@ contains
        else
           ! Reduced sample of halo particles used in estimating potential energy - compute correction factor.
           call nodeBasic%massSet(massEnergyEstimateMaximum)
+          call nodeDarkMatterProfile%scaleSet(Dark_Matter_Profile_Scale(node))
+          call Galacticus_Calculations_Reset(node)
           energyEstimateErrorCorrection=+self%nbodyHaloMassError_%errorFractional(node) &
                &                        /(                                              &
                &                          +massError                                    &
                &                          /massMeasured                                 &
                &                         )
           call nodeBasic%massSet(massMeasured             )
+          call nodeDarkMatterProfile%scaleSet(Dark_Matter_Profile_Scale(node))
+          call Galacticus_Calculations_Reset(node)
        end if
        ! Integrate over a range of masses corresponding to a fixed number of mass errors around the measured mass.
        massMinimum=max(                                &
@@ -300,7 +309,7 @@ contains
           ! Evaluate the spin at this grid point - this corresponds to the measured spin in the N-body simulation.
           spinMeasured=10.0d0**(dble(iSpin-1)*self%spinDelta+log10(self%spinMinimum))      
           ! Integrate over the intrinsic spin distribution to find the measured distribution at this measureed mass and
-          ! spin. 
+          ! spin.           
           self%distributionTable(iMass,iSpin)=+Integrate(                                     &
                &                                         massMinimum                        , &
                &                                         massMaximum                        , &
@@ -337,6 +346,8 @@ contains
 
       ! Set the mass and compute the mass error.
       call nodeBasic%massSet(massIntrinsic)
+      call nodeDarkMatterProfile%scaleSet(Dark_Matter_Profile_Scale(node))
+      call Galacticus_Calculations_Reset(node)
       massError   =+self%nbodyHaloMassError_%errorFractional(node) &
            &       *massIntrinsic
       ! Evaluate the integrand. Normalization of the distribution function is neglected here since we are average over mass this
@@ -364,12 +375,12 @@ contains
                                                                                                               ! momentum (i.e. the normalizing angular momentum appearing in the definition of
                                                                                                               ! halo spin): γ = Mσⱼ/Jₛ, Jₛ = GM²˙⁵/|E⁰˙⁵|. This parameter corresponds to γ.
       double precision                :: logSpinMinimum, logSpinMaximum, &
-           &                             errorMaximum
+           &                             errorMaximum  , scaleAbsolute
       
       ! Evaluate the halo mass part of the integrand.
       massSpinIntegral             =massIntegral(massIntrinsic)
       ! Compute the particle number.
-      particleNumber               =massIntrinsic/self%massParticle
+      particleNumber               =massIntrinsic /self%massParticle
       ! Evaluate the root-variance of the spin-independent error term which arises from the random walk in angular momentum
       ! space. Note that the root-variance that goes into non-central χ-square distribution is the width of the Gaussian for a
       ! single dimension, leading to a factor of √3 in the following.
@@ -388,6 +399,11 @@ contains
            &                        /Pi                    &
            &                        /radiusHalo        **3 &
            &                        /densityOuterRadius
+      ! Evaluate an esimtate of the absolute scale of the spin distribution for use in setting an absolute precision level on the
+      ! integration.
+      call nodeSpin%spinSet(spinMeasured)
+      call Galacticus_Calculations_Reset(node)
+      scaleAbsolute=self%distributionIntrinsic%distribution(node)
       ! Evaluate the integral over the spin distribution. We integrate from ±ασ around the measured spin, with σ being the larger
       ! of the expected spin-independent and spin-dependent errors, and α a parameter typically set to 10.
       errorMaximum  =max(                                    &
@@ -409,7 +425,7 @@ contains
            &                 +rangeIntegration  &
            &                 *errorMaximum      &
            &                )                   &
-           &            )      
+           &            )
       massSpinIntegral=+massSpinIntegral                           &
            &           *Integrate(                                 &
            &                      logSpinMinimum                 , &
@@ -417,7 +433,7 @@ contains
            &                      spinIntegral                   , &
            &                      integrandFunctionSpin          , &
            &                      integrationWorkspaceSpin       , &
-           &                      toleranceAbsolute       =1.0d-8, &
+           &                      toleranceAbsolute       =0.0d+0, &
            &                      toleranceRelative       =1.0d-3  &
            &                    )                                  & 
            &           /2.0d0                                      & ! <= Partial combined normalization term for the lognormal and non-central chi-square distributions - brought
@@ -432,16 +448,17 @@ contains
       !% Integral over the intrinsic spin distribution, and spin error distribution.
       implicit none
       double precision, intent(in   ) :: logSpinIntrinsic
-      double precision, parameter     :: logNormalMean   =1.0000d0                    ! Mean of the log-normal distribution of mass/energy errors. We assume an unbiased
-                                                                                      ! measurement, so the mean is unity.
-      double precision, parameter     :: rangeIntegration=1.0000d1                    ! Integration range (in ~σ - the width of each distribution).
-      double precision                :: spinIntrinsic            , logSpinMinimum, &
-           &                             logSpinMaximum
-
+      double precision, parameter     :: logNormalMean   =1.0000d0                             ! Mean of the log-normal distribution of mass/energy errors. We assume an unbiased
+                                                                                               ! measurement, so the mean is unity.
+      double precision, parameter     :: rangeIntegration=1.0000d1                             ! Integration range (in ~σ - the width of each distribution).
+      double precision                :: spinIntrinsic            , logSpinMinimum         , &
+           &                             logSpinMaximum           , nonCentralChiSquareMode
+      
       ! Compute intrinsic spin.
       spinIntrinsic=exp(logSpinIntrinsic)
       ! Set the intrinsic spin.
       call nodeSpin%spinSet(spinIntrinsic)
+      call Galacticus_Calculations_Reset(node)
       ! Evaluate the root-variance of the spin-dependent error term which arises from errors in the measurement of mass and
       ! energy.
       errorSpinDependent=errorsSpinDependent(spinIntrinsic)
@@ -467,18 +484,25 @@ contains
       logNormalLogMean=+log(logNormalMean)               &
            &           -0.5d0                            &
            &           *logNormalWidth**2       
-      ! Evaluate the integrand.
-      logSpinMinimum=    max(                                                                         &
-           &                 log(self%spinMinimum )                                                 , &
-           &                 log(     spinMeasured)-logNormalLogMean-rangeIntegration*logNormalWidth  &
+      ! Find the logarithm of the spin corresponding to the mode of the non-central chi-square distribution.
+      nonCentralChiSquareMode=log(sqrt(nbodyErrorsNonCentralChiSquareMode(nonCentrality))*errorSpinIndependent1D)
+      ! Find a suitable integration range for the intergral. We center this on the mode of the non-central chi-square distribution
+      ! for the spin, offset by the mean of the log-normal distribution. We use a width around this equal to some multiple of the
+      ! log-normal distribution width. This ensures that we include the range encompassing the peak of the non-central chi-square
+      ! distribution, and sufficiently broad that the log-normal part will ensure that the distribution has fallen close to zero
+      ! at the extremes of our integration range.
+      logSpinMinimum=    max(                                                                   &
+           &                 log(self%spinMinimum )                                           , &
+           &                 nonCentralChiSquareMode-logNormalLogMean-rangeIntegration*logNormalWidth  &
            &                )
-      logSpinMaximum=min(                                                                             &
-           &             min(                                                                         &
-           &                 log(self%spinMaximum )                                                 , &
-           &                 log(     spinMeasured)-logNormalLogMean+rangeIntegration*logNormalWidth  &
-           &                )                                                                       , &
-           &                 rangeIntegration*errorSpinIndependent1D*nonCentrality                    &
+      logSpinMaximum=min(                                                                       &
+           &             min(                                                                   &
+           &                 log(self%spinMaximum )                                           , &
+           &                 nonCentralChiSquareMode-logNormalLogMean+rangeIntegration*logNormalWidth  &
+           &                )                                                                 , &
+           &                 rangeIntegration*errorSpinIndependent1D*sqrt(nonCentrality)        &
            &            )
+      ! Evaluate the integrand.
       spinIntegral=+self%distributionIntrinsic%distribution(node)      & ! Weight by the intrinsic spin distribution.
            &       *spinIntrinsic                                      & ! Multiply by spin since our integration variable is log(spin).
            &       *Integrate(                                         & ! Multiply by the integral which gives us the product distribution
@@ -487,8 +511,7 @@ contains
            &                  productDistributionIntegral            , &
            &                  integrandFunctionProduct               , &
            &                  integrationWorkspaceProduct            , &
-           &                  toleranceAbsolute       =+1.0d-6         &
-           &                                           /spinIntrinsic, &
+           &                  toleranceAbsolute       =0.0d0         , &
            &                  toleranceRelative       =+1.0d-3         &
            &                 )                                         & 
            &       /logNormalWidth                                     & ! <= Partial normalization term for the lognormal distribution - brought outside of integrand since constant.
@@ -505,6 +528,8 @@ contains
            &                             distributionNonCentral, distributionLogNormal, &
            &                             spinUnscaled          , sinhArgument
 
+      ! Initialize distribution to zero.
+      productDistributionIntegral=0.0d0
       ! Find the unscaled spin. This is the spin resulting from the intrinsic spin plus spin-independent (i.e. random walk in
       ! angular momentum space) error but without any scaling due to errors in mass/energy.
       spinUnscaled=exp(logSpinUnscaled)
@@ -548,6 +573,8 @@ contains
               &                      )                     &
               &                 /2.0d0
       end if
+      ! Return early if the non-central χ-square distribution is zero.
+      if (distributionNonCentral <= 0.0d0) return
       ! Evaluate the log-normal distribution. The parameter "y" here is the ratio of the measured spin to the unscaled spin. Note
       ! that constant normalization terms are excluded here, and are instead included external to the integrand
       y                    =+spinMeasured            &
@@ -665,6 +692,7 @@ contains
   double precision function nbodyErrorsDistributionAveraged(self,node,massLimit)
     !% Compute the spin distribution averaged over all halos more massive than the given {\normalfont \ttfamily massLimit}.
     use Galacticus_Nodes
+    use Galacticus_Calculations_Resets
     implicit none
     class           (haloSpinDistributionNbodyErrors), intent(inout)          :: self
     type            (treeNode                       ), intent(inout), pointer :: node
@@ -674,7 +702,7 @@ contains
          &                                                                       massLow  , massHigh    , &
          &                                                                       weight   , weightTotal
     integer                                                                   :: iMass
-
+    
     ! Sum the spin distribution over all tabulated points in mass, weighting by the number of halos in that mass range.
     nodeBasic                       => node     %basic()
     massOriginal                    =  nodeBasic%mass ()
@@ -686,6 +714,7 @@ contains
        massHigh=    10.0d0**((dble(iMass)-0.5d0)*self%massDelta+log10(self%massMinimum))
        if (massHigh > massLow) then
           call nodeBasic%massSet(mass)
+          call Galacticus_Calculations_Reset(node)
           weight                         =self%haloMassFunction_%integrated(nodeBasic%time(),massLow,massHigh)
           nbodyErrorsDistributionAveraged=nbodyErrorsDistributionAveraged+self%distribution(node)*weight
           weightTotal                    =weightTotal                    +                        weight
@@ -694,5 +723,45 @@ contains
     ! Normalize by the total weight.
     if (weightTotal > 0.0d0) nbodyErrorsDistributionAveraged=nbodyErrorsDistributionAveraged/weightTotal
     call nodeBasic%massSet(massOriginal)
+    call Galacticus_Calculations_Reset(node)
     return
   end function nbodyErrorsDistributionAveraged
+
+  double precision function nbodyErrorsNonCentralChiSquareMode(chi)
+    !% Computes the mode of the degree-3 non-central chi-squared distribution function for given $\chi$.
+    use Root_Finder
+    implicit none
+    double precision            , intent(in   ) :: chi
+    type            (rootFinder), save          :: finder
+    !$omp threadprivate(finder)
+
+    if (.not.finder%isInitialized()) then
+       call finder%tolerance   (                                                             &
+            &                   toleranceRelative            =1.0d-3                         &
+            &                  )
+       call finder%rangeExpand (                                                             &
+            &                   rangeExpandUpward            =2.0d0                        , &
+            &                   rangeExpandDownward          =0.5d0                        , &
+            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+            &                   rangeExpandType              =rangeExpandMultiplicative      &
+            &                  )
+       call finder%rootFunction(                                                             &
+            &                                                 modeRoot                       &
+            &                  )
+    end if
+    nbodyErrorsNonCentralChiSquareMode=finder%find(rootGuess=max(1.0d0,chi))
+    return
+
+  contains
+
+    double precision function modeRoot(x)
+      !% Root function used in finding the mode of the degree-3 non-central chi-squared distribution function.
+      implicit none
+      double precision, intent(in   ) :: x
+
+      modeRoot=sqrt(x*chi)*tanh(sqrt(x*chi))-chi
+      return
+    end function modeRoot
+    
+  end function nbodyErrorsNonCentralChiSquareMode
