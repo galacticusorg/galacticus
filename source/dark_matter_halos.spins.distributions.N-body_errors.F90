@@ -84,6 +84,10 @@
   double precision, parameter :: nbodyErrorsSpinMaximum        =0.5d+0, nbodyErrorsMassMaximum        =1.0d15
   double precision, parameter :: nbodyErrorsSpinMinimum        =3.0d-4, nbodyErrorsMassMinimum        =1.0d11
 
+  ! Module-scope variable used in root finding.
+  double precision :: nbodyErrorsNonCentralChiSquareChi
+  !$omp threadprivate(nbodyErrorsNonCentralChiSquareChi)
+  
 contains
 
   function nbodyErrorsConstructorParameters(parameters)
@@ -448,11 +452,11 @@ contains
       !% Integral over the intrinsic spin distribution, and spin error distribution.
       implicit none
       double precision, intent(in   ) :: logSpinIntrinsic
-      double precision, parameter     :: logNormalMean   =1.0000d0                             ! Mean of the log-normal distribution of mass/energy errors. We assume an unbiased
-                                                                                               ! measurement, so the mean is unity.
-      double precision, parameter     :: rangeIntegration=1.0000d1                             ! Integration range (in ~σ - the width of each distribution).
-      double precision                :: spinIntrinsic            , logSpinMinimum         , &
-           &                             logSpinMaximum           , nonCentralChiSquareMode
+      double precision, parameter     :: logNormalMean   =1.0000d0                              ! Mean of the log-normal distribution of mass/energy errors. We assume an unbiased
+                                                                                                ! measurement, so the mean is unity.
+      double precision, parameter     :: rangeIntegration=1.0000d1                              ! Integration range (in ~σ - the width of each distribution).
+      double precision                :: spinIntrinsic            , logSpinMinimum          , &
+           &                             logSpinMaximum           , nonCentralChiSquaredMode
       
       ! Compute intrinsic spin.
       spinIntrinsic=exp(logSpinIntrinsic)
@@ -484,23 +488,23 @@ contains
       logNormalLogMean=+log(logNormalMean)               &
            &           -0.5d0                            &
            &           *logNormalWidth**2       
-      ! Find the logarithm of the spin corresponding to the mode of the non-central chi-square distribution.
-      nonCentralChiSquareMode=log(sqrt(nbodyErrorsNonCentralChiSquareMode(nonCentrality))*errorSpinIndependent1D)
-      ! Find a suitable integration range for the intergral. We center this on the mode of the non-central chi-square distribution
-      ! for the spin, offset by the mean of the log-normal distribution. We use a width around this equal to some multiple of the
-      ! log-normal distribution width. This ensures that we include the range encompassing the peak of the non-central chi-square
-      ! distribution, and sufficiently broad that the log-normal part will ensure that the distribution has fallen close to zero
-      ! at the extremes of our integration range.
-      logSpinMinimum=    max(                                                                   &
-           &                 log(self%spinMinimum )                                           , &
-           &                 nonCentralChiSquareMode-logNormalLogMean-rangeIntegration*logNormalWidth  &
+      ! Find the logarithm of the spin corresponding to the mode of the non-central chi-squared distribution.
+      nonCentralChiSquaredMode=log(sqrt(nbodyErrorsNonCentralChiSquareMode(nonCentrality))*errorSpinIndependent1D)
+      ! Determine a suitable integration range. The range is centered on the mode of the non-central chi-squared distribution
+      ! offset by the mean of the log-normal distribution to ensure that we always include the peak of the distribution. The
+      ! integration range around this mode is then chosen such that the log-normal distribution will have decayed by a large
+      ! factor at the edges of the range to ensure that we are not missing any significant contributions from outside of the
+      ! integration range.
+      logSpinMinimum=    max(                                                                           &
+           &                 log(self%spinMinimum )                                                   , &
+           &                 nonCentralChiSquaredMode-logNormalLogMean-rangeIntegration*logNormalWidth  &
            &                )
-      logSpinMaximum=min(                                                                       &
-           &             min(                                                                   &
-           &                 log(self%spinMaximum )                                           , &
-           &                 nonCentralChiSquareMode-logNormalLogMean+rangeIntegration*logNormalWidth  &
-           &                )                                                                 , &
-           &                 rangeIntegration*errorSpinIndependent1D*sqrt(nonCentrality)        &
+      logSpinMaximum=min(                                                                               &
+           &             min(                                                                           &
+           &                 log(self%spinMaximum )                                                   , &
+           &                 nonCentralChiSquaredMode-logNormalLogMean+rangeIntegration*logNormalWidth  &
+           &                )                                                                         , &
+           &                 rangeIntegration*errorSpinIndependent1D*sqrt(nonCentrality)                &
            &            )
       ! Evaluate the integrand.
       spinIntegral=+self%distributionIntrinsic%distribution(node)      & ! Weight by the intrinsic spin distribution.
@@ -736,32 +740,40 @@ contains
     !$omp threadprivate(finder)
 
     if (.not.finder%isInitialized()) then
-       call finder%tolerance   (                                                             &
-            &                   toleranceRelative            =1.0d-3                         &
+       call finder%tolerance   (                                                                     &
+            &                   toleranceRelative            =1.0d-3                                 &
             &                  )
-       call finder%rangeExpand (                                                             &
-            &                   rangeExpandUpward            =2.0d0                        , &
-            &                   rangeExpandDownward          =0.5d0                        , &
-            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-            &                   rangeExpandType              =rangeExpandMultiplicative      &
+       call finder%rangeExpand (                                                                     &
+            &                   rangeExpandUpward            =2.0d0                                , &
+            &                   rangeExpandDownward          =0.5d0                                , &
+            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive        , &
+            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative        , &
+            &                   rangeExpandType              =rangeExpandMultiplicative              &
             &                  )
-       call finder%rootFunction(                                                             &
-            &                                                 modeRoot                       &
+       call finder%rootFunction(                                                                     &
+            &                                                 nbodyErrorsNonCentralChiSquareModeRoot &
             &                  )
     end if
+    nbodyErrorsNonCentralChiSquareChi =                                chi
     nbodyErrorsNonCentralChiSquareMode=finder%find(rootGuess=max(1.0d0,chi))
     return
-
-  contains
-
-    double precision function modeRoot(x)
-      !% Root function used in finding the mode of the degree-3 non-central chi-squared distribution function.
-      implicit none
-      double precision, intent(in   ) :: x
-
-      modeRoot=sqrt(x*chi)*tanh(sqrt(x*chi))-chi
-      return
-    end function modeRoot
-    
   end function nbodyErrorsNonCentralChiSquareMode
+
+  double precision function nbodyErrorsNonCentralChiSquareModeRoot(x)
+    !% Root function used in finding the mode of the degree-3 non-central chi-squared distribution function.
+    implicit none
+    double precision, intent(in   ) :: x
+
+    nbodyErrorsNonCentralChiSquareModeRoot=+      sqrt(                                   &
+         &                                             +x                                 &
+         &                                             *nbodyErrorsNonCentralChiSquareChi &
+         &                                            )                                   &
+         &                                 *tanh(                                         &
+         &                                       +sqrt(                                   &
+         &                                             +x                                 &
+         &                                             *nbodyErrorsNonCentralChiSquareChi &
+         &                                            )                                   &
+         &                                      )                                         &
+         &                                 -            nbodyErrorsNonCentralChiSquareChi
+    return
+  end function nbodyErrorsNonCentralChiSquareModeRoot
