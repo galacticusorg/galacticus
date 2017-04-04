@@ -26,6 +26,7 @@
      private
    contains
      procedure :: extract  => nullExtract
+     procedure :: type     => nullType
   end type outputAnalysisPropertyExtractorNull
 
   interface outputAnalysisPropertyExtractorNull
@@ -57,3 +58,14 @@ contains
     nullExtract=0.0d0
     return
   end function nullExtract
+
+  integer function nullType(self)
+    !% Return the type of the null property.
+    use Output_Analyses_Options
+    implicit none
+    class(outputAnalysisPropertyExtractorNull), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    nullType=outputAnalysisPropertyTypeUnknown
+    return
+  end function nullType

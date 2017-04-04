@@ -26,6 +26,7 @@
      private
    contains
      procedure :: extract  => massStellarExtract
+     procedure :: type     => massStellarType
   end type outputAnalysisPropertyExtractorMassStellar
 
   interface outputAnalysisPropertyExtractorMassStellar
@@ -59,3 +60,14 @@ contains
     massStellarExtract=Galactic_Structure_Enclosed_Mass(node,radiusLarge,massType=massTypeStellar)
     return
   end function massStellarExtract
+
+  integer function massStellarType(self)
+    !% Return the type of the stellar mass property.
+    use Output_Analyses_Options
+    implicit none
+    class(outputAnalysisPropertyExtractorMassStellar), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    massStellarType=outputAnalysisPropertyTypeLinear
+    return
+  end function massStellarType

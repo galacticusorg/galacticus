@@ -34,6 +34,11 @@ module Output_Analysis_Property_Extractions
   !#   <pass>yes</pass>
   !#   <argument>type(treeNode), intent(inout) :: node</argument>
   !#  </method>
-  !# </functionClass>
+  !#  <method name="type" >
+  !#   <description>Return the type of the extracted property.</description>
+  !#   <type>integer</type>
+  !#   <pass>yes</pass>
+  !#  </method>
+   !# </functionClass>
 
 end module Output_Analysis_Property_Extractions

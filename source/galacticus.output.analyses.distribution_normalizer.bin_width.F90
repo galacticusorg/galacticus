@@ -47,19 +47,32 @@ contains
     return
   end function binWidthConstructorParameters
 
-  function binWidthNormalize(self,distribution,propertyValueMinimum,propertyValueMaximum)
+  subroutine binWidthNormalize(self,distribution,covariance,propertyValueMinimum,propertyValueMaximum)
     !% Implement a bin width output analysis distribution normalizer.
+    use, intrinsic :: ISO_C_Binding
     implicit none
-    class           (outputAnalysisDistributionNormalizerBinWidth), intent(inout)                                        :: self
-    double precision                                              , intent(in   ), dimension(:)                          :: distribution
-    double precision                                              , intent(in   ), dimension(:)                          :: propertyValueMinimum, propertyValueMaximum
-    double precision                                                             , dimension(size(propertyValueMinimum)) :: binWidthNormalize
+    class           (outputAnalysisDistributionNormalizerBinWidth), intent(inout)                 :: self
+    double precision                                              , intent(inout), dimension(:  ) :: distribution
+    double precision                                              , intent(inout), dimension(:,:) :: covariance
+    double precision                                              , intent(in   ), dimension(:  ) :: propertyValueMinimum, propertyValueMaximum
+    integer         (c_size_t                                    )                                :: i
     !GCC$ attributes unused :: self
 
-    binWidthNormalize=+distribution           &
-         &            /(                      &
-         &              +propertyValueMaximum &
-         &              -propertyValueMinimum &
-         &            )
+    distribution=+distribution            &
+         &        /(                      &
+         &          +propertyValueMaximum &
+         &          -propertyValueMinimum &
+         &        )
+    forall(i=1:size(propertyValueMinimum))
+       covariance(:,i)=+covariance(:,i)           &
+         &             /(                         &
+         &               +propertyValueMaximum(i) &
+         &               -propertyValueMinimum(i) &
+         &              )                         &
+         &             /(                         &
+         &               +propertyValueMaximum    &
+         &               -propertyValueMinimum    &
+         &              )
+    end forall
     return
-  end function binWidthNormalize
+  end subroutine binWidthNormalize

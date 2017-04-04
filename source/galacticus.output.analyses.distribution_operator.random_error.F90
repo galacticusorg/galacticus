@@ -17,85 +17,61 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements a random error output analysis distribution operator class. 
-  !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRandomError">
+  !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRandomError" abstract="yes">
   !#  <description>A random error output analysis distribution operator class.</description>
   !# </outputAnalysisDistributionOperator>
-  type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorRandomError
+  type, abstract, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorRandomError
      !% A random error output distribution operator class.
      private
-     double precision :: rootVariance
    contains
-     procedure :: operateScalar       => randomErrorOperateScalar
-     procedure :: operateDistribution => randomErrorOperateDistribution
+     procedure                                           :: operateScalar       => randomErrorOperateScalar
+     procedure                                           :: operateDistribution => randomErrorOperateDistribution
+     procedure(randomErrorOperateRootVariance), deferred :: rootVariance
   end type outputAnalysisDistributionOperatorRandomError
 
-  interface outputAnalysisDistributionOperatorRandomError
-     !% Constructors for the ``randomError'' output analysis distribution operator class.
-     module procedure randomErrorConstructorParameters
-     module procedure randomErrorConstructorInternal
-  end interface outputAnalysisDistributionOperatorRandomError
-
+  abstract interface
+     double precision function randomErrorOperateRootVariance(self,propertyValue)
+       !% Abstract interface for the root variance method of random error output analysis distribution operators.
+       import outputAnalysisDistributionOperatorRandomError
+       class           (outputAnalysisDistributionOperatorRandomError), intent(inout) :: self
+      double precision                                                , intent(in   ) :: propertyValue
+     end function randomErrorOperateRootVariance
+  end interface
+  
 contains
 
-  function randomErrorConstructorParameters(parameters) result(self)
-    !% Constructor for the ``randomError'' output analysis distribution operator class which takes a parameter set as input.
-    use Input_Parameters2
-    implicit none
-    type            (outputAnalysisDistributionOperatorRandomError)                :: self
-    type            (inputParameters                              ), intent(inout) :: parameters
-    double precision                                                               :: rootVariance
-    !# <inputParameterList label="allowedParameterNames" />
-
-    ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
-    !# <inputParameter>
-    !#   <name>rootVariance</name>
-    !#   <source>parameters</source>
-    !#   <variable>rootVariance</variable>
-    !#   <description>The root variance of the random error distribution.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
-    !# </inputParameter>
-    ! Construct the object.
-    self=outputAnalysisDistributionOperatorRandomError(rootVariance)
-    return
-  end function randomErrorConstructorParameters
-
-  function randomErrorConstructorInternal(rootVariance) result(self)
-    !% Constructor for the ``randomError'' output analysis distribution operator class which takes a parameter set as input.
-    implicit none
-    type            (outputAnalysisDistributionOperatorRandomError)                :: self
-    double precision                                               , intent(in   ) :: rootVariance
-    !# <constructorAssign variables="rootVariance"/>
-
-    return
-  end function randomErrorConstructorInternal
-
-  function randomErrorOperateScalar(self,propertyValue,propertyValueMinimum,propertyValueMaximum)
+  function randomErrorOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex)
     !% Implement a random error output analysis distribution operator.
     implicit none
     class           (outputAnalysisDistributionOperatorRandomError), intent(inout)                                        :: self
     double precision                                               , intent(in   )                                        :: propertyValue
+    integer                                                        , intent(in   )                                        :: propertyType
     double precision                                               , intent(in   ), dimension(:)                          :: propertyValueMinimum    , propertyValueMaximum
+    integer         (c_size_t                                     ), intent(in   )                                        :: outputIndex
     double precision                                                              , dimension(size(propertyValueMinimum)) :: randomErrorOperateScalar
-    
-    randomErrorOperateScalar=+0.5d0                                                                     &
-         &                   *(                                                                         &
-         &                     +erf((propertyValueMaximum-propertyValue)/self%rootVariance/sqrt(2.0d0)) &
-         &                     -erf((propertyValueMinimum-propertyValue)/self%rootVariance/sqrt(2.0d0)) &
+    double precision                                                                                                      :: rootVariance
+    !GCC$ attributes unused :: outputIndex, propertyType
+
+    rootVariance            =self%rootVariance(propertyValue)
+    randomErrorOperateScalar=+0.5d0                                                                &
+         &                   *(                                                                    &
+         &                     +erf((propertyValueMaximum-propertyValue)/rootVariance/sqrt(2.0d0)) &
+         &                     -erf((propertyValueMinimum-propertyValue)/rootVariance/sqrt(2.0d0)) &
          &                    )
     return
   end function randomErrorOperateScalar
 
-  function randomErrorOperateDistribution(self,distribution,propertyValueMinimum,propertyValueMaximum)
+  function randomErrorOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex)
     !% Implement a random error output analysis distribution operator.
     use Galacticus_Error
     implicit none
     class           (outputAnalysisDistributionOperatorRandomError), intent(inout)                                        :: self
     double precision                                               , intent(in   ), dimension(:)                          :: distribution
+    integer                                                        , intent(in   )                                        :: propertyType
     double precision                                               , intent(in   ), dimension(:)                          :: propertyValueMinimum          , propertyValueMaximum
+    integer         (c_size_t                                     ), intent(in   )                                        :: outputIndex
     double precision                                                              , dimension(size(propertyValueMinimum)) :: randomErrorOperateDistribution
-    !GCC$ attributes unused :: self, distribution, propertyValueMinimum, propertyValueMaximum
+    !GCC$ attributes unused :: self, distribution, propertyValueMinimum, propertyValueMaximum, outputIndex, propertyType
 
     randomErrorOperateDistribution=0.0d0
     call Galacticus_Error_Report('randomErrorOperateDistribution','not implemented')

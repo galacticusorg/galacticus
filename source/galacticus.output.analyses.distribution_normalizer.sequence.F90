@@ -96,20 +96,19 @@ contains
     return
   end subroutine sequenceDestructor
 
-  function sequenceNormalize(self,distribution,propertyValueMinimum,propertyValueMaximum)
+  subroutine sequenceNormalize(self,distribution,covariance,propertyValueMinimum,propertyValueMaximum)
     !% Perform a sequence normalization on an on-the-fly output distribution.
     implicit none
-    class           (outputAnalysisDistributionNormalizerSequence), intent(inout)                                        :: self
-    double precision                                              , intent(in   ), dimension(:)                          :: distribution
-    double precision                                              , intent(in   ), dimension(:)                          :: propertyValueMinimum, propertyValueMaximum
-    double precision                                                             , dimension(size(propertyValueMinimum)) :: sequenceNormalize
-    type            (normalizerList                              ), pointer                                              :: normalizer_
+    class           (outputAnalysisDistributionNormalizerSequence), intent(inout)                 :: self
+    double precision                                              , intent(inout), dimension(:  ) :: distribution
+    double precision                                              , intent(inout), dimension(:,:) :: covariance
+    double precision                                              , intent(in   ), dimension(:  ) :: propertyValueMinimum, propertyValueMaximum
+    type            (normalizerList                              ), pointer                       :: normalizer_
 
-    sequenceNormalize =  distribution
-    normalizer_       => self%normalizers
+    normalizer_ => self%normalizers
     do while (associated(normalizer_))
-       sequenceNormalize=normalizer_%normalizer_%normalize(sequenceNormalize,propertyValueMinimum,propertyValueMaximum)
+       call normalizer_%normalizer_%normalize(distribution,covariance,propertyValueMinimum,propertyValueMaximum)
        normalizer_ => normalizer_%next
     end do
     return
-  end function sequenceNormalize
+  end subroutine sequenceNormalize

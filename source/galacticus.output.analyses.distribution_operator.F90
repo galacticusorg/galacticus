@@ -20,7 +20,8 @@
 
 module Output_Analysis_Distribution_Operators
   !% Provides a class that operators on distributions used in on-the-fly output analyses.
-  use Galacticus_Nodes
+  use, intrinsic :: ISO_C_Binding
+  use            :: Galacticus_Nodes
   private
   
   !# <functionClass>
@@ -32,15 +33,19 @@ module Output_Analysis_Distribution_Operators
   !#   <description>Operate on a scalar to produce a distribution.</description>
   !#   <type>double precision, dimension(size(propertyValueMinimum))</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   )               :: propertyValue</argument>
-  !#   <argument>double precision, intent(in   ), dimension(:) :: propertyValueMinimum, propertyValueMaximum</argument>
+  !#   <argument>double precision          , intent(in   )               :: propertyValue</argument>
+  !#   <argument>integer                   , intent(in   )               :: propertyType</argument>
+  !#   <argument>double precision          , intent(in   ), dimension(:) :: propertyValueMinimum, propertyValueMaximum</argument>
+  !#   <argument>integer         (c_size_t), intent(in   )               :: outputIndex</argument>
   !#  </method>
   !#  <method name="operateDistribution" >
   !#   <description>Operate on a distribution to produce a distribution.</description>
   !#   <type>double precision, dimension(size(propertyValueMinimum))</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ), dimension(:) :: distribution</argument>
-  !#   <argument>double precision, intent(in   ), dimension(:) :: propertyValueMinimum, propertyValueMaximum</argument>
+  !#   <argument>double precision          , intent(in   ), dimension(:) :: distribution</argument>
+  !#   <argument>integer                   , intent(in   )               :: propertyType</argument>
+  !#   <argument>double precision          , intent(in   ), dimension(:) :: propertyValueMinimum, propertyValueMaximum</argument>
+  !#   <argument>integer         (c_size_t), intent(in   )               :: outputIndex</argument>
   !#  </method>
   !# </functionClass>
 
