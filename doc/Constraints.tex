@@ -1252,6 +1252,24 @@ where $T_{\mathrm max}=${\normalfont \ttfamily temperatureMaximum} and $N=${\nor
 
 The {\normalfont \ttfamily parameters} section contains a list of all parameters to be varied in the analysis. Each parameter is described by one {\normalfont \ttfamily parameter} element. That element must contain a {\normalfont \ttfamily name} element, which gives the name of the parameter, a {\normalfont \ttfamily prior} element that contains a {\normalfont \ttfamily distribution} element defining the distribution for this prior, a {\normalfont \ttfamily mapping} element that describes the mapping of the parameter into the internal state used in \gls{mcmc} calculations, and (for differential evolution simulations) a {\normalfont \ttfamily random} element that defines the distribution to be used for the random perturbation to be added to this parameter in proposals.
 
+The {\normalfont \ttfamily name} element can specify subparameters, elements in an array of parameters, and elements within a parameter's {\normalfont \ttfamily value} element. For example, consider the parameter file:
+\begin{verbatim}
+<parameter1 value="123"/>
+<parameterA value="456"/>
+<parameterA value="789"/>
+<parameterA value="987"/>
+<parameter2 value="abc">
+ <parameter2a value="def"/>
+</parameter2>
+<parameterX value="1.0 2.0 3.0"/>
+\end{verbatim}
+\begin{itemize}
+\item A name of {\normalfont \ttfamily parameter1} will change the value ({\normalfont \ttfamily 123}) of the {\normalfont \ttfamily parameter1} element;
+\item A name of {\normalfont \ttfamily parameterA[1]} will change the value ({\normalfont \ttfamily 1789}) of the second {\normalfont \ttfamily parameterA} element (array indexing is 0-offset);
+\item A name of {\normalfont \ttfamily parameter2->parameter2a} will change the value ({\normalfont \ttfamily def}) of the {\normalfont \ttfamily parameter2a} element;
+\item A name of {\normalfont \ttfamily parameterX{1}} will change the value ({\normalfont \ttfamily 2.0}) of second entry in the value of the {\normalfont \ttfamily parameterX} element.
+\end{itemize}
+
 Currently allowed mappings are:
 \begin{itemize}
 \item[{\normalfont \ttfamily linear}] Effectively a null mapping, as the parameter is mapped into itself: $x \rightarrow x$.
