@@ -47,16 +47,16 @@ contains
     return
   end function log10ToLogConstructorParameters
 
-  function log10ToLogNormalize(self,distribution,propertyValueMinimum,propertyValueMaximum)
+  subroutine log10ToLogNormalize(self,distribution,covariance,propertyValueMinimum,propertyValueMaximum)
     !% Implement a bin width output analysis distribution normalizer.
     implicit none
-    class           (outputAnalysisDistributionNormalizerLog10ToLog), intent(inout)                                        :: self
-    double precision                                                , intent(in   ), dimension(:)                          :: distribution
-    double precision                                                , intent(in   ), dimension(:)                          :: propertyValueMinimum, propertyValueMaximum
-    double precision                                                               , dimension(size(propertyValueMinimum)) :: log10ToLogNormalize
-    !GCC$ attributes unused :: self, propertyValueMaximum
+    class           (outputAnalysisDistributionNormalizerLog10ToLog), intent(inout)                 :: self
+    double precision                                                , intent(inout), dimension(:  ) :: distribution
+    double precision                                                , intent(inout), dimension(:,:) :: covariance
+    double precision                                                , intent(in   ), dimension(:  ) :: propertyValueMinimum, propertyValueMaximum
+    !GCC$ attributes unused :: self, propertyValueMinimum, propertyValueMaximum
 
-    log10ToLogNormalize=+distribution &
-         &              /log(10.0d0)
+    distribution=distribution/log(10.0d0)
+    covariance  =covariance  /log(10.0d0)**2
     return
-  end function log10ToLogNormalize
+  end subroutine log10ToLogNormalize

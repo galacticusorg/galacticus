@@ -1,0 +1,93 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+  !% Contains a module which implements a identity output analysis distribution operator class.
+  
+  !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorIdentity">
+  !#  <description>A identity output analysis distribution operator class.</description>
+  !# </outputAnalysisDistributionOperator>
+  type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorIdentity
+     !% A identity output distribution operator class.
+     private
+   contains
+     procedure :: operateScalar       => identityOperateScalar
+     procedure :: operateDistribution => identityOperateDistribution
+  end type outputAnalysisDistributionOperatorIdentity
+
+  interface outputAnalysisDistributionOperatorIdentity
+     !% Constructors for the ``identity'' output analysis class.
+     module procedure identityConstructorParameters
+  end interface outputAnalysisDistributionOperatorIdentity
+
+contains
+
+  function identityConstructorParameters(parameters) result (self)
+    !% Constructor for the ``identity'' output analysis distribution operator class which takes a parameter set as input.
+    use Input_Parameters2
+    implicit none
+    type(outputAnalysisDistributionOperatorIdentity)                :: self
+    type(inputParameters                           ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
+
+    self=outputAnalysisDistributionOperatorIdentity()
+    return
+  end function identityConstructorParameters
+
+  function identityOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex)
+    !% Implement a identity output analysis distribution operator.
+    use Arrays_Search
+    implicit none
+    class           (outputAnalysisDistributionOperatorIdentity), intent(inout)                                        :: self
+    double precision                                            , intent(in   )                                        :: propertyValue
+    integer                                                     , intent(in   )                                        :: propertyType
+    double precision                                            , intent(in   ), dimension(:)                          :: propertyValueMinimum    , propertyValueMaximum
+    integer         (c_size_t                                  ), intent(in   )                                        :: outputIndex
+    double precision                                                           , dimension(size(propertyValueMinimum)) :: identityOperateScalar
+    integer         (c_size_t                                  )                                                       :: binIndex
+    !GCC$ attributes unused :: self, outputIndex, propertyType
+
+    ! Initialize distribution to zero.
+    identityOperateScalar=0.0d0
+    ! Find the corresponding bin in the array.
+    binIndex=Search_Array(propertyValueMinimum,propertyValue)
+    ! Check if value lies within range.
+    if (binIndex <= 0) return
+    ! Add weight to distribution if within the bin.
+    if     (                                                 &
+         &   propertyValue >= propertyValueMinimum(binIndex) &
+         &  .and.                                            &
+         &   propertyValue <  propertyValueMaximum(binIndex) &
+         & ) identityOperateScalar(binIndex)=1.0d0
+    return
+  end function identityOperateScalar
+
+  function identityOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex)
+    !% Implement a identity output analysis distribution operator.
+    use Galacticus_Error
+    implicit none
+    class           (outputAnalysisDistributionOperatorIdentity), intent(inout)                                        :: self
+    double precision                                            , intent(in   ), dimension(:)                          :: distribution
+    integer                                                     , intent(in   )                                        :: propertyType
+    double precision                                            , intent(in   ), dimension(:)                          :: propertyValueMinimum          , propertyValueMaximum
+    integer         (c_size_t                                  ), intent(in   )                                        :: outputIndex
+    double precision                                                           , dimension(size(propertyValueMinimum)) :: identityOperateDistribution
+    !GCC$ attributes unused :: self, propertyValueMinimum, propertyValueMaximum, outputIndex, propertyType
+
+    identityOperateDistribution=distribution
+    return
+  end function identityOperateDistribution

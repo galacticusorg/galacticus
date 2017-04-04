@@ -30,10 +30,11 @@ module Output_Analysis_Distribution_Normalizers
   !#  <default>identity</default>
   !#  <method name="normalize" >
   !#   <description>Normalize a distribution.</description>
-  !#   <type>double precision, dimension(size(propertyValueMinimum))</type>
+  !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ), dimension(:) :: distribution</argument>
-  !#   <argument>double precision, intent(in   ), dimension(:) :: propertyValueMinimum, propertyValueMaximum</argument>
+  !#   <argument>double precision, intent(inout), dimension(:  ) :: distribution</argument>
+  !#   <argument>double precision, intent(inout), dimension(:,:) :: covariance</argument>
+  !#   <argument>double precision, intent(in   ), dimension(:  ) :: propertyValueMinimum, propertyValueMaximum</argument>
   !#  </method>
   !# </functionClass>
 

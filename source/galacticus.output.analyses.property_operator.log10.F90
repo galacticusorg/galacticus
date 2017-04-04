@@ -47,17 +47,29 @@ contains
     return
   end function log10ConstructorParameters
 
-  double precision function log10Operate(self,propertyValue)
+  double precision function log10Operate(self,propertyValue,propertyType,outputIndex)
     !% Implement an log10 output analysis property operator.
+    use, intrinsic :: ISO_C_Binding
+    use            :: Output_Analyses_Options
     implicit none
-    class           (outputAnalysisPropertyOperatorLog10), intent(inout) :: self
-    double precision                                     , intent(in   ) :: propertyValue
-    !GCC$ attributes unused :: self
+    class           (outputAnalysisPropertyOperatorLog10), intent(inout)           :: self
+    double precision                                     , intent(in   )           :: propertyValue
+    integer                                              , intent(inout), optional :: propertyType
+    integer         (c_size_t                           ), intent(in   ), optional :: outputIndex
+    !GCC$ attributes unused :: self, outputIndex
 
     if (propertyValue > 0.0d0) then
        log10Operate=log10(propertyValue)
     else
        log10Operate=-huge(1.0d0)
+    end if
+    ! Change the property type.
+    if (present(propertyType)) then
+       if (propertyType == outputAnalysisPropertyTypeLinear) then
+          propertyType=outputAnalysisPropertyTypeLog10
+       else
+          propertyType=outputAnalysisPropertyTypeUnknown
+       end if
     end if
     return
   end function log10Operate

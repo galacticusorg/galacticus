@@ -47,12 +47,15 @@ contains
     return
   end function identityConstructorParameters
 
-  double precision function identityOperate(self,propertyValue)
+  double precision function identityOperate(self,propertyValue,propertyType,outputIndex)
     !% Implement an identity output analysis property operator.
+    use, intrinsic :: ISO_C_Binding
     implicit none
-    class           (outputAnalysisPropertyOperatorIdentity), intent(inout) :: self
-    double precision                                        , intent(in   ) :: propertyValue
-    !GCC$ attributes unused :: self
+    class           (outputAnalysisPropertyOperatorIdentity), intent(inout)           :: self
+    double precision                                        , intent(in   )           :: propertyValue
+    integer                                                 , intent(inout), optional :: propertyType
+    integer         (c_size_t                              ), intent(in   ), optional :: outputIndex
+    !GCC$ attributes unused :: self, outputIndex, propertyType
 
     identityOperate=propertyValue
     return
