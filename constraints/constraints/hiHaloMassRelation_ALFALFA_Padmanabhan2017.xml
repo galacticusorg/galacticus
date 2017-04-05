@@ -1,0 +1,10 @@
+<!-- Defines a constraint to match to the z=0 ALFALFA HI mass vs. halo mass relation -->
+<constraint>
+  <name>ALFALFA $$z=0$$ HI mass vs. halo mass relation</name>
+  <label>alfalfaHIHaloMassRelationZ0.00</label>
+  <outputRedshift>0.0</outputRedshift>
+  <haloMassResolution>1.0e10</haloMassResolution>
+  <haloMassMinimum>1.0e11</haloMassMinimum>
+  <haloMassMaximum>1.0e11</haloMassMaximum>
+  <analysis>constraints/scripts/hiHaloMassRelation_ALFALFA_Padmanabhan2017.pl</analysis>
+</constraint>
