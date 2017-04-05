@@ -1,7 +1,7 @@
 <!-- Defines a constraint to match to the z=0.22-0.48 COSMOS stellar mass vs. halo mass relation -->
 <constraint>
   <name>COSMOS $$z=0.22$$--$$0.48$$ stellar mass vs. halo mass relation</name>
-  <label>sdssStellarMassFunctionZ0.07</label>
+  <label>cosmosStellarHaloMassRelationZ0.35</label>
   <outputRedshift>0.35</outputRedshift>
   <haloMassResolution>1.0e10</haloMassResolution>
   <haloMassMinimum>1.0e11</haloMassMinimum>
