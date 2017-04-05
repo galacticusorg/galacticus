@@ -39,10 +39,11 @@ contains
     class           (cosmologyFunctionsClass), intent(inout)              :: cosmologyFunctions_
     double precision                         , intent(in   )              :: massLimit
     logical                                  , intent(in   ), optional    :: allowSingleEpoch
+    double precision                         , parameter                  :: timeTolerance      =1.0d-6
     integer         (c_size_t               )                             :: iOutput
     integer                                                               :: iField
-    double precision                                                      :: timeMinimum        , timeMaximum    , &
-         &                                                                   distanceMinimum    , distanceMaximum
+    double precision                                                      :: timeMinimum               , timeMaximum    , &
+         &                                                                   distanceMinimum           , distanceMaximum
     !# <optionalArgument name="allowSingleEpoch" defaultsTo=".false." />
     
     allocate(outputWeight(Galacticus_Output_Time_Count()))
@@ -55,10 +56,10 @@ contains
              ! Test whether the output epoch lies within the range of comoving distances for this field.
              timeMinimum=cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_%distanceMaximum(massLimit,iField))
              timeMaximum=cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_%distanceMinimum(massLimit,iField))
-             if     (                                                   &
-                  &   Galacticus_Output_Time(1_c_size_t) >= timeMinimum &
-                  &  .and.                                              &
-                  &   Galacticus_Output_Time(1_c_size_t) <= timeMaximum &
+             if     (                                                                         &
+                  &   Galacticus_Output_Time(1_c_size_t) >= timeMinimum*(1.0d0-timeTolerance) &
+                  &  .and.                                                                    &
+                  &   Galacticus_Output_Time(1_c_size_t) <= timeMaximum*(1.0d0+timeTolerance) &
                   & ) outputWeight=1.0d0
           end do
           if (all(outputWeight == 0.0d0)) call Galacticus_Error_Report('Output_Analysis_Output_Weight_Survey_Volume','zero weights')
