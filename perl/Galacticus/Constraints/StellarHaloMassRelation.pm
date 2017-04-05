@@ -55,7 +55,16 @@ sub COSMOS2012 {
     my $massHaloModel                    = $analysis->dataset('massHalo'                                           )->get();
     my $massStellarModel                 = $analysis->dataset('massStellar'                                        )->get();
     my $massStellarCovarianceModel       = $analysis->dataset('massStellarCovariance'                              )->get();
-    my $modelEntries                     = which(($massStellarModel > 0.0) & ($massStellarCovarianceModel->diagonal(0,1) > 0.0));
+    my $modelEntries                     = 
+	which(
+	    ($massStellarModel                          >  0.0                      ) 
+	    &
+	    ($massStellarCovarianceModel->diagonal(0,1) >  0.0                      )
+	    &
+	    ($massHaloModel                             >= $massHaloMeanData->(( 0)))
+	    &
+	    ($massHaloModel                             <= $massHaloMeanData->((-1)))
+	);
     my $massHaloModelLogarithmic         = log($massHaloModel   ->($modelEntries));
     my $massStellarModelLogarithmic      = log($massStellarModel->($modelEntries));
     my $massStellarErrorModelLogarithmic = $massStellarCovarianceModel->diagonal(0,1)->($modelEntries)->sqrt()/$massStellarModel->($modelEntries);
