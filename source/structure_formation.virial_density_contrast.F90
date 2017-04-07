@@ -23,6 +23,7 @@ module Virial_Density_Contrast
   use ISO_Varying_String
   use Galacticus_Nodes
   use FGSL
+  !$ use OMP_Lib
   !# <include directive="virialDensityContrast" type="functionModules" >
   include 'virialDensityContrast.functionModules.inc'
   !# </include>
