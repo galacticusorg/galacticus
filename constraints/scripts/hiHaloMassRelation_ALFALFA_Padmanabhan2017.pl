@@ -17,9 +17,10 @@ use PDL::GSL::INTERP;
 
 # Compute likelihood (and make a plot) for a Galacticus model given the HI mass-halo mass relation of Padmanabhan et
 # al. (2017).
+# Andrew Benson (05-April-2017)
 
 # Get name of input and output files.
-die("stellarHaloMassRelation_Leauthaud2012_Z1.pl <galacticusFile> [options]")
+die("hiHaloMassRelation_ALFALFA_Padmanabhan2017.pl <galacticusFile> [options]")
     unless ( scalar(@ARGV) >= 1 );
 my $galacticusFileName = $ARGV[0];
 # Create a hash of named options.
@@ -135,15 +136,13 @@ if ( exists($options{'plotFile'}) ) {
     print $gnuPlot "set xlabel 'Halo mass; \$M_{\\mathrm{FoF},b=0.2}\\, [\\mathrm{M}_\\odot]\$'\n";
     print $gnuPlot "set ylabel 'HI mass; \$M_\\mathrm{HI}\\, [\\mathrm{M}_\\odot]\$'\n";
     print $gnuPlot "set pointsize 1.0\n";
-    # Plot model points.
-    my $massHIRegion   =                           $massHIData              -$massHICovarianceModel->diagonal(0,1)->($modelEntries)->sqrt()         ;
-    $massHIRegion      = $massHIRegion    ->append($massHIData      ->(-1:0)+$massHICovarianceModel->diagonal(0,1)->($modelEntries)->sqrt()->(-1:0));
+    # Plot measured relation.
     &GnuPlot::PrettyPlots::Prepare_Dataset
 	(
 	 \$plot,
 	 $massHaloMeanData,
-	 $massHIData-$massHICovarianceModel->diagonal(0,1)->($modelEntries)->sqrt(),
-	 y2           => $massHIData+$massHICovarianceModel->diagonal(0,1)->($modelEntries)->sqrt(),
+	 $massHIData-$massHIErrorData,
+	 y2           => $massHIData+$massHIErrorData,
 	 style        => "filledCurve",
 	 weight       => [3,1],
 	 color        => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'},
