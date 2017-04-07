@@ -265,10 +265,14 @@ contains
          &                                covarianceBinomialMassHaloMaximum                        &
          &                               )
     ! Clean up.
-    nullify(outputAnalysisPropertyExtractor_       )
-    nullify(outputAnalysisPropertyOperatorLog10_   )
-    nullify(outputAnalysisPropertyOperatorSequence_)
-    nullify(outputAnalysisDistributionNormalizer_  )
-    nullify(normalizerSequence                     )
+    nullify(outputAnalysisPropertyExtractor_                )
+    nullify(outputAnalysisPropertyOperatorLog10_            )
+    nullify(outputAnalysisPropertyOperatorAntiLog10_        )
+    nullify(outputAnalysisPropertyOperatorSequence_         )
+    nullify(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_)
+    nullify(outputAnalysisDistributionNormalizer_           )
+    nullify(outputAnalysisWeightOperator_                   )
+    nullify(propertyOperatorSequence                        )
+    nullify(normalizerSequence                              )
     return
   end function massFunctionStellarConstructorInternal
