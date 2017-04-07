@@ -37,6 +37,7 @@
      integer                                     :: densityContrastTableMassCount  , densityContrastTableTimeCount
      logical                                     :: densityContrastTableInitialized                      
      type            (table2DLogLogLin)          :: densityContrastTable
+     integer         (omp_lock_kind   )          :: densityContrastTableLock
    contains
      !@ <objectMethods>
      !@   <object>virialDensityContrastPercolation</object>
@@ -125,6 +126,7 @@ contains
     percolationConstructor%densityContrastTableMassMinimum= 4.0d+05
     percolationConstructor%densityContrastTableMassMaximum= 1.0d+16
     percolationConstructor%densityContrastTableInitialized=.false.
+    call OMP_Init_Lock(percolationConstructor%densityContrastTableLock)
     return
   end function percolationConstructor
 
@@ -135,6 +137,7 @@ contains
     type(virialDensityContrastPercolation), intent(inout) :: self
 
     call self%densityContrastTable%destroy()
+    call OMP_Destroy_Lock(self%densityContrastTableLock)
     return
   end subroutine percolationDestructor
 
@@ -303,10 +306,14 @@ contains
        ! Get the time to use.
        cosmologyFunctions_ => cosmologyFunctions           (                               )
        timeActual          =  cosmologyFunctions_%epochTime(time,expansionFactor,collapsing)
+       ! Get a lock on the table.
+       call OMP_Set_Lock(self%densityContrastTableLock)
        ! Ensure tabulation is built.
        call self%tabulate(mass,timeActual)  
        ! Interpolate.
        percolationDensityContrast=self%densityContrastTable%interpolate(mass,timeActual)
+       ! Release the lock on the table.
+       call OMP_Unset_Lock(self%densityContrastTableLock)
     end if
     return
   end function percolationDensityContrast
@@ -327,10 +334,14 @@ contains
     ! Get the time to use.
     cosmologyFunctions_ => cosmologyFunctions           (                               )
     timeActual          =  cosmologyFunctions_%epochTime(time,expansionFactor,collapsing)
+    ! Get a lock on the table.
+    call OMP_Set_Lock(self%densityContrastTableLock)
     ! Ensure tabulation is built.
     call self%tabulate(mass,timeActual)  
     ! Interpolate.
     percolationDensityContrastRateOfChange=self%densityContrastTable%interpolateGradient(mass,timeActual,dim=2)
+    ! Release the lock on the table.
+    call OMP_Unset_Lock(self%densityContrastTableLock)
     return
   end function percolationDensityContrastRateOfChange
 
