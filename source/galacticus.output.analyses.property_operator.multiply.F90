@@ -71,15 +71,16 @@ contains
     return
   end function multiplyConstructorInternal
 
-  double precision function multiplyOperate(self,propertyValue,propertyType,outputIndex)
+  double precision function multiplyOperate(self,propertyValue,node,propertyType,outputIndex)
     !% Implement an multiply output analysis property operator.
     use, intrinsic :: ISO_C_Binding
     implicit none
     class           (outputAnalysisPropertyOperatorMultiply), intent(inout)           :: self
     double precision                                        , intent(in   )           :: propertyValue
+    type            (treeNode                              ), intent(inout), optional :: node
     integer                                                 , intent(inout), optional :: propertyType
     integer         (c_size_t                              ), intent(in   ), optional :: outputIndex
-    !GCC$ attributes unused :: propertyType, outputIndex
+    !GCC$ attributes unused :: propertyType, outputIndex, node
 
     multiplyOperate=+propertyValue   &
          &          *self%multiplier

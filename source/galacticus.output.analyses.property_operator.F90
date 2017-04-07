@@ -29,14 +29,16 @@ module Output_Analysis_Property_Operators
   !#  <descriptiveName>Output Analysis Property Operator</descriptiveName>
   !#  <description>Class providing operators on properties for on-the-fly analysis of outputs.</description>
   !#  <default>identity</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="operate" >
   !#   <description>Operate on the given property.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision          , intent(in   )           :: propertyValue</argument>
+  !#   <argument>type            (treeNode), intent(inout), optional :: node</argument>
   !#   <argument>integer                   , intent(inout), optional :: propertyType</argument>
   !#   <argument>integer         (c_size_t), intent(in   ), optional :: outputIndex</argument>
   !#  </method>
   !# </functionClass>
-
+  
 end module Output_Analysis_Property_Operators
