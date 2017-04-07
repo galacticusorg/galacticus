@@ -39,12 +39,14 @@ contains
     use Cosmology_Parameters
     use Cosmology_Functions
     use Input_Parameters2
+    use Output_Analysis_Molecular_Ratios
     implicit none
     type            (outputAnalysisHIVsHaloMassRelationPadmanabhan2017)                              :: self
     type            (inputParameters                                  ), intent(inout)               :: parameters
     double precision                                                   , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient
     class           (cosmologyFunctionsClass                          ), pointer                     :: cosmologyFunctions_
     class           (cosmologyParametersClass                         ), pointer                     :: cosmologyParameters_
+    class           (outputAnalysisMolecularRatioClass                ), pointer                     :: outputAnalysisMolecularRatio_
     !# <inputParameterList label="allowedParameterNames" />
     
     ! Check and read parameters.
@@ -63,14 +65,15 @@ contains
     !#   <type>float</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters"          name="cosmologyParameters_"          source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
+    !# <objectBuilder class="outputAnalysisMolecularRatio" name="outputAnalysisMolecularRatio_" source="parameters"/>
     ! Build the object.
-    self=outputAnalysisHIVsHaloMassRelationPadmanabhan2017(systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_)
+    self=outputAnalysisHIVsHaloMassRelationPadmanabhan2017(systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputAnalysisMolecularRatio_)
     return
   end function hiVsHaloMassRelationPadmanabhan2017ConstructorParameters
 
-  function hiVsHaloMassRelationPadmanabhan2017ConstructorInternal(systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_) result (self)
+  function hiVsHaloMassRelationPadmanabhan2017ConstructorInternal(systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputAnalysisMolecularRatio_) result (self)
     !% Constructor for the ``hiVsHaloMassRelationPadmanabhan2017'' output analysis class for internal use.
     use ISO_Varying_String
     use Numerical_Constants_Astronomical
@@ -82,6 +85,7 @@ contains
     use Output_Analysis_Distribution_Operators
     use Output_Analysis_Weight_Operators
     use Output_Analysis_Utilities
+    use Output_Analysis_Molecular_Ratios
     use Memory_Management
     use Cosmology_Parameters
     use Cosmology_Functions
@@ -93,6 +97,7 @@ contains
     double precision                                                           , intent(in   ), dimension(:  ) :: systematicErrorPolynomialCoefficient
     class           (cosmologyParametersClass                                 ), intent(inout), target         :: cosmologyParameters_
     class           (cosmologyFunctionsClass                                  ), intent(inout), target         :: cosmologyFunctions_
+    class           (outputAnalysisMolecularRatioClass                        ), intent(in   ), target         :: outputAnalysisMolecularRatio_
     integer         (c_size_t                                                 ), parameter                     :: massHaloCount                                         =26
     double precision                                                           , parameter                     :: massHaloMinimum                                       = 1.0d10, massHaloMaximum                  =1.0d15
     integer                                                                    , parameter                     :: covarianceBinomialBinsPerDecade                       =10
@@ -105,7 +110,7 @@ contains
     type            (filterList                                               ), pointer                       :: filters_
     type            (outputAnalysisDistributionOperatorIdentity               ), pointer                       :: outputAnalysisDistributionOperator_
     type            (outputAnalysisWeightOperatorIdentity                     ), pointer                       :: outputAnalysisWeightOperator_
-    type            (outputAnalysisPropertyOperatorMultiply                   ), pointer                       :: outputAnalysisWeightPropertyOperatorMultiply_
+    type            (outputAnalysisPropertyOperatorHIMass                     ), pointer                       :: outputAnalysisWeightPropertyOperatorHIMass_
     type            (outputAnalysisPropertyOperatorLog10                      ), pointer                       :: outputAnalysisPropertyOperator_                              , outputAnalysisWeightPropertyOperatorLog10_
     type            (outputAnalysisPropertyOperatorAntiLog10                  ), pointer                       :: outputAnalysisPropertyUnoperator_                            , outputAnalysisWeightPropertyOperatorAntiLog10_
     type            (outputAnalysisPropertyOperatorSequence                   ), pointer                       :: outputAnalysisWeightPropertyOperator_
@@ -160,53 +165,53 @@ contains
     galacticFilterAll_                       =  galacticFilterAll          (              filters_)
     ! Build identity distribution operator.
     allocate(outputAnalysisDistributionOperator_                   )
-    outputAnalysisDistributionOperator_                    =  outputAnalysisDistributionOperatorIdentity            (                                                             )
+    outputAnalysisDistributionOperator_                    =  outputAnalysisDistributionOperatorIdentity            (                                                                  )
     ! Build identity weight operator.
     allocate(outputAnalysisWeightOperator_                         )
-    outputAnalysisWeightOperator_                          =  outputAnalysisWeightOperatorIdentity                  (                                                             )
+    outputAnalysisWeightOperator_                          =  outputAnalysisWeightOperatorIdentity                  (                                                                  )
     ! Build log10() property operator.
     allocate(outputAnalysisPropertyOperator_                       )
-    outputAnalysisPropertyOperator_                        =  outputAnalysisPropertyOperatorLog10                   (                                                             )
-    ! Build a sequence (multiply, log10, polynomial systematic, anti-log10, cosmological luminosity distance, high-pass filter) of weight property operators.
+    outputAnalysisPropertyOperator_                        =  outputAnalysisPropertyOperatorLog10                   (                                                                  )
+    ! Build a sequence (HI mass, log10, polynomial systematic, anti-log10, cosmological luminosity distance, high-pass filter) of weight property operators.
     allocate(outputAnalysisWeightPropertyOperatorFilterHighPass_)
-    outputAnalysisWeightPropertyOperatorFilterHighPass_    =  outputAnalysisPropertyOperatorFilterHighPass          (massHILimit                                                  )
+    outputAnalysisWeightPropertyOperatorFilterHighPass_    =  outputAnalysisPropertyOperatorFilterHighPass          (massHILimit                                                       )
     allocate(outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_)
-    outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_ =  outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc       (cosmologyFunctions_     ,cosmologyFunctionsData              )
+    outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_ =  outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc       (cosmologyFunctions_          ,cosmologyFunctionsData              )
     allocate(outputAnalysisWeightPropertyOperatorSystmtcPolynomial_)
-    outputAnalysisWeightPropertyOperatorSystmtcPolynomial_ =  outputAnalysisPropertyOperatorSystmtcPolynomial       (errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient)
-    allocate(outputAnalysisWeightPropertyOperatorMultiply_         )
-    outputAnalysisWeightPropertyOperatorMultiply_          =  outputAnalysisPropertyOperatorMultiply                (hydrogenByMassPrimordial                                     )
+    outputAnalysisWeightPropertyOperatorSystmtcPolynomial_ =  outputAnalysisPropertyOperatorSystmtcPolynomial       (errorPolynomialZeroPoint     ,systematicErrorPolynomialCoefficient)
+    allocate(outputAnalysisWeightPropertyOperatorHIMass_           )
+    outputAnalysisWeightPropertyOperatorHIMass_            =  outputAnalysisPropertyOperatorHIMass                  (outputAnalysisMolecularRatio_                                     )
     allocate(outputAnalysisWeightPropertyOperatorLog10_            )
-    outputAnalysisWeightPropertyOperatorLog10_             =  outputAnalysisPropertyOperatorLog10                   (                                                             )
+    outputAnalysisWeightPropertyOperatorLog10_             =  outputAnalysisPropertyOperatorLog10                   (                                                                  )
     allocate(outputAnalysisWeightPropertyOperatorAntiLog10_        )
-    outputAnalysisWeightPropertyOperatorAntiLog10_         =  outputAnalysisPropertyOperatorAntiLog10               (                                                             )
+    outputAnalysisWeightPropertyOperatorAntiLog10_         =  outputAnalysisPropertyOperatorAntiLog10               (                                                                  )
     allocate(propertyOperators_                                    )
     allocate(propertyOperators_%next                               )
     allocate(propertyOperators_%next%next                          )
     allocate(propertyOperators_%next%next%next                     )
     allocate(propertyOperators_%next%next%next%next                )
     allocate(propertyOperators_%next%next%next%next%next           )
-    propertyOperators_                         %operator_  => outputAnalysisWeightPropertyOperatorMultiply_
+    propertyOperators_                         %operator_  => outputAnalysisWeightPropertyOperatorHIMass_
     propertyOperators_%next                    %operator_  => outputAnalysisWeightPropertyOperatorLog10_
     propertyOperators_%next%next               %operator_  => outputAnalysisWeightPropertyOperatorSystmtcPolynomial_
     propertyOperators_%next%next%next          %operator_  => outputAnalysisWeightPropertyOperatorAntiLog10_
     propertyOperators_%next%next%next%next     %operator_  => outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_
     propertyOperators_%next%next%next%next%next%operator_  => outputAnalysisWeightPropertyOperatorFilterHighPass_
     allocate(outputAnalysisWeightPropertyOperator_                 )
-    outputAnalysisWeightPropertyOperator_                  =  outputAnalysisPropertyOperatorSequence                (propertyOperators_                                           )
+    outputAnalysisWeightPropertyOperator_                  =  outputAnalysisPropertyOperatorSequence                (propertyOperators_                                                )
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_                     )
-    outputAnalysisPropertyUnoperator_                      =  outputAnalysisPropertyOperatorAntiLog10               (                                                             )
+    outputAnalysisPropertyUnoperator_                      =  outputAnalysisPropertyOperatorAntiLog10               (                                                                  )
     ! Create an HI mass weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
-    outputAnalysisWeightPropertyExtractor_                 =  outputAnalysisPropertyExtractorMassISM                (                                                             )
+    outputAnalysisWeightPropertyExtractor_                 =  outputAnalysisPropertyExtractorMassISM                (                                                                  )
     ! Create a halo mass weight property extractor. The virial density contrast is chosen to equal that expected for a
     ! friends-of-friends algorithm with linking length parameter b=0.2 since that is what was used by Sheth, Mo & Tormen (2001) in
     ! their original calibration of their halo mass function (as used by Padmanabhan & Refregier 2017).
     allocate(virialDensityContrast_                                )
-    virialDensityContrast_                                 =  virialDensityContrastPercolation                      (0.2d0                                                        )
+    virialDensityContrast_                                 =  virialDensityContrastPercolation                      (0.2d0                                                             )
     allocate(outputAnalysisPropertyExtractor_                      )
-    outputAnalysisPropertyExtractor_                       =  outputAnalysisPropertyExtractorMassHalo               (virialDensityContrast_                                       )
+    outputAnalysisPropertyExtractor_                       =  outputAnalysisPropertyExtractorMassHalo               (virialDensityContrast_                                            )
     ! Build the object.
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                              &
          &                                                         var_str('hiHaloMassRelationPadmanabhan2017'), &
