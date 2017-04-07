@@ -88,7 +88,7 @@ sub COSMOS2012 {
 	    my $logLikelihood = -0.5*($massStellarModelLogarithmic-$massStellarDataLogarithmicInterpolated)**2/($massStellarErrorModelLogarithmic**2+$massStellarErrorDataLogarithmicInterpolated**2);
 	    $constraint->{'logLikelihood'} = $logLikelihood->sclr();
 	} else {
-	    $constraint->{'logLikelihood'} = -1.0e30;
+	    $constraint->{'logLikelihood'} = 0.0;
 	}
 	$constraint->{'logLikelihoodVariance'} = 0.0;
 	# Output the constraint.
@@ -126,9 +126,7 @@ sub COSMOS2012 {
 	print $gnuPlot "set xlabel 'Stellar mass; \$M_\\star\\, [\\mathrm{M}_\\odot]\$'\n";
 	print $gnuPlot "set ylabel 'Halo mass; \$M_\\mathrm{200b}\\, [\\mathrm{M}_\\odot]\$'\n";
 	print $gnuPlot "set pointsize 1.0\n";
-	# Plot model points.
-	my $massHaloRegion    = $massHaloLowData->append($massHaloHighData->(-1:0));
-	my $massStellarRegion = $massStellarData->append($massStellarData ->(-1:0));
+	# Plot data points.
 	&GnuPlot::PrettyPlots::Prepare_Dataset
 	    (
 	     \$plot,
