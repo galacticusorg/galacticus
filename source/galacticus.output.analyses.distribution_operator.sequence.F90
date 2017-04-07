@@ -97,7 +97,7 @@ contains
     return
   end subroutine sequenceDestructor
 
-  function sequenceOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex)
+  function sequenceOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
     !% Implement an sequence output analysis distribution operator.
     implicit none
     class           (outputAnalysisDistributionOperatorSequence), intent(inout)                                        :: self
@@ -105,6 +105,7 @@ contains
     integer                                                     , intent(in   )                                        :: propertyType
     double precision                                            , intent(in   ), dimension(:)                          :: propertyValueMinimum , propertyValueMaximum
     integer         (c_size_t                                  ), intent(in   )                                        :: outputIndex
+    type            (treeNode                                  ), intent(inout)                                        :: node
     double precision                                                           , dimension(size(propertyValueMinimum)) :: sequenceOperateScalar
     type            (distributionOperatorList                  ), pointer                                              :: operator_
 
@@ -112,16 +113,16 @@ contains
     do while (associated(operator_))
        ! For first operator, apply to a scalar. Subsequent operators are applied to the distribution.
        if (associated(operator_,self%operators)) then
-          sequenceOperateScalar=operator_%operator_%operateScalar      (propertyValue        ,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex)
+          sequenceOperateScalar=operator_%operator_%operateScalar      (propertyValue        ,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
        else
-          sequenceOperateScalar=operator_%operator_%operateDistribution(sequenceOperateScalar,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex)
+          sequenceOperateScalar=operator_%operator_%operateDistribution(sequenceOperateScalar,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
        end if
        operator_ => operator_%next
     end do
     return
   end function sequenceOperateScalar
   
-  function sequenceOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex)
+  function sequenceOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
     !% Implement a random error output analysis distribution operator.
     use Galacticus_Error
     implicit none
@@ -130,13 +131,14 @@ contains
     integer                                                     , intent(in   )                                        :: propertyType
     double precision                                            , intent(in   ), dimension(:)                          :: propertyValueMinimum       , propertyValueMaximum
     integer         (c_size_t                                  ), intent(in   )                                        :: outputIndex
+    type            (treeNode                                  ), intent(inout)                                        :: node
     double precision                                                           , dimension(size(propertyValueMinimum)) :: sequenceOperateDistribution
     type            (distributionOperatorList                  ), pointer                                              :: operator_
 
     operator_                   => self        %operators
     sequenceOperateDistribution =  distribution
     do while (associated(operator_))
-       sequenceOperateDistribution=operator_%operator_%operateDistribution(sequenceOperateDistribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex)
+       sequenceOperateDistribution=operator_%operator_%operateDistribution(sequenceOperateDistribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
        operator_ => operator_%next
     end do
    return

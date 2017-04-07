@@ -70,12 +70,13 @@ contains
     return
   end function randomErrorFixedConstructorInternal
 
-  double precision function randomErrorFixedRootVariance(self,propertyValue)
+  double precision function randomErrorFixedRootVariance(self,propertyValue,node)
     !% Return the root-variance in the fixed random error distribution operator.
     implicit none
     class           (outputAnalysisDistributionOperatorRandomErrorFixed), intent(inout) :: self
     double precision                                                    , intent(in   ) :: propertyValue
-    !GCC$ attributes unused :: propertyValue
+    type            (treeNode                                          ), intent(inout) :: node
+    !GCC$ attributes unused :: propertyValue, node
 
     randomErrorFixedRootVariance=self%rootVariance_
     return
