@@ -143,24 +143,27 @@ contains
     ! Find the limiting redshift for this mass using a fit derived from Millennium Simulation SAMs. (See
     ! constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07/massLuminosityRelation.pl for details.)
     logarithmicMass=log10(mass)
-    redshift=                              &
-         & -5.9502006195004d0              &
-         & +logarithmicMass                &
-         & *(                              &
-         &   +2.63793788603951d0           &
-         &   +logarithmicMass              &
-         &   *(                            &
-         &     -0.421075858899237d0        &
-         &     +logarithmicMass            &
-         &     *(                          &
-         &       +0.0285198776926787d0     &
-         &       +logarithmicMass          &
-         &       *(                        &
-         &         -0.000678327494720407d0 &
-         &        )                        &
-         &      )                          &
-         &    )                            &
-         &  )
+    redshift=                                   &
+         & max(                                 &
+         &     -5.9502006195004d0               &
+         &     +logarithmicMass                 &
+         &     *(                               &
+         &       +2.63793788603951d0            &
+         &       +logarithmicMass               &
+         &       *(                             &
+         &         -0.421075858899237d0         &
+         &         +logarithmicMass             &
+         &         *(                           &
+         &           +0.0285198776926787d0      &
+         &           +logarithmicMass           &
+         &           *(                         &
+         &             -0.000678327494720407d0  &
+         &            )                         &
+         &          )                           &
+         &        )                             &
+         &      )                             , &
+         &     +0.0d0                           &
+         &    )
     ! Get the default cosmology functions object.
     cosmologyFunctions_ => cosmologyFunctions()     
     ! Convert from redshift to comoving distance.
