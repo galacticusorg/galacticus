@@ -138,7 +138,7 @@ contains
     matterDarkEnergyConstructorInternal%darkEnergyEquationOfStateW1=darkEnergyEquationOfStateW1
     ! Force a build of the expansion factor table, which will determine if this Universe collapses.
     call matterDarkEnergyConstructorInternal%expansionFactorTabulate()
-    return
+   return
   end function matterDarkEnergyConstructorInternal
 
   double precision function matterDarkEnergyCosmicTime(self,expansionFactor,collapsingPhase)
@@ -157,6 +157,8 @@ contains
          &                  collapsingIn     =collapsingPhase      , &
          &                  collapsingOut    =collapsingPhaseActual  &
          &                 )
+    ! Get lock on interpolation tables.
+    !$ call OMP_Set_Lock(self%expansionFactorTableLock)
     ! Ensure tabulation is initialized.
     if (.not.self%ageTableInitialized) call self%expansionFactorTabulate(self%ageTableTimeMinimum)
     ! Ensure that the tabulation spans a sufficient range of expansion factors.
@@ -184,6 +186,8 @@ contains
          &              expansionFactor              , &
          &              reset=self%resetInterpolation  &
          &             )
+    ! Release lock on interpolation tables.
+    !$ call OMP_Unset_Lock(self%expansionFactorTableLock)
     return
   end function matterDarkEnergyCosmicTime
 

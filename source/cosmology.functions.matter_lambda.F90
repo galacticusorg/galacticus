@@ -24,6 +24,7 @@
   !# </cosmologyFunctions>
   use FGSL
   use Cosmology_Parameters
+  !$ use OMP_Lib
 
   integer         , parameter :: matterLambdaAgeTableNPointsPerDecade     =300
   double precision, parameter :: matterLambdaAgeTableNPointsPerOctave     =dble(matterLambdaAgeTableNPointsPerDecade)*log(2.0d0)/log(10.0d0)
@@ -61,6 +62,7 @@
           &                                                                   interpolationAcceleratorLuminosityDistance
      logical                                                               :: resetInterpolationDistance                =.true.  , resetInterpolationDistanceInverse      =.true., &
           &                                                                   resetInterpolationLuminosityDistance      =.true.
+     !$ integer       (omp_lock_kind           )                            :: expansionFactorTableLock                           , distanceTableLock
    contains
      !@ <objectMethods>
      !@   <object>cosmologyFunctionsMatterLambda</object>
@@ -267,6 +269,9 @@ contains
        matterLambdaConstructorInternal%timeTurnaround=timeMaximumimum(1)
        matterLambdaConstructorInternal%timeMaximum       =2.0d0*matterLambdaConstructorInternal%timeTurnaround
     end if
+    ! Initialize locks.
+    !$ call OMP_Init_Lock(matterLambdaConstructorInternal%expansionFactorTableLock)
+    !$ call OMP_Init_Lock(matterLambdaConstructorInternal%distanceTableLock       )
     return
   end function matterLambdaConstructorInternal
 
@@ -358,6 +363,8 @@ contains
          &                  collapsingIn     =collapsingPhase      , &
          &                  collapsingOut    =collapsingPhaseActual  &
          &                 )
+    ! Get lock on interpolation tables.
+    !$ call OMP_Set_Lock(self%expansionFactorTableLock)
     ! Ensure tabulation is initialized.
     if (.not.self%ageTableInitialized) call self%expansionFactorTabulate(self%ageTableTimeMinimum)
     ! Ensure that the tabulation spans a sufficient range of expansion factors.
@@ -388,6 +395,9 @@ contains
          &              expansionFactor              , &
          &              reset=self%resetInterpolation  &
          &             )
+    ! Release lock on interpolation tables.
+    !$ call OMP_Unset_Lock(self%expansionFactorTableLock)
+    ! Adjust for collapsing phase.
     if (collapsingPhaseActual) matterLambdaCosmicTime=self%timeMaximum-matterLambdaCosmicTime
     return
   end function matterLambdaCosmicTime
@@ -419,6 +429,8 @@ contains
     if (time /= self%timePrevious) then
        ! Quit on invalid input.
        if (time < 0.0d0) call Galacticus_Error_Report('matterLambdaExpansionFactor','cosmological time must be positive')
+       ! Get lock on interpolation tables.
+       !$ call OMP_Set_Lock(self%expansionFactorTableLock)
        ! Check if we need to recompute our table.
        if (self%ageTableInitialized) then
           remakeTable=(time < self%ageTableTime(1).or.time > self%ageTableTime(self%ageTableNumberPoints))
@@ -449,6 +461,8 @@ contains
             &              reset=self%resetInterpolationInverse  &
             &             )
        self%timePrevious=time
+       ! Release lock on interpolation tables.
+       !$ call OMP_Unset_Lock(self%expansionFactorTableLock)
     end if
     ! Return the stored expansion factor.
     matterLambdaExpansionFactor=self%expansionFactorPrevious
@@ -922,6 +936,8 @@ contains
 
     ! Quit on invalid input.
     if (comovingDistance < 0.0d0) call Galacticus_Error_Report('matterLambdaTimeAtDistanceComoving','comoving distance must be positive')
+    ! Get lock on interpolation tables.
+    !$ call OMP_Set_Lock(self%distanceTableLock)
     ! Check if we need to recompute our table.
     remakeTable=.true.
     do while (remakeTable)
@@ -945,6 +961,8 @@ contains
          &              -comovingDistance                           , &
          &              reset=self%resetInterpolationDistanceInverse  &
          &             )
+    ! Release lock on interpolation tables.
+    !$ call OMP_Unset_Lock(self%distanceTableLock)
     return
   end function matterLambdaTimeAtDistanceComoving
 
@@ -957,10 +975,17 @@ contains
     double precision                                , intent(in   ) :: time
     double precision                                , parameter     :: toleranceRelative=1.0d-6
     logical                                                         :: remakeTable
+    character       (len=12                        )                :: timeNowLabel            , timeLabel
 
     ! Quit on invalid input.
     call self%epochValidate(timeIn=time)
-    if (time > self%cosmicTime(1.0d0)*(1.0d0+toleranceRelative)) call Galacticus_Error_Report('matterLambdaComovingDistance','cosmological time must be in the past')
+    if (time > self%cosmicTime(1.0d0)*(1.0d0+toleranceRelative)) then
+       write (timeLabel   ,'(e12.6)') time
+       write (timeNowLabel,'(e12.6)') self%cosmicTime(1.0d0)
+       call Galacticus_Error_Report('matterLambdaComovingDistance','cosmological time ['//trim(timeLabel)//'] must be in the past [≤'//trim(timeNowLabel)//']')
+    end if
+    ! Get lock on interpolation tables.
+    !$ call OMP_Set_Lock(self%distanceTableLock)
     ! Check if we need to recompute our table.
     if (self%distanceTableInitialized) then
        remakeTable=(time < self%distanceTableTime(1).or.time > self%distanceTableTime(self%distanceTableNumberPoints))
@@ -981,6 +1006,8 @@ contains
          &              time                                 , &
          &              reset=self%resetInterpolationDistance  &
          &             )
+    ! Release lock on interpolation tables.
+    !$ call OMP_Unset_Lock(self%distanceTableLock)
     return
   end function matterLambdaDistanceComoving
 
@@ -1022,6 +1049,8 @@ contains
     logical                                                                   :: gotComovingDistance
     double precision                                                          :: comovingDistance   , luminosityDistance
 
+    ! Get lock on interpolation tables.
+    !$ call OMP_Set_Lock(self%distanceTableLock)
     ! Check if we need to recompute our table.
     if (.not.self%distanceTableInitialized) call self%distanceTabulate(self%cosmicTime(1.0d0))
     ! Convert to comoving distance from whatever was supplied.
@@ -1043,6 +1072,8 @@ contains
             &              )
        gotComovingDistance=.true.
     end if
+    ! Release lock on interpolation tables.
+    !$ call OMP_Unset_Lock(self%distanceTableLock)
     if (present(redshift)) then
        comovingDistance   =self%distanceComoving(self%cosmicTime(self%expansionFactorFromRedshift(redshift)))
        gotComovingDistance=.true.
