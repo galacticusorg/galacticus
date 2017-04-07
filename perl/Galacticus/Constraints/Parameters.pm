@@ -17,6 +17,7 @@ use List::Util;
 use Storable;
 use List::ExtraUtils;
 use Galacticus::Launch::PBS;
+use Scalar::Util 'reftype';
 
 sub Parse_Config {
     # Get the config file name.
@@ -636,12 +637,44 @@ sub Apply_Parameters {
     my $newParameters = shift();
     for my $newParameterName ( keys(%{$newParameters}) ) {
 	my $parameter = $parameters;
-	foreach ( split(/\-\>/,$newParameterName) ) {
-	    $parameter->{$_}->{'value'} = undef()
-		unless ( exists($parameter->{$_}) );
-	    $parameter = $parameter->{$_};
+	my $valueIndex;
+	if ( $newParameterName =~ m/^(.*)\{(\d+)\}$/ ) {
+	    $newParameterName = $1;
+	    $valueIndex = $2;
 	}
-	$parameter->{'value'} = $newParameters->{$newParameterName};
+	foreach ( split(/\-\>/,$newParameterName) ) {
+	    # Check if the parameter name contains an array reference.
+	    if ( $_ =~ m/^(.*)\[(\d+)\]$/ ) {
+		# Parameter name contains array reference. Step through to the relevant parameter in the list. If the parameter is
+		# not an array, allow this only if the array index given is zero.
+		if ( reftype($parameter->{$1}) eq "ARRAY" ) {
+		    $parameter->{$1}->[$2]->{'value'} = undef()
+			unless ( scalar(@{$parameter->{$1}}) > $2 );
+		    $parameter = $parameter->{$1}->[$2];
+		} else {
+		    die('constrainGalacticus.pl: attempt to access non-existant array')
+			unless ( $2 == 0 );
+		    $parameter->{$1}->{'value'} = undef()
+			unless ( exists($parameter->{$1}) );
+		    $parameter = $parameter->{$1};
+		}
+	    } else {
+		# Parameter does not contain an array reference - so simply step through to the named parameter.
+		$parameter->{$_}->{'value'} = undef()
+		    unless ( exists($parameter->{$_}) );
+		$parameter = $parameter->{$_};
+	    }
+	}
+	# Test if the parameter name contains a value index.
+	if ( defined($valueIndex) ) {
+	    # A value index is given - set the relevant entry.
+	    my @values = split(" ",$parameter->{'value'});
+	    $values[$valueIndex] = $newParameters->{$newParameterName."{".$valueIndex."}"};
+	    $parameter->{'value'} = join(" ",@values);
+	} else {
+	    # No value index is given - simply set the value of the parameter.
+	    $parameter->{'value'} = $newParameters->{$newParameterName};
+	}    	
     }
 }
 
