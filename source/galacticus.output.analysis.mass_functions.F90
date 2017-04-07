@@ -914,6 +914,9 @@ contains
                 end select
              end select
           end do
+          ! Warn on deprecated mass functions.
+          if (any(trim(mergerTreeAnalyses) == "sdssStellarMassFunctionZ0.07")) call Galacticus_Warn('WARNING: SDSS z=0.07 stellar mass function support is deprecated in this module - use new on-the-fly-analysis instead')
+          if (any(trim(mergerTreeAnalyses) == "alfalfaHiMassFunctionZ0.00"  )) call Galacticus_Warn('WARNING: ALFALFA z=0.0 HI mass function support is deprecated in this module - use new on-the-fly-analysis instead')
           ! Determine how many supported mass functions are requested.
           activeAnalysisCount=0
           do i=1,massFunctionsSupportedCount
