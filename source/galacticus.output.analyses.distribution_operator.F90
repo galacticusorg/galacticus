@@ -29,6 +29,7 @@ module Output_Analysis_Distribution_Operators
   !#  <descriptiveName>Output Analysis Distribution Operator</descriptiveName>
   !#  <description>Class providing operators on distributions for on-the-fly analysis of outputs.</description>
   !#  <default>identity</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="operateScalar" >
   !#   <description>Operate on a scalar to produce a distribution.</description>
   !#   <type>double precision, dimension(size(propertyValueMinimum))</type>
@@ -37,6 +38,7 @@ module Output_Analysis_Distribution_Operators
   !#   <argument>integer                   , intent(in   )               :: propertyType</argument>
   !#   <argument>double precision          , intent(in   ), dimension(:) :: propertyValueMinimum, propertyValueMaximum</argument>
   !#   <argument>integer         (c_size_t), intent(in   )               :: outputIndex</argument>
+  !#   <argument>type            (treeNode), intent(inout)               :: node</argument>
   !#  </method>
   !#  <method name="operateDistribution" >
   !#   <description>Operate on a distribution to produce a distribution.</description>
@@ -46,6 +48,7 @@ module Output_Analysis_Distribution_Operators
   !#   <argument>integer                   , intent(in   )               :: propertyType</argument>
   !#   <argument>double precision          , intent(in   ), dimension(:) :: propertyValueMinimum, propertyValueMaximum</argument>
   !#   <argument>integer         (c_size_t), intent(in   )               :: outputIndex</argument>
+  !#   <argument>type            (treeNode), intent(inout)               :: node</argument>
   !#  </method>
   !# </functionClass>
 

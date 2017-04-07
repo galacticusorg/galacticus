@@ -100,7 +100,7 @@ contains
     return
   end subroutine grvtnlLnsngDestructor
   
-  function grvtnlLnsngOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex) result(distributionNew)
+  function grvtnlLnsngOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node) result(distributionNew)
     !% Implement a gravitational lensing output analysis distribution operator.
     use Galacticus_Error
     implicit none
@@ -109,15 +109,16 @@ contains
     integer                                                        , intent(in   )                                        :: propertyType
     double precision                                               , intent(in   ), dimension(:)                          :: propertyValueMinimum, propertyValueMaximum
     integer         (c_size_t                                     ), intent(in   )                                        :: outputIndex
+    type            (treeNode                                     ), intent(inout)                                        :: node
     double precision                                                              , dimension(size(propertyValueMinimum)) :: distributionNew
-    !GCC$ attributes unused :: self, propertyValue, propertyType, propertyValueMinimum, propertyValueMaximum, outputIndex
+    !GCC$ attributes unused :: self, propertyValue, propertyType, propertyValueMinimum, propertyValueMaximum, outputIndex, node
 
     distributionNew=0.0d0
     call Galacticus_Error_Report('grvtnlLnsngOperateScalar','not implemented')
     return
   end function grvtnlLnsngOperateScalar
   
-  function grvtnlLnsngOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex) result(distributionNew)
+  function grvtnlLnsngOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node) result(distributionNew)
     !% Implement a gravitational lensing output analysis distribution operator.
     use Memory_Management
     use FGSL
@@ -130,13 +131,15 @@ contains
     integer                                                        , intent(in   )                                        :: propertyType
     double precision                                               , intent(in   ), dimension(:)                          :: propertyValueMinimum, propertyValueMaximum
     integer         (c_size_t                                     ), intent(in   )                                        :: outputIndex
+    type            (treeNode                                     ), intent(inout)                                        :: node
     double precision                                                              , dimension(size(propertyValueMinimum)) :: distributionNew
     double precision                                                                                                      :: redshift
     integer         (c_size_t                                     )                                                       :: j                   , k
     type            (fgsl_function                                )                                                       :: integrandFunction
     type            (fgsl_integration_workspace                   )                                                       :: integrationWorkspace
     logical                                                                                                               :: integrationReset
-    
+    !GCC$ attributes unused :: node
+
     ! Construct the lensing transfer matrix if not already done.
     !$ call self%tabulateLock%setRead()
     if (.not.allocated(self%transfer_(outputIndex)%matrix)) then

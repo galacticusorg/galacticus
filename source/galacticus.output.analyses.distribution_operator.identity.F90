@@ -48,7 +48,7 @@ contains
     return
   end function identityConstructorParameters
 
-  function identityOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex)
+  function identityOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
     !% Implement a identity output analysis distribution operator.
     use Arrays_Search
     implicit none
@@ -57,9 +57,10 @@ contains
     integer                                                     , intent(in   )                                        :: propertyType
     double precision                                            , intent(in   ), dimension(:)                          :: propertyValueMinimum    , propertyValueMaximum
     integer         (c_size_t                                  ), intent(in   )                                        :: outputIndex
+    type            (treeNode                                  ), intent(inout)                                        :: node
     double precision                                                           , dimension(size(propertyValueMinimum)) :: identityOperateScalar
     integer         (c_size_t                                  )                                                       :: binIndex
-    !GCC$ attributes unused :: self, outputIndex, propertyType
+    !GCC$ attributes unused :: self, outputIndex, propertyType, node
 
     ! Initialize distribution to zero.
     identityOperateScalar=0.0d0
@@ -76,7 +77,7 @@ contains
     return
   end function identityOperateScalar
 
-  function identityOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex)
+  function identityOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
     !% Implement a identity output analysis distribution operator.
     use Galacticus_Error
     implicit none
@@ -85,8 +86,9 @@ contains
     integer                                                     , intent(in   )                                        :: propertyType
     double precision                                            , intent(in   ), dimension(:)                          :: propertyValueMinimum          , propertyValueMaximum
     integer         (c_size_t                                  ), intent(in   )                                        :: outputIndex
+    type            (treeNode                                  ), intent(inout)                                        :: node
     double precision                                                           , dimension(size(propertyValueMinimum)) :: identityOperateDistribution
-    !GCC$ attributes unused :: self, propertyValueMinimum, propertyValueMaximum, outputIndex, propertyType
+    !GCC$ attributes unused :: self, propertyValueMinimum, propertyValueMaximum, outputIndex, propertyType, node
 
     identityOperateDistribution=distribution
     return

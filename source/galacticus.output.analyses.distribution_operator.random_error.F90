@@ -30,17 +30,18 @@
   end type outputAnalysisDistributionOperatorRandomError
 
   abstract interface
-     double precision function randomErrorOperateRootVariance(self,propertyValue)
+     double precision function randomErrorOperateRootVariance(self,propertyValue,node)
        !% Abstract interface for the root variance method of random error output analysis distribution operators.
-       import outputAnalysisDistributionOperatorRandomError
+       import outputAnalysisDistributionOperatorRandomError, treeNode
        class           (outputAnalysisDistributionOperatorRandomError), intent(inout) :: self
-      double precision                                                , intent(in   ) :: propertyValue
+       double precision                                               , intent(in   ) :: propertyValue
+       type            (treeNode                                     ), intent(inout) :: node
      end function randomErrorOperateRootVariance
   end interface
   
 contains
 
-  function randomErrorOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex)
+  function randomErrorOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
     !% Implement a random error output analysis distribution operator.
     implicit none
     class           (outputAnalysisDistributionOperatorRandomError), intent(inout)                                        :: self
@@ -48,11 +49,12 @@ contains
     integer                                                        , intent(in   )                                        :: propertyType
     double precision                                               , intent(in   ), dimension(:)                          :: propertyValueMinimum    , propertyValueMaximum
     integer         (c_size_t                                     ), intent(in   )                                        :: outputIndex
+    type            (treeNode                                     ), intent(inout)                                        :: node
     double precision                                                              , dimension(size(propertyValueMinimum)) :: randomErrorOperateScalar
     double precision                                                                                                      :: rootVariance
     !GCC$ attributes unused :: outputIndex, propertyType
 
-    rootVariance            =self%rootVariance(propertyValue)
+    rootVariance            =self%rootVariance(propertyValue,node)
     randomErrorOperateScalar=+0.5d0                                                                &
          &                   *(                                                                    &
          &                     +erf((propertyValueMaximum-propertyValue)/rootVariance/sqrt(2.0d0)) &
@@ -61,7 +63,7 @@ contains
     return
   end function randomErrorOperateScalar
 
-  function randomErrorOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex)
+  function randomErrorOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
     !% Implement a random error output analysis distribution operator.
     use Galacticus_Error
     implicit none
@@ -70,8 +72,9 @@ contains
     integer                                                        , intent(in   )                                        :: propertyType
     double precision                                               , intent(in   ), dimension(:)                          :: propertyValueMinimum          , propertyValueMaximum
     integer         (c_size_t                                     ), intent(in   )                                        :: outputIndex
+    type            (treeNode                                     ), intent(inout)                                        :: node
     double precision                                                              , dimension(size(propertyValueMinimum)) :: randomErrorOperateDistribution
-    !GCC$ attributes unused :: self, distribution, propertyValueMinimum, propertyValueMaximum, outputIndex, propertyType
+    !GCC$ attributes unused :: self, distribution, propertyValueMinimum, propertyValueMaximum, outputIndex, propertyType, node
 
     randomErrorOperateDistribution=0.0d0
     call Galacticus_Error_Report('randomErrorOperateDistribution','not implemented')
