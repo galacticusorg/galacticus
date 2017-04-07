@@ -391,9 +391,9 @@ contains
     propertyValue         =self%outputAnalysisPropertyExtractor_%extract(node)
     propertyValueIntrinsic=propertyValue
     ! Apply property operators.
-    propertyValue=self%outputAnalysisPropertyOperator_%operate(propertyValue,propertyType,iOutput)
+    propertyValue=self%outputAnalysisPropertyOperator_%operate(propertyValue,node,propertyType,iOutput)
     ! Apply distribution operators.
-    distribution=self%outputAnalysisDistributionOperator_%operateScalar(propertyValue,propertyType,self%binMinimum,self%binMaximum,iOutput)
+    distribution=self%outputAnalysisDistributionOperator_%operateScalar(propertyValue,propertyType,self%binMinimum,self%binMaximum,iOutput,node)
     ! Compute the weight.
     weightValue=node%hostTree%volumeWeight
     ! Apply weight operators.

@@ -83,16 +83,17 @@ contains
     return
   end function systmtcPolynomialConstructorInternal
 
-  double precision function systmtcPolynomialOperate(self,propertyValue,propertyType,outputIndex)
+  double precision function systmtcPolynomialOperate(self,propertyValue,node,propertyType,outputIndex)
     !% Implement an systmtcPolynomial output analysis property operator.
     use, intrinsic :: ISO_C_Binding
     implicit none
     class           (outputAnalysisPropertyOperatorSystmtcPolynomial), intent(inout)           :: self
     double precision                                                 , intent(in   )           :: propertyValue
+    type            (treeNode                                       ), intent(inout), optional :: node
     integer                                                          , intent(inout), optional :: propertyType
     integer         (c_size_t                                       ), intent(in   ), optional :: outputIndex
     integer                                                                                    :: i
-    !GCC$ attributes unused :: outputIndex, propertyType
+    !GCC$ attributes unused :: outputIndex, propertyType, node
 
     systmtcPolynomialOperate=propertyValue
     do i=1,size(self%coefficient)

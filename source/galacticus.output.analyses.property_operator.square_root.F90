@@ -47,16 +47,17 @@ contains
     return
   end function squareRootConstructorParameters
 
-  double precision function squareRootOperate(self,propertyValue,propertyType,outputIndex)
+  double precision function squareRootOperate(self,propertyValue,node,propertyType,outputIndex)
     !% Implement an square root output analysis property operator.
     use, intrinsic :: ISO_C_Binding
     use            :: Galacticus_Error
     implicit none
     class           (outputAnalysisPropertyOperatorSquareRoot), intent(inout)           :: self
     double precision                                          , intent(in   )           :: propertyValue
+    type            (treeNode                                ), intent(inout), optional :: node
     integer                                                   , intent(inout), optional :: propertyType
     integer         (c_size_t                                ), intent(in   ), optional :: outputIndex
-    !GCC$ attributes unused :: self, outputIndex, propertyType
+    !GCC$ attributes unused :: self, outputIndex, propertyType, node
 
     if (propertyValue < 0.0d0) call Galacticus_Error_Report('squareRootOperate','domain error: x∈[0,∞)')
     squareRootOperate=sqrt(propertyValue)

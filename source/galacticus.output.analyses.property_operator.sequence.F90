@@ -96,11 +96,12 @@ contains
     return
   end subroutine sequenceDestructor
 
-  double precision function sequenceOperate(self,propertyValue,propertyType,outputIndex)
+  double precision function sequenceOperate(self,propertyValue,node,propertyType,outputIndex)
     !% Implement an sequence output analysis property operator.
     implicit none
     class           (outputAnalysisPropertyOperatorSequence), intent(inout)           :: self
     double precision                                        , intent(in   )           :: propertyValue
+    type            (treeNode                              ), intent(inout), optional :: node
     integer                                                 , intent(inout), optional :: propertyType
     integer         (c_size_t                              ), intent(in   ), optional :: outputIndex
     type            (propertyOperatorList                  ), pointer                 :: operator_
@@ -108,7 +109,7 @@ contains
     sequenceOperate =  propertyValue
     operator_       => self%operators
     do while (associated(operator_))
-       sequenceOperate =  operator_%operator_%operate(sequenceOperate,propertyType,outputIndex)
+       sequenceOperate =  operator_%operator_%operate(sequenceOperate,node,propertyType,outputIndex)
        operator_       => operator_%next
     end do
     return

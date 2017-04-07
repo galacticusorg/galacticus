@@ -47,16 +47,17 @@ contains
     return
   end function antiLog10ConstructorParameters
 
-  double precision function antiLog10Operate(self,propertyValue,propertyType,outputIndex)
+  double precision function antiLog10Operate(self,propertyValue,node,propertyType,outputIndex)
     !% Implement an antiLog10 output analysis property operator.
     use, intrinsic :: ISO_C_Binding
     use            :: Output_Analyses_Options
     implicit none
     class           (outputAnalysisPropertyOperatorAntiLog10), intent(inout)           :: self
     double precision                                         , intent(in   )           :: propertyValue
+    type            (treeNode                               ), intent(inout), optional :: node
     integer                                                  , intent(inout), optional :: propertyType
     integer         (c_size_t                               ), intent(in   ), optional :: outputIndex
-    !GCC$ attributes unused :: self, outputIndex
+    !GCC$ attributes unused :: self, outputIndex, node
 
     antiLog10Operate=10.0d0**propertyValue
     ! Change the property type.

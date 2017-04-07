@@ -95,9 +95,9 @@ contains
     integer                                                               :: weightPropertyType
     !GCC$ attributes unused :: propertyType, propertyValueIntrinsic, propertyValue
 
-    weightPropertyValue=+self       %extractor_%extract(node                                              )
-    weightPropertyType = self       %extractor_%type   (                                                  )
-    propertyOperate    =+self       %operator_ %operate(weightPropertyValue,weightPropertyType,outputIndex) &
+    weightPropertyValue=+self       %extractor_%extract(node                                                   )
+    weightPropertyType = self       %extractor_%type   (                                                       )
+    propertyOperate    =+self       %operator_ %operate(weightPropertyValue,node,weightPropertyType,outputIndex) &
          &              *weightValue
     return
   end function propertyOperate

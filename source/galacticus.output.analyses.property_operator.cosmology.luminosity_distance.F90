@@ -27,9 +27,8 @@
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc
      !% A cosmological luminosity distance corrector analysis property operator class.
      private
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctionsModel, cosmologyFunctionsData
-     integer         (c_size_t               )          :: outputIndexPrevious
-     double precision                                   :: correctionFactor
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctionsModel, cosmologyFunctionsData
+     double precision                         , allocatable, dimension(:) :: correctionFactor
    contains
      final     ::            csmlgyLuminosityDistanceDestructor
      procedure :: operate => csmlgyLuminosityDistanceOperate
@@ -47,10 +46,10 @@ contains
     !% Constructor for the ``csmlgyLuminosityDistance'' output analysis property operator class which takes a parameter set as input.
     use Input_Parameters2
     implicit none
-    type   (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc)                :: self
-    type   (inputParameters                                ), intent(inout) :: parameters
-    class  (cosmologyFunctionsClass                        ), pointer       :: cosmologyFunctionsModel, cosmologyFunctionsData
-    type   (inputParameters                                )                :: dataAnalysisParameters
+    type (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc)                :: self
+    type (inputParameters                                ), intent(inout) :: parameters
+    class(cosmologyFunctionsClass                        ), pointer       :: cosmologyFunctionsModel, cosmologyFunctionsData
+    type (inputParameters                                )                :: dataAnalysisParameters
     !# <inputParameterList label="allowedParameterNames" />
     
     ! Check and read parameters.
@@ -65,47 +64,22 @@ contains
 
   function csmlgyLuminosityDistanceConstructorInternal(cosmologyFunctionsModel,cosmologyFunctionsData) result(self)
     !% Internal constructor for the ``randomErrorPolynomial'' output analysis property operator class.
+    use, intrinsic :: ISO_C_Binding
+    use               Galacticus_Output_Times
+    use               Memory_Management
+    use               Galacticus_Error
     implicit none
-    type   (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc)                        :: self
-    class  (cosmologyFunctionsClass                        ), intent(in   ), target :: cosmologyFunctionsModel, cosmologyFunctionsData
+    type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc)                        :: self
+    class           (cosmologyFunctionsClass                        ), intent(in   ), target :: cosmologyFunctionsModel       , cosmologyFunctionsData
+    double precision                                                 , parameter             :: distanceSmall          =1.0d-6
+    integer         (c_size_t                                       )                        :: outputIndex
+    double precision                                                                         :: redshift                      , timeData              , &
+         &                                                                                      timeModel                     , distanceData          , &
+         &                                                                                      distanceModel
     !# <constructorAssign variables="*cosmologyFunctionsModel, *cosmologyFunctionsData"/>
 
-    self%outputIndexPrevious=-1_c_size_t
-    self%correctionFactor   =+0.0d0
-    return
-  end function csmlgyLuminosityDistanceConstructorInternal
-
-  subroutine csmlgyLuminosityDistanceDestructor(self)
-    !% Destructorfor the ``randomErrorPolynomial'' output analysis property operator class.
-    implicit none
-    type(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc), intent(inout) :: self
-
-    !# <objectDestructor name="self%cosmologyFunctionsModel"/>
-    !# <objectDestructor name="self%cosmologyFunctionsData" />
-    return
-  end subroutine csmlgyLuminosityDistanceDestructor
-  
-  double precision function csmlgyLuminosityDistanceOperate(self,propertyValue,propertyType,outputIndex)
-    !% Implement an csmlgyLuminosityDistance output analysis property operator.
-    use Galacticus_Output_Times
-    use Galacticus_Error
-    implicit none
-    class           (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc), intent(inout)           :: self
-    double precision                                                 , intent(in   )           :: propertyValue
-    integer                                                          , intent(inout), optional :: propertyType
-    integer         (c_size_t                                       ), intent(in   ), optional :: outputIndex
-    double precision                                                                           :: distanceSmall=1.0d-6
-    double precision                                                                           :: redshift            , timeData    , &
-         &                                                                                        timeModel           , distanceData, &
-         &                                                                                        distanceModel
-    !GCC$ attributes unused :: propertyType
-
-    ! Validate.
-    if (.not.present(outputIndex)) call Galacticus_Error_Report('csmlgyLuminosityDistanceOperate','ouputIndex is required')
-    ! Recompute correction factor if necessary.
-    if (self%outputIndexPrevious /= outputIndex) then
-       ! Store output index for which correction factor was computed.
-       self%outputIndexPrevious=outputIndex
+    call allocateArray(self%correctionFactor,[Galacticus_Output_Time_Count()])
+    do outputIndex=1,Galacticus_Output_Time_Count()
        ! Get current redshift.
        redshift        =Galacticus_Output_Redshift(outputIndex)
        ! Find corresponding cosmic times in both the data and model cosmological models.
@@ -129,17 +103,45 @@ contains
        ! Handle zero distance (i.e. present day outputs - and in fact we test for very small rather than zero distance to catch
        ! rounding errors) as a special case.
        if (distanceModel < distanceSmall) then
-          if (distanceData > distanceSmall) call Galacticus_Error_Report('csmlgyLuminosityDistanceOperate','luminosity distance in model cosmology is zero, but non-zero for data cosmology - correction is undefined')
-          self%correctionFactor= +1.0d0
+          if (distanceData > distanceSmall) call Galacticus_Error_Report('csmlgyLuminosityDistanceConstructorInternal','luminosity distance in model cosmology is zero, but non-zero for data cosmology - correction is undefined')
+          self%correctionFactor(outputIndex)= +1.0d0
        else
-          self%correctionFactor=(               &
-               &                 +distanceData  &
-               &                 /distanceModel &
-               &                )**2
+          self%correctionFactor(outputIndex)=(               &
+               &                              +distanceData  &
+               &                              /distanceModel &
+               &                             )**2
        end if
-    end if
-    ! Multiply by the correction factor.
-    csmlgyLuminosityDistanceOperate=+propertyValue         &
-         &                          *self%correctionFactor
+    end do
+    return
+  end function csmlgyLuminosityDistanceConstructorInternal
+
+  subroutine csmlgyLuminosityDistanceDestructor(self)
+    !% Destructorfor the ``randomErrorPolynomial'' output analysis property operator class.
+    use               Memory_Management
+    implicit none
+    type(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc), intent(inout) :: self
+
+    call deallocateArray(self%correctionFactor)
+    !# <objectDestructor name="self%cosmologyFunctionsModel"/>
+    !# <objectDestructor name="self%cosmologyFunctionsData" />
+    return
+  end subroutine csmlgyLuminosityDistanceDestructor
+  
+  double precision function csmlgyLuminosityDistanceOperate(self,propertyValue,node,propertyType,outputIndex)
+    !% Implement an csmlgyLuminosityDistance output analysis property operator.
+    use Galacticus_Error
+    implicit none
+    class           (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc), intent(inout)           :: self
+    double precision                                                 , intent(in   )           :: propertyValue
+    type            (treeNode                                       ), intent(inout), optional :: node
+    integer                                                          , intent(inout), optional :: propertyType
+    integer         (c_size_t                                       ), intent(in   ), optional :: outputIndex
+    !GCC$ attributes unused :: propertyType, node
+
+    ! Validate.
+    if (.not.present(outputIndex)) call Galacticus_Error_Report('csmlgyLuminosityDistanceOperate','ouputIndex is required')
+    ! Apply the correction.
+    csmlgyLuminosityDistanceOperate=+propertyValue                      &
+         &                          *self%correctionFactor(outputIndex)
     return
   end function csmlgyLuminosityDistanceOperate

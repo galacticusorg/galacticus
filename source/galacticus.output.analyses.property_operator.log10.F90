@@ -47,16 +47,17 @@ contains
     return
   end function log10ConstructorParameters
 
-  double precision function log10Operate(self,propertyValue,propertyType,outputIndex)
+  double precision function log10Operate(self,propertyValue,node,propertyType,outputIndex)
     !% Implement an log10 output analysis property operator.
     use, intrinsic :: ISO_C_Binding
     use            :: Output_Analyses_Options
     implicit none
     class           (outputAnalysisPropertyOperatorLog10), intent(inout)           :: self
     double precision                                     , intent(in   )           :: propertyValue
+    type            (treeNode                           ), intent(inout), optional :: node
     integer                                              , intent(inout), optional :: propertyType
     integer         (c_size_t                           ), intent(in   ), optional :: outputIndex
-    !GCC$ attributes unused :: self, outputIndex
+    !GCC$ attributes unused :: self, outputIndex, node
 
     if (propertyValue > 0.0d0) then
        log10Operate=log10(propertyValue)
