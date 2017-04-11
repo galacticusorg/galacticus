@@ -129,7 +129,7 @@ contains
     class           (cosmologyParametersClass                       ), intent(in   ), target       :: cosmologyParameters_
     class           (gravitationalLensingClass                      ), intent(in   ), target       :: gravitationalLensing_
     class           (outputAnalysisMolecularRatioClass              ), intent(in   ), target       :: outputAnalysisMolecularRatio_
-    type            (outputAnalysisDistributionOperatorClass        ), intent(in   ), target       :: outputAnalysisDistributionOperatorRandomError_
+    class           (outputAnalysisDistributionOperatorClass        ), intent(in   ), target       :: outputAnalysisDistributionOperatorRandomError_
     double precision                                                 , intent(in   )               :: sizeSourceLensing 
     double precision                                                 , intent(in   ), dimension(:) :: systematicErrorPolynomialCoefficient
     integer                                                          , intent(in   )               :: covarianceBinomialBinsPerDecade
