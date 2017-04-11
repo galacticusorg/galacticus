@@ -68,7 +68,7 @@ sub Compilation {
     my $compilationFileName    = shift;
     my $baseParametersFileName = shift;
     # Create an XML worker object.
-    my $xml = new XML::Simple;
+    my $xml = new XML::Simple();
     # Retrieve the compilation file.
     my $compilationFilePath = ($compilationFileName =~ m/\//) ? $compilationFileName : "constraints/compilations/".$compilationFileName;
     my $compilation =
@@ -76,7 +76,7 @@ sub Compilation {
 	?
 	retrieve($compilationFilePath.".store")
 	:
-	$xml->XMLin($compilationFilePath);
+	$xml->XMLin($compilationFilePath, KeyAttr => "");
     # Parse the base set of parameters.
     my $parameters = 
 	-e $baseParametersFileName.".store" 
@@ -572,6 +572,8 @@ sub Maximum_Likelihood_Vector {
 	next
 	    unless
 	    (
+	     ! exists($arguments{'chain'})
+	     ||
 	     $arguments{'chain'} eq "all"
 	     ||
 	     $arguments{'chain'} == $i
