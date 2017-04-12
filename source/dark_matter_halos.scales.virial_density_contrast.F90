@@ -221,6 +221,7 @@ contains
   double precision function virialDensityContrastDefinitionVirialRadius(self,node)
     !% Returns the virial radius scale for {\normalfont \ttfamily node}.
     use Numerical_Constants_Math
+    use Math_Exponentiation
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
     type (treeNode                                          ), intent(inout) :: node
@@ -233,7 +234,7 @@ contains
        ! Get the basic component.
        basic => node%basic()
        ! Compute the virial radius.
-       self%virialRadiusStored=(3.0d0*basic%mass()/4.0d0/Pi/self%meanDensity(node))**(1.0d0/3.0d0)
+       self%virialRadiusStored=cubeRoot(3.0d0*basic%mass()/4.0d0/Pi/self%meanDensity(node))
        ! Record that the virial radius has been computed.
        self%virialRadiusComputed=.true.
     end if

@@ -195,6 +195,7 @@ contains
     use Critical_Overdensities
     use Cosmology_Parameters
     use Power_Spectra
+    use Math_Exponentiation
     implicit none
     class           (darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout)          :: self
     type            (treeNode                                        ), intent(inout), pointer :: node
@@ -217,14 +218,14 @@ contains
        criticalOverdensity_           => criticalOverdensity      ()
        cosmologicalMassVariance_      => cosmologicalMassVariance ()
        powerSpectrum_                 => powerSpectrum            ()
-       radiusHaloLagrangian           =  +(                                                                          &
-            &                              +3.0d0                                                                    &
-            &                              *basic%mass()                                                             &
-            &                              /4.0d0                                                                    &
-            &                              /Pi                                                                       &
-            &                              /cosmologyParameters_%densityCritical()                                   &
-            &                              /cosmologyParameters_%OmegaMatter    ()                                   &
-            &                             )**(1.0d0/3.0d0)
+       radiusHaloLagrangian           = +cubeRoot(                                                                   &
+            &                                     +3.0d0                                                             &
+            &                                     *basic%mass()                                                      &
+            &                                     /4.0d0                                                             &
+            &                                     /Pi                                                                &
+            &                                     /cosmologyParameters_%densityCritical()                            &
+            &                                     /cosmologyParameters_%OmegaMatter    ()                            &
+            &                                    )
        peakHeight                     = +criticalOverdensity_     %value       (time=basic%time(),mass=basic%mass()) &
             &                           /cosmologicalMassVariance_%rootVariance(                       basic%mass())
        wavenumber                     = +self%kappa                                                                  &

@@ -237,6 +237,7 @@ contains
     use Galacticus_Nodes
     use Intergalactic_Medium_State
     use Dark_Matter_Profile_Mass_Definitions
+    use Math_Exponentiation
     implicit none
     class           (accretionHaloNaozBarkana2007 ), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
@@ -260,15 +261,17 @@ contains
           self%filteredFractionStored   =  self%filteredFractionCompute(massHalo,massFiltering)
           self%filteredFractionComputed =  .true.
        end if
-       self%filteredFractionRateStored  = +self%filteredFractionStored                &
-            &                             +self%filteredFractionStored**(4.0d0/3.0d0) &
-            &                             *(                                          &
-            &                               +2.0d0**(1.0d0/3.0d0)                     &
-            &                               -1.0d0                                    &
-            &                              )                                          &
-            &                             *24.0d0                                     &
-            &                             *massFiltering                              &
-            &                             /massHalo
+       self%filteredFractionRateStored  = +           self%filteredFractionStored  &
+            &                             *(+1.0d0                                 &
+            &                               +cubeRoot(self%filteredFractionStored) &
+            &                               *(                                     &
+            &                                 +2.0d0**(1.0d0/3.0d0)                &
+            &                                 -1.0d0                               &
+            &                                )                                     &
+            &                               *24.0d0                                &
+            &                               *massFiltering                         &
+            &                               /massHalo                              &
+            &                              )
        self%filteredFractionRateComputed=.true.
     end if
     naozBarkana2007FilteredFractionRate=self%filteredFractionRateStored
