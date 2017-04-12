@@ -182,6 +182,10 @@ my @executablesToRun = (
 	valgrind => 0
     },
     {
+	name     => "tests.math.fast.exe",                                                # Tests of fast mathematical functions.
+	valgrind => 0
+    },
+    {
 	name     => "tests.root_finding.exe",                                             # Tests of root finding functions.
 	valgrind => 0
     },
