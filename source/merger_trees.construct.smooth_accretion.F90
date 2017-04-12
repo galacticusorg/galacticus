@@ -118,58 +118,59 @@ contains
     !GCC$ attributes unused :: skipTree
     
     ! Build the merger tree.
-    !$omp critical (Merger_Tree_Build_Do)
     if (.not.treeWasBuilt) then
-       ! Give the tree an index.
-       thisTree%index=1
-       ! Create the base node.
-       nodeIndex=1
-       thisTree%baseNode => treeNode(nodeIndex,thisTree)
-       baseBasicComponent => thisTree%baseNode%basic(autoCreate=.true.)
-       ! Assign an arbitrary weight to the tree.
-       thisTree%volumeWeight=1.0
-       ! Assign a mass to the base node.
-       call baseBasicComponent%massSet(mergerTreeHaloMass)
-       ! Get required objects.
-       cosmologyFunctionsDefault           => cosmologyFunctions                ()
-       darkMatterHaloMassAccretionHistory_ => darkMatterHaloMassAccretionHistory()
-       ! Find the cosmic time at which the tree is based.
-       expansionFactorBase=cosmologyFunctionsDefault%expansionFactorFromRedshift(mergerTreeBaseRedshift)
-       mergerTreeBaseTime =cosmologyFunctionsDefault%cosmicTime                 (expansionFactorBase   )
-       ! Assign a time to the base node.
-       call baseBasicComponent%timeSet(mergerTreeBaseTime)
-       ! Get a pointer to the current node (i.e. the base node).
-       currentNode => thisTree%baseNode
-       ! Initialize current node mass.
-       nodeMass=mergerTreeHaloMass
-       ! Initialize node index counter.
-       nodeIndex=1
-       ! Step backwards, creating nodes until a sufficiently low mass has been reached.
-       do while (nodeMass > mergerTreeHaloMassResolution)
-          ! Increment node index.
-          nodeIndex=nodeIndex+1
-          ! Create a node.
-          newNode => treeNode(nodeIndex,thisTree)
-          newBasicComponent => newNode%basic(autoCreate=.true.)
-          ! Adjust the mass by the specified factor.
-          nodeMass=nodeMass*mergerTreeHaloMassDeclineFactor
-          ! Set the mass of the node.
-          call newBasicComponent%massSet(nodeMass)
-          ! Find the time corresponding to this expansion factor.
-          nodeTime=darkMatterHaloMassAccretionHistory_%time(thisTree%baseNode,nodeMass)
-          ! Set the time for the new node.
-          call newBasicComponent%timeSet(nodeTime)
-          ! Create parent and child links.
-          currentNode%firstChild => newNode
-          newNode    %parent     => currentNode
-          ! Move the current node to the new node.
-          currentNode => newNode
-       end do
-       ! Flag that the tree is now built.
-       treeWasBuilt=.true.
+       !$omp critical (Merger_Tree_Build_Do)
+       if (.not.treeWasBuilt) then
+          ! Give the tree an index.
+          thisTree%index=1
+          ! Create the base node.
+          nodeIndex=1
+          thisTree%baseNode => treeNode(nodeIndex,thisTree)
+          baseBasicComponent => thisTree%baseNode%basic(autoCreate=.true.)
+          ! Assign an arbitrary weight to the tree.
+          thisTree%volumeWeight=1.0
+          ! Assign a mass to the base node.
+          call baseBasicComponent%massSet(mergerTreeHaloMass)
+          ! Get required objects.
+          cosmologyFunctionsDefault           => cosmologyFunctions                ()
+          darkMatterHaloMassAccretionHistory_ => darkMatterHaloMassAccretionHistory()
+          ! Find the cosmic time at which the tree is based.
+          expansionFactorBase=cosmologyFunctionsDefault%expansionFactorFromRedshift(mergerTreeBaseRedshift)
+          mergerTreeBaseTime =cosmologyFunctionsDefault%cosmicTime                 (expansionFactorBase   )
+          ! Assign a time to the base node.
+          call baseBasicComponent%timeSet(mergerTreeBaseTime)
+          ! Get a pointer to the current node (i.e. the base node).
+          currentNode => thisTree%baseNode
+          ! Initialize current node mass.
+          nodeMass=mergerTreeHaloMass
+          ! Initialize node index counter.
+          nodeIndex=1
+          ! Step backwards, creating nodes until a sufficiently low mass has been reached.
+          do while (nodeMass > mergerTreeHaloMassResolution)
+             ! Increment node index.
+             nodeIndex=nodeIndex+1
+             ! Create a node.
+             newNode => treeNode(nodeIndex,thisTree)
+             newBasicComponent => newNode%basic(autoCreate=.true.)
+             ! Adjust the mass by the specified factor.
+             nodeMass=nodeMass*mergerTreeHaloMassDeclineFactor
+             ! Set the mass of the node.
+             call newBasicComponent%massSet(nodeMass)
+             ! Find the time corresponding to this expansion factor.
+             nodeTime=darkMatterHaloMassAccretionHistory_%time(thisTree%baseNode,nodeMass)
+             ! Set the time for the new node.
+             call newBasicComponent%timeSet(nodeTime)
+             ! Create parent and child links.
+             currentNode%firstChild => newNode
+             newNode    %parent     => currentNode
+             ! Move the current node to the new node.
+             currentNode => newNode
+          end do
+          ! Flag that the tree is now built.
+          treeWasBuilt=.true.
+       end if
+       !$omp end critical (Merger_Tree_Build_Do)
     end if
-    !$omp end critical (Merger_Tree_Build_Do)
-
     return
   end subroutine Merger_Tree_Smooth_Accretion_Do
 

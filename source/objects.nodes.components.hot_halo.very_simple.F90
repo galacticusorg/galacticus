@@ -99,24 +99,22 @@ contains
   subroutine Node_Component_Hot_Halo_Very_Simple_Initialize()
     !% Initializes the very simple hot halo component module.
     implicit none
-    type(nodeComponentHotHaloVerySimple) :: hotHaloComponent
-
+    type(nodeComponentHotHaloVerySimple) :: hotHalo
+    
     ! Initialize the module if necessary.
-    !$omp critical (Node_Component_Hot_Halo_Very_Simple_Initialize)
     if (.not.moduleInitialized) then
-
-       ! Bind outflowing material pipes to the functions that will handle input of outflowing material to the hot halo.
-       call hotHaloComponent%      outflowingMassRateFunction(Node_Component_Hot_Halo_Very_Simple_Outflowing_Mass_Rate      )
-       call hotHaloComponent%outflowingAbundancesRateFunction(Node_Component_Hot_Halo_Very_Simple_Outflowing_Abundances_Rate)
-
-       ! Bind outer radius function.
-       call hotHaloComponent%             outerRadiusFunction(Node_Component_Hot_Halo_Very_Simple_Outer_Radius              )
-
-       ! Record that the module is now initialized.
-       moduleInitialized=.true.
-
+       !$omp critical (Node_Component_Hot_Halo_Very_Simple_Initialize)
+       if (.not.moduleInitialized) then
+          ! Bind outflowing material pipes to the functions that will handle input of outflowing material to the hot halo.
+          call hotHalo%      outflowingMassRateFunction(Node_Component_Hot_Halo_Very_Simple_Outflowing_Mass_Rate      )
+          call hotHalo%outflowingAbundancesRateFunction(Node_Component_Hot_Halo_Very_Simple_Outflowing_Abundances_Rate)
+          ! Bind outer radius function.
+          call hotHalo%             outerRadiusFunction(Node_Component_Hot_Halo_Very_Simple_Outer_Radius              )
+          ! Record that the module is now initialized.
+          moduleInitialized=.true.
+       end if
+       !$omp end critical (Node_Component_Hot_Halo_Very_Simple_Initialize)
     end if
-    !$omp end critical (Node_Component_Hot_Halo_Very_Simple_Initialize)
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Initialize
 

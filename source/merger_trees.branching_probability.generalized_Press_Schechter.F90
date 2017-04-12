@@ -129,20 +129,22 @@ contains
     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
     double precision                                         :: presentTime              , testResult, &
          &                                                      varianceMaximum
-
-    !$omp critical (Excursion_Sets_Maximum_Sigma_Test)
+    
     if (.not.excursionSetsTested) then
-       ! Get required objects.
-       cosmologyFunctions_       => cosmologyFunctions      ()
-       cosmologicalMassVariance_ => cosmologicalMassVariance()
-       presentTime    =cosmologyFunctions_      %cosmicTime  (1.0d0                               )
-       sigmaMaximum   =cosmologicalMassVariance_%rootVariance(generalizedPressSchechterMinimumMass)
-       varianceMaximum=sigmaMaximum**2
-       testResult     =Excursion_Sets_First_Crossing_Probability(                      varianceMaximum,presentTime)
-       testResult     =Excursion_Sets_First_Crossing_Rate       (0.5d0*varianceMaximum,varianceMaximum,presentTime)
-       excursionSetsTested=.true.
+       !$omp critical (Excursion_Sets_Maximum_Sigma_Test)
+       if (.not.excursionSetsTested) then
+          ! Get required objects.
+          cosmologyFunctions_       => cosmologyFunctions      ()
+          cosmologicalMassVariance_ => cosmologicalMassVariance()
+          presentTime    =cosmologyFunctions_      %cosmicTime  (1.0d0                               )
+          sigmaMaximum   =cosmologicalMassVariance_%rootVariance(generalizedPressSchechterMinimumMass)
+          varianceMaximum=sigmaMaximum**2
+          testResult     =Excursion_Sets_First_Crossing_Probability(                      varianceMaximum,presentTime)
+          testResult     =Excursion_Sets_First_Crossing_Rate       (0.5d0*varianceMaximum,varianceMaximum,presentTime)
+          excursionSetsTested=.true.
+       end if
+       !$omp end critical (Excursion_Sets_Maximum_Sigma_Test)
     end if
-    !$omp end critical (Excursion_Sets_Maximum_Sigma_Test)
     return
   end subroutine Excursion_Sets_Maximum_Sigma_Test
 
@@ -353,13 +355,15 @@ contains
              Generalized_Press_Schechter_Subresolution_Fraction=-1.0d0
           else
              ! Attempt the integral again with lower tolerance. Issue a warnings if this is the first time this has happened.
-             !$omp critical(Generalized_Press_Schechter_Subresolution_Fraction_Warn)
              if (.not.subresolutionFractionIntegrandFailureWarned) then
-                message='WARNING: Integration of the subresolution fraction in the generalized Press-Schechter branching probability module failed.'//char(10)//'Will try again with lower tolerance. This warning will not be issued again.'//{introspection:location}
-                call Galacticus_Warn(message)
-                subresolutionFractionIntegrandFailureWarned=.true.
+                !$omp critical(Generalized_Press_Schechter_Subresolution_Fraction_Warn)
+                if (.not.subresolutionFractionIntegrandFailureWarned) then
+                   message='WARNING: Integration of the subresolution fraction in the generalized Press-Schechter branching probability module failed.'//char(10)//'Will try again with lower tolerance. This warning will not be issued again.'//{introspection:location}
+                   call Galacticus_Warn(message)
+                   subresolutionFractionIntegrandFailureWarned=.true.
+                end if
+                !$omp end critical(Generalized_Press_Schechter_Subresolution_Fraction_Warn)
              end if
-             !$omp end critical(Generalized_Press_Schechter_Subresolution_Fraction_Warn)
              Generalized_Press_Schechter_Subresolution_Fraction=Generalized_Press_Schechter_Subresolution_Fraction &
                   &+Integrate(massMinimum,massMaximum,Subresolution_Fraction_Integrand_Generalized&
                   &,integrandFunction ,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-2 ,integrationRule&

@@ -61,26 +61,27 @@ contains
     !% Initializes the random spin component module.
     use Input_Parameters
     implicit none
-
+    
     ! Test whether module is already initialize.
-    !$omp critical (Node_Component_Spin_Random_Initialize)
     if (.not.moduleInitialized) then
-
-       !@ <inputParameter>
-       !@   <name>randomSpinResetMassFactor</name>
-       !@   <defaultValue>2.0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The factor by which a node must increase in mass before its spin parameter is reset.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('randomSpinResetMassFactor',randomSpinResetMassFactor,defaultValue=2.0d0)
-       ! Record that the module is now initialized.
-       moduleInitialized=.true.
+       !$omp critical (Node_Component_Spin_Random_Initialize)
+       if (.not.moduleInitialized) then
+          !@ <inputParameter>
+          !@   <name>randomSpinResetMassFactor</name>
+          !@   <defaultValue>2.0</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The factor by which a node must increase in mass before its spin parameter is reset.
+          !@   </description>
+          !@   <type>double</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('randomSpinResetMassFactor',randomSpinResetMassFactor,defaultValue=2.0d0)
+          ! Record that the module is now initialized.
+          moduleInitialized=.true.
+       end if
+       !$omp end critical (Node_Component_Spin_Random_Initialize)
     end if
-    !$omp end critical (Node_Component_Spin_Random_Initialize)
     return
   end subroutine Node_Component_Spin_Random_Initialize
 

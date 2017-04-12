@@ -90,7 +90,6 @@ module Intergalactic_Medium_State
   !#       &amp;                              'electronScatteringOpticalDepth'          , &amp;
   !#       &amp;                              'time exceeds present age of the universe'  &amp;
   !#       &amp;                             )
-  !#    !$omp critical     (igmStateElectronScatteringInterpolation)
   !#    assumeFullyIonizedActual=.false.
   !#    if (present(assumeFullyIonized)) assumeFullyIonizedActual=assumeFullyIonized
   !#    if (assumeFullyIonizedActual) then
@@ -98,7 +97,6 @@ module Intergalactic_Medium_State
   !#    else
   !#       intergalacticMediumStateElectronScatteringOpticalDepth=-self%electronScattering            %interpolate(time)
   !#    end if
-  !#    !$omp end critical (igmStateElectronScatteringInterpolation)
   !#   </code>
   !#  </method>
   !#  <method name="electronScatteringTime" >
@@ -130,13 +128,11 @@ module Intergalactic_Medium_State
   !#       time=time/2.0d0
   !#       call intergalacticMediumStateElectronScatteringTabulate(self,time)
   !#    end do
-  !#    !$omp critical     (igmStateElectronScatteringInterpolation)
   !#    if (assumeFullyIonizedActual) then
   !#       intergalacticMediumStateElectronScatteringTime=self%electronScatteringFullyIonizedInverse%interpolate(-opticalDepth)
   !#    else
   !#       intergalacticMediumStateElectronScatteringTime=self%electronScatteringInverse            %interpolate(-opticalDepth)
   !#    end if
-  !#    !$omp end critical (igmStateElectronScatteringInterpolation)
   !#   </code>
   !#  </method>
   !#  <method name="filteringMass" >
@@ -148,9 +144,7 @@ module Intergalactic_Medium_State
   !#   <code>
   !#    ! Ensure that the table is initialized.
   !#    call intergalacticMediumStateFilteringMassTabulate(self,time)
-  !#    !$omp critical     (igmStateFilteringMassInterpolation)
   !#    intergalacticMediumStateFilteringMass=self%filteringMassTable%interpolate(time)
-  !#    !$omp end critical (igmStateFilteringMassInterpolation)
   !#   </code>
   !#  </method>
   !#  <!-- Filtering mass table. -->
@@ -184,7 +178,6 @@ contains
     integer                                                                :: iTime
     logical                                                                :: fullyIonized
 
-    !$omp critical (igmStateElectronScatteringInterpolation)
     if (.not.self%electronScatteringTableInitialized.or.time < self%electronScatteringTableTimeMinimum) then
        ! Get the default cosmology functions object.
        cosmologyFunctions_ => cosmologyFunctions()
@@ -245,7 +238,6 @@ contains
        ! Specify that tabulation has been made.
        self%electronScatteringTableInitialized=.true.
     end if
-    !$omp end critical (igmStateElectronScatteringInterpolation)
     return
     
   contains
@@ -314,7 +306,6 @@ contains
     integer                                                                :: iTime
     double precision                                                       :: timeInitial                       , timeCurrent
 
-    !$omp critical (igmStateFilteringMassInterpolation)
     if (.not.self%filteringMassTableInitialized .or. time < self%filteringMassTableTimeMinimum) then
        ! Get required objects.
        cosmologyFunctions_  => cosmologyFunctions ()
@@ -366,7 +357,6 @@ contains
        ! Specify that tabulation has been made.
        self%filteringMassTableInitialized=.true.
     end if
-    !$omp end critical (igmStateFilteringMassInterpolation)
     return
 
   contains

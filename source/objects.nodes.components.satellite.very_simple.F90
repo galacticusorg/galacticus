@@ -69,24 +69,26 @@ contains
     implicit none
 
     ! Test whether module is already initialize.
-    !$omp critical (Node_Component_Satellite_Very_Simple_Initialize)
     if (.not.moduleInitialized) then
-       ! Determine if satellite orbits are to be reset on halo formation events.
-       !@ <inputParameter>
-       !@   <name>satelliteOrbitResetOnHaloFormation</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether satellite virial orbital parameters should be reset on halo formation events.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('satelliteOrbitResetOnHaloFormation',satelliteOrbitResetOnHaloFormation,defaultValue=.false.)
-       ! Record that the module is now initialized.
-       moduleInitialized=.true.
+       !$omp critical (Node_Component_Satellite_Very_Simple_Initialize)
+       if (.not.moduleInitialized) then
+          ! Determine if satellite orbits are to be reset on halo formation events.
+          !@ <inputParameter>
+          !@   <name>satelliteOrbitResetOnHaloFormation</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Specifies whether satellite virial orbital parameters should be reset on halo formation events.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('satelliteOrbitResetOnHaloFormation',satelliteOrbitResetOnHaloFormation,defaultValue=.false.)
+          ! Record that the module is now initialized.
+          moduleInitialized=.true.
+       end if
+       !$omp end critical (Node_Component_Satellite_Very_Simple_Initialize)
     end if
-    !$omp end critical (Node_Component_Satellite_Very_Simple_Initialize)
     return
   end subroutine Node_Component_Satellite_Very_Simple_Initialize
 

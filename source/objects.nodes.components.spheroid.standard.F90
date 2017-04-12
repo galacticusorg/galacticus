@@ -283,22 +283,24 @@ contains
        type is (massDistributionHernquist)
           call spheroidMassDistribution%initialize(                          isDimensionless=.true.)
        type is (massDistributionSersic   )
-          !$omp critical (spheroidStandardInitializeSersic)
           if (.not.sersicIndexInitialized) then
-             !@ <inputParameter>
-             !@   <name>spheroidSersicIndex</name>
-             !@   <defaultValue>$4$</defaultValue>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@    The S\'ersic index to use for the spheroid component mass distribution.
-             !@   </description>
-             !@   <type>double</type>
-             !@   <cardinality>1</cardinality>
-             !@ </inputParameter>
-             call Get_Input_Parameter('spheroidSersicIndex',spheroidSersicIndex,defaultValue=4.0d0)
-             sersicIndexInitialized=.true.
+             !$omp critical (spheroidStandardInitializeSersic)
+             if (.not.sersicIndexInitialized) then
+                !@ <inputParameter>
+                !@   <name>spheroidSersicIndex</name>
+                !@   <defaultValue>$4$</defaultValue>
+                !@   <attachedTo>module</attachedTo>
+                !@   <description>
+                !@    The S\'ersic index to use for the spheroid component mass distribution.
+                !@   </description>
+                !@   <type>double</type>
+                !@   <cardinality>1</cardinality>
+                !@ </inputParameter>
+                call Get_Input_Parameter('spheroidSersicIndex',spheroidSersicIndex,defaultValue=4.0d0)
+                sersicIndexInitialized=.true.
+             end if
+             !$omp end critical (spheroidStandardInitializeSersic)
           end if
-          !$omp end critical (spheroidStandardInitializeSersic)
           call spheroidMassDistribution%initialize(index=spheroidSersicIndex,isDimensionless=.true.)
        class default
           call Galacticus_Error_Report('Node_Component_Spheroid_Standard_Thread_Initialize','unsupported mass distribution')
@@ -317,22 +319,24 @@ contains
           spheroidAngularMomentumAtScaleRadiusDefault=+spheroidMassDistributionDensityMomentum2 &
                &                                      /spheroidMassDistributionDensityMomentum3
        end if
-       !$omp critical (spheroidStandardInitializeSersic)
        if (.not.angularMomentumInitialized) then
-          !@ <inputParameter>
-          !@   <name>spheroidAngularMomentumAtScaleRadius</name>
-          !@   <defaultValue>$I_2/I_3$ where $I_n=\int_0^\infty \rho(r) r^n {\mathrm d}r$, where $\rho(r)$ is the spheroid density profile, unless either $I_2$ or $I_3$ is infinite, in which case a default of $1/2$ is used instead</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The assumed ratio of the specific angular momentum at the scale radius to the mean specific angular momentum of the standard spheroid component.
-          !@   </description>
-          !@   <type>double</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('spheroidAngularMomentumAtScaleRadius',spheroidAngularMomentumAtScaleRadius,defaultValue=spheroidAngularMomentumAtScaleRadiusDefault)
-          angularMomentumInitialized=.true.
+          !$omp critical (spheroidStandardInitializeAngularMomentum)
+          if (.not.angularMomentumInitialized) then
+             !@ <inputParameter>
+             !@   <name>spheroidAngularMomentumAtScaleRadius</name>
+             !@   <defaultValue>$I_2/I_3$ where $I_n=\int_0^\infty \rho(r) r^n {\mathrm d}r$, where $\rho(r)$ is the spheroid density profile, unless either $I_2$ or $I_3$ is infinite, in which case a default of $1/2$ is used instead</defaultValue>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@    The assumed ratio of the specific angular momentum at the scale radius to the mean specific angular momentum of the standard spheroid component.
+             !@   </description>
+             !@   <type>double</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter('spheroidAngularMomentumAtScaleRadius',spheroidAngularMomentumAtScaleRadius,defaultValue=spheroidAngularMomentumAtScaleRadiusDefault)
+             angularMomentumInitialized=.true.
+          end if
+          !$omp end critical (spheroidStandardInitializeAngularMomentum)
        end if
-       !$omp end critical (spheroidStandardInitializeSersic)
     end if
     return
   end subroutine Node_Component_Spheroid_Standard_Thread_Initialize

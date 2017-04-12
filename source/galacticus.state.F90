@@ -177,44 +177,41 @@ contains
     use Input_Parameters
     implicit none
 
-    !$omp critical(Galacticus_State_Initialize)
     if (.not.stateInitialized) then
-
-       ! Get the base name of the state files.
-       !@ <inputParameter>
-       !@   <name>stateFileRoot</name>
-       !@   <defaultValue>none</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The root name of files to which the internal state is written (to permit restarts).
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('stateFileRoot'        ,stateFileRoot        ,defaultValue="none")
-
-       ! Get the base name of the files to retrieve from.
-       !@ <inputParameter>
-       !@   <name>stateRetrieveFileRoot</name>
-       !@   <defaultValue>none</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The root name of files to which the internal state is retrieved from (to restart).
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('stateRetrieveFileRoot',stateRetrieveFileRoot,defaultValue="none")
-
-       ! Record active status of store and retrieve.
-       stateStoreActive   =(stateFileRoot         /= "none")
-       stateRetrieveActive=(stateRetrieveFileRoot /= "none")
-
-       ! Flag that module is now initialized.
-       stateInitialized=.true.
-
+       !$omp critical(Galacticus_State_Initialize)
+       if (.not.stateInitialized) then
+          ! Get the base name of the state files.
+          !@ <inputParameter>
+          !@   <name>stateFileRoot</name>
+          !@   <defaultValue>none</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The root name of files to which the internal state is written (to permit restarts).
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('stateFileRoot'        ,stateFileRoot        ,defaultValue="none")
+          ! Get the base name of the files to retrieve from.
+          !@ <inputParameter>
+          !@   <name>stateRetrieveFileRoot</name>
+          !@   <defaultValue>none</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The root name of files to which the internal state is retrieved from (to restart).
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('stateRetrieveFileRoot',stateRetrieveFileRoot,defaultValue="none")
+          ! Record active status of store and retrieve.
+          stateStoreActive   =(stateFileRoot         /= "none")
+          stateRetrieveActive=(stateRetrieveFileRoot /= "none")
+          ! Flag that module is now initialized.
+          stateInitialized=.true.
+       end if
+       !$omp end critical(Galacticus_State_Initialize)
     end if
-    !$omp end critical(Galacticus_State_Initialize)
     return
   end subroutine State_Initialize
 

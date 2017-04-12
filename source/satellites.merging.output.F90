@@ -48,32 +48,34 @@ contains
     type (hdf5Object        )                         :: mergersGroup
     
     ! Initialize the module if necessary.
-    !$omp critical (Satellite_Merging_Output_Initialize)
     if (.not.initialized) then
-       ! Read controlling parameters.
-       !@ <inputParameter>
-       !@   <name>outputSatelliteMergers</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>Specifies whether satellite merger information should be output.</description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>???</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter("outputSatelliteMergers",outputSatelliteMergers,defaultValue=.false.)
-       !@ <inputParameter>
-       !@   <name>outputSatelliteMergersMainBranchOnly</name>
-       !@   <defaultValue>true</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>Specifies whether satellite merger information should be output only for the main branch host halo.</description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>???</group>
-       !@ </inputParameter>
-         call Get_Input_Parameter("outputSatelliteMergersMainBranchOnly",outputSatelliteMergersMainBranchOnly,defaultValue=.true.)
-     initialized=.true.
+       !$omp critical (Satellite_Merging_Output_Initialize)
+       if (.not.initialized) then
+          ! Read controlling parameters.
+          !@ <inputParameter>
+          !@   <name>outputSatelliteMergers</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>Specifies whether satellite merger information should be output.</description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>???</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter("outputSatelliteMergers",outputSatelliteMergers,defaultValue=.false.)
+          !@ <inputParameter>
+          !@   <name>outputSatelliteMergersMainBranchOnly</name>
+          !@   <defaultValue>true</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>Specifies whether satellite merger information should be output only for the main branch host halo.</description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>???</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter("outputSatelliteMergersMainBranchOnly",outputSatelliteMergersMainBranchOnly,defaultValue=.true.)
+          initialized=.true.
+       end if
+       !$omp end critical (Satellite_Merging_Output_Initialize)
     end if
-    !$omp end critical (Satellite_Merging_Output_Initialize)
     ! Exit if merger data is not to be output.
     if (.not.outputSatelliteMergers) return
     ! Find the node to merge with.

@@ -572,34 +572,36 @@ contains
     type            (varying_string               )                                   :: message
     
     ! Initialize if not yet done.
-    !$omp critical (evolveToTimeInitialize)
     if (.not.evolveToTimeInitialized) then
-       !@ <inputParameter>
-       !@   <name>timestepHostRelative</name>
-       !@   <defaultValue>0.1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The maximum allowed relative timestep for node evolution relative to the time of the host halo.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('timestepHostRelative',timestepHostRelative,defaultValue=0.1d0)
-       !@ <inputParameter>
-       !@   <name>timestepHostAbsolute</name>
-       !@   <defaultValue>1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The maximum allowed absolute timestep (in Gyr) for node evolution relative to the time of the host halo.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('timestepHostAbsolute',timestepHostAbsolute,defaultValue=1.0d0)
-       evolveToTimeInitialized=.true.
+       !$omp critical (evolveToTimeInitialize)
+       if (.not.evolveToTimeInitialized) then
+          !@ <inputParameter>
+          !@   <name>timestepHostRelative</name>
+          !@   <defaultValue>0.1</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The maximum allowed relative timestep for node evolution relative to the time of the host halo.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('timestepHostRelative',timestepHostRelative,defaultValue=0.1d0)
+          !@ <inputParameter>
+          !@   <name>timestepHostAbsolute</name>
+          !@   <defaultValue>1</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The maximum allowed absolute timestep (in Gyr) for node evolution relative to the time of the host halo.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('timestepHostAbsolute',timestepHostAbsolute,defaultValue=1.0d0)
+          evolveToTimeInitialized=.true.
+       end if
+       !$omp end critical (evolveToTimeInitialize)
     end if
-    !$omp end critical (evolveToTimeInitialize)
-
+    
     ! Initially set to the global end time.
     evolveToTime=endTime
     if (report) call Evolve_To_Time_Report("start (target): ",evolveToTime)

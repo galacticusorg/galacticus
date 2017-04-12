@@ -48,24 +48,26 @@ contains
     else
        resetActual=.false.
     end if
-
+    
     ! Read in the random number seed if necessary.
-    !$omp critical (Poisson_Random_Get)
     if (.not.Seed_Is_Set) then
-       !@ <inputParameter>
-       !@   <name>poissonRandomSeed</name>
-       !@   <defaultValue>348</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     A seed for the Poisson random number generator.
-       !@   </description>
-       !@   <type>integer</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('poissonRandomSeed',poissonRandomSeed,defaultValue=843)
-       Seed_Is_Set=.true.
+       !$omp critical (Poisson_Random_Get)
+       if (.not.Seed_Is_Set) then
+          !@ <inputParameter>
+          !@   <name>poissonRandomSeed</name>
+          !@   <defaultValue>348</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     A seed for the Poisson random number generator.
+          !@   </description>
+          !@   <type>integer</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('poissonRandomSeed',poissonRandomSeed,defaultValue=843)
+          Seed_Is_Set=.true.
+       end if
+       !$omp end critical (Poisson_Random_Get)
     end if
-    !$omp end critical (Poisson_Random_Get)
 
     if (resetActual.or..not.FGSL_Well_Defined(pseudoSequenceObject)) then
        pseudoSequenceObject=FGSL_RNG_Alloc(FGSL_RNG_Default)
