@@ -50,13 +50,15 @@ sub Profile_OpenMP {
 		    if ( exists($descriptor->{'critical'}->{$criticalSectionName}) ) {
 			# Find parent function.
 			my $nodeParent = $node;
-			while ( $nodeParent->{'type'} ne "function" && $nodeParent->{'type'} ne "subroutine" ) {
+			while ( $nodeParent->{'type'} ne "function" && $nodeParent->{'type'} ne "subroutine" && defined($nodeParent->{'parent'}) ) {
 			    $nodeParent = $nodeParent->{'parent'};
 			}
-			# Add modules required.
-			&Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($nodeParent,$moduleUses);
-			# Generate code to time the wait at this critical section.
-			$line = "ompProfileTimeWaitStart=OMP_Get_WTime()\n".$line."ompProfileTimeWaitEnd=OMP_Get_WTime()\nompProfileTimeWaitEnd=ompProfileTimeWaitEnd-ompProfileTimeWaitStart\ncriticalSectionWaitTime(".$descriptor->{'critical'}->{$criticalSectionName}->{'id'}.")=criticalSectionWaitTime(".$descriptor->{'critical'}->{$criticalSectionName}->{'id'}.")+ompProfileTimeWaitEnd\n";
+			if ( $nodeParent->{'type'} eq "function" || $nodeParent->{'type'} eq "subroutine" ) {
+			    # Add modules required.
+			    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($nodeParent,$moduleUses);
+			    # Generate code to time the wait at this critical section.
+			    $line = "ompProfileTimeWaitStart=OMP_Get_WTime()\n".$line."ompProfileTimeWaitEnd=OMP_Get_WTime()\nompProfileTimeWaitEnd=ompProfileTimeWaitEnd-ompProfileTimeWaitStart\ncriticalSectionWaitTime(".$descriptor->{'critical'}->{$criticalSectionName}->{'id'}.")=criticalSectionWaitTime(".$descriptor->{'critical'}->{$criticalSectionName}->{'id'}.")+ompProfileTimeWaitEnd\n";
+			}
 		    }
 		}
 		$newContent .= $line;
