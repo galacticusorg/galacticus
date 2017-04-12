@@ -671,16 +671,12 @@ contains
 
     ! Ensure module is initialized.
     call Abundances_Initialize
-
-    select type (self)
-    type is (abundances)
     ! Extract metallicity from array.
     self%metallicityValue=abundancesArray(1)
     ! Ensure elemental values array exists.
     call Abundances_Allocate_Elemental_Values(self)
     ! Extract elemental values from array.
     self%elementalValue=abundancesArray(2:elementsCount+1)
-    end select
     return
   end subroutine Abundances_Deserialize
 
@@ -755,9 +751,6 @@ contains
 
     ! Ensure module is initialized.
     call Abundances_Initialize
-
-    select type (self)
-    type is (abundances)
     ! Store the current metallicity.
     metallicityPrevious        =self%metallicityValue
 
@@ -818,7 +811,6 @@ contains
           end do
         end select
     end if
-    end select
     return
   end subroutine Abundances_Set_Metallicity
 
