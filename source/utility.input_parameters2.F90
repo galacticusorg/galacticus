@@ -522,9 +522,11 @@ contains
     !% Finalizer for the {\normalfont \ttfamily inputParameters} class.
     type(inputParameters), intent(inout) :: self
 
-    !$omp critical (FoX_DOM_Access)
-    if (self%isNull) call destroy(self%document)
-    !$omp end critical (FoX_DOM_Access)
+    if (self%isNull) then
+       !$omp critical (FoX_DOM_Access)
+       call destroy(self%document)
+       !$omp end critical (FoX_DOM_Access)
+    end if
     if (associated(self%parameters)) deallocate(self%parameters)
     nullify(self%document  )
     nullify(self%rootNode  )
