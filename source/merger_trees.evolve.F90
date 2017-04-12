@@ -93,9 +93,10 @@ contains
     character       (len=24                       )                                    :: label
     character       (len=35                       )                                    :: message
     type            (varying_string               )                                    :: lockType                          , vMessage
-    logical                                                                            :: anyTreeExistsAtOutputTime         , hasIntertreeEvent   , &
-         &                                                                                hasParent                         , treeLimited
-    
+    logical                                                                            :: anyTreeExistsAtOutputTime         , hasIntertreeEvent, &
+         &                                                                                hasParent                         , treeLimited      , &
+         &                                                                                nodeProgressed                    , nextNodeFound
+
     ! Check if this routine is initialized.
     if (.not.mergerTreeEvolveToInitialized) then
        !$omp critical (Merger_Tree_Evolve_To_Initialize)
@@ -284,6 +285,9 @@ contains
                 ! Get the basic component of the node.
                 basic => node%basic()
                 
+                ! Initialize timestep for this node to an unphysical value so that it will be reset by the ODE evolver.
+                call node%timeStepSet(-1.0d0)
+                   
                 ! Tree walk loop: Walk to each node in the tree and consider whether or not to evolve it.
                 treeWalkLoop: do while (associated(node))
 
@@ -352,6 +356,11 @@ contains
                       ! Flag that a node was evolved.
                       didEvolve=.true.
 
+                      ! Flag that this node has not yet progressed in time, and that we have not yet determined which node we will
+                      ! evolve next.
+                      nodeProgressed=.false.
+                      nextNodeFound =.false.
+                      
                       ! Update tree progress counter.
                       nodesEvolvedCount=nodesEvolvedCount+1
                       
@@ -379,11 +388,15 @@ contains
                             endTimeThisNode=Evolve_To_Time(node,endTime,End_Of_Timestep_Task,report=.false.)
                          end if
                          ! If this node is able to evolve by a finite amount, the tree is not deadlocked.
-                         if (endTimeThisNode > basic%time()) deadlockStatus=deadlockStatusIsNotDeadlocked
-                         ! Update record of earliest time in the tree.
-                         earliestTimeInTree=min(earliestTimeInTree,endTimeThisNode)
-                         ! Evolve the node to the next interrupt event, or the end time.
-                         call Tree_Node_Evolve(currentTree,node,endTimeThisNode,interrupted,interruptProcedure)
+                         if (endTimeThisNode > basic%time()) then
+                            deadlockStatus=deadlockStatusIsNotDeadlocked
+                            ! Record that the node will be progressed forward in time.
+                            nodeProgressed=.true.
+                            ! Update record of earliest time in the tree.
+                            earliestTimeInTree=min(earliestTimeInTree,endTimeThisNode)
+                            ! Evolve the node to the next interrupt event, or the end time.
+                            call Tree_Node_Evolve(currentTree,node,endTimeThisNode,interrupted,interruptProcedure)
+                         end if
                          ! Check for interrupt.
                          if (interrupted) then
                             ! If an interrupt occured call the specified procedure to handle it.
@@ -397,8 +410,8 @@ contains
                       end do
                       ! If this halo has reached its parent halo, decide how to handle it.
                       if (associated(node).and.associated(node%parent)) then
-                         nodeParent           => node%parent
-                         basicParent => nodeParent%basic()
+                         nodeParent  => node      %parent
+                         basicParent => nodeParent%basic ()
                          if (basic%time() >= basicParent%time()) then
                             ! Parent halo has been reached. Check if the node is the primary (major) progenitor of the parent node.
                             select case (node%isPrimaryProgenitor())
@@ -417,10 +430,28 @@ contains
                                if (.not.associated(node%sibling).and..not.associated(node%event)) then
                                   deadlockStatus=deadlockStatusIsNotDeadlocked
                                   call Tree_Node_Promote(node)
+                                  ! As this is a node promotion, we want to attempt to continue evolving the same node. Mark the
+                                  ! parent as the next node to evolve, and flag that our next node has been identified.
+                                  nodeNext      => nodeParent
+                                  nextNodeFound =  .true.
                                end if
                             end select
                          end if
                       end if
+                      ! Determine the next node to process.
+                      if (.not.nextNodeFound) then
+                         ! If the node still exists and advanced forward in time, attempt to evolve it again.
+                         if (associated(node).and.nodeProgressed) then
+                            ! Set the next node pointer back to the current node so that we will evolve it again. Also, increase
+                            ! the timestep - hueristically this seems to give us small reductions in the number of ODE rate
+                            ! evaluations that must be made.
+                            nodeNext => node
+                            call node%timeStepSet(2.0d0*node%timeStep())
+                         else
+                            ! We will move to evolving the next node in the tree. If such exists, reset its timestep.
+                            if (associated(nodeNext)) call nodeNext%timeStepSet(-1.0d0)
+                         end if
+                      end if                      
                    else
                       if (deadlockStatus == deadlockStatusIsReporting) then
                          vMessage="node "
