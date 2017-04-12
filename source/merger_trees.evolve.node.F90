@@ -92,79 +92,81 @@ contains
     type(varying_string) :: odeAlgorithm
 
     ! Initialize if necessary.
-    !$omp critical (Tree_Node_Evolve_Initialize)
     if (.not.evolverInitialized) then
-       ! Get tolerance values for the ODE solver.
-       !@ <inputParameter>
-       !@   <name>odeToleranceAbsolute</name>
-       !@   <defaultValue>$0.01$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The absolute tolerance used in solving differential equations for node evolution.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>timeStepping</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('odeToleranceAbsolute',odeToleranceAbsolute,defaultValue=0.01d0)
-       !@ <inputParameter>
-       !@   <name>odeToleranceRelative</name>
-       !@   <defaultValue>0.01</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The relative tolerance used in solving differential equations for node evolution.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>timeStepping</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('odeToleranceRelative',odeToleranceRelative,defaultValue=1.0d-2)
-       !@ <inputParameter>
-       !@   <name>odeAlgorithm</name>
-       !@   <defaultValue>Runge-Kutta-Cash-Karp</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The algorithm to use in the ODE solver.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>timeStepping</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('odeAlgorithm',odeAlgorithm,defaultValue='Runge-Kutta-Cash-Karp')
-       select case (char(odeAlgorithm))
-       case ('Runge-Kutta-Cash-Karp')
-          Galacticus_ODE_Algorithm=Fodeiv2_Step_RKCK
-       case ('Runge-Kutta-Second-Order')
-          Galacticus_ODE_Algorithm=Fodeiv2_Step_RK2
-       case ('Runge-Kutta')
-          Galacticus_ODE_Algorithm=Fodeiv2_Step_RK4
-       case ('Runge-Kutta-Fehlberg')
-          Galacticus_ODE_Algorithm=Fodeiv2_Step_RKF45
-       case ('Runge-Kutta-Prince-Dormand')
-          Galacticus_ODE_Algorithm=Fodeiv2_Step_RK8PD
-       case ('multistepAdams')
-          Galacticus_ODE_Algorithm=Fodeiv2_Step_msAdams
-       case default
-          call Galacticus_Error_Report('Tree_Node_Evolve_Initialize','odeAlgorithm is unrecognized')
-       end select
+       !$omp critical (Tree_Node_Evolve_Initialize)
+       if (.not.evolverInitialized) then
+          ! Get tolerance values for the ODE solver.
+          !@ <inputParameter>
+          !@   <name>odeToleranceAbsolute</name>
+          !@   <defaultValue>$0.01$</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The absolute tolerance used in solving differential equations for node evolution.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>timeStepping</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('odeToleranceAbsolute',odeToleranceAbsolute,defaultValue=0.01d0)
+          !@ <inputParameter>
+          !@   <name>odeToleranceRelative</name>
+          !@   <defaultValue>0.01</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The relative tolerance used in solving differential equations for node evolution.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>timeStepping</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('odeToleranceRelative',odeToleranceRelative,defaultValue=1.0d-2)
+          !@ <inputParameter>
+          !@   <name>odeAlgorithm</name>
+          !@   <defaultValue>Runge-Kutta-Cash-Karp</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The algorithm to use in the ODE solver.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>timeStepping</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('odeAlgorithm',odeAlgorithm,defaultValue='Runge-Kutta-Cash-Karp')
+          select case (char(odeAlgorithm))
+          case ('Runge-Kutta-Cash-Karp')
+             Galacticus_ODE_Algorithm=Fodeiv2_Step_RKCK
+          case ('Runge-Kutta-Second-Order')
+             Galacticus_ODE_Algorithm=Fodeiv2_Step_RK2
+          case ('Runge-Kutta')
+             Galacticus_ODE_Algorithm=Fodeiv2_Step_RK4
+          case ('Runge-Kutta-Fehlberg')
+             Galacticus_ODE_Algorithm=Fodeiv2_Step_RKF45
+          case ('Runge-Kutta-Prince-Dormand')
+             Galacticus_ODE_Algorithm=Fodeiv2_Step_RK8PD
+          case ('multistepAdams')
+             Galacticus_ODE_Algorithm=Fodeiv2_Step_msAdams
+          case default
+             call Galacticus_Error_Report('Tree_Node_Evolve_Initialize','odeAlgorithm is unrecognized')
+          end select
 #ifdef PROFILE
-       !@ <inputParameter>
-       !@   <name>profileOdeEvolver</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether or not to profile the ODE evolver.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>timeStepping</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('profileOdeEvolver',profileOdeEvolver,defaultValue=.false.)
+          !@ <inputParameter>
+          !@   <name>profileOdeEvolver</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Specifies whether or not to profile the ODE evolver.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>timeStepping</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('profileOdeEvolver',profileOdeEvolver,defaultValue=.false.)
 #endif
-       ! Flag that the module is now initialized.
-       evolverInitialized=.true.
+          ! Flag that the module is now initialized.
+          evolverInitialized=.true.
+       end if
+       !$omp end critical (Tree_Node_Evolve_Initialize)
     end if
-    !$omp end critical (Tree_Node_Evolve_Initialize)
     return
   end subroutine Tree_Node_Evolve_Initialize
 
@@ -711,30 +713,32 @@ contains
     !#  <functionArgs>thisNode</functionArgs>
     include 'events.node_mergers.process.inc'
     !# </include>
-    !$omp critical (Events_Node_Merger_Initialize)
     if (.not.nodeMergersInitialized) then
-       ! Get the node mergers method parameter.
-       !@ <inputParameter>
-       !@   <name>nodeMergersMethod</name>
-       !@   <defaultValue>singleLevelHierarchy</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Selects the method to be used for handling node merger events.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('nodeMergersMethod',nodeMergersMethod,defaultValue='singleLevelHierarchy')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="nodeMergersMethod" type="functionCall" functionType="void">
-       !#  <functionArgs>nodeMergersMethod,Events_Node_Merger_Do</functionArgs>
-       include 'events.node_mergers.inc'
-       !# </include>
-       if (.not.associated(Events_Node_Merger_Do)) call Galacticus_Error_Report('Events_Node_Merger','method '&
-            &//char(nodeMergersMethod)//' is unrecognized')
-       nodeMergersInitialized=.true.
+       !$omp critical (Events_Node_Merger_Initialize)
+       if (.not.nodeMergersInitialized) then
+          ! Get the node mergers method parameter.
+          !@ <inputParameter>
+          !@   <name>nodeMergersMethod</name>
+          !@   <defaultValue>singleLevelHierarchy</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Selects the method to be used for handling node merger events.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('nodeMergersMethod',nodeMergersMethod,defaultValue='singleLevelHierarchy')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="nodeMergersMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>nodeMergersMethod,Events_Node_Merger_Do</functionArgs>
+          include 'events.node_mergers.inc'
+          !# </include>
+          if (.not.associated(Events_Node_Merger_Do)) call Galacticus_Error_Report('Events_Node_Merger','method '&
+               &//char(nodeMergersMethod)//' is unrecognized')
+          nodeMergersInitialized=.true.
+       end if
+       !$omp end critical (Events_Node_Merger_Initialize)
     end if
-    !$omp end critical (Events_Node_Merger_Initialize)
     ! Call the routine to perform the merger.
     call Events_Node_Merger_Do(thisNode)
     return

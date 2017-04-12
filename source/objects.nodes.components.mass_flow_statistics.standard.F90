@@ -55,23 +55,25 @@ contains
     implicit none
 
     ! Test whether module is already initialize.
-    !$omp critical (Node_Component_Mass_Flow_Statistics_Standard_Initialize)
     if (.not.moduleInitialized) then
-       !@ <inputParameter>
-       !@   <name>massFlowStatisticsResetOnOutput</name>
-       !@   <defaultValue>true</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether or not mass flow statistics should be reset to zero at each output.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('massFlowStatisticsResetOnOutput',massFlowStatisticsResetOnOutput,defaultValue=.true.)
-       ! Record that the module is now initialized.
-       moduleInitialized=.true.     
+       !$omp critical (Node_Component_Mass_Flow_Statistics_Standard_Initialize)
+       if (.not.moduleInitialized) then
+          !@ <inputParameter>
+          !@   <name>massFlowStatisticsResetOnOutput</name>
+          !@   <defaultValue>true</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Specifies whether or not mass flow statistics should be reset to zero at each output.
+          !@   </description>
+          !@   <type>double</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('massFlowStatisticsResetOnOutput',massFlowStatisticsResetOnOutput,defaultValue=.true.)
+          ! Record that the module is now initialized.
+          moduleInitialized=.true.     
+       end if
+       !$omp end critical (Node_Component_Mass_Flow_Statistics_Standard_Initialize)
     end if
-    !$omp end critical (Node_Component_Mass_Flow_Statistics_Standard_Initialize)
     return
   end subroutine Node_Component_Mass_Flow_Statistics_Standard_Initialize
 

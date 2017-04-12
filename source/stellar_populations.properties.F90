@@ -54,33 +54,34 @@ contains
     include 'stellar_populations.properties.modules.inc'
     !# </include>
     implicit none
-
-    !$omp critical(Stellar_Population_Properties_Rates_Initialization)
+    
     ! Initialize if necessary.
     if (.not.stellarPopulationPropertiesInitialized) then
-       ! Get the halo spin distribution method parameter.
-       !@ <inputParameter>
-       !@   <name>stellarPopulationPropertiesMethod</name>
-       !@   <defaultValue>instantaneous</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The method to use for computing properties of stellar populations.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('stellarPopulationPropertiesMethod',stellarPopulationPropertiesMethod,defaultValue='instantaneous')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="stellarPopulationPropertiesMethod" type="functionCall" functionType="void">
-       !#  <functionArgs>stellarPopulationPropertiesMethod,Stellar_Population_Properties_Rates_Get,Stellar_Population_Properties_Scales_Get,Stellar_Population_Properties_History_Count_Get,Stellar_Population_Properties_History_Create_Do</functionArgs>
-       include 'stellar_populations.properties.inc'
-       !# </include>
-       if (.not.(associated(Stellar_Population_Properties_Rates_Get).and.associated(Stellar_Population_Properties_Scales_Get).and.associated(Stellar_Population_Properties_History_Count_Get).and.associated(Stellar_Population_Properties_History_Create_Do))) call Galacticus_Error_Report('Stellar_Population_Properties_Rates'&
-            &,'method '//char(stellarPopulationPropertiesMethod)//' is unrecognized')
-       stellarPopulationPropertiesInitialized=.true.
+       !$omp critical(Stellar_Population_Properties_Rates_Initialization)
+       if (.not.stellarPopulationPropertiesInitialized) then
+          ! Get the halo spin distribution method parameter.
+          !@ <inputParameter>
+          !@   <name>stellarPopulationPropertiesMethod</name>
+          !@   <defaultValue>instantaneous</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The method to use for computing properties of stellar populations.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('stellarPopulationPropertiesMethod',stellarPopulationPropertiesMethod,defaultValue='instantaneous')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="stellarPopulationPropertiesMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>stellarPopulationPropertiesMethod,Stellar_Population_Properties_Rates_Get,Stellar_Population_Properties_Scales_Get,Stellar_Population_Properties_History_Count_Get,Stellar_Population_Properties_History_Create_Do</functionArgs>
+          include 'stellar_populations.properties.inc'
+          !# </include>
+          if (.not.(associated(Stellar_Population_Properties_Rates_Get).and.associated(Stellar_Population_Properties_Scales_Get).and.associated(Stellar_Population_Properties_History_Count_Get).and.associated(Stellar_Population_Properties_History_Create_Do))) call Galacticus_Error_Report('Stellar_Population_Properties_Rates'&
+               &,'method '//char(stellarPopulationPropertiesMethod)//' is unrecognized')
+          stellarPopulationPropertiesInitialized=.true.
+       end if
+       !$omp end critical(Stellar_Population_Properties_Rates_Initialization)
     end if
-    !$omp end critical(Stellar_Population_Properties_Rates_Initialization)
-
     return
   end subroutine Stellar_Population_Properties_Rates_Initialize
 

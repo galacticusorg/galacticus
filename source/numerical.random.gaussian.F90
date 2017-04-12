@@ -50,22 +50,24 @@ contains
     end if
 
     ! Read in the random number seed if necessary.
-    !$omp critical (Gaussian_Random_Get)
     if (.not.Seed_Is_Set) then
-       !@ <inputParameter>
-       !@   <name>gaussianRandomSeed</name>
-       !@   <defaultValue>843</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     A seed for the Gaussian random number generator.
-       !@   </description>
-       !@   <type>integer</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('gaussianRandomSeed',gaussianRandomSeed,defaultValue=843)
-       Seed_Is_Set=.true.
+       !$omp critical (Gaussian_Random_Get)
+       if (.not.Seed_Is_Set) then
+          !@ <inputParameter>
+          !@   <name>gaussianRandomSeed</name>
+          !@   <defaultValue>843</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     A seed for the Gaussian random number generator.
+          !@   </description>
+          !@   <type>integer</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('gaussianRandomSeed',gaussianRandomSeed,defaultValue=843)
+          Seed_Is_Set=.true.
+       end if
+       !$omp end critical (Gaussian_Random_Get)
     end if
-    !$omp end critical (Gaussian_Random_Get)
 
     if (resetActual.or..not.FGSL_Well_Defined(pseudoSequenceObject)) then
        pseudoSequenceObject=FGSL_RNG_Alloc(FGSL_RNG_Default)

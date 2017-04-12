@@ -103,24 +103,26 @@ contains
     else
        resetActual=.false.
     end if
-
+    
     ! Read in the random number seed if necessary.
-    !$omp critical (Pseudo_Random_Get)
     if (.not.Seed_Is_Set) then
-       !@ <inputParameter>
-       !@   <name>randomSeed</name>
-       !@   <defaultValue>219</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     A seed value for the random number generator.
-       !@   </description>
-       !@   <type>integer</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('randomSeed',randomSeed,defaultValue=219)
-       Seed_Is_Set=.true.
+       !$omp critical (Pseudo_Random_Get)
+       if (.not.Seed_Is_Set) then
+          !@ <inputParameter>
+          !@   <name>randomSeed</name>
+          !@   <defaultValue>219</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     A seed value for the random number generator.
+          !@   </description>
+          !@   <type>integer</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('randomSeed',randomSeed,defaultValue=219)
+          Seed_Is_Set=.true.
+       end if
+       !$omp end critical (Pseudo_Random_Get)
     end if
-    !$omp end critical (Pseudo_Random_Get)
 
     if (resetActual.or..not.FGSL_Well_Defined(pseudoSequenceObject)) then
        pseudoSequenceObject=FGSL_RNG_Alloc(FGSL_RNG_Default)

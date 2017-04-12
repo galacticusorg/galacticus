@@ -73,26 +73,28 @@ contains
     implicit none
 
     ! Check if this implementation is selected.
-    !$omp critical (Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize)
     if (.not.moduleInitialized) then
-       !@ <inputParameter>
-       !@   <name>mergerTreeStructureOutputDarkMatterProfileShape</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Determines whether or not dark matter halo shape parameter is included in outputs of merger trees.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>output</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeStructureOutputDarkMatterProfileShape',mergerTreeStructureOutputDarkMatterProfileShape,defaultValue=.false.)
-       ! Bind the shape get function.
-       call darkMatterProfile%shapeFunction(Node_Component_Dark_Matter_Profile_Scale_Shape_Shape)
-       ! Record that the module is now initialize.
-       moduleInitialized=.true.
+       !$omp critical (Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize)
+       if (.not.moduleInitialized) then
+          !@ <inputParameter>
+          !@   <name>mergerTreeStructureOutputDarkMatterProfileShape</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Determines whether or not dark matter halo shape parameter is included in outputs of merger trees.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('mergerTreeStructureOutputDarkMatterProfileShape',mergerTreeStructureOutputDarkMatterProfileShape,defaultValue=.false.)
+          ! Bind the shape get function.
+          call darkMatterProfile%shapeFunction(Node_Component_Dark_Matter_Profile_Scale_Shape_Shape)
+          ! Record that the module is now initialize.
+          moduleInitialized=.true.
+       end if
+       !$omp end critical (Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize)
     end if
-    !$omp end critical (Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize)
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize
 

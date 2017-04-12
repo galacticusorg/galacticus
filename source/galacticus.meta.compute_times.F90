@@ -50,32 +50,33 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(Galacticus_Time_Per_Tree_Initialization)
     ! Initialize if necessary.
     if (.not.metaComputeTimesInitialized) then
-       ! Get the time per tree method parameter.
-       !@ <inputParameter>
-       !@   <name>timePerTreeMethod</name>
-       !@   <defaultValue>file</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <type>string</type>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>
-       !@     The name of the method to be used for computing the time per tree.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('timePerTreeMethod',timePerTreeMethod,defaultValue='file')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="timePerTreeMethod" type="functionCall" functionType="void">
-       !#  <functionArgs>timePerTreeMethod,Galacticus_Time_Per_Tree_Get</functionArgs>
-       include 'galacticus.meta.compute_times.inc'
-       !# </include>
-       if (.not.associated(Galacticus_Time_Per_Tree_Get)) call Galacticus_Error_Report('Galacticus_Time_Per_Tree_Initialize'&
-            &,'method '//char(timePerTreeMethod)//' is unrecognized')
-       metaComputeTimesInitialized=.true.
+       !$omp critical(Galacticus_Time_Per_Tree_Initialization)
+       if (.not.metaComputeTimesInitialized) then
+          ! Get the time per tree method parameter.
+          !@ <inputParameter>
+          !@   <name>timePerTreeMethod</name>
+          !@   <defaultValue>file</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <type>string</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <description>
+          !@     The name of the method to be used for computing the time per tree.
+          !@   </description>
+          !@ </inputParameter>
+          call Get_Input_Parameter('timePerTreeMethod',timePerTreeMethod,defaultValue='file')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="timePerTreeMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>timePerTreeMethod,Galacticus_Time_Per_Tree_Get</functionArgs>
+          include 'galacticus.meta.compute_times.inc'
+          !# </include>
+          if (.not.associated(Galacticus_Time_Per_Tree_Get)) call Galacticus_Error_Report('Galacticus_Time_Per_Tree_Initialize'&
+               &,'method '//char(timePerTreeMethod)//' is unrecognized')
+          metaComputeTimesInitialized=.true.
+       end if
+       !$omp end critical(Galacticus_Time_Per_Tree_Initialization)
     end if
-    !$omp end critical(Galacticus_Time_Per_Tree_Initialization)
-
     return
   end subroutine Galacticus_Time_Per_Tree_Initialize
 

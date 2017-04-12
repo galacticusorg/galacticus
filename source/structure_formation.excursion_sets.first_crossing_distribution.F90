@@ -47,36 +47,38 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(Excursion_Sets_First_Crossing_Initialization)
     ! Initialize if necessary.
     if (.not.firstCrossingModuleInitalized) then
-       ! Get the barrier first crossing probability method parameter.
-       !@ <inputParameter>
-       !@   <name>excursionSetFirstCrossingMethod</name>
-       !@   <defaultValue>linearBarrier</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <type>string</type>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>
-       !@     The name of the method to be used for calculations of first crossing distributions for excursion sets.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('excursionSetFirstCrossingMethod',excursionSetFirstCrossingMethod,defaultValue='linearBarrier')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="excursionSetFirstCrossingMethod" type="functionCall" functionType="void">
-       !#  <functionArgs>excursionSetFirstCrossingMethod,Excursion_Sets_First_Crossing_Probability_Get,Excursion_Sets_First_Crossing_Rate_Get,Excursion_Sets_Non_Crossing_Rate_Get</functionArgs>
-       include 'structure_formation.excursion_sets.first_crossing_distribution.inc'
-       !# </include>
-       if     (                                                                     &
-            &  .not.(                                                               &
-            &             associated(Excursion_Sets_First_Crossing_Probability_Get) &
-            &        .and.associated(Excursion_Sets_First_Crossing_Rate_Get       ) &
-            &        .and.associated(Excursion_Sets_Non_Crossing_Rate_Get         ) &
-            &       )                                                               &
-            & ) call Galacticus_Error_Report('Excursion_Sets_Barrier_Initialize','method '//char(excursionSetFirstCrossingMethod)//' is unrecognized')
-       firstCrossingModuleInitalized=.true.
+       !$omp critical(Excursion_Sets_First_Crossing_Initialization)
+       if (.not.firstCrossingModuleInitalized) then
+          ! Get the barrier first crossing probability method parameter.
+          !@ <inputParameter>
+          !@   <name>excursionSetFirstCrossingMethod</name>
+          !@   <defaultValue>linearBarrier</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <type>string</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <description>
+          !@     The name of the method to be used for calculations of first crossing distributions for excursion sets.
+          !@   </description>
+          !@ </inputParameter>
+          call Get_Input_Parameter('excursionSetFirstCrossingMethod',excursionSetFirstCrossingMethod,defaultValue='linearBarrier')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="excursionSetFirstCrossingMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>excursionSetFirstCrossingMethod,Excursion_Sets_First_Crossing_Probability_Get,Excursion_Sets_First_Crossing_Rate_Get,Excursion_Sets_Non_Crossing_Rate_Get</functionArgs>
+          include 'structure_formation.excursion_sets.first_crossing_distribution.inc'
+          !# </include>
+          if     (                                                                     &
+               &  .not.(                                                               &
+               &             associated(Excursion_Sets_First_Crossing_Probability_Get) &
+               &        .and.associated(Excursion_Sets_First_Crossing_Rate_Get       ) &
+               &        .and.associated(Excursion_Sets_Non_Crossing_Rate_Get         ) &
+               &       )                                                               &
+               & ) call Galacticus_Error_Report('Excursion_Sets_Barrier_Initialize','method '//char(excursionSetFirstCrossingMethod)//' is unrecognized')
+          firstCrossingModuleInitalized=.true.
+       end if
+       !$omp end critical(Excursion_Sets_First_Crossing_Initialization)
     end if
-    !$omp end critical(Excursion_Sets_First_Crossing_Initialization)
     return
   end subroutine Excursion_Sets_First_Crossings_Initialize
 

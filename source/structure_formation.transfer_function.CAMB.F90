@@ -198,12 +198,14 @@ contains
     if (.not.makeTransferFunction) return
     ! If the file exists but has not yet been read, read it now.
     if (self%lockFileGlobally) then
-       !$omp critical (cambFileLockInitialize)
        if (.not.cambFileLockInitialized) then
-          call File_Lock_Initialize(cambFileLockGlobal)
-          cambFileLockInitialized=.true.
+          !$omp critical (cambFileLockInitialize)
+          if (.not.cambFileLockInitialized) then
+             call File_Lock_Initialize(cambFileLockGlobal)
+             cambFileLockInitialized=.true.
+          end if
+          !$omp end critical (cambFileLockInitialize)
        end if
-       !$omp end critical (cambFileLockInitialize)
     else
        call File_Lock_Initialize(fileLock)
     end if

@@ -78,51 +78,53 @@ contains
     !% Initializes the ``scale'' implementation of the dark matter halo profile component.
     use Input_Parameters
     implicit none
-
+    
     ! Check if this implementation is selected.
-    !$omp critical (Node_Component_Dark_Matter_Profile_Scale_Initialize)
     if (.not.moduleInitialized) then
-       ! Get parameters.
-       !@ <inputParameter>
-       !@   <name>darkMatterProfileMinimumConcentration</name>
-       !@   <defaultValue>4</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The minimum concentration allowed for dark matter profiles.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('darkMatterProfileMinimumConcentration',darkMatterProfileMinimumConcentration,defaultValue=4.0d0)
-       !@ <inputParameter>
-       !@   <name>darkMatterProfileMaximumConcentration</name>
-       !@   <defaultValue>100</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The maximum concentration allowed for dark matter profiles.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('darkMatterProfileMaximumConcentration',darkMatterProfileMaximumConcentration,defaultValue=100.0d0)
-       !@ <inputParameter>
-       !@   <name>mergerTreeStructureOutputDarkMatterProfileScale</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Determines whether or not dark matter halo scale radius is included in outputs of merger trees.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>output</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeStructureOutputDarkMatterProfileScale',mergerTreeStructureOutputDarkMatterProfileScale,defaultValue=.false.)
-       ! Bind the scale get function.
-       call darkMatterProfile%scaleFunction(Node_Component_Dark_Matter_Profile_Scale_Scale)
-       ! Record that the module is now initialize.
-       moduleInitialized=.true.
+       !$omp critical (Node_Component_Dark_Matter_Profile_Scale_Initialize)
+       if (.not.moduleInitialized) then
+          ! Get parameters.
+          !@ <inputParameter>
+          !@   <name>darkMatterProfileMinimumConcentration</name>
+          !@   <defaultValue>4</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The minimum concentration allowed for dark matter profiles.
+          !@   </description>
+          !@   <type>double</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('darkMatterProfileMinimumConcentration',darkMatterProfileMinimumConcentration,defaultValue=4.0d0)
+          !@ <inputParameter>
+          !@   <name>darkMatterProfileMaximumConcentration</name>
+          !@   <defaultValue>100</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The maximum concentration allowed for dark matter profiles.
+          !@   </description>
+          !@   <type>double</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('darkMatterProfileMaximumConcentration',darkMatterProfileMaximumConcentration,defaultValue=100.0d0)
+          !@ <inputParameter>
+          !@   <name>mergerTreeStructureOutputDarkMatterProfileScale</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Determines whether or not dark matter halo scale radius is included in outputs of merger trees.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('mergerTreeStructureOutputDarkMatterProfileScale',mergerTreeStructureOutputDarkMatterProfileScale,defaultValue=.false.)
+          ! Bind the scale get function.
+          call darkMatterProfile%scaleFunction(Node_Component_Dark_Matter_Profile_Scale_Scale)
+          ! Record that the module is now initialize.
+          moduleInitialized=.true.
+       end if
+       !$omp end critical (Node_Component_Dark_Matter_Profile_Scale_Initialize)
     end if
-    !$omp end critical (Node_Component_Dark_Matter_Profile_Scale_Initialize)
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Initialize
 

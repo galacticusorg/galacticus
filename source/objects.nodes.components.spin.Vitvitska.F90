@@ -78,22 +78,24 @@ contains
     implicit none
     
     ! Test whether module is already initialized.
-    !$omp critical (Node_Component_Spin_Vitvitska_Initialize)
     if (.not.moduleInitialized) then    
-       !@ <inputParameter>
-       !@   <name>spinVitvitskaMergerRatioExponent</name>
-       !@   <defaultValue>0.1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The angular momentum of a merging halo is weighted by $(1+M_{\rm satellite}/M_{\rm host})^\alpha$ where $\alpha=${\normalfont \ttfamily [spinVitvitskaMaximumMergerRatio]}.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('spinVitvitskaMergerRatioExponent',spinVitvitskaMergerRatioExponent,defaultValue=2.0d0)
-       moduleInitialized=.true.
+       !$omp critical (Node_Component_Spin_Vitvitska_Initialize)
+       if (.not.moduleInitialized) then    
+          !@ <inputParameter>
+          !@   <name>spinVitvitskaMergerRatioExponent</name>
+          !@   <defaultValue>0.1</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The angular momentum of a merging halo is weighted by $(1+M_{\rm satellite}/M_{\rm host})^\alpha$ where $\alpha=${\normalfont \ttfamily [spinVitvitskaMaximumMergerRatio]}.
+          !@   </description>
+          !@   <type>double</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('spinVitvitskaMergerRatioExponent',spinVitvitskaMergerRatioExponent,defaultValue=2.0d0)
+          moduleInitialized=.true.
+       end if
+       !$omp end critical (Node_Component_Spin_Vitvitska_Initialize)
     end if
-    !$omp end critical (Node_Component_Spin_Vitvitska_Initialize)
     return
   end subroutine Node_Component_Spin_Vitvitska_Initialize
 
