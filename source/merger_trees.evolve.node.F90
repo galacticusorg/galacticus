@@ -198,14 +198,14 @@ contains
     integer                                       , save                         :: nPropertiesPrevious=-1
     !$omp threadprivate(nPropertiesPrevious)
     logical                                                                      :: solvedAnalytically
-    double precision                                                             :: startTimeThisNode
+    double precision                                                             :: startTimeThisNode     , stepSize
     integer                                                                      :: lengthMaximum         , i
     type            (varying_string              )                               :: message               , line
     character       (len =12                     )                               :: label
 #ifdef PROFILE
     type            (c_funptr                    )                               :: Error_Analyzer
 #endif
-    
+
     ! Initialize.
     call Tree_Node_Evolve_Initialize()
 
@@ -315,6 +315,7 @@ contains
        odeReset           =.true.
        nPropertiesPrevious=nProperties
        timePrevious       =-1.0d0
+       stepSize           =thisNode%timeStep()       
        if (startTimeThisNode /= endTime)                                   &
             & call ODEIV2_Solve(                                           &
             &                   ode2Driver,ode2System                    , &
@@ -329,8 +330,10 @@ contains
             &                   propertyScales                           , &
             &                   reset=odeReset                           , &
             &                   errorHandler=Galacticus_ODE_Error_Handler, &
-            &                   algorithm   =Galacticus_ODE_Algorithm      &
+            &                   algorithm   =Galacticus_ODE_Algorithm    , &
+            &                   stepSize    =stepSize                      &
             &                  )       
+       call thisNode%timeStepSet(stepSize)
        ! Extract values.
        call thisNode%deserializeValues(propertyValues)       
        ! Ensure that the maximum time has not been exceed (can happen due to rounding errors).
@@ -567,8 +570,7 @@ contains
     type            (varying_string)                                               :: propertyName
 
     ! If the step was not good, return immediately.
-    if (stepStatus /= FGSL_Success) return
-
+    if (stepStatus /= FGSL_Success) return    
     ! Find the property with the largest error (i.e. that which is limiting the step).
     scaledErrorMaximum=0.0d0
     do iProperty=1,nProperties
@@ -589,7 +591,7 @@ contains
     return
   end subroutine Tree_Node_Evolve_Error_Analyzer
 #endif
-
+  
   subroutine Tree_Node_Promote(thisNode)
     !% Transfer the properties of {\normalfont \ttfamily thisNode} to its parent node, then destroy it.
     use String_Handling
@@ -618,7 +620,8 @@ contains
     !#  <functionArgs>thisNode</functionArgs>
     include 'objects.tree_node.promote.inc'
     !# </include>
-
+    ! Copy timestep to the parent.
+    call parentNode%timeStepSet(thisNode%timeStep())
     ! Move the components of thisNode to the parent.
     call thisNode%moveComponentsTo(parentNode)
 
