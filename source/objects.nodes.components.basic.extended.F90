@@ -44,7 +44,7 @@ module Node_Component_Basic_Standard_Extended
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" isDeferred="get" /> 
   !#     <classDefault>-1.0d0</classDefault>
-  !#     <output unitsInSI="massSolar" comment="Bertschinger mass of the node, assuming univeral baryon fraction."/>
+  !#     <output unitsInSI="massSolar" comment="Bertschinger mass of the node, assuming universal baryon fraction."/>
   !#   </property>
   !#   <property>
   !#     <name>accretionRateBertschinger</name>
