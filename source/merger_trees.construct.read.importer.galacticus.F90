@@ -294,7 +294,7 @@ contains
           write (valueString,'(e14.8)') cosmologicalParameter
           message=message//trim(valueString)//'] differs from the internal value ['
           write (valueString,'(e14.8)') localSigma8
-          message=message//trim(valueString)//'] - may not matter if sigma_8 is not use in other functions'
+          message=message//trim(valueString)//'] - may not matter if sigma_8 is not used in other functions'
           call Galacticus_Display_Message(message)
        end if
     end if
