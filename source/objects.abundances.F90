@@ -673,6 +673,8 @@ contains
     call Abundances_Initialize
     ! Extract metallicity from array.
     self%metallicityValue=abundancesArray(1)
+    ! If no individual elements are tracked, our work is done.
+    if (elementsCount == 0) return
     ! Ensure elemental values array exists.
     call Abundances_Allocate_Elemental_Values(self)
     ! Extract elemental values from array.
@@ -691,6 +693,8 @@ contains
 
     ! Place metallicity into array.
     abundancesArray(1)=self%metallicityValue
+    ! If no individual elements are tracked, our work is done.
+    if (elementsCount == 0) return
     ! Place elemental values into arrays.
     if (allocated(self%elementalValue)) then
        abundancesArray(2:elementsCount+1)=self%elementalValue
