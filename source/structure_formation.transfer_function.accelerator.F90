@@ -1,0 +1,157 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+  !% Implements a transfer function accelerator class which tabulates a transfer function for rapid interpolation.
+  
+  use Tables
+  
+  !# <transferFunction name="transferFunctionAccelerator" defaultThreadPrivate="yes">
+  !#  <description>A transfer function class which accelerates calculations of another transfer function class by tabulation for rapid interpolation.</description>
+  !# </transferFunction>
+  type, extends(transferFunctionClass) :: transferFunctionAccelerator
+     !% A transfer function class which accelerates calculations of another transfer function class by tabulation for rapid interpolation.
+     private
+     type            (table1DLinearLinear  )          :: transferTable
+     class           (transferFunctionClass), pointer :: transferFunction_
+     double precision                                 :: wavenumberLogarithmicMinimum, wavenumberLogarithmicMaximum
+     integer                                          :: tablePointsPerDecade
+     logical                                          :: tableInitialized
+   contains
+  
+     final     ::                          acceleratorDestructor
+     procedure :: value                 => acceleratorValue
+     procedure :: logarithmicDerivative => acceleratorLogarithmicDerivative
+     procedure :: halfModeMass          => acceleratorHalfModeMass
+  end type transferFunctionAccelerator
+
+  interface transferFunctionAccelerator
+     !% Constructors for the accelerator transfer function class.
+     module procedure acceleratorConstructorParameters
+     module procedure acceleratorConstructorInternal
+  end interface transferFunctionAccelerator
+
+contains
+
+  function acceleratorConstructorParameters(parameters) result(self)
+    !% Constructor for the accelerator transfer function class which takes a parameter set as input.
+    implicit none
+    type  (transferFunctionAccelerator)                :: self
+    type  (inputParameters            ), intent(inout) :: parameters
+    class (transferFunctionClass      ), pointer       :: transferFunction_
+    integer                                            :: tablePointsPerDecade
+    !# <inputParameterList label="allowedParameterNames" />
+
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>tablePointsPerDecade</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>10</defaultValue>
+    !#   <description>The number of points per decade of wavenumber at which to tabulate the transfer function.</description>
+    !#   <type>integer</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="transferFunction" name="transferFunction_" source="parameters"/>
+    self=transferFunctionAccelerator(transferFunction_,tablePointsPerDecade)
+    return
+  end function acceleratorConstructorParameters
+  
+  function acceleratorConstructorInternal(transferFunction_,tablePointsPerDecade) result(self)
+    !% Internal constructor for the accelerator transfer function class.
+    implicit none
+    type   (transferFunctionAccelerator)                        :: self
+    class  (transferFunctionClass      ), intent(in   ), target :: transferFunction_
+    integer                             , intent(in   )         :: tablePointsPerDecade
+    !# <constructorAssign variables="*transferFunction_, tablePointsPerDecade"/>
+
+    self%tableInitialized            =.false.
+    self%wavenumberLogarithmicMinimum=log(1.0d-6)
+    self%wavenumberLogarithmicMaximum=log(1.0d+6)
+    return
+  end function acceleratorConstructorInternal
+  
+  subroutine acceleratorDestructor(self)
+    !% Destructor for the accelerator transfer function class.
+    implicit none
+    type(transferFunctionAccelerator), intent(inout) :: self
+
+    if (self%tableInitialized) call self%transferTable%destroy()
+    return
+  end subroutine acceleratorDestructor
+
+  double precision function acceleratorValue(self,wavenumber)
+    !% Return the transfer function at the given wavenumber.
+    implicit none
+    class           (transferFunctionAccelerator), intent(inout) :: self
+    double precision                             , intent(in   ) :: wavenumber
+    double precision                                             :: wavenumberLogarithmic
+    
+    wavenumberLogarithmic=log(wavenumber)
+    call acceleratorTabulate(self,wavenumberLogarithmic)
+    acceleratorValue=self%transferFunction_%value(wavenumber) !! AJB HACK exp(self%transferTable%interpolate(wavenumberLogarithmic))
+    return
+  end function acceleratorValue
+
+  double precision function acceleratorLogarithmicDerivative(self,wavenumber)
+    !% Return the logarithmic derivative of the transfer function at the given wavenumber.
+    implicit none
+    class           (transferFunctionAccelerator), intent(inout) :: self
+    double precision                             , intent(in   ) :: wavenumber
+    double precision                                             :: wavenumberLogarithmic
+    
+    wavenumberLogarithmic=log(wavenumber)
+    call acceleratorTabulate(self,wavenumberLogarithmic)
+    acceleratorLogarithmicDerivative=+self%transferTable%interpolateGradient(wavenumberLogarithmic)
+    return
+  end function acceleratorLogarithmicDerivative
+  
+  double precision function acceleratorHalfModeMass(self)
+    !% Compute the mass corresponding to the wavenumber at which the transfer function is
+    !% suppressed by a factor of two relative to a \gls{cdm} transfer function
+    implicit none
+    class(transferFunctionAccelerator), intent(inout) :: self
+    
+    acceleratorHalfModeMass=self%transferFunction_%halfModeMass()
+    return
+  end function acceleratorHalfModeMass
+
+  subroutine acceleratorTabulate(self,wavenumberLogarithmic)
+    !% Tabulate the transfer function for rapid interpolation.
+    implicit none
+    class           (transferFunctionAccelerator), intent(inout) :: self
+    double precision                             , intent(in   ) :: wavenumberLogarithmic
+    logical                                                      :: makeTable
+    integer                                                      :: pointCount           , i
+
+    makeTable=.not.self%tableInitialized
+    if (.not.makeTable)                                                         &
+         & makeTable= wavenumberLogarithmic < self%wavenumberLogarithmicMinimum &
+         &           .or.                                                       &
+         &            wavenumberLogarithmic > self%wavenumberLogarithmicMaximum
+    if (makeTable) then
+       self%wavenumberLogarithmicMinimum=min(self%wavenumberLogarithmicMinimum,wavenumberLogarithmic-1.0d0)
+       self%wavenumberLogarithmicMaximum=max(self%wavenumberLogarithmicMaximum,wavenumberLogarithmic+1.0d0)
+       pointCount=int((self%wavenumberLogarithmicMaximum-self%wavenumberLogarithmicMinimum)*dble(self%tablePointsPerDecade)/log(10.0d0))+1
+       call self%transferTable%create(self%wavenumberLogarithmicMinimum,self%wavenumberLogarithmicMaximum,pointCount)
+       do i=1,pointCount
+          call self%transferTable%populate(log(self%transferFunction_%value(exp(self%transferTable%x(i)))),i)
+       end do
+       self%tableInitialized=.true.
+    end if
+    return
+  end subroutine acceleratorTabulate
+  
