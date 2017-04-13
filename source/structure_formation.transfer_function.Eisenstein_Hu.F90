@@ -30,10 +30,13 @@
      !% The ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_
-     double precision                                    :: temperatureCMB27    , distanceSoundWave      , &
-          &                                                 neutrinoMassFraction, neutrinoNumberEffective, &
-          &                                                 neutrinoFactor      , betaDarkMatter         , &
+     double precision                                    :: temperatureCMB27      , distanceSoundWave      , &
+          &                                                 neutrinoMassFraction  , neutrinoNumberEffective, &
+          &                                                 neutrinoFactor        , betaDarkMatter         , &
           &                                                 neutrinoMassSummed
+     double precision                                    :: C                     , L                      , &
+          &                                                 wavenumberEffective   , wavenumberNeutrino     , &
+          &                                                 wavenumberEffectivePow, wavenumberPrevious
    contains
      !@ <objectMethods>
      !@   <object>transferFunctionEisensteinHu1999</object>
@@ -277,6 +280,8 @@ contains
          &                                                     -0.949d0                                                                 &
          &                                                     *massFractionBaryonsNeutrinos                                            &
          &                                                    )
+    ! Initialize wavenumber for which results were computed to a non-physical value.
+    eisensteinHu1999ConstructorInternal%wavenumberPrevious=-1.0d0
     return
   end function eisensteinHu1999ConstructorInternal
 
@@ -289,16 +294,18 @@ contains
     return
   end subroutine eisensteinHu1999Destructor
 
-  subroutine eisensteinHu1999ComputeFactors(self,wavenumber,wavenumberEffective,wavenumberNeutrino,L,C)
+  subroutine eisensteinHu1999ComputeFactors(self,wavenumber)
     !% Compute common factors required by ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
     implicit none
-    class           (transferFunctionEisensteinHu1999), intent(in   ) :: self
+    class           (transferFunctionEisensteinHu1999), intent(inout) :: self
     double precision                                  , intent(in   ) :: wavenumber
-    double precision                                  , intent(  out) :: wavenumberEffective    , wavenumberNeutrino, &
-         &                                                               L                      , C
     double precision                                                  :: wavenumberScaleFree
     double precision                                                  :: shapeParameterEffective
+
     
+    ! If called again with the same wavenumber, rturn without recomputing result.
+    if (wavenumber == self%wavenumberPrevious) return
+    self%wavenumberPrevious=wavenumber
     ! Compute rescaled shape parameter (eqn. 16)
     shapeParameterEffective=+self%cosmologyParameters_%OmegaMatter   (                  )    &
          &                  *self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
@@ -314,23 +321,24 @@ contains
          &                       )**4                                                        &
          &                     )                                                             &
          &                   )
-    wavenumberEffective    =+wavenumber                                                      &
-         &                  *self%temperatureCMB27**2                                        &
-         &                  /shapeParameterEffective
-    L                      =+log(                                                            & ! Eqn. 19.
+    self%wavenumberEffective    =+wavenumber                                                 &
+         &                       *self%temperatureCMB27**2                                   &
+         &                       /shapeParameterEffective
+    self%wavenumberEffectivePow=+self%wavenumberEffective**1.11d0
+    self%L                      =+log(                                                       & ! Eqn. 19.
          &                       +exp(1.0d0)                                                 &
          &                       +1.84d0                                                     &
          &                       *self%betaDarkMatter                                        &
          &                       *sqrt(self%neutrinoFactor)                                  &
-         &                       *wavenumberEffective                                        &
+         &                       *self%wavenumberEffective                                   &
          &                      )
-    C                      =+ 14.4d0                                                         & ! Eqn. 20.
-         &                  +325.0d0                                                         &
-         &                  /(                                                               &
-         &                    + 1.0d0                                                        &
-         &                    +60.5d0                                                        &
-         &                    *wavenumberEffective**1.11d0                                   &
-         &                   )
+    self%C                      =+ 14.4d0                                                    & ! Eqn. 20.
+         &                       +325.0d0                                                    &
+         &                       /(                                                          &
+         &                         + 1.0d0                                                   &
+         &                         +60.5d0                                                   &
+         &                         *self%wavenumberEffectivePow                              &
+         &                        )
     ! Compute wavenumbers needed for horizon scale modes.
     if     (                                    &
          &   self%neutrinoMassFraction >  0.0d0 &
@@ -338,16 +346,16 @@ contains
          &   self%neutrinoMassFraction <= 0.3d0 &
          & ) then
        ! Compute effective q.
-       wavenumberScaleFree =+wavenumber                                                      &
-            &               *self%temperatureCMB27                                       **2 &
-            &               /self%cosmologyParameters_%OmegaMatter   (                  )    &
-            &               /self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
-       wavenumberNeutrino =+3.92d0                             &
-            &              *wavenumberScaleFree                &
-            &              *sqrt(self%neutrinoNumberEffective) &
-            &              /     self%neutrinoMassFraction
+       wavenumberScaleFree      =+wavenumber                                                      &
+            &                    *self%temperatureCMB27                                       **2 &
+            &                    /self%cosmologyParameters_%OmegaMatter   (                  )    &
+            &                    /self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
+       self%wavenumberNeutrino =+3.92d0                             &
+            &                   *wavenumberScaleFree                &
+            &                   *sqrt(self%neutrinoNumberEffective) &
+            &                   /     self%neutrinoMassFraction
     else
-       wavenumberNeutrino =+0.0d0
+       self%wavenumberNeutrino =+0.0d0
     end if
     return
   end subroutine eisensteinHu1999ComputeFactors
@@ -357,18 +365,16 @@ contains
     implicit none
     class           (transferFunctionEisensteinHu1999), intent(inout) :: self
     double precision                                  , intent(in   ) :: wavenumber
-    double precision                                                  :: wavenumberEffective, L                      , &
-         &                                                               C                  , wavenumberNeutrino     , &
-         &                                                               suppressionNeutrino
+    double precision                                                  :: suppressionNeutrino
 
     ! Compute common factors.
-    call self%computeFactors(wavenumber,wavenumberEffective,wavenumberNeutrino,L,C)
+    call self%computeFactors(wavenumber)
     ! Evaluate the transfer function.
-    eisensteinHu1999Value  =+  L                                                             & ! Zero baryon form of the transfer function (eqn. 18).
-         &                  /(                                                               &
-         &                    +L                                                             &
-         &                    +C                                                             &
-         &                    *wavenumberEffective**2                                        &
+    eisensteinHu1999Value  =+  self%L                      & ! Zero baryon form of the transfer function (eqn. 18).
+         &                  /(                             &
+         &                    +self%L                      &
+         &                    +self%C                      &
+         &                    *self%wavenumberEffective**2 &
          &                   )                              
     ! Apply correction for scales close to horizon.
     if     (                                    &
@@ -383,8 +389,8 @@ contains
             &                *self%neutrinoNumberEffective**(0.30d0+0.6d0*self%neutrinoMassFraction) &
             &               )                                                                        &
             &              /(                                                                        &
-            &                +wavenumberNeutrino**(-1.6d0)                                           &
-            &                +wavenumberNeutrino**(+0.8d0)                                           &
+            &                +self%wavenumberNeutrino**(-1.6d0)                                      &
+            &                +self%wavenumberNeutrino**(+0.8d0)                                      &
             &               )
        eisensteinHu1999Value=eisensteinHu1999Value*suppressionNeutrino
     end if
@@ -396,49 +402,48 @@ contains
     implicit none
     class           (transferFunctionEisensteinHu1999), intent(inout) :: self
     double precision                                  , intent(in   ) :: wavenumber
-    double precision                                                  :: wavenumberEffective   , L                     , &
-         &                                                               C                     , wavenumberNeutrino    , &
-         &                                                               transferFunction      , dLdwavenumberEffective, &
+    double precision                                                  :: transferFunction      , dLdwavenumberEffective, &
          &                                                               dCdwavenumberEffective
 
     ! Compute common factors.
-    call self%computeFactors(wavenumber,wavenumberEffective,wavenumberNeutrino,L,C)
+    call self%computeFactors(wavenumber)
     ! Get the transfer function itself.
     transferFunction=self%value(wavenumber)
     ! Compute derivatives of transfer function terms.
-    dCdwavenumberEffective                                 =-325.00d0&
-         &                                * 60.50d0&
-         &                                *  1.11d0&
-         &                                /(&
-         &                                  + 1.0d0&
-         &                                  +60.5d0&
-         &                                  *wavenumberEffective**1.11d0&
-         &                                 )**2&
-         &                                *  wavenumberEffective**0.11d0    
-    dLdwavenumberEffective                                 =+1.0d0&
-         &                                /(&
-         &                                  +exp(1.0d0)&
-         &                                  /1.84d0                                                     &
-         &                                  /self%betaDarkMatter                                        &
-         &                                  /sqrt(self%neutrinoFactor)&
-         &                                  +wavenumberEffective&
+    dCdwavenumberEffective               =-325.00d0                      &
+         &                                * 60.50d0                      &
+         &                                *  1.11d0                      &
+         &                                /(                             &
+         &                                  + 1.0d0                      &
+         &                                  +60.5d0                      &
+         &                                  *self%wavenumberEffectivePow &
+         &                                 )**2                          &
+         &                                *  self%wavenumberEffectivePow &
+         &                                /  self%waveNumberEffective
+    dLdwavenumberEffective               =+1.0d0                         &
+         &                                /(                             &
+         &                                  +exp(1.0d0)                  &
+         &                                  /1.84d0                      &
+         &                                  /self%betaDarkMatter         &
+         &                                  /sqrt(self%neutrinoFactor)   &
+         &                                  +self%wavenumberEffective    &
          &                                 )
     ! Compute logarithmic derivative of transfer function.
-    eisensteinHu1999LogarithmicDerivative=+(                                                                                                        &
-         &                                  +dLdwavenumberEffective                                                                                 &
-         &                                  /(                            + L                    + C                    *wavenumberEffective**2)    &
-         &                                  - L                                                                                                     &
-         &                                  *(+2.0d0*C*wavenumberEffective+dLdwavenumberEffective+dCdwavenumberEffective*wavenumberEffective**2)    &
-         &                                  /(                            + L                    + C                    *wavenumberEffective**2)**2 &
-         &                                 )                                                                                                        &
-         &                                 *wavenumberEffective                                                                                     &
+    eisensteinHu1999LogarithmicDerivative=+(                                                                                                                       &
+         &                                  +dLdwavenumberEffective                                                                                                &
+         &                                  /(                                      + self%L               + self%C               *self%wavenumberEffective**2)    &
+         &                                                                          - self%L                                                                       &
+         &                                  *(+2.0d0*self%C*self%wavenumberEffective+dLdwavenumberEffective+dCdwavenumberEffective*self%wavenumberEffective**2)    &
+         &                                  /(                                      + self%L               + self%C               *self%wavenumberEffective**2)**2 &
+         &                                 )                                                                                                                       &
+         &                                 *self%wavenumberEffective                                                                                               &
          &                                 /transferFunction
     ! Apply correction for scales close to horizon.
     if     (                                    &
          &   self%neutrinoMassFraction >  0.0d0 &
          &  .and.                               &
          &   self%neutrinoMassFraction <= 0.3d0 &
-         & ) eisensteinHu1999LogarithmicDerivative=eisensteinHu1999LogarithmicDerivative+0.8d0*(3.0d0/(1.0d0+wavenumberNeutrino**2.4d0)-1.0d0)
+         & ) eisensteinHu1999LogarithmicDerivative=eisensteinHu1999LogarithmicDerivative+0.8d0*(3.0d0/(1.0d0+self%wavenumberNeutrino**2.4d0)-1.0d0)
     return
   end function eisensteinHu1999LogarithmicDerivative
 
