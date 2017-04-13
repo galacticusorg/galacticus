@@ -46,11 +46,11 @@
      logical                                                               :: ageTableInitialized                       =.false.
      integer                                                               :: ageTableNumberPoints
      double precision                                                      :: ageTableTimeMaximum                       =20.0d0  , ageTableTimeMinimum                    =1.0d-4
+     double precision                                                      :: ageTableTimeLogarithmicMinimum                     , ageTableInverseDeltaLogTime
      double precision                          , allocatable, dimension(:) :: ageTableExpansionFactor                            , ageTableTime
-     type            (fgsl_interp             )                            :: interpolationObject                                , interpolationObjectInverse
-     type            (fgsl_interp_accel       )                            :: interpolationAccelerator                           , interpolationAcceleratorInverse
+     type            (fgsl_interp             )                            :: interpolationObject
+     type            (fgsl_interp_accel       )                            :: interpolationAccelerator
      logical                                                               :: resetInterpolation                        =.true.
-     logical                                                               :: resetInterpolationInverse                 =.true.
      logical                                                               :: distanceTableInitialized                  =.false.
      integer                                                               :: distanceTableNumberPoints
      double precision                                                      :: distanceTableTimeMaximum                           , distanceTableTimeMinimum               =1.0d-4
@@ -288,8 +288,7 @@ contains
     if     ( allocated (self%distanceTableComovingDistanceNegated  )) deallocate(self%distanceTableComovingDistanceNegated  )
     if     ( allocated (self%distanceTableLuminosityDistanceNegated)) deallocate(self%distanceTableLuminosityDistanceNegated)
     if     ( allocated (self%distanceTableTime                     )) deallocate(self%distanceTableTime                     )
-    call Interpolate_Done(self%interpolationObject       ,self%interpolationAccelerator       ,self%resetInterpolation       )
-    call Interpolate_Done(self%interpolationObjectInverse,self%interpolationAcceleratorInverse,self%resetInterpolationInverse)
+    call Interpolate_Done(self%interpolationObject,self%interpolationAccelerator,self%resetInterpolation)
     return
   end subroutine matterLambdaDestructor
 
@@ -422,9 +421,10 @@ contains
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
     double precision                                , intent(in   ) :: time
-    double precision                                                :: timeEffective
+    double precision                                                :: timeEffective, h
     logical                                                         :: remakeTable
-
+    integer                                                         :: i
+    
     ! Check if the time differs from the previous time.
     if (time /= self%timePrevious) then
        ! Quit on invalid input.
@@ -441,7 +441,7 @@ contains
        ! Quit on invalid input.
        if (self%collapsingUniverse.and.time > self%timeMaximum) &
             & call Galacticus_Error_Report('matterLambdaExpansionFactor','cosmological time exceeds that at the Big Crunch')
-       ! Interpolate to get the expansion factor.
+       ! Find the effective time to which to interpolate.
        if (self%collapsingUniverse) then
           if (time <= self%timeTurnaround) then
              timeEffective=                 time
@@ -451,16 +451,27 @@ contains
        else
           timeEffective   =                 time
        end if
-       self%expansionFactorPrevious                              &
-            & =Interpolate(                                      &
-            &              self%ageTableTime                   , &
-            &              self%ageTableExpansionFactor        , &
-            &              self%interpolationObjectInverse     , &
-            &              self%interpolationAcceleratorInverse, &
-            &              timeEffective                       , &
-            &              reset=self%resetInterpolationInverse  &
-            &             )
-       self%timePrevious=time
+       ! Perform the interpolation. We use a custom interpolator here. The expansion factor vs. time table is distributed almost
+       ! uniformly in log(time) - it's not perfectly uniform in log time as we have to preserve numerical tolerance errors arising
+       ! from expansion of the table. Therefore, we attempt to identify the index of the entry in the table by directly computing
+       ! it from the logarithm of the effective time, but allow for the possibility that we might have to adjust that initial
+       ! guess to find the correct index. After that, a standard linear interpolation is used.
+       ! Initial guess at the index for interpolation.       
+       i=int((log(timeEffective)-self%ageTableTimeLogarithmicMinimum)*self%ageTableInverseDeltaLogTime)+1
+       ! Check that we've found the correct index, adjust as necessary.
+       do while (timeEffective < self%ageTableTime(i  ))
+          i=i-1
+       end do
+       do while (timeEffective > self%ageTableTime(i+1))
+          i=i+1
+       end do
+       ! Compute interpolating factor.       
+       h=     +(     timeEffective     -self%ageTableTime(i)) &
+            & /(self%ageTableTime (i+1)-self%ageTableTime(i))
+       ! Evaluate the interpolation.
+       self%expansionFactorPrevious=+(1.0d0-h)*self%ageTableExpansionFactor(i  ) &
+            &                       +       h *self%ageTableExpansionFactor(i+1)
+       self%timePrevious           = time
        ! Release lock on interpolation tables.
        !$ call OMP_Unset_Lock(self%expansionFactorTableLock)
     end if
@@ -859,6 +870,9 @@ contains
        ! Set the expansion factors to a negative value to indicate they are not yet computed.
        self%ageTableExpansionFactor=-1.0d0
     end if
+    ! Compute quantities required for table interpolation.
+    self%ageTableTimeLogarithmicMinimum=log(self%ageTableTimeMinimum)
+    self%ageTableInverseDeltaLogTime   =dble(self%ageTableNumberPoints-1)/log(self%ageTableTimeMaximum/self%ageTableTimeMinimum)
     ! For the initial time, we approximate that we are at sufficiently early times that a single component dominates the
     ! Universe and use the appropriate analytic solution.
     if (self%ageTableExpansionFactor(1) < 0.0d0)             &
@@ -904,10 +918,8 @@ contains
        end if
     end do
     call ODE_Solver_Free(odeStepper,odeController,odeEvolver,odeSystem)
-    call Interpolate_Done(self%interpolationObject       ,self%interpolationAccelerator       ,self%resetInterpolation       )
-    call Interpolate_Done(self%interpolationObjectInverse,self%interpolationAcceleratorInverse,self%resetInterpolationInverse)
-    self%resetInterpolation       =.true.
-    self%resetInterpolationInverse=.true.
+    call Interpolate_Done(self%interpolationObject,self%interpolationAccelerator,self%resetInterpolation)
+    self%resetInterpolation=.true.
     ! Flag that the table is now initialized.
     self%ageTableInitialized=.true.
     return
@@ -1238,7 +1250,6 @@ contains
     read (stateFile) self%distanceTableTime,self%distanceTableComovingDistance,self%distanceTableComovingDistanceNegated
     ! Ensure that interpolation objects will get reset.
     self%resetInterpolation               =.true.
-    self%resetInterpolationInverse        =.true.
     self%resetInterpolationDistance       =.true.
     self%resetInterpolationDistanceInverse=.true.
     return
