@@ -41,8 +41,9 @@ module Merger_Trees_Evolve_Node
 
   ! Arrays that point to node properties and their derivatives.
   integer                                                     :: nProperties                      , nPropertiesMax      =0
-  double precision                , allocatable, dimension(:) :: propertyScales                   , propertyValues
-  !$omp threadprivate(nPropertiesMax,nProperties,propertyValues,propertyScales)
+  double precision                , allocatable, dimension(:) :: propertyScales                   , propertyValues        , &
+       &                                                         propertyErrors                   , propertyTolerances
+  !$omp threadprivate(nPropertiesMax,nProperties,propertyValues,propertyScales,propertyErrors,propertyTolerances)
 #ifdef PROFILE
   logical                                                     :: profileOdeEvolver
 #endif
@@ -249,6 +250,10 @@ contains
              deallocate(propertyValuesPrevious)
              call Memory_Usage_Record(sizeof(propertyRatesPrevious ),addRemove=-1)
              deallocate(propertyRatesPrevious )
+             call Memory_Usage_Record(sizeof(propertyErrors        ),addRemove=-1)
+             deallocate(propertyErrors        )
+             call Memory_Usage_Record(sizeof(propertyTolerances    ),addRemove=-1)
+             deallocate(propertyTolerances    )
           end if
           allocate(propertyValues        (nProperties))
           call Memory_Usage_Record(sizeof(propertyValues        ))
@@ -258,6 +263,10 @@ contains
           call Memory_Usage_Record(sizeof(propertyValuesPrevious))
           allocate(propertyRatesPrevious (nProperties))
           call Memory_Usage_Record(sizeof(propertyRatesPrevious ))
+          allocate(propertyErrors        (nProperties))
+          call Memory_Usage_Record(sizeof(propertyErrors        ))
+          allocate(propertyTolerances    (nProperties))
+          call Memory_Usage_Record(sizeof(propertyTolerances    ))
           nPropertiesMax        =nProperties
           propertyValuesPrevious=0.0d0
        end if
@@ -378,12 +387,11 @@ contains
     !% Function which evaluates the set of ODEs for the evolution of a specific node.
     use ODE_Solver_Error_Codes
     implicit none
-    double precision                , intent(in   )                         :: time
-    double precision                , intent(in   ), dimension(          :) :: y
-    double precision                , intent(  out), dimension(          :) :: dydt
-    double precision                               , dimension(nProperties) :: yError            , yTolerance
-    logical                                                                 :: interrupt         , odeConverged
-    procedure       (interruptTask), pointer                                :: interruptProcedure
+    double precision                , intent(in   )               :: time
+    double precision                , intent(in   ), dimension(:) :: y
+    double precision                , intent(  out), dimension(:) :: dydt
+    logical                                                       :: interrupt         , odeConverged
+    procedure       (interruptTask), pointer                      :: interruptProcedure
 
     ! Return success by default.
     Tree_Node_ODEs=FGSL_Success
@@ -407,9 +415,9 @@ contains
     call activeNode%odeStepRatesInitialize()
     
     ! Determine if the ODE evolver has reached sufficiently small errors for this step.
-    call FODEIV2_Driver_Errors(ode2Driver,yError)
-    yTolerance=treeNodeODEStepTolerances(y)
-    odeConverged=all(yError <= yTolerance)
+    call FODEIV2_Driver_Errors(ode2Driver,propertyErrors(1:nProperties))
+    propertyTolerances(1:nProperties)=treeNodeODEStepTolerances(y)
+    odeConverged=all(propertyErrors(1:nProperties) <= propertyTolerances(1:nProperties))
     
     if (firstInterruptFound .and. time >= firstInterruptTime) then
        ! Already beyond the location of the first interrupt, simply return zero derivatives.
