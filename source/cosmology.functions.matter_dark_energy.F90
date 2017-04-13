@@ -631,10 +631,8 @@ contains
           end if
        end if
     end do
-    call Interpolate_Done(self%interpolationObject       ,self%interpolationAccelerator       ,self%resetInterpolation       )
-    call Interpolate_Done(self%interpolationObjectInverse,self%interpolationAcceleratorInverse,self%resetInterpolationInverse)
+    call Interpolate_Done(self%interpolationObject,self%interpolationAccelerator,self%resetInterpolation)
     self%resetInterpolation       =.true.
-    self%resetInterpolationInverse=.true.
     ! Flag that the table is now initialized.
     self%ageTableInitialized      =.true.
     return
