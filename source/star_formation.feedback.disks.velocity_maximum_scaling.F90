@@ -23,17 +23,21 @@ module Star_Formation_Feedback_Disks_VlctyMxSclng
   !% Implements an outflow rate due to star formation feedback in galactic disks that scales with halo
   !% maximum velocity and redshift.
   use Galacticus_Nodes
+  use Math_Exponentiation
   implicit none
   private
   public :: Star_Formation_Feedback_Disks_VlctyMxSclng_Initialize
 
   ! Parameters of the feedback model.
-  double precision :: diskOutflowFraction        , diskOutflowRedshiftExponent, &
-       &              diskOutflowVelocityExponent
+  double precision                    :: diskOutflowFraction        , diskOutflowRedshiftExponent, &
+       &                                 diskOutflowVelocityExponent
 
   ! Normalization factor for the outflow rate.
-  double precision :: outflowNormalization
-  
+  double precision                    :: outflowNormalization
+
+  ! Fast exponentiation tables for rapid computation of the outflow rate.
+  type            (fastExponentiator) :: velocityExponentiator      , expansionFactorExponentiator
+
 contains
 
   !# <starFormationFeedbackDisksMethod>
@@ -92,6 +96,9 @@ contains
        outflowNormalization= diskOutflowFraction                                &
             &               /feedbackEnergyInputAtInfinityCanonical             &
             &               /velocityNormalization**diskOutflowVelocityExponent
+       ! Initialize exponentiators.
+       velocityExponentiator       =fastExponentiator(1.0d+0,1.0d+3,diskOutflowVelocityExponent,1.0d+1,abortOutsideRange=.false.)
+       expansionFactorExponentiator=fastExponentiator(1.0d-3,1.0d+0,diskOutflowRedshiftExponent,1.0d+3,abortOutsideRange=.false.)
     end if
     return
   end subroutine Star_Formation_Feedback_Disks_VlctyMxSclng_Initialize
@@ -123,13 +130,13 @@ contains
     expansionFactor=cosmologyFunctions_%expansionFactor        (basic%time())
     ! Compute the velocity factor.
     if (velocityMaximum /= velocityPrevious       ) then
-       velocityPrevious             =      velocityMaximum
-       velocityFactorPrevious       =      velocityMaximum**diskOutflowVelocityExponent
+       velocityPrevious             =                                                velocityMaximum
+       velocityFactorPrevious       =      velocityExponentiator       %exponentiate(velocityMaximum)
     end if
     ! Compute the expansion-factor factor.
     if (expansionFactor /= expansionFactorPrevious) then
-       expansionFactorPrevious      =      expansionFactor
-       expansionFactorFactorPrevious=1.0d0/expansionFactor**diskOutflowRedshiftExponent
+       expansionFactorPrevious      =                                                expansionFactor
+       expansionFactorFactorPrevious=1.0d0/expansionFactorExponentiator%exponentiate(expansionFactor)
     end if
     ! Compute the outflow rate.
     Star_Formation_Feedback_Disk_Outflow_Rate_VlctyMxSclng= &

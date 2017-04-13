@@ -18,20 +18,24 @@
 
 !% An implementation of the hot halo outflow reincorporation class which uses simple scalings based on the halo maximum circular
 !% velocity.
-  
+
+  use Math_Exponentiation
+
   !# <hotHaloOutflowReincorporation name="hotHaloOutflowReincorporationVelocityMaximumScaling">
   !#  <description>An implementation of the hot halo outflow reincorporation class which uses simple scalings based on the halo maximum circular velocity.</description>
   !# </hotHaloOutflowReincorporation>
   type, extends(hotHaloOutflowReincorporationClass) :: hotHaloOutflowReincorporationVelocityMaximumScaling
      !% An implementation of the hot halo outflow reincorporation class which uses simple scalings based on the halo maximum circular velocity.
      private
-     double precision                 :: timeScaleNormalization , velocityExponent       , &
-          &                              redshiftExponent       , velocityMaximumFactor  , &
-          &                              expansionFactorFactor  , rateStored             , &
-          &                              timeScaleMinimum
-     logical                          :: velocityMaximumComputed, expansionFactorComputed, &
-          &                              rateComputed
-     integer         (kind=kind_int8) :: lastUniqueID
+     double precision                    :: timeScaleNormalization , velocityExponent            , &
+          &                                 redshiftExponent       , velocityMaximumFactor       , &
+          &                                 expansionFactorFactor  , rateStored                  , &
+          &                                 timeScaleMinimum
+     logical                             :: velocityMaximumComputed, expansionFactorComputed     , &
+          &                                 rateComputed
+     integer         (kind=kind_int8   ) :: lastUniqueID
+     ! Fast exponentiation tables for rapid computation of the outflow rate.
+     type            (fastExponentiator) :: velocityExponentiator  , expansionFactorExponentiator
    contains
      procedure :: calculationReset => velocityMaximumScalingCalculationReset
      procedure :: rate             => velocityMaximumScalingRate
@@ -56,11 +60,11 @@
 
 contains
 
-  function velocityMaximumScalingDefaultConstructor()
+  function velocityMaximumScalingDefaultConstructor() result(self)
     !% Default constructor for the velocityMaximumScaling hot halo outflow reincorporation class.
     use Input_Parameters
     implicit none
-    type(hotHaloOutflowReincorporationVelocityMaximumScaling) :: velocityMaximumScalingDefaultConstructor
+    type(hotHaloOutflowReincorporationVelocityMaximumScaling) :: self
     
     if (.not.velocityMaximumScalingDefaultInitialized) then
        !$omp critical(hotHaloOutflowReincorporationVMSDefaultInitialize)
@@ -114,37 +118,40 @@ contains
        end if
        !$omp end critical(hotHaloOutflowReincorporationVMSDefaultInitialize)
     end if
-    velocityMaximumScalingDefaultConstructor=velocityMaximumScalingConstructor(                                        &
-         &                                                                     velocityMaximumScalingTimeScale       , &
-         &                                                                     velocityMaximumScalingTimescaleMinimum, &
-         &                                                                     velocityMaximumScalingVelocityExponent, &
-         &                                                                     velocityMaximumScalingRedshiftExponent  &
-         &                                                                    )
+    self=hotHaloOutflowReincorporationVelocityMaximumScaling(                                        &
+         &                                                   velocityMaximumScalingTimeScale       , &
+         &                                                   velocityMaximumScalingTimescaleMinimum, &
+         &                                                   velocityMaximumScalingVelocityExponent, &
+         &                                                   velocityMaximumScalingRedshiftExponent  &
+         &                                                  )
     return
   end function velocityMaximumScalingDefaultConstructor
   
-  function velocityMaximumScalingConstructor(timeScale,timeScaleMinimum,velocityExponent,redshiftExponent)
+  function velocityMaximumScalingConstructor(timeScale,timeScaleMinimum,velocityExponent,redshiftExponent) result(self)
     !% Default constructor for the velocityMaximumScaling hot halo outflow reincorporation class.
     implicit none
-    type            (hotHaloOutflowReincorporationVelocityMaximumScaling)                :: velocityMaximumScalingConstructor
-    double precision                                                     , intent(in   ) :: timeScale                        , velocityExponent, &
-         &                                                                                  redshiftExponent                 , timeScaleMinimum
+    type            (hotHaloOutflowReincorporationVelocityMaximumScaling)                :: self
+    double precision                                                     , intent(in   ) :: timeScale       , velocityExponent, &
+         &                                                                                  redshiftExponent, timeScaleMinimum
     
     ! Initialize.
     call velocityMaximumScalingInitalize()
     ! Construct the object.
-    velocityMaximumScalingConstructor%timeScaleNormalization =timeScale/velocityMaximumScalingVelocityNormalization**velocityExponent
-    velocityMaximumScalingConstructor%timeScaleMinimum       =timeScaleMinimum
-    velocityMaximumScalingConstructor%velocityExponent       =velocityExponent
-    velocityMaximumScalingConstructor%redshiftExponent       =redshiftExponent
-    velocityMaximumScalingConstructor%lastUniqueID           =-1_kind_int8
-    velocityMaximumScalingConstructor%velocityMaximumFactor  =-1.0d0
-    velocityMaximumScalingConstructor%expansionFactorFactor  =-1.0d0
-    velocityMaximumScalingConstructor%rateStored             =-1.0d0
-    velocityMaximumScalingConstructor%velocityMaximumComputed=.false.
-    velocityMaximumScalingConstructor%expansionFactorComputed=.false.
-    velocityMaximumScalingConstructor%rateComputed           =.false.
-   return
+    self%timeScaleNormalization =timeScale/velocityMaximumScalingVelocityNormalization**velocityExponent
+    self%timeScaleMinimum       =timeScaleMinimum
+    self%velocityExponent       =velocityExponent
+    self%redshiftExponent       =redshiftExponent
+    self%lastUniqueID           =-1_kind_int8
+    self%velocityMaximumFactor  =-1.0d0
+    self%expansionFactorFactor  =-1.0d0
+    self%rateStored             =-1.0d0
+    self%velocityMaximumComputed=.false.
+    self%expansionFactorComputed=.false.
+    self%rateComputed           =.false.
+    ! Initialize exponentiators.
+    self%velocityExponentiator       =fastExponentiator(1.0d+0,1.0d+3,self%velocityExponent,1.0d+1,abortOutsideRange=.false.)
+    self%expansionFactorExponentiator=fastExponentiator(1.0d-3,1.0d+0,self%redshiftExponent,1.0d+3,abortOutsideRange=.false.)
+    return
   end function velocityMaximumScalingConstructor
 
   subroutine velocityMaximumScalingInitalize()
@@ -204,15 +211,15 @@ contains
     ! Get required components.
     ! Compute velocity maximum factor.
     if (.not.self%velocityMaximumComputed) then
-       darkMatterProfile_           => darkMatterProfile                          (    )
-       self%velocityMaximumFactor   =  darkMatterProfile_ %circularVelocityMaximum(node)**self%velocityExponent
+       darkMatterProfile_           =>                                         darkMatterProfile                          (    )
+       self%velocityMaximumFactor   =  self%velocityExponentiator%exponentiate(darkMatterProfile_ %circularVelocityMaximum(node))
        self%velocityMaximumComputed = .true.
     end if
     ! Compute expansion factor factor.
     if (.not.self%expansionFactorComputed) then
-       basic                        =>       node               %basic          (            )
-       cosmologyFunctions_          =>       cosmologyFunctions                 (            )
-       self%expansionFactorFactor   =  1.0d0/cosmologyFunctions_%expansionFactor(basic%time())**self%redshiftExponent
+       basic                        =>                                                      node               %basic          (            )
+       cosmologyFunctions_          =>                                                      cosmologyFunctions                 (            )
+       self%expansionFactorFactor   =  1.0d0/self%expansionFactorExponentiator%exponentiate(cosmologyFunctions_%expansionFactor(basic%time()))
        self%expansionFactorComputed = .true.
     end if
     ! Compute the rate.

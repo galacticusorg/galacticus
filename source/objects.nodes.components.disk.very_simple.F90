@@ -22,6 +22,7 @@ module Node_Component_Disk_Very_Simple
   !% Implements a very simple disk component.
   use ISO_Varying_String
   use Galacticus_Nodes
+  use Math_Exponentiation
   implicit none
   private
   public :: Node_Component_Disk_Very_Simple_Post_Evolve  , Node_Component_Disk_Very_Simple_Rate_Compute         , &
@@ -90,19 +91,22 @@ module Node_Component_Disk_Very_Simple
   !# </component>
 
   ! Record of whether this module has been initialized.
-  logical          :: moduleInitialized                         =.false.
+  logical                             :: moduleInitialized                         =.false.
 
   ! Record of whether to use the simple disk analytic solver.
-  logical          :: diskVerySimpleUseAnalyticSolver
-  double precision :: diskVerySimpleAnalyticSolverPruneMassStars        , diskVerySimpleAnalyticSolverPruneMassGas, &
-       &              timePresentDay
+  logical                             :: diskVerySimpleUseAnalyticSolver
+  double precision                    :: diskVerySimpleAnalyticSolverPruneMassStars        , diskVerySimpleAnalyticSolverPruneMassGas, &
+       &                                 timePresentDay
  
   ! Parameters controlling the physical implementation.
-  double precision :: diskOutflowTimescaleMinimum                       , diskStarFormationTimescaleMinimum       , &
-       &              diskVerySimpleMassScaleAbsolute                   , diskVerySimpleSurfaceDensityThreshold   , &
-       &              diskVerySimpleSurfaceDensityVelocityExponent
-  logical          :: diskVerySimpleTrackAbundances
-  
+  double precision                    :: diskOutflowTimescaleMinimum                       , diskStarFormationTimescaleMinimum       , &
+       &                                 diskVerySimpleMassScaleAbsolute                   , diskVerySimpleSurfaceDensityThreshold   , &
+       &                                 diskVerySimpleSurfaceDensityVelocityExponent      , surfaceDensityNormalization
+  logical                             :: diskVerySimpleTrackAbundances
+
+  ! Fast exponentiation tables for rapid computation of the surface density threshold.
+  type            (fastExponentiator) :: velocityExponentiator
+
 contains
 
   !# <nodeComponentInitializationTask>
@@ -113,8 +117,9 @@ contains
     use Input_Parameters
     use Cosmology_Functions
     implicit none
-    type (nodeComponentDiskVerySimple)          :: diskVerySimpleComponent
-    class(cosmologyFunctionsClass    ), pointer :: cosmologyFunctions_
+    type            (nodeComponentDiskVerySimple)            :: diskVerySimpleComponent
+    class           (cosmologyFunctionsClass    ), pointer   :: cosmologyFunctions_
+    double precision                             , parameter :: velocityNormalization  =200.0d0
 
     ! Initialize the module if necessary.
     !$omp critical (Node_Component_Disk_Very_Simple_Initialize)
@@ -219,6 +224,10 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('diskVerySimpleAnalyticSolverPruneMassStars',diskVerySimpleAnalyticSolverPruneMassStars,defaultValue=0.0d0)
+       ! Initialize exponentiators.
+       velocityExponentiator=fastExponentiator(1.0d+0,1.0d+3,diskVerySimpleSurfaceDensityVelocityExponent,1.0d+1,abortOutsideRange=.false.)
+       ! Compute normalization factor for surface density.
+       surfaceDensityNormalization=diskVerySimpleSurfaceDensityThreshold/velocityNormalization**diskVerySimpleSurfaceDensityVelocityExponent
        ! If using the analytic solver, find the time at the present day.
        if (diskVerySimpleUseAnalyticSolver) then
           cosmologyFunctions_ => cosmologyFunctions            (     )
@@ -383,8 +392,9 @@ contains
     double precision                                               :: stellarMassRate         , fuelMassRate         , &
          &                                                            massOutflowRate
     type            (history             )                         :: stellarHistoryRate
-    type            (abundances          )                         :: fuelAbundancesRate      , stellarAbundancesRate, &
+    type            (abundances          ), save                   :: fuelAbundancesRate      , stellarAbundancesRate, &
          &                                                            abundancesOutflowRate
+    !$omp threadprivate(fuelAbundancesRate,stellarAbundancesRate,abundancesOutflowRate)
     !GCC$ attributes unused :: odeConverged
         
     ! Get a local copy of the interrupt procedure.
@@ -460,10 +470,11 @@ contains
          &                                                                rateOutflow         , timeStep                , &
          &                                                                exponentialFactor   , massStellarAsymptotic
     type            (history               )                           :: stellarHistoryRate
-    type            (abundances            )                           :: rateAbundanceFuel   , rateAbundanceStars      , &
+    type            (abundances            ), save                     :: rateAbundanceFuel   , rateAbundanceStars      , &
          &                                                                abundancesGasInitial, abundancesStellarInitial, &
          &                                                                yieldMassEffective  , abundancesStellarFinal  , &
          &                                                                abundancesGasFinal  , abundancesOutflowed
+    !$omp threadprivate(rateAbundanceFuel,rateAbundanceStars,abundancesGasInitial,abundancesStellarInitial,yieldMassEffective,abundancesStellarFinal,abundancesGasFinal,abundancesOutflowed)
     
     if (diskVerySimpleUseAnalyticSolver) then
        disk => node%disk()
@@ -656,14 +667,15 @@ contains
     type            (history                 ), intent(inout)          :: stellarHistoryRate
     double precision                          , intent(  out)          :: fuelMassRate            , stellarMassRate       , &
          &                                                                massOutflowRate
-    type            (abundances              ), intent(  out)          :: fuelAbundancesRate      , stellarAbundancesRate
+    type            (abundances              ), intent(inout)          :: fuelAbundancesRate      , stellarAbundancesRate
     class           (nodeComponentDisk       )               , pointer :: disk
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                                   :: diskDynamicalTime       , fuelMass              , &
          &                                                                energyInputRate         , starFormationRate
     type            (stellarLuminosities     )               , save    :: luminositiesStellarRates
     !$omp threadprivate (luminositiesStellarRates)
-    type            (abundances              )                         :: fuelAbundances
+    type            (abundances              )               , save    :: fuelAbundances
+    !$omp threadprivate (fuelAbundances)
     
     ! Get the disk.
     disk => node%disk()
@@ -845,7 +857,6 @@ contains
     class           (nodeComponentDiskVerySimple), intent(inout) :: self
     class           (darkMatterHaloScaleClass   ), pointer       :: darkMatterHaloScale_
     class           (darkMatterProfileClass     ), pointer       :: darkMatterProfile_
-    double precision                             , parameter     :: velocityNormalization  =200.0d0
     double precision                                             :: diskDynamicalTime              , gasMass              , &
          &                                                          starFormationTimescale         , surfaceDensityCentral, &
          &                                                          radiusThreshold                , massStarForming      , &
@@ -868,11 +879,8 @@ contains
                &                  /self%radius()**2 &
                &                  /2.0d0            &
                &                  /Pi
-          surfaceDensityThreshold=+  diskVerySimpleSurfaceDensityThreshold                      &
-               &                  *(                                                            &
-               &                    +darkMatterProfile_ %circularVelocityMaximum(self%hostNode) &
-               &                    /velocityNormalization                                      &
-               &                  )**diskVerySimpleSurfaceDensityVelocityExponent
+          surfaceDensityThreshold=+surfaceDensityNormalization                                                                    &
+               &                  *velocityExponentiator%exponentiate(darkMatterProfile_ %circularVelocityMaximum(self%hostNode))
           if (surfaceDensityCentral > surfaceDensityThreshold) then
              radiusThreshold=-log(surfaceDensityThreshold/surfaceDensityCentral)
              massStarForming=gasMass*(1.0d0-(1.0d0+radiusThreshold)*exp(-radiusThreshold))

@@ -41,27 +41,31 @@ module Star_Formation_Timescale_Disks_VlctyMxSclng
   !% redshift.
   use Galacticus_Nodes
   use Kind_Numbers
+  use Math_Exponentiation
   implicit none
   private
   public :: Star_Formation_Timescale_Disks_VlctyMxSclng_Initialize, Star_Formation_Timescale_Disks_VlctyMxSclng_Reset
 
   ! Parameters of the timescale model.
-  double precision                             :: starFormationTimescaleDisksVlctyMxSclngRedshiftExponent        , starFormationTimescaleDisksVlctyMxSclngTimescale, &
-       &                                          starFormationTimescaleDisksVlctyMxSclngVelocityExponent
+  double precision                               :: starFormationTimescaleDisksVlctyMxSclngRedshiftExponent         , starFormationTimescaleDisksVlctyMxSclngTimescale, &
+       &                                            starFormationTimescaleDisksVlctyMxSclngVelocityExponent
 
   ! Record of unique ID of node which we last computed results for.
-  integer         (kind=kind_int8)             :: lastUniqueID                                           =-1
+  integer         (kind=kind_int8   )            :: lastUniqueID                                           =-1
   !$omp threadprivate(lastUniqueID)
   ! Record of whether or not timescale has already been computed for this node.
-  logical                                      :: timescaleComputed                                      =.false.
+  logical                                        :: timescaleComputed                                      =.false.
   !$omp threadprivate(timescaleComputed)
   ! Stored values of the timescale.
-  double precision                             :: timeScaleStored
+  double precision                               :: timeScaleStored
   !$omp threadprivate(timescaleStored)
   ! Normalization of the timescale.
-  double precision                            :: timeScaleNormalization
+  double precision                               :: timeScaleNormalization
   ! Normalization for velocities. 
-  double precision                , parameter :: velocityNormalization                                   =200.0d0
+  double precision                   , parameter :: velocityNormalization                                   =200.0d0
+
+  ! Fast exponentiation tables for rapid computation of the outflow rate.
+  type            (fastExponentiator)            :: velocityExponentiator                                           , expansionFactorExponentiator
 
 contains
 
@@ -118,6 +122,9 @@ contains
        ! Compute the normalization of the timescale.
        timeScaleNormalization= starFormationTimescaleDisksVlctyMxSclngTimescale                               &
        &                      /velocityNormalization**starFormationTimescaleDisksVlctyMxSclngVelocityExponent
+       ! Initialize exponentiators.
+       velocityExponentiator       =fastExponentiator(1.0d+0,1.0d+3,starFormationTimescaleDisksVlctyMxSclngVelocityExponent,1.0d+1,abortOutsideRange=.false.)
+       expansionFactorExponentiator=fastExponentiator(1.0d-3,1.0d+0,starFormationTimescaleDisksVlctyMxSclngRedshiftExponent,1.0d+3,abortOutsideRange=.false.)
     end if
     return
   end subroutine Star_Formation_Timescale_Disks_VlctyMxSclng_Initialize
@@ -151,13 +158,13 @@ contains
        expansionFactor=cosmologyFunctions_%expansionFactor        (basic%time())
        ! Compute the velocity factor.
        if (velocityMaximum /= velocityMaximumPrevious) then
-          velocityMaximumPrevious      =      velocityMaximum
-          velocityFactorPrevious       =      velocityMaximum**starFormationTimescaleDisksVlctyMxSclngVelocityExponent
+          velocityMaximumPrevious      =                                                velocityMaximum
+          velocityFactorPrevious       =      velocityExponentiator       %exponentiate(velocityMaximum)
        end if
        ! Compute the expansion-factor factor.
        if (expansionFactor /= expansionFactorPrevious) then
-          expansionFactorPrevious      =      expansionFactor
-          expansionFactorFactorPrevious=1.0d0/expansionFactor**starFormationTimescaleDisksVlctyMxSclngRedshiftExponent
+          expansionFactorPrevious      =                                                expansionFactor
+          expansionFactorFactorPrevious=1.0d0/expansionFactorExponentiator%exponentiate(expansionFactor)
        end if
        ! Return the timescale.
        timescaleStored=                      &
