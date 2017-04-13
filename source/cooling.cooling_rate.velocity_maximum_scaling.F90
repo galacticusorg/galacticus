@@ -23,16 +23,21 @@ module Cooling_Rates_Velocity_Maximum_Scaling
   !% Implements a simple cooling rate calculation in which the cooling rate equals the mass of hot gas
   !% divided by a timescale which is a function of halo maximum velocity and redshift.
   use Galacticus_Nodes
+  use Math_Exponentiation
   implicit none
   private
   public :: Cooling_Rate_Velocity_Maximum_Scaling_Initialize
 
-  ! The fixed timescale for cooling.
-  double precision :: coolingRateVelocityMaximumScalingTimescale       , coolingRateVelocityMaximumScalingTimescaleExponent             , &
-       &              coolingRateVelocityMaximumScalingCutOffWidth     , coolingRateVelocityMaximumScalingCutOffVelocity                , &
-       &              coolingRateVelocityMaximumScalingCutOffExponent  , coolingRateVelocityMaximumScalingVelocityExponent              , &
-       &              coolingRateVelocityMaximumScalingTimescaleMinimum, coolingRateVelocityMaximumScalingCutOffVelocityRedshiftExponent
-
+  ! Parameters controlling the cooling rate.
+  double precision                    :: coolingRateVelocityMaximumScalingTimescale       , coolingRateVelocityMaximumScalingTimescaleExponent             , &
+       &                                 coolingRateVelocityMaximumScalingCutOffWidth     , coolingRateVelocityMaximumScalingCutOffVelocity                , &
+       &                                 coolingRateVelocityMaximumScalingCutOffExponent  , coolingRateVelocityMaximumScalingVelocityExponent              , &
+       &                                 coolingRateVelocityMaximumScalingTimescaleMinimum, coolingRateVelocityMaximumScalingCutOffVelocityRedshiftExponent, &
+       &                                 normalization
+  ! Fast exponentiation tables for rapid computation of the cooling rate.
+  type            (fastExponentiator) :: velocityExponentiator                            , expansionFactorExponentiator                                   , &
+       &                                 expansionFactorCutOffExponentiator
+  
 contains
 
   !# <coolingRateMethod>
@@ -45,8 +50,9 @@ contains
     use Galacticus_Error
     use Array_Utilities
     implicit none
-    type     (varying_string                       ), intent(in   )          :: coolingRateMethod
-    procedure(Cooling_Rate_Velocity_Maximum_Scaling), intent(inout), pointer :: Cooling_Rate_Get
+    type            (varying_string                       ), intent(in   )          :: coolingRateMethod
+    procedure       (Cooling_Rate_Velocity_Maximum_Scaling), intent(inout), pointer :: Cooling_Rate_Get
+    double precision                                       , parameter              :: velocityNormalization=200.0d0
 
     if (coolingRateMethod == 'velocityMaximumScaling') then
        Cooling_Rate_Get => Cooling_Rate_Velocity_Maximum_Scaling
@@ -167,6 +173,12 @@ contains
             &                                                           defaultBasicComponent%timeAttributeMatch(requireGettable=.true.)  &
             &                                                         )                                                                   &
             &                               )
+       ! Compute normalization.
+       normalization=1.0d0/coolingRateVelocityMaximumScalingTimescale/velocityNormalization**coolingRateVelocityMaximumScalingVelocityExponent
+       ! Initialize exponentiators.
+       velocityExponentiator             =fastExponentiator(1.0d+0,1.0d+3,coolingRateVelocityMaximumScalingVelocityExponent              ,1.0d+1,abortOutsideRange=.false.)
+       expansionFactorExponentiator      =fastExponentiator(1.0d-3,1.0d+0,coolingRateVelocityMaximumScalingTimescaleExponent             ,1.0d+3,abortOutsideRange=.false.)
+       expansionFactorCutOffExponentiator=fastExponentiator(1.0d-3,1.0d+0,coolingRateVelocityMaximumScalingCutOffVelocityRedshiftExponent,1.0d+3,abortOutsideRange=.false.)
     end if
     return
   end subroutine Cooling_Rate_Velocity_Maximum_Scaling_Initialize
@@ -178,7 +190,6 @@ contains
     implicit none
     type            (treeNode               ), intent(inout) :: node
     double precision                         , parameter     :: expArgumentMaximum     =100.0d0
-    double precision                         , parameter     :: velocityNormalization  =200.0d0
     class           (nodeComponentBasic     ), pointer       :: basic
     class           (nodeComponentHotHalo   ), pointer       :: hotHalo
     class           (cosmologyFunctionsClass), pointer       :: cosmologyFunctions_
@@ -197,23 +208,20 @@ contains
     expansionFactor     =  cosmologyFunctions_%expansionFactor        (basic%time())
     velocityMaximum     =  darkMatterProfile_ %circularVelocityMaximum(node        )
     if (expansionFactor /= expansionFactorPrevious .or. velocityMaximum /= velocityMaximumPrevious) then
-       expArgument=log10(                                                                                  &
-            &             velocityMaximum                                                                  &
-            &            /coolingRateVelocityMaximumScalingCutOffVelocity                                  &
-            &            *expansionFactor**coolingRateVelocityMaximumScalingCutOffVelocityRedshiftExponent &
-            &           )                                                                                  &
+       expArgument=log10(                                                                  &
+            &            +velocityMaximum                                                  &
+            &            /coolingRateVelocityMaximumScalingCutOffVelocity                  &
+            &            *expansionFactorCutOffExponentiator%exponentiate(expansionFactor) &
+            &           )                                                                  &
             &      /coolingRateVelocityMaximumScalingCutOffWidth
        if (expArgument < expArgumentMaximum) then
           expFactor=(1.0d0+exp(+expArgument))**(-coolingRateVelocityMaximumScalingCutOffExponent)
        else
           expFactor=       exp(+expArgument   *(-coolingRateVelocityMaximumScalingCutOffExponent))
        end if
-       coolingRate=+expansionFactor                           **coolingRateVelocityMaximumScalingTimescaleExponent &
-            &      *(                                                                                              &
-            &        +velocityMaximum                                                                              &
-            &        /velocityNormalization                                                                        &
-            &       )                                         **coolingRateVelocityMaximumScalingVelocityExponent  &            
-            &      /coolingRateVelocityMaximumScalingTimescale                                                     &
+       coolingRate=+normalization                                              &
+            &      *expansionFactorExponentiator%exponentiate(expansionFactor) &
+            &      *velocityExponentiator       %exponentiate(velocityMaximum) &            
             &      *expFactor
        coolingRate=min(                                                         &
             &          coolingRate                                            , &
