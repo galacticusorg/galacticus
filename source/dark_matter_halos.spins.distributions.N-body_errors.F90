@@ -234,8 +234,9 @@ contains
          &                                                                        errorSpinDependent                  , errorSpinIndependent       , &
          &                                                                        errorSpinIndependent1D              , nonCentrality              , &
          &                                                                        particleNumber                      , massEnergyEstimateMaximum  , &
-         &                                                                        energyEstimateErrorCorrection
-
+         &                                                                        energyEstimateErrorCorrection       , massAverage                , &
+         &                                                                        massSpinAverage
+    
     ! Determine if the tabulation needs to be rebuilt.
     if (allocated(self%distributionTable)) then
        retabulate=.false.
@@ -309,31 +310,34 @@ contains
        massMaximum=    +massMeasured                   &
             &          +massIntegrationRange           &
             &          *massError
+       ! Integrate the normalizing factor over halo mass.
+       massAverage=Integrate(                                  &
+               &             massMinimum                     , &
+               &             massMaximum                     , &
+               &             massIntegral                    , &
+               &             integrandFunctionMass           , &
+               &             integrationWorkspaceMass        , &
+               &             toleranceAbsolute       =1.0d-30, &
+               &             toleranceRelative       =1.0d-03  &
+               &            )
+       call Integrate_Done(integrandFunctionMass,integrationWorkspaceMass)
        do iSpin=1,self%spinCount
           ! Evaluate the spin at this grid point - this corresponds to the measured spin in the N-body simulation.
           spinMeasured=10.0d0**(dble(iSpin-1)*self%spinDelta+log10(self%spinMinimum))      
           ! Integrate over the intrinsic spin distribution to find the measured distribution at this measureed mass and
-          ! spin.           
-          self%distributionTable(iMass,iSpin)=+Integrate(                                     &
-               &                                         massMinimum                        , &
-               &                                         massMaximum                        , &
-               &                                         massSpinIntegral                   , &
-               &                                         integrandFunctionMassSpin          , &
-               &                                         integrationWorkspaceMassSpin       , &
-               &                                         toleranceAbsolute           =0.0d+0, &
-               &                                         toleranceRelative           =1.0d-3  &
-               &                                        )                                     &
-               &                              /Integrate(                                     &
-               &                                         massMinimum                        , &
-               &                                         massMaximum                        , &
-               &                                         massIntegral                       , &
-               &                                         integrandFunctionMass              , &
-               &                                         integrationWorkspaceMass           , &
-               &                                         toleranceAbsolute           =0.0d+0, &
-               &                                         toleranceRelative           =1.0d-3  &
-               &                                        )
+          ! spin.
+          massSpinAverage=Integrate(                                      &
+               &                    massMinimum                         , &
+               &                    massMaximum                         , &
+               &                    massSpinIntegral                    , &
+               &                    integrandFunctionMassSpin           , &
+               &                    integrationWorkspaceMassSpin        , &
+               &                    toleranceAbsolute           =1.0d-30, &
+               &                    toleranceRelative           =1.0d-03  &
+               &                   )
+          self%distributionTable(iMass,iSpin)=+massSpinAverage &
+               &                              /massAverage
           call Integrate_Done(integrandFunctionMassSpin,integrationWorkspaceMassSpin)
-          call Integrate_Done(integrandFunctionMass    ,integrationWorkspaceMass    )
        end do
     end do
     ! Clean up our work node.
@@ -372,14 +376,21 @@ contains
 
     double precision function massSpinIntegral(massIntrinsic)
       !% Integral over the halo mass function, spin distribution, halo mass error distribution, and spin error distribution.
+      use Galacticus_Error
+      use Input_Parameters2
       implicit none
-      double precision, intent(in   ) :: massIntrinsic
-      double precision, parameter     :: rangeIntegration                                           =1.0000d1 ! Range of integration in units of error.
-      double precision, parameter     :: radiusVelocityDispersionMeanOverSpinSpecificAngularMomentum=0.4175d0 ! Ratio of mean velocity dispersion-radius product to "spin" angular
-                                                                                                              ! momentum (i.e. the normalizing angular momentum appearing in the definition of
-                                                                                                              ! halo spin): γ = Mσⱼ/Jₛ, Jₛ = GM²˙⁵/|E⁰˙⁵|. This parameter corresponds to γ.
-      double precision                :: logSpinMinimum, logSpinMaximum, &
-           &                             errorMaximum  , scaleAbsolute
+      double precision                , intent(in   ) :: massIntrinsic
+      double precision                , parameter     :: rangeIntegration                                           =1.0000d1 ! Range of integration in units of error.
+      double precision                , parameter     :: radiusVelocityDispersionMeanOverSpinSpecificAngularMomentum=0.4175d0 ! Ratio of mean velocity dispersion-radius product to "spin" angular
+                                                                                                                              ! momentum (i.e. the normalizing angular momentum appearing in the definition of
+                                                                                                                              ! halo spin): γ = Mσⱼ/Jₛ, Jₛ = GM²˙⁵/|E⁰˙⁵|. This parameter corresponds to γ.
+      integer                                         :: errorStatus
+      double precision                                :: logSpinMinimum, logSpinMaximum, &
+           &                                             errorMaximum  , scaleAbsolute , &
+           &                                             tolerance
+      character       (len=8          )               :: label         , labelMass     , &
+           &                                             labelSpin
+      type            (inputParameters)               :: descriptor
       
       ! Evaluate the halo mass part of the integrand.
       massSpinIntegral             =massIntegral(massIntrinsic)
@@ -430,21 +441,47 @@ contains
            &                 *errorMaximum      &
            &                )                   &
            &            )
-      massSpinIntegral=+massSpinIntegral                           &
-           &           *Integrate(                                 &
-           &                      logSpinMinimum                 , &
-           &                      logSpinMaximum                 , &
-           &                      spinIntegral                   , &
-           &                      integrandFunctionSpin          , &
-           &                      integrationWorkspaceSpin       , &
-           &                      toleranceAbsolute       =0.0d+0, &
-           &                      toleranceRelative       =1.0d-3  &
-           &                    )                                  & 
-           &           /2.0d0                                      & ! <= Partial combined normalization term for the lognormal and non-central chi-square distributions - brought
-           &           /Pi                                         & !    outside of integrand since constant. Each contributes √(2π).
-           &           *2.0d0                                      & ! <= Factor 2 appears due to change of variables in from λ² to λ in non-central χ² distribution.
-           &           /errorSpinIndependent1D**2                    ! <= Partial normalization term for the non-central chi-square distribution - brought outside of integrand since constant.
-      call Integrate_Done(integrandFunctionSpin,integrationWorkspaceSpin)
+      errorStatus=errorStatusFail
+      tolerance  =1.0d-4
+      do while (tolerance < 1.0d0 .and. errorStatus /= errorStatusSuccess)
+         tolerance       =+10.0d0                                                  &
+              &           *tolerance
+         massSpinIntegral=+massSpinIntegral                                        &
+              &           *Integrate(                                              &
+              &                      logSpinMinimum                              , &
+              &                      logSpinMaximum                              , &
+              &                      spinIntegral                                , &
+              &                      integrandFunctionSpin                       , &
+              &                      integrationWorkspaceSpin                    , &
+              &                      toleranceAbsolute       =1.0d-9*spinMeasured, &
+              &                      toleranceRelative       =tolerance          , &
+              &                      errorStatus             =errorStatus          &
+              &                    )                                               & 
+              &           /2.0d0                                                   & ! <= Partial combined normalization term for the lognormal and non-central chi-square distributions - brought
+              &           /Pi                                                      & !    outside of integrand since constant. Each contributes √(2π).
+              &           *2.0d0                                                   & ! <= Factor 2 appears due to change of variables from λ² to λ in the non-central χ² distribution.
+              &           /errorSpinIndependent1D**2                                 ! <= Partial normalization term for the non-central chi-square distribution - brought outside of integrand since constant.
+         call Integrate_Done(integrandFunctionSpin,integrationWorkspaceSpin)
+         if (errorStatus /= errorStatusSuccess) then
+            write (label    ,'(e8.1)') tolerance
+            write (labelMass,'(i4)'  ) iMass
+            write (labelSpin,'(i4)'  ) iSpin
+            descriptor=inputParameters()
+            call self%distributionIntrinsic%descriptor(descriptor)
+            call Galacticus_Warn(                                                                                            &
+                 &               'WARNING: failed to reach required tolerance ['                                          // &
+                 &               trim(label    )                                                                          // &
+                 &               '] in massSpinIntegral [iMass,iSpin='                                                    // &
+                 &               trim(labelMass)                                                                          // &
+                 &               ','                                                                                      // &
+                 &               trim(labelSpin)                                                                          // &
+                 &               '] - report on intrinsic spin distribution follows - reattempting with reduced tolerance'// &
+                 &               char(10)                                                                                 // &
+                 &               descriptor%serializeToString()                                                              &
+                 &              )
+            if (tolerance >= 1.0d0) call Galacticus_Error_Report('massSpinIntegral','integral failed to reach any tolerance')
+         end if
+      end do
       return
     end function massSpinIntegral
 
@@ -452,11 +489,12 @@ contains
       !% Integral over the intrinsic spin distribution, and spin error distribution.
       implicit none
       double precision, intent(in   ) :: logSpinIntrinsic
-      double precision, parameter     :: logNormalMean   =1.0000d0                              ! Mean of the log-normal distribution of mass/energy errors. We assume an unbiased
-                                                                                                ! measurement, so the mean is unity.
-      double precision, parameter     :: rangeIntegration=1.0000d1                              ! Integration range (in ~σ - the width of each distribution).
-      double precision                :: spinIntrinsic            , logSpinMinimum          , &
-           &                             logSpinMaximum           , nonCentralChiSquaredMode
+      double precision, parameter     :: logNormalMean                      =1.0000d0  ! Mean of the log-normal distribution of mass/energy errors. We assume an unbiased
+                                                                                       ! measurement, so the mean is unity.
+      double precision, parameter     :: rangeIntegration                   =1.0000d1  ! Integration range (in ~σ - the width of each distribution).
+      double precision                :: spinIntrinsic                               , logSpinMinimum                             , &
+           &                             logSpinMaximum                              , nonCentralChiSquaredMode                   , &
+           &                             nonCentralChiSquaredModeLogarithmic         , nonCentralChiSquaredRootVarianceLogarithmic
       
       ! Compute intrinsic spin.
       spinIntrinsic=exp(logSpinIntrinsic)
@@ -489,37 +527,36 @@ contains
            &           -0.5d0                            &
            &           *logNormalWidth**2       
       ! Find the logarithm of the spin corresponding to the mode of the non-central chi-squared distribution.
-      nonCentralChiSquaredMode=log(sqrt(nbodyErrorsNonCentralChiSquareMode(nonCentrality))*errorSpinIndependent1D)
+      nonCentralChiSquaredMode                   =nbodyErrorsNonCentralChiSquareMode(nonCentrality)
+      nonCentralChiSquaredModeLogarithmic        =log (sqrt(nonCentralChiSquaredMode)*errorSpinIndependent1D)
+      nonCentralChiSquaredRootVarianceLogarithmic=0.5d0*sqrt(2.0d0*(3.0d0+2.0d0*nonCentrality))/nonCentralChiSquaredMode
       ! Determine a suitable integration range. The range is centered on the mode of the non-central chi-squared distribution
       ! offset by the mean of the log-normal distribution to ensure that we always include the peak of the distribution. The
       ! integration range around this mode is then chosen such that the log-normal distribution will have decayed by a large
       ! factor at the edges of the range to ensure that we are not missing any significant contributions from outside of the
       ! integration range.
-      logSpinMinimum=    max(                                                                           &
-           &                 log(self%spinMinimum )                                                   , &
-           &                 nonCentralChiSquaredMode-logNormalLogMean-rangeIntegration*logNormalWidth  &
-           &                )
-      logSpinMaximum=min(                                                                               &
-           &             min(                                                                           &
-           &                 log(self%spinMaximum )                                                   , &
-           &                 nonCentralChiSquaredMode-logNormalLogMean+rangeIntegration*logNormalWidth  &
-           &                )                                                                         , &
-           &                 rangeIntegration*errorSpinIndependent1D*sqrt(nonCentrality)                &
+      logSpinMinimum=min(                                                                                                                   &
+           &             nonCentralChiSquaredModeLogarithmic                 -rangeIntegration*nonCentralChiSquaredRootVarianceLogarithmic, &
+           &             nonCentralChiSquaredModeLogarithmic-logNormalLogMean-rangeIntegration*logNormalWidth                               &
+           &            )
+      logSpinMaximum=max(                                                                                                                   &
+           &             nonCentralChiSquaredModeLogarithmic                 +rangeIntegration*nonCentralChiSquaredRootVarianceLogarithmic, &
+           &             nonCentralChiSquaredModeLogarithmic-logNormalLogMean+rangeIntegration*logNormalWidth                               &
            &            )
       ! Evaluate the integrand.
-      spinIntegral=+self%distributionIntrinsic%distribution(node)      & ! Weight by the intrinsic spin distribution.
-           &       *spinIntrinsic                                      & ! Multiply by spin since our integration variable is log(spin).
-           &       *Integrate(                                         & ! Multiply by the integral which gives us the product distribution
-           &                  logSpinMinimum                         , & ! of log-normal and non-central χ-square distributions.
-           &                  logSpinMaximum                         , &
-           &                  productDistributionIntegral            , &
-           &                  integrandFunctionProduct               , &
-           &                  integrationWorkspaceProduct            , &
-           &                  toleranceAbsolute       =0.0d0         , &
-           &                  toleranceRelative       =+1.0d-3         &
-           &                 )                                         & 
-           &       /logNormalWidth                                     & ! <= Partial normalization term for the lognormal distribution - brought outside of integrand since constant.
-           &       /sqrt(nonCentrality)                                  ! <= Partial normalization term for the non-central chi-square distribution - brought outside of integrand since constant.
+      spinIntegral=+self%distributionIntrinsic%distribution(node)             & ! Weight by the intrinsic spin distribution.
+           &       *spinIntrinsic                                             & ! Multiply by spin since our integration variable is log(spin).
+           &       *Integrate(                                                & ! Multiply by the integral which gives us the product distribution
+           &                  logSpinMinimum                                , & ! of log-normal and non-central χ-square distributions.
+           &                  logSpinMaximum                                , &
+           &                  productDistributionIntegral                   , &
+           &                  integrandFunctionProduct                      , &
+           &                  integrationWorkspaceProduct                   , &
+           &                  toleranceAbsolute       =+1.0d-9*spinIntrinsic, &
+           &                  toleranceRelative       =+1.0d-3               &
+           &                 )                                                & 
+           &       /logNormalWidth                                            & ! <= Partial normalization term for the lognormal distribution - brought outside of integrand since constant.
+           &       /sqrt(nonCentrality)                                         ! <= Partial normalization term for the non-central chi-square distribution - brought outside of integrand since constant.
       call Integrate_Done(integrandFunctionProduct,integrationWorkspaceProduct)
       return
     end function spinIntegral
@@ -532,8 +569,6 @@ contains
            &                             distributionNonCentral, distributionLogNormal, &
            &                             spinUnscaled          , sinhArgument
 
-      ! Initialize distribution to zero.
-      productDistributionIntegral=0.0d0
       ! Find the unscaled spin. This is the spin resulting from the intrinsic spin plus spin-independent (i.e. random walk in
       ! angular momentum space) error but without any scaling due to errors in mass/energy.
       spinUnscaled=exp(logSpinUnscaled)
@@ -577,29 +612,32 @@ contains
               &                      )                     &
               &                 /2.0d0
       end if
-      ! Return early if the non-central χ-square distribution is zero.
-      if (distributionNonCentral <= 0.0d0) return
-      ! Evaluate the log-normal distribution. The parameter "y" here is the ratio of the measured spin to the unscaled spin. Note
-      ! that constant normalization terms are excluded here, and are instead included external to the integrand
-      y                    =+spinMeasured            &
-           &                /spinUnscaled
-      distributionLogNormal=+exp(                    &
-           &                     -(                  &
-           &                       +log(y)           &
-           &                       -logNormalLogMean &
-           &                      )**2               &
-           &                     /2.0d0              &
-           &                     /logNormalWidth**2  &
-           &                    )                    &
-           &                /y
-      ! Construct the integrand of the product distribution. There are various factor of "spinUnscaled" that should appear here:
-      !  1) In the product distribution we divide through by "spinUnscaled".;
-      !  2) Our integration variable is log(spinUnscaled) so we multiply by "spinUnscaled";
-      !  3) The non-central χ² distribution is for λ² - changing variables to the distribution for λ requires multiplying by
-      !     "spinUnscaled" (and dividing by 2 which we take out of the integration as a constant).
-      productDistributionIntegral=+distributionNonCentral &
-           &                      *distributionLogNormal  &
-           &                      *spinUnscaled
+      ! No need to compute the log-normal distribution if the non-central chi-squared distribution is zero.
+      if (distributionNonCentral <= 0.0d0) then
+         productDistributionIntegral=0.0d0
+      else
+         ! Evaluate the log-normal distribution. The parameter "y" here is the ratio of the measured spin to the unscaled spin. Note
+         ! that constant normalization terms are excluded here, and are instead included external to the integrand
+         y                    =+spinMeasured            &
+              &                /spinUnscaled
+         distributionLogNormal=+exp(                    &
+              &                     -(                  &
+              &                       +log(y)           &
+              &                       -logNormalLogMean &
+              &                      )**2               &
+              &                     /2.0d0              &
+              &                     /logNormalWidth**2  &
+              &                    )                    &
+              &                /y
+         ! Construct the integrand of the product distribution. There are various factor of "spinUnscaled" that should appear here:
+         !  1) In the product distribution we divide through by "spinUnscaled".;
+         !  2) Our integration variable is log(spinUnscaled) so we multiply by "spinUnscaled";
+         !  3) The non-central χ² distribution is for λ² - changing variables to the distribution for λ requires multiplying by
+         !     "spinUnscaled" (and dividing by 2 which we take out of the integration as a constant).
+         productDistributionIntegral=+distributionNonCentral &
+              &                      *distributionLogNormal  &
+              &                      *spinUnscaled
+      end if
       return
     end function productDistributionIntegral
 
