@@ -32,6 +32,7 @@
           &                                                     normalization
      type            (table1DLogarithmicLinear)              :: distributionTable
      class           (table1D                 ), allocatable :: distributionInverse
+     logical                                                 :: isInvertible
    contains
      final     ::                 bett2007Destructor
      procedure :: sample       => bett2007Sample
@@ -92,6 +93,7 @@ contains
     !% distribution class.
     use, intrinsic :: ISO_C_Binding
     use Gamma_Functions
+    use Array_Utilities
     implicit none
     type            (haloSpinDistributionBett2007)                :: bett2007ConstructorInternal
     double precision                              , intent(in   ) :: lambda0                    , alpha
@@ -114,6 +116,7 @@ contains
          &                                                     extrapolationType                         =[extrapolationTypeFix,extrapolationTypeFix]  &
          &                                                    )
     ! Compute the cumulative probability distribution.
+    bett2007ConstructorInternal%isInvertible=.true.
     do iSpin=1,bett2007TabulationPointsCount
        spinDimensionless=(                                                        &
             &             +bett2007ConstructorInternal%distributionTable%x(iSpin) &
@@ -127,8 +130,9 @@ contains
             &                                                                                             )                  , &
             &                                                      iSpin                                                       &
             &                                                     )
+       if (iSpin > 1 .and. bett2007ConstructorInternal%distributionTable%y(iSpin) <= bett2007ConstructorInternal%distributionTable%y(iSpin-1)) bett2007ConstructorInternal%isInvertible=.false.
     end do
-    call bett2007ConstructorInternal%distributionTable%reverse(bett2007ConstructorInternal%distributionInverse)
+    if (bett2007ConstructorInternal%isInvertible) call bett2007ConstructorInternal%distributionTable%reverse(bett2007ConstructorInternal%distributionInverse)
     return
   end function bett2007ConstructorInternal
 
@@ -147,11 +151,17 @@ contains
     !% Sample from a \cite{bett_spin_2007} spin parameter distribution for the given {\normalfont
     !% \ttfamily node}.
     use Pseudo_Random
+    use Galacticus_Error
     implicit none
     class(haloSpinDistributionBett2007), intent(inout)          :: self
     type (treeNode                    ), intent(inout), pointer :: node
 
-    bett2007Sample=self%distributionInverse%interpolate(node%hostTree%randomNumberGenerator%sample())
+    if (self%isInvertible) then
+       bett2007Sample=self%distributionInverse%interpolate(node%hostTree%randomNumberGenerator%sample())
+    else
+       bett2007Sample=0.0d0
+       call Galacticus_Error_Report('bett2007Sample','can not sample - cumulative distribution table was not monotonic')
+    end if
     return
   end function bett2007Sample
 
