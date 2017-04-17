@@ -88,7 +88,7 @@ sub COSMOS2012 {
 	    my $logLikelihood = -0.5*($massStellarModelLogarithmic-$massStellarDataLogarithmicInterpolated)**2/($massStellarErrorModelLogarithmic**2+$massStellarErrorDataLogarithmicInterpolated**2);
 	    $constraint->{'logLikelihood'} = $logLikelihood->sclr();
 	} else {
-	    $constraint->{'logLikelihood'} = 0.0;
+	    $constraint->{'logLikelihood'} = -1.0e30;
 	}
 	$constraint->{'logLikelihoodVariance'} = 0.0;
 	# Output the constraint.
