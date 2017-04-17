@@ -18,9 +18,9 @@
 
   !% Contains a module which implements a merger tree operator which profiles tree structure.
   
-  use :: Kind_Numbers
+  use Kind_Numbers
 
-  !# <mergerTreeOperator name="mergerTreeOperatorProfiler">
+  !# <mergerTreeOperator name="mergerTreeOperatorProfiler" defaultThreadPrivate="yes">
   !#  <description>
   !#   A merger tree operator which profiles merger tree structure.
   !# </description>
@@ -169,7 +169,7 @@ contains
                 ! Count non-primary progenitors as a function of mass and epoch.
                 basic     => node%basic()
                 massIndex =  int((log10(basic%mass())-self%massMinimumLogarithmic)*self%massLogarithmicDeltaInverse)+1
-                timeIndex =  int((log10(basic%time())-self%timeMinimumLogarithmic)*self%timeLogarithmicDeltaInverse)+12
+                timeIndex =  int((log10(basic%time())-self%timeMinimumLogarithmic)*self%timeLogarithmicDeltaInverse)+1
                 if     (                                                     &
                      &   massIndex > 0 .and. massIndex <= self%massBinsCount &
                      &  .and.                                                &
@@ -198,7 +198,7 @@ contains
     type   (hdf5Object                )                              :: profilerGroup
     integer(kind_int8                 )                              :: nodeCountCurrent                , singleProgenitorCountCurrent
     integer(kind_int8                 ), dimension(:,:), allocatable :: nonPrimaryProgenitorCountCurrent
-
+    
     !$omp critical(HDF5_Access)
     ! Output information content information.
     profilerGroup=galacticusOutputFile%openGroup('treeProfiler','Profiling information on merger trees.',objectsOverwritable=.true.,overwriteOverride=.true.)
@@ -217,6 +217,8 @@ contains
     call profilerGroup%writeAttribute(self%nodeCount                ,'nodeCount'                )
     call profilerGroup%writeAttribute(self%singleProgenitorCount    ,'singleProgenitorCount'    )
     call profilerGroup%writeDataset  (self%nonPrimaryProgenitorCount,'nonPrimaryProgenitorCount')
+    call profilerGroup%writeDataset  (self%mass                     ,'nonPrimaryProgenitorMass' )
+    call profilerGroup%writeDataset  (self%time                     ,'nonPrimaryProgenitorTime' )
     call profilerGroup%close         (                                                          )
     !$omp end critical(HDF5_Access)
     return
