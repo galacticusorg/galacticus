@@ -61,7 +61,16 @@
      logical                                                                                  :: finalized
      !$ integer      (omp_lock_kind                            )                              :: accumulateLock
    contains
-     final     ::             volumeFunction1DDestructor
+     !@ <objectMethods>
+     !@   <object>outputAnalysisVolumeFunction1D</object>
+     !@   <objectMethod>
+     !@     <method>results</method>
+     !@     <arguments>\doubleone\ [binCenter]\arginout, \doubletwo\ [functionValue]\arginout, \doubletwo\ [functionCovariance]\arginout</arguments>
+     !@     <type>\void</type>
+     !@     <description>Return the results of the volume function operator.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+    final     ::             volumeFunction1DDestructor
      procedure :: analyze  => volumeFunction1DAnalyze
      procedure :: finalize => volumeFunction1DFinalize
      procedure :: results  => volumeFunction1DResults

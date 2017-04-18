@@ -83,6 +83,13 @@ module Node_Component_Spheroid_Very_Simple
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
   !#   </property>
   !#   <property>
+  !#     <name>luminositiesStellar</name>
+  !#     <type>stellarLuminosities</type>
+  !#     <rank>0</rank>
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+  !#     <output unitsInSI="luminosityZeroPointAB" comment="Luminosity of spheroid stars."/>
+  !#   </property>
+  !#   <property>
   !#     <name>radius</name>
   !#     <type>double</type>
   !#     <rank>0</rank>
@@ -114,9 +121,9 @@ module Node_Component_Spheroid_Very_Simple
   logical          :: moduleInitialized                         =.false.
  
   ! Parameters controlling the physical implementation.
-  double precision :: spheroidOutflowTimescaleMinimum                       , spheroidStarFormationTimescaleMinimum       , &
+  double precision :: spheroidOutflowTimescaleMinimum                       , spheroidStarFormationTimescaleMinimum, &
        &              spheroidVerySimpleMassScaleAbsolute                   , spheroidMassToleranceAbsolute
-  logical          :: spheroidVerySimpleTrackAbundances
+  logical          :: spheroidVerySimpleTrackAbundances                     , spheroidVerySimpleTrackLuminosities
   
 contains
 
@@ -179,6 +186,17 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('spheroidVerySimpleTrackAbundances',spheroidVerySimpleTrackAbundances,defaultValue=.false.)
        !@ <inputParameter>
+       !@   <name>spheroidVerySimpleTrackLuminosities</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Specifies whether or not to track stellar luminosities in the very simple disk component.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>0..1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('spheroidVerySimpleTrackLuminosities',spheroidVerySimpleTrackLuminosities,defaultValue=.false.)
+       !@ <inputParameter>
        !@   <name>spheroidMassToleranceAbsolute</name>
        !@   <defaultValue>$10^{-6} M_\odot$</defaultValue>
        !@   <attachedTo>module</attachedTo>
@@ -226,6 +244,7 @@ contains
     use Galacticus_Display
     use String_Handling
     use Histories
+    use Stellar_Luminosities_Structure
     use Abundances_Structure
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
@@ -282,8 +301,9 @@ contains
           spheroidMass=+spheroid%massGas    () &
                &       +spheroid%massStellar()
           if (spheroidMass == 0.0d0) then
-             call spheroid%      massStellarSet(         0.0d0)
-             call spheroid%abundancesStellarSet(zeroAbundances)
+             call spheroid%        massStellarSet(                  0.0d0)
+             call spheroid%  abundancesStellarSet(         zeroAbundances)
+             call spheroid%luminositiesStellarSet(zeroStellarLuminosities)
           end if
           ! Reset the gas mass of the spheroid.
           call spheroid%      massGasSet(         0.0d0)
@@ -348,6 +368,8 @@ contains
     type            (history              )                         :: stellarHistoryRate
     type            (abundances           )                         :: fuelAbundancesRate      , stellarAbundancesRate, &
          &                                                             abundancesOutflowRate
+    type            (stellarLuminosities  ), save                   :: luminositiesStellarRates
+    !$omp threadprivate(luminositiesStellarRates)
     !GCC$ attributes unused :: odeConverged
 
     ! Get a local copy of the interrupt procedure.
@@ -365,28 +387,28 @@ contains
           return
        end if
        ! Get rates.
-       call Node_Component_Spheroid_Very_Simple_Rates(node,fuelMassRate,fuelAbundancesRate,stellarMassRate,stellarAbundancesRate,massOutflowRate,stellarHistoryRate)
-       ! If not tracking abundances, zero abundance rates here.
-       if (.not.spheroidVerySimpleTrackAbundances) then
-          fuelAbundancesRate   =zeroAbundances
-          stellarAbundancesRate=zeroAbundances
-       end if
+       call Node_Component_Spheroid_Very_Simple_Rates(node,fuelMassRate,fuelAbundancesRate,stellarMassRate,stellarAbundancesRate,massOutflowRate,stellarHistoryRate,luminositiesStellarRates)
        ! Adjust rates.
-       call                                  spheroid%             massStellarRate(      stellarMassRate)
-       call                                  spheroid%                 massGasRate(         fuelMassRate)
-       call                                  spheroid%       abundancesStellarRate(stellarAbundancesRate)
-       call                                  spheroid%           abundancesGasRate(   fuelAbundancesRate)
-       if (stellarHistoryRate%exists()) call spheroid%stellarPropertiesHistoryRate(   stellarHistoryRate)
+       call                                          spheroid%             massStellarRate(         stellarMassRate)
+       call                                          spheroid%                 massGasRate(            fuelMassRate)
+       if (spheroidVerySimpleTrackAbundances) then
+          call                                       spheroid%       abundancesStellarRate(   stellarAbundancesRate)
+          call                                       spheroid%           abundancesGasRate(      fuelAbundancesRate)
+       end if
+       if (spheroidVerySimpleTrackLuminosities) call spheroid%     luminositiesStellarRate(luminositiesStellarRates)
+       if (stellarHistoryRate%exists()        ) call spheroid%stellarPropertiesHistoryRate(      stellarHistoryRate)
        if (massOutflowRate > 0.0d0) then
           ! Push to the hot halo.
           hotHalo               => node%hotHalo      ()
-          abundancesOutflowRate =  spheroid%abundancesGas()
-          call abundancesOutflowRate%massToMassFraction(spheroid%massGas())
-          abundancesOutflowRate =abundancesOutflowRate*massOutflowRate
-          call hotHalo %      outflowingMassRate(+      massOutflowRate)
-          call hotHalo %outflowingAbundancesRate(+abundancesOutflowRate)
-          call spheroid%             massGasRate(-      massOutflowRate)
-          call spheroid%       abundancesGasRate(-abundancesOutflowRate)
+          call    hotHalo %      outflowingMassRate(+      massOutflowRate)
+          call    spheroid%             massGasRate(-      massOutflowRate)
+          if (spheroidVerySimpleTrackAbundances) then
+             abundancesOutflowRate =  spheroid%abundancesGas()
+             call abundancesOutflowRate%massToMassFraction(spheroid%massGas())
+             abundancesOutflowRate =abundancesOutflowRate*massOutflowRate
+             call spheroid%       abundancesGasRate(-abundancesOutflowRate)
+             call hotHalo %outflowingAbundancesRate(+abundancesOutflowRate)
+          end if
        end if
     end select
     ! Return the procedure pointer.
@@ -394,7 +416,7 @@ contains
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Rate_Compute
 
-  subroutine Node_Component_Spheroid_Very_Simple_Rates(node,fuelMassRate,fuelAbundancesRate,stellarMassRate,stellarAbundancesRate,massOutflowRate,stellarHistoryRate)
+  subroutine Node_Component_Spheroid_Very_Simple_Rates(node,fuelMassRate,fuelAbundancesRate,stellarMassRate,stellarAbundancesRate,massOutflowRate,stellarHistoryRate,luminositiesStellarRates)
     !% Compute rates.
     use Star_Formation_Feedback_Spheroids
     use Stellar_Feedback
@@ -410,11 +432,11 @@ contains
     double precision                          , intent(  out)          :: fuelMassRate            , stellarMassRate       , &
          &                                                                massOutflowRate
     type            (abundances              ), intent(  out)          :: fuelAbundancesRate      , stellarAbundancesRate
+    type            (stellarLuminosities     ), intent(inout)          :: luminositiesStellarRates
     class           (nodeComponentSpheroid   )               , pointer :: spheroid
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                                   :: spheroidDynamicalTime   , fuelMass              , &
          &                                                                energyInputRate         , starFormationRate
-    type            (stellarLuminosities     )                         :: luminositiesStellarRates
     type            (abundances              )                         :: fuelAbundances
     
     ! Get the spheroid.
@@ -457,14 +479,17 @@ contains
   subroutine Node_Component_Spheroid_Very_Simple_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
     use Abundances_Structure
+    use Stellar_Luminosities_Structure
     use Histories
     use Stellar_Population_Properties
     implicit none
     type            (treeNode             ), intent(inout), pointer :: node
     class           (nodeComponentSpheroid)               , pointer :: spheroid
+    double precision                     , parameter                :: luminosityMinimum             =1.0d0
     double precision                                                :: mass
     type            (history              )                         :: stellarPopulationHistoryScales
     type            (abundances           )                         :: abundancesTotal
+    type            (stellarLuminosities  )                         :: stellarLuminositiesScale
 
     ! Get the spheroid component.
     spheroid => node%spheroid()
@@ -484,6 +509,14 @@ contains
        call Stellar_Population_Properties_Scales               (stellarPopulationHistoryScales,spheroid%massStellar(),zeroAbundances)
        call spheroid%stellarPropertiesHistoryScale(stellarPopulationHistoryScales                                                   )
        call stellarPopulationHistoryScales%destroy()
+       ! Set scale for stellar luminosities.
+       stellarLuminositiesScale=max(                                      &
+            &                       +abs(spheroid%luminositiesStellar()), &
+            &                       +unitStellarLuminosities              &
+            &                       *luminosityMinimum                    &
+            &                      )
+       call stellarLuminositiesScale%truncate                (spheroid                %luminositiesStellar())
+       call spheroid                %luminositiesStellarScale(stellarLuminositiesScale                      )
     end select
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Scale_Set
@@ -498,6 +531,7 @@ contains
     use Satellite_Merging_Mass_Movements_Descriptors
     use Galacticus_Error
     use Abundances_Structure
+    use Stellar_Luminosities_Structure
     use Histories
     implicit none
     type (treeNode             ), intent(inout), pointer :: node
@@ -564,20 +598,27 @@ contains
           ! Move stellar material within the host if necessary.
           select case (thisHostStarsMoveTo)
           case (movesToDisk)
-             call diskHost    %      massStellarSet(                                           &
-                  &                                          +diskHost    %      massStellar() &
-                  &                                          +spheroidHost%      massStellar() &
-                  &                                         )
-             call diskHost    %abundancesStellarSet(                                           &
-                  &                                           diskHost    %abundancesStellar() &
-                  &                                          +spheroidHost%abundancesStellar() &
-                  &                                         )
-             call spheroidHost%      massStellarSet(                                           &
-                  &                                           0.0d0                            &
-                  &                                         )
-             call spheroidHost%abundancesStellarSet(                                           &
-                  &                                           zeroAbundances                   &
-                  &                                         )
+             call diskHost    %      massStellarSet  (                                    &
+                  &                                   +diskHost    %        massStellar() &
+                  &                                   +spheroidHost%        massStellar() &
+                  &                                  )
+             call diskHost    %abundancesStellarSet  (                                    &
+                  &                                    diskHost    %  abundancesStellar() &
+                  &                                   +spheroidHost%  abundancesStellar() &
+                  &                                  )
+             call diskHost    %luminositiesStellarSet(                                    &
+                  &                                    diskHost    %luminositiesStellar() &
+                  &                                   +spheroidHost%luminositiesStellar() &
+                  &                                  )
+             call spheroidHost%      massStellarSet  (                                    &
+                  &                                    0.0d0                              &
+                  &                                  )
+             call spheroidHost%abundancesStellarSet  (                                    &
+                  &                                    zeroAbundances                     &
+                  &                                  )
+             call spheroidHost%luminositiesStellarSet(                                    &
+                  &                                    zeroStellarLuminosities            &
+                  &                                   )
              ! Also add stellar properties histories.
              historyDisk    =    diskHost%stellarPropertiesHistory()
              historySpheroid=spheroidHost%stellarPropertiesHistory()
@@ -586,20 +627,27 @@ contains
              call diskHost       %stellarPropertiesHistorySet(historyDisk    )
              call spheroidHost   %stellarPropertiesHistorySet(historySpheroid)
           case (movesToSpheroid)
-             call spheroidHost%      massStellarSet  (                                         &
-                  &                                           spheroidHost%      massStellar() &
-                  &                                          +diskHost    %      massStellar() &
-                  &                                         )
-             call spheroidHost%abundancesStellarSet(                                           &
-                  &                                           spheroidHost%abundancesStellar() &
-                  &                                          +diskHost    %abundancesStellar() &
-                  &                                         )
-             call diskHost    %      massStellarSet(                                           &
-                  &                                           0.0d0                            &
-                  &                                         )
-             call diskHost    %abundancesStellarSet(                                           &
-                  &                                           zeroAbundances                   &
-                  &                                         )
+             call spheroidHost%        massStellarSet(                                    &
+                  &                                    spheroidHost%        massStellar() &
+                  &                                   +diskHost    %        massStellar() &
+                  &                                  )
+             call spheroidHost%  abundancesStellarSet(                                    &
+                  &                                    spheroidHost%  abundancesStellar() &
+                  &                                   +diskHost    %  abundancesStellar() &
+                  &                                  )
+             call spheroidHost%luminositiesStellarSet(                                    &
+                  &                                    spheroidHost%luminositiesStellar() &
+                  &                                   +diskHost    %luminositiesStellar() &
+                  &                                  )
+             call diskHost    %        massStellarSet(                                    &
+                  &                                    0.0d0                              &
+                  &                                  )
+             call diskHost    %  abundancesStellarSet(                                    &
+                  &                                    zeroAbundances                     &
+                  &                                  )
+             call diskHost    %luminositiesStellarSet(                                    &
+                  &                                    zeroStellarLuminosities            &
+                  &                                  )
              ! Also add stellar properties histories.
              historyDisk    =    diskHost%stellarPropertiesHistory()
              historySpheroid=spheroidHost%stellarPropertiesHistory()
@@ -652,14 +700,18 @@ contains
           ! Move the stellar component of the very simple spheroid to the host.
           select case (thisMergerStarsMoveTo)
           case (movesToDisk    )
-             call diskHost%massStellarSet          (                                           &
-                  &                                          +diskHost    %      massStellar() &
-                  &                                          +spheroid    %      massStellar() &
-                  &                                         )
-             call diskHost%abundancesStellarSet    (                                           &
-                  &                                          +diskHost    %abundancesStellar() &
-                  &                                          +spheroid    %abundancesStellar() &
-                  &                                         )
+             call diskHost%        massStellarSet(                                &
+                  &                               +diskHost%        massStellar() &
+                  &                               +spheroid%        massStellar() &
+                  &                              )
+             call diskHost%  abundancesStellarSet(                                &
+                  &                               +diskHost%  abundancesStellar() &
+                  &                               +spheroid%  abundancesStellar() &
+                  &                              )
+             call diskHost%luminositiesStellarSet(                                &
+                  &                               +diskHost%luminositiesStellar() &
+                  &                               +spheroid%luminositiesStellar() &
+                  &                              )
              ! Also add stellar properties histories.
              historySpheroid=spheroid%stellarPropertiesHistory()
              historyHost    =diskHost%stellarPropertiesHistory()
@@ -668,15 +720,18 @@ contains
              call diskHost       %stellarPropertiesHistorySet(historyHost    )
              call spheroid       %stellarPropertiesHistorySet(historySpheroid)
           case (movesToSpheroid)
-             call spheroidHost%massStellarSet      (                                           &
-                  &                                          +spheroidHost%      massStellar() &
-                  &                                          +spheroid    %      massStellar() &
-                  &                                         )
-             call spheroidHost%abundancesStellarSet(                                           &
-                  &                                          +spheroidHost%abundancesStellar() &
-                  &                                          +spheroid    %abundancesStellar() &
-                  &                                         )
-             
+             call spheroidHost%        massStellarSet(                                    &
+                  &                                   +spheroidHost%        massStellar() &
+                  &                                   +spheroid    %        massStellar() &
+                  &                                  )
+             call spheroidHost%  abundancesStellarSet(                                    &
+                  &                                   +spheroidHost%  abundancesStellar() &
+                  &                                   +spheroid    %  abundancesStellar() &
+                  &                                  )
+            call spheroidHost%luminositiesStellarSet(                                     &
+                  &                                   +spheroidHost%luminositiesStellar() &
+                  &                                   +spheroid    %luminositiesStellar() &
+                  &                                  )             
              ! Also add stellar properties histories.
              historySpheroid=spheroid%stellarPropertiesHistory()
              historyHost=spheroidHost%stellarPropertiesHistory()
@@ -690,12 +745,15 @@ contains
                   &                       'unrecognized movesTo descriptor'                        &
                   &                      )
           end select
-          call    spheroid%massStellarSet      (                                         &
-               &                                                                   0.0d0 &
-               &                                            )
-          call    spheroid%abundancesStellarSet(                                         &
-               &                                                          zeroAbundances &
-               &                                            )
+          call    spheroid%         massStellarSet(                       &
+               &                                   0.0d0                  &
+               &                                  )
+          call    spheroid%  abundancesStellarSet(                        &
+               &                                  zeroAbundances          &
+               &                                 )
+          call    spheroid%luminositiesStellarSet(                        &
+               &                                  zeroStellarLuminosities &
+               &                                 )
        end select
     end if
     return
