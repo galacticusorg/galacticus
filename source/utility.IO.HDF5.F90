@@ -5799,6 +5799,7 @@ contains
     !% Open and read a double scalar dataset in {\normalfont \ttfamily thisObject}.
     use Kind_Numbers
     use Galacticus_Error
+    use Memory_Management
     implicit none
     integer         (kind_int8        ), dimension(:,:), intent(  out), target   :: datasetValue
     class           (hdf5Object       )                , intent(inout)           :: thisObject
@@ -5808,6 +5809,7 @@ contains
     integer         (kind=HSIZE_T     ), dimension(2  )                          :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                          referenceEnd      , referenceStart
     integer         (kind=HSIZE_T     ), dimension(:,:), allocatable             :: readSelectionMap
+    integer         (kind=kind_int8   ), dimension(:,:), allocatable, target     :: datasetValueContiguous
     ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
@@ -6120,12 +6122,15 @@ contains
     end if
     
     ! Read the dataset.
-    dataBuffer=c_loc(datasetValue)
+    call allocateArray(datasetValueContiguous,shape(datasetValue))
+    dataBuffer=c_loc(datasetValueContiguous)
     errorCode=h5dread(datasetObject%objectID,H5T_NATIVE_INTEGER_8,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//thisObject%objectName//"'"
        call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Integer8_2D_Array_Static',message)
     end if
+    datasetValue=datasetValueContiguous
+    call deallocateArray(datasetValueContiguous)
 
     ! Close the dataspace.
     call h5sclose_f(datasetDataspaceID,errorCode)
