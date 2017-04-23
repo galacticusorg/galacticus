@@ -40,7 +40,7 @@ module Math_Exponentiation
      !@   <object>fastExponentiator</object>
      !@   <objectMethod>
      !@     <method>exponentiate</method>
-     !@     <arguments>\dblezero\ x\argin</arguments>
+     !@     <arguments>\doublezero\ x\argin</arguments>
      !@     <type>\doublezero</type>
      !@     <description>Evaluate {\normalfont \ttfamily x}$^y$ using table look-up.</description>
      !@   </objectMethod>
