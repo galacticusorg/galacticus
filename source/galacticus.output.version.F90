@@ -27,7 +27,7 @@ module Galacticus_Versioning
   ! Define the version.
   integer, parameter :: versionMajor   =0
   integer, parameter :: versionMinor   =9
-  integer, parameter :: versionRevision=3
+  integer, parameter :: versionRevision=4
 
   ! Include the automatically generated Mercurial revision number.
   include 'galacticus.output.version.revision.inc'
