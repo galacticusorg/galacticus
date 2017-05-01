@@ -2943,12 +2943,12 @@ contains
     call h5tclose_f(dataTypeID(1),errorCode)
     if (errorCode < 0) then
        message="unable to close custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//thisObject%objectName//"'"
-       call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Character_Scalar',message)
+       call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Character_Scalar',message)
     end if
     call h5tclose_f(dataTypeID(2),errorCode)
     if (errorCode < 0) then
        message="unable to close custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//thisObject%objectName//"'"
-       call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Character_Scalar',message)
+       call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Character_Scalar',message)
     end if
 
     ! Close the attribute unless this was an attribute object.
@@ -3053,12 +3053,12 @@ contains
     call h5tclose_f(dataTypeID(1),errorCode)
     if (errorCode < 0) then
        message="unable to close custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//thisObject%objectName//"'"
-       call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Character_Scalar',message)
+       call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Character_1D_Array_Allocatable',message)
     end if
     call h5tclose_f(dataTypeID(2),errorCode)
     if (errorCode < 0) then
        message="unable to close custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//thisObject%objectName//"'"
-       call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Character_Scalar',message)
+       call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Character_1D_Array_Allocatable',message)
     end if
 
     ! Close the attribute unless this was an attribute object.
