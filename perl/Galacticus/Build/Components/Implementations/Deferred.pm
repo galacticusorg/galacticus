@@ -144,7 +144,7 @@ sub Implementation_Deferred_Binding_Wrappers {
 	{
 	    type        => $code::binding->{'interface'}->{'type'} eq "void" ? "void" : $intrinsicTypes{$code::binding->{'interface'}->{'type'}},
 	    name        => $code::memberFunctionName,
-	    description => "Call the deferred function for the {\\normalfont \\ttfamily ".$code::binding->{'method'}."} method of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component class has been set.",
+	    description => "Call the deferred function for the {\\normalfont \\ttfamily ".$code::binding->{'method'}."} method of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component class if it has been set.",
 	    modules     =>
 		[
 		 "Galacticus_Error"
@@ -188,7 +188,7 @@ CODE
    else
 CODE
 	$code::parentType = undef();
-	if ( exists($code::member->{'extends'}) ) {
+	if ( exists($code::member->{'extends'}) && grep {$_->{'method'} eq $code::binding->{'method'}} @{$code::member->{'extends'}->{'implementation'}->{'bindings'}->{'binding'}} ) {
 	    $code::parentType = "nodeComponent".ucfirst($code::member->{'extends'}->{'class'}).ucfirst($code::member->{'extends'}->{'name'});
 	} elsif ( $code::binding->{'bindsTo'} eq "componentClass" ) {
 	    $code::parentType = "nodeComponent".ucfirst($code::class->{'name'});
