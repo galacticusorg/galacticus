@@ -102,7 +102,7 @@ contains
     
     wavenumberLogarithmic=log(wavenumber)
     call acceleratorTabulate(self,wavenumberLogarithmic)
-    acceleratorValue=self%transferFunction_%value(wavenumber) !! AJB HACK exp(self%transferTable%interpolate(wavenumberLogarithmic))
+    acceleratorValue=exp(self%transferTable%interpolate(wavenumberLogarithmic))
     return
   end function acceleratorValue
 
