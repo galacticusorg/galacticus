@@ -23,7 +23,10 @@ die("Usage: evaluateLikelihood.pl <configFile> <modelFile>")
 my $configFileName = $ARGV[0];
 my $modelFileName  = $ARGV[1];
 # Create a hash of named arguments.
-my %arguments;
+my %arguments =
+    (
+     plots => "no"
+    );
 &Galacticus::Options::Parse_Options(\@ARGV,\%arguments);
 
 # Parse the constraint config file.
@@ -55,6 +58,10 @@ foreach my $constraint ( @constraints ) {
         if ( exists($constraintDefinition->{'analysisArguments'}) );
     $options .= " --modelDiscrepancies ".$workDirectory."/modelDiscrepancy"
 	if ( -e $workDirectory."/modelDiscrepancy" );
+    if ( $arguments{'plots'} eq "yes" ) {
+	(my $plotFile = $constraintDefinition->{'label'}) =~ s/\./_/g;
+	$options .= " --plotFile ".$plotFile.".pdf";
+    }
     system($analysisCode." ".$modelFileName." --outputFile /dev/shm/likelihood.tmp.".ucfirst($constraintDefinition->{'label'}).".xml ".$options);
     die("maximumLikelihoodModel.pl: analysis code failed")
 	unless ( $? == 0 );
