@@ -686,6 +686,8 @@ contains
        !$omp end critical(HDF5_Access)
        ! Sort the trees into mass order.
        sortOrder=Sort_Index_Do(treeMass)
+       ! Abort if there is only one tree.
+       if (size(self%firstNodes) <= 1) call Galacticus_Error_Report('galacticusForestIndicesRead','reweighting trees requires there to be at least two forests')
        ! Compute the weight for each tree.
        do i=1,size(self%firstNodes)
           ! Get the minimum mass of the interval occupied by this tree.
