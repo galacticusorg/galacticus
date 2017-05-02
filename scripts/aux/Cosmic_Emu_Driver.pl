@@ -36,14 +36,14 @@ unless ( -e &galacticusPath()."aux/CosmicEmu/emu.exe" ) {
 	print "Cosmic_Emu_Driver.pl: unpacking Cosmic_Emu code.\n";
 	system("tar -x -v -z -C ".&galacticusPath()."aux/CosmicEmu -f ".&galacticusPath()."aux/CosmicEmu/CosmicEmu_v1.1.tar.gz");
 	die("Cosmic_Emu_Driver.pl: FATAL - failed to unpack Cosmic_Emu code.")
-	    unless ( -e &galacticusPath()."aux/CosmicEmu/emu.c" );
+	    unless ( -e &galacticusPath()."aux/CosmicEmu/CosmicEmu_v1.0/emu.c" );
     }
 
     # Build the code.
     print "Cosmic_Emu_Driver.pl: compiling Cosmic_Emu code.\n";
-    system("cd ".&galacticusPath()."aux/CosmicEmu/; make");
+    system("cd ".&galacticusPath()."aux/CosmicEmu/CosmicEmu_v1.0/; make");
     die("Cosmic_Emu_Driver.pl: FATAL - failed to build Cosmic_Emu code.")
-	unless ( -e &galacticusPath()."aux/CosmicEmu/emu.exe" );
+	unless ( -e &galacticusPath()."aux/CosmicEmu/CosmicEmu_v1.0/emu.exe" );
 }
 
 # Parse the parameter file.
@@ -62,7 +62,7 @@ my $omegaMatter = $parameterData->{'OmegaMatter'}->{'value'}*($parameterData->{'
 my $omegaBaryon = $parameterData->{'OmegaBaryon'}->{'value'}*($parameterData->{'HubbleConstant'}->{'value'}/100.0)**2;
 
 # Run Cosmic_Emu.
-open(emuPipe,"|".&galacticusPath()."aux/CosmicEmu/emu.exe");
+open(emuPipe,"|".&galacticusPath()."aux/CosmicEmu/CosmicEmu_v1.0/emu.exe");
 print emuPipe $powerSpectrumFile."\n";
 print emuPipe $omegaMatter."\n";
 print emuPipe $omegaBaryon."\n";
