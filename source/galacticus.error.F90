@@ -57,6 +57,7 @@ module Galacticus_Error
   integer, parameter, public :: errorStatusInputDomain =FGSL_eDom     ! Input domain error.
   integer, parameter, public :: errorStatusOutOfRange  =FGSL_eRange   ! Output range error.
   integer, parameter, public :: errorStatusDivideByZero=FGSL_eZeroDiv ! Divide by zero.
+  integer, parameter, public :: errorStatusUnderflow   =FGSL_eUndrFlw ! Floating point underflow.
   integer, parameter, public :: errorStatusXCPU        =1025          ! CPU time limit exceeded.
 
   ! GSL error status.
