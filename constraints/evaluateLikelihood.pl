@@ -25,7 +25,8 @@ my $modelFileName  = $ARGV[1];
 # Create a hash of named arguments.
 my %arguments =
     (
-     plots => "no"
+     plots          => "no",
+     likelihoodFile => ""
     );
 &Galacticus::Options::Parse_Options(\@ARGV,\%arguments);
 
@@ -80,5 +81,10 @@ foreach my $constraint ( @constraints ) {
 
 # Write the final likelihood.
 print "Likelihood = ".$logLikelihood."\n";
+unless ( $arguments{'likelihoodFile'} eq "" ) {
+    open(my $likelihoodFile,">".$arguments{'likelihoodFile'});
+    print $likelihoodFile $logLikelihood."\n";
+    close($likelihoodFile);
+}
 
 exit 0;
