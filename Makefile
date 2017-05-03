@@ -6,8 +6,16 @@
 GALACTICUS_BUILD_OPTION ?= default
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'default'
 export BUILDPATH = ./work/build
+export SUFFIX =
 else ifeq '$(GALACTICUS_BUILD_OPTION)' 'MPI'
 export BUILDPATH = ./work/buildMPI
+export SUFFIX =
+else ifeq '$(GALACTICUS_BUILD_OPTION)' 'gprof'
+export BUILDPATH = ./work/buildGProf
+export SUFFIX = _gprof
+else ifeq '$(GALACTICUS_BUILD_OPTION)' 'odeprof'
+export BUILDPATH = ./work/buildODEProf
+export SUFFIX = _odeProf
 endif
 
 # Preprocessor:
@@ -44,13 +52,11 @@ MODULETYPE ?= GCC-f95-on-LINUX
 # Fortran compiler flags:
 FCFLAGS += -ffree-line-length-none -frecursive -DBUILDPATH=\'$(BUILDPATH)\' -J$(BUILDPATH)/ -I$(BUILDPATH)/ ${GALACTICUS_FCFLAGS} -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/lib/gfortran/modules -fintrinsic-modules-path /usr/include/gfortran -fintrinsic-modules-path /usr/include -fintrinsic-modules-path /usr/finclude -fintrinsic-modules-path /usr/lib64/gfortran/modules -fintrinsic-modules-path /usr/lib64/openmpi/lib -pthread
 # Fortran77 compiler flags:
-F77FLAGS = -g -DBUILDPATH=\'$(BUILDPATH)\'
+F77FLAGS = -DBUILDPATH=\'$(BUILDPATH)\'
 # Error checking flags
-FCFLAGS += -Wall -g -fbacktrace -ffpe-trap=invalid,zero,overflow -fdump-core
+FCFLAGS += -Wall -fbacktrace -ffpe-trap=invalid,zero,overflow -fdump-core
 # Add bounds checking.
 #FCFLAGS += -fbounds-check
-# Add profiling.
-FCFLAGS += -g
 # A copy of the flags prior to any optimizations.
 FCFLAGS_NOOPT := $(FCFLAGS)
 # Optimization flags.
@@ -60,11 +66,27 @@ FCFLAGS += -fopenmp
 
 # C compiler flags:
 CFLAGS = -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ ${GALACTICUS_CFLAGS}
-CFLAGS += -g
 
 # C++ compiler flags:
 CPPFLAGS += -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ ${GALACTICUS_CPPFLAGS}
+
+# Detect GProf compile.
+ifeq '$(GALACTICUS_BUILD_OPTION)' 'gprof'
+FCFLAGS  += -pg
+CFLAGS   += -pg
+CPPFLAGS += -pg
+else
+FCFLAGS  += -g
+CFLAGS   += -g
 CPPFLAGS += -g
+endif
+
+# Detect ODE profiling compile.
+ifeq '$(GALACTICUS_BUILD_OPTION)' 'odeprof'
+FCFLAGS  += -DPROFILE
+CFLAGS   += -DPROFILE
+CPPFLAGS += -DPROFILE
+endif
 
 # Detect MPI compile.
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'MPI'
@@ -218,9 +240,9 @@ $(BUILDPATH)/%.m : ./source/%.F90
 
 # Executables (*.exe) are built by linking together all of the object files (*.o) specified in the associated dependency (*.d)
 # file.
-%.exe : $(BUILDPATH)/%.o $(BUILDPATH)/%.d `cat $(BUILDPATH)/$*.d` $(MAKE_DEPS)
-	 $(CONDORLINKER) $(FCCOMPILER) `cat $*.d` -o $*.exe $(FCFLAGS) `scripts/build/libraryDependencies.pl $*.exe $(FCFLAGS)`
-	 ./scripts/build/executableSize.pl $*.exe $*.size
+%.exe: $(BUILDPATH)/%.o $(BUILDPATH)/%.d `cat $(BUILDPATH)/$*.d` $(MAKE_DEPS)
+	$(CONDORLINKER) $(FCCOMPILER) `cat $*.d` -o $*.exe$(SUFFIX) $(FCFLAGS) `scripts/build/libraryDependencies.pl $*.exe $(FCFLAGS)`
+	 ./scripts/build/executableSize.pl $*.exe$(SUFFIX) $*.size
 	 ./scripts/build/parameterDependencies.pl `pwd` $*.exe
 
 # Ensure that we don't delete object files which make considers to be intermediate
