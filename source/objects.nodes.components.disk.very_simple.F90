@@ -687,19 +687,22 @@ contains
     use Histories
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: node
-    type            (history                 ), intent(inout)          :: stellarHistoryRate
-    double precision                          , intent(  out)          :: fuelMassRate            , stellarMassRate       , &
-         &                                                                massOutflowRate
-    type            (abundances              ), intent(inout)          :: fuelAbundancesRate      , stellarAbundancesRate
-    type            (stellarLuminosities     ), intent(inout)          :: luminositiesStellarRates
-    class           (nodeComponentDisk       )               , pointer :: disk
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                                                   :: diskDynamicalTime       , fuelMass              , &
-         &                                                                energyInputRate         , starFormationRate
-    type            (abundances              )               , save    :: fuelAbundances
+    type            (treeNode                       ), intent(inout), pointer :: node
+    type            (history                        ), intent(inout)          :: stellarHistoryRate
+    double precision                                 , intent(  out)          :: fuelMassRate               , stellarMassRate       , &
+         &                                                                       massOutflowRate
+    type            (abundances                     ), intent(inout)          :: fuelAbundancesRate         , stellarAbundancesRate
+    type            (stellarLuminosities            ), intent(inout)          :: luminositiesStellarRates
+    class           (nodeComponentDisk              )               , pointer :: disk
+    class           (darkMatterHaloScaleClass       )               , pointer :: darkMatterHaloScale_
+    class           (starFormationFeedbackDisksClass)               , pointer :: starFormationFeedbackDisks_
+    double precision                                                          :: diskDynamicalTime          , fuelMass              , &
+         &                                                                       energyInputRate            , starFormationRate
+    type            (abundances                     )               , save    :: fuelAbundances
     !$omp threadprivate (fuelAbundances)
-    
+
+    ! Get required objects.
+    starFormationFeedbackDisks_ => starFormationFeedbackDisks()
     ! Get the disk.
     disk => node%disk()
     ! Initialize to zero rates.
@@ -723,7 +726,7 @@ contains
     call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,componentTypeDisk,node,stellarHistoryRate &
          &,stellarMassRate,stellarAbundancesRate,luminositiesStellarRates,fuelMassRate,fuelAbundancesRate,energyInputRate)
     ! Find rate of outflow of material from the disk and pipe it to the outflowed reservoir.
-    massOutflowRate=Star_Formation_Feedback_Disk_Outflow_Rate(node,starFormationRate,energyInputRate)
+    massOutflowRate=starFormationFeedbackDisks_%outflowRate(node,starFormationRate,energyInputRate)
     if (massOutflowRate > 0.0d0) then
        ! Limit the outflow rate timescale to a multiple of the dynamical time.
        darkMatterHaloScale_ => darkMatterHaloScale()
