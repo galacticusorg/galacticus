@@ -391,6 +391,10 @@ my @translations =
 	     mergerTreeImporterMethod        =>
 	     {
 	         "sussing"                   => "sussingASCII"
+	     },
+	     starFormationFeedbackDisksMethod =>    
+	     {
+		 "Creasey2012"               => "creasey2012"
 	     }
 	 }
     }

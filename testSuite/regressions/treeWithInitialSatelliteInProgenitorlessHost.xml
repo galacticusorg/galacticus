@@ -143,11 +143,12 @@
   <blackHoleHeatsHotHalo value="true"/>
 
   <!-- Supernovae feedback options -->
-  <starFormationFeedbackDisksMethod value="powerLaw"/>
+  <starFormationFeedbackDisksMethod value="powerLaw">
+    <velocityCharacteristic value="250.0"/>
+    <exponent value="3.0"/>
+  </starFormationFeedbackDisksMethod>
   <starFormationFeedbackSpheroidsMethod value="powerLaw"/>
-  <diskOutflowVelocity value="250.0"/>
   <spheroidOutflowVelocity value="300.0"/>
-  <diskOutflowExponent value="3.0"/>
   <spheroidOutflowExponent value="2.0"/>
 
   <!-- Accretion disk properties -->

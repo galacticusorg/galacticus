@@ -75,7 +75,6 @@
   <mergerTreeBuildHaloMassMinimum value="1.0e12"/>
   <darkMatterProfileConcentrationMethod value="gao2008"/>
   <spheroidEnergeticOutflowMassRate value="1"/>
-  <diskOutflowVelocity value="200"/>
   <starveSatellites value="true"/>
   <modifiedPressSchechterGamma1 value="0.38"/>
   <hotHaloMassDistributionMethod value="betaProfile"/>
@@ -132,10 +131,12 @@
   <stabilityThresholdStellar value="1.1"/>
   <elementsToTrack value="Ca Mg Si Ti Fe"/>
   <spheroidOutflowExponent value="2"/>
-  <starFormationFeedbackDisksMethod value="powerLaw"/>
+  <starFormationFeedbackDisksMethod value="powerLaw">
+    <exponent value="2"/>
+    <velocityCharacteristic value="200"/>
+ </starFormationFeedbackDisksMethod>
   <coolingRateMethod value="White-Frenk1991"/>
   <treeNodeMethodSpin value="random"/>
-  <diskOutflowExponent value="2"/>
   <mergerTreeBuilderMethod value="cole2000">
     <mergeProbability value="0.1"/>
     <accretionLimit value="0.1"/>

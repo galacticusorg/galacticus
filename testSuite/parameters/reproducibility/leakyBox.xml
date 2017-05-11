@@ -65,9 +65,10 @@
   <starFormationTimescaleDisksFixedTimescale value="0.50"  />
 
   <!-- Feedback -->
-  <starFormationFeedbackDisksMethod          value="fixed" />
-  <diskOutflowFraction                       value="1.0"   />
-
+  <starFormationFeedbackDisksMethod          value="fixed"  >
+    <fraction                                value="1.0"   />
+  </starFormationFeedbackDisksMethod>
+  
   <!-- Metal production -->
   <diskVerySimpleTrackAbundances             value="true"  />
   <imfChabrierYieldInstantaneous             value="0.025" />
