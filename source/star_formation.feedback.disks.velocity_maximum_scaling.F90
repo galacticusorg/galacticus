@@ -16,135 +16,146 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an outflow rate due to star formation feedback in galactic disks that scales with halo
-!% maximum velocity and redshift.
+  !% Implementation of an outflow rate due to star formation feedback in galactic disks which scales with peak halo velocity.
 
-module Star_Formation_Feedback_Disks_VlctyMxSclng
-  !% Implements an outflow rate due to star formation feedback in galactic disks that scales with halo
-  !% maximum velocity and redshift.
-  use Galacticus_Nodes
   use Math_Exponentiation
-  implicit none
-  private
-  public :: Star_Formation_Feedback_Disks_VlctyMxSclng_Initialize
+  use Cosmology_Functions
+  
+  !# <starFormationFeedbackDisks name="starFormationFeedbackDisksVlctyMxSclng" defaultThreadPrivate="yes">
+  !#  <description>An outflow rate due to star formation feedback in galactic disks which scales with peak halo velocity.</description>
+  !# </starFormationFeedbackDisks>
+  type, extends(starFormationFeedbackDisksClass) :: starFormationFeedbackDisksVlctyMxSclng
+     !% Implementation of an outflow rate due to star formation feedback in galactic disks which scales with peak halo velocity.
+     private
+     double precision                                    :: fraction               , exponentRedshift            , &
+          &                                                 exponentVelocity       , normalization               , &
+          &                                                 velocityPrevious       , velocityFactor              , &
+          &                                                 expansionFactorPrevious, expansionFactorFactor
+     type            (fastExponentiator       )          :: velocityExponentiator  , expansionFactorExponentiator
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
+   contains
+     final     ::                vlctyMxSclngDestructor
+     procedure :: outflowRate => vlctyMxSclngOutflowRate
+  end type starFormationFeedbackDisksVlctyMxSclng
 
-  ! Parameters of the feedback model.
-  double precision                    :: diskOutflowFraction        , diskOutflowRedshiftExponent, &
-       &                                 diskOutflowVelocityExponent
-
-  ! Normalization factor for the outflow rate.
-  double precision                    :: outflowNormalization
-
-  ! Fast exponentiation tables for rapid computation of the outflow rate.
-  type            (fastExponentiator) :: velocityExponentiator      , expansionFactorExponentiator
+  interface starFormationFeedbackDisksVlctyMxSclng
+     !% Constructors for the velocity maximum scaling fraction star formation feedback in disks class.
+     module procedure vlctyMxSclngConstructorParameters
+     module procedure vlctyMxSclngConstructorInternal
+  end interface starFormationFeedbackDisksVlctyMxSclng
 
 contains
 
-  !# <starFormationFeedbackDisksMethod>
-  !#  <unitName>Star_Formation_Feedback_Disks_VlctyMxSclng_Initialize</unitName>
-  !# </starFormationFeedbackDisksMethod>
-  subroutine Star_Formation_Feedback_Disks_VlctyMxSclng_Initialize(starFormationFeedbackDisksMethod,Star_Formation_Feedback_Disk_Outflow_Rate_Get)
-    !% Initializes the ``halo scaling'' disk star formation feedback module.
-    use ISO_Varying_String
-    use Input_Parameters
+  function vlctyMxSclngConstructorParameters(parameters) result(self)
+    !% Constructor for the velocity maximum scaling fraction star formation feedback in disks class which takes a parameter set as
+    !% input.
+    use Galacticus_Error
+    implicit none
+    type            (starFormationFeedbackDisksVlctyMxSclng)                :: self
+    type            (inputParameters                       ), intent(inout) :: parameters
+    double precision                                                        :: fraction            , exponentRedshift, &
+         &                                                                     exponentVelocity
+    class           (cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
+    !# <inputParameterList label="allowedParameterNames" />
+
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>fraction</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.01d0</defaultValue>
+    !#   <description>The ratio of outflow rate to star formation rate in disks.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>exponentVelocity</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>-2.0d0</defaultValue>
+    !#   <description>The exponent of virial velocity in the outflow rate in disks.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>exponentRedshift</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>The exponent of redshift in the outflow rate in disks.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    self=starFormationFeedbackDisksVlctyMxSclng(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_)
+    return
+  end function vlctyMxSclngConstructorParameters
+
+  function vlctyMxSclngConstructorInternal(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_) result(self)
+    !% Internal constructor for the halo scaling star formation feedback from disks class.
     use Stellar_Feedback
     implicit none
-    type            (varying_string                                        ), intent(in   )          :: starFormationFeedbackDisksMethod              
-    procedure       (Star_Formation_Feedback_Disk_Outflow_Rate_VlctyMxSclng), intent(inout), pointer :: Star_Formation_Feedback_Disk_Outflow_Rate_Get 
-    double precision                                                        , parameter              :: velocityNormalization=200.0d0
+    type            (starFormationFeedbackDisksVlctyMxSclng)                        :: self
+    double precision                                        , intent(in   )         :: fraction                     , exponentRedshift, &
+         &                                                                             exponentVelocity
+    class           (cosmologyFunctionsClass               ), intent(in   ), target :: cosmologyFunctions_
+    double precision                                        , parameter             :: velocityNormalization=200.0d0
 
-    if (starFormationFeedbackDisksMethod == 'velocityMaximumScaling') then
-       Star_Formation_Feedback_Disk_Outflow_Rate_Get => Star_Formation_Feedback_Disk_Outflow_Rate_VlctyMxSclng
-       ! Get parameters of for the feedback calculation.
-       !@ <inputParameter>
-       !@   <name>diskOutflowFraction</name>
-       !@   <defaultValue>0.01</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The ratio of outflow rate to star formation rate in disks.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('diskOutflowFraction',diskOutflowFraction,defaultValue=0.01d0)
-       !@ <inputParameter>
-       !@   <name>diskOutflowVelocityExponent</name>
-       !@   <defaultValue>$-2.0$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The exponent of maximum velocity in the outflow rate in disks.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('diskOutflowVelocityExponent',diskOutflowVelocityExponent,defaultValue=-2.0d0)
-       !@ <inputParameter>
-       !@   <name>diskOutflowRedshiftExponent</name>
-       !@   <defaultValue>$0.0$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The exponent of redshift in the outflow rate in disks.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('diskOutflowRedshiftExponent',diskOutflowRedshiftExponent,defaultValue=0.0d0)
-       ! Compute the normalization factor.
-       outflowNormalization= diskOutflowFraction                                &
-            &               /feedbackEnergyInputAtInfinityCanonical             &
-            &               /velocityNormalization**diskOutflowVelocityExponent
-       ! Initialize exponentiators.
-       velocityExponentiator       =fastExponentiator(1.0d+0,1.0d+3,diskOutflowVelocityExponent,1.0d+1,abortOutsideRange=.false.)
-       expansionFactorExponentiator=fastExponentiator(1.0d-3,1.0d+0,diskOutflowRedshiftExponent,1.0d+3,abortOutsideRange=.false.)
-    end if
+    !# <constructorAssign variables="fraction, exponentRedshift, exponentVelocity, *cosmologyFunctions_"/>
+    ! Initialize stored values.
+    self%velocityPrevious       =-1.0d0
+    self%expansionFactorPrevious=-1.0d0
+    self%velocityFactor         =-1.0d0
+    self%expansionFactorFactor  =-1.0d0
+    ! Compute the normalization factor.
+    self%normalization          =+self%fraction                                &
+         &                       /feedbackEnergyInputAtInfinityCanonical       &
+         &                       /velocityNormalization**self%exponentVelocity
+    ! Initialize fast exponentiators.
+    self%velocityExponentiator       =fastExponentiator(1.0d+0,1.0d+3,self%exponentVelocity,1.0d+1,abortOutsideRange=.false.)
+    self%expansionFactorExponentiator=fastExponentiator(1.0d-3,1.0d+0,self%exponentRedshift,1.0d+3,abortOutsideRange=.false.)
     return
-  end subroutine Star_Formation_Feedback_Disks_VlctyMxSclng_Initialize
+  end function vlctyMxSclngConstructorInternal
 
-  double precision function Star_Formation_Feedback_Disk_Outflow_Rate_VlctyMxSclng(node,starFormationRate,energyInputRate)
+  subroutine vlctyMxSclngDestructor(self)
+    !% Destructor for the velocity maximum scaling feedback from star formation in disks class.
+    implicit none
+    type(starFormationFeedbackDisksVlctyMxSclng), intent(inout) :: self
+  
+    !# <objectDestructor name="self%cosmologyFunctions_" />
+    return
+  end subroutine vlctyMxSclngDestructor
+  
+  double precision function vlctyMxSclngOutflowRate(self,node,rateEnergyInput,rateStarFormation)
     !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\normalfont \ttfamily node}.
-    use Cosmology_Functions
     use Dark_Matter_Profiles
     implicit none
-    type            (treeNode               ), intent(inout), target :: node
-    double precision                         , intent(in   )         :: energyInputRate                , starFormationRate
-    class           (nodeComponentBasic     ), pointer               :: basic
-    double precision                         , save                  :: velocityPrevious       =-1.0d0, velocityFactorPrevious       =-1.0d0
-    !$omp threadprivate(velocityPrevious,velocityFactorPrevious)
-    class           (cosmologyFunctionsClass), pointer               :: cosmologyFunctions_
-    class           (darkMatterProfileClass ), pointer               :: darkMatterProfile_
-    double precision                         , save                  :: expansionFactorPrevious=-1.0d0, expansionFactorFactorPrevious=-1.0d0
-    !$omp threadprivate(expansionFactorPrevious,expansionFactorFactorPrevious)
-    double precision                                                 :: expansionFactor                , velocityMaximum
-    !GCC$ attributes unused :: starFormationRate
-    
-    ! Get the default cosmology functions object.
-    cosmologyFunctions_ => cosmologyFunctions()
-    darkMatterProfile_  => darkMatterProfile ()
+    class           (starFormationFeedbackDisksVlctyMxSclng), intent(inout) :: self
+    type            (treeNode                              ), intent(inout) :: node
+    double precision                                        , intent(in   ) :: rateEnergyInput   , rateStarFormation
+    class           (nodeComponentBasic                    ), pointer       :: basic
+    class           (darkMatterProfileClass                ), pointer       :: darkMatterProfile_
+    double precision                                                        :: expansionFactor   , velocityMaximum
+    !GCC$ attributes unused :: rateStarFormation
+
+    ! Get required objects.
+    darkMatterProfile_ => darkMatterProfile      ()
     ! Get the basic component.
-    basic               => node%basic        ()
-    ! Get maximum velocity and expansion factor.
-    velocityMaximum=darkMatterProfile_ %circularVelocityMaximum(node        )
-    expansionFactor=cosmologyFunctions_%expansionFactor        (basic%time())
+    basic              => node             %basic()
+    ! Get virial velocity and expansion factor.
+    velocityMaximum=     darkMatterProfile_ %circularVelocityMaximum(node        )
+    expansionFactor=self%cosmologyFunctions_%expansionFactor        (basic%time())
     ! Compute the velocity factor.
-    if (velocityMaximum /= velocityPrevious       ) then
-       velocityPrevious             =                                                velocityMaximum
-       velocityFactorPrevious       =      velocityExponentiator       %exponentiate(velocityMaximum)
-    end if
+    if (velocityMaximum /= self%velocityPrevious) then
+       self%velocityPrevious       =                                                     velocityMaximum
+       self%velocityFactor         =      self%velocityExponentiator       %exponentiate(velocityMaximum)
+    end if    
     ! Compute the expansion-factor factor.
-    if (expansionFactor /= expansionFactorPrevious) then
-       expansionFactorPrevious      =                                                expansionFactor
-       expansionFactorFactorPrevious=1.0d0/expansionFactorExponentiator%exponentiate(expansionFactor)
+    if (expansionFactor /= self%expansionFactorPrevious) then
+       self%expansionFactorPrevious=                                                     expansionFactor
+       self%expansionFactorFactor  =1.0d0/self%expansionFactorExponentiator%exponentiate(expansionFactor)
     end if
     ! Compute the outflow rate.
-    Star_Formation_Feedback_Disk_Outflow_Rate_VlctyMxSclng= &
-         & outflowNormalization                             &
-         & *energyInputRate                                 &
-         & *velocityFactorPrevious                          &
-         & *expansionFactorFactorPrevious
+    vlctyMxSclngOutflowRate=+self%normalization         &
+         &                  *rateEnergyInput            &
+         &                  *self%velocityFactor        &
+         &                  *self%expansionFactorFactor
     return
-  end function Star_Formation_Feedback_Disk_Outflow_Rate_VlctyMxSclng
-
-end module Star_Formation_Feedback_Disks_VlctyMxSclng
+  end function vlctyMxSclngOutflowRate

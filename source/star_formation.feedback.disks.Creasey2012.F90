@@ -16,168 +16,185 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the \cite{creasey_how_2012} model for star formation feedback in galactic disks.
+  !% Implementation of the \cite{creasey_how_2012} outflow rate due to star formation feedback in galactic disks.
+  
+  !# <starFormationFeedbackDisks name="starFormationFeedbackDisksCreasey2012">
+  !#  <description>The \cite{creasey_how_2012} outflow rate due to star formation feedback in galactic disks.</description>
+  !# </starFormationFeedbackDisks>
+  type, extends(starFormationFeedbackDisksClass) :: starFormationFeedbackDisksCreasey2012
+     !% Implementation of the \cite{creasey_how_2012} outflow rate due to star formation feedback in galactic disks.
+     private
+     double precision :: nu   , mu, &
+          &              beta0
+   contains
+     procedure :: outflowRate => creasy2012OutflowRate
+  end type starFormationFeedbackDisksCreasey2012
 
-module Star_Formation_Feedback_Disks_Creasey2012
-  !% Implements the \cite{creasey_how_2012} model for star formation feedback in galactic disks.
-  use Galacticus_Nodes
-  implicit none
-  private
-  public :: Star_Formation_Feedback_Disks_Creasey2012_Initialize
-
-  ! Parameters of the feedback model.
-  double precision                    :: starFormationFeedbackDisksCreasy2012Beta0, starFormationFeedbackDisksCreasy2012Mu, &
-       &                                 starFormationFeedbackDisksCreasy2012Nu
-
-  ! Pointer to active node used in integral functions, plus variables needed by integral function.
-  type            (treeNode), pointer :: activeNode
-  !$omp threadprivate(activeNode)
+  interface starFormationFeedbackDisksCreasey2012
+     !% Constructors for the creasy2012 fraction star formation feedback in disks class.
+     module procedure creasy2012ConstructorParameters
+     module procedure creasy2012ConstructorInternal
+  end interface starFormationFeedbackDisksCreasey2012
 
 contains
 
-  !# <starFormationFeedbackDisksMethod>
-  !#  <unitName>Star_Formation_Feedback_Disks_Creasey2012_Initialize</unitName>
-  !# </starFormationFeedbackDisksMethod>
-  subroutine Star_Formation_Feedback_Disks_Creasey2012_Initialize(starFormationFeedbackDisksMethod,Star_Formation_Feedback_Disk_Outflow_Rate_Get)
-    !% Initializes the ``Creasey et al. (2012)'' disk star formation feedback module.
-    use ISO_Varying_String
-    use Input_Parameters
+  function creasy2012ConstructorParameters(parameters) result(self)
+    !% Constructor for the \cite{creasey_how_2012} star formation feedback in disks class which takes a parameter set as input.
+    use Galacticus_Error
     implicit none
-    type     (varying_string                                       ), intent(in   )          :: starFormationFeedbackDisksMethod
-    procedure(Star_Formation_Feedback_Disk_Outflow_Rate_Creasey2012), intent(inout), pointer :: Star_Formation_Feedback_Disk_Outflow_Rate_Get
+    type            (starFormationFeedbackDisksCreasey2012)                :: self
+    type            (inputParameters                      ), intent(inout) :: parameters
+    double precision                                                       :: mu        , nu, &
+         &                                                                    beta0
+    !# <inputParameterList label="allowedParameterNames" />
 
-    if (starFormationFeedbackDisksMethod == 'Creasey2012') then
-       Star_Formation_Feedback_Disk_Outflow_Rate_Get => Star_Formation_Feedback_Disk_Outflow_Rate_Creasey2012
-       ! Get parameters of for the feedback calculation.
-       !@ <inputParameter>
-       !@   <name>starFormationFeedbackDisksCreasy2012Beta0</name>
-       !@   <defaultValue>13</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The factor $\beta_0$ appearing in the \cite{creasey_how_2012} model for supernovae feedback.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationFeedbackDisksCreasy2012Beta0',starFormationFeedbackDisksCreasy2012Beta0,defaultValue=13.0d0)
-       !@ <inputParameter>
-       !@   <name>starFormationFeedbackDisksCreasy2012Mu</name>
-       !@   <defaultValue>$1.15$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The factor $\mu$ appearing in the \cite{creasey_how_2012} model for supernovae feedback.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationFeedbackDisksCreasy2012Mu',starFormationFeedbackDisksCreasy2012Mu,defaultValue=1.15d0)
-       !@ <inputParameter>
-       !@   <name>starFormationFeedbackDisksCreasy2012Nu</name>
-       !@   <defaultValue>$0.16$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The factor $\nu$ appearing in the \cite{creasey_how_2012} model for supernovae feedback.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationFeedbackDisksCreasy2012Nu',starFormationFeedbackDisksCreasy2012Nu,defaultValue=0.16d0)
-    end if
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>mu</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>1.15d0</defaultValue>
+    !#   <defaultSource>\citep{creasey_how_2012}</defaultSource>
+    !#   <description>The parameter $\mu$ appearing in the \cite{creasey_how_2012} model for supernovae feedback.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>nu</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.16d0</defaultValue>
+    !#   <defaultSource>\citep{creasey_how_2012}</defaultSource>
+    !#   <description>The parameter $\nu$ appearing in the \cite{creasey_how_2012} model for supernovae feedback.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>beta0</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>13.0d0</defaultValue>
+    !#   <defaultSource>\citep{creasey_how_2012}</defaultSource>
+    !#   <description>The parameter $\beta_0 appearing in the \cite{creasey_how_2012} model for supernovae feedback.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    self=starFormationFeedbackDisksCreasey2012(mu,nu,beta0)
     return
-  end subroutine Star_Formation_Feedback_Disks_Creasey2012_Initialize
+  end function creasy2012ConstructorParameters
 
-  double precision function Star_Formation_Feedback_Disk_Outflow_Rate_Creasey2012(thisNode,starFormationRate,energyInputRate)
+  function creasy2012ConstructorInternal(mu,nu,beta0) result(self)
+    !% Internal constructor for the creasy2012 star formation feedback from disks class.
+    implicit none
+    type            (starFormationFeedbackDisksCreasey2012)                :: self
+    double precision                                       , intent(in   ) :: mu   , nu, &
+         &                                                                    beta0
+
+    !# <constructorAssign variables="mu, nu, beta0"/>    
+    return
+  end function creasy2012ConstructorInternal
+
+  double precision function creasy2012OutflowRate(self,node,rateEnergyInput,rateStarFormation)
     !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\normalfont \ttfamily thisNode} using
     !% the model of \cite{creasey_how_2012}. The outflow rate is given by
     !% \begin{equation}
     !% \dot{M}_{\mathrm outflow} = \int_0^\infty \beta_0 \Sigma_{g,1}^{-\mu}(r) f_{\mathrm g}^\nu(r) \dot{\Sigma}_\star(r) 2 \pi r {\mathrm d}r,
     !% \end{equation}
-    !% where $\Sigma_{g,1}(r)$ is the surface density of gas in units of $M_\odot$ pc$^{-2}$, $f_{\mathrm g}(r)$ is the gas fraction,
-    !% $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate, $\beta_0=${\tt
-    !% [starFormationFeedbackDisksCreasy2012Beta0]}, $\mu=${\normalfont \ttfamily [starFormationFeedbackDisksCreasy2012Mu]}, and $\nu=${\tt
-    !% [starFormationFeedbackDisksCreasy2012Nu]}.
+    !% where $\Sigma_{g,1}(r)$ is the surface density of gas in units of $M_\odot$ pc$^{-2}$, $f_{\mathrm g}(r)$ is the gas
+    !% fraction, $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate, $\beta_0=${\tt [beta0]},
+    !% $\mu=${\normalfont \ttfamily [mu]}, and $\nu=${\tt [nu]}.
     use Numerical_Constants_Math
     use Stellar_Feedback
     use Numerical_Integration
+    use FGSL
     implicit none
-    type            (treeNode                  ), intent(inout), target :: thisNode
-    class           (nodeComponentDisk         ), pointer               :: thisDiskComponent
-    double precision                            , intent(in   )         :: energyInputRate               , starFormationRate
-    double precision                            , parameter             :: radiusInnerDimensionless=0.0d0, radiusOuterDimensionless=10.0d0
-    double precision                                                    :: diskScaleRadius               , gasMass                        , &
-         &                                                                 radiusInner                   , radiusOuter                    , &
-         &                                                                 stellarMass
-    type            (fgsl_function             )                        :: integrandFunction
-    type            (fgsl_integration_workspace)                        :: integrationWorkspace
+    class           (starFormationFeedbackDisksCreasey2012), intent(inout) :: self
+    type            (treeNode                             ), intent(inout) :: node
+    double precision                                       , intent(in   ) :: rateEnergyInput               , rateStarFormation
+    double precision                                       , parameter     :: radiusInnerDimensionless=0.0d0, radiusOuterDimensionless=10.0d0
+    class           (nodeComponentDisk                    ), pointer       :: disk
+    double precision                                                       :: radiusScale                   , massGas                        , &
+         &                                                                    radiusInner                   , radiusOuter                    , &
+         &                                                                    massStellar
+    type            (fgsl_function                        )                :: integrandFunction
+    type            (fgsl_integration_workspace           )                :: integrationWorkspace
 
     ! Get the disk properties.
-    thisDiskComponent => thisNode         %disk       ()
-    gasMass           =  thisDiskComponent%massGas    ()
-    stellarMass       =  thisDiskComponent%massStellar()
-    diskScaleRadius   =  thisDiskComponent%radius     ()
+    disk        => node%disk       ()
+    massGas     =  disk%massGas    ()
+    massStellar =  disk%massStellar()
+    radiusScale =  disk%radius     ()
     ! Return immediately for a null disk.
-    if (gasMass <= 0.0d0 .or. stellarMass <= 0.0d0 .or. diskScaleRadius <= 0.0d0) then
-       Star_Formation_Feedback_Disk_Outflow_Rate_Creasey2012=0.0d0
+    if (massGas <= 0.0d0 .or. massStellar <= 0.0d0 .or. radiusScale <= 0.0d0) then
+       creasy2012OutflowRate=0.0d0
        return
     end if
-    ! Set a pointer to the node that is accessible by integral function.
-    activeNode => thisNode
     ! Compute suitable limits for the integration.
-    radiusInner=diskScaleRadius*radiusInnerDimensionless
-    radiusOuter=diskScaleRadius*radiusOuterDimensionless
+    radiusInner=radiusScale*radiusInnerDimensionless
+    radiusOuter=radiusScale*radiusOuterDimensionless
     ! Compute the outflow rate.
-    Star_Formation_Feedback_Disk_Outflow_Rate_Creasey2012=                             &
-         &  2.0d0*Pi                                                                   &
-         & *starFormationFeedbackDisksCreasy2012Beta0                                  &
-         & *Integrate(                                                                 &
-         &            radiusInner                                                    , &
-         &            radiusOuter                                                    , &
-         &            Star_Formation_Feedback_Disk_Outflow_Rate_Creasey2012_Integrand, &
-         &            integrandFunction                                              , &
-         &            integrationWorkspace                                           , &
-         &            toleranceAbsolute=0.0d0                                        , &
-         &            toleranceRelative=1.0d-3                                         &
-         &           )                                                                 &
-         & /starFormationRate                                                          &
-         & *energyInputRate                                                            &
-         & /feedbackEnergyInputAtInfinityCanonical
-       call Integrate_Done(integrandFunction,integrationWorkspace)
+    creasy2012OutflowRate=+2.0d0&
+         &                *Pi                                     &
+         &                *self%beta0                             &
+         &                *Integrate(                             &
+         &                           radiusInner                , &
+         &                           radiusOuter                , &
+         &                           outflowRateIntegrand       , &
+         &                           integrandFunction          , &
+         &                           integrationWorkspace       , &
+         &                           toleranceAbsolute   =0.0d+0, &
+         &                           toleranceRelative   =1.0d-3  &
+         &                          )                             &
+         &                /rateStarFormation                      &
+         &                *rateEnergyInput                        &
+         &                /feedbackEnergyInputAtInfinityCanonical
+    call Integrate_Done(integrandFunction,integrationWorkspace)
     return
-  end function Star_Formation_Feedback_Disk_Outflow_Rate_Creasey2012
+    
+  contains
   
-  double precision function Star_Formation_Feedback_Disk_Outflow_Rate_Creasey2012_Integrand(radius)
-    !% Integrand function for the ``Creasey et al. (2012)'' supernovae feedback calculation.
-    use Galactic_Structure_Surface_Densities
-    use Galactic_Structure_Options
-    use Star_Formation_Rate_Surface_Density_Disks
-    use Numerical_Constants_Prefixes
-    implicit none
-    double precision, intent(in   ) :: radius
-    double precision                :: gasFraction      , starFormationRateSurfaceDensity, &
-         &                             surfaceDensityGas, surfaceDensityStar
+    double precision function outflowRateIntegrand(radius)
+      !% Integrand function for the ``Creasey et al. (2012)'' supernovae feedback calculation.
+      use Galactic_Structure_Surface_Densities
+      use Galactic_Structure_Options
+      use Star_Formation_Rate_Surface_Density_Disks
+      use Numerical_Constants_Prefixes
+      implicit none
+      double precision, intent(in   ) :: radius
+      double precision                :: fractionGas      , densitySurfaceRateStarFormation, &
+           &                             densitySurfaceGas, densitySurfaceStellar
 
-    ! Get gas surface density.
-    surfaceDensityGas=Galactic_Structure_Surface_Density(activeNode,[radius,0.0d0,0.0d0],coordinateSystem&
-         &=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeGaseous)
-    ! Get stellar surface density.
-    surfaceDensityStar=Galactic_Structure_Surface_Density(activeNode,[radius,0.0d0,0.0d0],coordinateSystem&
-         &=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeStellar)
-    ! Compute the gas fraction.
-    gasFraction=surfaceDensityGas/(surfaceDensityGas+surfaceDensityStar)
-    ! Convert gas surface density to correct units.
-    surfaceDensityGas=surfaceDensityGas/mega**2
-    ! Get the surface density of star formation rate.
-    starFormationRateSurfaceDensity=Star_Formation_Rate_Surface_Density_Disk(activeNode,radius)
-    ! Compute the outflow rate.
-    Star_Formation_Feedback_Disk_Outflow_Rate_Creasey2012_Integrand=     &
-         &  surfaceDensityGas**(-starFormationFeedbackDisksCreasy2012Mu) &
-         & *gasFraction      **  starFormationFeedbackDisksCreasy2012Nu  &
-         & *starFormationRateSurfaceDensity                              &
-         & *radius
-    return
-  end function Star_Formation_Feedback_Disk_Outflow_Rate_Creasey2012_Integrand
-  
-end module Star_Formation_Feedback_Disks_Creasey2012
+      ! Get gas surface density.
+      densitySurfaceGas    =Galactic_Structure_Surface_Density(                                                            &
+           &                                                                     node                                    , &
+           &                                                                    [radius                     ,0.0d0,0.0d0], &
+           &                                                   coordinateSystem= coordinateSystemCylindrical             , &
+           &                                                   componentType   = componentTypeDisk                       , &
+           &                                                   massType        = massTypeGaseous                           &
+           &                                                  )
+      ! Get stellar surface density.
+      densitySurfaceStellar=Galactic_Structure_Surface_Density(                                                            &
+           &                                                                     node                                    , &
+           &                                                                    [radius                     ,0.0d0,0.0d0], &
+           &                                                   coordinateSystem= coordinateSystemCylindrical             , &
+           &                                                   componentType   = componentTypeDisk                       , &
+           &                                                   massType        = massTypeStellar                           &
+           &                                                  )
+      ! Compute the gas fraction.
+      fractionGas=+  densitySurfaceGas     &
+           &      /(                       &
+           &        +densitySurfaceGas     &
+           &        +densitySurfaceStellar &
+           &       )
+      ! Convert gas surface density to units of M☉ pc⁻².
+      densitySurfaceGas=+densitySurfaceGas &
+           &            /mega**2
+      ! Get the surface density of star formation rate.
+      densitySurfaceRateStarFormation=Star_Formation_Rate_Surface_Density_Disk(node,radius)
+      ! Compute the outflow rate.
+      outflowRateIntegrand=+densitySurfaceGas              **(-self%mu) &
+           &               *fractionGas                    **  self%nu  &
+           &               *densitySurfaceRateStarFormation             &
+           &               *radius
+      return
+    end function outflowRateIntegrand
+
+  end function creasy2012OutflowRate
+

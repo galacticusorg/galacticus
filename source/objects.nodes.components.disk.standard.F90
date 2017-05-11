@@ -586,30 +586,31 @@ contains
     use Dark_Matter_Halo_Scales
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode                    ), intent(inout), pointer :: node
-    logical                                       , intent(in   )          :: odeConverged
-    class           (nodeComponentDisk           )               , pointer :: disk
-    class           (nodeComponentSpheroid       )               , pointer :: spheroid
-    class           (nodeComponentHotHalo        )               , pointer :: hotHalo
-    class           (darkMatterHaloScaleClass    )               , pointer :: darkMatterHaloScale_
-    logical                                       , intent(inout)          :: interrupt
-    procedure       (interruptTask               ), intent(inout), pointer :: interruptProcedureReturn
-    procedure       (interruptTask               )               , pointer :: interruptProcedure
-    type            (abundances                  ), save                   :: fuelAbundances              , fuelAbundancesRates       , &
-         &                                                                    stellarAbundancesRates
+    type            (treeNode                       ), intent(inout), pointer :: node
+    logical                                          , intent(in   )          :: odeConverged
+    class           (nodeComponentDisk              )               , pointer :: disk
+    class           (nodeComponentSpheroid          )               , pointer :: spheroid
+    class           (nodeComponentHotHalo           )               , pointer :: hotHalo
+    class           (darkMatterHaloScaleClass       )               , pointer :: darkMatterHaloScale_
+    logical                                          , intent(inout)          :: interrupt
+    procedure       (interruptTask                  ), intent(inout), pointer :: interruptProcedureReturn
+    procedure       (interruptTask                  )               , pointer :: interruptProcedure
+    class           (starFormationFeedbackDisksClass)               , pointer :: starFormationFeedbackDisks_
+    type            (abundances                     ), save                   :: fuelAbundances              , fuelAbundancesRates       , &
+         &                                                                       stellarAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
-    double precision                                                        :: angularMomentum             , angularMomentumOutflowRate, &
-         &                                                                     barInstabilitySpecificTorque, barInstabilityTimescale   , &
-         &                                                                     diskDynamicalTime           , diskMass                  , &
-         &                                                                     energyInputRate             , fractionGas               , &
-         &                                                                     fractionStellar             , fuelMass                  , &
-         &                                                                     fuelMassRate                , gasMass                   , &
-         &                                                                     massLossRate                , massOutflowRate           , &
-         &                                                                     massOutflowRateFromHalo     , massOutflowRateToHotHalo  , &
-         &                                                                     outflowToHotHaloFraction    , starFormationRate         , &
-         &                                                                     stellarMassRate             , transferRate
-    type            (history                      )                         :: historyTransferRate         , stellarHistoryRate
-    type            (stellarLuminosities          ), save                   :: luminositiesStellarRates    , luminositiesTransferRate
+    double precision                                                           :: angularMomentum             , angularMomentumOutflowRate, &
+         &                                                                        barInstabilitySpecificTorque, barInstabilityTimescale   , &
+         &                                                                        diskDynamicalTime           , diskMass                  , &
+         &                                                                        energyInputRate             , fractionGas               , &
+         &                                                                        fractionStellar             , fuelMass                  , &
+         &                                                                        fuelMassRate                , gasMass                   , &
+         &                                                                        massLossRate                , massOutflowRate           , &
+         &                                                                        massOutflowRateFromHalo     , massOutflowRateToHotHalo  , &
+         &                                                                        outflowToHotHaloFraction    , starFormationRate         , &
+         &                                                                        stellarMassRate             , transferRate
+    type            (history                      )                            :: historyTransferRate         , stellarHistoryRate
+    type            (stellarLuminosities          ), save                      :: luminositiesStellarRates    , luminositiesTransferRate
     !$omp threadprivate(luminositiesStellarRates,luminositiesTransferRate)
     !GCC$ attributes unused :: odeConverged
     
@@ -664,9 +665,10 @@ contains
        if (stellarHistoryRate%exists()) call disk%starFormationHistoryRate(stellarHistoryRate)
 
        ! Find rate of outflow of material from the disk and pipe it to the outflowed reservoir.
-       massOutflowRateToHotHalo=Star_Formation_Feedback_Disk_Outflow_Rate          (node,starFormationRate,energyInputRate)
-       massOutflowRateFromHalo =Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate(node,starFormationRate,energyInputRate)
-       massOutflowRate         =massOutflowRateToHotHalo+massOutflowRateFromHalo
+       starFormationFeedbackDisks_ => starFormationFeedbackDisks                         (                                      )
+       massOutflowRateToHotHalo    =  starFormationFeedbackDisks_%outflowRate            (node,starFormationRate,energyInputRate)
+       massOutflowRateFromHalo     =  Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate(node,starFormationRate,energyInputRate)
+       massOutflowRate             =  massOutflowRateToHotHalo+massOutflowRateFromHalo
        if (massOutflowRate > 0.0d0) then
           ! Find the fraction of material which outflows to the hot halo.
           outflowToHotHaloFraction=massOutflowRateToHotHalo/massOutflowRate

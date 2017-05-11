@@ -16,61 +16,71 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a fixed outflow rate due to star formation feedback in galactic disks.
+  !% Implementation of a fixed fraction outflow rate due to star formation feedback in galactic disks.
+  
+  !# <starFormationFeedbackDisks name="starFormationFeedbackDisksFixed">
+  !#  <description>A fixed fraction outflow rate due to star formation feedback in galactic disks.</description>
+  !# </starFormationFeedbackDisks>
+  type, extends(starFormationFeedbackDisksClass) :: starFormationFeedbackDisksFixed
+     !% Implementation of a fixed fraction outflow rate due to star formation feedback in galactic disks.
+     private
+     double precision :: fraction
+   contains
+     procedure :: outflowRate => fixedOutflowRate
+  end type starFormationFeedbackDisksFixed
 
-module Star_Formation_Feedback_Disks_Fixed
-  !% Implements a fixed outflow rate due to star formation feedback in galactic disks.
-  use Galacticus_Nodes
-  implicit none
-  private
-  public :: Star_Formation_Feedback_Disks_Fixed_Initialize
-
-  ! Parameters of the feedback model.
-  double precision :: diskOutflowFraction
+  interface starFormationFeedbackDisksFixed
+     !% Constructors for the fixed fraction star formation feedback in disks class.
+     module procedure fixedConstructorParameters
+     module procedure fixedConstructorInternal
+  end interface starFormationFeedbackDisksFixed
 
 contains
 
-  !# <starFormationFeedbackDisksMethod>
-  !#  <unitName>Star_Formation_Feedback_Disks_Fixed_Initialize</unitName>
-  !# </starFormationFeedbackDisksMethod>
-  subroutine Star_Formation_Feedback_Disks_Fixed_Initialize(starFormationFeedbackDisksMethod,Star_Formation_Feedback_Disk_Outflow_Rate_Get)
-    !% Initializes the ``fixed'' disk star formation feedback module.
-    use ISO_Varying_String
-    use Input_Parameters
+  function fixedConstructorParameters(parameters) result(self)
+    !% Constructor for the fixed fraction star formation feedback in disks class which takes a parameter set as input.
+    use Galacticus_Error
     implicit none
-    type     (varying_string                                 ), intent(in   )          :: starFormationFeedbackDisksMethod
-    procedure(Star_Formation_Feedback_Disk_Outflow_Rate_Fixed), intent(inout), pointer :: Star_Formation_Feedback_Disk_Outflow_Rate_Get
+    type            (starFormationFeedbackDisksFixed)                :: self
+    type            (inputParameters                ), intent(inout) :: parameters
+    double precision                                                 :: fraction
+    !# <inputParameterList label="allowedParameterNames" />
 
-    if (starFormationFeedbackDisksMethod == 'fixed') then
-       Star_Formation_Feedback_Disk_Outflow_Rate_Get => Star_Formation_Feedback_Disk_Outflow_Rate_Fixed
-       ! Get parameters of for the feedback calculation.
-       !@ <inputParameter>
-       !@   <name>diskOutflowFraction</name>
-       !@   <defaultValue>0.01</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The ratio of outflow rate to star formation rate in disks.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('diskOutflowFraction',diskOutflowFraction,defaultValue=0.01d0)
-    end if
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>fraction</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.01d0</defaultValue>
+    !#   <description>The ratio of outflow rate to star formation rate in disks.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    self=starFormationFeedbackDisksFixed(fraction)
     return
-  end subroutine Star_Formation_Feedback_Disks_Fixed_Initialize
+  end function fixedConstructorParameters
 
-  double precision function Star_Formation_Feedback_Disk_Outflow_Rate_Fixed(thisNode,starFormationRate,energyInputRate)
-    !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\normalfont \ttfamily thisNode}. Assumes a
-    !% fixed ratio of outflow rate to star formation rate.
+  function fixedConstructorInternal(fraction) result(self)
+    !% Internal constructor for the fixed star formation feedback from disks class.
+    implicit none
+    type            (starFormationFeedbackDisksFixed)                :: self
+    double precision                                 , intent(in   ) :: fraction
+
+    !# <constructorAssign variables="fraction"/>    
+    return
+  end function fixedConstructorInternal
+
+  double precision function fixedOutflowRate(self,node,rateEnergyInput,rateStarFormation)
+    !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\normalfont \ttfamily
+    !% thisNode}. Assumes a fixed ratio of outflow rate to star formation rate.
     use Stellar_Feedback
     implicit none
-    type            (treeNode), intent(inout), target :: thisNode
-    double precision          , intent(in   )         :: energyInputRate, starFormationRate
-    !GCC$ attributes unused :: thisNode, starFormationRate
+    class           (starFormationFeedbackDisksFixed), intent(inout) :: self
+    type            (treeNode                       ), intent(inout) :: node
+    double precision                                 , intent(in   ) :: rateEnergyInput, rateStarFormation
+    !GCC$ attributes unused :: node, rateStarFormation
 
-    Star_Formation_Feedback_Disk_Outflow_Rate_Fixed=diskOutflowFraction*energyInputRate/feedbackEnergyInputAtInfinityCanonical
+    fixedOutflowRate=+self%fraction                          &
+         &           *rateEnergyInput                        &
+         &           /feedbackEnergyInputAtInfinityCanonical
     return
-  end function Star_Formation_Feedback_Disk_Outflow_Rate_Fixed
-
-end module Star_Formation_Feedback_Disks_Fixed
+  end function fixedOutflowRate

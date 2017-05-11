@@ -16,95 +16,98 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a power-law outflow rate due to star formation feedback in galactic disks.
+  !% Implementation of a power-law outflow rate due to star formation feedback in galactic disks.
+  
+  !# <starFormationFeedbackDisks name="starFormationFeedbackDisksPowerLaw">
+  !#  <description>A power-law outflow rate due to star formation feedback in galactic disks.</description>
+  !# </starFormationFeedbackDisks>
+  type, extends(starFormationFeedbackDisksClass) :: starFormationFeedbackDisksPowerLaw
+     !% Implementation of a power-law outflow rate due to star formation feedback in galactic disks.
+     private
+     double precision :: velocityCharacteristic, exponent
+   contains
+     procedure :: outflowRate => powerLawOutflowRate
+  end type starFormationFeedbackDisksPowerLaw
 
-module Star_Formation_Feedback_Disks_Power_Law
-  !% Implements a power-law outflow rate due to star formation feedback in galactic disks.
-  implicit none
-  private
-  public :: Star_Formation_Feedback_Disks_Power_Law_Initialize
-
-  ! Parameters of the feedback model.
-  double precision :: diskOutflowExponent, diskOutflowVelocity
+  interface starFormationFeedbackDisksPowerLaw
+     !% Constructors for the power-law star formation feedback in disks class.
+     module procedure powerLawConstructorParameters
+     module procedure powerLawConstructorInternal
+  end interface starFormationFeedbackDisksPowerLaw
 
 contains
 
-  !# <starFormationFeedbackDisksMethod>
-  !#  <unitName>Star_Formation_Feedback_Disks_Power_Law_Initialize</unitName>
-  !# </starFormationFeedbackDisksMethod>
-  subroutine Star_Formation_Feedback_Disks_Power_Law_Initialize(starFormationFeedbackDisksMethod,Star_Formation_Feedback_Disk_Outflow_Rate_Get)
-    !% Initializes the ``power law'' disk star formation feedback module.
-    use ISO_Varying_String
-    use Input_Parameters
+  function powerLawConstructorParameters(parameters) result(self)
+    !% Constructor for the power-law star formation feedback in disks class which takes a parameter set as input.
+    use Galacticus_Error
     implicit none
-    type     (varying_string                                     ), intent(in   )          :: starFormationFeedbackDisksMethod
-    procedure(Star_Formation_Feedback_Disk_Outflow_Rate_Power_Law), intent(inout), pointer :: Star_Formation_Feedback_Disk_Outflow_Rate_Get
+    type            (starFormationFeedbackDisksPowerLaw)                :: self
+    type            (inputParameters                   ), intent(inout) :: parameters
+    double precision                                                    :: velocityCharacteristic       , exponent
+    !# <inputParameterList label="allowedParameterNames" />
 
-    if (starFormationFeedbackDisksMethod == 'powerLaw') then
-       Star_Formation_Feedback_Disk_Outflow_Rate_Get => Star_Formation_Feedback_Disk_Outflow_Rate_Power_Law
-       ! Get parameters of for the feedback calculation.
-       !@ <inputParameter>
-       !@   <name>diskOutflowVelocity</name>
-       !@   <defaultValue>250</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The velocity scale at which the \gls{sne}-driven outflow rate equals the star formation rate in disks.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('diskOutflowVelocity',diskOutflowVelocity,defaultValue=250.0d0)
-       !@ <inputParameter>
-       !@   <name>diskOutflowExponent</name>
-       !@   <defaultValue>3.5</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The velocity scaling of the \gls{sne}-driven outflow rate in disks.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('diskOutflowExponent',diskOutflowExponent,defaultValue=  3.5d0)
-    end if
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>velocityCharacteristic</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>250.0d0</defaultValue>
+    !#   <description>The velocity scale at which the \gls{sne}-driven outflow rate equals the star formation rate in disks.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>exponent</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>3.5d0</defaultValue>
+    !#   <description>The velocity scaling of the \gls{sne}-driven outflow rate in disks.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    self=starFormationFeedbackDisksPowerLaw(velocityCharacteristic,exponent)
     return
-  end subroutine Star_Formation_Feedback_Disks_Power_Law_Initialize
+  end function powerLawConstructorParameters
 
-  double precision function Star_Formation_Feedback_Disk_Outflow_Rate_Power_Law(thisNode,starFormationRate,energyInputRate)
-    !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\normalfont \ttfamily thisNode}. The outflow
-    !% rate is given by
-    !% \begin{equation}
-    !% \dot{M}_{\mathrm outflow} = \left({V_{\mathrm disk,outflow} \over V_{\mathrm disk}}\right)^{\alpha_{\mathrm disk,outflow}},
-    !% \end{equation}
-    !% where $V_{\mathrm disk,outflow}$(={\normalfont \ttfamily diskOutflowVelocity}) is the velocity scale at which outflow rate equals star formation
-    !% rate and $\alpha_{\mathrm disk,outflow}$(={\normalfont \ttfamily diskOutflowExponent}) controls the scaling with velocity. Note that the velocity
-    !% $V_{\mathrm disk}$ is whatever characteristic value returned by the disk method. This scaling is functionally similar to that
-    !% adopted by \cite{cole_hierarchical_2000}, but that they specifically used the circular velocity at half-mass radius.
-    use Galacticus_Nodes
+  function powerLawConstructorInternal(velocityCharacteristic,exponent) result(self)
+    !% Internal constructor for the power-law star formation feedback from disks class.
+    implicit none
+    type            (starFormationFeedbackDisksPowerLaw)                :: self
+    double precision                                    , intent(in   ) :: velocityCharacteristic     , exponent
+
+    !# <constructorAssign variables="velocityCharacteristic, exponent"/>    
+    return
+  end function powerLawConstructorInternal
+
+  double precision function powerLawOutflowRate(self,node,rateEnergyInput,rateStarFormation)
+    !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\normalfont \ttfamily
+    !% thisNode}. The outflow rate is given by \begin{equation} \dot{M}_{\mathrm outflow} = \left({V_{\mathrm disk,outflow} \over
+    !% V_{\mathrm disk}}\right)^{\alpha_{\mathrm disk,outflow}}, \end{equation} where $V_{\mathrm disk,outflow}$(={\normalfont
+    !% \ttfamily diskOutflowVelocity}) is the velocity scale at which outflow rate equals star formation rate and $\alpha_{\mathrm
+    !% disk,outflow}$(={\normalfont \ttfamily diskOutflowExponent}) controls the scaling with velocity. Note that the velocity
+    !% $V_{\mathrm disk}$ is whatever characteristic value returned by the disk method. This scaling is functionally similar to
+    !% that adopted by \cite{cole_hierarchical_2000}, but that they specifically used the circular velocity at half-mass radius.
     use Stellar_Feedback
     implicit none
-    type            (treeNode         ), intent(inout), target :: thisNode
-    class           (nodeComponentDisk), pointer               :: thisDiskComponent
-    double precision                   , intent(in   )         :: energyInputRate  , starFormationRate
-    double precision                                           :: diskVelocity     , outflowRateToStarFormationRate
-    !GCC$ attributes unused :: starFormationRate
-    
-    ! Get the disk.
-    thisDiskComponent => thisNode%disk()
+    class           (starFormationFeedbackDisksPowerLaw), intent(inout) :: self
+    type            (treeNode                          ), intent(inout) :: node
+    double precision                                    , intent(in   ) :: rateEnergyInput, rateStarFormation
+    class           (nodeComponentDisk                 ), pointer       :: disk
+    double precision                                                    :: velocityDisk
+    !GCC$ attributes unused :: rateStarFormation
 
     ! Get disk circular velocity.
-    diskVelocity=thisDiskComponent%velocity()
-
+    disk         => node%disk    ()
+    velocityDisk =  disk%velocity()
     ! Check for zero velocity disk.
-    if (diskVelocity <= 0.0d0) then
-       Star_Formation_Feedback_Disk_Outflow_Rate_Power_Law=0.0d0 ! No well defined answer in this case.
+    if (velocityDisk <= 0.0d0) then
+       ! No well defined answer in this case.
+       powerLawOutflowRate=+0.0d0
     else
-       outflowRateToStarFormationRate=(diskOutflowVelocity/diskVelocity)**diskOutflowExponent
-       Star_Formation_Feedback_Disk_Outflow_Rate_Power_Law=outflowRateToStarFormationRate*energyInputRate&
-            &/feedbackEnergyInputAtInfinityCanonical
+       powerLawOutflowRate=+(                                      &
+            &                +self%velocityCharacteristic          &
+            &                /     velocityDisk                    &
+            &               )**self%exponent                       &
+            &              *rateEnergyInput                        &
+            &              /feedbackEnergyInputAtInfinityCanonical
     end if
     return
-  end function Star_Formation_Feedback_Disk_Outflow_Rate_Power_Law
-
-end module Star_Formation_Feedback_Disks_Power_Law
+  end function powerLawOutflowRate
