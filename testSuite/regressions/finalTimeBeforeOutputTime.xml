@@ -9,7 +9,6 @@
   <mergingTimescaleMultiplier value="1.0"/>
   <haloMassFunctionMethod value="tinker2008"/>
   <starFormationTimescaleDisksHaloScalingRedshiftExponent value="0.0"/>
-  <diskOutflowFraction value="1.0"/>
   <coolingTimeMethod value="simple"/>
   <treeNodeMethodSatellite value="verySimple"/>
   <cosmologicalMassVarianceMethod value="filteredPower">
@@ -51,7 +50,6 @@
     <neutrinoMassSummed value="0.0"/>
   </transferFunctionMethod>
   <modifiedPressSchechterG0 value="0.57"/>
-  <diskOutflowVirialVelocityExponent value="-3.0"/>
   <mergerTreeReadPresetScaleRadii value="false"/>
   <starFormationTimescaleDisksMethod value="haloScaling"/>
   <coolingRateSimpleScalingTimescaleExponent value="3.0"/>
@@ -90,7 +88,6 @@
   <conditionalMassFunctionBehrooziBetaCut value="-1.76747815862"/>
   <hotHaloAngularMomentumLossFraction value="0.0"/>
   <timestepHostRelative value="0.1"/>
-  <diskOutflowRedshiftExponent value="0.0"/>
   <coolingRotationVelocityFrom value="hotGas"/>
   <randomSeed value="828"/>
   <conditionalMassFunctionBehrooziBCut value="87.509076382"/>
@@ -100,7 +97,11 @@
   <haloMassFunctionSamplingStellarMassFunctionErrorMassMaximum value="7.5857758e11"/>
   <intergalacticMediumStateMethod value="file"/>
   <haloMassFunctionSamplingMethod value="stellarMassFunction"/>
-  <starFormationFeedbackDisksMethod value="haloScaling"/>
+  <starFormationFeedbackDisksMethod value="haloScaling">
+    <fraction value="1.0"/>
+    <exponentVelocity value="-3.0"/>
+    <exponentRedshift value="0.0"/>
+  </starFormationFeedbackDisksMethod>
   <haloMassFunctionSamplingStellarMassFunctionErrorMstar value="5.5e10"/>
   <coolingRateMethod value="simpleScaling"/>
   <satelliteMergingTimescalesMethod value="jiang2008"/>

@@ -38,8 +38,10 @@
   <darkMatterProfileMethod value="NFW"/>
   <darkMatterProfileMinimumConcentration value="4"/>
   <diskMassToleranceAbsolute value="1e-06"/>
-  <diskOutflowExponent value="2"/>
-  <diskOutflowVelocity value="200"/>
+  <starFormationFeedbackDisksMethod value="powerLaw">
+    <velocityCharacteristic value="200.0"/>
+    <exponent value="2.0"/>
+  </starFormationFeedbackDisksMethod>
   <galacticStructureRadiusSolverMethod value="adiabatic"/>
   <haloMassFunctionMethod value="tinker2008"/>
   <haloSpinDistributionMethod value="bett2007">
@@ -110,7 +112,6 @@
   <starFormationDiskEfficiency value="0.01"/>
   <starFormationDiskMinimumTimescale value="0.001"/>
   <starFormationDiskVelocityExponent value="-1.5"/>
-  <starFormationFeedbackDisksMethod value="powerLaw"/>
   <starFormationFeedbackSpheroidsMethod value="powerLaw"/>
   <starFormationSpheroidEfficiency value="0.1"/>
   <starFormationSpheroidMinimumTimescale value="0.001"/>

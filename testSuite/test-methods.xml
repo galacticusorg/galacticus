@@ -508,7 +508,7 @@
     <version>0.9.4</version>
     <starFormationFeedbackDisksMethod>
       <value>powerLaw</value>
-      <value>Creasey2012</value>
+      <value>creasey2012</value>
     </starFormationFeedbackDisksMethod>
   </parameters>
 

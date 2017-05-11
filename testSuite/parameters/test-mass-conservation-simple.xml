@@ -67,10 +67,7 @@
     <darkMatterProfileMethod value="NFW" />
     <darkMatterProfileScaleCorrectForConcentrationDefinition value="true" />
     <diskMassToleranceAbsolute value="1.0e-6" />
-    <diskOutflowFraction value="5.4973312818696149E-002" />
-    <diskOutflowRedshiftExponent value="1.9464430036515628" />
     <diskOutflowTimescaleMinimum value="2.1949631313087498E-002" />
-    <diskOutflowVelocityExponent value="-5.2559103933618596" />
     <diskStarFormationTimescaleMinimum value="2.6271201525734244E-005" />
     <diskVerySimpleAnalyticSolverPruneMassGas value="1.0e6" />
     <diskVerySimpleAnalyticSolverPruneMassStars value="1.0e6" />
@@ -232,7 +229,11 @@
     <sdssStellarMassFunctionZ0.07MassRandomMinimum value="0.0722787402556483" />
     <sdssStellarMassFunctionZ0.07MassSystematic0 value="-0.142170573943907" />
     <sdssStellarMassFunctionZ0.07MassSystematic1 value="-0.0421152309089942" />
-    <starFormationFeedbackDisksMethod value="velocityMaximumScaling" />
+    <starFormationFeedbackDisksMethod value="velocityMaximumScaling">
+      <fraction         value="5.4973312818696149E-002" />
+      <exponentRedshift value="1.9464430036515628" />
+      <exponentVelocity value="-5.2559103933618596" />
+    </starFormationFeedbackDisksMethod>
     <starFormationTimescaleDisksMethod value="velocityMaximumScaling" />
     <starFormationTimescaleDisksVelocityMaximumScalingRedshiftExponent value="-2.2302610673721670" />
     <starFormationTimescaleDisksVelocityMaximumScalingTimescale value="5.6305510122690903" />
