@@ -78,6 +78,8 @@ contains
     type            (abundances                  )                                    :: abundancesReturnRate
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
+    ! Return immediately if this class is not in use.
+    if (.not.defaultHotHaloComponent%outflowTrackingIsActive()) return
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
     ! Act only if this hot halo is of our class.

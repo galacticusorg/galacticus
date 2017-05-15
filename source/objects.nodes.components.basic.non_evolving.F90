@@ -71,6 +71,8 @@ contains
     class    (nodeComponentBasic)               , pointer :: basicComponent
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
+    ! Return immediately if this class is not in use.
+    if (.not.defaultBasicComponent%nonEvolvingIsActive()) return
     ! Get the basic component.
     basicComponent => node%basic()
     ! Ensure that it is of the non-evolving class.

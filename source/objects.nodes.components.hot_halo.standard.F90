@@ -969,6 +969,8 @@ contains
          &                                                                               massAccretionRate
     !GCC$ attributes unused :: odeConverged
     
+    ! Return immediately if this class is not in use.
+    if (.not.defaultHotHaloComponent%standardIsActive()) return
     ! Reset calculations if necessary.
     if (node%uniqueID() /= uniqueIDPrevious) call Node_Component_Hot_Halo_Standard_Reset(node)
     ! Get required objects.

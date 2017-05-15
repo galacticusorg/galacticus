@@ -202,6 +202,8 @@ contains
     double precision                                                              :: tidalHeatingNormalized,angularFrequency,radialFrequency
     type            (tensorRank2Dimension3Symmetric)                              :: tidalTensor,tidalTensorPathIntegrated,positionTensor
 
+    ! Return immediately if this class is not in use.
+    if (.not.defaultSatelliteComponent%orbitingIsActive()) return
     ! Get the satellite component.
     satelliteComponent => thisNode%satellite()
     ! Ensure that it is of the orbiting class.

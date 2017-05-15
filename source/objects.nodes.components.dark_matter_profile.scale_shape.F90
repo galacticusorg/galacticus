@@ -132,6 +132,8 @@ contains
     class    (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
+    ! Return immediately if this class is not in use.
+    if (.not.defaultDarkMatterProfileComponent%scaleShapeIsActive()) return
     ! Get the dark matter profile component.
     darkMatterProfile => node%darkMatterProfile()
     ! Ensure that it is of the scale+shape class.

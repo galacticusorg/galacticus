@@ -102,13 +102,12 @@ contains
   !# <radiusSolverPlausibility>
   !#  <unitName>Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility</unitName>
   !# </radiusSolverPlausibility>
-  subroutine Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility(node,galaxyIsPhysicallyPlausible)
+  subroutine Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility(node)
     !% Determines whether the disk is physically plausible for radius solving tasks. Require that it have non-zero mass.
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode         ), intent(inout) :: node
-    logical                            , intent(inout) :: galaxyIsPhysicallyPlausible
-    class           (nodeComponentDisk), pointer       :: disk
+    type (treeNode         ), intent(inout) :: node
+    class(nodeComponentDisk), pointer       :: disk
 
     ! Return immediately if our method is not selected.
     if (.not.defaultDiskComponent%verySimpleSizeIsActive()) return
@@ -117,7 +116,7 @@ contains
      disk => node%disk()
      select type (disk)
      class is (nodeComponentDiskVerySimpleSize)
-        galaxyIsPhysicallyPlausible=(disk%massStellar()+disk%massGas() >= -diskMassToleranceAbsolute)
+        if (disk%massStellar()+disk%massGas() < -diskMassToleranceAbsolute) node%isPhysicallyPlausible=.false.
      end select
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility

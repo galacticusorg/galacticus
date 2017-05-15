@@ -168,6 +168,8 @@ contains
     double precision                                                 :: massLossRate
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
+    ! Return immediately if this class is not in use.
+    if (.not.defaultSatelliteComponent%standardIsActive()) return
     ! Get the satellite component.
     satellite => node%satellite()
     ! Ensure that it is of the standard class.
