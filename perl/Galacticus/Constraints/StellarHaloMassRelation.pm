@@ -85,8 +85,8 @@ sub COSMOS2012 {
     if ( exists($options{'outputFile'}) ) {
 	my $constraint;
 	if ( nelem($massStellarModelLogarithmic) > 0 ) {
-	    my $logLikelihood = -0.5*($massStellarModelLogarithmic-$massStellarDataLogarithmicInterpolated)**2/($massStellarErrorModelLogarithmic**2+$massStellarErrorDataLogarithmicInterpolated**2);
-	    $constraint->{'logLikelihood'} = $logLikelihood->sclr();
+	    my $logLikelihood = -0.5*sum(($massStellarModelLogarithmic-$massStellarDataLogarithmicInterpolated)**2/($massStellarErrorModelLogarithmic**2+$massStellarErrorDataLogarithmicInterpolated**2));
+	    $constraint->{'logLikelihood'} = $logLikelihood;
 	} else {
 	    $constraint->{'logLikelihood'} = -1.0e30;
 	}
