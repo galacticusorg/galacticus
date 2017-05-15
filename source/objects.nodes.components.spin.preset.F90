@@ -98,6 +98,8 @@ contains
     class    (nodeComponentSpin)               , pointer :: spin
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
+    ! Return immediately if this class is not in use.
+    if (.not.defaultSpinComponent%presetIsActive()) return
     ! Get the spin component.
     spin => node%spin()
     ! Ensure that it is of the preset class.

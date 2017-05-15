@@ -107,6 +107,8 @@ contains
     class    (nodeComponentBasic         )               , pointer :: basicFormation    , basic
     !GCC$ attributes unused :: odeConverged
     
+    ! Return immediately if this class is not in use.
+    if (.not.defaultFormationTimeComponent%cole2000IsActive()) return
     ! Get the hot halo component.
     formationTime => node%formationTime()
     if (defaultFormationTimeComponent%cole2000IsActive()) then

@@ -130,6 +130,8 @@ contains
     class           (nodeComponentSatellite)               , pointer :: satelliteComponent
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
+    ! Return immediately if this class is not in use.
+    if (.not.defaultSatelliteComponent%verySimpleIsActive()) return
     ! Get the satellite component.
     satelliteComponent => thisNode%satellite()
     ! Ensure that it is of the standard class.

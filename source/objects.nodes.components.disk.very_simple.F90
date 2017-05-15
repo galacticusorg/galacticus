@@ -276,7 +276,7 @@ contains
     ! Check if an exponential disk component exists.
     select type (disk)
        class is (nodeComponentDiskVerySimple)
-          ! Initialize the disk
+       ! Initialize the disk
        call Node_Component_Disk_Very_Simple_Create(node)
     end select
     return

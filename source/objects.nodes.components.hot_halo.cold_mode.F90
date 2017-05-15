@@ -245,6 +245,8 @@ contains
          &                                                                    gasMass                     , infallRate
     !GCC$ attributes unused :: odeConverged
     
+    ! Return immediately if this class is not in use.
+    if (.not.defaultHotHaloComponent%coldModeIsActive()) return
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
     ! Ensure that the standard hot halo implementation is active.

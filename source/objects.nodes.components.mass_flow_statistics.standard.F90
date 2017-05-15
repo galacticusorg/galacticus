@@ -116,6 +116,8 @@ contains
     class    (nodeComponentMassFlowStatistics), pointer                :: massFlowStatistics
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
+    ! Return immediately if this class is not in use.
+    if (.not.defaultMassFlowStatisticsComponent%standardIsActive()) return
     ! Get the massFlowStatistics component.
     massFlowStatistics => node%massFlowStatistics()
     ! Ensure that it is of the standard class.
