@@ -894,17 +894,17 @@ contains
              ! Initialize no events.
              tree%event => null()
              ! Check if the size of this forest exceeds the maximum allowed.
-             if     (                                                                             &
-                  &   .not.returnSplitForest                                                      &
-                  &  .and.                                                                        &
-                  &   defaultImporter%nodeCount(nextTreeToRead) > mergerTreeReadForestSizeMaximum &
-                  &  .and.                                                                        &
-                  &   0                                         < mergerTreeReadForestSizeMaximum &
+             if     (                                                                                   &
+                  &   .not.returnSplitForest                                                            &
+                  &  .and.                                                                              &
+                  &   defaultImporter%nodeCount(nextTreeToReadActual) > mergerTreeReadForestSizeMaximum &
+                  &  .and.                                                                              &
+                  &   0                                               < mergerTreeReadForestSizeMaximum &
                   & ) then
                 ! Check if the importer supports reading subsets of halos from a forest.
                 if (.not.defaultImporter%canReadSubsets()) call Galacticus_Error_Report('Merger_Tree_Read_Do','forest exceeds maximum allowed size but importer cannot read subsets of halos')
                 ! Import nodes, and keep only the minimally required data to map the tree structure.
-                call defaultImporter%import(nextTreeToRead,nodes,structureOnly=.true.)
+                call defaultImporter%import(nextTreeToReadActual,nodes,structureOnly=.true.)
                 ! Find initial root node affinities of all nodes.
                 call Root_Node_Affinities_Initial(nodes)
                 call Memory_Usage_Record(sizeof(nodes),addRemove=-1)
