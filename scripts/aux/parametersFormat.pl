@@ -212,6 +212,14 @@ my @groups =
 	     ]
      },
      {
+	 name        => "accretionOntoHalos" ,
+	 description => "Accretion onto halos",
+	 members     =>
+	     [
+	      "accretionHaloTotalMethod"
+	     ]
+     },
+    {
 	 name        => "accretionFromIGM" ,
 	 description => "Accretion from the IGM",
 	 members     =>
@@ -220,7 +228,8 @@ my @groups =
 	      "accretionHalosSimpleNegativeAccretionAllowed",
 	      "accretionHalosSimpleAccreteNewGrowthOnly",
 	      "accretionColdModeShockStabilityThreshold",
-	      "accretionColdModeShockStabilityTransitionWidth"
+	      "accretionColdModeShockStabilityTransitionWidth",
+	      qr/^accretionHaloNaozBarkana2007.*/
 	     ]
      },
      {
@@ -525,6 +534,7 @@ my @groups =
 	      qr/^.*SizeFunctionZ[\d\.]+MassSystematic\d+$/,
 	      qr/^.*SizeFunctionZ[\d\.]+MassRandom\d+$/,
 	      qr/^.*SizeFunctionZ[\d\.]+MassRandomMinimum$/,
+	      qr/^.*SizeFunctionZ[\d\.]+MassRandomMaximum$/,
 	      qr/^.*SizeFunctionZ[\d\.]+RadiusSystematic\d+$/,
 	     ]
      },
