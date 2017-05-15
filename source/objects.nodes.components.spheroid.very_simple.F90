@@ -429,17 +429,18 @@ contains
     use Histories
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: node
-    type            (history                 ), intent(inout)          :: stellarHistoryRate
-    double precision                          , intent(  out)          :: fuelMassRate            , stellarMassRate       , &
-         &                                                                massOutflowRate
-    type            (abundances              ), intent(  out)          :: fuelAbundancesRate      , stellarAbundancesRate
-    type            (stellarLuminosities     ), intent(inout)          :: luminositiesStellarRates
-    class           (nodeComponentSpheroid   )               , pointer :: spheroid
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                                                   :: spheroidDynamicalTime   , fuelMass              , &
-         &                                                                energyInputRate         , starFormationRate
-    type            (abundances              )                         :: fuelAbundances
+    type            (treeNode                           ), intent(inout), pointer :: node
+    type            (history                            ), intent(inout)          :: stellarHistoryRate
+    double precision                                     , intent(  out)          :: fuelMassRate                   , stellarMassRate      , &
+         &                                                                           massOutflowRate
+    type            (abundances                         ), intent(  out)          :: fuelAbundancesRate             , stellarAbundancesRate
+    type            (stellarLuminosities                ), intent(inout)          :: luminositiesStellarRates
+    class           (nodeComponentSpheroid              )               , pointer :: spheroid
+    class           (darkMatterHaloScaleClass           )               , pointer :: darkMatterHaloScale_
+    class           (starFormationFeedbackSpheroidsClass)               , pointer :: starFormationFeedbackSpheroids_
+    double precision                                                              :: spheroidDynamicalTime          , fuelMass             , &
+         &                                                                           energyInputRate                , starFormationRate
+    type            (abundances                         )                         :: fuelAbundances
     
     ! Get the spheroid.
     spheroid => node%spheroid()
@@ -464,7 +465,8 @@ contains
     call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,componentTypeSpheroid,node,stellarHistoryRate &
          &,stellarMassRate,stellarAbundancesRate,luminositiesStellarRates,fuelMassRate,fuelAbundancesRate,energyInputRate)
     ! Find rate of outflow of material from the spheroid and pipe it to the outflowed reservoir.
-    massOutflowRate=Star_Formation_Feedback_Spheroid_Outflow_Rate(node,starFormationRate,energyInputRate)
+    starFormationFeedbackSpheroids_ => starFormationFeedbackSpheroids()
+    massOutflowRate=starFormationFeedbackSpheroids_%outflowRate(node,starFormationRate,energyInputRate)
     if (massOutflowRate > 0.0d0) then
        ! Limit the outflow rate timescale to a multiple of the dynamical time.
        darkMatterHaloScale_ => darkMatterHaloScale                    (    )

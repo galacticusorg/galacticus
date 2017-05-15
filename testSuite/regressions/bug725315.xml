@@ -121,16 +121,17 @@
   <imfSelectionFixed value="Salpeter"/>
   <treeNodeMethodHotHalo value="standard"/>
   <reionizationSuppressionRedshift value="9"/>
-  <starFormationFeedbackSpheroidsMethod value="powerLaw"/>
+  <starFormationFeedbackSpheroidsMethod value="powerLaw">
+    <exponent value="2.0"/>
+    <velocityCharacteristic value="50.0"/>
+  </starFormationFeedbackSpheroidsMethod>
   <mergerTreeStructureOutput value="false"/>
   <timestepHostRelative value="0.1"/>
   <noninstantHistoryTimesCount value="10"/>
   <randomSeed value="228"/>
   <mergerTreeBuildTreesHaloMassExponent value="1"/>
-  <spheroidOutflowVelocity value="50"/>
   <stabilityThresholdStellar value="1.1"/>
   <elementsToTrack value="Ca Mg Si Ti Fe"/>
-  <spheroidOutflowExponent value="2"/>
   <starFormationFeedbackDisksMethod value="powerLaw">
     <exponent value="2"/>
     <velocityCharacteristic value="200"/>
