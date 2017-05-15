@@ -16,80 +16,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of feedback from star formation in spheroids.
+!% Contains a module which provides an object that implements cosmological parameters.
 
 module Star_Formation_Feedback_Spheroids
-  !% Implements calculations of feedback from star formation in spheroids.
-  use ISO_Varying_String
+  !% Provides an object that implements calculations of feedback from star formation in spheroids.
   use Galacticus_Nodes
-  implicit none
-  private
-  public :: Star_Formation_Feedback_Spheroid_Outflow_Rate
-
-  ! Flag to indicate if this module has been initialized.
-  logical                                                           :: starFormationFeedbackSpheroidsInitialized        =.false.
-
-  ! Name of cooling rate available method used.
-  type     (varying_string                               )          :: starFormationFeedbackSpheroidsMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Star_Formation_Feedback_Spheroid_Outflow_Rate), pointer :: Star_Formation_Feedback_Spheroid_Outflow_Rate_Get=>null()
- 
-contains
-
-  subroutine Star_Formation_Feedback_Spheroids_Initialize
-    !% Initialize the spheroid star formation feedback module.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="starFormationFeedbackSpheroidsMethod" type="moduleUse">
-    include 'star_formation.feedbacks.spheroids.modules.inc'
-    !# </include>
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.starFormationFeedbackSpheroidsInitialized) then
-       !$omp critical(Star_Formation_Feedback_Spheroids_Initialization)
-       if (.not.starFormationFeedbackSpheroidsInitialized) then
-          ! Get the spheroid star formation feedback method parameter.
-          !@ <inputParameter>
-          !@   <name>starFormationFeedbackSpheroidsMethod</name>
-          !@   <defaultValue>powerLaw</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for calculations of \gls{sne} feedback in spheroids.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>starFormation</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('starFormationFeedbackSpheroidsMethod',starFormationFeedbackSpheroidsMethod,defaultValue='powerLaw')
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="starFormationFeedbackSpheroidsMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>starFormationFeedbackSpheroidsMethod,Star_Formation_Feedback_Spheroid_Outflow_Rate_Get</functionArgs>
-          include 'star_formation.feedbacks.spheroids.inc'
-          !# </include>
-          if (.not.associated(Star_Formation_Feedback_Spheroid_Outflow_Rate_Get)) call Galacticus_Error_Report('Star_Formation_Feedback_Spheroids'&
-               &,'method ' //char(starFormationFeedbackSpheroidsMethod)//' is unrecognized')
-          starFormationFeedbackSpheroidsInitialized=.true.
-       end if
-       !$omp end critical(Star_Formation_Feedback_Spheroids_Initialization)
-    end if
-    return
-  end subroutine Star_Formation_Feedback_Spheroids_Initialize
-
-  double precision function Star_Formation_Feedback_Spheroid_Outflow_Rate(thisNode,starFormationRate,energyInputRate)
-    !% Returns the outflow rate due to star formation in the spheroid component of {\normalfont \ttfamily thisNode}.
-    implicit none
-    type            (treeNode), intent(inout) :: thisNode
-    double precision          , intent(in   ) :: energyInputRate, starFormationRate
-
-    ! Initialize the module.
-    call Star_Formation_Feedback_Spheroids_Initialize
-
-    ! Get the energy using the selected method.
-    Star_Formation_Feedback_Spheroid_Outflow_Rate=Star_Formation_Feedback_Spheroid_Outflow_Rate_Get(thisNode,starFormationRate,energyInputRate)
-
-    return
-  end function Star_Formation_Feedback_Spheroid_Outflow_Rate
+  
+  !# <functionClass>
+  !#  <name>starFormationFeedbackSpheroids</name>
+  !#  <descriptiveName>Feedback from star formation in spheroids</descriptiveName>
+  !#  <description>Class providing models of feedback from star formation in spheroids.</description>
+  !#  <default>powerLaw</default>
+  !#  <method name="outflowRate" >
+  !#   <description>Returns the outflow rate due to star formation in the spheroid component of {\normalfont \ttfamily node} in units of $M_\odot/$Gyr.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
+  !#   <argument>double precision          , intent(in   ) :: rateEnergyInput, rateStarFormation</argument>
+  !#  </method>
+  !# </functionClass>
 
 end module Star_Formation_Feedback_Spheroids

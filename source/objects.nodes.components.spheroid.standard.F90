@@ -550,27 +550,28 @@ contains
     use Satellites_Tidal_Fields
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: node
-    logical                                   , intent(in   )          :: odeConverged
-    logical                                   , intent(inout)          :: interrupt
-    procedure       (                        ), intent(inout), pointer :: interruptProcedure
-    class           (nodeComponentSpheroid   )               , pointer :: spheroid
-    class           (nodeComponentHotHalo    )               , pointer :: hotHalo
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    type            (abundances              ), save                   :: fuelAbundances            , fuelAbundancesRates     , &
-         &                                                                stellarAbundancesRates
+    type            (treeNode                           ), intent(inout), pointer :: node
+    logical                                              , intent(in   )          :: odeConverged
+    logical                                              , intent(inout)          :: interrupt
+    procedure       (                                   ), intent(inout), pointer :: interruptProcedure
+    class           (nodeComponentSpheroid              )               , pointer :: spheroid
+    class           (nodeComponentHotHalo               )               , pointer :: hotHalo
+    class           (darkMatterHaloScaleClass           )               , pointer :: darkMatterHaloScale_
+    class           (starFormationFeedbackSpheroidsClass)               , pointer :: starFormationFeedbackSpheroids_
+    type            (abundances                         ), save                   :: fuelAbundances                 , fuelAbundancesRates     , &
+         &                                                                           stellarAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
-    double precision                                                   :: angularMomentumOutflowRate, energyInputRate         , &
-         &                                                                fractionGas               , fractionStellar         , &
-         &                                                                fuelMass                  , fuelMassRate            , &
-         &                                                                gasMass                   , massLossRate            , &
-         &                                                                massOutflowRate           , massOutflowRateFromHalo , &
-         &                                                                massOutflowRateToHotHalo  , outflowToHotHaloFraction, &
-         &                                                                spheroidDynamicalTime     , spheroidMass            , &
-         &                                                                starFormationRate         , stellarMassRate         , &
-         &                                                                tidalField                , tidalTorque
-    type            (history                 )                         :: historyTransferRate       , stellarHistoryRate
-    type            (stellarLuminosities     ), save                   :: luminositiesStellarRates
+    double precision                                                              :: angularMomentumOutflowRate     , energyInputRate         , &
+         &                                                                           fractionGas                    , fractionStellar         , &
+         &                                                                           fuelMass                       , fuelMassRate            , &
+         &                                                                           gasMass                        , massLossRate            , &
+         &                                                                           massOutflowRate                , massOutflowRateFromHalo , &
+         &                                                                           massOutflowRateToHotHalo       , outflowToHotHaloFraction, &
+         &                                                                           spheroidDynamicalTime          , spheroidMass            , &
+         &                                                                           starFormationRate              , stellarMassRate         , &
+         &                                                                           tidalField                     , tidalTorque
+    type            (history                            )                         :: historyTransferRate            , stellarHistoryRate
+    type            (stellarLuminosities                ), save                   :: luminositiesStellarRates
     !$omp threadprivate(luminositiesStellarRates)
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
@@ -616,7 +617,8 @@ contains
        if (stellarHistoryRate%exists()) call spheroid%starFormationHistoryRate(stellarHistoryRate)
 
        ! Find rate of outflow of material from the spheroid and pipe it to the outflowed reservoir.
-       massOutflowRateToHotHalo=Star_Formation_Feedback_Spheroid_Outflow_Rate          (node,starFormationRate,energyInputRate)
+       starFormationFeedbackSpheroids_ => starFormationFeedbackSpheroids()
+       massOutflowRateToHotHalo=starFormationFeedbackSpheroids_%outflowRate            (node,starFormationRate,energyInputRate)
        massOutflowRateFromHalo =Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate(node,starFormationRate,energyInputRate)
        massOutflowRate         =massOutflowRateToHotHalo+massOutflowRateFromHalo
        if (massOutflowRate > 0.0d0) then

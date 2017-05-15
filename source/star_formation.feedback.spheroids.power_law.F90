@@ -16,94 +16,98 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a power-law outflow rate due to star formation feedback in galactic spheroids.
+  !% Implementation of a power-law outflow rate due to star formation feedback in galactic spheroids.
+  
+  !# <starFormationFeedbackSpheroids name="starFormationFeedbackSpheroidsPowerLaw">
+  !#  <description>A power-law outflow rate due to star formation feedback in galactic spheroids.</description>
+  !# </starFormationFeedbackSpheroids>
+  type, extends(starFormationFeedbackSpheroidsClass) :: starFormationFeedbackSpheroidsPowerLaw
+     !% Implementation of a power-law outflow rate due to star formation feedback in galactic spheroids.
+     private
+     double precision :: velocityCharacteristic, exponent
+   contains
+     procedure :: outflowRate => powerLawOutflowRate
+  end type starFormationFeedbackSpheroidsPowerLaw
 
-module Star_Formation_Feedback_Spheroids_Power_Law
-  !% Implements a power-law outflow rate due to star formation feedback in galactic spheroids.
-  implicit none
-  private
-  public :: Star_Formation_Feedback_Spheroids_Power_Law_Initialize
-
-  ! Parameters of the feedback model.
-  double precision :: spheroidOutflowExponent, spheroidOutflowVelocity
+  interface starFormationFeedbackSpheroidsPowerLaw
+     !% Constructors for the power-law star formation feedback in spheroids class.
+     module procedure powerLawConstructorParameters
+     module procedure powerLawConstructorInternal
+  end interface starFormationFeedbackSpheroidsPowerLaw
 
 contains
 
-  !# <starFormationFeedbackSpheroidsMethod>
-  !#  <unitName>Star_Formation_Feedback_Spheroids_Power_Law_Initialize</unitName>
-  !# </starFormationFeedbackSpheroidsMethod>
-  subroutine Star_Formation_Feedback_Spheroids_Power_Law_Initialize(starFormationFeedbackSpheroidsMethod&
-       &,Star_Formation_Feedback_Spheroid_Outflow_Rate_Get)
-    !% Initializes the ``power law'' spheroid star formation feedback module.
-    use ISO_Varying_String
-    use Input_Parameters
+  function powerLawConstructorParameters(parameters) result(self)
+    !% Constructor for the power-law star formation feedback in spheroids class which takes a parameter set as input.
+    use Galacticus_Error
     implicit none
-    type     (varying_string                                         ), intent(in   )          :: starFormationFeedbackSpheroidsMethod
-    procedure(Star_Formation_Feedback_Spheroid_Outflow_Rate_Power_Law), intent(inout), pointer :: Star_Formation_Feedback_Spheroid_Outflow_Rate_Get
+    type            (starFormationFeedbackSpheroidsPowerLaw)                :: self
+    type            (inputParameters                       ), intent(inout) :: parameters
+    double precision                                                        :: velocityCharacteristic, exponent
+    !# <inputParameterList label="allowedParameterNames" />
 
-    if (starFormationFeedbackSpheroidsMethod == 'powerLaw') then
-       Star_Formation_Feedback_Spheroid_Outflow_Rate_Get => Star_Formation_Feedback_Spheroid_Outflow_Rate_Power_Law
-       ! Get parameters of for the feedback calculation.
-       !@ <inputParameter>
-       !@   <name>spheroidOutflowVelocity</name>
-       !@   <defaultValue>100km s$^{-1}$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The velocity scale at which the \gls{sne}-driven outflow rate equals the star formation rate in spheroids.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('spheroidOutflowVelocity',spheroidOutflowVelocity,defaultValue=100.0d0)
-       !@ <inputParameter>
-       !@   <name>spheroidOutflowExponent</name>
-       !@   <defaultValue>3.5</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The velocity scaling of the \gls{sne}-driven outflow rate in spheroids.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('spheroidOutflowExponent',spheroidOutflowExponent,defaultValue= 3.5d0)
-    end if
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>velocityCharacteristic</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>250.0d0</defaultValue>
+    !#   <description>The velocity scale at which the \gls{sne}-driven outflow rate equals the star formation rate in spheroids.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>exponent</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>3.5d0</defaultValue>
+    !#   <description>The velocity scaling of the \gls{sne}-driven outflow rate in spheroids.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    self=starFormationFeedbackSpheroidsPowerLaw(velocityCharacteristic,exponent)
     return
-  end subroutine Star_Formation_Feedback_Spheroids_Power_Law_Initialize
+  end function powerLawConstructorParameters
 
-  double precision function Star_Formation_Feedback_Spheroid_Outflow_Rate_Power_Law(thisNode,starFormationRate,energyInputRate)
-    !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic spheroid of {\normalfont \ttfamily thisNode}. The outflow
-    !% rate is given by
-    !% \begin{equation}
-    !% \dot{M}_{\mathrm outflow} = \left({V_{\mathrm spheroid,outflow} \over V_{\mathrm spheroid}}\right)^{\alpha_{\mathrm spheroid,outflow}},
-    !% \end{equation}
-    !% where $V_{\mathrm spheroid,outflow}$(={\normalfont \ttfamily spheroidOutflowVelocity}) is the velocity scale at which outflow rate equals star formation
-    !% rate and $\alpha_{\mathrm spheroid,outflow}$(={\normalfont \ttfamily spheroidOutflowExponent}) controls the scaling with velocity. Note that the velocity
-    !% $V_{\mathrm spheroid}$ is whatever characteristic value returned by the spheroid method. This scaling is functionally similar to that
-    !% adopted by \cite{cole_hierarchical_2000}, but that they specifically used the circular velocity at half-mass radius.
-    use Galacticus_Nodes
+  function powerLawConstructorInternal(velocityCharacteristic,exponent) result(self)
+    !% Internal constructor for the power-law star formation feedback from spheroids class.
+    implicit none
+    type            (starFormationFeedbackSpheroidsPowerLaw)                :: self
+    double precision                                        , intent(in   ) :: velocityCharacteristic, exponent
+
+    !# <constructorAssign variables="velocityCharacteristic, exponent"/>    
+    return
+  end function powerLawConstructorInternal
+
+  double precision function powerLawOutflowRate(self,node,rateEnergyInput,rateStarFormation)
+    !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic spheroid of {\normalfont \ttfamily
+    !% thisNode}. The outflow rate is given by \begin{equation} \dot{M}_{\mathrm outflow} = \left({V_{\mathrm spheroid,outflow} \over
+    !% V_{\mathrm spheroid}}\right)^{\alpha_{\mathrm spheroid,outflow}}, \end{equation} where $V_{\mathrm spheroid,outflow}$(={\normalfont
+    !% \ttfamily spheroidOutflowVelocity}) is the velocity scale at which outflow rate equals star formation rate and $\alpha_{\mathrm
+    !% spheroid,outflow}$(={\normalfont \ttfamily spheroidOutflowExponent}) controls the scaling with velocity. Note that the velocity
+    !% $V_{\mathrm spheroid}$ is whatever characteristic value returned by the spheroid method. This scaling is functionally similar to
+    !% that adopted by \cite{cole_hierarchical_2000}, but that they specifically used the circular velocity at half-mass radius.
     use Stellar_Feedback
     implicit none
-    type            (treeNode             ), intent(inout) :: thisNode
-    double precision                       , intent(in   ) :: energyInputRate               , starFormationRate
-    class           (nodeComponentSpheroid), pointer       :: thisSpheroidComponent
-    double precision                                       :: outflowRateToStarFormationRate, spheroidVelocity
-    !GCC$ attributes unused :: starFormationRate
-    
+    class           (starFormationFeedbackSpheroidsPowerLaw), intent(inout) :: self
+    type            (treeNode                              ), intent(inout) :: node
+    double precision                                        , intent(in   ) :: rateEnergyInput , rateStarFormation
+    class           (nodeComponentSpheroid                 ), pointer       :: spheroid
+    double precision                                                        :: velocitySpheroid
+    !GCC$ attributes unused :: rateStarFormation
+
     ! Get spheroid circular velocity.
-    thisSpheroidComponent => thisNode%spheroid()
-    spheroidVelocity=thisSpheroidComponent%velocity()
-
+    spheroid         => node    %spheroid()
+    velocitySpheroid =  spheroid%velocity()
     ! Check for zero velocity spheroid.
-    if (spheroidVelocity <= 0.0d0) then
-       Star_Formation_Feedback_Spheroid_Outflow_Rate_Power_Law=0.0d0 ! No well defined answer in this case.
+    if (velocitySpheroid <= 0.0d0) then
+       ! No well defined answer in this case.
+       powerLawOutflowRate=+0.0d0
     else
-       outflowRateToStarFormationRate=(spheroidOutflowVelocity/spheroidVelocity)**spheroidOutflowExponent
-       Star_Formation_Feedback_Spheroid_Outflow_Rate_Power_Law=outflowRateToStarFormationRate*energyInputRate &
-            &/feedbackEnergyInputAtInfinityCanonical
-   end if
+       powerLawOutflowRate=+(                                      &
+            &                +self%velocityCharacteristic          &
+            &                /     velocitySpheroid                &
+            &               )**self%exponent                       &
+            &              *rateEnergyInput                        &
+            &              /feedbackEnergyInputAtInfinityCanonical
+    end if
     return
-  end function Star_Formation_Feedback_Spheroid_Outflow_Rate_Power_Law
-
-end module Star_Formation_Feedback_Spheroids_Power_Law
+  end function powerLawOutflowRate

@@ -16,128 +16,146 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an outflow rate due to star formation feedback in galactic spheroids that scales with halo
-!% maximum velocity and redshift.
+  !% Implementation of an outflow rate due to star formation feedback in galactic spheroids which scales with peak halo velocity.
 
-module Star_Formation_Feedback_Spheroids_VlctyMxSclng
-  !% Implements an outflow rate due to star formation feedback in galactic spheroids that scales with halo
-  !% maximum velocity and redshift.
-  use Galacticus_Nodes
-  implicit none
-  private
-  public :: Star_Formation_Feedback_Spheroids_VlctyMxSclng_Initialize
-
-  ! Parameters of the feedback model.
-  double precision :: spheroidOutflowFraction        , spheroidOutflowRedshiftExponent, &
-       &              spheroidOutflowVelocityExponent
-
-  ! Normalization factor for the outflow rate.
-  double precision :: outflowNormalization
+  use Math_Exponentiation
+  use Cosmology_Functions
   
+  !# <starFormationFeedbackSpheroids name="starFormationFeedbackSpheroidsVlctyMxSclng" defaultThreadPrivate="yes">
+  !#  <description>An outflow rate due to star formation feedback in galactic spheroids which scales with peak halo velocity.</description>
+  !# </starFormationFeedbackSpheroids>
+  type, extends(starFormationFeedbackSpheroidsClass) :: starFormationFeedbackSpheroidsVlctyMxSclng
+     !% Implementation of an outflow rate due to star formation feedback in galactic spheroids which scales with peak halo velocity.
+     private
+     double precision                                    :: fraction               , exponentRedshift            , &
+          &                                                 exponentVelocity       , normalization               , &
+          &                                                 velocityPrevious       , velocityFactor              , &
+          &                                                 expansionFactorPrevious, expansionFactorFactor
+     type            (fastExponentiator       )          :: velocityExponentiator  , expansionFactorExponentiator
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
+   contains
+     final     ::                vlctyMxSclngDestructor
+     procedure :: outflowRate => vlctyMxSclngOutflowRate
+  end type starFormationFeedbackSpheroidsVlctyMxSclng
+
+  interface starFormationFeedbackSpheroidsVlctyMxSclng
+     !% Constructors for the velocity maximum scaling fraction star formation feedback in spheroids class.
+     module procedure vlctyMxSclngConstructorParameters
+     module procedure vlctyMxSclngConstructorInternal
+  end interface starFormationFeedbackSpheroidsVlctyMxSclng
+
 contains
 
-  !# <starFormationFeedbackSpheroidsMethod>
-  !#  <unitName>Star_Formation_Feedback_Spheroids_VlctyMxSclng_Initialize</unitName>
-  !# </starFormationFeedbackSpheroidsMethod>
-  subroutine Star_Formation_Feedback_Spheroids_VlctyMxSclng_Initialize(starFormationFeedbackSpheroidsMethod,Star_Formation_Feedback_Spheroid_Outflow_Rate_Get)
-    !% Initializes the ``halo scaling'' spheroid star formation feedback module.
-    use ISO_Varying_String
-    use Input_Parameters
+  function vlctyMxSclngConstructorParameters(parameters) result(self)
+    !% Constructor for the velocity maximum scaling fraction star formation feedback in spheroids class which takes a parameter set as
+    !% input.
+    use Galacticus_Error
+    implicit none
+    type            (starFormationFeedbackSpheroidsVlctyMxSclng)                :: self
+    type            (inputParameters                           ), intent(inout) :: parameters
+    double precision                                                            :: fraction            , exponentRedshift, &
+         &                                                                         exponentVelocity
+    class           (cosmologyFunctionsClass                   ), pointer       :: cosmologyFunctions_
+    !# <inputParameterList label="allowedParameterNames" />
+
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>fraction</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.01d0</defaultValue>
+    !#   <description>The ratio of outflow rate to star formation rate in spheroids.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>exponentVelocity</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>-2.0d0</defaultValue>
+    !#   <description>The exponent of virial velocity in the outflow rate in spheroids.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>exponentRedshift</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>The exponent of redshift in the outflow rate in spheroids.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    self=starFormationFeedbackSpheroidsVlctyMxSclng(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_)
+    return
+  end function vlctyMxSclngConstructorParameters
+
+  function vlctyMxSclngConstructorInternal(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_) result(self)
+    !% Internal constructor for the halo scaling star formation feedback from spheroids class.
     use Stellar_Feedback
     implicit none
-    type            (varying_string                                            ), intent(in   )          :: starFormationFeedbackSpheroidsMethod              
-    procedure       (Star_Formation_Feedback_Spheroid_Outflow_Rate_VlctyMxSclng), intent(inout), pointer :: Star_Formation_Feedback_Spheroid_Outflow_Rate_Get 
-    double precision                                                            , parameter              :: velocityNormalization=200.0d0
+    type            (starFormationFeedbackSpheroidsVlctyMxSclng)                        :: self
+    double precision                                            , intent(in   )         :: fraction                     , exponentRedshift, &
+         &                                                                                 exponentVelocity
+    class           (cosmologyFunctionsClass                   ), intent(in   ), target :: cosmologyFunctions_
+    double precision                                            , parameter             :: velocityNormalization=200.0d0
 
-    if (starFormationFeedbackSpheroidsMethod == 'velocityMaximumScaling') then
-       Star_Formation_Feedback_Spheroid_Outflow_Rate_Get => Star_Formation_Feedback_Spheroid_Outflow_Rate_VlctyMxSclng
-       ! Get parameters of for the feedback calculation.
-       !@ <inputParameter>
-       !@   <name>spheroidOutflowFraction</name>
-       !@   <defaultValue>0.01</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The ratio of outflow rate to star formation rate in spheroids.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('spheroidOutflowFraction',spheroidOutflowFraction,defaultValue=0.01d0)
-       !@ <inputParameter>
-       !@   <name>spheroidOutflowVelocityExponent</name>
-       !@   <defaultValue>$-2.0$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The exponent of maximum velocity in the outflow rate in spheroids.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('spheroidOutflowVelocityExponent',spheroidOutflowVelocityExponent,defaultValue=-2.0d0)
-       !@ <inputParameter>
-       !@   <name>spheroidOutflowRedshiftExponent</name>
-       !@   <defaultValue>$0.0$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The exponent of redshift in the outflow rate in spheroids.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('spheroidOutflowRedshiftExponent',spheroidOutflowRedshiftExponent,defaultValue=0.0d0)
-       ! Compute the normalization factor.
-       outflowNormalization=+spheroidOutflowFraction                                &
-            &               /feedbackEnergyInputAtInfinityCanonical                 &
-            &               /velocityNormalization**spheroidOutflowVelocityExponent
-    end if
+    !# <constructorAssign variables="fraction, exponentRedshift, exponentVelocity, *cosmologyFunctions_"/>
+    ! Initialize stored values.
+    self%velocityPrevious       =-1.0d0
+    self%expansionFactorPrevious=-1.0d0
+    self%velocityFactor         =-1.0d0
+    self%expansionFactorFactor  =-1.0d0
+    ! Compute the normalization factor.
+    self%normalization          =+self%fraction                                &
+         &                       /feedbackEnergyInputAtInfinityCanonical       &
+         &                       /velocityNormalization**self%exponentVelocity
+    ! Initialize fast exponentiators.
+    self%velocityExponentiator       =fastExponentiator(1.0d+0,1.0d+3,self%exponentVelocity,1.0d+1,abortOutsideRange=.false.)
+    self%expansionFactorExponentiator=fastExponentiator(1.0d-3,1.0d+0,self%exponentRedshift,1.0d+3,abortOutsideRange=.false.)
     return
-  end subroutine Star_Formation_Feedback_Spheroids_VlctyMxSclng_Initialize
+  end function vlctyMxSclngConstructorInternal
 
-  double precision function Star_Formation_Feedback_Spheroid_Outflow_Rate_VlctyMxSclng(node,starFormationRate,energyInputRate)
+  subroutine vlctyMxSclngDestructor(self)
+    !% Destructor for the velocity maximum scaling feedback from star formation in spheroids class.
+    implicit none
+    type(starFormationFeedbackSpheroidsVlctyMxSclng), intent(inout) :: self
+  
+    !# <objectDestructor name="self%cosmologyFunctions_" />
+    return
+  end subroutine vlctyMxSclngDestructor
+  
+  double precision function vlctyMxSclngOutflowRate(self,node,rateEnergyInput,rateStarFormation)
     !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic spheroid of {\normalfont \ttfamily node}.
-    use Cosmology_Functions
     use Dark_Matter_Profiles
     implicit none
-    type            (treeNode               ), intent(inout) :: node
-    double precision                         , intent(in   ) :: energyInputRate                , starFormationRate
-    class           (nodeComponentBasic     ), pointer       :: basic
-    double precision                         , save          :: velocityPrevious       =-1.0d0, velocityFactorPrevious       =-1.0d0
-    !$omp threadprivate(velocityPrevious,velocityFactorPrevious)
-    class           (cosmologyFunctionsClass), pointer       :: cosmologyFunctions_
-    class           (darkMatterProfileClass ), pointer       :: darkMatterProfile_
-    double precision                         , save          :: expansionFactorPrevious=-1.0d0, expansionFactorFactorPrevious=-1.0d0
-    !$omp threadprivate(expansionFactorPrevious,expansionFactorFactorPrevious)
-    double precision                                         :: expansionFactor                , velocityMaximum
-    !GCC$ attributes unused :: starFormationRate
-    
-    ! Get the default cosmology functions object.
-    cosmologyFunctions_ => cosmologyFunctions()
-    darkMatterProfile_  => darkMatterProfile ()
+    class           (starFormationFeedbackSpheroidsVlctyMxSclng), intent(inout) :: self
+    type            (treeNode                                  ), intent(inout) :: node
+    double precision                                            , intent(in   ) :: rateEnergyInput   , rateStarFormation
+    class           (nodeComponentBasic                        ), pointer       :: basic
+    class           (darkMatterProfileClass                    ), pointer       :: darkMatterProfile_
+    double precision                                                            :: expansionFactor   , velocityMaximum
+    !GCC$ attributes unused :: rateStarFormation
+
+    ! Get required objects.
+    darkMatterProfile_ => darkMatterProfile      ()
     ! Get the basic component.
-    basic               => node%basic        ()
-    ! Get maximum velocity and expansion factor.
-    velocityMaximum=darkMatterProfile_ %circularVelocityMaximum(node        )
-    expansionFactor=cosmologyFunctions_%expansionFactor        (basic%time())
+    basic              => node             %basic()
+    ! Get virial velocity and expansion factor.
+    velocityMaximum=     darkMatterProfile_ %circularVelocityMaximum(node        )
+    expansionFactor=self%cosmologyFunctions_%expansionFactor        (basic%time())
     ! Compute the velocity factor.
-    if (velocityMaximum /= velocityPrevious       ) then
-       velocityPrevious             =      velocityMaximum
-       velocityFactorPrevious       =      velocityMaximum**spheroidOutflowVelocityExponent
-    end if
+    if (velocityMaximum /= self%velocityPrevious) then
+       self%velocityPrevious       =                                                     velocityMaximum
+       self%velocityFactor         =      self%velocityExponentiator       %exponentiate(velocityMaximum)
+    end if    
     ! Compute the expansion-factor factor.
-    if (expansionFactor /= expansionFactorPrevious) then
-       expansionFactorPrevious      =      expansionFactor
-       expansionFactorFactorPrevious=1.0d0/expansionFactor**spheroidOutflowRedshiftExponent
+    if (expansionFactor /= self%expansionFactorPrevious) then
+       self%expansionFactorPrevious=                                                     expansionFactor
+       self%expansionFactorFactor  =1.0d0/self%expansionFactorExponentiator%exponentiate(expansionFactor)
     end if
     ! Compute the outflow rate.
-    Star_Formation_Feedback_Spheroid_Outflow_Rate_VlctyMxSclng= &
-         & +outflowNormalization                                &
-         & *energyInputRate                                     &
-         & *velocityFactorPrevious                              &
-         & *expansionFactorFactorPrevious
+    vlctyMxSclngOutflowRate=+self%normalization         &
+         &                  *rateEnergyInput            &
+         &                  *self%velocityFactor        &
+         &                  *self%expansionFactorFactor
     return
-  end function Star_Formation_Feedback_Spheroid_Outflow_Rate_VlctyMxSclng
-
-end module Star_Formation_Feedback_Spheroids_VlctyMxSclng
+  end function vlctyMxSclngOutflowRate

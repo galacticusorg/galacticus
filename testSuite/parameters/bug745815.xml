@@ -105,14 +105,15 @@
     <sigma_8 value="0.807"/>
   </cosmologicalMassVarianceMethod><spheroidEnergeticOutflowMassRate value="1"/>
   <spheroidMassToleranceAbsolute value="1e-06"/>
-  <spheroidOutflowExponent value="2"/>
-  <spheroidOutflowVelocity value="50"/>
   <stabilityThresholdGaseous value="0.9"/>
   <stabilityThresholdStellar value="1.1"/>
   <starFormationDiskEfficiency value="0.01"/>
   <starFormationDiskMinimumTimescale value="0.001"/>
   <starFormationDiskVelocityExponent value="-1.5"/>
-  <starFormationFeedbackSpheroidsMethod value="powerLaw"/>
+  <starFormationFeedbackSpheroidsMethod value="powerLaw">
+    <exponent value="2"/>
+    <velocityCharacteristic value="50"/>
+  </starFormationFeedbackSpheroidsMethod>
   <starFormationSpheroidEfficiency value="0.1"/>
   <starFormationSpheroidMinimumTimescale value="0.001"/>
   <starFormationSpheroidVelocityExponent value="0"/>
