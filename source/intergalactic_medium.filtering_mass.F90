@@ -242,7 +242,7 @@ contains
     redshift       =cosmologyFunctions_ %redshiftFromExpansionFactor(expansionFactor)
     ! Validate input.
     if (omegaMatter < 0.25d0 .or. omegaMatter >   0.40d0) call Galacticus_Warn('Mass_Filtering_Early_Epoch: matter density outside validated range of fitting function; 0.25 ≤ Ωₘ ≤ 0.40')
-    if (redshift    < 7.00d0 .or. redshift    > 150.00d0) call Galacticus_Warn('Mass_Filtering_Early_Epoch: matter density outside validated range of fitting function; 7 ≤ z ≤ 150'       )
+    if (redshift    < 7.00d0 .or. redshift    > 150.00d0) call Galacticus_Warn('Mass_Filtering_Early_Epoch: redshift outside validated range of fitting function; 7 ≤ z ≤ 150'           )
     ! Evaluate fitting function.
     coefficients(1)=-0.38d0*(omegaMatter**2)+ 0.41d0*omegaMatter- 0.16d0
     coefficients(2)=+3.30d0*(omegaMatter**2)- 3.38d0*omegaMatter+ 1.15d0
