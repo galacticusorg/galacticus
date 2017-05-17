@@ -106,7 +106,7 @@ subroutine simulatorParticleSwarmSimulate(self)
   logPosterior=logImpossible
   do while (logPosterior <= logImpossible)
      ! Initialize particle to some state vector.
-     call self%simulationStateInitializor%initialize(self%simulationState,self%parameterPriors,self%parameterMappings,timeEvaluateInitial)
+     call self%simulationStateInitializor%initialize(self%simulationState,self%parameterPriors,self%parameterMappings,self%modelLikelihood,timeEvaluateInitial)
      ! Evaluate the posterior in the initial state.
      timeEvaluate        =-1.0
      timeEvaluatePrevious=real(timeEvaluateInitial)

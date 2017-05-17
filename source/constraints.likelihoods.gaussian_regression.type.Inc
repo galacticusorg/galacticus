@@ -48,6 +48,7 @@
      procedure :: evaluate        => likelihoodGaussianRegressionEvaluate
      procedure :: willEvaluate    => likelihoodGaussianRegressionWillEvaluate
      procedure :: functionChanged => likelihoodGaussianRegressionFunctionChanged
+     procedure :: restore         => likelihoodGaussianRegressionRestore
   end type likelihoodGaussianRegression
   
   interface likelihoodGaussianRegression

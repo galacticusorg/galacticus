@@ -792,3 +792,35 @@ subroutine likelihoodGaussianRegressionEmulate(self,simulationState,likelihoodEm
   end do
   return
 end subroutine likelihoodGaussianRegressionEmulate
+
+subroutine likelihoodGaussianRegressionRestore(self,simulationState,logLikelihood)
+  !% Process a previous state to restore likelihood function.
+  use Constraints_Constants
+  use Memory_Management
+  implicit none
+  class           (likelihoodGaussianRegression), intent(inout)               :: self
+  double precision                              , intent(in   ), dimension(:) :: simulationState
+  double precision                              , intent(in   )               :: logLikelihood
+  integer                                                                     :: i
+
+  if (logLikelihood > logImpossible) then
+     if (.not.allocated(self%simulatorLikelihood)) then
+        call allocateArray(self%simulatorLikelihood,[                      self%emulatorRebuildCount])
+        call allocateArray(self%simulationState    ,[size(simulationState),self%emulatorRebuildCount])
+     end if
+     if (self%accumulatedStateCount == self%emulatorRebuildCount) then
+        ! Retain every second of the currently stored states. This avoids losing all information and only replacing it with data from
+        ! regions where the new emulator is bad.
+        do i=1,self%accumulatedStateCount/2
+           self%simulatorLikelihood(  i)=self%simulatorLikelihood(  2*i)
+           self%simulationState    (:,i)=self%simulationState    (:,2*i)
+        end do
+        self%accumulatedStateCount=self%accumulatedStateCount/2
+     end if
+     self%accumulatedStateCount                            =self%accumulatedStateCount+1
+     self%simulatorLikelihood(  self%accumulatedStateCount)=logLikelihood
+     self%simulationState    (:,self%accumulatedStateCount)=simulationState
+  end if
+  return
+end subroutine likelihoodGaussianRegressionRestore
+

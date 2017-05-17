@@ -105,7 +105,7 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
      stateProposed=stateSimple(self%parameterCount,1)
   end select
   ! Initialize chain to some state vector.
-  call self%simulationStateInitializor%initialize(self%simulationState,self%parameterPriors,self%parametermappings,timeEvaluateInitial)
+  call self%simulationStateInitializor%initialize(self%simulationState,self%parameterPriors,self%parametermappings,self%modelLikelihood,timeEvaluateInitial)
   ! Evaluate the posterior in the initial state.
   timeEvaluate        =-1.0
   timeEvaluatePrevious=real(timeEvaluateInitial)

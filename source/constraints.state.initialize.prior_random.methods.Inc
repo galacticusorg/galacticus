@@ -18,15 +18,16 @@
 
 !% Defines methods for a prior random state initializor.
 
-subroutine stateInitializorPriorRandomInitialize(self,simulationState,parameterPriors,parameterMappings,timeEvaluatePrevious)
+subroutine stateInitializorPriorRandomInitialize(self,simulationState,parameterPriors,parameterMappings,modelLikelihood,timeEvaluatePrevious)
   !% Initialize simulation state by drawing at random from the parameter priors.
   implicit none
   class           (stateInitializorPriorRandom), intent(inout)               :: self
   class           (state                      ), intent(inout)               :: simulationState
+  class           (likelihood                 ), intent(inout)               :: modelLikelihood
   type            (prior                      ), intent(inout), dimension(:) :: parameterPriors
   type            (mappingList                ), intent(in   ), dimension(:) :: parameterMappings
   double precision                             , intent(  out)               :: timeEvaluatePrevious
-  !GCC$ attributes unused ::  self, parameterMappings
+  !GCC$ attributes unused ::  self, parameterMappings, modelLikelihood
   
   ! No knowledge of evaluation time.
   timeEvaluatePrevious=-1.0d0

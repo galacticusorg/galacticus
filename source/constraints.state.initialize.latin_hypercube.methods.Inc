@@ -28,7 +28,7 @@ function stateInitializorLatinHypercubeConstructor(maximinTrialCount)
   return
 end function stateInitializorLatinHypercubeConstructor
 
-subroutine stateInitializorLatinHypercubeInitialize(self,simulationState,parameterPriors,parameterMappings,timeEvaluatePrevious)
+subroutine stateInitializorLatinHypercubeInitialize(self,simulationState,parameterPriors,parameterMappings,modelLikelihood,timeEvaluatePrevious)
   !% Initialize simulation state by drawing at random from the parameter priors.
   use MPI_Utilities
   use Pseudo_Random
@@ -37,6 +37,7 @@ subroutine stateInitializorLatinHypercubeInitialize(self,simulationState,paramet
   implicit none
   class           (stateInitializorLatinHypercube), intent(inout)                 :: self
   class           (state                         ), intent(inout)                 :: simulationState
+  class           (likelihood                    ), intent(inout)                 :: modelLikelihood
   type            (prior                         ), intent(inout), dimension(:  ) :: parameterPriors
   type            (mappingList                   ), intent(in   ), dimension(:  ) :: parameterMappings
   integer         (kind=c_size_t                 ), allocatable  , dimension(:  ) :: order
@@ -48,7 +49,7 @@ subroutine stateInitializorLatinHypercubeInitialize(self,simulationState,paramet
        &                                                                             i1                   , i2                      , &
        &                                                                             k
   double precision                                                                :: separationMinimum    , separationMinimumMaximum
-  !GCC$ attributes unused :: parameterMappings
+  !GCC$ attributes unused :: parameterMappings, modelLikelihood
   
   ! No knowledge of evaluation time.
   timeEvaluatePrevious=-1.0d0
