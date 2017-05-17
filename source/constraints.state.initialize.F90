@@ -23,6 +23,7 @@ module Constraints_State_Initialize
   use Constraints_Priors
   use Constraints_State
   use Constraints_Mappings
+  use Constraints_Likelihoods
   use ISO_Varying_String
   use Pseudo_Random
   private
@@ -45,13 +46,14 @@ module Constraints_State_Initialize
 
   ! Interface for deferred functions.
   abstract interface
-     subroutine stateInitializorInitialize(self,simulationState,parameterPriors,parameterMappings,timeEvaluatePrevious)
-       import :: stateInitializor, state, prior, mappingList
+     subroutine stateInitializorInitialize(self,simulationState,parameterPriors,parameterMappings,modelLikelihood,timeEvaluatePrevious)
+       import :: stateInitializor, state, prior, mappingList, likelihood
        class           (stateInitializor), intent(inout)               :: self
        class           (state           ), intent(inout)               :: simulationState
+       class           (likelihood      ), intent(inout)               :: modelLikelihood
        type            (prior           ), intent(inout), dimension(:) :: parameterPriors
        type            (mappingList     ), intent(in   ), dimension(:) :: parameterMappings
-       double precision                  , intent(  out)              :: timeEvaluatePrevious 
+       double precision                  , intent(  out)               :: timeEvaluatePrevious 
      end subroutine stateInitializorInitialize
   end interface
 

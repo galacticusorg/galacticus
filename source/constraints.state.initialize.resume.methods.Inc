@@ -30,7 +30,7 @@ function stateInitializorResumeConstructor(logFileRoot,restoreState)
   return
 end function stateInitializorResumeConstructor
 
-subroutine stateInitializorResumeInitialize(self,simulationState,parameterPriors,parameterMappings,timeEvaluatePrevious)
+subroutine stateInitializorResumeInitialize(self,simulationState,parameterPriors,parameterMappings,modelLikelihood,timeEvaluatePrevious)
   !% Initialize simulation state by resuming from a previous simulation.
   use Constraints_Priors
   use Constraints_State
@@ -41,6 +41,7 @@ subroutine stateInitializorResumeInitialize(self,simulationState,parameterPriors
   implicit none
   class           (stateInitializorResume), intent(inout)               :: self
   class           (state                 ), intent(inout)               :: simulationState
+  class           (likelihood            ), intent(inout)               :: modelLikelihood
   type            (prior                 ), intent(inout), dimension(:) :: parameterPriors
   type            (mappingList           ), intent(in   ), dimension(:) :: parameterMappings
   double precision                        , intent(  out)               :: timeEvaluatePrevious
@@ -75,7 +76,10 @@ subroutine stateInitializorResumeInitialize(self,simulationState,parameterPriors
            stateVectorMapped(i)=parameterMappings(i)%thisMapping%map(stateVector(i))
         end do
         ! Restore the state object.
-        if (self%restoreState) call simulationState%restore(stateVectorMapped,first)
+        if (self%restoreState) then
+           call simulationState%restore(stateVectorMapped,first        )
+           call modelLikelihood%restore(stateVectorMapped,logLikelihood)
+        end if
         first=.false.
      end if
   end do

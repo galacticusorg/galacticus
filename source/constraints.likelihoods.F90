@@ -58,6 +58,7 @@ module Constraints_Likelihoods
      procedure(likelihoodEvaluate       ), deferred :: evaluate
      procedure                                      :: willEvaluate    => likelihoodWillEvaluate
      procedure(likelihoodFunctionChanged), deferred :: functionChanged
+     procedure                                      :: restore         => likelihoodRestore
   end type likelihood
 
   ! Interface for deferred functions.
@@ -397,6 +398,16 @@ contains
     likelihoodWillEvaluate=.true.
     return
   end function likelihoodWillEvaluate
+  
+  subroutine likelihoodRestore(self,simulationState,logLikelihood)
+    !% Process a previous state to restore likelihood function.
+    class           (likelihood ), intent(inout)               :: self
+    double precision             , intent(in   ), dimension(:) :: simulationState
+    double precision             , intent(in   )               :: logLikelihood
+    !GCC$ attributes unused :: self, simulationState, logLikelihood
+    
+    return
+  end subroutine likelihoodRestore
   
   ! Include all likelihood methods.
   include 'constraints.likelihoods.multivariate_normal.methods.inc'
