@@ -466,7 +466,7 @@ contains
          &,stellarMassRate,stellarAbundancesRate,luminositiesStellarRates,fuelMassRate,fuelAbundancesRate,energyInputRate)
     ! Find rate of outflow of material from the spheroid and pipe it to the outflowed reservoir.
     starFormationFeedbackSpheroids_ => starFormationFeedbackSpheroids()
-    massOutflowRate=starFormationFeedbackSpheroids_%outflowRate(node,starFormationRate,energyInputRate)
+    massOutflowRate=starFormationFeedbackSpheroids_%outflowRate(node,energyInputRate,starFormationRate)
     if (massOutflowRate > 0.0d0) then
        ! Limit the outflow rate timescale to a multiple of the dynamical time.
        darkMatterHaloScale_ => darkMatterHaloScale                    (    )
