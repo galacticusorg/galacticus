@@ -64,8 +64,7 @@ subroutine stateCorrelationUpdate(self,stateNew,logState,isConverged,outlierMask
   logical                           , intent(in   ), dimension(:)             , optional :: outlierMask
   double precision                  , allocatable  , dimension(:,:           )           :: statesTmp
   integer                                                                                :: storedStateCountMaximum
-  integer                                                                                :: i                      , n, &
-       &                                                                                    stepComputeInterval
+  integer                                                                                :: stepComputeInterval
 
   call self%stateHistory%update(stateNew,logState,isConverged,outlierMask)
   ! Return if not logging states.
