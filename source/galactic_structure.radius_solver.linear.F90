@@ -58,6 +58,7 @@ contains
 
     ! Check that the galaxy is physical plausible. In this linear solver, we don't act on this.
     node%isPhysicallyPlausible=.true.
+    node%isSolvable           =.true.
     include 'galactic_structure.radius_solver.plausible.inc'
     include 'galactic_structure.radius_solver.tasks.inc'
 
